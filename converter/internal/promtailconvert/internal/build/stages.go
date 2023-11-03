@@ -3,6 +3,7 @@ package build
 import (
 	"fmt"
 	"sort"
+	"strings"
 	"time"
 
 	"github.com/alecthomas/units"
@@ -258,23 +259,19 @@ func convertDrop(cfg interface{}, diags *diag.Diagnostics) (stages.StageConfig, 
 	if pDrop.Source != nil {
 		switch s := pDrop.Source.(type) {
 		case []interface{}:
-			if len(s) == 1 {
-				str, ok := s[0].(string)
+			strs := make([]string, len(s))
+			for i, v := range s {
+				str, ok := v.(string)
 				if !ok {
 					diags.Add(
 						diag.SeverityLevelError,
-						fmt.Sprintf("invalid pipeline_stages.drop.source[0] field type '%T': %v", s[0], s[0]),
+						fmt.Sprintf("invalid pipeline_stages.drop.source[%d] field type '%T': %v", i, v, v),
 					)
 					return stages.StageConfig{}, false
 				}
-				source = str
-			} else if len(s) > 1 {
-				diags.Add(
-					diag.SeverityLevelError,
-					fmt.Sprintf("only single value for pipelina_stages.drop.source is supported - got: %v", s),
-				)
-				return stages.StageConfig{}, false
+				strs[i] = str
 			}
+			source = strings.Join(strs, ",")
 		case string:
 			source = s
 		default:
@@ -311,13 +308,6 @@ func convertDrop(cfg interface{}, diags *diag.Diagnostics) (stages.StageConfig, 
 		}
 	}
 
-	if pDrop.Separator != nil && *pDrop.Separator != "" {
-		diags.Add(
-			diag.SeverityLevelWarn,
-			fmt.Sprintf("pipeline_stages.drop.separator is ignored since only one 'source' value is supported: %v", *pDrop.Separator),
-		)
-	}
-
 	return stages.StageConfig{DropConfig: &stages.DropConfig{
 		DropReason: defaultEmpty(pDrop.DropReason),
 		Source:     source,
@@ -325,6 +315,7 @@ func convertDrop(cfg interface{}, diags *diag.Diagnostics) (stages.StageConfig, 
 		Expression: defaultEmpty(pDrop.Expression),
 		OlderThan:  olderThan,
 		LongerThan: longerThan,
+		Separator:  defaultEmpty(pDrop.Separator),
 	}}, true
 }
 

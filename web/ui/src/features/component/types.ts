@@ -121,3 +121,11 @@ export interface PartitionedBody {
   attrs: AttrStmt[];
   inner: PartitionedBody[];
 }
+
+/**
+ * Sort order for component list
+ */
+export enum SortOrder {
+  ASC = 'asc',
+  DESC = 'desc',
+}

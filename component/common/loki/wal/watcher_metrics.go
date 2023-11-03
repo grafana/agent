@@ -8,6 +8,7 @@ type WatcherMetrics struct {
 	droppedWriteNotifications *prometheus.CounterVec
 	segmentRead               *prometheus.CounterVec
 	currentSegment            *prometheus.GaugeVec
+	replaySegment             *prometheus.GaugeVec
 	watchersRunning           *prometheus.GaugeVec
 }
 
@@ -55,6 +56,15 @@ func NewWatcherMetrics(reg prometheus.Registerer) *WatcherMetrics {
 				Subsystem: "wal_watcher",
 				Name:      "current_segment",
 				Help:      "Current segment the WAL watcher is reading records from.",
+			},
+			[]string{"id"},
+		),
+		replaySegment: prometheus.NewGaugeVec(
+			prometheus.GaugeOpts{
+				Namespace: "loki_write",
+				Subsystem: "wal_watcher",
+				Name:      "replay_segment",
+				Help:      "Segment the WAL watcher will start replaying the WAL from on startup.",
 			},
 			[]string{"id"},
 		),

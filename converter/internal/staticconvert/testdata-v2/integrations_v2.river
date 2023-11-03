@@ -1,0 +1,92 @@
+prometheus.remote_write "metrics_default" {
+	endpoint {
+		name = "default-8be96f"
+		url  = "http://localhost:9009/api/prom/push"
+
+		queue_config { }
+
+		metadata_config { }
+	}
+}
+
+prometheus.exporter.azure "integrations_azure1" {
+	subscriptions = ["subId"]
+	resource_type = "Microsoft.Dashboard/grafana"
+	metrics       = ["HttpRequestCount"]
+}
+
+prometheus.scrape "integrations_azure1" {
+	targets    = prometheus.exporter.azure.integrations_azure1.targets
+	forward_to = [prometheus.remote_write.metrics_default.receiver]
+	job_name   = "integrations/azure1"
+}
+
+prometheus.exporter.azure "integrations_azure2" {
+	subscriptions = ["subId"]
+	resource_type = "Microsoft.Dashboard/grafana"
+	metrics       = ["HttpRequestCount"]
+}
+
+prometheus.scrape "integrations_azure2" {
+	targets    = prometheus.exporter.azure.integrations_azure2.targets
+	forward_to = [prometheus.remote_write.metrics_default.receiver]
+	job_name   = "integrations/azure2"
+}
+
+prometheus.exporter.agent "integrations_agent" { }
+
+discovery.relabel "integrations_agent" {
+	targets = prometheus.exporter.agent.integrations_agent.targets
+
+	rule {
+		source_labels = ["__address__"]
+		target_label  = "test_label"
+		replacement   = "test_label_value"
+	}
+
+	rule {
+		source_labels = ["__address__"]
+		target_label  = "test_label_2"
+		replacement   = "test_label_value_2"
+	}
+}
+
+prometheus.scrape "integrations_agent" {
+	targets    = discovery.relabel.integrations_agent.output
+	forward_to = [prometheus.remote_write.metrics_default.receiver]
+	job_name   = "integrations/agent"
+}
+
+prometheus.exporter.apache "integrations_apache1" {
+	insecure = true
+}
+
+prometheus.scrape "integrations_apache1" {
+	targets    = prometheus.exporter.apache.integrations_apache1.targets
+	forward_to = [prometheus.remote_write.metrics_default.receiver]
+	job_name   = "integrations/apache1"
+}
+
+prometheus.exporter.apache "integrations_apache2" { }
+
+discovery.relabel "integrations_apache2" {
+	targets = prometheus.exporter.apache.integrations_apache2.targets
+
+	rule {
+		source_labels = ["__address__"]
+		target_label  = "test_label"
+		replacement   = "test_label_value"
+	}
+
+	rule {
+		source_labels = ["__address__"]
+		target_label  = "test_label_2"
+		replacement   = "test_label_value_2"
+	}
+}
+
+prometheus.scrape "integrations_apache2" {
+	targets    = discovery.relabel.integrations_apache2.output
+	forward_to = [prometheus.remote_write.metrics_default.receiver]
+	job_name   = "integrations/apache2"
+}

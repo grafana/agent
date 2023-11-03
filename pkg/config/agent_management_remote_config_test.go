@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/grafana/agent/pkg/metrics/instance"
+	"github.com/prometheus/prometheus/model/labels"
 	"github.com/stretchr/testify/require"
 )
 
@@ -178,5 +179,78 @@ integration_configs:
 		require.Equal(t, true, c.Integrations.ConfigV1.UseHostnameLabel)
 		require.Equal(t, true, c.Integrations.ConfigV1.ReplaceInstanceLabel)
 		require.Equal(t, 5*time.Second, c.Integrations.ConfigV1.IntegrationRestartBackoff)
+	})
+
+	t.Run("no external labels provided", func(t *testing.T) {
+		rc := RemoteConfig{
+			BaseConfig: BaseConfigContent(baseConfig),
+			Snippets:   allSnippets,
+		}
+		c, err := rc.BuildAgentConfig()
+		require.NoError(t, err)
+		require.Equal(t, 1, len(c.Logs.Configs))
+		require.Empty(t, c.Metrics.Global.Prometheus.ExternalLabels)
+	})
+
+	t.Run("no external labels provided in remote config", func(t *testing.T) {
+		baseConfig := `
+server:
+    log_level: debug
+metrics:
+    global:
+        external_labels:
+            foo: bar`
+		rc := RemoteConfig{
+			BaseConfig: BaseConfigContent(baseConfig),
+			Snippets:   allSnippets,
+		}
+		c, err := rc.BuildAgentConfig()
+		require.NoError(t, err)
+		require.Equal(t, 1, len(c.Logs.Configs))
+		require.Equal(t, 1, len(c.Metrics.Global.Prometheus.ExternalLabels))
+		require.Contains(t, c.Metrics.Global.Prometheus.ExternalLabels, labels.Label{Name: "foo", Value: "bar"})
+	})
+
+	t.Run("external labels provided", func(t *testing.T) {
+		rc := RemoteConfig{
+			BaseConfig: BaseConfigContent(baseConfig),
+			Snippets:   allSnippets,
+			AgentMetadata: AgentMetadata{
+				ExternalLabels: map[string]string{
+					"foo": "bar",
+				},
+			},
+		}
+		c, err := rc.BuildAgentConfig()
+		require.NoError(t, err)
+		require.Equal(t, 1, len(c.Logs.Configs))
+		require.Equal(t, 1, len(c.Metrics.Configs))
+		require.Contains(t, c.Metrics.Global.Prometheus.ExternalLabels, labels.Label{Name: "foo", Value: "bar"})
+	})
+
+	t.Run("external labels don't override base config", func(t *testing.T) {
+		baseConfig := `
+server:
+    log_level: debug
+metrics:
+    global:
+        external_labels:
+            foo: bar
+`
+		rc := RemoteConfig{
+			BaseConfig: BaseConfigContent(baseConfig),
+			Snippets:   allSnippets,
+			AgentMetadata: AgentMetadata{
+				ExternalLabels: map[string]string{
+					"foo": "baz",
+				},
+			},
+		}
+		c, err := rc.BuildAgentConfig()
+		require.NoError(t, err)
+		require.Equal(t, 1, len(c.Logs.Configs))
+		require.Equal(t, 1, len(c.Metrics.Configs))
+		require.Contains(t, c.Metrics.Global.Prometheus.ExternalLabels, labels.Label{Name: "foo", Value: "bar"})
+		require.NotContains(t, c.Metrics.Global.Prometheus.ExternalLabels, labels.Label{Name: "foo", Value: "baz"})
 	})
 }

@@ -19,6 +19,12 @@ const (
 	errMaxStreamsLimitExceeded = "streams limit exceeded, streams: %d exceeds limit: %d, stream: '%s'"
 )
 
+// SentDataMarkerHandler is a slice of the MarkerHandler interface, that the batch interacts with to report the event that
+// all data in the batch has been delivered or a client failed to do so.
+type SentDataMarkerHandler interface {
+	UpdateSentData(segmentId, dataCount int)
+}
+
 // batch holds pending log streams waiting to be sent to Loki, and it's used
 // to reduce the number of push requests to Loki aggregating multiple log streams
 // and entries in a single batch request. In case of multi-tenant Promtail, log
@@ -30,14 +36,18 @@ type batch struct {
 	createdAt  time.Time
 
 	maxStreams int
+
+	// segmentCounter tracks the amount of entries for each segment present in this batch.
+	segmentCounter map[int]int
 }
 
 func newBatch(maxStreams int, entries ...loki.Entry) *batch {
 	b := &batch{
-		streams:    map[string]*logproto.Stream{},
-		totalBytes: 0,
-		createdAt:  time.Now(),
-		maxStreams: maxStreams,
+		streams:        map[string]*logproto.Stream{},
+		totalBytes:     0,
+		createdAt:      time.Now(),
+		maxStreams:     maxStreams,
+		segmentCounter: map[int]int{},
 	}
 
 	// Add entries to the batch
@@ -72,14 +82,16 @@ func (b *batch) add(entry loki.Entry) error {
 	return nil
 }
 
-// add an entry to the batch
-func (b *batch) addFromWAL(lbs model.LabelSet, entry logproto.Entry) error {
+// addFromWAL adds an entry to the batch, tracking that the data being added comes from segment segmentNum read from the
+// WAL.
+func (b *batch) addFromWAL(lbs model.LabelSet, entry logproto.Entry, segmentNum int) error {
 	b.totalBytes += len(entry.Line)
 
 	// Append the entry to an already existing stream (if any)
 	labels := labelsMapToString(lbs, ReservedLabelTenantID)
 	if stream, ok := b.streams[labels]; ok {
 		stream.Entries = append(stream.Entries, entry)
+		b.countForSegment(segmentNum)
 		return nil
 	}
 
@@ -93,6 +105,7 @@ func (b *batch) addFromWAL(lbs model.LabelSet, entry logproto.Entry) error {
 		Labels:  labels,
 		Entries: []logproto.Entry{entry},
 	}
+	b.countForSegment(segmentNum)
 
 	return nil
 }
@@ -170,4 +183,21 @@ func (b *batch) createPushRequest() (*logproto.PushRequest, int) {
 		entriesCount += len(stream.Entries)
 	}
 	return &req, entriesCount
+}
+
+// countForSegment tracks that one data item has been read from a certain WAL segment.
+func (b *batch) countForSegment(segmentNum int) {
+	if curr, ok := b.segmentCounter[segmentNum]; ok {
+		b.segmentCounter[segmentNum] = curr + 1
+		return
+	}
+	b.segmentCounter[segmentNum] = 1
+}
+
+// reportAsSentData will report for all segments whose data is part of this batch, the amount of that data as sent to
+// the provided SentDataMarkerHandler
+func (b *batch) reportAsSentData(h SentDataMarkerHandler) {
+	for seg, data := range b.segmentCounter {
+		h.UpdateSentData(seg, data)
+	}
 }

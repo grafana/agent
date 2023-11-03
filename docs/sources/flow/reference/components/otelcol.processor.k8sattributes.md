@@ -285,11 +285,11 @@ otelcol.receiver.otlp "default" {
 }
 
 otelcol.processor.k8sattributes "default" {
-    output {
-        metrics = [otelcol.exporter.otlp.default.input]
-        logs    = [otelcol.exporter.otlp.default.input]
-        traces  = [otelcol.exporter.otlp.default.input]
-    }
+  output {
+    metrics = [otelcol.exporter.otlp.default.input]
+    logs    = [otelcol.exporter.otlp.default.input]
+    traces  = [otelcol.exporter.otlp.default.input]
+  }
 }
 
 otelcol.exporter.otlp "default" {
@@ -314,37 +314,98 @@ otelcol.receiver.otlp "default" {
 }
 
 otelcol.processor.k8sattributes "default" {
-    extract {
-		label {
-			from      = "pod"
-			key_regex = "(.*)/(.*)"
-			tag_name  = "$1.$2"
-		}
-
-		metadata = [
-			"k8s.namespace.name",
-			"k8s.deployment.name",
-			"k8s.statefulset.name",
-			"k8s.daemonset.name",
-			"k8s.cronjob.name",
-			"k8s.job.name",
-			"k8s.node.name",
-			"k8s.pod.name",
-			"k8s.pod.uid",
-			"k8s.pod.start_time",
-		]
-	}
-
-    output {
-        metrics = [otelcol.exporter.otlp.default.input]
-        logs    = [otelcol.exporter.otlp.default.input]
-        traces  = [otelcol.exporter.otlp.default.input]
+  extract {
+    label {
+      from      = "pod"
+      key_regex = "(.*)/(.*)"
+      tag_name  = "$1.$2"
     }
+
+    metadata = [
+      "k8s.namespace.name",
+      "k8s.deployment.name",
+      "k8s.statefulset.name",
+      "k8s.daemonset.name",
+      "k8s.cronjob.name",
+      "k8s.job.name",
+      "k8s.node.name",
+      "k8s.pod.name",
+      "k8s.pod.uid",
+      "k8s.pod.start_time",
+    ]
+  }
+
+  output {
+    metrics = [otelcol.exporter.otlp.default.input]
+    logs    = [otelcol.exporter.otlp.default.input]
+    traces  = [otelcol.exporter.otlp.default.input]
+  }
 }
 
 otelcol.exporter.otlp "default" {
   client {
     endpoint = env("OTLP_ENDPOINT")
+  }
+}
+```
+
+### Adding Kubernetes metadata to Prometheus metrics
+
+`otelcol.processor.k8sattributes` adds metadata to metrics signals in the form of resource attributes.
+To display the metadata as labels of Prometheus metrics, the OTLP attributes must be converted from
+resource attributes to datapoint attributes. One way to do this is by using an `otelcol.processor.transform`
+component.
+
+```river
+otelcol.receiver.otlp "default" {
+  http {}
+  grpc {}
+
+  output {
+    metrics = [otelcol.processor.k8sattributes.default.input]
+  }
+}
+
+otelcol.processor.k8sattributes "default" {
+  extract {
+    label {
+      from = "pod"
+    }
+
+    metadata = [
+      "k8s.namespace.name",
+      "k8s.pod.name",
+    ]
+  }
+
+  output {
+    metrics = [otelcol.processor.transform.add_kube_attrs.input]
+  }
+}
+
+otelcol.processor.transform "add_kube_attrs" {
+  error_mode = "ignore"
+
+  metric_statements {
+    context = "datapoint"
+    statements = [
+      "set(attributes[\"k8s.pod.name\"], resource.attributes[\"k8s.pod.name\"])",
+      "set(attributes[\"k8s.namespace.name\"], resource.attributes[\"k8s.namespace.name\"])",
+    ]
+  }
+
+  output {
+    metrics = [otelcol.exporter.prometheus.default.input]
+  }
+}
+
+otelcol.exporter.prometheus "default" {
+  forward_to = [prometheus.remote_write.mimir.receiver]
+}
+
+prometheus.remote_write "mimir" {
+  endpoint {
+    url = "http://mimir:9009/api/v1/push"
   }
 }
 ```

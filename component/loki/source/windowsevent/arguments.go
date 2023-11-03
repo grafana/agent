@@ -1,5 +1,9 @@
 package windowsevent
 
+// NOTE: The arguments here are based on commit bde6566
+// of Promtail's arguments in Loki's repository:
+// https://github.com/grafana/loki/blob/bde65667f7c88af17b7729e3621d7bd5d1d3b45f/clients/pkg/promtail/scrapeconfig/scrapeconfig.go#L211-L255
+
 import (
 	"time"
 
@@ -16,6 +20,7 @@ type Arguments struct {
 	PollInterval         time.Duration       `river:"poll_interval,attr,optional"`
 	ExcludeEventData     bool                `river:"exclude_event_data,attr,optional"`
 	ExcludeUserdata      bool                `river:"exclude_user_data,attr,optional"`
+	ExcludeEventMessage  bool                `river:"exclude_event_message,attr,optional"`
 	UseIncomingTimestamp bool                `river:"use_incoming_timestamp,attr,optional"`
 	ForwardTo            []loki.LogsReceiver `river:"forward_to,attr"`
 	Labels               map[string]string   `river:"labels,attr,optional"`
@@ -30,6 +35,7 @@ func defaultArgs() Arguments {
 		PollInterval:         3 * time.Second,
 		ExcludeEventData:     false,
 		ExcludeUserdata:      false,
+		ExcludeEventMessage:  false,
 		UseIncomingTimestamp: false,
 	}
 }
