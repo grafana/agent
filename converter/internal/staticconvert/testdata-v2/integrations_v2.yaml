@@ -123,3 +123,13 @@ integrations:
         - source_labels: [__address__]
           target_label: instance
           replacement: memcached-a
+  mongodb_configs:
+    - mongodb_uri: mongodb://mongodb-a:27017
+      autoscrape:
+        relabel_configs:
+        - source_labels: [__address__]
+          target_label: service_name
+          replacement: 'replicaset1-node1'
+        - source_labels: [__address__]
+          target_label: mongodb_cluster
+          replacement: 'prod-cluster'
