@@ -373,6 +373,14 @@ prometheus.scrape "integrations_squid" {
 	scrape_timeout = "1m0s"
 }
 
+prometheus.exporter.statsd "integrations_statsd_exporter" { }
+
+prometheus.scrape "integrations_statsd" {
+	targets    = prometheus.exporter.statsd.integrations_statsd_exporter.targets
+	forward_to = [prometheus.remote_write.metrics_default.receiver]
+	job_name   = "integrations/statsd"
+}
+
 prometheus.exporter.agent "integrations_agent" { }
 
 discovery.relabel "integrations_agent" {
