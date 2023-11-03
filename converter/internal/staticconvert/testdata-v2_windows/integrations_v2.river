@@ -9,10 +9,16 @@ prometheus.remote_write "metrics_default" {
 	}
 }
 
-prometheus.exporter.windows "integrations_windows" { }
+prometheus.exporter.windows "integrations_windows_exporter" {
+	exchange { }
+
+	network {
+		exclude = ".+"
+	}
+}
 
 prometheus.scrape "integrations_windows" {
-	targets    = prometheus.exporter.azure.integrations_windows.targets
+	targets    = prometheus.exporter.windows.integrations_windows_exporter.targets
 	forward_to = [prometheus.remote_write.metrics_default.receiver]
 	job_name   = "integrations/windows"
 }
