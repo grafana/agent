@@ -149,7 +149,7 @@ func (b *IntegrationsConfigBuilder) appendV1Integrations() {
 		case *statsd_exporter.Config:
 			exports = b.appendStatsdExporter(itg, nil)
 		case *windows_exporter.Config:
-			exports = b.appendWindowsExporter(itg)
+			exports = b.appendWindowsExporter(itg, nil)
 		case *azure_exporter.Config:
 			exports = b.appendAzureExporter(itg, nil)
 		case *cadvisor.Config:
@@ -258,6 +258,8 @@ func (b *IntegrationsConfigBuilder) appendV2Integrations() {
 				exports = b.appendSquidExporter(v1_itg, itg.Common.InstanceKey)
 			case *statsd_exporter.Config:
 				exports = b.appendStatsdExporter(v1_itg, itg.Common.InstanceKey)
+			case *windows_exporter.Config:
+				exports = b.appendWindowsExporter(v1_itg, itg.Common.InstanceKey)
 			}
 		}
 

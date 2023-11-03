@@ -1,0 +1,18 @@
+prometheus.remote_write "metrics_default" {
+	endpoint {
+		name = "default-8be96f"
+		url  = "http://localhost:9009/api/prom/push"
+
+		queue_config { }
+
+		metadata_config { }
+	}
+}
+
+prometheus.exporter.windows "integrations_windows" { }
+
+prometheus.scrape "integrations_windows" {
+	targets    = prometheus.exporter.azure.integrations_windows.targets
+	forward_to = [prometheus.remote_write.metrics_default.receiver]
+	job_name   = "integrations/windows"
+}
