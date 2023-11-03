@@ -171,35 +171,35 @@ require (
 	github.com/wk8/go-ordered-map v0.2.0
 	github.com/xdg-go/scram v1.1.2
 	github.com/zeebo/xxh3 v1.0.2
-	go.opentelemetry.io/collector v0.87.0
-	go.opentelemetry.io/collector/component v0.87.0
+	go.opentelemetry.io/collector v0.88.0
+	go.opentelemetry.io/collector/component v0.88.0
 	go.opentelemetry.io/collector/config/configauth v0.87.0
 	go.opentelemetry.io/collector/config/configcompression v0.87.0
 	go.opentelemetry.io/collector/config/configgrpc v0.87.0
 	go.opentelemetry.io/collector/config/confighttp v0.87.0
 	go.opentelemetry.io/collector/config/confignet v0.87.0
 	go.opentelemetry.io/collector/config/configopaque v0.87.0
-	go.opentelemetry.io/collector/config/configtelemetry v0.87.0
+	go.opentelemetry.io/collector/config/configtelemetry v0.88.0
 	go.opentelemetry.io/collector/config/configtls v0.87.0
-	go.opentelemetry.io/collector/confmap v0.87.0
-	go.opentelemetry.io/collector/connector v0.87.0
-	go.opentelemetry.io/collector/consumer v0.87.0
-	go.opentelemetry.io/collector/exporter v0.87.0
+	go.opentelemetry.io/collector/confmap v0.88.0
+	go.opentelemetry.io/collector/connector v0.88.0
+	go.opentelemetry.io/collector/consumer v0.88.0
+	go.opentelemetry.io/collector/exporter v0.88.0
 	go.opentelemetry.io/collector/exporter/loggingexporter v0.87.0
 	go.opentelemetry.io/collector/exporter/otlpexporter v0.87.0
 	go.opentelemetry.io/collector/exporter/otlphttpexporter v0.87.0
-	go.opentelemetry.io/collector/extension v0.87.0
+	go.opentelemetry.io/collector/extension v0.88.0
 	go.opentelemetry.io/collector/extension/auth v0.87.0
-	go.opentelemetry.io/collector/featuregate v1.0.0-rcv0016
+	go.opentelemetry.io/collector/featuregate v1.0.0-rcv0017
 	go.opentelemetry.io/collector/otelcol v0.87.0
-	go.opentelemetry.io/collector/pdata v1.0.0-rcv0016
-	go.opentelemetry.io/collector/processor v0.87.0
+	go.opentelemetry.io/collector/pdata v1.0.0-rcv0017
+	go.opentelemetry.io/collector/processor v0.88.0
 	go.opentelemetry.io/collector/processor/batchprocessor v0.87.0
 	go.opentelemetry.io/collector/processor/memorylimiterprocessor v0.87.0
-	go.opentelemetry.io/collector/receiver v0.87.0
+	go.opentelemetry.io/collector/receiver v0.88.0
 	go.opentelemetry.io/collector/receiver/otlpreceiver v0.87.0
 	go.opentelemetry.io/collector/semconv v0.87.0
-	go.opentelemetry.io/collector/service v0.87.0
+	go.opentelemetry.io/collector/service v0.88.0
 	go.opentelemetry.io/contrib/instrumentation/github.com/gorilla/mux/otelmux v0.45.0
 	go.opentelemetry.io/otel v1.19.0
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.19.0
@@ -221,7 +221,7 @@ require (
 	golang.org/x/text v0.13.0
 	golang.org/x/time v0.3.0
 	google.golang.org/api v0.146.0
-	google.golang.org/grpc v1.58.3
+	google.golang.org/grpc v1.59.0
 	google.golang.org/protobuf v1.31.0
 	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.1
