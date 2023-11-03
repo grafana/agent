@@ -1,6 +1,9 @@
 package client
 
-import "github.com/prometheus/client_golang/prometheus"
+import (
+	"github.com/grafana/agent/pkg/util"
+	"github.com/prometheus/client_golang/prometheus"
+)
 
 type QueueClientMetrics struct {
 	lastReadTimestamp *prometheus.GaugeVec
@@ -19,7 +22,7 @@ func NewQueueClientMetrics(reg prometheus.Registerer) *QueueClientMetrics {
 	}
 
 	if reg != nil {
-		reg.MustRegister(m.lastReadTimestamp)
+		m.lastReadTimestamp = util.MustRegisterOrGet(reg, m.lastReadTimestamp).(*prometheus.GaugeVec)
 	}
 
 	return m
