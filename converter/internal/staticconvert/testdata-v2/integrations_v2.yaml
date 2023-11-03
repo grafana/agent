@@ -197,3 +197,8 @@ integrations:
       password: snowflake-pass
       warehouse: SNOWFLAKE_WAREHOUSE
       role: ACCOUNTADMIN
+  squid_configs:
+    - address: localhost:3128
+      autoscrape:
+        scrape_interval: 1m
+        scrape_timeout: 1m

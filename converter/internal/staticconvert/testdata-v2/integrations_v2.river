@@ -362,6 +362,17 @@ prometheus.scrape "integrations_snowflake" {
 	job_name   = "integrations/snowflake"
 }
 
+prometheus.exporter.squid "integrations_squid" {
+	address = "localhost:3128"
+}
+
+prometheus.scrape "integrations_squid" {
+	targets        = prometheus.exporter.squid.integrations_squid.targets
+	forward_to     = [prometheus.remote_write.metrics_default.receiver]
+	job_name       = "integrations/squid"
+	scrape_timeout = "1m0s"
+}
+
 prometheus.exporter.agent "integrations_agent" { }
 
 discovery.relabel "integrations_agent" {

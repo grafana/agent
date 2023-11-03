@@ -145,7 +145,7 @@ func (b *IntegrationsConfigBuilder) appendV1Integrations() {
 		case *snowflake_exporter.Config:
 			exports = b.appendSnowflakeExporter(itg, nil)
 		case *squid_exporter.Config:
-			exports = b.appendSquidExporter(itg)
+			exports = b.appendSquidExporter(itg, nil)
 		case *statsd_exporter.Config:
 			exports = b.appendStatsdExporter(itg)
 		case *windows_exporter.Config:
@@ -254,6 +254,8 @@ func (b *IntegrationsConfigBuilder) appendV2Integrations() {
 				exports = b.appendRedisExporter(v1_itg, itg.Common.InstanceKey)
 			case *snowflake_exporter.Config:
 				exports = b.appendSnowflakeExporter(v1_itg, itg.Common.InstanceKey)
+			case *squid_exporter.Config:
+				exports = b.appendSquidExporter(v1_itg, itg.Common.InstanceKey)
 			}
 		}
 
