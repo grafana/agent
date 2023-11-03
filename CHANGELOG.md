@@ -133,6 +133,9 @@ Main (unreleased)
 - Adds new metrics (`mssql_server_total_memory_bytes`, `mssql_server_target_memory_bytes`,
   and `mssql_available_commit_memory_bytes`) for `mssql` integration.
 
+- Grafana Agent Operator: `config-reloader` container no longer runs as root.
+  (@rootmout)
+
 v0.37.3 (2023-10-26)
 -----------------
 
@@ -746,8 +749,6 @@ v0.35.0 (2023-07-18)
 - Update `dnsmasq_exporter` to last version. (@marctc)
 
 - Add deployment spec options to describe operator's Prometheus Config Reloader image. (@alekseybb197)
-
-- `config-reloader` container in agent no longer runs as root. (@rootmout)
 
 - Update `module.git` with basic and SSH key authentication support. (@djcode)
 
