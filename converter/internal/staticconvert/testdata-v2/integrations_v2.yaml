@@ -179,3 +179,15 @@ integrations:
         - source_labels: [__address__]
           target_label: instance
           replacement: redis-2
+  snmp:
+    snmp_targets:
+      - name: network_switch_1
+        address: 192.168.1.2
+        module: if_mib
+        walk_params: public
+        auth: public
+      - name: network_router_2
+        address: 192.168.1.3
+        module: mikrotik
+        walk_params: private
+        auth: private
