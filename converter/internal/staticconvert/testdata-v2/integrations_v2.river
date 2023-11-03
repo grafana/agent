@@ -244,6 +244,47 @@ prometheus.scrape "integrations_mysql" {
 	job_name   = "integrations/mysql"
 }
 
+prometheus.exporter.unix "integrations_node_exporter" { }
+
+discovery.relabel "integrations_node_exporter" {
+	targets = prometheus.exporter.unix.integrations_node_exporter.targets
+
+	rule {
+		source_labels = ["__address__"]
+		target_label  = "__param_id"
+	}
+
+	rule {
+		source_labels = ["__param_id"]
+		target_label  = "thermostat"
+	}
+
+	rule {
+		target_label = "__address__"
+		replacement  = "localhost:8099"
+	}
+}
+
+prometheus.scrape "integrations_node_exporter" {
+	targets    = discovery.relabel.integrations_node_exporter.output
+	forward_to = [prometheus.relabel.integrations_node_exporter.receiver]
+	job_name   = "integrations/node_exporter"
+}
+
+prometheus.relabel "integrations_node_exporter" {
+	forward_to = [prometheus.remote_write.metrics_default.receiver]
+
+	rule {
+		source_labels = ["__metric_address1__"]
+		target_label  = "__metric_param_target1"
+	}
+
+	rule {
+		source_labels = ["__metric_address2__"]
+		target_label  = "__metric_param_target2"
+	}
+}
+
 prometheus.exporter.agent "integrations_agent" { }
 
 discovery.relabel "integrations_agent" {

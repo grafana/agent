@@ -106,7 +106,7 @@ func (b *IntegrationsConfigBuilder) appendV1Integrations() {
 		case *apache_http.Config:
 			exports = b.appendApacheExporter(itg)
 		case *node_exporter.Config:
-			exports = b.appendNodeExporter(itg)
+			exports = b.appendNodeExporter(itg, nil)
 		case *blackbox_exporter.Config:
 			exports = b.appendBlackboxExporter(itg)
 		case *cloudwatch_exporter.Config:
@@ -238,6 +238,8 @@ func (b *IntegrationsConfigBuilder) appendV2Integrations() {
 				exports = b.appendMssqlExporter(v1_itg, itg.Common.InstanceKey)
 			case *mysqld_exporter.Config:
 				exports = b.appendMysqldExporter(v1_itg, itg.Common.InstanceKey)
+			case *node_exporter.Config:
+				exports = b.appendNodeExporter(v1_itg, itg.Common.InstanceKey)
 			}
 		}
 
