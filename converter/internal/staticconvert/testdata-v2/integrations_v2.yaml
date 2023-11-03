@@ -158,3 +158,11 @@ integrations:
           target_label: __metric_param_target2
   oracledb_configs:
     - connection_string: oracle://user:password@localhost:1521/orcl.localnet
+  postgres_configs:
+    - data_source_names: 
+      - postgres://postgres:password@localhost:5432/postgres?sslmode=disable
+      autoscrape:
+        relabel_configs:
+        - source_labels: [__address__]
+          target_label: instance
+          replacement: postgres-a

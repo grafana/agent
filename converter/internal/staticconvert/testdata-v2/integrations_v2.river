@@ -295,6 +295,26 @@ prometheus.scrape "integrations_oracledb" {
 	job_name   = "integrations/oracledb"
 }
 
+prometheus.exporter.postgres "integrations_postgres_exporter" {
+	data_source_names = ["postgres://postgres:password@localhost:5432/postgres?sslmode=disable"]
+}
+
+discovery.relabel "integrations_postgres" {
+	targets = prometheus.exporter.postgres.integrations_postgres_exporter.targets
+
+	rule {
+		source_labels = ["__address__"]
+		target_label  = "instance"
+		replacement   = "postgres-a"
+	}
+}
+
+prometheus.scrape "integrations_postgres" {
+	targets    = discovery.relabel.integrations_postgres.output
+	forward_to = [prometheus.remote_write.metrics_default.receiver]
+	job_name   = "integrations/postgres"
+}
+
 prometheus.exporter.agent "integrations_agent" { }
 
 discovery.relabel "integrations_agent" {
