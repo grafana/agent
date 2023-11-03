@@ -75,6 +75,7 @@ Omitted fields take their default values.
 | `azure_cloud_environment`     | `string`       | Name of the cloud environment to connect to.                                                                                                                           | `"azurecloud"`                                                                | no       |
 | `metric_name_template`        | `string`       | Metric template used to expose the metrics.                                                                                                                            | `"azure_{type}_{metric}_{aggregation}_{unit}"`                                | no       |
 | `metric_help_template`        | `string`       | Description of the metric.                                                                                                                                             | `"Azure metric {metric} for {type} with aggregation {aggregation} as {unit}"` | no       |
+| `validate_dimensions`         | `bool`         | Enable dimension validation in the azure sdk                                                                                                                           | `false`                                                                       | no       |
 
 The list of available `resource_type` values and their corresponding `metrics` can be found in [Azure Monitor essentials][].
 
@@ -89,6 +90,8 @@ Every metric has its own set of dimensions. For example, the dimensions for the 
 Tags in `included_resource_tags` will be added as labels with the name `tag_<tag_name>`.
 
 Valid values for `azure_cloud_environment` are `azurecloud`, `azurechinacloud`, `azuregovernmentcloud` and `azurepprivatecloud`.
+
+`validate_dimensions` is disabled by default to reduce the number of azure exporter instances requires when a `resource_type` has metrics with varying dimensions. When `validate_dimensions` is enabled you will need 1 exporter instance per metric + dimension combination which is more tedious to maintain.  
 
 [Kusto query]: https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/
 [Azure Monitor essentials]: https://learn.microsoft.com/en-us/azure/azure-monitor/essentials/metrics-supported

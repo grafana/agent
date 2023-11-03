@@ -153,6 +153,10 @@ The account used by Grafana Agent needs:
 
   # Optional: Which azure cloud environment to connect to, azurecloud, azurechinacloud, azuregovernmentcloud, or azurepprivatecloud
   [azure_cloud_environment: <string> | default = "azurecloud"]
+  
+  # Optional: validation is disabled by default to reduce the number of azure exporter instances required when a `resource_type` has metrics with varying dimensions. 
+  # Choosing to enable `validate_dimensions` will require 1 exporter instance per metric + dimension combination which can be very tedious to maintain.
+  [validate_dimensions: <bool> | default = false]
 ```
 
 ### Examples
