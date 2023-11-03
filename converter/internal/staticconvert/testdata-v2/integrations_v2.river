@@ -315,6 +315,19 @@ prometheus.scrape "integrations_postgres" {
 	job_name   = "integrations/postgres"
 }
 
+prometheus.exporter.process "integrations_process_exporter" {
+	matcher {
+		name    = "{{.Comm}}"
+		cmdline = [".+"]
+	}
+}
+
+prometheus.scrape "integrations_process" {
+	targets    = prometheus.exporter.process.integrations_process_exporter.targets
+	forward_to = [prometheus.remote_write.metrics_default.receiver]
+	job_name   = "integrations/process"
+}
+
 prometheus.exporter.agent "integrations_agent" { }
 
 discovery.relabel "integrations_agent" {
