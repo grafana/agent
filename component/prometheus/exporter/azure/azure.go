@@ -36,6 +36,7 @@ type Arguments struct {
 	MetricHelpTemplate       string   `river:"metric_help_template,attr,optional"`
 	AzureCloudEnvironment    string   `river:"azure_cloud_environment,attr,optional"`
 	ValidateDimensions       bool     `river:"validate_dimensions,attr,optional"`
+	Regions                  []string `river:"regions,attr,optional"`
 }
 
 var DefaultArguments = Arguments{
@@ -78,5 +79,6 @@ func (a *Arguments) Convert() *azure_exporter.Config {
 		MetricHelpTemplate:       a.MetricHelpTemplate,
 		AzureCloudEnvironment:    a.AzureCloudEnvironment,
 		ValidateDimensions:       a.ValidateDimensions,
+		Regions:                  a.Regions,
 	}
 }
