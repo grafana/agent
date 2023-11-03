@@ -285,6 +285,16 @@ prometheus.relabel "integrations_node_exporter" {
 	}
 }
 
+prometheus.exporter.oracledb "integrations_oracledb" {
+	connection_string = "oracle://user:password@localhost:1521/orcl.localnet"
+}
+
+prometheus.scrape "integrations_oracledb" {
+	targets    = prometheus.exporter.oracledb.integrations_oracledb.targets
+	forward_to = [prometheus.remote_write.metrics_default.receiver]
+	job_name   = "integrations/oracledb"
+}
+
 prometheus.exporter.agent "integrations_agent" { }
 
 discovery.relabel "integrations_agent" {
