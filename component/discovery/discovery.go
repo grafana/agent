@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/grafana/agent/component"
-	"github.com/grafana/agent/pkg/cluster"
+	"github.com/grafana/agent/service/cluster"
 	"github.com/grafana/ckit/shard"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/discovery"
@@ -24,13 +24,13 @@ type Target map[string]string
 // targets when a Flow component runs in a cluster.
 type DistributedTargets struct {
 	useClustering bool
-	node          cluster.Node
+	cluster       cluster.Cluster
 	targets       []Target
 }
 
 // NewDistributedTargets creates the abstraction that allows components to
 // dynamically shard targets between components.
-func NewDistributedTargets(e bool, n cluster.Node, t []Target) DistributedTargets {
+func NewDistributedTargets(e bool, n cluster.Cluster, t []Target) DistributedTargets {
 	return DistributedTargets{e, n, t}
 }
 
@@ -39,16 +39,14 @@ func NewDistributedTargets(e bool, n cluster.Node, t []Target) DistributedTarget
 // If a cluster size is 1, then all targets will be returned.
 func (t *DistributedTargets) Get() []Target {
 	// TODO(@tpaschalis): Make this into a single code-path to simplify logic.
-	if !t.useClustering || t.node == nil {
+	if !t.useClustering || t.cluster == nil {
 		return t.targets
 	}
 
-	res := make([]Target, 0, (len(t.targets)+1)/len(t.node.Peers()))
+	res := make([]Target, 0, (len(t.targets)+1)/len(t.cluster.Peers()))
 
-	// TODO(@tpaschalis): Make sure OpReadWrite is the correct operation;
-	// eg. this determines how clustering behaves when nodes are shutting down.
 	for _, tgt := range t.targets {
-		peers, err := t.node.Lookup(shard.StringKey(tgt.NonMetaLabels().String()), 1, shard.OpReadWrite)
+		peers, err := t.cluster.Lookup(shard.StringKey(tgt.NonMetaLabels().String()), 1, shard.OpReadWrite)
 		if err != nil {
 			// This can only fail in case we ask for more owners than the
 			// available peers. This will never happen, but in any case we fall
@@ -164,10 +162,9 @@ func (c *Component) Update(args component.Arguments) error {
 	return nil
 }
 
-// maxUpdateFrequency is the minimum time to wait between updating targets.
-// Currently not settable, since prometheus uses a static threshold, but
-// we could reconsider later.
-const maxUpdateFrequency = 5 * time.Second
+// MaxUpdateFrequency is the minimum time to wait between updating targets.
+// Prometheus uses a static threshold. Do not recommend changing this, except for tests.
+var MaxUpdateFrequency = 5 * time.Second
 
 // runDiscovery is a utility for consuming and forwarding target groups from a discoverer.
 // It will handle collating targets (and clearing), as well as time based throttling of updates.
@@ -198,7 +195,7 @@ func (c *Component) runDiscovery(ctx context.Context, d Discoverer) {
 		c.opts.OnStateChange(Exports{Targets: allTargets})
 	}
 
-	ticker := time.NewTicker(maxUpdateFrequency)
+	ticker := time.NewTicker(MaxUpdateFrequency)
 	// true if we have received new targets and need to send.
 	haveUpdates := false
 	for {

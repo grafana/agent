@@ -7,17 +7,19 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/otelcol"
 	"github.com/grafana/agent/component/otelcol/exporter"
+	otel_service "github.com/grafana/agent/service/otel"
 	otelcomponent "go.opentelemetry.io/collector/component"
-	otelconfig "go.opentelemetry.io/collector/config"
 	otelpexporterhelper "go.opentelemetry.io/collector/exporter/exporterhelper"
 	"go.opentelemetry.io/collector/exporter/otlpexporter"
+	otelextension "go.opentelemetry.io/collector/extension"
 )
 
 func init() {
 	component.Register(component.Registration{
-		Name:    "otelcol.exporter.otlp",
-		Args:    Arguments{},
-		Exports: otelcol.ConsumerExports{},
+		Name:          "otelcol.exporter.otlp",
+		Args:          Arguments{},
+		Exports:       otelcol.ConsumerExports{},
+		NeedsServices: []string{otel_service.ServiceName},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			fact := otlpexporter.NewFactory()
@@ -33,12 +35,13 @@ type Arguments struct {
 	Queue otelcol.QueueArguments `river:"sending_queue,block,optional"`
 	Retry otelcol.RetryArguments `river:"retry_on_failure,block,optional"`
 
+	// DebugMetrics configures component internal metrics. Optional.
+	DebugMetrics otelcol.DebugMetricsArguments `river:"debug_metrics,block,optional"`
+
 	Client GRPCClientArguments `river:"client,block"`
 }
 
-var (
-	_ exporter.Arguments = Arguments{}
-)
+var _ exporter.Arguments = Arguments{}
 
 // DefaultArguments holds default values for Arguments.
 var DefaultArguments = Arguments{
@@ -54,9 +57,8 @@ func (args *Arguments) SetToDefault() {
 }
 
 // Convert implements exporter.Arguments.
-func (args Arguments) Convert() (otelconfig.Exporter, error) {
+func (args Arguments) Convert() (otelcomponent.Config, error) {
 	return &otlpexporter.Config{
-		ExporterSettings: otelconfig.NewExporterSettings(otelconfig.NewComponentID("otlp")),
 		TimeoutSettings: otelpexporterhelper.TimeoutSettings{
 			Timeout: args.Timeout,
 		},
@@ -67,13 +69,18 @@ func (args Arguments) Convert() (otelconfig.Exporter, error) {
 }
 
 // Extensions implements exporter.Arguments.
-func (args Arguments) Extensions() map[otelconfig.ComponentID]otelcomponent.Extension {
+func (args Arguments) Extensions() map[otelcomponent.ID]otelextension.Extension {
 	return (*otelcol.GRPCClientArguments)(&args.Client).Extensions()
 }
 
 // Exporters implements exporter.Arguments.
-func (args Arguments) Exporters() map[otelconfig.DataType]map[otelconfig.ComponentID]otelcomponent.Exporter {
+func (args Arguments) Exporters() map[otelcomponent.DataType]map[otelcomponent.ID]otelcomponent.Component {
 	return nil
+}
+
+// DebugMetricsConfig implements receiver.Arguments.
+func (args Arguments) DebugMetricsConfig() otelcol.DebugMetricsArguments {
+	return args.DebugMetrics
 }
 
 // GRPCClientArguments is used to configure otelcol.exporter.otlp with
@@ -86,6 +93,7 @@ var DefaultGRPCClientArguments = GRPCClientArguments{
 	Headers:         map[string]string{},
 	Compression:     otelcol.CompressionTypeGzip,
 	WriteBufferSize: 512 * 1024,
+	BalancerName:    "pick_first",
 }
 
 // SetToDefault implements river.Defaulter.

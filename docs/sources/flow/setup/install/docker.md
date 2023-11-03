@@ -1,21 +1,22 @@
 ---
-description: Learn how to install Grafana Agent in flow mode on Docker
-title: Install Grafana Agent in flow mode on Docker
-menuTitle: Docker
-weight: 100
 aliases:
- - ../../install/docker/
+- ../../install/docker/
+- /docs/grafana-cloud/agent/flow/setup/install/docker/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/setup/install/docker/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/setup/install/docker/
+canonical: https://grafana.com/docs/agent/latest/flow/setup/install/docker/
+description: Learn how to install Grafana Agent in flow mode on Docker
+menuTitle: Docker
+title: Run Grafana Agent in flow mode in a Docker container
+weight: 100
 ---
 
-# Install Grafana Agent in flow mode on Docker
+# Run Grafana Agent in flow mode in a Docker container
 
-Grafana Agent is available as Docker images on the following platforms:
+Grafana Agent is available as a Docker container image on the following platforms:
 
-* [Linux containers][] for AMD64 and ARM64 machines.
-* [Windows containers][] for AMD64 machines.
-
-[Linux containers]: #run-a-linux-docker-container
-[Windows containers]: #run-a-windows-docker-container
+* [Linux containers][] for AMD64 and ARM64.
+* [Windows containers][] for AMD64.
 
 ## Before you begin
 
@@ -29,75 +30,61 @@ Grafana Agent is available as Docker images on the following platforms:
   }
   ```
 
-[Docker]: https://docker.io
-
 ## Run a Linux Docker container
 
-To run Grafana Agent in flow mode as a Linux Docker container, perform the following steps:
+To run Grafana Agent in flow mode as a Linux Docker container, run the following command in a terminal window:
 
-1. Run the following command in a terminal window:
+```shell
+docker run \
+  -e AGENT_MODE=flow \
+  -v CONFIG_FILE_PATH:/etc/agent/config.river \
+  -p 12345:12345 \
+  grafana/agent:latest \
+    run --server.http.listen-addr=0.0.0.0:12345 /etc/agent/config.river
+```
 
-   ```shell
-   docker run \
-     -e AGENT_MODE=flow \
-     -v CONFIG_FILE_PATH:/etc/agent/config.river \
-     -p 12345:12345 \
-     grafana/agent:latest \
-       run --server.http.listen-addr=0.0.0.0:12345 /etc/agent/config.river
-   ```
+Replace `CONFIG_FILE_PATH` with the path of the configuration file on your host system.
 
-   Replace `CONFIG_FILE_PATH` with the path of the configuration file on
-   your host system.
+You can modify the last line to change the arguments passed to the Grafana Agent binary.
+Refer to the documentation for [run][] for more information about the options available to the `run` command.
 
-The last line may be modified to change the arguments passed to the Grafana
-Agent binary. To see the set of options available to the `run` command,
-refer to the documentation for [run][].
+> **Note:** Make sure you pass `--server.http.listen-addr=0.0.0.0:12345` as an argument as shown in the example above.
+> If you don't pass this argument, the [debugging UI][UI] won't be available outside of the Docker container.
 
-{{% admonition type="note" %}}
-Make sure you pass `--server.http.listen-addr=0.0.0.0:12345` as an
-argument as shown in the example above. If you don't pass this argument, the [debugging UI][] won't be
-available outside of the Docker container.
-{{% /admonition %}}
-
-[debugging UI]: {{< relref "../../monitoring/debugging.md#grafana-agent-flow-ui" >}}
-[run]: {{< relref "../../reference/cli/run.md" >}}
 
 ## Run a Windows Docker container
 
-To run Grafana Agent in flow mode as a Windows Docker container, perform the following
-steps:
+To run Grafana Agent in flow mode as a Windows Docker container, run the following command in a terminal window:
 
-1. Run the following command in a terminal window:
+```shell
+docker run \
+  -e AGENT_MODE=flow \
+  -v CONFIG_FILE_PATH:C:\etc\grafana-agent\config.river \
+  -p 12345:12345 \
+  grafana/agent:latest-windows \
+    run --server.http.listen-addr=0.0.0.0:12345 C:\etc\grafana-agent\config.river
+```
 
-   ```shell
-   docker run \
-     -e AGENT_MODE=flow \
-     -v CONFIG_FILE_PATH:C:\etc\grafana-agent\config.river \
-     -p 12345:12345 \
-     grafana/agent:latest-windows \
-       run --server.http.listen-addr=0.0.0.0:12345 C:\etc\grafana-agent\config.river
-   ```
+Replace `CONFIG_FILE_PATH` with the path of the configuration file on your host system.
 
-   Replace `CONFIG_FILE_PATH` with the path of the configuration file on
-   your host system.
+You can modify the last line to change the arguments passed to the Grafana Agent binary.
+Refer to the documentation for [run][] for more information about the options available to the `run` command.
 
-The last line may be modified to change the arguments passed to the Grafana
-Agent binary. To see the set of options available to the `run` command,
-refer to the documentation for [run][].
 
-{{% admonition type="note" %}}
-Make sure you pass `--server.http.listen-addr=0.0.0.0:12345` as an
-argument as shown in the example above. If you don't pass this argument, the [debugging UI][] won't be
-available outside of the Docker container.
-{{% /admonition %}}
-
-[debugging UI]: {{< relref "../../monitoring/debugging.md#grafana-agent-flow-ui" >}}
-[run]: {{< relref "../../reference/cli/run.md" >}}
+> **Note:** Make sure you pass `--server.http.listen-addr=0.0.0.0:12345` as an argument as shown in the example above.
+> If you don't pass this argument, the [debugging UI][UI] won't be available outside of the Docker container.
 
 ## Verify
 
-To verify that Grafana Agent is running successfully, navigate to
-<http://localhost:12345> and make sure the Grafana Agent [UI][] loads
-without error.
+To verify that Grafana Agent is running successfully, navigate to <http://localhost:12345> and make sure the [Grafana Agent UI][UI] loads without error.
 
-[UI]: {{< relref "../../monitoring/debugging.md#grafana-agent-flow-ui" >}}
+[Linux containers]: #run-a-linux-docker-container
+[Windows containers]: #run-a-windows-docker-container
+[Docker]: https://docker.io
+
+{{% docs/reference %}}
+[run]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/cli/run.md"
+[run]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/cli/run.md"
+[UI]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/monitoring/debugging.md#grafana-agent-flow-ui"
+[UI]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/monitoring/debugging.md#grafana-agent-flow-ui"
+{{% /docs/reference %}}

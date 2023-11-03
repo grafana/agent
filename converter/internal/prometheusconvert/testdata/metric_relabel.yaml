@@ -1,6 +1,5 @@
 global:
   scrape_interval: 60s
-  evaluation_interval: 15s
   external_labels:
     cluster: prod
 

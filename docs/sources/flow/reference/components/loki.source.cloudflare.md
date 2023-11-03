@@ -1,5 +1,11 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/loki.source.cloudflare/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/loki.source.cloudflare/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/loki.source.cloudflare/
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/loki.source.cloudflare/
 title: loki.source.cloudflare
+description: Learn about loki.source.cloudflare
 ---
 
 # loki.source.cloudflare
@@ -38,6 +44,7 @@ Name            | Type                 | Description          | Default | Requir
 `workers`       | `int`                | The number of workers to use for parsing logs.     |  `3` | no
 `pull_range`    | `duration`           | The timeframe to fetch for each pull request.      | `"1m"` | no
 `fields_type`   | `string`             | The set of fields to fetch for log entries.        | `"default"` | no
+`additional_fields` | `list(string)`   | The additional list of fields to supplement those provided via `fields_type`. |  | no
 
 
 By default `loki.source.cloudflare` fetches logs with the `default` set of
@@ -48,21 +55,27 @@ and the fields they include:
 ```
 "ClientIP", "ClientRequestHost", "ClientRequestMethod", "ClientRequestURI", "EdgeEndTimestamp", "EdgeResponseBytes", "EdgeRequestHost", "EdgeResponseStatus", "EdgeStartTimestamp", "RayID"
 ```
+plus any extra fields provided via `additional_fields` argument.
 
 * `minimal` includes all `default` fields and adds:
 ```
-"ZoneID", "ClientSSLProtocol", "ClientRequestProtocol", "ClientRequestPath", "ClientRequestUserAgent", "ClientRequestReferer", "EdgeColoCode", "ClientCountry", "CacheCacheStatus", "CacheResponseStatus", "EdgeResponseContentType
+"ZoneID", "ClientSSLProtocol", "ClientRequestProtocol", "ClientRequestPath", "ClientRequestUserAgent", "ClientRequestReferer", "EdgeColoCode", "ClientCountry", "CacheCacheStatus", "CacheResponseStatus", "EdgeResponseContentType"
 ```
+plus any extra fields provided via `additional_fields` argument.
 
 * `extended` includes all `minimal` fields and adds:
 ```
 "ClientSSLCipher", "ClientASN", "ClientIPClass", "CacheResponseBytes", "EdgePathingOp", "EdgePathingSrc", "EdgePathingStatus", "ParentRayID", "WorkerCPUTime", "WorkerStatus", "WorkerSubrequest", "WorkerSubrequestCount", "OriginIP", "OriginResponseStatus", "OriginSSLProtocol", "OriginResponseHTTPExpires", "OriginResponseHTTPLastModified"
 ```
+plus any extra fields provided via `additional_fields` argument.
 
 * `all` includes all `extended` fields and adds:
 ```
- "BotScore", "BotScoreSrc", "ClientRequestBytes", "ClientSrcPort", "ClientXRequestedWith", "CacheTieredFill", "EdgeResponseCompressionRatio", "EdgeServerIP", "FirewallMatchesSources", "FirewallMatchesActions", "FirewallMatchesRuleIDs", "OriginResponseBytes", "OriginResponseTime", "ClientDeviceType", "WAFFlags", "WAFMatchedVar", "EdgeColoID", "RequestHeaders", "ResponseHeaders"`k
+ "BotScore", "BotScoreSrc", "BotTags", "ClientRequestBytes", "ClientSrcPort", "ClientXRequestedWith", "CacheTieredFill", "EdgeResponseCompressionRatio", "EdgeServerIP", "FirewallMatchesSources", "FirewallMatchesActions", "FirewallMatchesRuleIDs", "OriginResponseBytes", "OriginResponseTime", "ClientDeviceType", "WAFFlags", "WAFMatchedVar", "EdgeColoID", "RequestHeaders", "ResponseHeaders", "ClientRequestSource"`
 ```
+plus any extra fields provided via `additional_fields` argument (this is still relevant in this case if new fields are made available via Cloudflare API but are not yet included in `all`).
+
+* `custom` includes only the fields defined in `additional_fields`.
 
 The component saves the last successfully-fetched timestamp in its positions
 file. If a position is found in the file for a given zone ID, the component
@@ -100,6 +113,7 @@ change the log line format. A sample log looks like this:
     "ClientRequestReferer": "https://www.foo.com/foo/168855/?offset=8625",
     "ClientRequestURI": "/foo/15248108/",
     "ClientRequestUserAgent": "some bot",
+    "ClientRequestSource": "1"
     "ClientSSLCipher": "ECDHE-ECDSA-AES128-GCM-SHA256",
     "ClientSSLProtocol": "TLSv1.2",
     "ClientSrcPort": 39816,
@@ -131,10 +145,10 @@ change the log line format. A sample log looks like this:
     "OriginSSLProtocol": "TLSv1.2",
     "ParentRayID": "00",
     "RayID": "6b0a...",
-  "RequestHeaders": [],
-  "ResponseHeaders": [
-    "x-foo": "bar"
-  ],
+    "RequestHeaders": [],
+    "ResponseHeaders": [
+      "x-foo": "bar"
+    ],
     "SecurityLevel": "med",
     "WAFAction": "unknown",
     "WAFFlags": "0",

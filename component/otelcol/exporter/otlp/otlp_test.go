@@ -7,13 +7,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component/otelcol"
 	"github.com/grafana/agent/component/otelcol/exporter/otlp"
 	"github.com/grafana/agent/pkg/flow/componenttest"
-	"github.com/grafana/agent/pkg/river"
+	"github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/grafana/dskit/backoff"
+	"github.com/grafana/river"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/pdata/ptrace"
 	"go.opentelemetry.io/collector/pdata/ptrace/ptraceotlp"
@@ -45,9 +45,14 @@ func Test(t *testing.T) {
 				insecure_skip_verify = true
 			}
 		}
+
+		debug_metrics {
+			disable_high_cardinality_metrics = true
+		}
 	`, tracesServer)
 	var args otlp.Arguments
 	require.NoError(t, river.Unmarshal([]byte(cfg), &args))
+	require.Equal(t, args.DebugMetricsConfig().DisableHighCardinalityMetrics, true)
 
 	go func() {
 		err := ctrl.Run(ctx, args)
@@ -107,6 +112,7 @@ func makeTracesServer(t *testing.T, ch chan ptrace.Traces) string {
 }
 
 type mockTracesReceiver struct {
+	ptraceotlp.UnimplementedGRPCServer
 	ch chan ptrace.Traces
 }
 
@@ -120,7 +126,7 @@ func (ms *mockTracesReceiver) Export(_ context.Context, req ptraceotlp.ExportReq
 func createTestTraces() ptrace.Traces {
 	// Matches format from the protobuf definition:
 	// https://github.com/open-telemetry/opentelemetry-proto/blob/main/opentelemetry/proto/trace/v1/trace.proto
-	var bb = `{
+	bb := `{
 		"resource_spans": [{
 			"scope_spans": [{
 				"spans": [{

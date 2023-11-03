@@ -43,12 +43,16 @@ const (
 
 // Target refers to a singular HTTP or HTTPS endpoint.
 type Target struct {
+	// All labels of this target - public and private
+	allLabels labels.Labels
+	// Only public labels that are added to this target and its metrics.
+	publicLabels labels.Labels
 	// Labels before any processing.
 	discoveredLabels labels.Labels
-	// Any labels that are added to this target and its metrics.
-	labels labels.Labels
 	// Additional URL parameters that are part of the target URL.
 	params url.Values
+	hash   uint64
+	url    string
 
 	mtx                sync.RWMutex
 	lastError          error
@@ -58,25 +62,65 @@ type Target struct {
 }
 
 // NewTarget creates a reasonably configured target for querying.
-func NewTarget(labels, discoveredLabels labels.Labels, params url.Values) *Target {
+func NewTarget(lbls, discoveredLabels labels.Labels, params url.Values) *Target {
+	publicLabels := make(labels.Labels, 0, len(lbls))
+	for _, l := range lbls {
+		if !strings.HasPrefix(l.Name, model.ReservedLabelPrefix) {
+			publicLabels = append(publicLabels, l)
+		}
+	}
+	url := urlFromTarget(lbls, params)
+
+	h := fnv.New64a()
+	_, _ = h.Write([]byte(strconv.FormatUint(publicLabels.Hash(), 16)))
+	_, _ = h.Write([]byte(url))
+
 	return &Target{
-		labels:           labels,
+		allLabels:        lbls,
+		url:              url,
+		hash:             h.Sum64(),
+		publicLabels:     publicLabels,
 		discoveredLabels: discoveredLabels,
 		params:           params,
 		health:           HealthUnknown,
 	}
 }
 
-func (t *Target) String() string {
-	return t.URL().String()
+func urlFromTarget(lbls labels.Labels, params url.Values) string {
+	newParams := url.Values{}
+
+	for k, v := range params {
+		newParams[k] = make([]string, len(v))
+		copy(newParams[k], v)
+	}
+	for _, l := range lbls {
+		if !strings.HasPrefix(l.Name, model.ParamLabelPrefix) {
+			continue
+		}
+		ks := l.Name[len(model.ParamLabelPrefix):]
+
+		if len(newParams[ks]) > 0 {
+			newParams[ks][0] = l.Value
+		} else {
+			newParams[ks] = []string{l.Value}
+		}
+	}
+
+	return (&url.URL{
+		Scheme:   lbls.Get(model.SchemeLabel),
+		Host:     lbls.Get(model.AddressLabel),
+		Path:     lbls.Get(ProfilePath),
+		RawQuery: newParams.Encode(),
+	}).String()
 }
 
-// hash returns an identifying hash for the target.
-func (t *Target) hash() uint64 {
-	h := fnv.New64a()
-	_, _ = h.Write([]byte(fmt.Sprintf("%016d", t.Labels().Hash())))
-	_, _ = h.Write([]byte(t.URL().String()))
-	return h.Sum64()
+func (t *Target) String() string {
+	return t.URL()
+}
+
+// Hash returns an identifying hash for the target, based on public labels and the URL.
+func (t *Target) Hash() uint64 {
+	return t.hash
 }
 
 // offset returns the time until the next scrape cycle for the target.
@@ -85,7 +129,7 @@ func (t *Target) offset(interval time.Duration) time.Duration {
 
 	var (
 		base   = now % int64(interval)
-		offset = t.hash() % uint64(interval)
+		offset = t.hash % uint64(interval)
 		next   = base + int64(offset)
 	)
 
@@ -105,15 +149,9 @@ func (t *Target) Params() url.Values {
 	return q
 }
 
-// Labels returns a copy of the set of all public labels of the target.
+// Labels returns the set of all public labels of the target. Callers must not modify the returned labels.
 func (t *Target) Labels() labels.Labels {
-	lset := make(labels.Labels, 0, len(t.labels))
-	for _, l := range t.labels {
-		if !strings.HasPrefix(l.Name, model.ReservedLabelPrefix) {
-			lset = append(lset, l)
-		}
-	}
-	return lset
+	return t.publicLabels
 }
 
 // DiscoveredLabels returns a copy of the target's labels before any processing.
@@ -141,33 +179,9 @@ func (t *Target) SetDiscoveredLabels(l labels.Labels) {
 	t.discoveredLabels = l
 }
 
-// URL returns a copy of the target's URL.
-func (t *Target) URL() *url.URL {
-	params := url.Values{}
-
-	for k, v := range t.params {
-		params[k] = make([]string, len(v))
-		copy(params[k], v)
-	}
-	for _, l := range t.labels {
-		if !strings.HasPrefix(l.Name, model.ParamLabelPrefix) {
-			continue
-		}
-		ks := l.Name[len(model.ParamLabelPrefix):]
-
-		if len(params[ks]) > 0 {
-			params[ks][0] = l.Value
-		} else {
-			params[ks] = []string{l.Value}
-		}
-	}
-
-	return &url.URL{
-		Scheme:   t.labels.Get(model.SchemeLabel),
-		Host:     t.labels.Get(model.AddressLabel),
-		Path:     t.labels.Get(ProfilePath),
-		RawQuery: params.Encode(),
-	}
+// URL returns the target's URL as string.
+func (t *Target) URL() string {
+	return t.url
 }
 
 // LastError returns the error encountered during the last scrape.
@@ -226,13 +240,14 @@ func LabelsByProfiles(lset labels.Labels, c *ProfilingConfig) []labels.Labels {
 type Targets []*Target
 
 func (ts Targets) Len() int           { return len(ts) }
-func (ts Targets) Less(i, j int) bool { return ts[i].URL().String() < ts[j].URL().String() }
+func (ts Targets) Less(i, j int) bool { return ts[i].URL() < ts[j].URL() }
 func (ts Targets) Swap(i, j int)      { ts[i], ts[j] = ts[j], ts[i] }
 
 const (
-	ProfilePath      = "__profile_path__"
-	ProfileName      = "__name__"
-	ProfileTraceType = "trace"
+	ProfilePath         = "__profile_path__"
+	ProfileName         = "__name__"
+	serviceNameLabel    = "service_name"
+	serviceNameK8SLabel = "__meta_kubernetes_pod_annotation_pyroscope_io_service_name"
 )
 
 // populateLabels builds a label set from the given label set and scrape configuration.
@@ -258,7 +273,7 @@ func populateLabels(lset labels.Labels, cfg Arguments) (res, orig labels.Labels,
 		}
 	}
 
-	preRelabelLabels := lb.Labels(nil)
+	preRelabelLabels := lb.Labels()
 	// todo(ctovena): add relabeling after pprof discovery.
 	// lset = relabel.Process(preRelabelLabels, cfg.RelabelConfigs...)
 	lset, keep := relabel.Process(preRelabelLabels)
@@ -269,10 +284,6 @@ func populateLabels(lset labels.Labels, cfg Arguments) (res, orig labels.Labels,
 	}
 	if v := lset.Get(model.AddressLabel); v == "" {
 		return nil, nil, errors.New("no address")
-	}
-
-	if v := lset.Get(model.AddressLabel); v == "" {
-		return nil, nil, fmt.Errorf("no address")
 	}
 
 	lb = labels.NewBuilder(lset)
@@ -321,7 +332,11 @@ func populateLabels(lset labels.Labels, cfg Arguments) (res, orig labels.Labels,
 		lb.Set(model.InstanceLabel, addr)
 	}
 
-	res = lb.Labels(nil)
+	if serviceName := lset.Get(serviceNameLabel); serviceName == "" {
+		lb.Set(serviceNameLabel, inferServiceName(lset))
+	}
+
+	res = lb.Labels()
 	for _, l := range res {
 		// Check label values are valid, drop the target if not.
 		if !model.LabelValue(l.Value).IsValid() {
@@ -332,8 +347,8 @@ func populateLabels(lset labels.Labels, cfg Arguments) (res, orig labels.Labels,
 	return res, lset, nil
 }
 
-// targetsFromGroup builds targets based on the given TargetGroup and config.
-func targetsFromGroup(group *targetgroup.Group, cfg Arguments) ([]*Target, []*Target, error) {
+// targetsFromGroup builds targets based on the given TargetGroup, config and target types map.
+func targetsFromGroup(group *targetgroup.Group, cfg Arguments, targetTypes map[string]ProfilingTarget) ([]*Target, []*Target, error) {
 	var (
 		targets        = make([]*Target, 0, len(group.Targets))
 		droppedTargets = make([]*Target, 0, len(group.Targets))
@@ -390,7 +405,7 @@ func targetsFromGroup(group *targetgroup.Group, cfg Arguments) ([]*Target, []*Ta
 					params = url.Values{}
 				}
 
-				if pcfg, found := cfg.ProfilingConfig.AllTargets()[profType]; found && pcfg.Delta {
+				if pcfg, found := targetTypes[profType]; found && pcfg.Delta {
 					params.Add("seconds", strconv.Itoa(int((cfg.ScrapeInterval)/time.Second)-1))
 				}
 				targets = append(targets, NewTarget(lbls, origLabels, params))
@@ -399,4 +414,21 @@ func targetsFromGroup(group *targetgroup.Group, cfg Arguments) ([]*Target, []*Ta
 	}
 
 	return targets, droppedTargets, nil
+}
+
+func inferServiceName(lset labels.Labels) string {
+	k8sServiceName := lset.Get(serviceNameK8SLabel)
+	if k8sServiceName != "" {
+		return k8sServiceName
+	}
+	k8sNamespace := lset.Get("__meta_kubernetes_namespace")
+	k8sContainer := lset.Get("__meta_kubernetes_pod_container_name")
+	if k8sNamespace != "" && k8sContainer != "" {
+		return fmt.Sprintf("%s/%s", k8sNamespace, k8sContainer)
+	}
+	dockerContainer := lset.Get("__meta_docker_container_name")
+	if dockerContainer != "" {
+		return dockerContainer
+	}
+	return "unspecified"
 }

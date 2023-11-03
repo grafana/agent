@@ -2,10 +2,11 @@ package testcomponents
 
 import (
 	"context"
+	"time"
 
 	"github.com/go-kit/log"
-	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/pkg/flow/logging/level"
 )
 
 func init() {
@@ -22,7 +23,8 @@ func init() {
 
 // PassthroughConfig configures the testcomponents.passthrough component.
 type PassthroughConfig struct {
-	Input string `river:"input,attr"`
+	Input string        `river:"input,attr"`
+	Lag   time.Duration `river:"lag,attr,optional"`
 }
 
 // PassthroughExports describes exported fields for the
@@ -61,6 +63,11 @@ func (t *Passthrough) Run(ctx context.Context) error {
 // Update implements Component.
 func (t *Passthrough) Update(args component.Arguments) error {
 	c := args.(PassthroughConfig)
+
+	if c.Lag != 0 {
+		level.Info(t.log).Log("msg", "sleeping for lag", "lag", c.Lag)
+		time.Sleep(c.Lag)
+	}
 
 	level.Info(t.log).Log("msg", "passing through value", "value", c.Input)
 	t.opts.OnStateChange(PassthroughExports{Output: c.Input})

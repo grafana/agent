@@ -1,0 +1,8 @@
+agent:
+  mode: 'flow'
+  clustering:
+    enabled: true
+
+controller:
+  type: 'statefulset'
+  replicas: 3

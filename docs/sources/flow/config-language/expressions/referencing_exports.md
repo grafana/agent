@@ -1,7 +1,12 @@
 ---
 aliases:
 - ../../configuration-language/expressions/referencing-exports/
+- /docs/grafana-cloud/agent/flow/config-language/expressions/referencing_exports/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/config-language/expressions/referencing_exports/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/config-language/expressions/referencing_exports/
+canonical: https://grafana.com/docs/agent/latest/flow/config-language/expressions/referencing_exports/
 title: Referencing component exports
+description: Learn about referencing component exports
 weight: 200
 ---
 

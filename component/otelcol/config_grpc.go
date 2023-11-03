@@ -6,10 +6,11 @@ import (
 	"github.com/alecthomas/units"
 	"github.com/grafana/agent/component/otelcol/auth"
 	otelcomponent "go.opentelemetry.io/collector/component"
-	otelconfig "go.opentelemetry.io/collector/config"
 	otelconfigauth "go.opentelemetry.io/collector/config/configauth"
 	otelconfiggrpc "go.opentelemetry.io/collector/config/configgrpc"
 	"go.opentelemetry.io/collector/config/confignet"
+	"go.opentelemetry.io/collector/config/configopaque"
+	otelextension "go.opentelemetry.io/collector/extension"
 )
 
 // GRPCServerArguments holds shared gRPC settings for components which launch
@@ -128,6 +129,8 @@ func (args *KeepaliveEnforcementPolicy) Convert() *otelconfiggrpc.KeepaliveEnfor
 
 // GRPCClientArguments holds shared gRPC settings for components which launch
 // gRPC clients.
+// NOTE: When changing this structure, note that similar structures such as
+// loadbalancing.GRPCClientArguments may also need to be changed.
 type GRPCClientArguments struct {
 	Endpoint string `river:"endpoint,attr"`
 
@@ -141,6 +144,7 @@ type GRPCClientArguments struct {
 	WaitForReady    bool              `river:"wait_for_ready,attr,optional"`
 	Headers         map[string]string `river:"headers,attr,optional"`
 	BalancerName    string            `river:"balancer_name,attr,optional"`
+	Authority       string            `river:"authority,attr,optional"`
 
 	// Auth is a binding to an otelcol.auth.* component extension which handles
 	// authentication.
@@ -151,6 +155,11 @@ type GRPCClientArguments struct {
 func (args *GRPCClientArguments) Convert() *otelconfiggrpc.GRPCClientSettings {
 	if args == nil {
 		return nil
+	}
+
+	opaqueHeaders := make(map[string]configopaque.String)
+	for headerName, headerVal := range args.Headers {
+		opaqueHeaders[headerName] = configopaque.String(headerVal)
 	}
 
 	// Configure the authentication if args.Auth is set.
@@ -170,16 +179,17 @@ func (args *GRPCClientArguments) Convert() *otelconfiggrpc.GRPCClientSettings {
 		ReadBufferSize:  int(args.ReadBufferSize),
 		WriteBufferSize: int(args.WriteBufferSize),
 		WaitForReady:    args.WaitForReady,
-		Headers:         args.Headers,
+		Headers:         opaqueHeaders,
 		BalancerName:    args.BalancerName,
+		Authority:       args.Authority,
 
 		Auth: auth,
 	}
 }
 
 // Extensions exposes extensions used by args.
-func (args *GRPCClientArguments) Extensions() map[otelconfig.ComponentID]otelcomponent.Extension {
-	m := make(map[otelconfig.ComponentID]otelcomponent.Extension)
+func (args *GRPCClientArguments) Extensions() map[otelcomponent.ID]otelextension.Extension {
+	m := make(map[otelcomponent.ID]otelextension.Extension)
 	if args.Auth != nil {
 		m[args.Auth.ID] = args.Auth.Extension
 	}

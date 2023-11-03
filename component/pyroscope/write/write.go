@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/bufbuild/connect-go"
-	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component/pyroscope"
+	"github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/oklog/run"
 	commonconfig "github.com/prometheus/common/config"
 	"github.com/prometheus/common/model"
@@ -20,9 +20,9 @@ import (
 	"github.com/grafana/agent/component/common/config"
 	"github.com/grafana/agent/pkg/build"
 	"github.com/grafana/dskit/backoff"
-	pushv1 "github.com/grafana/phlare/api/gen/proto/go/push/v1"
-	pushv1connect "github.com/grafana/phlare/api/gen/proto/go/push/v1/pushv1connect"
-	typesv1 "github.com/grafana/phlare/api/gen/proto/go/types/v1"
+	pushv1 "github.com/grafana/pyroscope/api/gen/proto/go/push/v1"
+	"github.com/grafana/pyroscope/api/gen/proto/go/push/v1/pushv1connect"
+	typesv1 "github.com/grafana/pyroscope/api/gen/proto/go/types/v1"
 )
 
 var (
@@ -290,7 +290,7 @@ func (f *fanOutClient) Append(ctx context.Context, lbs labels.Labels, samples []
 	for name, value := range f.config.ExternalLabels {
 		lbsBuilder.Set(name, value)
 	}
-	for _, l := range lbsBuilder.Labels(lbs) {
+	for _, l := range lbsBuilder.Labels() {
 		protoLabels = append(protoLabels, &typesv1.LabelPair{
 			Name:  l.Name,
 			Value: l.Value,

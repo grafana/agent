@@ -5,12 +5,13 @@ import (
 	"log"
 	"os"
 
-	util_log "github.com/cortexproject/cortex/pkg/util/log"
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/cmd/internal/flowmode"
+	"github.com/grafana/agent/pkg/boringcrypto"
 	"github.com/grafana/agent/pkg/build"
 	"github.com/grafana/agent/pkg/config"
 	"github.com/grafana/agent/pkg/server"
+	util_log "github.com/grafana/agent/pkg/util/log"
 
 	"github.com/prometheus/client_golang/prometheus"
 
@@ -67,6 +68,7 @@ func main() {
 	logger = server.NewLogger(cfg.Server)
 	util_log.Logger = logger
 
+	level.Info(logger).Log("boringcrypto enabled", boringcrypto.Enabled)
 	ep, err := NewEntrypoint(logger, cfg, reloader)
 	if err != nil {
 		level.Error(logger).Log("msg", "error creating the agent server entrypoint", "err", err)

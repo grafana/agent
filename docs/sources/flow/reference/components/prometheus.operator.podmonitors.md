@@ -1,12 +1,18 @@
 ---
-title: prometheus.operator.podmonitors
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/prometheus.operator.podmonitors/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/prometheus.operator.podmonitors/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/prometheus.operator.podmonitors/
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.operator.podmonitors/
 labels:
   stage: beta
+title: prometheus.operator.podmonitors
+description: Learn about prometheus.operator.podmonitors
 ---
 
 # prometheus.operator.podmonitors
 
-{{< docs/shared lookup="flow/stability/beta.md" source="agent" >}}
+{{< docs/shared lookup="flow/stability/beta.md" source="agent" version="<AGENT VERSION>" >}}
 
 `prometheus.operator.podmonitors` discovers [PodMonitor](https://prometheus-operator.dev/docs/operator/api/#monitoring.coreos.com/v1.PodMonitor) resources in your kubernetes cluster and scrapes the targets they reference. This component performs three main functions:
 
@@ -48,6 +54,7 @@ client > oauth2 | [oauth2][] | Configure OAuth2 for authenticating to the Kubern
 client > oauth2 > tls_config | [tls_config][] | Configure TLS settings for connecting to the Kubernetes API. | no
 client > tls_config | [tls_config][] | Configure TLS settings for connecting to the Kubernetes API. | no
 rule | [rule][] | Relabeling rules to apply to discovered targets. | no
+scrape | [scrape][] | Default scrape configuration to apply to discovered targets. | no
 selector | [selector][] | Label selector for which PodMonitors to discover. | no
 selector > match_expression | [match_expression][] | Label selector expression for which PodMonitors to discover. | no
 clustering | [clustering][] | Configure the component for when the Agent is running in clustered mode. | no
@@ -64,7 +71,8 @@ inside a `client` block.
 [selector]: #selector-block
 [match_expression]: #match_expression-block
 [rule]: #rule-block
-[clustering]: #clustering-experimental
+[scrape]: #scrape-block
+[clustering]: #clustering-beta
 
 ### client block
 
@@ -92,23 +100,27 @@ Name | Type | Description | Default | Required
 
 ### basic_auth block
 
-{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ### authorization block
 
-{{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ### oauth2 block
 
-{{< docs/shared lookup="flow/reference/components/oauth2-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/oauth2-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ### tls_config block
 
-{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ### rule block
 
-{{< docs/shared lookup="flow/reference/components/rule-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/rule-block.md" source="agent" version="<AGENT VERSION>" >}}
+
+### scrape block
+
+{{< docs/shared lookup="flow/reference/components/prom-operator-scrape.md" source="agent" version="<AGENT VERSION>" >}}
 
 ### selector block
 
@@ -142,15 +154,15 @@ The `operator` argument must be one of the following strings:
 * `"Exists"`
 * `"DoesNotExist"`
 
-If there are multiple `match_expressions` blocks inside of a `selector` block, they are combined together with AND clauses. 
+If there are multiple `match_expressions` blocks inside of a `selector` block, they are combined together with AND clauses.
 
-### clustering (experimental)
+### clustering (beta)
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `enabled` | `bool` | Enables sharing targets with other cluster nodes. | `false` | yes
 
-When the agent is running in [clustered mode][], and `enabled` is set to true,
+When the agent is [using clustering][], and `enabled` is set to true,
 then this component instance opts-in to participating in
 the cluster to distribute scrape load between all cluster nodes.
 
@@ -172,7 +184,7 @@ fully consistent like hashmod sharding is).
 If the agent is _not_ running in clustered mode, then the block is a no-op, and
 `prometheus.operator.podmonitors` scrapes every target it receives in its arguments.
 
-[clustered mode]: {{< relref "../cli/run.md#clustered-mode-experimental" >}}
+[using clustering]: {{< relref "../../concepts/clustering.md" >}}
 
 ## Exported fields
 
@@ -189,8 +201,9 @@ scrape job on the component's debug endpoint, including discovered labels, and t
 
 It also exposes some debug information for each PodMonitor it has discovered, including any errors found while reconciling the scrape configuration from the PodMonitor.
 
-### Debug metrics
+## Debug metrics
 
+`prometheus.operator.podmonitors` does not expose any component-specific debug metrics.
 
 ## Example
 

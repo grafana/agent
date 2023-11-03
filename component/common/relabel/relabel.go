@@ -100,6 +100,13 @@ func (re *Regexp) UnmarshalText(text []byte) error {
 	return nil
 }
 
+// String returns the original string used to compile the regular expression.
+func (re Regexp) String() string {
+	str := re.Regexp.String()
+	// Trim the anchor `^(?:` prefix and `)$` suffix.
+	return str[4 : len(str)-2]
+}
+
 // Config describes a relabelling step to be applied on a target.
 type Config struct {
 	SourceLabels []string `river:"source_labels,attr,optional"`
@@ -139,16 +146,13 @@ func (rc *Config) Validate() error {
 	if rc.Modulus == 0 && rc.Action == HashMod {
 		return fmt.Errorf("relabel configuration for hashmod requires non-zero modulus")
 	}
-	if (rc.Action == Replace || rc.Action == KeepEqual || rc.Action == DropEqual || rc.Action == HashMod || rc.Action == Lowercase || rc.Action == Uppercase) && rc.TargetLabel == "" {
+	if (rc.Action == Replace || rc.Action == HashMod || rc.Action == Lowercase || rc.Action == Uppercase || rc.Action == KeepEqual || rc.Action == DropEqual) && rc.TargetLabel == "" {
 		return fmt.Errorf("relabel configuration for %s action requires 'target_label' value", rc.Action)
 	}
-	if (rc.Action == KeepEqual || rc.Action == DropEqual) && rc.SourceLabels == nil {
-		return fmt.Errorf("relabel configuration for %s action requires 'source_labels' value", rc.Action)
-	}
-	if (rc.Action == Replace || rc.Action == Lowercase || rc.Action == Uppercase) && !relabelTarget.MatchString(rc.TargetLabel) {
+	if (rc.Action == Replace || rc.Action == Lowercase || rc.Action == Uppercase || rc.Action == KeepEqual || rc.Action == DropEqual) && !relabelTarget.MatchString(rc.TargetLabel) {
 		return fmt.Errorf("%q is invalid 'target_label' for %s action", rc.TargetLabel, rc.Action)
 	}
-	if (rc.Action == Lowercase || rc.Action == Uppercase) && rc.Replacement != DefaultRelabelConfig.Replacement {
+	if (rc.Action == Lowercase || rc.Action == Uppercase || rc.Action == KeepEqual || rc.Action == DropEqual) && rc.Replacement != DefaultRelabelConfig.Replacement {
 		return fmt.Errorf("'replacement' can not be set for %s action", rc.Action)
 	}
 	if rc.Action == LabelMap && !relabelTarget.MatchString(rc.Replacement) {

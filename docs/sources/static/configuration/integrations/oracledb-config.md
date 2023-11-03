@@ -1,7 +1,9 @@
 ---
-title: oracledb_config
 aliases:
 - ../../../configuration/integrations/oracledb-config/
+canonical: https://grafana.com/docs/agent/latest/static/configuration/integrations/oracledb-config/
+title: oracledb_config
+description: Learn about oracledb_config
 ---
 
 # oracledb_config
@@ -76,7 +78,6 @@ integrations:
   oracledb:
     enabled: true
     connection_string: oracle://user:password@localhost:1521/orcl.localnet
-    metric_scrape_interval: 1m
     scrape_interval: 1m
     scrape_timeout: 1m
     scrape_integration: true

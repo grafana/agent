@@ -1,5 +1,11 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/discovery.ec2/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/discovery.ec2/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/discovery.ec2/
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.ec2/
 title: discovery.ec2
+description: Learn about discovery.ec2
 ---
 
 # discovery.ec2
@@ -96,14 +102,34 @@ values.
 
 `discovery.ec2` does not expose any component-specific debug information.
 
-### Debug metrics
+## Debug metrics
 
 `discovery.ec2` does not expose any component-specific debug metrics.
 
-## Examples
+## Example
 
 ```river
 discovery.ec2 "ec2" {
   region = "us-east-1"
 }
+
+prometheus.scrape "demo" {
+  targets    = discovery.ec2.ec2.targets
+  forward_to = [prometheus.remote_write.demo.receiver]
+}
+
+prometheus.remote_write "demo" {
+  endpoint {
+    url = PROMETHEUS_REMOTE_WRITE_URL
+
+    basic_auth {
+      username = USERNAME
+      password = PASSWORD
+    }
+  }
+}
 ```
+Replace the following:
+  - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
+  - `USERNAME`: The username to use for authentication to the remote_write API.
+  - `PASSWORD`: The password to use for authentication to the remote_write API.

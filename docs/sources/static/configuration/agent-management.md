@@ -1,5 +1,8 @@
 ---
-title: Agent Management
+canonical: https://grafana.com/docs/agent/latest/static/configuration/agent-management/
+menuTitle: Agent Management
+title: Agent Management - Experimental
+description: Learn about Agent Management
 weight: 700
 ---
 
@@ -37,6 +40,21 @@ agent_management:
     [ username: <string> ]
     [ password_file: <string> ]
 
+  # Optional proxy URL.
+  [ proxy_url: <string> ]
+
+  # Comma-separated string that can contain IPs, CIDR notation, domain names
+  # that should be excluded from proxying. IP and domain names can
+  # contain port numbers.
+  [ no_proxy: <string> ]
+
+  # Use proxy URL indicated by environment variables (HTTP_PROXY, https_proxy, HTTPs_PROXY, https_proxy, and no_proxy)
+  [ proxy_from_environment: <boolean> | default: false ]
+
+  # Specifies headers to send to proxies during CONNECT requests.
+  [ proxy_connect_header:
+    [ <string>: [<secret>, ...] ] ]
+
   # Fields specific to remote configuration.
   remote_configuration:
     # A path to a directory where the remote configuration will be cached. The directory must be writeable.
@@ -48,9 +66,18 @@ agent_management:
     # Set of self-identifying labels used for snippet selection.
     labels:
       [ <labelname>: <labelvalue> ... ]
+
+    # Whether to use labels from the label management service. If enabled, labels from the API supersede the ones configured in the agent. The agent_id field must be defined.
+    label_management_enabled: <bool> | default = false
+
+    # A unique ID for the agent, which is used to identify the agent.
+    agent_id: <string>
+
+    # Whether to accept HTTP 304 Not Modified responses from the API server. If enabled, the agent will use the cached configuration if the API server responds with HTTP 304 Not Modified. You can set this argument to `false` for debugging or testing.
+    accept_http_not_modified: <bool> | default = true
 ```
 
-## API (v2)
+## API
 
 Grafana Agents with Agent Management enabled continuously poll the API server for an up-to-date configuration. The API server is expected to implement a `GET /agent-management/api/agent/v2/namespace/:namespace/remote_config` HTTP endpoint returning a successful response with the following body format:
 
@@ -65,7 +92,7 @@ snippets:
 
 ### grafana_agent_config
 
-This is a standard Grafana Agent [static mode configuration](https://grafana.com/docs/agent/latest/static/configuration/). Typically used to configure the server, remote_writes, and other global configuration.
+This is a standard Grafana Agent [static mode configuration](/docs/agent/latest/static/configuration/). Typically used to configure the server, remote_writes, and other global configuration.
 
 ### snippet_content
 
@@ -87,9 +114,9 @@ selector:
 
 > **Note:** More information on the following types can be found in their respective documentation pages:
 >
-> * [`scrape_config`](https://prometheus.io/docs/prometheus/2.42/configuration/configuration/#scrape_config)
-> * [`promtail.scrape_config`](https://grafana.com/docs/loki/latest/clients/promtail/configuration/#scrape_configs)
-> * [`integrations_config`](https://grafana.com/docs/agent/latest/static/configuration/integrations)
+> * [`scrape_config`](https://prometheus.io/docs/prometheus/2.45/configuration/configuration/#scrape_config)
+> * [`promtail.scrape_config`](/docs/loki/latest/clients/promtail/configuration/#scrape_configs)
+> * [`integrations_config`](/docs/agent/latest/static/configuration/integrations)
 
 > **Note:** Snippet selection is currently done in the API server. This behaviour is subject to change in the future.
 

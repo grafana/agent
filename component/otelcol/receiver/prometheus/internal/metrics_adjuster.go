@@ -16,15 +16,19 @@ package internal // import "github.com/open-telemetry/opentelemetry-collector-co
 
 import (
 	"errors"
-	"strings"
 	"sync"
 	"time"
 
+	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/pdatautil"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/pmetric"
 	semconv "go.opentelemetry.io/collector/semconv/v1.6.1"
 	"go.uber.org/zap"
 )
+
+// The code in this file has been heavily inspired by Otel Collector:
+// https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/receiver/prometheusreceiver/internal/metrics_adjuster.go
+// In case of issues or changes check the file against the Collector to see if it was also updated.
 
 // Notes on garbage collection (gc):
 //
@@ -88,7 +92,7 @@ type summaryInfo struct {
 
 type timeseriesKey struct {
 	name           string
-	attributes     string
+	attributes     [16]byte
 	aggTemporality pmetric.AggregationTemporality
 }
 
@@ -130,16 +134,16 @@ func (tsm *timeseriesMap) get(metric pmetric.Metric, kv pcommon.Map) (*timeserie
 }
 
 // Create a unique timeseries signature consisting of the metric name and label values.
-func getAttributesSignature(kv pcommon.Map) string {
-	labelValues := make([]string, 0, kv.Len())
-	kv.Sort().Range(func(_ string, attrValue pcommon.Value) bool {
+func getAttributesSignature(m pcommon.Map) [16]byte {
+	clearedMap := pcommon.NewMap()
+	m.Range(func(k string, attrValue pcommon.Value) bool {
 		value := attrValue.Str()
 		if value != "" {
-			labelValues = append(labelValues, value)
+			clearedMap.PutStr(k, value)
 		}
 		return true
 	})
-	return strings.Join(labelValues, ",")
+	return pdatautil.MapHash(clearedMap)
 }
 
 // Remove timeseries that have aged out.

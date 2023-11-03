@@ -1,15 +1,19 @@
 ---
-description: Learn how to install Grafana Agent in flow mode on Kubernetes
-title: Install Grafana Agent in flow mode on Kubernetes
-menuTitle: Kubernetes
-weight: 200
 aliases:
- - ../../install/kubernetes/
+- ../../install/kubernetes/
+- /docs/grafana-cloud/agent/flow/setup/install/kubernetes/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/setup/install/kubernetes/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/setup/install/kubernetes/
+canonical: https://grafana.com/docs/agent/latest/flow/setup/install/kubernetes/
+description: Learn how to deploy Grafana Agent in flow mode on Kubernetes
+menuTitle: Kubernetes
+title: Deploy Grafana Agent in flow mode on Kubernetes
+weight: 200
 ---
 
-# Install Grafana Agent in flow mode on Kubernetes
+# Deploy Grafana Agent in flow mode on Kubernetes
 
-Grafana Agent can be installed on Kubernetes by using the Helm chart for Grafana Agent.
+Grafana Agent can be deployed on Kubernetes by using the Helm chart for Grafana Agent.
 
 ## Before you begin
 
@@ -17,16 +21,14 @@ Grafana Agent can be installed on Kubernetes by using the Helm chart for Grafana
 * Configure a Kubernetes cluster that you can use for Grafana Agent.
 * Configure your local Kubernetes context to point to the cluster.
 
-[Helm]: https://helm.sh
-
-## Install
+## Deploy
 
 {{% admonition type="note" %}}
 These instructions show you how to install the generic [Helm chart](https://github.com/grafana/agent/tree/main/operations/helm/charts/grafana-agent) for Grafana
 Agent. You can deploy Grafana Agent either in static mode or flow mode. The Helm chart deploys Grafana Agent in flow mode by default.
 {{% /admonition %}}
 
-To install Grafana Agent on Kubernetes using Helm, run the following commands in a terminal window:
+To deploy Grafana Agent on Kubernetes using Helm, run the following commands in a terminal window:
 
 1. Add the Grafana Helm chart repository:
 
@@ -40,7 +42,7 @@ To install Grafana Agent on Kubernetes using Helm, run the following commands in
    helm repo update
    ```
 
-1. Install the Grafana Agent Helm chart:
+1. Install Grafana Agent:
 
    ```shell
    helm install RELEASE_NAME grafana/grafana-agent
@@ -55,5 +57,11 @@ For more information on the Grafana Agent Helm chart, refer to the Helm chart do
 
 ## Next steps
 
-- [Start Grafana Agent]({{< relref "../start-agent#linux" >}})
-- [Configure Grafana Agent]({{< relref "../configure/configure-linux" >}})
+- [Configure Grafana Agent][]
+
+[Helm]: https://helm.sh
+
+{{% docs/reference %}}
+[Configure Grafana Agent]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/configure/configure-kubernetes.md"
+[Configure Grafana Agent]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/setup/configure/configure-kubernetes.md"
+{{% /docs/reference %}}

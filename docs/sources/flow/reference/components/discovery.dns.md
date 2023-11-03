@@ -1,7 +1,12 @@
 ---
 aliases:
 - /docs/agent/latest/flow/reference/components/discovery.dns
+- /docs/grafana-cloud/agent/flow/reference/components/discovery.dns/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/discovery.dns/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/discovery.dns/
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.dns/
 title: discovery.dns
+description: Learn about discovery.dns
 ---
 
 # discovery.dns
@@ -12,7 +17,7 @@ title: discovery.dns
 
 ```river
 discovery.dns "LABEL" {
-  names = ["lookup.example.com"]
+  names = [NAME_1, NAME_2, ...]
 }
 ```
 
@@ -53,11 +58,11 @@ values.
 
 `discovery.dns` does not expose any component-specific debug information.
 
-### Debug metrics
+## Debug metrics
 
 `discovery.dns` does not expose any component-specific debug metrics.
 
-## Examples
+## Example
 
 This example discovers targets from an A record.
 
@@ -67,4 +72,24 @@ discovery.dns "dns_lookup" {
   type = "A"
   port = 8080
 }
+
+prometheus.scrape "demo" {
+  targets    = discovery.dns.dns_lookup.targets
+  forward_to = [prometheus.remote_write.demo.receiver]
+}
+
+prometheus.remote_write "demo" {
+  endpoint {
+    url = PROMETHEUS_REMOTE_WRITE_URL
+
+    basic_auth {
+      username = USERNAME
+      password = PASSWORD
+    }
+  }
+}
 ```
+Replace the following:
+  - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
+  - `USERNAME`: The username to use for authentication to the remote_write API.
+  - `PASSWORD`: The password to use for authentication to the remote_write API.

@@ -186,6 +186,11 @@ func (in *GrafanaAgentSpec) DeepCopyInto(out *GrafanaAgentSpec) {
 		*out = new(string)
 		**out = **in
 	}
+	if in.ConfigReloaderImage != nil {
+		in, out := &in.ConfigReloaderImage, &out.ConfigReloaderImage
+		*out = new(string)
+		**out = **in
+	}
 	if in.ImagePullSecrets != nil {
 		in, out := &in.ImagePullSecrets, &out.ImagePullSecrets
 		*out = make([]corev1.LocalObjectReference, len(*in))

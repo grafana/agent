@@ -1,14 +1,16 @@
 ---
-title: github_exporter_config
 aliases:
 - ../../../configuration/integrations/github-exporter-config/
+canonical: https://grafana.com/docs/agent/latest/static/configuration/integrations/github-exporter-config/
+title: github_exporter_config
+description: Learn about github_exporter_config
 ---
 
 # github_exporter_config
 
 The `github_exporter_config` block configures the `github_exporter` integration,
 which is an embedded version of
-[`github_exporter`](https://github.com/infinityworks/github-exporter). This allows for the collection of metrics from the GitHub api.
+[`github_exporter`](https://github.com/githubexporter/github-exporter). This allows for the collection of metrics from the GitHub api.
 
 We strongly recommend that you configure a separate authentication token for the Agent, and give it only the strictly mandatory
 security privileges necessary for monitoring your repositories, as per the [official documentation](https://docs.github.com/en/rest/reference/permissions-required-for-github-apps).

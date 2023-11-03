@@ -1,7 +1,12 @@
 ---
 aliases:
 - ../../configuration-language/expressions/operators/
+- /docs/grafana-cloud/agent/flow/config-language/expressions/operators/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/config-language/expressions/operators/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/config-language/expressions/operators/
+canonical: https://grafana.com/docs/agent/latest/flow/config-language/expressions/operators/
 title: Operators
+description: Learn about operators
 weight: 300
 ---
 
@@ -110,3 +115,9 @@ arr[1]
 obj.app
 local.file.token.content
 ```
+
+If the `[ ]` operator is used to access a member of an object where the member
+doesn't exist, the resulting value is `null`.
+
+If the `.` operator is used to access a named member of an object where the
+named member doesn't exist, an error is generated.

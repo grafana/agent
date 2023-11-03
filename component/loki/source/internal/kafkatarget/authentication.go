@@ -1,6 +1,6 @@
 package kafkatarget
 
-// This code is copied from Promtail. The herokutarget package is used to
+// This code is copied from Promtail (https://github.com/grafana/loki/commit/065bee7e72b00d800431f4b70f0d673d6e0e7a2b). The herokutarget package is used to
 // configure and run the targets that can read heroku entries and forward them
 // to other loki components.
 
@@ -11,7 +11,7 @@ import (
 	"github.com/xdg-go/scram"
 )
 
-// copied from https://github.com/Shopify/sarama/blob/44627b731c60bb90efe25573e7ef2b3f8df3fa23/examples/sasl_scram_client/scram_client.go
+// copied from https://github.com/IBM/sarama/blob/44627b731c60bb90efe25573e7ef2b3f8df3fa23/examples/sasl_scram_client/scram_client.go
 var (
 	SHA256 scram.HashGeneratorFcn = sha256.New
 	SHA512 scram.HashGeneratorFcn = sha512.New

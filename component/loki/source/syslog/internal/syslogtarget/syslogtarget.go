@@ -1,8 +1,8 @@
 package syslogtarget
 
-// This code is copied from Promtail. The syslogtarget package is used to
-// configure and run the targets that can read syslog entries and forward them
-// to other loki components.
+// This code is copied from Promtail v2.8.4 (4a564456861c0ab7441b815aa49a7c0f22a05f4c)
+// The syslogtarget package is used to configure and run the targets that can
+// read syslog entries and forward them to other loki components.
 
 import (
 	"errors"
@@ -12,7 +12,7 @@ import (
 	"time"
 
 	"github.com/go-kit/log"
-	"github.com/go-kit/log/level"
+	"github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/influxdata/go-syslog/v3"
 	"github.com/influxdata/go-syslog/v3/rfc5424"
 	"github.com/prometheus/common/model"
@@ -148,7 +148,7 @@ func (t *SyslogTarget) handleMessage(connLabels labels.Labels, msg syslog.Messag
 		}
 	}
 
-	processed, _ := relabel.Process(lb.Labels(nil), t.relabelConfig...)
+	processed, _ := relabel.Process(lb.Labels(), t.relabelConfig...)
 
 	filtered := make(model.LabelSet)
 	for _, lbl := range processed {

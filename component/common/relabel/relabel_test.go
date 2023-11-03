@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/grafana/agent/pkg/river"
+	"github.com/grafana/river"
 )
 
 func TestParseConfig(t *testing.T) {
@@ -39,26 +39,10 @@ func TestParseConfig(t *testing.T) {
 			expectErr: true,
 		},
 		{
-			name: "missing dropequal source",
-			cfg: `
-			action = "dropequal"
-			target_label = "foo"
-			`,
-			expectErr: true,
-		},
-		{
 			name: "missing keepequal target",
 			cfg: `
 			action = "keepequal"
 			source_labels = ["bar"]
-			`,
-			expectErr: true,
-		},
-		{
-			name: "missing keepequal source",
-			cfg: `
-			action = "keepequal"
-			target_label = "foo"
 			`,
 			expectErr: true,
 		},

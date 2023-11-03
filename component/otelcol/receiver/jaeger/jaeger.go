@@ -3,23 +3,24 @@ package jaeger
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/alecthomas/units"
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/otelcol"
 	"github.com/grafana/agent/component/otelcol/receiver"
+	otel_service "github.com/grafana/agent/service/otel"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/jaegerreceiver"
 	otelcomponent "go.opentelemetry.io/collector/component"
-	otelconfig "go.opentelemetry.io/collector/config"
 	otelconfiggrpc "go.opentelemetry.io/collector/config/configgrpc"
 	otelconfighttp "go.opentelemetry.io/collector/config/confighttp"
+	otelextension "go.opentelemetry.io/collector/extension"
 )
 
 func init() {
 	component.Register(component.Registration{
-		Name: "otelcol.receiver.jaeger",
-		Args: Arguments{},
+		Name:          "otelcol.receiver.jaeger",
+		Args:          Arguments{},
+		NeedsServices: []string{otel_service.ServiceName},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			fact := jaegerreceiver.NewFactory()
@@ -30,16 +31,16 @@ func init() {
 
 // Arguments configures the otelcol.receiver.jaeger component.
 type Arguments struct {
-	Protocols      ProtocolsArguments       `river:"protocols,block"`
-	RemoteSampling *RemoteSamplingArguments `river:"remote_sampling,block,optional"`
+	Protocols ProtocolsArguments `river:"protocols,block"`
+
+	// DebugMetrics configures component internal metrics. Optional.
+	DebugMetrics otelcol.DebugMetricsArguments `river:"debug_metrics,block,optional"`
 
 	// Output configures where to send received data. Required.
 	Output *otelcol.ConsumerArguments `river:"output,block"`
 }
 
-var (
-	_ receiver.Arguments = Arguments{}
-)
+var _ receiver.Arguments = Arguments{}
 
 // Validate implements river.Validator.
 func (args *Arguments) Validate() error {
@@ -55,29 +56,24 @@ func (args *Arguments) Validate() error {
 }
 
 // Convert implements receiver.Arguments.
-func (args Arguments) Convert() (otelconfig.Receiver, error) {
+func (args Arguments) Convert() (otelcomponent.Config, error) {
 	return &jaegerreceiver.Config{
-		ReceiverSettings: otelconfig.NewReceiverSettings(otelconfig.NewComponentID("jaeger")),
 		Protocols: jaegerreceiver.Protocols{
 			GRPC:          args.Protocols.GRPC.Convert(),
 			ThriftHTTP:    args.Protocols.ThriftHTTP.Convert(),
 			ThriftBinary:  args.Protocols.ThriftBinary.Convert(),
 			ThriftCompact: args.Protocols.ThriftCompact.Convert(),
 		},
-		RemoteSampling: args.RemoteSampling.Convert(),
 	}, nil
 }
 
 // Extensions implements receiver.Arguments.
-func (args Arguments) Extensions() map[otelconfig.ComponentID]otelcomponent.Extension {
-	if args.RemoteSampling == nil {
-		return nil
-	}
-	return args.RemoteSampling.Client.Extensions()
+func (args Arguments) Extensions() map[otelcomponent.ID]otelextension.Extension {
+	return nil
 }
 
 // Exporters implements receiver.Arguments.
-func (args Arguments) Exporters() map[otelconfig.DataType]map[otelconfig.ComponentID]otelcomponent.Exporter {
+func (args Arguments) Exporters() map[otelcomponent.DataType]map[otelcomponent.ID]otelcomponent.Component {
 	return nil
 }
 
@@ -218,30 +214,7 @@ func (args *ThriftBinary) Convert() *jaegerreceiver.ProtocolUDP {
 	return args.ProtocolUDP.Convert()
 }
 
-// RemoteSamplingArguments configures remote sampling settings.
-type RemoteSamplingArguments struct {
-	// TODO(rfratto): can we work with upstream to provide a hook to provide a
-	// custom strategy file and bypass the reload interval?
-	//
-	// That would let users connect a local.file to otelcol.receiver.jaeger for
-	// the remote sampling.
-
-	HostEndpoint               string                      `river:"host_endpoint,attr"`
-	StrategyFile               string                      `river:"strategy_file,attr"`
-	StrategyFileReloadInterval time.Duration               `river:"strategy_file_reload_interval,attr"`
-	Client                     otelcol.GRPCClientArguments `river:"client,block"`
-}
-
-// Convert converts args into the upstream type.
-func (args *RemoteSamplingArguments) Convert() *jaegerreceiver.RemoteSamplingConfig {
-	if args == nil {
-		return nil
-	}
-
-	return &jaegerreceiver.RemoteSamplingConfig{
-		HostEndpoint:               args.HostEndpoint,
-		StrategyFile:               args.StrategyFile,
-		StrategyFileReloadInterval: args.StrategyFileReloadInterval,
-		GRPCClientSettings:         *args.Client.Convert(),
-	}
+// DebugMetricsConfig implements receiver.Arguments.
+func (args Arguments) DebugMetricsConfig() otelcol.DebugMetricsArguments {
+	return args.DebugMetrics
 }

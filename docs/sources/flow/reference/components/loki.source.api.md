@@ -1,5 +1,11 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/loki.source.api/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/loki.source.api/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/loki.source.api/
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/loki.source.api/
 title: loki.source.api
+description: Learn about loki.source.api
 ---
 
 # loki.source.api
@@ -25,11 +31,14 @@ loki.source.api "LABEL" {
 
 The component will start HTTP server on the configured port and address with the following endpoints:
 
-- `/api/v1/push` - accepting `POST` requests compatible with [Loki push API][loki-push-api], for example, from another Grafana Agent's [`loki.write`][loki.write] component.
-- `/api/v1/raw` - accepting `POST` requests with newline-delimited log lines in body. This can be used to send NDJSON or plaintext logs. This is compatible with promtail's push API endpoint - see [promtail's documentation][promtail-push-api] for more information. NOTE: when this endpoint is used, the incoming timestamps cannot be used and the `use_incoming_timestamp = true` setting will be ignored. 
-- `/ready` - accepting `GET` requests - can be used to confirm the server is reachable and healthy.
+- `/loki/api/v1/push` - accepting `POST` requests compatible with [Loki push API][loki-push-api], for example, from another Grafana Agent's [`loki.write`][loki.write] component.
+- `/loki/api/v1/raw` - accepting `POST` requests with newline-delimited log lines in body. This can be used to send NDJSON or plaintext logs. This is compatible with promtail's push API endpoint - see [promtail's documentation][promtail-push-api] for more information. NOTE: when this endpoint is used, the incoming timestamps cannot be used and the `use_incoming_timestamp = true` setting will be ignored. 
+- `/loki/ready` - accepting `GET` requests - can be used to confirm the server is reachable and healthy.
+- `/api/v1/push` - internally reroutes to `/loki/api/v1/push` 
+- `/api/v1/raw` - internally reroutes to `/loki/api/v1/raw`
 
-[promtail-push-api]: https://grafana.com/docs/loki/latest/clients/promtail/configuration/#loki_push_api
+
+[promtail-push-api]: /docs/loki/latest/clients/promtail/configuration/#loki_push_api
 
 ## Arguments
 
@@ -59,7 +68,7 @@ The following blocks are supported inside the definition of `loki.source.api`:
 
 ### http
 
-{{< docs/shared lookup="flow/reference/components/loki-server-http.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/loki-server-http.md" source="agent" version="<AGENT VERSION>" >}}
 
 ## Exported fields
 

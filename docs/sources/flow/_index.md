@@ -1,5 +1,11 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/
+canonical: https://grafana.com/docs/agent/latest/flow/
 title: Flow mode
+description: Grafana Agent Flow is a component-based revision of Grafana Agent with a focus on ease-of-use, debuggability, and adaptability
 weight: 400
 ---
 
@@ -56,6 +62,13 @@ prometheus.remote_write "default" {
   }
 }
 ```
+
+## Grafana Agent configuration generator
+
+The [Grafana Agent configuration generator](https://grafana.github.io/agent-configurator/) will help you get a head start on creating flow code.
+{{% admonition type="note" %}}
+This feature is experimental, and it does not support all River components.
+{{% /admonition %}}
 
 ## Next steps
 

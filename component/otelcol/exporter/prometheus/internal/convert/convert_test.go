@@ -18,9 +18,12 @@ func TestConverter(t *testing.T) {
 		input  string
 		expect string
 
-		showTimestamps    bool
-		includeTargetInfo bool
-		includeScopeInfo  bool
+		showTimestamps     bool
+		includeTargetInfo  bool
+		includeScopeInfo   bool
+		includeScopeLabels bool
+		addMetricSuffixes  bool
+		enableOpenMetrics  bool
 	}{
 		{
 			name: "Gauge",
@@ -44,6 +47,7 @@ func TestConverter(t *testing.T) {
 				# TYPE test_metric_seconds gauge
 				test_metric_seconds 1234.56
 			`,
+			enableOpenMetrics: true,
 		},
 		{
 			name: "Monotonic sum",
@@ -58,7 +62,15 @@ func TestConverter(t *testing.T) {
 								"data_points": [{
 									"start_time_unix_nano": 1000000000,
 									"time_unix_nano": 1000000000,
-									"as_double": 15
+									"as_double": 15,
+									"exemplars":[
+										{
+											"time_unix_nano": 1000000001,
+											"as_double": 0.3,
+											"span_id": "aaaaaaaaaaaaaaaa",
+											"trace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+										}
+									]
 								}]
 							}
 						}]
@@ -67,8 +79,9 @@ func TestConverter(t *testing.T) {
 			}`,
 			expect: `
 				# TYPE test_metric_seconds counter
-				test_metric_seconds_total 15.0
+				test_metric_seconds_total 15.0 # {span_id="aaaaaaaaaaaaaaaa",trace_id="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"} 0.3
 			`,
+			enableOpenMetrics: true,
 		},
 		{
 			name: "Non-monotonic sum",
@@ -94,6 +107,7 @@ func TestConverter(t *testing.T) {
 				# TYPE test_metric_seconds gauge
 				test_metric_seconds 15.0
 			`,
+			enableOpenMetrics: true,
 		},
 		{
 			name: "Histogram",
@@ -110,7 +124,27 @@ func TestConverter(t *testing.T) {
 									"count": 333,
 									"sum": 100,
 									"bucket_counts": [0, 111, 0, 222],
-									"explicit_bounds": [0.25, 0.5, 0.75, 1.0]
+									"explicit_bounds": [0.25, 0.5, 0.75, 1.0],
+									"exemplars":[
+										{
+											"time_unix_nano": 1000000001,
+											"as_double": 0.3,
+											"span_id": "aaaaaaaaaaaaaaaa",
+											"trace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+										},
+										{
+											"time_unix_nano": 1000000003,
+											"as_double": 1.5,
+											"span_id": "cccccccccccccccc",
+											"trace_id": "cccccccccccccccccccccccccccccccc"
+										},
+										{
+											"time_unix_nano": 1000000002,
+											"as_double": 0.5,
+											"span_id": "bbbbbbbbbbbbbbbb",
+											"trace_id": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+										}
+									]
 								}]
 							}
 						}]
@@ -120,13 +154,14 @@ func TestConverter(t *testing.T) {
 			expect: `
 				# TYPE test_metric_seconds histogram
 				test_metric_seconds_bucket{le="0.25"} 0
-				test_metric_seconds_bucket{le="0.5"} 111
-				test_metric_seconds_bucket{le="0.75"} 111
+				test_metric_seconds_bucket{le="0.5"} 111 # {span_id="aaaaaaaaaaaaaaaa",trace_id="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"} 0.3
+				test_metric_seconds_bucket{le="0.75"} 111 # {span_id="bbbbbbbbbbbbbbbb",trace_id="bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"} 0.5
 				test_metric_seconds_bucket{le="1.0"} 333
-				test_metric_seconds_bucket{le="+Inf"} 333
+				test_metric_seconds_bucket{le="+Inf"} 333 # {span_id="cccccccccccccccc",trace_id="cccccccccccccccccccccccccccccccc"} 1.5
 				test_metric_seconds_sum 100.0
 				test_metric_seconds_count 333
 			`,
+			enableOpenMetrics: true,
 		},
 		{
 			name: "Histogram out-of-order bounds",
@@ -160,6 +195,7 @@ func TestConverter(t *testing.T) {
 				test_metric_seconds_sum 100.0
 				test_metric_seconds_count 333
 			`,
+			enableOpenMetrics: true,
 		},
 		{
 			name: "Summary",
@@ -197,6 +233,7 @@ func TestConverter(t *testing.T) {
 				test_metric_seconds_sum 100.0
 				test_metric_seconds_count 333
 			`,
+			enableOpenMetrics: true,
 		},
 		{
 			name: "Timestamps",
@@ -221,6 +258,7 @@ func TestConverter(t *testing.T) {
 				# TYPE test_metric_seconds gauge
 				test_metric_seconds 1234.56 1.0
 			`,
+			enableOpenMetrics: true,
 		},
 		{
 			name: "Labels from resource attributes",
@@ -254,6 +292,7 @@ func TestConverter(t *testing.T) {
 				# TYPE test_metric_seconds gauge
 				test_metric_seconds{instance="instance",job="myservice"} 1234.56
 			`,
+			enableOpenMetrics: true,
 		},
 		{
 			name: "Labels from scope name and version",
@@ -282,16 +321,25 @@ func TestConverter(t *testing.T) {
 			includeScopeInfo: true,
 			expect: `
 				# TYPE otel_scope_info gauge
-				otel_scope_info{name="a-name",version="a-version",something_extra="zzz-extra-value"} 1.0
+				otel_scope_info{otel_scope_name="a-name",otel_scope_version="a-version",something_extra="zzz-extra-value"} 1.0
 				# TYPE test_metric_seconds gauge
-				test_metric_seconds{otel_scope_name="a-name",otel_scope_version="a-version"} 1234.56
+				test_metric_seconds 1234.56
 			`,
+			enableOpenMetrics: true,
 		},
 		{
 			name: "Labels from data point",
 			input: `{
 				"resource_metrics": [{
 					"scope_metrics": [{
+						"scope": {
+							"name": "a-name",
+							"version": "a-version",
+							"attributes": [{
+								"key": "something.extra",
+								"value": { "stringValue": "zzz-extra-value" }
+							}]
+						},
 						"metrics": [{
 							"name": "test_metric_seconds",
 							"gauge": {
@@ -307,10 +355,12 @@ func TestConverter(t *testing.T) {
 					}]
 				}]
 			}`,
+			includeScopeLabels: true,
 			expect: `
 				# TYPE test_metric_seconds gauge
-				test_metric_seconds{foo="bar"} 1234.56
+				test_metric_seconds{otel_scope_name="a-name",otel_scope_version="a-version",foo="bar"} 1234.56
 			`,
+			enableOpenMetrics: true,
 		},
 		{
 			name: "Target info metric",
@@ -348,6 +398,445 @@ func TestConverter(t *testing.T) {
 				# TYPE test_metric_seconds gauge
 				test_metric_seconds{instance="instance",job="myservice"} 1234.56
 			`,
+			enableOpenMetrics: true,
+		},
+		{
+			name: "Gauge: add_metric_suffixes = false",
+			input: `{
+				"resource_metrics": [{
+					"scope_metrics": [{
+						"metrics": [{
+							"name": "test_metric",
+							"unit": "seconds",
+							"gauge": {
+								"data_points": [{
+									"start_time_unix_nano": 1000000000,
+									"time_unix_nano": 1000000000,
+									"as_double": 1234.56
+								}]
+							}
+						}]
+					}]
+				}]
+			}`,
+			expect: `
+				# TYPE test_metric gauge
+				test_metric 1234.56
+			`,
+			enableOpenMetrics: true,
+		},
+		{
+			name: "Gauge: add_metric_suffixes = true",
+			input: `{
+				"resource_metrics": [{
+					"scope_metrics": [{
+						"metrics": [{
+							"name": "test_metric",
+							"unit": "seconds",
+							"gauge": {
+								"data_points": [{
+									"start_time_unix_nano": 1000000000,
+									"time_unix_nano": 1000000000,
+									"as_double": 1234.56
+								}]
+							}
+						}]
+					}]
+				}]
+			}`,
+			expect: `
+				# TYPE test_metric_seconds gauge
+				test_metric_seconds 1234.56
+			`,
+			addMetricSuffixes: true,
+			enableOpenMetrics: true,
+		},
+		{
+			name: "Monotonic sum: add_metric_suffixes = false",
+			input: `{
+				"resource_metrics": [{
+					"scope_metrics": [{
+						"metrics": [{
+							"name": "test_metric_total",
+							"unit": "seconds",
+							"sum": {
+								"aggregation_temporality": 2,
+								"is_monotonic": true,
+								"data_points": [{
+									"start_time_unix_nano": 1000000000,
+									"time_unix_nano": 1000000000,
+									"as_double": 15,
+									"exemplars":[
+										{
+											"time_unix_nano": 1000000001,
+											"as_double": 0.3,
+											"span_id": "aaaaaaaaaaaaaaaa",
+											"trace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+										}
+									]
+								}]
+							}
+						}]
+					}]
+				}]
+			}`,
+			expect: `
+				# TYPE test_metric counter
+				test_metric_total 15.0 # {span_id="aaaaaaaaaaaaaaaa",trace_id="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"} 0.3
+			`,
+			enableOpenMetrics: true,
+		},
+		{
+			name: "Monotonic sum: add_metric_suffixes = true",
+			input: `{
+				"resource_metrics": [{
+					"scope_metrics": [{
+						"metrics": [{
+							"name": "test_metric_total",
+							"unit": "seconds",
+							"sum": {
+								"aggregation_temporality": 2,
+								"is_monotonic": true,
+								"data_points": [{
+									"start_time_unix_nano": 1000000000,
+									"time_unix_nano": 1000000000,
+									"as_double": 15,
+									"exemplars":[
+										{
+											"time_unix_nano": 1000000001,
+											"as_double": 0.3,
+											"span_id": "aaaaaaaaaaaaaaaa",
+											"trace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+										}
+									]
+								}]
+							}
+						}]
+					}]
+				}]
+			}`,
+			expect: `
+				# TYPE test_metric_seconds counter
+				test_metric_seconds_total 15.0 # {span_id="aaaaaaaaaaaaaaaa",trace_id="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"} 0.3
+			`,
+			addMetricSuffixes: true,
+			enableOpenMetrics: true,
+		},
+		{
+			name: "Monotonic sum: add_metric_suffixes = false, don't convert to open metrics",
+			input: `{
+				"resource_metrics": [{
+					"scope_metrics": [{
+						"metrics": [{
+							"name": "test_metric",
+							"unit": "seconds",
+							"sum": {
+								"aggregation_temporality": 2,
+								"is_monotonic": true,
+								"data_points": [{
+									"start_time_unix_nano": 1000000000,
+									"time_unix_nano": 1000000000,
+									"as_double": 15,
+									"exemplars":[
+										{
+											"time_unix_nano": 1000000001,
+											"as_double": 0.3,
+											"span_id": "aaaaaaaaaaaaaaaa",
+											"trace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+										}
+									]
+								}]
+							}
+						}]
+					}]
+				}]
+			}`,
+			expect: `
+				# TYPE test_metric counter
+				test_metric 15
+			`,
+			enableOpenMetrics: false,
+		},
+		{
+			name: "Monotonic sum: add_metric_suffixes = true, don't convert to open metrics",
+			input: `{
+				"resource_metrics": [{
+					"scope_metrics": [{
+						"metrics": [{
+							"name": "test_metric",
+							"unit": "seconds",
+							"sum": {
+								"aggregation_temporality": 2,
+								"is_monotonic": true,
+								"data_points": [{
+									"start_time_unix_nano": 1000000000,
+									"time_unix_nano": 1000000000,
+									"as_double": 15,
+									"exemplars":[
+										{
+											"time_unix_nano": 1000000001,
+											"as_double": 0.3,
+											"span_id": "aaaaaaaaaaaaaaaa",
+											"trace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+										}
+									]
+								}]
+							}
+						}]
+					}]
+				}]
+			}`,
+			expect: `
+				# TYPE test_metric_seconds_total counter
+				test_metric_seconds_total 15
+			`,
+			addMetricSuffixes: true,
+			enableOpenMetrics: false,
+		},
+		{
+			name: "Non-monotonic sum: add_metric_suffixes = false",
+			input: `{
+				"resource_metrics": [{
+					"scope_metrics": [{
+						"metrics": [{
+							"name": "test_metric",
+							"unit": "seconds",
+							"sum": {
+								"aggregation_temporality": 2,
+								"is_monotonic": false,
+								"data_points": [{
+									"start_time_unix_nano": 1000000000,
+									"time_unix_nano": 1000000000,
+									"as_double": 15
+								}]
+							}
+						}]
+					}]
+				}]
+			}`,
+			expect: `
+				# TYPE test_metric gauge
+				test_metric 15.0
+			`,
+			enableOpenMetrics: true,
+		},
+		{
+			name: "Non-monotonic sum: add_metric_suffixes = true",
+			input: `{
+				"resource_metrics": [{
+					"scope_metrics": [{
+						"metrics": [{
+							"name": "test_metric",
+							"unit": "seconds",
+							"sum": {
+								"aggregation_temporality": 2,
+								"is_monotonic": false,
+								"data_points": [{
+									"start_time_unix_nano": 1000000000,
+									"time_unix_nano": 1000000000,
+									"as_double": 15
+								}]
+							}
+						}]
+					}]
+				}]
+			}`,
+			expect: `
+				# TYPE test_metric_seconds gauge
+				test_metric_seconds 15.0
+			`,
+			addMetricSuffixes: true,
+			enableOpenMetrics: true,
+		},
+		{
+			name: "Histogram: add_metric_suffixes = false",
+			input: `{
+				"resource_metrics": [{
+					"scope_metrics": [{
+						"metrics": [{
+							"name": "test_metric",
+							"unit": "seconds",
+							"histogram": {
+								"aggregation_temporality": 2,
+								"data_points": [{
+									"start_time_unix_nano": 1000000000,
+									"time_unix_nano": 1000000000,
+									"count": 333,
+									"sum": 100,
+									"bucket_counts": [0, 111, 0, 222],
+									"explicit_bounds": [0.25, 0.5, 0.75, 1.0],
+									"exemplars":[
+										{
+											"time_unix_nano": 1000000001,
+											"as_double": 0.3,
+											"span_id": "aaaaaaaaaaaaaaaa",
+											"trace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+										},
+										{
+											"time_unix_nano": 1000000003,
+											"as_double": 1.5,
+											"span_id": "cccccccccccccccc",
+											"trace_id": "cccccccccccccccccccccccccccccccc"
+										},
+										{
+											"time_unix_nano": 1000000002,
+											"as_double": 0.5,
+											"span_id": "bbbbbbbbbbbbbbbb",
+											"trace_id": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+										}
+									]
+								}]
+							}
+						}]
+					}]
+				}]
+			}`,
+			expect: `
+				# TYPE test_metric histogram
+				test_metric_bucket{le="0.25"} 0
+				test_metric_bucket{le="0.5"} 111 # {span_id="aaaaaaaaaaaaaaaa",trace_id="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"} 0.3
+				test_metric_bucket{le="0.75"} 111 # {span_id="bbbbbbbbbbbbbbbb",trace_id="bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"} 0.5
+				test_metric_bucket{le="1.0"} 333
+				test_metric_bucket{le="+Inf"} 333 # {span_id="cccccccccccccccc",trace_id="cccccccccccccccccccccccccccccccc"} 1.5
+				test_metric_sum 100.0
+				test_metric_count 333
+			`,
+			enableOpenMetrics: true,
+		},
+		{
+			name: "Histogram: add_metric_suffixes = true",
+			input: `{
+				"resource_metrics": [{
+					"scope_metrics": [{
+						"metrics": [{
+							"name": "test_metric",
+							"unit": "seconds",
+							"histogram": {
+								"aggregation_temporality": 2,
+								"data_points": [{
+									"start_time_unix_nano": 1000000000,
+									"time_unix_nano": 1000000000,
+									"count": 333,
+									"sum": 100,
+									"bucket_counts": [0, 111, 0, 222],
+									"explicit_bounds": [0.25, 0.5, 0.75, 1.0],
+									"exemplars":[
+										{
+											"time_unix_nano": 1000000001,
+											"as_double": 0.3,
+											"span_id": "aaaaaaaaaaaaaaaa",
+											"trace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+										},
+										{
+											"time_unix_nano": 1000000003,
+											"as_double": 1.5,
+											"span_id": "cccccccccccccccc",
+											"trace_id": "cccccccccccccccccccccccccccccccc"
+										},
+										{
+											"time_unix_nano": 1000000002,
+											"as_double": 0.5,
+											"span_id": "bbbbbbbbbbbbbbbb",
+											"trace_id": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+										}
+									]
+								}]
+							}
+						}]
+					}]
+				}]
+			}`,
+			expect: `
+				# TYPE test_metric_seconds histogram
+				test_metric_seconds_bucket{le="0.25"} 0
+				test_metric_seconds_bucket{le="0.5"} 111 # {span_id="aaaaaaaaaaaaaaaa",trace_id="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"} 0.3
+				test_metric_seconds_bucket{le="0.75"} 111 # {span_id="bbbbbbbbbbbbbbbb",trace_id="bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"} 0.5
+				test_metric_seconds_bucket{le="1.0"} 333
+				test_metric_seconds_bucket{le="+Inf"} 333 # {span_id="cccccccccccccccc",trace_id="cccccccccccccccccccccccccccccccc"} 1.5
+				test_metric_seconds_sum 100.0
+				test_metric_seconds_count 333
+			`,
+			addMetricSuffixes: true,
+			enableOpenMetrics: true,
+		},
+		{
+			name: "Summary: add_metric_suffixes = false",
+			input: `{
+				"resource_metrics": [{
+					"scope_metrics": [{
+						"metrics": [{
+							"name": "test_metric",
+							"unit": "seconds",
+							"summary": {
+								"data_points": [{
+									"start_time_unix_nano": 1000000000,
+									"time_unix_nano": 1000000000,
+									"count": 333,
+									"sum": 100,
+									"quantile_values": [
+										{ "quantile": 0, "value": 100 },
+										{ "quantile": 0.25, "value": 200 },
+										{ "quantile": 0.5, "value": 300 },
+										{ "quantile": 0.75, "value": 400 },
+										{ "quantile": 1, "value": 500 }
+									]
+								}]
+							}
+						}]
+					}]
+				}]
+			}`,
+			expect: `
+				# TYPE test_metric summary
+				test_metric{quantile="0.0"} 100.0
+				test_metric{quantile="0.25"} 200.0
+				test_metric{quantile="0.5"} 300.0
+				test_metric{quantile="0.75"} 400.0
+				test_metric{quantile="1.0"} 500.0
+				test_metric_sum 100.0
+				test_metric_count 333
+			`,
+			enableOpenMetrics: true,
+		},
+		{
+			name: "Summary: add_metric_suffixes = true",
+			input: `{
+				"resource_metrics": [{
+					"scope_metrics": [{
+						"metrics": [{
+							"name": "test_metric",
+							"unit": "seconds",
+							"summary": {
+								"data_points": [{
+									"start_time_unix_nano": 1000000000,
+									"time_unix_nano": 1000000000,
+									"count": 333,
+									"sum": 100,
+									"quantile_values": [
+										{ "quantile": 0, "value": 100 },
+										{ "quantile": 0.25, "value": 200 },
+										{ "quantile": 0.5, "value": 300 },
+										{ "quantile": 0.75, "value": 400 },
+										{ "quantile": 1, "value": 500 }
+									]
+								}]
+							}
+						}]
+					}]
+				}]
+			}`,
+			expect: `
+				# TYPE test_metric_seconds summary
+				test_metric_seconds{quantile="0.0"} 100.0
+				test_metric_seconds{quantile="0.25"} 200.0
+				test_metric_seconds{quantile="0.5"} 300.0
+				test_metric_seconds{quantile="0.75"} 400.0
+				test_metric_seconds{quantile="1.0"} 500.0
+				test_metric_seconds_sum 100.0
+				test_metric_seconds_count 333
+			`,
+			addMetricSuffixes: true,
+			enableOpenMetrics: true,
 		},
 	}
 
@@ -362,15 +851,17 @@ func TestConverter(t *testing.T) {
 
 			l := util.TestLogger(t)
 			conv := convert.New(l, appenderAppendable{Inner: &app}, convert.Options{
-				IncludeTargetInfo: tc.includeTargetInfo,
-				IncludeScopeInfo:  tc.includeScopeInfo,
+				IncludeTargetInfo:  tc.includeTargetInfo,
+				IncludeScopeInfo:   tc.includeScopeInfo,
+				IncludeScopeLabels: tc.includeScopeLabels,
+				AddMetricSuffixes:  tc.addMetricSuffixes,
 			})
 			require.NoError(t, conv.ConsumeMetrics(context.Background(), payload))
 
 			families, err := app.MetricFamilies()
 			require.NoError(t, err)
 
-			c := testappender.Comparer{OpenMetrics: true}
+			c := testappender.Comparer{OpenMetrics: tc.enableOpenMetrics}
 			require.NoError(t, c.Compare(families, tc.expect))
 		})
 	}

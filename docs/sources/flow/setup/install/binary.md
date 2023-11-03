@@ -1,30 +1,34 @@
 ---
-description: Learn how to install Grafana Agent in flow mode as a standalone binary
-title: Install Grafana Agent in flow mode as a standalone binary
-menuTitle: Standalone
-weight: 600
 aliases:
- - ../../install/binary/
+- ../../install/binary/
+- /docs/grafana-cloud/agent/flow/setup/install/binary/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/setup/install/binary/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/setup/install/binary/
+canonical: https://grafana.com/docs/agent/latest/flow/setup/install/binary/
+description: Learn how to install Grafana Agent in flow mode as a standalone binary
+menuTitle: Standalone
+title: Install Grafana Agent in flow mode as a standalone binary
+weight: 600
 ---
 
-# Install Grafana Agent in flow mode
+# Install Grafana Agent in flow mode as a standalone binary
 
-Grafana Agent is distributed as a standalone binarie for various operating systems and architectures:
+Grafana Agent is distributed as a standalone binary for the following operating systems and architectures:
 
-* Linux: AMD64, ARM64, ARMv6, ARMv7
+* Linux: AMD64, ARM64
 * Windows: AMD64
 * macOS: AMD64 (Intel), ARM64 (Apple Silicon)
 * FreeBSD: AMD64
 
 ## Download Grafana Agent
 
-To download the Grafana Agent as a standalone binary, perform the following steps.
+To download Grafana Agent as a standalone binary, perform the following steps.
 
-1. Navigate to the current Grafana Agent [release][] page.
+1. Navigate to the current Grafana Agent [release](https://github.com/grafana/agent/releases) page.
 
 1. Scroll down to the **Assets** section.
 
-1. Download the `grafana-agent-flow` zip file that matches your operating system and machine's architecture.
+1. Download the `grafana-agent` zip file that matches your operating system and machine's architecture.
 
 1. Extract the package contents into a directory.
 
@@ -38,5 +42,12 @@ To download the Grafana Agent as a standalone binary, perform the following step
 
 ## Next steps
 
-- [Start Grafana Agent]({{< relref "../start-agent#standalone-binary" >}})
-- [Configure Grafana Agent]({{< relref "../configure/" >}})
+* [Start Grafana Agent][]
+* [Configure Grafana Agent][]
+
+{{% docs/reference %}}
+[Start Grafana Agent]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/start-agent.md#standalone-binary"
+[Start Grafana Agent]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/setup/start-agent.md#standalone-binary"
+[Configure Grafana Agent]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/configure"
+[Configure Grafana Agent]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/setup/configure/"
+{{% /docs/reference %}}

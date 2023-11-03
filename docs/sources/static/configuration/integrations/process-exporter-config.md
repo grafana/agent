@@ -1,7 +1,9 @@
 ---
-title: process_exporter_config
 aliases:
 - ../../../configuration/integrations/process-exporter-config/
+canonical: https://grafana.com/docs/agent/latest/static/configuration/integrations/process-exporter-config/
+title: process_exporter_config
+description: Learn about process_exporter_config
 ---
 
 # process_exporter_config
@@ -20,7 +22,7 @@ docker run \
   -v "/proc:/proc:ro" \
   -v /tmp/agent:/etc/agent \
   -v /path/to/config.yaml:/etc/agent-config/agent.yaml \
-  grafana/agent:v0.34.3 \
+  grafana/agent:{{< param "AGENT_RELEASE" >}} \
   --config.file=/etc/agent-config/agent.yaml
 ```
 
@@ -37,7 +39,7 @@ metadata:
   name: agent
 spec:
   containers:
-  - image: grafana/agent:v0.34.3
+  - image: grafana/agent:{{< param "AGENT_RELEASE" >}}
     name: agent
     args:
     - --config.file=/etc/agent-config/agent.yaml

@@ -11,11 +11,11 @@ import (
 	"time"
 
 	"github.com/go-kit/log"
-	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
 	common_config "github.com/grafana/agent/component/common/config"
 	"github.com/grafana/agent/pkg/build"
-	"github.com/grafana/agent/pkg/river/rivertypes"
+	"github.com/grafana/agent/pkg/flow/logging/level"
+	"github.com/grafana/river/rivertypes"
 	prom_config "github.com/prometheus/common/config"
 )
 
@@ -160,11 +160,11 @@ func (c *Component) nextPoll() time.Duration {
 // not be held when calling. After polling, the component's health is updated
 // with the success or failure status.
 func (c *Component) poll() {
-	startTime := time.Now()
 	err := c.pollError()
+	c.updatePollHealth(err)
+}
 
-	// NOTE(rfratto): to prevent the health from being inaccessible for longer
-	// than is needed, only update the health after the poll finished.
+func (c *Component) updatePollHealth(err error) {
 	c.healthMut.Lock()
 	defer c.healthMut.Unlock()
 
@@ -172,13 +172,13 @@ func (c *Component) poll() {
 		c.health = component.Health{
 			Health:     component.HealthTypeHealthy,
 			Message:    "polled endpoint",
-			UpdateTime: startTime,
+			UpdateTime: time.Now(),
 		}
 	} else {
 		c.health = component.Health{
 			Health:     component.HealthTypeUnhealthy,
 			Message:    fmt.Sprintf("polling failed: %s", err),
-			UpdateTime: startTime,
+			UpdateTime: time.Now(),
 		}
 	}
 }
@@ -252,6 +252,7 @@ func (c *Component) Update(args component.Arguments) (err error) {
 			return
 		}
 		err = c.pollError()
+		c.updatePollHealth(err)
 	}()
 
 	c.mut.Lock()
@@ -260,10 +261,16 @@ func (c *Component) Update(args component.Arguments) (err error) {
 	newArgs := args.(Arguments)
 	c.args = newArgs
 
+	// Override default UserAgent if another is provided in "headers" section
+	customUserAgent, exist := c.args.Headers["User-Agent"]
+	if !exist {
+		customUserAgent = userAgent
+	}
+
 	cli, err := prom_config.NewClientFromConfig(
 		*newArgs.Client.Convert(),
 		c.opts.ID,
-		prom_config.WithUserAgent(userAgent),
+		prom_config.WithUserAgent(customUserAgent),
 	)
 	if err != nil {
 		return err

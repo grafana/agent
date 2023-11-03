@@ -13,6 +13,7 @@ import (
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/pkg/build"
+	"github.com/grafana/agent/pkg/config/encoder"
 	"github.com/grafana/agent/pkg/config/features"
 	"github.com/grafana/agent/pkg/config/instrumentation"
 	"github.com/grafana/agent/pkg/logs"
@@ -245,13 +246,10 @@ func (c *Config) RegisterFlags(f *flag.FlagSet) {
 // LoadFile reads a file and passes the contents to Load
 func LoadFile(filename string, expandEnvVars bool, c *Config) error {
 	buf, err := os.ReadFile(filename)
-
 	if err != nil {
 		return fmt.Errorf("error reading config file %w", err)
 	}
-
 	instrumentation.InstrumentConfig(buf)
-
 	return LoadBytes(buf, expandEnvVars, c)
 }
 
@@ -330,7 +328,7 @@ func LoadRemote(url string, expandEnvVars bool, c *Config) error {
 	if rc == nil {
 		return LoadFile(url, expandEnvVars, c)
 	}
-	bb, err := rc.retrieve()
+	bb, _, err := rc.retrieve()
 	if err != nil {
 		return fmt.Errorf("error retrieving remote config: %w", err)
 	}
@@ -341,15 +339,19 @@ func LoadRemote(url string, expandEnvVars bool, c *Config) error {
 }
 
 func performEnvVarExpansion(buf []byte, expandEnvVars bool) ([]byte, error) {
+	utf8Buf, err := encoder.EnsureUTF8(buf, false)
+	if err != nil {
+		return nil, err
+	}
 	// (Optionally) expand with environment variables
 	if expandEnvVars {
-		s, err := envsubst.Eval(string(buf), getenv)
+		s, err := envsubst.Eval(string(utf8Buf), getenv)
 		if err != nil {
 			return nil, fmt.Errorf("unable to substitute config with environment variables: %w", err)
 		}
 		return []byte(s), nil
 	}
-	return buf, nil
+	return utf8Buf, nil
 }
 
 // LoadBytes unmarshals a config from a buffer. Defaults are not
@@ -387,16 +389,16 @@ func getenv(name string) string {
 // to the flagset before parsing them with the values specified by
 // args.
 func Load(fs *flag.FlagSet, args []string, log *server.Logger) (*Config, error) {
-	cfg, error := load(fs, args, func(path, fileType string, expandArgs bool, c *Config) error {
+	cfg, error := LoadFromFunc(fs, args, func(path, fileType string, expandEnvVars bool, c *Config) error {
 		switch fileType {
 		case fileTypeYAML:
 			if features.Enabled(fs, featRemoteConfigs) {
-				return LoadRemote(path, expandArgs, c)
+				return LoadRemote(path, expandEnvVars, c)
 			}
 			if features.Enabled(fs, featAgentManagement) {
-				return loadFromAgentManagementAPI(path, expandArgs, c, log, fs)
+				return loadFromAgentManagementAPI(path, expandEnvVars, c, log, fs)
 			}
-			return LoadFile(path, expandArgs, c)
+			return LoadFile(path, expandEnvVars, c)
 		default:
 			return fmt.Errorf("unknown file type %q. accepted values: %s", fileType, strings.Join(fileTypes, ", "))
 		}
@@ -406,7 +408,7 @@ func Load(fs *flag.FlagSet, args []string, log *server.Logger) (*Config, error) 
 	return cfg, error
 }
 
-type loaderFunc func(path string, fileType string, expandArgs bool, target *Config) error
+type loaderFunc func(path string, fileType string, expandEnvVars bool, target *Config) error
 
 func applyIntegrationValuesFromFlagset(fs *flag.FlagSet, args []string, path string, cfg *Config) error {
 	// Parse the flags again to override any YAML values with command line flag
@@ -417,9 +419,9 @@ func applyIntegrationValuesFromFlagset(fs *flag.FlagSet, args []string, path str
 
 	// Complete unmarshaling integrations using the version from the flag. This
 	// MUST be called before ApplyDefaults.
-	version := integrationsVersion1
+	version := IntegrationsVersion1
 	if features.Enabled(fs, featIntegrationsNext) {
-		version = integrationsVersion2
+		version = IntegrationsVersion2
 	}
 
 	if err := cfg.Integrations.setVersion(version); err != nil {
@@ -428,9 +430,9 @@ func applyIntegrationValuesFromFlagset(fs *flag.FlagSet, args []string, path str
 	return nil
 }
 
-// load allows for tests to inject a function for retrieving the config file that
+// LoadFromFunc injects a function for retrieving the config file that
 // doesn't require having a literal file on disk.
-func load(fs *flag.FlagSet, args []string, loader loaderFunc) (*Config, error) {
+func LoadFromFunc(fs *flag.FlagSet, args []string, loader loaderFunc) (*Config, error) {
 	var (
 		cfg = DefaultConfig()
 
@@ -502,7 +504,7 @@ func CheckSecret(t *testing.T, rawCfg string, originalValue string) {
 
 	// Set integrations version to make sure our marshal function goes through
 	// the custom marshaling code.
-	err = cfg.Integrations.setVersion(integrationsVersion1)
+	err = cfg.Integrations.setVersion(IntegrationsVersion1)
 	require.NoError(t, err)
 
 	bb, err := yaml.Marshal(&cfg)

@@ -7,6 +7,7 @@ scrape_configs:
         access_key: 'YOUR_ACCESS_KEY'
         secret_key: 'YOUR_SECRET_KEY'
         port: 8080
+        bearer_token_file: "/tmp/token.file"
   - job_name: "prometheus2"
     ec2_sd_configs:
       - region: 'us-east-1'

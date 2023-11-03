@@ -5,7 +5,7 @@ package windowsevent
 import (
 	"context"
 
-	"github.com/go-kit/log/level"
+	"github.com/grafana/agent/pkg/flow/logging/level"
 
 	"github.com/grafana/agent/component"
 )

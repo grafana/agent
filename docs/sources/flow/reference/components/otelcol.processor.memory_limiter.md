@@ -1,12 +1,11 @@
 ---
-# NOTE(tpaschalis): the title below has zero-width spaces injected into it to
-# prevent it from overflowing the sidebar on the rendered site. Be careful when
-# modifying this section to retain the spaces.
-#
-# Ideally, in the future, we can fix the overflow issue with css rather than
-# injecting special characters.
-
-title: otelcol.​processor.​memory_limiter
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/otelcol.processor.memory_limiter/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/otelcol.processor.memory_limiter/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/otelcol.processor.memory_limiter/
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.processor.memory_limiter/
+title: otelcol.processor.memory_limiter
+description: Learn about otelcol.processor.memory_limiter
 ---
 
 # otelcol.processor.memory_limiter
@@ -87,7 +86,7 @@ output | [output][] | Configures where to send received telemetry data. | yes
 
 ### output block
 
-{{< docs/shared lookup="flow/reference/components/output-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/output-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ## Exported fields
 

@@ -7,8 +7,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component/pyroscope"
+	"github.com/grafana/agent/pkg/flow/logging/level"
+	"github.com/grafana/agent/service/cluster"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/discovery/targetgroup"
 
@@ -19,18 +20,22 @@ import (
 )
 
 const (
-	pprofMemory     string = "memory"
-	pprofBlock      string = "block"
-	pprofGoroutine  string = "goroutine"
-	pprofMutex      string = "mutex"
-	pprofProcessCPU string = "process_cpu"
-	pprofFgprof     string = "fgprof"
+	pprofMemory            string = "memory"
+	pprofBlock             string = "block"
+	pprofGoroutine         string = "goroutine"
+	pprofMutex             string = "mutex"
+	pprofProcessCPU        string = "process_cpu"
+	pprofFgprof            string = "fgprof"
+	pprofGoDeltaProfMemory string = "godeltaprof_memory"
+	pprofGoDeltaProfBlock  string = "godeltaprof_block"
+	pprofGoDeltaProfMutex  string = "godeltaprof_mutex"
 )
 
 func init() {
 	component.Register(component.Registration{
-		Name: "pyroscope.scrape",
-		Args: Arguments{},
+		Name:          "pyroscope.scrape",
+		Args:          Arguments{},
+		NeedsServices: []string{cluster.ServiceName},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			return New(opts, args.(Arguments))
@@ -76,17 +81,20 @@ type Arguments struct {
 
 	ProfilingConfig ProfilingConfig `river:"profiling_config,block,optional"`
 
-	Clustering scrape.Clustering `river:"clustering,block,optional"`
+	Clustering cluster.ComponentBlock `river:"clustering,block,optional"`
 }
 
 type ProfilingConfig struct {
-	Memory     ProfilingTarget         `river:"profile.memory,block,optional"`
-	Block      ProfilingTarget         `river:"profile.block,block,optional"`
-	Goroutine  ProfilingTarget         `river:"profile.goroutine,block,optional"`
-	Mutex      ProfilingTarget         `river:"profile.mutex,block,optional"`
-	ProcessCPU ProfilingTarget         `river:"profile.process_cpu,block,optional"`
-	FGProf     ProfilingTarget         `river:"profile.fgprof,block,optional"`
-	Custom     []CustomProfilingTarget `river:"profile.custom,block,optional"`
+	Memory            ProfilingTarget         `river:"profile.memory,block,optional"`
+	Block             ProfilingTarget         `river:"profile.block,block,optional"`
+	Goroutine         ProfilingTarget         `river:"profile.goroutine,block,optional"`
+	Mutex             ProfilingTarget         `river:"profile.mutex,block,optional"`
+	ProcessCPU        ProfilingTarget         `river:"profile.process_cpu,block,optional"`
+	FGProf            ProfilingTarget         `river:"profile.fgprof,block,optional"`
+	GoDeltaProfMemory ProfilingTarget         `river:"profile.godeltaprof_memory,block,optional"`
+	GoDeltaProfMutex  ProfilingTarget         `river:"profile.godeltaprof_mutex,block,optional"`
+	GoDeltaProfBlock  ProfilingTarget         `river:"profile.godeltaprof_block,block,optional"`
+	Custom            []CustomProfilingTarget `river:"profile.custom,block,optional"`
 
 	PprofPrefix string `river:"path_prefix,attr,optional"`
 }
@@ -94,14 +102,17 @@ type ProfilingConfig struct {
 // AllTargets returns the set of all standard and custom profiling targets,
 // regardless of whether they're enabled. The key in the map indicates the name
 // of the target.
-func (cfg ProfilingConfig) AllTargets() map[string]ProfilingTarget {
+func (cfg *ProfilingConfig) AllTargets() map[string]ProfilingTarget {
 	targets := map[string]ProfilingTarget{
-		pprofMemory:     cfg.Memory,
-		pprofBlock:      cfg.Block,
-		pprofGoroutine:  cfg.Goroutine,
-		pprofMutex:      cfg.Mutex,
-		pprofProcessCPU: cfg.ProcessCPU,
-		pprofFgprof:     cfg.FGProf,
+		pprofMemory:            cfg.Memory,
+		pprofBlock:             cfg.Block,
+		pprofGoroutine:         cfg.Goroutine,
+		pprofMutex:             cfg.Mutex,
+		pprofProcessCPU:        cfg.ProcessCPU,
+		pprofFgprof:            cfg.FGProf,
+		pprofGoDeltaProfMemory: cfg.GoDeltaProfMemory,
+		pprofGoDeltaProfMutex:  cfg.GoDeltaProfMutex,
+		pprofGoDeltaProfBlock:  cfg.GoDeltaProfBlock,
 	}
 
 	for _, custom := range cfg.Custom {
@@ -141,6 +152,19 @@ var DefaultProfilingConfig = ProfilingConfig{
 		Enabled: false,
 		Path:    "/debug/fgprof",
 		Delta:   true,
+	},
+	// https://github.com/grafana/godeltaprof/blob/main/http/pprof/pprof.go#L21
+	GoDeltaProfMemory: ProfilingTarget{
+		Enabled: false,
+		Path:    "/debug/pprof/delta_heap",
+	},
+	GoDeltaProfMutex: ProfilingTarget{
+		Enabled: false,
+		Path:    "/debug/pprof/delta_mutex",
+	},
+	GoDeltaProfBlock: ProfilingTarget{
+		Enabled: false,
+		Path:    "/debug/pprof/delta_block",
 	},
 }
 
@@ -201,7 +225,8 @@ func (arg *Arguments) Validate() error {
 
 // Component implements the pprof.scrape component.
 type Component struct {
-	opts component.Options
+	opts    component.Options
+	cluster cluster.Cluster
 
 	reloadTargets chan struct{}
 
@@ -215,10 +240,17 @@ var _ component.Component = (*Component)(nil)
 
 // New creates a new pprof.scrape component.
 func New(o component.Options, args Arguments) (*Component, error) {
+	data, err := o.GetServiceData(cluster.ServiceName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get info about cluster service: %w", err)
+	}
+	clusterData := data.(cluster.Cluster)
+
 	flowAppendable := pyroscope.NewFanout(args.ForwardTo, o.ID, o.Registerer)
 	scraper := NewManager(flowAppendable, o.Logger)
 	c := &Component{
 		opts:          o,
+		cluster:       clusterData,
 		reloadTargets: make(chan struct{}, 1),
 		scraper:       scraper,
 		appendable:    flowAppendable,
@@ -261,7 +293,7 @@ func (c *Component) Run(ctx context.Context) error {
 
 			// NOTE(@tpaschalis) First approach, manually building the
 			// 'clustered' targets implementation every time.
-			ct := discovery.NewDistributedTargets(clustering, c.opts.Clusterer.Node, tgs)
+			ct := discovery.NewDistributedTargets(clustering, c.cluster, tgs)
 			promTargets := c.componentTargetsToProm(jobName, ct.Get())
 
 			select {
@@ -298,6 +330,22 @@ func (c *Component) Update(args component.Arguments) error {
 	return nil
 }
 
+// NotifyClusterChange implements component.ClusterComponent.
+func (c *Component) NotifyClusterChange() {
+	c.mut.RLock()
+	defer c.mut.RUnlock()
+
+	if !c.args.Clustering.Enabled {
+		return // no-op
+	}
+
+	// Schedule a reload so targets get redistributed.
+	select {
+	case c.reloadTargets <- struct{}{}:
+	default:
+	}
+}
+
 func (c *Component) componentTargetsToProm(jobName string, tgs []discovery.Target) map[string][]*targetgroup.Group {
 	promGroup := &targetgroup.Group{Source: jobName}
 	for _, tg := range tgs {
@@ -315,13 +363,6 @@ func convertLabelSet(tg discovery.Target) model.LabelSet {
 	return lset
 }
 
-// ClusterUpdatesRegistration implements component.ClusterComponent.
-func (c *Component) ClusterUpdatesRegistration() bool {
-	c.mut.RLock()
-	defer c.mut.RUnlock()
-	return c.args.Clustering.Enabled
-}
-
 // DebugInfo implements component.DebugComponent.
 func (c *Component) DebugInfo() interface{} {
 	var res []scrape.TargetStatus
@@ -335,7 +376,7 @@ func (c *Component) DebugInfo() interface{} {
 			if st != nil {
 				res = append(res, scrape.TargetStatus{
 					JobName:            job,
-					URL:                st.URL().String(),
+					URL:                st.URL(),
 					Health:             string(st.Health()),
 					Labels:             st.discoveredLabels.Map(),
 					LastError:          lastError,

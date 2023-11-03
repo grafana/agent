@@ -21,11 +21,12 @@ const (
 type remoteOpts struct {
 	url              *url.URL
 	HTTPClientConfig *config.HTTPClientConfig
+	headers          map[string]string
 }
 
 // remoteProvider interface should be implemented by config providers
 type remoteProvider interface {
-	retrieve() ([]byte, error)
+	retrieve() ([]byte, http.Header, error)
 }
 
 // newRemoteProvider constructs a new remote configuration provider. The rawURL is parsed
@@ -60,6 +61,7 @@ func newRemoteProvider(rawURL string, opts *remoteOpts) (remoteProvider, error) 
 // httpProvider - http/https provider
 type httpProvider struct {
 	myURL      *url.URL
+	headers    map[string]string
 	httpClient *http.Client
 }
 
@@ -80,6 +82,7 @@ func newHTTPProvider(opts *remoteOpts) (*httpProvider, error) {
 	return &httpProvider{
 		myURL:      opts.url,
 		httpClient: httpClient,
+		headers:    opts.headers,
 	}, nil
 }
 
@@ -91,35 +94,52 @@ func (r retryAfterError) Error() string {
 	return fmt.Sprintf("server indicated to retry after %s", r.retryAfter)
 }
 
+type notModifiedError struct{}
+
+func (n notModifiedError) Error() string {
+	return "server indicated no changes"
+}
+
 // retrieve implements remoteProvider and fetches the config
-func (p httpProvider) retrieve() ([]byte, error) {
-	response, err := p.httpClient.Get(p.myURL.String())
+func (p httpProvider) retrieve() ([]byte, http.Header, error) {
+	req, err := http.NewRequest(http.MethodGet, p.myURL.String(), nil)
+	if err != nil {
+		return nil, nil, fmt.Errorf("error creating request: %w", err)
+	}
+	for header, headerVal := range p.headers {
+		req.Header.Set(header, headerVal)
+	}
+	response, err := p.httpClient.Do(req)
 	if err != nil {
 		instrumentation.InstrumentRemoteConfigFetchError()
-		return nil, fmt.Errorf("request failed: %w", err)
+		return nil, nil, fmt.Errorf("request failed: %w", err)
 	}
 	defer response.Body.Close()
 
 	instrumentation.InstrumentRemoteConfigFetch(response.StatusCode)
 
-	if response.StatusCode == http.StatusTooManyRequests {
+	if response.StatusCode == http.StatusTooManyRequests || response.StatusCode == http.StatusServiceUnavailable {
 		retryAfter := response.Header.Get("Retry-After")
 		if retryAfter == "" {
-			return nil, fmt.Errorf("server indicated to retry, but no Retry-After header was provided")
+			return nil, nil, fmt.Errorf("server indicated to retry, but no Retry-After header was provided")
 		}
 		retryAfterDuration, err := time.ParseDuration(retryAfter)
 		if err != nil {
-			return nil, fmt.Errorf("server indicated to retry, but Retry-After header was not a valid duration: %w", err)
+			return nil, nil, fmt.Errorf("server indicated to retry, but Retry-After header was not a valid duration: %w", err)
 		}
-		return nil, retryAfterError{retryAfter: retryAfterDuration}
+		return nil, nil, retryAfterError{retryAfter: retryAfterDuration}
+	}
+
+	if response.StatusCode == http.StatusNotModified {
+		return nil, nil, notModifiedError{}
 	}
 
 	if response.StatusCode/100 != 2 {
-		return nil, fmt.Errorf("error fetching config: status code: %d", response.StatusCode)
+		return nil, nil, fmt.Errorf("error fetching config: status code: %d", response.StatusCode)
 	}
 	bb, err := io.ReadAll(response.Body)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	return bb, nil
+	return bb, response.Header, nil
 }

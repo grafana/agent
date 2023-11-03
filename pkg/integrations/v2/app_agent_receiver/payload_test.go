@@ -118,4 +118,25 @@ func TestUnmarshalPayloadJSON(t *testing.T) {
 			Timestamp: now,
 		},
 	}, payload.Events)
+
+	require.Len(t, payload.Measurements, 1)
+
+	require.Equal(t, []Measurement{
+		{
+			Type: "foobar",
+			Values: map[string]float64{
+				"ttfp":  20.12,
+				"ttfcp": 22.12,
+				"ttfb":  14,
+			},
+			Timestamp: now,
+			Trace: TraceContext{
+				TraceID: "abcd",
+				SpanID:  "def",
+			},
+			Context: MeasurementContext{
+				"hello": "world",
+			},
+		},
+	}, payload.Measurements)
 }

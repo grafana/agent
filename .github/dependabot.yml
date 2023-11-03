@@ -15,3 +15,8 @@ updates:
       - dependency-name: "github.com/open-telemetry/opentelemetry-collector-contrib/*"
       - dependency-name: "go.opentelemetry.io/collector"
       - dependency-name: "go.opentelemetry.io/collector/model"
+  - package-ecosystem: "npm"
+    directory: "/web/ui"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 2

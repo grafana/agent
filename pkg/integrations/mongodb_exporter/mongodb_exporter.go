@@ -1,11 +1,13 @@
 package mongodb_exporter //nolint:golint
 
 import (
+	"errors"
 	"fmt"
-	"net/http"
 	"net/url"
+	"os"
 
 	"github.com/go-kit/log"
+	"github.com/percona/mongodb_exporter/exporter"
 	config_util "github.com/prometheus/common/config"
 
 	"github.com/grafana/agent/pkg/integrations"
@@ -13,14 +15,22 @@ import (
 	"github.com/grafana/agent/pkg/integrations/v2/metricsutils"
 )
 
+var DefaultConfig = Config{
+	DirectConnect: true,
+}
+
 // Config controls mongodb_exporter
 type Config struct {
 	// MongoDB connection URI. example:mongodb://user:pass@127.0.0.1:27017/admin?ssl=true"
-	URI config_util.Secret `yaml:"mongodb_uri"`
+	URI                    config_util.Secret `yaml:"mongodb_uri"`
+	DirectConnect          bool               `yaml:"direct_connect,omitempty"`
+	DiscoveringMode        bool               `yaml:"discovering_mode,omitempty"`
+	TLSBasicAuthConfigPath string             `yaml:"tls_basic_auth_config_path,omitempty"`
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler for Config
 func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	*c = DefaultConfig
 	type plain Config
 	return unmarshal((*plain)(c))
 }
@@ -34,7 +44,7 @@ func (c *Config) Name() string {
 func (c *Config) InstanceKey(_ string) (string, error) {
 	u, err := url.Parse(string(c.URI))
 	if err != nil {
-		return "", fmt.Errorf("could not parse url: %w", err)
+		return "", fmt.Errorf("could not parse mongodb_uri: %w", errors.Unwrap(err))
 	}
 	return u.Host, nil
 }
@@ -51,10 +61,29 @@ func init() {
 
 // New creates a new mongodb_exporter integration.
 func New(logger log.Logger, c *Config) (integrations.Integration, error) {
-	// TODO(jcreixell): Re-implement conflicting bits and briong the exporter back
-	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		http.Error(w, "mongdb exporter has been disabled for the time being due to licensing issues", http.StatusBadRequest)
+	logrusLogger := integrations.NewLogger(logger)
+
+	if c.TLSBasicAuthConfigPath != "" {
+		if _, err := os.Stat(c.TLSBasicAuthConfigPath); err != nil {
+			return nil, fmt.Errorf("tls config file path is invalid: %s. error: %w", c.TLSBasicAuthConfigPath, errors.Unwrap(err))
+		}
+	}
+
+	exp := exporter.New(&exporter.Opts{
+		URI:                    string(c.URI),
+		Logger:                 logrusLogger,
+		DisableDefaultRegistry: true,
+
+		// NOTE(rfratto): CompatibleMode configures the exporter to use old metric
+		// names from mongodb_exporter <v0.20.0. Many existing dashboards rely on
+		// the old names, so we hard-code it to true now. We may wish to make this
+		// configurable in the future.
+		CompatibleMode:  true,
+		CollectAll:      true,
+		DirectConnect:   c.DirectConnect,
+		DiscoveringMode: c.DiscoveringMode,
+		TLSConfigPath:   c.TLSBasicAuthConfigPath,
 	})
 
-	return integrations.NewHandlerIntegration(c.Name(), handler), nil
+	return integrations.NewHandlerIntegration(c.Name(), exp.Handler()), nil
 }

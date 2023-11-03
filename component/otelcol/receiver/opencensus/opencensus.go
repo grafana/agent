@@ -6,15 +6,17 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/otelcol"
 	"github.com/grafana/agent/component/otelcol/receiver"
+	otel_service "github.com/grafana/agent/service/otel"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/opencensusreceiver"
 	otelcomponent "go.opentelemetry.io/collector/component"
-	otelconfig "go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/extension"
 )
 
 func init() {
 	component.Register(component.Registration{
-		Name: "otelcol.receiver.opencensus",
-		Args: Arguments{},
+		Name:          "otelcol.receiver.opencensus",
+		Args:          Arguments{},
+		NeedsServices: []string{otel_service.ServiceName},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			fact := opencensusreceiver.NewFactory()
@@ -29,13 +31,14 @@ type Arguments struct {
 
 	GRPC otelcol.GRPCServerArguments `river:",squash"`
 
+	// DebugMetrics configures component internal metrics. Optional.
+	DebugMetrics otelcol.DebugMetricsArguments `river:"debug_metrics,block,optional"`
+
 	// Output configures where to send received data. Required.
 	Output *otelcol.ConsumerArguments `river:"output,block"`
 }
 
-var (
-	_ receiver.Arguments = Arguments{}
-)
+var _ receiver.Arguments = Arguments{}
 
 // Default server settings.
 var DefaultArguments = Arguments{
@@ -54,26 +57,29 @@ func (args *Arguments) SetToDefault() {
 }
 
 // Convert implements receiver.Arguments.
-func (args Arguments) Convert() (otelconfig.Receiver, error) {
+func (args Arguments) Convert() (otelcomponent.Config, error) {
 	return &opencensusreceiver.Config{
-		ReceiverSettings: otelconfig.NewReceiverSettings(otelconfig.NewComponentID("opencensus")),
-
 		CorsOrigins:        args.CorsAllowedOrigins,
 		GRPCServerSettings: *args.GRPC.Convert(),
 	}, nil
 }
 
 // Extensions implements receiver.Arguments.
-func (args Arguments) Extensions() map[otelconfig.ComponentID]otelcomponent.Extension {
+func (args Arguments) Extensions() map[otelcomponent.ID]extension.Extension {
 	return nil
 }
 
 // Exporters implements receiver.Arguments.
-func (args Arguments) Exporters() map[otelconfig.DataType]map[otelconfig.ComponentID]otelcomponent.Exporter {
+func (args Arguments) Exporters() map[otelcomponent.DataType]map[otelcomponent.ID]otelcomponent.Component {
 	return nil
 }
 
 // NextConsumers implements receiver.Arguments.
 func (args Arguments) NextConsumers() *otelcol.ConsumerArguments {
 	return args.Output
+}
+
+// DebugMetricsConfig implements receiver.Arguments.
+func (args Arguments) DebugMetricsConfig() otelcol.DebugMetricsArguments {
+	return args.DebugMetrics
 }

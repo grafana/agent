@@ -10,6 +10,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/go-kit/log"
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/pyroscope"
 	"github.com/grafana/agent/pkg/util"
@@ -56,31 +57,31 @@ func TestScrapePool(t *testing.T) {
 			groups: []*targetgroup.Group{
 				{
 					Targets: []model.LabelSet{
-						{model.AddressLabel: "localhost:9090"},
-						{model.AddressLabel: "localhost:8080"},
+						{model.AddressLabel: "localhost:9090", serviceNameLabel: "s"},
+						{model.AddressLabel: "localhost:8080", serviceNameK8SLabel: "k"},
 					},
 					Labels: model.LabelSet{"foo": "bar"},
 				},
 			},
 			expected: []*Target{
 				NewTarget(
-					labels.FromStrings("instance", "localhost:8080", "foo", "bar", model.AddressLabel, "localhost:8080", model.MetricNameLabel, pprofMutex, model.SchemeLabel, "http", ProfilePath, "/debug/pprof/mutex"),
-					labels.FromStrings("foo", "bar", model.AddressLabel, "localhost:8080", model.MetricNameLabel, pprofMutex, model.SchemeLabel, "http", ProfilePath, "/debug/pprof/mutex"),
+					labels.FromStrings("instance", "localhost:8080", "foo", "bar", model.AddressLabel, "localhost:8080", model.MetricNameLabel, pprofMutex, model.SchemeLabel, "http", ProfilePath, "/debug/pprof/mutex", serviceNameLabel, "k"),
+					labels.FromStrings("foo", "bar", model.AddressLabel, "localhost:8080", model.MetricNameLabel, pprofMutex, model.SchemeLabel, "http", ProfilePath, "/debug/pprof/mutex", serviceNameK8SLabel, "k"),
 					url.Values{},
 				),
 				NewTarget(
-					labels.FromStrings("instance", "localhost:8080", "foo", "bar", model.AddressLabel, "localhost:8080", model.MetricNameLabel, pprofProcessCPU, model.SchemeLabel, "http", ProfilePath, "/debug/pprof/profile"),
-					labels.FromStrings("foo", "bar", model.AddressLabel, "localhost:8080", model.MetricNameLabel, pprofProcessCPU, model.SchemeLabel, "http", ProfilePath, "/debug/pprof/profile"),
+					labels.FromStrings("instance", "localhost:8080", "foo", "bar", model.AddressLabel, "localhost:8080", model.MetricNameLabel, pprofProcessCPU, model.SchemeLabel, "http", ProfilePath, "/debug/pprof/profile", serviceNameLabel, "k"),
+					labels.FromStrings("foo", "bar", model.AddressLabel, "localhost:8080", model.MetricNameLabel, pprofProcessCPU, model.SchemeLabel, "http", ProfilePath, "/debug/pprof/profile", serviceNameK8SLabel, "k"),
 					url.Values{"seconds": []string{"14"}},
 				),
 				NewTarget(
-					labels.FromStrings("instance", "localhost:9090", "foo", "bar", model.AddressLabel, "localhost:9090", model.MetricNameLabel, pprofMutex, model.SchemeLabel, "http", ProfilePath, "/debug/pprof/mutex"),
-					labels.FromStrings("foo", "bar", model.AddressLabel, "localhost:9090", model.MetricNameLabel, pprofMutex, model.SchemeLabel, "http", ProfilePath, "/debug/pprof/mutex"),
+					labels.FromStrings("instance", "localhost:9090", "foo", "bar", model.AddressLabel, "localhost:9090", model.MetricNameLabel, pprofMutex, model.SchemeLabel, "http", ProfilePath, "/debug/pprof/mutex", serviceNameLabel, "s"),
+					labels.FromStrings("foo", "bar", model.AddressLabel, "localhost:9090", model.MetricNameLabel, pprofMutex, model.SchemeLabel, "http", ProfilePath, "/debug/pprof/mutex", serviceNameLabel, "s"),
 					url.Values{},
 				),
 				NewTarget(
-					labels.FromStrings("instance", "localhost:9090", "foo", "bar", model.AddressLabel, "localhost:9090", model.MetricNameLabel, pprofProcessCPU, model.SchemeLabel, "http", ProfilePath, "/debug/pprof/profile"),
-					labels.FromStrings("foo", "bar", model.AddressLabel, "localhost:9090", model.MetricNameLabel, pprofProcessCPU, model.SchemeLabel, "http", ProfilePath, "/debug/pprof/profile"),
+					labels.FromStrings("instance", "localhost:9090", "foo", "bar", model.AddressLabel, "localhost:9090", model.MetricNameLabel, pprofProcessCPU, model.SchemeLabel, "http", ProfilePath, "/debug/pprof/profile", serviceNameLabel, "s"),
+					labels.FromStrings("foo", "bar", model.AddressLabel, "localhost:9090", model.MetricNameLabel, pprofProcessCPU, model.SchemeLabel, "http", ProfilePath, "/debug/pprof/profile", serviceNameLabel, "s"),
 					url.Values{"seconds": []string{"14"}},
 				),
 			},
@@ -90,19 +91,19 @@ func TestScrapePool(t *testing.T) {
 			groups: []*targetgroup.Group{
 				{
 					Targets: []model.LabelSet{
-						{model.AddressLabel: "localhost:9090"},
+						{model.AddressLabel: "localhost:9090", serviceNameLabel: "s"},
 					},
 				},
 			},
 			expected: []*Target{
 				NewTarget(
-					labels.FromStrings("instance", "localhost:9090", model.AddressLabel, "localhost:9090", model.MetricNameLabel, pprofMutex, model.SchemeLabel, "http", ProfilePath, "/debug/pprof/mutex"),
-					labels.FromStrings(model.AddressLabel, "localhost:9090", model.MetricNameLabel, pprofMutex, model.SchemeLabel, "http", ProfilePath, "/debug/pprof/mutex"),
+					labels.FromStrings("instance", "localhost:9090", model.AddressLabel, "localhost:9090", model.MetricNameLabel, pprofMutex, model.SchemeLabel, "http", ProfilePath, "/debug/pprof/mutex", serviceNameLabel, "s"),
+					labels.FromStrings(model.AddressLabel, "localhost:9090", model.MetricNameLabel, pprofMutex, model.SchemeLabel, "http", ProfilePath, "/debug/pprof/mutex", serviceNameLabel, "s"),
 					url.Values{},
 				),
 				NewTarget(
-					labels.FromStrings("instance", "localhost:9090", model.AddressLabel, "localhost:9090", model.MetricNameLabel, pprofProcessCPU, model.SchemeLabel, "http", ProfilePath, "/debug/pprof/profile"),
-					labels.FromStrings(model.AddressLabel, "localhost:9090", model.MetricNameLabel, pprofProcessCPU, model.SchemeLabel, "http", ProfilePath, "/debug/pprof/profile"),
+					labels.FromStrings("instance", "localhost:9090", model.AddressLabel, "localhost:9090", model.MetricNameLabel, pprofProcessCPU, model.SchemeLabel, "http", ProfilePath, "/debug/pprof/profile", serviceNameLabel, "s"),
+					labels.FromStrings(model.AddressLabel, "localhost:9090", model.MetricNameLabel, pprofProcessCPU, model.SchemeLabel, "http", ProfilePath, "/debug/pprof/profile", serviceNameLabel, "s"),
 					url.Values{"seconds": []string{"14"}},
 				),
 			},
@@ -112,19 +113,19 @@ func TestScrapePool(t *testing.T) {
 			groups: []*targetgroup.Group{
 				{
 					Targets: []model.LabelSet{
-						{model.AddressLabel: "localhost:9090", "__type__": "foo"},
+						{model.AddressLabel: "localhost:9090", "__type__": "foo", serviceNameLabel: "s"},
 					},
 				},
 			},
 			expected: []*Target{
 				NewTarget(
-					labels.FromStrings("instance", "localhost:9090", model.AddressLabel, "localhost:9090", model.MetricNameLabel, pprofMutex, model.SchemeLabel, "http", ProfilePath, "/debug/pprof/mutex"),
-					labels.FromStrings("__type__", "foo", model.AddressLabel, "localhost:9090", model.MetricNameLabel, pprofMutex, model.SchemeLabel, "http", ProfilePath, "/debug/pprof/mutex"),
+					labels.FromStrings("instance", "localhost:9090", model.AddressLabel, "localhost:9090", model.MetricNameLabel, pprofMutex, model.SchemeLabel, "http", ProfilePath, "/debug/pprof/mutex", serviceNameLabel, "s"),
+					labels.FromStrings("__type__", "foo", model.AddressLabel, "localhost:9090", model.MetricNameLabel, pprofMutex, model.SchemeLabel, "http", ProfilePath, "/debug/pprof/mutex", serviceNameLabel, "s"),
 					url.Values{},
 				),
 				NewTarget(
-					labels.FromStrings("instance", "localhost:9090", model.AddressLabel, "localhost:9090", model.MetricNameLabel, pprofProcessCPU, model.SchemeLabel, "http", ProfilePath, "/debug/pprof/profile"),
-					labels.FromStrings("__type__", "foo", model.AddressLabel, "localhost:9090", model.MetricNameLabel, pprofProcessCPU, model.SchemeLabel, "http", ProfilePath, "/debug/pprof/profile"),
+					labels.FromStrings("instance", "localhost:9090", model.AddressLabel, "localhost:9090", model.MetricNameLabel, pprofProcessCPU, model.SchemeLabel, "http", ProfilePath, "/debug/pprof/profile", serviceNameLabel, "s"),
+					labels.FromStrings("__type__", "foo", model.AddressLabel, "localhost:9090", model.MetricNameLabel, pprofProcessCPU, model.SchemeLabel, "http", ProfilePath, "/debug/pprof/profile", serviceNameLabel, "s"),
 					url.Values{"seconds": []string{"14"}},
 				),
 			},
@@ -201,4 +202,50 @@ func TestScrapeLoop(t *testing.T) {
 	require.Error(t, loop.LastError())
 	require.WithinDuration(t, time.Now(), loop.LastScrape(), 1*time.Second)
 	require.NotEmpty(t, loop.LastScrapeDuration())
+}
+
+func BenchmarkSync(b *testing.B) {
+	args := NewDefaultArguments()
+	args.Targets = []discovery.Target{}
+
+	p, err := newScrapePool(args, pyroscope.AppendableFunc(
+		func(ctx context.Context, labels labels.Labels, samples []*pyroscope.RawSample) error {
+			return nil
+		}),
+		log.NewNopLogger())
+	require.NoError(b, err)
+	groups1 := []*targetgroup.Group{
+		{
+			Targets: []model.LabelSet{
+				{model.AddressLabel: "localhost:9090", serviceNameLabel: "s"},
+				{model.AddressLabel: "localhost:9091", serviceNameLabel: "s"},
+				{model.AddressLabel: "localhost:9092", serviceNameLabel: "s"},
+			},
+			Labels: model.LabelSet{"foo": "bar"},
+		},
+	}
+	groups2 := []*targetgroup.Group{
+		{
+			Targets: []model.LabelSet{
+				{model.AddressLabel: "localhost:9090", serviceNameLabel: "s"},
+				{model.AddressLabel: "localhost:9091", serviceNameLabel: "s"},
+				{model.AddressLabel: "localhost:9092", serviceNameLabel: "s"},
+				{model.AddressLabel: "localhost:9093", serviceNameLabel: "s"},
+				{model.AddressLabel: "localhost:9094", serviceNameLabel: "s"},
+				{model.AddressLabel: "localhost:9095", serviceNameLabel: "s"},
+			},
+			Labels: model.LabelSet{"foo": "bar"},
+		},
+	}
+
+	defer p.stop()
+
+	b.ReportAllocs()
+	b.ResetTimer()
+
+	for n := 0; n < b.N; n++ {
+		p.sync(groups1)
+		p.sync(groups2)
+		p.sync([]*targetgroup.Group{})
+	}
 }

@@ -1,0 +1,47 @@
+logging {
+	level  = "debug"
+	format = "json"
+}
+
+http {
+	tls {
+		client_auth_type = "VerifyClientCertIfGiven"
+
+		windows_certificate_filter {
+			server {
+				store            = "something"
+				refresh_interval = "0s"
+			}
+
+			client {
+				issuer_common_names = ["1"]
+				subject_regex       = "2"
+				template_id         = "something2"
+			}
+		}
+	}
+}
+
+prometheus.exporter.windows "integrations_windows_exporter" {
+	exchange { }
+
+	network {
+		exclude = ".+"
+	}
+}
+
+prometheus.scrape "integrations_windows_exporter" {
+	targets    = prometheus.exporter.windows.integrations_windows_exporter.targets
+	forward_to = [prometheus.remote_write.integrations.receiver]
+	job_name   = "integrations/windows_exporter"
+}
+
+prometheus.remote_write "integrations" {
+	endpoint {
+		url = "http://localhost:9009/api/prom/push"
+
+		queue_config { }
+
+		metadata_config { }
+	}
+}

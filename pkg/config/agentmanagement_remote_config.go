@@ -6,13 +6,15 @@ import (
 	"github.com/grafana/agent/pkg/metrics/instance"
 	"github.com/grafana/loki/clients/pkg/promtail/scrapeconfig"
 	pc "github.com/prometheus/prometheus/config"
+	"github.com/prometheus/prometheus/model/labels"
 	"gopkg.in/yaml.v2"
 )
 
 type (
 	RemoteConfig struct {
-		BaseConfig BaseConfigContent `json:"base_config" yaml:"base_config"`
-		Snippets   []Snippet         `json:"snippets" yaml:"snippets"`
+		BaseConfig    BaseConfigContent `json:"base_config" yaml:"base_config"`
+		Snippets      []Snippet         `json:"snippets" yaml:"snippets"`
+		AgentMetadata AgentMetadata     `json:"agent_metadata,omitempty" yaml:"agent_metadata,omitempty"`
 	}
 
 	// BaseConfigContent is the content of a base config
@@ -22,6 +24,10 @@ type (
 	Snippet struct {
 		// Config is the snippet of config to be included.
 		Config string `json:"config" yaml:"config"`
+	}
+
+	AgentMetadata struct {
+		ExternalLabels map[string]string `json:"external_labels,omitempty" yaml:"external_labels,omitempty"`
 	}
 
 	// SnippetContent defines the internal structure of a snippet configuration.
@@ -55,7 +61,7 @@ func (rc *RemoteConfig) BuildAgentConfig() (*Config, error) {
 	}
 
 	// For now Agent Management only supports integrations v1
-	if err := c.Integrations.setVersion(integrationsVersion1); err != nil {
+	if err := c.Integrations.setVersion(IntegrationsVersion1); err != nil {
 		return nil, err
 	}
 
@@ -63,6 +69,7 @@ func (rc *RemoteConfig) BuildAgentConfig() (*Config, error) {
 	if err != nil {
 		return nil, err
 	}
+	appendExternalLabels(&c, rc.AgentMetadata.ExternalLabels)
 	return &c, nil
 }
 
@@ -76,6 +83,12 @@ func appendSnippets(c *Config, snippets []Snippet) error {
 	logsConfigs.Initialize()
 	integrationConfigs := integrations.DefaultManagerConfig()
 
+	// Map used to identify if an integration is already configured and avoid overriding it
+	configuredIntegrations := map[string]bool{}
+	for _, itg := range c.Integrations.ConfigV1.Integrations {
+		configuredIntegrations[itg.Name()] = true
+	}
+
 	for _, snippet := range snippets {
 		var snippetContent SnippetContent
 		err := yaml.Unmarshal([]byte(snippet.Config), &snippetContent)
@@ -84,8 +97,15 @@ func appendSnippets(c *Config, snippets []Snippet) error {
 		}
 		metricsConfigs.ScrapeConfigs = append(metricsConfigs.ScrapeConfigs, snippetContent.MetricsScrapeConfigs...)
 		logsConfigs.ScrapeConfig = append(logsConfigs.ScrapeConfig, snippetContent.LogsScrapeConfigs...)
-		integrationConfigs.Integrations = append(integrationConfigs.Integrations, snippetContent.IntegrationConfigs.Integrations...)
+
+		for _, snip := range snippetContent.IntegrationConfigs.Integrations {
+			if _, ok := configuredIntegrations[snip.Name()]; !ok {
+				integrationConfigs.Integrations = append(integrationConfigs.Integrations, snip)
+				configuredIntegrations[snip.Name()] = true
+			}
+		}
 	}
+
 	if len(metricsConfigs.ScrapeConfigs) > 0 {
 		c.Metrics.Configs = append(c.Metrics.Configs, metricsConfigs)
 	}
@@ -100,6 +120,21 @@ func appendSnippets(c *Config, snippets []Snippet) error {
 		c.Logs.Configs = append(c.Logs.Configs, &logsConfigs)
 	}
 
-	c.Integrations.configV1.Integrations = append(c.Integrations.configV1.Integrations, integrationConfigs.Integrations...)
+	c.Integrations.ConfigV1.Integrations = append(c.Integrations.ConfigV1.Integrations, integrationConfigs.Integrations...)
 	return nil
+}
+
+func appendExternalLabels(c *Config, externalLabels map[string]string) {
+	// Avoid doing anything if there are no external labels
+	if len(externalLabels) == 0 {
+		return
+	}
+	// Start off with the existing external labels, which will only be added to (not replaced)
+	newExternalLabels := c.Metrics.Global.Prometheus.ExternalLabels.Map()
+	for k, v := range externalLabels {
+		if _, ok := newExternalLabels[k]; !ok {
+			newExternalLabels[k] = v
+		}
+	}
+	c.Metrics.Global.Prometheus.ExternalLabels = labels.FromMap(newExternalLabels)
 }

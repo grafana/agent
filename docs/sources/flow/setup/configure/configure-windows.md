@@ -1,11 +1,16 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/setup/configure/configure-windows/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/setup/configure/configure-windows/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/setup/configure/configure-windows/
+canonical: https://grafana.com/docs/agent/latest/flow/setup/configure/configure-windows/
 description: Learn how to configure Grafana Agent in flow mode on Windows
-title: Configure Grafana Agent in flow mdoe on Windows
 menuTitle: Windows
+title: Configure Grafana Agent in flow mode on Windows
 weight: 500
 ---
 
-# Configure Grafana Agent on Windows
+# Configure Grafana Agent in flow mode on Windows
 
 To configure Grafana Agent in flow mode on Windows, perform the following steps:
 
@@ -83,4 +88,8 @@ To expose the UI to other machines, complete the following steps:
 
        To listen on all interfaces, replace `LISTEN_ADDR` with `0.0.0.0`.
 
-[UI]: {{< relref "../../monitoring/debugging.md#grafana-agent-flow-ui" >}}
+{{% docs/reference %}}
+[UI]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/monitoring/debugging.md#grafana-agent-flow-ui"
+[UI]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/monitoring/debugging.md#grafana-agent-flow-ui"
+{{% /docs/reference %}}
+

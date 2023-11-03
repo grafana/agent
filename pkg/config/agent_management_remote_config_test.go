@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/grafana/agent/pkg/metrics/instance"
+	"github.com/prometheus/prometheus/model/labels"
 	"github.com/stretchr/testify/require"
 )
 
@@ -57,7 +58,7 @@ integration_configs:
 		require.NoError(t, err)
 		require.Equal(t, len(c.Metrics.Configs), 1)
 		require.Empty(t, c.Logs)
-		require.Empty(t, c.Integrations.configV1.Integrations)
+		require.Empty(t, c.Integrations.ConfigV1.Integrations)
 	})
 
 	t.Run("only log snippets provided", func(t *testing.T) {
@@ -69,7 +70,7 @@ integration_configs:
 		require.NoError(t, err)
 		require.Equal(t, len(c.Logs.Configs), 1)
 		require.Empty(t, c.Metrics.Configs)
-		require.Empty(t, c.Integrations.configV1.Integrations)
+		require.Empty(t, c.Integrations.ConfigV1.Integrations)
 	})
 
 	t.Run("only integration snippets provided", func(t *testing.T) {
@@ -81,7 +82,7 @@ integration_configs:
 		require.NoError(t, err)
 		require.Empty(t, c.Metrics.Configs)
 		require.Empty(t, c.Logs)
-		require.Equal(t, 1, len(c.Integrations.configV1.Integrations))
+		require.Equal(t, 1, len(c.Integrations.ConfigV1.Integrations))
 	})
 
 	t.Run("base with already logs, metrics and integrations provided", func(t *testing.T) {
@@ -115,7 +116,31 @@ integrations:
 		require.NoError(t, err)
 		require.Equal(t, len(c.Logs.Configs), 2)
 		require.Equal(t, len(c.Metrics.Configs), 2)
-		require.Equal(t, 2, len(c.Integrations.configV1.Integrations))
+		require.Equal(t, 2, len(c.Integrations.ConfigV1.Integrations))
+	})
+
+	t.Run("do not override integrations defined in base config with the ones defined in snippets", func(t *testing.T) {
+		baseConfig := `
+integrations:
+  node_exporter:
+    enabled: false
+`
+
+		snippets := []Snippet{{
+			Config: `
+integration_configs:
+  node_exporter:
+    enabled: true`,
+		}}
+
+		rc := RemoteConfig{
+			BaseConfig: BaseConfigContent(baseConfig),
+			Snippets:   snippets,
+		}
+		c, err := rc.BuildAgentConfig()
+		require.NoError(t, err)
+		require.Equal(t, 1, len(c.Integrations.ConfigV1.Integrations))
+		require.False(t, c.Integrations.ConfigV1.Integrations[0].Common.Enabled)
 	})
 
 	t.Run("all snippets provided", func(t *testing.T) {
@@ -127,12 +152,12 @@ integrations:
 		require.NoError(t, err)
 		require.Equal(t, 1, len(c.Logs.Configs))
 		require.Equal(t, 1, len(c.Metrics.Configs))
-		require.Equal(t, 1, len(c.Integrations.configV1.Integrations))
+		require.Equal(t, 1, len(c.Integrations.ConfigV1.Integrations))
 
 		// check some fields to make sure the config was parsed correctly
 		require.Equal(t, "prometheus", c.Metrics.Configs[0].ScrapeConfigs[0].JobName)
 		require.Equal(t, "loki", c.Logs.Configs[0].ScrapeConfig[0].JobName)
-		require.Equal(t, "agent", c.Integrations.configV1.Integrations[0].Name())
+		require.Equal(t, "agent", c.Integrations.ConfigV1.Integrations[0].Name())
 
 		// make sure defaults for metric snippets are applied
 		require.Equal(t, instance.DefaultConfig.WALTruncateFrequency, c.Metrics.Configs[0].WALTruncateFrequency)
@@ -150,9 +175,82 @@ integrations:
 		require.Equal(t, false, c.Logs.Configs[0].TargetConfig.Stdin)
 
 		// make sure defaults for integration snippets are applied
-		require.Equal(t, true, c.Integrations.configV1.ScrapeIntegrations)
-		require.Equal(t, true, c.Integrations.configV1.UseHostnameLabel)
-		require.Equal(t, true, c.Integrations.configV1.ReplaceInstanceLabel)
-		require.Equal(t, 5*time.Second, c.Integrations.configV1.IntegrationRestartBackoff)
+		require.Equal(t, true, c.Integrations.ConfigV1.ScrapeIntegrations)
+		require.Equal(t, true, c.Integrations.ConfigV1.UseHostnameLabel)
+		require.Equal(t, true, c.Integrations.ConfigV1.ReplaceInstanceLabel)
+		require.Equal(t, 5*time.Second, c.Integrations.ConfigV1.IntegrationRestartBackoff)
+	})
+
+	t.Run("no external labels provided", func(t *testing.T) {
+		rc := RemoteConfig{
+			BaseConfig: BaseConfigContent(baseConfig),
+			Snippets:   allSnippets,
+		}
+		c, err := rc.BuildAgentConfig()
+		require.NoError(t, err)
+		require.Equal(t, 1, len(c.Logs.Configs))
+		require.Empty(t, c.Metrics.Global.Prometheus.ExternalLabels)
+	})
+
+	t.Run("no external labels provided in remote config", func(t *testing.T) {
+		baseConfig := `
+server:
+    log_level: debug
+metrics:
+    global:
+        external_labels:
+            foo: bar`
+		rc := RemoteConfig{
+			BaseConfig: BaseConfigContent(baseConfig),
+			Snippets:   allSnippets,
+		}
+		c, err := rc.BuildAgentConfig()
+		require.NoError(t, err)
+		require.Equal(t, 1, len(c.Logs.Configs))
+		require.Equal(t, 1, len(c.Metrics.Global.Prometheus.ExternalLabels))
+		require.Contains(t, c.Metrics.Global.Prometheus.ExternalLabels, labels.Label{Name: "foo", Value: "bar"})
+	})
+
+	t.Run("external labels provided", func(t *testing.T) {
+		rc := RemoteConfig{
+			BaseConfig: BaseConfigContent(baseConfig),
+			Snippets:   allSnippets,
+			AgentMetadata: AgentMetadata{
+				ExternalLabels: map[string]string{
+					"foo": "bar",
+				},
+			},
+		}
+		c, err := rc.BuildAgentConfig()
+		require.NoError(t, err)
+		require.Equal(t, 1, len(c.Logs.Configs))
+		require.Equal(t, 1, len(c.Metrics.Configs))
+		require.Contains(t, c.Metrics.Global.Prometheus.ExternalLabels, labels.Label{Name: "foo", Value: "bar"})
+	})
+
+	t.Run("external labels don't override base config", func(t *testing.T) {
+		baseConfig := `
+server:
+    log_level: debug
+metrics:
+    global:
+        external_labels:
+            foo: bar
+`
+		rc := RemoteConfig{
+			BaseConfig: BaseConfigContent(baseConfig),
+			Snippets:   allSnippets,
+			AgentMetadata: AgentMetadata{
+				ExternalLabels: map[string]string{
+					"foo": "baz",
+				},
+			},
+		}
+		c, err := rc.BuildAgentConfig()
+		require.NoError(t, err)
+		require.Equal(t, 1, len(c.Logs.Configs))
+		require.Equal(t, 1, len(c.Metrics.Configs))
+		require.Contains(t, c.Metrics.Global.Prometheus.ExternalLabels, labels.Label{Name: "foo", Value: "bar"})
+		require.NotContains(t, c.Metrics.Global.Prometheus.ExternalLabels, labels.Label{Name: "foo", Value: "baz"})
 	})
 }

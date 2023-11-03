@@ -1,5 +1,11 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/getting-started/collect-opentelemetry-data/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/getting-started/collect-opentelemetry-data/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/getting-started/collect-opentelemetry-data/
+canonical: https://grafana.com/docs/agent/latest/flow/getting-started/collect-opentelemetry-data/
 title: Collect OpenTelemetry data
+description: Learn how to collect OpenTelemetry data
 weight: 300
 ---
 
@@ -14,8 +20,6 @@ This topic describes how to:
 * Configure batching
 * Receive OpenTelemetry data over OTLP
 
-[OpenTelemetry]: https://opentelemetry.io
-
 ## Components used in this topic
 
 * [otelcol.auth.basic][]
@@ -23,12 +27,6 @@ This topic describes how to:
 * [otelcol.exporter.otlphttp][]
 * [otelcol.processor.batch][]
 * [otelcol.receiver.otlp][]
-
-[otelcol.auth.basic]: {{< relref "../reference/components/otelcol.auth.basic.md" >}}
-[otelcol.exporter.otlp]: {{< relref "../reference/components/otelcol.exporter.otlp.md" >}}
-[otelcol.exporter.otlphttp]: {{< relref "../reference/components/otelcol.exporter.otlphttp.md" >}}
-[otelcol.processor.batch]: {{< relref "../reference/components/otelcol.processor.batch.md" >}}
-[otelcol.receiver.otlp]: {{< relref "../reference/components/otelcol.receiver.otlp.md" >}}
 
 ## Before you begin
 
@@ -38,8 +36,6 @@ This topic describes how to:
   Grafana Agent Flow.
 * Identify where Grafana Agent Flow will write received telemetry data.
 * Be familiar with the concept of [Components][] in Grafana Agent Flow.
-
-[Components]: {{< relref "../concepts/components.md" >}}
 
 ## Configure an OpenTelemetry Protocol exporter
 
@@ -55,8 +51,6 @@ to forward data to it.
 
 > Refer to the list of available [Components][] for the full list of
 > `otelcol.exporter` components that can be used to export OpenTelemetry data.
->
-> [Components]: {{< relref "../reference/components/" >}}
 
 To configure an `otelcol.exporter.otlp` component for exporting OpenTelemetry
 data using OTLP, complete the following steps:
@@ -174,8 +168,6 @@ batch data before sending it to our exporter.
 > `otelcol.processor` components that can be used to process OpenTelemetry
 > data. You can chain processors by having one processor send data to another
 > processor.
->
-> [Components]: {{< relref "../reference/components/" >}}
 
 To configure an `otelcol.processor.batch` component, complete the following
 steps:
@@ -257,8 +249,6 @@ Agent Flow components.
 > Refer to the list of available [Components][] for the full list of
 > `otelcol.receiver` components that can be used to receive
 > OpenTelemetry-compatible data.
->
-> [Components]: {{< relref "../reference/components/" >}}
 
 To configure an `otelcol.receiver.otlp` component for receiving OTLP data,
 complete the following steps:
@@ -362,3 +352,20 @@ otelcol.exporter.otlp "default" {
 
 For more information on receiving OpenTelemetry data using the OpenTelemetry
 Protocol, refer to [otelcol.receiver.otlp][].
+
+[OpenTelemetry]: https://opentelemetry.io
+
+{{% docs/reference %}}
+[otelcol.auth.basic]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/otelcol.auth.basic.md"
+[otelcol.auth.basic]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/otelcol.auth.basic.md"
+[otelcol.exporter.otlp]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/otelcol.exporter.otlp.md"
+[otelcol.exporter.otlp]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/otelcol.exporter.otlp.md"
+[otelcol.exporter.otlphttp]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/otelcol.exporter.otlphttp.md"
+[otelcol.exporter.otlphttp]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/otelcol.exporter.otlphttp.md"
+[otelcol.processor.batch]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/otelcol.processor.batch.md"
+[otelcol.processor.batch]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/otelcol.processor.batch.md"
+[otelcol.receiver.otlp]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/otelcol.receiver.otlp.md"
+[otelcol.receiver.otlp]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/otelcol.receiver.otlp.md"
+[Components]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/components.md"
+[Components]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/concepts/components.md"
+{{% /docs/reference %}}

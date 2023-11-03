@@ -1,5 +1,11 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/otelcol.auth.headers/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/otelcol.auth.headers/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/otelcol.auth.headers/
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.auth.headers/
 title: otelcol.auth.headers
+description: Learn about otelcol.auth.headers
 ---
 
 # otelcol.auth.headers
@@ -51,6 +57,13 @@ Name | Type | Description | Default | Required
 `key` | `string` | Name of the header to set. | | yes
 `value` | `string` or `secret` | Value of the header. | | no
 `from_context` | `string` | Metadata name to get header value from. | | no
+`action` | `string` | An action to perform on the header | "upsert" | no
+
+The supported values for `action` are:
+* `insert`: Inserts the new header if it does not exist.
+* `update`: Updates the header value if it exists.
+* `upsert`: Inserts a header if it does not exist and updates the header if it exists.
+* `delete`: Deletes the header.
 
 Exactly one of `value` or `from_context` must be provided for each `header`
 block.

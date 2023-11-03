@@ -1,7 +1,13 @@
 ---
-title: discovery.kubelet
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/discovery.kubelet/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/discovery.kubelet/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/discovery.kubelet/
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.kubelet/
 labels:
   stage: beta
+title: discovery.kubelet
+description: Learn about discovery.kubelet
 ---
 
 # discovery.kubelet
@@ -13,7 +19,6 @@ and exposes them as scrape targets.
 
 ```river
 discovery.kubelet "LABEL" {
-  bearer_token_file = "TOKEN_FILE"
 }
 ```
 
@@ -58,11 +63,11 @@ tls_config | [tls_config][] | Configure TLS settings for connecting to the endpo
 
 ### authorization block
 
-{{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ### tls_config block
 
-{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ## Exported fields
 
@@ -121,7 +126,7 @@ values.
 
 `discovery.kubelet` does not expose any component-specific debug information.
 
-### Debug metrics
+## Debug metrics
 
 `discovery.kubelet` does not expose any component-specific debug metrics.
 
@@ -135,7 +140,27 @@ This example uses a bearer token file to authenticate to the Kubelet API:
 discovery.kubelet "k8s_pods" {
   bearer_token_file = "/var/run/secrets/kubernetes.io/serviceaccount/token"
 }
+
+prometheus.scrape "demo" {
+  targets    = discovery.kubelet.k8s_pods.targets
+  forward_to = [prometheus.remote_write.demo.receiver]
+}
+
+prometheus.remote_write "demo" {
+  endpoint {
+    url = PROMETHEUS_REMOTE_WRITE_URL
+
+    basic_auth {
+      username = USERNAME
+      password = PASSWORD
+    }
+  }
+}
 ```
+Replace the following:
+  - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
+  - `USERNAME`: The username to use for authentication to the remote_write API.
+  - `PASSWORD`: The password to use for authentication to the remote_write API.
 
 ### Limit searched namespaces
 
@@ -146,4 +171,24 @@ discovery.kubelet "k8s_pods" {
   bearer_token_file = "/var/run/secrets/kubernetes.io/serviceaccount/token"
   namespaces = ["default", "kube-system"]
 }
+
+prometheus.scrape "demo" {
+  targets    = discovery.kubelet.k8s_pods.targets
+  forward_to = [prometheus.remote_write.demo.receiver]
+}
+
+prometheus.remote_write "demo" {
+  endpoint {
+    url = PROMETHEUS_REMOTE_WRITE_URL
+
+    basic_auth {
+      username = USERNAME
+      password = PASSWORD
+    }
+  }
+}
 ```
+Replace the following:
+  - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
+  - `USERNAME`: The username to use for authentication to the remote_write API.
+  - `PASSWORD`: The password to use for authentication to the remote_write API.

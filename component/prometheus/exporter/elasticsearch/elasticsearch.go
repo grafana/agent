@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/grafana/agent/component"
-	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/prometheus/exporter"
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/integrations/elasticsearch_exporter"
@@ -12,24 +11,17 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name:    "prometheus.exporter.elasticsearch",
-		Args:    Arguments{},
-		Exports: exporter.Exports{},
-		Build:   exporter.NewWithTargetBuilder(createExporter, "elasticsearch", customizeTarget),
+		Name:          "prometheus.exporter.elasticsearch",
+		Args:          Arguments{},
+		Exports:       exporter.Exports{},
+		NeedsServices: exporter.RequiredServices(),
+		Build:         exporter.New(createExporter, "elasticsearch"),
 	})
 }
 
-func createExporter(opts component.Options, args component.Arguments) (integrations.Integration, error) {
+func createExporter(opts component.Options, args component.Arguments, defaultInstanceKey string) (integrations.Integration, string, error) {
 	a := args.(Arguments)
-	return a.Convert().NewIntegration(opts.Logger)
-}
-
-func customizeTarget(baseTarget discovery.Target, args component.Arguments) []discovery.Target {
-	a := args.(Arguments)
-	target := baseTarget
-
-	target["instance"] = a.Address
-	return []discovery.Target{target}
+	return integrations.NewIntegrationWithInstanceKey(opts.Logger, a.Convert(), defaultInstanceKey)
 }
 
 // DefaultArguments holds non-zero default options for Arguments when it is

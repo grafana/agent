@@ -3,16 +3,18 @@ package sigv4
 import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/otelcol/auth"
+	otel_service "github.com/grafana/agent/service/otel"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/sigv4authextension"
 	otelcomponent "go.opentelemetry.io/collector/component"
-	otelconfig "go.opentelemetry.io/collector/config"
+	otelextension "go.opentelemetry.io/collector/extension"
 )
 
 func init() {
 	component.Register(component.Registration{
-		Name:    "otelcol.auth.sigv4",
-		Args:    Arguments{},
-		Exports: auth.Exports{},
+		Name:          "otelcol.auth.sigv4",
+		Args:          Arguments{},
+		Exports:       auth.Exports{},
+		NeedsServices: []string{otel_service.ServiceName},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			fact := sigv4authextension.NewFactory()
@@ -33,12 +35,11 @@ var (
 )
 
 // Convert implements auth.Arguments.
-func (args Arguments) Convert() (otelconfig.Extension, error) {
+func (args Arguments) Convert() (otelcomponent.Config, error) {
 	res := sigv4authextension.Config{
-		ExtensionSettings: otelconfig.NewExtensionSettings(otelconfig.NewComponentID("sigv4")),
-		Region:            args.Region,
-		Service:           args.Service,
-		AssumeRole:        *args.AssumeRole.Convert(),
+		Region:     args.Region,
+		Service:    args.Service,
+		AssumeRole: *args.AssumeRole.Convert(),
 	}
 	// sigv4authextension.Config has a private member called "credsProvider" which gets initialized when we call Validate().
 	// If we don't call validate, the unit tests for this component will fail.
@@ -55,12 +56,12 @@ func (args Arguments) Validate() error {
 }
 
 // Extensions implements auth.Arguments.
-func (args Arguments) Extensions() map[otelconfig.ComponentID]otelcomponent.Extension {
+func (args Arguments) Extensions() map[otelcomponent.ID]otelextension.Extension {
 	return nil
 }
 
 // Exporters implements auth.Arguments.
-func (args Arguments) Exporters() map[otelconfig.DataType]map[otelconfig.ComponentID]otelcomponent.Exporter {
+func (args Arguments) Exporters() map[otelcomponent.DataType]map[otelcomponent.ID]otelcomponent.Component {
 	return nil
 }
 

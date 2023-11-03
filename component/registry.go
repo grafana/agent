@@ -3,13 +3,10 @@ package component
 import (
 	"context"
 	"fmt"
-	"net"
-	"net/http"
 	"reflect"
 	"strings"
 
 	"github.com/go-kit/log"
-	"github.com/grafana/agent/pkg/cluster"
 	"github.com/grafana/regexp"
 	"github.com/prometheus/client_golang/prometheus"
 	"go.opentelemetry.io/otel/trace"
@@ -34,6 +31,9 @@ type ModuleController interface {
 	// NewModule creates a new, un-started Module with a given ID. Multiple calls to
 	// NewModule must provide unique values for id. The empty string is a valid unique
 	// value for id.
+	//
+	// If id is non-empty, it must be a valid River identifier, matching the
+	// regex /[A-Za-z_][A-Za-z0-9_]/.
 	NewModule(id string, export ExportFunc) (Module, error)
 }
 
@@ -49,11 +49,7 @@ type Module interface {
 	//
 	// Run blocks until the provided context is canceled. The ID of a module as defined in
 	// ModuleController.NewModule will not be released until Run returns.
-	Run(context.Context)
-
-	// ComponentHandler returns an HTTP handler which exposes endpoints of
-	// components managed by the Module.
-	ComponentHandler() http.Handler
+	Run(context.Context) error
 }
 
 // ExportFunc is used for onExport of the Module
@@ -98,23 +94,15 @@ type Options struct {
 	// attribute denoting the component ID.
 	Tracer trace.TracerProvider
 
-	// Clusterer allows components to work in a clustered fashion. The
-	// clusterer is shared between all components initialized by a Flow
-	// controller.
-	Clusterer *cluster.Clusterer
-
-	// HTTPListenAddr is the address the server is configured to listen on.
-	HTTPListenAddr string
-
-	// DialFunc is a function for components to use to properly communicate to
-	// HTTPListenAddr. If set, components which send HTTP requests to
-	// HTTPListenAddr must use this function to establish connections.
-	DialFunc func(ctx context.Context, network, address string) (net.Conn, error)
-
-	// HTTPPath is the base path that requests need in order to route to this
-	// component. Requests received by a component handler will have this already
-	// trimmed off.
-	HTTPPath string
+	// GetServiceData retrieves data for a service by calling
+	// [service.Service.Data] for the specified service.
+	//
+	// GetServiceData will return an error if the service does not exist or was
+	// not listed as a dependency with the registration of the component.
+	//
+	// The result of GetServiceData may be cached as the value will not change at
+	// runtime.
+	GetServiceData func(name string) (interface{}, error)
 }
 
 // Registration describes a single component.
@@ -130,29 +118,6 @@ type Registration struct {
 	// any number of underscores or alphanumeric ASCII characters.
 	Name string
 
-	// A singleton component only supports one instance of itself across the
-	// whole process. Normally, multiple components of the same type may be
-	// created.
-	//
-	// The fully-qualified name of a component is the combination of River block
-	// name and all of its labels. Fully-qualified names must be unique across
-	// the process. Components which are *NOT* singletons automatically support
-	// user-supplied identifiers:
-	//
-	//     // Fully-qualified names: remote.s3.object-a, remote.s3.object-b
-	//     remote.s3 "object-a" { ... }
-	//     remote.s3 "object-b" { ... }
-	//
-	// This allows for multiple instances of the same component to be defined.
-	// However, components registered as a singleton do not support user-supplied
-	// identifiers:
-	//
-	//     node_exporter { ... }
-	//
-	// This prevents the user from defining multiple instances of node_exporter
-	// with different fully-qualified names.
-	Singleton bool
-
 	// An example Arguments value that the registered component expects to
 	// receive as input. Components should provide the zero value of their
 	// Arguments type here.
@@ -161,6 +126,15 @@ type Registration struct {
 	// An example Exports value that the registered component may emit as output.
 	// A component which does not expose exports must leave this set to nil.
 	Exports Exports
+
+	// NeedsServices holds the set of service names which this component depends
+	// on to run. If NeedsServices includes an invalid service name (either
+	// because of a cyclic dependency or the named service doesn't exist),
+	// components will fail to evaluate.
+	//
+	// Modules which are loaded by the registered component will only be able to
+	// access services in this list.
+	NeedsServices []string
 
 	// Build should construct a new component from an initial Arguments and set
 	// of options.

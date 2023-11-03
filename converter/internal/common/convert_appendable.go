@@ -1,9 +1,9 @@
 package common
 
 import (
-	"github.com/grafana/agent/pkg/river"
-	"github.com/grafana/agent/pkg/river/token"
-	"github.com/grafana/agent/pkg/river/token/builder"
+	"github.com/grafana/river"
+	"github.com/grafana/river/token"
+	"github.com/grafana/river/token/builder"
 	"github.com/prometheus/prometheus/storage"
 )
 
@@ -19,7 +19,7 @@ type ConvertAppendable struct {
 
 var _ storage.Appendable = (*ConvertAppendable)(nil)
 var _ builder.Tokenizer = ConvertAppendable{}
-var _ river.Capsule = ConvertTargets{}
+var _ river.Capsule = ConvertAppendable{}
 
 func (f ConvertAppendable) RiverCapsule() {}
 func (f ConvertAppendable) RiverTokenize() []builder.Token {

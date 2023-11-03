@@ -241,8 +241,8 @@ var (
 	_ encoding.TextUnmarshaler = (*SeverityLevel)(nil)
 )
 
-// The severity levels should be in sync with "opentelemetry-collector/pdata/plog/logs.go"
-var severityLevels = map[SeverityLevel]int32{
+// The severity levels should be in sync with "opentelemetry-collector/pdata/plog/severity_number.go"
+var severityLevels = map[SeverityLevel]plog.SeverityNumber{
 	"TRACE":  1,
 	"TRACE2": 2,
 	"TRACE3": 3,
@@ -271,14 +271,10 @@ var severityLevels = map[SeverityLevel]int32{
 
 // UnmarshalText implements encoding.TextUnmarshaler for SeverityLevel.
 func (sl *SeverityLevel) UnmarshalText(text []byte) error {
-	if numVal, exists := severityLevels[SeverityLevel(text)]; exists {
-		// Check if this is a valid plog severity number
-		plogInt := plog.SeverityNumber(numVal)
-		plogStr := plogInt.String()
-		if plogStr == "SEVERITY_NUMBER_"+string(text) {
-			*sl = SeverityLevel(text)
-			return nil
-		}
+	agentSevLevelStr := SeverityLevel(text)
+	if _, exists := severityLevels[agentSevLevelStr]; exists {
+		*sl = agentSevLevelStr
+		return nil
 	}
 	return fmt.Errorf("unrecognized severity level %q", string(text))
 }

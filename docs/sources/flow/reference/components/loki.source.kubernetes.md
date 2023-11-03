@@ -1,12 +1,18 @@
 ---
-title: loki.source.kubernetes
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/loki.source.kubernetes/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/loki.source.kubernetes/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/loki.source.kubernetes/
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/loki.source.kubernetes/
 labels:
   stage: experimental
+title: loki.source.kubernetes
+description: Learn about loki.source.kubernetes
 ---
 
 # loki.source.kubernetes
 
-{{< docs/shared lookup="flow/stability/experimental.md" source="agent" >}}
+{{< docs/shared lookup="flow/stability/experimental.md" source="agent" version="<AGENT VERSION>" >}}
 
 `loki.source.kubernetes` tails logs from Kubernetes containers using the
 Kubernetes API. It has the following benefits over `loki.source.file`:
@@ -76,6 +82,7 @@ client > authorization | [authorization][] | Configure generic authorization to 
 client > oauth2 | [oauth2][] | Configure OAuth2 for authenticating to the endpoint. | no
 client > oauth2 > tls_config | [tls_config][] | Configure TLS settings for connecting to the endpoint. | no
 client > tls_config | [tls_config][] | Configure TLS settings for connecting to the endpoint. | no
+clustering | [clustering][] | Configure the component for when the Agent is running in clustered mode. | no
 
 The `>` symbol indicates deeper levels of nesting. For example, `client >
 basic_auth` refers to a `basic_auth` block defined
@@ -86,6 +93,7 @@ inside a `client` block.
 [authorization]: #authorization-block
 [oauth2]: #oauth2-block
 [tls_config]: #tls_config-block
+[clustering]: #clustering-beta
 
 ### client block
 
@@ -115,19 +123,35 @@ Name | Type | Description | Default | Required
 
 ### basic_auth block
 
-{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ### authorization block
 
-{{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ### oauth2 block
 
-{{< docs/shared lookup="flow/reference/components/oauth2-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/oauth2-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ### tls_config block
 
-{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" version="<AGENT VERSION>" >}}
+
+### clustering (beta)
+
+Name | Type | Description | Default | Required
+---- | ---- | ----------- | ------- | --------
+`enabled` | `bool` | Distribute log collection with other cluster nodes. | | yes
+
+When the agent is [using clustering][], and `enabled` is set to true, then this
+`loki.source.kubernetes` component instance opts-in to participating in the
+cluster to distribute the load of log collection between all cluster nodes.
+
+If the agent is _not_ running in clustered mode, then the block is a no-op and
+`loki.source.kubernetes` collects logs from every target it receives in its
+arguments.
+
+[using clustering]: {{< relref "../../concepts/clustering.md" >}}
 
 ## Exported fields
 

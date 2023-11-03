@@ -12,15 +12,15 @@ import (
 	"github.com/grafana/agent/component/otelcol/internal/lazycollector"
 	"github.com/grafana/agent/component/otelcol/internal/lazyconsumer"
 	"github.com/grafana/agent/component/otelcol/internal/scheduler"
+	"github.com/grafana/agent/component/otelcol/internal/views"
 	"github.com/grafana/agent/pkg/build"
 	"github.com/grafana/agent/pkg/util/zapadapter"
 	"github.com/prometheus/client_golang/prometheus"
 	otelcomponent "go.opentelemetry.io/collector/component"
-	otelconfig "go.opentelemetry.io/collector/config"
+	otelexporter "go.opentelemetry.io/collector/exporter"
+	otelextension "go.opentelemetry.io/collector/extension"
 	sdkprometheus "go.opentelemetry.io/otel/exporters/prometheus"
 	"go.opentelemetry.io/otel/sdk/metric"
-
-	_ "github.com/grafana/agent/component/otelcol/internal/featuregate" // Enable needed feature gates
 )
 
 // Arguments is an extension of component.Arguments which contains necessary
@@ -30,15 +30,18 @@ type Arguments interface {
 
 	// Convert converts the Arguments into an OpenTelemetry Collector exporter
 	// configuration.
-	Convert() (otelconfig.Exporter, error)
+	Convert() (otelcomponent.Config, error)
 
 	// Extensions returns the set of extensions that the configured component is
 	// allowed to use.
-	Extensions() map[otelconfig.ComponentID]otelcomponent.Extension
+	Extensions() map[otelcomponent.ID]otelextension.Extension
 
 	// Exporters returns the set of exporters that are exposed to the configured
 	// component.
-	Exporters() map[otelconfig.DataType]map[otelconfig.ComponentID]otelcomponent.Exporter
+	Exporters() map[otelcomponent.DataType]map[otelcomponent.ID]otelcomponent.Component
+
+	// DebugMetricsConfig returns the configuration for debug metrics
+	DebugMetricsConfig() otelcol.DebugMetricsArguments
 }
 
 // Exporter is a Flow component shim which manages an OpenTelemetry Collector
@@ -48,7 +51,7 @@ type Exporter struct {
 	cancel context.CancelFunc
 
 	opts     component.Options
-	factory  otelcomponent.ExporterFactory
+	factory  otelexporter.Factory
 	consumer *lazyconsumer.Consumer
 
 	sched     *scheduler.Scheduler
@@ -66,7 +69,7 @@ var (
 //
 // The registered component must be registered to export the
 // otelcol.ConsumerExports type, otherwise New will panic.
-func New(opts component.Options, f otelcomponent.ExporterFactory, args Arguments) (*Exporter, error) {
+func New(opts component.Options, f otelexporter.Factory, args Arguments) (*Exporter, error) {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	consumer := lazyconsumer.New(ctx)
@@ -126,12 +129,21 @@ func (e *Exporter) Update(args component.Arguments) error {
 		return err
 	}
 
-	settings := otelcomponent.ExporterCreateSettings{
+	metricOpts := []metric.Option{metric.WithReader(promExporter)}
+	if eargs.DebugMetricsConfig().DisableHighCardinalityMetrics {
+		metricOpts = append(metricOpts, metric.WithView(views.DropHighCardinalityServerAttributes()...))
+	}
+
+	settings := otelexporter.CreateSettings{
 		TelemetrySettings: otelcomponent.TelemetrySettings{
 			Logger: zapadapter.New(e.opts.Logger),
 
 			TracerProvider: e.opts.Tracer,
-			MeterProvider:  metric.NewMeterProvider(metric.WithReader(promExporter)),
+			MeterProvider:  metric.NewMeterProvider(metricOpts...),
+
+			ReportComponentStatus: func(*otelcomponent.StatusEvent) error {
+				return nil
+			},
 		},
 
 		BuildInfo: otelcomponent.BuildInfo{

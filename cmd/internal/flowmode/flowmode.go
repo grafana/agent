@@ -27,6 +27,7 @@ func Run() {
 		convertCommand(),
 		fmtCommand(),
 		runCommand(),
+		toolsCommand(),
 	)
 
 	if err := cmd.Execute(); err != nil {

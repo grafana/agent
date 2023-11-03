@@ -13,9 +13,9 @@ import (
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/prometheus/scrape"
 	"github.com/grafana/agent/component/pyroscope"
-	"github.com/grafana/agent/pkg/cluster"
-	"github.com/grafana/agent/pkg/river"
 	"github.com/grafana/agent/pkg/util"
+	"github.com/grafana/agent/service/cluster"
+	"github.com/grafana/river"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
 	"github.com/stretchr/testify/require"
@@ -29,10 +29,10 @@ func TestComponent(t *testing.T) {
 	arg := NewDefaultArguments()
 	arg.JobName = "test"
 	c, err := New(component.Options{
-		Logger:        util.TestFlowLogger(t),
-		Registerer:    prometheus.NewRegistry(),
-		OnStateChange: func(e component.Exports) {},
-		Clusterer:     &cluster.Clusterer{Node: cluster.NewLocalNode("")},
+		Logger:         util.TestFlowLogger(t),
+		Registerer:     prometheus.NewRegistry(),
+		OnStateChange:  func(e component.Exports) {},
+		GetServiceData: getServiceData,
 	}, arg)
 	require.NoError(t, err)
 	ctx, cancel := context.WithCancel(context.Background())
@@ -50,9 +50,11 @@ func TestComponent(t *testing.T) {
 	arg.Targets = []discovery.Target{
 		{
 			model.AddressLabel: "foo",
+			serviceNameLabel:   "s",
 		},
 		{
-			model.AddressLabel: "bar",
+			model.AddressLabel:  "bar",
+			serviceNameK8SLabel: "k",
 		},
 	}
 	c.Update(arg)
@@ -61,6 +63,15 @@ func TestComponent(t *testing.T) {
 		fmt.Println(c.DebugInfo().(scrape.ScraperStatus).TargetStatus)
 		return len(c.appendable.Children()) == 1 && len(c.DebugInfo().(scrape.ScraperStatus).TargetStatus) == 10
 	}, 5*time.Second, 100*time.Millisecond)
+}
+
+func getServiceData(name string) (interface{}, error) {
+	switch name {
+	case cluster.ServiceName:
+		return cluster.Mock(), nil
+	default:
+		return nil, fmt.Errorf("unrecognized service name %q", name)
+	}
 }
 
 func TestUnmarshalConfig(t *testing.T) {
@@ -188,10 +199,10 @@ func TestUpdateWhileScraping(t *testing.T) {
 	args.ScrapeInterval = 1 * time.Second
 
 	c, err := New(component.Options{
-		Logger:        util.TestFlowLogger(t),
-		Registerer:    prometheus.NewRegistry(),
-		OnStateChange: func(e component.Exports) {},
-		Clusterer:     &cluster.Clusterer{Node: cluster.NewLocalNode("")},
+		Logger:         util.TestFlowLogger(t),
+		Registerer:     prometheus.NewRegistry(),
+		OnStateChange:  func(e component.Exports) {},
+		GetServiceData: getServiceData,
 	}, args)
 	require.NoError(t, err)
 	scraping := atomic.NewBool(false)
@@ -217,11 +228,13 @@ func TestUpdateWhileScraping(t *testing.T) {
 	args.Targets = []discovery.Target{
 		{
 			model.AddressLabel: address,
+			serviceNameLabel:   "s",
 			"foo":              "bar",
 		},
 		{
-			model.AddressLabel: address,
-			"foo":              "buz",
+			model.AddressLabel:  address,
+			serviceNameK8SLabel: "k",
+			"foo":               "buz",
 		},
 	}
 
@@ -239,6 +252,7 @@ func TestUpdateWhileScraping(t *testing.T) {
 			args.Targets = []discovery.Target{
 				{
 					model.AddressLabel: address,
+					serviceNameLabel:   "s",
 					"foo":              fmt.Sprintf("%d", i),
 				},
 			}

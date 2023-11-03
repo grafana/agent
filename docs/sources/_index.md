@@ -1,6 +1,15 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/
+- /docs/grafana-cloud/monitor-infrastructure/agent/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/
+canonical: https://grafana.com/docs/agent/latest/
 title: Grafana Agent
-weight: 1
+description: Grafana Agent is a flexible, performant, vendor-neutral, telemetry collector
+weight: 350
+cascade:
+  AGENT_RELEASE: v0.37.3
+  OTEL_VERSION: v0.87.0
 ---
 
 # Grafana Agent
@@ -14,28 +23,26 @@ Grafana Agent is based around **components**. Components are wired together to
 form programmable observability **pipelines** for telemetry collection,
 processing, and delivery.
 
-> **NOTE**: This page focuses mainly on "[Flow mode][Grafana Agent Flow]," the
-> Terraform-inspired variant of Grafana Agent.
->
-> For information on other variants of Grafana Agent, refer to [About Grafana
-> Agent][].
+{{% admonition type="note" %}}
+This page focuses mainly on [Flow mode](https://grafana.com/docs/agent/<AGENT_VERSION>/flow/), the Terraform-inspired variant of Grafana Agent.
+
+For information on other variants of Grafana Agent, refer to [Introduction to Grafana Agent]({{< relref "./about.md" >}}).
+{{% /admonition %}}
 
 Grafana Agent can collect, transform, and send data to:
 
 * The [Prometheus][] ecosystem
 * The [OpenTelemetry][] ecosystem
-* The Grafana open source ecosystem ([Loki][], [Grafana][], [Tempo][], [Mimir][], [Phlare][])
+* The Grafana open source ecosystem ([Loki][], [Grafana][], [Tempo][], [Mimir][], [Pyroscope][])
 
 [Terraform]: https://terraform.io
-[Grafana Agent in flow mode]: {{< relref "./flow/" >}}
-[About Grafana Agent]: {{< relref "./about.md" >}}
 [Prometheus]: https://prometheus.io
 [OpenTelemetry]: https://opentelemetry.io
 [Loki]: https://github.com/grafana/loki
 [Grafana]: https://github.com/grafana/grafana
 [Tempo]: https://github.com/grafana/tempo
 [Mimir]: https://github.com/grafana/mimir
-[Phlare]: https://github.com/grafana/phlare
+[Pyroscope]: https://github.com/grafana/pyroscope
 
 ## Why use Grafana Agent?
 
@@ -52,8 +59,6 @@ Grafana Agent can collect, transform, and send data to:
 * **Batteries included**: Integrate with systems like MySQL, Kubernetes, and
   Apache to get telemetry that's immediately useful.
 
-[UI]: {{< relref "./flow/monitoring/debugging.md#grafana-agent-flow-ui" >}}
-
 ## Getting started
 
 * Choose a [variant][variants] of Grafana Agent to run.
@@ -61,11 +66,6 @@ Grafana Agent can collect, transform, and send data to:
   * [Static mode][]
   * [Static mode Kubernetes operator][]
   * [Flow mode][]
-
-[variants]: {{< relref "./about.md" >}}
-[Static mode]: {{< relref "./static/" >}}
-[Static mode Kubernetes operator]: {{< relref "./operator/" >}}
-[Flow mode]: {{< relref "./flow/" >}}
 
 ## Supported platforms
 
@@ -101,4 +101,19 @@ one minor release is moved.
 
 Patch and security releases may be created at any time.
 
-[Milestones]: https://github.com/grafana/agent/milestones
+{{% docs/reference %}}
+[variants]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/about"
+[variants]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/about"
+
+[Static mode]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static"
+[Static mode]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/static"
+
+[Static mode Kubernetes operator]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/operator"
+[Static mode Kubernetes operator]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/operator"
+
+[Flow mode]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/flow"
+[Flow mode]: "/docs/grafana-cloud/ -> /docs/agent/<AGENT VERSION>/flow"
+
+[UI]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/flow/monitoring/debugging.md#grafana-agent-flow-ui"
+[UI]: "/docs/grafana-cloud/ -> /docs/agent/<AGENT VERSION>/flow/monitoring/debugging.md#grafana-agent-flow-ui"
+{{% /docs/reference %}}

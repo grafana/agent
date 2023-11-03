@@ -7,16 +7,17 @@ import (
 	"testing"
 
 	"github.com/grafana/agent/component"
-	"github.com/grafana/agent/pkg/cluster"
 	"github.com/grafana/agent/pkg/flow/internal/controller"
 	"github.com/grafana/agent/pkg/flow/internal/dag"
 	"github.com/grafana/agent/pkg/flow/logging"
-	"github.com/grafana/agent/pkg/river/ast"
-	"github.com/grafana/agent/pkg/river/diag"
-	"github.com/grafana/agent/pkg/river/parser"
+	"github.com/grafana/river/ast"
+	"github.com/grafana/river/diag"
+	"github.com/grafana/river/parser"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/otel/trace"
+
+	_ "github.com/grafana/agent/pkg/flow/internal/testcomponents" // Include test components
 )
 
 func TestLoader(t *testing.T) {
@@ -65,30 +66,31 @@ func TestLoader(t *testing.T) {
 		},
 	}
 
-	newGlobals := func() controller.ComponentGlobals {
+	newLoaderOptions := func() controller.LoaderOptions {
 		l, _ := logging.New(os.Stderr, logging.DefaultOptions)
-		return controller.ComponentGlobals{
-			Logger:            l,
-			TraceProvider:     trace.NewNoopTracerProvider(),
-			Clusterer:         noOpClusterer(),
-			DataPath:          t.TempDir(),
-			OnComponentUpdate: func(cn *controller.ComponentNode) { /* no-op */ },
-			Registerer:        prometheus.NewRegistry(),
-			NewModuleController: func(id string) component.ModuleController {
-				return nil
+		return controller.LoaderOptions{
+			ComponentGlobals: controller.ComponentGlobals{
+				Logger:            l,
+				TraceProvider:     trace.NewNoopTracerProvider(),
+				DataPath:          t.TempDir(),
+				OnComponentUpdate: func(cn *controller.ComponentNode) { /* no-op */ },
+				Registerer:        prometheus.NewRegistry(),
+				NewModuleController: func(id string, availableServices []string) controller.ModuleController {
+					return nil
+				},
 			},
 		}
 	}
 
 	t.Run("New Graph", func(t *testing.T) {
-		l := controller.NewLoader(newGlobals())
+		l := controller.NewLoader(newLoaderOptions())
 		diags := applyFromContent(t, l, []byte(testFile), []byte(testConfig))
 		require.NoError(t, diags.ErrorOrNil())
 		requireGraph(t, l.Graph(), testGraphDefinition)
 	})
 
 	t.Run("New Graph No Config", func(t *testing.T) {
-		l := controller.NewLoader(newGlobals())
+		l := controller.NewLoader(newLoaderOptions())
 		diags := applyFromContent(t, l, []byte(testFile), nil)
 		require.NoError(t, diags.ErrorOrNil())
 		requireGraph(t, l.Graph(), testGraphDefinition)
@@ -106,7 +108,7 @@ func TestLoader(t *testing.T) {
 				frequency = "1m"
 			}
 		`
-		l := controller.NewLoader(newGlobals())
+		l := controller.NewLoader(newLoaderOptions())
 		diags := applyFromContent(t, l, []byte(startFile), []byte(testConfig))
 		origGraph := l.Graph()
 		require.NoError(t, diags.ErrorOrNil())
@@ -125,7 +127,7 @@ func TestLoader(t *testing.T) {
 			doesnotexist "bad_component" {
 			}
 		`
-		l := controller.NewLoader(newGlobals())
+		l := controller.NewLoader(newLoaderOptions())
 		diags := applyFromContent(t, l, []byte(invalidFile), nil)
 		require.ErrorContains(t, diags.ErrorOrNil(), `Unrecognized component name "doesnotexist`)
 	})
@@ -144,7 +146,7 @@ func TestLoader(t *testing.T) {
 				input = testcomponents.tick.doesnotexist.tick_time
 			}
 		`
-		l := controller.NewLoader(newGlobals())
+		l := controller.NewLoader(newLoaderOptions())
 		diags := applyFromContent(t, l, []byte(invalidFile), nil)
 		require.Error(t, diags.ErrorOrNil())
 
@@ -172,22 +174,9 @@ func TestLoader(t *testing.T) {
 				input = testcomponents.passthrough.ticker.output
 			}
 		`
-		l := controller.NewLoader(newGlobals())
+		l := controller.NewLoader(newLoaderOptions())
 		diags := applyFromContent(t, l, []byte(invalidFile), nil)
 		require.Error(t, diags.ErrorOrNil())
-	})
-
-	t.Run("Handling of singleton component labels", func(t *testing.T) {
-		invalidFile := `
-			testcomponents.tick {
-			}
-			testcomponents.singleton "first" {
-			}
-		`
-		l := controller.NewLoader(newGlobals())
-		diags := applyFromContent(t, l, []byte(invalidFile), nil)
-		require.ErrorContains(t, diags[0], `Component "testcomponents.tick" must have a label`)
-		require.ErrorContains(t, diags[1], `Component "testcomponents.singleton" does not support labels`)
 	})
 }
 
@@ -211,30 +200,27 @@ func TestScopeWithFailingComponent(t *testing.T) {
 			input = testcomponents.passthrough.ticker.output
 		}
 	`
-	newGlobals := func() controller.ComponentGlobals {
+	newLoaderOptions := func() controller.LoaderOptions {
 		l, _ := logging.New(os.Stderr, logging.DefaultOptions)
-		return controller.ComponentGlobals{
-			Logger:            l,
-			TraceProvider:     trace.NewNoopTracerProvider(),
-			DataPath:          t.TempDir(),
-			OnComponentUpdate: func(cn *controller.ComponentNode) { /* no-op */ },
-			Registerer:        prometheus.NewRegistry(),
-			Clusterer:         noOpClusterer(),
-			NewModuleController: func(id string) component.ModuleController {
-				return nil
+		return controller.LoaderOptions{
+			ComponentGlobals: controller.ComponentGlobals{
+				Logger:            l,
+				TraceProvider:     trace.NewNoopTracerProvider(),
+				DataPath:          t.TempDir(),
+				OnComponentUpdate: func(cn *controller.ComponentNode) { /* no-op */ },
+				Registerer:        prometheus.NewRegistry(),
+				NewModuleController: func(id string, availableServices []string) controller.ModuleController {
+					return fakeModuleController{}
+				},
 			},
 		}
 	}
 
-	l := controller.NewLoader(newGlobals())
+	l := controller.NewLoader(newLoaderOptions())
 	diags := applyFromContent(t, l, []byte(testFile), nil)
 	require.Error(t, diags.ErrorOrNil())
 	require.Len(t, diags, 1)
 	require.True(t, strings.Contains(diags.Error(), `unrecognized attribute name "frequenc"`))
-}
-
-func noOpClusterer() *cluster.Clusterer {
-	return &cluster.Clusterer{Node: cluster.NewLocalNode("")}
 }
 
 func applyFromContent(t *testing.T, l *controller.Loader, componentBytes []byte, configBytes []byte) diag.Diagnostics {
@@ -318,4 +304,17 @@ func requireGraph(t *testing.T, g *dag.Graph, expect graphDefinition) {
 		})
 	}
 	require.ElementsMatch(t, expect.OutEdges, actualEdges, "List of edges do not match")
+}
+
+type fakeModuleController struct{}
+
+func (f fakeModuleController) NewModule(id string, export component.ExportFunc) (component.Module, error) {
+	return nil, nil
+}
+
+func (f fakeModuleController) ModuleIDs() []string {
+	return nil
+}
+
+func (f fakeModuleController) ClearModuleIDs() {
 }

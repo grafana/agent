@@ -11,10 +11,10 @@ import (
 	"github.com/grafana/agent/pkg/integrations/v2"
 	"github.com/grafana/agent/pkg/integrations/v2/metricsutils"
 	"github.com/grafana/agent/pkg/traces/pushreceiver"
+	"github.com/grafana/dskit/instrument"
+	"github.com/grafana/dskit/middleware"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"github.com/weaveworks/common/instrument"
-	"github.com/weaveworks/common/middleware"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/consumer"
 )
@@ -47,7 +47,7 @@ func (c *Config) NewIntegration(l log.Logger, globals integrations.Globals) (int
 
 	receiverMetricsExporter := NewReceiverMetricsExporter(reg)
 
-	var exp = []appAgentReceiverExporter{
+	var exp = []AppAgentReceiverExporter{
 		receiverMetricsExporter,
 	}
 

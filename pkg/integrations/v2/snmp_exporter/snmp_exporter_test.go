@@ -1,4 +1,4 @@
-package snmp_exporter
+package snmp_exporter_v2
 
 import (
 	"testing"
@@ -14,8 +14,6 @@ func TestSnmpConfig(t *testing.T) {
 		strConfig := `---
 walk_params:
   keyone:
-    auth:
-      community: foo
 `
 
 		// The first time should not return any errors.

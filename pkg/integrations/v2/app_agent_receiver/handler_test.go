@@ -64,7 +64,7 @@ func TestMultipleExportersAllSucceed(t *testing.T) {
 
 	conf := &Config{}
 
-	fr := NewAppAgentReceiverHandler(conf, []appAgentReceiverExporter{&exporter1, &exporter2}, reg)
+	fr := NewAppAgentReceiverHandler(conf, []AppAgentReceiverExporter{&exporter1, &exporter2}, reg)
 	handler := fr.HTTPHandler(log.NewNopLogger())
 
 	rr := httptest.NewRecorder()
@@ -97,7 +97,7 @@ func TestMultipleExportersOneFails(t *testing.T) {
 
 	conf := &Config{}
 
-	fr := NewAppAgentReceiverHandler(conf, []appAgentReceiverExporter{&exporter1, &exporter2}, reg)
+	fr := NewAppAgentReceiverHandler(conf, []AppAgentReceiverExporter{&exporter1, &exporter2}, reg)
 	handler := fr.HTTPHandler(log.NewNopLogger())
 
 	rr := httptest.NewRecorder()
@@ -139,7 +139,7 @@ func TestMultipleExportersAllFail(t *testing.T) {
 
 	conf := &Config{}
 
-	fr := NewAppAgentReceiverHandler(conf, []appAgentReceiverExporter{&exporter1, &exporter2}, reg)
+	fr := NewAppAgentReceiverHandler(conf, []AppAgentReceiverExporter{&exporter1, &exporter2}, reg)
 	handler := fr.HTTPHandler(log.NewNopLogger())
 
 	rr := httptest.NewRecorder()
@@ -174,7 +174,7 @@ func TestNoContentLengthLimitSet(t *testing.T) {
 
 	req.ContentLength = 89348593894
 
-	fr := NewAppAgentReceiverHandler(conf, []appAgentReceiverExporter{}, reg)
+	fr := NewAppAgentReceiverHandler(conf, []AppAgentReceiverExporter{}, reg)
 	handler := fr.HTTPHandler(nil)
 
 	rr := httptest.NewRecorder()
@@ -195,7 +195,7 @@ func TestLargePayload(t *testing.T) {
 		},
 	}
 
-	fr := NewAppAgentReceiverHandler(conf, []appAgentReceiverExporter{}, reg)
+	fr := NewAppAgentReceiverHandler(conf, []AppAgentReceiverExporter{}, reg)
 	handler := fr.HTTPHandler(nil)
 
 	rr := httptest.NewRecorder()

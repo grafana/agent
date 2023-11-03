@@ -8,16 +8,18 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/otelcol"
 	"github.com/grafana/agent/component/otelcol/processor"
+	otel_service "github.com/grafana/agent/service/otel"
 	tsp "github.com/open-telemetry/opentelemetry-collector-contrib/processor/tailsamplingprocessor"
 	otelcomponent "go.opentelemetry.io/collector/component"
-	otelconfig "go.opentelemetry.io/collector/config"
+	otelextension "go.opentelemetry.io/collector/extension"
 )
 
 func init() {
 	component.Register(component.Registration{
-		Name:    "otelcol.processor.tail_sampling",
-		Args:    Arguments{},
-		Exports: otelcol.ConsumerExports{},
+		Name:          "otelcol.processor.tail_sampling",
+		Args:          Arguments{},
+		Exports:       otelcol.ConsumerExports{},
+		NeedsServices: []string{otel_service.ServiceName},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			fact := tsp.NewFactory()
@@ -28,10 +30,10 @@ func init() {
 
 // Arguments configures the otelcol.processor.tail_sampling component.
 type Arguments struct {
-	PolicyCfgs              []PolicyCfg   `river:"policy,block"`
-	DecisionWait            time.Duration `river:"decision_wait,attr,optional"`
-	NumTraces               uint64        `river:"num_traces,attr,optional"`
-	ExpectedNewTracesPerSec uint64        `river:"expected_new_traces_per_sec,attr,optional"`
+	PolicyCfgs              []PolicyConfig `river:"policy,block"`
+	DecisionWait            time.Duration  `river:"decision_wait,attr,optional"`
+	NumTraces               uint64         `river:"num_traces,attr,optional"`
+	ExpectedNewTracesPerSec uint64         `river:"expected_new_traces_per_sec,attr,optional"`
 	// Output configures where to send processed data. Required.
 	Output *otelcol.ConsumerArguments `river:"output,block"`
 }
@@ -66,34 +68,27 @@ func (args *Arguments) Validate() error {
 }
 
 // Convert implements processor.Arguments.
-func (args Arguments) Convert() (otelconfig.Processor, error) {
-	// TODO: Get rid of mapstructure once tailsamplingprocessor.Config has all public types
-	var otelConfig tsp.Config
-
+func (args Arguments) Convert() (otelcomponent.Config, error) {
 	var otelPolicyCfgs []tsp.PolicyCfg
 	for _, policyCfg := range args.PolicyCfgs {
 		otelPolicyCfgs = append(otelPolicyCfgs, policyCfg.Convert())
 	}
 
-	mustDecodeMapStructure(map[string]interface{}{
-		"decision_wait":               args.DecisionWait,
-		"num_traces":                  args.NumTraces,
-		"expected_new_traces_per_sec": args.ExpectedNewTracesPerSec,
-		"policies":                    otelPolicyCfgs,
-	}, &otelConfig)
-
-	otelConfig.ProcessorSettings = otelconfig.NewProcessorSettings(otelconfig.NewComponentID("tail_sampling"))
-
-	return &otelConfig, nil
+	return &tsp.Config{
+		DecisionWait:            args.DecisionWait,
+		NumTraces:               args.NumTraces,
+		ExpectedNewTracesPerSec: args.ExpectedNewTracesPerSec,
+		PolicyCfgs:              otelPolicyCfgs,
+	}, nil
 }
 
 // Extensions implements processor.Arguments.
-func (args Arguments) Extensions() map[otelconfig.ComponentID]otelcomponent.Extension {
+func (args Arguments) Extensions() map[otelcomponent.ID]otelextension.Extension {
 	return nil
 }
 
 // Exporters implements processor.Arguments.
-func (args Arguments) Exporters() map[otelconfig.DataType]map[otelconfig.ComponentID]otelcomponent.Exporter {
+func (args Arguments) Exporters() map[otelcomponent.DataType]map[otelcomponent.ID]otelcomponent.Component {
 	return nil
 }
 

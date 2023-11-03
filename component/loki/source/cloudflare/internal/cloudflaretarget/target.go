@@ -1,8 +1,9 @@
 package cloudflaretarget
 
-// This code is copied from Promtail. The cloudflaretarget package is used to
-// configure and run a target that can read from the Cloudflare Logpull API and
-// forward entries to other loki components.
+// This code is copied from Promtail (a1c1152b79547a133cc7be520a0b2e6db8b84868).
+// The cloudflaretarget package is used to configure and run a target that can
+// read from the Cloudflare Logpull API and forward entries to other loki
+// components.
 
 import (
 	"context"
@@ -12,11 +13,11 @@ import (
 	"time"
 
 	"github.com/buger/jsonparser"
-	"github.com/cloudflare/cloudflare-go"
 	"github.com/go-kit/log"
-	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component/common/loki"
 	"github.com/grafana/agent/component/common/loki/positions"
+	"github.com/grafana/agent/pkg/flow/logging/level"
+	"github.com/grafana/cloudflare-go"
 	"github.com/grafana/dskit/backoff"
 	"github.com/grafana/dskit/concurrency"
 	"github.com/grafana/dskit/multierror"
@@ -38,12 +39,13 @@ var defaultBackoff = backoff.Config{
 
 // Config defines how to connect to Cloudflare's Logpull API.
 type Config struct {
-	APIToken   string
-	ZoneID     string
-	Labels     model.LabelSet
-	Workers    int
-	PullRange  model.Duration
-	FieldsType string
+	APIToken         string
+	ZoneID           string
+	Labels           model.LabelSet
+	Workers          int
+	PullRange        model.Duration
+	FieldsType       string
+	AdditionalFields []string
 }
 
 // Target enables pulling HTTP log messages from Cloudflare using the Logpull
@@ -66,7 +68,7 @@ type Target struct {
 
 // NewTarget creates and runs a Cloudflare target.
 func NewTarget(metrics *Metrics, logger log.Logger, handler loki.EntryHandler, position positions.Positions, config *Config) (*Target, error) {
-	fields, err := Fields(FieldsType(config.FieldsType))
+	fields, err := Fields(FieldsType(config.FieldsType), config.AdditionalFields)
 	if err != nil {
 		return nil, err
 	}
@@ -221,7 +223,7 @@ func (t *Target) Ready() bool {
 
 // Details returns debug details about the Cloudflare target.
 func (t *Target) Details() map[string]string {
-	fields, _ := Fields(FieldsType(t.config.FieldsType))
+	fields, _ := Fields(FieldsType(t.config.FieldsType), t.config.AdditionalFields)
 	var errMsg string
 	if t.err != nil {
 		errMsg = t.err.Error()

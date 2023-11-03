@@ -3,9 +3,11 @@ package logging
 import (
 	"encoding"
 	"fmt"
+	"log/slog"
+	"math"
 
-	"github.com/go-kit/log/level"
-	"github.com/grafana/agent/pkg/river"
+	"github.com/grafana/agent/component/common/loki"
+	"github.com/grafana/river"
 )
 
 // Options is a set of options used to construct and configure a Logger.
@@ -13,7 +15,7 @@ type Options struct {
 	Level  Level  `river:"level,attr,optional"`
 	Format Format `river:"format,attr,optional"`
 
-	// TODO: log sink parameter (e.g., to use the Windows Event logger)
+	WriteTo []loki.LogsReceiver `river:"write_to,attr,optional"`
 }
 
 // DefaultOptions holds defaults for creating a Logger.
@@ -65,19 +67,21 @@ func (ll *Level) UnmarshalText(text []byte) error {
 	return nil
 }
 
-// Filter returns a go-kit logging filter from the level.
-func (ll Level) Filter() level.Option {
-	switch ll {
+type slogLevel Level
+
+func (l slogLevel) Level() slog.Level {
+	switch Level(l) {
 	case LevelDebug:
-		return level.AllowDebug()
+		return slog.LevelDebug
 	case LevelInfo:
-		return level.AllowInfo()
+		return slog.LevelInfo
 	case LevelWarn:
-		return level.AllowWarn()
+		return slog.LevelWarn
 	case LevelError:
-		return level.AllowError()
+		return slog.LevelError
 	default:
-		return level.AllowAll()
+		// Allow all logs.
+		return slog.Level(math.MinInt)
 	}
 }
 

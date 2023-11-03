@@ -7,17 +7,20 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/otelcol"
 	"github.com/grafana/agent/component/otelcol/receiver"
-	"github.com/grafana/agent/pkg/river/rivertypes"
+	otel_service "github.com/grafana/agent/service/otel"
+	"github.com/grafana/river/rivertypes"
+	"github.com/mitchellh/mapstructure"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/kafkaexporter"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/kafkareceiver"
 	otelcomponent "go.opentelemetry.io/collector/component"
-	otelconfig "go.opentelemetry.io/collector/config"
+	otelextension "go.opentelemetry.io/collector/extension"
 )
 
 func init() {
 	component.Register(component.Registration{
-		Name: "otelcol.receiver.kafka",
-		Args: Arguments{},
+		Name:          "otelcol.receiver.kafka",
+		Args:          Arguments{},
+		NeedsServices: []string{otel_service.ServiceName},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			fact := kafkareceiver.NewFactory()
@@ -34,19 +37,22 @@ type Arguments struct {
 	Encoding        string   `river:"encoding,attr,optional"`
 	GroupID         string   `river:"group_id,attr,optional"`
 	ClientID        string   `river:"client_id,attr,optional"`
+	InitialOffset   string   `river:"initial_offset,attr,optional"`
 
-	Authentication AuthenticationArguments `river:"authentication,block,optional"`
-	Metadata       MetadataArguments       `river:"metadata,block,optional"`
-	AutoCommit     AutoCommitArguments     `river:"autocommit,block,optional"`
-	MessageMarking MessageMarkingArguments `river:"message_marking,block,optional"`
+	Authentication   AuthenticationArguments `river:"authentication,block,optional"`
+	Metadata         MetadataArguments       `river:"metadata,block,optional"`
+	AutoCommit       AutoCommitArguments     `river:"autocommit,block,optional"`
+	MessageMarking   MessageMarkingArguments `river:"message_marking,block,optional"`
+	HeaderExtraction HeaderExtraction        `river:"header_extraction,block,optional"`
+
+	// DebugMetrics configures component internal metrics. Optional.
+	DebugMetrics otelcol.DebugMetricsArguments `river:"debug_metrics,block,optional"`
 
 	// Output configures where to send received data. Required.
 	Output *otelcol.ConsumerArguments `river:"output,block"`
 }
 
-var (
-	_ receiver.Arguments = Arguments{}
-)
+var _ receiver.Arguments = Arguments{}
 
 // DefaultArguments holds default values for Arguments.
 var DefaultArguments = Arguments{
@@ -54,11 +60,12 @@ var DefaultArguments = Arguments{
 	// for compatibility, even though that means using a client and group ID of
 	// "otel-collector".
 
-	Topic:    "otlp_spans",
-	Encoding: "otlp_proto",
-	Brokers:  []string{"localhost:9092"},
-	ClientID: "otel-collector",
-	GroupID:  "otel-collector",
+	Topic:         "otlp_spans",
+	Encoding:      "otlp_proto",
+	Brokers:       []string{"localhost:9092"},
+	ClientID:      "otel-collector",
+	GroupID:       "otel-collector",
+	InitialOffset: "latest",
 	Metadata: MetadataArguments{
 		IncludeAllTopics: true,
 		Retry: MetadataRetryArguments{
@@ -74,6 +81,10 @@ var DefaultArguments = Arguments{
 		AfterExecution:      false,
 		IncludeUnsuccessful: false,
 	},
+	HeaderExtraction: HeaderExtraction{
+		ExtractHeaders: false,
+		Headers:        []string{},
+	},
 }
 
 // SetToDefault implements river.Defaulter.
@@ -82,31 +93,38 @@ func (args *Arguments) SetToDefault() {
 }
 
 // Convert implements receiver.Arguments.
-func (args Arguments) Convert() (otelconfig.Receiver, error) {
-	return &kafkareceiver.Config{
-		ReceiverSettings: otelconfig.NewReceiverSettings(otelconfig.NewComponentID("kafka")),
+func (args Arguments) Convert() (otelcomponent.Config, error) {
+	input := make(map[string]interface{})
+	input["auth"] = args.Authentication.Convert()
 
-		Brokers:         args.Brokers,
-		ProtocolVersion: args.ProtocolVersion,
-		Topic:           args.Topic,
-		Encoding:        args.Encoding,
-		GroupID:         args.GroupID,
-		ClientID:        args.ClientID,
+	var result kafkareceiver.Config
+	err := mapstructure.Decode(input, &result)
+	if err != nil {
+		return nil, err
+	}
 
-		Authentication: args.Authentication.Convert(),
-		Metadata:       args.Metadata.Convert(),
-		AutoCommit:     args.AutoCommit.Convert(),
-		MessageMarking: args.MessageMarking.Convert(),
-	}, nil
+	result.Brokers = args.Brokers
+	result.ProtocolVersion = args.ProtocolVersion
+	result.Topic = args.Topic
+	result.Encoding = args.Encoding
+	result.GroupID = args.GroupID
+	result.ClientID = args.ClientID
+	result.InitialOffset = args.InitialOffset
+	result.Metadata = args.Metadata.Convert()
+	result.AutoCommit = args.AutoCommit.Convert()
+	result.MessageMarking = args.MessageMarking.Convert()
+	result.HeaderExtraction = args.HeaderExtraction.Convert()
+
+	return &result, nil
 }
 
 // Extensions implements receiver.Arguments.
-func (args Arguments) Extensions() map[otelconfig.ComponentID]otelcomponent.Extension {
+func (args Arguments) Extensions() map[otelcomponent.ID]otelextension.Extension {
 	return nil
 }
 
 // Exporters implements receiver.Arguments.
-func (args Arguments) Exporters() map[otelconfig.DataType]map[otelconfig.ComponentID]otelcomponent.Exporter {
+func (args Arguments) Exporters() map[otelcomponent.DataType]map[otelcomponent.ID]otelcomponent.Component {
 	return nil
 }
 
@@ -124,26 +142,26 @@ type AuthenticationArguments struct {
 }
 
 // Convert converts args into the upstream type.
-func (args AuthenticationArguments) Convert() kafkaexporter.Authentication {
-	var res kafkaexporter.Authentication
+func (args AuthenticationArguments) Convert() map[string]interface{} {
+	auth := make(map[string]interface{})
 
 	if args.Plaintext != nil {
 		conv := args.Plaintext.Convert()
-		res.PlainText = &conv
+		auth["plain_text"] = &conv
 	}
 	if args.SASL != nil {
 		conv := args.SASL.Convert()
-		res.SASL = &conv
+		auth["sasl"] = &conv
 	}
 	if args.TLS != nil {
-		res.TLS = args.TLS.Convert()
+		auth["tls"] = args.TLS.Convert()
 	}
 	if args.Kerberos != nil {
 		conv := args.Kerberos.Convert()
-		res.Kerberos = &conv
+		auth["kerberos"] = &conv
 	}
 
-	return res
+	return auth
 }
 
 // PlaintextArguments configures plaintext authentication against the Kafka
@@ -154,10 +172,10 @@ type PlaintextArguments struct {
 }
 
 // Convert converts args into the upstream type.
-func (args PlaintextArguments) Convert() kafkaexporter.PlainTextConfig {
-	return kafkaexporter.PlainTextConfig{
-		Username: args.Username,
-		Password: string(args.Password),
+func (args PlaintextArguments) Convert() map[string]interface{} {
+	return map[string]interface{}{
+		"username": args.Username,
+		"password": string(args.Password),
 	}
 }
 
@@ -166,16 +184,18 @@ type SASLArguments struct {
 	Username  string            `river:"username,attr"`
 	Password  rivertypes.Secret `river:"password,attr"`
 	Mechanism string            `river:"mechanism,attr"`
+	Version   int               `river:"version,attr,optional"`
 	AWSMSK    AWSMSKArguments   `river:"aws_msk,block,optional"`
 }
 
 // Convert converts args into the upstream type.
-func (args SASLArguments) Convert() kafkaexporter.SASLConfig {
-	return kafkaexporter.SASLConfig{
-		Username:  args.Username,
-		Password:  string(args.Password),
-		Mechanism: args.Mechanism,
-		AWSMSK:    args.AWSMSK.Convert(),
+func (args SASLArguments) Convert() map[string]interface{} {
+	return map[string]interface{}{
+		"username":  args.Username,
+		"password":  string(args.Password),
+		"mechanism": args.Mechanism,
+		"version":   args.Version,
+		"aws_msk":   args.AWSMSK.Convert(),
 	}
 }
 
@@ -187,10 +207,10 @@ type AWSMSKArguments struct {
 }
 
 // Convert converts args into the upstream type.
-func (args AWSMSKArguments) Convert() kafkaexporter.AWSMSKConfig {
-	return kafkaexporter.AWSMSKConfig{
-		Region:     args.Region,
-		BrokerAddr: args.BrokerAddr,
+func (args AWSMSKArguments) Convert() map[string]interface{} {
+	return map[string]interface{}{
+		"region":      args.Region,
+		"broker_addr": args.BrokerAddr,
 	}
 }
 
@@ -207,15 +227,15 @@ type KerberosArguments struct {
 }
 
 // Convert converts args into the upstream type.
-func (args KerberosArguments) Convert() kafkaexporter.KerberosConfig {
-	return kafkaexporter.KerberosConfig{
-		ServiceName: args.ServiceName,
-		Realm:       args.Realm,
-		UseKeyTab:   args.UseKeyTab,
-		Username:    args.Username,
-		Password:    string(args.Password),
-		ConfigPath:  args.ConfigPath,
-		KeyTabPath:  args.KeyTabPath,
+func (args KerberosArguments) Convert() map[string]interface{} {
+	return map[string]interface{}{
+		"service_name": args.ServiceName,
+		"realm":        args.Realm,
+		"use_keytab":   args.UseKeyTab,
+		"username":     args.Username,
+		"password":     string(args.Password),
+		"config_file":  args.ConfigPath,
+		"keytab_file":  args.KeyTabPath,
 	}
 }
 
@@ -277,4 +297,22 @@ func (args MessageMarkingArguments) Convert() kafkareceiver.MessageMarking {
 		After:   args.AfterExecution,
 		OnError: args.IncludeUnsuccessful,
 	}
+}
+
+type HeaderExtraction struct {
+	ExtractHeaders bool     `river:"extract_headers,attr,optional"`
+	Headers        []string `river:"headers,attr,optional"`
+}
+
+// Convert converts HeaderExtraction into the upstream type.
+func (h HeaderExtraction) Convert() kafkareceiver.HeaderExtraction {
+	return kafkareceiver.HeaderExtraction{
+		ExtractHeaders: h.ExtractHeaders,
+		Headers:        h.Headers,
+	}
+}
+
+// DebugMetricsConfig implements receiver.Arguments.
+func (args Arguments) DebugMetricsConfig() otelcol.DebugMetricsArguments {
+	return args.DebugMetrics
 }

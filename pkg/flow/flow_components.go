@@ -13,14 +13,20 @@ func (f *Flow) GetComponent(id component.ID, opts component.InfoOptions) (*compo
 	f.loadMut.RLock()
 	defer f.loadMut.RUnlock()
 
-	// TODO(rfratto): navigate running modules and return a component within a
-	// module.
+	if id.ModuleID != "" {
+		mod, ok := f.modules.Get(id.ModuleID)
+		if !ok {
+			return nil, component.ErrComponentNotFound
+		}
+
+		return mod.f.GetComponent(component.ID{LocalID: id.LocalID}, opts)
+	}
 
 	graph := f.loader.OriginalGraph()
 
 	node := graph.GetByID(id.LocalID)
 	if node == nil {
-		return nil, fmt.Errorf("component %q does not exist", id)
+		return nil, component.ErrComponentNotFound
 	}
 
 	cn, ok := node.(*controller.ComponentNode)
@@ -32,11 +38,18 @@ func (f *Flow) GetComponent(id component.ID, opts component.InfoOptions) (*compo
 }
 
 // ListComponents implements [component.Provider].
-func (f *Flow) ListComponents(opts component.InfoOptions) []*component.Info {
+func (f *Flow) ListComponents(moduleID string, opts component.InfoOptions) ([]*component.Info, error) {
 	f.loadMut.RLock()
 	defer f.loadMut.RUnlock()
 
-	// TODO(rfratto): support returning components inside modules.
+	if moduleID != "" {
+		mod, ok := f.modules.Get(moduleID)
+		if !ok {
+			return nil, component.ErrModuleNotFound
+		}
+
+		return mod.f.ListComponents("", opts)
+	}
 
 	var (
 		components = f.loader.Components()
@@ -47,7 +60,7 @@ func (f *Flow) ListComponents(opts component.InfoOptions) []*component.Info {
 	for i, component := range components {
 		detail[i] = f.getComponentDetail(component, graph, opts)
 	}
-	return detail
+	return detail, nil
 }
 
 func (f *Flow) getComponentDetail(cn *controller.ComponentNode, graph *dag.Graph, opts component.InfoOptions) *component.Info {
@@ -95,6 +108,7 @@ func (f *Flow) getComponentDetail(cn *controller.ComponentNode, graph *dag.Graph
 
 	return &component.Info{
 		Component: cn.Component(),
+		ModuleIDs: cn.ModuleIDs(),
 
 		ID: component.ID{
 			ModuleID: f.opts.ControllerID,

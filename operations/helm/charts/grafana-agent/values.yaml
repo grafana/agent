@@ -15,6 +15,13 @@ global:
     # -- Optional set of global image pull secrets.
     pullSecrets: []
 
+  # -- Security context to apply to the Grafana Agent pod.
+  podSecurityContext: {}
+
+crds:
+  # -- Whether to install CRDs for monitoring.
+  create: true
+
 # Various agent settings.
 agent:
   # -- Mode to run Grafana Agent in. Can be "flow" or "static".
@@ -30,6 +37,11 @@ agent:
     # -- Key in ConfigMap to get config from.
     key: null
 
+  clustering:
+    # -- Deploy agents in a cluster to allow for load distribution. Only
+    # applies when agent.mode=flow.
+    enabled: false
+
   # -- Path to where Grafana Agent stores data (for example, the Write-Ahead Log).
   # By default, data is lost between reboots.
   storagePath: /tmp/agent
@@ -40,6 +52,9 @@ agent:
 
   # -- Port to listen for traffic on.
   listenPort: 80
+
+  # --  Base path where the UI is exposed.
+  uiPathPrefix: /
 
   # -- Enables sending Grafana Labs anonymous usage stats to help improve Grafana
   # Agent.
@@ -86,6 +101,8 @@ image:
   # -- (string) Grafana Agent image tag. When empty, the Chart's appVersion is
   # used.
   tag: null
+  # -- Grafana Agent image's SHA256 digest (either in format "sha256:XYZ" or "XYZ"). When set, will override `image.tag`.
+  digest: null
   # -- Grafana Agent image pull policy.
   pullPolicy: IfNotPresent
   # -- Optional set of image pull secrets.
@@ -115,6 +132,8 @@ configReloader:
     repository: jimmidyson/configmap-reload
     # -- Tag of image to use for config reloading.
     tag: v0.8.0
+    # -- SHA256 digest of image to use for config reloading (either in format "sha256:XYZ" or "XYZ"). When set, will override `configReloader.image.tag`
+    digest: ""
   # -- Override the args passed to the container.
   customArgs: []
   # -- Resource requests and limits to apply to the config reloader container.
@@ -122,6 +141,8 @@ configReloader:
     requests:
       cpu: "1m"
       memory: "5Mi"
+  # -- Security context to apply to the Grafana configReloader container.
+  securityContext: {}
 
 controller:
   # -- Type of controller to use for deploying Grafana Agent in the cluster.
@@ -131,14 +152,27 @@ controller:
   # -- Number of pods to deploy. Ignored when controller.type is 'daemonset'.
   replicas: 1
 
+  # -- Annotations to add to controller.
+  extraAnnotations: {}
+
+  # -- Whether to deploy pods in parallel. Only used when controller.type is
+  # 'statefulset'.
+  parallelRollout: true
+
   # -- Configures Pods to use the host network. When set to true, the ports that will be used must be specified.
   hostNetwork: false
+
+  # -- Configures Pods to use the host PID namespace.
+  hostPID: false
 
   # -- Configures the DNS policy for the pod. https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/#pod-s-dns-policy
   dnsPolicy: ClusterFirst
 
   # -- Update strategy for updating deployed Pods.
   updateStrategy: {}
+
+  # -- nodeSelector to apply to Grafana Agent pods.
+  nodeSelector: {}
 
   # -- Tolerations to apply to Grafana Agent pods.
   tolerations: []
@@ -177,6 +211,11 @@ controller:
   # -- volumeClaimTemplates to add when controller.type is 'statefulset'.
   volumeClaimTemplates: []
 
+  ## -- Additional init containers to run.
+  ## ref: https://kubernetes.io/docs/concepts/workloads/pods/init-containers/
+  ##
+  initContainers: []
+
 service:
   # -- Creates a Service for the controller's pods.
   enabled: true
@@ -186,6 +225,29 @@ service:
   clusterIP: ''
   annotations: {}
     # cloud.google.com/load-balancer-type: Internal
+
+serviceMonitor:
+  enabled: false
+  # -- Additional labels for the service monitor.
+  additionalLabels: {}
+  # -- Scrape interval. If not set, the Prometheus default scrape interval is used.
+  interval: ""
+  # -- MetricRelabelConfigs to apply to samples after scraping, but before ingestion.
+  # ref: https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#relabelconfig
+  metricRelabelings: []
+  # - action: keep
+  #   regex: 'kube_(daemonset|deployment|pod|namespace|node|statefulset).+'
+  #   sourceLabels: [__name__]
+
+  # -- RelabelConfigs to apply to samples before scraping
+  # ref: https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#relabelconfig
+  relabelings: []
+  # - sourceLabels: [__meta_kubernetes_pod_node_name]
+  #   separator: ;
+  #   regex: ^(.*)$
+  #   targetLabel: nodename
+  #   replacement: $1
+  #   action: replace
 
 ingress:
   # -- Enables ingress for the agent (faro port)

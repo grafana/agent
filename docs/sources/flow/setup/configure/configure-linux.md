@@ -1,7 +1,12 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/setup/configure/configure-linux/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/setup/configure/configure-linux/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/setup/configure/configure-linux/
+canonical: https://grafana.com/docs/agent/latest/flow/setup/configure/configure-linux/
 description: Learn how to configure Grafana Agent in flow mode on Linux
-title: Configure Grafana Agent in flow mode on Linux
 menuTitle: Linux
+title: Configure Grafana Agent in flow mode on Linux
 weight: 300
 ---
 
@@ -50,7 +55,7 @@ the following steps:
 
 1. Change the contents of the `CUSTOM_ARGS` environment variable to specify
    command-line flags to pass.
-   
+
 1. Restart the Grafana Agent service:
 
    ```shell
@@ -59,8 +64,6 @@ the following steps:
 
 To see the list of valid command-line flags that can be passed to the service,
 refer to the documentation for the [run][] command.
-
-[run]: {{< relref "../../reference/cli/run.md" >}}
 
 ## Expose the UI to other machines
 
@@ -86,4 +89,9 @@ To expose the UI to other machines, complete the following steps:
 
        To listen on all interfaces, replace `LISTEN_ADDR` with `0.0.0.0`.
 
-[UI]: {{< relref "../../monitoring/debugging.md#grafana-agent-flow-ui" >}}
+{{% docs/reference %}}
+[run]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/cli/run.md"
+[run]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/cli/run.md"
+[UI]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/monitoring/debugging.md#grafana-agent-flow-ui"
+[UI]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/monitoring/debugging.md#grafana-agent-flow-ui"
+{{% /docs/reference %}}

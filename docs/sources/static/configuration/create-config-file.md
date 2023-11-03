@@ -1,9 +1,11 @@
 ---
-title: Create a config file
-weight: 50
 aliases:
 - ../../set-up/create-config-file/
 - ../../configuration/create-config-file/
+canonical: https://grafana.com/docs/agent/latest/static/configuration/create-config-file/
+title: Create a configuration file
+description: Learn how to create a configuration file
+weight: 50
 ---
 
 # Create a configuration file
@@ -42,7 +44,7 @@ integrations:
 ```
 
 In this example, we first must configure the `wal_directory` which is used to
-store metrics in a Write-Ahead Log. This is required, but ensures that samples
+store metrics in a Write-Ahead Log (WAL). The WAL is required and ensures that samples
 will be redelivered in case of failure (e.g., network issues, machine reboot). We
 also configure `remote_write`, which is where all metrics should be sent by
 default.
@@ -60,8 +62,7 @@ the Grafana Agent is running on. This label helps to uniquely identify the
 source of metrics if you are running multiple Grafana Agents across multiple
 machines.
 
-Full configuration options can be found in the
-[configuration reference]({{< relref "../configuration/_index.md" >}}).
+Full configuration options can be found in the [configuration reference][configure].
 
 ## Prometheus config/migrating from Prometheus
 
@@ -106,7 +107,7 @@ metrics:
 ```
 
 Like with integrations, full configuration options can be found in the
-[configuration]({{< relref "../configuration/_index.md" >}}).
+[configuration][configure].
 
 ## Loki Config/Migrating from Promtail
 
@@ -182,3 +183,8 @@ integrations:
   node_exporter:
     enabled: true
 ```
+
+{{% docs/reference %}}
+[configure]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/configuration"
+[configure]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration"
+{{% /docs/reference %}}

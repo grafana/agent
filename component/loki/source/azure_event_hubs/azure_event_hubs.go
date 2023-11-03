@@ -6,13 +6,13 @@ import (
 	"net"
 	"sync"
 
-	"github.com/Shopify/sarama"
-	"github.com/go-kit/log/level"
+	"github.com/IBM/sarama"
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/common/loki"
 	flow_relabel "github.com/grafana/agent/component/common/relabel"
 	"github.com/grafana/agent/component/loki/source/azure_event_hubs/internal/parser"
 	kt "github.com/grafana/agent/component/loki/source/internal/kafkatarget"
+	"github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/grafana/dskit/flagext"
 
 	"github.com/prometheus/common/model"

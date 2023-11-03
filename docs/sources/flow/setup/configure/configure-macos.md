@@ -1,11 +1,16 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/setup/configure/configure-macos/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/setup/configure/configure-macos/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/setup/configure/configure-macos/
+canonical: https://grafana.com/docs/agent/latest/flow/setup/configure/configure-macos/
 description: Learn how to configure Grafana Agent in flow mode on macOS
-title: Configure Grafana Agent in flow mode on macOS
 menuTitle: macOS
+title: Configure Grafana Agent in flow mode on macOS
 weight: 400
 ---
 
-# Configure Grafana Agent on macOS
+# Configure Grafana Agent in flow mode on macOS
 
 To configure Grafana Agent in flow mode on macOS, perform the following steps:
 
@@ -64,7 +69,7 @@ the [UI for debugging][UI].
 
 To expose the UI to other machines, complete the following steps:
 
-1. Follow [Configure the Grafana Agent service](#configure-the-grafana-agent-flow-service)
+1. Follow [Configure the Grafana Agent service](#configure-the-grafana-agent-service)
    to edit command line flags passed to Grafana Agent, including the
    following customizations:
 
@@ -75,4 +80,7 @@ To expose the UI to other machines, complete the following steps:
 
        To listen on all interfaces, replace `127.0.0.1` with `0.0.0.0`.
 
-[UI]: {{< relref "../../monitoring/debugging.md#grafana-agent-flow-ui" >}}
+{{% docs/reference %}}
+[UI]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/monitoring/debugging.md#grafana-agent-flow-ui"
+[UI]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/monitoring/debugging.md#grafana-agent-flow-ui"
+{{% /docs/reference %}}

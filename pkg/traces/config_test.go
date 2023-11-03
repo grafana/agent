@@ -9,9 +9,8 @@ import (
 	"github.com/grafana/agent/pkg/traces/pushreceiver"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.opentelemetry.io/collector/config"
-	"go.opentelemetry.io/collector/confmap"
-	"go.opentelemetry.io/collector/service/external/configunmarshaler"
+	"go.opentelemetry.io/collector/component"
+	"go.opentelemetry.io/collector/otelcol"
 	"gopkg.in/yaml.v2"
 )
 
@@ -314,18 +313,21 @@ service:
 `,
 		},
 		{
-			name: "jaeger receiver remote_sampling TLS config",
+			name: "jaeger remote sampling multiple configs",
 			cfg: `
 receivers:
   jaeger:
     protocols:
       grpc:
-    remote_sampling:
-      strategy_file: file_path
-      tls:
-        insecure: true
-        insecure_skip_verify: true
-        server_name_override: hostname
+jaeger_remote_sampling:
+  - source:
+      remote:
+        endpoint: jaeger-collector:14250
+        tls:
+          insecure: true
+  - source:
+      reload_interval: 1s
+      file: /etc/otelcol/sampling_strategies.json
 remote_write:
   - endpoint: example.com:12345
 `,
@@ -335,12 +337,6 @@ receivers:
   jaeger:
     protocols:
       grpc:
-    remote_sampling:
-      strategy_file: file_path
-      tls:
-        insecure: true
-        insecure_skip_verify: true
-        server_name_override: hostname
 exporters:
   otlp/0:
     endpoint: example.com:12345
@@ -348,13 +344,24 @@ exporters:
     retry_on_failure:
       max_elapsed_time: 60s
 processors: {}
-extensions: {}
+extensions:
+  jaegerremotesampling/0:
+    source:
+      remote:
+        endpoint: jaeger-collector:14250
+        tls:
+          insecure: true
+  jaegerremotesampling/1:
+    source:
+      reload_interval: 1s
+      file: /etc/otelcol/sampling_strategies.json
 service:
   pipelines:
     traces:
       exporters: ["otlp/0"]
       processors: []
       receivers: ["push_receiver", "jaeger"]
+  extensions: ["jaegerremotesampling/0", "jaegerremotesampling/1"]
 `,
 		},
 		{
@@ -539,6 +546,8 @@ spanmetrics:
     - name: http.status_code
   metrics_instance: traces
   dimensions_cache_size: 10000
+  aggregation_temporality: AGGREGATION_TEMPORALITY_DELTA
+  metrics_flush_interval: 20s
 `,
 			expectedConfig: `
 receivers:
@@ -565,6 +574,8 @@ processors:
         default: GET
       - name: http.status_code
     dimensions_cache_size: 10000
+    aggregation_temporality: AGGREGATION_TEMPORALITY_DELTA
+    metrics_flush_interval: 20s
 extensions: {}
 service:
   pipelines:
@@ -608,6 +619,12 @@ exporters:
 processors:
   spanmetrics:
     metrics_exporter: prometheus
+    latency_histogram_buckets: {}
+    dimensions: {}
+    aggregation_temporality: AGGREGATION_TEMPORALITY_CUMULATIVE
+    metrics_flush_interval: 15s
+    dimensions_cache_size: 1000
+
 extensions: {}
 service:
   pipelines:
@@ -755,13 +772,16 @@ tail_sampling:
           - value1
           - value2
 load_balancing:
-  receiver_port: 8080
+  receiver_port: 8181
+  routing_key: service
   exporter:
     insecure: true
   resolver:
     dns:
       hostname: agent
-      port: 8080
+      port: 8282
+      interval: 12m
+      timeout: 76s
 `,
 			expectedConfig: `
 receivers:
@@ -772,7 +792,7 @@ receivers:
   otlp/lb:
     protocols:
       grpc:
-        endpoint: "0.0.0.0:8080"
+        endpoint: "0.0.0.0:8181"
 exporters:
   otlp/0:
     endpoint: example.com:12345
@@ -780,6 +800,7 @@ exporters:
     retry_on_failure:
       max_elapsed_time: 60s
   loadbalancing:
+    routing_key: service
     protocol:
       otlp:
         tls:
@@ -791,7 +812,9 @@ exporters:
     resolver:
       dns:
         hostname: agent
-        port: 8080
+        port: 8282
+        interval: 12m
+        timeout: 76s
 processors:
   tail_sampling:
     decision_wait: 5s
@@ -968,6 +991,7 @@ processors:
     scrape_configs:
       - im_a_scrape_config
     operation_type: update
+    pod_associations: {}
 extensions: {}
 service:
   pipelines:
@@ -1009,130 +1033,6 @@ service:
     traces:
       exporters: ["otlp/0"]
       processors: ["service_graphs"]
-      receivers: ["push_receiver", "jaeger"]
-`,
-		},
-		{
-			name: "jaeger exporter",
-			cfg: `
-receivers:
-  jaeger:
-    protocols:
-      grpc:
-remote_write:
-  - insecure: true
-    format: jaeger
-    endpoint: example.com:12345
-`,
-			expectedConfig: `
-receivers:
-  push_receiver: {}
-  jaeger:
-    protocols:
-      grpc:
-exporters:
-  jaeger/0:
-    endpoint: example.com:12345
-    compression: gzip
-    tls:
-      insecure: true
-    retry_on_failure:
-      max_elapsed_time: 60s
-processors: {}
-extensions: {}
-service:
-  pipelines:
-    traces:
-      exporters: ["jaeger/0"]
-      processors: []
-      receivers: ["push_receiver", "jaeger"]
-`,
-		},
-		{
-			name: "jaeger exporter with basic auth",
-			cfg: `
-receivers:
-  jaeger:
-    protocols:
-      grpc:
-remote_write:
-  - insecure: true
-    format: jaeger
-    protocol: grpc
-    basic_auth:
-      username: test
-      password_file: ` + passwordFile.Name() + `
-    endpoint: example.com:12345
-`,
-			expectedConfig: `
-receivers:
-  push_receiver: {}
-  jaeger:
-    protocols:
-      grpc:
-exporters:
-  jaeger/0:
-    endpoint: example.com:12345
-    compression: gzip
-    tls:
-      insecure: true
-    headers:
-      authorization: Basic dGVzdDpwYXNzd29yZF9pbl9maWxl
-    retry_on_failure:
-      max_elapsed_time: 60s
-processors: {}
-extensions: {}
-service:
-  pipelines:
-    traces:
-      exporters: ["jaeger/0"]
-      processors: []
-      receivers: ["push_receiver", "jaeger"]
-`,
-		},
-		{
-			name: "two exporters different format",
-			cfg: `
-receivers:
-  jaeger:
-    protocols:
-      grpc:
-remote_write:
-  - insecure: true
-    format: jaeger
-    endpoint: example.com:12345
-  - insecure: true
-    format: otlp
-    endpoint: something.com:123
-`,
-			expectedConfig: `
-receivers:
-  push_receiver: {}
-  jaeger:
-    protocols:
-      grpc:
-exporters:
-  jaeger/0:
-    endpoint: example.com:12345
-    compression: gzip
-    tls:
-      insecure: true
-    retry_on_failure:
-      max_elapsed_time: 60s
-  otlp/1:
-    endpoint: something.com:123
-    compression: gzip
-    tls:
-      insecure: true
-    retry_on_failure:
-      max_elapsed_time: 60s
-processors: {}
-extensions: {}
-service:
-  pipelines:
-    traces:
-      exporters: ["jaeger/0", "otlp/1"]
-      processors: []
       receivers: ["push_receiver", "jaeger"]
 `,
 		},
@@ -1203,7 +1103,7 @@ service:
 `,
 		},
 		{
-			name: "oauth2 TLS",
+			name: "oauth2 TLS with certs and keys from files",
 			cfg: `
 receivers:
   jaeger:
@@ -1215,14 +1115,19 @@ remote_write:
     oauth2:
       client_id: someclientid
       client_secret: someclientsecret
+      endpoint_params:
+        audience: [someaudience]
       token_url: https://example.com/oauth2/default/v1/token
       scopes: ["api.metrics"]
       timeout: 2s
       tls:
         insecure: true
+        insecure_skip_verify: true
         ca_file: /var/lib/mycert.pem
         cert_file: certfile
         key_file: keyfile
+        min_version: 1.3
+        reload_interval: 1h
 `,
 			expectedConfig: `
 receivers:
@@ -1234,14 +1139,87 @@ extensions:
   oauth2client/otlphttp0:
     client_id: someclientid
     client_secret: someclientsecret
+    endpoint_params:
+      audience: someaudience
     token_url: https://example.com/oauth2/default/v1/token
     scopes: ["api.metrics"]
     timeout: 2s
     tls:
       insecure: true
+      insecure_skip_verify: true
       ca_file: /var/lib/mycert.pem
       cert_file: certfile
       key_file: keyfile
+      min_version: 1.3
+      reload_interval: 1h
+exporters:
+  otlphttp/0:
+    endpoint: example.com:12345
+    compression: gzip
+    retry_on_failure:
+      max_elapsed_time: 60s
+    auth:
+      authenticator: oauth2client/otlphttp0
+processors: {}
+service:
+  extensions: ["oauth2client/otlphttp0"]
+  pipelines:
+    traces:
+      exporters: ["otlphttp/0"]
+      processors: []
+      receivers: ["push_receiver", "jaeger"]
+`,
+		},
+		{
+			name: "oauth2 TLS with certs and keys from strings",
+			cfg: `
+receivers:
+  jaeger:
+    protocols:
+      grpc:
+remote_write:
+  - endpoint: example.com:12345
+    protocol: http
+    oauth2:
+      client_id: someclientid
+      client_secret: someclientsecret
+      endpoint_params:
+        audience: [someaudience]
+      token_url: https://example.com/oauth2/default/v1/token
+      scopes: ["api.metrics"]
+      timeout: 2s
+      tls:
+        insecure: true
+        insecure_skip_verify: true
+        ca_pem: test_secret_ca_pem_string
+        cert_pem: test_secret_cert_pem_string
+        key_pem: test_secret_key_pem_string
+        max_version: 1.2
+        reload_interval: 1h
+`,
+			expectedConfig: `
+receivers:
+  push_receiver: {}
+  jaeger:
+    protocols:
+      grpc:
+extensions:
+  oauth2client/otlphttp0:
+    client_id: someclientid
+    client_secret: someclientsecret
+    endpoint_params:
+      audience: someaudience
+    token_url: https://example.com/oauth2/default/v1/token
+    scopes: ["api.metrics"]
+    timeout: 2s
+    tls:
+      insecure: true
+      insecure_skip_verify: true
+      ca_pem: test_secret_ca_pem_string
+      cert_pem: test_secret_cert_pem_string
+      key_pem: test_secret_key_pem_string
+      max_version: 1.2
+      reload_interval: 1h
 exporters:
   otlphttp/0:
     endpoint: example.com:12345
@@ -1459,8 +1437,7 @@ service:
 			factories, err := tracingFactories()
 			require.NoError(t, err)
 
-			configMap := confmap.NewFromStringMap(otelMapStructure)
-			expectedConfig, err := configunmarshaler.Unmarshal(configMap, factories)
+			expectedConfig, err := otelcolConfigFromStringMap(otelMapStructure, &factories)
 			require.NoError(t, err)
 
 			// Exporters/Receivers/Processors in the config's service.Pipelines, as well as
@@ -1468,7 +1445,7 @@ service:
 			sortService(actualConfig)
 			sortService(expectedConfig)
 
-			assert.Equal(t, expectedConfig, actualConfig)
+			assert.Equal(t, *expectedConfig, *actualConfig)
 		})
 	}
 }
@@ -1478,7 +1455,7 @@ func TestProcessorOrder(t *testing.T) {
 	tt := []struct {
 		name               string
 		cfg                string
-		expectedProcessors map[string][]config.ComponentID
+		expectedProcessors map[component.ID][]component.ID
 	}{
 		{
 			name: "no processors",
@@ -1492,8 +1469,8 @@ remote_write:
     headers:
       x-some-header: Some value!
 `,
-			expectedProcessors: map[string][]config.ComponentID{
-				"traces": nil,
+			expectedProcessors: map[component.ID][]component.ID{
+				component.NewID("traces"): nil,
 			},
 		},
 		{
@@ -1536,16 +1513,16 @@ tail_sampling:
 service_graphs:
   enabled: true
 `,
-			expectedProcessors: map[string][]config.ComponentID{
-				"traces": {
-					config.NewComponentID("attributes"),
-					config.NewComponentID("spanmetrics"),
-					config.NewComponentID("service_graphs"),
-					config.NewComponentID("tail_sampling"),
-					config.NewComponentID("automatic_logging"),
-					config.NewComponentID("batch"),
+			expectedProcessors: map[component.ID][]component.ID{
+				component.NewID("traces"): {
+					component.NewID("attributes"),
+					component.NewID("spanmetrics"),
+					component.NewID("service_graphs"),
+					component.NewID("tail_sampling"),
+					component.NewID("automatic_logging"),
+					component.NewID("batch"),
 				},
-				spanMetricsPipelineName: nil,
+				component.NewIDWithName(spanMetricsPipelineType, spanMetricsPipelineName): nil,
 			},
 		},
 		{
@@ -1596,18 +1573,18 @@ load_balancing:
 service_graphs:
   enabled: true
 `,
-			expectedProcessors: map[string][]config.ComponentID{
-				"traces/0": {
-					config.NewComponentID("attributes"),
-					config.NewComponentID("spanmetrics"),
+			expectedProcessors: map[component.ID][]component.ID{
+				component.NewIDWithName("traces", "0"): {
+					component.NewID("attributes"),
+					component.NewID("spanmetrics"),
 				},
-				"traces/1": {
-					config.NewComponentID("service_graphs"),
-					config.NewComponentID("tail_sampling"),
-					config.NewComponentID("automatic_logging"),
-					config.NewComponentID("batch"),
+				component.NewIDWithName("traces", "1"): {
+					component.NewID("service_graphs"),
+					component.NewID("tail_sampling"),
+					component.NewID("automatic_logging"),
+					component.NewID("batch"),
 				},
-				spanMetricsPipelineName: nil,
+				component.NewIDWithName(spanMetricsPipelineType, spanMetricsPipelineName): nil,
 			},
 		},
 		{
@@ -1647,16 +1624,16 @@ load_balancing:
       hostname: agent
       port: 4318
 `,
-			expectedProcessors: map[string][]config.ComponentID{
-				"traces/0": {
-					config.NewComponentID("attributes"),
-					config.NewComponentID("spanmetrics"),
+			expectedProcessors: map[component.ID][]component.ID{
+				component.NewIDWithName("traces", "0"): {
+					component.NewID("attributes"),
+					component.NewID("spanmetrics"),
 				},
-				"traces/1": {
-					config.NewComponentID("automatic_logging"),
-					config.NewComponentID("batch"),
+				component.NewIDWithName("traces", "1"): {
+					component.NewID("automatic_logging"),
+					component.NewID("batch"),
 				},
-				spanMetricsPipelineName: nil,
+				component.NewIDWithName(spanMetricsPipelineType, spanMetricsPipelineName): nil,
 			},
 		},
 	}
@@ -1671,13 +1648,13 @@ load_balancing:
 			actualConfig, err := cfg.otelConfig()
 			require.NoError(t, err)
 
-			require.Equal(t, len(tc.expectedProcessors), len(actualConfig.Pipelines))
-			for k := range tc.expectedProcessors {
-				if len(tc.expectedProcessors[k]) > 0 {
-					componentID, err := config.NewComponentIDFromString(k)
-					require.NoError(t, err)
+			require.Equal(t, len(tc.expectedProcessors), len(actualConfig.Service.Pipelines))
+			for componentID := range tc.expectedProcessors {
+				if len(tc.expectedProcessors[componentID]) > 0 {
+					assert.NotNil(t, tc.expectedProcessors)
+					assert.NotNil(t, actualConfig.Service.Pipelines[componentID])
 
-					assert.Equal(t, tc.expectedProcessors[k], actualConfig.Pipelines[componentID].Processors)
+					assert.Equal(t, tc.expectedProcessors[componentID], actualConfig.Service.Pipelines[componentID].Processors)
 				}
 			}
 		})
@@ -1820,13 +1797,15 @@ func TestCreatingPushReceiver(t *testing.T) {
 receivers:
   jaeger:
     protocols:
-      grpc:`
+      grpc:
+remote_write:
+  - endpoint: example.com:12345`
 	cfg := InstanceConfig{}
 	err := yaml.Unmarshal([]byte(test), &cfg)
 	assert.Nil(t, err)
 	otel, err := cfg.otelConfig()
 	assert.Nil(t, err)
-	assert.Contains(t, otel.Service.Pipelines[config.NewComponentID("traces")].Receivers, config.NewComponentID(pushreceiver.TypeStr))
+	assert.Contains(t, otel.Service.Pipelines[component.NewID("traces")].Receivers, component.NewID(pushreceiver.TypeStr))
 }
 
 func TestUnmarshalYAMLEmptyOTLP(t *testing.T) {
@@ -1852,10 +1831,10 @@ receivers:
 
 // sortService is a helper function to lexicographically sort all
 // the possibly unsorted elements of a given cfg.Service
-func sortService(cfg *config.Config) {
+func sortService(cfg *otelcol.Config) {
 	sort.Slice(cfg.Service.Extensions, func(i, j int) bool { return cfg.Service.Extensions[i].String() > cfg.Service.Extensions[j].String() })
 
-	for _, pipeline := range cfg.Pipelines {
+	for _, pipeline := range cfg.Service.Pipelines {
 		sort.Slice(pipeline.Exporters, func(i, j int) bool { return pipeline.Exporters[i].String() > pipeline.Exporters[j].String() })
 		sort.Slice(pipeline.Receivers, func(i, j int) bool { return pipeline.Receivers[i].String() > pipeline.Receivers[j].String() })
 		sort.Slice(pipeline.Processors, func(i, j int) bool { return pipeline.Processors[i].String() > pipeline.Processors[j].String() })

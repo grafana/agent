@@ -8,16 +8,18 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/otelcol"
 	"github.com/grafana/agent/component/otelcol/processor"
+	otel_service "github.com/grafana/agent/service/otel"
 	otelcomponent "go.opentelemetry.io/collector/component"
-	otelconfig "go.opentelemetry.io/collector/config"
+	otelextension "go.opentelemetry.io/collector/extension"
 	"go.opentelemetry.io/collector/processor/batchprocessor"
 )
 
 func init() {
 	component.Register(component.Registration{
-		Name:    "otelcol.processor.batch",
-		Args:    Arguments{},
-		Exports: otelcol.ConsumerExports{},
+		Name:          "otelcol.processor.batch",
+		Args:          Arguments{},
+		Exports:       otelcol.ConsumerExports{},
+		NeedsServices: []string{otel_service.ServiceName},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			fact := batchprocessor.NewFactory()
@@ -28,9 +30,11 @@ func init() {
 
 // Arguments configures the otelcol.processor.batch component.
 type Arguments struct {
-	Timeout          time.Duration `river:"timeout,attr,optional"`
-	SendBatchSize    uint32        `river:"send_batch_size,attr,optional"`
-	SendBatchMaxSize uint32        `river:"send_batch_max_size,attr,optional"`
+	Timeout                  time.Duration `river:"timeout,attr,optional"`
+	SendBatchSize            uint32        `river:"send_batch_size,attr,optional"`
+	SendBatchMaxSize         uint32        `river:"send_batch_max_size,attr,optional"`
+	MetadataKeys             []string      `river:"metadata_keys,attr,optional"`
+	MetadataCardinalityLimit uint32        `river:"metadata_cardinality_limit,attr,optional"`
 
 	// Output configures where to send processed data. Required.
 	Output *otelcol.ConsumerArguments `river:"output,block"`
@@ -42,8 +46,9 @@ var (
 
 // DefaultArguments holds default settings for Arguments.
 var DefaultArguments = Arguments{
-	Timeout:       200 * time.Millisecond,
-	SendBatchSize: 8192,
+	Timeout:                  200 * time.Millisecond,
+	SendBatchSize:            8192,
+	MetadataCardinalityLimit: 1000,
 }
 
 // SetToDefault implements river.Defaulter.
@@ -60,22 +65,23 @@ func (args *Arguments) Validate() error {
 }
 
 // Convert implements processor.Arguments.
-func (args Arguments) Convert() (otelconfig.Processor, error) {
+func (args Arguments) Convert() (otelcomponent.Config, error) {
 	return &batchprocessor.Config{
-		ProcessorSettings: otelconfig.NewProcessorSettings(otelconfig.NewComponentID("batch")),
-		Timeout:           args.Timeout,
-		SendBatchSize:     args.SendBatchSize,
-		SendBatchMaxSize:  args.SendBatchMaxSize,
+		Timeout:                  args.Timeout,
+		SendBatchSize:            args.SendBatchSize,
+		SendBatchMaxSize:         args.SendBatchMaxSize,
+		MetadataKeys:             args.MetadataKeys,
+		MetadataCardinalityLimit: args.MetadataCardinalityLimit,
 	}, nil
 }
 
 // Extensions implements processor.Arguments.
-func (args Arguments) Extensions() map[otelconfig.ComponentID]otelcomponent.Extension {
+func (args Arguments) Extensions() map[otelcomponent.ID]otelextension.Extension {
 	return nil
 }
 
 // Exporters implements processor.Arguments.
-func (args Arguments) Exporters() map[otelconfig.DataType]map[otelconfig.ComponentID]otelcomponent.Exporter {
+func (args Arguments) Exporters() map[otelcomponent.DataType]map[otelcomponent.ID]otelcomponent.Component {
 	return nil
 }
 

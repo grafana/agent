@@ -1,5 +1,11 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/discovery.azure/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/discovery.azure/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/discovery.azure/
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.azure/
 title: discovery.azure
+description: Learn about discovery.azure
 ---
 
 # discovery.azure
@@ -63,7 +69,7 @@ Name | Type | Description | Default | Required
 
 ### tls_config block
 
-{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ## Exported fields
 
@@ -101,20 +107,44 @@ values.
 
 `discovery.azure` does not expose any component-specific debug information.
 
-### Debug metrics
+## Debug metrics
 
 `discovery.azure` does not expose any component-specific debug metrics.
 
-## Examples
+## Example
 
 ```river
 discovery.azure "example" {
-    port = 1234
-    subscription_id = "SUBSCRIPTION_ID"
-    oauth {
-        client_id = "CLIENT_ID"
-        client_secret = "CLIENT_SECRET"
-        tenant_id = "TENANT_ID"
+  port = 80
+  subscription_id = AZURE_SUBSCRIPTION_ID
+  oauth {
+      client_id = AZURE_CLIENT_ID
+      client_secret = AZURE_CLIENT_SECRET
+      tenant_id = AZURE_TENANT_ID
+  }
+}
+
+prometheus.scrape "demo" {
+  targets    = discovery.azure.example.targets
+  forward_to = [prometheus.remote_write.demo.receiver]
+}
+
+prometheus.remote_write "demo" {
+  endpoint {
+    url = PROMETHEUS_REMOTE_WRITE_URL
+
+    basic_auth {
+      username = USERNAME
+      password = PASSWORD
     }
+  }
 }
 ```
+Replace the following:
+  - `AZURE_SUBSCRIPTION_ID`: Your Azure subscription ID.
+  - `AZURE_CLIENT_ID`: Your Azure client ID.
+  - `AZURE_CLIENT_SECRET`: Your Azure client secret.
+  - `AZURE_TENANT_ID`: Your Azure tenant ID.
+  - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
+  - `USERNAME`: The username to use for authentication to the remote_write API.
+  - `PASSWORD`: The password to use for authentication to the remote_write API.
