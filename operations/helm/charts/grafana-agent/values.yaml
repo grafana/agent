@@ -152,6 +152,9 @@ controller:
   # -- Number of pods to deploy. Ignored when controller.type is 'daemonset'.
   replicas: 1
 
+  # -- Annotations to add to controller.
+  extraAnnotations: {}
+
   # -- Whether to deploy pods in parallel. Only used when controller.type is
   # 'statefulset'.
   parallelRollout: true
