@@ -128,7 +128,7 @@ func (b *IntegrationsConfigBuilder) appendV1Integrations() {
 		case *mongodb_exporter.Config:
 			exports = b.appendMongodbExporter(itg, nil)
 		case *mssql_exporter.Config:
-			exports = b.appendMssqlExporter(itg)
+			exports = b.appendMssqlExporter(itg, nil)
 		case *mysqld_exporter.Config:
 			exports = b.appendMysqldExporter(itg)
 		case *oracledb_exporter.Config:
@@ -234,6 +234,8 @@ func (b *IntegrationsConfigBuilder) appendV2Integrations() {
 				exports = b.appendMemcachedExporter(v1_itg, itg.Common.InstanceKey)
 			case *mongodb_exporter.Config:
 				exports = b.appendMongodbExporter(v1_itg, itg.Common.InstanceKey)
+			case *mssql_exporter.Config:
+				exports = b.appendMssqlExporter(v1_itg, itg.Common.InstanceKey)
 			}
 		}
 
