@@ -113,4 +113,7 @@ Full reference of options:
 
   # Only report docker containers in addition to root stats
   [docker_only: <boolean> | default = false]
+
+  # Disable collecting root Cgroup stats
+  [disable_root_cgroup_stats: <boolean> | default = false]
 ```
