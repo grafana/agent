@@ -3,6 +3,7 @@ package git
 
 import (
 	"context"
+	"errors"
 	"path/filepath"
 	"reflect"
 	"sync"
@@ -193,8 +194,13 @@ func (c *Component) Update(args component.Arguments) (err error) {
 	}
 
 	// Create or update the repo field.
+	// Failure to update repository makes the module loader temporarily use cached contents on disk
+	var updateVcsErr vcs.UpdateFailedError
 	if c.repo == nil || !reflect.DeepEqual(repoOpts, c.repoOpts) {
 		r, err := vcs.NewGitRepo(context.Background(), repoPath, repoOpts)
+		if errors.As(err, &updateVcsErr) {
+			level.Error(c.log).Log("msg", "failed to update repository", "err", err)
+		}
 		if err != nil {
 			return err
 		}
@@ -220,8 +226,13 @@ func (c *Component) Update(args component.Arguments) (err error) {
 // controller. pollFile must only be called with c.mut held.
 func (c *Component) pollFile(ctx context.Context, args Arguments) error {
 	// Make sure our repo is up-to-date.
+	var updateVcsErr *vcs.UpdateFailedError
 	if err := c.repo.Update(ctx); err != nil {
-		return err
+		if errors.As(err, &updateVcsErr) {
+			level.Error(c.log).Log("msg", "failed to update repository", "err", err)
+		} else {
+			return err
+		}
 	}
 
 	// Finally, configure our controller.

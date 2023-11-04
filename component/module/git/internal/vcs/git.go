@@ -58,15 +58,15 @@ func NewGitRepo(ctx context.Context, storagePath string, opts GitRepoOptions) (*
 	}
 
 	// Fetch the latest contents. This may be a no-op if we just did a clone.
-	err = repo.FetchContext(ctx, &git.FetchOptions{
+	fetchRepoErr := repo.FetchContext(ctx, &git.FetchOptions{
 		RemoteName: "origin",
 		Force:      true,
 		Auth:       opts.Auth.Convert(),
 	})
-	if err != nil && !errors.Is(err, git.NoErrAlreadyUpToDate) {
-		return nil, UpdateFailedError{
+	if fetchRepoErr != nil && !errors.Is(fetchRepoErr, git.NoErrAlreadyUpToDate) {
+		err = UpdateFailedError{
 			Repository: opts.Repository,
-			Inner:      err,
+			Inner:      fetchRepoErr,
 		}
 	}
 
@@ -92,7 +92,7 @@ func NewGitRepo(ctx context.Context, storagePath string, opts GitRepoOptions) (*
 		opts:     opts,
 		repo:     repo,
 		workTree: workTree,
-	}, nil
+	}, err
 }
 
 func isRepoCloned(dir string) bool {
@@ -103,15 +103,16 @@ func isRepoCloned(dir string) bool {
 // Update updates the repository by fetching new content and re-checking out to
 // latest version of Revision.
 func (repo *GitRepo) Update(ctx context.Context) error {
-	err := repo.repo.FetchContext(ctx, &git.FetchOptions{
+	var err error
+	fetchRepoErr := repo.repo.FetchContext(ctx, &git.FetchOptions{
 		RemoteName: "origin",
 		Force:      true,
 		Auth:       repo.opts.Auth.Convert(),
 	})
-	if err != nil && !errors.Is(err, git.NoErrAlreadyUpToDate) {
-		return UpdateFailedError{
+	if fetchRepoErr != nil && !errors.Is(fetchRepoErr, git.NoErrAlreadyUpToDate) {
+		err = UpdateFailedError{
 			Repository: repo.opts.Repository,
-			Inner:      err,
+			Inner:      fetchRepoErr,
 		}
 	}
 
@@ -129,7 +130,7 @@ func (repo *GitRepo) Update(ctx context.Context) error {
 		return err
 	}
 
-	return nil
+	return err
 }
 
 // ReadFile returns a file from the repository specified by path.
