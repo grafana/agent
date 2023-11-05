@@ -3,9 +3,13 @@ package http
 
 import (
 	"context"
+	"crypto/sha1"
+	"encoding/hex"
 	"fmt"
 	"io"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strings"
 	"sync"
 	"time"
@@ -38,6 +42,8 @@ type Arguments struct {
 	PollFrequency time.Duration `river:"poll_frequency,attr,optional"`
 	PollTimeout   time.Duration `river:"poll_timeout,attr,optional"`
 	IsSecret      bool          `river:"is_secret,attr,optional"`
+
+	LocalCacheEnabled bool `river:"local_cache_enabled,attr,optional"`
 
 	Method  string            `river:"method,attr,optional"`
 	Headers map[string]string `river:"headers,attr,optional"`
@@ -185,6 +191,7 @@ func (c *Component) updatePollHealth(err error) {
 
 // pollError is like poll but returns an error if one occurred.
 func (c *Component) pollError() error {
+	var err error
 	c.mut.Lock()
 	defer c.mut.Unlock()
 
@@ -206,20 +213,39 @@ func (c *Component) pollError() error {
 	resp, err := c.cli.Do(req)
 	if err != nil {
 		level.Error(c.log).Log("msg", "failed to perform request", "err", err)
+		if c.args.LocalCacheEnabled {
+			return c.fallbackToCache()
+		}
 		return fmt.Errorf("performing request: %w", err)
 	}
 
 	bb, err := io.ReadAll(resp.Body)
 	if err != nil {
 		level.Error(c.log).Log("msg", "failed to read response", "err", err)
+		if c.args.LocalCacheEnabled {
+			return c.fallbackToCache()
+		}
 		return fmt.Errorf("reading response: %w", err)
 	}
 
 	if resp.StatusCode != http.StatusOK {
 		level.Error(c.log).Log("msg", "unexpected status code from response", "status", resp.Status)
+		if c.args.LocalCacheEnabled {
+			return c.fallbackToCache()
+		}
 		return fmt.Errorf("unexpected status code %s", resp.Status)
 	}
 
+	c.updateExports(bb)
+	if c.args.LocalCacheEnabled {
+		if err := c.writeCache(bb); err != nil {
+			level.Error(c.log).Log("msg", "failed to write cache", "err", err)
+		}
+	}
+	return nil
+}
+
+func (c *Component) updateExports(bb []byte) {
 	stringContent := strings.TrimSpace(string(bb))
 
 	newExports := Exports{
@@ -235,6 +261,46 @@ func (c *Component) pollError() error {
 		c.opts.OnStateChange(newExports)
 	}
 	c.lastExports = newExports
+}
+
+func (c *Component) fallbackToCache() error {
+	// If we have a local cache, we can still return the cached value.
+	// This is useful for when the remote endpoint is down.
+	level.Warn(c.log).Log("msg", "polling failed, using local cache")
+	cacheContents, err := c.readCache()
+	if err != nil {
+		level.Error(c.log).Log("msg", "failed to read cache", "err", err)
+		return fmt.Errorf("reading cache: %w", err)
+	}
+	c.updateExports(cacheContents)
+	return nil
+}
+
+func (c *Component) getCachePath() string {
+	return filepath.Join(c.opts.DataPath, hashURL(c.args.URL))
+}
+
+func hashURL(url string) string {
+	hasher := sha1.New()
+	hashedBytes := hasher.Sum([]byte(url))
+	return hex.EncodeToString(hashedBytes)
+}
+
+func (c *Component) readCache() ([]byte, error) {
+	path := c.getCachePath()
+	return os.ReadFile(path)
+}
+
+func (c *Component) writeCache(contents []byte) error {
+	err := os.MkdirAll(c.opts.DataPath, 0755)
+	if err != nil {
+		return err
+	}
+	path := c.getCachePath()
+	err = os.WriteFile(path, contents, 0644)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
