@@ -3,8 +3,6 @@ package http
 
 import (
 	"context"
-	"crypto/sha1"
-	"encoding/hex"
 	"fmt"
 	"io"
 	"net/http"
@@ -43,12 +41,17 @@ type Arguments struct {
 	PollTimeout   time.Duration `river:"poll_timeout,attr,optional"`
 	IsSecret      bool          `river:"is_secret,attr,optional"`
 
-	LocalCacheEnabled bool `river:"local_cache_enabled,attr,optional"`
+	LocalCache LocalCache `river:"local_cache,block,optional"`
 
 	Method  string            `river:"method,attr,optional"`
 	Headers map[string]string `river:"headers,attr,optional"`
 
 	Client common_config.HTTPClientConfig `river:"client,block,optional"`
+}
+
+type LocalCache struct {
+	Enabled     bool          `river:"enabled,attr"`
+	MaxCacheAge time.Duration `river:"max_cache_age,attr,optional"`
 }
 
 // DefaultArguments holds default settings for Arguments.
@@ -213,7 +216,7 @@ func (c *Component) pollError() error {
 	resp, err := c.cli.Do(req)
 	if err != nil {
 		level.Error(c.log).Log("msg", "failed to perform request", "err", err)
-		if c.args.LocalCacheEnabled {
+		if c.args.LocalCache.Enabled {
 			return c.fallbackToCache()
 		}
 		return fmt.Errorf("performing request: %w", err)
@@ -222,7 +225,7 @@ func (c *Component) pollError() error {
 	bb, err := io.ReadAll(resp.Body)
 	if err != nil {
 		level.Error(c.log).Log("msg", "failed to read response", "err", err)
-		if c.args.LocalCacheEnabled {
+		if c.args.LocalCache.Enabled {
 			return c.fallbackToCache()
 		}
 		return fmt.Errorf("reading response: %w", err)
@@ -230,14 +233,14 @@ func (c *Component) pollError() error {
 
 	if resp.StatusCode != http.StatusOK {
 		level.Error(c.log).Log("msg", "unexpected status code from response", "status", resp.Status)
-		if c.args.LocalCacheEnabled {
+		if c.args.LocalCache.Enabled {
 			return c.fallbackToCache()
 		}
 		return fmt.Errorf("unexpected status code %s", resp.Status)
 	}
 
 	c.updateExports(bb)
-	if c.args.LocalCacheEnabled {
+	if c.args.LocalCache.Enabled {
 		if err := c.writeCache(bb); err != nil {
 			level.Error(c.log).Log("msg", "failed to write cache", "err", err)
 		}
@@ -277,17 +280,20 @@ func (c *Component) fallbackToCache() error {
 }
 
 func (c *Component) getCachePath() string {
-	return filepath.Join(c.opts.DataPath, hashURL(c.args.URL))
-}
-
-func hashURL(url string) string {
-	hasher := sha1.New()
-	hashedBytes := hasher.Sum([]byte(url))
-	return hex.EncodeToString(hashedBytes)
+	return filepath.Join(c.opts.DataPath, "cache")
 }
 
 func (c *Component) readCache() ([]byte, error) {
 	path := c.getCachePath()
+	if c.args.LocalCache.MaxCacheAge != 0 {
+		fileInfo, err := os.Stat(path)
+		if err != nil {
+			return nil, err
+		}
+		if time.Since(fileInfo.ModTime()) > c.args.LocalCache.MaxCacheAge {
+			return nil, fmt.Errorf("cache is too old")
+		}
+	}
 	return os.ReadFile(path)
 }
 
