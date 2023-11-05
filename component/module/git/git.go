@@ -198,11 +198,12 @@ func (c *Component) Update(args component.Arguments) (err error) {
 	var updateVcsErr vcs.UpdateFailedError
 	if c.repo == nil || !reflect.DeepEqual(repoOpts, c.repoOpts) {
 		r, err := vcs.NewGitRepo(context.Background(), repoPath, repoOpts)
-		if errors.As(err, &updateVcsErr) {
-			level.Error(c.log).Log("msg", "failed to update repository", "err", err)
-		}
 		if err != nil {
-			return err
+			if errors.As(err, &updateVcsErr) {
+				level.Error(c.log).Log("msg", "failed to update repository", "err", err)
+			} else {
+				return err
+			}
 		}
 		c.repo = r
 		c.repoOpts = repoOpts
