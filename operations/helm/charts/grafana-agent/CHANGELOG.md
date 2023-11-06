@@ -13,6 +13,7 @@ Unreleased
 ### Enhancements
 
 - Expose the `ui-path-prefix` flag on the Helm chart (@mlcdf)
+- Expose controller `extraAnnotations` on the Helm chart (@mcanevet)
 
 0.27.1 (2023-10-26)
 ----------
