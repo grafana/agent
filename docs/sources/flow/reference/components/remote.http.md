@@ -66,6 +66,7 @@ client > authorization | [authorization][] | Configure generic authorization to 
 client > oauth2 | [oauth2][] | Configure OAuth2 for authenticating to the endpoint. | no
 client > oauth2 > tls_config | [tls_config][] | Configure TLS settings for connecting to the endpoint. | no
 client > tls_config | [tls_config][] | Configure TLS settings for connecting to the endpoint. | no
+fallback_cache | [fallback_cache][] | Configure a fallback cache for the endpoint. | no
 
 The `>` symbol indicates deeper levels of nesting. For example, `client >
 basic_auth` refers to an `basic_auth` block defined inside a `client` block.
@@ -75,6 +76,7 @@ basic_auth` refers to an `basic_auth` block defined inside a `client` block.
 [authorization]: #authorization-block
 [oauth2]: #oauth2-block
 [tls_config]: #tls_config-block
+[fallback_cache]: #fallback_cache-block
 
 ### client block
 
@@ -109,6 +111,23 @@ configured URL.
 The `tls_config` block configures TLS settings for connecting to HTTPS servers.
 
 {{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" version="<AGENT VERSION>" >}}
+
+### fallback_cache block
+
+The `fallback_cache` block configures a local cache that is used as a fallback if
+the remote endpoint is unavailable or returns an error.
+
+Name | Type | Description | Default | Required
+---- | ---- | ----------- | ------- | --------
+`enabled` | `bool` | Whether to enable the fallback cache. | `false` | no
+`max_age` | `duration` | Maximum age of the cached response. | `""` | no
+`allow_secrets` | `bool` | Whether to allow secrets in the cached response. | `false` | no
+
+If the cache was last updated more than `max_age` ago, the cache is considered
+stale and the component will not fall back to it.
+
+If `is_secret` is `true` and `allow_secrets` is `false`, the component will
+not write the cached response, even if the cache.
 
 ## Exported fields
 
