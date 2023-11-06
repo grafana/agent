@@ -5,12 +5,22 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/prometheus.exporter.vsphere/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.vsphere/
 title: prometheus.exporter.vsphere
+labels:
+  stage: beta
 description: Learn about prometheus.exporter.vsphere
 ---
 
 # prometheus.exporter.vsphere
 
 The `prometheus.exporter.vsphere` component embeds [`vmware_exporter`](https://github.com/grafana/vmware_exporter) to collect vSphere metrics
+
+> **BETA**: This is a [beta][] component. Beta components are subject to breaking
+> changes, and may be replaced with equivalent functionality that cover the
+> same use case. We recommend to use [otelcol.receiver.vcenter][] instead.
+
+[beta]: {{< relref "../../../stability.md#beta" >}}
+[otelcol.receiver.vcenter]: {{< relref "./otelcol.receiver.vcenter.md" >}}
+
 
 ## Usage
 

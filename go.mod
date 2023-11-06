@@ -568,7 +568,7 @@ require (
 	github.com/vertica/vertica-sql-go v1.3.0 // indirect
 	github.com/vishvananda/netlink v1.2.1-beta.2 // indirect
 	github.com/vishvananda/netns v0.0.0-20210104183010-2eb08e3e575f // indirect
-	github.com/vmware/govmomi v0.27.2 // indirect
+	github.com/vmware/govmomi v0.32.0 // indirect
 	github.com/vultr/govultr/v2 v2.17.2 // indirect
 	github.com/willf/bitset v1.1.11 // indirect
 	github.com/willf/bloom v2.0.3+incompatible // indirect
@@ -643,6 +643,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/k8sconfig v0.87.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/kafka v0.87.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/filterprocessor v0.87.0 // indirect
+	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/vcenterreceiver v0.87.0 // indirect
 	github.com/openshift/api v3.9.0+incompatible // indirect
 	github.com/openshift/client-go v0.0.0-20210521082421-73d9475a9142 // indirect
 	github.com/prometheus-community/prom-label-proxy v0.6.0 // indirect
