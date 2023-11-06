@@ -3,6 +3,8 @@ package http
 
 import (
 	"context"
+	"crypto/sha1"
+	"encoding/hex"
 	"fmt"
 	"io"
 	"net/http"
@@ -41,7 +43,7 @@ type Arguments struct {
 	PollTimeout   time.Duration `river:"poll_timeout,attr,optional"`
 	IsSecret      bool          `river:"is_secret,attr,optional"`
 
-	LocalCache LocalCache `river:"local_cache,block,optional"`
+	FallbackCache FallbackCache `river:"fallback_cache,block,optional"`
 
 	Method  string            `river:"method,attr,optional"`
 	Headers map[string]string `river:"headers,attr,optional"`
@@ -49,9 +51,10 @@ type Arguments struct {
 	Client common_config.HTTPClientConfig `river:"client,block,optional"`
 }
 
-type LocalCache struct {
+type FallbackCache struct {
 	Enabled     bool          `river:"enabled,attr"`
-	MaxCacheAge time.Duration `river:"max_cache_age,attr,optional"`
+	AllowSecret bool          `river:"allow_secrets,attr,optional"`
+	MaxAge      time.Duration `river:"max_age,attr,optional"`
 }
 
 // DefaultArguments holds default settings for Arguments.
@@ -60,6 +63,11 @@ var DefaultArguments = Arguments{
 	PollTimeout:   10 * time.Second,
 	Client:        common_config.DefaultHTTPClientConfig,
 	Method:        http.MethodGet,
+
+	FallbackCache: FallbackCache{
+		Enabled:     false,
+		AllowSecret: false,
+	},
 }
 
 // SetToDefault implements river.Defaulter.
@@ -83,6 +91,12 @@ func (args *Arguments) Validate() error {
 		return err
 	}
 
+	if args.FallbackCache.Enabled {
+		if args.FallbackCache.MaxAge > 0 && args.FallbackCache.MaxAge < args.PollFrequency {
+			return fmt.Errorf("fallback_cache.max_age must be 0 (unlimited) or greater than or equal to poll_frequency")
+		}
+	}
+
 	return nil
 }
 
@@ -96,11 +110,12 @@ type Component struct {
 	log  log.Logger
 	opts component.Options
 
-	mut         sync.Mutex
-	args        Arguments
-	cli         *http.Client
-	lastPoll    time.Time
-	lastExports Exports // Used for determining whether exports should be updated
+	mut            sync.Mutex
+	args           Arguments
+	cli            *http.Client
+	lastPoll       time.Time
+	lastExports    Exports // Used for determining whether exports should be updated
+	lastCacheWrite time.Time
 
 	// Updated is written to whenever args updates.
 	updated chan struct{}
@@ -216,7 +231,7 @@ func (c *Component) pollError() error {
 	resp, err := c.cli.Do(req)
 	if err != nil {
 		level.Error(c.log).Log("msg", "failed to perform request", "err", err)
-		if c.args.LocalCache.Enabled {
+		if c.args.FallbackCache.Enabled {
 			return c.fallbackToCache()
 		}
 		return fmt.Errorf("performing request: %w", err)
@@ -225,7 +240,7 @@ func (c *Component) pollError() error {
 	bb, err := io.ReadAll(resp.Body)
 	if err != nil {
 		level.Error(c.log).Log("msg", "failed to read response", "err", err)
-		if c.args.LocalCache.Enabled {
+		if c.args.FallbackCache.Enabled {
 			return c.fallbackToCache()
 		}
 		return fmt.Errorf("reading response: %w", err)
@@ -233,16 +248,18 @@ func (c *Component) pollError() error {
 
 	if resp.StatusCode != http.StatusOK {
 		level.Error(c.log).Log("msg", "unexpected status code from response", "status", resp.Status)
-		if c.args.LocalCache.Enabled {
+		if c.args.FallbackCache.Enabled {
 			return c.fallbackToCache()
 		}
 		return fmt.Errorf("unexpected status code %s", resp.Status)
 	}
 
 	c.updateExports(bb)
-	if c.args.LocalCache.Enabled {
+	if c.args.FallbackCache.Enabled {
 		if err := c.writeCache(bb); err != nil {
 			level.Error(c.log).Log("msg", "failed to write cache", "err", err)
+		} else {
+			c.lastCacheWrite = time.Now()
 		}
 	}
 	return nil
@@ -279,18 +296,24 @@ func (c *Component) fallbackToCache() error {
 	return nil
 }
 
+func (c *Component) urlHash() string {
+	hasher := sha1.New()
+	hasher.Write([]byte(c.args.URL))
+	return hex.EncodeToString(hasher.Sum(nil))
+}
+
 func (c *Component) getCachePath() string {
-	return filepath.Join(c.opts.DataPath, "cache")
+	return filepath.Join(c.opts.DataPath, c.urlHash())
 }
 
 func (c *Component) readCache() ([]byte, error) {
 	path := c.getCachePath()
-	if c.args.LocalCache.MaxCacheAge != 0 {
+	if c.args.FallbackCache.MaxAge != 0 {
 		fileInfo, err := os.Stat(path)
 		if err != nil {
 			return nil, err
 		}
-		if time.Since(fileInfo.ModTime()) > c.args.LocalCache.MaxCacheAge {
+		if time.Since(fileInfo.ModTime()) > c.args.FallbackCache.MaxAge {
 			return nil, fmt.Errorf("cache is too old")
 		}
 	}
@@ -298,6 +321,9 @@ func (c *Component) readCache() ([]byte, error) {
 }
 
 func (c *Component) writeCache(contents []byte) error {
+	if c.args.IsSecret && !c.args.FallbackCache.AllowSecret {
+		return fmt.Errorf("cannot cache a secret")
+	}
 	err := os.MkdirAll(c.opts.DataPath, 0755)
 	if err != nil {
 		return err
@@ -362,4 +388,36 @@ func (c *Component) CurrentHealth() component.Health {
 	c.healthMut.RLock()
 	defer c.healthMut.RUnlock()
 	return c.health
+}
+
+// DebugInfo returns information about the remote http component.
+func (c *Component) DebugInfo() interface{} {
+	di := debugInfo{
+		LastPoll:          c.lastPoll,
+		TimeUntilNextPoll: c.nextPoll(),
+	}
+	if c.args.FallbackCache.Enabled {
+		lastUpdate := "never"
+		if !c.lastCacheWrite.IsZero() {
+			lastUpdate = time.Since(c.lastCacheWrite).String() + " ago"
+		}
+
+		di.CacheDebugInfo = &cacheDebugInfo{
+			CachePath:  c.getCachePath(),
+			LastUpdate: lastUpdate,
+		}
+	}
+	return di
+}
+
+type debugInfo struct {
+	LastPoll          time.Time     `river:"last_poll,attr"`
+	TimeUntilNextPoll time.Duration `river:"time_until_next_poll,attr"`
+
+	CacheDebugInfo *cacheDebugInfo `river:"cache,block"`
+}
+
+type cacheDebugInfo struct {
+	CachePath  string `river:"cache_path,attr"`
+	LastUpdate string `river:"last_update,attr"`
 }

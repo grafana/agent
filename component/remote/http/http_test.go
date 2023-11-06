@@ -117,6 +117,17 @@ func TestUnmarshalValidation(t *testing.T) {
 			`,
 			`poll_frequency must be greater than 0`,
 		},
+		{
+			"MaxCacheAge and PollFrequency",
+			`
+			url = "http://example.com"
+			poll_frequency = "1m"
+			fallback_cache {
+				enabled = true
+				max_age = "10s"
+			}`,
+			`fallback_cache.max_age must be 0 (unlimited) or greater than or equal to poll_frequency`,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.testname, func(t *testing.T) {
