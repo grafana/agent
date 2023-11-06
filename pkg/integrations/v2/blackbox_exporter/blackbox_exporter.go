@@ -5,7 +5,9 @@ import (
 	"github.com/grafana/agent/pkg/integrations/blackbox_exporter"
 	integrations_v2 "github.com/grafana/agent/pkg/integrations/v2"
 	"github.com/grafana/agent/pkg/integrations/v2/common"
+	"github.com/grafana/agent/pkg/util"
 	blackbox_config "github.com/prometheus/blackbox_exporter/config"
+	"gopkg.in/yaml.v3"
 )
 
 // DefaultConfig holds the default settings for the blackbox_exporter integration.
@@ -18,7 +20,7 @@ var DefaultConfig = Config{
 type Config struct {
 	BlackboxConfigFile string                             `yaml:"config_file,omitempty"`
 	BlackboxTargets    []blackbox_exporter.BlackboxTarget `yaml:"blackbox_targets"`
-	BlackboxConfig     blackbox_config.Config             `yaml:"blackbox_config,omitempty"`
+	BlackboxConfig     util.RawYAML                       `yaml:"blackbox_config,omitempty"`
 	ProbeTimeoutOffset float64                            `yaml:"probe_timeout_offset,omitempty"`
 
 	Common  common.MetricsConfig `yaml:",inline"`
@@ -30,7 +32,13 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	*c = DefaultConfig
 
 	type plain Config
-	return unmarshal((*plain)(c))
+	err := unmarshal((*plain)(c))
+	if err != nil {
+		return err
+	}
+
+	var blackbox_config blackbox_config.Config
+	return yaml.Unmarshal(c.BlackboxConfig, &blackbox_config)
 }
 
 // Name returns the name of the integration.
@@ -58,7 +66,13 @@ func init() {
 
 // NewIntegration creates a new blackbox integration.
 func (c *Config) NewIntegration(log log.Logger, globals integrations_v2.Globals) (integrations_v2.Integration, error) {
-	modules, err := blackbox_exporter.LoadBlackboxConfig(log, c.BlackboxConfigFile, c.BlackboxTargets, &c.BlackboxConfig)
+	var blackbox_config blackbox_config.Config
+	err := yaml.Unmarshal(c.BlackboxConfig, &blackbox_config)
+	if err != nil {
+		return nil, err
+	}
+
+	modules, err := blackbox_exporter.LoadBlackboxConfig(log, c.BlackboxConfigFile, c.BlackboxTargets, &blackbox_config)
 	if err != nil {
 		return nil, err
 	}

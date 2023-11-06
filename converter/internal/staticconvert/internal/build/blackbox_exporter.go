@@ -1,29 +1,39 @@
 package build
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/prometheus/exporter/blackbox"
 	"github.com/grafana/agent/converter/internal/common"
 	"github.com/grafana/agent/pkg/integrations/blackbox_exporter"
+	blackbox_exporter_v2 "github.com/grafana/agent/pkg/integrations/v2/blackbox_exporter"
 	"github.com/grafana/river/rivertypes"
 )
 
 func (b *IntegrationsConfigBuilder) appendBlackboxExporter(config *blackbox_exporter.Config) discovery.Exports {
 	args := toBlackboxExporter(config)
-	compLabel := common.LabelForParts(b.globalCtx.LabelPrefix, config.Name())
-	b.f.Body().AppendBlock(common.NewBlockWithOverride(
-		[]string{"prometheus", "exporter", "blackbox"},
-		compLabel,
-		args,
-	))
-
-	return common.NewDiscoveryExports(fmt.Sprintf("prometheus.exporter.blackbox.%s.targets", compLabel))
+	return b.appendExporterBlock(args, config.Name(), nil, "blackbox")
 }
 
 func toBlackboxExporter(config *blackbox_exporter.Config) *blackbox.Arguments {
+	return &blackbox.Arguments{
+		ConfigFile: config.BlackboxConfigFile,
+		Config: rivertypes.OptionalSecret{
+			IsSecret: false,
+			Value:    string(config.BlackboxConfig),
+		},
+		Targets:            toBlackboxTargets(config.BlackboxTargets),
+		ProbeTimeoutOffset: time.Duration(config.ProbeTimeoutOffset),
+	}
+}
+
+func (b *IntegrationsConfigBuilder) appendBlackboxExporterV2(config *blackbox_exporter_v2.Config) discovery.Exports {
+	args := toBlackboxExporterV2(config)
+	return b.appendExporterBlock(args, config.Name(), config.Common.InstanceKey, "blackbox")
+}
+
+func toBlackboxExporterV2(config *blackbox_exporter_v2.Config) *blackbox.Arguments {
 	return &blackbox.Arguments{
 		ConfigFile: config.BlackboxConfigFile,
 		Config: rivertypes.OptionalSecret{
