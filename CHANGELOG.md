@@ -64,6 +64,40 @@ Main (unreleased)
     Transformation Language (OTTL). (@hainenber)
   - `otelcol.receiver.vcenter` - receives telemetry data from vCenter. (@marctc)
 
+### Enhancements
+
+- The `loki.write` WAL now has snappy compression enabled by default. (@thepalbi)
+
+- Allow converting labels to structured metadata with Loki's structured_metadata stage. (@gonzalesraul)
+
+- Improved performance of `pyroscope.scrape` component when working with a large number of targets. (@cyriltovena)
+
+- Added support for comma-separated list of fields in `source` option and a
+  new `separator` option in `drop` stage of `loki.process`. (@thampiotr)
+
+- The `loki.source.docker` component now allows connecting to Docker daemons
+  over HTTP(S) and setting up TLS credentials. (@tpaschalis)
+
+- Added an `add_metric_suffixes` option to `otelcol.exporter.prometheus` in flow mode,
+  which configures whether to add type and unit suffixes to metrics names. (@mar4uk)
+
+- Added an `exclude_event_message` option to `loki.source.windowsevent` in flow mode,
+  which excludes the human-friendly event message from Windows event logs. (@ptodev)
+
+- Improve detection of rolled log files in `loki.source.kubernetes` and
+  `loki.source.podlogs` (@slim-bean).
+
+- Support clustering in `loki.source.kubernetes` (@slim-bean).
+
+- Support clustering in `loki.source.podlogs` (@rfratto).
+
+- Make component list sortable in web UI. (@hainenber)
+
+- Adds new metrics (`mssql_server_total_memory_bytes`, `mssql_server_target_memory_bytes`,
+  and `mssql_available_commit_memory_bytes`) for `mssql` integration.
+
+- Grafana Agent Operator: `config-reloader` container no longer runs as root.
+  (@rootmout)
 
 ### Bugfixes
 
@@ -99,37 +133,10 @@ Main (unreleased)
 
 - Fixed a bug where UDP syslog messages were never processed (@joshuapare)
 
-### Enhancements
+- Fix a bug where reloading the configuration of a `loki.write` component lead
+  to a panic. (@tpaschalis)
 
-- The `loki.write` WAL now has snappy compression enabled by default. (@thepalbi)
 
-- Allow converting labels to structured metadata with Loki's structured_metadata stage. (@gonzalesraul)
-
-- Improved performance of `pyroscope.scrape` component when working with a large number of targets. (@cyriltovena)
-
-- Added support for comma-separated list of fields in `source` option and a
-  new `separator` option in `drop` stage of `loki.process`. (@thampiotr)
-
-- The `loki.source.docker` component now allows connecting to Docker daemons
-  over HTTP(S) and setting up TLS credentials. (@tpaschalis)
-
-- Added an `add_metric_suffixes` option to `otelcol.exporter.prometheus` in flow mode,
-  which configures whether to add type and unit suffixes to metrics names. (@mar4uk)
-
-- Added an `exclude_event_message` option to `loki.source.windowsevent` in flow mode,
-  which excludes the human-friendly event message from Windows event logs. (@ptodev)
-
-- Improve detection of rolled log files in `loki.source.kubernetes` and
-  `loki.source.podlogs` (@slim-bean).
-
-- Support clustering in `loki.source.kubernetes` (@slim-bean).
-
-- Support clustering in `loki.source.podlogs` (@rfratto).
-
-- Make component list sortable in web UI. (@hainenber)
-
-- Adds new metrics (`mssql_server_total_memory_bytes`, `mssql_server_target_memory_bytes`,
-  and `mssql_available_commit_memory_bytes`) for `mssql` integration.
 
 v0.37.3 (2023-10-26)
 -----------------
