@@ -53,6 +53,9 @@ agent:
   # -- Port to listen for traffic on.
   listenPort: 80
 
+  # --  Base path where the UI is exposed.
+  uiPathPrefix: /
+
   # -- Enables sending Grafana Labs anonymous usage stats to help improve Grafana
   # Agent.
   enableReporting: true
@@ -148,6 +151,9 @@ controller:
 
   # -- Number of pods to deploy. Ignored when controller.type is 'daemonset'.
   replicas: 1
+
+  # -- Annotations to add to controller.
+  extraAnnotations: {}
 
   # -- Whether to deploy pods in parallel. Only used when controller.type is
   # 'statefulset'.

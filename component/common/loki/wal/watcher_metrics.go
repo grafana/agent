@@ -8,6 +8,7 @@ type WatcherMetrics struct {
 	droppedWriteNotifications *prometheus.CounterVec
 	segmentRead               *prometheus.CounterVec
 	currentSegment            *prometheus.GaugeVec
+	replaySegment             *prometheus.GaugeVec
 	watchersRunning           *prometheus.GaugeVec
 }
 
@@ -58,6 +59,15 @@ func NewWatcherMetrics(reg prometheus.Registerer) *WatcherMetrics {
 			},
 			[]string{"id"},
 		),
+		replaySegment: prometheus.NewGaugeVec(
+			prometheus.GaugeOpts{
+				Namespace: "loki_write",
+				Subsystem: "wal_watcher",
+				Name:      "replay_segment",
+				Help:      "Segment the WAL watcher will start replaying the WAL from on startup.",
+			},
+			[]string{"id"},
+		),
 		watchersRunning: prometheus.NewGaugeVec(
 			prometheus.GaugeOpts{
 				Namespace: "loki_write",
@@ -70,13 +80,23 @@ func NewWatcherMetrics(reg prometheus.Registerer) *WatcherMetrics {
 	}
 
 	if reg != nil {
-		reg.MustRegister(m.recordsRead)
-		reg.MustRegister(m.recordDecodeFails)
-		reg.MustRegister(m.droppedWriteNotifications)
-		reg.MustRegister(m.segmentRead)
-		reg.MustRegister(m.currentSegment)
-		reg.MustRegister(m.watchersRunning)
+		m.recordsRead = mustRegisterOrGet(reg, m.recordsRead).(*prometheus.CounterVec)
+		m.recordDecodeFails = mustRegisterOrGet(reg, m.recordDecodeFails).(*prometheus.CounterVec)
+		m.droppedWriteNotifications = mustRegisterOrGet(reg, m.droppedWriteNotifications).(*prometheus.CounterVec)
+		m.segmentRead = mustRegisterOrGet(reg, m.segmentRead).(*prometheus.CounterVec)
+		m.currentSegment = mustRegisterOrGet(reg, m.currentSegment).(*prometheus.GaugeVec)
+		m.watchersRunning = mustRegisterOrGet(reg, m.watchersRunning).(*prometheus.GaugeVec)
 	}
 
 	return m
+}
+
+func mustRegisterOrGet(reg prometheus.Registerer, c prometheus.Collector) prometheus.Collector {
+	if err := reg.Register(c); err != nil {
+		if are, ok := err.(prometheus.AlreadyRegisteredError); ok {
+			return are.ExistingCollector
+		}
+		panic(err)
+	}
+	return c
 }

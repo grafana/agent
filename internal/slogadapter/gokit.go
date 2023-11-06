@@ -31,23 +31,21 @@ func (sa slogAdapter) Enabled(ctx context.Context, l slog.Level) bool {
 func (sa slogAdapter) Log(kvps ...interface{}) error {
 	// Find the log level first, starting with the default.
 	recordLevel := slog.LevelInfo
-	for i := 0; i < len(kvps); i += 2 {
+	for i := 0; i < len(kvps)-1; i += 2 {
 		if kvps[i] == level.Key() {
-			if i+1 < len(kvps) {
-				value := kvps[i+1]
-				levelValue, _ := value.(level.Value)
-				switch levelValue {
-				case level.DebugValue():
-					recordLevel = slog.LevelDebug
-				case level.InfoValue():
-					recordLevel = slog.LevelInfo
-				case level.WarnValue():
-					recordLevel = slog.LevelWarn
-				case level.ErrorValue():
-					recordLevel = slog.LevelError
-				}
-				break
+			value := kvps[i+1]
+			levelValue, _ := value.(level.Value)
+			switch levelValue {
+			case level.DebugValue():
+				recordLevel = slog.LevelDebug
+			case level.InfoValue():
+				recordLevel = slog.LevelInfo
+			case level.WarnValue():
+				recordLevel = slog.LevelWarn
+			case level.ErrorValue():
+				recordLevel = slog.LevelError
 			}
+			break
 		}
 	}
 

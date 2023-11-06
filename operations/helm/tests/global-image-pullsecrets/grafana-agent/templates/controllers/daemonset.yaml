@@ -37,6 +37,7 @@ spec:
             - /etc/agent/config.river
             - --storage.path=/tmp/agent
             - --server.http.listen-addr=0.0.0.0:80
+            - --server.http.ui-path-prefix=/
           env:
             - name: AGENT_MODE
               value: flow

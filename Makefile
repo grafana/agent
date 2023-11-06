@@ -15,8 +15,9 @@
 ##
 ## Targets for running tests:
 ##
-##   test  Run tests
-##   lint  Lint code
+##   test              Run tests
+##   lint              Lint code
+##   integration-tests Run integration tests
 ##
 ## Targets for building binaries:
 ##
@@ -136,7 +137,7 @@ PROPAGATE_VARS := \
 
 GO_ENV := GOOS=$(GOOS) GOARCH=$(GOARCH) GOARM=$(GOARM) CGO_ENABLED=$(CGO_ENABLED)
 
-VERSION      ?= $(shell ./tools/image-tag)
+VERSION      ?= $(shell bash ./tools/image-tag)
 GIT_REVISION := $(shell git rev-parse --short HEAD)
 GIT_BRANCH   := $(shell git rev-parse --abbrev-ref HEAD)
 VPREFIX      := github.com/grafana/agent/pkg/build
@@ -172,12 +173,16 @@ lint: agentlint
 # We have to run test twice: once for all packages with -race and then once
 # more without -race for packages that have known race detection issues.
 test:
-	$(GO_ENV) go test $(GO_FLAGS) -race ./...
+	$(GO_ENV) go test $(GO_FLAGS) -race $(shell go list ./... | grep -v /integration-tests/)
 	$(GO_ENV) go test $(GO_FLAGS) ./pkg/integrations/node_exporter ./pkg/logs ./pkg/operator ./pkg/util/k8s ./component/otelcol/processor/tail_sampling ./component/loki/source/file
 
 test-packages:
 	docker pull $(BUILD_IMAGE)
 	go test -tags=packaging  ./packaging
+
+.PHONY: integration-tests
+integration-test:
+	cd integration-tests && $(GO_ENV) go run .
 
 #
 # Targets for building binaries

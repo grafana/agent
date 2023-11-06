@@ -14,6 +14,7 @@ loki.process "example" {
 		drop_counter_reason = "nope"
 		source              = "string"
 		value               = "penny"
+		separator           = ","
 		expression          = ":joy:"
 		older_than          = "10m0s"
 		longer_than         = "1KiB"
@@ -42,6 +43,11 @@ loki.process "example" {
 		drop_counter_reason = "nope"
 		value               = "penny"
 		longer_than         = "1KiB"
+	}
+
+	stage.drop {
+		source      = "comma,separated"
+		longer_than = "1KiB"
 	}
 }
 

@@ -2,7 +2,7 @@
 
 package target
 
-// This code is copied from Promtail with minor edits. The target package is used to
+// This code is copied from Promtail (https://github.com/grafana/loki/commit/954df433e98f659d006ced52b23151cb5eb2fdfa) with minor edits. The target package is used to
 // configure and run the targets that can read journal entries and forward them
 // to other loki components.
 
@@ -65,11 +65,8 @@ var defaultJournalReaderFunc = func(c sdjournal.JournalReaderConfig) (journalRea
 	return sdjournal.NewJournalReader(c)
 }
 
-var defaultJournalEntryFunc = func(c sdjournal.JournalReaderConfig, cursor string) (*sdjournal.JournalEntry, error) {
-	var (
-		journal *sdjournal.Journal
-		err     error
-	)
+var defaultJournalEntryFunc = func(c sdjournal.JournalReaderConfig, cursor string) (entry *sdjournal.JournalEntry, err error) {
+	var journal *sdjournal.Journal
 
 	if c.Path != "" {
 		journal, err = sdjournal.NewJournalFromDir(c.Path)
@@ -79,7 +76,15 @@ var defaultJournalEntryFunc = func(c sdjournal.JournalReaderConfig, cursor strin
 
 	if err != nil {
 		return nil, err
-	} else if err := journal.SeekCursor(cursor); err != nil {
+	}
+	defer func() {
+		if errClose := journal.Close(); err == nil {
+			err = errClose
+		}
+	}()
+
+	err = journal.SeekCursor(cursor)
+	if err != nil {
 		return nil, err
 	}
 
@@ -211,12 +216,12 @@ func journalTargetWithReader(
 		for {
 			err := t.r.Follow(until, io.Discard)
 			if err != nil {
-				level.Error(t.logger).Log("msg", "received error during sdjournal follow", "err", err.Error())
-
-				if err == sdjournal.ErrExpired || err == syscall.EBADMSG || err == io.EOF {
+				if err == sdjournal.ErrExpired || err == syscall.EBADMSG || err == io.EOF || strings.HasPrefix(err.Error(), "failed to iterate journal:") {
 					level.Error(t.logger).Log("msg", "unable to follow journal", "err", err.Error())
 					return
 				}
+
+				level.Error(t.logger).Log("msg", "received unexpected error while following the journal", "err", err.Error())
 			}
 
 			// prevent tight loop

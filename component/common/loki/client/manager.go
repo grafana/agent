@@ -1,11 +1,13 @@
 package client
 
 import (
+	"crypto/sha256"
 	"fmt"
 	"strings"
 	"sync"
 
 	"github.com/go-kit/log"
+	"github.com/grafana/agent/component/common/loki/client/internal"
 	"github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/prometheus/client_golang/prometheus"
 
@@ -37,6 +39,11 @@ type Stoppable interface {
 	Stop()
 }
 
+type StoppableClient interface {
+	Stop()
+	StopNow()
+}
+
 // Manager manages remote write client instantiation, and connects the related components to orchestrate the flow of loki.Entry
 // from the scrape targets, to the remote write clients themselves.
 //
@@ -48,6 +55,9 @@ type Manager struct {
 	clients     []Client
 	walWatchers []Stoppable
 
+	// stoppableClients is kept separate from clients for avoiding having to couple queueClient to the Client interface
+	stoppableClients []StoppableClient
+
 	entries chan loki.Entry
 	once    sync.Once
 
@@ -58,7 +68,8 @@ type Manager struct {
 func NewManager(metrics *Metrics, logger log.Logger, limits limit.Config, reg prometheus.Registerer, walCfg wal.Config, notifier WriterEventsNotifier, clientCfgs ...Config) (*Manager, error) {
 	var fake struct{}
 
-	watcherMetrics := wal.NewWatcherMetrics(reg)
+	walWatcherMetrics := wal.NewWatcherMetrics(reg)
+	walMarkerMetrics := internal.NewMarkerMetrics(reg)
 
 	if len(clientCfgs) == 0 {
 		return nil, fmt.Errorf("at least one client config must be provided")
@@ -67,51 +78,65 @@ func NewManager(metrics *Metrics, logger log.Logger, limits limit.Config, reg pr
 	clientsCheck := make(map[string]struct{})
 	clients := make([]Client, 0, len(clientCfgs))
 	watchers := make([]Stoppable, 0, len(clientCfgs))
+	stoppableClients := make([]StoppableClient, 0, len(clientCfgs))
 	for _, cfg := range clientCfgs {
-		client, err := New(metrics, cfg, limits.MaxStreams, limits.MaxLineSize.Val(), limits.MaxLineSizeTruncate, logger)
-		if err != nil {
-			return nil, err
-		}
-
 		// Don't allow duplicate clients, we have client specific metrics that need at least one unique label value (name).
-		if _, ok := clientsCheck[client.Name()]; ok {
+		clientName := GetClientName(cfg)
+		if _, ok := clientsCheck[clientName]; ok {
 			return nil, fmt.Errorf("duplicate client configs are not allowed, found duplicate for name: %s", cfg.Name)
 		}
 
-		clientsCheck[client.Name()] = fake
-		clients = append(clients, client)
+		clientsCheck[clientName] = fake
 
 		if walCfg.Enabled {
-			// Create and launch wal watcher for this client
-
 			// add some context information for the logger the watcher uses
-			wlog := log.With(logger, "client", client.Name())
+			wlog := log.With(logger, "client", clientName)
 
-			writeTo := newClientWriteTo(client.Chan(), wlog)
+			markerFileHandler, err := internal.NewMarkerFileHandler(logger, walCfg.Dir)
+			if err != nil {
+				return nil, err
+			}
+			markerHandler := internal.NewMarkerHandler(markerFileHandler, walCfg.MaxSegmentAge, logger, walMarkerMetrics.WithCurriedId(clientName))
+
+			queue, err := NewQueue(metrics, cfg, limits.MaxStreams, limits.MaxLineSize.Val(), limits.MaxLineSizeTruncate, logger, markerHandler)
+			if err != nil {
+				return nil, fmt.Errorf("error starting queue client: %w", err)
+			}
+			stoppableClients = append(stoppableClients, queue)
+
 			// subscribe watcher's wal.WriteTo to writer events. This will make the writer trigger the cleanup of the wal.WriteTo
 			// series cache whenever a segment is deleted.
-			notifier.SubscribeCleanup(writeTo)
+			notifier.SubscribeCleanup(queue)
 
-			watcher := wal.NewWatcher(walCfg.Dir, client.Name(), watcherMetrics, writeTo, wlog, walCfg.WatchConfig)
+			watcher := wal.NewWatcher(walCfg.Dir, clientName, walWatcherMetrics, queue, wlog, walCfg.WatchConfig, markerHandler)
 			// subscribe watcher to wal write events
 			notifier.SubscribeWrite(watcher)
 
-			level.Debug(logger).Log("msg", "starting WAL watcher for client", "client", client.Name())
+			level.Debug(logger).Log("msg", "starting WAL watcher for client", "client", clientName)
 			watcher.Start()
 
 			watchers = append(watchers, watcher)
+		} else {
+			client, err := New(metrics, cfg, limits.MaxStreams, limits.MaxLineSize.Val(), limits.MaxLineSizeTruncate, logger)
+			if err != nil {
+				return nil, fmt.Errorf("error starting client: %w", err)
+			}
+
+			clients = append(clients, client)
+			stoppableClients = append(stoppableClients, client)
 		}
 	}
 	manager := &Manager{
-		clients:     clients,
-		walWatchers: watchers,
-		entries:     make(chan loki.Entry),
+		clients:          clients,
+		stoppableClients: stoppableClients,
+		walWatchers:      watchers,
+		entries:          make(chan loki.Entry),
 	}
 	if walCfg.Enabled {
-		manager.name = "wal"
+		manager.name = buildManagerName("wal", clientCfgs...)
 		manager.startWithConsume()
 	} else {
-		manager.name = "multi"
+		manager.name = buildManagerName("multi", clientCfgs...)
 		manager.startWithForward()
 	}
 	return manager, nil
@@ -148,22 +173,13 @@ func (m *Manager) startWithForward() {
 }
 
 func (m *Manager) StopNow() {
-	for _, c := range m.clients {
+	for _, c := range m.stoppableClients {
 		c.StopNow()
 	}
 }
 
 func (m *Manager) Name() string {
-	var sb strings.Builder
-	sb.WriteString(m.name)
-	sb.WriteString(":")
-	for i, c := range m.clients {
-		sb.WriteString(c.Name())
-		if i != len(m.clients)-1 {
-			sb.WriteString(",")
-		}
-	}
-	return sb.String()
+	return m.name
 }
 
 func (m *Manager) Chan() chan<- loki.Entry {
@@ -179,7 +195,38 @@ func (m *Manager) Stop() {
 		walWatcher.Stop()
 	}
 	// close clients
-	for _, c := range m.clients {
+	for _, c := range m.stoppableClients {
 		c.Stop()
 	}
+}
+
+// GetClientName computes the specific name for each client config. The name is either the configured Name setting in Config,
+// or a hash of the config as whole, this allows us to detect repeated configs.
+func GetClientName(cfg Config) string {
+	if cfg.Name != "" {
+		return cfg.Name
+	}
+	return asSha256(cfg)
+}
+
+func asSha256(o interface{}) string {
+	h := sha256.New()
+	h.Write([]byte(fmt.Sprintf("%v", o)))
+
+	temp := fmt.Sprintf("%x", h.Sum(nil))
+	return temp[:6]
+}
+
+// buildManagerName assembles the Manager's name from all configs, and a given prefix.
+func buildManagerName(prefix string, cfgs ...Config) string {
+	var sb strings.Builder
+	sb.WriteString(prefix)
+	sb.WriteString(":")
+	for i, c := range cfgs {
+		sb.WriteString(GetClientName(c))
+		if i != len(cfgs)-1 {
+			sb.WriteString(",")
+		}
+	}
+	return sb.String()
 }

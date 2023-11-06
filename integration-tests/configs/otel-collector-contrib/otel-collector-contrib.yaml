@@ -1,0 +1,27 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+
+exporters:
+  logging:
+
+  otlphttp:
+    endpoint: ${OTEL_EXPORTER_ENDPOINT}
+
+
+connectors:
+  spanmetrics:
+    namespace: span.metrics
+    exemplars:
+      enabled: true
+    metrics_flush_interval: 1s
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      exporters: [spanmetrics]
+    metrics:
+      receivers: [spanmetrics]
+      exporters: [otlphttp]

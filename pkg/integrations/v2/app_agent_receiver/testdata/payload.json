@@ -214,12 +214,12 @@
   ],
   "measurements": [
     {
+      "type": "foobar",
       "values": {
         "ttfp": 20.12,
         "ttfcp": 22.12,
         "ttfb": 14
       },
-      "type": "page load",
       "timestamp": "2021-09-30T10:46:17.680Z",
       "trace": {
         "trace_id": "abcd",
