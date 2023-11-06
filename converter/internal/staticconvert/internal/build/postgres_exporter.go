@@ -1,25 +1,15 @@
 package build
 
 import (
-	"fmt"
-
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/prometheus/exporter/postgres"
-	"github.com/grafana/agent/converter/internal/common"
 	"github.com/grafana/agent/pkg/integrations/postgres_exporter"
 	"github.com/grafana/river/rivertypes"
 )
 
-func (b *IntegrationsConfigBuilder) appendPostgresExporter(config *postgres_exporter.Config) discovery.Exports {
+func (b *IntegrationsConfigBuilder) appendPostgresExporter(config *postgres_exporter.Config, instanceKey *string) discovery.Exports {
 	args := toPostgresExporter(config)
-	compLabel := common.LabelForParts(b.globalCtx.LabelPrefix, config.Name())
-	b.f.Body().AppendBlock(common.NewBlockWithOverride(
-		[]string{"prometheus", "exporter", "postgres"},
-		compLabel,
-		args,
-	))
-
-	return common.NewDiscoveryExports(fmt.Sprintf("prometheus.exporter.postgres.%s.targets", compLabel))
+	return b.appendExporterBlock(args, config.Name(), instanceKey, "postgres")
 }
 
 func toPostgresExporter(config *postgres_exporter.Config) *postgres.Arguments {
