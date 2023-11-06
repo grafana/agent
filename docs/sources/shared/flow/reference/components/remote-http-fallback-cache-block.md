@@ -12,8 +12,10 @@ the remote endpoint is unavailable or returns an error.
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `enabled` | `bool` | Whether to enable the fallback cache. | `false` | no
-`max_age` | `duration` | Maximum age of the cached response. | `""` | no
+`max_age` | `duration` | Maximum age of the cached response. | `"0"` | no
 `allow_secrets` | `bool` | Whether to allow secrets in the cached response. | `false` | no
+
+A `max_age` of `0` means that the cache will never be considered stale.
 
 If the cache was last updated more than `max_age` ago, the cache is considered
 stale and the component will not fall back to it.

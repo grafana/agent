@@ -330,7 +330,9 @@ func (c *Component) writeCache(contents []byte) error {
 		return err
 	}
 	path := c.getCachePath()
-	// 600 because the contents may be a secret.
+	// 600 because the contents may be a secret. It's possible to have separate permissions
+	// depending on is_secret, but adds complexity for little benefit (since this is intended
+	// to only be used by the agent).
 	err = os.WriteFile(path, contents, 0600)
 	if err != nil {
 		return err
