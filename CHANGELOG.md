@@ -92,6 +92,9 @@ Main (unreleased)
 - Added an `add_metric_suffixes` option to `otelcol.exporter.prometheus` in flow mode,
   which configures whether to add type and unit suffixes to metrics names. (@mar4uk)
 
+- Make the result of 'discovery.kubelet' support pods that without ports, such as k8s control plane static pods. (@masonmei)
+  
+
 v0.37.3 (2023-10-26)
 -----------------
 
