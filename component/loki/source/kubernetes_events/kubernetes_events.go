@@ -18,6 +18,8 @@ import (
 	"github.com/grafana/agent/component/common/loki/positions"
 	"github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/grafana/agent/pkg/runner"
+	"github.com/grafana/agent/service/cluster"
+	"github.com/grafana/ckit/shard"
 	"github.com/oklog/run"
 	"k8s.io/client-go/rest"
 )
@@ -27,9 +29,9 @@ const informerSyncTimeout = 10 * time.Second
 
 func init() {
 	component.Register(component.Registration{
-		Name: "loki.source.kubernetes_events",
-		Args: Arguments{},
-
+		Name:          "loki.source.kubernetes_events",
+		Args:          Arguments{},
+		NeedsServices: []string{cluster.ServiceName},
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			return New(opts, args.(Arguments))
 		},
@@ -47,6 +49,8 @@ type Arguments struct {
 
 	// Client settings to connect to Kubernetes.
 	Client kubernetes.ClientArguments `river:"client,block,optional"`
+
+	Clustering cluster.ComponentBlock `river:"clustering,block,optional"`
 }
 
 // DefaultArguments holds default settings for loki.source.kubernetes_events.
@@ -91,6 +95,8 @@ type Component struct {
 	tasksMut sync.RWMutex
 	tasks    []eventControllerTask
 
+	cluster cluster.Cluster
+
 	receiversMut sync.RWMutex
 	receivers    []loki.LogsReceiver
 }
@@ -113,6 +119,11 @@ func New(o component.Options, args Arguments) (*Component, error) {
 	if err != nil {
 		return nil, err
 	}
+	data, err := o.GetServiceData(cluster.ServiceName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get information about cluster: %w", err)
+	}
+	clusterData := data.(cluster.Cluster)
 
 	c := &Component{
 		log:       o.Logger,
@@ -122,6 +133,7 @@ func New(o component.Options, args Arguments) (*Component, error) {
 		runner: runner.New(func(t eventControllerTask) runner.Worker {
 			return newEventController(t)
 		}),
+		cluster:    clusterData,
 		newTasksCh: make(chan struct{}, 1),
 	}
 	if err := c.Update(args); err != nil {
@@ -150,7 +162,24 @@ func (c *Component) Run(ctx context.Context) error {
 				c.tasksMut.RLock()
 				tasks := c.tasks
 				c.tasksMut.RUnlock()
-
+				if c.args.Clustering.Enabled {
+					// distribute event tasks by namespace.
+					// in the default case, there will only be one namespace ("") for "all namespaces".
+					// That is fine, it just means only one node will send events.
+					newTasks := make([]eventControllerTask, 0, len(tasks))
+					for _, t := range tasks {
+						peers, err := c.cluster.Lookup(shard.StringKey(t.Namespace), 1, shard.OpReadWrite)
+						if err != nil {
+							// This should never happen, but in any case we fall
+							// back to owning the target ourselves.
+							newTasks = append(newTasks, t)
+						}
+						if peers[0].Self {
+							newTasks = append(newTasks, t)
+						}
+					}
+					tasks = newTasks
+				}
 				if err := c.runner.ApplyTasks(ctx, tasks); err != nil {
 					level.Error(c.log).Log("msg", "failed to apply event watchers", "err", err)
 				}
@@ -232,6 +261,22 @@ func (c *Component) Update(args component.Arguments) error {
 
 	c.args = newArgs
 	return nil
+}
+
+// NotifyClusterChange implements component.ClusterComponent.
+func (c *Component) NotifyClusterChange() {
+	c.mut.Lock()
+	defer c.mut.Unlock()
+
+	if !c.args.Clustering.Enabled {
+		return // no-op
+	}
+
+	// Schedule a reload so namespaces get redistributed
+	select {
+	case c.newTasksCh <- struct{}{}:
+	default:
+	}
 }
 
 // getNamespaces gets a list of namespaces to watch from the arguments. If the
