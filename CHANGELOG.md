@@ -30,7 +30,7 @@ v0.37.3 (2023-10-26)
   - `otelcol.receiver.kafka` has a new `header_extraction` block to extract headers from Kafka records.
   - `otelcol.receiver.kafka` has a new `version` argument to change the version of 
     the SASL Protocol for SASL authentication.
-  
+
 v0.37.2 (2023-10-16)
 -----------------
 
