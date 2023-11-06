@@ -114,20 +114,7 @@ The `tls_config` block configures TLS settings for connecting to HTTPS servers.
 
 ### fallback_cache block
 
-The `fallback_cache` block configures a local cache that is used as a fallback if
-the remote endpoint is unavailable or returns an error.
-
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`enabled` | `bool` | Whether to enable the fallback cache. | `false` | no
-`max_age` | `duration` | Maximum age of the cached response. | `""` | no
-`allow_secrets` | `bool` | Whether to allow secrets in the cached response. | `false` | no
-
-If the cache was last updated more than `max_age` ago, the cache is considered
-stale and the component will not fall back to it.
-
-If `is_secret` is `true` and `allow_secrets` is `false`, the component will
-not write the cached response, even if the cache.
+{{< docs/shared lookup="flow/reference/components/remote-http-fallback-cache-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ## Exported fields
 

@@ -155,6 +155,10 @@ func (c *Component) CurrentHealth() component.Health {
 	return leastHealthy
 }
 
+func (c *Component) DebugInfo() interface{} {
+	return c.managedRemoteHTTP.DebugInfo()
+}
+
 // getArgs is a goroutine safe way to get args
 func (c *Component) getArgs() Arguments {
 	c.mut.RLock()

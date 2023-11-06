@@ -60,8 +60,10 @@ The following blocks are supported inside the definition of `module.http`:
 Hierarchy        | Block      | Description | Required
 ---------------- | ---------- | ----------- | --------
 arguments | [arguments][] | Arguments to pass to the module. | no
+fallback_cache | [fallback_cache][] | Cache to use if the remote request fails. | no
 
 [arguments]: #arguments-block
+[fallback_cache]: #fallback_cache-block
 
 ### arguments block
 
@@ -78,6 +80,10 @@ The attributes provided in the `arguments` block are validated based on the
   they are not defined in the module source.
 
 [argument blocks]: {{< relref "../config-blocks/argument.md" >}}
+
+### fallback_cache block
+
+{{< docs/shared lookup="flow/reference/components/remote-http-fallback-cache-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ## Exported fields
 
