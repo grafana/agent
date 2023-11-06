@@ -98,6 +98,8 @@ Main (unreleased)
 - Grafana Agent Operator: `config-reloader` container no longer runs as root.
   (@rootmout)
 
+- `loki.source.kubernetes_events` now supports clustering. (@captncraig)
+
 ### Bugfixes
 
 - Fixed an issue where `loki.process` validation for stage `metric.counter` was
