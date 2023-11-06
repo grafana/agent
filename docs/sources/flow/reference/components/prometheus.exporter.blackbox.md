@@ -34,6 +34,7 @@ Omitted fields take their default values.
 | `config`               | `string` or `secret` | blackbox_exporter configuration as inline string.                |          | no       |
 | `probe_timeout_offset` | `duration`           | Offset in seconds to subtract from timeout when probing targets. | `"0.5s"` | no       |
 
+Either `config_file` or `config` must be specified.
 The `config_file` argument points to a YAML file defining which blackbox_exporter modules to use.
 The `config` argument must be a YAML document as string defining which blackbox_exporter modules to use.
 `config` is typically loaded by using the exports of another component. For example,
