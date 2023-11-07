@@ -97,6 +97,8 @@ Main (unreleased)
 - Grafana Agent Operator: `config-reloader` container no longer runs as root.
   (@rootmout)
 
+- Added support for replaying not sent data for `loki.write` when WAL is enabled. (@thepalbi)
+
 ### Bugfixes
 
 - Fixed an issue where `loki.process` validation for stage `metric.counter` was
