@@ -1,5 +1,6 @@
 ---
 aliases:
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/otelcol.processor.probabilistic_sampler/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.processor.probabilistic_sampler/
 description: Learn about telcol.processor.probabilistic_sampler
 labels:

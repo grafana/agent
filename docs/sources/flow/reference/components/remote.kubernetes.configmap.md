@@ -1,5 +1,6 @@
 ---
 aliases:
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/remote.kubernetes.configmap/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/remote.kubernetes.configmap/
 description: Learn about remote.kubernetes.configmap
 title: remote.kubernetes.configmap

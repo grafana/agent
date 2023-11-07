@@ -2,6 +2,7 @@
 aliases:
 - ../../configuration/scraping-service/
 - ../../scraping-service/
+- /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/scraping-service/
 canonical: https://grafana.com/docs/agent/latest/static/configuration/scraping-service/
 description: Learn about the scraping service
 menuTitle: Scraping service

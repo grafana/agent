@@ -1,6 +1,7 @@
 ---
 aliases:
 - ../../../configuration/integrations/blackbox-config/
+- /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/integrations/blackbox-config/
 canonical: https://grafana.com/docs/agent/latest/static/configuration/integrations/blackbox-config/
 description: Learn about blackbox_config
 title: blackbox_config

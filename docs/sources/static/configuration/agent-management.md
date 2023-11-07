@@ -1,5 +1,6 @@
 ---
 aliases:
+- /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/agent-management/
 canonical: https://grafana.com/docs/agent/latest/static/configuration/agent-management/
 description: Learn about Agent Management
 menuTitle: Agent Management

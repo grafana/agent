@@ -1,5 +1,6 @@
 ---
 aliases:
+- /docs/grafana-cloud/monitor-infrastructure/agent/static/set-up/install/install-agent-kubernetes/
 canonical: https://grafana.com/docs/agent/latest/static/set-up/install/install-agent-kubernetes/
 description: Learn how to deploy Grafana Agent in static mode on Kubernetes
 menuTitle: Kubernetes

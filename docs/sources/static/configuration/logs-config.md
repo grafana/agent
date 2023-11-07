@@ -2,6 +2,7 @@
 aliases:
 - ../../configuration/logs-config/
 - ../../configuration/loki-config/
+- /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/logs-config/
 canonical: https://grafana.com/docs/agent/latest/static/configuration/logs-config/
 description: Learn about logs_config
 title: logs_config

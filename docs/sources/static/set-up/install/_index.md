@@ -2,6 +2,7 @@
 aliases:
 - ../
 - ../set-up/
+- /docs/grafana-cloud/monitor-infrastructure/agent/static/set-up/install/
 canonical: https://grafana.com/docs/agent/latest/static/set-up/install/
 description: Learn how to install GRafana Agent in static mode
 menuTitle: Install static mode

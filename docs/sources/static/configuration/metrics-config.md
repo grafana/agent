@@ -2,6 +2,7 @@
 aliases:
 - ../../configuration/metrics-config/
 - ../../configuration/prometheus-config/
+- /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/metrics-config/
 canonical: https://grafana.com/docs/agent/latest/static/configuration/metrics-config/
 description: Learn about metrics_config
 title: metrics_config

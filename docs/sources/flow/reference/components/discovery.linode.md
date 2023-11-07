@@ -1,5 +1,6 @@
 ---
 aliases:
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/discovery.linode/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.linode/
 description: Learn about discovery.linode
 title: discovery.linode
