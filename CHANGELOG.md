@@ -95,6 +95,8 @@ Main (unreleased)
 - Grafana Agent Operator: `config-reloader` container no longer runs as root.
   (@rootmout)
 
+- Make the result of 'discovery.kubelet' support pods that without ports, such as k8s control plane static pods. (@masonmei)
+
 ### Bugfixes
 
 - Fixed an issue where `loki.process` validation for stage `metric.counter` was
@@ -136,9 +138,6 @@ v0.37.4 (2023-11-06)
 
 - Added an `add_metric_suffixes` option to `otelcol.exporter.prometheus` in flow mode,
   which configures whether to add type and unit suffixes to metrics names. (@mar4uk)
-
-- Make the result of 'discovery.kubelet' support pods that without ports, such as k8s control plane static pods. (@masonmei)
-  
 
 ### Bugfixes
 
