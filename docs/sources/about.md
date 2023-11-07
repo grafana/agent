@@ -32,6 +32,15 @@ Grafana Agent is available in three different variants:
 
 [Flow mode]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/flow"
 [Flow mode]: "/docs/grafana-cloud/ -> /docs/agent/<AGENT VERSION>/flow"
+
+[Prometheus]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/getting-started/collect-prometheus-metrics.md"
+[Prometheus]: "/docs/grafana-cloud/ -> /docs/agent/<AGENT_VERSION>/flow/getting-started/collect-prometheus-metrics.md"
+
+[OTel]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/getting-started/collect-opentelemetry-data.md"
+[OTel]: "/docs/grafana-cloud/ -> /docs/agent/<AGENT_VERSION>/flow/getting-started/collect-opentelemetry-data.md"
+
+[Loki]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/getting-started/migrating-from-promtail.md"
+[Loki]: "/docs/grafana-cloud/ -> /docs/agent/<AGENT_VERSION>/flow/getting-started/migrating-from-promtail.md"
 {{% /docs/reference %}}
 
 ## Stability
@@ -44,12 +53,42 @@ Grafana Agent is available in three different variants:
 
 ## Choose which variant of Grafana Agent to run
 
-> **NOTE**: You do not have to pick just one variant; it is possible to
+> **NOTE**: You don't have to pick just one variant; it's possible to
 > mix-and-match installations of Grafana Agent.
+
+#### Core telemetry
+
+|  |  Prometheus Agent mode | Grafana Agent Static mode | Grafana Agent Operator | OpenTelemetry Collector | Grafana Agent Flow mode |
+| -- | -- | -- | -- | -- | -- |
+| **Metrics**  | Prometheus | Prometheus | Prometheus | OTel | [Prometheus][], [OTel][] |
+| **Logs**     | No | Loki | Loki | OTel | [Loki][], [OTel][] |
+| **Traces**   | No | OTel | OTel | OTel | [OTel][] |
+| **Profiles** | No | No | No | No | Pyroscope |
+
+#### **OSS features**
+
+|  |  Prometheus Agent mode | Grafana Agent Static mode | Grafana Agent Operator | OpenTelemetry Collector | Grafana Agent Flow mode |
+| -- | -- | -- | -- | -- | -- |
+| **Kubernetes native** | No | No | Yes | Yes | Yes |
+| **Clustering** | No | No | No| No | No |
+| **Prometheus rules** | No | No | No | No | Yes |
+| **Native Vault support** | No | No | No | No | Yes |
+
+#### Grafana Cloud solutions
+
+|  |  Prometheus Agent mode | Grafana Agent Static mode | Grafana Agent Operator | OpenTelemetry Collector | Grafana Agent Flow mode |
+| -- | -- | -- | -- | -- | -- |
+| **Official vendor support**  | No | Yes | Yes | No | Yes |
+| **Cloud integrations** | No | Yes | Some | No | Some |
+| **Kubernetes monitoring** | Yes, custom | Yes, custom | Yes | No | Yes |
+| **Application observability** | No | No | No | Yes | Yes |
+
+[Prometheus]: 
+[OTel]: 
 
 ### Static mode
 
-[Static mode][] is the original variant of Grafana Agent, first introduced on
+[Static mode][] is the original variant of Grafana Agent, introduced on
 March 3, 2020. Static mode is the most mature variant of Grafana Agent.
 
 You should run Static mode when:
