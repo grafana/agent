@@ -53,7 +53,7 @@ type Arguments struct {
 
 type FallbackCache struct {
 	Enabled     bool          `river:"enabled,attr,optional"`
-	AllowSecret bool          `river:"allow_secrets,attr,optional"`
+	AllowSecret bool          `river:"allow_secret,attr,optional"`
 	MaxAge      time.Duration `river:"max_age,attr,optional"`
 }
 
@@ -323,7 +323,7 @@ func (c *Component) readCache() ([]byte, error) {
 
 func (c *Component) writeCache(contents []byte) error {
 	if c.args.IsSecret && !c.args.FallbackCache.AllowSecret {
-		return fmt.Errorf("cannot cache a secret, unless fallback_cache.allow_secrets is set to true")
+		return fmt.Errorf("cannot cache a secret, unless fallback_cache.allow_secret is set to true")
 	}
 	err := os.MkdirAll(c.opts.DataPath, 0755)
 	if err != nil {
