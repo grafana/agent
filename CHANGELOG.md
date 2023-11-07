@@ -63,7 +63,7 @@ Main (unreleased)
   - `otelcol.processor.filter` - filters OTLP telemetry data using OpenTelemetry
     Transformation Language (OTTL). (@hainenber)
 
-- Add `fallback_cache` to `remote.http` and `module.http`, which allows for
+- Add `fallback_cache_enabled` to `remote.http` and `module.http`, which allows for
   caching the response of a request to a remote HTTP endpoint. Also adds DebugInfo
   for both components, including the last poll timestamp and the time until the next
   poll. (@spartan0x117)

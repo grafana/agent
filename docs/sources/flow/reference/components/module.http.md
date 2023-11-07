@@ -50,6 +50,12 @@ Name | Type | Description | Default | Required
 `poll_frequency` | `duration` | Frequency to poll the URL. | `"1m"` | no
 `poll_timeout` | `duration` | Timeout when polling the URL. | `"10s"` | no
 `is_secret` | `bool` | Whether the response body should be treated as a secret. | false | no
+`fallback_cache_enabled` | `bool` | Whether to enable the fallback cache. | `false` | no
+
+`fallback_cache_enabled` enables a local on-disk cache that is used as a fallback if
+the remote endpoint is unavailable or returns an error. The file is created with `600` permissions,
+and is only readable by the user running the agent. If the value is sensitive, it is not
+recommended to enable the fallback cache.
 
 [secret]: {{< relref "../../config-language/expressions/types_and_values.md#secrets" >}}
 
@@ -60,10 +66,8 @@ The following blocks are supported inside the definition of `module.http`:
 Hierarchy        | Block      | Description | Required
 ---------------- | ---------- | ----------- | --------
 arguments | [arguments][] | Arguments to pass to the module. | no
-fallback_cache | [fallback_cache][] | Cache to use if the remote request fails. | no
 
 [arguments]: #arguments-block
-[fallback_cache]: #fallback_cache-block
 
 ### arguments block
 
@@ -80,10 +84,6 @@ The attributes provided in the `arguments` block are validated based on the
   they are not defined in the module source.
 
 [argument blocks]: {{< relref "../config-blocks/argument.md" >}}
-
-### fallback_cache block
-
-{{< docs/shared lookup="flow/reference/components/remote-http-fallback-cache-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ## Exported fields
 
