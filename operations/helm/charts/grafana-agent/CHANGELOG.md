@@ -10,10 +10,16 @@ internal API changes are not present.
 Unreleased
 ----------
 
+0.27.1 (2023-11-07)
+----------
+
 ### Enhancements
 
-- Expose the `ui-path-prefix` flag on the Helm chart (@mlcdf)
-- Expose controller `extraAnnotations` on the Helm chart (@mcanevet)
+- Expose the `ui-path-prefix` flag on the Helm chart. (@mlcdf)
+
+- Expose controller `extraAnnotations` on the Helm chart. (@mcanevet)
+
+- Update Grafana Agent version to v0.37.4. (@tpaschalis)
 
 0.27.1 (2023-10-26)
 ----------
