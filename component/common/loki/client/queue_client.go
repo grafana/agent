@@ -300,10 +300,9 @@ func (c *queueClient) AppendEntries(entries wal.RefEntries, segment int) error {
 		level.Debug(c.logger).Log("msg", "series for entry not found")
 	}
 
-	// emit metric tracking max seen timestamp in WAL entry
-	if maxSeenTimestamp != -1 {
-		c.qcMetrics.lastReadTimestamp.WithLabelValues().Set(float64(maxSeenTimestamp))
-	}
+	// It's safe to assume that upon an AppendEntries call, there will always be at least
+	// one entry.
+	c.qcMetrics.lastReadTimestamp.WithLabelValues().Set(float64(maxSeenTimestamp))
 
 	return nil
 }
