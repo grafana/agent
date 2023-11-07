@@ -2,6 +2,7 @@
 aliases:
 - ../../../../configuration/integrations/integrations-next/eventhandler-config/
 - /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/integrations/integrations-next/eventhandler-config/
+- /docs/grafana-cloud/send-data/agent/static/configuration/integrations/integrations-next/eventhandler-config/
 canonical: https://grafana.com/docs/agent/latest/static/configuration/integrations/integrations-next/eventhandler-config/
 description: Learn about eventhandler_config next
 title: eventhandler_config next

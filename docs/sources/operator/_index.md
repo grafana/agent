@@ -3,6 +3,7 @@ aliases:
 - /docs/grafana-cloud/agent/operator/
 - /docs/grafana-cloud/monitor-infrastructure/agent/operator/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/operator/
+- /docs/grafana-cloud/send-data/agent/operator/
 canonical: https://grafana.com/docs/agent/latest/operator/
 description: Learn about the static mode Kubernetes operator
 menuTitle: Static mode Kubernetes operator

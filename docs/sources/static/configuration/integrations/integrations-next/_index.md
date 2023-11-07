@@ -2,6 +2,7 @@
 aliases:
 - ../../../configuration/integrations/integrations-next/
 - /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/integrations/integrations-next/
+- /docs/grafana-cloud/send-data/agent/static/configuration/integrations/integrations-next/
 canonical: https://grafana.com/docs/agent/latest/static/configuration/integrations/integrations-next/
 description: Learn about integrations next
 menuTitle: Integrations next

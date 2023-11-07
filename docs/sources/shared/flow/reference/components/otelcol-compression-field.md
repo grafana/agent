@@ -4,6 +4,7 @@ aliases:
 - /docs/grafana-cloud/agent/shared/flow/reference/components/otelcol-compression-field/
 - /docs/grafana-cloud/monitor-infrastructure/agent/shared/flow/reference/components/otelcol-compression-field/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/shared/flow/reference/components/otelcol-compression-field/
+- /docs/grafana-cloud/send-data/agent/shared/flow/reference/components/otelcol-compression-field/
 canonical: https://grafana.com/docs/agent/latest/shared/flow/reference/components/otelcol-compression-field/
 description: Shared content, otelcol compression field
 headless: true

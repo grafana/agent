@@ -4,6 +4,7 @@ aliases:
 - /docs/grafana-cloud/agent/flow/reference/components/remote.vault/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/remote.vault/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/remote.vault/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/remote.vault/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/remote.vault/
 description: Learn about remote.vault
 title: remote.vault

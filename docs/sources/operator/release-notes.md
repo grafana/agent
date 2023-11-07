@@ -4,6 +4,7 @@ aliases:
 - /docs/grafana-cloud/agent/operator/release-notes/
 - /docs/grafana-cloud/monitor-infrastructure/agent/operator/release-notes/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/operator/release-notes/
+- /docs/grafana-cloud/send-data/agent/operator/release-notes/
 canonical: https://grafana.com/docs/agent/latest/operator/release-notes/
 description: Release notes for Grafana Agent Operator
 menuTitle: Release notes

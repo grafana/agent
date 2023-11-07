@@ -4,6 +4,7 @@ aliases:
 - /docs/grafana-cloud/agent/shared/flow/reference/components/otelcol-grpc-authority/
 - /docs/grafana-cloud/monitor-infrastructure/agent/shared/flow/reference/components/otelcol-grpc-authority/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/shared/flow/reference/components/otelcol-grpc-authority/
+- /docs/grafana-cloud/send-data/agent/shared/flow/reference/components/otelcol-grpc-authority/
 description: Shared content, otelcol grpc authority
 headless: true
 ---

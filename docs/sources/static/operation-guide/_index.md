@@ -2,6 +2,7 @@
 aliases:
 - ../operation-guide/
 - /docs/grafana-cloud/monitor-infrastructure/agent/static/operation-guide/
+- /docs/grafana-cloud/send-data/agent/static/operation-guide/
 canonical: https://grafana.com/docs/agent/latest/static/operation-guide/
 description: Learn how to operate Grafana Agent
 title: Operation guide

@@ -4,6 +4,7 @@ aliases:
 - /docs/grafana-cloud/agent/flow/config-language/components/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/config-language/components/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/config-language/components/
+- /docs/grafana-cloud/send-data/agent/flow/config-language/components/
 canonical: https://grafana.com/docs/agent/latest/flow/config-language/components/
 description: Learn about the components configuration language
 title: Components configuration language

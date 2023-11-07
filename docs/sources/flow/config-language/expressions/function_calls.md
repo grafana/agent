@@ -4,6 +4,7 @@ aliases:
 - /docs/grafana-cloud/agent/flow/config-language/expressions/function_calls/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/config-language/expressions/function_calls/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/config-language/expressions/function_calls/
+- /docs/grafana-cloud/send-data/agent/flow/config-language/expressions/function_calls/
 canonical: https://grafana.com/docs/agent/latest/flow/config-language/expressions/function_calls/
 description: Learn about function calls
 title: Function calls

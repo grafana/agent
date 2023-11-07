@@ -1,6 +1,7 @@
 ---
 aliases:
 - /docs/grafana-cloud/monitor-infrastructure/agent/stability/
+- /docs/grafana-cloud/send-data/agent/stability/
 canonical: https://grafana.com/docs/agent/latest/stability/
 description: Grafana Agent features fall into one of three stability categories, experimental,
   beta, or stable

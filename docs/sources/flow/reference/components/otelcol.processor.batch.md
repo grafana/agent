@@ -3,6 +3,7 @@ aliases:
 - /docs/grafana-cloud/agent/flow/reference/components/otelcol.processor.batch/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/otelcol.processor.batch/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/otelcol.processor.batch/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/otelcol.processor.batch/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.processor.batch/
 description: Learn about otelcol.processor.batch
 title: otelcol.processor.batch

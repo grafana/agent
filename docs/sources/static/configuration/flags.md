@@ -2,6 +2,7 @@
 aliases:
 - ../../configuration/flags/
 - /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/flags/
+- /docs/grafana-cloud/send-data/agent/static/configuration/flags/
 canonical: https://grafana.com/docs/agent/latest/static/configuration/flags/
 description: Learn about command-line flags
 title: Command-line flags

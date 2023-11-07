@@ -1,6 +1,7 @@
 ---
 aliases:
 - /docs/grafana-cloud/monitor-infrastructure/agent/static/
+- /docs/grafana-cloud/send-data/agent/static/
 canonical: https://grafana.com/docs/agent/latest/static/
 description: Learn about Grafana Agent in static mode
 title: Static mode

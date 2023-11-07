@@ -3,6 +3,7 @@ aliases:
 - /docs/grafana-cloud/agent/flow/getting-started/migrating-from-static/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/getting-started/migrating-from-static/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/getting-started/migrating-from-static/
+- /docs/grafana-cloud/send-data/agent/flow/getting-started/migrating-from-static/
 canonical: https://grafana.com/docs/agent/latest/flow/getting-started/migrating-from-static/
 description: Learn how to migrate your configuration from Grafana Agent Static mode
   to Flow mode

@@ -1,6 +1,7 @@
 ---
 aliases:
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/discovery.consulagent/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/discovery.consulagent/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.consulagent/
 description: Learn about discovery.consulagent
 title: discovery.consulagent

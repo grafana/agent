@@ -3,6 +3,7 @@ aliases:
 - /docs/grafana-cloud/agent/flow/reference/components/module.string/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/module.string/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/module.string/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/module.string/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/module.string/
 description: Learn about module.string
 labels:

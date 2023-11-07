@@ -3,6 +3,7 @@ aliases:
 - /docs/grafana-cloud/agent/flow/reference/cli/run/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/cli/run/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/cli/run/
+- /docs/grafana-cloud/send-data/agent/flow/reference/cli/run/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/cli/run/
 description: Learn about the run command
 menuTitle: run

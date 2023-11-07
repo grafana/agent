@@ -3,6 +3,7 @@ aliases:
 - /docs/grafana-cloud/agent/flow/monitoring/component_metrics/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/monitoring/component_metrics/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/monitoring/component_metrics/
+- /docs/grafana-cloud/send-data/agent/flow/monitoring/component_metrics/
 - component-metrics/
 canonical: https://grafana.com/docs/agent/latest/flow/monitoring/component_metrics/
 description: Learn about component metrics

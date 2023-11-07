@@ -4,6 +4,7 @@ aliases:
 - /docs/grafana-cloud/agent/flow/config-language/syntax/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/config-language/syntax/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/config-language/syntax/
+- /docs/grafana-cloud/send-data/agent/flow/config-language/syntax/
 canonical: https://grafana.com/docs/agent/latest/flow/config-language/syntax/
 description: Learn about the River syntax
 title: Syntax

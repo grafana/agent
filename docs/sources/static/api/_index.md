@@ -2,6 +2,7 @@
 aliases:
 - ../api/
 - /docs/grafana-cloud/monitor-infrastructure/agent/static/api/
+- /docs/grafana-cloud/send-data/agent/static/api/
 canonical: https://grafana.com/docs/agent/latest/static/api/
 description: Learn about the Grafana Agent static mode API
 menuTitle: Static mode API

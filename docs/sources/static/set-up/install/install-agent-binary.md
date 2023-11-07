@@ -3,6 +3,7 @@ aliases:
 - ../../set-up/install-agent-binary/
 - ../set-up/install-agent-binary/
 - /docs/grafana-cloud/monitor-infrastructure/agent/static/set-up/install/install-agent-binary/
+- /docs/grafana-cloud/send-data/agent/static/set-up/install/install-agent-binary/
 canonical: https://grafana.com/docs/agent/latest/static/set-up/install/install-agent-binary/
 description: Learn how to install Grafana Agent in static mode as a standalone binary
 menuTitle: Standalone

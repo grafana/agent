@@ -3,6 +3,7 @@ aliases:
 - /docs/grafana-cloud/agent/flow/reference/cli/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/cli/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/cli/
+- /docs/grafana-cloud/send-data/agent/flow/reference/cli/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/cli/
 description: Learn about the Grafana Agent command line interface
 menuTitle: Command-line interface

@@ -1,6 +1,7 @@
 ---
 aliases:
 - /docs/grafana-cloud/monitor-infrastructure/agent/static/set-up/start-agent/
+- /docs/grafana-cloud/send-data/agent/static/set-up/start-agent/
 canonical: https://grafana.com/docs/agent/latest/static/set-up/start-agent/
 description: Learn how to start, restart, and stop Grafana Agent in static mode
 menuTitle: Start static mode

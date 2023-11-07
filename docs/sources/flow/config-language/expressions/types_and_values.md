@@ -4,6 +4,7 @@ aliases:
 - /docs/grafana-cloud/agent/flow/config-language/expressions/types_and_values/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/config-language/expressions/types_and_values/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/config-language/expressions/types_and_values/
+- /docs/grafana-cloud/send-data/agent/flow/config-language/expressions/types_and_values/
 canonical: https://grafana.com/docs/agent/latest/flow/config-language/expressions/types_and_values/
 description: Learn about the River types and values
 title: Types and values

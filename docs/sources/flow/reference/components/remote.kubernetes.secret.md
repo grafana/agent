@@ -1,6 +1,7 @@
 ---
 aliases:
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/remote.kubernetes.secret/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/remote.kubernetes.secret/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/remote.kubernetes.secret/
 description: Learn about remote.kubernetes.secret
 title: remote.kubernetes.secret

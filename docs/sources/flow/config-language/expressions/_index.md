@@ -4,6 +4,7 @@ aliases:
 - /docs/grafana-cloud/agent/flow/config-language/expressions/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/config-language/expressions/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/config-language/expressions/
+- /docs/grafana-cloud/send-data/agent/flow/config-language/expressions/
 canonical: https://grafana.com/docs/agent/latest/flow/config-language/expressions/
 description: Learn about expressions
 title: Expressions

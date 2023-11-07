@@ -3,6 +3,7 @@ aliases:
 - /docs/grafana-cloud/agent/flow/reference/cli/convert/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/cli/convert/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/cli/convert/
+- /docs/grafana-cloud/send-data/agent/flow/reference/cli/convert/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/cli/convert/
 description: Learn about the convert command
 labels:
