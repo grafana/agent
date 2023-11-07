@@ -191,7 +191,6 @@ func (c *Component) updatePollHealth(err error) {
 
 // pollError is like poll but returns an error if one occurred.
 func (c *Component) pollError() error {
-	var err error
 	c.mut.Lock()
 	defer c.mut.Unlock()
 
