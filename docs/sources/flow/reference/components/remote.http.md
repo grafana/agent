@@ -39,7 +39,6 @@ Name | Type | Description | Default | Required
 `poll_frequency` | `duration` | Frequency to poll the URL. | `"1m"` | no
 `poll_timeout` | `duration` | Timeout when polling the URL. | `"10s"` | no
 `is_secret` | `bool` | Whether the response body should be treated as a secret. | false | no
-`fallback_cache_enabled` | `bool` | Whether to enable the fallback cache. | `false` | no
 
 When `remote.http` performs a poll operation, an HTTP `GET` request is made
 against the URL specified by the `url` argument. A poll is triggered by the
@@ -52,11 +51,6 @@ following:
 The poll is successful if the URL returns a `200 OK` response code. All other
 response codes are treated as errors and mark the component as unhealthy. After
 a successful poll, the response body from the URL is exported.
-
-`fallback_cache_enabled` enables a local on-disk cache that is used as a fallback if
-the remote endpoint is unavailable or returns an error. The file is created with `600` permissions,
-and is only readable by the user running the agent. If the value is sensitive, it is not
-recommended to enable the fallback cache.
 
 [secret]: {{< relref "../../config-language/expressions/types_and_values.md#secrets" >}}
 
@@ -72,6 +66,7 @@ client > authorization | [authorization][] | Configure generic authorization to 
 client > oauth2 | [oauth2][] | Configure OAuth2 for authenticating to the endpoint. | no
 client > oauth2 > tls_config | [tls_config][] | Configure TLS settings for connecting to the endpoint. | no
 client > tls_config | [tls_config][] | Configure TLS settings for connecting to the endpoint. | no
+fallback_cache | [fallback_cache][] | A local cache that is used as a fallback if the remote endpoint is unavailable or returns an error. | no 
 
 The `>` symbol indicates deeper levels of nesting. For example, `client >
 basic_auth` refers to an `basic_auth` block defined inside a `client` block.
@@ -81,6 +76,7 @@ basic_auth` refers to an `basic_auth` block defined inside a `client` block.
 [authorization]: #authorization-block
 [oauth2]: #oauth2-block
 [tls_config]: #tls_config-block
+[fallback_cache]: #fallback_cache-(experimental)
 
 ### client block
 
@@ -115,6 +111,10 @@ configured URL.
 The `tls_config` block configures TLS settings for connecting to HTTPS servers.
 
 {{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" version="<AGENT VERSION>" >}}
+
+### fallback_cache (experimental)
+
+{{< docs/shared lookup="flow/reference/components/remote-http-fallback-cache-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ## Exported fields
 

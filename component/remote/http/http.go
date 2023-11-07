@@ -38,11 +38,12 @@ func init() {
 
 // Arguments control the remote.http component.
 type Arguments struct {
-	URL                  string        `river:"url,attr"`
-	PollFrequency        time.Duration `river:"poll_frequency,attr,optional"`
-	PollTimeout          time.Duration `river:"poll_timeout,attr,optional"`
-	IsSecret             bool          `river:"is_secret,attr,optional"`
-	FallbackCacheEnabled bool          `river:"fallback_cache_enabled,attr,optional"`
+	URL           string        `river:"url,attr"`
+	PollFrequency time.Duration `river:"poll_frequency,attr,optional"`
+	PollTimeout   time.Duration `river:"poll_timeout,attr,optional"`
+	IsSecret      bool          `river:"is_secret,attr,optional"`
+
+	FallbackCache FallbackCache `river:"fallback_cache,block,optional"`
 
 	Method  string            `river:"method,attr,optional"`
 	Headers map[string]string `river:"headers,attr,optional"`
@@ -50,13 +51,20 @@ type Arguments struct {
 	Client common_config.HTTPClientConfig `river:"client,block,optional"`
 }
 
+type FallbackCache struct {
+	Enabled bool `river:"enabled,attr,optional"`
+}
+
 // DefaultArguments holds default settings for Arguments.
 var DefaultArguments = Arguments{
-	PollFrequency:        1 * time.Minute,
-	PollTimeout:          10 * time.Second,
-	Client:               common_config.DefaultHTTPClientConfig,
-	Method:               http.MethodGet,
-	FallbackCacheEnabled: false,
+	PollFrequency: 1 * time.Minute,
+	PollTimeout:   10 * time.Second,
+	Client:        common_config.DefaultHTTPClientConfig,
+	Method:        http.MethodGet,
+
+	FallbackCache: FallbackCache{
+		Enabled: false,
+	},
 }
 
 // SetToDefault implements river.Defaulter.
@@ -212,7 +220,7 @@ func (c *Component) pollError() error {
 	resp, err := c.cli.Do(req)
 	if err != nil {
 		level.Error(c.log).Log("msg", "failed to perform request", "err", err)
-		if c.args.FallbackCacheEnabled {
+		if c.args.FallbackCache.Enabled {
 			return c.fallbackToCache()
 		}
 		return fmt.Errorf("performing request: %w", err)
@@ -221,7 +229,7 @@ func (c *Component) pollError() error {
 	bb, err := io.ReadAll(resp.Body)
 	if err != nil {
 		level.Error(c.log).Log("msg", "failed to read response", "err", err)
-		if c.args.FallbackCacheEnabled {
+		if c.args.FallbackCache.Enabled {
 			return c.fallbackToCache()
 		}
 		return fmt.Errorf("reading response: %w", err)
@@ -229,14 +237,14 @@ func (c *Component) pollError() error {
 
 	if resp.StatusCode != http.StatusOK {
 		level.Error(c.log).Log("msg", "unexpected status code from response", "status", resp.Status)
-		if c.args.FallbackCacheEnabled {
+		if c.args.FallbackCache.Enabled {
 			return c.fallbackToCache()
 		}
 		return fmt.Errorf("unexpected status code %s", resp.Status)
 	}
 
 	c.updateExports(bb)
-	if c.args.FallbackCacheEnabled {
+	if c.args.FallbackCache.Enabled {
 		if err := c.writeCache(bb); err != nil {
 			level.Error(c.log).Log("msg", "failed to write cache", "err", err)
 		} else {
@@ -367,7 +375,7 @@ func (c *Component) DebugInfo() interface{} {
 		LastPoll:          c.lastPoll,
 		TimeUntilNextPoll: c.nextPoll(),
 	}
-	if c.args.FallbackCacheEnabled {
+	if c.args.FallbackCache.Enabled {
 		lastUpdate := "never"
 		if !c.lastCacheWrite.IsZero() {
 			lastUpdate = time.Since(c.lastCacheWrite).String() + " ago"
