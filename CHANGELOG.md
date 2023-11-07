@@ -95,6 +95,8 @@ Main (unreleased)
 - Grafana Agent Operator: `config-reloader` container no longer runs as root.
   (@rootmout)
 
+- Added support for replaying not sent data for `loki.write` when WAL is enabled. (@thepalbi)
+
 ### Bugfixes
 
 - Fixed an issue where `loki.process` validation for stage `metric.counter` was
@@ -128,6 +130,8 @@ Main (unreleased)
 - Mark `password` argument of `loki.source.kafka` as a `secret` rather than a `string`. (@harsiddhdave44)
 
 - Fixed a bug where UDP syslog messages were never processed (@joshuapare)
+
+- Updating configuration for `loki.write` no longer drops data. (@thepalbi)
 
 v0.37.4 (2023-11-06)
 -----------------
