@@ -418,10 +418,10 @@ type debugInfo struct {
 	LastPoll          time.Time     `river:"last_poll,attr"`
 	TimeUntilNextPoll time.Duration `river:"time_until_next_poll,attr"`
 
-	CacheDebugInfo *cacheDebugInfo `river:"cache,block"`
+	CacheDebugInfo *cacheDebugInfo `river:"fallback_cache,block"`
 }
 
 type cacheDebugInfo struct {
-	CachePath  string `river:"cache_path,attr"`
+	CachePath  string `river:"path,attr"`
 	LastUpdate string `river:"last_update,attr"`
 }
