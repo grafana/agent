@@ -5,12 +5,12 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/
 - /docs/grafana-cloud/send-data/agent/
 canonical: https://grafana.com/docs/agent/latest/
+title: Grafana Agent
+description: Grafana Agent is a flexible, performant, vendor-neutral, telemetry collector
+weight: 350
 cascade:
   AGENT_RELEASE: v0.37.4
   OTEL_VERSION: v0.87.0
-description: Grafana Agent is a flexible, performant, vendor-neutral, telemetry collector
-title: Grafana Agent
-weight: 350
 ---
 
 # Grafana Agent
