@@ -95,6 +95,8 @@ Main (unreleased)
 - Grafana Agent Operator: `config-reloader` container no longer runs as root.
   (@rootmout)
 
+- Make the result of 'discovery.kubelet' support pods that without ports, such as k8s control plane static pods. (@masonmei)
+
 ### Bugfixes
 
 - Fixed an issue where `loki.process` validation for stage `metric.counter` was
