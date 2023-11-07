@@ -106,7 +106,7 @@ func TestUnmarshalRiverWithInlineConfigYaml(t *testing.T) {
 	require.Contains(t, "http_2xx", args.Targets[1].Module)
 }
 
-func TestUnmarshalRiverWithInvalidInlineConfig(t *testing.T) {
+func TestUnmarshalRiverWithInvalidConfig(t *testing.T) {
 	var tests = []struct {
 		testname      string
 		cfg           string
@@ -122,7 +122,7 @@ func TestUnmarshalRiverWithInvalidInlineConfig(t *testing.T) {
 				module = "http_2xx"
 			}
 			`,
-			`invalid backbox_exporter config: yaml: line 1: did not find expected ',' or '}'`,
+			`invalid blackbox_exporter config: yaml: line 1: did not find expected ',' or '}'`,
 		},
 		{
 			"Invalid property",
@@ -134,7 +134,7 @@ func TestUnmarshalRiverWithInvalidInlineConfig(t *testing.T) {
 				module = "http_2xx"
 			}
 			`,
-			"invalid backbox_exporter config: yaml: unmarshal errors:\n  line 1: field module not found in type config.plain",
+			"invalid blackbox_exporter config: yaml: unmarshal errors:\n  line 1: field module not found in type config.plain",
 		},
 		{
 			"Define config and config_file",
@@ -148,6 +148,16 @@ func TestUnmarshalRiverWithInvalidInlineConfig(t *testing.T) {
 			}
 			`,
 			`config and config_file are mutually exclusive`,
+		},
+		{
+			"Define neither config nor config_file",
+			`
+			target "target_a" {
+				address = "http://example.com"
+				module = "http_2xx"
+			}
+			`,
+			`config or config_file must be set`,
 		},
 	}
 	for _, tt := range tests {

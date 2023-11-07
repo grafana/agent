@@ -17,6 +17,9 @@ The `prometheus.exporter.blackbox` component embeds
 
 ```river
 prometheus.exporter.blackbox "LABEL" {
+  target "example" {
+    address = "EXAMPLE_ADDRESS"
+  }
 }
 ```
 
@@ -31,6 +34,7 @@ Omitted fields take their default values.
 | `config`               | `string` or `secret` | blackbox_exporter configuration as inline string.                |          | no       |
 | `probe_timeout_offset` | `duration`           | Offset in seconds to subtract from timeout when probing targets. | `"0.5s"` | no       |
 
+Either `config_file` or `config` must be specified.
 The `config_file` argument points to a YAML file defining which blackbox_exporter modules to use.
 The `config` argument must be a YAML document as string defining which blackbox_exporter modules to use.
 `config` is typically loaded by using the exports of another component. For example,
@@ -90,7 +94,9 @@ debug metrics.
 ### Collect metrics using a blackbox exporter config file
 
 This example uses a [`prometheus.scrape` component][scrape] to collect metrics
-from `prometheus.exporter.blackbox`. It adds an extra label, `env="dev"`, to the metrics emitted by the `grafana` target. The `example` target does not have any added labels.
+from `prometheus.exporter.blackbox`. It adds an extra label, `env="dev"`, to the metrics emitted by the `grafana` target. The `example` target does not have any added labels. 
+
+The `config_file` argument is used to define which `blackbox_exporter` modules to use. You can use the [blackbox example config file](https://github.com/prometheus/blackbox_exporter/blob/master/example.yml).
 
 ```river
 prometheus.exporter.blackbox "example" {
