@@ -20,5 +20,5 @@ A `max_age` of `0` means that the cache will never be considered stale.
 If the cache was last updated more than `max_age` ago, the cache is considered
 stale and the component will not fall back to it.
 
-If `is_secret` is `true` and `allow_secrets` is `false`, the component will
-not write the cached response, even if the cache.
+If `is_secret` is `true` and `allow_secret` is `false`, the component will
+not write the cached response, even if the cache is enabled, and will log an error.
