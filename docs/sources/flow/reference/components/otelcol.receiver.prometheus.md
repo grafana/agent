@@ -4,10 +4,10 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/otelcol.receiver.prometheus/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/otelcol.receiver.prometheus/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.receiver.prometheus/
+description: Learn about otelcol.receiver.prometheus
 labels:
   stage: beta
 title: otelcol.receiver.prometheus
-description: Learn about otelcol.receiver.prometheus
 ---
 
 # otelcol.receiver.prometheus

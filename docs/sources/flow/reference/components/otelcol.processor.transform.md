@@ -4,10 +4,10 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/otelcol.processor.transform/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/otelcol.processor.transform/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.processor.transform/
+description: Learn about otelcol.processor.transform
 labels:
   stage: experimental
 title: otelcol.processor.transform
-description: Learn about otelcol.processor.transform
 ---
 
 # otelcol.processor.transform

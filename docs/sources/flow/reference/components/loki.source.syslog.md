@@ -4,8 +4,8 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/loki.source.syslog/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/loki.source.syslog/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/loki.source.syslog/
-title: loki.source.syslog
 description: Learn about loki.source.syslog
+title: loki.source.syslog
 ---
 
 # loki.source.syslog

@@ -4,8 +4,8 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/discovery.http/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/discovery.http/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.http/
-title: discovery.http
 description: Learn about discovery.http
+title: discovery.http
 ---
 
 # discovery.http

@@ -4,8 +4,8 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/getting-started/collect-opentelemetry-data/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/getting-started/collect-opentelemetry-data/
 canonical: https://grafana.com/docs/agent/latest/flow/getting-started/collect-opentelemetry-data/
-title: Collect OpenTelemetry data
 description: Learn how to collect OpenTelemetry data
+title: Collect OpenTelemetry data
 weight: 300
 ---
 

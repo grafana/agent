@@ -4,8 +4,8 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/otelcol.auth.basic/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/otelcol.auth.basic/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.auth.basic/
-title: otelcol.auth.basic
 description: Learn about otelcol.auth.basic
+title: otelcol.auth.basic
 ---
 
 # otelcol.auth.basic

@@ -4,10 +4,10 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/module.file/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/module.file/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/module.file/
+description: Learn about module.file
 labels:
   stage: beta
 title: module.file
-description: Learn about module.file
 ---
 
 # module.file

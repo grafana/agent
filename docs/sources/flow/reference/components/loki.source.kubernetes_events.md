@@ -4,8 +4,8 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/loki.source.kubernetes_events/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/loki.source.kubernetes_events/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/loki.source.kubernetes_events/
-title: loki.source.kubernetes_events
 description: Learn about loki.source.kubernetes_events
+title: loki.source.kubernetes_events
 ---
 
 # loki.source.kubernetes_events

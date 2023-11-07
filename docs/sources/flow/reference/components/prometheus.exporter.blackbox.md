@@ -4,8 +4,8 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/prometheus.exporter.blackbox/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/prometheus.exporter.blackbox/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.blackbox/
-title: prometheus.exporter.blackbox
 description: Learn about prometheus.exporter.blackbox
+title: prometheus.exporter.blackbox
 ---
 
 # prometheus.exporter.blackbox

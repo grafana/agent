@@ -1,9 +1,10 @@
 ---
+aliases:
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.connector.servicegraph/
+description: Learn about otelcol.connector.servicegraph
 labels:
   stage: experimental
 title: otelcol.connector.servicegraph
-description: Learn about otelcol.connector.servicegraph
 ---
 
 # otelcol.connector.servicegraph

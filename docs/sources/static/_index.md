@@ -1,7 +1,8 @@
 ---
+aliases:
 canonical: https://grafana.com/docs/agent/latest/static/
-title: Static mode
 description: Learn about Grafana Agent in static mode
+title: Static mode
 weight: 200
 ---
 

@@ -5,8 +5,8 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/config-language/
 - configuration-language/
 canonical: https://grafana.com/docs/agent/latest/flow/config-language/
-title: Configuration language
 description: Learn about the configuration language
+title: Configuration language
 weight: 400
 ---
 

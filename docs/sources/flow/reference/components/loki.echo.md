@@ -4,10 +4,10 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/loki.echo/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/loki.echo/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/loki.echo/
+description: Learn about loki.echo
 labels:
   stage: beta
 title: loki.echo
-description: Learn about loki.echo
 ---
 
 # loki.echo

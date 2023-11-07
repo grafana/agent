@@ -4,9 +4,9 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/getting-started/migrating-from-prometheus/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/getting-started/migrating-from-prometheus/
 canonical: https://grafana.com/docs/agent/latest/flow/getting-started/migrating-from-prometheus/
+description: Learn how to migrate from Prometheus to Grafana Agent Flow
 menuTitle: Migrate from Prometheus
 title: Migrate from Prometheus to Grafana Agent Flow
-description: Learn how to migrate from Prometheus to Grafana Agent Flow
 weight: 320
 ---
 

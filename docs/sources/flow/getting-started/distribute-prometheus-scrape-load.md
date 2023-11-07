@@ -4,9 +4,9 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/getting-started/distribute-prometheus-scrape-load/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/getting-started/distribute-prometheus-scrape-load/
 canonical: https://grafana.com/docs/agent/latest/flow/getting-started/distribute-prometheus-scrape-load/
+description: Learn how to distribute your Prometheus metrics scrape load
 menuTitle: Distribute Prometheus metrics scrape load
 title: Distribute Prometheus metrics scrape load
-description: Learn how to distribute your Prometheus metrics scrape load
 weight: 500
 ---
 

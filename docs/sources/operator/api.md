@@ -5,8 +5,8 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/agent/operator/api/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/operator/api/
 canonical: https://grafana.com/docs/agent/latest/operator/api/
-title: Custom Resource Definition Reference
 description: Learn about the Grafana Agent API
+title: Custom Resource Definition Reference
 weight: 500
 ---
 # Custom Resource Definition Reference

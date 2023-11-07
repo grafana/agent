@@ -5,8 +5,8 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/monitoring/controller_metrics/
 - controller-metrics/
 canonical: https://grafana.com/docs/agent/latest/flow/monitoring/controller_metrics/
-title: Controller metrics
 description: Learn about controller metrics
+title: Controller metrics
 weight: 100
 ---
 

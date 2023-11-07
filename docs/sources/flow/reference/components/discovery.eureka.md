@@ -4,8 +4,8 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/discovery.eureka/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/discovery.eureka/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.eureka/
-title: discovery.eureka
 description: Learn about discovery.eureka
+title: discovery.eureka
 ---
 
 # discovery.eureka

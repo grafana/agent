@@ -5,8 +5,8 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/stdlib/to_lower/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/stdlib/to_lower/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/stdlib/to_lower/
-title: to_lower
 description: Learn about to_lower
+title: to_lower
 ---
 
 # to_lower

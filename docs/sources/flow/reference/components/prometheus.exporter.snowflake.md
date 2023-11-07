@@ -4,8 +4,8 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/prometheus.exporter.snowflake/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/prometheus.exporter.snowflake/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.snowflake/
-title: prometheus.exporter.snowflake
 description: Learn about prometheus.exporter.snowflake
+title: prometheus.exporter.snowflake
 ---
 
 # prometheus.exporter.snowflake

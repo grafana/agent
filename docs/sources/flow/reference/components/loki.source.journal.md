@@ -4,8 +4,8 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/loki.source.journal/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/loki.source.journal/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/loki.source.journal/
-title: loki.source.journal
 description: Learn about loki.source.journal
+title: loki.source.journal
 ---
 
 # loki.source.journal

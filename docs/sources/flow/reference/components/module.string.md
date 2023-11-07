@@ -4,10 +4,10 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/module.string/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/module.string/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/module.string/
+description: Learn about module.string
 labels:
   stage: beta
 title: module.string
-description: Learn about module.string
 ---
 
 # module.string

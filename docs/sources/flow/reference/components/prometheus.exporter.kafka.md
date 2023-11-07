@@ -4,8 +4,8 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/prometheus.exporter.kafka/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/prometheus.exporter.kafka/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.kafka/
-title: prometheus.exporter.kafka
 description: Learn about prometheus.exporter.kafka
+title: prometheus.exporter.kafka
 ---
 
 # prometheus.exporter.kafka

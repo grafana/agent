@@ -4,10 +4,10 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/discovery.kubelet/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/discovery.kubelet/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.kubelet/
+description: Learn about discovery.kubelet
 labels:
   stage: beta
 title: discovery.kubelet
-description: Learn about discovery.kubelet
 ---
 
 # discovery.kubelet

@@ -5,9 +5,9 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/agent/about/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/about/
 canonical: https://grafana.com/docs/agent/latest/about/
+description: Grafana Agent is a flexible, performant, vendor-neutral, telemetry collector
 menuTitle: Introduction
 title: Introduction to Grafana Agent
-description: Grafana Agent is a flexible, performant, vendor-neutral, telemetry collector
 weight: 100
 ---
 

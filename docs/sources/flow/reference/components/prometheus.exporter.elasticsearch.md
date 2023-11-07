@@ -4,8 +4,8 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/prometheus.exporter.elasticsearch/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/prometheus.exporter.elasticsearch/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.elasticsearch/
-title: prometheus.exporter.elasticsearch
 description: Learn about prometheus.exporter.elasticsearch
+title: prometheus.exporter.elasticsearch
 ---
 
 # prometheus.exporter.elasticsearch

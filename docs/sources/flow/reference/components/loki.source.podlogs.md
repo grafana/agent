@@ -4,10 +4,10 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/loki.source.podlogs/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/loki.source.podlogs/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/loki.source.podlogs/
+description: Learn about loki.source.podlogs
 labels:
   stage: experimental
 title: loki.source.podlogs
-description: Learn about loki.source.podlogs
 ---
 
 # loki.source.podlogs

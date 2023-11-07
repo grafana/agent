@@ -4,10 +4,10 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/mimir.rules.kubernetes/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/mimir.rules.kubernetes/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/mimir.rules.kubernetes/
+description: Learn about mimir.rules.kubernetes
 labels:
   stage: beta
 title: mimir.rules.kubernetes
-description: Learn about mimir.rules.kubernetes
 ---
 
 # mimir.rules.kubernetes

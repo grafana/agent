@@ -2,8 +2,8 @@
 aliases:
 - ../configuration/
 canonical: https://grafana.com/docs/agent/latest/static/configuration/
-title: Configure static mode
 description: Learn how to configure Grafana Agent in static mode
+title: Configure static mode
 weight: 300
 ---
 

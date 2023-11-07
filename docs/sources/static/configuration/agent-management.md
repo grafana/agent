@@ -1,8 +1,9 @@
 ---
+aliases:
 canonical: https://grafana.com/docs/agent/latest/static/configuration/agent-management/
+description: Learn about Agent Management
 menuTitle: Agent Management
 title: Agent Management - Experimental
-description: Learn about Agent Management
 weight: 700
 ---
 

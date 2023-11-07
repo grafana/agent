@@ -4,8 +4,8 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/otelcol.receiver.kafka/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/otelcol.receiver.kafka/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.receiver.kafka/
-title: otelcol.receiver.kafka
 description: Learn about otelcol.receiver.kafka
+title: otelcol.receiver.kafka
 ---
 
 # otelcol.receiver.kafka

@@ -1,7 +1,8 @@
 ---
+aliases:
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.consulagent/
-title: discovery.consulagent
 description: Learn about discovery.consulagent
+title: discovery.consulagent
 ---
 
 # discovery.consulagent

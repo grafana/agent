@@ -5,8 +5,8 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/stdlib/coalesce/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/stdlib/coalesce/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/stdlib/coalesce/
-title: coalesce
 description: Learn about coalesce
+title: coalesce
 ---
 
 # coalesce

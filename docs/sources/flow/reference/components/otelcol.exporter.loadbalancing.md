@@ -4,10 +4,10 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/otelcol.exporter.loadbalancing/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/otelcol.exporter.loadbalancing/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.exporter.loadbalancing/
+description: Learn about otelcol.exporter.loadbalancing
 labels:
   stage: beta
 title: otelcol.exporter.loadbalancing
-description: Learn about otelcol.exporter.loadbalancing
 ---
 
 # otelcol.exporter.loadbalancing

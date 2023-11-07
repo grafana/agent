@@ -2,8 +2,8 @@
 aliases:
 - ../../../configuration/integrations/mongodb_exporter-config/
 canonical: https://grafana.com/docs/agent/latest/static/configuration/integrations/mongodb_exporter-config/
-title: mongodb_exporter_config
 description: Learn about mongodb_exporter_config
+title: mongodb_exporter_config
 ---
 
 # mongodb_exporter_config

@@ -1,7 +1,8 @@
 ---
+aliases:
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.serverset/
-title: discovery.serverset
 description: Learn about discovery.serverset
+title: discovery.serverset
 ---
 
 # discovery.serverset

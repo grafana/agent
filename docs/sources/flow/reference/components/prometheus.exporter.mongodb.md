@@ -4,8 +4,8 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/prometheus.exporter.mongodb/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/prometheus.exporter.mongodb/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.mongodb/
-title: prometheus.exporter.mongodb
 description: Learn about prometheus.exporter.mongodb
+title: prometheus.exporter.mongodb
 ---
 
 # prometheus.exporter.mongodb

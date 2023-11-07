@@ -2,8 +2,8 @@
 aliases:
 - ../../../configuration/integrations/squid-config/
 canonical: https://grafana.com/docs/agent/latest/static/configuration/integrations/squid-config/
-title: squid_config
 description: Learn about squid_config
+title: squid_config
 ---
 
 # squid_config

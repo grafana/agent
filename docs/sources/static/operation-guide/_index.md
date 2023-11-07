@@ -2,8 +2,8 @@
 aliases:
 - ../operation-guide/
 canonical: https://grafana.com/docs/agent/latest/static/operation-guide/
-title: Operation guide
 description: Learn how to operate Grafana Agent
+title: Operation guide
 weight: 700
 ---
 

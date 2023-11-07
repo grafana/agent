@@ -5,8 +5,8 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/concepts/modules/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/concepts/modules/
 canonical: https://grafana.com/docs/agent/latest/flow/concepts/modules/
-title: Modules
 description: Learn about modules
+title: Modules
 weight: 300
 ---
 

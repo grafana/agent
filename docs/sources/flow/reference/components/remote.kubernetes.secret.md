@@ -1,7 +1,8 @@
 ---
+aliases:
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/remote.kubernetes.secret/
-title: remote.kubernetes.secret
 description: Learn about remote.kubernetes.secret
+title: remote.kubernetes.secret
 ---
 
 # remote.kubernetes.secret

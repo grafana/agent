@@ -2,8 +2,8 @@
 aliases:
 - ../../../../configuration/integrations/integrations-next/snmp-config/
 canonical: https://grafana.com/docs/agent/latest/static/configuration/integrations/integrations-next/snmp-config/
-title: snmp config next
 description: Learn about snmp config next
+title: snmp config next
 ---
 
 # snmp config next

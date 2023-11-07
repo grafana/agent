@@ -2,9 +2,9 @@
 aliases:
 - ../../../../configuration/integrations/integrations-next/vsphere-config/
 canonical: https://grafana.com/docs/agent/latest/static/configuration/integrations/integrations-next/vsphere-config/
-title: vsphere config (beta) next
-menuTitle: vsphere_config next
 description: Learn about vsphere_config next
+menuTitle: vsphere_config next
+title: vsphere config (beta) next
 ---
 
 # vsphere config (beta) next

@@ -4,11 +4,9 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/cli/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/cli/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/cli/
-description: The Grafana Agent command line interface provides subcommands to perform
-  various operations.
+description: Learn about the Grafana Agent command line interface
 menuTitle: Command-line interface
 title: The Grafana Agent command-line interface
-description: Learn about the Grafana Agent command line interface
 weight: 100
 ---
 

@@ -4,8 +4,8 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/prometheus.exporter.apache/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/prometheus.exporter.apache/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.apache/
-title: prometheus.exporter.apache
 description: Learn about prometheus.exporter.apache
+title: prometheus.exporter.apache
 ---
 
 # prometheus.exporter.apache

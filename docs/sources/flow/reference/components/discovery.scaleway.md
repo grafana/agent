@@ -1,7 +1,8 @@
 ---
+aliases:
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.scaleway/
-title: discovery.scaleway
 description: Learn about discovery.scaleway
+title: discovery.scaleway
 ---
 
 # discovery.scaleway

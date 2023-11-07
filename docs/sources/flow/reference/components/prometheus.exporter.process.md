@@ -4,8 +4,8 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/prometheus.exporter.process/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/prometheus.exporter.process/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.process/
-title: prometheus.exporter.process
 description: Learn about prometheus.exporter.process
+title: prometheus.exporter.process
 ---
 
 # prometheus.exporter.process
