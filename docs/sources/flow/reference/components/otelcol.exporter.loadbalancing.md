@@ -141,7 +141,7 @@ Name | Type | Description | Default | Required
 
 ### k8s block
 
-The `k8s` block provides a way to load balance across the pods of a Kubernetes service. The Agent will be notified
+You can use the `k8s` block to load balance across the pods of a Kubernetes service. The Agent will be notified
 by the Kubernetes API whenever a new pod is added or removed from the service.
 
 The following arguments are supported:
