@@ -3,9 +3,10 @@ aliases:
 - /docs/grafana-cloud/agent/flow/reference/components/otelcol.auth.oauth2/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/otelcol.auth.oauth2/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/otelcol.auth.oauth2/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/otelcol.auth.oauth2/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.auth.oauth2/
-title: otelcol.auth.oauth2
 description: Learn about otelcol.auth.oauth2
+title: otelcol.auth.oauth2
 ---
 
 # otelcol.auth.oauth2

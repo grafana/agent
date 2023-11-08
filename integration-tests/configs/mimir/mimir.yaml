@@ -61,3 +61,4 @@ ruler_storage:
 limits:
   ingestion_burst_size: 500000
   ingestion_rate: 250000
+  native_histograms_ingestion_enabled: true

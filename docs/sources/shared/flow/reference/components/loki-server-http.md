@@ -4,6 +4,7 @@ aliases:
 - /docs/grafana-cloud/agent/shared/flow/reference/components/loki-server-http/
 - /docs/grafana-cloud/monitor-infrastructure/agent/shared/flow/reference/components/loki-server-http/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/shared/flow/reference/components/loki-server-http/
+- /docs/grafana-cloud/send-data/agent/shared/flow/reference/components/loki-server-http/
 canonical: https://grafana.com/docs/agent/latest/shared/flow/reference/components/loki-server-http/
 description: Shared content, loki server http
 headless: true

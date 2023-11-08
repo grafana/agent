@@ -2,10 +2,12 @@
 aliases:
 - ../../set-up/install-agent-on-windows/
 - ../set-up/install-agent-on-windows/
+- /docs/grafana-cloud/monitor-infrastructure/agent/static/set-up/install/install-agent-on-windows/
+- /docs/grafana-cloud/send-data/agent/static/set-up/install/install-agent-on-windows/
 canonical: https://grafana.com/docs/agent/latest/static/set-up/install/install-agent-on-windows/
+description: Learn how to install Grafana Agent in static mode on Windows
 menuTitle: Windows
 title: Install Grafana Agent in static mode on Windows
-description: Learn how to install Grafana Agent in static mode on Windows
 weight: 600
 ---
 

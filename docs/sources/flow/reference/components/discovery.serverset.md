@@ -1,7 +1,10 @@
 ---
+aliases:
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/discovery.serverset/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/discovery.serverset/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.serverset/
-title: discovery.serverset
 description: Learn about discovery.serverset
+title: discovery.serverset
 ---
 
 # discovery.serverset

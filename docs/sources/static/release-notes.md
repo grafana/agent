@@ -1,11 +1,13 @@
 ---
-canonical: https://grafana.com/docs/agent/latest/static/release-notes/
-description: Release notes for Grafana Agent static mode
-title: Release notes
-menuTitle: Release notes
 aliases:
 - ../upgrade-guide/
 - ./upgrade-guide/
+- /docs/grafana-cloud/monitor-infrastructure/agent/static/release-notes/
+- /docs/grafana-cloud/send-data/agent/static/release-notes/
+canonical: https://grafana.com/docs/agent/latest/static/release-notes/
+description: Release notes for Grafana Agent static mode
+menuTitle: Release notes
+title: Release notes
 weight: 999
 ---
 
