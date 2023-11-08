@@ -4,9 +4,10 @@ aliases:
 - /docs/grafana-cloud/agent/flow/reference/stdlib/json_decode/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/stdlib/json_decode/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/stdlib/json_decode/
+- /docs/grafana-cloud/send-data/agent/flow/reference/stdlib/json_decode/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/stdlib/json_decode/
-title: json_decode
 description: Learn about json_decode
+title: json_decode
 ---
 
 # json_decode

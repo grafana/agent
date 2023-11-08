@@ -3,9 +3,10 @@ aliases:
 - /docs/grafana-cloud/agent/flow/reference/components/otelcol.receiver.zipkin/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/otelcol.receiver.zipkin/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/otelcol.receiver.zipkin/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/otelcol.receiver.zipkin/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.receiver.zipkin/
-title: otelcol.receiver.zipkin
 description: Learn about otelcol.receiver.zipkin
+title: otelcol.receiver.zipkin
 ---
 
 # otelcol.receiver.zipkin

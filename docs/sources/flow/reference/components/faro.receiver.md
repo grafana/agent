@@ -3,9 +3,10 @@ aliases:
 - /docs/grafana-cloud/agent/flow/reference/components/faro.receiver/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/faro.receiver/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/faro.receiver/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/faro.receiver/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/faro.receiver/
-title: faro.receiver
 description: Learn about the faro.receiver
+title: faro.receiver
 ---
 
 # faro.receiver

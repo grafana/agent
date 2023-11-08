@@ -3,9 +3,10 @@ aliases:
 - /docs/grafana-cloud/agent/flow/reference/components/otelcol.exporter.logging/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/otelcol.exporter.logging/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/otelcol.exporter.logging/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/otelcol.exporter.logging/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.exporter.logging/
-title: otelcol.exporter.logging
 description: Learn about otelcol.exporter.logging
+title: otelcol.exporter.logging
 ---
 
 # otelcol.exporter.logging
