@@ -674,7 +674,7 @@ replace (
 // prometheus/prometheus#12677 and prometheus/prometheus#12729.
 // We use the last v1-related tag as the replace statement does not work for v2
 // tags without the v2 suffix to the module root.
-replace github.com/prometheus/prometheus => github.com/grafana/prometheus v1.8.2-0.20231016083943-46550094220d // grafana:prometheus:v0.47.2-retry-improvements
+replace github.com/prometheus/prometheus => github.com/grafana/prometheus v1.8.2-0.20231108135939-35e57ae4c926 // grafana:prometheus:krajo/debug-failing-remotewrite
 
 replace gopkg.in/yaml.v2 => github.com/rfratto/go-yaml v0.0.0-20211119180816-77389c3526dc
 
@@ -703,6 +703,8 @@ replace (
 	// and eventually remove if windows_exporter shifts to it. https://github.com/leoluk/perflib_exporter/pull/43
 	github.com/leoluk/perflib_exporter => github.com/grafana/perflib_exporter v0.1.1-0.20230511173423-6166026bd090
 
+	github.com/prometheus-community/postgres_exporter => github.com/grafana/postgres_exporter v0.8.1-0.20210722175051-db35d7c2f520
+
 	// TODO(mattdurham): this is to allow defaults to propogate properly: https://github.com/prometheus-community/windows_exporter/pull/1227
 	github.com/prometheus-community/windows_exporter => github.com/grafana/windows_exporter v0.15.1-0.20230612134738-fdb3ba7accd8
 
@@ -711,8 +713,6 @@ replace (
 
 	// TODO(marctc, mattdurham): Replace node_export with custom fork for multi usage. https://github.com/prometheus/node_exporter/pull/2812
 	github.com/prometheus/node_exporter => github.com/grafana/node_exporter v0.18.1-grafana-r01.0.20231004161416-702318429731
-
-	github.com/prometheus-community/postgres_exporter => github.com/grafana/postgres_exporter v0.8.1-0.20210722175051-db35d7c2f520
 )
 
 // Excluding fixes a conflict in test packages and allows "go mod tidy" to run.
