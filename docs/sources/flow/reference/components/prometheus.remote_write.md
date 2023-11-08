@@ -365,14 +365,13 @@ prometheus.scrape "demo" {
 
 ### Send metrics to a Mimir instance with a tenant specified
 
-You can create a `prometheus.remote_write` component that sends your metrics to a specific tenant within the Mimir instance. It is useful when
-your Mimir instance is using more than one tenant:
+You can create a `prometheus.remote_write` component that sends your metrics to a specific tenant within the Mimir instance. It is useful when your Mimir instance is using more than one tenant:
 
 ```river
 prometheus.remote_write "staging" {
-  // Send metrics to a Mimir running within your kubernetes cluster, as an example.
+  // Send metrics to a Mimir instance
   endpoint {
-    url = "http://mimir-gateway.mimir.svc.cluster.local/api/v1/push"
+    url = "http://mimir:9009/api/v1/push"
 
     headers = {
       "X-Scope-OrgID" = "staging"
