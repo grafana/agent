@@ -156,7 +156,7 @@ prometheus.remote_write "default" {
   endpoint {
     url = remote.kubernetes.configmap.endpoint.data["url"]
     basic_auth {
-      username = remote.kubernetes.configmap.endpoint.data["username"]
+      username = nonsensitive(remote.kubernetes.configmap.endpoint.data["username"])
       password = remote.kubernetes.secret.credentials.data["password"]
     }
   }
