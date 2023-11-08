@@ -3,9 +3,10 @@ aliases:
 - /docs/grafana-cloud/agent/flow/reference/components/prometheus.exporter.consul/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/prometheus.exporter.consul/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/prometheus.exporter.consul/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/prometheus.exporter.consul/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.consul/
-title: prometheus.exporter.consul
 description: Learn about prometheus.exporter.consul
+title: prometheus.exporter.consul
 ---
 
 # prometheus.exporter.consul

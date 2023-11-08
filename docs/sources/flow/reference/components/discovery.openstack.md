@@ -3,9 +3,10 @@ aliases:
 - /docs/grafana-cloud/agent/flow/reference/components/discovery.openstack/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/discovery.openstack/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/discovery.openstack/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/discovery.openstack/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.openstack/
-title: discovery.openstack
 description: Learn about discovery.openstack
+title: discovery.openstack
 ---
 
 # discovery.openstack

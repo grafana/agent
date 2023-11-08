@@ -3,10 +3,11 @@ aliases:
 - /docs/grafana-cloud/agent/flow/reference/config-blocks/tracing/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/config-blocks/tracing/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/config-blocks/tracing/
+- /docs/grafana-cloud/send-data/agent/flow/reference/config-blocks/tracing/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/config-blocks/tracing/
-title: tracing block
-menuTitle: tracing
 description: Learn about the tracing configuration block
+menuTitle: tracing
+title: tracing block
 ---
 
 # tracing block

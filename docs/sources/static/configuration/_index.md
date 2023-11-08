@@ -1,9 +1,11 @@
 ---
 aliases:
 - ../configuration/
+- /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/
+- /docs/grafana-cloud/send-data/agent/static/configuration/
 canonical: https://grafana.com/docs/agent/latest/static/configuration/
-title: Configure static mode
 description: Learn how to configure Grafana Agent in static mode
+title: Configure static mode
 weight: 300
 ---
 

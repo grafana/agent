@@ -3,9 +3,10 @@ aliases:
 - /docs/grafana-cloud/agent/flow/reference/components/discovery.puppetdb/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/discovery.puppetdb/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/discovery.puppetdb/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/discovery.puppetdb/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.puppetdb/
-title: discovery.puppetdb
 description: Learn about discovery.puppetdb
+title: discovery.puppetdb
 ---
 
 # discovery.puppetdb

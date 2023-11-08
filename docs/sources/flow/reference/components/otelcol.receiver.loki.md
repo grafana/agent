@@ -3,11 +3,12 @@ aliases:
 - /docs/grafana-cloud/agent/flow/reference/components/otelcol.receiver.loki/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/otelcol.receiver.loki/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/otelcol.receiver.loki/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/otelcol.receiver.loki/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.receiver.loki/
+description: Learn about otelcol.receiver.loki
 labels:
   stage: beta
 title: otelcol.receiver.loki
-description: Learn about otelcol.receiver.loki
 ---
 
 # otelcol.receiver.loki

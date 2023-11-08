@@ -4,6 +4,7 @@ aliases:
 - /docs/grafana-cloud/agent/shared/flow/reference/components/loki-server-grpc/
 - /docs/grafana-cloud/monitor-infrastructure/agent/shared/flow/reference/components/loki-server-grpc/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/shared/flow/reference/components/loki-server-grpc/
+- /docs/grafana-cloud/send-data/agent/shared/flow/reference/components/loki-server-grpc/
 canonical: https://grafana.com/docs/agent/latest/shared/flow/reference/components/loki-server-grpc/
 description: Shared content, loki server grpc
 headless: true

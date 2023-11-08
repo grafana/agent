@@ -1,9 +1,11 @@
 ---
 aliases:
 - ../../../configuration/integrations/mssql-config/
+- /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/integrations/mssql-config/
+- /docs/grafana-cloud/send-data/agent/static/configuration/integrations/mssql-config/
 canonical: https://grafana.com/docs/agent/latest/static/configuration/integrations/mssql-config/
-title: mssql_config
 description: Learn about mssql_config
+title: mssql_config
 ---
 
 # mssql_config

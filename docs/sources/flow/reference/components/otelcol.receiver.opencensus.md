@@ -3,9 +3,10 @@ aliases:
 - /docs/grafana-cloud/agent/flow/reference/components/otelcol.receiver.opencensus/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/otelcol.receiver.opencensus/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/otelcol.receiver.opencensus/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/otelcol.receiver.opencensus/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.receiver.opencensus/
-title: otelcol.receiver.opencensus
 description: Learn about otelcol.receiver.opencensus
+title: otelcol.receiver.opencensus
 ---
 
 # otelcol.receiver.opencensus

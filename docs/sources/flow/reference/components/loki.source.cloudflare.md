@@ -3,9 +3,10 @@ aliases:
 - /docs/grafana-cloud/agent/flow/reference/components/loki.source.cloudflare/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/loki.source.cloudflare/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/loki.source.cloudflare/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/loki.source.cloudflare/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/loki.source.cloudflare/
-title: loki.source.cloudflare
 description: Learn about loki.source.cloudflare
+title: loki.source.cloudflare
 ---
 
 # loki.source.cloudflare

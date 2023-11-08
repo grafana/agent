@@ -35,7 +35,9 @@ import (
 	v2 "github.com/grafana/agent/pkg/integrations/v2"
 	agent_exporter_v2 "github.com/grafana/agent/pkg/integrations/v2/agent"
 	apache_exporter_v2 "github.com/grafana/agent/pkg/integrations/v2/apache_http"
+	blackbox_exporter_v2 "github.com/grafana/agent/pkg/integrations/v2/blackbox_exporter"
 	"github.com/grafana/agent/pkg/integrations/v2/metricsutils"
+	snmp_exporter_v2 "github.com/grafana/agent/pkg/integrations/v2/snmp_exporter"
 	"github.com/grafana/agent/pkg/integrations/windows_exporter"
 	"github.com/grafana/agent/pkg/logs"
 	"github.com/grafana/agent/pkg/metrics"
@@ -164,9 +166,32 @@ func validateIntegrationsV2(integrationsConfig *v2.SubsystemOptions) diag.Diagno
 		switch itg := integration.(type) {
 		case *agent_exporter_v2.Config:
 		case *apache_exporter_v2.Config:
+		case *blackbox_exporter_v2.Config:
+		case *snmp_exporter_v2.Config:
 		case *metricsutils.ConfigShim:
 			switch v1_itg := itg.Orig.(type) {
 			case *azure_exporter.Config:
+			case *cadvisor.Config:
+			case *cloudwatch_exporter.Config:
+			case *consul_exporter.Config:
+			case *dnsmasq_exporter.Config:
+			case *elasticsearch_exporter.Config:
+			case *gcp_exporter.Config:
+			case *github_exporter.Config:
+			case *kafka_exporter.Config:
+			case *memcached_exporter.Config:
+			case *mongodb_exporter.Config:
+			case *mssql_exporter.Config:
+			case *mysqld_exporter.Config:
+			case *node_exporter.Config:
+			case *oracledb_exporter.Config:
+			case *postgres_exporter.Config:
+			case *process_exporter.Config:
+			case *redis_exporter.Config:
+			case *snowflake_exporter.Config:
+			case *squid_exporter.Config:
+			case *statsd_exporter.Config:
+			case *windows_exporter.Config:
 			default:
 				diags.Add(diag.SeverityLevelError, fmt.Sprintf("The converter does not support converting the provided %s integration.", v1_itg.Name()))
 			}

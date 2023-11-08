@@ -1,7 +1,10 @@
 ---
+aliases:
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/remote.kubernetes.secret/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/remote.kubernetes.secret/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/remote.kubernetes.secret/
-title: remote.kubernetes.secret
 description: Learn about remote.kubernetes.secret
+title: remote.kubernetes.secret
 ---
 
 # remote.kubernetes.secret
@@ -156,7 +159,7 @@ prometheus.remote_write "default" {
   endpoint {
     url = remote.kubernetes.configmap.endpoint.data["url"]
     basic_auth {
-      username = remote.kubernetes.configmap.endpoint.data["username"]
+      username = nonsensitive(remote.kubernetes.configmap.endpoint.data["username"])
       password = remote.kubernetes.secret.credentials.data["password"]
     }
   }

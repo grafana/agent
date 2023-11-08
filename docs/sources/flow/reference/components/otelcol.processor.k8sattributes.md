@@ -3,9 +3,10 @@ aliases:
 - /docs/grafana-cloud/agent/flow/reference/components/otelcol.processor.k8sattributes/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/otelcol.processor.k8sattributes/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/otelcol.processor.k8sattributes/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/otelcol.processor.k8sattributes/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.processor.k8sattributes/
-title: otelcol.processor.k8sattributes
 description: Learn about otelcol.processor.k8sattributes
+title: otelcol.processor.k8sattributes
 ---
 
 # otelcol.processor.k8sattributes

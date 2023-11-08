@@ -1,9 +1,11 @@
 ---
 aliases:
 - ../../../configuration/integrations/squid-config/
+- /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/integrations/squid-config/
+- /docs/grafana-cloud/send-data/agent/static/configuration/integrations/squid-config/
 canonical: https://grafana.com/docs/agent/latest/static/configuration/integrations/squid-config/
-title: squid_config
 description: Learn about squid_config
+title: squid_config
 ---
 
 # squid_config

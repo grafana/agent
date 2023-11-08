@@ -2,9 +2,11 @@
 aliases:
 - ../../configuration/tempo-config/
 - ../../configuration/traces-config/
+- /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/traces-config/
+- /docs/grafana-cloud/send-data/agent/static/configuration/traces-config/
 canonical: https://grafana.com/docs/agent/latest/static/configuration/traces-config/
-title: traces_config
 description: Learn about traces_config
+title: traces_config
 weight: 400
 ---
 

@@ -1,24 +1,14 @@
 package build
 
 import (
-	"fmt"
-
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/prometheus/exporter/consul"
-	"github.com/grafana/agent/converter/internal/common"
 	"github.com/grafana/agent/pkg/integrations/consul_exporter"
 )
 
-func (b *IntegrationsConfigBuilder) appendConsulExporter(config *consul_exporter.Config) discovery.Exports {
+func (b *IntegrationsConfigBuilder) appendConsulExporter(config *consul_exporter.Config, instanceKey *string) discovery.Exports {
 	args := toConsulExporter(config)
-	compLabel := common.LabelForParts(b.globalCtx.LabelPrefix, config.Name())
-	b.f.Body().AppendBlock(common.NewBlockWithOverride(
-		[]string{"prometheus", "exporter", "consul"},
-		compLabel,
-		args,
-	))
-
-	return common.NewDiscoveryExports(fmt.Sprintf("prometheus.exporter.consul.%s.targets", compLabel))
+	return b.appendExporterBlock(args, config.Name(), instanceKey, "consul")
 }
 
 func toConsulExporter(config *consul_exporter.Config) *consul.Arguments {
