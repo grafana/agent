@@ -179,7 +179,7 @@ require (
 	go.opentelemetry.io/collector/config/confighttp v0.87.0
 	go.opentelemetry.io/collector/config/confignet v0.87.0
 	go.opentelemetry.io/collector/config/configopaque v0.87.0
-	go.opentelemetry.io/collector/config/configtelemetry v0.87.0
+	go.opentelemetry.io/collector/config/configtelemetry v0.88.0
 	go.opentelemetry.io/collector/config/configtls v0.87.0
 	go.opentelemetry.io/collector/confmap v0.87.0
 	go.opentelemetry.io/collector/connector v0.87.0
