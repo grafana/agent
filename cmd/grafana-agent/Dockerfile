@@ -32,6 +32,8 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
 
 FROM ubuntu:lunar
 
+EXPOSE 9091
+
 LABEL org.opencontainers.image.source="https://github.com/grafana/agent"
 
 # Install dependencies needed at runtime.
