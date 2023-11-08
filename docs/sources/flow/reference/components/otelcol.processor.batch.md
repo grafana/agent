@@ -61,9 +61,9 @@ following events happens:
 * The number of spans, log lines, or metric samples processed is greater than 
   or equal to the number specified by `send_batch_size`.
 
-Note that logs, traces, and metrics are processed independently.
+Logs, traces, and metrics are processed independently.
 For example, if `send_batch_size` is set to `1000`:
-* In this case the processor may at the same time buffer 1,000 spans, 
+* The processor may, at the same time, buffer 1,000 spans, 
   1,000 log lines, and 1,000 metric samples before flushing them.
 * If there are enough spans for a batch of spans (1,000 or more), but not enough for a 
   batch of metric samples (less than 1,000) then only the spans will be flushed.
@@ -71,7 +71,7 @@ For example, if `send_batch_size` is set to `1000`:
 Use `send_batch_max_size` to limit the amount of data contained in a single batch:
 * When set to `0`, batches can be any size.
 * When set to a non-zero value, `send_batch_max_size` must be greater than or equal to `send_batch_size`.
-  Every batch will contain up `send_batch_max_size` number of spans, log lines, or metric samples.
+  Every batch will contain up to the `send_batch_max_size` number of spans, log lines, or metric samples.
   The excess spans, log lines, or metric samples will not be lost - instead, they will be added to
   the next batch.
 
