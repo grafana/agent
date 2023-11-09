@@ -14,8 +14,7 @@ weight: 100
 
 # Introduction to Grafana Agent
 
-Grafana Agent is a flexible, high performance, vendor-neutral telemetry collector. It's fully compatible with the most popular
-open source observability standards such as OpenTelemetry (OTel) and Prometheus.
+Grafana Agent is a flexible, high performance, vendor-neutral telemetry collector. It's fully compatible with the most popular open source observability standards such as OpenTelemetry (OTel) and Prometheus.
 
 Grafana Agent is available in three different variants:
 
