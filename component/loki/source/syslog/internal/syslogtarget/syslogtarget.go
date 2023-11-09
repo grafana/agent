@@ -100,10 +100,15 @@ func NewSyslogTarget(
 	return t, nil
 }
 
-func (t *SyslogTarget) handleMessageError(err error) {
+func (t *SyslogTarget) handleMessageError(err error, partialMessage syslog.Message, connLabels labels.Labels) {
 	var ne net.Error
 	if errors.As(err, &ne) && ne.Timeout() {
 		level.Debug(t.logger).Log("msg", "connection timed out", "err", ne)
+		return
+	}
+	if partialMessage != nil {
+		level.Debug(t.logger).Log("msg", "best-effort recovered error parsing syslog stream", "err", err, "msg", partialMessage)
+		t.handleMessage(connLabels, partialMessage)
 		return
 	}
 	level.Warn(t.logger).Log("msg", "error parsing syslog stream", "err", err)

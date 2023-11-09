@@ -44,7 +44,7 @@ type Transport interface {
 }
 
 type handleMessage func(labels.Labels, syslog.Message)
-type handleMessageError func(error)
+type handleMessageError func(error, syslog.Message, labels.Labels)
 
 type baseTransport struct {
 	config *scrapeconfig.SyslogTargetConfig
@@ -324,7 +324,7 @@ func (t *TCPTransport) handleConnection(cn net.Conn) {
 
 	err := syslogparser.ParseStream(c, func(result *syslog.Result) {
 		if err := result.Error; err != nil {
-			t.handleMessageError(err)
+			t.handleMessageError(err, result.Message, lbs.Copy())
 			return
 		}
 		t.handleMessage(lbs.Copy(), result.Message)
@@ -448,7 +448,7 @@ func (t *UDPTransport) handleRcv(c *ConnPipe) {
 
 		err = syslogparser.ParseStream(r, func(result *syslog.Result) {
 			if err := result.Error; err != nil {
-				t.handleMessageError(err)
+				t.handleMessageError(err, result.Message, lbs.Copy())
 			} else {
 				t.handleMessage(lbs.Copy(), result.Message)
 			}
