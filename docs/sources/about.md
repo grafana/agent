@@ -57,8 +57,8 @@ Grafana Agent is available in three different variants:
 
 ### Static mode
 
-[Static mode][] is the original variant of Grafana Agent, introduced on
-March 3, 2020. Static mode is the most mature variant of Grafana Agent.
+[Static mode][] is the original variant of Grafana Agent, introduced on March 3, 2020.
+Static mode is the most mature variant of Grafana Agent.
 
 You should run Static mode when:
 
@@ -68,12 +68,10 @@ You should run Static mode when:
 
 ### Static mode Kubernetes operator
 
-The [Static mode Kubernetes operator][] is a variant of Grafana Agent first
-introduced on June 17, 2021. It is currently in beta.
+The [Static mode Kubernetes operator][] is a variant of Grafana Agent introduced on June 17, 2021. It's currently in beta.
 
-The Static mode Kubernetes operator was introduced for compatibility with
-Prometheus Operator, allowing static mode to support resources from Prometheus
-Operator, such as ServiceMonitors, PodMonitors, and Probes.
+The Static mode Kubernetes operator provides compatibility with Prometheus Operator,
+allowing static mode to support resources from Prometheus Operator, such as ServiceMonitors, PodMonitors, and Probes.
 
 You should run the Static mode Kubernetes operator when:
 
@@ -83,58 +81,51 @@ You should run the Static mode Kubernetes operator when:
 
 ### Flow mode
 
-[Flow mode][] is a stable variant of Grafana Agent, introduced on
-September 29, 2022.
+[Flow mode][] is a stable variant of Grafana Agent, introduced on September 29, 2022.
 
 Grafana Agent Flow mode focuses on vendor neutrality, ease-of-use,
-improved debuggability, and ability to adapt to the needs of power
-users by adopting a configuration-as-code model.
+improved debugging, and ability to adapt to the needs of power users by adopting a configuration-as-code model.
 
 You should run Flow mode when:
 
 * You need functionality unique to Flow mode:
 
-  * **Debuggability**: You need to more easily debug configuration issues using
-    a UI.
+  * **Improved debugging**: You need to more easily debug configuration issues using a UI.
 
-  * **Full OpenTelemetry support**: Support for collecting OpenTelemetry
-    metrics, logs, and traces.
+  * **Full OpenTelemetry support**: Support for collecting OpenTelemetry metrics, logs, and traces.
 
-  * **PrometheusRule support**: Support for the PrometheusRule resource from
-    the Prometheus Operator project for configuring Grafana Mimir.
+  * **PrometheusRule support**: Support for the PrometheusRule resource from the Prometheus Operator project for configuring Grafana Mimir.
 
-  * **Ecosystem transformation**: You need to be able to convert Prometheus and
-    Loki pipelines to and from OpenTelmetry Collector pipelines.
+  * **Ecosystem transformation**: You need to be able to convert Prometheus and Loki pipelines to and from OpenTelmetry Collector pipelines.
 
-  * **Grafana Pyroscope support**: Support for collecting profiles for Grafana
-    Pyroscope.
+  * **Grafana Pyroscope support**: Support for collecting profiles for Grafana Pyroscope.
 
 #### Core telemetry
 
-|  |  Prometheus Agent mode | Grafana Agent Static mode | Grafana Agent Operator | OpenTelemetry Collector | Grafana Agent Flow mode |
-| -- | -- | -- | -- | -- | -- |
-| **Metrics**  | Prometheus | Prometheus | Prometheus | OTel | [Prometheus][], [OTel][] |
-| **Logs**     | No | Loki | Loki | OTel | [Loki][], [OTel][] |
-| **Traces**   | No | OTel | OTel | OTel | [OTel][] |
-| **Profiles** | No | No | No | No | Pyroscope |
+|              | Prometheus Agent mode | Grafana Agent Static mode | Grafana Agent Operator | OpenTelemetry Collector | Grafana Agent Flow mode  |
+|--------------|-----------------------|---------------------------|------------------------|-------------------------|--------------------------|
+| **Metrics**  | Prometheus            | Prometheus                | Prometheus             | OTel                    | [Prometheus][], [OTel][] |
+| **Logs**     | No                    | Loki                      | Loki                   | OTel                    | [Loki][], [OTel][]       |
+| **Traces**   | No                    | OTel                      | OTel                   | OTel                    | [OTel][]                 |
+| **Profiles** | No                    | No                        | No                     | No                      | Pyroscope                |
 
 #### **OSS features**
 
-|  |  Prometheus Agent mode | Grafana Agent Static mode | Grafana Agent Operator | OpenTelemetry Collector | Grafana Agent Flow mode |
-| -- | -- | -- | -- | -- | -- |
-| **Kubernetes native** | No | No | Yes | Yes | Yes |
-| **Clustering** | No | No | No| No | No |
-| **Prometheus rules** | No | No | No | No | Yes |
-| **Native Vault support** | No | No | No | No | Yes |
+|                          | Prometheus Agent mode | Grafana Agent Static mode | Grafana Agent Operator | OpenTelemetry Collector | Grafana Agent Flow mode |
+|--------------------------|-----------------------|---------------------------|------------------------|-------------------------|-------------------------|
+| **Kubernetes native**    | No                    | No                        | Yes                    | Yes                     | Yes                     |
+| **Clustering**           | No                    | No                        | No                     | No                      | No                      |
+| **Prometheus rules**     | No                    | No                        | No                     | No                      | Yes                     |
+| **Native Vault support** | No                    | No                        | No                     | No                      | Yes                     |
 
 #### Grafana Cloud solutions
 
-|  |  Prometheus Agent mode | Grafana Agent Static mode | Grafana Agent Operator | OpenTelemetry Collector | Grafana Agent Flow mode |
-| -- | -- | -- | -- | -- | -- |
-| **Official vendor support**  | No | Yes | Yes | No | Yes |
-| **Cloud integrations** | No | Yes | Some | No | Some |
-| **Kubernetes monitoring** | Yes, custom | Yes, custom | Yes | No | Yes |
-| **Application observability** | No | No | No | Yes | Yes |
+|                               | Prometheus Agent mode | Grafana Agent Static mode | Grafana Agent Operator | OpenTelemetry Collector | Grafana Agent Flow mode |
+|-------------------------------|-----------------------|---------------------------|------------------------|-------------------------|-------------------------|
+| **Official vendor support**   | No                    | Yes                       | Yes                    | No                      | Yes                     |
+| **Cloud integrations**        | No                    | Yes                       | Some                   | No                      | Some                    |
+| **Kubernetes monitoring**     | Yes, custom           | Yes, custom               | Yes                    | No                      | Yes                     |
+| **Application observability** | No                    | No                        | No                     | Yes                     | Yes                     |
 
 
 ### BoringCrypto
