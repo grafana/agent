@@ -337,6 +337,24 @@ prometheus.scrape "demo" {
 }
 ```
 
+
+### Send metrics to a Mimir instance with a tenant specified
+
+You can create a `prometheus.remote_write` component that sends your metrics to a specific tenant within the Mimir instance. This is useful when your Mimir instance is using more than one tenant:
+
+```river
+prometheus.remote_write "staging" {
+  // Send metrics to a Mimir instance
+  endpoint {
+    url = "http://mimir:9009/api/v1/push"
+
+    headers = {
+      "X-Scope-OrgID" = "staging"
+    }
+  }
+}
+```
+
 ### Send metrics to a managed service
 
 You can create a `prometheus.remote_write` component that sends your metrics to a managed service, for example, Grafana Cloud. The Prometheus username and the Grafana Cloud API Key are injected in this example through environment variables.
