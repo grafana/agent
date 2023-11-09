@@ -15,7 +15,7 @@ var (
 func EncodeMarkerV1(segment uint64) ([]byte, error) {
 	// marker format v1
 	// marker [ 0 , 1 ] - HEADER, which is used to track version
-	// marker [ 2 , 9 ] - encoded unit 64 which is the content of the marker, the last "consumed" segment
+	// marker [ 2 , 9 ] - encoded uint64 which is the content of the marker, the last "consumed" segment
 	// marker [ 10, 13 ] - CRC32 of the first 10 bytes of the marker, using IEEE polynomial
 	bs := make([]byte, 14)
 	// write header with marker format version

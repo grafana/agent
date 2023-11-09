@@ -4,6 +4,7 @@ aliases:
 - /docs/grafana-cloud/agent/shared/wal-data-retention/
 - /docs/grafana-cloud/monitor-infrastructure/agent/shared/wal-data-retention/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/shared/wal-data-retention/
+- /docs/grafana-cloud/send-data/agent/shared/wal-data-retention/
 canonical: https://grafana.com/docs/agent/latest/shared/wal-data-retention/
 description: Shared content, information about data retention in the WAL
 headless: true

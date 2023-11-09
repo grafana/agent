@@ -3,9 +3,10 @@ aliases:
 - /docs/grafana-cloud/agent/flow/reference/components/prometheus.scrape/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/prometheus.scrape/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/prometheus.scrape/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/prometheus.scrape/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.scrape/
-title: prometheus.scrape
 description: Learn about prometheus.scrape
+title: prometheus.scrape
 ---
 
 # prometheus.scrape

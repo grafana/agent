@@ -3,11 +3,12 @@ aliases:
 - /docs/grafana-cloud/agent/flow/reference/components/pyroscope.write/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/pyroscope.write/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/pyroscope.write/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/pyroscope.write/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/pyroscope.write/
+description: Learn about pyroscope.write
 labels:
   stage: beta
 title: pyroscope.write
-description: Learn about pyroscope.write
 ---
 
 # pyroscope.write

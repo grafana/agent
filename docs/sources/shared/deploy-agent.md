@@ -4,10 +4,11 @@ aliases:
 - /docs/grafana-cloud/agent/shared/deploy-agent/
 - /docs/grafana-cloud/monitor-infrastructure/agent/shared/deploy-agent/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/shared/deploy-agent/
+- /docs/grafana-cloud/send-data/agent/shared/deploy-agent/
 canonical: https://grafana.com/docs/agent/latest/shared/deploy-agent/
 description: Shared content, deployment topologies for Grafana Agent
-title: Deploy Grafana Agent
 headless: true
+title: Deploy Grafana Agent
 ---
 
 # Deploy Grafana Agent

@@ -3,11 +3,11 @@ aliases:
 - /docs/grafana-cloud/agent/flow/reference/cli/fmt/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/cli/fmt/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/cli/fmt/
+- /docs/grafana-cloud/send-data/agent/flow/reference/cli/fmt/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/cli/fmt/
-description: The `fmt` command formats a Grafana Agent configuration file.
+description: Learn about the fmt command
 menuTitle: fmt
 title: The fmt command
-description: Learn about the fmt command
 weight: 200
 ---
 

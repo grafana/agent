@@ -3,11 +3,12 @@ aliases:
 - /docs/grafana-cloud/agent/flow/reference/components/otelcol.connector.spanmetrics/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/otelcol.connector.spanmetrics/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/otelcol.connector.spanmetrics/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/otelcol.connector.spanmetrics/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.connector.spanmetrics/
+description: Learn about otelcol.connector.spanmetrics
 labels:
   stage: experimental
 title: otelcol.connector.spanmetrics
-description: Learn about otelcol.connector.spanmetrics
 ---
 
 # otelcol.connector.spanmetrics

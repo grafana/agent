@@ -119,11 +119,14 @@ func (c *Component) Run(ctx context.Context) error {
 		case <-ctx.Done():
 			return nil
 		case entry := <-c.receiver.Chan():
+			c.mut.RLock()
 			select {
 			case <-ctx.Done():
+				c.mut.RUnlock()
 				return nil
 			case c.sink.Chan() <- entry:
 			}
+			c.mut.RUnlock()
 		}
 	}
 }

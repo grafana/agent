@@ -3,9 +3,10 @@ aliases:
 - /docs/grafana-cloud/agent/flow/reference/components/otelcol.processor.batch/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/otelcol.processor.batch/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/otelcol.processor.batch/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/otelcol.processor.batch/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.processor.batch/
-title: otelcol.processor.batch
 description: Learn about otelcol.processor.batch
+title: otelcol.processor.batch
 ---
 
 # otelcol.processor.batch
@@ -58,18 +59,30 @@ following events happens:
 * The duration specified by `timeout` elapses since the time the last batch was
   sent.
 
-* The number of spans, log lines, or metric samples processed exceeds the
-  number specified by `send_batch_size`.
+* The number of spans, log lines, or metric samples processed is greater than 
+  or equal to the number specified by `send_batch_size`.
 
-Use `send_batch_max_size` to limit the amount of data contained in a single
-batch. When set to `0`, batches can be any size.
+Logs, traces, and metrics are processed independently.
+For example, if `send_batch_size` is set to `1000`:
+* The processor may, at the same time, buffer 1,000 spans, 
+  1,000 log lines, and 1,000 metric samples before flushing them.
+* If there are enough spans for a batch of spans (1,000 or more), but not enough for a 
+  batch of metric samples (less than 1,000) then only the spans will be flushed.
+
+Use `send_batch_max_size` to limit the amount of data contained in a single batch:
+* When set to `0`, batches can be any size.
+* When set to a non-zero value, `send_batch_max_size` must be greater than or equal to `send_batch_size`.
+  Every batch will contain up to the `send_batch_max_size` number of spans, log lines, or metric samples.
+  The excess spans, log lines, or metric samples will not be lost - instead, they will be added to
+  the next batch.
 
 For example, assume `send_batch_size` is set to the default `8192` and there
-are currently 8000 batched spans. If the batch processor receives 8000 more
-spans at once, the total batch size would be 16,192 which would then be flushed
-as a single batch. `send_batch_max_size` constrains how big a batch can get.
-When set to a non-zero value, `send_batch_max_size` must be greater or equal to
-`send_batch_size`.
+are currently 8,000 batched spans. If the batch processor receives 8,000 more
+spans at once, its behavior depends on how `send_batch_max_size` is configured:
+* If `send_batch_max_size` is set to `0`, the total batch size would be 16,000 
+  which would then be flushed as a single batch. 
+* If `send_batch_max_size` is set to `10000`, then the total batch size will be 
+  10,000 and the remaining 6,000 spans will be flushed in a subsequent batch.
 
 `metadata_cardinality_limit` applies for the lifetime of the process.
 
@@ -136,6 +149,30 @@ This example batches telemetry data before sending it to
 
 ```river
 otelcol.processor.batch "default" {
+  output {
+    metrics = [otelcol.exporter.otlp.production.input]
+    logs    = [otelcol.exporter.otlp.production.input]
+    traces  = [otelcol.exporter.otlp.production.input]
+  }
+}
+
+otelcol.exporter.otlp "production" {
+  client {
+    endpoint = env("OTLP_SERVER_ENDPOINT")
+  }
+}
+```
+
+### Batching with a timeout
+
+This example will buffer up to 10,000 spans, metric data points, or log records for up to 10 seconds.
+Because `send_batch_max_size` is not set, the batch size may exceed 10,000.
+
+```river
+otelcol.processor.batch "default" {
+  timeout = "10s"
+  send_batch_size = 10000
+
   output {
     metrics = [otelcol.exporter.otlp.production.input]
     logs    = [otelcol.exporter.otlp.production.input]
