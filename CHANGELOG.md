@@ -97,6 +97,8 @@ Main (unreleased)
 
 - Added support for replaying not sent data for `loki.write` when WAL is enabled. (@thepalbi)
 
+- Added support for unicode strings in `pyroscope.ebpf` python profiles. (@korniltsev)
+
 ### Bugfixes
 
 - Fixed an issue where `loki.process` validation for stage `metric.counter` was
