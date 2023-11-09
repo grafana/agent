@@ -3,9 +3,10 @@ aliases:
 - /docs/grafana-cloud/agent/flow/reference/components/prometheus.remote_write/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/prometheus.remote_write/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/prometheus.remote_write/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/prometheus.remote_write/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.remote_write/
-title: prometheus.remote_write
 description: Learn about prometheus.remote_write
+title: prometheus.remote_write
 ---
 
 # prometheus.remote_write
@@ -358,6 +359,24 @@ prometheus.scrape "demo" {
     {"__address__" = "127.0.0.1:12345"},
   ]
   forward_to = [prometheus.remote_write.staging.receiver]
+}
+```
+
+
+### Send metrics to a Mimir instance with a tenant specified
+
+You can create a `prometheus.remote_write` component that sends your metrics to a specific tenant within the Mimir instance. This is useful when your Mimir instance is using more than one tenant:
+
+```river
+prometheus.remote_write "staging" {
+  // Send metrics to a Mimir instance
+  endpoint {
+    url = "http://mimir:9009/api/v1/push"
+
+    headers = {
+      "X-Scope-OrgID" = "staging"
+    }
+  }
 }
 ```
 

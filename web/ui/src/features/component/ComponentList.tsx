@@ -1,7 +1,7 @@
 import { NavLink } from 'react-router-dom';
 
 import { HealthLabel } from '../component/HealthLabel';
-import { ComponentInfo } from '../component/types';
+import { ComponentInfo, SortOrder } from '../component/types';
 
 import Table from './Table';
 
@@ -10,11 +10,12 @@ import styles from './ComponentList.module.css';
 interface ComponentListProps {
   components: ComponentInfo[];
   moduleID?: string;
+  handleSorting?: (sortField: string, sortOrder: SortOrder) => void;
 }
 
 const TABLEHEADERS = ['Health', 'ID'];
 
-const ComponentList = ({ components, moduleID }: ComponentListProps) => {
+const ComponentList = ({ components, moduleID, handleSorting }: ComponentListProps) => {
   const tableStyles = { width: '130px' };
   const pathPrefix = moduleID ? moduleID + '/' : '';
 
@@ -39,7 +40,12 @@ const ComponentList = ({ components, moduleID }: ComponentListProps) => {
 
   return (
     <div className={styles.list}>
-      <Table tableHeaders={TABLEHEADERS} renderTableData={renderTableData} style={tableStyles} />
+      <Table
+        tableHeaders={TABLEHEADERS}
+        renderTableData={renderTableData}
+        handleSorting={handleSorting}
+        style={tableStyles}
+      />
     </div>
   );
 };

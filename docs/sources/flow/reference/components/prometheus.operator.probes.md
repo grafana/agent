@@ -3,11 +3,12 @@ aliases:
 - /docs/grafana-cloud/agent/flow/reference/components/prometheus.operator.probes/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/prometheus.operator.probes/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/prometheus.operator.probes/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/prometheus.operator.probes/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.operator.probes/
+description: Learn about prometheus.operator.probes
 labels:
   stage: beta
 title: prometheus.operator.probes
-description: Learn about prometheus.operator.probes
 ---
 
 # prometheus.operator.probes

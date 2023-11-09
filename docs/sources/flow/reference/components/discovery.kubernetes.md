@@ -3,9 +3,10 @@ aliases:
 - /docs/grafana-cloud/agent/flow/reference/components/discovery.kubernetes/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/discovery.kubernetes/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/discovery.kubernetes/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/discovery.kubernetes/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.kubernetes/
-title: discovery.kubernetes
 description: Learn about discovery.kubernetes
+title: discovery.kubernetes
 ---
 
 # discovery.kubernetes

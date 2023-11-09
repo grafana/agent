@@ -1,9 +1,11 @@
 ---
 aliases:
 - ../../../configuration/integrations/windows-exporter-config/
+- /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/integrations/windows-exporter-config/
+- /docs/grafana-cloud/send-data/agent/static/configuration/integrations/windows-exporter-config/
 canonical: https://grafana.com/docs/agent/latest/static/configuration/integrations/windows-exporter-config/
-title: windows_exporter_config
 description: Learn about windows_exporter_config
+title: windows_exporter_config
 ---
 
 # windows_exporter_config

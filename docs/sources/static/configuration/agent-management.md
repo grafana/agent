@@ -1,8 +1,11 @@
 ---
+aliases:
+- /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/agent-management/
+- /docs/grafana-cloud/send-data/agent/static/configuration/agent-management/
 canonical: https://grafana.com/docs/agent/latest/static/configuration/agent-management/
+description: Learn about Agent Management
 menuTitle: Agent Management
 title: Agent Management - Experimental
-description: Learn about Agent Management
 weight: 700
 ---
 

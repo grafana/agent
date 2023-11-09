@@ -5,6 +5,10 @@ metadata:
   name: {{ include "grafana-agent.fullname" . }}
   labels:
     {{- include "grafana-agent.labels" . | nindent 4 }}
+  {{- with .Values.controller.extraAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
 spec:
   {{- if not .Values.controller.autoscaling.enabled }}
   replicas: {{ .Values.controller.replicas }}
