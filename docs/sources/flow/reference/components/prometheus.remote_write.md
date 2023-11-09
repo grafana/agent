@@ -365,7 +365,7 @@ prometheus.scrape "demo" {
 
 ### Send metrics to a Mimir instance with a tenant specified
 
-You can create a `prometheus.remote_write` component that sends your metrics to a specific tenant within the Mimir instance. It is useful when your Mimir instance is using more than one tenant:
+You can create a `prometheus.remote_write` component that sends your metrics to a specific tenant within the Mimir instance. This is useful when your Mimir instance is using more than one tenant:
 
 ```river
 prometheus.remote_write "staging" {
