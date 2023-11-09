@@ -4,10 +4,11 @@ aliases:
 - /docs/grafana-cloud/agent/data-collection/
 - /docs/grafana-cloud/monitor-infrastructure/agent/data-collection/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/data-collection/
+- /docs/grafana-cloud/send-data/agent/data-collection/
 canonical: https://grafana.com/docs/agent/latest/data-collection/
+description: Grafana Agent data collection
 menuTitle: Data collection
 title: Grafana Agent data collection
-description: Grafana Agent data collection
 weight: 500
 ---
 

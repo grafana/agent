@@ -1,9 +1,11 @@
 ---
 aliases:
 - ../../../configuration/integrations/azure-exporter-config/
+- /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/integrations/azure-exporter-config/
+- /docs/grafana-cloud/send-data/agent/static/configuration/integrations/azure-exporter-config/
 canonical: https://grafana.com/docs/agent/latest/static/configuration/integrations/azure-exporter-config/
-title: azure_exporter_config
 description: Learn about azure_exporter_config
+title: azure_exporter_config
 ---
 
 # azure_exporter_config

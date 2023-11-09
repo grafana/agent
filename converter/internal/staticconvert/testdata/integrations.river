@@ -387,10 +387,10 @@ prometheus.scrape "integrations_mysqld_exporter" {
 	}
 }
 
-prometheus.exporter.unix "default" { }
+prometheus.exporter.unix "integrations_node_exporter" { }
 
 discovery.relabel "integrations_node_exporter" {
-	targets = prometheus.exporter.unix.default.targets
+	targets = prometheus.exporter.unix.integrations_node_exporter.targets
 
 	rule {
 		source_labels = ["__address__"]

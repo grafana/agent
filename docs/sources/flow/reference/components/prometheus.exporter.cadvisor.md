@@ -3,9 +3,10 @@ aliases:
 - /docs/grafana-cloud/agent/flow/reference/components/prometheus.exporter.cadvisor/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/prometheus.exporter.cadvisor/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/prometheus.exporter.cadvisor/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/prometheus.exporter.cadvisor/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.cadvisor/
-title: prometheus.exporter.cadvisor
 description: Learn about the prometheus.exporter.cadvisor
+title: prometheus.exporter.cadvisor
 ---
 
 # prometheus.exporter.cadvisor

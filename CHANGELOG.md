@@ -79,9 +79,6 @@ Main (unreleased)
 - The `loki.source.docker` component now allows connecting to Docker daemons
   over HTTP(S) and setting up TLS credentials. (@tpaschalis)
 
-- Added an `add_metric_suffixes` option to `otelcol.exporter.prometheus` in flow mode,
-  which configures whether to add type and unit suffixes to metrics names. (@mar4uk)
-
 - Added an `exclude_event_message` option to `loki.source.windowsevent` in flow mode,
   which excludes the human-friendly event message from Windows event logs. (@ptodev)
 
@@ -99,6 +96,10 @@ Main (unreleased)
 
 - Grafana Agent Operator: `config-reloader` container no longer runs as root.
   (@rootmout)
+
+- Added support for replaying not sent data for `loki.write` when WAL is enabled. (@thepalbi)
+
+- Added support for unicode strings in `pyroscope.ebpf` python profiles. (@korniltsev)
 
 ### Bugfixes
 
@@ -134,10 +135,20 @@ Main (unreleased)
 
 - Fixed a bug where UDP syslog messages were never processed (@joshuapare)
 
+- Updating configuration for `loki.write` no longer drops data. (@thepalbi)
+
+v0.37.4 (2023-11-06)
+-----------------
+
+### Enhancements
+
+- Added an `add_metric_suffixes` option to `otelcol.exporter.prometheus` in flow mode,
+  which configures whether to add type and unit suffixes to metrics names. (@mar4uk)
+
+### Bugfixes
+
 - Fix a bug where reloading the configuration of a `loki.write` component lead
   to a panic. (@tpaschalis)
-
-
 
 v0.37.3 (2023-10-26)
 -----------------

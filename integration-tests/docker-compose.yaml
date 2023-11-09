@@ -2,7 +2,7 @@ version: "3"
 services:
 
   mimir:
-    image: grafana/mimir:2.9.0
+    image: grafana/mimir:latest
     volumes:
       - ./configs/mimir:/etc/mimir-config
     entrypoint:
@@ -52,11 +52,9 @@ services:
     depends_on:
       - otel-collector
   
-  avalanche:
-    image: quay.io/freshtracks.io/avalanche:latest
-    command:
-      - --metric-count=50
-      - --series-interval=7200
-      - --metric-interval=7200
+  prom-gen:
+    build:
+      dockerfile: ./integration-tests/configs/prom-gen/Dockerfile
+      context: ..
     ports:
       - "9001:9001"

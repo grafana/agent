@@ -70,6 +70,7 @@ func NewManager(metrics *Metrics, logger log.Logger, limits limit.Config, reg pr
 
 	walWatcherMetrics := wal.NewWatcherMetrics(reg)
 	walMarkerMetrics := internal.NewMarkerMetrics(reg)
+	queueClientMetrics := NewQueueClientMetrics(reg)
 
 	if len(clientCfgs) == 0 {
 		return nil, fmt.Errorf("at least one client config must be provided")
@@ -98,7 +99,7 @@ func NewManager(metrics *Metrics, logger log.Logger, limits limit.Config, reg pr
 			}
 			markerHandler := internal.NewMarkerHandler(markerFileHandler, walCfg.MaxSegmentAge, logger, walMarkerMetrics.WithCurriedId(clientName))
 
-			queue, err := NewQueue(metrics, cfg, limits.MaxStreams, limits.MaxLineSize.Val(), limits.MaxLineSizeTruncate, logger, markerHandler)
+			queue, err := NewQueue(metrics, queueClientMetrics.CurryWithId(clientName), cfg, limits.MaxStreams, limits.MaxLineSize.Val(), limits.MaxLineSizeTruncate, logger, markerHandler)
 			if err != nil {
 				return nil, fmt.Errorf("error starting queue client: %w", err)
 			}

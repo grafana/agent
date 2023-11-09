@@ -3,9 +3,10 @@ aliases:
 - /docs/grafana-cloud/agent/flow/reference/components/loki.source.azure_event_hubs/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/loki.source.azure_event_hubs/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/loki.source.azure_event_hubs/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/loki.source.azure_event_hubs/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/loki.source.azure_event_hubs/
-title: loki.source.azure_event_hubs
 description: Learn about loki.source.azure_event_hubs
+title: loki.source.azure_event_hubs
 ---
 
 # loki.source.azure_event_hubs

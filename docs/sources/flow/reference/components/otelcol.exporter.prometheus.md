@@ -3,9 +3,10 @@ aliases:
 - /docs/grafana-cloud/agent/flow/reference/components/otelcol.exporter.prometheus/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/otelcol.exporter.prometheus/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/otelcol.exporter.prometheus/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/otelcol.exporter.prometheus/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.exporter.prometheus/
-title: otelcol.exporter.prometheus
 description: Learn about otelcol.exporter.prometheus
+title: otelcol.exporter.prometheus
 ---
 
 # otelcol.exporter.prometheus

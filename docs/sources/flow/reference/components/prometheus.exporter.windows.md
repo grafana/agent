@@ -3,9 +3,10 @@ aliases:
 - /docs/grafana-cloud/agent/flow/reference/components/prometheus.exporter.windows/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/prometheus.exporter.windows/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/prometheus.exporter.windows/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/prometheus.exporter.windows/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.windows/
-title: prometheus.exporter.windows
 description: Learn about prometheus.exporter.windows
+title: prometheus.exporter.windows
 ---
 
 # prometheus.exporter.windows

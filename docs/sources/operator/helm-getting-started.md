@@ -3,9 +3,10 @@ aliases:
 - /docs/grafana-cloud/agent/operator/helm-getting-started/
 - /docs/grafana-cloud/monitor-infrastructure/agent/operator/helm-getting-started/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/operator/helm-getting-started/
+- /docs/grafana-cloud/send-data/agent/operator/helm-getting-started/
 canonical: https://grafana.com/docs/agent/latest/operator/helm-getting-started/
-title: Install the Operator with Helm
 description: Learn how to install the Operator with Helm charts
+title: Install the Operator with Helm
 weight: 100
 ---
 # Install the Operator with Helm
