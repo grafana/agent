@@ -148,32 +148,33 @@ func (w *workQueue) taskDone(key string) {
 func (w *workQueue) emitNextTask() {
 	var (
 		task  func()
-		key   *string
+		key   string
 		index int
+		found = false
 	)
 
 	// Find the first key in waitingOrder that is not yet running
 	for i, k := range w.waitingOrder {
 		if _, alreadyRunning := w.running[k]; !alreadyRunning {
-			key = &k
-			index = i
+			found, key, index = true, k, i
+			break
 		}
 	}
 
 	// Return if we didn't find any task ready to run
-	if key == nil {
+	if !found {
 		return
 	}
 
 	// Remove the task from waiting and add it to running set
 	w.waitingOrder = append(w.waitingOrder[:index], w.waitingOrder[index+1:]...)
-	task = w.waiting[*key]
-	delete(w.waiting, *key)
-	w.running[*key] = struct{}{}
+	task = w.waiting[key]
+	delete(w.waiting, key)
+	w.running[key] = struct{}{}
 
 	// Wrap the actual task to make sure we mark it as done when it finishes
 	wrapped := func() {
-		defer w.taskDone(*key)
+		defer w.taskDone(key)
 		task()
 	}
 
