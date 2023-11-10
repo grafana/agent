@@ -99,6 +99,8 @@ Main (unreleased)
 
 - Added support for unicode strings in `pyroscope.ebpf` python profiles. (@korniltsev)
 
+- Improved resilience of graph evaluation in presence of slow components. (@thampiotr)
+
 ### Bugfixes
 
 - Fixed an issue where `loki.process` validation for stage `metric.counter` was
