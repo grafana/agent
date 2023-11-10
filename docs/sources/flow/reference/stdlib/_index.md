@@ -3,10 +3,12 @@ aliases:
 - /docs/grafana-cloud/agent/flow/reference/stdlib/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/stdlib/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/stdlib/
+- /docs/grafana-cloud/send-data/agent/flow/reference/stdlib/
 - standard-library/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/stdlib/
+description: The standard library is a list of functions used in expressions when
+  assigning values to attributes
 title: Standard library
-description: The standard library is a list of functions used in expressions when assigning values to attributes
 weight: 400
 ---
 

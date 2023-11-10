@@ -1,11 +1,12 @@
 ---
 aliases:
-  - /docs/grafana-cloud/agent/flow/reference/components/prometheus.exporter.azure/
-  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/prometheus.exporter.azure/
-  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/prometheus.exporter.azure/
+- /docs/grafana-cloud/agent/flow/reference/components/prometheus.exporter.azure/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/prometheus.exporter.azure/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/prometheus.exporter.azure/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/prometheus.exporter.azure/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.azure/
-title: prometheus.exporter.azure
 description: Learn about prometheus.exporter.azure
+title: prometheus.exporter.azure
 ---
 
 # prometheus.exporter.azure

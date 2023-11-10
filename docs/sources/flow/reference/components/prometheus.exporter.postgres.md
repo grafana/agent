@@ -3,11 +3,12 @@ aliases:
 - /docs/grafana-cloud/agent/flow/reference/components/prometheus.exporter.postgres/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/prometheus.exporter.postgres/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/prometheus.exporter.postgres/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/prometheus.exporter.postgres/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.postgres/
+description: Learn about prometheus.exporter.postgres
 labels:
   stage: beta
 title: prometheus.exporter.postgres
-description: Learn about prometheus.exporter.postgres
 ---
 
 # prometheus.exporter.postgres

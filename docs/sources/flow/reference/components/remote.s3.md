@@ -3,9 +3,10 @@ aliases:
 - /docs/grafana-cloud/agent/flow/reference/components/remote.s3/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/remote.s3/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/remote.s3/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/remote.s3/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/remote.s3/
-title: remote.s3
 description: Learn about remote.s3
+title: remote.s3
 ---
 
 # remote.s3

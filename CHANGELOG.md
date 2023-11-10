@@ -99,6 +99,8 @@ Main (unreleased)
 
 - Make the result of 'discovery.kubelet' support pods that without ports, such as k8s control plane static pods. (@masonmei)
 
+- Added support for unicode strings in `pyroscope.ebpf` python profiles. (@korniltsev)
+
 ### Bugfixes
 
 - Fixed an issue where `loki.process` validation for stage `metric.counter` was

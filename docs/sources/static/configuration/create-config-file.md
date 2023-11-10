@@ -1,10 +1,12 @@
 ---
 aliases:
-- ../../set-up/create-config-file/
 - ../../configuration/create-config-file/
+- ../../set-up/create-config-file/
+- /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/create-config-file/
+- /docs/grafana-cloud/send-data/agent/static/configuration/create-config-file/
 canonical: https://grafana.com/docs/agent/latest/static/configuration/create-config-file/
-title: Create a configuration file
 description: Learn how to create a configuration file
+title: Create a configuration file
 weight: 50
 ---
 
