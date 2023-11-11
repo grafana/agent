@@ -64,10 +64,18 @@ func NewGitRepo(ctx context.Context, storagePath string, opts GitRepoOptions) (*
 		Auth:       opts.Auth.Convert(),
 	})
 	if fetchRepoErr != nil && !errors.Is(fetchRepoErr, git.NoErrAlreadyUpToDate) {
-		err = UpdateFailedError{
-			Repository: opts.Repository,
-			Inner:      fetchRepoErr,
+		workTree, err := repo.Worktree()
+		if err != nil {
+			return nil, err
 		}
+		return &GitRepo{
+				opts:     opts,
+				repo:     repo,
+				workTree: workTree,
+			}, UpdateFailedError{
+				Repository: opts.Repository,
+				Inner:      fetchRepoErr,
+			}
 	}
 
 	// Finally, hard reset to our requested revision.
@@ -110,7 +118,7 @@ func (repo *GitRepo) Update(ctx context.Context) error {
 		Auth:       repo.opts.Auth.Convert(),
 	})
 	if fetchRepoErr != nil && !errors.Is(fetchRepoErr, git.NoErrAlreadyUpToDate) {
-		err = UpdateFailedError{
+		return UpdateFailedError{
 			Repository: repo.opts.Repository,
 			Inner:      fetchRepoErr,
 		}
@@ -121,7 +129,6 @@ func (repo *GitRepo) Update(ctx context.Context) error {
 	if err != nil {
 		return InvalidRevisionError{Revision: repo.opts.Revision}
 	}
-
 	err = repo.workTree.Reset(&git.ResetOptions{
 		Commit: hash,
 		Mode:   git.HardReset,
@@ -130,7 +137,7 @@ func (repo *GitRepo) Update(ctx context.Context) error {
 		return err
 	}
 
-	return err
+	return nil
 }
 
 // ReadFile returns a file from the repository specified by path.
