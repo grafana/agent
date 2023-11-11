@@ -64,7 +64,9 @@ func main() {
 		testLogs(),
 	)
 
-	_ = cmd.Execute()
+	if err := cmd.Execute(); err != nil {
+		os.Exit(1)
+	}
 }
 
 func configSyncCmd() *cobra.Command {
