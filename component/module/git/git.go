@@ -201,6 +201,7 @@ func (c *Component) Update(args component.Arguments) (err error) {
 		if err != nil {
 			if errors.As(err, &updateVcsErr) {
 				level.Error(c.log).Log("msg", "failed to update repository", "err", err)
+				c.updateHealth(err)
 			} else {
 				return err
 			}
@@ -231,6 +232,7 @@ func (c *Component) pollFile(ctx context.Context, args Arguments) error {
 	if err := c.repo.Update(ctx); err != nil {
 		if errors.As(err, &updateVcsErr) {
 			level.Error(c.log).Log("msg", "failed to update repository", "err", err)
+			c.updateHealth(err)
 		} else {
 			return err
 		}
