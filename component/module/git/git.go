@@ -92,8 +92,16 @@ func New(o component.Options, args Arguments) (*Component, error) {
 		argsChanged: make(chan struct{}, 1),
 	}
 
+	// Only acknowledge the error from Update if it's not a
+	// vcs.UpdateFailedError; vcs.UpdateFailedError means that the Git repo
+	// exists but we were just unable to update it.
 	if err := c.Update(args); err != nil {
-		return nil, err
+		if errors.As(err, &vcs.UpdateFailedError{}) {
+			level.Error(c.log).Log("msg", "failed to update repository", "err", err)
+			c.updateHealth(err)
+		} else {
+			return nil, err
+		}
 	}
 	return c, nil
 }
@@ -195,11 +203,10 @@ func (c *Component) Update(args component.Arguments) (err error) {
 
 	// Create or update the repo field.
 	// Failure to update repository makes the module loader temporarily use cached contents on disk
-	var updateVcsErr vcs.UpdateFailedError
 	if c.repo == nil || !reflect.DeepEqual(repoOpts, c.repoOpts) {
 		r, err := vcs.NewGitRepo(context.Background(), repoPath, repoOpts)
 		if err != nil {
-			if errors.As(err, &updateVcsErr) {
+			if errors.As(err, &vcs.UpdateFailedError{}) {
 				level.Error(c.log).Log("msg", "failed to update repository", "err", err)
 				c.updateHealth(err)
 			} else {
@@ -228,14 +235,8 @@ func (c *Component) Update(args component.Arguments) (err error) {
 // controller. pollFile must only be called with c.mut held.
 func (c *Component) pollFile(ctx context.Context, args Arguments) error {
 	// Make sure our repo is up-to-date.
-	var updateVcsErr *vcs.UpdateFailedError
 	if err := c.repo.Update(ctx); err != nil {
-		if errors.As(err, &updateVcsErr) {
-			level.Error(c.log).Log("msg", "failed to update repository", "err", err)
-			c.updateHealth(err)
-		} else {
-			return err
-		}
+		return err
 	}
 
 	// Finally, configure our controller.
