@@ -103,6 +103,8 @@ Main (unreleased)
 
 ### Bugfixes
 
+- Set exit code 1 on grafana-agentctl non-runnable command. (@fgouteroux)
+
 - Fixed an issue where `loki.process` validation for stage `metric.counter` was
   allowing invalid combination of configuration options. (@thampiotr)
 
