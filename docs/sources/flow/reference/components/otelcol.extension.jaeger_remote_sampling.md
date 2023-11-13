@@ -3,11 +3,12 @@ aliases:
 - /docs/grafana-cloud/agent/flow/reference/components/otelcol.extension.jaeger_remote_sampling/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/otelcol.extension.jaeger_remote_sampling/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/otelcol.extension.jaeger_remote_sampling/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/otelcol.extension.jaeger_remote_sampling/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.extension.jaeger_remote_sampling/
+description: Learn about otelcol.extension.jaeger_remote_sampling
 label:
   stage: experimental
 title: otelcol.extension.jaeger_remote_sampling
-description: Learn about otelcol.extension.jaeger_remote_sampling
 ---
 
 # otelcol.extension.jaeger_remote_sampling

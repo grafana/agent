@@ -1,9 +1,11 @@
 ---
 aliases:
 - ../../../configuration/integrations/blackbox-config/
+- /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/integrations/blackbox-config/
+- /docs/grafana-cloud/send-data/agent/static/configuration/integrations/blackbox-config/
 canonical: https://grafana.com/docs/agent/latest/static/configuration/integrations/blackbox-config/
-title: blackbox_config
 description: Learn about blackbox_config
+title: blackbox_config
 ---
 
 # blackbox_config
@@ -91,6 +93,7 @@ Full reference of options:
   [config_file: <string> | default = ""]
 
   # Embedded blackbox configuration. You can specify your modules here instead of an external config file.
+  # config_file or blackbox_config must be specified.
   # See https://github.com/prometheus/blackbox_exporter/blob/master/CONFIGURATION.md for more details how to specify your blackbox modules.
   blackbox_config:
     [- <modules> ... ]

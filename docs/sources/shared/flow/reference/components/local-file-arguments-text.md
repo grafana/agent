@@ -4,6 +4,7 @@ aliases:
 - /docs/grafana-cloud/agent/shared/flow/reference/components/local-file-arguments-text/
 - /docs/grafana-cloud/monitor-infrastructure/agent/shared/flow/reference/components/local-file-arguments-text/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/shared/flow/reference/components/local-file-arguments-text/
+- /docs/grafana-cloud/send-data/agent/shared/flow/reference/components/local-file-arguments-text/
 canonical: https://grafana.com/docs/agent/latest/shared/flow/reference/components/local-file-arguments-text/
 description: Shared content, local file arguments text
 headless: true

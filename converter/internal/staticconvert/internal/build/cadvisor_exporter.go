@@ -1,25 +1,16 @@
 package build
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/prometheus/exporter/cadvisor"
-	"github.com/grafana/agent/converter/internal/common"
 	cadvisor_integration "github.com/grafana/agent/pkg/integrations/cadvisor"
 )
 
-func (b *IntegrationsConfigBuilder) appendCadvisorExporter(config *cadvisor_integration.Config) discovery.Exports {
+func (b *IntegrationsConfigBuilder) appendCadvisorExporter(config *cadvisor_integration.Config, instanceKey *string) discovery.Exports {
 	args := toCadvisorExporter(config)
-	compLabel := common.LabelForParts(b.globalCtx.LabelPrefix, config.Name())
-	b.f.Body().AppendBlock(common.NewBlockWithOverride(
-		[]string{"prometheus", "exporter", "cadvisor"},
-		compLabel,
-		args,
-	))
-
-	return common.NewDiscoveryExports(fmt.Sprintf("prometheus.exporter.cadvisor.%s.targets", compLabel))
+	return b.appendExporterBlock(args, config.Name(), instanceKey, "cadvisor")
 }
 
 func toCadvisorExporter(config *cadvisor_integration.Config) *cadvisor.Arguments {

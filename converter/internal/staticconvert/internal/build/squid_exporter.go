@@ -1,25 +1,15 @@
 package build
 
 import (
-	"fmt"
-
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/prometheus/exporter/squid"
-	"github.com/grafana/agent/converter/internal/common"
 	"github.com/grafana/agent/pkg/integrations/squid_exporter"
 	"github.com/grafana/river/rivertypes"
 )
 
-func (b *IntegrationsConfigBuilder) appendSquidExporter(config *squid_exporter.Config) discovery.Exports {
+func (b *IntegrationsConfigBuilder) appendSquidExporter(config *squid_exporter.Config, instanceKey *string) discovery.Exports {
 	args := toSquidExporter(config)
-	compLabel := common.LabelForParts(b.globalCtx.LabelPrefix, config.Name())
-	b.f.Body().AppendBlock(common.NewBlockWithOverride(
-		[]string{"prometheus", "exporter", "squid"},
-		compLabel,
-		args,
-	))
-
-	return common.NewDiscoveryExports(fmt.Sprintf("prometheus.exporter.squid.%s.targets", compLabel))
+	return b.appendExporterBlock(args, config.Name(), instanceKey, "squid")
 }
 
 func toSquidExporter(config *squid_exporter.Config) *squid.Arguments {

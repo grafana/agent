@@ -3,10 +3,11 @@ aliases:
 - /docs/grafana-cloud/agent/flow/getting-started/migrating-from-promtail/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/getting-started/migrating-from-promtail/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/getting-started/migrating-from-promtail/
+- /docs/grafana-cloud/send-data/agent/flow/getting-started/migrating-from-promtail/
 canonical: https://grafana.com/docs/agent/latest/flow/getting-started/migrating-from-promtail/
+description: Learn how to migrate from Promtail to Grafana Agent Flow
 menuTitle: Migrate from Promtail
 title: Migrate from Promtail to Grafana Agent Flow
-description: Learn how to migrate from Promtail to Grafana Agent Flow
 weight: 330
 ---
 

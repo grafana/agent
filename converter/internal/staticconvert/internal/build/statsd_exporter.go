@@ -1,29 +1,20 @@
 package build
 
 import (
-	"fmt"
-
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/prometheus/exporter/statsd"
 	"github.com/grafana/agent/converter/diag"
-	"github.com/grafana/agent/converter/internal/common"
 	"github.com/grafana/agent/pkg/integrations/statsd_exporter"
 )
 
-func (b *IntegrationsConfigBuilder) appendStatsdExporter(config *statsd_exporter.Config) discovery.Exports {
+func (b *IntegrationsConfigBuilder) appendStatsdExporter(config *statsd_exporter.Config, instanceKey *string) discovery.Exports {
 	args := toStatsdExporter(config)
-	compLabel := common.LabelForParts(b.globalCtx.LabelPrefix, config.Name())
-	b.f.Body().AppendBlock(common.NewBlockWithOverride(
-		[]string{"prometheus", "exporter", "statsd"},
-		compLabel,
-		args,
-	))
 
 	if config.MappingConfig != nil {
 		b.diags.Add(diag.SeverityLevelError, "mapping_config is not supported in statsd_exporter integrations config")
 	}
 
-	return common.NewDiscoveryExports(fmt.Sprintf("prometheus.exporter.statsd.%s.targets", compLabel))
+	return b.appendExporterBlock(args, config.Name(), instanceKey, "statsd")
 }
 
 func toStatsdExporter(config *statsd_exporter.Config) *statsd.Arguments {

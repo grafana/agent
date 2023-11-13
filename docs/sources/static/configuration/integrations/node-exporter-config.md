@@ -1,9 +1,11 @@
 ---
 aliases:
 - ../../../configuration/integrations/node-exporter-config/
+- /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/integrations/node-exporter-config/
+- /docs/grafana-cloud/send-data/agent/static/configuration/integrations/node-exporter-config/
 canonical: https://grafana.com/docs/agent/latest/static/configuration/integrations/node-exporter-config/
-title: node_exporter_config
 description: Learn about node_exporter_config
+title: node_exporter_config
 ---
 
 # node_exporter_config

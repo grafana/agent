@@ -3,11 +3,12 @@ aliases:
 - /docs/grafana-cloud/agent/flow/reference/components/otelcol.processor.filter/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/otelcol.processor.filter/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/otelcol.processor.filter/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/otelcol.processor.filter/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.processor.filter/
+description: Learn about otelcol.processor.filter
 labels:
   stage: experimental
 title: otelcol.processor.filter
-description: Learn about otelcol.processor.filter
 ---
 
 # otelcol.processor.filter

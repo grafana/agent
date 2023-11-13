@@ -27,7 +27,7 @@ spec:
         - name: local-cred
       containers:
         - name: grafana-agent
-          image: docker.io/grafana/agent:v0.37.3
+          image: docker.io/grafana/agent:v0.37.4
           imagePullPolicy: IfNotPresent
           args:
             - run

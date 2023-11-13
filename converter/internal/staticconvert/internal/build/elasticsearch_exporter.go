@@ -1,24 +1,14 @@
 package build
 
 import (
-	"fmt"
-
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/prometheus/exporter/elasticsearch"
-	"github.com/grafana/agent/converter/internal/common"
 	"github.com/grafana/agent/pkg/integrations/elasticsearch_exporter"
 )
 
-func (b *IntegrationsConfigBuilder) appendElasticsearchExporter(config *elasticsearch_exporter.Config) discovery.Exports {
+func (b *IntegrationsConfigBuilder) appendElasticsearchExporter(config *elasticsearch_exporter.Config, instanceKey *string) discovery.Exports {
 	args := toElasticsearchExporter(config)
-	compLabel := common.LabelForParts(b.globalCtx.LabelPrefix, config.Name())
-	b.f.Body().AppendBlock(common.NewBlockWithOverride(
-		[]string{"prometheus", "exporter", "elasticsearch"},
-		compLabel,
-		args,
-	))
-
-	return common.NewDiscoveryExports(fmt.Sprintf("prometheus.exporter.elasticsearch.%s.targets", compLabel))
+	return b.appendExporterBlock(args, config.Name(), instanceKey, "elasticsearch")
 }
 
 func toElasticsearchExporter(config *elasticsearch_exporter.Config) *elasticsearch.Arguments {

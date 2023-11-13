@@ -4,9 +4,10 @@ aliases:
 - /docs/grafana-cloud/agent/flow/reference/stdlib/replace/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/stdlib/replace/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/stdlib/replace/
+- /docs/grafana-cloud/send-data/agent/flow/reference/stdlib/replace/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/stdlib/replace/
-title: replace
 description: Learn about replace
+title: replace
 ---
 
 # replace

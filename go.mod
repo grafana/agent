@@ -59,7 +59,7 @@ require (
 	github.com/grafana/loki v1.6.2-0.20231004111112-07cbef92268a
 	github.com/grafana/pyroscope-go/godeltaprof v0.1.3
 	github.com/grafana/pyroscope/api v0.2.0
-	github.com/grafana/pyroscope/ebpf v0.3.0
+	github.com/grafana/pyroscope/ebpf v0.3.2
 	github.com/grafana/regexp v0.0.0-20221123153739-15dc172cd2db
 	github.com/grafana/river v0.3.0
 	github.com/grafana/snowflake-prometheus-exporter v0.0.0-20221213150626-862cad8e9538
@@ -221,7 +221,7 @@ require (
 	golang.org/x/text v0.13.0
 	golang.org/x/time v0.3.0
 	google.golang.org/api v0.146.0
-	google.golang.org/grpc v1.58.3
+	google.golang.org/grpc v1.59.0
 	google.golang.org/protobuf v1.31.0
 	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.1
@@ -238,10 +238,10 @@ require (
 )
 
 require (
-	cloud.google.com/go v0.110.7 // indirect
+	cloud.google.com/go v0.110.8 // indirect
 	cloud.google.com/go/compute v1.23.0 // indirect
 	cloud.google.com/go/compute/metadata v0.2.4-0.20230617002413-005d2dfb6b68 // indirect
-	cloud.google.com/go/iam v1.1.1 // indirect
+	cloud.google.com/go/iam v1.1.2 // indirect
 	contrib.go.opencensus.io/exporter/prometheus v0.4.2 // indirect
 	github.com/99designs/go-keychain v0.0.0-20191008050251-8e49817e8af4 // indirect
 	github.com/99designs/keyring v1.2.2 // indirect
@@ -595,9 +595,9 @@ require (
 	gomodules.xyz/jsonpatch/v2 v2.4.0 // indirect
 	gonum.org/v1/gonum v0.14.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
-	google.golang.org/genproto v0.0.0-20230913181813-007df8e322eb // indirect
-	google.golang.org/genproto/googleapis/api v0.0.0-20230913181813-007df8e322eb // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20230920204549-e6e6cdab5c13 // indirect
+	google.golang.org/genproto v0.0.0-20231012201019-e917dd12ba7a // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20231002182017-d307bd883b97 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20231016165738-49dd2c1f3d0b // indirect
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6 // indirect
 	gopkg.in/fsnotify/fsnotify.v1 v1.4.7 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect

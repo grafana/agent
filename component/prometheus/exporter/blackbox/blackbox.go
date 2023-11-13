@@ -106,10 +106,14 @@ func (a *Arguments) Validate() error {
 		return errors.New("config and config_file are mutually exclusive")
 	}
 
+	if a.ConfigFile == "" && a.Config.Value == "" {
+		return errors.New("config or config_file must be set")
+	}
+
 	var blackboxConfig blackbox_config.Config
 	err := yaml.UnmarshalStrict([]byte(a.Config.Value), &blackboxConfig)
 	if err != nil {
-		return fmt.Errorf("invalid backbox_exporter config: %s", err)
+		return fmt.Errorf("invalid blackbox_exporter config: %s", err)
 	}
 
 	return nil

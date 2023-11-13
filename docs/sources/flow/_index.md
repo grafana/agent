@@ -3,9 +3,11 @@ aliases:
 - /docs/grafana-cloud/agent/flow/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/
+- /docs/grafana-cloud/send-data/agent/flow/
 canonical: https://grafana.com/docs/agent/latest/flow/
+description: Grafana Agent Flow is a component-based revision of Grafana Agent with
+  a focus on ease-of-use, debuggability, and adaptability
 title: Flow mode
-description: Grafana Agent Flow is a component-based revision of Grafana Agent with a focus on ease-of-use, debuggability, and adaptability
 weight: 400
 ---
 

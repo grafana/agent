@@ -3,10 +3,11 @@ aliases:
 - /docs/grafana-cloud/agent/flow/reference/config-blocks/export/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/config-blocks/export/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/config-blocks/export/
+- /docs/grafana-cloud/send-data/agent/flow/reference/config-blocks/export/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/config-blocks/export/
-title: export block
-menuTitle: export
 description: Learn about the export configuration block
+menuTitle: export
+title: export block
 ---
 
 # export block

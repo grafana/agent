@@ -3,9 +3,10 @@ aliases:
 - /docs/grafana-cloud/agent/flow/reference/components/prometheus.relabel/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/prometheus.relabel/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/prometheus.relabel/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/prometheus.relabel/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.relabel/
-title: prometheus.relabel
 description: Learn about prometheus.relabel
+title: prometheus.relabel
 ---
 
 # prometheus.relabel

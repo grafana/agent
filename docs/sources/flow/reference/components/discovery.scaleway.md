@@ -1,7 +1,10 @@
 ---
+aliases:
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/discovery.scaleway/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/discovery.scaleway/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.scaleway/
-title: discovery.scaleway
 description: Learn about discovery.scaleway
+title: discovery.scaleway
 ---
 
 # discovery.scaleway

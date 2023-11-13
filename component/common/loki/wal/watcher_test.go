@@ -64,12 +64,9 @@ func (t *testWriteTo) AssertContainsLines(tst *testing.T, lines ...string) {
 	}
 	t.ReadEntries.DoneIterate()
 
-	allSeen := true
-	for _, wasSeen := range seen {
-		allSeen = allSeen && wasSeen
+	for line, wasSeen := range seen {
+		require.True(tst, wasSeen, "expected to have received line: %s", line)
 	}
-
-	require.True(tst, allSeen, "expected all entries to have been received")
 }
 
 // watcherTestResources contains all resources necessary to test an individual Watcher functionality
