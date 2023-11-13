@@ -103,9 +103,9 @@ finally sending it to an OTLP-capable endpoint:
 
 ```river
 otelcol.receiver.vcenter "default" {
-  endpoint         = "http://localhost:15672"
-  username		   = "otelu"
-  password         = "password"
+  endpoint = "http://localhost:15672"
+  username = "otelu"
+  password = "password"
 
   output {
     metrics = [otelcol.processor.batch.default.input]
