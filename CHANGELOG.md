@@ -46,6 +46,8 @@ v0.37.3 (2023-10-26)
 
 - Improved performance of `pyroscope.scrape` component when working with a large number of targets. (@cyriltovena)
 
+- Improved resilience of graph evaluation in presence of slow components. (@thampiotr)
+
 v0.37.2 (2023-10-16)
 -----------------
 
