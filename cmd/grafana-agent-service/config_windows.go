@@ -16,6 +16,10 @@ type config struct {
 	// not included.
 	Args []string
 
+	// Environment holds arguments to pass to the Grafana Agent binary. os.Environ is
+	// included.
+	Environment []string
+
 	// WorkingDirectory points to the working directory to run the Grafana Agent
 	// binary from.
 	WorkingDirectory string
@@ -42,9 +46,15 @@ func loadConfig() (*config, error) {
 		return nil, fmt.Errorf("failed to retrieve key Arguments: %w", err)
 	}
 
+	env, _, err := agentKey.GetStringsValue("Environment")
+	if err != nil {
+		return nil, fmt.Errorf("failed to retrieve key Arguments: %w", err)
+	}
+
 	return &config{
 		ServicePath:      servicePath,
 		Args:             args,
+		Environment:      env,
 		WorkingDirectory: filepath.Dir(servicePath),
 	}, nil
 }
