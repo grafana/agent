@@ -62,7 +62,7 @@ Main (unreleased)
 
   - `otelcol.processor.filter` - filters OTLP telemetry data using OpenTelemetry
     Transformation Language (OTTL). (@hainenber)
-  - `otelcol.receiver.vcenter` - receives telemetry data from vCenter. (@marctc)
+  - `otelcol.receiver.vcenter` - receives metrics telemetry data from vCenter. (@marctc)
 
 ### Enhancements
 
