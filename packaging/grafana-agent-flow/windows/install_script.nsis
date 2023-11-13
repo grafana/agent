@@ -31,6 +31,7 @@ OutFile     "${OUT}"
 Var PassedInParameters
 Var Config
 Var ConfigFlag
+Var Environment
 Var DisableReporting
 Var DisableReportingFlag
 Var DisableProfiling
@@ -51,6 +52,7 @@ Section "install"
   ${GetParameters} $PassedInParameters
   ${GetOptions} $PassedInParameters "/DISABLEPROFILING=" $DisableProfiling
   ${GetOptions} $PassedInParameters "/DISABLEREPORTING=" $DisableReporting
+  ${GetOptions} $PassedInParameters "/ENVIRONMENT=" $Environment
   ${GetOptions} $PassedInParameters "/CONFIG=" $Config
 
   # Calls to functions like nsExec::ExecToLog below push the exit code to the
@@ -151,7 +153,7 @@ Function InitializeRegistry
   nsExec::ExecToLog 'Reg.exe query "${REGKEY}" /reg:64 /v Environment'
   Pop $0
   ${If} $0 == 1
-    nsExec::ExecToLog 'Reg.exe add "${REGKEY}" /reg:64 /v Environment /t REG_MULTI_SZ'
+    nsExec::ExecToLog 'Reg.exe add "${REGKEY}" /reg:64 /v Environment /t REG_MULTI_SZ /d "$Environment"'
     Pop $0 # Ignore return result
   ${EndIf}
 
