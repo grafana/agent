@@ -10,7 +10,7 @@ description: Learn about otelcol.receiver.vcenter
 
 # otelcol.receiver.vcenter
 
-`otelcol.receiver.vcenter` accepts telemetry data from a 
+`otelcol.receiver.vcenter` accepts metrics from a 
 vCenter or ESXi host running VMware vSphere APIs and
 forwards it to other `otelcol.*` components.
 
@@ -21,6 +21,10 @@ forwards it to other `otelcol.*` components.
 
 Multiple `otelcol.receiver.vcenter` components can be specified by giving them
 different labels.
+
+Make sure that you fulfill the [prerequisites](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/receiver/vcenterreceiver/README.md#prerequisites) before using this component.
+
+The full list of metrics that can be collected can be found [here](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/receiver/vcenterreceiver/documentation.md)
 
 ## Usage
 
