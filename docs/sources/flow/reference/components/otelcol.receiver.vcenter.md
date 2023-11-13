@@ -50,7 +50,7 @@ Name | Type | Description | Default | Required
 `initial_delay` | `duration` | Defines how long this receiver waits before starting. | `"1s"` | no
 `timeout` | `duration` | Defines the timeout for the underlying HTTP client. | `"0s"` | no
 
-`endpoint` has the following format: `<protocol>://<hostname>` (e.g. `https://vcsa.hostname.localnet`)
+`endpoint` has the format `<protocol>://<hostname>`. For example, `https://vcsa.hostname.localnet`.
 
 ## Blocks
 
