@@ -98,6 +98,8 @@ Main (unreleased)
 - Added support for replaying not sent data for `loki.write` when WAL is enabled. (@thepalbi)
 
 - Added support for unicode strings in `pyroscope.ebpf` python profiles. (@korniltsev)
+ 
+- Flow Windows service: Support environment variables. (@jkroepke)
 
 - Improved resilience of graph evaluation in presence of slow components. (@thampiotr)
 
