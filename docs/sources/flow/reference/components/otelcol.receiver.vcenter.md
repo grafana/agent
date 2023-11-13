@@ -46,7 +46,7 @@ Name | Type | Description | Default | Required
 `endpoint` | `string` | Endpoint to a vCenter Server or ESXi host which has the SDK path enabled. | | yes
 `username` | `string` | Username to use for authentication. | | yes
 `password` | `string` | Password to use for authentication. | | yes
-`collection_interval` | `duration` | This receiver collects metrics on an interval. | `"1m"` | no
+`collection_interval` | `duration` | Defines how often to collect metrics. | `"1m"` | no
 `initial_delay` | `duration` | Defines how long this receiver waits before starting. | `"1s"` | no
 `timeout` | `duration` | Defines the timeout for the underlying HTTP client. | `"0s"` | no
 
