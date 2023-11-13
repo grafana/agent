@@ -43,7 +43,7 @@ otelcol.receiver.vcenter "LABEL" {
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`endpoint` | `string` | Endpoint to the vCenter Server or ESXi host that has the sdk path enabled. | | yes
+`endpoint` | `string` | Endpoint to a vCenter Server or ESXi host which has the SDK path enabled. | | yes
 `username` | `string` | Username to use for authentication. | | yes
 `password` | `string` | Password to use for authentication. | | yes
 `collection_interval` | `duration` | This receiver collects metrics on an interval. | `"1m"` | no
