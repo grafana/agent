@@ -47,7 +47,7 @@ Name | Type | Description | Default | Required
 `username` | `string` | Username to use for authentication. | | yes
 `password` | `string` | Password to use for authentication. | | yes
 `collection_interval` | `duration` | This receiver collects metrics on an interval. | `"1m"` | no
-`initial_delay` | `duration` | Defines how long this receiver waits before starting.. | `"1s"` | no
+`initial_delay` | `duration` | Defines how long this receiver waits before starting. | `"1s"` | no
 `timeout` | `duration` | Defines the timeout for the underlying HTTP client. | `"0s"` | no
 
 `endpoint` has the following format: `<protocol>://<hostname>` (e.g. `https://vcsa.hostname.localnet`)
