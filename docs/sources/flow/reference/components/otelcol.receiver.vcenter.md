@@ -59,7 +59,7 @@ The following blocks are supported inside the definition of
 
 Hierarchy | Block | Description | Required
 --------- | ----- | ----------- | --------
-tls | [tls][] | Configures TLS for the server. | no
+tls | [tls][] | Configures TLS for the HTTP client. | no
 debug_metrics | [debug_metrics][] | Configures the metrics that this component generates to monitor its state. | no
 output | [output][] | Configures where to send received telemetry data. | yes
 
