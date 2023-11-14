@@ -150,12 +150,8 @@ Function InitializeRegistry
 
   # Define the environment key, which holds environment variables to pass to the
   # service.
-  nsExec::ExecToLog 'Reg.exe query "${REGKEY}" /reg:64 /v Environment'
-  Pop $0
-  ${If} $0 == 1
-    nsExec::ExecToLog 'Reg.exe add "${REGKEY}" /reg:64 /v Environment /t REG_MULTI_SZ /d "$Environment"'
-    Pop $0 # Ignore return result
-  ${EndIf}
+  nsExec::ExecToLog 'Reg.exe add "${REGKEY}" /reg:64 /v Environment /t REG_MULTI_SZ /d "$Environment"'
+  Pop $0 # Ignore return result
 
   Return
 FunctionEnd
