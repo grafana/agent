@@ -143,6 +143,9 @@ Main (unreleased)
   resulting in remote write sending the exemplar first and Prometheus failing to ingest it due to missing
   series. (@krajorama)
 
+- `loki.source.windowsevent` changed to use a more robust positions file to prevent corruption on reboots when writing
+  the positions file. (@mattdurham)
+
 v0.37.4 (2023-11-06)
 -----------------
 
