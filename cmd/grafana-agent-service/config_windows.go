@@ -48,7 +48,7 @@ func loadConfig() (*config, error) {
 
 	env, _, err := agentKey.GetStringsValue("Environment")
 	if err != nil {
-		return nil, fmt.Errorf("failed to retrieve key Arguments: %w", err)
+		return nil, fmt.Errorf("failed to retrieve key Environment: %w", err)
 	}
 
 	return &config{
