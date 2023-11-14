@@ -2,6 +2,7 @@ package mssql
 
 import (
 	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -11,6 +12,11 @@ import (
 )
 
 func TestConfig_validate(t *testing.T) {
+	badQueryPath, err := filepath.Abs("./test/bad_query_config.yaml")
+	goodQueryPath, err := filepath.Abs("./collector_config.yaml")
+	if err != nil {
+
+	}
 	testCases := []struct {
 		name  string
 		input Config
@@ -83,6 +89,49 @@ func TestConfig_validate(t *testing.T) {
 				Timeout:            0,
 			},
 			err: "timeout must be positive",
+		},
+		{
+			name: "bad query config path",
+			input: Config{
+				ConnectionString:   "sqlserver://user:pass@localhost:1433",
+				MaxIdleConnections: 3,
+				MaxOpenConnections: 3,
+				Timeout:            10 * time.Second,
+				QueryConfigPath:    "doesnotexist.YAML",
+			},
+			err: "query_config_path must be a valid path of a YAML config file",
+		},
+		{
+			name: "bad query config path",
+			input: Config{
+				ConnectionString:   "sqlserver://user:pass@localhost:1433",
+				MaxIdleConnections: 3,
+				MaxOpenConnections: 3,
+				Timeout:            10 * time.Second,
+				QueryConfigPath:    "doesnotexist.YAML",
+			},
+			err: "query_config_path must be a valid path of a YAML config file",
+		},
+		{
+			name: "bad query config file",
+			input: Config{
+				ConnectionString:   "sqlserver://user:pass@localhost:1433",
+				MaxIdleConnections: 3,
+				MaxOpenConnections: 3,
+				Timeout:            10 * time.Second,
+				QueryConfigPath:    badQueryPath,
+			},
+			err: "query_config_path config not in correct format",
+		},
+		{
+			name: "good query config file",
+			input: Config{
+				ConnectionString:   "sqlserver://user:pass@localhost:1433",
+				MaxIdleConnections: 3,
+				MaxOpenConnections: 3,
+				Timeout:            10 * time.Second,
+				QueryConfigPath:    goodQueryPath,
+			},
 		},
 	}
 

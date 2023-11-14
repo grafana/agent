@@ -4,11 +4,13 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"os"
 	"time"
 
 	"github.com/go-kit/log"
 	"github.com/prometheus/client_golang/prometheus"
 	config_util "github.com/prometheus/common/config"
+	"gopkg.in/yaml.v3"
 
 	"github.com/burningalchemist/sql_exporter"
 	"github.com/burningalchemist/sql_exporter/config"
@@ -31,6 +33,7 @@ type Config struct {
 	MaxIdleConnections int                `yaml:"max_idle_connections,omitempty"`
 	MaxOpenConnections int                `yaml:"max_open_connections,omitempty"`
 	Timeout            time.Duration      `yaml:"timeout,omitempty"`
+	QueryConfigPath    string             `yaml:"query_config_path,omitempty"`
 }
 
 func (c Config) validate() error {
@@ -57,6 +60,20 @@ func (c Config) validate() error {
 
 	if c.Timeout <= 0 {
 		return errors.New("timeout must be positive")
+	}
+
+	if c.QueryConfigPath != "" {
+		_, err := os.Stat(c.QueryConfigPath)
+
+		if err == nil {
+			return nil
+		}
+
+		if errors.Is(err, os.ErrNotExist) {
+			return errors.New("query_config_path must be a valid path of a YAML config file")
+		} else {
+			return errors.New("query_config_path config not in correct format")
+		}
 	}
 
 	return nil
@@ -94,6 +111,18 @@ func init() {
 func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) {
 	if err := c.validate(); err != nil {
 		return nil, fmt.Errorf("failed to validate config: %w", err)
+	}
+
+	// Initialize collectorConfig from file if needed
+	if c.QueryConfigPath != "" {
+		yamlFile, err := os.ReadFile(c.QueryConfigPath)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create mssql target: problem reading query_config_path: %w", err)
+		}
+		err = yaml.Unmarshal(yamlFile, &collectorConfig)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create mssql target: query_config_path file not in correct format: %w", err)
+		}
 	}
 
 	t, err := sql_exporter.NewTarget(
