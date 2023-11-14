@@ -121,17 +121,31 @@ resource information from the [EC2 instance metadata API](https://docs.aws.amazo
 
 The following attributes are supported:
 
-Name   | Type           | Description                          | Default     | Required
------- |----------------|--------------------------------------|-------------| --------
-`tags` | `list(string)` |                                      | `[]`        | no
+Attribute   | Type           | Description                                                                 | Default     | Required
+----------- |----------------| --------------------------------------------------------------------------- |-------------| --------
+`tags`      | `list(string)` | A list of regular expressions to match against tag keys of an EC2 instance. | `[]`        | no
+
+The following blocks are supported:
+
+Block                                          | Description                                       | Required
+---------------------------------------------- | ------------------------------------------------- | --------
+[resource_attributes][ec2-resource_attributes] | Configures which resource attributes to add.      | yes
 
 ### ec2 > resource_attributes
 
-The following attributes are supported:
+The following blocks are supported:
 
-Name   | Type           | Description                          | Default     | Required
------- |----------------|--------------------------------------|-------------| --------
-`name` | `string` |                                      | `[]`        | no
+Block                                          | Description                                        | Required
+---------------------------------------------- | -------------------------------------------------- | --------
+[cloud.account.id](#resource-attribute-config) | Enables the `cloud.account.id` resource attribute. | no
+`cloud.availability_zone`                      |                                                    | no
+`cloud.platform`                               |                                                    | no
+`cloud.provider`                               |                                                    | no
+`cloud.region`                                 |                                                    | no
+`host.id`                                      |                                                    | no
+`host.image.id`                                |                                                    | no
+`host.name`                                    |                                                    | no
+`host.type`                                    |                                                    | no
 
 ### ecs
 
@@ -184,6 +198,16 @@ Name   | Type           | Description                          | Default     | R
 ### kubernetes_node
 
 ### kubernetes_node > resource_attributes
+
+## Common configuration
+
+### Resource attribute config
+
+The following attributes are supported:
+
+Attribute |  Type   | Description                          | Default     | Required
+--------- | ------- |--------------------------------------|-------------| --------
+`enabled` |  `bool` |                                      |             | yes
 
 ## Exported fields
 
