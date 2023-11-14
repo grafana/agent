@@ -2,6 +2,7 @@ package mssql
 
 import (
 	"errors"
+	"os"
 	"time"
 
 	"github.com/grafana/agent/component"
@@ -40,6 +41,7 @@ type Arguments struct {
 	MaxIdleConnections int               `river:"max_idle_connections,attr,optional"`
 	MaxOpenConnections int               `river:"max_open_connections,attr,optional"`
 	Timeout            time.Duration     `river:"timeout,attr,optional"`
+	QueryConfigPath    string            `river:"query_config_path,attr,optional"`
 }
 
 // SetToDefault implements river.Defaulter.
@@ -60,6 +62,21 @@ func (a *Arguments) Validate() error {
 	if a.Timeout <= 0 {
 		return errors.New("timeout must be positive")
 	}
+
+	if a.QueryConfigPath != "" {
+		_, err := os.Stat(a.QueryConfigPath)
+
+		if err == nil {
+			return nil
+		}
+
+		if errors.Is(err, os.ErrNotExist) {
+			return errors.New("query_config_path must be a valid path of a YAML config file")
+		} else {
+			return errors.New("query_config_path file has issues")
+		}
+	}
+
 	return nil
 }
 
@@ -69,5 +86,6 @@ func (a *Arguments) Convert() *mssql.Config {
 		MaxIdleConnections: a.MaxIdleConnections,
 		MaxOpenConnections: a.MaxOpenConnections,
 		Timeout:            a.Timeout,
+		QueryConfigPath:    a.QueryConfigPath,
 	}
 }

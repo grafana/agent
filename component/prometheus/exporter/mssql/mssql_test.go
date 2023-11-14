@@ -1,6 +1,7 @@
 package mssql
 
 import (
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -12,12 +13,14 @@ import (
 )
 
 func TestRiverUnmarshal(t *testing.T) {
+	goodQueryPath, _ := filepath.Abs("../../../../pkg/integrations/mssql/collector_config.yaml")
+
 	riverConfig := `
 	connection_string = "sqlserver://user:pass@localhost:1433"
 	max_idle_connections = 3
 	max_open_connections = 3
 	timeout = "10s"
-	`
+    query_config_path = "` + goodQueryPath + `"`
 
 	var args Arguments
 	err := river.Unmarshal([]byte(riverConfig), &args)
@@ -28,6 +31,7 @@ func TestRiverUnmarshal(t *testing.T) {
 		MaxIdleConnections: 3,
 		MaxOpenConnections: 3,
 		Timeout:            10 * time.Second,
+		QueryConfigPath:    goodQueryPath,
 	}
 
 	require.Equal(t, expected, args)
@@ -47,6 +51,8 @@ func TestUnmarshalInvalid(t *testing.T) {
 }
 
 func TestArgumentsValidate(t *testing.T) {
+	goodQueryPath, _ := filepath.Abs("../../../../pkg/integrations/mssql/collector_config.yaml")
+
 	tests := []struct {
 		name    string
 		args    Arguments
@@ -59,6 +65,7 @@ func TestArgumentsValidate(t *testing.T) {
 				MaxIdleConnections: 1,
 				MaxOpenConnections: 0,
 				Timeout:            10 * time.Second,
+				QueryConfigPath:    goodQueryPath,
 			},
 			wantErr: true,
 		},
@@ -69,6 +76,7 @@ func TestArgumentsValidate(t *testing.T) {
 				MaxIdleConnections: 0,
 				MaxOpenConnections: 1,
 				Timeout:            10 * time.Second,
+				QueryConfigPath:    goodQueryPath,
 			},
 			wantErr: true,
 		},
@@ -79,6 +87,18 @@ func TestArgumentsValidate(t *testing.T) {
 				MaxIdleConnections: 1,
 				MaxOpenConnections: 1,
 				Timeout:            0,
+				QueryConfigPath:    goodQueryPath,
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid query_config_path",
+			args: Arguments{
+				ConnectionString:   rivertypes.Secret("test"),
+				MaxIdleConnections: 1,
+				MaxOpenConnections: 1,
+				Timeout:            0,
+				QueryConfigPath:    "doesnotexist.YAML",
 			},
 			wantErr: true,
 		},
@@ -89,6 +109,7 @@ func TestArgumentsValidate(t *testing.T) {
 				MaxIdleConnections: 1,
 				MaxOpenConnections: 1,
 				Timeout:            10 * time.Second,
+				QueryConfigPath:    goodQueryPath,
 			},
 			wantErr: false,
 		},
@@ -107,9 +128,10 @@ func TestArgumentsValidate(t *testing.T) {
 }
 
 func TestConvert(t *testing.T) {
+	goodQueryPath, _ := filepath.Abs("../../../../pkg/integrations/mssql/collector_config.yaml")
 	riverConfig := `
 	connection_string = "sqlserver://user:pass@localhost:1433"
-	`
+	query_config_path = "` + goodQueryPath + `"`
 	var args Arguments
 	err := river.Unmarshal([]byte(riverConfig), &args)
 	require.NoError(t, err)
@@ -121,6 +143,7 @@ func TestConvert(t *testing.T) {
 		MaxIdleConnections: DefaultArguments.MaxIdleConnections,
 		MaxOpenConnections: DefaultArguments.MaxOpenConnections,
 		Timeout:            DefaultArguments.Timeout,
+		QueryConfigPath:    goodQueryPath,
 	}
 	require.Equal(t, expected, *res)
 }

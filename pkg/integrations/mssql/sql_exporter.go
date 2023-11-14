@@ -72,7 +72,7 @@ func (c Config) validate() error {
 		if errors.Is(err, os.ErrNotExist) {
 			return errors.New("query_config_path must be a valid path of a YAML config file")
 		} else {
-			return errors.New("query_config_path config not in correct format")
+			return errors.New("query_config_path file has issues")
 		}
 	}
 

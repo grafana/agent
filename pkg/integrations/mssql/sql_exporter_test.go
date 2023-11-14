@@ -12,11 +12,8 @@ import (
 )
 
 func TestConfig_validate(t *testing.T) {
-	badQueryPath, err := filepath.Abs("./test/bad_query_config.yaml")
-	goodQueryPath, err := filepath.Abs("./collector_config.yaml")
-	if err != nil {
+	goodQueryPath, _ := filepath.Abs("./collector_config.yaml")
 
-	}
 	testCases := []struct {
 		name  string
 		input Config
@@ -102,28 +99,6 @@ func TestConfig_validate(t *testing.T) {
 			err: "query_config_path must be a valid path of a YAML config file",
 		},
 		{
-			name: "bad query config path",
-			input: Config{
-				ConnectionString:   "sqlserver://user:pass@localhost:1433",
-				MaxIdleConnections: 3,
-				MaxOpenConnections: 3,
-				Timeout:            10 * time.Second,
-				QueryConfigPath:    "doesnotexist.YAML",
-			},
-			err: "query_config_path must be a valid path of a YAML config file",
-		},
-		{
-			name: "bad query config file",
-			input: Config{
-				ConnectionString:   "sqlserver://user:pass@localhost:1433",
-				MaxIdleConnections: 3,
-				MaxOpenConnections: 3,
-				Timeout:            10 * time.Second,
-				QueryConfigPath:    badQueryPath,
-			},
-			err: "query_config_path config not in correct format",
-		},
-		{
 			name: "good query config file",
 			input: Config{
 				ConnectionString:   "sqlserver://user:pass@localhost:1433",
@@ -148,6 +123,8 @@ func TestConfig_validate(t *testing.T) {
 	}
 }
 func TestConfig_UnmarshalYaml(t *testing.T) {
+	goodQueryPath, _ := filepath.Abs("./collector_config.yaml")
+
 	t.Run("only required values", func(t *testing.T) {
 		strConfig := `connection_string: "sqlserver://user:pass@localhost:1433"`
 
@@ -169,7 +146,7 @@ connection_string: "sqlserver://user:pass@localhost:1433"
 max_idle_connections: 5
 max_open_connections: 6
 timeout: 1m
-`
+query_config_path: "` + goodQueryPath + `"`
 
 		var c Config
 
@@ -180,17 +157,22 @@ timeout: 1m
 			MaxIdleConnections: 5,
 			MaxOpenConnections: 6,
 			Timeout:            time.Minute,
+			QueryConfigPath:    goodQueryPath,
 		}, c)
 	})
 }
 
 func TestConfig_NewIntegration(t *testing.T) {
+	goodQueryPath, _ := filepath.Abs("./collector_config.yaml")
+	badQueryPath, _ := filepath.Abs("./test/bad_query_config.txt")
+
 	t.Run("integration with valid config", func(t *testing.T) {
 		c := &Config{
 			ConnectionString:   "sqlserver://user:pass@localhost:1433",
 			MaxIdleConnections: 3,
 			MaxOpenConnections: 3,
 			Timeout:            10 * time.Second,
+			QueryConfigPath:    goodQueryPath,
 		}
 
 		i, err := c.NewIntegration(log.NewJSONLogger(os.Stdout))
@@ -209,6 +191,20 @@ func TestConfig_NewIntegration(t *testing.T) {
 		i, err := c.NewIntegration(log.NewJSONLogger(os.Stdout))
 		require.Nil(t, i)
 		require.ErrorContains(t, err, "failed to validate config:")
+	})
+
+	t.Run("integration with incorrect format for query config file", func(t *testing.T) {
+		c := &Config{
+			ConnectionString:   "sqlserver://user:pass@localhost:1433",
+			MaxIdleConnections: 3,
+			MaxOpenConnections: 3,
+			Timeout:            10 * time.Second,
+			QueryConfigPath:    badQueryPath,
+		}
+
+		i, err := c.NewIntegration(log.NewJSONLogger(os.Stdout))
+		require.Nil(t, i)
+		require.ErrorContains(t, err, "failed to create mssql target: query_config_path file not in correct format: ")
 	})
 }
 
