@@ -589,7 +589,7 @@ func resolver(config map[string]interface{}) (map[string]interface{}, error) {
 		case dnsTagName, staticTagName:
 			resolverCfg[typ] = cfg
 		case kubernetesTagName:
-			resolverCfg[typ] = "k8s"
+			resolverCfg["k8s"] = cfg
 		default:
 			return nil, fmt.Errorf("unsupported resolver config type: %s", typ)
 		}

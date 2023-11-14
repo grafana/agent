@@ -213,12 +213,12 @@ type KubernetesResolver struct {
 
 var _ river.Defaulter = &KubernetesResolver{}
 
-// DefaultDNSResolver holds default values for K8sSvcResolver.
-var DefaultK8sSvcResolver = KubernetesResolver{}
-
 // SetToDefault implements river.Defaulter.
 func (args *KubernetesResolver) SetToDefault() {
-	*args = DefaultK8sSvcResolver
+	if args == nil {
+		args = &KubernetesResolver{}
+	}
+	args.Ports = []int32{4317}
 }
 
 func (k8sSvcResolver *KubernetesResolver) Convert() loadbalancingexporter.K8sSvcResolver {

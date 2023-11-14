@@ -222,6 +222,7 @@ func TestConfigConversion(t *testing.T) {
 					Static: nil,
 					K8sSvc: &loadbalancingexporter.K8sSvcResolver{
 						Service: "lb-svc.lb-ns",
+						Ports:   []int32{4317},
 					},
 				},
 				RoutingKey: "traceID",

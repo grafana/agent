@@ -149,7 +149,7 @@ The following arguments are supported:
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `service` | `string`       | Kubernetes service to resolve. |  | yes
-`ports`   | `list(number)` | Ports to use with the IP addresses resolved from `service`. | `["4317"]` | no
+`ports`   | `list(number)` | Ports to use with the IP addresses resolved from `service`. | `[4317]` | no
 
 If no namespace is specified inside `service`, an attempt will be made to infer the namespace for this Agent. 
 If this fails, the `default` namespace will be used.
