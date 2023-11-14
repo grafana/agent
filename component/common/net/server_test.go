@@ -41,6 +41,49 @@ func TestTargetServer(t *testing.T) {
 	}
 }
 
+func TestTargetServer_ServerAPI(t *testing.T) {
+	// dependencies
+	reg := prometheus.NewRegistry()
+	ts, err := NewTargetServer(util.TestLogger(t), "test_namespace", reg, &ServerConfig{
+		EnableServerAPI: true,
+	})
+	require.NoError(t, err)
+
+	err = ts.MountAndRun(func(router *mux.Router) {
+		router.Methods("GET").Path("/hello").Handler(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		}))
+	})
+	require.NoError(t, err)
+	defer ts.StopAndShutdown()
+
+	checkHealth := func(t *testing.T, expectedStatus int) {
+		req, err := http.NewRequest("GET", fmt.Sprintf("http://%s/server/health", ts.HTTPListenAddr()), nil)
+		require.NoError(t, err)
+		res, err := http.DefaultClient.Do(req)
+		require.NoError(t, err)
+		require.Equal(t, expectedStatus, res.StatusCode)
+	}
+
+	toggle := func(t *testing.T) {
+		req, err := http.NewRequest("PUT", fmt.Sprintf("http://%s/server/toggle_ready", ts.HTTPListenAddr()), nil)
+		require.NoError(t, err)
+		res, err := http.DefaultClient.Do(req)
+		require.NoError(t, err)
+		require.Equal(t, http.StatusNoContent, res.StatusCode)
+	}
+
+	checkHealth(t, 200)
+
+	// toggle to not ready
+	toggle(t)
+	checkHealth(t, 500)
+
+	// toggle back to ready
+	toggle(t)
+	checkHealth(t, 200)
+}
+
 func TestTargetServer_NilConfig(t *testing.T) {
 	reg := prometheus.NewRegistry()
 	ts, err := NewTargetServer(util.TestLogger(t), "test_namespace", reg, nil)

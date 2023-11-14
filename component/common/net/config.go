@@ -34,6 +34,10 @@ type ServerConfig struct {
 
 	// GracefulShutdownTimeout configures a timeout to gracefully shut down the server.
 	GracefulShutdownTimeout time.Duration `river:"graceful_shutdown_timeout,attr,optional"`
+
+	// EnableServerAPI registers in the server the `/server` api, that allows one to check the readyness state of the server,
+	// and toggle it if necessary. This is useful for example, for Kubernetes readyness probes.
+	EnableServerAPI bool `river:"enable_server_api,attr,optional"`
 }
 
 // HTTPConfig configures the HTTP dskit started by dskit.Server.
@@ -135,5 +139,6 @@ func DefaultServerConfig() *ServerConfig {
 			ServerMaxRecvMsg:           size4MB,
 		},
 		GracefulShutdownTimeout: 30 * time.Second,
+		EnableServerAPI:         false,
 	}
 }

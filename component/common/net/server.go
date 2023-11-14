@@ -2,6 +2,8 @@ package net
 
 import (
 	"fmt"
+	"go.uber.org/atomic"
+	"net/http"
 
 	"github.com/go-kit/log"
 	"github.com/gorilla/mux"
@@ -19,6 +21,7 @@ type TargetServer struct {
 	config           *dskit.Config
 	metricsNamespace string
 	server           *dskit.Server
+	serverAPIEnabled bool
 }
 
 // NewTargetServer creates a new TargetServer, applying some defaults to the server configuration.
@@ -36,6 +39,8 @@ func NewTargetServer(logger log.Logger, metricsNamespace string, reg prometheus.
 	if config == nil {
 		config = DefaultServerConfig()
 	}
+
+	ts.serverAPIEnabled = config.EnableServerAPI
 
 	// convert from River into the dskit config
 	serverCfg := config.convert()
@@ -58,6 +63,28 @@ func NewTargetServer(logger log.Logger, metricsNamespace string, reg prometheus.
 	return ts, nil
 }
 
+func (ts *TargetServer) registerManagementAPI(router *mux.Router) {
+	var healthy atomic.Bool
+	// always start healthy
+	healthy.Store(true)
+
+	router.Path("/server/health").Methods("GET").Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if !healthy.Load() {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(`{"status": "not_ready"}`))
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"status": "ready"}`))
+	}))
+
+	router.Path("/server/toggle_ready").Methods("PUT").Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		healthy.Store(!healthy.Load())
+		w.WriteHeader(http.StatusNoContent)
+	}))
+}
+
 // MountAndRun mounts the handlers and starting the server.
 func (ts *TargetServer) MountAndRun(mountRoute func(router *mux.Router)) error {
 	level.Info(ts.logger).Log("msg", "starting server")
@@ -68,6 +95,10 @@ func (ts *TargetServer) MountAndRun(mountRoute func(router *mux.Router)) error {
 
 	ts.server = srv
 	mountRoute(ts.server.HTTP)
+
+	if ts.serverAPIEnabled {
+		ts.registerManagementAPI(ts.server.HTTP)
+	}
 
 	go func() {
 		err := srv.Run()
