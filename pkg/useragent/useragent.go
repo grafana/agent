@@ -1,4 +1,6 @@
 // package useragent provides a consistent way to get a user agent for outbound http requests from Grafana Agent.
+// The default User-Agent is `GrafanaAgent/$VERSION($MODE)`
+// Where version is the build version of the agent and MODE is one of "static" or "flow".
 package useragent
 
 import (
@@ -11,7 +13,7 @@ import (
 func UserAgent() string {
 	parenthesis := ""
 	if mode := getRunMode(); mode != "" {
-		parenthesis = fmt.Sprintf("(%s)", mode)
+		parenthesis = fmt.Sprintf(" (%s)", mode)
 	}
 	return fmt.Sprintf("GrafanaAgent/%s%s", build.Version, parenthesis)
 }

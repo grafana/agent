@@ -17,17 +17,17 @@ func TestUserAgent(t *testing.T) {
 		{
 			Name:     "basic",
 			Mode:     "",
-			Expected: "GrafanaAgent/v1.2.3(static)",
+			Expected: "GrafanaAgent/v1.2.3 (static)",
 		},
 		{
 			Name:     "flow",
 			Mode:     "flow",
-			Expected: "GrafanaAgent/v1.2.3(flow)",
+			Expected: "GrafanaAgent/v1.2.3 (flow)",
 		},
 		{
 			Name:     "static",
 			Mode:     "static",
-			Expected: "GrafanaAgent/v1.2.3(static)",
+			Expected: "GrafanaAgent/v1.2.3 (static)",
 		},
 		{
 			Name: "unknown",
