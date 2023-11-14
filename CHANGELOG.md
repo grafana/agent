@@ -99,7 +99,11 @@ Main (unreleased)
 
 - Added support for unicode strings in `pyroscope.ebpf` python profiles. (@korniltsev)
 
+- Improved resilience of graph evaluation in presence of slow components. (@thampiotr)
+
 ### Bugfixes
+
+- Set exit code 1 on grafana-agentctl non-runnable command. (@fgouteroux)
 
 - Fixed an issue where `loki.process` validation for stage `metric.counter` was
   allowing invalid combination of configuration options. (@thampiotr)
@@ -134,6 +138,10 @@ Main (unreleased)
 - Fixed a bug where UDP syslog messages were never processed (@joshuapare)
 
 - Updating configuration for `loki.write` no longer drops data. (@thepalbi)
+
+- Fixed a bug in WAL where exemplars were recorded before the first native histogram samples for new series,
+  resulting in remote write sending the exemplar first and Prometheus failing to ingest it due to missing
+  series. (@krajorama)
 
 v0.37.4 (2023-11-06)
 -----------------
