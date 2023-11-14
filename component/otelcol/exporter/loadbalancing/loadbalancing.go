@@ -224,7 +224,7 @@ func (args *KubernetesResolver) SetToDefault() {
 func (k8sSvcResolver *KubernetesResolver) Convert() loadbalancingexporter.K8sSvcResolver {
 	return loadbalancingexporter.K8sSvcResolver{
 		Service: k8sSvcResolver.Service,
-		Ports:   k8sSvcResolver.Ports,
+		Ports:   append([]int32{}, k8sSvcResolver.Ports...),
 	}
 }
 
