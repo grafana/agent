@@ -7,14 +7,11 @@ package positions
 // same place in case of a restart.
 
 import (
-	"os"
-	"path/filepath"
-
+	"bytes"
+	"github.com/natefinch/atomic"
 	yaml "gopkg.in/yaml.v2"
 )
 
-// writePositionFile is a fallback for Windows because renameio does not support Windows.
-// See https://github.com/google/renameio#windows-support
 func writePositionFile(filename string, positions map[Entry]string) error {
 	buf, err := yaml.Marshal(File{
 		Positions: positions,
@@ -22,14 +19,6 @@ func writePositionFile(filename string, positions map[Entry]string) error {
 	if err != nil {
 		return err
 	}
+	return atomic.WriteFile(filename, bytes.NewReader(buf))
 
-	target := filepath.Clean(filename)
-	temp := target + "-new"
-
-	err = os.WriteFile(temp, buf, os.FileMode(positionFileMode))
-	if err != nil {
-		return err
-	}
-
-	return os.Rename(temp, target)
 }

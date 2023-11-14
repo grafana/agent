@@ -7,8 +7,10 @@ package windowsevent
 
 import (
 	"bytes"
+	"errors"
 	"github.com/natefinch/atomic"
 	"io"
+	"io/fs"
 	"os"
 
 	"github.com/grafana/loki/clients/pkg/promtail/targets/windows/win_eventlog"
@@ -29,7 +31,7 @@ func newBookMark(path string) (*bookMark, error) {
 
 	_, err := os.Stat(path)
 	// creates a new bookmark file if none exists.
-	if os.IsNotExist(err) {
+	if errors.Is(err, fs.ErrNotExist) {
 		_, err := os.Create(path)
 		if err != nil {
 			return nil, err
