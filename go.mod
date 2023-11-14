@@ -734,3 +734,9 @@ exclude (
 )
 
 replace github.com/github/smimesign => github.com/grafana/smimesign v0.2.1-0.20220408144937-2a5adf3481d3
+
+// This is the last version that used slices.Func with a bool return
+// If we upgrade to a newer one then since the signature changed loki will complain.
+replace golang.org/x/exp => golang.org/x/exp v0.0.0-20230713183714-613f0c0eb8a1
+
+replace github.com/prometheus-community/windows_exporter => C:\Users\mattd\source\windows_exporter
