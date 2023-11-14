@@ -190,12 +190,19 @@ func generatePodTemplate(
 		finalLabels         = cfg.Labels.Merge(podLabels)
 	)
 
-	envVars := []core_v1.EnvVar{{
-		Name: "POD_NAME",
-		ValueFrom: &core_v1.EnvVarSource{
-			FieldRef: &core_v1.ObjectFieldSelector{FieldPath: "metadata.name"},
+	envVars := []core_v1.EnvVar{
+		{
+			Name: "POD_NAME",
+			ValueFrom: &core_v1.EnvVarSource{
+				FieldRef: &core_v1.ObjectFieldSelector{FieldPath: "metadata.name"},
+			},
 		},
-	}}
+		// Allows the agent to identify this is an operator-created pod.
+		{
+			Name:  "AGENT_OPERATOR",
+			Value: "1",
+		},
+	}
 	envVars = append(envVars, opts.ExtraEnvVars...)
 
 	useConfigReloaderVersion := d.Agent.Spec.ConfigReloaderVersion

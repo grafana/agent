@@ -155,4 +155,17 @@ func Test_generatePodTemplate(t *testing.T) {
 		require.NoError(t, err)
 		assert.Nil(t, tmpl.Spec.RuntimeClassName)
 	})
+
+	t.Run("AGENT_OPERATOR env ser", func(t *testing.T) {
+		deploy := gragent.Deployment{
+			Agent: &gragent.GrafanaAgent{
+				ObjectMeta: v1.ObjectMeta{Name: name, Namespace: name},
+			},
+		}
+
+		tmpl, _, err := generatePodTemplate(cfg, "agent", deploy, podTemplateOptions{})
+		require.NoError(t, err)
+		require.Equal(t, "1", tmpl.Spec.Containers[1].Env[1].Value)
+		require.Equal(t, "AGENT_OPERATOR", tmpl.Spec.Containers[1].Env[1].Name)
+	})
 }
