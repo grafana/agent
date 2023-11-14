@@ -207,7 +207,7 @@ func TestConfigConversion(t *testing.T) {
 			testName: "k8s with defaults",
 			agentCfg: `
 			resolver {
-				k8s {
+				kubernetes {
 					service = "lb-svc.lb-ns"
 				}
 			}
@@ -232,7 +232,7 @@ func TestConfigConversion(t *testing.T) {
 			testName: "k8s with non-defaults",
 			agentCfg: `
 			resolver {
-				k8s {
+				kubernetes {
 					service = "lb-svc.lb-ns"
 					ports = [55690, 55691]
 				}

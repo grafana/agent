@@ -332,7 +332,7 @@ load_balancing:
       [ interval: <duration> | default = 5s ]
       # Resolver timeout
       [ timeout: <duration> | default = 1s ]
-    k8s:
+    kubernetes:
       service: <string>
       [ ports: <int array> | default = 4317 ]
 

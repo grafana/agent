@@ -137,9 +137,9 @@ func (otlpConfig OtlpConfig) Convert() otlpexporter.Config {
 
 // ResolverSettings defines the configurations for the backend resolver
 type ResolverSettings struct {
-	Static *StaticResolver `river:"static,block,optional"`
-	DNS    *DNSResolver    `river:"dns,block,optional"`
-	K8sSvc *K8sSvcResolver `river:"k8s,block,optional"`
+	Static     *StaticResolver     `river:"static,block,optional"`
+	DNS        *DNSResolver        `river:"dns,block,optional"`
+	Kubernetes *KubernetesResolver `river:"kubernetes,block,optional"`
 }
 
 func (resolverSettings ResolverSettings) Convert() loadbalancingexporter.ResolverSettings {
@@ -155,9 +155,9 @@ func (resolverSettings ResolverSettings) Convert() loadbalancingexporter.Resolve
 		res.DNS = &dnsResolver
 	}
 
-	if resolverSettings.K8sSvc != nil {
-		k8sSvcResolver := resolverSettings.K8sSvc.Convert()
-		res.K8sSvc = &k8sSvcResolver
+	if resolverSettings.Kubernetes != nil {
+		kubernetesResolver := resolverSettings.Kubernetes.Convert()
+		res.K8sSvc = &kubernetesResolver
 	}
 
 	return res
@@ -205,23 +205,23 @@ func (dnsResolver *DNSResolver) Convert() loadbalancingexporter.DNSResolver {
 	}
 }
 
-// K8sSvcResolver defines the configuration for the k8s resolver
-type K8sSvcResolver struct {
+// KubernetesResolver defines the configuration for the k8s resolver
+type KubernetesResolver struct {
 	Service string  `river:"service,attr"`
 	Ports   []int32 `river:"ports,attr,optional"`
 }
 
-var _ river.Defaulter = &K8sSvcResolver{}
+var _ river.Defaulter = &KubernetesResolver{}
 
 // DefaultDNSResolver holds default values for K8sSvcResolver.
-var DefaultK8sSvcResolver = K8sSvcResolver{}
+var DefaultK8sSvcResolver = KubernetesResolver{}
 
 // SetToDefault implements river.Defaulter.
-func (args *K8sSvcResolver) SetToDefault() {
+func (args *KubernetesResolver) SetToDefault() {
 	*args = DefaultK8sSvcResolver
 }
 
-func (k8sSvcResolver *K8sSvcResolver) Convert() loadbalancingexporter.K8sSvcResolver {
+func (k8sSvcResolver *KubernetesResolver) Convert() loadbalancingexporter.K8sSvcResolver {
 	return loadbalancingexporter.K8sSvcResolver{
 		Service: k8sSvcResolver.Service,
 		Ports:   k8sSvcResolver.Ports,

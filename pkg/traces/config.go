@@ -64,9 +64,9 @@ const (
 	// defaultLoadBalancingPort is the default port the agent uses for internal load balancing
 	defaultLoadBalancingPort = "4318"
 	// agent's load balancing options
-	dnsTagName    = "dns"
-	staticTagName = "static"
-	k8sTagName    = "k8s"
+	dnsTagName        = "dns"
+	staticTagName     = "static"
+	kubernetesTagName = "kubernetes"
 
 	// sampling policies
 	alwaysSamplePolicy = "always_sample"
@@ -586,8 +586,10 @@ func resolver(config map[string]interface{}) (map[string]interface{}, error) {
 	resolverCfg := make(map[string]interface{})
 	for typ, cfg := range config {
 		switch typ {
-		case dnsTagName, staticTagName, k8sTagName:
+		case dnsTagName, staticTagName:
 			resolverCfg[typ] = cfg
+		case kubernetesTagName:
+			resolverCfg[typ] = "k8s"
 		default:
 			return nil, fmt.Errorf("unsupported resolver config type: %s", typ)
 		}
