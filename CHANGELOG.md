@@ -101,6 +101,8 @@ Main (unreleased)
 
 - Improved resilience of graph evaluation in presence of slow components. (@thampiotr)
 
+- Allow overriding `HTTPClientConfig` fields such as `proxy_url` in `discovery.ec2`. (@cmbrad)
+
 ### Bugfixes
 
 - Set exit code 1 on grafana-agentctl non-runnable command. (@fgouteroux)
