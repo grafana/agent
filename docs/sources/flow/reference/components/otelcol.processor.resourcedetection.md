@@ -48,73 +48,73 @@ Name        | Type           | Description                                      
 The following blocks are supported inside the definition of
 `otelcol.processor.resourcedetection`:
 
-Hierarchy                              | Block                                    | Description                                       | Required
--------------------------------------- | ---------------------------------------- | ------------------------------------------------- | --------
-output                                 | [output][]                               | Configures where to send received telemetry data. | yes
-ec2                                    | [ec2][]                                  | Configures where to send received telemetry data. | no
-ec2 > resource_attributes              | [ec2-resource_attributes][]              | Configures where to send received telemetry data. | no
-ecs                                    | [ecs][]                                  | Configures where to send received telemetry data. | no
-ecs > resource_attributes              | [ecs-resource_attributes][]              | Configures where to send received telemetry data. | no
-eks                                    | [eks][]                                  | Configures where to send received telemetry data. | no
-eks > resource_attributes              | [eks-resource_attributes][]              | Configures where to send received telemetry data. | no
-elasticbeanstalk                       | [elasticbeanstalk][]                     | Configures where to send received telemetry data. | no
-elasticbeanstalk > resource_attributes | [elasticbeanstalk-resource_attributes][] | Configures where to send received telemetry data. | no
-lambda                                 | [lambda][]                               | Configures where to send received telemetry data. | no
-lambda > resource_attributes           | [lambda-resource_attributes][]           | Configures where to send received telemetry data. | no
-azure                                  | [azure][]                                | Configures where to send received telemetry data. | no
-azure > resource_attributes            | [azure-resource_attributes][]            | Configures where to send received telemetry data. | no
-aks                                    | [aks][]                                  | Configures where to send received telemetry data. | no
-aks > resource_attributes              | [aks-resource_attributes][]              | Configures where to send received telemetry data. | no
-consul                                 | [consul][]                               | Configures where to send received telemetry data. | no
-consul > resource_attributes           | [consul-resource_attributes][]           | Configures where to send received telemetry data. | no
-docker                                 | [docker][]                               | Configures where to send received telemetry data. | no
-docker > resource_attributes           | [docker-resource_attributes][]           | Configures where to send received telemetry data. | no
-gcp                                    | [gcp][]                                  | Configures where to send received telemetry data. | no
-gcp > resource_attributes              | [gcp-resource_attributes][]              | Configures where to send received telemetry data. | no
-heroku                                 | [heroku][]                               | Configures where to send received telemetry data. | no
-heroku > resource_attributes           | [heroku-resource_attributes][]           | Configures where to send received telemetry data. | no
-system                                 | [system][]                               | Configures where to send received telemetry data. | no
-system > resource_attributes           | [system-resource_attributes][]           | Configures where to send received telemetry data. | no
-openshift                              | [openshift][]                            | Configures where to send received telemetry data. | no
-openshift > resource_attributes        | [openshift-resource_attributes][]        | Configures where to send received telemetry data. | no
-kubernetes_node                        | [kubernetes_node][]                      | Configures where to send received telemetry data. | no
-kubernetes_node > resource_attributes  | [kubernetes_node-resource_attributes][]  | Configures where to send received telemetry data. | no
+Hierarchy                              | Block                                                       | Description                                       | Required
+-------------------------------------- | ----------------------------------------------------------- | ------------------------------------------------- | --------
+output                                 | [output][]                                                  | Configures where to send received telemetry data. | yes
+ec2                                    | [ec2][]                                                     |                                                   | no
+ec2 > resource_attributes              | [resource_attributes][ec2-resource_attributes]              |                                                   | no
+ecs                                    | [ecs][]                                                     |                                                   | no
+ecs > resource_attributes              | [resource_attributes][ecs-resource_attributes]              |                                                   | no
+eks                                    | [eks][]                                                     |                                                   | no
+eks > resource_attributes              | [resource_attributes][eks-resource_attributes]              |                                                   | no
+elasticbeanstalk                       | [elasticbeanstalk][]                                        |                                                   | no
+elasticbeanstalk > resource_attributes | [resource_attributes][elasticbeanstalk-resource_attributes] |                                                   | no
+lambda                                 | [lambda][]                                                  |                                                   | no
+lambda > resource_attributes           | [resource_attributes][lambda-resource_attributes]           |                                                   | no
+azure                                  | [azure][]                                                   |                                                   | no
+azure > resource_attributes            | [resource_attributes][azure-resource_attributes]            |                                                   | no
+aks                                    | [aks][]                                                     |                                                   | no
+aks > resource_attributes              | [resource_attributes][aks-resource_attributes]              |                                                   | no
+consul                                 | [consul][]                                                  |                                                   | no
+consul > resource_attributes           | [resource_attributes][consul-resource_attributes]           |                                                   | no
+docker                                 | [docker][]                                                  |                                                   | no
+docker > resource_attributes           | [resource_attributes][docker-resource_attributes]           |                                                   | no
+gcp                                    | [gcp][]                                                     |                                                   | no
+gcp > resource_attributes              | [resource_attributes][gcp-resource_attributes]              |                                                   | no
+heroku                                 | [heroku][]                                                  |                                                   | no
+heroku > resource_attributes           | [resource_attributes][heroku-resource_attributes]           |                                                   | no
+system                                 | [system][]                                                  |                                                   | no
+system > resource_attributes           | [resource_attributes][system-resource_attributes]           |                                                   | no
+openshift                              | [openshift][]                                               |                                                   | no
+openshift > resource_attributes        | [resource_attributes][openshift-resource_attributes]        |                                                   | no
+kubernetes_node                        | [kubernetes_node][]                                         |                                                   | no
+kubernetes_node > resource_attributes  | [resource_attributes][kubernetes_node-resource_attributes]  |                                                   | no
 
-[output]: #output-block
-[ec2]: #ec2-block
-[ec2-resource_attributes]: #ec2-resource_attributes-block
-[ecs]: #ecs-block
-[ecs-resource_attributes]: #ecs-resource_attributes-block
-[eks]: #eks-block
-[eks-resource_attributes]: #eks-resource_attributes-block
-[elasticbeanstalk]: #elasticbeanstalk-block
-[elasticbeanstalk-resource_attributes]: #elasticbeanstalk-resource_attributes-block
-[lambda]: #lambda-block
-[lambda-resource_attributes]: #lambda-resource_attributes-block
-[azure]: #azure-block
-[azure-resource_attributes]: #azure--resource_attributesblock
-[aks]: #aks-block
-[aks-resource_attributes]: #aks-resource_attributes-block
-[consul]: #consul-block
-[consul-resource_attributes]: #consul-resource_attributes-block
-[docker]: #docker-block
-[docker-resource_attributes]: #docker-resource_attributes-block
-[gcp]: #gcp-block
-[gcp-resource_attributes]: #gcp-resource_attributes-block
-[heroku]: #heroku-block
-[heroku-resource_attributes]: #heroku-resource_attributes-block
-[system]: #system-block
-[system-resource_attributes]: #system-resource_attributes-block
-[openshift]: #openshift-block
-[openshift-resource_attributes]: #openshift-resource_attributes-block
-[kubernetes_node]: #kubernetes_node-block
-[kubernetes_node-resource_attributes]: #kubernetes_node-resource_attributes-block
+[output]: #output
+[ec2]: #ec2
+[ec2-resource_attributes]: #ec2--resource_attributes
+[ecs]: #ecs
+[ecs-resource_attributes]: #ecs--resource_attributes
+[eks]: #eks
+[eks-resource_attributes]: #eks--resource_attributes
+[elasticbeanstalk]: #elasticbeanstalk
+[elasticbeanstalk-resource_attributes]: #elasticbeanstalk--resource_attributes
+[lambda]: #lambda
+[lambda-resource_attributes]: #lambda--resource_attributes
+[azure]: #azure
+[azure-resource_attributes]: #azure--resource_attributes
+[aks]: #aks
+[aks-resource_attributes]: #aks--resource_attributes
+[consul]: #consul
+[consul-resource_attributes]: #consul--resource_attributes
+[docker]: #docker
+[docker-resource_attributes]: #docker--resource_attributes
+[gcp]: #gcp
+[gcp-resource_attributes]: #gcp--resource_attributes
+[heroku]: #heroku
+[heroku-resource_attributes]: #heroku--resource_attributes
+[system]: #system
+[system-resource_attributes]: #system--resource_attributes
+[openshift]: #openshift
+[openshift-resource_attributes]: #openshift--resource_attributes
+[kubernetes_node]: #kubernetes_node
+[kubernetes_node-resource_attributes]: #kubernetes_node--resource_attributes
 
-### output block
+### output
 
 {{< docs/shared lookup="flow/reference/components/output-block.md" source="agent" version="<AGENT VERSION>" >}}
 
-### ec2 block
+### ec2
 
 The `ec2` block uses [AWS SDK for Go](https://docs.aws.amazon.com/sdk-for-go/api/aws/ec2metadata/) to read 
 resource information from the [EC2 instance metadata API](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-metadata.html).
@@ -125,7 +125,7 @@ Name   | Type           | Description                          | Default     | R
 ------ |----------------|--------------------------------------|-------------| --------
 `tags` | `list(string)` |                                      | `[]`        | no
 
-### ec2 > resource_attributes block
+### ec2 > resource_attributes
 
 The following attributes are supported:
 
@@ -133,57 +133,57 @@ Name   | Type           | Description                          | Default     | R
 ------ |----------------|--------------------------------------|-------------| --------
 `name` | `string` |                                      | `[]`        | no
 
-### ecs block
+### ecs
 
-### ecs > resource_attributes block
+### ecs > resource_attributes
 
-### eks block
+### eks
 
-### eks > resource_attributes block
+### eks > resource_attributes
 
-### elasticbeanstalk block
+### elasticbeanstalk
 
-### elasticbeanstalk > resource_attributes block
+### elasticbeanstalk > resource_attributes
 
-### lambda block
+### lambda
 
-### lambda > resource_attributes block
+### lambda > resource_attributes
 
-### azure block
+### azure
 
-### azure > resource_attributes block
+### azure > resource_attributes
 
-### aks block
+### aks
 
-### aks > resource_attributes block
+### aks > resource_attributes
 
-### consul block
+### consul
 
-### consul > resource_attributes block
+### consul > resource_attributes
 
-### docker block
+### docker
 
-### docker > resource_attributes block
+### docker > resource_attributes
 
-### gcp block
+### gcp
 
-### gcp > resource_attributes block
+### gcp > resource_attributes
 
-### heroku block
+### heroku
 
-### heroku > resource_attributes block
+### heroku > resource_attributes
 
-### system block
+### system
 
-### system > resource_attributes block
+### system > resource_attributes
 
-### openshift block
+### openshift
 
-### openshift > resource_attributes block
+### openshift > resource_attributes
 
-### kubernetes_node block
+### kubernetes_node
 
-### kubernetes_node > resource_attributes block
+### kubernetes_node > resource_attributes
 
 ## Exported fields
 
