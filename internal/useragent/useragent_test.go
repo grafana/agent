@@ -10,11 +10,11 @@ import (
 func TestUserAgent(t *testing.T) {
 	build.Version = "v1.2.3"
 	tests := []struct {
-		Name     string
-		Mode     string
-		Expected string
-		Operator bool
-		GOOS     string
+		Name       string
+		Mode       string
+		Expected   string
+		DeployMode string
+		GOOS       string
 	}{
 		{
 			Name:     "basic",
@@ -42,21 +42,17 @@ func TestUserAgent(t *testing.T) {
 			GOOS:     "freebsd",
 		},
 		{
-			Name:     "operator",
-			Mode:     "static",
-			Operator: true,
-			Expected: "GrafanaAgent/v1.2.3 (static; linux; operator)",
-			GOOS:     "linux",
+			Name:       "operator",
+			Mode:       "static",
+			DeployMode: "operator",
+			Expected:   "GrafanaAgent/v1.2.3 (static; linux; operator)",
+			GOOS:       "linux",
 		},
 	}
 	for _, tst := range tests {
 		t.Run(tst.Name, func(t *testing.T) {
 			goos = tst.GOOS
-			if tst.Operator {
-				t.Setenv(operatorEnv, "1")
-			} else {
-				t.Setenv(operatorEnv, "")
-			}
+			t.Setenv(deployModeEnv, tst.DeployMode)
 			t.Setenv(modeEnv, tst.Mode)
 			actual := Get()
 			require.Equal(t, tst.Expected, actual)

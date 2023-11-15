@@ -13,8 +13,8 @@ import (
 )
 
 const (
-	operatorEnv = "AGENT_OPERATOR"
-	modeEnv     = "AGENT_MODE"
+	deployModeEnv = "AGENT_DEPLOY_MODE"
+	modeEnv       = "AGENT_MODE"
 )
 
 // settable by tests
@@ -27,7 +27,7 @@ func Get() string {
 		metadata = append(metadata, mode)
 	}
 	metadata = append(metadata, goos)
-	if op := getOperator(); op != "" {
+	if op := getDeployMode(); op != "" {
 		metadata = append(metadata, op)
 	}
 	if len(metadata) > 0 {
@@ -38,10 +38,7 @@ func Get() string {
 
 // getRunMode attempts to get agent mode, using `unknown` for invalid values.
 func getRunMode() string {
-	key, found := os.LookupEnv(modeEnv)
-	if !found {
-		return "static"
-	}
+	key := os.Getenv(modeEnv)
 	switch key {
 	case "flow":
 		return "flow"
@@ -52,10 +49,12 @@ func getRunMode() string {
 	}
 }
 
-func getOperator() string {
-	op := os.Getenv(operatorEnv)
-	if op == "1" {
-		return "operator"
+func getDeployMode() string {
+	op := os.Getenv(deployModeEnv)
+	// only return known modes
+	switch op {
+	case "operator", "helm", "docker", "deb", "rpm", "brew":
+		return op
 	}
 	return ""
 }
