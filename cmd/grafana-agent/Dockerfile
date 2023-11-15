@@ -47,4 +47,5 @@ COPY cmd/grafana-agent/agent-local-config.yaml /etc/agent/agent.yaml
 
 
 ENTRYPOINT ["/bin/grafana-agent"]
+ENV AGENT_DEPLOY_MODE=docker
 CMD ["--config.file=/etc/agent/agent.yaml", "--metrics.wal-directory=/etc/agent/data"]
