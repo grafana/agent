@@ -31,7 +31,7 @@ func UserAgent() string {
 		metadata = append(metadata, op)
 	}
 	if len(metadata) > 0 {
-		parenthesis = fmt.Sprintf(" (%s)", strings.Join(metadata, ";"))
+		parenthesis = fmt.Sprintf(" (%s)", strings.Join(metadata, "; "))
 	}
 	return fmt.Sprintf("GrafanaAgent/%s%s", build.Version, parenthesis)
 }
