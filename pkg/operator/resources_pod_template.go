@@ -199,8 +199,8 @@ func generatePodTemplate(
 		},
 		// Allows the agent to identify this is an operator-created pod.
 		{
-			Name:  "AGENT_OPERATOR",
-			Value: "1",
+			Name:  "AGENT_DEPLOY_MODE",
+			Value: "operator",
 		},
 	}
 	envVars = append(envVars, opts.ExtraEnvVars...)

@@ -165,7 +165,7 @@ func Test_generatePodTemplate(t *testing.T) {
 
 		tmpl, _, err := generatePodTemplate(cfg, "agent", deploy, podTemplateOptions{})
 		require.NoError(t, err)
-		require.Equal(t, "1", tmpl.Spec.Containers[1].Env[1].Value)
-		require.Equal(t, "AGENT_OPERATOR", tmpl.Spec.Containers[1].Env[1].Name)
+		require.Equal(t, "operator", tmpl.Spec.Containers[1].Env[1].Value)
+		require.Equal(t, "AGENT_DEPLOY_MODE", tmpl.Spec.Containers[1].Env[1].Name)
 	})
 }
