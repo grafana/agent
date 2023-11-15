@@ -26,7 +26,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
       - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@b77b85c0254bba6789e787844f0585cde1e56320
+        uses: aquasecurity/trivy-action@2b6a709cf9c4025c5438138008beaddbb02086f0
         with:
           image-ref: 'grafana/agent:main'
           format: 'template'
