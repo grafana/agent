@@ -143,6 +143,9 @@ Main (unreleased)
   resulting in remote write sending the exemplar first and Prometheus failing to ingest it due to missing
   series. (@krajorama)
 
+- Fixed an issue in the static config converter where exporter instance values
+  were not being mapped when translating to flow. (@erikbaranowski)
+
 v0.37.4 (2023-11-06)
 -----------------
 
