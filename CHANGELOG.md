@@ -101,7 +101,7 @@ Main (unreleased)
 
 - Improved resilience of graph evaluation in presence of slow components. (@thampiotr)
 
-- Remove need for windows_exporter fork. (@mattdurham)
+- Updated windows exporter to use prometheus-community/windows_exporter commit 1836cd1. (@mattdurham)
 
 ### Bugfixes
 
