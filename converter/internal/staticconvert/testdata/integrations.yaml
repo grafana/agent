@@ -107,6 +107,7 @@ integrations:
   mongodb_exporter:
     enabled: true
     mongodb_uri: mongodb://mongodb-a:27017
+    instance: 'instance-key-value'
     relabel_configs:
     - source_labels: [__address__]
       target_label: service_name
@@ -116,6 +117,7 @@ integrations:
       replacement: 'prod-cluster'
   mssql:
     enabled: true
+    instance: 'instance-key-value'
     connection_string: sqlserver://<USERNAME>:<PASSWORD>@<HOST>:<PORT>
   mysqld_exporter:
     enabled: true
