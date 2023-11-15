@@ -138,7 +138,7 @@ require (
 	github.com/prometheus-community/elasticsearch_exporter v1.5.0
 	github.com/prometheus-community/postgres_exporter v0.11.1
 	github.com/prometheus-community/stackdriver_exporter v0.13.0
-	github.com/prometheus-community/windows_exporter v0.24.1-0.20231113040148-7ea04d25c6c5
+	github.com/prometheus-community/windows_exporter v0.24.1-0.20231115153817-1836cd1ad02e
 	github.com/prometheus-operator/prometheus-operator v0.66.0
 	github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring v0.66.0
 	github.com/prometheus-operator/prometheus-operator/pkg/client v0.66.0
@@ -738,5 +738,3 @@ replace github.com/github/smimesign => github.com/grafana/smimesign v0.2.1-0.202
 // This is the last version that used slices.Func with a bool return
 // If we upgrade to a newer one then since the signature changed loki will complain.
 replace golang.org/x/exp => golang.org/x/exp v0.0.0-20230713183714-613f0c0eb8a1
-
-replace github.com/prometheus-community/windows_exporter => C:\Users\mattd\source\windows_exporter

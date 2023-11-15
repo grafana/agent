@@ -101,6 +101,8 @@ Main (unreleased)
 
 - Improved resilience of graph evaluation in presence of slow components. (@thampiotr)
 
+- Remove need for windows_exporter fork. (@mattdurham)
+
 ### Bugfixes
 
 - Set exit code 1 on grafana-agentctl non-runnable command. (@fgouteroux)
