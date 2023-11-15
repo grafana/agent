@@ -17,8 +17,8 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
+	"github.com/grafana/agent/internal/useragent"
 	"github.com/grafana/agent/pkg/metrics/wal"
-	"github.com/grafana/agent/pkg/useragent"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/oklog/run"
 	"github.com/prometheus/client_golang/prometheus"
@@ -35,8 +35,8 @@ import (
 )
 
 func init() {
-	remote.UserAgent = useragent.UserAgent()
-	scrape.UserAgent = useragent.UserAgent()
+	remote.UserAgent = useragent.Get()
+	scrape.UserAgent = useragent.Get()
 
 	// default remote_write send_exemplars to true
 	config.DefaultRemoteWriteConfig.SendExemplars = true

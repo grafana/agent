@@ -8,8 +8,8 @@ import (
 
 	"github.com/bufbuild/connect-go"
 	"github.com/grafana/agent/component/pyroscope"
+	"github.com/grafana/agent/internal/useragent"
 	"github.com/grafana/agent/pkg/flow/logging/level"
-	"github.com/grafana/agent/pkg/useragent"
 	"github.com/oklog/run"
 	commonconfig "github.com/prometheus/common/config"
 	"github.com/prometheus/common/model"
@@ -25,7 +25,7 @@ import (
 )
 
 var (
-	userAgent        = useragent.UserAgent()
+	userAgent        = useragent.Get()
 	DefaultArguments = func() Arguments {
 		return Arguments{}
 	}

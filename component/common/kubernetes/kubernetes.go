@@ -6,8 +6,8 @@ import (
 
 	"github.com/go-kit/log"
 	commoncfg "github.com/grafana/agent/component/common/config"
+	"github.com/grafana/agent/internal/useragent"
 	"github.com/grafana/agent/pkg/flow/logging/level"
-	"github.com/grafana/agent/pkg/useragent"
 	promconfig "github.com/prometheus/common/config"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
@@ -79,7 +79,7 @@ func (args *ClientArguments) BuildRESTConfig(l log.Logger) (*rest.Config, error)
 		}
 	}
 
-	cfg.UserAgent = useragent.UserAgent()
+	cfg.UserAgent = useragent.Get()
 	cfg.ContentType = "application/vnd.kubernetes.protobuf"
 
 	return cfg, nil

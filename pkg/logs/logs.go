@@ -11,7 +11,7 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
-	"github.com/grafana/agent/pkg/useragent"
+	"github.com/grafana/agent/internal/useragent"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/grafana/loki/clients/pkg/promtail"
 	"github.com/grafana/loki/clients/pkg/promtail/api"
@@ -25,7 +25,7 @@ import (
 )
 
 func init() {
-	client.UserAgent = useragent.UserAgent()
+	client.UserAgent = useragent.Get()
 }
 
 // Logs is a Logs log collection. It uses multiple distinct sets of Logs

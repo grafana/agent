@@ -22,8 +22,8 @@ import (
 	flow_relabel "github.com/grafana/agent/component/common/relabel"
 	"github.com/grafana/agent/component/discovery"
 	dt "github.com/grafana/agent/component/loki/source/docker/internal/dockertarget"
+	"github.com/grafana/agent/internal/useragent"
 	"github.com/grafana/agent/pkg/flow/logging/level"
-	"github.com/grafana/agent/pkg/useragent"
 	"github.com/prometheus/common/config"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/model/relabel"
@@ -40,7 +40,7 @@ func init() {
 	})
 }
 
-var userAgent = useragent.UserAgent()
+var userAgent = useragent.Get()
 
 const (
 	dockerLabel                = model.MetaLabelPrefix + "docker_"

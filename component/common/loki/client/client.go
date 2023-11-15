@@ -13,8 +13,8 @@ import (
 	"time"
 
 	"github.com/go-kit/log"
+	"github.com/grafana/agent/internal/useragent"
 	"github.com/grafana/agent/pkg/flow/logging/level"
-	"github.com/grafana/agent/pkg/useragent"
 	"github.com/grafana/dskit/backoff"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/config"
@@ -47,7 +47,7 @@ const (
 
 var Reasons = []string{ReasonGeneric, ReasonRateLimited, ReasonStreamLimited, ReasonLineTooLong}
 
-var userAgent = useragent.UserAgent()
+var userAgent = useragent.Get()
 
 type Metrics struct {
 	encodedBytes                 *prometheus.CounterVec

@@ -20,7 +20,7 @@ const (
 // settable by tests
 var goos = runtime.GOOS
 
-func UserAgent() string {
+func Get() string {
 	parenthesis := ""
 	metadata := []string{}
 	if mode := getRunMode(); mode != "" {

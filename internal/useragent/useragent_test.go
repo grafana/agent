@@ -58,7 +58,7 @@ func TestUserAgent(t *testing.T) {
 				t.Setenv(operatorEnv, "")
 			}
 			t.Setenv(modeEnv, tst.Mode)
-			actual := UserAgent()
+			actual := Get()
 			require.Equal(t, tst.Expected, actual)
 		})
 	}
