@@ -1,9 +1,9 @@
 ---
 aliases:
-- ../../install/windows/
-- /docs/grafana-cloud/agent/flow/setup/install/windows/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/setup/install/windows/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/setup/install/windows/
+  - ../../install/windows/
+  - /docs/grafana-cloud/agent/flow/setup/install/windows/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/setup/install/windows/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/setup/install/windows/
 canonical: https://grafana.com/docs/agent/latest/flow/setup/install/windows/
 description: Learn how to install Grafana Agent in flow mode on Windows
 menuTitle: Windows
@@ -66,7 +66,9 @@ Grafana Agent can also be silently uninstalled by running `uninstall.exe /S` as 
 
 {{% docs/reference %}}
 [Start Grafana Agent]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/start-agent.md#windows"
-[Start Grafana Agent]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/setup/start-agent.md#windows"
+[Start Grafana Agent]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/setup/start-agent.md#windows"
 [Configure Grafana Agent]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/configure/configure-windows.md"
-[Configure Grafana Agent]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/setup/configure/configure-windows.md"
+[Configure Grafana Agent]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/setup/configure/configure-windows.md"
+[data collection]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/data-collection.md"
+[data collection]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/data-collection.md"
 {{% /docs/reference %}}

@@ -102,5 +102,5 @@ of the Grafana Agent Flow docs.
 
 {{% docs/reference %}}
 [config-docs]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/config-language"
-[config-docs]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/config-language"
+[config-docs]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/config-language"
 {{% /docs/reference %}}
