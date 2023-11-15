@@ -58,7 +58,7 @@ func NewRemoteConfig(buf []byte) (*RemoteConfig, error) {
 
 // BuildAgentConfig builds an agent configuration from a base config and a list of snippets
 func (rc *RemoteConfig) BuildAgentConfig() (*Config, error) {
-	baseConfig, err := evaluateTemplateVariables(string(rc.BaseConfig), rc.AgentMetadata.TemplateVariables)
+	baseConfig, err := evaluateTemplate(string(rc.BaseConfig), rc.AgentMetadata.TemplateVariables)
 	if err != nil {
 		return nil, err
 	}
@@ -99,7 +99,7 @@ func appendSnippets(c *Config, snippets []Snippet, templateVars map[string]any) 
 	}
 
 	for _, snippet := range snippets {
-		snippetConfig, err := evaluateTemplateVariables(snippet.Config, templateVars)
+		snippetConfig, err := evaluateTemplate(snippet.Config, templateVars)
 		if err != nil {
 			return err
 		}
@@ -153,13 +153,13 @@ func appendExternalLabels(c *Config, externalLabels map[string]string) {
 	c.Metrics.Global.Prometheus.ExternalLabels = labels.FromMap(newExternalLabels)
 }
 
-func evaluateTemplateVariables(config string, templateVariables map[string]any) (string, error) {
+func evaluateTemplate(config string, templateVariables map[string]any) (string, error) {
 	// Avoid doing anything if there are no template variables
 	if len(templateVariables) == 0 {
 		return config, nil
 	}
 
-	tpl, err := template.New("snip").Parse(config)
+	tpl, err := template.New("config").Parse(config)
 	if err != nil {
 		return "", err
 	}
