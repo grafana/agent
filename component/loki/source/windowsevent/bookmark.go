@@ -1,7 +1,7 @@
 //go:build windows
 // +build windows
 
-// This code is copied from Promtail with minor changes.
+// This code is copied from Promtail v1.6.2-0.20231004111112-07cbef92268a with minor changes.
 
 package windowsevent
 
@@ -63,7 +63,13 @@ func newBookMark(path string) (*bookMark, error) {
 	// load the current bookmark.
 	bm, err := win_eventlog.CreateBookmark(fileString)
 	if err != nil {
-		return nil, err
+		// If we errored likely due to incorrect data then create a blank one
+		bm, err = win_eventlog.CreateBookmark("")
+		fileString = ""
+		// This should never fail but just in case.
+		if err != nil {
+			return nil, err
+		}
 	}
 	return &bookMark{
 		handle: bm,
