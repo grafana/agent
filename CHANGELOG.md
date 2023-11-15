@@ -26,11 +26,6 @@ Main (unreleased)
     - renamed 3 metrics starting with `mysql_perf_schema_transaction_` to start with `mysql_perf_schema_transactions_` to be consistent with column names.
     - exposing only server's own stats by matching `MEMBER_ID` with `@@server_uuid` resulting "member_id" label to be dropped.
 
-### Other changes
-
-- Bump `mysqld_exporter` version to v0.15.0. (@marctc)
-- Bump `github-exporter` version to 1.0.6. (@marctc)
-
 ### Features
 
 - Added a new `stage.decolorize` stage to `loki.process` component which
@@ -148,6 +143,17 @@ Main (unreleased)
 - Fixed an issue in the static config converter where exporter instance values
   were not being mapped when translating to flow. (@erikbaranowski)
 
+- Fix a bug which prevented Agent from running `otelcol.exporter.loadbalancing`
+  with a `routing_key` of `traceID`. (@ptodev)
+
+### Other changes
+
+- Bump `mysqld_exporter` version to v0.15.0. (@marctc)
+
+- Bump `github-exporter` version to 1.0.6. (@marctc)
+
+- Use Go 1.21.4 for builds. (@rfratto)
+
 v0.37.4 (2023-11-06)
 -----------------
 
@@ -161,7 +167,7 @@ v0.37.4 (2023-11-06)
 - Fix a bug where reloading the configuration of a `loki.write` component lead
   to a panic. (@tpaschalis)
 
-- Added Kubernetes service resolver to static node's loadbalancing exporter 
+- Added Kubernetes service resolver to static node's loadbalancing exporter
   and to Flow's `otelcol.exporter.loadbalancing`. (@ptodev)
 
 v0.37.3 (2023-10-26)
