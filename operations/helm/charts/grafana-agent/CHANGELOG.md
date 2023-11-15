@@ -10,6 +10,11 @@ internal API changes are not present.
 Unreleased
 ----------
 
+### Enhancements
+
+- Ensure that `app.kubernetes.io/version` label accounts for any 
+  image tag overrides supplied to the chart Values. (@tristanburgess)
+
 0.27.2 (2023-11-07)
 ----------
 

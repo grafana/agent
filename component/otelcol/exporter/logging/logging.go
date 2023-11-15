@@ -21,7 +21,7 @@ func init() {
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			fact := loggingexporter.NewFactory()
-			return exporter.New(opts, fact, args.(Arguments))
+			return exporter.New(opts, fact, args.(Arguments), exporter.TypeAll)
 		},
 	})
 }

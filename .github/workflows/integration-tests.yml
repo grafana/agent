@@ -16,7 +16,7 @@ jobs:
     - name: Setup Go
       uses: actions/setup-go@v4
       with:
-        go-version: "1.21.0"
+        go-version: "1.21"
     - name: Set OTEL Exporter Endpoint
       run: echo "OTEL_EXPORTER_ENDPOINT=http://172.17.0.1:8080" >> $GITHUB_ENV
     - name: Run tests
