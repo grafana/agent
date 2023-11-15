@@ -27,6 +27,8 @@
   env:
     - name: AGENT_MODE
       value: {{ .Values.agent.mode }}
+    - name: AGENT_DEPLOY_MODE
+      value: "helm"
     - name: HOSTNAME
       valueFrom:
         fieldRef:
