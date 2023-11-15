@@ -51,10 +51,10 @@ func getRunMode() string {
 
 func getDeployMode() string {
 	op := os.Getenv(deployModeEnv)
-	// only return known modes
+	// only return known modes. Use "binary" as a default catch-all.
 	switch op {
 	case "operator", "helm", "docker", "deb", "rpm", "brew":
 		return op
 	}
-	return ""
+	return "binary"
 }
