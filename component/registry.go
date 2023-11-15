@@ -97,8 +97,7 @@ type Options struct {
 	// GetServiceData retrieves data for a service by calling
 	// [service.Service.Data] for the specified service.
 	//
-	// GetServiceData will return an error if the service does not exist or was
-	// not listed as a dependency with the registration of the component.
+	// GetServiceData will return an error if the service does not exist.
 	//
 	// The result of GetServiceData may be cached as the value will not change at
 	// runtime.
