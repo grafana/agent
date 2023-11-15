@@ -35,8 +35,6 @@ Grafana Agent is available in three different variants:
 [OTel]: "/docs/grafana-cloud/ -> /docs/agent/<AGENT_VERSION>/flow/getting-started/collect-opentelemetry-data.md"
 [Loki]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/getting-started/migrating-from-promtail.md"
 [Loki]: "/docs/grafana-cloud/ -> /docs/agent/<AGENT_VERSION>/flow/getting-started/migrating-from-promtail.md"
-[Pyroscope]: "/docs/agent/ -> /docs/pyroscope/latest/configure-client/grafana-agent/go_pull.md"
-[Pyroscope]: "/docs/grafana-cloud/ -> /docs/pyroscope/latest/configure-client/grafana-agent/go_pull.md"
 [clustering]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/clustering/_index.md"
 [clustering]: "/docs/grafana-cloud/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/clustering/_index.md"
 [rules]: "/docs/agent/ -> /docs/agent/latest/flow/reference/components/mimir.rules.kubernetes.md"
@@ -45,6 +43,7 @@ Grafana Agent is available in three different variants:
 [vault]: "/docs/grafana-cloud/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/remote.vault.md"
 {{% /docs/reference %}}
 
+[Pyroscope]: https://grafana.com/docs/pyroscope/latest/configure-client/grafana-agent/go_pull
 [helm chart]: https://grafana.com/docs/grafana-cloud/monitor-infrastructure/kubernetes-monitoring/configuration/config-k8s-helmchart
 [sla]: https://grafana.com/legal/grafana-cloud-sla
 [observability]: https://grafana.com/docs/grafana-cloud/monitor-applications/application-observability/setup#send-telemetry
