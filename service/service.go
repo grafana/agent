@@ -113,9 +113,12 @@ type Service interface {
 	// while Run is active.
 	Update(newConfig any) error
 
-	// Data returns the Data associated with a Service. Data
-	// must always return the same value across multiple calls,
-	// as callers are expected to be able to cache the result.
+	// Data returns the Data associated with a Service. Data must always return
+	// the same value across multiple calls, as callers are expected to be able
+	// to cache the result.
+	//
+	// The return result of Data must not rely on the runtime config of the
+	// service.
 	//
 	// Data may be invoked before Run.
 	Data() any
