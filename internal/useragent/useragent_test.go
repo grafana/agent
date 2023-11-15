@@ -48,6 +48,34 @@ func TestUserAgent(t *testing.T) {
 			Expected:   "GrafanaAgent/v1.2.3 (static; linux; operator)",
 			GOOS:       "linux",
 		},
+		{
+			Name:       "deb",
+			Mode:       "flow",
+			DeployMode: "deb",
+			Expected:   "GrafanaAgent/v1.2.3 (flow; linux; deb)",
+			GOOS:       "linux",
+		},
+		{
+			Name:       "rpm",
+			Mode:       "static",
+			DeployMode: "rpm",
+			Expected:   "GrafanaAgent/v1.2.3 (static; linux; rpm)",
+			GOOS:       "linux",
+		},
+		{
+			Name:       "docker",
+			Mode:       "flow",
+			DeployMode: "docker",
+			Expected:   "GrafanaAgent/v1.2.3 (flow; linux; docker)",
+			GOOS:       "linux",
+		},
+		{
+			Name:       "helm",
+			Mode:       "flow",
+			DeployMode: "helm",
+			Expected:   "GrafanaAgent/v1.2.3 (flow; linux; helm)",
+			GOOS:       "linux",
+		},
 	}
 	for _, tst := range tests {
 		t.Run(tst.Name, func(t *testing.T) {
