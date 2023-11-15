@@ -10,6 +10,7 @@ import (
 
 var (
 	errNonPositiveInterval = errors.New("requires positive value")
+	errGreaterThanZero     = errors.New("requires a value greater than zero")
 )
 
 // ScraperControllerArguments defines common settings for a scraper controller
@@ -51,7 +52,7 @@ func (args *ScraperControllerArguments) Validate() error {
 		return fmt.Errorf(`"collection_interval": %w`, errNonPositiveInterval)
 	}
 	if args.Timeout < 0 {
-		return fmt.Errorf(`"timeout": %w`, errNonPositiveInterval)
+		return fmt.Errorf(`"timeout": %w`, errGreaterThanZero)
 	}
 	return nil
 }
