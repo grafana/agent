@@ -253,5 +253,5 @@ These steps assume you have a default systemd and Grafana Agent configuration.
 
 {{% docs/reference %}}
 [Configure the Grafana Agent service]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/configure/configure-macos.md#configure-the-grafana-agent-service"
-[Configure the Grafana Agent service]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/setup/configure/configure-macos.md#configure-the-grafana-agent-service"
+[Configure the Grafana Agent service]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/setup/configure/configure-macos.md#configure-the-grafana-agent-service"
 {{% /docs/reference %}}
