@@ -35,5 +35,5 @@ about what data is collected and how you can opt-out.
 
 {{% docs/reference %}}
 [data collection]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/data-collection.md"
-[data collection]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/data-collection.md"
+[data collection]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/data-collection.md"
 {{% /docs/reference %}}
