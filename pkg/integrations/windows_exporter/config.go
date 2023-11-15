@@ -119,15 +119,6 @@ func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) 
 	return New(l, c)
 }
 
-func coalesceString(v ...string) string {
-	for _, s := range v {
-		if s != "" {
-			return s
-		}
-	}
-	return ""
-}
-
 // DfsrConfig handles settings for the windows_exporter dfsr collector
 type DfsrConfig struct {
 	SourcesEnabled string `yaml:"sources_enabled,omitempty"`

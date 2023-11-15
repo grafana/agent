@@ -36,3 +36,12 @@ func (c *Config) ToWindowsExporterConfig() collector.Config {
 
 	return cfg
 }
+
+func coalesceString(v ...string) string {
+	for _, s := range v {
+		if s != "" {
+			return s
+		}
+	}
+	return ""
+}
