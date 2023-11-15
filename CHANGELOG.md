@@ -26,11 +26,6 @@ Main (unreleased)
     - renamed 3 metrics starting with `mysql_perf_schema_transaction_` to start with `mysql_perf_schema_transactions_` to be consistent with column names.
     - exposing only server's own stats by matching `MEMBER_ID` with `@@server_uuid` resulting "member_id" label to be dropped.
 
-### Other changes
-
-- Bump `mysqld_exporter` version to v0.15.0. (@marctc)
-- Bump `github-exporter` version to 1.0.6. (@marctc)
-
 ### Features
 
 - Added a new `stage.decolorize` stage to `loki.process` component which
@@ -99,7 +94,11 @@ Main (unreleased)
 
 - Added support for unicode strings in `pyroscope.ebpf` python profiles. (@korniltsev)
 
+- Improved resilience of graph evaluation in presence of slow components. (@thampiotr)
+
 ### Bugfixes
+
+- Set exit code 1 on grafana-agentctl non-runnable command. (@fgouteroux)
 
 - Fixed an issue where `loki.process` validation for stage `metric.counter` was
   allowing invalid combination of configuration options. (@thampiotr)
@@ -135,6 +134,24 @@ Main (unreleased)
 
 - Updating configuration for `loki.write` no longer drops data. (@thepalbi)
 
+- Fixed a bug in WAL where exemplars were recorded before the first native histogram samples for new series,
+  resulting in remote write sending the exemplar first and Prometheus failing to ingest it due to missing
+  series. (@krajorama)
+
+- Fixed an issue in the static config converter where exporter instance values
+  were not being mapped when translating to flow. (@erikbaranowski)
+
+- Fix a bug which prevented Agent from running `otelcol.exporter.loadbalancing`
+  with a `routing_key` of `traceID`. (@ptodev)
+
+### Other changes
+
+- Bump `mysqld_exporter` version to v0.15.0. (@marctc)
+
+- Bump `github-exporter` version to 1.0.6. (@marctc)
+
+- Use Go 1.21.4 for builds. (@rfratto)
+
 v0.37.4 (2023-11-06)
 -----------------
 
@@ -147,6 +164,9 @@ v0.37.4 (2023-11-06)
 
 - Fix a bug where reloading the configuration of a `loki.write` component lead
   to a panic. (@tpaschalis)
+
+- Added Kubernetes service resolver to static node's loadbalancing exporter
+  and to Flow's `otelcol.exporter.loadbalancing`. (@ptodev)
 
 v0.37.3 (2023-10-26)
 -----------------

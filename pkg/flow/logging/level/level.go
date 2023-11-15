@@ -15,22 +15,22 @@ const (
 
 // Error returns a logger that includes a Key/ErrorValue pair.
 func Error(logger log.Logger) log.Logger {
-	return toLevel(logger, "error", slog.LevelError)
+	return toLevel(logger, gokitlevel.ErrorValue(), slog.LevelError)
 }
 
 // Warn returns a logger that includes a Key/WarnValue pair.
 func Warn(logger log.Logger) log.Logger {
-	return toLevel(logger, "warn", slog.LevelWarn)
+	return toLevel(logger, gokitlevel.WarnValue(), slog.LevelWarn)
 }
 
 // Info returns a logger that includes a Key/InfoValue pair.
 func Info(logger log.Logger) log.Logger {
-	return toLevel(logger, "info", slog.LevelInfo)
+	return toLevel(logger, gokitlevel.InfoValue(), slog.LevelInfo)
 }
 
 // Debug returns a logger that includes a Key/DebugValue pair.
 func Debug(logger log.Logger) log.Logger {
-	return toLevel(logger, "debug", slog.LevelDebug)
+	return toLevel(logger, gokitlevel.DebugValue(), slog.LevelDebug)
 }
 
 func NewFilter(next log.Logger, options ...gokitlevel.Option) log.Logger {
@@ -45,7 +45,7 @@ func AllowInfo() gokitlevel.Option {
 	return gokitlevel.AllowInfo()
 }
 
-func toLevel(logger log.Logger, level string, slogLevel slog.Level) log.Logger {
+func toLevel(logger log.Logger, level gokitlevel.Value, slogLevel slog.Level) log.Logger {
 	switch l := logger.(type) {
 	case logging.EnabledAware:
 		if !l.Enabled(context.Background(), slogLevel) {
