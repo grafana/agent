@@ -101,6 +101,10 @@ Main (unreleased)
 
 - Improved resilience of graph evaluation in presence of slow components. (@thampiotr)
 
+- The `http` config block may now reference exports from any component.
+  Previously, only `remote.*` and `local.*` components could be referenced
+  without a circular dependency. (@rfratto)
+
 ### Bugfixes
 
 - Set exit code 1 on grafana-agentctl non-runnable command. (@fgouteroux)
@@ -156,7 +160,7 @@ v0.37.4 (2023-11-06)
 - Fix a bug where reloading the configuration of a `loki.write` component lead
   to a panic. (@tpaschalis)
 
-- Added Kubernetes service resolver to static node's loadbalancing exporter 
+- Added Kubernetes service resolver to static node's loadbalancing exporter
   and to Flow's `otelcol.exporter.loadbalancing`. (@ptodev)
 
 v0.37.3 (2023-10-26)
