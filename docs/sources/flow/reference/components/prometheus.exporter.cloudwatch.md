@@ -457,3 +457,23 @@ discovery job, the `type` field of each `discovery_job` must match either the de
 - Namespace: `/aws/sagemaker/TransformJobs` or Alias: `sagemaker-transform`
 - Namespace: `/aws/sagemaker/InferenceRecommendationsJobs` or Alias: `sagemaker-inf-rec`
 - Namespace: `AWS/Sagemaker/ModelBuildingPipeline` or Alias: `sagemaker-model-building-pipeline`
+
+<!-- START GENERATED COMPATIBLE COMPONENTS -->
+
+## Compatible components
+
+`prometheus.exporter.cloudwatch` can output data to the following components:
+
+- Components that accept Targets:
+  - [`discovery.relabel`]({{< relref "../components/discovery.relabel.md" >}})
+  - [`local.file_match`]({{< relref "../components/local.file_match.md" >}})
+  - [`loki.source.docker`]({{< relref "../components/loki.source.docker.md" >}})
+  - [`loki.source.file`]({{< relref "../components/loki.source.file.md" >}})
+  - [`loki.source.kubernetes`]({{< relref "../components/loki.source.kubernetes.md" >}})
+  - [`otelcol.processor.discovery`]({{< relref "../components/otelcol.processor.discovery.md" >}})
+  - [`prometheus.scrape`]({{< relref "../components/prometheus.scrape.md" >}})
+  - [`pyroscope.scrape`]({{< relref "../components/pyroscope.scrape.md" >}})
+
+Note that connecting some components may not be feasible or components may require further configuration to make the connection work correctly. Please refer to the linked documentation for more details.
+
+<!-- END GENERATED COMPATIBLE COMPONENTS -->

@@ -158,3 +158,20 @@ loki.write "local" {
 ```
 
 [Prometheus format](https://prometheus.io/docs/concepts/data_model/#metric-names-and-labels)
+
+<!-- START GENERATED COMPATIBLE COMPONENTS -->
+
+## Compatible components
+
+`otelcol.exporter.loki` can output data to the following components:
+
+- Components that accept Loki Logs:
+  - [`loki.echo`]({{< relref "../components/loki.echo.md" >}})
+  - [`loki.process`]({{< relref "../components/loki.process.md" >}})
+  - [`loki.relabel`]({{< relref "../components/loki.relabel.md" >}})
+  - [`loki.write`]({{< relref "../components/loki.write.md" >}})
+  - [`otelcol.receiver.loki`]({{< relref "../components/otelcol.receiver.loki.md" >}})
+
+Note that connecting some components may not be feasible or components may require further configuration to make the connection work correctly. Please refer to the linked documentation for more details.
+
+<!-- END GENERATED COMPATIBLE COMPONENTS -->

@@ -89,6 +89,7 @@ prometheus.remote_write "default" {
 ```
 
 [scrape]: {{< relref "./prometheus.scrape.md" >}}
+
 <!-- START GENERATED COMPATIBLE COMPONENTS -->
 
 ## Compatible components
@@ -101,8 +102,8 @@ prometheus.remote_write "default" {
   - [`loki.source.docker`]({{< relref "../components/loki.source.docker.md" >}})
   - [`loki.source.file`]({{< relref "../components/loki.source.file.md" >}})
   - [`loki.source.kubernetes`]({{< relref "../components/loki.source.kubernetes.md" >}})
+  - [`otelcol.processor.discovery`]({{< relref "../components/otelcol.processor.discovery.md" >}})
   - [`prometheus.scrape`]({{< relref "../components/prometheus.scrape.md" >}})
-  - [`pyroscope.ebpf`]({{< relref "../components/pyroscope.ebpf.md" >}})
   - [`pyroscope.scrape`]({{< relref "../components/pyroscope.scrape.md" >}})
 
 Note that connecting some components may not be feasible or components may require further configuration to make the connection work correctly. Please refer to the linked documentation for more details.

@@ -35,7 +35,7 @@ func WriteCompatibleComponentsSection(componentName string) error {
 	var newFileContents []byte
 	if startIndex == -1 || endIndex == -1 {
 		// Append the new section to the end of the file
-		newFileContents = append(fileContents, replacement...)
+		newFileContents = append(fileContents, append([]byte("\n"), replacement...)...)
 	} else {
 		// Replace the section with the new content
 		newFileContents = append(fileContents[:startIndex], replacement...)

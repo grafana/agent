@@ -199,6 +199,7 @@ loki.write "local" {
   }
 }
 ```
+
 <!-- START GENERATED COMPATIBLE COMPONENTS -->
 
 ## Compatible components
@@ -208,25 +209,39 @@ loki.write "local" {
 - Components that output Targets:
   - [`discovery.azure`]({{< relref "../components/discovery.azure.md" >}})
   - [`discovery.consul`]({{< relref "../components/discovery.consul.md" >}})
+  - [`discovery.consulagent`]({{< relref "../components/discovery.consulagent.md" >}})
   - [`discovery.digitalocean`]({{< relref "../components/discovery.digitalocean.md" >}})
   - [`discovery.dns`]({{< relref "../components/discovery.dns.md" >}})
   - [`discovery.docker`]({{< relref "../components/discovery.docker.md" >}})
+  - [`discovery.dockerswarm`]({{< relref "../components/discovery.dockerswarm.md" >}})
   - [`discovery.ec2`]({{< relref "../components/discovery.ec2.md" >}})
   - [`discovery.eureka`]({{< relref "../components/discovery.eureka.md" >}})
   - [`discovery.file`]({{< relref "../components/discovery.file.md" >}})
   - [`discovery.gce`]({{< relref "../components/discovery.gce.md" >}})
   - [`discovery.hetzner`]({{< relref "../components/discovery.hetzner.md" >}})
   - [`discovery.http`]({{< relref "../components/discovery.http.md" >}})
+  - [`discovery.ionos`]({{< relref "../components/discovery.ionos.md" >}})
   - [`discovery.kubelet`]({{< relref "../components/discovery.kubelet.md" >}})
   - [`discovery.kubernetes`]({{< relref "../components/discovery.kubernetes.md" >}})
+  - [`discovery.kuma`]({{< relref "../components/discovery.kuma.md" >}})
   - [`discovery.lightsail`]({{< relref "../components/discovery.lightsail.md" >}})
+  - [`discovery.linode`]({{< relref "../components/discovery.linode.md" >}})
+  - [`discovery.marathon`]({{< relref "../components/discovery.marathon.md" >}})
+  - [`discovery.nerve`]({{< relref "../components/discovery.nerve.md" >}})
   - [`discovery.nomad`]({{< relref "../components/discovery.nomad.md" >}})
   - [`discovery.openstack`]({{< relref "../components/discovery.openstack.md" >}})
+  - [`discovery.puppetdb`]({{< relref "../components/discovery.puppetdb.md" >}})
   - [`discovery.relabel`]({{< relref "../components/discovery.relabel.md" >}})
+  - [`discovery.scaleway`]({{< relref "../components/discovery.scaleway.md" >}})
+  - [`discovery.serverset`]({{< relref "../components/discovery.serverset.md" >}})
+  - [`discovery.triton`]({{< relref "../components/discovery.triton.md" >}})
   - [`discovery.uyuni`]({{< relref "../components/discovery.uyuni.md" >}})
   - [`local.file_match`]({{< relref "../components/local.file_match.md" >}})
+  - [`prometheus.exporter.agent`]({{< relref "../components/prometheus.exporter.agent.md" >}})
   - [`prometheus.exporter.apache`]({{< relref "../components/prometheus.exporter.apache.md" >}})
+  - [`prometheus.exporter.azure`]({{< relref "../components/prometheus.exporter.azure.md" >}})
   - [`prometheus.exporter.blackbox`]({{< relref "../components/prometheus.exporter.blackbox.md" >}})
+  - [`prometheus.exporter.cadvisor`]({{< relref "../components/prometheus.exporter.cadvisor.md" >}})
   - [`prometheus.exporter.cloudwatch`]({{< relref "../components/prometheus.exporter.cloudwatch.md" >}})
   - [`prometheus.exporter.consul`]({{< relref "../components/prometheus.exporter.consul.md" >}})
   - [`prometheus.exporter.dnsmasq`]({{< relref "../components/prometheus.exporter.dnsmasq.md" >}})
@@ -247,6 +262,7 @@ loki.write "local" {
   - [`prometheus.exporter.squid`]({{< relref "../components/prometheus.exporter.squid.md" >}})
   - [`prometheus.exporter.statsd`]({{< relref "../components/prometheus.exporter.statsd.md" >}})
   - [`prometheus.exporter.unix`]({{< relref "../components/prometheus.exporter.unix.md" >}})
+  - [`prometheus.exporter.vsphere`]({{< relref "../components/prometheus.exporter.vsphere.md" >}})
   - [`prometheus.exporter.windows`]({{< relref "../components/prometheus.exporter.windows.md" >}})
 
 `loki.source.kubernetes` can output data to the following components:

@@ -119,6 +119,7 @@ loki.relabel "keep_error_only" {
 `loki.relabel` can accept data from the following components:
 
 - Components that output Loki Logs:
+  - [`faro.receiver`]({{< relref "../components/faro.receiver.md" >}})
   - [`loki.process`]({{< relref "../components/loki.process.md" >}})
   - [`loki.relabel`]({{< relref "../components/loki.relabel.md" >}})
   - [`loki.source.api`]({{< relref "../components/loki.source.api.md" >}})
