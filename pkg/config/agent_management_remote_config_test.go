@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/grafana/agent/pkg/metrics/instance"
+	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/model/labels"
 	"github.com/stretchr/testify/require"
 )
@@ -199,7 +200,13 @@ server:
 metrics:
     global:
         external_labels:
-            foo: bar`
+            foo: bar
+logs:
+    global:
+        clients:
+        - external_labels:
+            foo: bar
+`
 		rc := RemoteConfig{
 			BaseConfig: BaseConfigContent(baseConfig),
 			Snippets:   allSnippets,
@@ -207,11 +214,26 @@ metrics:
 		c, err := rc.BuildAgentConfig()
 		require.NoError(t, err)
 		require.Equal(t, 1, len(c.Logs.Configs))
+		require.Equal(t, 1, len(c.Logs.Global.ClientConfigs))
+		require.Equal(t, c.Logs.Global.ClientConfigs[0].ExternalLabels.LabelSet, model.LabelSet{"foo": "bar"})
 		require.Equal(t, 1, len(c.Metrics.Global.Prometheus.ExternalLabels))
 		require.Contains(t, c.Metrics.Global.Prometheus.ExternalLabels, labels.Label{Name: "foo", Value: "bar"})
 	})
 
 	t.Run("external labels provided", func(t *testing.T) {
+		baseConfig := `
+server:
+    log_level: debug
+metrics:
+    global:
+        remote_write:
+        - url: http://localhost:9090/api/prom/push
+logs:
+    global:
+        clients:
+        - url: http://localhost:3100/loki/api/v1/push
+`
+
 		rc := RemoteConfig{
 			BaseConfig: BaseConfigContent(baseConfig),
 			Snippets:   allSnippets,
@@ -225,6 +247,8 @@ metrics:
 		require.NoError(t, err)
 		require.Equal(t, 1, len(c.Logs.Configs))
 		require.Equal(t, 1, len(c.Metrics.Configs))
+		require.Equal(t, 1, len(c.Logs.Global.ClientConfigs))
+		require.Equal(t, c.Logs.Global.ClientConfigs[0].ExternalLabels.LabelSet, model.LabelSet{"foo": "bar"})
 		require.Contains(t, c.Metrics.Global.Prometheus.ExternalLabels, labels.Label{Name: "foo", Value: "bar"})
 	})
 
@@ -235,6 +259,11 @@ server:
 metrics:
     global:
         external_labels:
+            foo: bar
+logs:
+    global:
+        clients:
+        - external_labels:
             foo: bar
 `
 		rc := RemoteConfig{
@@ -250,6 +279,8 @@ metrics:
 		require.NoError(t, err)
 		require.Equal(t, 1, len(c.Logs.Configs))
 		require.Equal(t, 1, len(c.Metrics.Configs))
+		require.Equal(t, 1, len(c.Logs.Global.ClientConfigs))
+		require.Equal(t, c.Logs.Global.ClientConfigs[0].ExternalLabels.LabelSet, model.LabelSet{"foo": "bar"})
 		require.Contains(t, c.Metrics.Global.Prometheus.ExternalLabels, labels.Label{Name: "foo", Value: "bar"})
 		require.NotContains(t, c.Metrics.Global.Prometheus.ExternalLabels, labels.Label{Name: "foo", Value: "baz"})
 	})
