@@ -1,5 +1,7 @@
 package windows_exporter
 
+import "github.com/prometheus-community/windows_exporter/pkg/collector"
+
 func (c *Config) ToWindowsExporterConfig() collector.Config {
 	cfg := collector.ConfigDefaults
 	cfg.Dfsr.DfsrEnabledCollectors = c.Dfsr.SourcesEnabled
