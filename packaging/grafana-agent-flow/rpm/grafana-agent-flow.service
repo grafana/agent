@@ -8,6 +8,7 @@ After=network-online.target
 Restart=always
 User=grafana-agent-flow
 Environment=HOSTNAME=%H
+Environment=AGENT_DEPLOY_MODE=rpm
 EnvironmentFile=/etc/sysconfig/grafana-agent-flow
 WorkingDirectory=/var/lib/grafana-agent-flow
 ExecStart=/usr/bin/grafana-agent-flow run $CUSTOM_ARGS --storage.path=/var/lib/grafana-agent-flow $CONFIG_FILE
