@@ -163,9 +163,19 @@ func (b *IntegrationsConfigBuilder) appendV1Integrations() {
 }
 
 func (b *IntegrationsConfigBuilder) appendExporter(commonConfig *int_config.Common, name string, extraTargets []discovery.Target) {
+	var relabelConfigs []*relabel.Config
+	if commonConfig.InstanceKey != nil {
+		defaultConfig := relabel.DefaultRelabelConfig
+		relabelConfig := &defaultConfig
+		relabelConfig.TargetLabel = "instance"
+		relabelConfig.Replacement = *commonConfig.InstanceKey
+
+		relabelConfigs = append(relabelConfigs, relabelConfig)
+	}
+
 	scrapeConfig := prom_config.DefaultScrapeConfig
 	scrapeConfig.JobName = b.formatJobName(name, nil)
-	scrapeConfig.RelabelConfigs = commonConfig.RelabelConfigs
+	scrapeConfig.RelabelConfigs = append(commonConfig.RelabelConfigs, relabelConfigs...)
 	scrapeConfig.MetricRelabelConfigs = commonConfig.MetricRelabelConfigs
 	scrapeConfig.HTTPClientConfig.TLSConfig = b.cfg.Integrations.ConfigV1.TLSConfig
 
@@ -278,6 +288,15 @@ func (b *IntegrationsConfigBuilder) appendExporterV2(commonConfig *common_v2.Met
 		relabelConfig.SourceLabels = []model.LabelName{"__address__"}
 		relabelConfig.TargetLabel = extraLabel.Name
 		relabelConfig.Replacement = extraLabel.Value
+
+		relabelConfigs = append(relabelConfigs, relabelConfig)
+	}
+
+	if commonConfig.InstanceKey != nil {
+		defaultConfig := relabel.DefaultRelabelConfig
+		relabelConfig := &defaultConfig
+		relabelConfig.TargetLabel = "instance"
+		relabelConfig.Replacement = *commonConfig.InstanceKey
 
 		relabelConfigs = append(relabelConfigs, relabelConfig)
 	}

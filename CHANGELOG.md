@@ -143,7 +143,10 @@ Main (unreleased)
   resulting in remote write sending the exemplar first and Prometheus failing to ingest it due to missing
   series. (@krajorama)
 
-- Fix a bug which prevented Agent from running `otelcol.exporter.loadbalancing` 
+- Fixed an issue in the static config converter where exporter instance values
+  were not being mapped when translating to flow. (@erikbaranowski)
+
+- Fix a bug which prevented Agent from running `otelcol.exporter.loadbalancing`
   with a `routing_key` of `traceID`. (@ptodev)
 
 v0.37.4 (2023-11-06)
@@ -159,7 +162,7 @@ v0.37.4 (2023-11-06)
 - Fix a bug where reloading the configuration of a `loki.write` component lead
   to a panic. (@tpaschalis)
 
-- Added Kubernetes service resolver to static node's loadbalancing exporter 
+- Added Kubernetes service resolver to static node's loadbalancing exporter
   and to Flow's `otelcol.exporter.loadbalancing`. (@ptodev)
 
 v0.37.3 (2023-10-26)
