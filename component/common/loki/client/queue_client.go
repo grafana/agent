@@ -520,7 +520,7 @@ func (c *queueClient) send(ctx context.Context, tenantID string, buf []byte) (in
 	}
 	req = req.WithContext(ctx)
 	req.Header.Set("Content-Type", contentType)
-	req.Header.Set("User-Agent", UserAgent)
+	req.Header.Set("User-Agent", userAgent)
 
 	// If the tenant ID is not empty promtail is running in multi-tenant mode, so
 	// we should send it to Loki

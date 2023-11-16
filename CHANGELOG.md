@@ -154,6 +154,8 @@ Main (unreleased)
 
 - Use Go 1.21.4 for builds. (@rfratto)
 
+- Change User-Agent header for outbound requests to include agent-mode, goos, and deployment mode. Example `GrafanaAgent/v0.38.0 (flow; linux; docker)` (@captncraig)
+
 v0.37.4 (2023-11-06)
 -----------------
 

@@ -12,18 +12,17 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/component/pyroscope"
+	"github.com/grafana/agent/internal/useragent"
 	"github.com/grafana/agent/pkg/flow/logging/level"
 	commonconfig "github.com/prometheus/common/config"
 	"github.com/prometheus/prometheus/discovery/targetgroup"
 	"github.com/prometheus/prometheus/util/pool"
 	"golang.org/x/net/context/ctxhttp"
-
-	"github.com/grafana/agent/pkg/build"
 )
 
 var (
 	payloadBuffers  = pool.New(1e3, 1e6, 3, func(sz int) interface{} { return make([]byte, 0, sz) })
-	userAgentHeader = fmt.Sprintf("GrafanaAgent/%s", build.Version)
+	userAgentHeader = useragent.Get()
 )
 
 type scrapePool struct {
