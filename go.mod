@@ -559,7 +559,7 @@ require (
 	github.com/vertica/vertica-sql-go v1.3.0 // indirect
 	github.com/vishvananda/netlink v1.2.1-beta.2 // indirect
 	github.com/vishvananda/netns v0.0.0-20210104183010-2eb08e3e575f // indirect
-	github.com/vmware/govmomi v0.27.2 // indirect
+	github.com/vmware/govmomi v0.32.0 // indirect
 	github.com/vultr/govultr/v2 v2.17.2 // indirect
 	github.com/willf/bitset v1.1.11 // indirect
 	github.com/willf/bloom v2.0.3+incompatible // indirect
@@ -615,6 +615,7 @@ require (
 	github.com/githubexporter/github-exporter v0.0.0-20231025122338-656e7dc33fe7
 	github.com/natefinch/atomic v1.0.1
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/filterprocessor v0.87.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/vcenterreceiver v0.87.0
 	go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc v0.42.0
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.19.0
 )

@@ -57,6 +57,7 @@ Main (unreleased)
 
   - `otelcol.processor.filter` - filters OTLP telemetry data using OpenTelemetry
     Transformation Language (OTTL). (@hainenber)
+  - `otelcol.receiver.vcenter` - receives metrics telemetry data from vCenter. (@marctc)
 
 - Agent Management: Introduce support for remotely managed external labels for logs. (@jcreixell)
 
