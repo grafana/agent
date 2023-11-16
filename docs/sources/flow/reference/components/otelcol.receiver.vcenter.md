@@ -22,7 +22,7 @@ forwards it to other `otelcol.*` components.
 Multiple `otelcol.receiver.vcenter` components can be specified by giving them
 different labels.
 
-The full list of metrics that can be collected can be found [vcenter metrics][]
+The full list of metrics that can be collected can be found [here][vcenter metrics]
 
 [vcenter metrics]: https://github.com/open-telemetry/opentelemetry-collector/blob/{{< param "OTEL_VERSION" >}}/receiver/vcenterreceiver/documentation.md
 
@@ -36,8 +36,6 @@ This receiver has been built to support ESXi and vCenter versions:
 - 6.7
 
 A “Read Only” user assigned to a vSphere with permissions to the vCenter server, cluster and all subsequent resources being monitored must be specified in order for the receiver to retrieve information about them.
-
-## Configuration
 
 ## Usage
 
