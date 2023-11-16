@@ -146,6 +146,9 @@ Main (unreleased)
 - Fix a bug which prevented Agent from running `otelcol.exporter.loadbalancing`
   with a `routing_key` of `traceID`. (@ptodev)
 
+- Added Kubernetes service resolver to static node's loadbalancing exporter
+  and to Flow's `otelcol.exporter.loadbalancing`. (@ptodev)
+
 ### Other changes
 
 - Bump `mysqld_exporter` version to v0.15.0. (@marctc)
@@ -168,9 +171,6 @@ v0.37.4 (2023-11-06)
 
 - Fix a bug where reloading the configuration of a `loki.write` component lead
   to a panic. (@tpaschalis)
-
-- Added Kubernetes service resolver to static node's loadbalancing exporter
-  and to Flow's `otelcol.exporter.loadbalancing`. (@ptodev)
 
 v0.37.3 (2023-10-26)
 -----------------
