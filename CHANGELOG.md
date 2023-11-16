@@ -10,6 +10,9 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+v0.38.0-rc.0 (2023-11-16)
+-------------------------
+
 ### Breaking changes
 
 - Remove `otelcol.exporter.jaeger` component (@hainenber)
