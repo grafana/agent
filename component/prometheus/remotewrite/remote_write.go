@@ -21,7 +21,7 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/component"
-	"github.com/grafana/agent/pkg/build"
+	"github.com/grafana/agent/internal/useragent"
 	"github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/grafana/agent/pkg/metrics/wal"
 	"github.com/prometheus/prometheus/model/timestamp"
@@ -35,7 +35,7 @@ import (
 var remoteFlushDeadline = 1 * time.Minute
 
 func init() {
-	remote.UserAgent = fmt.Sprintf("GrafanaAgent/%s", build.Version)
+	remote.UserAgent = useragent.Get()
 
 	component.Register(component.Registration{
 		Name:          "prometheus.remote_write",

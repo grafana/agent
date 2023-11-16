@@ -154,7 +154,7 @@ helm upgrade grafana-agent-logs grafana/grafana-agent -i -n monitoring -f values
 
 This simple configuration will scrape logs for every pod on each node:
 
-```
+```river
 // read the credentials secret for remote_write authorization
 remote.kubernetes.secret "credentials" {
   namespace = "monitoring"

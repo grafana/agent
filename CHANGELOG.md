@@ -26,11 +26,6 @@ Main (unreleased)
     - renamed 3 metrics starting with `mysql_perf_schema_transaction_` to start with `mysql_perf_schema_transactions_` to be consistent with column names.
     - exposing only server's own stats by matching `MEMBER_ID` with `@@server_uuid` resulting "member_id" label to be dropped.
 
-### Other changes
-
-- Bump `mysqld_exporter` version to v0.15.0. (@marctc)
-- Bump `github-exporter` version to 1.0.6. (@marctc)
-
 ### Features
 
 - Added a new `stage.decolorize` stage to `loki.process` component which
@@ -62,6 +57,8 @@ Main (unreleased)
 
   - `otelcol.processor.filter` - filters OTLP telemetry data using OpenTelemetry
     Transformation Language (OTTL). (@hainenber)
+
+- Agent Management: Introduce support for remotely managed external labels for logs. (@jcreixell)
 
 ### Enhancements
 
@@ -96,6 +93,8 @@ Main (unreleased)
   (@rootmout)
 
 - Added support for replaying not sent data for `loki.write` when WAL is enabled. (@thepalbi)
+
+- Make the result of 'discovery.kubelet' support pods that without ports, such as k8s control plane static pods. (@masonmei)
 
 - Added support for unicode strings in `pyroscope.ebpf` python profiles. (@korniltsev)
 
@@ -142,6 +141,25 @@ Main (unreleased)
 - Fixed a bug in WAL where exemplars were recorded before the first native histogram samples for new series,
   resulting in remote write sending the exemplar first and Prometheus failing to ingest it due to missing
   series. (@krajorama)
+
+- Fixed an issue in the static config converter where exporter instance values
+  were not being mapped when translating to flow. (@erikbaranowski)
+
+- Fix a bug which prevented Agent from running `otelcol.exporter.loadbalancing`
+  with a `routing_key` of `traceID`. (@ptodev)
+
+- Added Kubernetes service resolver to static node's loadbalancing exporter
+  and to Flow's `otelcol.exporter.loadbalancing`. (@ptodev)
+
+### Other changes
+
+- Bump `mysqld_exporter` version to v0.15.0. (@marctc)
+
+- Bump `github-exporter` version to 1.0.6. (@marctc)
+
+- Use Go 1.21.4 for builds. (@rfratto)
+
+- Change User-Agent header for outbound requests to include agent-mode, goos, and deployment mode. Example `GrafanaAgent/v0.38.0 (flow; linux; docker)` (@captncraig)
 
 - `loki.source.windowsevent` and `loki.source.*` changed to use a more robust positions file to prevent corruption on reboots when writing
   the positions file. (@mattdurham)

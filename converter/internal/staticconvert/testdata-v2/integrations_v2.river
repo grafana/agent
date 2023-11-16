@@ -15,8 +15,17 @@ prometheus.exporter.azure "integrations_azure1" {
 	metrics       = ["HttpRequestCount"]
 }
 
+discovery.relabel "integrations_azure1" {
+	targets = prometheus.exporter.azure.integrations_azure1.targets
+
+	rule {
+		target_label = "instance"
+		replacement  = "azure1"
+	}
+}
+
 prometheus.scrape "integrations_azure1" {
-	targets    = prometheus.exporter.azure.integrations_azure1.targets
+	targets    = discovery.relabel.integrations_azure1.output
 	forward_to = [prometheus.remote_write.metrics_default.receiver]
 	job_name   = "integrations/azure1"
 }
@@ -27,8 +36,17 @@ prometheus.exporter.azure "integrations_azure2" {
 	metrics       = ["HttpRequestCount"]
 }
 
+discovery.relabel "integrations_azure2" {
+	targets = prometheus.exporter.azure.integrations_azure2.targets
+
+	rule {
+		target_label = "instance"
+		replacement  = "azure2"
+	}
+}
+
 prometheus.scrape "integrations_azure2" {
-	targets    = prometheus.exporter.azure.integrations_azure2.targets
+	targets    = discovery.relabel.integrations_azure2.output
 	forward_to = [prometheus.remote_write.metrics_default.receiver]
 	job_name   = "integrations/azure2"
 }
@@ -409,8 +427,17 @@ prometheus.exporter.apache "integrations_apache1" {
 	insecure = true
 }
 
+discovery.relabel "integrations_apache1" {
+	targets = prometheus.exporter.apache.integrations_apache1.targets
+
+	rule {
+		target_label = "instance"
+		replacement  = "apache1"
+	}
+}
+
 prometheus.scrape "integrations_apache1" {
-	targets    = prometheus.exporter.apache.integrations_apache1.targets
+	targets    = discovery.relabel.integrations_apache1.output
 	forward_to = [prometheus.remote_write.metrics_default.receiver]
 	job_name   = "integrations/apache1"
 }
@@ -430,6 +457,11 @@ discovery.relabel "integrations_apache2" {
 		source_labels = ["__address__"]
 		target_label  = "test_label_2"
 		replacement   = "test_label_value_2"
+	}
+
+	rule {
+		target_label = "instance"
+		replacement  = "apache2"
 	}
 }
 

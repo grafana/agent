@@ -5,6 +5,7 @@ import (
 	"github.com/grafana/agent/pkg/logs"
 	"github.com/grafana/agent/pkg/metrics/instance"
 	"github.com/grafana/loki/clients/pkg/promtail/scrapeconfig"
+	"github.com/prometheus/common/model"
 	pc "github.com/prometheus/prometheus/config"
 	"github.com/prometheus/prometheus/model/labels"
 	"gopkg.in/yaml.v2"
@@ -130,11 +131,20 @@ func appendExternalLabels(c *Config, externalLabels map[string]string) {
 		return
 	}
 	// Start off with the existing external labels, which will only be added to (not replaced)
-	newExternalLabels := c.Metrics.Global.Prometheus.ExternalLabels.Map()
+	metricsExternalLabels := c.Metrics.Global.Prometheus.ExternalLabels.Map()
 	for k, v := range externalLabels {
-		if _, ok := newExternalLabels[k]; !ok {
-			newExternalLabels[k] = v
+		if _, ok := metricsExternalLabels[k]; !ok {
+			metricsExternalLabels[k] = v
 		}
 	}
-	c.Metrics.Global.Prometheus.ExternalLabels = labels.FromMap(newExternalLabels)
+
+	logsExternalLabels := make(model.LabelSet)
+	for k, v := range externalLabels {
+		logsExternalLabels[model.LabelName(k)] = model.LabelValue(v)
+	}
+
+	c.Metrics.Global.Prometheus.ExternalLabels = labels.FromMap(metricsExternalLabels)
+	for i, cc := range c.Logs.Global.ClientConfigs {
+		c.Logs.Global.ClientConfigs[i].ExternalLabels.LabelSet = logsExternalLabels.Merge(cc.ExternalLabels.LabelSet)
+	}
 }
