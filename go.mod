@@ -695,7 +695,7 @@ replace (
 	// TODO(tpaschalis) this is to remove global instantiation of plugins
 	// and allow non-singleton components.
 	// https://github.com/grafana/cadvisor/tree/grafana-v0.47-noglobals
-	github.com/google/cadvisor => github.com/grafana/cadvisor v0.0.0-20230927082732-0d72868a513e
+	github.com/google/cadvisor => github.com/grafana/cadvisor v0.0.0-20231110094609-5f7917925dea
 
 	// TODO(mattdurham): this is so you can debug on windows, when PR is merged into perflib, can you use that
 	// and eventually remove if windows_exporter shifts to it. https://github.com/leoluk/perflib_exporter/pull/43
