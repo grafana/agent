@@ -81,7 +81,7 @@ type Component struct {
 	receiver loki.LogsReceiver
 
 	// remote write components
-	clientManger client.Client
+	clientManger *client.Manager
 	walWriter    *wal.Writer
 
 	// sink is the place where log entries received by this component should be written to. If WAL
@@ -111,6 +111,18 @@ func New(o component.Options, args Arguments) (*Component, error) {
 
 // Run implements component.Component.
 func (c *Component) Run(ctx context.Context) error {
+	defer func() {
+		// when exiting Run, proceed to shut down first the writer component, and then
+		// the client manager, with the WAL and remote-write client inside
+		if c.walWriter != nil {
+			c.walWriter.Stop()
+		}
+		if c.clientManger != nil {
+			// drain, since the component is shutting down. That means the agent is shutting down as well
+			c.clientManger.StopWithDrain(true)
+		}
+	}()
+
 	for {
 		select {
 		case <-ctx.Done():
@@ -140,6 +152,7 @@ func (c *Component) Update(args component.Arguments) error {
 		c.walWriter.Stop()
 	}
 	if c.clientManger != nil {
+		// only drain on component shutdown
 		c.clientManger.Stop()
 	}
 

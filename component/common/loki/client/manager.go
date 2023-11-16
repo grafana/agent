@@ -35,8 +35,8 @@ func (n nilNotifier) SubscribeCleanup(_ wal.CleanupEventSubscriber) {}
 
 func (n nilNotifier) SubscribeWrite(_ wal.WriteEventSubscriber) {}
 
-type Stoppable interface {
-	Stop()
+type Drainable interface {
+	Stop(drain bool)
 }
 
 type StoppableClient interface {
@@ -53,7 +53,7 @@ type StoppableClient interface {
 type Manager struct {
 	name        string
 	clients     []Client
-	walWatchers []Stoppable
+	walWatchers []Drainable
 
 	// stoppableClients is kept separate from clients for avoiding having to couple queueClient to the Client interface
 	stoppableClients []StoppableClient
@@ -78,7 +78,7 @@ func NewManager(metrics *Metrics, logger log.Logger, limits limit.Config, reg pr
 
 	clientsCheck := make(map[string]struct{})
 	clients := make([]Client, 0, len(clientCfgs))
-	watchers := make([]Stoppable, 0, len(clientCfgs))
+	watchers := make([]Drainable, 0, len(clientCfgs))
 	stoppableClients := make([]StoppableClient, 0, len(clientCfgs))
 	for _, cfg := range clientCfgs {
 		// Don't allow duplicate clients, we have client specific metrics that need at least one unique label value (name).
@@ -188,12 +188,16 @@ func (m *Manager) Chan() chan<- loki.Entry {
 }
 
 func (m *Manager) Stop() {
+	m.StopWithDrain(false)
+}
+
+func (m *Manager) StopWithDrain(drain bool) {
 	// first stop the receiving channel
 	m.once.Do(func() { close(m.entries) })
 	m.wg.Wait()
 	// close wal watchers
 	for _, walWatcher := range m.walWatchers {
-		walWatcher.Stop()
+		walWatcher.Stop(drain)
 	}
 	// close clients
 	for _, c := range m.stoppableClients {

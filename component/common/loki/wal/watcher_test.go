@@ -2,6 +2,7 @@ package wal
 
 import (
 	"fmt"
+	"go.uber.org/atomic"
 	"os"
 	"testing"
 	"time"
@@ -341,7 +342,7 @@ func TestWatcher(t *testing.T) {
 			}
 			// create new watcher, and defer stop
 			watcher := NewWatcher(dir, "test", metrics, writeTo, logger, DefaultWatchConfig, noMarker{})
-			defer watcher.Stop()
+			defer watcher.Stop(false)
 			wl, err := New(Config{
 				Enabled: true,
 				Dir:     dir,
@@ -419,7 +420,7 @@ func TestWatcher_Replay(t *testing.T) {
 				return 0
 			},
 		})
-		defer watcher.Stop()
+		defer watcher.Stop(false)
 		wl, err := New(Config{
 			Enabled: true,
 			Dir:     dir,
@@ -501,7 +502,7 @@ func TestWatcher_Replay(t *testing.T) {
 				return -1
 			},
 		})
-		defer watcher.Stop()
+		defer watcher.Stop(false)
 		wl, err := New(Config{
 			Enabled: true,
 			Dir:     dir,
@@ -567,4 +568,91 @@ func TestWatcher_Replay(t *testing.T) {
 		}, time.Second*10, time.Second, "timed out waiting for watcher to catch up")
 		writeTo.AssertContainsLines(t, segment2Lines...)
 	})
+}
+
+// slowWriteTo mimics the combination of a WriteTo and a slow remote write client. This will allow us to have a writer
+// that moves faster than the WAL watcher, and therefore, test the draining procedure.
+type slowWriteTo struct {
+	entriesReceived         atomic.Uint64
+	sleepAfterAppendEntries time.Duration
+}
+
+func (s *slowWriteTo) SeriesReset(segmentNum int) {
+}
+
+func (s *slowWriteTo) StoreSeries(series []record.RefSeries, segmentNum int) {
+}
+
+func (s *slowWriteTo) AppendEntries(entries wal.RefEntries, segmentNum int) error {
+	s.entriesReceived.Add(uint64(len(entries.Entries)))
+	time.Sleep(s.sleepAfterAppendEntries)
+	return nil
+}
+
+func TestWatcher_StopAndDrainWAL(t *testing.T) {
+	labels := model.LabelSet{
+		"app": "test",
+	}
+
+	reg := prometheus.NewRegistry()
+	logger := level.NewFilter(log.NewLogfmtLogger(os.Stdout), level.AllowDebug())
+	dir := t.TempDir()
+	metrics := NewWatcherMetrics(reg)
+	// the slow write to will take one second on each AppendEntries operation
+	writeTo := &slowWriteTo{
+		sleepAfterAppendEntries: time.Second,
+	}
+	// create new watcher, and defer stop
+	watcher := NewWatcher(dir, "test", metrics, writeTo, logger, DefaultWatchConfig, mockMarker{
+		LastMarkedSegmentFunc: func() int {
+			// Ignore marker to read from last segment, which is none
+			return -1
+		},
+	})
+
+	// start watcher, and burn through WAL as we write to it
+	watcher.Start()
+
+	wl, err := New(Config{
+		Enabled: true,
+		Dir:     dir,
+	}, logger, reg)
+	require.NoError(t, err)
+	defer wl.Close()
+
+	ew := newEntryWriter()
+
+	writeNLines := func(t *testing.T, n int) {
+		for i := 0; i < n; i++ {
+			// First, write to segment 0. This will be the last "marked" segment
+			err = ew.WriteEntry(loki.Entry{
+				Labels: labels,
+				Entry: logproto.Entry{
+					Timestamp: time.Now(),
+					Line:      "test line",
+				},
+			}, wl, logger)
+			require.NoError(t, err)
+		}
+	}
+
+	// The test will write the WAL while the Watcher is running. First, 10 lines will be written to a segment, and the test
+	// will wait for the Watcher to have read 5 lines. After, a new segment will be cut, 10 other lines written, and the
+	// Watcher stopped with drain. The test will expect all 20 lines in total to have been received.
+
+	writeNLines(t, 10)
+
+	require.Eventually(t, func() bool {
+		return writeTo.entriesReceived.Load() >= 5
+	}, time.Second*11, time.Millisecond*500, "expected the write to catch up to half of the first segment")
+
+	_, err = wl.NextSegment()
+	require.NoError(t, err)
+	writeNLines(t, 10)
+	require.NoError(t, wl.Sync())
+
+	// Upon calling Stop drain, the Watcher should finish burning through segment 0, and also consume segment 1
+	watcher.Stop(true)
+
+	require.Equal(t, 20, int(writeTo.entriesReceived.Load()), "expected the watcher to drain the whole WAL")
 }

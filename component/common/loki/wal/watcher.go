@@ -331,7 +331,11 @@ func (w *Watcher) decodeAndDispatch(b []byte, segmentNum int) (bool, error) {
 	return readData, firstErr
 }
 
-func (w *Watcher) Stop() {
+// Stop stops the Watcher, draining the WAL until the end of the last segment if drain is true. Since the writer of the WAL
+// is expected to have stopped before the Watcher, the last segment will be drained completely before the end of Stop.
+//
+// Note if drain is enabled, the caller routine of Stop will block executing the drain procedure.
+func (w *Watcher) Stop(drain bool) {
 	// first close the quit channel to order main mainLoop routine to stop
 	close(w.quit)
 	// upon calling stop, wait for main mainLoop execution to stop
