@@ -26,7 +26,7 @@ forwards it to other `otelcol.*` components.
 Multiple `otelcol.receiver.vcenter` components can be specified by giving them
 different labels.
 
-The full list of metrics that can be collected can be found [here][vcenter metrics].
+The full list of metrics that can be collected can be found in [vcenter receiver documentation][vcenter metrics].
 
 [vcenter metrics]: https://github.com/open-telemetry/opentelemetry-collector/blob/{{< param "OTEL_VERSION" >}}/receiver/vcenterreceiver/documentation.md
 

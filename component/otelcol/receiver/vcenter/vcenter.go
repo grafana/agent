@@ -44,13 +44,6 @@ func (r *MetricConfig) Convert() map[string]interface{} {
 	}
 }
 
-// SetToDefault implements river.Defaulter.
-func (args *MetricConfig) SetToDefault() {
-	*args = MetricConfig{
-		Enabled: true,
-	}
-}
-
 type MetricsConfig struct {
 	VcenterClusterCPUEffective      MetricConfig `river:"vcenter.cluster.cpu.effective,block,optional"`
 	VcenterClusterCPULimit          MetricConfig `river:"vcenter.cluster.cpu.limit,block,optional"`
@@ -142,13 +135,6 @@ func (args *MetricsConfig) Convert() map[string]interface{} {
 
 type ResourceAttributeConfig struct {
 	Enabled bool `river:"enabled,attr"`
-}
-
-// SetToDefault implements river.Defaulter.
-func (args *ResourceAttributeConfig) SetToDefault() {
-	*args = ResourceAttributeConfig{
-		Enabled: true,
-	}
 }
 
 func (r *ResourceAttributeConfig) Convert() map[string]interface{} {
