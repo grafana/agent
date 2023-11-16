@@ -98,7 +98,6 @@ func New(o component.Options, args Arguments) (*Component, error) {
 	if err := c.Update(args); err != nil {
 		if errors.As(err, &vcs.UpdateFailedError{}) {
 			level.Error(c.log).Log("msg", "failed to update repository", "err", err)
-			c.updateHealth(err)
 		} else {
 			return nil, err
 		}
