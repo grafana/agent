@@ -58,6 +58,8 @@ Main (unreleased)
   - `otelcol.processor.filter` - filters OTLP telemetry data using OpenTelemetry
     Transformation Language (OTTL). (@hainenber)
 
+- Agent Management: Introduce support for remotely managed external labels for logs. (@jcreixell)
+
 ### Enhancements
 
 - The `loki.write` WAL now has snappy compression enabled by default. (@thepalbi)
