@@ -165,6 +165,10 @@ func evaluateTemplate(config string, templateVariables map[string]any) (string, 
 	}
 
 	var buf bytes.Buffer
-	tpl.Execute(&buf, templateVariables)
+	err = tpl.Execute(&buf, templateVariables)
+	if err != nil {
+		return "", err
+	}
+
 	return buf.String(), nil
 }
