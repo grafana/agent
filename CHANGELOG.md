@@ -61,6 +61,8 @@ Main (unreleased)
 
 - Agent Management: Introduce support for remotely managed external labels for logs. (@jcreixell)
 
+- Agent Management: Introduce support for templated configuration. (@jcreixell)
+
 ### Enhancements
 
 - The `loki.write` WAL now has snappy compression enabled by default. (@thepalbi)
