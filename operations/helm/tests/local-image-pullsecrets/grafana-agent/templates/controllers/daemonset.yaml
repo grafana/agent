@@ -38,6 +38,8 @@ spec:
           env:
             - name: AGENT_MODE
               value: flow
+            - name: AGENT_DEPLOY_MODE
+              value: "helm"
             - name: HOSTNAME
               valueFrom:
                 fieldRef:
