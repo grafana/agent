@@ -137,12 +137,17 @@ func resolveTraversal(t Traversal, g *dag.Graph) (Reference, diag.Diagnostics) {
 		rem     = t[1:]
 	)
 
+	var candidate Reference
+	found := false
+
 	for {
 		if n := g.GetByID(partial.String()); n != nil {
-			return Reference{
+			// we dont return anymore here because we can find a better candidate
+			candidate = Reference{
 				Target:    n.(BlockNode),
 				Traversal: rem,
-			}, nil
+			}
+			found = true
 		}
 
 		if len(rem) == 0 {
@@ -153,6 +158,10 @@ func resolveTraversal(t Traversal, g *dag.Graph) (Reference, diag.Diagnostics) {
 		// Append the next name in the traversal to our partial reference.
 		partial = append(partial, rem[0].Name)
 		rem = rem[1:]
+	}
+
+	if found {
+		return candidate, nil
 	}
 
 	diags = append(diags, diag.Diagnostic{

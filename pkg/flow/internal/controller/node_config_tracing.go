@@ -84,3 +84,8 @@ func (cn *TracingConfigNode) Block() *ast.BlockStmt {
 
 // NodeID implements dag.Node and returns the unique ID for the config node.
 func (cn *TracingConfigNode) NodeID() string { return cn.nodeID }
+
+// Namespace is "" because not allowed in modules
+func (cn *TracingConfigNode) Namespace() string { return "" }
+
+func (cn *TracingConfigNode) SetNamespace(namespace string) {}

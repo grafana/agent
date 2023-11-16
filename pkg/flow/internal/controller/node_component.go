@@ -84,6 +84,7 @@ type ComponentNode struct {
 	globalID          string
 	label             string
 	componentName     string
+	namespace         string
 	nodeID            string // Cached from id.String() to avoid allocating new strings every time NodeID is called.
 	reg               component.Registration
 	managedOpts       component.Options
@@ -458,3 +459,7 @@ func (cn *ComponentNode) setRunHealth(t component.HealthType, msg string) {
 func (cn *ComponentNode) ModuleIDs() []string {
 	return cn.moduleController.ModuleIDs()
 }
+
+func (cn *ComponentNode) Namespace() string { return cn.namespace }
+
+func (cn *ComponentNode) SetNamespace(namespace string) { cn.namespace = namespace }

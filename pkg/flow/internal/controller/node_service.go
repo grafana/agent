@@ -49,6 +49,11 @@ func (sn *ServiceNode) Definition() service.Definition { return sn.def }
 // name.
 func (sn *ServiceNode) NodeID() string { return sn.def.Name }
 
+// TODO do services have namespace?
+func (sn *ServiceNode) Namespace() string { return "" }
+
+func (sn *ServiceNode) SetNamespace(namespace string) {}
+
 // Block implements BlockNode. It returns nil, since ServiceNodes don't have
 // associated configs.
 func (sn *ServiceNode) Block() *ast.BlockStmt {

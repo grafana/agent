@@ -2,13 +2,11 @@ package flow
 
 import (
 	"crypto/sha256"
-	"fmt"
 	"sort"
-	"strings"
 
 	"github.com/grafana/agent/pkg/config/encoder"
+	"github.com/grafana/agent/pkg/flow/internal/controller"
 	"github.com/grafana/river/ast"
-	"github.com/grafana/river/diag"
 	"github.com/grafana/river/parser"
 )
 
@@ -19,8 +17,9 @@ type Source struct {
 
 	// Components holds the list of raw River AST blocks describing components.
 	// The Flow controller can interpret them.
-	components   []*ast.BlockStmt
-	configBlocks []*ast.BlockStmt
+	components    []*ast.BlockStmt
+	configBlocks  []*ast.BlockStmt
+	declareBlocks []*ast.BlockStmt
 }
 
 // ParseSource parses the River file specified by bb into a File. name should be
@@ -36,51 +35,16 @@ func ParseSource(name string, bb []byte) (*Source, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	// Look for predefined non-components blocks (i.e., logging), and store
-	// everything else into a list of components.
-	//
-	// TODO(rfratto): should this code be brought into a helper somewhere? Maybe
-	// in ast?
-	var (
-		components []*ast.BlockStmt
-		configs    []*ast.BlockStmt
-	)
-
-	for _, stmt := range node.Body {
-		switch stmt := stmt.(type) {
-		case *ast.AttributeStmt:
-			return nil, diag.Diagnostic{
-				Severity: diag.SeverityLevelError,
-				StartPos: ast.StartPos(stmt.Name).Position(),
-				EndPos:   ast.EndPos(stmt.Name).Position(),
-				Message:  "unrecognized attribute " + stmt.Name.Name,
-			}
-
-		case *ast.BlockStmt:
-			fullName := strings.Join(stmt.Name, ".")
-			switch fullName {
-			case "logging", "tracing", "argument", "export":
-				configs = append(configs, stmt)
-			default:
-				components = append(components, stmt)
-			}
-
-		default:
-			return nil, diag.Diagnostic{
-				Severity: diag.SeverityLevelError,
-				StartPos: ast.StartPos(stmt).Position(),
-				EndPos:   ast.EndPos(stmt).Position(),
-				Message:  fmt.Sprintf("unsupported statement type %T", stmt),
-			}
-		}
+	categorizedBlocks, err := controller.CategorizeStatements(node.Body)
+	if err != nil {
+		return nil, err
 	}
-
 	return &Source{
-		components:   components,
-		configBlocks: configs,
-		sourceMap:    map[string][]byte{name: bb},
-		hash:         sha256.Sum256(bb),
+		components:    categorizedBlocks.Components,
+		configBlocks:  categorizedBlocks.Configs,
+		declareBlocks: categorizedBlocks.DeclareBlocks,
+		sourceMap:     map[string][]byte{name: bb},
+		hash:          sha256.Sum256(bb),
 	}, nil
 }
 
@@ -120,6 +84,7 @@ func ParseSources(sources map[string][]byte) (*Source, error) {
 
 		mergedSource.components = append(mergedSource.components, sourceFragment.components...)
 		mergedSource.configBlocks = append(mergedSource.configBlocks, sourceFragment.configBlocks...)
+		mergedSource.declareBlocks = append(mergedSource.declareBlocks, sourceFragment.declareBlocks...)
 	}
 
 	mergedSource.hash = [32]byte(hash.Sum(nil))

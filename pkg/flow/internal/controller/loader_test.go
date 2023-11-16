@@ -84,14 +84,14 @@ func TestLoader(t *testing.T) {
 
 	t.Run("New Graph", func(t *testing.T) {
 		l := controller.NewLoader(newLoaderOptions())
-		diags := applyFromContent(t, l, []byte(testFile), []byte(testConfig))
+		diags := applyFromContent(t, l, []byte(testFile), []byte(testConfig), nil)
 		require.NoError(t, diags.ErrorOrNil())
 		requireGraph(t, l.Graph(), testGraphDefinition)
 	})
 
 	t.Run("New Graph No Config", func(t *testing.T) {
 		l := controller.NewLoader(newLoaderOptions())
-		diags := applyFromContent(t, l, []byte(testFile), nil)
+		diags := applyFromContent(t, l, []byte(testFile), nil, nil)
 		require.NoError(t, diags.ErrorOrNil())
 		requireGraph(t, l.Graph(), testGraphDefinition)
 	})
@@ -109,11 +109,11 @@ func TestLoader(t *testing.T) {
 			}
 		`
 		l := controller.NewLoader(newLoaderOptions())
-		diags := applyFromContent(t, l, []byte(startFile), []byte(testConfig))
+		diags := applyFromContent(t, l, []byte(startFile), []byte(testConfig), nil)
 		origGraph := l.Graph()
 		require.NoError(t, diags.ErrorOrNil())
 
-		diags = applyFromContent(t, l, []byte(testFile), []byte(testConfig))
+		diags = applyFromContent(t, l, []byte(testFile), []byte(testConfig), nil)
 		require.NoError(t, diags.ErrorOrNil())
 		newGraph := l.Graph()
 
@@ -128,7 +128,7 @@ func TestLoader(t *testing.T) {
 			}
 		`
 		l := controller.NewLoader(newLoaderOptions())
-		diags := applyFromContent(t, l, []byte(invalidFile), nil)
+		diags := applyFromContent(t, l, []byte(invalidFile), nil, nil)
 		require.ErrorContains(t, diags.ErrorOrNil(), `Unrecognized component name "doesnotexist`)
 	})
 
@@ -147,7 +147,7 @@ func TestLoader(t *testing.T) {
 			}
 		`
 		l := controller.NewLoader(newLoaderOptions())
-		diags := applyFromContent(t, l, []byte(invalidFile), nil)
+		diags := applyFromContent(t, l, []byte(invalidFile), nil, nil)
 		require.Error(t, diags.ErrorOrNil())
 
 		requireGraph(t, l.Graph(), graphDefinition{
@@ -175,7 +175,7 @@ func TestLoader(t *testing.T) {
 			}
 		`
 		l := controller.NewLoader(newLoaderOptions())
-		diags := applyFromContent(t, l, []byte(invalidFile), nil)
+		diags := applyFromContent(t, l, []byte(invalidFile), nil, nil)
 		require.Error(t, diags.ErrorOrNil())
 	})
 }
@@ -217,19 +217,156 @@ func TestScopeWithFailingComponent(t *testing.T) {
 	}
 
 	l := controller.NewLoader(newLoaderOptions())
-	diags := applyFromContent(t, l, []byte(testFile), nil)
+	diags := applyFromContent(t, l, []byte(testFile), nil, nil)
 	require.Error(t, diags.ErrorOrNil())
 	require.Len(t, diags, 1)
 	require.True(t, strings.Contains(diags.Error(), `unrecognized attribute name "frequenc"`))
 }
 
-func applyFromContent(t *testing.T, l *controller.Loader, componentBytes []byte, configBytes []byte) diag.Diagnostics {
+type testCase struct {
+	name                string
+	testFile            string
+	testDeclare         string
+	expectedGraph       graphDefinition
+	expectedExportValue int
+	expectedSumValue    int
+}
+
+func TestDeclareComponent(t *testing.T) {
+	testCases := []testCase{
+		{
+			name: "BasicComponent",
+			testFile: `
+				add "example" {
+					a = 5 
+					b = 6 
+				}
+			`,
+			testDeclare: `
+				declare "add" {
+					argument "a" { }
+					argument "b" { }
+					export "sum" {
+						value = argument.a.value + argument.b.value
+					}
+				}
+			`,
+			expectedGraph: graphDefinition{
+				Nodes: []string{
+					"tracing",
+					"logging",
+					"add.example.argument.a",
+					"add.example.argument.b",
+					"add.example",
+					"add.example.export.sum",
+				},
+				OutEdges: []edge{
+					{From: "add.example.argument.a", To: "add.example"},
+					{From: "add.example.argument.b", To: "add.example"},
+					{From: "add.example.export.sum", To: "add.example.argument.a"},
+					{From: "add.example.export.sum", To: "add.example.argument.b"},
+				},
+			},
+			expectedExportValue: 11,
+		},
+		{
+			name: "NestedComponent",
+			testFile: `
+				add "example" {
+					a = 5 
+					b = 6 
+				}
+			`,
+			testDeclare: `
+			declare "add" {
+				argument "a" { }
+				argument "b" { }
+	
+				declare "surpriseDuChef" {
+					argument "a" { }
+					argument "b" { }
+					export "sum" {
+						value = argument.a.value + argument.b.value
+					}
+				}
+	
+				surpriseDuChef "theOne" {
+					a = argument.a.value
+					b = 1
+				}
+			
+				export "sum" {
+					value = surpriseDuChef.theOne.export.sum + argument.b.value
+				}
+			}
+		`,
+			expectedGraph: graphDefinition{
+				Nodes: []string{
+					"tracing",
+					"logging",
+					"add.example.argument.a",
+					"add.example.argument.b",
+					"add.example",
+					"add.example.surpriseDuChef.theOne",
+					"add.example.surpriseDuChef.theOne.export.sum",
+					"add.example.surpriseDuChef.theOne.argument.a",
+					"add.example.surpriseDuChef.theOne.argument.b",
+					"add.example.export.sum",
+				},
+				OutEdges: []edge{
+					{From: "add.example.argument.a", To: "add.example"},
+					{From: "add.example.argument.b", To: "add.example"},
+					{From: "add.example.export.sum", To: "add.example.argument.b"},
+					{From: "add.example.export.sum", To: "add.example.surpriseDuChef.theOne.export.sum"},
+					{From: "add.example.surpriseDuChef.theOne", To: "add.example.argument.a"},
+					{From: "add.example.surpriseDuChef.theOne.argument.a", To: "add.example.surpriseDuChef.theOne"},
+					{From: "add.example.surpriseDuChef.theOne.argument.b", To: "add.example.surpriseDuChef.theOne"},
+					{From: "add.example.surpriseDuChef.theOne.export.sum", To: "add.example.surpriseDuChef.theOne.argument.a"},
+					{From: "add.example.surpriseDuChef.theOne.export.sum", To: "add.example.surpriseDuChef.theOne.argument.b"},
+				},
+			},
+			expectedExportValue: 12,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			l := setupLoader(t)
+			diags := applyFromContent(t, l, []byte(tc.testFile), nil, []byte(tc.testDeclare))
+			require.NoError(t, diags.ErrorOrNil())
+			requireGraph(t, l.Graph(), tc.expectedGraph)
+			require.Equal(t, l.Graph().GetByID("add.example.export.sum").(*controller.ExportConfigNode).Value(), int(tc.expectedExportValue))
+		})
+	}
+}
+
+func setupLoader(t *testing.T) *controller.Loader {
+	newLoaderOptions := func() controller.LoaderOptions {
+		l, _ := logging.New(os.Stderr, logging.DefaultOptions)
+		return controller.LoaderOptions{
+			ComponentGlobals: controller.ComponentGlobals{
+				Logger:            l,
+				TraceProvider:     trace.NewNoopTracerProvider(),
+				DataPath:          t.TempDir(),
+				OnComponentUpdate: func(cn *controller.ComponentNode) { /* no-op */ },
+				Registerer:        prometheus.NewRegistry(),
+				NewModuleController: func(id string, availableServices []string) controller.ModuleController {
+					return fakeModuleController{}
+				},
+			},
+		}
+	}
+	return controller.NewLoader(newLoaderOptions())
+}
+
+func applyFromContent(t *testing.T, l *controller.Loader, componentBytes []byte, configBytes []byte, declareBytes []byte) diag.Diagnostics {
 	t.Helper()
 
 	var (
 		diags           diag.Diagnostics
 		componentBlocks []*ast.BlockStmt
 		configBlocks    []*ast.BlockStmt = nil
+		declareBlocks   []*ast.BlockStmt
 	)
 
 	componentBlocks, diags = fileToBlock(t, componentBytes)
@@ -244,7 +381,13 @@ func applyFromContent(t *testing.T, l *controller.Loader, componentBytes []byte,
 		}
 	}
 
-	applyDiags := l.Apply(nil, componentBlocks, configBlocks)
+	if string(declareBytes) != "" {
+		declareBlocks, diags = fileToBlock(t, declareBytes)
+		if diags.HasErrors() {
+			return diags
+		}
+	}
+	applyDiags := l.Apply(nil, componentBlocks, configBlocks, declareBlocks)
 	diags = append(diags, applyDiags...)
 
 	return diags

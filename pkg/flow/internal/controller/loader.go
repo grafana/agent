@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 
@@ -36,6 +37,7 @@ type Loader struct {
 	// it happens we should avoid retrying too often to give other goroutines a chance to progress. Having a backoff
 	// also prevents log spamming with errors.
 	backoffConfig backoff.Config
+	wiredNodes    map[string]struct{}
 
 	mut               sync.RWMutex
 	graph             *dag.Graph
@@ -82,6 +84,7 @@ func NewLoader(opts LoaderOptions) *Loader {
 		host:         host,
 		componentReg: reg,
 		workerPool:   opts.WorkerPool,
+		wiredNodes:   make(map[string]struct{}),
 
 		// This is a reasonable default which should work for most cases. If a component is completely stuck, we would
 		// retry and log an error every 10 seconds, at most.
@@ -117,7 +120,7 @@ func NewLoader(opts LoaderOptions) *Loader {
 // The provided parentContext can be used to provide global variables and
 // functions to components. A child context will be constructed from the parent
 // to expose values of other components.
-func (l *Loader) Apply(args map[string]any, componentBlocks []*ast.BlockStmt, configBlocks []*ast.BlockStmt) diag.Diagnostics {
+func (l *Loader) Apply(args map[string]any, componentBlocks []*ast.BlockStmt, configBlocks []*ast.BlockStmt, declareBlocks []*ast.BlockStmt) diag.Diagnostics {
 	start := time.Now()
 	l.mut.Lock()
 	defer l.mut.Unlock()
@@ -129,7 +132,7 @@ func (l *Loader) Apply(args map[string]any, componentBlocks []*ast.BlockStmt, co
 	}
 	l.cache.SyncModuleArgs(args)
 
-	newGraph, diags := l.loadNewGraph(args, componentBlocks, configBlocks)
+	newGraph, diags := l.loadNewGraph(args, componentBlocks, configBlocks, declareBlocks, l.isModule())
 	if diags.HasErrors() {
 		return diags
 	}
@@ -138,6 +141,8 @@ func (l *Loader) Apply(args map[string]any, componentBlocks []*ast.BlockStmt, co
 		components   = make([]*ComponentNode, 0, len(componentBlocks))
 		componentIDs = make([]ComponentID, 0, len(componentBlocks))
 		services     = make([]*ServiceNode, 0, len(l.services))
+		declareIDs   = make(map[string]struct{})
+		exportIDs    = make(map[string]struct{})
 	)
 
 	tracer := l.tracer.Tracer("")
@@ -205,6 +210,22 @@ func (l *Loader) Apply(args map[string]any, componentBlocks []*ast.BlockStmt, co
 				}
 			}
 
+		case *DeclareComponentNode:
+			declareIDs[n.NodeID()] = struct{}{}
+			if err = l.evaluate(logger, n); err != nil {
+				var evalDiags diag.Diagnostics
+				if errors.As(err, &evalDiags) {
+					diags = append(diags, evalDiags...)
+				} else {
+					diags.Add(diag.Diagnostic{
+						Severity: diag.SeverityLevelError,
+						Message:  fmt.Sprintf("Failed to evaluate declare component node: %s", err),
+						StartPos: ast.StartPos(n.Block()).Position(),
+						EndPos:   ast.EndPos(n.Block()).Position(),
+					})
+				}
+			}
+
 		case BlockNode:
 			if err = l.evaluate(logger, n); err != nil {
 				diags.Add(diag.Diagnostic{
@@ -215,6 +236,8 @@ func (l *Loader) Apply(args map[string]any, componentBlocks []*ast.BlockStmt, co
 				})
 			}
 			if exp, ok := n.(*ExportConfigNode); ok {
+				exportIDs[n.NodeID()] = struct{}{}
+				l.cache.CacheDeclareExport(exp.NodeID(), exp.Value())
 				l.cache.CacheModuleExportValue(exp.Label(), exp.Value())
 			}
 		}
@@ -233,6 +256,8 @@ func (l *Loader) Apply(args map[string]any, componentBlocks []*ast.BlockStmt, co
 	l.serviceNodes = services
 	l.graph = &newGraph
 	l.cache.SyncIDs(componentIDs)
+	l.cache.SyncDeclareIDs(declareIDs)
+	l.cache.SyncDeclareExportIDs(exportIDs)
 	l.blocks = componentBlocks
 	l.cm.componentEvaluationTime.Observe(time.Since(start).Seconds())
 	if l.globals.OnExportsChange != nil && l.cache.ExportChangeIndex() != l.moduleExportIndex {
@@ -255,7 +280,7 @@ func (l *Loader) Cleanup(stopWorkerPool bool) {
 }
 
 // loadNewGraph creates a new graph from the provided blocks and validates it.
-func (l *Loader) loadNewGraph(args map[string]any, componentBlocks []*ast.BlockStmt, configBlocks []*ast.BlockStmt) (dag.Graph, diag.Diagnostics) {
+func (l *Loader) loadNewGraph(args map[string]any, componentBlocks []*ast.BlockStmt, configBlocks []*ast.BlockStmt, declareBlocks []*ast.BlockStmt, inModule bool) (dag.Graph, diag.Diagnostics) {
 	var g dag.Graph
 
 	// Split component blocks into blocks for components and services.
@@ -266,11 +291,15 @@ func (l *Loader) loadNewGraph(args map[string]any, componentBlocks []*ast.BlockS
 	diags := l.populateServiceNodes(&g, serviceBlocks)
 
 	// Fill our graph with config blocks.
-	configBlockDiags := l.populateConfigBlockNodes(args, &g, configBlocks)
+	configBlockDiags := l.populateConfigBlockNodes(args, &g, configBlocks, inModule)
 	diags = append(diags, configBlockDiags...)
 
+	// Fill our graph with declare blocks.
+	graphTemplates, declareBlockDiags := l.populateDeclareBlockNodes(&g, declareBlocks)
+	diags = append(diags, declareBlockDiags...)
+
 	// Fill our graph with components.
-	componentNodeDiags := l.populateComponentNodes(&g, componentBlocks)
+	componentNodeDiags := l.populateComponentNodes(&g, componentBlocks, graphTemplates)
 	diags = append(diags, componentNodeDiags...)
 
 	// Write up the edges of the graph
@@ -370,7 +399,7 @@ func (l *Loader) populateServiceNodes(g *dag.Graph, serviceBlocks []*ast.BlockSt
 }
 
 // populateConfigBlockNodes adds any config blocks to the graph.
-func (l *Loader) populateConfigBlockNodes(args map[string]any, g *dag.Graph, configBlocks []*ast.BlockStmt) diag.Diagnostics {
+func (l *Loader) populateConfigBlockNodes(args map[string]any, g *dag.Graph, configBlocks []*ast.BlockStmt, inModule bool) diag.Diagnostics {
 	var (
 		diags   diag.Diagnostics
 		nodeMap = NewConfigNodeMap()
@@ -401,17 +430,17 @@ func (l *Loader) populateConfigBlockNodes(args map[string]any, g *dag.Graph, con
 		g.Add(node)
 	}
 
-	validateDiags := nodeMap.Validate(l.isModule(), args)
+	validateDiags := nodeMap.Validate(inModule, args)
 	diags = append(diags, validateDiags...)
 
 	// If a logging config block is not provided, we create an empty node which uses defaults.
-	if nodeMap.logging == nil && !l.isModule() {
+	if nodeMap.logging == nil && !inModule {
 		c := NewDefaultLoggingConfigNode(l.globals)
 		g.Add(c)
 	}
 
 	// If a tracing config block is not provided, we create an empty node which uses defaults.
-	if nodeMap.tracing == nil && !l.isModule() {
+	if nodeMap.tracing == nil && !inModule {
 		c := NewDefaulTracingConfigNode(l.globals)
 		g.Add(c)
 	}
@@ -419,14 +448,34 @@ func (l *Loader) populateConfigBlockNodes(args map[string]any, g *dag.Graph, con
 	return diags
 }
 
+// update for imported declares
+func (l *Loader) populateDeclareBlockNodes(g *dag.Graph, declareBlocks []*ast.BlockStmt) (map[string]*dag.Graph, diag.Diagnostics) {
+	var diags diag.Diagnostics
+	templateGraphs := make(map[string]*dag.Graph, len(declareBlocks))
+	for _, block := range declareBlocks {
+		categorizedBlocks, diag := CategorizeStatements(block.Body)
+		if diag != nil {
+			diags.Add(*diag)
+			continue
+		}
+		// Recursive call.
+		templateGraph, ds := l.loadNewGraph(nil, categorizedBlocks.Components, categorizedBlocks.Configs, categorizedBlocks.DeclareBlocks, true)
+		if len(ds) > 0 {
+			diags = append(diags, ds...)
+			continue
+		}
+		templateGraphs[block.Label] = &templateGraph
+	}
+	return templateGraphs, diags
+}
+
 // populateComponentNodes adds any components to the graph.
-func (l *Loader) populateComponentNodes(g *dag.Graph, componentBlocks []*ast.BlockStmt) diag.Diagnostics {
+func (l *Loader) populateComponentNodes(g *dag.Graph, componentBlocks []*ast.BlockStmt, graphTemplates map[string]*dag.Graph) diag.Diagnostics {
 	var (
 		diags    diag.Diagnostics
 		blockMap = make(map[string]*ast.BlockStmt, len(componentBlocks))
 	)
 	for _, block := range componentBlocks {
-		var c *ComponentNode
 		id := BlockComponentID(block).String()
 
 		if orig, redefined := blockMap[id]; redefined {
@@ -443,21 +492,9 @@ func (l *Loader) populateComponentNodes(g *dag.Graph, componentBlocks []*ast.Blo
 		// Check the graph from the previous call to Load to see we can copy an
 		// existing instance of ComponentNode.
 		if exist := l.graph.GetByID(id); exist != nil {
-			c = exist.(*ComponentNode)
-			c.UpdateBlock(block)
+			exist.(*ComponentNode).UpdateBlock(block)
 		} else {
 			componentName := block.GetBlockName()
-			registration, exists := l.componentReg.Get(componentName)
-			if !exists {
-				diags.Add(diag.Diagnostic{
-					Severity: diag.SeverityLevelError,
-					Message:  fmt.Sprintf("Unrecognized component name %q", componentName),
-					StartPos: block.NamePos.Position(),
-					EndPos:   block.NamePos.Add(len(componentName) - 1).Position(),
-				})
-				continue
-			}
-
 			if block.Label == "" {
 				diags.Add(diag.Diagnostic{
 					Severity: diag.SeverityLevelError,
@@ -468,14 +505,64 @@ func (l *Loader) populateComponentNodes(g *dag.Graph, componentBlocks []*ast.Blo
 				continue
 			}
 
-			// Create a new component
-			c = NewComponentNode(l.globals, registration, block)
+			if graph, exist := graphTemplates[componentName]; exist {
+				clonedGraph := graph.Clone()
+				l.addPrefixToGraph(clonedGraph, id)
+				g.Merge(clonedGraph)
+				declareNode := NewDeclareComponentNode(l.globals, block)
+				g.Add(declareNode)
+				for _, n := range clonedGraph.Nodes() {
+					switch n := n.(type) {
+					case *ArgumentConfigNode:
+						g.AddEdge(dag.Edge{From: n, To: declareNode})
+					}
+				}
+			} else {
+				registration, exists := l.componentReg.Get(componentName)
+				if !exists {
+					diags.Add(diag.Diagnostic{
+						Severity: diag.SeverityLevelError,
+						Message:  fmt.Sprintf("Unrecognized component name %q", componentName),
+						StartPos: block.NamePos.Position(),
+						EndPos:   block.NamePos.Add(len(componentName) - 1).Position(),
+					})
+					continue
+				}
+				g.Add(NewComponentNode(l.globals, registration, block))
+			}
 		}
-
-		g.Add(c)
 	}
-
 	return diags
+}
+
+// TODO improve this mess?
+func (l *Loader) addPrefixToGraph(graph *dag.Graph, prefix string) {
+	for _, node := range graph.Nodes() {
+		newId := prefix + "." + node.NodeID()
+		if _, exist := l.wiredNodes[node.NodeID()]; exist {
+			l.wiredNodes[newId] = struct{}{}
+			delete(l.wiredNodes, node.NodeID())
+		}
+		switch n := node.(type) {
+		case *ComponentNode:
+			n.nodeID = newId
+		case *ArgumentConfigNode:
+			n.nodeID = newId
+		case *ExportConfigNode:
+			n.nodeID = newId
+		case *DeclareComponentNode:
+			n.nodeID = newId
+		default:
+			fmt.Println("Are other types of nodes allowed in modules?")
+			continue
+		}
+		if node.Namespace() == "" {
+			node.SetNamespace(prefix)
+		} else {
+			node.SetNamespace(prefix + "." + node.Namespace())
+		}
+	}
+	graph.UpdateEdgesForRenamedNodes(prefix)
 }
 
 // Wire up all the related nodes
@@ -516,21 +603,18 @@ func (l *Loader) wireGraphEdges(g *dag.Graph) diag.Diagnostics {
 			}
 		}
 
-		// Finally, wire component references.
-		refs, nodeDiags := ComponentReferences(n, g)
-		for _, ref := range refs {
-			g.AddEdge(dag.Edge{From: n, To: ref.Target})
+		if _, wired := l.wiredNodes[n.NodeID()]; !wired {
+			// Finally, wire component references.
+			refs, nodeDiags := ComponentReferences(n, g)
+			for _, ref := range refs {
+				g.AddEdge(dag.Edge{From: n, To: ref.Target})
+			}
+			diags = append(diags, nodeDiags...)
+			l.wiredNodes[n.NodeID()] = struct{}{}
 		}
-		diags = append(diags, nodeDiags...)
 	}
 
 	return diags
-}
-
-// Variables returns the Variables the Loader exposes for other Flow components
-// to reference.
-func (l *Loader) Variables() map[string]interface{} {
-	return l.cache.BuildContext().Variables
 }
 
 // Components returns the current set of loaded components.
@@ -659,7 +743,7 @@ func (l *Loader) concurrentEvalFn(n dag.Node, spanCtx context.Context, tracer tr
 	var err error
 	switch n := n.(type) {
 	case BlockNode:
-		ectx := l.cache.BuildContext()
+		ectx := l.cache.BuildContext(n)
 		evalErr := n.Evaluate(ectx)
 
 		// Only obtain loader lock after we have evaluated the node, allowing for concurrent evaluation.
@@ -668,6 +752,7 @@ func (l *Loader) concurrentEvalFn(n dag.Node, spanCtx context.Context, tracer tr
 
 		// Additional post-evaluation steps necessary for module exports.
 		if exp, ok := n.(*ExportConfigNode); ok {
+			l.cache.CacheDeclareExport(exp.NodeID(), exp.Value()) // is this necessary?
 			l.cache.CacheModuleExportValue(exp.Label(), exp.Value())
 		}
 		if l.globals.OnExportsChange != nil && l.cache.ExportChangeIndex() != l.moduleExportIndex {
@@ -697,7 +782,7 @@ func (l *Loader) concurrentEvalFn(n dag.Node, spanCtx context.Context, tracer tr
 // evaluate constructs the final context for the BlockNode and
 // evaluates it. mut must be held when calling evaluate.
 func (l *Loader) evaluate(logger log.Logger, bn BlockNode) error {
-	ectx := l.cache.BuildContext()
+	ectx := l.cache.BuildContext(bn)
 	err := bn.Evaluate(ectx)
 	return l.postEvaluate(logger, bn, err)
 }
@@ -706,19 +791,38 @@ func (l *Loader) evaluate(logger log.Logger, bn BlockNode) error {
 // mut must be held when calling postEvaluate.
 func (l *Loader) postEvaluate(logger log.Logger, bn BlockNode, err error) error {
 	switch c := bn.(type) {
+	case *DeclareComponentNode:
+		l.cache.CacheDeclare(c.NodeID(), c.Arguments())
+	case *ExportConfigNode:
+
 	case *ComponentNode:
 		// Always update the cache both the arguments and exports, since both might
 		// change when a component gets re-evaluated. We also want to cache the arguments and exports in case of an error
 		l.cache.CacheArguments(c.ID(), c.Arguments())
 		l.cache.CacheExports(c.ID(), c.Exports())
 	case *ArgumentConfigNode:
+		// This part is for new modules
+		if namespaceArgs, found := l.cache.declareValues[c.Namespace()]; found {
+			parts := strings.Split(c.NodeID(), ".")
+			label := parts[len(parts)-1]
+			if _, alreadyDeclared := namespaceArgs[label]; !alreadyDeclared {
+				if c.Optional() {
+					namespaceArgs[label] = c.Default()
+				} else {
+					// Should be an error here
+				}
+			}
+		}
+
+		// This part is for old modules
 		if _, found := l.cache.moduleArguments[c.Label()]; !found {
 			if c.Optional() {
 				l.cache.CacheModuleArgument(c.Label(), c.Default())
 			} else {
 				// NOTE: this masks the previous evaluation error, but we treat a missing module arguments as
 				// a more important error to address.
-				err = fmt.Errorf("missing required argument %q to module", c.Label())
+				// No more error for old modules :p
+				//err = fmt.Errorf("missing required argument %q to module", c.Label())
 			}
 		}
 	}

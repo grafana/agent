@@ -1,7 +1,9 @@
 package controller
 
 import (
+	"fmt"
 	"reflect"
+	"strings"
 	"sync"
 
 	"github.com/grafana/agent/component"
@@ -15,12 +17,14 @@ import (
 // components to be evaluated.
 type valueCache struct {
 	mut                sync.RWMutex
-	components         map[string]ComponentID // NodeID -> ComponentID
-	args               map[string]interface{} // NodeID -> component arguments value
-	exports            map[string]interface{} // NodeID -> component exports value
-	moduleArguments    map[string]any         // key -> module arguments value
-	moduleExports      map[string]any         // name -> value for the value of module exports
-	moduleChangedIndex int                    // Everytime a change occurs this is incremented
+	components         map[string]ComponentID    // NodeID -> ComponentID
+	args               map[string]interface{}    // NodeID -> component arguments value
+	exports            map[string]interface{}    // NodeID -> component exports value
+	moduleArguments    map[string]any            // key -> module arguments value
+	moduleExports      map[string]any            // name -> value for the value of module exports
+	declareValues      map[string]map[string]any // Instantiated declare component nodeId -> values
+	declareExports     map[string]any            // NodeID of an Export node associated with an instantiated declare component -> value
+	moduleChangedIndex int                       // Everytime a change occurs this is incremented
 }
 
 // newValueCache creates a new ValueCache.
@@ -30,8 +34,33 @@ func newValueCache() *valueCache {
 		args:            make(map[string]interface{}),
 		exports:         make(map[string]interface{}),
 		moduleArguments: make(map[string]any),
+		declareValues:   make(map[string]map[string]any),
+		declareExports:  make(map[string]any),
 		moduleExports:   make(map[string]any),
 	}
+}
+
+func (vc *valueCache) CacheDeclare(nodeID string, arguments component.Arguments) {
+	vc.mut.Lock()
+	defer vc.mut.Unlock()
+
+	exportMap, ok := arguments.(map[string]any)
+	if !ok {
+		fmt.Println("NOT GOOD HANDLE ERROR")
+		return
+	}
+
+	vc.declareValues[nodeID] = make(map[string]any)
+	for key, value := range exportMap {
+		vc.declareValues[nodeID][key] = value
+	}
+}
+
+func (vc *valueCache) CacheDeclareExport(nodeID string, value any) {
+	vc.mut.Lock()
+	defer vc.mut.Unlock()
+
+	vc.declareExports[nodeID] = value
 }
 
 // CacheArguments will cache the provided arguments by the given id. args may
@@ -158,9 +187,33 @@ func (vc *valueCache) SyncModuleArgs(args map[string]any) {
 	}
 }
 
+func (vc *valueCache) SyncDeclareIDs(ids map[string]struct{}) {
+	vc.mut.Lock()
+	defer vc.mut.Unlock()
+
+	for id := range vc.declareValues {
+		if _, keep := ids[id]; keep {
+			continue
+		}
+		delete(vc.declareValues, id)
+	}
+}
+
+func (vc *valueCache) SyncDeclareExportIDs(ids map[string]struct{}) {
+	vc.mut.Lock()
+	defer vc.mut.Unlock()
+
+	for id := range vc.declareExports {
+		if _, keep := ids[id]; keep {
+			continue
+		}
+		delete(vc.declareExports, id)
+	}
+}
+
 // BuildContext builds a vm.Scope based on the current set of cached values.
 // The arguments and exports for the same ID are merged into one object.
-func (vc *valueCache) BuildContext() *vm.Scope {
+func (vc *valueCache) BuildContext(n BlockNode) *vm.Scope {
 	vc.mut.RLock()
 	defer vc.mut.RUnlock()
 
@@ -195,7 +248,49 @@ func (vc *valueCache) BuildContext() *vm.Scope {
 		}
 	}
 
+	for key, value := range vc.declareExports {
+		// we trim the namespace that they have in common here. This is needed for nested declares
+		trimedKey := strings.TrimPrefix(key, n.Namespace()+".")
+		convertToNestedMap(trimedKey, value, scope.Variables)
+	}
+
+	// add arguments available in the namespace
+	if n.Namespace() != "" {
+		if valueMap, exists := vc.declareValues[n.Namespace()]; exists {
+			if len(valueMap) > 0 {
+				scope.Variables["argument"] = make(map[string]any)
+			}
+			for key, value := range valueMap {
+				keyMap := make(map[string]any)
+				keyMap["value"] = value
+
+				switch args := scope.Variables["argument"].(type) {
+				case map[string]any:
+					args[key] = keyMap
+				}
+			}
+		}
+	}
+
 	return scope
+}
+
+func convertToNestedMap(key string, value any, rootMap map[string]any) {
+	parts := strings.Split(key, ".")
+
+	currentMap := rootMap
+	for i := 0; i < len(parts); i++ {
+		part := parts[i]
+
+		if i == len(parts)-1 {
+			currentMap[part] = value
+		} else {
+			if _, exists := currentMap[part]; !exists {
+				currentMap[part] = make(map[string]any)
+			}
+			currentMap = currentMap[part].(map[string]any)
+		}
+	}
 }
 
 // buildValue recursively converts the set of user components into a single

@@ -12,6 +12,7 @@ type ExportConfigNode struct {
 	label         string
 	nodeID        string
 	componentName string
+	namespace     string
 
 	mut   sync.RWMutex
 	block *ast.BlockStmt // Current River blocks to derive config from
@@ -74,3 +75,7 @@ func (cn *ExportConfigNode) Block() *ast.BlockStmt {
 
 // NodeID implements dag.Node and returns the unique ID for the config node.
 func (cn *ExportConfigNode) NodeID() string { return cn.nodeID }
+
+func (cn *ExportConfigNode) Namespace() string { return cn.namespace }
+
+func (cn *ExportConfigNode) SetNamespace(namespace string) { cn.namespace = namespace }

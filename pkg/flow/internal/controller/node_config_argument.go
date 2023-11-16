@@ -12,6 +12,7 @@ type ArgumentConfigNode struct {
 	label         string
 	nodeID        string
 	componentName string
+	namespace     string
 
 	mut          sync.RWMutex
 	block        *ast.BlockStmt // Current River blocks to derive config from
@@ -85,3 +86,7 @@ func (cn *ArgumentConfigNode) Block() *ast.BlockStmt {
 
 // NodeID implements dag.Node and returns the unique ID for the config node.
 func (cn *ArgumentConfigNode) NodeID() string { return cn.nodeID }
+
+func (cn *ArgumentConfigNode) Namespace() string { return cn.namespace }
+
+func (cn *ArgumentConfigNode) SetNamespace(namespace string) { cn.namespace = namespace }

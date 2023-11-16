@@ -1,12 +1,18 @@
 // Package dag defines a Directed Acyclic Graph.
 package dag
 
-import "fmt"
+import (
+	"fmt"
+)
 
 // Node is an individual Vertex in the DAG.
 type Node interface {
 	// NodeID returns the display name of the Node.
 	NodeID() string
+
+	SetNamespace(string)
+
+	Namespace() string
 }
 
 // Edge is a directed connection between two Nodes.
@@ -227,4 +233,61 @@ func (g *Graph) Clone() *Graph {
 		newGraph.inEdges[node] = set.Clone()
 	}
 	return newGraph
+}
+
+// TODO: NO PANIC
+func (g *Graph) UpdateEdgesForRenamedNodes(prefix string) {
+	// 	newOutEdges := make(map[Node]nodeSet)
+	// 	newInEdges := make(map[Node]nodeSet)
+
+	// 	for from, tos := range g.outEdges {
+	// 		newFrom, exists := g.nodeByID[from.NodeID()]
+	// 		if !exists {
+	// 			panic(fmt.Sprintf("Node with ID %s not found in the graph", from.NodeID()))
+	// 		}
+
+	// 		newTos := make(nodeSet)
+	// 		for to := range tos {
+	// 			newTo, exists := g.nodeByID[to.NodeID()]
+	// 			if !exists {
+	// 				panic(fmt.Sprintf("Node with ID %s not found in the graph", prefix+to.NodeID()))
+	// 			}
+	// 			newTos.Add(newTo)
+	// 		}
+
+	// 		newOutEdges[newFrom] = newTos
+	// 	}
+
+	// 	for to, froms := range g.inEdges {
+	// 		newTo, exists := g.nodeByID[to.NodeID()]
+	// 		if !exists {
+	// 			panic(fmt.Sprintf("Node with ID %s not found in the graph", prefix+to.NodeID()))
+	// 		}
+
+	// 		newFroms := make(nodeSet)
+	// 		for from := range froms {
+	// 			newFrom, exists := g.nodeByID[from.NodeID()]
+	// 			if !exists {
+	// 				panic(fmt.Sprintf("Node with ID %s not found in the graph", prefix+from.NodeID()))
+	// 			}
+	// 			newFroms.Add(newFrom)
+	// 		}
+
+	//		newInEdges[newTo] = newFroms
+	//	}
+	//
+	// g.outEdges = newOutEdges
+	// g.inEdges = newInEdges
+}
+
+func (g *Graph) Merge(other *Graph) {
+	for _, value := range other.Nodes() {
+		g.Add(value)
+	}
+	for node, set := range other.outEdges {
+		g.outEdges[node] = set.Clone()
+	}
+	for node, set := range other.inEdges {
+		g.inEdges[node] = set.Clone()
+	}
 }

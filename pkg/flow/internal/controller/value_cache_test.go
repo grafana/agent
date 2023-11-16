@@ -1,5 +1,7 @@
 package controller
 
+// TODO: UPDATE TESTS
+
 import (
 	"testing"
 
@@ -58,7 +60,7 @@ func TestValueCache(t *testing.T) {
 	vc.CacheArguments(ComponentID{"bar", "label_a"}, barArgs{Number: 12})
 	vc.CacheArguments(ComponentID{"bar", "label_b"}, barArgs{Number: 34})
 
-	res := vc.BuildContext()
+	res := vc.BuildContext(nil)
 
 	var (
 		expectKeys = []string{"foo", "bar"}
@@ -156,20 +158,20 @@ func TestModuleArgumentCache(t *testing.T) {
 			vc.CacheModuleArgument("arg", tc.argValue)
 
 			// Build the scope and validate it
-			res := vc.BuildContext()
+			res := vc.BuildContext(nil)
 			expected := map[string]any{"arg": map[string]any{"value": tc.argValue}}
 			require.Equal(t, expected, res.Variables["argument"])
 
 			// Sync arguments where the arg shouldn't change
 			syncArgs := map[string]any{"arg": tc.argValue}
 			vc.SyncModuleArgs(syncArgs)
-			res = vc.BuildContext()
+			res = vc.BuildContext(nil)
 			require.Equal(t, expected, res.Variables["argument"])
 
 			// Sync arguments where the arg should clear out
 			syncArgs = map[string]any{}
 			vc.SyncModuleArgs(syncArgs)
-			res = vc.BuildContext()
+			res = vc.BuildContext(nil)
 			require.Equal(t, map[string]any{}, res.Variables)
 		})
 	}
