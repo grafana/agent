@@ -44,46 +44,53 @@ func (r *MetricConfig) Convert() map[string]interface{} {
 	}
 }
 
+// SetToDefault implements river.Defaulter.
+func (args *MetricConfig) SetToDefault() {
+	*args = MetricConfig{
+		Enabled: true,
+	}
+}
+
 type MetricsConfig struct {
-	VcenterClusterCPUEffective      *MetricConfig `river:"vcenter.cluster.cpu.effective,block,optional"`
-	VcenterClusterCPULimit          *MetricConfig `river:"vcenter.cluster.cpu.limit,block,optional"`
-	VcenterClusterHostCount         *MetricConfig `river:"vcenter.cluster.host.count,block,optional"`
-	VcenterClusterMemoryEffective   *MetricConfig `river:"vcenter.cluster.memory.effective,block,optional"`
-	VcenterClusterMemoryLimit       *MetricConfig `river:"vcenter.cluster.memory.limit,block,optional"`
-	VcenterClusterMemoryUsed        *MetricConfig `river:"vcenter.cluster.memory.used,block,optional"`
-	VcenterClusterVMCount           *MetricConfig `river:"vcenter.cluster.vm.count,block,optional"`
-	VcenterDatastoreDiskUsage       *MetricConfig `river:"vcenter.datastore.disk.usage,block,optional"`
-	VcenterDatastoreDiskUtilization *MetricConfig `river:"vcenter.datastore.disk.utilization,block,optional"`
-	VcenterHostCPUUsage             *MetricConfig `river:"vcenter.host.cpu.usage,block,optional"`
-	VcenterHostCPUUtilization       *MetricConfig `river:"vcenter.host.cpu.utilization,block,optional"`
-	VcenterHostDiskLatencyAvg       *MetricConfig `river:"vcenter.host.disk.latency.avg,block,optional"`
-	VcenterHostDiskLatencyMax       *MetricConfig `river:"vcenter.host.disk.latency.max,block,optional"`
-	VcenterHostDiskThroughput       *MetricConfig `river:"vcenter.host.disk.throughput,block,optional"`
-	VcenterHostMemoryUsage          *MetricConfig `river:"vcenter.host.memory.usage,block,optional"`
-	VcenterHostMemoryUtilization    *MetricConfig `river:"vcenter.host.memory.utilization,block,optional"`
-	VcenterHostNetworkPacketCount   *MetricConfig `river:"vcenter.host.network.packet.count,block,optional"`
-	VcenterHostNetworkPacketErrors  *MetricConfig `river:"vcenter.host.network.packet.errors,block,optional"`
-	VcenterHostNetworkThroughput    *MetricConfig `river:"vcenter.host.network.throughput,block,optional"`
-	VcenterHostNetworkUsage         *MetricConfig `river:"vcenter.host.network.usage,block,optional"`
-	VcenterResourcePoolCPUShares    *MetricConfig `river:"vcenter.resource_pool.cpu.shares,block,optional"`
-	VcenterResourcePoolCPUUsage     *MetricConfig `river:"vcenter.resource_pool.cpu.usage,block,optional"`
-	VcenterResourcePoolMemoryShares *MetricConfig `river:"vcenter.resource_pool.memory.shares,block,optional"`
-	VcenterResourcePoolMemoryUsage  *MetricConfig `river:"vcenter.resource_pool.memory.usage,block,optional"`
-	VcenterVMCPUUsage               *MetricConfig `river:"vcenter.vm.cpu.usage,block,optional"`
-	VcenterVMCPUUtilization         *MetricConfig `river:"vcenter.vm.cpu.utilization,block,optional"`
-	VcenterVMDiskLatencyAvg         *MetricConfig `river:"vcenter.vm.disk.latency.avg,block,optional"`
-	VcenterVMDiskLatencyMax         *MetricConfig `river:"vcenter.vm.disk.latency.max,block,optional"`
-	VcenterVMDiskThroughput         *MetricConfig `river:"vcenter.vm.disk.throughput,block,optional"`
-	VcenterVMDiskUsage              *MetricConfig `river:"vcenter.vm.disk.usage,block,optional"`
-	VcenterVMDiskUtilization        *MetricConfig `river:"vcenter.vm.disk.utilization,block,optional"`
-	VcenterVMMemoryBallooned        *MetricConfig `river:"vcenter.vm.memory.ballooned,block,optional"`
-	VcenterVMMemorySwapped          *MetricConfig `river:"vcenter.vm.memory.swapped,block,optional"`
-	VcenterVMMemorySwappedSsd       *MetricConfig `river:"vcenter.vm.memory.swapped_ssd,block,optional"`
-	VcenterVMMemoryUsage            *MetricConfig `river:"vcenter.vm.memory.usage,block,optional"`
-	VcenterVMMemoryUtilization      *MetricConfig `river:"vcenter.vm.memory.utilization,block,optional"`
-	VcenterVMNetworkPacketCount     *MetricConfig `river:"vcenter.vm.network.packet.count,block,optional"`
-	VcenterVMNetworkThroughput      *MetricConfig `river:"vcenter.vm.network.throughput,block,optional"`
-	VcenterVMNetworkUsage           *MetricConfig `river:"vcenter.vm.network.usage,block,optional"`
+	VcenterClusterCPUEffective      MetricConfig `river:"vcenter.cluster.cpu.effective,block,optional"`
+	VcenterClusterCPULimit          MetricConfig `river:"vcenter.cluster.cpu.limit,block,optional"`
+	VcenterClusterHostCount         MetricConfig `river:"vcenter.cluster.host.count,block,optional"`
+	VcenterClusterMemoryEffective   MetricConfig `river:"vcenter.cluster.memory.effective,block,optional"`
+	VcenterClusterMemoryLimit       MetricConfig `river:"vcenter.cluster.memory.limit,block,optional"`
+	VcenterClusterMemoryUsed        MetricConfig `river:"vcenter.cluster.memory.used,block,optional"`
+	VcenterClusterVMCount           MetricConfig `river:"vcenter.cluster.vm.count,block,optional"`
+	VcenterDatastoreDiskUsage       MetricConfig `river:"vcenter.datastore.disk.usage,block,optional"`
+	VcenterDatastoreDiskUtilization MetricConfig `river:"vcenter.datastore.disk.utilization,block,optional"`
+	VcenterHostCPUUsage             MetricConfig `river:"vcenter.host.cpu.usage,block,optional"`
+	VcenterHostCPUUtilization       MetricConfig `river:"vcenter.host.cpu.utilization,block,optional"`
+	VcenterHostDiskLatencyAvg       MetricConfig `river:"vcenter.host.disk.latency.avg,block,optional"`
+	VcenterHostDiskLatencyMax       MetricConfig `river:"vcenter.host.disk.latency.max,block,optional"`
+	VcenterHostDiskThroughput       MetricConfig `river:"vcenter.host.disk.throughput,block,optional"`
+	VcenterHostMemoryUsage          MetricConfig `river:"vcenter.host.memory.usage,block,optional"`
+	VcenterHostMemoryUtilization    MetricConfig `river:"vcenter.host.memory.utilization,block,optional"`
+	VcenterHostNetworkPacketCount   MetricConfig `river:"vcenter.host.network.packet.count,block,optional"`
+	VcenterHostNetworkPacketErrors  MetricConfig `river:"vcenter.host.network.packet.errors,block,optional"`
+	VcenterHostNetworkThroughput    MetricConfig `river:"vcenter.host.network.throughput,block,optional"`
+	VcenterHostNetworkUsage         MetricConfig `river:"vcenter.host.network.usage,block,optional"`
+	VcenterResourcePoolCPUShares    MetricConfig `river:"vcenter.resource_pool.cpu.shares,block,optional"`
+	VcenterResourcePoolCPUUsage     MetricConfig `river:"vcenter.resource_pool.cpu.usage,block,optional"`
+	VcenterResourcePoolMemoryShares MetricConfig `river:"vcenter.resource_pool.memory.shares,block,optional"`
+	VcenterResourcePoolMemoryUsage  MetricConfig `river:"vcenter.resource_pool.memory.usage,block,optional"`
+	VcenterVMCPUUsage               MetricConfig `river:"vcenter.vm.cpu.usage,block,optional"`
+	VcenterVMCPUUtilization         MetricConfig `river:"vcenter.vm.cpu.utilization,block,optional"`
+	VcenterVMDiskLatencyAvg         MetricConfig `river:"vcenter.vm.disk.latency.avg,block,optional"`
+	VcenterVMDiskLatencyMax         MetricConfig `river:"vcenter.vm.disk.latency.max,block,optional"`
+	VcenterVMDiskThroughput         MetricConfig `river:"vcenter.vm.disk.throughput,block,optional"`
+	VcenterVMDiskUsage              MetricConfig `river:"vcenter.vm.disk.usage,block,optional"`
+	VcenterVMDiskUtilization        MetricConfig `river:"vcenter.vm.disk.utilization,block,optional"`
+	VcenterVMMemoryBallooned        MetricConfig `river:"vcenter.vm.memory.ballooned,block,optional"`
+	VcenterVMMemorySwapped          MetricConfig `river:"vcenter.vm.memory.swapped,block,optional"`
+	VcenterVMMemorySwappedSsd       MetricConfig `river:"vcenter.vm.memory.swapped_ssd,block,optional"`
+	VcenterVMMemoryUsage            MetricConfig `river:"vcenter.vm.memory.usage,block,optional"`
+	VcenterVMMemoryUtilization      MetricConfig `river:"vcenter.vm.memory.utilization,block,optional"`
+	VcenterVMNetworkPacketCount     MetricConfig `river:"vcenter.vm.network.packet.count,block,optional"`
+	VcenterVMNetworkThroughput      MetricConfig `river:"vcenter.vm.network.throughput,block,optional"`
+	VcenterVMNetworkUsage           MetricConfig `river:"vcenter.vm.network.usage,block,optional"`
 }
 
 func (args *MetricsConfig) Convert() map[string]interface{} {
@@ -134,7 +141,14 @@ func (args *MetricsConfig) Convert() map[string]interface{} {
 }
 
 type ResourceAttributeConfig struct {
-	Enabled bool `river:"enabled"`
+	Enabled bool `river:"enabled,attr"`
+}
+
+// SetToDefault implements river.Defaulter.
+func (args *ResourceAttributeConfig) SetToDefault() {
+	*args = ResourceAttributeConfig{
+		Enabled: true,
+	}
 }
 
 func (r *ResourceAttributeConfig) Convert() map[string]interface{} {
@@ -148,13 +162,13 @@ func (r *ResourceAttributeConfig) Convert() map[string]interface{} {
 }
 
 type ResourceAttributesConfig struct {
-	VcenterClusterName               *ResourceAttributeConfig `river:"vcenter.cluster.name,block,optional"`
-	VcenterDatastoreName             *ResourceAttributeConfig `river:"vcenter.datastore.name,block,optional"`
-	VcenterHostName                  *ResourceAttributeConfig `river:"vcenter.host.name,block,optional"`
-	VcenterResourcePoolInventoryPath *ResourceAttributeConfig `river:"vcenter.resource_pool.inventory_path,block,optional"`
-	VcenterResourcePoolName          *ResourceAttributeConfig `river:"vcenter.resource_pool.name,block,optional"`
-	VcenterVMID                      *ResourceAttributeConfig `river:"vcenter.vm.id,block,optional"`
-	VcenterVMName                    *ResourceAttributeConfig `river:"vcenter.vm.name,block,optional"`
+	VcenterClusterName               ResourceAttributeConfig `river:"vcenter.cluster.name,block,optional"`
+	VcenterDatastoreName             ResourceAttributeConfig `river:"vcenter.datastore.name,block,optional"`
+	VcenterHostName                  ResourceAttributeConfig `river:"vcenter.host.name,block,optional"`
+	VcenterResourcePoolInventoryPath ResourceAttributeConfig `river:"vcenter.resource_pool.inventory_path,block,optional"`
+	VcenterResourcePoolName          ResourceAttributeConfig `river:"vcenter.resource_pool.name,block,optional"`
+	VcenterVMID                      ResourceAttributeConfig `river:"vcenter.vm.id,block,optional"`
+	VcenterVMName                    ResourceAttributeConfig `river:"vcenter.vm.name,block,optional"`
 }
 
 func (args *ResourceAttributesConfig) Convert() map[string]interface{} {
@@ -176,8 +190,8 @@ func (args *ResourceAttributesConfig) Convert() map[string]interface{} {
 }
 
 type MetricsBuilderConfig struct {
-	Metrics            MetricsConfig            `river:"metrics"`
-	ResourceAttributes ResourceAttributesConfig `river:"resource_attributes"`
+	Metrics            MetricsConfig            `river:"metrics,block,optional"`
+	ResourceAttributes ResourceAttributesConfig `river:"resource_attributes,block,optional"`
 }
 
 func (args *MetricsBuilderConfig) Convert() map[string]interface{} {
@@ -199,7 +213,7 @@ type Arguments struct {
 	Username string            `river:"username,attr"`
 	Password rivertypes.Secret `river:"password,attr"`
 
-	MetricsBuilderConfig MetricsBuilderConfig `mapstructure:",squash"`
+	MetricsBuilderConfig MetricsBuilderConfig `river:",squash"`
 
 	ScraperControllerArguments otelcol.ScraperControllerArguments `river:",squash"`
 	TLS                        otelcol.TLSClientArguments         `river:"tls,block,optional"`
@@ -217,6 +231,58 @@ var (
 	// DefaultArguments holds default values for Arguments.
 	DefaultArguments = Arguments{
 		ScraperControllerArguments: otelcol.DefaultScraperControllerArguments,
+		MetricsBuilderConfig: MetricsBuilderConfig{
+			Metrics: MetricsConfig{
+				VcenterClusterCPUEffective:      MetricConfig{Enabled: true},
+				VcenterClusterCPULimit:          MetricConfig{Enabled: true},
+				VcenterClusterHostCount:         MetricConfig{Enabled: true},
+				VcenterClusterMemoryEffective:   MetricConfig{Enabled: true},
+				VcenterClusterMemoryLimit:       MetricConfig{Enabled: true},
+				VcenterClusterMemoryUsed:        MetricConfig{Enabled: true},
+				VcenterClusterVMCount:           MetricConfig{Enabled: true},
+				VcenterDatastoreDiskUsage:       MetricConfig{Enabled: true},
+				VcenterDatastoreDiskUtilization: MetricConfig{Enabled: true},
+				VcenterHostCPUUsage:             MetricConfig{Enabled: true},
+				VcenterHostCPUUtilization:       MetricConfig{Enabled: true},
+				VcenterHostDiskLatencyAvg:       MetricConfig{Enabled: true},
+				VcenterHostDiskLatencyMax:       MetricConfig{Enabled: true},
+				VcenterHostDiskThroughput:       MetricConfig{Enabled: true},
+				VcenterHostMemoryUsage:          MetricConfig{Enabled: true},
+				VcenterHostMemoryUtilization:    MetricConfig{Enabled: true},
+				VcenterHostNetworkPacketCount:   MetricConfig{Enabled: true},
+				VcenterHostNetworkPacketErrors:  MetricConfig{Enabled: true},
+				VcenterHostNetworkThroughput:    MetricConfig{Enabled: true},
+				VcenterHostNetworkUsage:         MetricConfig{Enabled: true},
+				VcenterResourcePoolCPUShares:    MetricConfig{Enabled: true},
+				VcenterResourcePoolCPUUsage:     MetricConfig{Enabled: true},
+				VcenterResourcePoolMemoryShares: MetricConfig{Enabled: true},
+				VcenterResourcePoolMemoryUsage:  MetricConfig{Enabled: true},
+				VcenterVMCPUUsage:               MetricConfig{Enabled: true},
+				VcenterVMCPUUtilization:         MetricConfig{Enabled: true},
+				VcenterVMDiskLatencyAvg:         MetricConfig{Enabled: true},
+				VcenterVMDiskLatencyMax:         MetricConfig{Enabled: true},
+				VcenterVMDiskThroughput:         MetricConfig{Enabled: true},
+				VcenterVMDiskUsage:              MetricConfig{Enabled: true},
+				VcenterVMDiskUtilization:        MetricConfig{Enabled: true},
+				VcenterVMMemoryBallooned:        MetricConfig{Enabled: true},
+				VcenterVMMemorySwapped:          MetricConfig{Enabled: true},
+				VcenterVMMemorySwappedSsd:       MetricConfig{Enabled: true},
+				VcenterVMMemoryUsage:            MetricConfig{Enabled: true},
+				VcenterVMMemoryUtilization:      MetricConfig{Enabled: false},
+				VcenterVMNetworkPacketCount:     MetricConfig{Enabled: true},
+				VcenterVMNetworkThroughput:      MetricConfig{Enabled: true},
+				VcenterVMNetworkUsage:           MetricConfig{Enabled: true},
+			},
+			ResourceAttributes: ResourceAttributesConfig{
+				VcenterClusterName:               ResourceAttributeConfig{Enabled: true},
+				VcenterDatastoreName:             ResourceAttributeConfig{Enabled: true},
+				VcenterHostName:                  ResourceAttributeConfig{Enabled: true},
+				VcenterResourcePoolInventoryPath: ResourceAttributeConfig{Enabled: true},
+				VcenterResourcePoolName:          ResourceAttributeConfig{Enabled: true},
+				VcenterVMID:                      ResourceAttributeConfig{Enabled: true},
+				VcenterVMName:                    ResourceAttributeConfig{Enabled: true},
+			},
+		},
 	}
 )
 
@@ -242,7 +308,7 @@ func (args Arguments) Convert() (otelcomponent.Config, error) {
 	result.TLSClientSetting = *args.TLS.Convert()
 	result.ScraperControllerSettings = *args.ScraperControllerArguments.Convert()
 
-	return result, nil
+	return &result, nil
 }
 
 // Validate checks to see if the supplied config will work for the receiver
