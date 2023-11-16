@@ -6,9 +6,13 @@ aliases:
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.receiver.vcenter/
 title: otelcol.receiver.vcenter
 description: Learn about otelcol.receiver.vcenter
+labels:
+  stage: experimental
 ---
 
 # otelcol.receiver.vcenter
+
+{{< docs/shared lookup="flow/stability/experimental.md" source="agent" version="<AGENT VERSION>" >}}
 
 `otelcol.receiver.vcenter` accepts metrics from a 
 vCenter or ESXi host running VMware vSphere APIs and
