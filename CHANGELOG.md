@@ -100,6 +100,8 @@ Main (unreleased)
 
 - Improved resilience of graph evaluation in presence of slow components. (@thampiotr)
 
+- Updated windows exporter to use prometheus-community/windows_exporter commit 1836cd1. (@mattdurham)
+
 ### Bugfixes
 
 - Set exit code 1 on grafana-agentctl non-runnable command. (@fgouteroux)

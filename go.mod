@@ -22,7 +22,7 @@ require (
 	github.com/buger/jsonparser v1.1.1
 	github.com/burningalchemist/sql_exporter v0.0.0-20221222155641-2ff59aa75200
 	github.com/cespare/xxhash/v2 v2.2.0
-	github.com/cilium/ebpf v0.11.0 // indirect
+	github.com/cilium/ebpf v0.12.3 // indirect
 	github.com/coreos/go-systemd v0.0.0-20191104093116-d3cd4ed1dbcf
 	github.com/coreos/go-systemd/v22 v22.5.0
 	github.com/davidmparrott/kafka_exporter/v2 v2.0.1
@@ -138,14 +138,14 @@ require (
 	github.com/prometheus-community/elasticsearch_exporter v1.5.0
 	github.com/prometheus-community/postgres_exporter v0.11.1
 	github.com/prometheus-community/stackdriver_exporter v0.13.0
-	github.com/prometheus-community/windows_exporter v0.0.0-20230507104622-79781c6d75fc
+	github.com/prometheus-community/windows_exporter v0.24.1-0.20231116150933-ab05f43716d4
 	github.com/prometheus-operator/prometheus-operator v0.66.0
 	github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring v0.66.0
 	github.com/prometheus-operator/prometheus-operator/pkg/client v0.66.0
 	github.com/prometheus/blackbox_exporter v0.24.1-0.20230623125439-bd22efa1c900
 	github.com/prometheus/client_golang v1.17.0
 	github.com/prometheus/client_model v0.5.0
-	github.com/prometheus/common v0.44.0
+	github.com/prometheus/common v0.45.0
 	github.com/prometheus/consul_exporter v0.8.0
 	github.com/prometheus/memcached_exporter v0.13.0
 	github.com/prometheus/mysqld_exporter v0.14.0
@@ -213,12 +213,12 @@ require (
 	go.uber.org/goleak v1.2.1
 	go.uber.org/multierr v1.11.0
 	go.uber.org/zap v1.26.0
-	golang.org/x/crypto v0.14.0
-	golang.org/x/exp v0.0.0-20230713183714-613f0c0eb8a1
-	golang.org/x/net v0.17.0
+	golang.org/x/crypto v0.15.0
+	golang.org/x/exp v0.0.0-20231110203233-9a3e6036ecaa
+	golang.org/x/net v0.18.0
 	golang.org/x/oauth2 v0.13.0
-	golang.org/x/sys v0.13.0
-	golang.org/x/text v0.13.0
+	golang.org/x/sys v0.14.1-0.20231108175955-e4099bfacb8c
+	golang.org/x/text v0.14.0
 	golang.org/x/time v0.3.0
 	google.golang.org/api v0.146.0
 	google.golang.org/grpc v1.59.0
@@ -272,7 +272,7 @@ require (
 	github.com/Masterminds/goutils v1.1.1 // indirect
 	github.com/Masterminds/semver/v3 v3.2.0 // indirect
 	github.com/Microsoft/go-winio v0.6.1 // indirect
-	github.com/Microsoft/hcsshim v0.11.0 // indirect
+	github.com/Microsoft/hcsshim v0.11.4 // indirect
 	github.com/Nvveen/Gotty v0.0.0-20120604004816-cd527374f1e5 // indirect
 	github.com/ProtonMail/go-crypto v0.0.0-20210920160938-87db9fbc61c7 // indirect
 	github.com/acomagu/bufpipe v1.0.3 // indirect
@@ -361,7 +361,7 @@ require (
 	github.com/go-git/go-billy/v5 v5.3.1 // indirect
 	github.com/go-kit/kit v0.13.0 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
-	github.com/go-ole/go-ole v1.2.6 // indirect
+	github.com/go-ole/go-ole v1.3.0 // indirect
 	github.com/go-openapi/analysis v0.21.4 // indirect
 	github.com/go-openapi/errors v0.20.4 // indirect
 	github.com/go-openapi/jsonpointer v0.20.0 // indirect
@@ -468,7 +468,6 @@ require (
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/go-runewidth v0.0.14 // indirect
 	github.com/mattn/go-xmlrpc v0.0.3 // indirect
-	github.com/matttproud/golang_protobuf_extensions v1.0.4 // indirect
 	github.com/mdlayher/ethtool v0.1.0 // indirect
 	github.com/mdlayher/genetlink v1.3.2 // indirect
 	github.com/mdlayher/netlink v1.7.2 // indirect
@@ -587,10 +586,10 @@ require (
 	go.opentelemetry.io/contrib/propagators/b3 v1.19.0 // indirect
 	go.opentelemetry.io/otel/bridge/opencensus v0.42.0 // indirect
 	go4.org/netipx v0.0.0-20230125063823-8449b0a6169f // indirect
-	golang.org/x/mod v0.13.0 // indirect
-	golang.org/x/sync v0.4.0 // indirect
-	golang.org/x/term v0.13.0 // indirect
-	golang.org/x/tools v0.14.0 // indirect
+	golang.org/x/mod v0.14.0 // indirect
+	golang.org/x/sync v0.5.0 // indirect
+	golang.org/x/term v0.14.0 // indirect
+	golang.org/x/tools v0.15.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.4.0 // indirect
 	gonum.org/v1/gonum v0.14.0 // indirect
@@ -630,8 +629,8 @@ require (
 	github.com/hetznercloud/hcloud-go/v2 v2.0.0 // indirect
 	github.com/julienschmidt/httprouter v1.3.0 // indirect
 	github.com/knadh/koanf/v2 v2.0.1 // indirect
-	github.com/leoluk/perflib_exporter v0.2.0 // indirect
 	github.com/lightstep/go-expohisto v1.0.0 // indirect
+	github.com/matttproud/golang_protobuf_extensions/v2 v2.0.0 // indirect
 	github.com/metalmatze/signal v0.0.0-20210307161603-1c9aa721a97a // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/k8sconfig v0.87.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/kafka v0.87.0 // indirect
@@ -703,9 +702,6 @@ replace (
 
 	github.com/prometheus-community/postgres_exporter => github.com/grafana/postgres_exporter v0.8.1-0.20210722175051-db35d7c2f520
 
-	// TODO(mattdurham): this is to allow defaults to propogate properly: https://github.com/prometheus-community/windows_exporter/pull/1227
-	github.com/prometheus-community/windows_exporter => github.com/grafana/windows_exporter v0.15.1-0.20230612134738-fdb3ba7accd8
-
 	// TODO(marctc): remove once this PR is merged upstream: https://github.com/prometheus/mysqld_exporter/pull/774
 	github.com/prometheus/mysqld_exporter => github.com/grafana/mysqld_exporter v0.12.2-0.20231005125903-364b9c41e595
 
@@ -738,3 +734,7 @@ exclude (
 )
 
 replace github.com/github/smimesign => github.com/grafana/smimesign v0.2.1-0.20220408144937-2a5adf3481d3
+
+// This is the last version that used slices.Func with a bool return
+// If we upgrade to a newer one then since the signature changed loki will complain.
+replace golang.org/x/exp => golang.org/x/exp v0.0.0-20230713183714-613f0c0eb8a1
