@@ -57,6 +57,9 @@ Main (unreleased)
 
   - `otelcol.processor.filter` - filters OTLP telemetry data using OpenTelemetry
     Transformation Language (OTTL). (@hainenber)
+  - `otelcol.receiver.vcenter` - receives metrics telemetry data from vCenter. (@marctc)
+
+- Agent Management: Introduce support for remotely managed external labels for logs. (@jcreixell)
 
 ### Enhancements
 
@@ -92,9 +95,13 @@ Main (unreleased)
 
 - Added support for replaying not sent data for `loki.write` when WAL is enabled. (@thepalbi)
 
+- Make the result of 'discovery.kubelet' support pods that without ports, such as k8s control plane static pods. (@masonmei)
+
 - Added support for unicode strings in `pyroscope.ebpf` python profiles. (@korniltsev)
 
 - Improved resilience of graph evaluation in presence of slow components. (@thampiotr)
+
+- Updated windows exporter to use prometheus-community/windows_exporter commit 1836cd1. (@mattdurham)
 
 ### Bugfixes
 
@@ -144,6 +151,9 @@ Main (unreleased)
 - Fix a bug which prevented Agent from running `otelcol.exporter.loadbalancing`
   with a `routing_key` of `traceID`. (@ptodev)
 
+- Added Kubernetes service resolver to static node's loadbalancing exporter
+  and to Flow's `otelcol.exporter.loadbalancing`. (@ptodev)
+
 ### Other changes
 
 - Bump `mysqld_exporter` version to v0.15.0. (@marctc)
@@ -153,6 +163,9 @@ Main (unreleased)
 - Use Go 1.21.4 for builds. (@rfratto)
 
 - Change User-Agent header for outbound requests to include agent-mode, goos, and deployment mode. Example `GrafanaAgent/v0.38.0 (flow; linux; docker)` (@captncraig)
+
+- `loki.source.windowsevent` and `loki.source.*` changed to use a more robust positions file to prevent corruption on reboots when writing
+  the positions file. (@mattdurham)
 
 v0.37.4 (2023-11-06)
 -----------------
@@ -166,9 +179,6 @@ v0.37.4 (2023-11-06)
 
 - Fix a bug where reloading the configuration of a `loki.write` component lead
   to a panic. (@tpaschalis)
-
-- Added Kubernetes service resolver to static node's loadbalancing exporter
-  and to Flow's `otelcol.exporter.loadbalancing`. (@ptodev)
 
 v0.37.3 (2023-10-26)
 -----------------

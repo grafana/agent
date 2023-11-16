@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/alecthomas/kingpin/v2"
-	"github.com/prometheus-community/windows_exporter/collector"
+	"github.com/prometheus-community/windows_exporter/pkg/collector"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v2"
 )
