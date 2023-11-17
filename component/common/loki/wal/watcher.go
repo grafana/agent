@@ -3,11 +3,11 @@ package wal
 import (
 	"errors"
 	"fmt"
+	"github.com/grafana/agent/component/common/loki/wal/internal"
 	"io"
 	"math"
 	"os"
 	"strconv"
-	"sync"
 	"time"
 
 	"github.com/go-kit/log"
@@ -73,82 +73,6 @@ type Marker interface {
 	LastMarkedSegment() int
 }
 
-// wState represents the possible states the Watcher can be in.
-type wState int64
-
-const (
-	// stateRunning is the main functioning state of the watcher. It will keep tailing head segments, consuming closed
-	// ones, and checking for new ones.
-	stateRunning wState = iota
-
-	stateDraining
-
-	// stateStopping means the Watcher is being stopped. It should drop all segment read activity, and exit promptly.
-	stateStopping
-)
-
-// watcherState is a holder for the state the Watcher is in. It provides handy methods for checking it it's stopping, getting
-// the current state, or blocking until it has stopped.
-type watcherState struct {
-	current        wState
-	mut            sync.RWMutex
-	stoppingSignal chan struct{}
-	logger         log.Logger
-}
-
-func newWatcherState(l log.Logger) *watcherState {
-	return &watcherState{
-		current:        stateRunning,
-		stoppingSignal: make(chan struct{}),
-		logger:         l,
-	}
-}
-
-func printState(s wState) string {
-	switch s {
-	case stateRunning:
-		return "running"
-	case stateDraining:
-		return "draining"
-	case stateStopping:
-		return "stopping"
-	default:
-		return "unknown"
-	}
-}
-
-func (s *watcherState) Transition(next wState) {
-	s.mut.Lock()
-	defer s.mut.Unlock()
-
-	level.Debug(s.logger).Log("msg", "Watcher transitioning state", "currentState", printState(s.current), "nextState", printState(next))
-
-	// only perform channel close if the state is not already stopping
-	// expect s.s to be either draining ro running to perform a close
-	if next == stateStopping && s.current != next {
-		close(s.stoppingSignal)
-	}
-
-	// update state
-	s.current = next
-}
-
-func (s *watcherState) Get() wState {
-	s.mut.RLock()
-	defer s.mut.RUnlock()
-	return s.current
-}
-
-func (s *watcherState) IsStopping() bool {
-	s.mut.RLock()
-	defer s.mut.RUnlock()
-	return s.current == stateStopping
-}
-
-func (s *watcherState) WaitForStopping() <-chan struct{} {
-	return s.stoppingSignal
-}
-
 type Watcher struct {
 	// id identifies the Watcher. Used when one Watcher is instantiated per remote write client, to be able to track to whom
 	// the metric/log line corresponds.
@@ -157,7 +81,7 @@ type Watcher struct {
 	actions    WriteTo
 	readNotify chan struct{}
 	done       chan struct{}
-	state      *watcherState
+	state      *internal.WatcherState
 	walDir     string
 	logger     log.Logger
 	MaxSegment int
@@ -177,7 +101,7 @@ func NewWatcher(walDir, id string, metrics *WatcherMetrics, writeTo WriteTo, log
 		id:           id,
 		actions:      writeTo,
 		readNotify:   make(chan struct{}),
-		state:        newWatcherState(logger),
+		state:        internal.NewWatcherState(logger),
 		done:         make(chan struct{}),
 		MaxSegment:   -1,
 		marker:       marker,
@@ -211,11 +135,11 @@ func (w *Watcher) mainLoop() {
 			level.Error(w.logger).Log("msg", "error tailing WAL", "err", err)
 		}
 
-		if w.state.Get() == stateDraining && errors.Is(err, os.ErrNotExist) {
+		if w.state.IsDraining() && errors.Is(err, os.ErrNotExist) {
 			level.Info(w.logger).Log("msg", "Reached non existing segment while draining, assuming end of WAL")
 			// since we've reached the end of the WAL, and the Watcher is draining, promptly transition to stopping state
 			// so the watcher can stoppingSignal early
-			w.state.Transition(stateStopping)
+			w.state.Transition(internal.StateStopping)
 		}
 
 		select {
@@ -315,11 +239,11 @@ func (w *Watcher) watch(segmentNum int, tail bool) error {
 			// Check if new segments exists, or we are draining the WAL, which means that either:
 			// - This is the last segment, and we can consume it fully
 			// - There's some other segment, and we can consume this segment fully as well
-			if last <= segmentNum && w.state.Get() != stateDraining {
+			if last <= segmentNum && !w.state.IsDraining() {
 				continue
 			}
 
-			if w.state.Get() == stateDraining {
+			if w.state.IsDraining() {
 				level.Debug(w.logger).Log("msg", "Draining segment completely", "segment", segmentNum, "lastSegment", last)
 			}
 
@@ -432,7 +356,7 @@ func (w *Watcher) decodeAndDispatch(b []byte, segmentNum int) (bool, error) {
 func (w *Watcher) Stop(drain bool) {
 	if drain {
 		level.Info(w.logger).Log("msg", "Draining Watcher")
-		w.state.Transition(stateDraining)
+		w.state.Transition(internal.StateDraining)
 		// wait for drain timeout, or stopping state, in case the Watcher does the transition itself promptly
 		select {
 		case <-time.NewTimer(w.drainTimeout).C:
@@ -441,7 +365,7 @@ func (w *Watcher) Stop(drain bool) {
 		}
 	}
 
-	w.state.Transition(stateStopping)
+	w.state.Transition(internal.StateStopping)
 
 	// upon calling stop, wait for main mainLoop execution to stop
 	<-w.done
@@ -504,16 +428,6 @@ func (w *Watcher) findNextSegmentFor(index int) (int, error) {
 	}
 
 	return -1, errors.New("failed to find segment for index")
-}
-
-// isClosed checks in a non-blocking manner if a channel is closed or not.
-func isClosed(c chan struct{}) bool {
-	select {
-	case <-c:
-		return true
-	default:
-		return false
-	}
 }
 
 // readSegmentNumbers reads the given directory and returns all segment identifiers, that is, the index of each segment

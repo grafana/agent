@@ -52,6 +52,7 @@ type WatchConfig struct {
 	MaxReadFrequency time.Duration
 
 	// DrainTimeout is the maximum amount of time that the Watcher can spend draining the remaining segments in the WAL.
+	// After that time, the Watcher is stopped immediately, dropping all the work in process.
 	DrainTimeout time.Duration
 }
 
