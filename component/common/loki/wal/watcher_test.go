@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"go.uber.org/atomic"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
@@ -573,6 +574,7 @@ func TestWatcher_Replay(t *testing.T) {
 // slowWriteTo mimics the combination of a WriteTo and a slow remote write client. This will allow us to have a writer
 // that moves faster than the WAL watcher, and therefore, test the draining procedure.
 type slowWriteTo struct {
+	t                       *testing.T
 	entriesReceived         atomic.Uint64
 	sleepAfterAppendEntries time.Duration
 }
@@ -584,6 +586,12 @@ func (s *slowWriteTo) StoreSeries(series []record.RefSeries, segmentNum int) {
 }
 
 func (s *slowWriteTo) AppendEntries(entries wal.RefEntries, segmentNum int) error {
+	var allLines strings.Builder
+	for _, e := range entries.Entries {
+		allLines.WriteString(e.Line)
+		allLines.WriteString("/")
+	}
+	s.t.Logf("AppendEntries called from segment %d - %s", segmentNum, allLines.String())
 	s.entriesReceived.Add(uint64(len(entries.Entries)))
 	time.Sleep(s.sleepAfterAppendEntries)
 	return nil
@@ -598,11 +606,18 @@ func TestWatcher_StopAndDrainWAL(t *testing.T) {
 	logger := level.NewFilter(log.NewLogfmtLogger(os.Stdout), level.AllowDebug())
 	dir := t.TempDir()
 	metrics := NewWatcherMetrics(reg)
+
 	// the slow write to will take one second on each AppendEntries operation
 	writeTo := &slowWriteTo{
+		t:                       t,
 		sleepAfterAppendEntries: time.Second,
 	}
-	// create new watcher, and defer stop
+
+	cfg := DefaultWatchConfig
+	// since the watcher would have consumed already 5 log entries, and it needs to consume a remaining of 15, with a WriteTo
+	// taking 1 second to respond to each AppendEntries call, this test will use the smallest timeout possible for the Watcher
+	// to fully drain the WAL.
+	cfg.DrainTimeout = time.Second * 16
 	watcher := NewWatcher(dir, "test", metrics, writeTo, logger, DefaultWatchConfig, mockMarker{
 		LastMarkedSegmentFunc: func() int {
 			// Ignore marker to read from last segment, which is none
@@ -622,6 +637,8 @@ func TestWatcher_StopAndDrainWAL(t *testing.T) {
 
 	ew := newEntryWriter()
 
+	// helper to add context to each written line
+	var lineCounter atomic.Int64
 	writeNLines := func(t *testing.T, n int) {
 		for i := 0; i < n; i++ {
 			// First, write to segment 0. This will be the last "marked" segment
@@ -629,9 +646,10 @@ func TestWatcher_StopAndDrainWAL(t *testing.T) {
 				Labels: labels,
 				Entry: logproto.Entry{
 					Timestamp: time.Now(),
-					Line:      "test line",
+					Line:      fmt.Sprintf("test line %d", lineCounter.Load()),
 				},
 			}, wl, logger)
+			lineCounter.Add(1)
 			require.NoError(t, err)
 		}
 	}

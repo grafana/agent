@@ -90,21 +90,39 @@ const (
 // watcherState is a holder for the state the Watcher is in. It provides handy methods for checking it it's stopping, getting
 // the current state, or blocking until it has stopped.
 type watcherState struct {
-	s    wState
-	mut  sync.RWMutex
-	quit chan struct{}
+	s      wState
+	mut    sync.RWMutex
+	quit   chan struct{}
+	logger log.Logger
 }
 
-func newWatcherState() *watcherState {
+func newWatcherState(l log.Logger) *watcherState {
 	return &watcherState{
-		s:    stateRunning,
-		quit: make(chan struct{}),
+		s:      stateRunning,
+		quit:   make(chan struct{}),
+		logger: l,
+	}
+}
+
+func printState(s wState) string {
+	switch s {
+	case stateRunning:
+		return "running"
+	case stateDraining:
+		return "draining"
+	case stateStopping:
+		return "stopping"
+	default:
+		return "unknown"
 	}
 }
 
 func (s *watcherState) Transition(ns wState) {
 	s.mut.Lock()
 	defer s.mut.Unlock()
+
+	level.Debug(s.logger).Log("msg", "Watcher transitioning state", "currentState", printState(s.s), "nextState", printState(ns))
+
 	s.s = ns
 	if ns == stateStopping {
 		close(s.quit)
@@ -143,6 +161,7 @@ type Watcher struct {
 	metrics      *WatcherMetrics
 	minReadFreq  time.Duration
 	maxReadFreq  time.Duration
+	drainTimeout time.Duration
 	marker       Marker
 	savedSegment int
 }
@@ -154,7 +173,7 @@ func NewWatcher(walDir, id string, metrics *WatcherMetrics, writeTo WriteTo, log
 		id:           id,
 		actions:      writeTo,
 		readNotify:   make(chan struct{}),
-		state:        newWatcherState(),
+		state:        newWatcherState(logger),
 		done:         make(chan struct{}),
 		MaxSegment:   -1,
 		marker:       marker,
@@ -163,6 +182,7 @@ func NewWatcher(walDir, id string, metrics *WatcherMetrics, writeTo WriteTo, log
 		metrics:      metrics,
 		minReadFreq:  config.MinReadFrequency,
 		maxReadFreq:  config.MaxReadFrequency,
+		drainTimeout: config.DrainTimeout,
 	}
 }
 
@@ -184,6 +204,10 @@ func (w *Watcher) mainLoop() {
 
 		if err := w.run(); err != nil {
 			level.Error(w.logger).Log("msg", "error tailing WAL", "err", err)
+		}
+
+		if w.state.Get() == stateDraining {
+			level.Warn(w.logger).Log("msg", "exited from run with error while draining")
 		}
 
 		select {
@@ -391,6 +415,11 @@ func (w *Watcher) decodeAndDispatch(b []byte, segmentNum int) (bool, error) {
 //
 // Note if drain is enabled, the caller routine of Stop will block executing the drain procedure.
 func (w *Watcher) Stop(drain bool) {
+	if drain {
+		w.state.Transition(stateDraining)
+		// wait for 10 seconds for the watcher to drain
+		<-time.NewTimer(w.drainTimeout).C
+	}
 	// first close the quit channel to order main mainLoop routine to stop
 	w.state.Transition(stateStopping)
 	// upon calling stop, wait for main mainLoop execution to stop
