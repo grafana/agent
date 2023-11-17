@@ -618,7 +618,7 @@ func TestWatcher_StopAndDrainWAL(t *testing.T) {
 	// taking 1 second to respond to each AppendEntries call, this test will use the smallest timeout possible for the Watcher
 	// to fully drain the WAL.
 	cfg.DrainTimeout = time.Second * 16
-	watcher := NewWatcher(dir, "test", metrics, writeTo, logger, DefaultWatchConfig, mockMarker{
+	watcher := NewWatcher(dir, "test", metrics, writeTo, logger, cfg, mockMarker{
 		LastMarkedSegmentFunc: func() int {
 			// Ignore marker to read from last segment, which is none
 			return -1
@@ -670,7 +670,11 @@ func TestWatcher_StopAndDrainWAL(t *testing.T) {
 	require.NoError(t, wl.Sync())
 
 	// Upon calling Stop drain, the Watcher should finish burning through segment 0, and also consume segment 1
+	now := time.Now()
 	watcher.Stop(true)
 
+	// expecting 15s (missing 15 entries * 1 sec delay in AppendEntries) +/- 1.1s (taking into account the drain timeout
+	// has one extra second.
+	require.InDelta(t, time.Second*15, time.Since(now), float64(time.Millisecond*1100), "expected the drain procedure to take around 15s")
 	require.Equal(t, 20, int(writeTo.entriesReceived.Load()), "expected the watcher to drain the whole WAL")
 }
