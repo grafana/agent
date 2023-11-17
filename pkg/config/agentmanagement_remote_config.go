@@ -164,11 +164,6 @@ func appendExternalLabels(c *Config, externalLabels map[string]string) {
 }
 
 func evaluateTemplate(config string, templateVariables map[string]any) (string, error) {
-	// Avoid doing anything if there are no template variables
-	if len(templateVariables) == 0 {
-		return config, nil
-	}
-
 	tpl, err := template.New("config").Parse(config)
 	if err != nil {
 		return "", err
