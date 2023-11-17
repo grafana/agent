@@ -5,7 +5,7 @@ title: Prometheus Agent Mode
 weight: 200
 ---
 
-## Should you use Flow or the Prometheus Agent Mode?
+## Comparing Flow with the Prometheus Agent Mode
 
 Grafana Agent Flow supports all of the [features][prom-agent-mode-blog] of the [Prometheus Agent Mode][prom-agent-mode-flag] via components such as:
 * `discovery.http`
