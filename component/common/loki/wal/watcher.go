@@ -90,17 +90,17 @@ const (
 // watcherState is a holder for the state the Watcher is in. It provides handy methods for checking it it's stopping, getting
 // the current state, or blocking until it has stopped.
 type watcherState struct {
-	s      wState
-	mut    sync.RWMutex
-	quit   chan struct{}
-	logger log.Logger
+	current        wState
+	mut            sync.RWMutex
+	stoppingSignal chan struct{}
+	logger         log.Logger
 }
 
 func newWatcherState(l log.Logger) *watcherState {
 	return &watcherState{
-		s:      stateRunning,
-		quit:   make(chan struct{}),
-		logger: l,
+		current:        stateRunning,
+		stoppingSignal: make(chan struct{}),
+		logger:         l,
 	}
 }
 
@@ -117,32 +117,36 @@ func printState(s wState) string {
 	}
 }
 
-func (s *watcherState) Transition(ns wState) {
+func (s *watcherState) Transition(next wState) {
 	s.mut.Lock()
 	defer s.mut.Unlock()
 
-	level.Debug(s.logger).Log("msg", "Watcher transitioning state", "currentState", printState(s.s), "nextState", printState(ns))
+	level.Debug(s.logger).Log("msg", "Watcher transitioning state", "currentState", printState(s.current), "nextState", printState(next))
 
-	s.s = ns
-	if ns == stateStopping {
-		close(s.quit)
+	// only perform channel close if the state is not already stopping
+	// expect s.s to be either draining ro running to perform a close
+	if next == stateStopping && s.current != next {
+		close(s.stoppingSignal)
 	}
+
+	// update state
+	s.current = next
 }
 
 func (s *watcherState) Get() wState {
 	s.mut.RLock()
 	defer s.mut.RUnlock()
-	return s.s
+	return s.current
 }
 
 func (s *watcherState) IsStopping() bool {
 	s.mut.RLock()
 	defer s.mut.RUnlock()
-	return s.s == stateStopping
+	return s.current == stateStopping
 }
 
 func (s *watcherState) WaitForStopping() <-chan struct{} {
-	return s.quit
+	return s.stoppingSignal
 }
 
 type Watcher struct {
@@ -202,12 +206,16 @@ func (w *Watcher) mainLoop() {
 			level.Debug(w.logger).Log("msg", "last saved segment", "segment", w.savedSegment)
 		}
 
-		if err := w.run(); err != nil {
+		err := w.run()
+		if err != nil {
 			level.Error(w.logger).Log("msg", "error tailing WAL", "err", err)
 		}
 
-		if w.state.Get() == stateDraining {
-			level.Warn(w.logger).Log("msg", "exited from run with error while draining")
+		if w.state.Get() == stateDraining && errors.Is(err, os.ErrNotExist) {
+			level.Info(w.logger).Log("msg", "Reached non existing segment while draining, assuming end of WAL")
+			// since we've reached the end of the WAL, and the Watcher is draining, promptly transition to stopping state
+			// so the watcher can stoppingSignal early
+			w.state.Transition(stateStopping)
 		}
 
 		select {
@@ -241,7 +249,6 @@ func (w *Watcher) run() error {
 	level.Debug(w.logger).Log("msg", "Tailing WAL", "currentSegment", currentSegment, "lastSegment", lastSegment)
 	for !w.state.IsStopping() {
 		w.metrics.currentSegment.WithLabelValues(w.id).Set(float64(currentSegment))
-		level.Debug(w.logger).Log("msg", "Processing segment", "currentSegment", currentSegment)
 
 		// On start, we have a pointer to what is the latest segment. On subsequent calls to this function,
 		// currentSegment will have been incremented, and we should open that segment.
@@ -266,6 +273,8 @@ func (w *Watcher) run() error {
 // If tail is false, we know the segment we are "watching" over is closed (no further write will occur to it). Then, the
 // segment is read fully, any errors are logged as Warnings, and no error is returned.
 func (w *Watcher) watch(segmentNum int, tail bool) error {
+	level.Debug(w.logger).Log("msg", "Processing segment", "currentSegment", segmentNum, "tail", tail)
+
 	segment, err := wlog.OpenReadSegment(wlog.SegmentName(w.walDir, segmentNum))
 	if err != nil {
 		return err
@@ -303,24 +312,30 @@ func (w *Watcher) watch(segmentNum int, tail bool) error {
 				return fmt.Errorf("segments: %w", err)
 			}
 
-			// Check if new segments exists.
-			if last <= segmentNum {
+			// Check if new segments exists, or we are draining the WAL, which means that either:
+			// - This is the last segment, and we can consume it fully
+			// - There's some other segment, and we can consume this segment fully as well
+			if last <= segmentNum && w.state.Get() != stateDraining {
 				continue
 			}
 
-			// Since we know last > segmentNum, there must be a new segment. Read the remaining from the segmentNum segment
-			// and return from `watch` to read the next one
+			if w.state.Get() == stateDraining {
+				level.Debug(w.logger).Log("msg", "Draining segment completely", "segment", segmentNum, "lastSegment", last)
+			}
+
+			// We now that there's either a new segment (last > segmentNum), or we are draining the WAL. Either case, read
+			// the remaining from the segmentNum segment and return from `watch` to read the next one
 			_, err = w.readSegment(reader, segmentNum)
 			if debug {
 				level.Warn(w.logger).Log("msg", "Error reading segment inside segmentTicker", "segment", segmentNum, "read", reader.Offset(), "err", err)
 			}
 
-			// io.EOF error are non-fatal since we are tailing the wal
+			// io.EOF error are non-fatal since we consuming the segment till the end
 			if errors.Unwrap(err) != io.EOF {
 				return err
 			}
 
-			// return after reading the whole segment for creating a new LiveReader from the newly created segment
+			// return after reading the whole segment
 			return nil
 
 		// the cases below will unlock the select block, and execute the block below
@@ -416,12 +431,18 @@ func (w *Watcher) decodeAndDispatch(b []byte, segmentNum int) (bool, error) {
 // Note if drain is enabled, the caller routine of Stop will block executing the drain procedure.
 func (w *Watcher) Stop(drain bool) {
 	if drain {
+		level.Info(w.logger).Log("msg", "Draining Watcher")
 		w.state.Transition(stateDraining)
-		// wait for 10 seconds for the watcher to drain
-		<-time.NewTimer(w.drainTimeout).C
+		// wait for drain timeout, or stopping state, in case the Watcher does the transition itself promptly
+		select {
+		case <-time.NewTimer(w.drainTimeout).C:
+			level.Warn(w.logger).Log("msg", "Watcher drain timeout occurred, transitioning to Stopping")
+		case <-w.state.WaitForStopping():
+		}
 	}
-	// first close the quit channel to order main mainLoop routine to stop
+
 	w.state.Transition(stateStopping)
+
 	// upon calling stop, wait for main mainLoop execution to stop
 	<-w.done
 
