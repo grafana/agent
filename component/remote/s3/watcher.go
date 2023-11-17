@@ -100,8 +100,12 @@ func (w *watcher) getObject(ctx context.Context) ([]byte, error) {
 	if err != nil {
 		return []byte{}, err
 	}
+	defer output.Body.Close()
+
 	buf := make([]byte, output.ContentLength)
-	_, err = output.Body.Read(buf)
+
+	_, err = io.ReadFull(output.Body, buf)
+
 	if !errors.Is(err, io.EOF) {
 		return []byte{}, err
 	}
