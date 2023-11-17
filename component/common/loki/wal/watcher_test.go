@@ -2,7 +2,6 @@ package wal
 
 import (
 	"fmt"
-	"go.uber.org/atomic"
 	"os"
 	"strings"
 	"testing"
@@ -14,6 +13,7 @@ import (
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/tsdb/record"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/atomic"
 
 	"github.com/grafana/agent/component/common/loki"
 	"github.com/grafana/agent/component/common/loki/utils"
@@ -586,12 +586,16 @@ func (s *slowWriteTo) StoreSeries(series []record.RefSeries, segmentNum int) {
 }
 
 func (s *slowWriteTo) AppendEntries(entries wal.RefEntries, segmentNum int) error {
-	var allLines strings.Builder
-	for _, e := range entries.Entries {
-		allLines.WriteString(e.Line)
-		allLines.WriteString("/")
+	// only log on development debug flag
+	if debug {
+		var allLines strings.Builder
+		for _, e := range entries.Entries {
+			allLines.WriteString(e.Line)
+			allLines.WriteString("/")
+		}
+		s.t.Logf("AppendEntries called from segment %d - %s", segmentNum, allLines.String())
 	}
-	s.t.Logf("AppendEntries called from segment %d - %s", segmentNum, allLines.String())
+
 	s.entriesReceived.Add(uint64(len(entries.Entries)))
 	time.Sleep(s.sleepAfterAppendEntries)
 	return nil

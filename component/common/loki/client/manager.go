@@ -194,6 +194,8 @@ func (m *Manager) Stop() {
 
 // StopWithDrain will stop the manager, its Write-Ahead Log watchers, and clients accordingly. If drain is enabled,
 // the Watchers will attempt to drain the WAL completely.
+// The shutdown procedure first stops the Watchers, allowing them to flush as much data into the clients as possible. Then
+// the clients are shut down accordingly.
 func (m *Manager) StopWithDrain(drain bool) {
 	// first stop the receiving channel
 	m.once.Do(func() { close(m.entries) })

@@ -3,7 +3,6 @@ package wal
 import (
 	"errors"
 	"fmt"
-	"github.com/grafana/agent/component/common/loki/wal/internal"
 	"io"
 	"math"
 	"os"
@@ -11,6 +10,7 @@ import (
 	"time"
 
 	"github.com/go-kit/log"
+	"github.com/grafana/agent/component/common/loki/wal/internal"
 	"github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/prometheus/prometheus/tsdb/record"
 	"github.com/prometheus/prometheus/tsdb/wlog"
@@ -197,7 +197,7 @@ func (w *Watcher) run() error {
 // If tail is false, we know the segment we are "watching" over is closed (no further write will occur to it). Then, the
 // segment is read fully, any errors are logged as Warnings, and no error is returned.
 func (w *Watcher) watch(segmentNum int, tail bool) error {
-	level.Debug(w.logger).Log("msg", "Processing segment", "currentSegment", segmentNum, "tail", tail)
+	level.Debug(w.logger).Log("msg", "Watching WAL segment", "currentSegment", segmentNum, "tail", tail)
 
 	segment, err := wlog.OpenReadSegment(wlog.SegmentName(w.walDir, segmentNum))
 	if err != nil {
@@ -237,8 +237,8 @@ func (w *Watcher) watch(segmentNum int, tail bool) error {
 			}
 
 			// Check if new segments exists, or we are draining the WAL, which means that either:
-			// - This is the last segment, and we can consume it fully
-			// - There's some other segment, and we can consume this segment fully as well
+			// - This is the last segment, and we can consume it fully because we are draining the WAL
+			// - There's a segment after the current one, and we can consume this segment fully as well
 			if last <= segmentNum && !w.state.IsDraining() {
 				continue
 			}
@@ -248,13 +248,13 @@ func (w *Watcher) watch(segmentNum int, tail bool) error {
 			}
 
 			// We now that there's either a new segment (last > segmentNum), or we are draining the WAL. Either case, read
-			// the remaining from the segmentNum segment and return from `watch` to read the next one
+			// the remaining data from the segmentNum and return from `watch` to read the next one.
 			_, err = w.readSegment(reader, segmentNum)
 			if debug {
 				level.Warn(w.logger).Log("msg", "Error reading segment inside segmentTicker", "segment", segmentNum, "read", reader.Offset(), "err", err)
 			}
 
-			// io.EOF error are non-fatal since we consuming the segment till the end
+			// io.EOF error are non-fatal since we are consuming the segment till the end
 			if errors.Unwrap(err) != io.EOF {
 				return err
 			}
@@ -350,7 +350,7 @@ func (w *Watcher) decodeAndDispatch(b []byte, segmentNum int) (bool, error) {
 }
 
 // Stop stops the Watcher, draining the WAL until the end of the last segment if drain is true. Since the writer of the WAL
-// is expected to have stopped before the Watcher, the last segment will be drained completely before the end of Stop.
+// is expected to have stopped before the Watcher, no further writes are expected, so segments can be safely consumed.
 //
 // Note if drain is enabled, the caller routine of Stop will block executing the drain procedure.
 func (w *Watcher) Stop(drain bool) {
