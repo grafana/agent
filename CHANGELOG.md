@@ -10,7 +10,7 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
-### Features
+### Enhancements
 
 - `otelcol.receiver.prometheus` does not drop histograms without buckets anymore. (@wildum)
 
