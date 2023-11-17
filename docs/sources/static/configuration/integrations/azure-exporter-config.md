@@ -15,14 +15,16 @@ The `azure_exporter_config` block configures the `azure_exporter` integration, a
 [`azure-metrics-exporter`](https://github.com/webdevops/azure-metrics-exporter), used to
 collect metrics from [Azure Monitor](https://azure.microsoft.com/en-us/products/monitor). 
 
-The exporter offers two options for gathering metrics,
-1. (Default) Use an [Azure Resource Graph](https://azure.microsoft.com/en-us/get-started/azure-portal/resource-graph/#overview) query to identify resources for gathering metrics
-   1. This will make 1 API call per resource identified
-   1. Subscriptions with a reasonable amount of resources are liable to hit the [12000 requests per hour rate limit](https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/request-limits-and-throttling#subscription-and-tenant-limits) azure enforces 
-1. Set the regions to gather metrics from and get metrics for all resources across those regions
-   1. This will make an API call per subscription reducing the number of API calls dramatically 
-   1. This approach does not work with all resource types and Azure's does not document which resource types do/do not work
-   1. A resource type which is not support will produce errors which look like `Resource type: microsoft.containerservice/managedclusters not enabled for Cross Resource metrics`
+The exporter offers the following two options for gathering metrics.
+
+1. (Default) Use an [Azure Resource Graph](https://azure.microsoft.com/en-us/get-started/azure-portal/resource-graph/#overview) query to identify resources for gathering metrics.
+   1. This query will make one API call per resource identified.
+   1. Subscriptions with a reasonable amount of resources can hit the [12000 requests per hour rate limit](https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/request-limits-and-throttling#subscription-and-tenant-limits) Azure enforces.
+1. Set the regions to gather metrics from and get metrics for all resources across those regions.
+   1. This option will make one API call per subscription, dramatically reducing the number of API calls. 
+   1. This approach does not work with all resource types, and Azure does not document which resource types do or do not work.
+   1. A resource type that is not supported produces errors that look like `Resource type: microsoft.containerservice/managedclusters not enabled for Cross Resource metrics`.
+   1. If you encounter one of these errors you must use the default Azure Resource Graph based option to gather metrics.
 
 ## List of Supported Services and Metrics
 The exporter supports all metrics defined by Azure Monitor. The complete list of available metrics can be found in the [Azure Monitor documentation](https://learn.microsoft.com/en-us/azure/azure-monitor/essentials/metrics-supported).
@@ -102,12 +104,12 @@ The account used by Grafana Agent needs:
 
   # Optional: The [kusto query](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/) filter to apply when searching for resources
   # This value will be embedded in to a template query of the form `Resources | where type =~ "<resource_type>" <resource_graph_query_filter> | project id, tags`
-  # Cannot be used if `regions` is set.
+  # Can't be used if `regions` is set.
   [resource_graph_query_filter: <string>]
   
   # Optional: The list of regions for gathering metrics. Enables gather metrics for all resources in the subscription.
-  # The list of available `regions` to your subscription can be found by running the azure CLI command `az account list-locations --query '[].name'`.
-  # Cannot be used if `resource_graph_query_filter` is set.
+  # The list of available `regions` to your subscription can be found by running the Azure CLI command `az account list-locations --query '[].name'`.
+  # Can't be used if `resource_graph_query_filter` is set.
   regions:
       [ - <string> ... ]
 
@@ -155,7 +157,7 @@ The account used by Grafana Agent needs:
   [azure_cloud_environment: <string> | default = "azurecloud"]
   
   # Optional: validation is disabled by default to reduce the number of azure exporter instances required when a `resource_type` has metrics with varying dimensions. 
-  # Choosing to enable `validate_dimensions` will require 1 exporter instance per metric + dimension combination which can be very tedious to maintain.
+  # Choosing to enable `validate_dimensions` will require one exporter instance per metric + dimension combination which can be very tedious to maintain.
   [validate_dimensions: <bool> | default = false]
 ```
 
