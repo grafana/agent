@@ -7,6 +7,7 @@ import (
 	"math"
 	"os"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/go-kit/log"
@@ -72,6 +73,60 @@ type Marker interface {
 	LastMarkedSegment() int
 }
 
+// wState represents the possible states the Watcher can be in.
+type wState int64
+
+const (
+	// stateRunning is the main functioning state of the watcher. It will keep tailing head segments, consuming closed
+	// ones, and checking for new ones.
+	stateRunning wState = iota
+
+	stateDraining
+
+	// stateStopping means the Watcher is being stopped. It should drop all segment read activity, and exit promptly.
+	stateStopping
+)
+
+// watcherState is a holder for the state the Watcher is in. It provides handy methods for checking it it's stopping, getting
+// the current state, or blocking until it has stopped.
+type watcherState struct {
+	s    wState
+	mut  sync.RWMutex
+	quit chan struct{}
+}
+
+func newWatcherState() *watcherState {
+	return &watcherState{
+		s:    stateRunning,
+		quit: make(chan struct{}),
+	}
+}
+
+func (s *watcherState) Transition(ns wState) {
+	s.mut.Lock()
+	defer s.mut.Unlock()
+	s.s = ns
+	if ns == stateStopping {
+		close(s.quit)
+	}
+}
+
+func (s *watcherState) Get() wState {
+	s.mut.RLock()
+	defer s.mut.RUnlock()
+	return s.s
+}
+
+func (s *watcherState) IsStopping() bool {
+	s.mut.RLock()
+	defer s.mut.RUnlock()
+	return s.s == stateStopping
+}
+
+func (s *watcherState) WaitForStopping() <-chan struct{} {
+	return s.quit
+}
+
 type Watcher struct {
 	// id identifies the Watcher. Used when one Watcher is instantiated per remote write client, to be able to track to whom
 	// the metric/log line corresponds.
@@ -80,7 +135,7 @@ type Watcher struct {
 	actions    WriteTo
 	readNotify chan struct{}
 	done       chan struct{}
-	quit       chan struct{}
+	state      *watcherState
 	walDir     string
 	logger     log.Logger
 	MaxSegment int
@@ -99,7 +154,7 @@ func NewWatcher(walDir, id string, metrics *WatcherMetrics, writeTo WriteTo, log
 		id:           id,
 		actions:      writeTo,
 		readNotify:   make(chan struct{}),
-		quit:         make(chan struct{}),
+		state:        newWatcherState(),
 		done:         make(chan struct{}),
 		MaxSegment:   -1,
 		marker:       marker,
@@ -121,7 +176,7 @@ func (w *Watcher) Start() {
 // retries.
 func (w *Watcher) mainLoop() {
 	defer close(w.done)
-	for !isClosed(w.quit) {
+	for !w.state.IsStopping() {
 		if w.marker != nil {
 			w.savedSegment = w.marker.LastMarkedSegment()
 			level.Debug(w.logger).Log("msg", "last saved segment", "segment", w.savedSegment)
@@ -132,7 +187,7 @@ func (w *Watcher) mainLoop() {
 		}
 
 		select {
-		case <-w.quit:
+		case <-w.state.WaitForStopping():
 			return
 		case <-time.After(5 * time.Second):
 		}
@@ -160,7 +215,7 @@ func (w *Watcher) run() error {
 	}
 
 	level.Debug(w.logger).Log("msg", "Tailing WAL", "currentSegment", currentSegment, "lastSegment", lastSegment)
-	for !isClosed(w.quit) {
+	for !w.state.IsStopping() {
 		w.metrics.currentSegment.WithLabelValues(w.id).Set(float64(currentSegment))
 		level.Debug(w.logger).Log("msg", "Processing segment", "currentSegment", currentSegment)
 
@@ -215,7 +270,7 @@ func (w *Watcher) watch(segmentNum int, tail bool) error {
 
 	for {
 		select {
-		case <-w.quit:
+		case <-w.state.WaitForStopping():
 			return nil
 
 		case <-segmentTicker.C:
@@ -293,7 +348,7 @@ func (w *Watcher) watch(segmentNum int, tail bool) error {
 func (w *Watcher) readSegment(r *wlog.LiveReader, segmentNum int) (bool, error) {
 	var readData bool
 
-	for r.Next() && !isClosed(w.quit) {
+	for r.Next() && !w.state.IsStopping() {
 		rec := r.Record()
 		w.metrics.recordsRead.WithLabelValues(w.id).Inc()
 		read, err := w.decodeAndDispatch(rec, segmentNum)
@@ -337,7 +392,7 @@ func (w *Watcher) decodeAndDispatch(b []byte, segmentNum int) (bool, error) {
 // Note if drain is enabled, the caller routine of Stop will block executing the drain procedure.
 func (w *Watcher) Stop(drain bool) {
 	// first close the quit channel to order main mainLoop routine to stop
-	close(w.quit)
+	w.state.Transition(stateStopping)
 	// upon calling stop, wait for main mainLoop execution to stop
 	<-w.done
 
