@@ -107,7 +107,7 @@ The account used by Grafana Agent needs:
   # Can't be used if `regions` is set.
   [resource_graph_query_filter: <string>]
   
-  # Optional: The list of regions for gathering metrics. Enables gather metrics for all resources in the subscription.
+  # Optional: The list of regions for gathering metrics. Enables gathering metrics for all resources in the subscription.
   # The list of available `regions` to your subscription can be found by running the Azure CLI command `az account list-locations --query '[].name'`.
   # Can't be used if `resource_graph_query_filter` is set.
   regions:
@@ -156,7 +156,7 @@ The account used by Grafana Agent needs:
   # Optional: Which azure cloud environment to connect to, azurecloud, azurechinacloud, azuregovernmentcloud, or azurepprivatecloud
   [azure_cloud_environment: <string> | default = "azurecloud"]
   
-  # Optional: validation is disabled by default to reduce the number of azure exporter instances required when a `resource_type` has metrics with varying dimensions. 
+  # Optional: Validation is disabled by default to reduce the number of Azure exporter instances required when a `resource_type` has metrics with varying dimensions. 
   # Choosing to enable `validate_dimensions` will require one exporter instance per metric + dimension combination which can be very tedious to maintain.
   [validate_dimensions: <bool> | default = false]
 ```
