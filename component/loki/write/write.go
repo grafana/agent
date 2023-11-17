@@ -41,6 +41,7 @@ type WalArguments struct {
 	MaxSegmentAge    time.Duration `river:"max_segment_age,attr,optional"`
 	MinReadFrequency time.Duration `river:"min_read_frequency,attr,optional"`
 	MaxReadFrequency time.Duration `river:"max_read_frequency,attr,optional"`
+	DrainTimeout     time.Duration `river:"drain_timeout,attr,optional"`
 }
 
 func (wa *WalArguments) Validate() error {
@@ -58,6 +59,7 @@ func (wa *WalArguments) SetToDefault() {
 		MaxSegmentAge:    wal.DefaultMaxSegmentAge,
 		MinReadFrequency: wal.DefaultWatchConfig.MinReadFrequency,
 		MaxReadFrequency: wal.DefaultWatchConfig.MaxReadFrequency,
+		DrainTimeout:     wal.DefaultWatchConfig.DrainTimeout,
 	}
 }
 
@@ -163,6 +165,7 @@ func (c *Component) Update(args component.Arguments) error {
 		WatchConfig: wal.WatchConfig{
 			MinReadFrequency: newArgs.WAL.MinReadFrequency,
 			MaxReadFrequency: newArgs.WAL.MaxReadFrequency,
+			DrainTimeout:     newArgs.WAL.DrainTimeout,
 		},
 	}
 
