@@ -27,21 +27,21 @@ discovery.docker "LABEL" {
 
 The following arguments are supported:
 
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`host` | `string` | Address of the Docker Daemon to connect to. | | yes
-`port` | `number` | Port to use for collecting metrics when containers don't have any port mappings. | `80` | no
-`host_networking_host` | `string` | Host to use if the container is in host networking mode. | `"localhost"` | no
-`refresh_interval` | `duration` | Frequency to refresh list of containers. | `"1m"` | no
-`bearer_token` | `secret` | Bearer token to authenticate with. | | no
-`bearer_token_file` | `string` | File containing a bearer token to authenticate with. | | no
-`proxy_url` | `string` | HTTP proxy to proxy requests through. | | no
-`follow_redirects` | `bool` | Whether redirects returned by the server should be followed. | `true` | no
-`enable_http2` | `bool` | Whether HTTP2 is supported for requests. | `true` | no
+Name                   | Type       | Description                                                                      | Default       | Required
+-----------------------|------------|----------------------------------------------------------------------------------|---------------|---------
+`host`                 | `string`   | Address of the Docker Daemon to connect to.                                      |               | yes
+`bearer_token_file`    | `string`   | File containing a bearer token to authenticate with.                             |               | no
+`bearer_token`         | `secret`   | Bearer token to authenticate with.                                               |               | no
+`enable_http2`         | `bool`     | Whether HTTP2 is supported for requests.                                         | `true`        | no
+`follow_redirects`     | `bool`     | Whether redirects returned by the server should be followed.                     | `true`        | no
+`host_networking_host` | `string`   | Host to use if the container is in host networking mode.                         | `"localhost"` | no
+`port`                 | `number`   | Port to use for collecting metrics when containers don't have any port mappings. | `80`          | no
+`proxy_url`            | `string`   | HTTP proxy to proxy requests through.                                            |               | no
+`refresh_interval`     | `duration` | Frequency to refresh list of containers.                                         | `"1m"`        | no
 
  At most one of the following can be provided:
  - [`bearer_token` argument](#arguments).
- - [`bearer_token_file` argument](#arguments). 
+ - [`bearer_token_file` argument](#arguments).
  - [`basic_auth` block][basic_auth].
  - [`authorization` block][authorization].
  - [`oauth2` block][oauth2].
@@ -50,20 +50,18 @@ Name | Type | Description | Default | Required
 
 ## Blocks
 
-The following blocks are supported inside the definition of
-`discovery.docker`:
+The following blocks are supported inside the definition of `discovery.docker`:
 
-Hierarchy | Block | Description | Required
---------- | ----- | ----------- | --------
-filter | [filter][] | Filters discoverable resources. | no
-basic_auth | [basic_auth][] | Configure basic_auth for authenticating to the endpoint. | no
-authorization | [authorization][] | Configure generic authorization to the endpoint. | no
-oauth2 | [oauth2][] | Configure OAuth2 for authenticating to the endpoint. | no
-oauth2 > tls_config | [tls_config][] | Configure TLS settings for connecting to the endpoint. | no
+Hierarchy           | Block             | Description                                              | Required
+--------------------|-------------------|----------------------------------------------------------|---------
+authorization       | [authorization][] | Configure generic authorization to the endpoint.         | no
+basic_auth          | [basic_auth][]    | Configure basic_auth for authenticating to the endpoint. | no
+filter              | [filter][]        | Filters discoverable resources.                          | no
+oauth2              | [oauth2][]        | Configure OAuth2 for authenticating to the endpoint.     | no
+oauth2 > tls_config | [tls_config][]    | Configure TLS settings for connecting to the endpoint.   | no
 
-The `>` symbol indicates deeper levels of nesting. For example,
-`oauth2 > tls_config` refers to a `tls_config` block defined inside
-an `oauth2` block.
+The `>` symbol indicates deeper levels of nesting.
+For example, `oauth2 > tls_config` refers to a `tls_config` block defined inside an `oauth2` block.
 
 [filter]: #filter-block
 [basic_auth]: #basic_auth-block
@@ -71,91 +69,82 @@ an `oauth2` block.
 [oauth2]: #oauth2-block
 [tls_config]: #tls_config-block
 
-### filter block
+### authorization
 
-The `filter` block configures a filter to pass to the Docker Engine to limit
-the amount of containers returned. The `filter` block can be specified multiple
-times to provide more than one filter.
+{{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`name` | `string` | Filter name to use. | | yes
-`values` | `list(string)` | Values to pass to the filter. | | yes
+### basic_auth
+
+{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" version="<AGENT_VERSION>" >}}
+
+### filter
+
+The `filter` block configures a filter to pass to the Docker Engine to limit the amount of containers returned.
+The `filter` block can be specified multiple times to provide more than one filter.
+
+Name     | Type           | Description                   | Default | Required
+---------|----------------|-------------------------------|---------|---------
+`name`   | `string`       | Filter name to use.           |         | yes
+`values` | `list(string)` | Values to pass to the filter. |         | yes
 
 Refer to [List containers][List containers] from the Docker Engine API
 documentation for the list of supported filters and their meaning.
 
 [List containers]: https://docs.docker.com/engine/api/v1.41/#tag/Container/operation/ContainerList
 
-### basic_auth block
+### oauth2
 
-{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/oauth2-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
-### authorization block
+### oauth2 > tls_config
 
-{{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" version="<AGENT VERSION>" >}}
-
-### oauth2 block
-
-{{< docs/shared lookup="flow/reference/components/oauth2-block.md" source="agent" version="<AGENT VERSION>" >}}
-
-### tls_config block
-
-{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ## Exported fields
 
 The following fields are exported and can be referenced by other components:
 
-Name | Type | Description
----- | ---- | -----------
+Name      | Type                | Description
+----------|---------------------|---------------------------------------------------
 `targets` | `list(map(string))` | The set of targets discovered from the docker API.
 
 Each target includes the following labels:
 
 * `__meta_docker_container_id`: ID of the container.
+* `__meta_docker_container_label_<labelname>`: Each label from the container.
 * `__meta_docker_container_name`: Name of the container.
 * `__meta_docker_container_network_mode`: Network mode of the container.
-* `__meta_docker_container_label_<labelname>`: Each label from the container.
 * `__meta_docker_network_id`: ID of the Docker network the container is in.
-* `__meta_docker_network_name`: Name of the Docker network the container is in.
-* `__meta_docker_network_ingress`: Set to `true` if the Docker network is an
-  ingress network.
-* `__meta_docker_network_internal`: Set to `true` if the Docker network is an
-  internal network.
-* `__meta_docker_network_label_<labelname>`: Each label from the network the
-  container is in.
-* `__meta_docker_network_scope`: The scope of the network the container is in.
+* `__meta_docker_network_ingress`: Set to `true` if the Docker network is an ingress network.
+* `__meta_docker_network_internal`: Set to `true` if the Docker network is an internal network.
 * `__meta_docker_network_ip`: The IP of the container in the network.
+* `__meta_docker_network_label_<labelname>`: Each label from the network the container is in.
+* `__meta_docker_network_name`: Name of the Docker network the container is in.
+* `__meta_docker_network_scope`: The scope of the network the container is in.
 * `__meta_docker_port_private`: The private port on the container.
-* `__meta_docker_port_public`: The publicly exposed port from the container,
-  if a port mapping exists.
-* `__meta_docker_port_public_ip`: The public IP of the container, if a port
-  mapping exists.
+* `__meta_docker_port_public_ip`: The public IP of the container, if a port mapping exists.
+* `__meta_docker_port_public`: The publicly exposed port from the container, if a port mapping exists.
 
-Each discovered container maps to one target per unique combination of networks
-and port mappings used by the container.
+Each discovered container maps to one target per unique combination of networks and port mappings used by the container.
 
 ## Component health
 
-`discovery.docker` is only reported as unhealthy when given an invalid
-configuration. In those cases, exported fields retain their last healthy
-values.
+`discovery.docker` is only reported as unhealthy when given an invalid configuration.
+In those cases, exported fields retain their last healthy values.
 
 ## Debug information
 
-`discovery.docker` does not expose any component-specific debug information.
+`discovery.docker` doesn't expose any component-specific debug information.
 
 ## Debug metrics
 
-`discovery.docker` does not expose any component-specific debug metrics.
+`discovery.docker` doesn't expose any component-specific debug metrics.
 
 ## Examples
 
 ### Linux or macOS hosts
 
-This example discovers Docker containers when the host machine is macOS or
-Linux:
+This example discovers Docker containers when the host machine is macOS or Linux:
 
 ```river
 discovery.docker "containers" {
@@ -169,19 +158,19 @@ prometheus.scrape "demo" {
 
 prometheus.remote_write "demo" {
   endpoint {
-    url = PROMETHEUS_REMOTE_WRITE_URL
+    url = <PROMETHEUS_REMOTE_WRITE_URL>
 
     basic_auth {
-      username = USERNAME
-      password = PASSWORD
+      username = <USERNAME>
+      password = <PASSWORD>
     }
   }
 }
 ```
 Replace the following:
-  - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
-  - `USERNAME`: The username to use for authentication to the remote_write API.
-  - `PASSWORD`: The password to use for authentication to the remote_write API.
+  - `<PROMETHEUS_REMOTE_WRITE_URL>`: The URL of the Prometheus remote_write-compatible server to send metrics to.
+  - `<USERNAME>`: The username to use for authentication to the remote_write API.
+  - `<PASSWORD>`: The password to use for authentication to the remote_write API.
 
 ### Windows hosts
 
@@ -199,19 +188,20 @@ prometheus.scrape "demo" {
 
 prometheus.remote_write "demo" {
   endpoint {
-    url = PROMETHEUS_REMOTE_WRITE_URL
+    url = <PROMETHEUS_REMOTE_WRITE_URL>
 
     basic_auth {
-      username = USERNAME
-      password = PASSWORD
+      username = <USERNAME>
+      password = <PASSWORD>
     }
   }
 }
 ```
 Replace the following:
-  - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
-  - `USERNAME`: The username to use for authentication to the remote_write API.
-  - `PASSWORD`: The password to use for authentication to the remote_write API.
+  - `<PROMETHEUS_REMOTE_WRITE_URL>`: The URL of the Prometheus remote_write-compatible server to send metrics to.
+  - `<USERNAME>`: The username to use for authentication to the remote_write API.
+  - `<PASSWORD>`: The password to use for authentication to the remote_write API.
 
-> **NOTE**: This example requires the "Expose daemon on tcp://localhost:2375
-> without TLS" setting to be enabled in the Docker Engine settings.
+{{% admonition type="note" %}}
+This example requires the "Expose daemon on tcp://localhost:2375 without TLS" setting to be enabled in the Docker Engine settings.
+{{% /admonition %}}
