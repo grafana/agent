@@ -15,7 +15,7 @@ Grafana Agent Flow allows you to process telemetry in a variety of formats, nati
 
 Native processing of telemetry could lead to higher efficiency and ease of use.
 
-It is also possible from switch to one format to another. For example:
+It is also possible to switch from one format to another. For example:
 * `otelcol.exporter.prometheus` converts OTLP metrics to Prometheus logs.
 * `otelcol.receiver.prometheus` converts Prometheus metrics to OTLP metrics.
 * `otelcol.exporter.loki` converts OTLP logs to Loki logs.
@@ -23,10 +23,10 @@ It is also possible from switch to one format to another. For example:
 * `otelcol.connector.spanlogs` converts OTLP spans to OTLP logs.
 * `otelcol.connector.spanmetrics` converts OTLP spans to OTLP metrics.
 
-There are even Flow components which do not deal with telemetry. For example, `mimir.rules.kubernetes` 
+There are even Flow components that do not deal with telemetry. For example, `mimir.rules.kubernetes` 
 can be used to configure a Mimir instance.
 
-The articles in this section describe in more detail how Flow compares to similar products:
+The following topics describe in more detail how Flow compares to similar products:
 
 {{< section >}}
 

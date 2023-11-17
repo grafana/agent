@@ -14,7 +14,7 @@ Grafana Agent Flow supports all of the [features][prom-agent-mode-blog] of the [
 * `prometheus.relabel`
 * `prometheus.remote_write`
 
-Agent Flow's performance is comparable to Prometheus, because `prometheus` Flow components are abe 
+Agent Flow's performance is comparable to Prometheus, because `prometheus` Flow components are able 
 to processes Prometheus metrics natively without converting them to other formats such as OTLP.
 
 Agent Flow also comes pre-built with exporters out of the box. For example, `prometheus.exporter.unix` 
