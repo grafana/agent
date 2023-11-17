@@ -10,6 +10,14 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+### Features
+
+- `otelcol.receiver.prometheus` does not drop histograms without buckets anymore. (@wildum)
+
+- The labels`otel_scope_name` and `otel_scope_version` in `otelcol.receiver.prometheus` are dropped and used as Instrumentation Scope name and version respectively. All `otel_scope_info` metrics are dropped and labels on `otel_scope_info` metric points other than `otel_scope_name` and `otel_scope_version` are added as scope attributes with the matching name and version. (@wildum)
+
+- Added exemplars support to `otelcol.receiver.prometheus`. (@wildum)
+
 v0.38.0-rc.0 (2023-11-16)
 -------------------------
 
