@@ -12,9 +12,10 @@ import (
 	"net/url"
 	"os"
 	"strings"
-	"sync/atomic"
 	"testing"
 	"time"
+
+	"go.uber.org/atomic"
 
 	"github.com/gogo/protobuf/proto"
 	"github.com/golang/snappy"

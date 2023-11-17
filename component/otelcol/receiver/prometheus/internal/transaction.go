@@ -67,6 +67,7 @@ func newTransaction(
 	settings receiver.CreateSettings,
 	obsrecv *receiverhelper.ObsReport,
 	trimSuffixes bool) *transaction {
+
 	return &transaction{
 		ctx:             ctx,
 		families:        make(map[scopeID]map[string]*metricFamily),

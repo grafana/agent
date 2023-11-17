@@ -1458,7 +1458,6 @@ func TestMetricBuilderSummary(t *testing.T) {
 			tt.run(t)
 		})
 	}
-
 }
 
 type buildTestData struct {
@@ -1598,5 +1597,4 @@ func assertEquivalentMetrics(t *testing.T, want, got pmetric.Metrics) {
 			assert.EqualValues(t, wmap, gmap)
 		}
 	}
-
 }

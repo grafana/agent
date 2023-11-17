@@ -313,6 +313,7 @@ func (a *initialPointAdjuster) adjustMetricHistogram(tsm *timeseriesMap, current
 		if a.useCreatedMetric &&
 			!currentDist.Flags().NoRecordedValue() &&
 			currentDist.StartTimestamp() < currentDist.Timestamp() {
+
 			continue
 		}
 
@@ -355,6 +356,7 @@ func (a *initialPointAdjuster) adjustMetricSum(tsm *timeseriesMap, current pmetr
 		if a.useCreatedMetric &&
 			!currentSum.Flags().NoRecordedValue() &&
 			currentSum.StartTimestamp() < currentSum.Timestamp() {
+
 			continue
 		}
 
@@ -395,6 +397,7 @@ func (a *initialPointAdjuster) adjustMetricSummary(tsm *timeseriesMap, current p
 		if a.useCreatedMetric &&
 			!currentSummary.Flags().NoRecordedValue() &&
 			currentSummary.StartTimestamp() < currentSummary.Timestamp() {
+
 			continue
 		}
 
