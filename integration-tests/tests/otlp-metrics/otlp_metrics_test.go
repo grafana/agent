@@ -64,8 +64,8 @@ func assertHistogramData(t *testing.T, query string, expectedMetric string) {
 					assert.Greater(c, count, 10, "Count should be at some point greater than 10.")
 				}
 				if assert.NotEmpty(c, histogram.Data.Sum) {
-					count, _ := strconv.Atoi(histogram.Data.Sum)
-					assert.Greater(c, count, 10, "Sum should be at some point greater than 10.")
+					sum, _ := strconv.Atoi(histogram.Data.Sum)
+					assert.Greater(c, sum, 10, "Sum should be at some point greater than 10.")
 				}
 				assert.NotEmpty(c, histogram.Data.Buckets)
 				assert.Nil(c, metricResponse.Data.Result[0].Value)
