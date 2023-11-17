@@ -686,6 +686,57 @@ func TestWatcher_StopAndDrainWAL(t *testing.T) {
 		require.Equal(t, int(writeTo.entriesReceived.Load()), 20, "expected the watcher to fully drain the WAL")
 	})
 
+	t.Run("watcher should exit promptly after draining completely", func(t *testing.T) {
+		cfg := DefaultWatchConfig
+		// the drain timeout will be too long, for the amount of data remaining in the WAL (~15 entries more)
+		cfg.DrainTimeout = time.Second * 30
+		writeTo, watcher, wl := newTestingResources(t, cfg)
+		defer wl.Close()
+
+		ew := newEntryWriter()
+
+		// helper to add context to each written line
+		var lineCounter atomic.Int64
+		writeNLines := func(t *testing.T, n int) {
+			for i := 0; i < n; i++ {
+				// First, write to segment 0. This will be the last "marked" segment
+				err := ew.WriteEntry(loki.Entry{
+					Labels: labels,
+					Entry: logproto.Entry{
+						Timestamp: time.Now(),
+						Line:      fmt.Sprintf("test line %d", lineCounter.Load()),
+					},
+				}, wl, logger)
+				lineCounter.Add(1)
+				require.NoError(t, err)
+			}
+		}
+
+		// The test will write the WAL while the Watcher is running. First, 10 lines will be written to a segment, and the test
+		// will wait for the Watcher to have read 5 lines. After, a new segment will be cut, 10 other lines written, and the
+		// Watcher stopped with drain. The test will expect all 20 lines in total to have been received.
+
+		writeNLines(t, 10)
+
+		require.Eventually(t, func() bool {
+			return writeTo.entriesReceived.Load() >= 5
+		}, time.Second*11, time.Millisecond*500, "expected the write to catch up to half of the first segment")
+
+		_, err := wl.NextSegment()
+		require.NoError(t, err)
+		writeNLines(t, 10)
+		require.NoError(t, wl.Sync())
+
+		// Upon calling Stop drain, the Watcher should finish burning through segment 0, and also consume segment 1
+		now := time.Now()
+		watcher.Stop(true)
+
+		// expecting 15s (missing 15 entries * 1 sec delay in AppendEntries) +/- 1.1s (taking into account the drain timeout
+		// has one extra second.
+		require.InDelta(t, time.Second*15, time.Since(now), float64(time.Millisecond*1100), "expected the drain procedure to take around 15s")
+		require.Equal(t, int(writeTo.entriesReceived.Load()), 20, "expected the watcher to fully drain the WAL")
+	})
+
 	t.Run("watcher drain timeout too short, should exit promptly", func(t *testing.T) {
 		cfg := DefaultWatchConfig
 		// having a 10 seconds timeout should give the watcher enough time to only consume ~10 entries, and be missing ~5
