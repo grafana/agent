@@ -37,17 +37,17 @@ The following arguments are supported:
 
 Name               | Type                | Description                                | Default | Required
 ------------------ | ------------------- | ------------------------------------------ |---------| --------
-`files`            | `list(string)`      | Files to read and discover targets from.   |         | yes 
+`files`            | `list(string)`      | Files to read and discover targets from.   |         | yes
 `refresh_interval` | `duration`          | How often to sync targets.                 | "5m"    | no
 
-The last path segment of each element in `files` may contain a single * that matches any character sequence, e.g. `my/path/tg_*.json`.
+The last path segment of each element in `files` may contain a single * that matches any character sequence, for example, `my/path/tg_*.json`.
 
 ## Exported fields
 
 The following fields are exported and can be referenced by other components:
 
 Name      | Type                | Description
---------- | ------------------- | -----------
+----------|---------------------|---------------------------------------------------
 `targets` | `list(map(string))` | The set of targets discovered from the filesystem.
 
 Each target includes the following labels:
@@ -56,17 +56,16 @@ Each target includes the following labels:
 
 ## Component health
 
-`discovery.file` is only reported as unhealthy when given an invalid
-configuration. In those cases, exported fields retain their last healthy
-values.
+`discovery.file` is only reported as unhealthy when given an invalid configuration.
+In those cases, exported fields retain their last healthy values.
 
 ## Debug information
 
-`discovery.file` does not expose any component-specific debug information.
+`discovery.file` doesn't expose any component-specific debug information.
 
 ## Debug metrics
 
-`discovery.file` does not expose any component-specific debug metrics.
+`discovery.file` doesn't expose any component-specific debug metrics.
 
 ## Examples
 
@@ -102,8 +101,7 @@ values.
 
 ### Basic file discovery
 
-This example discovers targets from a single file, scrapes them, and writes metrics
-to a Prometheus remote write endpoint.
+This example discovers targets from a single file, scrapes them, and writes metrics to a Prometheus remote write endpoint.
 
 ```river
 discovery.file "example" {
@@ -117,25 +115,24 @@ prometheus.scrape "default" {
 
 prometheus.remote_write "demo" {
   endpoint {
-    url = PROMETHEUS_REMOTE_WRITE_URL
+    url = <PROMETHEUS_REMOTE_WRITE_URL>
 
     basic_auth {
-      username = USERNAME
-      password = PASSWORD
+      username = <USERNAME>
+      password = <PASSWORD>
     }
   }
 }
 ```
 
 Replace the following:
-  - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
-  - `USERNAME`: The username to use for authentication to the remote_write API.
-  - `PASSWORD`: The password to use for authentication to the remote_write API.
+  - _`<PROMETHEUS_REMOTE_WRITE_URL>`_: The URL of the Prometheus remote_write-compatible server to send metrics to.
+  - _`<USERNAME>`_: The username to use for authentication to the remote_write API.
+  - _`<PASSWORD>`_: The password to use for authentication to the remote_write API.
 
 ### File discovery with retained file path label
 
-This example discovers targets from a wildcard file path, scrapes them, and writes metrics
-to a Prometheus remote write endpoint.
+This example discovers targets from a wildcard file path, scrapes them, and writes metrics to a Prometheus remote write endpoint.
 
 It also uses a relabeling rule to retain the file path as a label on each target.
 
@@ -159,17 +156,17 @@ prometheus.scrape "default" {
 
 prometheus.remote_write "demo" {
   endpoint {
-    url = PROMETHEUS_REMOTE_WRITE_URL
+    url = <PROMETHEUS_REMOTE_WRITE_URL>
 
     basic_auth {
-      username = USERNAME
-      password = PASSWORD
+      username = <USERNAME>
+      password = <PASSWORD>
     }
   }
 }
 ```
 
 Replace the following:
-  - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
-  - `USERNAME`: The username to use for authentication to the remote_write API.
-  - `PASSWORD`: The password to use for authentication to the remote_write API.
+  - _`<PROMETHEUS_REMOTE_WRITE_URL>`_: The URL of the Prometheus remote_write-compatible server to send metrics to.
+  - _`<USERNAME>`_: The username to use for authentication to the remote_write API.
+  - _`<PASSWORD>`_: The password to use for authentication to the remote_write API.

@@ -29,62 +29,60 @@ discovery.hetzner "LABEL" {
 
 The following arguments are supported:
 
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`role` | `string` | Hetzner role of entities that should be discovered. | | yes
-`port` | `int` | The port to scrape metrics from. | `80` | no
-`refresh_interval` | `duration` | The time after which the servers are refreshed. | `"60s"` | no
-`bearer_token` | `secret` | Bearer token to authenticate with. | | no
-`bearer_token_file` | `string` | File containing a bearer token to authenticate with. | | no
-`proxy_url` | `string` | HTTP proxy to proxy requests through. | | no
-`follow_redirects` | `bool` | Whether redirects returned by the server should be followed. | `true` | no
-`enable_http2` | `bool` | Whether HTTP2 is supported for requests. | `true` | no
+Name                | Type       | Description                                                  | Default | Required
+--------------------|------------|--------------------------------------------------------------|---------|---------
+`role`              | `string`   | Hetzner role of entities that should be discovered.          |         | yes
+`bearer_token_file` | `string`   | File containing a bearer token to authenticate with.         |         | no
+`bearer_token`      | `secret`   | Bearer token to authenticate with.                           |         | no
+`enable_http2`      | `bool`     | Whether HTTP2 is supported for requests.                     | `true`  | no
+`follow_redirects`  | `bool`     | Whether redirects returned by the server should be followed. | `true`  | no
+`port`              | `int`      | The port to scrape metrics from.                             | `80`    | no
+`proxy_url`         | `string`   | HTTP proxy to proxy requests through.                        |         | no
+`refresh_interval`  | `duration` | The time after which the servers are refreshed.              | `"60s"` | no
 
 `role` must be one of `robot` or `hcloud`.
 
- You can provide one of the following arguments for authentication:
- - [`bearer_token` argument](#arguments).
- - [`bearer_token_file` argument](#arguments). 
- - [`basic_auth` block][basic_auth].
- - [`authorization` block][authorization].
- - [`oauth2` block][oauth2].
+You can provide one of the following arguments for authentication:
+- [`authorization` block][authorization].
+- [`basic_auth` block][basic_auth].
+- [`bearer_token_file` argument](#arguments).
+- [`bearer_token` argument](#arguments).
+- [`oauth2` block][oauth2].
 
 [arguments]: #arguments
 
 ## Blocks
 
-The following blocks are supported inside the definition of
-`discovery.hetzner`:
+The following blocks are supported inside the definition of `discovery.hetzner`:
 
-Hierarchy | Block | Description | Required
---------- | ----- | ----------- | --------
-basic_auth | [basic_auth][] | Configure basic_auth for authenticating to the endpoint. | no
-authorization | [authorization][] | Configure generic authorization to the endpoint. | no
-oauth2 | [oauth2][] | Configure OAuth2 for authenticating to the endpoint. | no
-oauth2 > tls_config | [tls_config][] | Configure TLS settings for connecting to the endpoint. | no
+Hierarchy           | Block             | Description                                              | Required
+--------------------|-------------------|----------------------------------------------------------|---------
+authorization       | [authorization][] | Configure generic authorization to the endpoint.         | no
+basic_auth          | [basic_auth][]    | Configure basic_auth for authenticating to the endpoint. | no
+oauth2              | [oauth2][]        | Configure OAuth2 for authenticating to the endpoint.     | no
+oauth2 > tls_config | [tls_config][]    | Configure TLS settings for connecting to the endpoint.   | no
 
-The `>` symbol indicates deeper levels of nesting. For example,
-`oauth2 > tls_config` refers to a `tls_config` block defined inside
-an `oauth2` block.
+The `>` symbol indicates deeper levels of nesting.
+For example, `oauth2 > tls_config` refers to a `tls_config` block defined inside an `oauth2` block.
 
 [basic_auth]: #basic_auth-block
 [authorization]: #authorization-block
 [oauth2]: #oauth2-block
 [tls_config]: #tls_config-block
 
-### basic_auth block
-
-{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" version="<AGENT VERSION>" >}}
-
-### authorization block
+### authorization
 
 {{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" version="<AGENT VERSION>" >}}
 
-### oauth2 block
+### basic_auth
+
+{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" version="<AGENT VERSION>" >}}
+
+### oauth2
 
 {{< docs/shared lookup="flow/reference/components/oauth2-block.md" source="agent" version="<AGENT VERSION>" >}}
 
-### tls_config block
+### oauth2 > tls_config
 
 {{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" version="<AGENT VERSION>" >}}
 

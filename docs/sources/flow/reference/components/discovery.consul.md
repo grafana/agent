@@ -104,19 +104,19 @@ Name      | Type                | Description
 
 Each target includes the following labels:
 
-* `__meta_consul_address`: the address of the target.
-* `__meta_consul_dc`: the datacenter name for the target.
-* `__meta_consul_health`: the health status of the service.
-* `__meta_consul_metadata_<key>`: each node metadata key value of the target.
-* `__meta_consul_node`: the node name defined for the target.
-* `__meta_consul_partition`: the admin partition name where the service is registered.
-* `__meta_consul_service_address`: the service address of the target.
-* `__meta_consul_service_id`: the service ID of the target.
-* `__meta_consul_service_metadata_<key>`: each service metadata key value of the target.
-* `__meta_consul_service_port`: the service port of the target.
-* `__meta_consul_service`: the name of the service the target belongs to.
-* `__meta_consul_tagged_address_<key>`: each node tagged address key value of the target.
-* `__meta_consul_tags`: the list of tags of the target joined by the tag separator.
+* `__meta_consul_address`: The address of the target.
+* `__meta_consul_dc`: The datacenter name for the target.
+* `__meta_consul_health`: The health status of the service.
+* `__meta_consul_metadata_<key>`: Each node metadata key value of the target.
+* `__meta_consul_node`: The node name defined for the target.
+* `__meta_consul_partition`: The admin partition name where the service is registered.
+* `__meta_consul_service_address`: The service address of the target.
+* `__meta_consul_service_id`: The service ID of the target.
+* `__meta_consul_service_metadata_<key>`: Each service metadata key value of the target.
+* `__meta_consul_service_port`: The service port of the target.
+* `__meta_consul_service`: The name of the service the target belongs to.
+* `__meta_consul_tagged_address_<key>`: Each node tagged address key value of the target.
+* `__meta_consul_tags`: The list of tags of the target joined by the tag separator.
 
 ## Component health
 
@@ -160,6 +160,6 @@ prometheus.remote_write "demo" {
 }
 ```
 Replace the following:
-  - `<PROMETHEUS_REMOTE_WRITE_URL>`: The URL of the Prometheus remote_write-compatible server to send metrics to.
-  - `<USERNAME>`: The username to use for authentication to the remote_write API.
-  - `<PASSWORD>`: The password to use for authentication to the remote_write API.
+  - _`<PROMETHEUS_REMOTE_WRITE_URL>`_: The URL of the Prometheus remote_write-compatible server to send metrics to.
+  - _`<USERNAME>`_: The username to use for authentication to the remote_write API.
+  - _`<PASSWORD>`_: The password to use for authentication to the remote_write API.

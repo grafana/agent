@@ -168,9 +168,9 @@ prometheus.remote_write "demo" {
 }
 ```
 Replace the following:
-  - `<PROMETHEUS_REMOTE_WRITE_URL>`: The URL of the Prometheus remote_write-compatible server to send metrics to.
-  - `<USERNAME>`: The username to use for authentication to the remote_write API.
-  - `<PASSWORD>`: The password to use for authentication to the remote_write API.
+  - _`<PROMETHEUS_REMOTE_WRITE_URL>`_: The URL of the Prometheus remote_write-compatible server to send metrics to.
+  - _`<USERNAME>`_: The username to use for authentication to the remote_write API.
+  - _`<PASSWORD>`_: The password to use for authentication to the remote_write API.
 
 ### Windows hosts
 
@@ -198,9 +198,9 @@ prometheus.remote_write "demo" {
 }
 ```
 Replace the following:
-  - `<PROMETHEUS_REMOTE_WRITE_URL>`: The URL of the Prometheus remote_write-compatible server to send metrics to.
-  - `<USERNAME>`: The username to use for authentication to the remote_write API.
-  - `<PASSWORD>`: The password to use for authentication to the remote_write API.
+  - _`<PROMETHEUS_REMOTE_WRITE_URL>`_: The URL of the Prometheus remote_write-compatible server to send metrics to.
+  - _`<USERNAME>`_: The username to use for authentication to the remote_write API.
+  - _`<PASSWORD>`_: The password to use for authentication to the remote_write API.
 
 {{% admonition type="note" %}}
 This example requires the "Expose daemon on tcp://localhost:2375 without TLS" setting to be enabled in the Docker Engine settings.

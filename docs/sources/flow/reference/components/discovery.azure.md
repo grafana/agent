@@ -141,10 +141,10 @@ prometheus.remote_write "demo" {
 }
 ```
 Replace the following:
-  - `<AZURE_SUBSCRIPTION_ID>`: Your Azure subscription ID.
-  - `<AZURE_CLIENT_ID>`: Your Azure client ID.
-  - `<AZURE_CLIENT_SECRET>`: Your Azure client secret.
-  - `<AZURE_TENANT_ID>`: Your Azure tenant ID.
-  - `<PROMETHEUS_REMOTE_WRITE_URL>`: The URL of the Prometheus remote_write-compatible server to send metrics to.
-  - `<USERNAME>`: The username to use for authentication to the remote_write API.
-  - `<PASSWORD>`: The password to use for authentication to the remote_write API.
+  - _`<AZURE_SUBSCRIPTION_ID>`_: Your Azure subscription ID.
+  - _`<AZURE_CLIENT_ID>`_: Your Azure client ID.
+  - _`<AZURE_CLIENT_SECRET>`_: Your Azure client secret.
+  - _`<AZURE_TENANT_ID>`_: Your Azure tenant ID.
+  - _`<PROMETHEUS_REMOTE_WRITE_URL>`_: The URL of the Prometheus remote_write-compatible server to send metrics to.
+  - _`<USERNAME>`_: The username to use for authentication to the remote_write API.
+  - _`<PASSWORD>`_: The password to use for authentication to the remote_write API.
