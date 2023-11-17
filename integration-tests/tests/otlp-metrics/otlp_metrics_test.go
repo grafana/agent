@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"strconv"
 	"testing"
 
 	"github.com/grafana/agent/integration-tests/common"
@@ -16,34 +17,36 @@ func metricQuery(metricName string) string {
 
 func TestOTLPMetrics(t *testing.T) {
 	tests := []struct {
-		query  string
 		metric string
 	}{
 		// TODO: better differentiate these metric types?
-		{metricQuery("example_counter"), "example_counter"},
-		{metricQuery("example_float_counter"), "example_float_counter"},
-		{metricQuery("example_updowncounter"), "example_updowncounter"},
-		{metricQuery("example_float_updowncounter"), "example_float_updowncounter"},
-		{metricQuery("example_histogram_bucket"), "example_histogram_bucket"},
-		{metricQuery("example_float_histogram_bucket"), "example_float_histogram_bucket"},
+		{"example_counter"},
+		{"example_float_counter"},
+		{"example_updowncounter"},
+		{"example_float_updowncounter"},
+		{"example_histogram_bucket"},
+		{"example_float_histogram_bucket"},
 	}
 
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.metric, func(t *testing.T) {
 			t.Parallel()
-			assertMetricData(t, tt.query, tt.metric)
+			assertMetricData(t, metricQuery(tt.metric), tt.metric)
 		})
 	}
-	t.Run("example_exponential_histogram", func(t *testing.T) {
-		t.Parallel()
-		assertHistogramData(t, metricQuery("example_exponential_histogram"), "example_exponential_histogram")
-	})
 
-	t.Run("example_exponential_float_histogram", func(t *testing.T) {
-		t.Parallel()
-		assertHistogramData(t, metricQuery("example_exponential_float_histogram"), "example_exponential_float_histogram")
-	})
+	histogramTests := []string{
+		"example_exponential_histogram",
+		"example_exponential_float_histogram",
+	}
+
+	for _, metric := range histogramTests {
+		t.Run(metric, func(t *testing.T) {
+			t.Parallel()
+			assertHistogramData(t, metricQuery(metric), metric)
+		})
+	}
 }
 
 func assertHistogramData(t *testing.T, query string, expectedMetric string) {
@@ -56,8 +59,14 @@ func assertHistogramData(t *testing.T, query string, expectedMetric string) {
 			assert.Equal(c, metricResponse.Data.Result[0].Metric.TestName, "otlp_metrics")
 			if assert.NotNil(c, metricResponse.Data.Result[0].Histogram) {
 				histogram := metricResponse.Data.Result[0].Histogram
-				assert.NotEmpty(c, histogram.Data.Count)
-				assert.NotEmpty(c, histogram.Data.Sum)
+				if assert.NotEmpty(c, histogram.Data.Count) {
+					count, _ := strconv.Atoi(histogram.Data.Count)
+					assert.Greater(c, count, 10, "Count should be at some point greater than 10.")
+				}
+				if assert.NotEmpty(c, histogram.Data.Sum) {
+					count, _ := strconv.Atoi(histogram.Data.Sum)
+					assert.Greater(c, count, 10, "Sum should be at some point greater than 10.")
+				}
 				assert.NotEmpty(c, histogram.Data.Buckets)
 				assert.Nil(c, metricResponse.Data.Result[0].Value)
 			}

@@ -2,7 +2,7 @@ version: "3"
 services:
 
   mimir:
-    image: grafana/mimir:latest
+    image: grafana/mimir:2.10.4
     volumes:
       - ./configs/mimir:/etc/mimir-config
     entrypoint:
