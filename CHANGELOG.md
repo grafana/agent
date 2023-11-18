@@ -207,7 +207,7 @@ v0.38.0 (2023-11-21)
 - `loki.source.windowsevent` and `loki.source.*` changed to use a more robust positions file to prevent corruption on reboots when writing
   the positions file. (@mattdurham)
 
-- Fix CVE-2023-47108 by bumping `go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc` to v0.46.0 and correspondingly refactor. (hainenber)
+- Fix CVE-2023-47108 by bumping `go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc` to v0.46.0 and correspondingly refactor. (@hainenber)
 
 v0.37.4 (2023-11-06)
 -----------------

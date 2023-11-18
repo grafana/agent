@@ -16,7 +16,6 @@ import (
 	tracesdk "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.21.0"
 	"go.opentelemetry.io/otel/trace"
-	"go.opentelemetry.io/otel/trace/embedded"
 )
 
 const serviceName = "grafana-agent"
@@ -77,7 +76,7 @@ func (opts *JaegerRemoteSamplerOptions) SetToDefault() {
 // [trace.TracerProvider] and can be used to forward internally generated
 // traces to a OpenTelemetry Collector-compatible Flow component.
 type Tracer struct {
-	embedded.TracerProvider
+	trace.TracerProvider
 	sampler *lazySampler
 	client  *client
 	exp     *otlptrace.Exporter
