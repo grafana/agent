@@ -168,9 +168,9 @@ used. When provided, `agent.configMap.content` must hold a valid River configura
 
 [default-config]: ./config/example.river
 
-### controller.securityContext
+### agent.securityContext
 
-`controller.securityContext` sets the securityContext passed to the Grafana
+`agent.securityContext` sets the securityContext passed to the Grafana
 Agent container.
 
 By default, Grafana Agent containers are not able to collect telemetry from the
@@ -241,7 +241,7 @@ This capability is disabled by default.
 To expose logs from other containers to Grafana Agent:
 
 * Set `agent.mounts.dockercontainers` to `true`.
-* Set `controller.securityContext` to:
+* Set `agent.securityContext` to:
   ```yaml
   privileged: true
   runAsUser: 0
@@ -256,7 +256,7 @@ To expose this information to Grafana Agent for telemetry collection:
 
 * Set `agent.mounts.dockercontainers` to `true`.
 * Mount `/proc` and `/sys` from the host into the container.
-* Set `controller.securityContext` to:
+* Set `agent.securityContext` to:
   ```yaml
   privileged: true
   runAsUser: 0

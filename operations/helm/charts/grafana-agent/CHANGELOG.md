@@ -15,6 +15,8 @@ Unreleased
 - Ensure that `app.kubernetes.io/version` label accounts for any 
   image tag overrides supplied to the chart Values. (@tristanburgess)
 
+- Update `container.securityContext` Helm value reference to renamed `agent.securityContext`. (@hainenber)
+
 0.27.2 (2023-11-07)
 ----------
 
