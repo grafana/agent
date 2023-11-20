@@ -10,6 +10,10 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+### Bugfixes
+
+- Fix default configuration file `grafana-agent-flow.river` used in downstream packages. (@bricewge)
+
 v0.38.0-rc.0 (2023-11-16)
 -------------------------
 
@@ -107,8 +111,6 @@ v0.38.0-rc.0 (2023-11-16)
 - Updated windows exporter to use prometheus-community/windows_exporter commit 1836cd1. (@mattdurham)
 
 ### Bugfixes
-
-- Fix default configuration file `grafana-agent-flow.river` used in downstream packages. (@bricewge)
 
 - Set exit code 1 on grafana-agentctl non-runnable command. (@fgouteroux)
 
