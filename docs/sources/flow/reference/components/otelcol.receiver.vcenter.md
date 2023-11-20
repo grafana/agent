@@ -78,8 +78,8 @@ The following blocks are supported inside the definition of
 Hierarchy | Block | Description | Required
 --------- | ----- | ----------- | --------
 tls | [tls][] | Configures TLS for the HTTP client. | no
-metrics | [metrics][] | Configures the metrics that this component generates to monitor its state. | no
-resource_attributes | [resource_attributes][] | Configures the resource attributes that this component generates to annotate telemetry data. | no
+metrics | [metrics][] | Configures which metrics will be sent to downstream components. | no
+resource_attributes | [resource_attributes][] | Configures resource attributes for metrics sent to downstream components. | no
 debug_metrics | [debug_metrics][] | Configures the metrics that this component generates to monitor its state. | no
 output | [output][] | Configures where to send received telemetry data. | yes
 
