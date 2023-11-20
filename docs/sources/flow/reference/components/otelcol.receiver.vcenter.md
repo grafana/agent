@@ -135,7 +135,7 @@ Name | Type | Description | Default | Required
 `vcenter.vm.memory.swapped` | `metric` | Enables the `vcenter.vm.memory.swapped` metric. | `true` | no
 `vcenter.vm.memory.swapped_ssd` | `metric` | Enables the `vcenter.vm.memory.swapped_ssd` metric. | `true` | no
 `vcenter.vm.memory.usage` | `metric` | Enables the `vcenter.vm.memory.usage` metric. | `true` | no
-`vcenter.vm.memory.utilization` | `metric` | Enables the `vcenter.vm.memory.utilization` metric. | `true` | no
+`vcenter.vm.memory.utilization` | `metric` | Enables the `vcenter.vm.memory.utilization` metric. | `false` | no
 `vcenter.vm.network.packet.count` | `metric` | Enables the `vcenter.vm.network.packet.count` metric. | `true` | no
 `vcenter.vm.network.throughput` | `metric` | Enables the `vcenter.vm.network.throughput` metric. | `true` | no
 `vcenter.vm.network.usage` | `metric` | Enables the `vcenter.vm.network.usage` metric. | `true` | no
