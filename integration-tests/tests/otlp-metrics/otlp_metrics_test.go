@@ -42,6 +42,7 @@ func TestOTLPMetrics(t *testing.T) {
 	}
 
 	for _, metric := range histogramTests {
+		metric := metric
 		t.Run(metric, func(t *testing.T) {
 			t.Parallel()
 			assertHistogramData(t, metricQuery(metric), metric)
