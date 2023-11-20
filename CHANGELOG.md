@@ -108,6 +108,8 @@ v0.38.0-rc.0 (2023-11-16)
 
 ### Bugfixes
 
+- Fix default configuration file `grafana-agent-flow.river` used in downstream packages. (@bricewge)
+
 - Set exit code 1 on grafana-agentctl non-runnable command. (@fgouteroux)
 
 - Fixed an issue where `loki.process` validation for stage `metric.counter` was
