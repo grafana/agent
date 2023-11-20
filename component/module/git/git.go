@@ -3,6 +3,7 @@ package git
 
 import (
 	"context"
+	"errors"
 	"path/filepath"
 	"reflect"
 	"sync"
@@ -91,8 +92,15 @@ func New(o component.Options, args Arguments) (*Component, error) {
 		argsChanged: make(chan struct{}, 1),
 	}
 
+	// Only acknowledge the error from Update if it's not a
+	// vcs.UpdateFailedError; vcs.UpdateFailedError means that the Git repo
+	// exists but we were just unable to update it.
 	if err := c.Update(args); err != nil {
-		return nil, err
+		if errors.As(err, &vcs.UpdateFailedError{}) {
+			level.Error(c.log).Log("msg", "failed to update repository", "err", err)
+		} else {
+			return nil, err
+		}
 	}
 	return c, nil
 }
@@ -193,10 +201,16 @@ func (c *Component) Update(args component.Arguments) (err error) {
 	}
 
 	// Create or update the repo field.
+	// Failure to update repository makes the module loader temporarily use cached contents on disk
 	if c.repo == nil || !reflect.DeepEqual(repoOpts, c.repoOpts) {
 		r, err := vcs.NewGitRepo(context.Background(), repoPath, repoOpts)
 		if err != nil {
-			return err
+			if errors.As(err, &vcs.UpdateFailedError{}) {
+				level.Error(c.log).Log("msg", "failed to update repository", "err", err)
+				c.updateHealth(err)
+			} else {
+				return err
+			}
 		}
 		c.repo = r
 		c.repoOpts = repoOpts

@@ -26,7 +26,7 @@ For a complete list of changes to Grafana Agent, with links to pull requests and
 
 {{% docs/reference %}}
 [release-notes-static]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/release-notes"
-[release-notes-static]: "/docs/agent/ -> /docs/grafana-cloud/monitor-infrastructure/agent/static/release-notes"
+[release-notes-static]: "/docs/agent/ -> /docs/grafana-cloud/send-data/agent/static/release-notes"
 
 [release-notes-flow]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/flow/release-notes"
 [release-notes-flow]: "/docs/grafana-cloud/ -> /docs/agent/<AGENT VERSION>/flow/release-notes"
