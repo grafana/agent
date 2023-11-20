@@ -4,8 +4,10 @@ import (
 	"testing"
 	"time"
 
+	commoncfg "github.com/grafana/agent/component/common/config"
 	"github.com/grafana/agent/pkg/integrations/elasticsearch_exporter"
 	"github.com/grafana/river"
+	"github.com/grafana/river/rivertypes"
 	"github.com/stretchr/testify/require"
 )
 
@@ -27,6 +29,10 @@ func TestRiverUnmarshal(t *testing.T) {
 	ssl_skip_verify      = true
 	data_stream          = true
 	slm                  = true
+	basic_auth {
+		username = "username"
+		password = "pass"
+	}
 	`
 
 	var args Arguments
@@ -50,6 +56,10 @@ func TestRiverUnmarshal(t *testing.T) {
 		InsecureSkipVerify:        true,
 		ExportDataStreams:         true,
 		ExportSLM:                 true,
+		BasicAuth: &commoncfg.BasicAuth{
+			Username: "username",
+			Password: rivertypes.Secret("pass"),
+		},
 	}
 
 	require.Equal(t, expected, args)
@@ -73,6 +83,10 @@ func TestConvert(t *testing.T) {
 	ssl_skip_verify      = true
 	data_stream          = true
 	slm                  = true
+	basic_auth {
+		username = "username"
+		password = "pass"
+	}
 	`
 	var args Arguments
 	err := river.Unmarshal([]byte(riverConfig), &args)
@@ -97,6 +111,10 @@ func TestConvert(t *testing.T) {
 		InsecureSkipVerify:        true,
 		ExportDataStreams:         true,
 		ExportSLM:                 true,
+		BasicAuth: &commoncfg.BasicAuth{
+			Username: "username",
+			Password: rivertypes.Secret("pass"),
+		},
 	}
 	require.Equal(t, expected, *res)
 }

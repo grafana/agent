@@ -31,6 +31,8 @@ Main (unreleased)
   Previously, only `remote.*` and `local.*` components could be referenced
   without a circular dependency. (@rfratto)
 
+- Add support for Basic Auth-secured connection with Elasticsearch cluster using `prometheus.exporter.elasticsearch`. (@hainenber)
+
 ### Bugfixes
 
 - Permit `X-Faro-Session-ID` header in CORS requests for the `faro.receiver`
