@@ -1,7 +1,8 @@
 {{- define "grafana-agent.pod-template" -}}
 metadata:
-  {{- with .Values.controller.podAnnotations }}
   annotations:
+    checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+  {{- with .Values.controller.podAnnotations }}
     {{- toYaml . | nindent 4 }}
   {{- end }}
   labels:

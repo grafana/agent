@@ -288,3 +288,6 @@ ingress:
   #  - secretName: chart-example-tls
   #    hosts:
   #      - chart-example.local
+
+# definition of secrets which are accessible through environment variables in the agent container
+secrets: {}
