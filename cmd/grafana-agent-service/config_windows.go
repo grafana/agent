@@ -16,8 +16,9 @@ type config struct {
 	// not included.
 	Args []string
 
-	// Environment holds arguments to pass to the Grafana Agent binary. os.Environ is
-	// included.
+	// Environment holds environment variables for the Grafana Agent service.
+	// Each item represents an environment variable in form "key=value".
+	// All environments variables from the current process with be merged into Environment
 	Environment []string
 
 	// WorkingDirectory points to the working directory to run the Grafana Agent
