@@ -45,7 +45,7 @@ This example uses a [`prometheus.scrape` component][scrape] to collect metrics
 from `prometheus.exporter.agent`:
 
 ```river
-prometheus.exporter.agent "agent" {}
+prometheus.exporter.agent "example" {}
 
 // Configure a prometheus.scrape component to collect agent metrics.
 prometheus.scrape "demo" {
