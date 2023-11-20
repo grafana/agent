@@ -110,6 +110,8 @@ v0.38.0-rc.0 (2023-11-16)
 
 - Updated windows exporter to use prometheus-community/windows_exporter commit 1836cd1. (@mattdurham)
 
+- Allow agent to start with `module.git` config if cached before. (@hainenber)
+
 ### Bugfixes
 
 - Set exit code 1 on grafana-agentctl non-runnable command. (@fgouteroux)
