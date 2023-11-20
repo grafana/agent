@@ -10,6 +10,13 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+v0.38.0-rc.1 (2023-11-20)
+-------------------------
+
+### Enhancements
+
+- Allow agent to start with `module.git` config if cached before. (@hainenber)
+
 ### Bugfixes
 
 - Fix default configuration file `grafana-agent-flow.river` used in downstream packages. (@bricewge)
@@ -111,8 +118,6 @@ v0.38.0-rc.0 (2023-11-16)
 - Improved resilience of graph evaluation in presence of slow components. (@thampiotr)
 
 - Updated windows exporter to use prometheus-community/windows_exporter commit 1836cd1. (@mattdurham)
-
-- Allow agent to start with `module.git` config if cached before. (@hainenber)
 
 ### Bugfixes
 
