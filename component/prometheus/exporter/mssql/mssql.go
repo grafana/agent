@@ -3,9 +3,9 @@ package mssql
 import (
 	"errors"
 	"fmt"
-	"os"
 	"time"
 
+	"github.com/burningalchemist/sql_exporter/config"
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/prometheus/exporter"
 	"github.com/grafana/agent/pkg/integrations"
@@ -13,6 +13,7 @@ import (
 	"github.com/grafana/agent/pkg/util"
 	"github.com/grafana/river/rivertypes"
 	config_util "github.com/prometheus/common/config"
+	"gopkg.in/yaml.v2"
 )
 
 func init() {
@@ -43,7 +44,6 @@ type Arguments struct {
 	MaxIdleConnections int                       `river:"max_idle_connections,attr,optional"`
 	MaxOpenConnections int                       `river:"max_open_connections,attr,optional"`
 	Timeout            time.Duration             `river:"timeout,attr,optional"`
-	QueryConfigFile    string                    `river:"query_config_file,attr,optional"`
 	QueryConfig        rivertypes.OptionalSecret `river:"query_config,attr,optional"`
 }
 
@@ -66,18 +66,10 @@ func (a *Arguments) Validate() error {
 		return errors.New("timeout must be positive")
 	}
 
-	if a.QueryConfigFile != "" {
-		_, err := os.Stat(a.QueryConfigFile)
-
-		if err == nil {
-			return nil
-		}
-
-		if errors.Is(err, os.ErrNotExist) {
-			return errors.New("query_config_file must be a valid path of a YAML config file")
-		} else {
-			return fmt.Errorf("query_config_file file has issues: %w", err)
-		}
+	var collectorConfig config.CollectorConfig
+	err := yaml.UnmarshalStrict([]byte(a.QueryConfig.Value), &collectorConfig)
+	if err != nil {
+		return fmt.Errorf("invalid query_config: %s", err)
 	}
 
 	return nil
@@ -89,7 +81,6 @@ func (a *Arguments) Convert() *mssql.Config {
 		MaxIdleConnections: a.MaxIdleConnections,
 		MaxOpenConnections: a.MaxOpenConnections,
 		Timeout:            a.Timeout,
-		QueryConfigFile:    a.QueryConfigFile,
 		QueryConfig:        util.RawYAML(a.QueryConfig.Value),
 	}
 }

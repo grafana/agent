@@ -89,13 +89,7 @@ Full reference of options:
   # The timeout for scraping metrics from the MSSQL instance.
   [timeout: <duration> | default = "10s"]
 
-  # Path to a YAML configuration file with custom Prometheus metrics and MSSQL queries.
-  # This field has precedence to the config defined in the query_config block.
-  # See https://github.com/burningalchemist/sql_exporter#collectors for more details how to specify your configuration file.
-  [query_config_file: <string>]
-
-  # Embedded MSSQL query configuration for custom MSSQL Prometheus metrics.
-  # You can specify your metrics and queries here instead of in an external configuration file.
+  # Embedded MSSQL query configuration for specifying custom MSSQL Prometheus metrics.
   # See https://github.com/burningalchemist/sql_exporter#collectors for more details how to specify your metric configurations.
   query_config: 
     [- <metrics> ... ]
@@ -103,9 +97,9 @@ Full reference of options:
 ```
 
 ## Custom metrics
-You can use the optional `query_config_file` or `query_config` parameters to retrieve custom Prometheus metrics for a MSSQL instance.
+You can use the optional `query_config` parameter to retrieve custom Prometheus metrics for a MSSQL instance.
 
-If either of these are defined, they will use the new configuration to query your MSSQL instance and create whatever Prometheus metrics are defined.
+If this is defined, the new configuration will be used to query your MSSQL instance and create whatever Prometheus metrics are defined.
 If you want additional metrics on top of the default metrics, the default configuration must be used as a base.
 
 The default configuration used by this integration is as follows:

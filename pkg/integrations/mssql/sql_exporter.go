@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
-	"os"
 	"time"
 
 	"github.com/go-kit/log"
@@ -34,7 +33,6 @@ type Config struct {
 	MaxIdleConnections int                `yaml:"max_idle_connections,omitempty"`
 	MaxOpenConnections int                `yaml:"max_open_connections,omitempty"`
 	Timeout            time.Duration      `yaml:"timeout,omitempty"`
-	QueryConfigFile    string             `yaml:"query_config_file,omitempty"`
 	QueryConfig        util.RawYAML       `yaml:"query_config,omitempty"`
 }
 
@@ -62,20 +60,6 @@ func (c Config) validate() error {
 
 	if c.Timeout <= 0 {
 		return errors.New("timeout must be positive")
-	}
-
-	if c.QueryConfigFile != "" {
-		_, err := os.Stat(c.QueryConfigFile)
-
-		if err == nil {
-			return nil
-		}
-
-		if errors.Is(err, os.ErrNotExist) {
-			return errors.New("query_config_file must be a valid path of a YAML config file")
-		} else {
-			return fmt.Errorf("query_config_file file has issues: %w", err)
-		}
 	}
 
 	return nil
@@ -122,7 +106,7 @@ func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) 
 	}
 
 	// Initialize collectorConfig from config params if needed
-	customCollectorConfig, err := createCollectorConfig(c.QueryConfigFile, c.QueryConfig)
+	customCollectorConfig, err := createCollectorConfig(c.QueryConfig)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create mssql target: %w", err)
 	}
@@ -158,21 +142,8 @@ func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) 
 	), nil
 }
 
-func createCollectorConfig(queryConfigFile string, queryConfig util.RawYAML) (*config.CollectorConfig, error) {
+func createCollectorConfig(queryConfig util.RawYAML) (*config.CollectorConfig, error) {
 	var customCollectorConfig *config.CollectorConfig
-
-	if queryConfigFile != "" {
-		yamlFile, err := os.ReadFile(queryConfigFile)
-		if err != nil {
-			return nil, fmt.Errorf("problem reading query_config_file: %w", err)
-		}
-		err = yaml.Unmarshal(yamlFile, &customCollectorConfig)
-		if err != nil {
-			return nil, fmt.Errorf("query_config_file file not in correct format: %w", err)
-		}
-
-		return customCollectorConfig, nil
-	}
 
 	if err := yaml.Unmarshal(queryConfig, &customCollectorConfig); err != nil {
 		return nil, fmt.Errorf("query_config not in correct format: %w", err)

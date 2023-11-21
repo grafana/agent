@@ -150,7 +150,7 @@ v0.38.0 (2023-11-21)
 
 - Allow agent to start with `module.git` config if cached before. (@hainenber)
 
-- Adds new optional config parameters `query_config_file` and `query_config` to `mssql` integration to allow for custom metrics (@StefanKurek)
+- Adds new optional config parameter `query_config` to `mssql` integration to allow for custom metrics (@StefanKurek)
 
 ### Bugfixes
 
