@@ -5,70 +5,68 @@ import (
 	"github.com/grafana/agent/pkg/integrations"
 	integrations_v2 "github.com/grafana/agent/pkg/integrations/v2"
 	"github.com/grafana/agent/pkg/integrations/v2/metricsutils"
+	col "github.com/prometheus-community/windows_exporter/pkg/collector"
 )
 
 // DefaultConfig holds the default settings for the windows_exporter integration.
 var DefaultConfig = Config{
-	// NOTE(rfratto): there is an init function in config_windows.go that
-	// populates defaults for collectors based on the exporter defaults.
 	EnabledCollectors: "cpu,cs,logical_disk,net,os,service,system",
-
 	Dfsr: DfsrConfig{
-		SourcesEnabled: "",
+		SourcesEnabled: col.ConfigDefaults.Dfsr.DfsrEnabledCollectors,
 	},
 	Exchange: ExchangeConfig{
-		EnabledList: "",
+		EnabledList: col.ConfigDefaults.Exchange.CollectorsEnabled,
 	},
 	IIS: IISConfig{
-		AppBlackList:  "",
-		AppWhiteList:  "",
-		SiteBlackList: "",
-		SiteWhiteList: "",
-		AppInclude:    "",
-		AppExclude:    "",
-		SiteInclude:   "",
-		SiteExclude:   "",
+		AppBlackList:  col.ConfigDefaults.Iis.AppExclude,
+		AppWhiteList:  col.ConfigDefaults.Iis.AppInclude,
+		SiteBlackList: col.ConfigDefaults.Iis.SiteExclude,
+		SiteWhiteList: col.ConfigDefaults.Iis.SiteInclude,
+		AppInclude:    col.ConfigDefaults.Iis.AppInclude,
+		AppExclude:    col.ConfigDefaults.Iis.AppExclude,
+		SiteInclude:   col.ConfigDefaults.Iis.SiteInclude,
+		SiteExclude:   col.ConfigDefaults.Iis.SiteExclude,
 	},
 	LogicalDisk: LogicalDiskConfig{
-		BlackList: "",
-		WhiteList: "",
-		Include:   "",
-		Exclude:   "",
+		BlackList: col.ConfigDefaults.LogicalDisk.VolumeExclude,
+		WhiteList: col.ConfigDefaults.LogicalDisk.VolumeInclude,
+		Include:   col.ConfigDefaults.LogicalDisk.VolumeInclude,
+		Exclude:   col.ConfigDefaults.LogicalDisk.VolumeExclude,
 	},
 	MSMQ: MSMQConfig{
-		Where: "",
+		Where: col.ConfigDefaults.Msmq.QueryWhereClause,
 	},
 	MSSQL: MSSQLConfig{
-		EnabledClasses: "",
+		EnabledClasses: col.ConfigDefaults.Mssql.EnabledCollectors,
 	},
 	Network: NetworkConfig{
-		BlackList: "",
-		WhiteList: "",
-		Include:   "",
-		Exclude:   "",
+		BlackList: col.ConfigDefaults.Net.NicExclude,
+		WhiteList: col.ConfigDefaults.Net.NicInclude,
+		Include:   col.ConfigDefaults.Net.NicInclude,
+		Exclude:   col.ConfigDefaults.Net.NicExclude,
 	},
 	Process: ProcessConfig{
-		BlackList: "",
-		WhiteList: "",
-		Include:   "",
-		Exclude:   "",
+		BlackList: col.ConfigDefaults.Process.ProcessExclude,
+		WhiteList: col.ConfigDefaults.Process.ProcessInclude,
+		Include:   col.ConfigDefaults.Process.ProcessInclude,
+		Exclude:   col.ConfigDefaults.Process.ProcessExclude,
 	},
 	ScheduledTask: ScheduledTaskConfig{
-		Include: "",
-		Exclude: "",
+		Include: col.ConfigDefaults.ScheduledTask.TaskInclude,
+		Exclude: col.ConfigDefaults.ScheduledTask.TaskExclude,
 	},
 	Service: ServiceConfig{
-		UseApi: "",
-		Where:  "",
+		UseApi: "false",
+		Where:  col.ConfigDefaults.Service.ServiceWhereClause,
 	},
 	SMTP: SMTPConfig{
-		BlackList: "",
-		WhiteList: "",
-		Include:   "",
-		Exclude:   "",
+		BlackList: col.ConfigDefaults.Smtp.ServerExclude,
+		WhiteList: col.ConfigDefaults.Smtp.ServerInclude,
+		Include:   col.ConfigDefaults.Smtp.ServerInclude,
+		Exclude:   col.ConfigDefaults.Smtp.ServerExclude,
 	},
 	TextFile: TextFileConfig{
-		TextFileDirectory: "",
+		TextFileDirectory: col.ConfigDefaults.Textfile.TextFileDirectories,
 	},
 }
 
