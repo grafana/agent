@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	windows_integration "github.com/grafana/agent/pkg/integrations/windows_exporter"
+	col "github.com/prometheus-community/windows_exporter/pkg/collector"
 )
 
 // DefaultArguments holds non-zero default options for Arguments when it is
@@ -14,61 +15,61 @@ import (
 var DefaultArguments = Arguments{
 	EnabledCollectors: strings.Split(windows_integration.DefaultConfig.EnabledCollectors, ","),
 	Dfsr: DfsrConfig{
-		SourcesEnabled: strings.Split(windows_integration.DefaultConfig.Dfsr.SourcesEnabled, ","),
+		SourcesEnabled: strings.Split(col.ConfigDefaults.Dfsr.DfsrEnabledCollectors, ","),
 	},
 	Exchange: ExchangeConfig{
-		EnabledList: strings.Split(windows_integration.DefaultConfig.Exchange.EnabledList, ","),
+		EnabledList: strings.Split(col.ConfigDefaults.Exchange.CollectorsEnabled, ","),
 	},
 	IIS: IISConfig{
-		AppBlackList:  windows_integration.DefaultConfig.IIS.AppBlackList,
-		AppWhiteList:  windows_integration.DefaultConfig.IIS.AppWhiteList,
-		SiteBlackList: windows_integration.DefaultConfig.IIS.SiteBlackList,
-		SiteWhiteList: windows_integration.DefaultConfig.IIS.SiteWhiteList,
-		AppInclude:    windows_integration.DefaultConfig.IIS.AppInclude,
-		AppExclude:    windows_integration.DefaultConfig.IIS.AppExclude,
-		SiteInclude:   windows_integration.DefaultConfig.IIS.SiteInclude,
-		SiteExclude:   windows_integration.DefaultConfig.IIS.SiteExclude,
+		AppBlackList:  col.ConfigDefaults.Iis.AppExclude,
+		AppWhiteList:  col.ConfigDefaults.Iis.AppInclude,
+		SiteBlackList: col.ConfigDefaults.Iis.SiteExclude,
+		SiteWhiteList: col.ConfigDefaults.Iis.SiteInclude,
+		AppInclude:    col.ConfigDefaults.Iis.AppInclude,
+		AppExclude:    col.ConfigDefaults.Iis.AppExclude,
+		SiteInclude:   col.ConfigDefaults.Iis.SiteInclude,
+		SiteExclude:   col.ConfigDefaults.Iis.SiteExclude,
 	},
 	LogicalDisk: LogicalDiskConfig{
-		BlackList: windows_integration.DefaultConfig.LogicalDisk.BlackList,
-		WhiteList: windows_integration.DefaultConfig.LogicalDisk.WhiteList,
-		Include:   windows_integration.DefaultConfig.LogicalDisk.Include,
-		Exclude:   windows_integration.DefaultConfig.LogicalDisk.Exclude,
+		BlackList: col.ConfigDefaults.LogicalDisk.VolumeExclude,
+		WhiteList: col.ConfigDefaults.LogicalDisk.VolumeInclude,
+		Include:   col.ConfigDefaults.LogicalDisk.VolumeInclude,
+		Exclude:   col.ConfigDefaults.LogicalDisk.VolumeExclude,
 	},
 	MSMQ: MSMQConfig{
-		Where: windows_integration.DefaultConfig.MSMQ.Where,
+		Where: col.ConfigDefaults.Msmq.QueryWhereClause,
 	},
 	MSSQL: MSSQLConfig{
-		EnabledClasses: strings.Split(windows_integration.DefaultConfig.MSSQL.EnabledClasses, ","),
+		EnabledClasses: strings.Split(col.ConfigDefaults.Mssql.EnabledCollectors, ","),
 	},
 	Network: NetworkConfig{
-		BlackList: windows_integration.DefaultConfig.Network.BlackList,
-		WhiteList: windows_integration.DefaultConfig.Network.WhiteList,
-		Include:   windows_integration.DefaultConfig.Network.Include,
-		Exclude:   windows_integration.DefaultConfig.Network.Exclude,
+		BlackList: col.ConfigDefaults.Net.NicExclude,
+		WhiteList: col.ConfigDefaults.Net.NicInclude,
+		Include:   col.ConfigDefaults.Net.NicInclude,
+		Exclude:   col.ConfigDefaults.Net.NicExclude,
 	},
 	Process: ProcessConfig{
-		BlackList: windows_integration.DefaultConfig.Process.BlackList,
-		WhiteList: windows_integration.DefaultConfig.Process.WhiteList,
-		Include:   windows_integration.DefaultConfig.Process.Include,
-		Exclude:   windows_integration.DefaultConfig.Process.Exclude,
+		BlackList: col.ConfigDefaults.Process.ProcessExclude,
+		WhiteList: col.ConfigDefaults.Process.ProcessInclude,
+		Include:   col.ConfigDefaults.Process.ProcessInclude,
+		Exclude:   col.ConfigDefaults.Process.ProcessExclude,
 	},
 	ScheduledTask: ScheduledTaskConfig{
-		Include: windows_integration.DefaultConfig.ScheduledTask.Include,
-		Exclude: windows_integration.DefaultConfig.ScheduledTask.Exclude,
+		Include: col.ConfigDefaults.ScheduledTask.TaskInclude,
+		Exclude: col.ConfigDefaults.ScheduledTask.TaskExclude,
 	},
 	Service: ServiceConfig{
-		UseApi: windows_integration.DefaultConfig.Service.UseApi,
-		Where:  windows_integration.DefaultConfig.Service.Where,
+		UseApi: "false",
+		Where:  col.ConfigDefaults.Service.ServiceWhereClause,
 	},
 	SMTP: SMTPConfig{
-		BlackList: windows_integration.DefaultConfig.SMTP.BlackList,
-		WhiteList: windows_integration.DefaultConfig.SMTP.WhiteList,
-		Include:   windows_integration.DefaultConfig.SMTP.Include,
-		Exclude:   windows_integration.DefaultConfig.SMTP.Exclude,
+		BlackList: col.ConfigDefaults.Smtp.ServerExclude,
+		WhiteList: col.ConfigDefaults.Smtp.ServerInclude,
+		Include:   col.ConfigDefaults.Smtp.ServerInclude,
+		Exclude:   col.ConfigDefaults.Smtp.ServerExclude,
 	},
 	TextFile: TextFileConfig{
-		TextFileDirectory: windows_integration.DefaultConfig.TextFile.TextFileDirectory,
+		TextFileDirectory: col.ConfigDefaults.Textfile.TextFileDirectories,
 	},
 }
 

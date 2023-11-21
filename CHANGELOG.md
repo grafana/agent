@@ -10,6 +10,11 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+
+### Bugfixes
+
+- Fix issue with windows_exporter defaults not being set correctly. (@mattdurham)
+
 v0.38.0 (2023-11-21)
 --------------------
 
