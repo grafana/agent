@@ -10,21 +10,8 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
-v0.38.0-rc.1 (2023-11-20)
--------------------------
-
-### Enhancements
-
-- Allow agent to start with `module.git` config if cached before. (@hainenber)
-
-### Bugfixes
-
-- Fix default configuration file `grafana-agent-flow.river` used in downstream packages. (@bricewge)
-
-- Fix converter output for prometheus.exporter.windows to not unnecessarily add empty blocks. (@erikbaranowski)
-
-v0.38.0-rc.0 (2023-11-16)
--------------------------
+v0.38.0 (2023-11-21)
+--------------------
 
 ### Breaking changes
 
@@ -119,6 +106,8 @@ v0.38.0-rc.0 (2023-11-16)
 
 - Updated windows exporter to use prometheus-community/windows_exporter commit 1836cd1. (@mattdurham)
 
+- Allow agent to start with `module.git` config if cached before. (@hainenber)
+
 ### Bugfixes
 
 - Set exit code 1 on grafana-agentctl non-runnable command. (@fgouteroux)
@@ -169,6 +158,12 @@ v0.38.0-rc.0 (2023-11-16)
 
 - Added Kubernetes service resolver to static node's loadbalancing exporter
   and to Flow's `otelcol.exporter.loadbalancing`. (@ptodev)
+
+- Fix default configuration file `grafana-agent-flow.river` used in downstream
+  packages. (@bricewge)
+
+- Fix converter output for prometheus.exporter.windows to not unnecessarily add
+  empty blocks. (@erikbaranowski)
 
 ### Other changes
 
