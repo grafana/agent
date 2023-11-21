@@ -188,6 +188,7 @@ integration_configs:
 server:
     log_level: {{.log_level}}
 `
+		templateInsideTemplate := "`{{ .template_inside_template }}`"
 		snippet := Snippet{
 			Config: `
 integration_configs:
@@ -199,7 +200,7 @@ integration_configs:
           - 'grafana-agent'
       - name: "{{.nonexistent.foo.bar.baz.bat}}"
         cmdline:
-          - 'non-existent'
+          - "{{ ` + templateInsideTemplate + ` }}"
       # Custom process monitors
       {{- range $key, $value := .process_exporter_processes }}
       - name: "{{ $value.name }}"
@@ -246,7 +247,7 @@ integration_configs:
 		require.Equal(t, 0, len(processExporterConfig.ProcessExporter[0].ExeRules))
 
 		require.Equal(t, "<no value>", processExporterConfig.ProcessExporter[1].Name)
-		require.Equal(t, "non-existent", processExporterConfig.ProcessExporter[1].CmdlineRules[0])
+		require.Equal(t, "{{ .template_inside_template }}", processExporterConfig.ProcessExporter[1].CmdlineRules[0])
 		require.Equal(t, 0, len(processExporterConfig.ProcessExporter[1].ExeRules))
 
 		require.Equal(t, "java_processes", processExporterConfig.ProcessExporter[2].Name)
