@@ -1,6 +1,10 @@
 package windows
 
-import col "github.com/prometheus-community/windows_exporter/pkg/collector"
+import (
+	windows_integration "github.com/grafana/agent/pkg/integrations/windows_exporter"
+	col "github.com/prometheus-community/windows_exporter/pkg/collector"
+	"strings"
+)
 
 // DefaultArguments holds non-zero default options for Arguments when it is
 // unmarshaled from YAML.
