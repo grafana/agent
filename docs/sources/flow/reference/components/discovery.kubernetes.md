@@ -250,19 +250,18 @@ The following labels are included for discovered ingress objects:
 The following blocks are supported inside the definition of
 `discovery.kubernetes`:
 
-Hierarchy | Block | Description | Required
---------- | ----- | ----------- | --------
-namespaces | [namespaces][] | Information about which Kubernetes namespaces to search. | no
-selectors | [selectors][] | Information about which Kubernetes namespaces to search. | no
-attach_metadata | [attach_metadata][] | Optional metadata to attach to discovered targets. | no
-basic_auth | [basic_auth][] | Configure basic_auth for authenticating to the endpoint. | no
-authorization | [authorization][] | Configure generic authorization to the endpoint. | no
-oauth2 | [oauth2][] | Configure OAuth2 for authenticating to the endpoint. | no
-oauth2 > tls_config | [tls_config][] | Configure TLS settings for connecting to the endpoint. | no
+Hierarchy           | Block               | Description                                              | Required
+--------------------|---------------------|----------------------------------------------------------|---------
+attach_metadata     | [attach_metadata][] | Optional metadata to attach to discovered targets.       | no
+authorization       | [authorization][]   | Configure generic authorization to the endpoint.         | no
+basic_auth          | [basic_auth][]      | Configure basic_auth for authenticating to the endpoint. | no
+namespaces          | [namespaces][]      | Information about which Kubernetes namespaces to search. | no
+oauth2              | [oauth2][]          | Configure OAuth2 for authenticating to the endpoint.     | no
+oauth2 > tls_config | [tls_config][]      | Configure TLS settings for connecting to the endpoint.   | no
+selectors           | [selectors][]       | Information about which Kubernetes namespaces to search. | no
 
-The `>` symbol indicates deeper levels of nesting. For example,
-`oauth2 > tls_config` refers to a `tls_config` block defined inside
-an `oauth2` block.
+The `>` symbol indicates deeper levels of nesting.
+For example, `oauth2 > tls_config` refers to a `tls_config` block defined inside an `oauth2` block.
 
 [namespaces]: #namespaces-block
 [selectors]: #selectors-block
@@ -272,33 +271,54 @@ an `oauth2` block.
 [oauth2]: #oauth2-block
 [tls_config]: #tls_config-block
 
-### namespaces block
+### attach_metadata
 
-The `namespaces` block limits the namespaces to discover resources in. If
-omitted, all namespaces are searched.
+The `attach_metadata` block allows to attach node metadata to discovered targets. Valid for roles: pod, endpoints, endpointslice.
 
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`own_namespace` | `bool`   | Include the namespace the agent is running in. | | no
-`names` | `list(string)` | List of namespaces to search. | | no
+Name   | Type   | Description           | Default | Required
+-------|--------|-----------------------|---------|---------
+`node` | `bool` | Attach node metadata. |         | no
 
-### selectors block
+### authorization
 
-The `selectors` block contains optional label and field selectors to limit the
-discovery process to a subset of resources.
+{{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`role` | `string`   | Role of the selector. | | yes
-`label`| `string`   | Label selector string. | | no
-`field` | `string`   | Field selector string. | | no
+### basic_auth
 
-See Kubernetes' documentation for [Field selectors][] and [Labels and
-selectors][] to learn more about the possible filters that can be used.
+{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" version="<AGENT_VERSION>" >}}
+
+### namespaces
+
+The `namespaces` block limits the namespaces to discover resources in. If omitted, all namespaces are searched.
+
+Name            | Type           | Description                                    | Default | Required
+----------------|----------------|------------------------------------------------|---------|---------
+`names`         | `list(string)` | List of namespaces to search.                  |         | no
+`own_namespace` | `bool`         | Include the namespace the agent is running in. |         | no
+
+### oauth2
+
+{{< docs/shared lookup="flow/reference/components/oauth2-block.md" source="agent" version="<AGENT_VERSION>" >}}
+
+### oauth2 > tls_config
+
+{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" version="<AGENT_VERSION>" >}}
+
+### selectors
+
+The `selectors` block contains optional label and field selectors to limit the discovery process to a subset of resources.
+
+Name    | Type     | Description            | Default | Required
+--------|----------|------------------------|---------|---------
+`field` | `string` | Field selector string. |         | no
+`label` | `string` | Label selector string. |         | no
+`role`  | `string` | Role of the selector.  |         | yes
+
+See Kubernetes' documentation for [Field selectors][] and [Labels and selectors][] to learn more about the possible filters that can be used.
 
 The endpoints role supports pod, service, and endpoints selectors.
 The pod role supports node selectors when configured with `attach_metadata: {node: true}`.
-Other roles only support selectors matching the role itself (e.g. node role can only contain node selectors).
+Other roles only support selectors matching the role itself. For example, the node role can only contain node selectors.
 
 > **Note**: Using multiple `discovery.kubernetes` components with different
 > selectors may result in a bigger load against the Kubernetes API.
@@ -312,57 +332,32 @@ Other roles only support selectors matching the role itself (e.g. node role can 
 [Labels and selectors]: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
 [discovery.relabel]: {{< relref "./discovery.relabel.md" >}}
 
-### attach_metadata block
-The `attach_metadata` block allows to attach node metadata to discovered
-targets. Valid for roles: pod, endpoints, endpointslice.
-
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`node` | `bool`   | Attach node metadata. | | no
-
-### basic_auth block
-
-{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" version="<AGENT VERSION>" >}}
-
-### authorization block
-
-{{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" version="<AGENT VERSION>" >}}
-
-### oauth2 block
-
-{{< docs/shared lookup="flow/reference/components/oauth2-block.md" source="agent" version="<AGENT VERSION>" >}}
-
-### tls_config block
-
-{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" version="<AGENT VERSION>" >}}
-
 ## Exported fields
 
 The following fields are exported and can be referenced by other components:
 
-Name | Type | Description
----- | ---- | -----------
+Name      | Type                | Description
+----------|---------------------|-------------------------------------------------------
 `targets` | `list(map(string))` | The set of targets discovered from the Kubernetes API.
 
 ## Component health
 
-`discovery.kubernetes` is reported as unhealthy when given an invalid
-configuration. In those cases, exported fields retain their last healthy
-values.
+`discovery.kubernetes` is reported as unhealthy when given an invalid configuration.
+In those cases, exported fields retain their last healthy values.
 
 ## Debug information
 
-`discovery.kubernetes` does not expose any component-specific debug information.
+`discovery.kubernetes` doesn't expose any component-specific debug information.
 
 ## Debug metrics
 
-`discovery.kubernetes` does not expose any component-specific debug metrics.
+`discovery.kubernetes` doesn't expose any component-specific debug metrics.
 
 ## Examples
 
 ### In-cluster discovery
 
-This example uses in-cluster authentication to discover all pods:
+The following example uses in-cluster authentication to discover all pods:
 
 ```river
 discovery.kubernetes "k8s_pods" {
@@ -376,23 +371,23 @@ prometheus.scrape "demo" {
 
 prometheus.remote_write "demo" {
   endpoint {
-    url = PROMETHEUS_REMOTE_WRITE_URL
+    url = <PROMETHEUS_REMOTE_WRITE_URL>
 
     basic_auth {
-      username = USERNAME
-      password = PASSWORD
+      username = <USERNAME>
+      password = <PASSWORD>
     }
   }
 }
 ```
 Replace the following:
-  - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
-  - `USERNAME`: The username to use for authentication to the remote_write API.
-  - `PASSWORD`: The password to use for authentication to the remote_write API.
+  - _`<PROMETHEUS_REMOTE_WRITE_URL>`_: The URL of the Prometheus remote_write-compatible server to send metrics to.
+  - _`<USERNAME>`_: The username to use for authentication to the remote_write API.
+  - _`>PASSWORD>`_: The password to use for authentication to the remote_write API.
 
 ### Kubeconfig authentication
 
-This example uses a kubeconfig file to authenticate to the Kubernetes API:
+The following example uses a kubeconfig file to authenticate to the Kubernetes API:
 
 ```river
 discovery.kubernetes "k8s_pods" {
@@ -407,19 +402,19 @@ prometheus.scrape "demo" {
 
 prometheus.remote_write "demo" {
   endpoint {
-    url = PROMETHEUS_REMOTE_WRITE_URL
+    url = <PROMETHEUS_REMOTE_WRITE_URL>
 
     basic_auth {
-      username = USERNAME
-      password = PASSWORD
+      username = <USERNAME>
+      password = <PASSWORD>
     }
   }
 }
 ```
 Replace the following:
-  - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
-  - `USERNAME`: The username to use for authentication to the remote_write API.
-  - `PASSWORD`: The password to use for authentication to the remote_write API.
+  - _`<PROMETHEUS_REMOTE_WRITE_URL>`_: The URL of the Prometheus remote_write-compatible server to send metrics to.
+  - _`<USERNAME>`_: The username to use for authentication to the remote_write API.
+  - _`>PASSWORD>`_: The password to use for authentication to the remote_write API.
 
 ### Limit searched namespaces and filter by labels value
 
@@ -446,19 +441,19 @@ prometheus.scrape "demo" {
 
 prometheus.remote_write "demo" {
   endpoint {
-    url = PROMETHEUS_REMOTE_WRITE_URL
+    url = <PROMETHEUS_REMOTE_WRITE_URL>
 
     basic_auth {
-      username = USERNAME
-      password = PASSWORD
+      username = <USERNAME>
+      password = <PASSWORD>
     }
   }
 }
 ```
 Replace the following:
-  - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
-  - `USERNAME`: The username to use for authentication to the remote_write API.
-  - `PASSWORD`: The password to use for authentication to the remote_write API.
+  - _`<PROMETHEUS_REMOTE_WRITE_URL>`_: The URL of the Prometheus remote_write-compatible server to send metrics to.
+  - _`<USERNAME>`_: The username to use for authentication to the remote_write API.
+  - _`>PASSWORD>`_: The password to use for authentication to the remote_write API.
 
 ### Limit to only pods on the same node
 
@@ -480,16 +475,16 @@ prometheus.scrape "demo" {
 
 prometheus.remote_write "demo" {
   endpoint {
-    url = PROMETHEUS_REMOTE_WRITE_URL
+    url = <PROMETHEUS_REMOTE_WRITE_URL>
 
     basic_auth {
-      username = USERNAME
-      password = PASSWORD
+      username = <USERNAME>
+      password = <PASSWORD>
     }
   }
 }
 ```
 Replace the following:
-  - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
-  - `USERNAME`: The username to use for authentication to the remote_write API.
-  - `PASSWORD`: The password to use for authentication to the remote_write API.
+  - _`<PROMETHEUS_REMOTE_WRITE_URL>`_: The URL of the Prometheus remote_write-compatible server to send metrics to.
+  - _`<USERNAME>`_: The username to use for authentication to the remote_write API.
+  - _`>PASSWORD>`_: The password to use for authentication to the remote_write API.

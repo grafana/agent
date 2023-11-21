@@ -57,14 +57,14 @@ For example, `oauth2 > tls_config` refers to a `tls_config` block defined inside
 [oauth2]: #oauth2-block
 [tls_config]: #tls_config-block
 
-### authorization block
+### authorization
 
-{{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" version="<AGENT VERSION>" >}}
-### basic_auth block
+{{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" version="<AGENT_VERSION>" >}}
+### basic_auth
 
-{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
-### filter block
+### filter
 
 Filters can be used to limit the discovery process to a subset of available resources.
 It's possible to define multiple `filter` blocks within the `discovery.dockerswarm` block.
@@ -81,13 +81,13 @@ The following arguments can be used to configure a filter.
 | `name`   | `string`       | Name of the filter.                        |         | yes      |
 | `values` | `list(string)` | List of values associated with the filter. |         | yes      |
 
-### oauth2 block
+### oauth2
 
-{{< docs/shared lookup="flow/reference/components/oauth2-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/oauth2-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
-### oauth2 > tls_config block
+### oauth2 > tls_config
 
-{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ## Exported fields
 
@@ -165,25 +165,24 @@ The `nodes` role is used to discover [Swarm nodes](https://docs.docker.com/engin
 
 Available meta labels:
 
-- `__meta_dockerswarm_node_address`: the address of the node.
-- `__meta_dockerswarm_node_availability`: the availability of the node.
-- `__meta_dockerswarm_node_engine_version`: the version of the node engine.
-- `__meta_dockerswarm_node_hostname`: the hostname of the node.
-- `__meta_dockerswarm_node_id`: the ID of the node.
-- `__meta_dockerswarm_node_label_<labelname>`: each label of the node.
-- `__meta_dockerswarm_node_manager_address`: the address of the manager component of the node.
-- `__meta_dockerswarm_node_manager_leader`: the leadership status of the manager component of the node (true or false).
-- `__meta_dockerswarm_node_manager_reachability`: the reachability of the manager component of the node.
-- `__meta_dockerswarm_node_platform_architecture`: the architecture of the node.
-- `__meta_dockerswarm_node_platform_os`: the operating system of the node.
-- `__meta_dockerswarm_node_role`: the role of the node.
-- `__meta_dockerswarm_node_status`: the status of the node.
+- `__meta_dockerswarm_node_address`: The address of the node.
+- `__meta_dockerswarm_node_availability`: The availability of the node.
+- `__meta_dockerswarm_node_engine_version`: The version of the node engine.
+- `__meta_dockerswarm_node_hostname`: The hostname of the node.
+- `__meta_dockerswarm_node_id`: The ID of the node.
+- `__meta_dockerswarm_node_label_<labelname>`: Each label of the node.
+- `__meta_dockerswarm_node_manager_address`: The address of the manager component of the node.
+- `__meta_dockerswarm_node_manager_leader`: The leadership status of the manager component of the node (true or false).
+- `__meta_dockerswarm_node_manager_reachability`: The reachability of the manager component of the node.
+- `__meta_dockerswarm_node_platform_architecture`: The architecture of the node.
+- `__meta_dockerswarm_node_platform_os`: The operating system of the node.
+- `__meta_dockerswarm_node_role`: The role of the node.
+- `__meta_dockerswarm_node_status`: The status of the node.
 
 ## Component health
 
-`discovery.dockerswarm` is only reported as unhealthy when given an invalid
-configuration. In those cases, exported fields retain their last healthy
-values.
+`discovery.dockerswarm` is only reported as unhealthy when given an invalid configuration.
+In those cases, exported fields retain their last healthy values.
 
 ## Debug information
 

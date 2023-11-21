@@ -47,7 +47,7 @@ filter    | [filter][] | Filters discoverable resources. | no
 
 [filter]: #filter-block
 
-### filter block
+### filter
 
 Filters can be used optionally to filter the instance list by other criteria.
 Available filter criteria can be found in the [Amazon EC2 documentation](https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DescribeInstances.html).

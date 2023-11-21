@@ -26,49 +26,46 @@ discovery.kubelet "LABEL" {
 ## Requirements
 
 * The Kubelet must be reachable from the `grafana-agent` pod network.
-* Follow the [Kubelet authorization](https://kubernetes.io/docs/reference/access-authn-authz/kubelet-authn-authz/#kubelet-authorization)
-  documentation to configure authentication to the Kubelet API.
+* Follow the [Kubelet authorization](https://kubernetes.io/docs/reference/access-authn-authz/kubelet-authn-authz/#kubelet-authorization) documentation to configure authentication to the Kubelet API.
 
 ## Arguments
 
 The following arguments are supported:
 
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`url` | `string` | URL of the Kubelet server. | | no
-`bearer_token` | `secret` | Bearer token to authenticate with. | | no
-`bearer_token_file` | `string` | File containing a bearer token to authenticate with. | | no
-`refresh_interval` | `duration` | How often the Kubelet should be polled for scrape targets | `5s` | no
-`namespaces` | `list(string)` | A list of namespaces to extract target pods from | | no
+Name                | Type           | Description                                               | Default | Required
+--------------------|----------------|-----------------------------------------------------------|---------|---------
+`bearer_token_file` | `string`       | File containing a bearer token to authenticate with.      |         | no
+`bearer_token`      | `secret`       | Bearer token to authenticate with.                        |         | no
+`namespaces`        | `list(string)` | A list of namespaces to extract target pods from          |         | no
+`refresh_interval`  | `duration`     | How often the Kubelet should be polled for scrape targets | `5s`    | no
+`url`               | `string`       | URL of the Kubelet server.                                |         | no
 
 One of the following authentication methods must be provided if kubelet authentication is enabled
- - [`bearer_token` argument](#arguments).
- - [`bearer_token_file` argument](#arguments).
- - [`authorization` block][authorization].
+- [`authorization` block][authorization].
+- [`bearer_token_file` argument](#arguments).
+- [`bearer_token` argument](#arguments).
 
-The `namespaces` list limits the namespaces to discover resources in. If
-omitted, all namespaces are searched.
+The `namespaces` list limits the namespaces to discover resources in. If omitted, all namespaces are searched.
 
 ## Blocks
 
-The following blocks are supported inside the definition of
-`discovery.kubelet`:
+The following blocks are supported inside the definition of `discovery.kubelet`:
 
-Hierarchy | Block | Description | Required
---------- | ----- | ----------- | --------
-authorization | [authorization][] | Configure generic authorization to the endpoint. | no
-tls_config | [tls_config][] | Configure TLS settings for connecting to the endpoint. | no
+Hierarchy     | Block             | Description                                            | Required
+--------------|-------------------|--------------------------------------------------------|---------
+authorization | [authorization][] | Configure generic authorization to the endpoint.       | no
+tls_config    | [tls_config][]    | Configure TLS settings for connecting to the endpoint. | no
 
 [authorization]: #authorization-block
 [tls_config]: #tls_config-block
 
-### authorization block
+### authorization
 
-{{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
-### tls_config block
+### tls_config
 
-{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ## Exported fields
 
@@ -82,36 +79,26 @@ Each target includes the following labels:
 
 * `__address__`: The target address to scrape derived from the pod IP and container port.
 * `__meta_kubernetes_namespace`: The namespace of the pod object.
-* `__meta_kubernetes_pod_name`: The name of the pod object.
-* `__meta_kubernetes_pod_ip`: The pod IP of the pod object.
-* `__meta_kubernetes_pod_label_<labelname>`: Each label from the pod object.
-* `__meta_kubernetes_pod_labelpresent_<labelname>`: `true` for each label from
-  the pod object.
-* `__meta_kubernetes_pod_annotation_<annotationname>`: Each annotation from the
-  pod object.
-* `__meta_kubernetes_pod_annotationpresent_<annotationname>`: `true` for each
-  annotation from the pod object.
-* `__meta_kubernetes_pod_container_init`: `true` if the container is an
-  `InitContainer`.
-* `__meta_kubernetes_pod_container_name`: Name of the container the target
-  address points to.
-* `__meta_kubernetes_pod_container_id`: ID of the container the target address
-  points to. The ID is in the form `<type>://<container_id>`.
+* `__meta_kubernetes_pod_annotation_<annotationname>`: Each annotation from the pod object.
+* `__meta_kubernetes_pod_annotationpresent_<annotationname>`: `true` for each annotation from the pod object.
+* `__meta_kubernetes_pod_container_id`: ID of the container the target address points to. The ID is in the form `<type>://<container_id>`.
 * `__meta_kubernetes_pod_container_image`: The image the container is using.
+* `__meta_kubernetes_pod_container_init`: `true` if the container is an `InitContainer`.
+* `__meta_kubernetes_pod_container_name`: Name of the container the target address points to.
 * `__meta_kubernetes_pod_container_port_name`: Name of the container port.
 * `__meta_kubernetes_pod_container_port_number`: Number of the container port.
-* `__meta_kubernetes_pod_container_port_protocol`: Protocol of the container
-  port.
-* `__meta_kubernetes_pod_ready`: Set to `true` or `false` for the pod's ready
-  state.
-* `__meta_kubernetes_pod_phase`: Set to `Pending`, `Running`, `Succeeded`, `Failed` or
-  `Unknown` in the lifecycle.
-* `__meta_kubernetes_pod_node_name`: The name of the node the pod is scheduled
-  onto.
-* `__meta_kubernetes_pod_host_ip`: The current host IP of the pod object.
-* `__meta_kubernetes_pod_uid`: The UID of the pod object.
+* `__meta_kubernetes_pod_container_port_protocol`: Protocol of the container port.
 * `__meta_kubernetes_pod_controller_kind`: Object kind of the pod controller.
 * `__meta_kubernetes_pod_controller_name`: Name of the pod controller.
+* `__meta_kubernetes_pod_host_ip`: The current host IP of the pod object.
+* `__meta_kubernetes_pod_ip`: The pod IP of the pod object.
+* `__meta_kubernetes_pod_label_<labelname>`: Each label from the pod object.
+* `__meta_kubernetes_pod_labelpresent_<labelname>`: `true` for each label from the pod object.
+* `__meta_kubernetes_pod_name`: The name of the pod object.
+* `__meta_kubernetes_pod_node_name`: The name of the node the pod is scheduled onto.
+* `__meta_kubernetes_pod_phase`: Set to `Pending`, `Running`, `Succeeded`, `Failed` or `Unknown` in the lifecycle.
+* `__meta_kubernetes_pod_ready`: Set to `true` or `false` for the pod's ready state.
+* `__meta_kubernetes_pod_uid`: The UID of the pod object.
 
 > **Note**: The Kubelet API used by this component is an internal API and therefore the
 > data in the response returned from the API cannot be guaranteed between different versions
@@ -119,17 +106,16 @@ Each target includes the following labels:
 
 ## Component health
 
-`discovery.kubelet` is reported as unhealthy when given an invalid
-configuration. In those cases, exported fields retain their last healthy
-values.
+`discovery.kubelet` is reported as unhealthy when given an invalid configuration.
+In those cases, exported fields retain their last healthy values.
 
 ## Debug information
 
-`discovery.kubelet` does not expose any component-specific debug information.
+`discovery.kubelet` doesn't expose any component-specific debug information.
 
 ## Debug metrics
 
-`discovery.kubelet` does not expose any component-specific debug metrics.
+`discovery.kubelet` doesn't expose any component-specific debug metrics.
 
 ## Examples
 
@@ -149,23 +135,23 @@ prometheus.scrape "demo" {
 
 prometheus.remote_write "demo" {
   endpoint {
-    url = PROMETHEUS_REMOTE_WRITE_URL
+    url = <PROMETHEUS_REMOTE_WRITE_URL>
 
     basic_auth {
-      username = USERNAME
-      password = PASSWORD
+      username = <USERNAME>
+      password = <PASSWORD>
     }
   }
 }
 ```
 Replace the following:
-  - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
-  - `USERNAME`: The username to use for authentication to the remote_write API.
-  - `PASSWORD`: The password to use for authentication to the remote_write API.
+  - _`<PROMETHEUS_REMOTE_WRITE_URL>`_: The URL of the Prometheus remote_write-compatible server to send metrics to.
+  - _`<USERNAME>`_: The username to use for authentication to the remote_write API.
+  - _`<PASSWORD>`_: The password to use for authentication to the remote_write API.
 
 ### Limit searched namespaces
 
-This example limits the namespaces where pods are discovered using the `namespaces` argument:
+The following example limits the namespaces where pods are discovered using the `namespaces` argument:
 
 ```river
 discovery.kubelet "k8s_pods" {
@@ -180,16 +166,16 @@ prometheus.scrape "demo" {
 
 prometheus.remote_write "demo" {
   endpoint {
-    url = PROMETHEUS_REMOTE_WRITE_URL
+    url = <PROMETHEUS_REMOTE_WRITE_URL>
 
     basic_auth {
-      username = USERNAME
-      password = PASSWORD
+      username = <USERNAME>
+      password = <PASSWORD>
     }
   }
 }
 ```
 Replace the following:
-  - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
-  - `USERNAME`: The username to use for authentication to the remote_write API.
-  - `PASSWORD`: The password to use for authentication to the remote_write API.
+  - _`<PROMETHEUS_REMOTE_WRITE_URL>`_: The URL of the Prometheus remote_write-compatible server to send metrics to.
+  - _`<USERNAME>_`_: The username to use for authentication to the remote_write API.
+  - _`<PASSWORD>`: The password to use for authentication to the remote_write API.

@@ -30,9 +30,9 @@ The following arguments are supported:
 Name                | Type       | Description                                                            | Default              | Required
 ------------------- | ---------- | ---------------------------------------------------------------------- | -------------------- | --------
 `server`            | `string`   | Eureka server URL.                                                     |                      | yes
-`refresh_interval`  | `duration` | Interval at which to refresh the list of targets.                      | `30s`                | no
 `enable_http2`      | `bool`     | Whether HTTP2 is supported for requests.                               | `true`               | no
 `follow_redirects`  | `bool`     | Whether redirects returned by the server should be followed.           | `true`               | no
+`refresh_interval`  | `duration` | Interval at which to refresh the list of targets.                      | `30s`                | no
 
 ## Blocks
 The following blocks are supported inside the definition of `discovery.eureka`:
@@ -54,19 +54,19 @@ For example, `oauth2 > tls_config` refers to a `tls_config` block defined inside
 
 ### authorization
 
-{{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### basic_auth
 
-{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### oauth2
 
-{{< docs/shared lookup="flow/reference/components/oauth2-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/oauth2-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### oauth2 > tls_config
 
-{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ## Exported fields
 
@@ -78,7 +78,6 @@ Name      | Type                | Description
 
 Each target includes the following labels:
 
-* `__meta_eureka_app_name`
 * `__meta_eureka_app_instance_country_id`
 * `__meta_eureka_app_instance_datacenterinfo_metadata_`
 * `__meta_eureka_app_instance_datacenterinfo_name`
@@ -96,6 +95,7 @@ Each target includes the following labels:
 * `__meta_eureka_app_instance_status`
 * `__meta_eureka_app_instance_statuspage_url`
 * `__meta_eureka_app_instance_vip_address`
+* `__meta_eureka_app_name`
 
 ## Component health
 
