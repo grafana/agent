@@ -229,7 +229,7 @@ type testCase struct {
 	testDeclare         string
 	expectedGraph       graphDefinition
 	expectedExportValue int
-	expectedSumValue    int
+	nodeID              string
 }
 
 func TestDeclareComponent(t *testing.T) {
@@ -238,8 +238,8 @@ func TestDeclareComponent(t *testing.T) {
 			name: "BasicComponent",
 			testFile: `
 				add "example" {
-					a = 5 
-					b = 6 
+					a = 5
+					b = 6
 				}
 			`,
 			testDeclare: `
@@ -267,14 +267,78 @@ func TestDeclareComponent(t *testing.T) {
 					{From: "add.example.export.sum", To: "add.example.argument.b"},
 				},
 			},
+			nodeID:              "add.example.export.sum",
 			expectedExportValue: 11,
 		},
 		{
 			name: "NestedComponent",
 			testFile: `
 				add "example" {
+					a = 5
+					b = 6
+				}
+			`,
+			testDeclare: `
+			declare "add" {
+				argument "a" { }
+				argument "b" { }
+
+				declare "surpriseDuChef" {
+					argument "a" { }
+					argument "b" { }
+					export "sum" {
+						value = argument.a.value + argument.b.value
+					}
+				}
+
+				surpriseDuChef "theOne" {
+					a = argument.a.value
+					b = 1
+				}
+
+				export "sum" {
+					value = surpriseDuChef.theOne.export.sum + argument.b.value
+				}
+			}
+		`,
+			expectedGraph: graphDefinition{
+				Nodes: []string{
+					"tracing",
+					"logging",
+					"add.example.argument.a",
+					"add.example.argument.b",
+					"add.example",
+					"add.example.surpriseDuChef.theOne",
+					"add.example.surpriseDuChef.theOne.export.sum",
+					"add.example.surpriseDuChef.theOne.argument.a",
+					"add.example.surpriseDuChef.theOne.argument.b",
+					"add.example.export.sum",
+				},
+				OutEdges: []edge{
+					{From: "add.example.argument.a", To: "add.example"},
+					{From: "add.example.argument.b", To: "add.example"},
+					{From: "add.example.export.sum", To: "add.example.argument.b"},
+					{From: "add.example.export.sum", To: "add.example.surpriseDuChef.theOne.export.sum"},
+					{From: "add.example.surpriseDuChef.theOne", To: "add.example.argument.a"},
+					{From: "add.example.surpriseDuChef.theOne.argument.a", To: "add.example.surpriseDuChef.theOne"},
+					{From: "add.example.surpriseDuChef.theOne.argument.b", To: "add.example.surpriseDuChef.theOne"},
+					{From: "add.example.surpriseDuChef.theOne.export.sum", To: "add.example.surpriseDuChef.theOne.argument.a"},
+					{From: "add.example.surpriseDuChef.theOne.export.sum", To: "add.example.surpriseDuChef.theOne.argument.b"},
+				},
+			},
+			nodeID:              "add.example.export.sum",
+			expectedExportValue: 12,
+		},
+		{
+			name: "MultiInterconnectedInstancesWithNestedDeclare",
+			testFile: `
+				add "example" {
 					a = 5 
 					b = 6 
+				}
+				add "example2" {
+					a = 2
+					b = add.example.export.sum
 				}
 			`,
 			testDeclare: `
@@ -312,6 +376,14 @@ func TestDeclareComponent(t *testing.T) {
 					"add.example.surpriseDuChef.theOne.argument.a",
 					"add.example.surpriseDuChef.theOne.argument.b",
 					"add.example.export.sum",
+					"add.example2.argument.a",
+					"add.example2.argument.b",
+					"add.example2",
+					"add.example2.surpriseDuChef.theOne",
+					"add.example2.surpriseDuChef.theOne.export.sum",
+					"add.example2.surpriseDuChef.theOne.argument.a",
+					"add.example2.surpriseDuChef.theOne.argument.b",
+					"add.example2.export.sum",
 				},
 				OutEdges: []edge{
 					{From: "add.example.argument.a", To: "add.example"},
@@ -323,9 +395,58 @@ func TestDeclareComponent(t *testing.T) {
 					{From: "add.example.surpriseDuChef.theOne.argument.b", To: "add.example.surpriseDuChef.theOne"},
 					{From: "add.example.surpriseDuChef.theOne.export.sum", To: "add.example.surpriseDuChef.theOne.argument.a"},
 					{From: "add.example.surpriseDuChef.theOne.export.sum", To: "add.example.surpriseDuChef.theOne.argument.b"},
+					{From: "add.example2", To: "add.example.export.sum"},
+					{From: "add.example2.argument.a", To: "add.example2"},
+					{From: "add.example2.argument.b", To: "add.example2"},
+					{From: "add.example2.export.sum", To: "add.example2.argument.b"},
+					{From: "add.example2.export.sum", To: "add.example2.surpriseDuChef.theOne.export.sum"},
+					{From: "add.example2.surpriseDuChef.theOne", To: "add.example2.argument.a"},
+					{From: "add.example2.surpriseDuChef.theOne.argument.a", To: "add.example2.surpriseDuChef.theOne"},
+					{From: "add.example2.surpriseDuChef.theOne.argument.b", To: "add.example2.surpriseDuChef.theOne"},
+					{From: "add.example2.surpriseDuChef.theOne.export.sum", To: "add.example2.surpriseDuChef.theOne.argument.a"},
+					{From: "add.example2.surpriseDuChef.theOne.export.sum", To: "add.example2.surpriseDuChef.theOne.argument.b"},
 				},
 			},
-			expectedExportValue: 12,
+			nodeID:              "add.example2.export.sum",
+			expectedExportValue: 15,
+		},
+		{
+			name: "BasicComponentWithOptional",
+			testFile: `
+				add "example" {
+					a = 5
+				}
+			`,
+			testDeclare: `
+				declare "add" {
+					argument "a" { }
+					argument "b" {
+						optional = true
+						default = 4
+					}
+					export "sum" {
+						value = argument.a.value + argument.b.value
+					}
+				}
+			`,
+			expectedGraph: graphDefinition{
+				Nodes: []string{
+					"tracing",
+					"logging",
+					"add.example.argument.a",
+					"add.example.argument.b",
+					"add.example",
+					"add.example.export.sum",
+				},
+				OutEdges: []edge{
+					{From: "add.example.argument.a", To: "add.example"},
+					{From: "add.example.argument.b", To: "add.example"},
+					{From: "add.example.export.sum", To: "add.example.argument.a"},
+					{From: "add.example.export.sum", To: "add.example.argument.b"},
+				},
+			},
+			nodeID:              "add.example.export.sum",
+			expectedExportValue: 9,
 		},
 	}
 
@@ -335,7 +456,7 @@ func TestDeclareComponent(t *testing.T) {
 			diags := applyFromContent(t, l, []byte(tc.testFile), nil, []byte(tc.testDeclare))
 			require.NoError(t, diags.ErrorOrNil())
 			requireGraph(t, l.Graph(), tc.expectedGraph)
-			require.Equal(t, l.Graph().GetByID("add.example.export.sum").(*controller.ExportConfigNode).Value(), int(tc.expectedExportValue))
+			require.Equal(t, l.Graph().GetByID(tc.nodeID).(*controller.ExportConfigNode).Value(), int(tc.expectedExportValue))
 		})
 	}
 }

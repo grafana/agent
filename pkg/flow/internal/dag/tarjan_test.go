@@ -92,3 +92,5 @@ func (s stringNode) NodeID() string { return string(s) }
 func (s stringNode) Namespace() string { return "" }
 
 func (s stringNode) SetNamespace(namespace string) {}
+
+func (s stringNode) Clone(prefix string) Node { return s }

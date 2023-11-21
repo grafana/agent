@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/grafana/agent/pkg/flow/internal/dag"
 	"github.com/grafana/agent/pkg/flow/tracing"
 	"github.com/grafana/river/ast"
 	"github.com/grafana/river/vm"
@@ -85,7 +86,22 @@ func (cn *TracingConfigNode) Block() *ast.BlockStmt {
 // NodeID implements dag.Node and returns the unique ID for the config node.
 func (cn *TracingConfigNode) NodeID() string { return cn.nodeID }
 
+func (cn *TracingConfigNode) SetNodeID(value string) { cn.nodeID = value }
+
 // Namespace is "" because not allowed in modules
 func (cn *TracingConfigNode) Namespace() string { return "" }
 
 func (cn *TracingConfigNode) SetNamespace(namespace string) {}
+
+func (cn *TracingConfigNode) Clone(newID string) dag.Node {
+	cn.mut.RLock()
+	defer cn.mut.RUnlock()
+	return &TracingConfigNode{
+		nodeID:        newID,
+		componentName: cn.componentName,
+		mut:           sync.RWMutex{},
+		block:         cn.block,
+		eval:          vm.New(cn.block.Body),
+		traceProvider: cn.traceProvider,
+	}
+}

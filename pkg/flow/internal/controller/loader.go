@@ -132,7 +132,9 @@ func (l *Loader) Apply(args map[string]any, componentBlocks []*ast.BlockStmt, co
 	}
 	l.cache.SyncModuleArgs(args)
 
-	newGraph, diags := l.loadNewGraph(args, componentBlocks, configBlocks, declareBlocks, l.isModule())
+	l.wiredNodes = make(map[string]struct{})
+
+	newGraph, diags := l.loadNewGraph(args, componentBlocks, configBlocks, declareBlocks, l.isModule(), false)
 	if diags.HasErrors() {
 		return diags
 	}
@@ -280,7 +282,7 @@ func (l *Loader) Cleanup(stopWorkerPool bool) {
 }
 
 // loadNewGraph creates a new graph from the provided blocks and validates it.
-func (l *Loader) loadNewGraph(args map[string]any, componentBlocks []*ast.BlockStmt, configBlocks []*ast.BlockStmt, declareBlocks []*ast.BlockStmt, inModule bool) (dag.Graph, diag.Diagnostics) {
+func (l *Loader) loadNewGraph(args map[string]any, componentBlocks []*ast.BlockStmt, configBlocks []*ast.BlockStmt, declareBlocks []*ast.BlockStmt, inModule bool, inDeclare bool) (dag.Graph, diag.Diagnostics) {
 	var g dag.Graph
 
 	// Split component blocks into blocks for components and services.
@@ -288,7 +290,11 @@ func (l *Loader) loadNewGraph(args map[string]any, componentBlocks []*ast.BlockS
 
 	// Fill our graph with service blocks, which must be added before any other
 	// block.
-	diags := l.populateServiceNodes(&g, serviceBlocks)
+	diags := make(diag.Diagnostics, 0)
+	// inDeclare should be inModule once we get rid of the old modules
+	if !inDeclare {
+		diags = append(diags, l.populateServiceNodes(&g, serviceBlocks)...)
+	}
 
 	// Fill our graph with config blocks.
 	configBlockDiags := l.populateConfigBlockNodes(args, &g, configBlocks, inModule)
@@ -453,13 +459,17 @@ func (l *Loader) populateDeclareBlockNodes(g *dag.Graph, declareBlocks []*ast.Bl
 	var diags diag.Diagnostics
 	templateGraphs := make(map[string]*dag.Graph, len(declareBlocks))
 	for _, block := range declareBlocks {
-		categorizedBlocks, diag := CategorizeStatements(block.Body)
-		if diag != nil {
-			diags.Add(*diag)
+		categorizedBlocks, err := CategorizeStatements(block.Body)
+		if err != nil {
+			if diagnostic, ok := err.(*diag.Diagnostic); ok {
+				diags.Add(*diagnostic)
+			} else {
+				// TODO: handle error
+			}
 			continue
 		}
 		// Recursive call.
-		templateGraph, ds := l.loadNewGraph(nil, categorizedBlocks.Components, categorizedBlocks.Configs, categorizedBlocks.DeclareBlocks, true)
+		templateGraph, ds := l.loadNewGraph(nil, categorizedBlocks.Components, categorizedBlocks.Configs, categorizedBlocks.DeclareBlocks, true, true)
 		if len(ds) > 0 {
 			diags = append(diags, ds...)
 			continue
@@ -492,7 +502,9 @@ func (l *Loader) populateComponentNodes(g *dag.Graph, componentBlocks []*ast.Blo
 		// Check the graph from the previous call to Load to see we can copy an
 		// existing instance of ComponentNode.
 		if exist := l.graph.GetByID(id); exist != nil {
-			exist.(*ComponentNode).UpdateBlock(block)
+			c := exist.(*ComponentNode)
+			c.UpdateBlock(block)
+			g.Add(c)
 		} else {
 			componentName := block.GetBlockName()
 			if block.Label == "" {
@@ -506,15 +518,22 @@ func (l *Loader) populateComponentNodes(g *dag.Graph, componentBlocks []*ast.Blo
 			}
 
 			if graph, exist := graphTemplates[componentName]; exist {
-				clonedGraph := graph.Clone()
-				l.addPrefixToGraph(clonedGraph, id)
+				for _, node := range graph.Nodes() {
+					newId := id + "." + node.NodeID()
+					delete(l.wiredNodes, node.NodeID())
+					l.wiredNodes[newId] = struct{}{}
+				}
+				clonedGraph := graph.DeepClone(id)
 				g.Merge(clonedGraph)
-				declareNode := NewDeclareComponentNode(l.globals, block)
-				g.Add(declareNode)
+				declareComponentNode := NewDeclareComponentNode(l.globals, block)
+				g.Add(declareComponentNode)
+				// Connect the corresponding arguments to the declareComponentNode
 				for _, n := range clonedGraph.Nodes() {
 					switch n := n.(type) {
 					case *ArgumentConfigNode:
-						g.AddEdge(dag.Edge{From: n, To: declareNode})
+						if n.Namespace() == id {
+							g.AddEdge(dag.Edge{From: n, To: declareComponentNode})
+						}
 					}
 				}
 			} else {
@@ -535,36 +554,6 @@ func (l *Loader) populateComponentNodes(g *dag.Graph, componentBlocks []*ast.Blo
 	return diags
 }
 
-// TODO improve this mess?
-func (l *Loader) addPrefixToGraph(graph *dag.Graph, prefix string) {
-	for _, node := range graph.Nodes() {
-		newId := prefix + "." + node.NodeID()
-		if _, exist := l.wiredNodes[node.NodeID()]; exist {
-			l.wiredNodes[newId] = struct{}{}
-			delete(l.wiredNodes, node.NodeID())
-		}
-		switch n := node.(type) {
-		case *ComponentNode:
-			n.nodeID = newId
-		case *ArgumentConfigNode:
-			n.nodeID = newId
-		case *ExportConfigNode:
-			n.nodeID = newId
-		case *DeclareComponentNode:
-			n.nodeID = newId
-		default:
-			fmt.Println("Are other types of nodes allowed in modules?")
-			continue
-		}
-		if node.Namespace() == "" {
-			node.SetNamespace(prefix)
-		} else {
-			node.SetNamespace(prefix + "." + node.Namespace())
-		}
-	}
-	graph.UpdateEdgesForRenamedNodes(prefix)
-}
-
 // Wire up all the related nodes
 func (l *Loader) wireGraphEdges(g *dag.Graph) diag.Diagnostics {
 	var diags diag.Diagnostics
@@ -579,22 +568,6 @@ func (l *Loader) wireGraphEdges(g *dag.Graph) diag.Diagnostics {
 					diags.Add(diag.Diagnostic{
 						Severity: diag.SeverityLevelError,
 						Message:  fmt.Sprintf("service %q has invalid reference to service %q", n.NodeID(), depName),
-					})
-					continue
-				}
-
-				g.AddEdge(dag.Edge{From: n, To: dep})
-			}
-
-		case *ComponentNode: // Component depending on service.
-			for _, depName := range n.Registration().NeedsServices {
-				dep := g.GetByID(depName)
-				if dep == nil {
-					diags.Add(diag.Diagnostic{
-						Severity: diag.SeverityLevelError,
-						Message:  fmt.Sprintf("%s component depends on undefined service %q; please report this issue to project maintainers", n.NodeID(), depName),
-						StartPos: ast.StartPos(n.Block()).Position(),
-						EndPos:   ast.EndPos(n.Block()).Position(),
 					})
 					continue
 				}
@@ -793,8 +766,6 @@ func (l *Loader) postEvaluate(logger log.Logger, bn BlockNode, err error) error 
 	switch c := bn.(type) {
 	case *DeclareComponentNode:
 		l.cache.CacheDeclare(c.NodeID(), c.Arguments())
-	case *ExportConfigNode:
-
 	case *ComponentNode:
 		// Always update the cache both the arguments and exports, since both might
 		// change when a component gets re-evaluated. We also want to cache the arguments and exports in case of an error

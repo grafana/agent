@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/grafana/agent/pkg/flow/internal/dag"
 	"github.com/grafana/river/ast"
 	"github.com/grafana/river/vm"
 )
@@ -76,6 +77,23 @@ func (cn *ExportConfigNode) Block() *ast.BlockStmt {
 // NodeID implements dag.Node and returns the unique ID for the config node.
 func (cn *ExportConfigNode) NodeID() string { return cn.nodeID }
 
+func (cn *ExportConfigNode) SetNodeID(value string) { cn.nodeID = value }
+
 func (cn *ExportConfigNode) Namespace() string { return cn.namespace }
 
 func (cn *ExportConfigNode) SetNamespace(namespace string) { cn.namespace = namespace }
+
+func (cn *ExportConfigNode) Clone(newID string) dag.Node {
+	cn.mut.RLock()
+	defer cn.mut.RUnlock()
+	return &ExportConfigNode{
+		nodeID:        newID,
+		componentName: cn.componentName,
+		mut:           sync.RWMutex{},
+		block:         cn.block,
+		eval:          vm.New(cn.block.Body),
+		label:         cn.label,
+		namespace:     cn.namespace,
+		// does not clone the value
+	}
+}

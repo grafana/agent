@@ -5,6 +5,7 @@ import (
 	"sync"
 
 	"github.com/go-kit/log"
+	"github.com/grafana/agent/pkg/flow/internal/dag"
 	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/grafana/river/ast"
 	"github.com/grafana/river/vm"
@@ -81,7 +82,22 @@ func (cn *LoggingConfigNode) Block() *ast.BlockStmt {
 // NodeID implements dag.Node and returns the unique ID for the config node.
 func (cn *LoggingConfigNode) NodeID() string { return cn.nodeID }
 
+func (cn *LoggingConfigNode) SetNodeID(value string) { cn.nodeID = value }
+
 // Namespace is "" because not allowed in modules
 func (cn *LoggingConfigNode) Namespace() string { return "" }
 
 func (cn *LoggingConfigNode) SetNamespace(namespace string) {}
+
+func (cn *LoggingConfigNode) Clone(newID string) dag.Node {
+	cn.mut.RLock()
+	defer cn.mut.RUnlock()
+	return &LoggingConfigNode{
+		nodeID:        newID,
+		componentName: cn.componentName,
+		mut:           sync.RWMutex{},
+		block:         cn.block,
+		eval:          vm.New(cn.block.Body),
+		l:             cn.l,
+	}
+}

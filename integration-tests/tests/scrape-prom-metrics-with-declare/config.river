@@ -1,0 +1,38 @@
+declare "prom_scrap" {
+
+  argument "target" {}
+
+  argument "mimir_endpoint" {}
+
+  prometheus.scrape "scrape_prom_metrics_with_declare" {
+    targets = [ 
+      {"__address__" = argument.target.value},
+    ]
+    forward_to = [prometheus.remote_write.scrape_prom_metrics_with_declare.receiver]
+    scrape_classic_histograms = true
+    enable_protobuf_negotiation = true
+    scrape_interval = "1s"
+    scrape_timeout = "500ms"
+  }
+
+  prometheus.remote_write "scrape_prom_metrics_with_declare" {
+    endpoint {
+      url = argument.mimir_endpoint.value
+      send_native_histograms = true
+      metadata_config {
+          send_interval = "1s"
+      }
+      queue_config {
+          max_samples_per_send = 100
+      }
+    }
+    external_labels = {
+      test_name = "scrape_prom_metrics_with_declare",
+    }
+  }
+}
+
+prom_scrap "default" {
+  target = "localhost:9001"
+  mimir_endpoint = "http://localhost:9009/api/v1/push"
+}

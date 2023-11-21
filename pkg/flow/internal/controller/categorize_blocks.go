@@ -15,7 +15,7 @@ type CategorizedBlocks struct {
 	DeclareBlocks []*ast.BlockStmt
 }
 
-func CategorizeStatements(body ast.Body) (*CategorizedBlocks, *diag.Diagnostic) {
+func CategorizeStatements(body ast.Body) (*CategorizedBlocks, error) {
 	// Look for predefined non-components blocks (i.e., logging), and store
 	// everything else into a list of components.
 	//
@@ -23,16 +23,18 @@ func CategorizeStatements(body ast.Body) (*CategorizedBlocks, *diag.Diagnostic) 
 	// in ast?
 
 	var categorizedBlocks CategorizedBlocks
+	var diagnostic *diag.Diagnostic
 
 	for _, stmt := range body {
 		switch stmt := stmt.(type) {
 		case *ast.AttributeStmt:
-			return nil, &diag.Diagnostic{
+			diagnostic = &diag.Diagnostic{
 				Severity: diag.SeverityLevelError,
 				StartPos: ast.StartPos(stmt.Name).Position(),
 				EndPos:   ast.EndPos(stmt.Name).Position(),
 				Message:  "unrecognized attribute " + stmt.Name.Name,
 			}
+			return nil, diagnostic
 
 		case *ast.BlockStmt:
 			fullName := strings.Join(stmt.Name, ".")
@@ -46,12 +48,13 @@ func CategorizeStatements(body ast.Body) (*CategorizedBlocks, *diag.Diagnostic) 
 			}
 
 		default:
-			return nil, &diag.Diagnostic{
+			diagnostic = &diag.Diagnostic{
 				Severity: diag.SeverityLevelError,
 				StartPos: ast.StartPos(stmt).Position(),
 				EndPos:   ast.EndPos(stmt).Position(),
 				Message:  fmt.Sprintf("unsupported statement type %T", stmt),
 			}
+			return nil, diagnostic
 		}
 	}
 

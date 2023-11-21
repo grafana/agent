@@ -6,6 +6,7 @@ import (
 	"sync"
 
 	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/pkg/flow/internal/dag"
 	"github.com/grafana/river/ast"
 	"github.com/grafana/river/vm"
 )
@@ -107,3 +108,19 @@ func (cn *DeclareComponentNode) Block() *ast.BlockStmt {
 func (cn *DeclareComponentNode) Namespace() string { return cn.namespace }
 
 func (cn *DeclareComponentNode) SetNamespace(namespace string) { cn.namespace = namespace }
+
+func (cn *DeclareComponentNode) Clone(newID string) dag.Node {
+	cn.mut.RLock()
+	defer cn.mut.RUnlock()
+	return &DeclareComponentNode{
+		id:            strings.Split(newID, "."),
+		nodeID:        newID,
+		componentName: cn.componentName,
+		mut:           sync.RWMutex{},
+		block:         cn.block,
+		eval:          vm.New(cn.block.Body),
+		label:         cn.label,
+		namespace:     cn.namespace,
+		// does not clone the arguments
+	}
+}

@@ -14,6 +14,7 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/pkg/flow/internal/dag"
 	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/grafana/agent/pkg/flow/tracing"
@@ -94,6 +95,9 @@ type ComponentNode struct {
 	OnComponentUpdate func(cn *ComponentNode) // Informs controller that we need to reevaluate
 	lastUpdateTime    atomic.Time
 
+	//TODO copying the globals is maybe not so nice
+	globals ComponentGlobals
+
 	mut     sync.RWMutex
 	block   *ast.BlockStmt // Current River block to derive args from
 	eval    *vm.Evaluator
@@ -145,6 +149,7 @@ func NewComponentNode(globals ComponentGlobals, reg component.Registration, b *a
 		nodeID:            nodeID,
 		componentName:     strings.Join(b.Name, "."),
 		reg:               reg,
+		globals:           globals,
 		exportsType:       getExportsType(reg),
 		moduleController:  globals.NewModuleController(globalID, reg.NeedsServices),
 		OnComponentUpdate: globals.OnComponentUpdate,
@@ -463,3 +468,45 @@ func (cn *ComponentNode) ModuleIDs() []string {
 func (cn *ComponentNode) Namespace() string { return cn.namespace }
 
 func (cn *ComponentNode) SetNamespace(namespace string) { cn.namespace = namespace }
+
+func (cn *ComponentNode) Clone(newID string) dag.Node {
+	cn.mut.RLock()
+	defer cn.mut.RUnlock()
+
+	initHealth := component.Health{
+		Health:     component.HealthTypeUnknown,
+		Message:    "component created",
+		UpdateTime: time.Now(),
+	}
+
+	globalID := newID
+	if cn.globals.ControllerID != "" {
+		globalID = path.Join(cn.globals.ControllerID, newID)
+	}
+
+	clonedComponentNode := &ComponentNode{
+		id:                strings.Split(newID, "."),
+		globalID:          globalID,
+		globals:           cn.globals,
+		label:             cn.label,
+		nodeID:            newID,
+		componentName:     cn.componentName,
+		reg:               cn.reg,
+		exportsType:       getExportsType(cn.reg),
+		moduleController:  cn.globals.NewModuleController(globalID, cn.reg.NeedsServices),
+		OnComponentUpdate: cn.globals.OnComponentUpdate,
+
+		block: cn.block,
+		eval:  vm.New(cn.block.Body),
+
+		args:    cn.reg.Args,
+		exports: cn.reg.Exports,
+
+		evalHealth: initHealth,
+		runHealth:  initHealth,
+	}
+
+	cn.managedOpts = getManagedOptions(cn.globals, clonedComponentNode)
+
+	return clonedComponentNode
+}

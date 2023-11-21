@@ -248,25 +248,27 @@ func (vc *valueCache) BuildContext(n BlockNode) *vm.Scope {
 		}
 	}
 
-	for key, value := range vc.declareExports {
-		// we trim the namespace that they have in common here. This is needed for nested declares
-		trimedKey := strings.TrimPrefix(key, n.Namespace()+".")
-		convertToNestedMap(trimedKey, value, scope.Variables)
-	}
+	if n != nil {
+		for key, value := range vc.declareExports {
+			// we trim the namespace that they have in common here. This is needed for nested declares
+			trimedKey := strings.TrimPrefix(key, n.Namespace()+".")
+			convertToNestedMap(trimedKey, value, scope.Variables)
+		}
 
-	// add arguments available in the namespace
-	if n.Namespace() != "" {
-		if valueMap, exists := vc.declareValues[n.Namespace()]; exists {
-			if len(valueMap) > 0 {
-				scope.Variables["argument"] = make(map[string]any)
-			}
-			for key, value := range valueMap {
-				keyMap := make(map[string]any)
-				keyMap["value"] = value
+		// add arguments available in the namespace
+		if n.Namespace() != "" {
+			if valueMap, exists := vc.declareValues[n.Namespace()]; exists {
+				if len(valueMap) > 0 {
+					scope.Variables["argument"] = make(map[string]any)
+				}
+				for key, value := range valueMap {
+					keyMap := make(map[string]any)
+					keyMap["value"] = value
 
-				switch args := scope.Variables["argument"].(type) {
-				case map[string]any:
-					args[key] = keyMap
+					switch args := scope.Variables["argument"].(type) {
+					case map[string]any:
+						args[key] = keyMap
+					}
 				}
 			}
 		}

@@ -13,6 +13,8 @@ type Node interface {
 	SetNamespace(string)
 
 	Namespace() string
+
+	Clone(newID string) Node
 }
 
 // Edge is a directed connection between two Nodes.
@@ -235,49 +237,52 @@ func (g *Graph) Clone() *Graph {
 	return newGraph
 }
 
-// TODO: NO PANIC
-func (g *Graph) UpdateEdgesForRenamedNodes(prefix string) {
-	// 	newOutEdges := make(map[Node]nodeSet)
-	// 	newInEdges := make(map[Node]nodeSet)
+func (g *Graph) DeepClone(prefix string) *Graph {
+	newGraph := &Graph{
+		nodes:    make(nodeSet, len(g.nodes)),
+		nodeByID: make(map[string]Node, len(g.nodeByID)),
+		outEdges: make(map[Node]nodeSet, len(g.outEdges)),
+		inEdges:  make(map[Node]nodeSet, len(g.inEdges)),
+	}
 
-	// 	for from, tos := range g.outEdges {
-	// 		newFrom, exists := g.nodeByID[from.NodeID()]
-	// 		if !exists {
-	// 			panic(fmt.Sprintf("Node with ID %s not found in the graph", from.NodeID()))
-	// 		}
+	addPrefix := func(prefix string, originalString string) string {
+		return prefix + "." + originalString
+	}
 
-	// 		newTos := make(nodeSet)
-	// 		for to := range tos {
-	// 			newTo, exists := g.nodeByID[to.NodeID()]
-	// 			if !exists {
-	// 				panic(fmt.Sprintf("Node with ID %s not found in the graph", prefix+to.NodeID()))
-	// 			}
-	// 			newTos.Add(newTo)
-	// 		}
+	originalToCloned := make(map[Node]Node)
 
-	// 		newOutEdges[newFrom] = newTos
-	// 	}
+	for id, node := range g.nodeByID {
+		clonedNode := node.Clone(addPrefix(prefix, id))
+		if clonedNode.Namespace() == "" {
+			clonedNode.SetNamespace(prefix)
+		} else {
+			clonedNode.SetNamespace(addPrefix(prefix, node.Namespace()))
+		}
+		newGraph.nodeByID[clonedNode.NodeID()] = clonedNode
+		newGraph.nodes[clonedNode] = struct{}{}
+		originalToCloned[node] = clonedNode
+	}
 
-	// 	for to, froms := range g.inEdges {
-	// 		newTo, exists := g.nodeByID[to.NodeID()]
-	// 		if !exists {
-	// 			panic(fmt.Sprintf("Node with ID %s not found in the graph", prefix+to.NodeID()))
-	// 		}
+	cloneNodeSet := func(set nodeSet) nodeSet {
+		clonedSet := make(nodeSet, len(set))
+		for node := range set {
+			// Use the mapping to get the cloned node
+			clonedNode := originalToCloned[node]
+			clonedSet[clonedNode] = struct{}{}
+		}
+		return clonedSet
+	}
 
-	// 		newFroms := make(nodeSet)
-	// 		for from := range froms {
-	// 			newFrom, exists := g.nodeByID[from.NodeID()]
-	// 			if !exists {
-	// 				panic(fmt.Sprintf("Node with ID %s not found in the graph", prefix+from.NodeID()))
-	// 			}
-	// 			newFroms.Add(newFrom)
-	// 		}
+	for node, set := range g.outEdges {
+		clonedNode := originalToCloned[node]
+		newGraph.outEdges[clonedNode] = cloneNodeSet(set)
+	}
+	for node, set := range g.inEdges {
+		clonedNode := originalToCloned[node]
+		newGraph.inEdges[clonedNode] = cloneNodeSet(set)
+	}
 
-	//		newInEdges[newTo] = newFroms
-	//	}
-	//
-	// g.outEdges = newOutEdges
-	// g.inEdges = newInEdges
+	return newGraph
 }
 
 func (g *Graph) Merge(other *Graph) {

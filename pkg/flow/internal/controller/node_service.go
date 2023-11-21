@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/pkg/flow/internal/dag"
 	"github.com/grafana/agent/service"
 	"github.com/grafana/river/ast"
 	"github.com/grafana/river/vm"
@@ -130,4 +131,9 @@ func (sn *ServiceNode) Evaluate(scope *vm.Scope) error {
 
 func (sn *ServiceNode) Run(ctx context.Context) error {
 	return sn.svc.Run(ctx, sn.host)
+}
+
+// No cloning of service node
+func (sn *ServiceNode) Clone(newID string) dag.Node {
+	return sn
 }
