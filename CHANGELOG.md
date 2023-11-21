@@ -10,6 +10,10 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+### Enhancements
+
+- Grafana Agent on Windows now automatically restarts on failure. (@hainenber)
+
 v0.38.0-rc.0 (2023-11-16)
 -------------------------
 
