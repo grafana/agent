@@ -10,14 +10,8 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
-### Bugfixes
-
-- Fix default configuration file `grafana-agent-flow.river` used in downstream packages. (@bricewge)
-
-- Fix converter output for prometheus.exporter.windows to not unnecessarily add empty blocks. (@erikbaranowski)
-
-v0.38.0-rc.0 (2023-11-16)
--------------------------
+v0.38.0 (2023-11-21)
+--------------------
 
 ### Breaking changes
 
@@ -166,6 +160,12 @@ v0.38.0-rc.0 (2023-11-16)
 
 - Added Kubernetes service resolver to static node's loadbalancing exporter
   and to Flow's `otelcol.exporter.loadbalancing`. (@ptodev)
+
+- Fix default configuration file `grafana-agent-flow.river` used in downstream
+  packages. (@bricewge)
+
+- Fix converter output for prometheus.exporter.windows to not unnecessarily add
+  empty blocks. (@erikbaranowski)
 
 ### Other changes
 
