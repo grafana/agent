@@ -81,7 +81,9 @@ type BasicAuthHTTPTransport struct {
 }
 
 func (b *BasicAuthHTTPTransport) RoundTrip(req *http.Request) (*http.Response, error) {
-	req.Header.Add("authorization", b.authHeader)
+	if b.authHeader != "" {
+		req.Header.Add("authorization", b.authHeader)
+	}
 	return b.Transport.RoundTrip(req)
 }
 
