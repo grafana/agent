@@ -58,16 +58,24 @@ func NewGitRepo(ctx context.Context, storagePath string, opts GitRepoOptions) (*
 	}
 
 	// Fetch the latest contents. This may be a no-op if we just did a clone.
-	err = repo.FetchContext(ctx, &git.FetchOptions{
+	fetchRepoErr := repo.FetchContext(ctx, &git.FetchOptions{
 		RemoteName: "origin",
 		Force:      true,
 		Auth:       opts.Auth.Convert(),
 	})
-	if err != nil && !errors.Is(err, git.NoErrAlreadyUpToDate) {
-		return nil, UpdateFailedError{
-			Repository: opts.Repository,
-			Inner:      err,
+	if fetchRepoErr != nil && !errors.Is(fetchRepoErr, git.NoErrAlreadyUpToDate) {
+		workTree, err := repo.Worktree()
+		if err != nil {
+			return nil, err
 		}
+		return &GitRepo{
+				opts:     opts,
+				repo:     repo,
+				workTree: workTree,
+			}, UpdateFailedError{
+				Repository: opts.Repository,
+				Inner:      fetchRepoErr,
+			}
 	}
 
 	// Finally, hard reset to our requested revision.
@@ -92,7 +100,7 @@ func NewGitRepo(ctx context.Context, storagePath string, opts GitRepoOptions) (*
 		opts:     opts,
 		repo:     repo,
 		workTree: workTree,
-	}, nil
+	}, err
 }
 
 func isRepoCloned(dir string) bool {
@@ -103,15 +111,16 @@ func isRepoCloned(dir string) bool {
 // Update updates the repository by fetching new content and re-checking out to
 // latest version of Revision.
 func (repo *GitRepo) Update(ctx context.Context) error {
-	err := repo.repo.FetchContext(ctx, &git.FetchOptions{
+	var err error
+	fetchRepoErr := repo.repo.FetchContext(ctx, &git.FetchOptions{
 		RemoteName: "origin",
 		Force:      true,
 		Auth:       repo.opts.Auth.Convert(),
 	})
-	if err != nil && !errors.Is(err, git.NoErrAlreadyUpToDate) {
+	if fetchRepoErr != nil && !errors.Is(fetchRepoErr, git.NoErrAlreadyUpToDate) {
 		return UpdateFailedError{
 			Repository: repo.opts.Repository,
-			Inner:      err,
+			Inner:      fetchRepoErr,
 		}
 	}
 
@@ -120,7 +129,6 @@ func (repo *GitRepo) Update(ctx context.Context) error {
 	if err != nil {
 		return InvalidRevisionError{Revision: repo.opts.Revision}
 	}
-
 	err = repo.workTree.Reset(&git.ResetOptions{
 		Commit: hash,
 		Mode:   git.HardReset,
