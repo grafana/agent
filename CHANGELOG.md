@@ -10,6 +10,10 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+### Features
+
+- Agent Management: Introduce support for templated configuration. (@jcreixell)
+
 v0.38.0 (2023-11-21)
 --------------------
 
@@ -63,8 +67,6 @@ v0.38.0 (2023-11-21)
   - `otelcol.receiver.vcenter` - receives metrics telemetry data from vCenter. (@marctc)
 
 - Agent Management: Introduce support for remotely managed external labels for logs. (@jcreixell)
-
-- Agent Management: Introduce support for templated configuration. (@jcreixell)
 
 ### Enhancements
 
