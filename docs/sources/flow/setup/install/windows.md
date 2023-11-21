@@ -61,7 +61,7 @@ To do a silent install of Grafana Agent on Windows, perform the following steps.
 
 ## Service Configuration
 
-Grafana Agent is using the Windows Registry `HKLM\Software\Grafana\Grafana Agent Flow` for service configuration.
+Grafana Agent uses the Windows Registry `HKLM\Software\Grafana\Grafana Agent Flow` for service configuration.
 
 * `Arguments` (Type `REG_MULTI_SZ`) Each value represents a binary argument for grafana-agent-flow binary.
 * `Environment` (Type `REG_MULTI_SZ`) Each value represents a environment value `KEY=VALUE` for grafana-agent-flow binary.
