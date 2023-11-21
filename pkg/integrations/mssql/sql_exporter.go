@@ -17,6 +17,7 @@ import (
 	"github.com/grafana/agent/pkg/integrations"
 	integrations_v2 "github.com/grafana/agent/pkg/integrations/v2"
 	"github.com/grafana/agent/pkg/integrations/v2/metricsutils"
+	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/common/model"
 )
 
@@ -33,7 +34,8 @@ type Config struct {
 	MaxIdleConnections int                `yaml:"max_idle_connections,omitempty"`
 	MaxOpenConnections int                `yaml:"max_open_connections,omitempty"`
 	Timeout            time.Duration      `yaml:"timeout,omitempty"`
-	QueryConfigPath    string             `yaml:"query_config_path,omitempty"`
+	QueryConfigFile    string             `yaml:"query_config_file,omitempty"`
+	QueryConfig        util.RawYAML       `yaml:"query_config,omitempty"`
 }
 
 func (c Config) validate() error {
@@ -62,17 +64,17 @@ func (c Config) validate() error {
 		return errors.New("timeout must be positive")
 	}
 
-	if c.QueryConfigPath != "" {
-		_, err := os.Stat(c.QueryConfigPath)
+	if c.QueryConfigFile != "" {
+		_, err := os.Stat(c.QueryConfigFile)
 
 		if err == nil {
 			return nil
 		}
 
 		if errors.Is(err, os.ErrNotExist) {
-			return errors.New("query_config_path must be a valid path of a YAML config file")
+			return errors.New("query_config_file must be a valid path of a YAML config file")
 		} else {
-			return errors.New("query_config_path file has issues")
+			return fmt.Errorf("query_config_file file has issues: %w", err)
 		}
 	}
 
@@ -94,7 +96,13 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	*c = DefaultConfig
 
 	type plain Config
-	return unmarshal((*plain)(c))
+	err := unmarshal((*plain)(c))
+	if err != nil {
+		return err
+	}
+
+	var customQueryConfig config.CollectorConfig
+	return yaml.Unmarshal(c.QueryConfig, &customQueryConfig)
 }
 
 // Name returns the name of the integration this config is for.
@@ -113,16 +121,13 @@ func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) 
 		return nil, fmt.Errorf("failed to validate config: %w", err)
 	}
 
-	// Initialize collectorConfig from file if needed
-	if c.QueryConfigPath != "" {
-		yamlFile, err := os.ReadFile(c.QueryConfigPath)
-		if err != nil {
-			return nil, fmt.Errorf("failed to create mssql target: problem reading query_config_path: %w", err)
-		}
-		err = yaml.Unmarshal(yamlFile, &collectorConfig)
-		if err != nil {
-			return nil, fmt.Errorf("failed to create mssql target: query_config_path file not in correct format: %w", err)
-		}
+	// Initialize collectorConfig from config params if needed
+	customCollectorConfig, err := createCollectorConfig(c.QueryConfigFile, c.QueryConfig)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create mssql target: %w", err)
+	}
+	if customCollectorConfig != nil {
+		collectorConfig = *customCollectorConfig
 	}
 
 	t, err := sql_exporter.NewTarget(
@@ -151,4 +156,27 @@ func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) 
 		c.Name(),
 		integrations.WithCollectors(col),
 	), nil
+}
+
+func createCollectorConfig(queryConfigFile string, queryConfig util.RawYAML) (*config.CollectorConfig, error) {
+	var customCollectorConfig *config.CollectorConfig
+
+	if queryConfigFile != "" {
+		yamlFile, err := os.ReadFile(queryConfigFile)
+		if err != nil {
+			return nil, fmt.Errorf("problem reading query_config_file: %w", err)
+		}
+		err = yaml.Unmarshal(yamlFile, &customCollectorConfig)
+		if err != nil {
+			return nil, fmt.Errorf("query_config_file file not in correct format: %w", err)
+		}
+
+		return customCollectorConfig, nil
+	}
+
+	if err := yaml.Unmarshal(queryConfig, &customCollectorConfig); err != nil {
+		return nil, fmt.Errorf("query_config not in correct format: %w", err)
+	}
+
+	return customCollectorConfig, nil
 }

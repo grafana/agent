@@ -2,6 +2,7 @@ package mssql
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"time"
 
@@ -9,6 +10,7 @@ import (
 	"github.com/grafana/agent/component/prometheus/exporter"
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/integrations/mssql"
+	"github.com/grafana/agent/pkg/util"
 	"github.com/grafana/river/rivertypes"
 	config_util "github.com/prometheus/common/config"
 )
@@ -37,11 +39,12 @@ var DefaultArguments = Arguments{
 
 // Arguments controls the mssql exporter.
 type Arguments struct {
-	ConnectionString   rivertypes.Secret `river:"connection_string,attr"`
-	MaxIdleConnections int               `river:"max_idle_connections,attr,optional"`
-	MaxOpenConnections int               `river:"max_open_connections,attr,optional"`
-	Timeout            time.Duration     `river:"timeout,attr,optional"`
-	QueryConfigPath    string            `river:"query_config_path,attr,optional"`
+	ConnectionString   rivertypes.Secret         `river:"connection_string,attr"`
+	MaxIdleConnections int                       `river:"max_idle_connections,attr,optional"`
+	MaxOpenConnections int                       `river:"max_open_connections,attr,optional"`
+	Timeout            time.Duration             `river:"timeout,attr,optional"`
+	QueryConfigFile    string                    `river:"query_config_file,attr,optional"`
+	QueryConfig        rivertypes.OptionalSecret `river:"query_config,attr,optional"`
 }
 
 // SetToDefault implements river.Defaulter.
@@ -63,17 +66,17 @@ func (a *Arguments) Validate() error {
 		return errors.New("timeout must be positive")
 	}
 
-	if a.QueryConfigPath != "" {
-		_, err := os.Stat(a.QueryConfigPath)
+	if a.QueryConfigFile != "" {
+		_, err := os.Stat(a.QueryConfigFile)
 
 		if err == nil {
 			return nil
 		}
 
 		if errors.Is(err, os.ErrNotExist) {
-			return errors.New("query_config_path must be a valid path of a YAML config file")
+			return errors.New("query_config_file must be a valid path of a YAML config file")
 		} else {
-			return errors.New("query_config_path file has issues")
+			return fmt.Errorf("query_config_file file has issues: %w", err)
 		}
 	}
 
@@ -86,6 +89,7 @@ func (a *Arguments) Convert() *mssql.Config {
 		MaxIdleConnections: a.MaxIdleConnections,
 		MaxOpenConnections: a.MaxOpenConnections,
 		Timeout:            a.Timeout,
-		QueryConfigPath:    a.QueryConfigPath,
+		QueryConfigFile:    a.QueryConfigFile,
+		QueryConfig:        util.RawYAML(a.QueryConfig.Value),
 	}
 }

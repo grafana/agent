@@ -12,7 +12,8 @@ title: prometheus.exporter.mssql
 # prometheus.exporter.mssql
 
 The `prometheus.exporter.mssql` component embeds
-[sql_exporter](https://github.com/burningalchemist/sql_exporter) for collecting stats from a Microsoft SQL Server.
+[sql_exporter](https://github.com/burningalchemist/sql_exporter) for collecting stats from a Microsoft SQL Server and exposing them as
+Prometheus metrics.
 
 ## Usage
 
@@ -27,19 +28,31 @@ prometheus.exporter.mssql "LABEL" {
 The following arguments can be used to configure the exporter's behavior.
 Omitted fields take their default values.
 
-| Name                   | Type       | Description                                                       | Default | Required |
-| ---------------------- | ---------- | ----------------------------------------------------------------- | ------- | -------- |
-| `connection_string`    | `secret`   | The connection string used to connect to an Microsoft SQL Server. |         | yes      |
-| `max_idle_connections` | `int`      | Maximum number of idle connections to any one target.             | `3`     | no       |
-| `max_open_connections` | `int`      | Maximum number of open connections to any one target.             | `3`     | no       |
-| `timeout`              | `duration` | The query timeout in seconds.                                     | `"10s"` | no       |
-| `query_config_path`    | `string`   | The location of a custom query to prometheus metric config file.  |         | no       |
+| Name                   | Type       | Description                                                         | Default | Required |
+| ---------------------- | ---------- | ------------------------------------------------------------------- | ------- | -------- |
+| `connection_string`    | `secret`   | The connection string used to connect to an Microsoft SQL Server.   |         | yes      |
+| `max_idle_connections` | `int`      | Maximum number of idle connections to any one target.               | `3`     | no       |
+| `max_open_connections` | `int`      | Maximum number of open connections to any one target.               | `3`     | no       |
+| `timeout`              | `duration` | The query timeout in seconds.                                       | `"10s"` | no       |
+| `query_config_file`    | `string`   | MSSQL query to prometheus metric configuration file path.           |         | no       |
+| `query_config`         | `string`   | MSSQL query to prometheus metric configuration as an inline string. |         | no       |
 
 [The sql_exporter examples](https://github.com/burningalchemist/sql_exporter/blob/master/examples/azure-sql-mi/sql_exporter.yml#L21) show the format of the `connection_string` argument:
 
 ```conn
 sqlserver://USERNAME_HERE:PASSWORD_HERE@SQLMI_HERE_ENDPOINT.database.windows.net:1433?encrypt=true&hostNameInCertificate=%2A.SQL_MI_DOMAIN_HERE.database.windows.net&trustservercertificate=true
 ```
+
+Either `query_config_file` or `query_config` can be specified.
+The `query_config_file` argument points to a YAML file defining which MSSQL queries map to custom Prometheus metrics.
+The `query_config` argument must be a YAML document as string defining which MSSQL queries map to custom Prometheus metrics.
+`query_config` is typically loaded by using the exports of another component. For example,
+
+- `local.file.LABEL.content`
+- `remote.http.LABEL.content`
+- `remote.s3.LABEL.content`
+
+See [sql_exporter](https://github.com/burningalchemist/sql_exporter#collectors) for details on how to create a configuration file.
 
 ## Blocks
 
@@ -103,12 +116,12 @@ Replace the following:
 [scrape]: {{< relref "./prometheus.scrape.md" >}}
 
 ## Custom metrics
-It is possible to retrieve custom prometheus metrics for a mssql instance using the optional `query_config_path` parameter.
+You can use the optional `query_config_file` or `query_config` parameters to retrieve custom Prometheus metrics for a MSSQL instance.
 
-This parameter should point to a YAML config file defined [here](https://github.com/burningalchemist/sql_exporter#collectors). If it does, it will use the new config to query your mssql instance and create whatever metrics are defined.
-If you want additional metrics on top of the default provided ones, the default config should be used as a base.
+If either of these are defined, they will use the new configuration to query your MSSQL instance and create whatever Prometheus metrics are defined.
+If you want additional metrics on top of the default metrics, the default configuration must be used as a base.
 
-The default config file used by this integration is as follows:
+The default configuration used by this integration is as follows:
 ```
 collector_name: mssql_standard
 

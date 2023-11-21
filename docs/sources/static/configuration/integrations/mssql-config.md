@@ -10,7 +10,7 @@ title: mssql_config
 
 # mssql_config
 
-The `mssql_configs` block configures the `mssql` integration, an embedded version of [`sql_exporter`](https://github.com/burningalchemist/sql_exporter) that lets you collect [Microsoft SQL Server](https://www.microsoft.com/en-us/sql-server) metrics.
+The `mssql_config` block configures the `mssql` integration, an embedded version of [`sql_exporter`](https://github.com/burningalchemist/sql_exporter) that lets you collect [Microsoft SQL Server](https://www.microsoft.com/en-us/sql-server) metrics.
 
 It is recommended that you have a dedicated user set up for monitoring an mssql instance.
 The user for monitoring must have the following grants in order to populate the metrics:
@@ -19,12 +19,24 @@ GRANT VIEW ANY DEFINITION TO <MONITOR_USER>
 GRANT VIEW SERVER STATE TO <MONITOR_USER>
 ```
 
+## Quick configuration example
+
+To get started, define the MSSQL connection string in Grafana Agent's integration block:
+
+```yaml
+metrics:
+  wal_directory: /tmp/wal
+integrations:
+  mssql:
+    enabled: true
+    connection_string: "sqlserver://[user]:[pass]@localhost:1433"
+```
 
 Full reference of options:
 
 ```yaml
-  # Enables the mssql integration, allowing the Agent to automatically
-  # collect metrics for the specified mssql instance.
+  # Enables the MSSQL integration, allowing the Agent to automatically
+  # collect metrics for the specified MSSQL instance.
   [enabled: <boolean> | default = false]
 
   # Sets an explicit value for the instance label when the integration is
@@ -34,7 +46,7 @@ Full reference of options:
   [instance: <string>]
 
   # Automatically collect metrics from this integration. If disabled,
-  # the mssql integration is run but not scraped and thus not
+  # the MSSQL integration is run but not scraped and thus not
   # remote-written. Metrics for the integration are exposed at
   # /integrations/mssql/metrics and can be scraped by an external
   # process.
@@ -64,32 +76,39 @@ Full reference of options:
   # Exporter-specific configuration options
   #
 
-  # The connection_string to use to connect to the mssql instance.
+  # The connection_string to use to connect to the MSSQL instance.
   # It is specified in the form of: "sqlserver://<USERNAME>:<PASSWORD>@<HOST>:<PORT>"
   connection_string: <string>
 
-  # The maximum number of open database connections to the mssql instance.
+  # The maximum number of open database connections to the MSSQL instance.
   [max_open_connections: <int> | default = 3]
 
-  # The maximum number of idle database connections to the mssql instance.
+  # The maximum number of idle database connections to the MSSQL instance.
   [max_idle_connections: <int> | default = 3]
 
-  # The timeout for scraping metrics from the mssql instance.
+  # The timeout for scraping metrics from the MSSQL instance.
   [timeout: <duration> | default = "10s"]
 
-  # The file path for a YAML config file which allows for custom queries/metrics
-  # for the mssql instance
-  [query_config_path: <string>]
+  # Path to a YAML configuration file with custom Prometheus metrics and MSSQL queries.
+  # This field has precedence to the config defined in the query_config block.
+  # See https://github.com/burningalchemist/sql_exporter#collectors for more details how to specify your configuration file.
+  [query_config_file: <string>]
 
+  # Embedded MSSQL query configuration for custom MSSQL Prometheus metrics.
+  # You can specify your metrics and queries here instead of in an external configuration file.
+  # See https://github.com/burningalchemist/sql_exporter#collectors for more details how to specify your metric configurations.
+  query_config: 
+    [- <metrics> ... ]
+    [- <queries> ... ]]
 ```
 
 ## Custom metrics
-It is possible to retrieve custom prometheus metrics for a mssql instance using the optional `query_config_path` parameter.
+You can use the optional `query_config_file` or `query_config` parameters to retrieve custom Prometheus metrics for a MSSQL instance.
 
-This parameter should point to a YAML config file defined [here](https://github.com/burningalchemist/sql_exporter#collectors). If it does, it will use the new config to query your mssql instance and create whatever metrics are defined.
-If you want additional metrics on top of the default provided ones, the default config should be used as a base.
+If either of these are defined, they will use the new configuration to query your MSSQL instance and create whatever Prometheus metrics are defined.
+If you want additional metrics on top of the default metrics, the default configuration must be used as a base.
 
-The default config file used by this integration is as follows:
+The default configuration used by this integration is as follows:
 ```
 collector_name: mssql_standard
 

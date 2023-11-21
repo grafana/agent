@@ -13,6 +13,17 @@ import (
 
 func TestConfig_validate(t *testing.T) {
 	goodQueryPath, _ := filepath.Abs("./collector_config.yaml")
+	strConfig := `---
+collector_name: mssql_standard
+
+metrics:
+- metric_name: mssql_local_time_seconds
+  type: gauge
+  help: 'Local time in seconds since epoch (Unix time).'
+	values: [unix_time]
+	query: |
+		SELECT DATEDIFF(second, '19700101', GETUTCDATE()) AS unix_time
+	`
 
 	testCases := []struct {
 		name  string
@@ -88,15 +99,15 @@ func TestConfig_validate(t *testing.T) {
 			err: "timeout must be positive",
 		},
 		{
-			name: "bad query config path",
+			name: "bad query config file path",
 			input: Config{
 				ConnectionString:   "sqlserver://user:pass@localhost:1433",
 				MaxIdleConnections: 3,
 				MaxOpenConnections: 3,
 				Timeout:            10 * time.Second,
-				QueryConfigPath:    "doesnotexist.YAML",
+				QueryConfigFile:    "doesnotexist.YAML",
 			},
-			err: "query_config_path must be a valid path of a YAML config file",
+			err: "query_config_file must be a valid path of a YAML config file",
 		},
 		{
 			name: "good query config file",
@@ -105,7 +116,17 @@ func TestConfig_validate(t *testing.T) {
 				MaxIdleConnections: 3,
 				MaxOpenConnections: 3,
 				Timeout:            10 * time.Second,
-				QueryConfigPath:    goodQueryPath,
+				QueryConfigFile:    goodQueryPath,
+			},
+		},
+		{
+			name: "good query config",
+			input: Config{
+				ConnectionString:   "sqlserver://user:pass@localhost:1433",
+				MaxIdleConnections: 3,
+				MaxOpenConnections: 3,
+				Timeout:            10 * time.Second,
+				QueryConfig:        []byte(strConfig),
 			},
 		},
 	}
@@ -141,12 +162,28 @@ func TestConfig_UnmarshalYaml(t *testing.T) {
 	})
 
 	t.Run("all values", func(t *testing.T) {
-		strConfig := `
-connection_string: "sqlserver://user:pass@localhost:1433"
+		strQueryConfig := `collector_name: mssql_standard
+metrics:
+- metric_name: mssql_local_time_seconds
+  help: Local time in seconds since epoch (Unix time).
+  type: gauge
+  values:
+  - unix_time
+  query: SELECT DATEDIFF(second, '19700101', GETUTCDATE()) AS unix_time
+`
+		strConfig := `connection_string: "sqlserver://user:pass@localhost:1433"
 max_idle_connections: 5
 max_open_connections: 6
 timeout: 1m
-query_config_path: "` + goodQueryPath + `"`
+query_config_file: "` + goodQueryPath + `"` + `
+query_config: 
+  collector_name: mssql_standard
+  metrics:
+    - metric_name: mssql_local_time_seconds
+      help: 'Local time in seconds since epoch (Unix time).'
+      type: "gauge"
+      values: [unix_time]
+      query: "SELECT DATEDIFF(second, '19700101', GETUTCDATE()) AS unix_time"`
 
 		var c Config
 
@@ -157,7 +194,8 @@ query_config_path: "` + goodQueryPath + `"`
 			MaxIdleConnections: 5,
 			MaxOpenConnections: 6,
 			Timeout:            time.Minute,
-			QueryConfigPath:    goodQueryPath,
+			QueryConfigFile:    goodQueryPath,
+			QueryConfig:        []byte(strQueryConfig),
 		}, c)
 	})
 }
@@ -172,7 +210,7 @@ func TestConfig_NewIntegration(t *testing.T) {
 			MaxIdleConnections: 3,
 			MaxOpenConnections: 3,
 			Timeout:            10 * time.Second,
-			QueryConfigPath:    goodQueryPath,
+			QueryConfigFile:    goodQueryPath,
 		}
 
 		i, err := c.NewIntegration(log.NewJSONLogger(os.Stdout))
@@ -193,18 +231,90 @@ func TestConfig_NewIntegration(t *testing.T) {
 		require.ErrorContains(t, err, "failed to validate config:")
 	})
 
+	t.Run("integration with query config file and query config", func(t *testing.T) {
+		strConfig := `---
+collector_name: mssql_standard
+
+metrics:
+	- metric_name: mssql_local_time_seconds
+	type: gauge
+	help: 'Local time in seconds since epoch (Unix time).'
+	values: [unix_time]
+	query: |
+		SELECT DATEDIFF(second, '19700101', GETUTCDATE()) AS unix_time
+`
+		c := &Config{
+			ConnectionString:   "sqlserver://user:pass@localhost:1433",
+			MaxIdleConnections: 3,
+			MaxOpenConnections: 3,
+			Timeout:            10 * time.Second,
+			QueryConfigFile:    goodQueryPath,
+			QueryConfig:        []byte(strConfig),
+		}
+
+		i, err := c.NewIntegration(log.NewJSONLogger(os.Stdout))
+		require.NoError(t, err)
+		require.NotNil(t, i)
+	})
+
+	t.Run("integration with query config", func(t *testing.T) {
+		strConfig := `---
+collector_name: mssql_standard
+
+metrics:
+- metric_name: mssql_local_time_seconds
+  type: gauge
+  help: 'Local time in seconds since epoch (Unix time).'
+  values: [unix_time]
+  query: SELECT DATEDIFF(second, '19700101', GETUTCDATE()) AS unix_time
+`
+		c := &Config{
+			ConnectionString:   "sqlserver://user:pass@localhost:1433",
+			MaxIdleConnections: 3,
+			MaxOpenConnections: 3,
+			Timeout:            10 * time.Second,
+			QueryConfig:        []byte(strConfig),
+		}
+
+		i, err := c.NewIntegration(log.NewJSONLogger(os.Stdout))
+		require.NoError(t, err)
+		require.NotNil(t, i)
+	})
+
 	t.Run("integration with incorrect format for query config file", func(t *testing.T) {
 		c := &Config{
 			ConnectionString:   "sqlserver://user:pass@localhost:1433",
 			MaxIdleConnections: 3,
 			MaxOpenConnections: 3,
 			Timeout:            10 * time.Second,
-			QueryConfigPath:    badQueryPath,
+			QueryConfigFile:    badQueryPath,
 		}
 
 		i, err := c.NewIntegration(log.NewJSONLogger(os.Stdout))
 		require.Nil(t, i)
-		require.ErrorContains(t, err, "failed to create mssql target: query_config_path file not in correct format: ")
+		require.ErrorContains(t, err, "failed to create mssql target: query_config_file file not in correct format: ")
+	})
+
+	t.Run("integration with invalid query config", func(t *testing.T) {
+		strConfig := `collector_name: mssql_standard
+
+metrics:
+- metric_name: mssql_local_time_seconds
+  help: 'Local time in seconds since epoch (Unix time).'
+  values: [unix_time]
+  query: SELECT DATEDIFF(second, '19700101', GETUTCDATE()) AS unix_time
+`
+		c := &Config{
+			ConnectionString:   "sqlserver://user:pass@localhost:1433",
+			MaxIdleConnections: 3,
+			MaxOpenConnections: 3,
+			Timeout:            10 * time.Second,
+			QueryConfig:        []byte(strConfig),
+		}
+
+		i, err := c.NewIntegration(log.NewJSONLogger(os.Stdout))
+		require.Nil(t, i)
+		require.ErrorContains(t, err, "failed to create mssql target: query_config not in correct format: ")
 	})
 }
 
