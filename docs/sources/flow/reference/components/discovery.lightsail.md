@@ -11,7 +11,8 @@ title: discovery.lightsail
 
 # discovery.lightsail
 
-`discovery.lightsail` allows retrieving scrape targets from Amazon Lightsail instances. The private IP address is used by default, but may be changed to the public IP address with relabeling.
+`discovery.lightsail` allows retrieving scrape targets from Amazon Lightsail instances.
+The private IP address is used by default, but may be changed to the public IP address with relabeling.
 
 ## Usage
 
@@ -24,23 +25,23 @@ discovery.lightsail "LABEL" {
 
 The following arguments are supported:
 
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`endpoint` | `string` | Custom endpoint to be used.| | no
-`region` | `string` | The AWS region. If blank, the region from the instance metadata is used. | | no
-`access_key` | `string` | The AWS API key ID. If blank, the environment variable `AWS_ACCESS_KEY_ID` is used. | | no
-`secret_key` | `string` | The AWS API key secret. If blank, the environment variable `AWS_SECRET_ACCESS_KEY` is used. | | no
-`profile` | `string` | Named AWS profile used to connect to the API. | | no
-`role_arn` | `string` | AWS Role ARN, an alternative to using AWS API keys. | | no
-`refresh_interval` | `string` | Refresh interval to re-read the instance list. | 60s | no
-`port` | `int` | The port to scrape metrics from. If using the public IP address, this must instead be specified in the relabeling rule. | 80 | no
+Name               | Type     | Description                                                                                                             | Default | Required
+-------------------|----------|-------------------------------------------------------------------------------------------------------------------------|---------|---------
+`access_key`       | `string` | The AWS API key ID. If blank, the environment variable `AWS_ACCESS_KEY_ID` is used.                                     |         | no
+`endpoint`         | `string` | Custom endpoint to be used.                                                                                             |         | no
+`port`             | `int`    | The port to scrape metrics from. If using the public IP address, this must instead be specified in the relabeling rule. | 80      | no
+`profile`          | `string` | Named AWS profile used to connect to the API.                                                                           |         | no
+`refresh_interval` | `string` | Refresh interval to re-read the instance list.                                                                          | 60s     | no
+`region`           | `string` | The AWS region. If blank, the region from the instance metadata is used.                                                |         | no
+`role_arn`         | `string` | AWS Role ARN, an alternative to using AWS API keys.                                                                     |         | no
+`secret_key`       | `string` | The AWS API key secret. If blank, the environment variable `AWS_SECRET_ACCESS_KEY` is used.                             |         | no
 
 ## Exported fields
 
 The following fields are exported and can be referenced by other components:
 
-Name | Type | Description
----- | ---- | -----------
+Name      | Type                | Description
+----------|---------------------|-----------------------------------------
 `targets` | `list(map(string))` | The set of discovered Lightsail targets.
 
 Each target includes the following labels:
@@ -60,17 +61,16 @@ Each target includes the following labels:
 
 ## Component health
 
-`discovery.lightsail` is only reported as unhealthy when given an invalid
-configuration. In those cases, exported fields retain their last healthy
-values.
+`discovery.lightsail` is only reported as unhealthy when given an invalid configuration.
+In those cases, exported fields retain their last healthy values.
 
 ## Debug information
 
-`discovery.lightsail` does not expose any component-specific debug information.
+`discovery.lightsail` doesn't expose any component-specific debug information.
 
 ## Debug metrics
 
-`discovery.lightsail` does not expose any component-specific debug metrics.
+`discovery.lightsail` doesn't expose any component-specific debug metrics.
 
 ## Example
 
@@ -86,16 +86,17 @@ prometheus.scrape "demo" {
 
 prometheus.remote_write "demo" {
   endpoint {
-    url = PROMETHEUS_REMOTE_WRITE_URL
+    url = <PROMETHEUS_REMOTE_WRITE_URL>
 
     basic_auth {
-      username = USERNAME
-      password = PASSWORD
+      username = <USERNAME>
+      password = <PASSWORD>
     }
   }
 }
 ```
 Replace the following:
-  - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
-  - `USERNAME`: The username to use for authentication to the remote_write API.
-  - `PASSWORD`: The password to use for authentication to the remote_write API.
+
+  - _`<PROMETHEUS_REMOTE_WRITE_URL>`_: The URL of the Prometheus remote_write-compatible server to send metrics to.
+  - _`<USERNAME>`_: The username to use for authentication to the remote_write API.
+  - _`<PASSWORD>`_: The password to use for authentication to the remote_write API.

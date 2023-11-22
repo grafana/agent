@@ -23,7 +23,6 @@ Credentials are discovered by the Google Cloud SDK default client by looking in 
 If the Agent is running within GCE, the service account associated with the instance it's running on should have at least read-only permissions to the compute resources.
 If running outside of GCE make sure to create an appropriate service account and place the credential file in one of the expected locations.
 
-
 ## Usage
 
 ```river
@@ -110,7 +109,9 @@ prometheus.remote_write "demo" {
   }
 }
 ```
+
 Replace the following:
-  - _`<PROMETHEUS_REMOTE_WRITE_URL>`_: The URL of the Prometheus remote_write-compatible server to send metrics to.
-  - _`<USERNAME>`_: The username to use for authentication to the remote_write API.
-  - _`<PASSWORD>`_: The password to use for authentication to the remote_write API.
+
+- _`<PROMETHEUS_REMOTE_WRITE_URL>`_: The URL of the Prometheus remote_write-compatible server to send metrics to.
+- _`<USERNAME>`_: The username to use for authentication to the remote_write API.
+- _`<PASSWORD>`_: The password to use for authentication to the remote_write API.

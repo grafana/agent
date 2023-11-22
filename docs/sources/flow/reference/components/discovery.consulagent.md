@@ -29,7 +29,7 @@ The following arguments are supported:
 
 | Name               | Type           | Description                                                                                                    | Default          | Required |
 |--------------------|----------------|----------------------------------------------------------------------------------------------------------------|------------------|----------|
-| `datacenter`       | `string`       | Datacenter in which the Consul Agent is configured to run. If not provided, the datacenter will be retrieved from the local Consul Agent. |  | no |
+| `datacenter`       | `string`       | Datacenter for the Consul Agent. If not provided, the datacenter is retrieved from the local Consul Agent.     |                  | no       |
 | `password`         | `secret`       | The password to use.                                                                                           |                  | no       |
 | `refresh_interval` | `duration`     | Frequency to refresh list of containers.                                                                       | `"30s"`          | no       |
 | `scheme`           | `string`       | The scheme to use when talking to the Consul Agent.                                                            | `http`           | no       |
@@ -94,7 +94,7 @@ In those cases, exported fields retain their last healthy values.
 ## Example
 
 <!-- TODO: Include a logging example -->
-This example discovers targets from a Consul Agent for the specified list of services:
+The following example discovers targets from a Consul Agent for the specified list of services:
 
 ```river
 discovery.consulagent "example" {

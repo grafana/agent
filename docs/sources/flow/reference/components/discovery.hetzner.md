@@ -132,9 +132,8 @@ The labels below are only available for targets with `role` set to `robot`:
 
 ## Component health
 
-`discovery.hetzner` is only reported as unhealthy when given an invalid
-configuration. In those cases, exported fields retain their last healthy
-values.
+`discovery.hetzner` is only reported as unhealthy when given an invalid configuration.
+In those cases, exported fields retain their last healthy values.
 
 ## Debug information
 
@@ -169,8 +168,10 @@ prometheus.remote_write "demo" {
   }
 }
 ```
+
 Replace the following:
-  - _`<HETZNER_ROLE>`_: The role of the entities that should be discovered.
-  - _`<PROMETHEUS_REMOTE_WRITE_URL>`_: The URL of the Prometheus remote_write-compatible server to send metrics to.
-  - _`<USERNAME>`_: The username to use for authentication to the remote_write API.
-  - _`<PASSWORD>`_: The password to use for authentication to the remote_write API.
+
+- _`<HETZNER_ROLE>`_: The role of the entities that should be discovered.
+- _`<PROMETHEUS_REMOTE_WRITE_URL>`_: The URL of the Prometheus remote_write-compatible server to send metrics to.
+- _`<USERNAME>`_: The username to use for authentication to the remote_write API.
+- _`<PASSWORD>`_: The password to use for authentication to the remote_write API.

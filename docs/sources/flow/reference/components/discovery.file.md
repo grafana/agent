@@ -11,15 +11,13 @@ title: discovery.file
 
 # discovery.file
 
-> **NOTE:** In `v0.35.0` of the Grafana Agent, the `discovery.file` component was renamed to [local.file_match][],
-> and `discovery.file` was repurposed to discover scrape targets from one or more files.
->
-> <br>
->
-> If you are trying to discover files on the local filesystem rather than scrape
-> targets within a set of files, you should use [local.file_match][] instead.
+{{% admonition type="note" %}}
+In `v0.35.0` of the Grafana Agent, the `discovery.file` component was renamed to [local.file_match][], and `discovery.file` was repurposed to discover scrape targets from one or more files.
+
+If you are trying to discover files on the local filesystem rather than scrape targets within a set of files, you should use [local.file_match][] instead.
 
 [local.file_match]: {{< relref "./local.file_match.md" >}}
+{{% /admonition %}}
 
 `discovery.file` discovers targets from a set of files, similar to the [Prometheus file_sd_config](https://prometheus.io/docs/prometheus/latest/configuration/configuration/#file_sd_config).
 
@@ -101,7 +99,7 @@ In those cases, exported fields retain their last healthy values.
 
 ### Basic file discovery
 
-This example discovers targets from a single file, scrapes them, and writes metrics to a Prometheus remote write endpoint.
+The following example discovers targets from a single file, scrapes them, and writes metrics to a Prometheus remote write endpoint.
 
 ```river
 discovery.file "example" {
@@ -126,14 +124,14 @@ prometheus.remote_write "demo" {
 ```
 
 Replace the following:
-  - _`<PROMETHEUS_REMOTE_WRITE_URL>`_: The URL of the Prometheus remote_write-compatible server to send metrics to.
-  - _`<USERNAME>`_: The username to use for authentication to the remote_write API.
-  - _`<PASSWORD>`_: The password to use for authentication to the remote_write API.
+
+- _`<PROMETHEUS_REMOTE_WRITE_URL>`_: The URL of the Prometheus remote_write-compatible server to send metrics to.
+- _`<USERNAME>`_: The username to use for authentication to the remote_write API.
+- _`<PASSWORD>`_: The password to use for authentication to the remote_write API.
 
 ### File discovery with retained file path label
 
-This example discovers targets from a wildcard file path, scrapes them, and writes metrics to a Prometheus remote write endpoint.
-
+The following example discovers targets from a wildcard file path, scrapes them, and writes metrics to a Prometheus remote write endpoint.
 It also uses a relabeling rule to retain the file path as a label on each target.
 
 ```river

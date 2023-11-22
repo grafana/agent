@@ -27,27 +27,27 @@ discovery.consul "LABEL" {
 
 The following arguments are supported:
 
-Name                | Type           | Description                                                                                                               | Default          | Required
---------------------|----------------|---------------------------------------------------------------------------------------------------------------------------|------------------|---------
-`allow_stale`       | `bool`         | Allow stale Consul results. Refer to the [official documentation][consistency documentation]. Will reduce load on Consul. | `true`           | no
-`bearer_token_file` | `string`       | File containing a bearer token to authenticate with.                                                                      |                  | no
-`bearer_token`      | `secret`       | Bearer token to authenticate with.                                                                                        |                  | no
-`datacenter`        | `string`       | Datacenter to query. If not provided, the default is used.                                                                |                  | no
-`enable_http2`      | `bool`         | Whether HTTP2 is supported for requests.                                                                                  | `true`           | no
-`follow_redirects`  | `bool`         | Whether redirects returned by the server should be followed.                                                              | `true`           | no
-`namespace`         | `string`       | Namespace to use. Only supported in Consul Enterprise.                                                                    |                  | no
-`node_meta`         | `map(string)`  | Node metadata key/value pairs to filter nodes for a given service.                                                        |                  | no
-`partition`         | `string`       | Admin partition to use. Only supported in Consul Enterprise.                                                              |                  | no
-`password`          | `secret`       | The password to use. Deprecated in favor of the basic_auth configuration.                                                 |                  | no
-`proxy_url`         | `string`       | HTTP proxy to proxy requests through.                                                                                     |                  | no
-`refresh_interval`  | `duration`     | Frequency to refresh list of containers.                                                                                  | `"30s"`          | no
-`scheme`            | `string`       | The scheme to use when talking to Consul.                                                                                 | `http`           | no
-`server`            | `string`       | Host and port of the Consul API.                                                                                          | `localhost:8500` | no
-`services`          | `list(string)` | A list of services for which targets are retrieved. If omitted, all services are scraped.                                 |                  | no
-`tag_separator`     | `string`       | The string by which Consul tags are joined into the tag label.                                                            | `,`              | no
-`tags`              | `list(string)` | An optional list of tags used to filter nodes for a given service. Services must contain all tags in the list.            |                  | no
-`token`             | `secret`       | Secret token used to access the Consul API.                                                                               |                  | no
-`username`          | `string`       | The username to use. Deprecated in favor of the basic_auth configuration.                                                 |                  | no
+Name                | Type           | Description                                                                                                    | Default          | Required
+--------------------|----------------|----------------------------------------------------------------------------------------------------------------|------------------|---------
+`allow_stale`       | `bool`         | Allow stale Consul results. Refer to the [Consul documentation][]. Will reduce load on Consul.                 | `true`           | no
+`bearer_token_file` | `string`       | File containing a bearer token to authenticate with.                                                           |                  | no
+`bearer_token`      | `secret`       | Bearer token to authenticate with.                                                                             |                  | no
+`datacenter`        | `string`       | Datacenter to query. If not provided, the default is used.                                                     |                  | no
+`enable_http2`      | `bool`         | Whether HTTP2 is supported for requests.                                                                       | `true`           | no
+`follow_redirects`  | `bool`         | Whether redirects returned by the server should be followed.                                                   | `true`           | no
+`namespace`         | `string`       | Namespace to use. Only supported in Consul Enterprise.                                                         |                  | no
+`node_meta`         | `map(string)`  | Node metadata key/value pairs to filter nodes for a given service.                                             |                  | no
+`partition`         | `string`       | Admin partition to use. Only supported in Consul Enterprise.                                                   |                  | no
+`password`          | `secret`       | The password to use. Deprecated in favor of the basic_auth configuration.                                      |                  | no
+`proxy_url`         | `string`       | HTTP proxy to proxy requests through.                                                                          |                  | no
+`refresh_interval`  | `duration`     | Frequency to refresh list of containers.                                                                       | `"30s"`          | no
+`scheme`            | `string`       | The scheme to use when talking to Consul.                                                                      | `http`           | no
+`server`            | `string`       | Host and port of the Consul API.                                                                               | `localhost:8500` | no
+`services`          | `list(string)` | A list of services for which targets are retrieved. If omitted, all services are scraped.                      |                  | no
+`tag_separator`     | `string`       | The string by which Consul tags are joined into the tag label.                                                 | `,`              | no
+`tags`              | `list(string)` | An optional list of tags used to filter nodes for a given service. Services must contain all tags in the list. |                  | no
+`token`             | `secret`       | Secret token used to access the Consul API.                                                                    |                  | no
+`username`          | `string`       | The username to use. Deprecated in favor of the basic_auth configuration.                                      |                  | no
 
  At most one of the following can be provided:
  - [`bearer_token` argument](#arguments).
@@ -56,13 +56,12 @@ Name                | Type           | Description                              
  - [`authorization` block][authorization].
  - [`oauth2` block][oauth2].
 
-[consistency documentation]: https://www.consul.io/api/features/consistency.html
+[Consul documentation]: https://www.consul.io/api/features/consistency.html
 [arguments]: #arguments
 
 ## Blocks
 
-The following blocks are supported inside the definition of
-`discovery.consul`:
+The following blocks are supported inside the definition of `discovery.consul`:
 
 Hierarchy           | Block             | Description                                              | Required
 --------------------|-------------------|----------------------------------------------------------|---------
@@ -120,7 +119,8 @@ Each target includes the following labels:
 
 ## Component health
 
-`discovery.consul` is only reported as unhealthy when given an invalid configuration. In those cases, exported fields retain their last healthy values.
+`discovery.consul` is only reported as unhealthy when given an invalid configuration.
+In those cases, exported fields retain their last healthy values.
 
 ## Debug information
 
@@ -132,7 +132,7 @@ Each target includes the following labels:
 
 ## Example
 
-This example discovers targets from Consul for the specified list of services:
+The following example discovers targets from Consul for the specified list of services:
 
 ```river
 discovery.consul "example" {

@@ -90,7 +90,7 @@ In those cases, exported fields retain their last healthy values.
 
 ## Example
 
-This would result in targets with `__address__` labels like: `192.0.2.1:8080`:
+The following example results in targets with `__address__` labels like: `192.0.2.1:8080`:
 
 ```river
 discovery.digitalocean "example" {

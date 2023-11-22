@@ -40,11 +40,11 @@ Name                   | Type       | Description                               
 `refresh_interval`     | `duration` | Frequency to refresh list of containers.                                         | `"1m"`        | no
 
  At most one of the following can be provided:
- - [`bearer_token` argument](#arguments).
- - [`bearer_token_file` argument](#arguments).
- - [`basic_auth` block][basic_auth].
- - [`authorization` block][authorization].
- - [`oauth2` block][oauth2].
+- [`authorization` block][authorization].
+- [`basic_auth` block][basic_auth].
+- [`bearer_token_file` argument](#arguments).
+- [`bearer_token` argument](#arguments).
+- [`oauth2` block][oauth2].
 
 [arguments]: #arguments
 
@@ -87,8 +87,7 @@ Name     | Type           | Description                   | Default | Required
 `name`   | `string`       | Filter name to use.           |         | yes
 `values` | `list(string)` | Values to pass to the filter. |         | yes
 
-Refer to [List containers][List containers] from the Docker Engine API
-documentation for the list of supported filters and their meaning.
+Refer to [List containers][List containers] from the Docker Engine API documentation for the list of supported filters and their meaning.
 
 [List containers]: https://docs.docker.com/engine/api/v1.41/#tag/Container/operation/ContainerList
 
@@ -144,7 +143,7 @@ In those cases, exported fields retain their last healthy values.
 
 ### Linux or macOS hosts
 
-This example discovers Docker containers when the host machine is macOS or Linux:
+THe following example discovers Docker containers when the host machine is macOS or Linux:
 
 ```river
 discovery.docker "containers" {
@@ -174,7 +173,7 @@ Replace the following:
 
 ### Windows hosts
 
-This example discovers Docker containers when the host machine is Windows:
+The following example discovers Docker containers when the host machine is Windows:
 
 ```river
 discovery.docker "containers" {

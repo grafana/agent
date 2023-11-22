@@ -70,9 +70,9 @@ Filters can be used to limit the discovery process to a subset of available reso
 It's possible to define multiple `filter` blocks within the `discovery.dockerswarm` block.
 The list of available filters depends on the `role`:
 
+- [nodes filters](https://docs.docker.com/engine/api/v1.40/#operation/NodeList)
 - [services filters](https://docs.docker.com/engine/api/v1.40/#operation/ServiceList)
 - [tasks filters](https://docs.docker.com/engine/api/v1.40/#operation/TaskList)
-- [nodes filters](https://docs.docker.com/engine/api/v1.40/#operation/NodeList)
 
 The following arguments can be used to configure a filter.
 
@@ -194,7 +194,7 @@ In those cases, exported fields retain their last healthy values.
 
 ## Example
 
-This example discovers targets from Docker Swarm tasks:
+The following example discovers targets from Docker Swarm tasks:
 
 ```river
 discovery.dockerswarm "example" {

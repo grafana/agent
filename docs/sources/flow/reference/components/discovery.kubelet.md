@@ -40,7 +40,8 @@ Name                | Type           | Description                              
 `refresh_interval`  | `duration`     | How often the Kubelet should be polled for scrape targets | `5s`    | no
 `url`               | `string`       | URL of the Kubelet server.                                |         | no
 
-One of the following authentication methods must be provided if kubelet authentication is enabled
+One of the following authentication methods must be provided if kubelet authentication is enabled:
+
 - [`authorization` block][authorization].
 - [`bearer_token_file` argument](#arguments).
 - [`bearer_token` argument](#arguments).
@@ -71,8 +72,8 @@ tls_config    | [tls_config][]    | Configure TLS settings for connecting to the
 
 The following fields are exported and can be referenced by other components:
 
-Name | Type | Description
----- | ---- | -----------
+Name      | Type                | Description
+----------|---------------------|----------------------------------------------------
 `targets` | `list(map(string))` | The set of targets discovered from the Kubelet API.
 
 Each target includes the following labels:
@@ -145,6 +146,7 @@ prometheus.remote_write "demo" {
 }
 ```
 Replace the following:
+
   - _`<PROMETHEUS_REMOTE_WRITE_URL>`_: The URL of the Prometheus remote_write-compatible server to send metrics to.
   - _`<USERNAME>`_: The username to use for authentication to the remote_write API.
   - _`<PASSWORD>`_: The password to use for authentication to the remote_write API.
@@ -176,6 +178,7 @@ prometheus.remote_write "demo" {
 }
 ```
 Replace the following:
+
   - _`<PROMETHEUS_REMOTE_WRITE_URL>`_: The URL of the Prometheus remote_write-compatible server to send metrics to.
   - _`<USERNAME>_`_: The username to use for authentication to the remote_write API.
   - _`<PASSWORD>`: The password to use for authentication to the remote_write API.
