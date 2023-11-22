@@ -66,31 +66,15 @@ func TestLoader(t *testing.T) {
 		},
 	}
 
-	newLoaderOptions := func() controller.LoaderOptions {
-		l, _ := logging.New(os.Stderr, logging.DefaultOptions)
-		return controller.LoaderOptions{
-			ComponentGlobals: controller.ComponentGlobals{
-				Logger:            l,
-				TraceProvider:     trace.NewNoopTracerProvider(),
-				DataPath:          t.TempDir(),
-				OnComponentUpdate: func(cn *controller.ComponentNode) { /* no-op */ },
-				Registerer:        prometheus.NewRegistry(),
-				NewModuleController: func(id string, availableServices []string) controller.ModuleController {
-					return nil
-				},
-			},
-		}
-	}
-
 	t.Run("New Graph", func(t *testing.T) {
-		l := controller.NewLoader(newLoaderOptions())
+		l := setupLoader(t)
 		diags := applyFromContent(t, l, []byte(testFile), []byte(testConfig), nil)
 		require.NoError(t, diags.ErrorOrNil())
 		requireGraph(t, l.Graph(), testGraphDefinition)
 	})
 
 	t.Run("New Graph No Config", func(t *testing.T) {
-		l := controller.NewLoader(newLoaderOptions())
+		l := setupLoader(t)
 		diags := applyFromContent(t, l, []byte(testFile), nil, nil)
 		require.NoError(t, diags.ErrorOrNil())
 		requireGraph(t, l.Graph(), testGraphDefinition)
@@ -108,7 +92,7 @@ func TestLoader(t *testing.T) {
 				frequency = "1m"
 			}
 		`
-		l := controller.NewLoader(newLoaderOptions())
+		l := setupLoader(t)
 		diags := applyFromContent(t, l, []byte(startFile), []byte(testConfig), nil)
 		origGraph := l.Graph()
 		require.NoError(t, diags.ErrorOrNil())
@@ -127,7 +111,7 @@ func TestLoader(t *testing.T) {
 			doesnotexist "bad_component" {
 			}
 		`
-		l := controller.NewLoader(newLoaderOptions())
+		l := setupLoader(t)
 		diags := applyFromContent(t, l, []byte(invalidFile), nil, nil)
 		require.ErrorContains(t, diags.ErrorOrNil(), `Unrecognized component name "doesnotexist`)
 	})
@@ -146,7 +130,7 @@ func TestLoader(t *testing.T) {
 				input = testcomponents.tick.doesnotexist.tick_time
 			}
 		`
-		l := controller.NewLoader(newLoaderOptions())
+		l := setupLoader(t)
 		diags := applyFromContent(t, l, []byte(invalidFile), nil, nil)
 		require.Error(t, diags.ErrorOrNil())
 
@@ -174,10 +158,69 @@ func TestLoader(t *testing.T) {
 				input = testcomponents.passthrough.ticker.output
 			}
 		`
-		l := controller.NewLoader(newLoaderOptions())
+		l := setupLoader(t)
 		diags := applyFromContent(t, l, []byte(invalidFile), nil, nil)
 		require.Error(t, diags.ErrorOrNil())
 	})
+}
+
+func TestDeclareBlockSort(t *testing.T) {
+	testDeclare := `
+	declare "c" {
+		a "default" {}
+	}
+	declare "a" {
+		declare "b" {
+			d "default" {}
+		}
+	}
+	declare "e" {
+		a "default" {}
+		d "default" {}
+		c "default" {}
+	}
+	declare "d" {}
+	`
+
+	l := setupLoader(t)
+	declareBlocks, diags := fileToBlock(t, []byte(testDeclare))
+	require.NoError(t, diags.ErrorOrNil())
+
+	sortedBlocks, diags := l.SortDeclareBlocks(declareBlocks)
+	require.NoError(t, diags.ErrorOrNil())
+
+	expectedLabels := []string{"d", "a", "c", "e"}
+	declareBlocksLabels := make([]string, len(declareBlocks))
+	for i, block := range sortedBlocks {
+		declareBlocksLabels[i] = block.Label
+	}
+	require.Equal(t, expectedLabels, declareBlocksLabels)
+
+	testDeclareCircularDependencies := `
+		declare "c" {
+			a "default" {}
+		}
+		declare "e" {
+			a "default" {}
+			d "default" {}
+			c "default" {}
+		}
+		declare "a" {
+			declare "b" {
+				d "default" {}
+			}
+		}
+		declare "d" {
+			c "default" {}
+		}
+		declare "f" {}
+	`
+
+	declareBlocks, diags = fileToBlock(t, []byte(testDeclareCircularDependencies))
+	require.NoError(t, diags.ErrorOrNil())
+
+	_, diags = l.SortDeclareBlocks(declareBlocks)
+	require.ErrorContains(t, diags.ErrorOrNil(), `Detected a cycle in declare dependencies; cannot sort: [a c d e]`)
 }
 
 // TestScopeWithFailingComponent is used to ensure that the scope is filled out, even if the component
@@ -200,23 +243,8 @@ func TestScopeWithFailingComponent(t *testing.T) {
 			input = testcomponents.passthrough.ticker.output
 		}
 	`
-	newLoaderOptions := func() controller.LoaderOptions {
-		l, _ := logging.New(os.Stderr, logging.DefaultOptions)
-		return controller.LoaderOptions{
-			ComponentGlobals: controller.ComponentGlobals{
-				Logger:            l,
-				TraceProvider:     trace.NewNoopTracerProvider(),
-				DataPath:          t.TempDir(),
-				OnComponentUpdate: func(cn *controller.ComponentNode) { /* no-op */ },
-				Registerer:        prometheus.NewRegistry(),
-				NewModuleController: func(id string, availableServices []string) controller.ModuleController {
-					return fakeModuleController{}
-				},
-			},
-		}
-	}
 
-	l := controller.NewLoader(newLoaderOptions())
+	l := setupLoader(t)
 	diags := applyFromContent(t, l, []byte(testFile), nil, nil)
 	require.Error(t, diags.ErrorOrNil())
 	require.Len(t, diags, 1)

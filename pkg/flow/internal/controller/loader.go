@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -301,7 +302,9 @@ func (l *Loader) loadNewGraph(args map[string]any, componentBlocks []*ast.BlockS
 	diags = append(diags, configBlockDiags...)
 
 	// Fill our graph with declare blocks.
-	graphTemplates, declareBlockDiags := l.populateDeclareBlockNodes(&g, declareBlocks)
+	sortedDeclaredBlocks, sortDeclareBlockDiags := l.SortDeclareBlocks(declareBlocks)
+	diags = append(diags, sortDeclareBlockDiags...) // TODO: should we exit if there are errors here?
+	graphTemplates, declareBlockDiags := l.populateDeclareBlockNodes(&g, sortedDeclaredBlocks)
 	diags = append(diags, declareBlockDiags...)
 
 	// Fill our graph with components.
@@ -346,6 +349,84 @@ func (l *Loader) splitComponentBlocks(blocks []*ast.BlockStmt) (componentBlocks,
 	}
 
 	return componentBlocks, serviceBlocks
+}
+
+func (l *Loader) SortDeclareBlocks(declareBlocks []*ast.BlockStmt) ([]*ast.BlockStmt, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	graph := make(map[string][]string)
+	inDegree := make(map[string]int)
+	blockByLabel := make(map[string]*ast.BlockStmt)
+
+	for _, block := range declareBlocks {
+		label := block.Label
+		blockByLabel[label] = block
+		if _, exists := graph[label]; !exists {
+			graph[label] = []string{}
+		}
+	}
+
+	for _, block := range declareBlocks {
+		label := block.Label
+		dependencies := l.findDeclareDependencies(block, blockByLabel)
+		for _, dep := range dependencies {
+			graph[dep] = append(graph[dep], label)
+			inDegree[label]++
+		}
+	}
+
+	var sortedList []*ast.BlockStmt
+	queue := []string{}
+
+	for label := range blockByLabel {
+		if inDegree[label] == 0 {
+			queue = append(queue, label)
+		}
+	}
+
+	for len(queue) > 0 {
+		label := queue[0]
+		queue = queue[1:]
+		sortedList = append(sortedList, blockByLabel[label])
+		for _, dep := range graph[label] {
+			inDegree[dep]--
+			if inDegree[dep] == 0 {
+				queue = append(queue, dep)
+			}
+		}
+	}
+
+	if len(sortedList) != len(blockByLabel) {
+		unresolvedLabels := []string{}
+		for label, count := range inDegree {
+			if count > 0 {
+				unresolvedLabels = append(unresolvedLabels, label)
+			}
+		}
+		sort.Strings(unresolvedLabels)
+		diags.Add(diag.Diagnostic{
+			Severity: diag.SeverityLevelError,
+			Message:  fmt.Sprintf("Detected a cycle in declare dependencies; cannot sort: %v", unresolvedLabels),
+		})
+		return nil, diags
+	}
+
+	return sortedList, diags
+}
+
+func (l *Loader) findDeclareDependencies(declareBlock *ast.BlockStmt, blockByLabel map[string]*ast.BlockStmt) []string {
+	var dependencies []string
+	for _, stmt := range declareBlock.Body {
+		if blockStmt, ok := stmt.(*ast.BlockStmt); ok {
+			fullName := strings.Join(blockStmt.Name, ".")
+			if fullName == "declare" {
+				dependencies = append(dependencies, l.findDeclareDependencies(blockStmt, blockByLabel)...)
+			} else if _, exists := blockByLabel[fullName]; exists {
+				dependencies = append(dependencies, fullName)
+			}
+		}
+	}
+	return dependencies
 }
 
 // populateServiceNodes adds service nodes to the graph.
