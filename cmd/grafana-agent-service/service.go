@@ -24,6 +24,9 @@ type serviceManagerConfig struct {
 	// Args of the binary to run, not including the command itself.
 	Args []string
 
+	// Environment of the binary to run, including the command environment itself.
+	Environment []string
+
 	// Dir specifies the working directory to run the binary from. If Dir is
 	// empty, the working directory of the current process is used.
 	Dir string
@@ -84,5 +87,7 @@ func (svc *serviceManager) buildCommand(ctx context.Context) *exec.Cmd {
 	cmd.Dir = svc.cfg.Dir
 	cmd.Stdout = svc.cfg.Stdout
 	cmd.Stderr = svc.cfg.Stderr
+	cmd.Env = os.Environ()
+	cmd.Env = append(cmd.Env, svc.cfg.Environment...)
 	return cmd
 }
