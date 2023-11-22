@@ -2,7 +2,6 @@ package windows_exporter
 
 import (
 	"github.com/prometheus-community/windows_exporter/pkg/collector"
-	col "github.com/prometheus-community/windows_exporter/pkg/collector"
 )
 
 func (c *Config) ToWindowsExporterConfig() collector.Config {
@@ -55,61 +54,61 @@ func coalesceString(v ...string) string {
 var DefaultConfig = Config{
 	EnabledCollectors: "cpu,cs,logical_disk,net,os,service,system",
 	Dfsr: DfsrConfig{
-		SourcesEnabled: col.ConfigDefaults.Dfsr.DfsrEnabledCollectors,
+		SourcesEnabled: collector.ConfigDefaults.Dfsr.DfsrEnabledCollectors,
 	},
 	Exchange: ExchangeConfig{
-		EnabledList: col.ConfigDefaults.Exchange.CollectorsEnabled,
+		EnabledList: collector.ConfigDefaults.Exchange.CollectorsEnabled,
 	},
 	IIS: IISConfig{
-		AppBlackList:  col.ConfigDefaults.Iis.AppExclude,
-		AppWhiteList:  col.ConfigDefaults.Iis.AppInclude,
-		SiteBlackList: col.ConfigDefaults.Iis.SiteExclude,
-		SiteWhiteList: col.ConfigDefaults.Iis.SiteInclude,
-		AppInclude:    col.ConfigDefaults.Iis.AppInclude,
-		AppExclude:    col.ConfigDefaults.Iis.AppExclude,
-		SiteInclude:   col.ConfigDefaults.Iis.SiteInclude,
-		SiteExclude:   col.ConfigDefaults.Iis.SiteExclude,
+		AppBlackList:  collector.ConfigDefaults.Iis.AppExclude,
+		AppWhiteList:  collector.ConfigDefaults.Iis.AppInclude,
+		SiteBlackList: collector.ConfigDefaults.Iis.SiteExclude,
+		SiteWhiteList: collector.ConfigDefaults.Iis.SiteInclude,
+		AppInclude:    collector.ConfigDefaults.Iis.AppInclude,
+		AppExclude:    collector.ConfigDefaults.Iis.AppExclude,
+		SiteInclude:   collector.ConfigDefaults.Iis.SiteInclude,
+		SiteExclude:   collector.ConfigDefaults.Iis.SiteExclude,
 	},
 	LogicalDisk: LogicalDiskConfig{
-		BlackList: col.ConfigDefaults.LogicalDisk.VolumeExclude,
-		WhiteList: col.ConfigDefaults.LogicalDisk.VolumeInclude,
-		Include:   col.ConfigDefaults.LogicalDisk.VolumeInclude,
-		Exclude:   col.ConfigDefaults.LogicalDisk.VolumeExclude,
+		BlackList: collector.ConfigDefaults.LogicalDisk.VolumeExclude,
+		WhiteList: collector.ConfigDefaults.LogicalDisk.VolumeInclude,
+		Include:   collector.ConfigDefaults.LogicalDisk.VolumeInclude,
+		Exclude:   collector.ConfigDefaults.LogicalDisk.VolumeExclude,
 	},
 	MSMQ: MSMQConfig{
-		Where: col.ConfigDefaults.Msmq.QueryWhereClause,
+		Where: collector.ConfigDefaults.Msmq.QueryWhereClause,
 	},
 	MSSQL: MSSQLConfig{
-		EnabledClasses: col.ConfigDefaults.Mssql.EnabledCollectors,
+		EnabledClasses: collector.ConfigDefaults.Mssql.EnabledCollectors,
 	},
 	Network: NetworkConfig{
-		BlackList: col.ConfigDefaults.Net.NicExclude,
-		WhiteList: col.ConfigDefaults.Net.NicInclude,
-		Include:   col.ConfigDefaults.Net.NicInclude,
-		Exclude:   col.ConfigDefaults.Net.NicExclude,
+		BlackList: collector.ConfigDefaults.Net.NicExclude,
+		WhiteList: collector.ConfigDefaults.Net.NicInclude,
+		Include:   collector.ConfigDefaults.Net.NicInclude,
+		Exclude:   collector.ConfigDefaults.Net.NicExclude,
 	},
 	Process: ProcessConfig{
-		BlackList: col.ConfigDefaults.Process.ProcessExclude,
-		WhiteList: col.ConfigDefaults.Process.ProcessInclude,
-		Include:   col.ConfigDefaults.Process.ProcessInclude,
-		Exclude:   col.ConfigDefaults.Process.ProcessExclude,
+		BlackList: collector.ConfigDefaults.Process.ProcessExclude,
+		WhiteList: collector.ConfigDefaults.Process.ProcessInclude,
+		Include:   collector.ConfigDefaults.Process.ProcessInclude,
+		Exclude:   collector.ConfigDefaults.Process.ProcessExclude,
 	},
 	ScheduledTask: ScheduledTaskConfig{
-		Include: col.ConfigDefaults.ScheduledTask.TaskInclude,
-		Exclude: col.ConfigDefaults.ScheduledTask.TaskExclude,
+		Include: collector.ConfigDefaults.ScheduledTask.TaskInclude,
+		Exclude: collector.ConfigDefaults.ScheduledTask.TaskExclude,
 	},
 	Service: ServiceConfig{
 		UseApi: "false",
-		Where:  col.ConfigDefaults.Service.ServiceWhereClause,
+		Where:  collector.ConfigDefaults.Service.ServiceWhereClause,
 	},
 	SMTP: SMTPConfig{
-		BlackList: col.ConfigDefaults.Smtp.ServerExclude,
-		WhiteList: col.ConfigDefaults.Smtp.ServerInclude,
-		Include:   col.ConfigDefaults.Smtp.ServerInclude,
-		Exclude:   col.ConfigDefaults.Smtp.ServerExclude,
+		BlackList: collector.ConfigDefaults.Smtp.ServerExclude,
+		WhiteList: collector.ConfigDefaults.Smtp.ServerInclude,
+		Include:   collector.ConfigDefaults.Smtp.ServerInclude,
+		Exclude:   collector.ConfigDefaults.Smtp.ServerExclude,
 	},
 	TextFile: TextFileConfig{
-		TextFileDirectory: col.ConfigDefaults.Textfile.TextFileDirectories,
+		TextFileDirectory: collector.ConfigDefaults.Textfile.TextFileDirectories,
 	},
 }
 
