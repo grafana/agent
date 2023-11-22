@@ -21,7 +21,7 @@ discovery.linode "LABEL" {
 ```
 
 {{% admonition type="note" %}}
-The linode APIv4 Token must be created with the scopes: `linodes:read_only`, `ips:read_only`, and `events:read_only`.
+You must create the Linode APIv4 Token with the scopes: `linodes:read_only`, `ips:read_only`, and `events:read_only`.
 {{% /admonition %}}
 
 ## Arguments
@@ -73,7 +73,6 @@ For example, `oauth2 > tls_config` refers to a `tls_config` block defined inside
 
 {{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
-
 ## Exported fields
 
 The following fields are exported and can be referenced by other components:
@@ -85,24 +84,24 @@ Name      | Type                | Description
 The following meta labels are available on targets and can be used by the
 discovery.relabel component:
 
-* `__meta_linode_backups`: the backup service status of the Linode instance
-* `__meta_linode_extra_ips`: a list of all extra IPv4 addresses assigned to the Linode instance joined by the tag separator
-* `__meta_linode_group`: the display group a Linode instance is a member of
-* `__meta_linode_hypervisor`: the virtualization software powering the Linode instance
-* `__meta_linode_image`: the slug of the Linode instance's image
-* `__meta_linode_instance_id`: the id of the Linode instance
-* `__meta_linode_instance_label`: the label of the Linode instance
-* `__meta_linode_private_ipv4`: the private IPv4 of the Linode instance
-* `__meta_linode_public_ipv4`: the public IPv4 of the Linode instance
-* `__meta_linode_public_ipv6`: the public IPv6 of the Linode instance
-* `__meta_linode_region`: the region of the Linode instance
-* `__meta_linode_specs_disk_bytes`: the amount of storage space the Linode instance has access to
-* `__meta_linode_specs_memory_bytes`: the amount of RAM the Linode instance has access to
-* `__meta_linode_specs_transfer_bytes`: the amount of network transfer the Linode instance is allotted each month
-* `__meta_linode_specs_vcpus`: the number of VCPUS this Linode has access to
-* `__meta_linode_status`: the status of the Linode instance
-* `__meta_linode_tags`: a list of tags of the Linode instance joined by the tag separator
-* `__meta_linode_type`: the type of the Linode instance
+* `__meta_linode_backups`: The backup service status of the Linode instance.
+* `__meta_linode_extra_ips`: A list of all extra IPv4 addresses assigned to the Linode instance joined by the tag separator.
+* `__meta_linode_group`: The display group a Linode instance is a member of.
+* `__meta_linode_hypervisor`: The virtualization software powering the Linode instance.
+* `__meta_linode_image`: The slug of the Linode instance's image.
+* `__meta_linode_instance_id`: The ID of the Linode instance.
+* `__meta_linode_instance_label`: The label of the Linode instance.
+* `__meta_linode_private_ipv4`: The private IPv4 of the Linode instance.
+* `__meta_linode_public_ipv4`: The public IPv4 of the Linode instance.
+* `__meta_linode_public_ipv6`: The public IPv6 of the Linode instance.
+* `__meta_linode_region`: The region of the Linode instance.
+* `__meta_linode_specs_disk_bytes`: The amount of storage space the Linode instance has access to.
+* `__meta_linode_specs_memory_bytes`: The amount of RAM the Linode instance has access to.
+* `__meta_linode_specs_transfer_bytes`: The amount of network transfer the Linode instance is allotted each month.
+* `__meta_linode_specs_vcpus`: The number of VCPUS this Linode has access to.
+* `__meta_linode_status`: The status of the Linode instance.
+* `__meta_linode_tags`: A list of tags of the Linode instance joined by the tag separator.
+* `__meta_linode_type`: The type of the Linode instance.
 
 ## Component health
 
@@ -139,12 +138,11 @@ prometheus.remote_write "demo" {
 }
 ```
 Replace the following:
-
 - _`<PROMETHEUS_REMOTE_WRITE_URL>`_: The URL of the Prometheus remote_write-compatible server to send metrics to.
 - _`<USERNAME>`_: The username to use for authentication to the remote_write API.
 - _`<PASSWORD>`_: The password to use for authentication to the remote_write API.
 
-### Using private IP address:
+### Use a private IP address:
 
 ```
 discovery.linode "example" {
@@ -175,7 +173,6 @@ prometheus.remote_write "demo" {
 ```
 
 Replace the following:
-
 - _`<PROMETHEUS_REMOTE_WRITE_URL>`_: The URL of the Prometheus remote_write-compatible server to send metrics to.
 - _`<USERNAME>`_: The username to use for authentication to the remote_write API.
 - _`<PASSWORD>`_: The password to use for authentication to the remote_write API.

@@ -87,12 +87,11 @@ Name      | Type                | Description
 ----------|---------------------|-------------------------------------------------
 `targets` | `list(map(string))` | The set of targets discovered from the Kuma API.
 
-The following meta labels are available on targets and can be used by the
-discovery.relabel component:
-* `__meta_kuma_dataplane`: the name of the proxy
-* `__meta_kuma_label_<tagname>`: each tag of the proxy
-* `__meta_kuma_mesh`: the name of the proxy's Mesh
-* `__meta_kuma_service`: the name of the proxy's associated Service
+The following meta labels are available on targets and can be used by the discovery.relabel component:
+* `__meta_kuma_dataplane`: The name of the proxy.
+* `__meta_kuma_label_<tagname>`: Each tag of the proxy.
+* `__meta_kuma_mesh`: The name of the proxy's Mesh.
+* `__meta_kuma_service`: The name of the proxy's associated Service.
 
 ## Component health
 
@@ -127,8 +126,8 @@ prometheus.remote_write "demo" {
 	}
 }
 ```
-Replace the following:
 
-  - _`<PROMETHEUS_REMOTE_WRITE_URL>`_: The URL of the Prometheus remote_write-compatible server to send metrics to.
-  - _`<USERNAME>`_: The username to use for authentication to the remote_write API.
-  - _`<PASSWORD>`_: The password to use for authentication to the remote_write API.
+Replace the following:
+- _`<PROMETHEUS_REMOTE_WRITE_URL>`_: The URL of the Prometheus remote_write-compatible server to send metrics to.
+- _`<USERNAME>`_: The username to use for authentication to the remote_write API.
+- _`<PASSWORD>`_: The password to use for authentication to the remote_write API.

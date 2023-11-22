@@ -39,7 +39,8 @@ Name                | Type       | Description                                  
 `proxy_url`         | `string`   | HTTP proxy to proxy requests through.                                  |         | no
 `refresh_interval`  | `duration` | Frequency to refresh list of Droplets.                                 | `"1m"`  | no
 
-The DigitalOcean API uses bearer tokens for authentication, see more about it in the [DigitalOcean API documentation](https://docs.digitalocean.com/reference/api/api-reference/#section/Authentication).
+The DigitalOcean API uses bearer tokens for authentication.
+Refer to the [DigitalOcean API documentation](https://docs.digitalocean.com/reference/api/api-reference/#section/Authentication) for more information.
 
 Exactly one of the [`bearer_token`](#arguments) and [`bearer_token_file`](#arguments) arguments must be specified to authenticate against DigitalOcean.
 
@@ -116,6 +117,6 @@ prometheus.remote_write "demo" {
 }
 ```
 Replace the following:
-  - _`<PROMETHEUS_REMOTE_WRITE_URL>`_: The URL of the Prometheus remote_write-compatible server to send metrics to.
-  - _`<USERNAME>`_: The username to use for authentication to the remote_write API.
-  - _`<PASSWORD>`_: The password to use for authentication to the remote_write API.
+- _`<PROMETHEUS_REMOTE_WRITE_URL>`_: The URL of the Prometheus remote_write-compatible server to send metrics to.
+- _`<USERNAME>`_: The username to use for authentication to the remote_write API.
+- _`<PASSWORD>`_: The password to use for authentication to the remote_write API.

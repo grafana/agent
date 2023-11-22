@@ -60,6 +60,7 @@ For example, `oauth2 > tls_config` refers to a `tls_config` block defined inside
 ### authorization
 
 {{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" version="<AGENT_VERSION>" >}}
+
 ### basic_auth
 
 {{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" version="<AGENT_VERSION>" >}}
@@ -107,21 +108,21 @@ The `services` role discovers all [Swarm services](https://docs.docker.com/engin
 
 Available meta labels:
 
-- `__meta_dockerswarm_network_id`: the ID of the network.
-- `__meta_dockerswarm_network_ingress`: whether the network is ingress.
-- `__meta_dockerswarm_network_internal`: whether the network is internal.
-- `__meta_dockerswarm_network_label_<labelname>`: each label of the network.
-- `__meta_dockerswarm_network_name`: the name of the network.
-- `__meta_dockerswarm_network_scope`: the scope of the network.
-- `__meta_dockerswarm_service_endpoint_port_name`: the name of the endpoint port, if available.
-- `__meta_dockerswarm_service_endpoint_port_publish_mode`: the publish mode of the endpoint port.
-- `__meta_dockerswarm_service_id`: the ID of the service.
-- `__meta_dockerswarm_service_label_<labelname>`: each label of the service.
-- `__meta_dockerswarm_service_mode`: the mode of the service.
-- `__meta_dockerswarm_service_name`: the name of the service.
-- `__meta_dockerswarm_service_task_container_hostname`: the container hostname of the target, if available.
-- `__meta_dockerswarm_service_task_container_image`: the container image of the target.
-- `__meta_dockerswarm_service_updating_status`: the status of the service, if available.
+- `__meta_dockerswarm_network_id`: The ID of the network.
+- `__meta_dockerswarm_network_ingress`: Whether the network is ingress.
+- `__meta_dockerswarm_network_internal`: Whether the network is internal.
+- `__meta_dockerswarm_network_label_<labelname>`: Each label of the network.
+- `__meta_dockerswarm_network_name`: The name of the network.
+- `__meta_dockerswarm_network_scope`: The scope of the network.
+- `__meta_dockerswarm_service_endpoint_port_name`: The name of the endpoint port, if available.
+- `__meta_dockerswarm_service_endpoint_port_publish_mode`: The publish mode of the endpoint port.
+- `__meta_dockerswarm_service_id`: The ID of the service.
+- `__meta_dockerswarm_service_label_<labelname>`: Each label of the service.
+- `__meta_dockerswarm_service_mode`: The mode of the service.
+- `__meta_dockerswarm_service_name`: The name of the service.
+- `__meta_dockerswarm_service_task_container_hostname`: The container hostname of the target, if available.
+- `__meta_dockerswarm_service_task_container_image`: The container image of the target.
+- `__meta_dockerswarm_service_updating_status`: The status of the service, if available.
 
 ### tasks
 
@@ -129,33 +130,33 @@ The `tasks` role discovers all [Swarm tasks](https://docs.docker.com/engine/swar
 
 Available meta labels:
 
-- `__meta_dockerswarm_container_label_<labelname>`: each label of the container.
-- `__meta_dockerswarm_network_id`: the ID of the network.
-- `__meta_dockerswarm_network_ingress`: whether the network is ingress.
-- `__meta_dockerswarm_network_internal`: whether the network is internal.
-- `__meta_dockerswarm_network_label_<labelname>`: each label of the network.
-- `__meta_dockerswarm_network_label`: each label of the network.
-- `__meta_dockerswarm_network_name`: the name of the network.
-- `__meta_dockerswarm_network_scope`: the scope of the network.
-- `__meta_dockerswarm_node_address`: the address of the node.
-- `__meta_dockerswarm_node_availability`: the availability of the node.
-- `__meta_dockerswarm_node_hostname`: the hostname of the node.
-- `__meta_dockerswarm_node_id`: the ID of the node.
-- `__meta_dockerswarm_node_label_<labelname>`: each label of the node.
-- `__meta_dockerswarm_node_platform_architecture`: the architecture of the node.
-- `__meta_dockerswarm_node_platform_os`: the operating system of the node.
-- `__meta_dockerswarm_node_role`: the role of the node.
-- `__meta_dockerswarm_node_status`: the status of the node.
-- `__meta_dockerswarm_service_id`: the ID of the service.
-- `__meta_dockerswarm_service_label_<labelname>`: each label of the service.
-- `__meta_dockerswarm_service_mode`: the mode of the service.
-- `__meta_dockerswarm_service_name`: the name of the service.
-- `__meta_dockerswarm_task_container_id`: the container ID of the task.
-- `__meta_dockerswarm_task_desired_state`: the desired state of the task.
-- `__meta_dockerswarm_task_id`: the ID of the task.
-- `__meta_dockerswarm_task_port_publish_mode`: the publish mode of the task port.
-- `__meta_dockerswarm_task_slot`: the slot of the task.
-- `__meta_dockerswarm_task_state`: the state of the task.
+- `__meta_dockerswarm_container_label_<labelname>`: Each label of the container.
+- `__meta_dockerswarm_network_id`: The ID of the network.
+- `__meta_dockerswarm_network_ingress`: Whether the network is ingress.
+- `__meta_dockerswarm_network_internal`: Whether the network is internal.
+- `__meta_dockerswarm_network_label_<labelname>`: Each label of the network.
+- `__meta_dockerswarm_network_label`: Each label of the network.
+- `__meta_dockerswarm_network_name`: The name of the network.
+- `__meta_dockerswarm_network_scope`: The scope of the network.
+- `__meta_dockerswarm_node_address`: The address of the node.
+- `__meta_dockerswarm_node_availability`: The availability of the node.
+- `__meta_dockerswarm_node_hostname`: The hostname of the node.
+- `__meta_dockerswarm_node_id`: The ID of the node.
+- `__meta_dockerswarm_node_label_<labelname>`: Each label of the node.
+- `__meta_dockerswarm_node_platform_architecture`: The architecture of the node.
+- `__meta_dockerswarm_node_platform_os`: The operating system of the node.
+- `__meta_dockerswarm_node_role`: The role of the node.
+- `__meta_dockerswarm_node_status`: The status of the node.
+- `__meta_dockerswarm_service_id`: The ID of the service.
+- `__meta_dockerswarm_service_label_<labelname>`: Each label of the service.
+- `__meta_dockerswarm_service_mode`: The mode of the service.
+- `__meta_dockerswarm_service_name`: The name of the service.
+- `__meta_dockerswarm_task_container_id`: The container ID of the task.
+- `__meta_dockerswarm_task_desired_state`: The desired state of the task.
+- `__meta_dockerswarm_task_id`: The ID of the task.
+- `__meta_dockerswarm_task_port_publish_mode`: The publish mode of the task port.
+- `__meta_dockerswarm_task_slot`: The slot of the task.
+- `__meta_dockerswarm_task_state`: The state of the task.
 
 The `__meta_dockerswarm_network_*` meta labels are not populated for ports which are published with mode=host.
 
@@ -230,7 +231,6 @@ prometheus.remote_write "demo" {
 ```
 
 Replace the following:
-
 - _`<PROMETHEUS_REMOTE_WRITE_URL>`_: The URL of the Prometheus remote_write-compatible server to send metrics to.
 - _`<USERNAME>`_: The username to use for authentication to the remote_write API.
 - _`<PASSWORD>`_: The password to use for authentication to the remote_write API.

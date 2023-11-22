@@ -34,7 +34,7 @@ It's possible to use additional fields in the JSON to pass parameters to [promet
 
 [prometheus.scrape]: {{< relref "./prometheus.scrape.md#technical-details" >}}
 
-As an example, the following JSON provides a target with a custom `metricsPath`, scrape interval, and timeout value:
+The following example provides a target with a custom `metricsPath`, scrape interval, and timeout value:
 
 ```json
 [
@@ -56,7 +56,7 @@ As an example, the following JSON provides a target with a custom `metricsPath`,
 
 It's also possible to append query parameters to the metrics path with the `__param_<name>` syntax.
 
-For example, the following JSON calls a metrics path of `/health?target_data=prometheus`:
+The following example calls a metrics path of `/health?target_data=prometheus`:
 
 ```json
 [
@@ -77,7 +77,7 @@ For example, the following JSON calls a metrics path of `/health?target_data=pro
 
 ```
 
-For more information on the potential labels you can use, see the [prometheus.scrape technical details][prometheus.scrape] section, or the [Prometheus Configuration](https://prometheus.io/docs/prometheus/latest/configuration/configuration/#relabel_config) documentation.
+For more information on the potential labels you can use, refer to the [prometheus.scrape technical details][prometheus.scrape] section, or the [Prometheus Configuration](https://prometheus.io/docs/prometheus/latest/configuration/configuration/#relabel_config) documentation.
 
 ## Usage
 
@@ -93,8 +93,8 @@ The following arguments are supported:
 
 Name               | Type       | Description                   | Default | Required
 -------------------|------------|-------------------------------|---------|---------
-`refresh_interval` | `duration` | How often to refresh targets. | `"60s"` | no
 `url`              | string     | URL to scrape                 |         | yes
+`refresh_interval` | `duration` | How often to refresh targets. | `"60s"` | no
 
 ## Blocks
 

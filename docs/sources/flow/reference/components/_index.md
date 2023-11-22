@@ -12,8 +12,7 @@ weight: 300
 
 # Components reference
 
-This section contains reference documentation for all recognized
-[components][].
+This section contains reference documentation for all recognized [components][].
 
 {{< section >}}
 

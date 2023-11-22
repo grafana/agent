@@ -73,7 +73,7 @@ Each target includes the following labels:
 
 * `__meta_ec2_ami`: The EC2 Amazon Machine Image.
 * `__meta_ec2_architecture`: The architecture of the instance.
-* `__meta_ec2_availability_zone_id`: The availability zone ID in which the instance is running (requires `ec2:DescribeAvailabilityZones`).
+* `__meta_ec2_availability_zone_id`: The availability zone ID in which the instance is running. Requires `ec2:DescribeAvailabilityZones`.
 * `__meta_ec2_availability_zone`: The availability zone in which the instance is running.
 * `__meta_ec2_instance_id`: The EC2 instance ID.
 * `__meta_ec2_instance_lifecycle`: The lifecycle of the EC2 instance, set only for 'spot' or 'scheduled' instances, absent otherwise.
@@ -128,7 +128,8 @@ prometheus.remote_write "demo" {
   }
 }
 ```
+
 Replace the following:
-  - _`<PROMETHEUS_REMOTE_WRITE_URL>`_: The URL of the Prometheus remote_write-compatible server to send metrics to.
-  - _`<USERNAME>`_: The username to use for authentication to the remote_write API.
-  - _`<PASSWORD>`_: The password to use for authentication to the remote_write API.
+- _`<PROMETHEUS_REMOTE_WRITE_URL>`_: The URL of the Prometheus remote_write-compatible server to send metrics to.
+- _`<USERNAME>`_: The username to use for authentication to the remote_write API.
+- _`<PASSWORD>`_: The password to use for authentication to the remote_write API.

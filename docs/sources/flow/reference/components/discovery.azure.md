@@ -52,6 +52,7 @@ Exactly one of the `oauth` or `managed_identity` blocks must be specified.
 [tls_config]: #tls_config-block
 
 ### managed_identity
+
 The `managed_identity` block configures Managed Identity authentication for the Azure API.
 
 Name        | Type     | Description                 | Default | Required
@@ -59,6 +60,7 @@ Name        | Type     | Description                 | Default | Required
 `client_id` | `string` | Managed Identity client ID. |         | yes
 
 ### oauth
+
 The `oauth` block configures OAuth authentication for the Azure API.
 
 Name            | Type     | Description          | Default | Required
@@ -95,13 +97,12 @@ Each target includes the following labels:
 * `__meta_azure_machine_scale_set`: The name of the scale set the VM is in.
 * `__meta_azure_machine_size`: The size of the VM.
 
-Each discovered VM maps to a single target. The `__address__` label is set to the `private_ip:port` (`[private_ip]:port` if the private IP is an IPv6 address) of the VM.
+Each discovered VM maps to a single target. The `__address__` label is set to the `private_ip:port` or `[private_ip]:port` if the private IP is an IPv6 address.
 
 ## Component health
 
-`discovery.azure` is only reported as unhealthy when given an invalid
-configuration. In those cases, exported fields retain their last healthy
-values.
+`discovery.azure` is only reported as unhealthy when given an invalid configuration.
+In those cases, exported fields retain their last healthy values.
 
 ## Debug information
 
@@ -141,10 +142,10 @@ prometheus.remote_write "demo" {
 }
 ```
 Replace the following:
-  - _`<AZURE_SUBSCRIPTION_ID>`_: Your Azure subscription ID.
-  - _`<AZURE_CLIENT_ID>`_: Your Azure client ID.
-  - _`<AZURE_CLIENT_SECRET>`_: Your Azure client secret.
-  - _`<AZURE_TENANT_ID>`_: Your Azure tenant ID.
-  - _`<PROMETHEUS_REMOTE_WRITE_URL>`_: The URL of the Prometheus remote_write-compatible server to send metrics to.
-  - _`<USERNAME>`_: The username to use for authentication to the remote_write API.
-  - _`<PASSWORD>`_: The password to use for authentication to the remote_write API.
+- _`<AZURE_SUBSCRIPTION_ID>`_: Your Azure subscription ID.
+- _`<AZURE_CLIENT_ID>`_: Your Azure client ID.
+- _`<AZURE_CLIENT_SECRET>`_: Your Azure client secret.
+- _`<AZURE_TENANT_ID>`_: Your Azure tenant ID.
+- _`<PROMETHEUS_REMOTE_WRITE_URL>`_: The URL of the Prometheus remote_write-compatible server to send metrics to.
+- _`<USERNAME>`_: The username to use for authentication to the remote_write API.
+- _`<PASSWORD>`_: The password to use for authentication to the remote_write API.

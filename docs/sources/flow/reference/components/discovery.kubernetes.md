@@ -31,8 +31,8 @@ The following arguments are supported:
 
 Name                | Type     | Description                                                  | Default | Required
 --------------------|----------|--------------------------------------------------------------|---------|---------
-`api_server`        | `string` | URL of Kubernetes API server.                                |         | no
 `role`              | `string` | Type of Kubernetes resource to query.                        |         | yes
+`api_server`        | `string` | URL of Kubernetes API server.                                |         | no
 `kubeconfig_file`   | `string` | Path of kubeconfig file to use for connecting to Kubernetes. |         | no
 `bearer_token`      | `secret` | Bearer token to authenticate with.                           |         | no
 `bearer_token_file` | `string` | File containing a bearer token to authenticate with.         |         | no
@@ -81,7 +81,7 @@ The following labels are included for discovered services:
 * `__meta_kubernetes_namespace`: The namespace of the service object.
 * `__meta_kubernetes_service_annotation_<annotationname>`: Each annotation from the service object.
 * `__meta_kubernetes_service_annotationpresent_<annotationname>`: `true` for each annotation of the service object.
-* `__meta_kubernetes_service_cluster_ip`: The cluster IP address of the service. This does not apply to services of type `ExternalName`.
+* `__meta_kubernetes_service_cluster_ip`: The cluster IP address of the service. This doesn't apply to services of type `ExternalName`.
 * `__meta_kubernetes_service_external_name`: The DNS name of the service. This only applies to services of type `ExternalName`.
 * `__meta_kubernetes_service_label_<labelname>`: Each label from the service object.
 * `__meta_kubernetes_service_labelpresent_<labelname>`: `true` for each label of the service object.
@@ -329,14 +329,15 @@ prometheus.remote_write "demo" {
   }
 }
 ```
+
 Replace the following:
-  - _`<PROMETHEUS_REMOTE_WRITE_URL>`_: The URL of the Prometheus remote_write-compatible server to send metrics to.
-  - _`<USERNAME>`_: The username to use for authentication to the remote_write API.
-  - _`>PASSWORD>`_: The password to use for authentication to the remote_write API.
+- _`<PROMETHEUS_REMOTE_WRITE_URL>`_: The URL of the Prometheus remote_write-compatible server to send metrics to.
+- _`<USERNAME>`_: The username to use for authentication to the remote_write API.
+- _`>PASSWORD>`_: The password to use for authentication to the remote_write API.
 
 ### Kubeconfig authentication
 
-The following example uses a kubeconfig file to authenticate to the Kubernetes API:
+The following example uses a Kubeconfig file to authenticate to the Kubernetes API:
 
 ```river
 discovery.kubernetes "k8s_pods" {
@@ -360,14 +361,15 @@ prometheus.remote_write "demo" {
   }
 }
 ```
+
 Replace the following:
-  - _`<PROMETHEUS_REMOTE_WRITE_URL>`_: The URL of the Prometheus remote_write-compatible server to send metrics to.
-  - _`<USERNAME>`_: The username to use for authentication to the remote_write API.
-  - _`>PASSWORD>`_: The password to use for authentication to the remote_write API.
+- _`<PROMETHEUS_REMOTE_WRITE_URL>`_: The URL of the Prometheus remote_write-compatible server to send metrics to.
+- _`<USERNAME>`_: The username to use for authentication to the remote_write API.
+- _`>PASSWORD>`_: The password to use for authentication to the remote_write API.
 
 ### Limit searched namespaces and filter by labels value
 
-This example limits the searched namespaces and only selects pods with a specific label value attached to them:
+The following example limits the searched namespaces and only selects pods with a specific label value attached to them:
 
 ```river
 discovery.kubernetes "k8s_pods" {
@@ -399,14 +401,15 @@ prometheus.remote_write "demo" {
   }
 }
 ```
+
 Replace the following:
-  - _`<PROMETHEUS_REMOTE_WRITE_URL>`_: The URL of the Prometheus remote_write-compatible server to send metrics to.
-  - _`<USERNAME>`_: The username to use for authentication to the remote_write API.
-  - _`>PASSWORD>`_: The password to use for authentication to the remote_write API.
+- _`<PROMETHEUS_REMOTE_WRITE_URL>`_: The URL of the Prometheus remote_write-compatible server to send metrics to.
+- _`<USERNAME>`_: The username to use for authentication to the remote_write API.
+- _`>PASSWORD>`_: The password to use for authentication to the remote_write API.
 
 ### Limit to only pods on the same node
 
-This example limits the search to pods on the same node as this Grafana Agent. This configuration could be useful if you are running the Agent as a DaemonSet:
+The following example limits the search to pods on the same node as this Grafana Agent. This configuration could be useful if you are running the Agent as a DaemonSet:
 
 ```river
 discovery.kubernetes "k8s_pods" {
@@ -433,8 +436,8 @@ prometheus.remote_write "demo" {
   }
 }
 ```
-Replace the following:
 
-  - _`<PROMETHEUS_REMOTE_WRITE_URL>`_: The URL of the Prometheus remote_write-compatible server to send metrics to.
-  - _`<USERNAME>`_: The username to use for authentication to the remote_write API.
-  - _`>PASSWORD>`_: The password to use for authentication to the remote_write API.
+Replace the following:
+- _`<PROMETHEUS_REMOTE_WRITE_URL>`_: The URL of the Prometheus remote_write-compatible server to send metrics to.
+- _`<USERNAME>`_: The username to use for authentication to the remote_write API.
+- _`>PASSWORD>`_: The password to use for authentication to the remote_write API.

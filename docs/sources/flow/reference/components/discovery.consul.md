@@ -29,7 +29,7 @@ The following arguments are supported:
 
 Name                | Type           | Description                                                                                                    | Default          | Required
 --------------------|----------------|----------------------------------------------------------------------------------------------------------------|------------------|---------
-`allow_stale`       | `bool`         | Allow stale Consul results. Refer to the [Consul documentation][]. Will reduce load on Consul.                 | `true`           | no
+`allow_stale`       | `bool`         | Allow stale Consul results. Refer to the [Consul documentation][]. Reduces the load on Consul.                 | `true`           | no
 `bearer_token_file` | `string`       | File containing a bearer token to authenticate with.                                                           |                  | no
 `bearer_token`      | `secret`       | Bearer token to authenticate with.                                                                             |                  | no
 `datacenter`        | `string`       | Datacenter to query. If not provided, the default is used.                                                     |                  | no
@@ -50,11 +50,11 @@ Name                | Type           | Description                              
 `username`          | `string`       | The username to use. Deprecated in favor of the basic_auth configuration.                                      |                  | no
 
  At most one of the following can be provided:
- - [`bearer_token` argument](#arguments).
- - [`bearer_token_file` argument](#arguments).
- - [`basic_auth` block][basic_auth].
- - [`authorization` block][authorization].
- - [`oauth2` block][oauth2].
+- [`authorization` block][authorization].
+- [`basic_auth` block][basic_auth].
+- [`bearer_token_file` argument](#arguments).
+- [`bearer_token` argument](#arguments).
+- [`oauth2` block][oauth2].
 
 [Consul documentation]: https://www.consul.io/api/features/consistency.html
 [arguments]: #arguments
@@ -70,7 +70,8 @@ basic_auth          | [basic_auth][]    | Configure basic_auth for authenticatin
 oauth2              | [oauth2][]        | Configure OAuth2 for authenticating to the endpoint.     | no
 oauth2 > tls_config | [tls_config][]    | Configure TLS settings for connecting to the endpoint.   | no
 
-The `>` symbol indicates deeper levels of nesting. For example, `oauth2 > tls_config` refers to a `tls_config` block defined inside an `oauth2` block.
+The `>` symbol indicates deeper levels of nesting.
+For example, `oauth2 > tls_config` refers to a `tls_config` block defined inside an `oauth2` block.
 
 [basic_auth]: #basic_auth-block
 [authorization]: #authorization-block
@@ -160,6 +161,6 @@ prometheus.remote_write "demo" {
 }
 ```
 Replace the following:
-  - _`<PROMETHEUS_REMOTE_WRITE_URL>`_: The URL of the Prometheus remote_write-compatible server to send metrics to.
-  - _`<USERNAME>`_: The username to use for authentication to the remote_write API.
-  - _`<PASSWORD>`_: The password to use for authentication to the remote_write API.
+- _`<PROMETHEUS_REMOTE_WRITE_URL>`_: The URL of the Prometheus remote_write-compatible server to send metrics to.
+- _`<USERNAME>`_: The username to use for authentication to the remote_write API.
+- _`<PASSWORD>`_: The password to use for authentication to the remote_write API.

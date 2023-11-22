@@ -40,7 +40,7 @@ Name                | Type           | Description                              
 `refresh_interval`  | `duration`     | How often the Kubelet should be polled for scrape targets | `5s`    | no
 `url`               | `string`       | URL of the Kubelet server.                                |         | no
 
-One of the following authentication methods must be provided if kubelet authentication is enabled:
+One of the following authentication methods must be provided if Kubelet authentication is enabled:
 
 - [`authorization` block][authorization].
 - [`bearer_token_file` argument](#arguments).
@@ -101,9 +101,9 @@ Each target includes the following labels:
 * `__meta_kubernetes_pod_ready`: Set to `true` or `false` for the pod's ready state.
 * `__meta_kubernetes_pod_uid`: The UID of the pod object.
 
-> **Note**: The Kubelet API used by this component is an internal API and therefore the
-> data in the response returned from the API cannot be guaranteed between different versions
-> of the Kubelet.
+{{% admonition type="note" %}}
+The Kubelet API used by this component is an internal API and therefore the data in the response returned from the API can't be guaranteed between different versions of the Kubelet.
+{{% /admonition %}}
 
 ## Component health
 
@@ -145,11 +145,11 @@ prometheus.remote_write "demo" {
   }
 }
 ```
-Replace the following:
 
-  - _`<PROMETHEUS_REMOTE_WRITE_URL>`_: The URL of the Prometheus remote_write-compatible server to send metrics to.
-  - _`<USERNAME>`_: The username to use for authentication to the remote_write API.
-  - _`<PASSWORD>`_: The password to use for authentication to the remote_write API.
+Replace the following:
+- _`<PROMETHEUS_REMOTE_WRITE_URL>`_: The URL of the Prometheus remote_write-compatible server to send metrics to.
+- _`<USERNAME>`_: The username to use for authentication to the remote_write API.
+- _`<PASSWORD>`_: The password to use for authentication to the remote_write API.
 
 ### Limit searched namespaces
 
@@ -177,8 +177,8 @@ prometheus.remote_write "demo" {
   }
 }
 ```
-Replace the following:
 
-  - _`<PROMETHEUS_REMOTE_WRITE_URL>`_: The URL of the Prometheus remote_write-compatible server to send metrics to.
-  - _`<USERNAME>_`_: The username to use for authentication to the remote_write API.
-  - _`<PASSWORD>`: The password to use for authentication to the remote_write API.
+Replace the following:
+- _`<PROMETHEUS_REMOTE_WRITE_URL>`_: The URL of the Prometheus remote_write-compatible server to send metrics to.
+- _`<USERNAME>_`_: The username to use for authentication to the remote_write API.
+- _`<PASSWORD>`: The password to use for authentication to the remote_write API.

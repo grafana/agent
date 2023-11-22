@@ -143,7 +143,7 @@ In those cases, exported fields retain their last healthy values.
 
 ### Linux or macOS hosts
 
-THe following example discovers Docker containers when the host machine is macOS or Linux:
+THe following example discovers Docker containers when the host machine is Linux or macOS:
 
 ```river
 discovery.docker "containers" {
@@ -166,10 +166,11 @@ prometheus.remote_write "demo" {
   }
 }
 ```
+
 Replace the following:
-  - _`<PROMETHEUS_REMOTE_WRITE_URL>`_: The URL of the Prometheus remote_write-compatible server to send metrics to.
-  - _`<USERNAME>`_: The username to use for authentication to the remote_write API.
-  - _`<PASSWORD>`_: The password to use for authentication to the remote_write API.
+- _`<PROMETHEUS_REMOTE_WRITE_URL>`_: The URL of the Prometheus remote_write-compatible server to send metrics to.
+- _`<USERNAME>`_: The username to use for authentication to the remote_write API.
+- _`<PASSWORD>`_: The password to use for authentication to the remote_write API.
 
 ### Windows hosts
 
@@ -196,10 +197,11 @@ prometheus.remote_write "demo" {
   }
 }
 ```
+
 Replace the following:
-  - _`<PROMETHEUS_REMOTE_WRITE_URL>`_: The URL of the Prometheus remote_write-compatible server to send metrics to.
-  - _`<USERNAME>`_: The username to use for authentication to the remote_write API.
-  - _`<PASSWORD>`_: The password to use for authentication to the remote_write API.
+- _`<PROMETHEUS_REMOTE_WRITE_URL>`_: The URL of the Prometheus remote_write-compatible server to send metrics to.
+- _`<USERNAME>`_: The username to use for authentication to the remote_write API.
+- _`<PASSWORD>`_: The password to use for authentication to the remote_write API.
 
 {{% admonition type="note" %}}
 This example requires the "Expose daemon on tcp://localhost:2375 without TLS" setting to be enabled in the Docker Engine settings.

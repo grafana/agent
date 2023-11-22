@@ -81,19 +81,19 @@ The following fields are exported and can be referenced by other components:
 
 Each target includes the following labels:
 
-- `__meta_ionos_server_availability_zone`: the availability zone of the server.
-- `__meta_ionos_server_boot_cdrom_id`: the ID of the CD-ROM the server is booted from.
-- `__meta_ionos_server_boot_image_id`: the ID of the boot image or snapshot the server is booted from.
-- `__meta_ionos_server_boot_volume_id`: the ID of the boot volume.
-- `__meta_ionos_server_cpu_family`: the CPU family of the server to.
-- `__meta_ionos_server_id`: the ID of the server.
-- `__meta_ionos_server_ip`: comma separated list of all IPs assigned to the server.
-- `__meta_ionos_server_lifecycle`: the lifecycle state of the server resource.
-- `__meta_ionos_server_name`: the name of the server.
-- `__meta_ionos_server_nic_ip_<nic_name>`: comma separated list of IPs, grouped by the name of each NIC attached to the server.
-- `__meta_ionos_server_servers_id`: the ID of the servers the server belongs to.
-- `__meta_ionos_server_state`: the execution state of the server.
-- `__meta_ionos_server_type`: the type of the server.
+- `__meta_ionos_server_availability_zone`: The availability zone of the server.
+- `__meta_ionos_server_boot_cdrom_id`: The ID of the CD-ROM the server is booted from.
+- `__meta_ionos_server_boot_image_id`: The ID of the boot image or snapshot the server is booted from.
+- `__meta_ionos_server_boot_volume_id`: The ID of the boot volume.
+- `__meta_ionos_server_cpu_family`: The CPU family of the server to.
+- `__meta_ionos_server_id`: The ID of the server.
+- `__meta_ionos_server_ip`: Comma separated list of all IPs assigned to the server.
+- `__meta_ionos_server_lifecycle`: The lifecycle state of the server resource.
+- `__meta_ionos_server_name`: The name of the server.
+- `__meta_ionos_server_nic_ip_<nic_name>`: Comma separated list of IPs, grouped by the name of each NIC attached to the server.
+- `__meta_ionos_server_servers_id`: The ID of the servers the server belongs to.
+- `__meta_ionos_server_state`: The execution state of the server.
+- `__meta_ionos_server_type`: The type of the server.
 
 ## Component health
 
@@ -133,7 +133,6 @@ prometheus.remote_write "demo" {
 ```
 
 Replace the following:
-
 - _`<PROMETHEUS_REMOTE_WRITE_URL>`_: The URL of the Prometheus remote_write-compatible server to send metrics to.
 - _`<USERNAME>`_: The username to use for authentication to the remote_write API.
 - _`<PASSWORD>`_: The password to use for authentication to the remote_write API.

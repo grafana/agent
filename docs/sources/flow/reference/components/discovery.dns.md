@@ -48,7 +48,6 @@ Each target includes the following labels:
 * `__meta_dns_srv_record_port`: Port field of the SRV record.
 * `__meta_dns_srv_record_target`: Target field of the SRV record.
 
-
 ## Component health
 
 `discovery.dns` is only reported as unhealthy when given an invalid configuration.
@@ -90,6 +89,6 @@ prometheus.remote_write "demo" {
 }
 ```
 Replace the following:
-  - _`<PROMETHEUS_REMOTE_WRITE_URL>`_: The URL of the Prometheus remote_write-compatible server to send metrics to.
-  - _`<USERNAME>`_: The username to use for authentication to the remote_write API.
-  - _`<PASSWORD>`_: The password to use for authentication to the remote_write API.
+- _`<PROMETHEUS_REMOTE_WRITE_URL>`_: The URL of the Prometheus remote_write-compatible server to send metrics to.
+- _`<USERNAME>`_: The username to use for authentication to the remote_write API.
+- _`<PASSWORD>`_: The password to use for authentication to the remote_write API.
