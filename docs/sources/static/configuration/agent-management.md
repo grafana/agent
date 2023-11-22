@@ -164,4 +164,8 @@ snippets:
       app: app1
 ```
 
-> **Note:** Base configurations and snippets can contain go's [text/template](https://pkg.go.dev/text/template) actions. If you need preserve the literal value of a template action, you can escape them using backticks (for example, `{{ .template_inside_template }}`).
+> **Note:** Base configurations and snippets can contain go's [text/template](https://pkg.go.dev/text/template) actions. If you need preserve the literal value of a template action, you can escape it using backticks. For example:
+
+```
+{{ `{{ .template_var }}` }}
+```
