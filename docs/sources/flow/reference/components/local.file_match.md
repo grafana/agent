@@ -27,23 +27,22 @@ local.file_match "LABEL" {
 
 The following arguments are supported:
 
-Name            | Type                | Description                                                                                | Default | Required
---------------- | ------------------- | ------------------------------------------------------------------------------------------ |---------| --------
-`path_targets`  | `list(map(string))` | Targets to expand; looks for glob patterns on the  `__path__` and `__path_exclude__` keys. |         | yes
-`sync_period`   | `duration`          | How often to sync filesystem and targets.                                                  | `"10s"` | no
+Name           | Type                | Description                                                                                | Default | Required
+---------------|---------------------|--------------------------------------------------------------------------------------------|---------|---------
+`path_targets` | `list(map(string))` | Targets to expand; looks for glob patterns on the  `__path__` and `__path_exclude__` keys. |         | yes
+`sync_period`  | `duration`          | How often to sync filesystem and targets.                                                  | `"10s"` | no
 
 `path_targets` uses [doublestar][] style paths.
 * `/tmp/**/*.log` will match all subfolders of `tmp` and include any files that end in `*.log`.
 * `/tmp/apache/*.log` will match only files in `/tmp/apache/` that end in `*.log`.
 * `/tmp/**` will match all subfolders of `tmp`, `tmp` itself, and all files.
 
-
 ## Exported fields
 
 The following fields are exported and can be referenced by other components:
 
-Name | Type | Description
----- | ---- | -----------
+Name      | Type                | Description
+----------|---------------------|---------------------------------------------------
 `targets` | `list(map(string))` | The set of targets discovered from the filesystem.
 
 Each target includes the following labels:
@@ -52,24 +51,22 @@ Each target includes the following labels:
 
 ## Component health
 
-`local.file_match` is only reported as unhealthy when given an invalid
-configuration. In those cases, exported fields retain their last healthy
-values.
+`local.file_match` is only reported as unhealthy when given an invalid configuration.
+In those cases, exported fields retain their last healthy values.
 
 ## Debug information
 
-`local.file_match` does not expose any component-specific debug information.
+`local.file_match` doesn't expose any component-specific debug information.
 
 ## Debug metrics
 
-`local.file_match` does not expose any component-specific debug metrics.
+`local.file_match` doesn't expose any component-specific debug metrics.
 
 ## Examples
 
 ### Send `/tmp/logs/*.log` files to Loki
 
-This example discovers all files and folders under `/tmp/logs`. The absolute paths are 
-used by `loki.source.file.files` targets.
+The following example discovers all files and folders under `/tmp/logs`. The absolute paths are used by `loki.source.file.files` targets.
 
 ```river
 local.file_match "tmp" {
@@ -83,22 +80,23 @@ loki.source.file "files" {
 
 loki.write "endpoint" {
   endpoint {
-      url = LOKI_URL
+      url = <LOKI_URL>
       basic_auth {
-          username = USERNAME
-          password = PASSWORD
+          username = <USERNAME>
+          password = <PASSWORD>
       }
   }
 }
 ```
+
 Replace the following:
-  - `LOKI_URL`: The URL of the Loki server to send logs to.
-  - `USERNAME`: The username to use for authentication to the Loki API.
-  - `PASSWORD`: The password to use for authentication to the Loki API.
+- _`<LOKI_URL>`_: The URL of the Loki server to send logs to.
+- _`<USERNAME>`_: The username to use for authentication to the Loki API.
+- _`<PASSWORD>`_: The password to use for authentication to the Loki API.
 
 ### Send Kubernetes pod logs to Loki
 
-This example finds all the logs on pods and monitors them.
+The following example finds all the logs on pods and monitors them.
 
 ```river
 discovery.kubernetes "k8s" {
@@ -133,15 +131,16 @@ loki.source.file "pods" {
 
 loki.write "endpoint" {
   endpoint {
-      url = LOKI_URL
+      url = <LOKI_URL>
       basic_auth {
-          username = USERNAME
-          password = PASSWORD
+          username = <USERNAME>
+          password = <PASSWORD>
       }
   }
 }
 ```
+
 Replace the following:
-  - `LOKI_URL`: The URL of the Loki server to send logs to.
-  - `USERNAME`: The username to use for authentication to the Loki API.
-  - `PASSWORD`: The password to use for authentication to the Loki API.
+- _`<LOKI_URL>`_: The URL of the Loki server to send logs to.
+- _`<USERNAME>`_: The username to use for authentication to the Loki API.
+- _`<PASSWORD>`_: The password to use for authentication to the Loki API.

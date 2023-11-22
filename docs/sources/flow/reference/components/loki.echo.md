@@ -13,13 +13,11 @@ title: loki.echo
 
 # loki.echo
 
-{{< docs/shared lookup="flow/stability/beta.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/stability/beta.md" source="agent" version="<AGENT_VERSION>" >}}
 
-`loki.echo` receives log entries from other `loki` components and prints them
-to the process' standard output (stdout).
+`loki.echo` receives log entries from other `loki` components and prints them to the process' standard output (stdout).
 
-Multiple `loki.echo` components can be specified by giving them
-different labels.
+Multiple `loki.echo` components can be specified by giving them different labels.
 
 ## Usage
 
@@ -35,8 +33,8 @@ loki.echo "LABEL" {}
 
 The following fields are exported and can be referenced by other components:
 
-Name | Type | Description
----- | ---- | -----------
+Name       | Type           | Description
+-----------|----------------|--------------------------------------------------------------
 `receiver` | `LogsReceiver` | A value that other components can use to send log entries to.
 
 ## Component health
@@ -45,7 +43,7 @@ Name | Type | Description
 
 ## Debug information
 
-`loki.echo` does not expose any component-specific debug information.
+`loki.echo` doesn't expose any component-specific debug information.
 
 ## Example
 
