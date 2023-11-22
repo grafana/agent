@@ -1,20 +1,31 @@
 package controller
 
 import (
+	"fmt"
 	"github.com/prometheus/client_golang/prometheus"
+	"time"
 )
 
 // controllerMetrics contains the metrics for components controller
 type controllerMetrics struct {
-	controllerEvaluation    prometheus.Gauge
-	componentEvaluationTime prometheus.Histogram
-	dependenciesWaitTime    prometheus.Histogram
-	evaluationQueueSize     prometheus.Gauge
+	controllerEvaluation     prometheus.Gauge
+	componentEvaluationTime  prometheus.Histogram
+	dependenciesWaitTime     prometheus.Histogram
+	evaluationQueueSize      prometheus.Gauge
+	slowComponentThreshold   time.Duration
+	slowComponentEvaluations *prometheus.CounterVec
 }
 
 // newControllerMetrics inits the metrics for the components controller
 func newControllerMetrics(id string) *controllerMetrics {
-	cm := &controllerMetrics{}
+	cm := &controllerMetrics{
+		slowComponentThreshold: 1 * time.Minute,
+	}
+
+	// The evaluation time becomes particularly problematic in the range of 30s+, so add more buckets
+	// that can help spot issues in that range.
+	// Use the following buckets: 5ms, 25ms, 100ms, 500ms, 1s, 5s, 10s, 30s, 1m, 2m, 5m, 10m
+	evaluationTimesBuckets := []float64{.005, .025, .1, .5, 1, 5, 10, 30, 60, 120, 300, 600}
 
 	cm.controllerEvaluation = prometheus.NewGauge(prometheus.GaugeOpts{
 		Name:        "agent_component_controller_evaluating",
@@ -27,6 +38,7 @@ func newControllerMetrics(id string) *controllerMetrics {
 			Name:        "agent_component_evaluation_seconds",
 			Help:        "Time spent performing component evaluation",
 			ConstLabels: map[string]string{"controller_id": id},
+			Buckets:     evaluationTimesBuckets,
 		},
 	)
 	cm.dependenciesWaitTime = prometheus.NewHistogram(
@@ -34,6 +46,7 @@ func newControllerMetrics(id string) *controllerMetrics {
 			Name:        "agent_component_dependencies_wait_seconds",
 			Help:        "Time spent by components waiting to be evaluated after their dependency is updated.",
 			ConstLabels: map[string]string{"controller_id": id},
+			Buckets:     evaluationTimesBuckets,
 		},
 	)
 
@@ -43,7 +56,20 @@ func newControllerMetrics(id string) *controllerMetrics {
 		ConstLabels: map[string]string{"controller_id": id},
 	})
 
+	cm.slowComponentEvaluations = prometheus.NewCounterVec(prometheus.CounterOpts{
+		Name:        "agent_component_evaluation_slow",
+		Help:        fmt.Sprintf("Tracks the components that took longer than %v to evaluate", cm.slowComponentThreshold),
+		ConstLabels: map[string]string{"controller_id": id},
+	}, []string{"component_id"})
+
 	return cm
+}
+
+func (cm *controllerMetrics) onComponentEvaluationDone(name string, duration time.Duration) {
+	cm.componentEvaluationTime.Observe(duration.Seconds())
+	if duration >= cm.slowComponentThreshold {
+		cm.slowComponentEvaluations.WithLabelValues(name).Inc()
+	}
 }
 
 func (cm *controllerMetrics) Collect(ch chan<- prometheus.Metric) {
@@ -51,6 +77,7 @@ func (cm *controllerMetrics) Collect(ch chan<- prometheus.Metric) {
 	cm.controllerEvaluation.Collect(ch)
 	cm.dependenciesWaitTime.Collect(ch)
 	cm.evaluationQueueSize.Collect(ch)
+	cm.slowComponentEvaluations.Collect(ch)
 }
 
 func (cm *controllerMetrics) Describe(ch chan<- *prometheus.Desc) {
@@ -58,6 +85,7 @@ func (cm *controllerMetrics) Describe(ch chan<- *prometheus.Desc) {
 	cm.controllerEvaluation.Describe(ch)
 	cm.dependenciesWaitTime.Describe(ch)
 	cm.evaluationQueueSize.Describe(ch)
+	cm.slowComponentEvaluations.Describe(ch)
 }
 
 type controllerCollector struct {
