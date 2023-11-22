@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"text/template"
 
-	"github.com/Masterminds/sprig"
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/logs"
 	"github.com/grafana/agent/pkg/metrics/instance"
@@ -165,7 +164,7 @@ func appendExternalLabels(c *Config, externalLabels map[string]string) {
 }
 
 func evaluateTemplate(config string, templateVariables map[string]any) (string, error) {
-	tpl, err := template.New("config").Funcs(sprig.FuncMap()).Parse(config)
+	tpl, err := template.New("config").Parse(config)
 	if err != nil {
 		return "", err
 	}
