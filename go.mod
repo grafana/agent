@@ -620,8 +620,11 @@ require (
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.19.0
 )
 
+require github.com/Masterminds/semver v1.5.0 // indirect
+
 require (
 	dario.cat/mergo v1.0.0 // indirect
+	github.com/Masterminds/sprig v2.22.0+incompatible
 	github.com/Shopify/sarama v1.38.1 // indirect
 	github.com/Workiva/go-datastructures v1.1.0 // indirect
 	github.com/drone/envsubst v1.0.3 // indirect

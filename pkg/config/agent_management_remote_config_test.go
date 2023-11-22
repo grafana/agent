@@ -197,7 +197,7 @@ integration_configs:
     process_names:
       - name: "grafana-agent"
         cmdline:
-          - 'grafana-agent'
+          - '{{ "grafana-agent" | replace "grafana-" "" }}'
       - name: "{{.nonexistent.foo.bar.baz.bat}}"
         cmdline:
           - "{{ ` + templateInsideTemplate + ` }}"
@@ -243,7 +243,7 @@ integration_configs:
 		require.Equal(t, 4, len(processExporterConfig.ProcessExporter))
 
 		require.Equal(t, "grafana-agent", processExporterConfig.ProcessExporter[0].Name)
-		require.Equal(t, "grafana-agent", processExporterConfig.ProcessExporter[0].CmdlineRules[0])
+		require.Equal(t, "agent", processExporterConfig.ProcessExporter[0].CmdlineRules[0])
 		require.Equal(t, 0, len(processExporterConfig.ProcessExporter[0].ExeRules))
 
 		require.Equal(t, "<no value>", processExporterConfig.ProcessExporter[1].Name)
