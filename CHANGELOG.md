@@ -10,8 +10,11 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
-
 ### Bugfixes
+
+- Permit `X-Faro-Session-ID` header in CORS requests for the `faro.receiver`
+  component (flow mode) and the `app_agent_receiver` integration (static mode).
+  (@cedricziel)
 
 - Fix issue with windows_exporter defaults not being set correctly. (@mattdurham)
 
