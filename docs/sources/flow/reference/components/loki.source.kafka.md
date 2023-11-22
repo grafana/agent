@@ -86,7 +86,7 @@ authentication > tls_config                 | [tls_config]     | Optional authen
 
 [oauth_config]: #oauth_config-block
 
-### authentication block
+### authentication
 
 The `authentication` block defines the authentication method when communicating with the Kafka event brokers.
 
@@ -94,17 +94,13 @@ The `authentication` block defines the authentication method when communicating 
 --------|----------|-------------------------|----------|----------
  `type` | `string` | Type of authentication. | `"none"` | no
 
-`type` supports the values `"none"`, `"ssl"`, and `"sasl"`. If `"ssl"` is used,
-you must set the `tls_config` block. If `"sasl"` is used, you must set the `sasl_config` block.
+`type` supports the values `"none"`, `"ssl"`, and `"sasl"`.
+If `"ssl"` is used, you must set the `tls_config` block.
+If `"sasl"` is used, you must set the `sasl_config` block.
 
-### tls_config block
+### authentication > sasl_config
 
-{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" version="<AGENT VERSION>" >}}
-
-### sasl_config block
-
-The `sasl_config` block defines the listen address and port where the listener
-expects Kafka messages to be sent to.
+The `sasl_config` block defines the listen address and port where the listener expects Kafka messages to be sent to.
 
  Name        | Type     | Description                                                                   | Default    | Required
 -------------|----------|--------------------------------------------------------------------|----------|-----------------------
@@ -113,7 +109,7 @@ expects Kafka messages to be sent to.
  `password`  | `secret` | The password to use for SASL authentication.                                  | `""`       | no
  `use_tls`   | `bool`   | If true, SASL authentication is executed over TLS.                            | `false`    | no
 
-### oauth_config block
+### authentication > sasl_config > oauth_config
 
 The `oauth_config` is required when the SASL mechanism is set to `OAUTHBEARER`.
 
@@ -122,23 +118,29 @@ The `oauth_config` is required when the SASL mechanism is set to `OAUTHBEARER`.
  `token_provider` | `string`       | The OAuth provider to be used. The only supported provider is `azure`. | `""`    | yes
  `scopes`         | `list(string)` | The scopes to set in the access token                                  | `[]`    | yes
 
+### authentication > sasl_config > tls_config block
+
+{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" version="<AGENT_VERSION>" >}}
+
+### authentication > tls_config block
+
+{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" version="<AGENT_VERSION>" >}}
+
 ## Exported fields
 
-`loki.source.kafka` does not export any fields.
+`loki.source.kafka` doesn't export any fields.
 
 ## Component health
 
-`loki.source.kafka` is only reported as unhealthy if given an invalid
-configuration.
+`loki.source.kafka` is only reported as unhealthy if given an invalid configuration.
 
 ## Debug information
 
-`loki.source.kafka` does not expose additional debug info.
+`loki.source.kafka` doesn't expose additional debug info.
 
 ## Example
 
-This example consumes Kafka events from the specified brokers and topics
-then forwards them to a `loki.write` component using the Kafka timestamp.
+This example consumes Kafka events from the specified brokers and topics then forwards them to a `loki.write` component using the Kafka timestamp.
 
 ```river
 loki.source.kafka "local" {
