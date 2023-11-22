@@ -38,7 +38,6 @@ type Loader struct {
 	// it happens we should avoid retrying too often to give other goroutines a chance to progress. Having a backoff
 	// also prevents log spamming with errors.
 	backoffConfig backoff.Config
-	wiredNodes    map[string]struct{}
 
 	mut               sync.RWMutex
 	graph             *dag.Graph
@@ -85,7 +84,6 @@ func NewLoader(opts LoaderOptions) *Loader {
 		host:         host,
 		componentReg: reg,
 		workerPool:   opts.WorkerPool,
-		wiredNodes:   make(map[string]struct{}),
 
 		// This is a reasonable default which should work for most cases. If a component is completely stuck, we would
 		// retry and log an error every 10 seconds, at most.
@@ -132,8 +130,6 @@ func (l *Loader) Apply(args map[string]any, componentBlocks []*ast.BlockStmt, co
 		l.cache.CacheModuleArgument(key, value)
 	}
 	l.cache.SyncModuleArgs(args)
-
-	l.wiredNodes = make(map[string]struct{})
 
 	newGraph, diags := l.loadNewGraph(args, componentBlocks, configBlocks, declareBlocks, l.isModule(), false)
 	if diags.HasErrors() {
@@ -599,11 +595,6 @@ func (l *Loader) populateComponentNodes(g *dag.Graph, componentBlocks []*ast.Blo
 			}
 
 			if graph, exist := graphTemplates[componentName]; exist {
-				for _, node := range graph.Nodes() {
-					newId := id + "." + node.NodeID()
-					delete(l.wiredNodes, node.NodeID())
-					l.wiredNodes[newId] = struct{}{}
-				}
 				clonedGraph := graph.DeepClone(id)
 				g.Merge(clonedGraph)
 				declareComponentNode := NewDeclareComponentNode(l.globals, block)
@@ -640,6 +631,12 @@ func (l *Loader) wireGraphEdges(g *dag.Graph) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	for _, n := range g.Nodes() {
+
+		// Nodes within a namespace are already wired
+		if n.Namespace() != "" {
+			continue
+		}
+
 		// First, wire up dependencies on services.
 		switch n := n.(type) {
 		case *ServiceNode: // Service depending on other services.
@@ -657,15 +654,12 @@ func (l *Loader) wireGraphEdges(g *dag.Graph) diag.Diagnostics {
 			}
 		}
 
-		if _, wired := l.wiredNodes[n.NodeID()]; !wired {
-			// Finally, wire component references.
-			refs, nodeDiags := ComponentReferences(n, g)
-			for _, ref := range refs {
-				g.AddEdge(dag.Edge{From: n, To: ref.Target})
-			}
-			diags = append(diags, nodeDiags...)
-			l.wiredNodes[n.NodeID()] = struct{}{}
+		// Finally, wire component references.
+		refs, nodeDiags := ComponentReferences(n, g)
+		for _, ref := range refs {
+			g.AddEdge(dag.Edge{From: n, To: ref.Target})
 		}
+		diags = append(diags, nodeDiags...)
 	}
 
 	return diags
