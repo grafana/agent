@@ -25,7 +25,7 @@ discovery.serverset "LABEL" {
 }
 ```
 
-Serverset data stored in Zookeeper must be in JSON format. The Thrift format is not supported.
+Serverset data stored in Zookeeper must be in JSON format. The Thrift format isn't supported.
 
 ## Arguments
 
@@ -33,9 +33,9 @@ The following arguments are supported:
 
 | Name      | Type           | Description                                      | Default | Required |
 |-----------|----------------|--------------------------------------------------|---------|----------|
-| `servers` | `list(string)` | The Zookeeper servers to connect to.                 |         | yes      |
+| `servers` | `list(string)` | The Zookeeper servers to connect to.             |         | yes      |
 | `paths`   | `list(string)` | The Zookeeper paths to discover Serversets from. |         | yes      |
-| `timeout` | `duration`     | The Zookeeper session timeout                        | `10s`   | no       |
+| `timeout` | `duration`     | The Zookeeper session timeout                    | `10s`   | no       |
 
 ## Exported fields
 
@@ -46,36 +46,32 @@ Name      | Type                | Description
 `targets` | `list(map(string))` | The set of targets discovered.
 
 The following metadata labels are available on targets during relabeling:
-* `__meta_serverset_path`: the full path to the serverset member node in Zookeeper
-* `__meta_serverset_endpoint_host`: the host of the default endpoint
-* `__meta_serverset_endpoint_port`: the port of the default endpoint
-* `__meta_serverset_endpoint_host_<endpoint>`: the host of the given endpoint
-* `__meta_serverset_endpoint_port_<endpoint>`: the port of the given endpoint
-* `__meta_serverset_shard`: the shard number of the member
-* `__meta_serverset_status`: the status of the member
+
+* `__meta_serverset_endpoint_host_<endpoint>`: The host of the given endpoint.
+* `__meta_serverset_endpoint_host`: The host of the default endpoint.
+* `__meta_serverset_endpoint_port_<endpoint>`: The port of the given endpoint.
+* `__meta_serverset_endpoint_port`: The port of the default endpoint.
+* `__meta_serverset_path`: The full path to the serverset member node in Zookeeper.
+* `__meta_serverset_shard`: The shard number of the member.
+* `__meta_serverset_status`: The status of the member.
 
 ## Component health
 
-`discovery.serverset` is only reported as unhealthy when given an invalid
-configuration. In those cases, exported fields retain their last healthy
-values.
+`discovery.serverset` is only reported as unhealthy when given an invalid configuration.
+In those cases, exported fields retain their last healthy values.
 
 ## Debug information
 
-`discovery.serverset` does not expose any component-specific debug information.
+`discovery.serverset` doesn't expose any component-specific debug information.
 
 ## Debug metrics
 
-`discovery.serverset` does not expose any component-specific debug metrics.
+`discovery.serverset` doesn't expose any component-specific debug metrics.
 
 ## Example
 
-The configuration below will connect to one of the Zookeeper servers
-(either `zk1`, `zk2`, or `zk3`) and discover JSON Serversets at paths
-`/path/to/znode1` and `/path/to/znode2`. The discovered targets are scraped
-by the `prometheus.scrape.default` component and forwarded to
-the `prometheus.remote_write.default` component, which will send the samples to
-specified remote_write URL.
+The configuration below will connect to one of the Zookeeper servers (either `zk1`, `zk2`, or `zk3`) and discover JSON Serversets at paths `/path/to/znode1` and `/path/to/znode2`.
+The discovered targets are scraped by the `prometheus.scrape.default` component and forwarded to the `prometheus.remote_write.default` component, which will send the samples to specified remote_write URL.
 
 ```river
 discovery.serverset "zookeeper" {
