@@ -11,19 +11,14 @@ title: loki.source.kafka
 
 # loki.source.kafka
 
-`loki.source.kafka` reads messages from Kafka using a consumer group
-and forwards them to other `loki.*` components.
+`loki.source.kafka` reads messages from Kafka using a consumer group and forwards them to other `loki.*` components.
 
-The component starts a new Kafka consumer group for the given arguments
-and fans out incoming entries to the list of receivers in `forward_to`.
+The component starts a new Kafka consumer group for the given arguments and fans out incoming entries to the list of receivers in `forward_to`.
 
-Before using `loki.source.kafka`, Kafka should have at least one producer
-writing events to at least one topic. Follow the steps in the
-[Kafka Quick Start](https://kafka.apache.org/documentation/#quickstart)
-to get started with Kafka.
+Before using `loki.source.kafka`, Kafka should have at least one producer writing events to at least one topic.
+Follow the steps in the [Kafka Quick Start](https://kafka.apache.org/documentation/#quickstart) to get started with Kafka.
 
-Multiple `loki.source.kafka` components can be specified by giving them
-different labels.
+Multiple `loki.source.kafka` components can be specified by giving them different labels.
 
 ## Usage
 
@@ -39,38 +34,35 @@ loki.source.kafka "LABEL" {
 
 `loki.source.kafka` supports the following arguments:
 
- Name                     | Type                 | Description                                              | Default               | Required
---------------------------|----------------------|----------------------------------------------------------|-----------------------|----------
- `brokers`                | `list(string)`       | The list of brokers to connect to Kafka.                 |                       | yes
- `topics`                 | `list(string)`       | The list of Kafka topics to consume.                     |                       | yes
- `group_id`               | `string`             | The Kafka consumer group id.                             | `"loki.source.kafka"` | no
- `assignor`               | `string`             | The consumer group rebalancing strategy to use.          | `"range"`             | no
- `version`                | `string`             | Kafka version to connect to.                             | `"2.2.1"`             | no
- `use_incoming_timestamp` | `bool`               | Whether or not to use the timestamp received from Kafka. | `false`               | no
- `labels`                 | `map(string)`        | The labels to associate with each received Kafka event.  | `{}`                  | no
- `forward_to`             | `list(LogsReceiver)` | List of receivers to send log entries to.                |                       | yes
- `relabel_rules`          | `RelabelRules`       | Relabeling rules to apply on log entries.                | `{}`                  | no
+Name                     | Type                 | Description                                              | Default               | Required
+-------------------------|----------------------|----------------------------------------------------------|-----------------------|---------
+`brokers`                | `list(string)`       | The list of brokers to connect to Kafka.                 |                       | yes
+`forward_to`             | `list(LogsReceiver)` | List of receivers to send log entries to.                |                       | yes
+`topics`                 | `list(string)`       | The list of Kafka topics to consume.                     |                       | yes
+`assignor`               | `string`             | The consumer group rebalancing strategy to use.          | `"range"`             | no
+`group_id`               | `string`             | The Kafka consumer group id.                             | `"loki.source.kafka"` | no
+`labels`                 | `map(string)`        | The labels to associate with each received Kafka event.  | `{}`                  | no
+`relabel_rules`          | `RelabelRules`       | Relabeling rules to apply on log entries.                | `{}`                  | no
+`use_incoming_timestamp` | `bool`               | Whether or not to use the timestamp received from Kafka. | `false`               | no
+`version`                | `string`             | Kafka version to connect to.                             | `"2.2.1"`             | no
 
 `assignor` values can be either `"range"`, `"roundrobin"`, or `"sticky"`.
 
 Labels from the `labels` argument are applied to every message that the component reads.
 
-The `relabel_rules` field can make use of the `rules` export value from a
-[loki.relabel][] component to apply one or more relabeling rules to log entries
-before they're forwarded to the list of receivers in `forward_to`.
+The `relabel_rules` field can make use of the `rules` export value from a [loki.relabel][] component to apply one or more relabeling rules to log entries before they're forwarded to the list of receivers in `forward_to`.
 
 In addition to custom labels, the following internal labels prefixed with `__` are available:
 
+- `__meta_kafka_group_id`
+- `__meta_kafka_member_id`
 - `__meta_kafka_message_key`
 - `__meta_kafka_message_offset`
-- `__meta_kafka_topic`
 - `__meta_kafka_partition`
-- `__meta_kafka_member_id`
-- `__meta_kafka_group_id`
+- `__meta_kafka_topic`
 
-All labels starting with `__` are removed prior to forwarding log entries. To
-keep these labels, relabel them using a [loki.relabel][] component and pass its
-`rules` export to the `relabel_rules` argument.
+All labels starting with `__` are removed prior to forwarding log entries.
+To keep these labels, relabel them using a [loki.relabel][] component and pass its `rules` export to the `relabel_rules` argument.
 
 [loki.relabel]: {{< relref "./loki.relabel.md" >}}
 
@@ -80,11 +72,11 @@ The following blocks are supported inside the definition of `loki.source.kafka`:
 
  Hierarchy                                   | Name             | Description                                               | Required
 ---------------------------------------------|------------------|-----------------------------------------------------------|----------
- authentication                              | [authentication] | Optional authentication configuration with Kafka brokers. | no
- authentication > tls_config                 | [tls_config]     | Optional authentication configuration with Kafka brokers. | no
- authentication > sasl_config                | [sasl_config]    | Optional authentication configuration with Kafka brokers. | no
- authentication > sasl_config > tls_config   | [tls_config]     | Optional authentication configuration with Kafka brokers. | no
- authentication > sasl_config > oauth_config | [oauth_config]   | Optional authentication configuration with Kafka brokers. | no
+authentication                              | [authentication] | Optional authentication configuration with Kafka brokers. | no
+authentication > sasl_config                | [sasl_config]    | Optional authentication configuration with Kafka brokers. | no
+authentication > sasl_config > oauth_config | [oauth_config]   | Optional authentication configuration with Kafka brokers. | no
+authentication > sasl_config > tls_config   | [tls_config]     | Optional authentication configuration with Kafka brokers. | no
+authentication > tls_config                 | [tls_config]     | Optional authentication configuration with Kafka brokers. | no
 
 [authentication]: #authentication-block
 

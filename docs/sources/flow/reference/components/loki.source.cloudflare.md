@@ -11,12 +11,9 @@ title: loki.source.cloudflare
 
 # loki.source.cloudflare
 
-`loki.source.cloudflare` pulls logs from the Cloudflare Logpull API and
-forwards them to other `loki.*` components.
+`loki.source.cloudflare` pulls logs from the Cloudflare Logpull API and forwards them to other `loki.*` components.
 
-These logs contain data related to the connecting client, the request path
-through the Cloudflare network, and the response from the origin web server and
-can be useful for enriching existing logs on an origin server.
+These logs contain data related to the connecting client, the request path through the Cloudflare network, and the response from the origin web server and can be useful for enriching existing logs on an origin server.
 
 Multiple `loki.source.cloudflare` components can be specified by giving them
 different labels.
@@ -36,65 +33,60 @@ loki.source.cloudflare "LABEL" {
 
 `loki.source.cloudflare` supports the following arguments:
 
-Name            | Type                 | Description          | Default | Required
---------------- | -------------------- | -------------------- | ------- | --------
-`forward_to`    | `list(LogsReceiver)` | List of receivers to send log entries to. |      | yes
-`api_token`     | `string`             | The API token to authenticate with. |  | yes
-`zone_id`       | `string`             | The Cloudflare zone ID to use.      |  | yes
-`labels`        | `map(string)`        | The labels to associate with incoming log entries. | `{}` | no
-`workers`       | `int`                | The number of workers to use for parsing logs.     |  `3` | no
-`pull_range`    | `duration`           | The timeframe to fetch for each pull request.      | `"1m"` | no
-`fields_type`   | `string`             | The set of fields to fetch for log entries.        | `"default"` | no
-`additional_fields` | `list(string)`   | The additional list of fields to supplement those provided via `fields_type`. |  | no
+Name                | Type                 | Description                                                                   | Default     | Required
+--------------------|----------------------|-------------------------------------------------------------------------------|-------------|---------
+`api_token`         | `string`             | The API token to authenticate with.                                           |             | yes
+`forward_to`        | `list(LogsReceiver)` | List of receivers to send log entries to.                                     |             | yes
+`zone_id`           | `string`             | The Cloudflare zone ID to use.                                                |             | yes
+`additional_fields` | `list(string)`       | The additional list of fields to supplement those provided via `fields_type`. |             | no
+`fields_type`       | `string`             | The set of fields to fetch for log entries.                                   | `"default"` | no
+`labels`            | `map(string)`        | The labels to associate with incoming log entries.                            | `{}`        | no
+`pull_range`        | `duration`           | The timeframe to fetch for each pull request.                                 | `"1m"`      | no
+`workers`           | `int`                | The number of workers to use for parsing logs.                                | `3`         | no
 
 
-By default `loki.source.cloudflare` fetches logs with the `default` set of
-fields. Here are the different sets of `fields_type` available for selection,
-and the fields they include:
+By default `loki.source.cloudflare` fetches logs with the `default` set of fields.
+The following list shows the different sets of `fields_type` available for selection, and the fields they include:
 
 * `default` includes:
-```
-"ClientIP", "ClientRequestHost", "ClientRequestMethod", "ClientRequestURI", "EdgeEndTimestamp", "EdgeResponseBytes", "EdgeRequestHost", "EdgeResponseStatus", "EdgeStartTimestamp", "RayID"
-```
-plus any extra fields provided via `additional_fields` argument.
+  ```
+  "ClientIP", "ClientRequestHost", "ClientRequestMethod", "ClientRequestURI", "EdgeEndTimestamp", "EdgeResponseBytes", "EdgeRequestHost", "EdgeResponseStatus", "EdgeStartTimestamp", "RayID"
+  ```
+  plus any extra fields provided via `additional_fields` argument.
 
 * `minimal` includes all `default` fields and adds:
-```
-"ZoneID", "ClientSSLProtocol", "ClientRequestProtocol", "ClientRequestPath", "ClientRequestUserAgent", "ClientRequestReferer", "EdgeColoCode", "ClientCountry", "CacheCacheStatus", "CacheResponseStatus", "EdgeResponseContentType"
-```
-plus any extra fields provided via `additional_fields` argument.
+  ```
+  "ZoneID", "ClientSSLProtocol", "ClientRequestProtocol", "ClientRequestPath", "ClientRequestUserAgent", "ClientRequestReferer", "EdgeColoCode", "ClientCountry", "CacheCacheStatus", "CacheResponseStatus", "EdgeResponseContentType"
+  ```
+  plus any extra fields provided via `additional_fields` argument.
 
 * `extended` includes all `minimal` fields and adds:
-```
-"ClientSSLCipher", "ClientASN", "ClientIPClass", "CacheResponseBytes", "EdgePathingOp", "EdgePathingSrc", "EdgePathingStatus", "ParentRayID", "WorkerCPUTime", "WorkerStatus", "WorkerSubrequest", "WorkerSubrequestCount", "OriginIP", "OriginResponseStatus", "OriginSSLProtocol", "OriginResponseHTTPExpires", "OriginResponseHTTPLastModified"
-```
-plus any extra fields provided via `additional_fields` argument.
+  ```
+  "ClientSSLCipher", "ClientASN", "ClientIPClass", "CacheResponseBytes", "EdgePathingOp", "EdgePathingSrc", "EdgePathingStatus", "ParentRayID", "WorkerCPUTime", "WorkerStatus", "WorkerSubrequest", "WorkerSubrequestCount", "OriginIP", "OriginResponseStatus", "OriginSSLProtocol", "OriginResponseHTTPExpires", "OriginResponseHTTPLastModified"
+  ```
+  plus any extra fields provided via `additional_fields` argument.
 
 * `all` includes all `extended` fields and adds:
-```
- "BotScore", "BotScoreSrc", "BotTags", "ClientRequestBytes", "ClientSrcPort", "ClientXRequestedWith", "CacheTieredFill", "EdgeResponseCompressionRatio", "EdgeServerIP", "FirewallMatchesSources", "FirewallMatchesActions", "FirewallMatchesRuleIDs", "OriginResponseBytes", "OriginResponseTime", "ClientDeviceType", "WAFFlags", "WAFMatchedVar", "EdgeColoID", "RequestHeaders", "ResponseHeaders", "ClientRequestSource"`
-```
-plus any extra fields provided via `additional_fields` argument (this is still relevant in this case if new fields are made available via Cloudflare API but are not yet included in `all`).
+  ```
+  "BotScore", "BotScoreSrc", "BotTags", "ClientRequestBytes", "ClientSrcPort", "ClientXRequestedWith", "CacheTieredFill", "EdgeResponseCompressionRatio", "EdgeServerIP", "FirewallMatchesSources", "FirewallMatchesActions", "FirewallMatchesRuleIDs", "OriginResponseBytes", "OriginResponseTime", "ClientDeviceType", "WAFFlags", "WAFMatchedVar", "EdgeColoID", "RequestHeaders", "ResponseHeaders", "ClientRequestSource"`
+  ```
+  plus any extra fields provided via `additional_fields` argument (this is still relevant in this case if new fields are made available via Cloudflare API but are not yet included in `all`).
 
 * `custom` includes only the fields defined in `additional_fields`.
 
-The component saves the last successfully-fetched timestamp in its positions
-file. If a position is found in the file for a given zone ID, the component
-restarts pulling logs from that timestamp. When no position is found, the
-component starts pulling logs from the current time.
+The component saves the last successfully-fetched timestamp in its positions file.
+If a position is found in the file for a given zone ID, the component restarts pulling logs from that timestamp.
+When no position is found, the component starts pulling logs from the current time.
 
-Logs are fetched using multiple `workers` which request the last available
-`pull_range` repeatedly. It is possible to fall behind due to having too many
-log lines to process for each pull; adding more workers, decreasing the pull
-range, or decreasing the quantity of fields fetched can mitigate this
-performance issue.
+Logs are fetched using multiple `workers` which request the last available `pull_range` repeatedly.
+It's possible to fall behind due to having too many log lines to process for each pull.
+Adding more workers, decreasing the pull range, or decreasing the quantity of fields fetched can mitigate this performance issue.
 
-The last timestamp fetched by the component is recorded in the
-`loki_source_cloudflare_target_last_requested_end_timestamp` debug metric.
+The last timestamp fetched by the component is recorded in the `loki_source_cloudflare_target_last_requested_end_timestamp` debug metric.
 
-All incoming Cloudflare log entries are in JSON format. You can make use of the
-`loki.process` component and a JSON processing stage to extract more labels or
-change the log line format. A sample log looks like this:
+All incoming Cloudflare log entries are in JSON format. You can make use of the `loki.process` component and a JSON processing stage to extract more labels or change the log line format.
+A sample log looks like this:
+
 ```json
 {
     "CacheCacheStatus": "miss",
@@ -165,15 +157,13 @@ change the log line format. A sample log looks like this:
 }
 ```
 
-
 ## Exported fields
 
-`loki.source.cloudflare` does not export any fields.
+`loki.source.cloudflare` doesn't export any fields.
 
 ## Component health
 
-`loki.source.cloudflare` is only reported as unhealthy if given an invalid
-configuration.
+`loki.source.cloudflare` is only reported as unhealthy if given an invalid configuration.
 
 ## Debug information
 
@@ -192,8 +182,7 @@ configuration.
 
 ## Example
 
-This example pulls logs from Cloudflare's API and forwards them to a
-`loki.write` component.
+This example pulls logs from Cloudflare's API and forwards them to a `loki.write` component.
 
 ```river
 loki.source.cloudflare "dev" {

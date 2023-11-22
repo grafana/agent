@@ -11,20 +11,18 @@ title: loki.source.heroku
 
 # loki.source.heroku
 
-`loki.source.heroku` listens for Heroku messages over TCP connections
-and forwards them to other `loki.*` components.
+`loki.source.heroku` listens for Heroku messages over TCP connections and forwards them to other `loki.*` components.
 
-The component starts a new heroku listener for the given `listener`
-block and fans out incoming entries to the list of receivers in `forward_to`.
+The component starts a new heroku listener for the given `listener` block and fans out incoming entries to the list of receivers in `forward_to`.
 
-Before using `loki.source.heroku`, Heroku should be configured with the URL where the Agent will be listening. Follow the steps in [Heroku HTTPS Drain docs](https://devcenter.heroku.com/articles/log-drains#https-drains) for using the Heroku CLI with a command like the following:
+Before using `loki.source.heroku`, Heroku should be configured with the URL where the Agent will be listening.
+Follow the steps in [Heroku HTTPS Drain docs](https://devcenter.heroku.com/articles/log-drains#https-drains) for using the Heroku CLI with a command like the following:
 
 ```shell
 heroku drains:add [http|https]://HOSTNAME:PORT/heroku/api/v1/drain -a HEROKU_APP_NAME
 ```
 
-Multiple `loki.source.heroku` components can be specified by giving them
-different labels.
+Multiple `loki.source.heroku` components can be specified by giving them different labels.
 
 ## Usage
 
@@ -42,60 +40,57 @@ loki.source.heroku "LABEL" {
 
 `loki.source.heroku` supports the following arguments:
 
-Name                     | Type                   | Description                                                                        | Default | Required
------------------------- | ---------------------- |------------------------------------------------------------------------------------| ------- | --------
-`use_incoming_timestamp` | `bool`                 | Whether or not to use the timestamp received from Heroku.                          | `false` | no
-`labels`                 | `map(string)`          | The labels to associate with each received Heroku record.                          | `{}`    | no
-`forward_to`             | `list(LogsReceiver)`   | List of receivers to send log entries to.                                          |         | yes
-`relabel_rules`          | `RelabelRules`         | Relabeling rules to apply on log entries.                                          | `{}`    | no
-`graceful_shutdown_timeout` | `duration` | Timeout for servers graceful shutdown. If configured, should be greater than zero. | "30s"    | no
+Name                        | Type                 | Description                                                                        | Default | Required
+----------------------------|----------------------|------------------------------------------------------------------------------------|---------|---------
+`forward_to`                | `list(LogsReceiver)` | List of receivers to send log entries to.                                          |         | yes
+`graceful_shutdown_timeout` | `duration`           | Timeout for servers graceful shutdown. If configured, should be greater than zero. | "30s"   | no
+`labels`                    | `map(string)`        | The labels to associate with each received Heroku record.                          | `{}`    | no
+`relabel_rules`             | `RelabelRules`       | Relabeling rules to apply on log entries.                                          | `{}`    | no
+`use_incoming_timestamp`    | `bool`               | Whether or not to use the timestamp received from Heroku.                          | `false` | no
 
-The `relabel_rules` field can make use of the `rules` export value from a
-`loki.relabel` component to apply one or more relabeling rules to log entries
-before they're forwarded to the list of receivers in `forward_to`.
+The `relabel_rules` field can make use of the `rules` export value from a `loki.relabel` component to apply one or more relabeling rules to log entries before they're forwarded to the list of receivers in `forward_to`.
 
 ## Blocks
 
 The following blocks are supported inside the definition of `loki.source.heroku`:
 
- Hierarchy | Name     | Description                                        | Required 
------------|----------|----------------------------------------------------|----------
- `http`    | [http][] | Configures the HTTP server that receives requests. | no       
- `grpc`    | [grpc][] | Configures the gRPC server that receives requests. | no       
+Hierarchy | Name     | Description                                        | Required
+----------|----------|----------------------------------------------------|---------
+`grpc`    | [grpc][] | Configures the gRPC server that receives requests. | no
+`http`    | [http][] | Configures the HTTP server that receives requests. | no
 
 [http]: #http
 [grpc]: #grpc
 
-### http
-
-{{< docs/shared lookup="flow/reference/components/loki-server-http.md" source="agent" version="<AGENT VERSION>" >}}
-
 ### grpc
 
-{{< docs/shared lookup="flow/reference/components/loki-server-grpc.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/loki-server-grpc.md" source="agent" version="<AGENT_VERSION>" >}}
+
+### http
+
+{{< docs/shared lookup="flow/reference/components/loki-server-http.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ## Labels
 
 The `labels` map is applied to every message that the component reads.
 
 The following internal labels all prefixed with `__` are available but will be discarded if not relabeled:
-- `__heroku_drain_host`
 - `__heroku_drain_app`
-- `__heroku_drain_proc`
+- `__heroku_drain_host`
 - `__heroku_drain_log_id`
+- `__heroku_drain_proc`
 
-All url query params will be translated to `__heroku_drain_param_<name>`
+All URL query parameters will be translated to `__heroku_drain_param_<name>`
 
 If the `X-Scope-OrgID` header is set it will be translated to `__tenant_id__`
 
 ## Exported fields
 
-`loki.source.heroku` does not export any fields.
+`loki.source.heroku` doesn't export any fields.
 
 ## Component health
 
-`loki.source.heroku` is only reported as unhealthy if given an invalid
-configuration.
+`loki.source.heroku` is only reported as unhealthy if given an invalid configuration.
 
 ## Debug information
 
@@ -109,7 +104,7 @@ configuration.
 
 ## Example
 
-This example listens for Heroku messages over TCP in the specified port and forwards them to a `loki.write` component using the Heroku timestamp.
+The following example listens for Heroku messages over TCP in the specified port and forwards them to a `loki.write` component using the Heroku timestamp.
 
 ```river
 loki.source.heroku "local" {
