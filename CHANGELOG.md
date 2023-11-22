@@ -14,6 +14,10 @@ Main (unreleased)
 
 - Agent Management: Introduce support for templated configuration. (@jcreixell)
 
+### Enhancements
+ 
+- Flow Windows service: Support environment variables. (@jkroepke)
+
 ### Bugfixes
 
 - Permit `X-Faro-Session-ID` header in CORS requests for the `faro.receiver`
@@ -111,8 +115,6 @@ v0.38.0 (2023-11-21)
 - Make the result of 'discovery.kubelet' support pods that without ports, such as k8s control plane static pods. (@masonmei)
 
 - Added support for unicode strings in `pyroscope.ebpf` python profiles. (@korniltsev)
- 
-- Flow Windows service: Support environment variables. (@jkroepke)
 
 - Improved resilience of graph evaluation in presence of slow components. (@thampiotr)
 
