@@ -14,8 +14,14 @@ Main (unreleased)
 
 - Grafana Agent on Windows now automatically restarts on failure. (@hainenber)
 
-v0.38.0-rc.0 (2023-11-16)
--------------------------
+### Bugfixes
+
+- Permit `X-Faro-Session-ID` header in CORS requests for the `faro.receiver`
+  component (flow mode) and the `app_agent_receiver` integration (static mode).
+  (@cedricziel)
+
+v0.38.0 (2023-11-21)
+--------------------
 
 ### Breaking changes
 
@@ -110,9 +116,9 @@ v0.38.0-rc.0 (2023-11-16)
 
 - Updated windows exporter to use prometheus-community/windows_exporter commit 1836cd1. (@mattdurham)
 
-### Bugfixes
+- Allow agent to start with `module.git` config if cached before. (@hainenber)
 
-- Fix default configuration file `grafana-agent-flow.river` used in downstream packages. (@bricewge)
+### Bugfixes
 
 - Set exit code 1 on grafana-agentctl non-runnable command. (@fgouteroux)
 
@@ -162,6 +168,12 @@ v0.38.0-rc.0 (2023-11-16)
 
 - Added Kubernetes service resolver to static node's loadbalancing exporter
   and to Flow's `otelcol.exporter.loadbalancing`. (@ptodev)
+
+- Fix default configuration file `grafana-agent-flow.river` used in downstream
+  packages. (@bricewge)
+
+- Fix converter output for prometheus.exporter.windows to not unnecessarily add
+  empty blocks. (@erikbaranowski)
 
 ### Other changes
 
