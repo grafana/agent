@@ -69,7 +69,7 @@ func (h *handler) Update(args ServerArguments) {
 	if len(args.CORSAllowedOrigins) > 0 {
 		h.cors = cors.New(cors.Options{
 			AllowedOrigins: args.CORSAllowedOrigins,
-			AllowedHeaders: []string{apiKeyHeader, "content-type"},
+			AllowedHeaders: []string{apiKeyHeader, "content-type", "x-faro-session-id"},
 		})
 	} else {
 		h.cors = nil // Disable cors.

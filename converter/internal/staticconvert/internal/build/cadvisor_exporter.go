@@ -33,5 +33,6 @@ func toCadvisorExporter(config *cadvisor_integration.Config) *cadvisor.Arguments
 		DockerTLSKey:               config.DockerTLSKey,
 		DockerTLSCA:                config.DockerTLSCA,
 		DockerOnly:                 config.DockerOnly,
+		DisableRootCgroupStats:     config.DisableRootCgroupStats,
 	}
 }
