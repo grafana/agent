@@ -284,6 +284,14 @@ func convertToNestedMap(key string, value any, rootMap map[string]any) {
 	for i := 0; i < len(parts); i++ {
 		part := parts[i]
 
+		// We want to ignore the type export of the node.
+		// For example if the key is add.example.export.sum, we want to consider it as add.example.sum
+		// We check the length to allow add.example.export.export to be referred as add.example.export
+		// This is not a very nice trick.
+		if i == len(parts)-2 && part == "export" {
+			continue
+		}
+
 		if i == len(parts)-1 {
 			currentMap[part] = value
 		} else {

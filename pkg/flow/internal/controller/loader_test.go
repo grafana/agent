@@ -336,7 +336,7 @@ func TestDeclareComponent(t *testing.T) {
 				}
 
 				export "sum" {
-					value = surpriseDuChef.theOne.export.sum + argument.b.value
+					value = surpriseDuChef.theOne.sum + argument.b.value
 				}
 			}
 		`,
@@ -377,7 +377,7 @@ func TestDeclareComponent(t *testing.T) {
 				}
 				add "example2" {
 					a = 2
-					b = add.example.export.sum
+					b = add.example.sum
 				}
 			`,
 			testDeclare: `
@@ -399,7 +399,7 @@ func TestDeclareComponent(t *testing.T) {
 				}
 			
 				export "sum" {
-					value = surpriseDuChef.theOne.export.sum + argument.b.value
+					value = surpriseDuChef.theOne.sum + argument.b.value
 				}
 			}
 		`,
@@ -500,7 +500,7 @@ func TestDeclareComponent(t *testing.T) {
 					argument "a" { }
 					argument "b" { }
 					export "sum" {
-						value = surpriseDuChef.theOne.export.sum + argument.b.value
+						value = surpriseDuChef.theOne.sum + argument.b.value
 					}
 					surpriseDuChef "theOne" {
 						a = argument.a.value
@@ -537,6 +537,74 @@ func TestDeclareComponent(t *testing.T) {
 			},
 			nodeID:              "add.example.export.sum",
 			expectedExportValue: 12,
+		},
+		{
+			name: "MultiExportsAndInstances",
+			testFile: `
+				add "argument" {
+					a = 5
+					b = 7
+				}
+				add "export" {
+					a = add.argument.sum
+					b = add.argument.sub
+				}
+			`,
+			testDeclare: `
+				declare "add" {
+					argument "a" { }
+					argument "b" { }
+					export "sum" {
+						value = argument.a.value + argument.b.value
+					}
+					export "sub" {
+						value = argument.a.value - argument.b.value
+					}
+					export "export" {
+						value = argument.a.value * argument.b.value
+					}
+				}
+			`,
+			expectedGraph: graphDefinition{
+				Nodes: []string{
+					"tracing",
+					"logging",
+					"add.argument.argument.a",
+					"add.argument.argument.b",
+					"add.argument",
+					"add.argument.export.sum",
+					"add.argument.export.sub",
+					"add.argument.export.export",
+					"add.export.argument.a",
+					"add.export.argument.b",
+					"add.export",
+					"add.export.export.sum",
+					"add.export.export.sub",
+					"add.export.export.export",
+				},
+				OutEdges: []edge{
+					{From: "add.argument.argument.a", To: "add.argument"},
+					{From: "add.argument.argument.b", To: "add.argument"},
+					{From: "add.argument.export.sum", To: "add.argument.argument.a"},
+					{From: "add.argument.export.sum", To: "add.argument.argument.b"},
+					{From: "add.argument.export.sub", To: "add.argument.argument.a"},
+					{From: "add.argument.export.sub", To: "add.argument.argument.b"},
+					{From: "add.argument.export.export", To: "add.argument.argument.a"},
+					{From: "add.argument.export.export", To: "add.argument.argument.b"},
+					{From: "add.export", To: "add.argument.export.sum"},
+					{From: "add.export", To: "add.argument.export.sub"},
+					{From: "add.export.argument.a", To: "add.export"},
+					{From: "add.export.argument.b", To: "add.export"},
+					{From: "add.export.export.sum", To: "add.export.argument.a"},
+					{From: "add.export.export.sum", To: "add.export.argument.b"},
+					{From: "add.export.export.sub", To: "add.export.argument.a"},
+					{From: "add.export.export.sub", To: "add.export.argument.b"},
+					{From: "add.export.export.export", To: "add.export.argument.a"},
+					{From: "add.export.export.export", To: "add.export.argument.b"},
+				},
+			},
+			nodeID:              "add.export.export.export",
+			expectedExportValue: -24,
 		},
 	}
 

@@ -137,17 +137,25 @@ func resolveTraversal(t Traversal, g *dag.Graph) (Reference, diag.Diagnostics) {
 		rem     = t[1:]
 	)
 
-	var candidate Reference
-	found := false
-
 	for {
 		if n := g.GetByID(partial.String()); n != nil {
-			// we dont return anymore here because we can find a better candidate
-			candidate = Reference{
+			// A reference to a declareComponentNode should link to the corresponding export node.
+			if c, ok := n.(*DeclareComponentNode); ok {
+				exportID := c.NodeID() + ".export." + rem[len(rem)-1].Name
+				if exportNode := g.GetByID(exportID); n != nil {
+					return Reference{
+						Target:    exportNode.(BlockNode),
+						Traversal: rem,
+					}, nil
+				} else {
+					// Only the export nodes can be accessed from outside of the module.
+					break
+				}
+			}
+			return Reference{
 				Target:    n.(BlockNode),
 				Traversal: rem,
-			}
-			found = true
+			}, nil
 		}
 
 		if len(rem) == 0 {
@@ -158,10 +166,6 @@ func resolveTraversal(t Traversal, g *dag.Graph) (Reference, diag.Diagnostics) {
 		// Append the next name in the traversal to our partial reference.
 		partial = append(partial, rem[0].Name)
 		rem = rem[1:]
-	}
-
-	if found {
-		return candidate, nil
 	}
 
 	diags = append(diags, diag.Diagnostic{
