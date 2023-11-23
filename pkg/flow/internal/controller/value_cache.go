@@ -22,8 +22,9 @@ type valueCache struct {
 	exports            map[string]interface{}    // NodeID -> component exports value
 	moduleArguments    map[string]any            // key -> module arguments value
 	moduleExports      map[string]any            // name -> value for the value of module exports
-	declareValues      map[string]map[string]any // Instantiated declare component nodeId -> values
-	declareExports     map[string]any            // NodeID of an Export node associated with an instantiated declare component -> value
+	declareValues      map[string]map[string]any // DeclareComponentNodeID -> arguments
+	declareExports     map[string]any            // NodeID of an Export node associated with a DeclareComponentNode -> value
+	namespaces         map[string]string         // NodeID -> Namespace
 	moduleChangedIndex int                       // Everytime a change occurs this is incremented
 }
 
@@ -37,23 +38,31 @@ func newValueCache() *valueCache {
 		declareValues:   make(map[string]map[string]any),
 		declareExports:  make(map[string]any),
 		moduleExports:   make(map[string]any),
+		namespaces:      make(map[string]string),
 	}
 }
 
-func (vc *valueCache) CacheDeclare(nodeID string, arguments component.Arguments) {
+func (vc *valueCache) CacheDeclare(nodeID string, arguments component.Arguments) error {
 	vc.mut.Lock()
 	defer vc.mut.Unlock()
 
 	exportMap, ok := arguments.(map[string]any)
 	if !ok {
-		fmt.Println("NOT GOOD HANDLE ERROR")
-		return
+		return fmt.Errorf("error retrieving arguments of %s", nodeID)
 	}
 
 	vc.declareValues[nodeID] = make(map[string]any)
 	for key, value := range exportMap {
 		vc.declareValues[nodeID][key] = value
 	}
+	return nil
+}
+
+func (vc *valueCache) CacheNamespace(nodeID string, namespace string) {
+	vc.mut.Lock()
+	defer vc.mut.Unlock()
+
+	vc.namespaces[nodeID] = namespace
 }
 
 func (vc *valueCache) CacheDeclareExport(nodeID string, value any) {
@@ -199,6 +208,18 @@ func (vc *valueCache) SyncDeclareIDs(ids map[string]struct{}) {
 	}
 }
 
+func (vc *valueCache) SyncNamespaces(ids map[string]struct{}) {
+	vc.mut.Lock()
+	defer vc.mut.Unlock()
+
+	for id := range vc.namespaces {
+		if _, keep := ids[id]; keep {
+			continue
+		}
+		delete(vc.namespaces, id)
+	}
+}
+
 func (vc *valueCache) SyncDeclareExportIDs(ids map[string]struct{}) {
 	vc.mut.Lock()
 	defer vc.mut.Unlock()
@@ -222,16 +243,22 @@ func (vc *valueCache) BuildContext(n BlockNode) *vm.Scope {
 		Variables: make(map[string]interface{}),
 	}
 
+	nodeNamespace := n.Namespace()
+
 	// First, partition components by River block name.
 	var componentsByBlockName = make(map[string][]ComponentID)
-	for _, id := range vc.components {
-		blockName := id[0]
-		componentsByBlockName[blockName] = append(componentsByBlockName[blockName], id)
+	for nodeID, id := range vc.components {
+		// only access components in the same namespace
+		if vc.namespaces[nodeID] == nodeNamespace {
+			trimmedComponentID := removeSequentialPrefix(nodeNamespace, id)
+			blockName := trimmedComponentID[0]
+			componentsByBlockName[blockName] = append(componentsByBlockName[blockName], trimmedComponentID)
+		}
 	}
 
 	// Then, convert each partition into a single value.
 	for blockName, ids := range componentsByBlockName {
-		scope.Variables[blockName] = vc.buildValue(ids, 1)
+		scope.Variables[blockName] = vc.buildValue(nodeNamespace, ids, 1)
 	}
 
 	// Add module arguments to the scope.
@@ -248,33 +275,45 @@ func (vc *valueCache) BuildContext(n BlockNode) *vm.Scope {
 		}
 	}
 
-	if n != nil {
-		for key, value := range vc.declareExports {
-			// we trim the namespace that they have in common here. This is needed for nested declares
-			trimedKey := strings.TrimPrefix(key, n.Namespace()+".")
-			convertToNestedMap(trimedKey, value, scope.Variables)
-		}
+	for key, value := range vc.declareExports {
+		// we trim the namespace that they have in common here. This is needed for nested declares
+		trimmedKey := strings.TrimPrefix(key, n.Namespace()+".")
+		convertToNestedMap(trimmedKey, value, scope.Variables)
+	}
 
-		// add arguments available in the namespace
-		if n.Namespace() != "" {
-			if valueMap, exists := vc.declareValues[n.Namespace()]; exists {
-				if len(valueMap) > 0 {
-					scope.Variables["argument"] = make(map[string]any)
-				}
-				for key, value := range valueMap {
-					keyMap := make(map[string]any)
-					keyMap["value"] = value
+	// add arguments available in the namespace
+	if n.Namespace() != "" {
+		if valueMap, exists := vc.declareValues[n.Namespace()]; exists {
+			if len(valueMap) > 0 {
+				scope.Variables["argument"] = make(map[string]any)
+			}
+			for key, value := range valueMap {
+				keyMap := make(map[string]any)
+				keyMap["value"] = value
 
-					switch args := scope.Variables["argument"].(type) {
-					case map[string]any:
-						args[key] = keyMap
-					}
+				switch args := scope.Variables["argument"].(type) {
+				case map[string]any:
+					args[key] = keyMap
 				}
 			}
 		}
 	}
 
 	return scope
+}
+
+func removeSequentialPrefix(prefix string, arr []string) []string {
+	prefixArr := strings.Split(prefix, ".")
+
+	prefixLen := 0
+	for i, part := range prefixArr {
+		if i < len(arr) && arr[i] == part {
+			prefixLen++
+		} else {
+			break
+		}
+	}
+	return arr[prefixLen:]
 }
 
 func convertToNestedMap(key string, value any, rootMap map[string]any) {
@@ -306,10 +345,14 @@ func convertToNestedMap(key string, value any, rootMap map[string]any) {
 // buildValue recursively converts the set of user components into a single
 // value. offset is used to determine which element in the userComponentName
 // we're looking at.
-func (vc *valueCache) buildValue(from []ComponentID, offset int) interface{} {
+func (vc *valueCache) buildValue(namespace string, from []ComponentID, offset int) interface{} {
 	// We can't recurse anymore; return the node directly.
 	if len(from) == 1 && offset >= len(from[0]) {
 		name := from[0].String()
+
+		if namespace != "" {
+			name = namespace + "." + name
+		}
 
 		// TODO(rfratto): should we allow arguments to be returned so users can
 		// reference arguments as well as exports?
@@ -331,7 +374,7 @@ func (vc *valueCache) buildValue(from []ComponentID, offset int) interface{} {
 
 	// Then, convert each partition into a single value.
 	for label, ids := range componentsByLabel {
-		attrs[label] = vc.buildValue(ids, offset+1)
+		attrs[label] = vc.buildValue(namespace, ids, offset+1)
 	}
 	return attrs
 }

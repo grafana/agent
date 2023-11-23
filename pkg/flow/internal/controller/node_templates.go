@@ -6,24 +6,24 @@ import (
 	"github.com/grafana/agent/pkg/flow/internal/dag"
 )
 
-type NodeTemplates struct {
-	parent    *NodeTemplates
+type nodeTemplates struct {
+	parent    *nodeTemplates
 	templates map[string]*dag.Graph
 }
 
-func NewNodeTemplates(parent *NodeTemplates) NodeTemplates {
-	return NodeTemplates{parent: parent, templates: make(map[string]*dag.Graph)}
+func NewNodeTemplates(parent *nodeTemplates) nodeTemplates {
+	return nodeTemplates{parent: parent, templates: make(map[string]*dag.Graph)}
 }
 
-func (n *NodeTemplates) AddTemplate(label string, template *dag.Graph) error {
+func (n *nodeTemplates) AddTemplate(label string, template *dag.Graph) error {
 	if _, exists := n.templates[label]; exists {
-		return fmt.Errorf("duplicate template key found: %s", label)
+		return fmt.Errorf("duplicate template key found: %s, module not added", label)
 	}
 	n.templates[label] = template
 	return nil
 }
 
-func (n *NodeTemplates) RetrieveAvailableTemplates() (map[string]*dag.Graph, error) {
+func (n *nodeTemplates) RetrieveAvailableTemplates() (map[string]*dag.Graph, error) {
 	templates := make(map[string]*dag.Graph)
 
 	if n.parent != nil {
@@ -38,7 +38,7 @@ func (n *NodeTemplates) RetrieveAvailableTemplates() (map[string]*dag.Graph, err
 
 	for key, val := range n.templates {
 		if _, exists := templates[key]; exists {
-			return nil, fmt.Errorf("duplicate template key found: %s", key)
+			return nil, fmt.Errorf("duplicate template key found: %s, it seems that the same module is declared twice in the same scope", key)
 		}
 		templates[key] = val
 	}

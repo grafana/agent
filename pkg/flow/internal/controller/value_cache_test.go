@@ -1,10 +1,11 @@
 package controller
 
-// TODO: UPDATE TESTS
-
 import (
 	"testing"
 
+	"github.com/grafana/agent/pkg/flow/internal/dag"
+	"github.com/grafana/river/ast"
+	"github.com/grafana/river/vm"
 	"github.com/stretchr/testify/require"
 )
 
@@ -60,7 +61,8 @@ func TestValueCache(t *testing.T) {
 	vc.CacheArguments(ComponentID{"bar", "label_a"}, barArgs{Number: 12})
 	vc.CacheArguments(ComponentID{"bar", "label_b"}, barArgs{Number: 34})
 
-	res := vc.BuildContext(nil)
+	var s stringNode
+	res := vc.BuildContext(s)
 
 	var (
 		expectKeys = []string{"foo", "bar"}
@@ -158,21 +160,36 @@ func TestModuleArgumentCache(t *testing.T) {
 			vc.CacheModuleArgument("arg", tc.argValue)
 
 			// Build the scope and validate it
-			res := vc.BuildContext(nil)
+			var s stringNode
+			res := vc.BuildContext(s)
 			expected := map[string]any{"arg": map[string]any{"value": tc.argValue}}
 			require.Equal(t, expected, res.Variables["argument"])
 
 			// Sync arguments where the arg shouldn't change
 			syncArgs := map[string]any{"arg": tc.argValue}
 			vc.SyncModuleArgs(syncArgs)
-			res = vc.BuildContext(nil)
+			res = vc.BuildContext(s)
 			require.Equal(t, expected, res.Variables["argument"])
 
 			// Sync arguments where the arg should clear out
 			syncArgs = map[string]any{}
 			vc.SyncModuleArgs(syncArgs)
-			res = vc.BuildContext(nil)
+			res = vc.BuildContext(s)
 			require.Equal(t, map[string]any{}, res.Variables)
 		})
 	}
 }
+
+type stringNode string
+
+func (s stringNode) NodeID() string { return string(s) }
+
+func (s stringNode) Namespace() string { return "" }
+
+func (s stringNode) SetNamespace(namespace string) {}
+
+func (s stringNode) Clone(prefix string) dag.Node { return s }
+
+func (s stringNode) Block() *ast.BlockStmt { return nil }
+
+func (s stringNode) Evaluate(scope *vm.Scope) error { return nil }

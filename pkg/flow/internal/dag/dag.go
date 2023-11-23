@@ -10,6 +10,7 @@ type Node interface {
 	// NodeID returns the display name of the Node.
 	NodeID() string
 
+	// TODO would be better to have a different interface for these
 	SetNamespace(string)
 
 	Namespace() string

@@ -50,7 +50,7 @@ func (sn *ServiceNode) Definition() service.Definition { return sn.def }
 // name.
 func (sn *ServiceNode) NodeID() string { return sn.def.Name }
 
-// TODO do services have namespace?
+// Namespace is "" because services are not allowed in modules
 func (sn *ServiceNode) Namespace() string { return "" }
 
 func (sn *ServiceNode) SetNamespace(namespace string) {}

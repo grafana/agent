@@ -84,20 +84,11 @@ func (cn *LoggingConfigNode) NodeID() string { return cn.nodeID }
 
 func (cn *LoggingConfigNode) SetNodeID(value string) { cn.nodeID = value }
 
-// Namespace is "" because not allowed in modules
+// Namespace is "" because logging is not allowed in modules
 func (cn *LoggingConfigNode) Namespace() string { return "" }
 
 func (cn *LoggingConfigNode) SetNamespace(namespace string) {}
 
 func (cn *LoggingConfigNode) Clone(newID string) dag.Node {
-	cn.mut.RLock()
-	defer cn.mut.RUnlock()
-	return &LoggingConfigNode{
-		nodeID:        newID,
-		componentName: cn.componentName,
-		mut:           sync.RWMutex{},
-		block:         cn.block,
-		eval:          vm.New(cn.block.Body),
-		l:             cn.l,
-	}
+	return cn
 }

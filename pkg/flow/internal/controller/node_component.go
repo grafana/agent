@@ -95,7 +95,8 @@ type ComponentNode struct {
 	OnComponentUpdate func(cn *ComponentNode) // Informs controller that we need to reevaluate
 	lastUpdateTime    atomic.Time
 
-	//TODO copying the globals is maybe not so nice
+	// a copy of the globals struct is needed to clone the component
+	// maybe that can be improved
 	globals ComponentGlobals
 
 	mut     sync.RWMutex
@@ -506,7 +507,7 @@ func (cn *ComponentNode) Clone(newID string) dag.Node {
 		runHealth:  initHealth,
 	}
 
-	cn.managedOpts = getManagedOptions(cn.globals, clonedComponentNode)
+	clonedComponentNode.managedOpts = getManagedOptions(cn.globals, clonedComponentNode)
 
 	return clonedComponentNode
 }
