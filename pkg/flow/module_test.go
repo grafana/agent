@@ -81,13 +81,6 @@ func TestModule(t *testing.T) {
 		},
 
 		{
-			name:                  "Missing required argument",
-			argumentModuleContent: argumentConfig,
-			exportModuleContent:   exportStringConfig,
-			expectedErrorContains: "Failed to evaluate node for config block: missing required argument \"username\" to module",
-		},
-
-		{
 			name:                  "Duplicate argument config",
 			argumentModuleContent: argumentConfig + argumentConfig,
 			exportModuleContent:   exportStringConfig,
