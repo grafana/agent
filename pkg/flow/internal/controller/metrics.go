@@ -8,12 +8,12 @@ import (
 
 // controllerMetrics contains the metrics for components controller
 type controllerMetrics struct {
-	controllerEvaluation     prometheus.Gauge
-	componentEvaluationTime  prometheus.Histogram
-	dependenciesWaitTime     prometheus.Histogram
-	evaluationQueueSize      prometheus.Gauge
-	slowComponentThreshold   time.Duration
-	slowComponentEvaluations *prometheus.CounterVec
+	controllerEvaluation        prometheus.Gauge
+	componentEvaluationTime     prometheus.Histogram
+	dependenciesWaitTime        prometheus.Histogram
+	evaluationQueueSize         prometheus.Gauge
+	slowComponentThreshold      time.Duration
+	slowComponentEvaluationTime *prometheus.CounterVec
 }
 
 // newControllerMetrics inits the metrics for the components controller
@@ -56,9 +56,9 @@ func newControllerMetrics(id string) *controllerMetrics {
 		ConstLabels: map[string]string{"controller_id": id},
 	})
 
-	cm.slowComponentEvaluations = prometheus.NewCounterVec(prometheus.CounterOpts{
-		Name:        "agent_component_evaluation_slow",
-		Help:        fmt.Sprintf("Tracks the components that took longer than %v to evaluate", cm.slowComponentThreshold),
+	cm.slowComponentEvaluationTime = prometheus.NewCounterVec(prometheus.CounterOpts{
+		Name:        "agent_component_evaluation_slow_seconds",
+		Help:        fmt.Sprintf("Number of seconds spent evaluating components that take longer than %v to evaluate", cm.slowComponentThreshold),
 		ConstLabels: map[string]string{"controller_id": id},
 	}, []string{"component_id"})
 
@@ -68,7 +68,7 @@ func newControllerMetrics(id string) *controllerMetrics {
 func (cm *controllerMetrics) onComponentEvaluationDone(name string, duration time.Duration) {
 	cm.componentEvaluationTime.Observe(duration.Seconds())
 	if duration >= cm.slowComponentThreshold {
-		cm.slowComponentEvaluations.WithLabelValues(name).Inc()
+		cm.slowComponentEvaluationTime.WithLabelValues(name).Add(duration.Seconds())
 	}
 }
 
@@ -77,7 +77,7 @@ func (cm *controllerMetrics) Collect(ch chan<- prometheus.Metric) {
 	cm.controllerEvaluation.Collect(ch)
 	cm.dependenciesWaitTime.Collect(ch)
 	cm.evaluationQueueSize.Collect(ch)
-	cm.slowComponentEvaluations.Collect(ch)
+	cm.slowComponentEvaluationTime.Collect(ch)
 }
 
 func (cm *controllerMetrics) Describe(ch chan<- *prometheus.Desc) {
@@ -85,7 +85,7 @@ func (cm *controllerMetrics) Describe(ch chan<- *prometheus.Desc) {
 	cm.controllerEvaluation.Describe(ch)
 	cm.dependenciesWaitTime.Describe(ch)
 	cm.evaluationQueueSize.Describe(ch)
-	cm.slowComponentEvaluations.Describe(ch)
+	cm.slowComponentEvaluationTime.Describe(ch)
 }
 
 type controllerCollector struct {
