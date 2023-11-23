@@ -97,6 +97,10 @@ Section "install"
   # Start the service.
   nsExec::ExecToLog 'sc start "Grafana Agent Flow"'
   Pop $0
+
+  # Auto-restart agent on failure. Reset failure counter after 60 seconds without failure
+  nsExec::ExecToLog `sc failure "Grafana Agent Flow" reset= 60 actions= restart/5000 reboot= "Grafana Agent Flow has failed. Restarting in 5 seconds"`
+  Pop $0
 SectionEnd
 
 Function CreateConfig
