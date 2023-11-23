@@ -2,8 +2,9 @@ package controller
 
 import (
 	"fmt"
-	"github.com/prometheus/client_golang/prometheus"
 	"time"
+
+	"github.com/prometheus/client_golang/prometheus"
 )
 
 // controllerMetrics contains the metrics for components controller
