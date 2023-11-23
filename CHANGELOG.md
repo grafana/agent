@@ -23,6 +23,7 @@ Main (unreleased)
 - Permit `X-Faro-Session-ID` header in CORS requests for the `faro.receiver`
   component (flow mode) and the `app_agent_receiver` integration (static mode).
   (@cedricziel)
+- Fix prometheus discovery dropping discovery-configs from the same namespace and same name prefix (@Paul424)
 
 v0.38.0 (2023-11-21)
 --------------------

@@ -39,6 +39,68 @@ import (
 // Generous timeout period for configuring all informers
 const informerSyncTimeout = 10 * time.Second
 
+type DiscoveryManager interface {
+	Run() error
+	SyncCh() <-chan map[string][]*targetgroup.Group
+	ApplyConfig(cfg map[string]discovery.Configs) error
+}
+
+type discoveryManager struct {
+	discoveryManager *discovery.Manager
+}
+
+func newDiscoveryManager(m *discovery.Manager) *discoveryManager {
+	return &discoveryManager{
+		discoveryManager: m,
+	}
+}
+
+func (m *discoveryManager) Run() error {
+	return m.discoveryManager.Run()
+}
+
+func (m *discoveryManager) SyncCh() <-chan map[string][]*targetgroup.Group {
+	return m.discoveryManager.SyncCh()
+}
+
+func (m *discoveryManager) ApplyConfig(cfg map[string]discovery.Configs) error {
+	return m.discoveryManager.ApplyConfig(cfg)
+}
+
+type ScrapeManager interface {
+	Run(tsets <-chan map[string][]*targetgroup.Group) error
+	Stop()
+	TargetsActive() map[string][]*scrape.Target
+	ApplyConfig(cfg *config.Config) error
+}
+
+type scrapeManager struct {
+	scrapeManager *scrape.Manager
+}
+
+func newScrapeManager(m *scrape.Manager) *scrapeManager {
+	return &scrapeManager{
+		scrapeManager: m,
+	}
+}
+
+func (m *scrapeManager) Run(tsets <-chan map[string][]*targetgroup.Group) error {
+	return m.Run(tsets)
+}
+
+func (m *scrapeManager) Stop() {
+	m.Stop()
+}
+
+func (m *scrapeManager) TargetsActive() map[string][]*scrape.Target {
+	return m.TargetsActive()
+}
+
+func (m *scrapeManager) ApplyConfig(cfg *config.Config) error {
+	return m.ApplyConfig(cfg)
+}
+
+
 // crdManager is all of the fields required to run a crd based component.
 // on update, this entire thing should be recreated and restarted
 type crdManager struct {
@@ -46,8 +108,8 @@ type crdManager struct {
 	discoveryConfigs  map[string]discovery.Configs
 	scrapeConfigs     map[string]*config.ScrapeConfig
 	debugInfo         map[string]*operator.DiscoveredResource
-	discoveryManager  *discovery.Manager
-	scrapeManager     *scrape.Manager
+	discoveryManager  DiscoveryManager
+	scrapeManager     ScrapeManager
 	clusteringUpdated chan struct{}
 	ls                labelstore.LabelStore
 
@@ -98,7 +160,7 @@ func (c *crdManager) Run(ctx context.Context) error {
 	}
 
 	// Start prometheus service discovery manager
-	c.discoveryManager = discovery.NewManager(ctx, c.logger, discovery.Name(c.opts.ID))
+	c.discoveryManager = newDiscoveryManager(discovery.NewManager(ctx, c.logger, discovery.Name(c.opts.ID)))
 	go func() {
 		err := c.discoveryManager.Run()
 		if err != nil {
@@ -109,7 +171,7 @@ func (c *crdManager) Run(ctx context.Context) error {
 	// Start prometheus scrape manager.
 	flowAppendable := prometheus.NewFanout(c.args.ForwardTo, c.opts.ID, c.opts.Registerer, c.ls)
 	opts := &scrape.Options{}
-	c.scrapeManager = scrape.NewManager(opts, c.logger, flowAppendable)
+	c.scrapeManager = newScrapeManager(scrape.NewManager(opts, c.logger, flowAppendable))
 	defer c.scrapeManager.Stop()
 	targetSetsChan := make(chan map[string][]*targetgroup.Group)
 	go func() {
@@ -533,7 +595,7 @@ func (c *crdManager) onDeleteProbe(obj interface{}) {
 func (c *crdManager) clearConfigs(ns, name string) {
 	c.mut.Lock()
 	defer c.mut.Unlock()
-	prefix := fmt.Sprintf("%s/%s/%s", c.kind, ns, name)
+	prefix := fmt.Sprintf("%s/%s/%s/", c.kind, ns, name)
 	for k := range c.discoveryConfigs {
 		if strings.HasPrefix(k, prefix) {
 			delete(c.discoveryConfigs, k)
