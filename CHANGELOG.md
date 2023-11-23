@@ -22,6 +22,8 @@ Main (unreleased)
   `prometheus.exporter.cadvisor` (flow mode) and the `cadvisor` integration
   (static mode). (@hainenber)
 
+- Grafana Agent on Windows now automatically restarts on failure. (@hainenber)
+
 ### Bugfixes
 
 - Permit `X-Faro-Session-ID` header in CORS requests for the `faro.receiver`
