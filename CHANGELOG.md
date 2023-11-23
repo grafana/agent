@@ -24,6 +24,9 @@ Main (unreleased)
 
 - Grafana Agent on Windows now automatically restarts on failure. (@hainenber)
 
+- Added metrics, alerts and dashboard visualisations to help diagnose issues
+  with unhealthy components and components that take too long to evaluate. (@thampiotr)
+
 ### Bugfixes
 
 - Permit `X-Faro-Session-ID` header in CORS requests for the `faro.receiver`
