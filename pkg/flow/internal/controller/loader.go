@@ -39,9 +39,10 @@ type Loader struct {
 	// also prevents log spamming with errors.
 	backoffConfig backoff.Config
 
-	mut               sync.RWMutex
-	graph             *dag.Graph
-	originalGraph     *dag.Graph
+	mut           sync.RWMutex
+	graph         *dag.Graph
+	originalGraph *dag.Graph
+
 	componentNodes    []*ComponentNode
 	serviceNodes      []*ServiceNode
 	cache             *valueCache
@@ -131,7 +132,7 @@ func (l *Loader) Apply(args map[string]any, componentBlocks []*ast.BlockStmt, co
 	}
 	l.cache.SyncModuleArgs(args)
 
-	newGraph, diags := l.loadNewGraph(args, componentBlocks, configBlocks, declareBlocks, l.isModule(), false)
+	newGraph, diags := l.loadNewGraph(args, componentBlocks, configBlocks, declareBlocks, l.isModule(), false, nil)
 	if diags.HasErrors() {
 		return diags
 	}
@@ -279,8 +280,17 @@ func (l *Loader) Cleanup(stopWorkerPool bool) {
 }
 
 // loadNewGraph creates a new graph from the provided blocks and validates it.
-func (l *Loader) loadNewGraph(args map[string]any, componentBlocks []*ast.BlockStmt, configBlocks []*ast.BlockStmt, declareBlocks []*ast.BlockStmt, inModule bool, inDeclare bool) (dag.Graph, diag.Diagnostics) {
+func (l *Loader) loadNewGraph(args map[string]any,
+	componentBlocks []*ast.BlockStmt,
+	configBlocks []*ast.BlockStmt,
+	declareBlocks []*ast.BlockStmt,
+	inModule bool,
+	inDeclare bool,
+	parent *NodeTemplates) (dag.Graph, diag.Diagnostics) {
+
 	var g dag.Graph
+
+	nt := NewNodeTemplates(parent)
 
 	// Split component blocks into blocks for components and services.
 	componentBlocks, serviceBlocks := l.splitComponentBlocks(componentBlocks)
@@ -300,11 +310,11 @@ func (l *Loader) loadNewGraph(args map[string]any, componentBlocks []*ast.BlockS
 	// Fill our graph with declare blocks.
 	sortedDeclaredBlocks, sortDeclareBlockDiags := l.SortDeclareBlocks(declareBlocks)
 	diags = append(diags, sortDeclareBlockDiags...) // TODO: should we exit if there are errors here?
-	graphTemplates, declareBlockDiags := l.populateDeclareBlockNodes(&g, sortedDeclaredBlocks)
+	declareBlockDiags := l.populateDeclareBlockNodes(&g, sortedDeclaredBlocks, &nt)
 	diags = append(diags, declareBlockDiags...)
 
 	// Fill our graph with components.
-	componentNodeDiags := l.populateComponentNodes(&g, componentBlocks, graphTemplates)
+	componentNodeDiags := l.populateComponentNodes(&g, componentBlocks, &nt)
 	diags = append(diags, componentNodeDiags...)
 
 	// Write up the edges of the graph
@@ -532,9 +542,8 @@ func (l *Loader) populateConfigBlockNodes(args map[string]any, g *dag.Graph, con
 }
 
 // update for imported declares
-func (l *Loader) populateDeclareBlockNodes(g *dag.Graph, declareBlocks []*ast.BlockStmt) (map[string]*dag.Graph, diag.Diagnostics) {
+func (l *Loader) populateDeclareBlockNodes(g *dag.Graph, declareBlocks []*ast.BlockStmt, nt *NodeTemplates) diag.Diagnostics {
 	var diags diag.Diagnostics
-	templateGraphs := make(map[string]*dag.Graph, len(declareBlocks))
 	for _, block := range declareBlocks {
 		categorizedBlocks, err := CategorizeStatements(block.Body)
 		if err != nil {
@@ -546,22 +555,33 @@ func (l *Loader) populateDeclareBlockNodes(g *dag.Graph, declareBlocks []*ast.Bl
 			continue
 		}
 		// Recursive call.
-		templateGraph, ds := l.loadNewGraph(nil, categorizedBlocks.Components, categorizedBlocks.Configs, categorizedBlocks.DeclareBlocks, true, true)
+		templateGraph, ds := l.loadNewGraph(nil, categorizedBlocks.Components, categorizedBlocks.Configs, categorizedBlocks.DeclareBlocks, true, true, nt)
 		if len(ds) > 0 {
 			diags = append(diags, ds...)
 			continue
 		}
-		templateGraphs[block.Label] = &templateGraph
+		nt.AddTemplate(block.Label, &templateGraph)
 	}
-	return templateGraphs, diags
+	return diags
 }
 
 // populateComponentNodes adds any components to the graph.
-func (l *Loader) populateComponentNodes(g *dag.Graph, componentBlocks []*ast.BlockStmt, graphTemplates map[string]*dag.Graph) diag.Diagnostics {
+func (l *Loader) populateComponentNodes(g *dag.Graph, componentBlocks []*ast.BlockStmt, nt *NodeTemplates) diag.Diagnostics {
 	var (
 		diags    diag.Diagnostics
 		blockMap = make(map[string]*ast.BlockStmt, len(componentBlocks))
 	)
+	if nt == nil {
+		// TODO something is really wrong
+		return diags
+	}
+	graphTemplates, err := nt.RetrieveAvailableTemplates()
+	if err != nil {
+		diags.Add(diag.Diagnostic{
+			Severity: diag.SeverityLevelError,
+			Message:  err.Error(),
+		})
+	}
 	for _, block := range componentBlocks {
 		id := BlockComponentID(block).String()
 
@@ -579,48 +599,50 @@ func (l *Loader) populateComponentNodes(g *dag.Graph, componentBlocks []*ast.Blo
 		// Check the graph from the previous call to Load to see we can copy an
 		// existing instance of ComponentNode.
 		if exist := l.graph.GetByID(id); exist != nil {
-			c := exist.(*ComponentNode)
-			c.UpdateBlock(block)
-			g.Add(c)
+			if c, ok := exist.(*ComponentNode); ok {
+				c.UpdateBlock(block)
+				g.Add(c)
+				continue
+			}
+		}
+
+		componentName := block.GetBlockName()
+		if block.Label == "" {
+			diags.Add(diag.Diagnostic{
+				Severity: diag.SeverityLevelError,
+				Message:  fmt.Sprintf("Component %q must have a label", componentName),
+				StartPos: block.NamePos.Position(),
+				EndPos:   block.NamePos.Add(len(componentName) - 1).Position(),
+			})
+			continue
+		}
+
+		if graph, exist := graphTemplates[componentName]; exist {
+			clonedGraph := graph.DeepClone(id)
+			g.Merge(clonedGraph)
+			declareComponentNode := NewDeclareComponentNode(l.globals, block)
+			g.Add(declareComponentNode)
+			// Connect the corresponding arguments to the declareComponentNode
+			for _, n := range clonedGraph.Nodes() {
+				switch n := n.(type) {
+				case *ArgumentConfigNode:
+					if n.Namespace() == id {
+						g.AddEdge(dag.Edge{From: n, To: declareComponentNode})
+					}
+				}
+			}
 		} else {
-			componentName := block.GetBlockName()
-			if block.Label == "" {
+			registration, exists := l.componentReg.Get(componentName)
+			if !exists {
 				diags.Add(diag.Diagnostic{
 					Severity: diag.SeverityLevelError,
-					Message:  fmt.Sprintf("Component %q must have a label", componentName),
+					Message:  fmt.Sprintf("Unrecognized component name %q", componentName),
 					StartPos: block.NamePos.Position(),
 					EndPos:   block.NamePos.Add(len(componentName) - 1).Position(),
 				})
 				continue
 			}
-
-			if graph, exist := graphTemplates[componentName]; exist {
-				clonedGraph := graph.DeepClone(id)
-				g.Merge(clonedGraph)
-				declareComponentNode := NewDeclareComponentNode(l.globals, block)
-				g.Add(declareComponentNode)
-				// Connect the corresponding arguments to the declareComponentNode
-				for _, n := range clonedGraph.Nodes() {
-					switch n := n.(type) {
-					case *ArgumentConfigNode:
-						if n.Namespace() == id {
-							g.AddEdge(dag.Edge{From: n, To: declareComponentNode})
-						}
-					}
-				}
-			} else {
-				registration, exists := l.componentReg.Get(componentName)
-				if !exists {
-					diags.Add(diag.Diagnostic{
-						Severity: diag.SeverityLevelError,
-						Message:  fmt.Sprintf("Unrecognized component name %q", componentName),
-						StartPos: block.NamePos.Position(),
-						EndPos:   block.NamePos.Add(len(componentName) - 1).Position(),
-					})
-					continue
-				}
-				g.Add(NewComponentNode(l.globals, registration, block))
-			}
+			g.Add(NewComponentNode(l.globals, registration, block))
 		}
 	}
 	return diags

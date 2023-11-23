@@ -251,7 +251,7 @@ func TestScopeWithFailingComponent(t *testing.T) {
 	require.True(t, strings.Contains(diags.Error(), `unrecognized attribute name "frequenc"`))
 }
 
-type testCase struct {
+type testCaseDeclare struct {
 	name                string
 	testFile            string
 	testDeclare         string
@@ -260,8 +260,19 @@ type testCase struct {
 	nodeID              string
 }
 
+type testCaseDeclareWithReApply struct {
+	name                string
+	testFile            string
+	testDeclare         string
+	updatedTestFile     string
+	updatedDeclareFile  string
+	expectedGraph       graphDefinition
+	expectedExportValue int
+	nodeID              string
+}
+
 func TestDeclareComponent(t *testing.T) {
-	testCases := []testCase{
+	testCases := []testCaseDeclare{
 		{
 			name: "BasicComponent",
 			testFile: `
@@ -476,12 +487,182 @@ func TestDeclareComponent(t *testing.T) {
 			nodeID:              "add.example.export.sum",
 			expectedExportValue: 9,
 		},
+		{
+			name: "DeclareComponentInOtherDeclare",
+			testFile: `
+				add "example" {
+					a = 5
+					b = 6
+				}
+			`,
+			testDeclare: `
+				declare "add" {
+					argument "a" { }
+					argument "b" { }
+					export "sum" {
+						value = surpriseDuChef.theOne.export.sum + argument.b.value
+					}
+					surpriseDuChef "theOne" {
+						a = argument.a.value
+					}
+				}
+				declare "surpriseDuChef" {
+					argument "a" { }
+					export "sum" {
+						value = argument.a.value + 1
+					}
+				}
+			`,
+			expectedGraph: graphDefinition{
+				Nodes: []string{
+					"tracing",
+					"logging",
+					"add.example.argument.a",
+					"add.example.argument.b",
+					"add.example",
+					"add.example.export.sum",
+					"add.example.surpriseDuChef.theOne",
+					"add.example.surpriseDuChef.theOne.argument.a",
+					"add.example.surpriseDuChef.theOne.export.sum",
+				},
+				OutEdges: []edge{
+					{From: "add.example.argument.a", To: "add.example"},
+					{From: "add.example.argument.b", To: "add.example"},
+					{From: "add.example.export.sum", To: "add.example.surpriseDuChef.theOne.export.sum"},
+					{From: "add.example.export.sum", To: "add.example.argument.b"},
+					{From: "add.example.surpriseDuChef.theOne.export.sum", To: "add.example.surpriseDuChef.theOne.argument.a"},
+					{From: "add.example.surpriseDuChef.theOne.argument.a", To: "add.example.surpriseDuChef.theOne"},
+					{From: "add.example.surpriseDuChef.theOne", To: "add.example.argument.a"},
+				},
+			},
+			nodeID:              "add.example.export.sum",
+			expectedExportValue: 12,
+		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			l := setupLoader(t)
 			diags := applyFromContent(t, l, []byte(tc.testFile), nil, []byte(tc.testDeclare))
+			require.NoError(t, diags.ErrorOrNil())
+			requireGraph(t, l.Graph(), tc.expectedGraph)
+			require.Equal(t, l.Graph().GetByID(tc.nodeID).(*controller.ExportConfigNode).Value(), int(tc.expectedExportValue))
+		})
+	}
+}
+
+func TestDeclareComponentWithConfigUpdates(t *testing.T) {
+	testCases := []testCaseDeclareWithReApply{
+		{
+			name: "UpdateInstanceValues",
+			testFile: `
+				add "example" {
+					a = 5
+					b = 6
+				}
+			`,
+			testDeclare: `
+				declare "add" {
+					argument "a" { }
+					argument "b" { }
+					export "sum" {
+						value = argument.a.value + argument.b.value
+					}
+				}
+			`,
+			updatedTestFile: `
+				add "example" {
+					a = 8
+					b = 9
+				}
+			`,
+			updatedDeclareFile: `
+				declare "add" {
+					argument "a" { }
+					argument "b" { }
+					export "sum" {
+						value = argument.a.value + argument.b.value
+					}
+				}
+			`,
+			expectedGraph: graphDefinition{
+				Nodes: []string{
+					"tracing",
+					"logging",
+					"add.example.argument.a",
+					"add.example.argument.b",
+					"add.example",
+					"add.example.export.sum",
+				},
+				OutEdges: []edge{
+					{From: "add.example.argument.a", To: "add.example"},
+					{From: "add.example.argument.b", To: "add.example"},
+					{From: "add.example.export.sum", To: "add.example.argument.a"},
+					{From: "add.example.export.sum", To: "add.example.argument.b"},
+				},
+			},
+			nodeID:              "add.example.export.sum",
+			expectedExportValue: 17,
+		},
+		{
+			name: "UpdateDeclare",
+			testFile: `
+				add "example" {
+					a = 5
+					b = 6
+				}
+			`,
+			testDeclare: `
+				declare "add" {
+					argument "a" { }
+					argument "b" { }
+					export "sum" {
+						value = argument.a.value + argument.b.value
+					}
+				}
+			`,
+			updatedTestFile: `
+				add "example" {
+					a = 5
+					b = 6
+				}
+			`,
+			updatedDeclareFile: `
+				declare "add" {
+					argument "a" { }
+					argument "b" { }
+					export "sub" {
+						value = argument.a.value - argument.b.value
+					}
+				}
+			`,
+			expectedGraph: graphDefinition{
+				Nodes: []string{
+					"tracing",
+					"logging",
+					"add.example.argument.a",
+					"add.example.argument.b",
+					"add.example",
+					"add.example.export.sub",
+				},
+				OutEdges: []edge{
+					{From: "add.example.argument.a", To: "add.example"},
+					{From: "add.example.argument.b", To: "add.example"},
+					{From: "add.example.export.sub", To: "add.example.argument.a"},
+					{From: "add.example.export.sub", To: "add.example.argument.b"},
+				},
+			},
+			nodeID:              "add.example.export.sub",
+			expectedExportValue: -1,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			l := setupLoader(t)
+			diags := applyFromContent(t, l, []byte(tc.testFile), nil, []byte(tc.testDeclare))
+			require.NoError(t, diags.ErrorOrNil())
+			diags = applyFromContent(t, l, []byte(tc.updatedTestFile), nil, []byte(tc.updatedDeclareFile))
 			require.NoError(t, diags.ErrorOrNil())
 			requireGraph(t, l.Graph(), tc.expectedGraph)
 			require.Equal(t, l.Graph().GetByID(tc.nodeID).(*controller.ExportConfigNode).Value(), int(tc.expectedExportValue))
