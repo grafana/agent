@@ -13,7 +13,7 @@ alert.newGroup(
 
     // Unhealthy components detected.
     alert.newRule(
-      'ClusterSplitBrain',
+      'UnhealthyComponents',
       'sum(agent_component_controller_running_components{health_type!="healthy"})',
       'Unhealthy Flow components detected.',
       '15m',
