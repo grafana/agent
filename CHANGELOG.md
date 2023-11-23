@@ -24,6 +24,8 @@ Main (unreleased)
   component (flow mode) and the `app_agent_receiver` integration (static mode).
   (@cedricziel)
 
+- Fix issue with windows_exporter defaults not being set correctly. (@mattdurham)
+
 v0.38.0 (2023-11-21)
 --------------------
 
