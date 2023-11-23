@@ -10,6 +10,11 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+### Enhancements
+
+- Added metrics, alerts and dashboard visualisations to help diagnose issues
+  with unhealthy components and components that take too long to evaluate. (@thampiotr)
+
 v0.38.0 (2023-11-21)
 --------------------
 
