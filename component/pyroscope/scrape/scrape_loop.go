@@ -228,7 +228,7 @@ func (t *scrapeLoop) scrape() {
 		}
 	}
 	if err := t.fetchProfile(scrapeCtx, profileType, buf); err != nil {
-		level.Debug(t.logger).Log("msg", "fetch profile failed", "target", t.Labels().String(), "err", err)
+		level.Error(t.logger).Log("msg", "fetch profile failed", "target", t.Labels().String(), "err", err)
 		t.updateTargetStatus(start, err)
 		return
 	}
