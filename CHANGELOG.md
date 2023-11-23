@@ -15,14 +15,20 @@ Main (unreleased)
 - Agent Management: Introduce support for templated configuration. (@jcreixell)
 
 ### Enhancements
- 
+
 - Flow Windows service: Support environment variables. (@jkroepke)
+
+- Allow disabling collection of root Cgroup stats in
+  `prometheus.exporter.cadvisor` (flow mode) and the `cadvisor` integration
+  (static mode). (@hainenber)
 
 ### Bugfixes
 
 - Permit `X-Faro-Session-ID` header in CORS requests for the `faro.receiver`
   component (flow mode) and the `app_agent_receiver` integration (static mode).
   (@cedricziel)
+
+- Fix issue with windows_exporter defaults not being set correctly. (@mattdurham)
 
 v0.38.0 (2023-11-21)
 --------------------

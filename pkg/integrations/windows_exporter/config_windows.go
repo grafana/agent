@@ -1,6 +1,8 @@
 package windows_exporter
 
-import "github.com/prometheus-community/windows_exporter/pkg/collector"
+import (
+	"github.com/prometheus-community/windows_exporter/pkg/collector"
+)
 
 func (c *Config) ToWindowsExporterConfig() collector.Config {
 	cfg := collector.ConfigDefaults
@@ -46,4 +48,74 @@ func coalesceString(v ...string) string {
 		}
 	}
 	return ""
+}
+
+// DefaultConfig holds the default settings for the windows_exporter integration.
+var DefaultConfig = Config{
+	EnabledCollectors: "cpu,cs,logical_disk,net,os,service,system",
+	Dfsr: DfsrConfig{
+		SourcesEnabled: collector.ConfigDefaults.Dfsr.DfsrEnabledCollectors,
+	},
+	Exchange: ExchangeConfig{
+		EnabledList: collector.ConfigDefaults.Exchange.CollectorsEnabled,
+	},
+	IIS: IISConfig{
+		AppBlackList:  collector.ConfigDefaults.Iis.AppExclude,
+		AppWhiteList:  collector.ConfigDefaults.Iis.AppInclude,
+		SiteBlackList: collector.ConfigDefaults.Iis.SiteExclude,
+		SiteWhiteList: collector.ConfigDefaults.Iis.SiteInclude,
+		AppInclude:    collector.ConfigDefaults.Iis.AppInclude,
+		AppExclude:    collector.ConfigDefaults.Iis.AppExclude,
+		SiteInclude:   collector.ConfigDefaults.Iis.SiteInclude,
+		SiteExclude:   collector.ConfigDefaults.Iis.SiteExclude,
+	},
+	LogicalDisk: LogicalDiskConfig{
+		BlackList: collector.ConfigDefaults.LogicalDisk.VolumeExclude,
+		WhiteList: collector.ConfigDefaults.LogicalDisk.VolumeInclude,
+		Include:   collector.ConfigDefaults.LogicalDisk.VolumeInclude,
+		Exclude:   collector.ConfigDefaults.LogicalDisk.VolumeExclude,
+	},
+	MSMQ: MSMQConfig{
+		Where: collector.ConfigDefaults.Msmq.QueryWhereClause,
+	},
+	MSSQL: MSSQLConfig{
+		EnabledClasses: collector.ConfigDefaults.Mssql.EnabledCollectors,
+	},
+	Network: NetworkConfig{
+		BlackList: collector.ConfigDefaults.Net.NicExclude,
+		WhiteList: collector.ConfigDefaults.Net.NicInclude,
+		Include:   collector.ConfigDefaults.Net.NicInclude,
+		Exclude:   collector.ConfigDefaults.Net.NicExclude,
+	},
+	Process: ProcessConfig{
+		BlackList: collector.ConfigDefaults.Process.ProcessExclude,
+		WhiteList: collector.ConfigDefaults.Process.ProcessInclude,
+		Include:   collector.ConfigDefaults.Process.ProcessInclude,
+		Exclude:   collector.ConfigDefaults.Process.ProcessExclude,
+	},
+	ScheduledTask: ScheduledTaskConfig{
+		Include: collector.ConfigDefaults.ScheduledTask.TaskInclude,
+		Exclude: collector.ConfigDefaults.ScheduledTask.TaskExclude,
+	},
+	Service: ServiceConfig{
+		UseApi: "false",
+		Where:  collector.ConfigDefaults.Service.ServiceWhereClause,
+	},
+	SMTP: SMTPConfig{
+		BlackList: collector.ConfigDefaults.Smtp.ServerExclude,
+		WhiteList: collector.ConfigDefaults.Smtp.ServerInclude,
+		Include:   collector.ConfigDefaults.Smtp.ServerInclude,
+		Exclude:   collector.ConfigDefaults.Smtp.ServerExclude,
+	},
+	TextFile: TextFileConfig{
+		TextFileDirectory: collector.ConfigDefaults.Textfile.TextFileDirectories,
+	},
+}
+
+// UnmarshalYAML implements yaml.Unmarshaler for Config.
+func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	*c = DefaultConfig
+
+	type plain Config
+	return unmarshal((*plain)(c))
 }
