@@ -114,7 +114,8 @@ func New(logger log.Logger, c *Config) (integrations.Integration, error) {
 	}
 
 	rawOpts := raw.Options{
-		DockerOnly: c.DockerOnly,
+		DockerOnly:             c.DockerOnly,
+		DisableRootCgroupStats: c.DisableRootCgroupStats,
 	}
 	rm, err := manager.New(plugins, memoryStorage, sysFs, manager.HousekeepingConfigFlags, includedMetrics, &collectorHTTPClient, c.RawCgroupPrefixAllowlist, c.EnvMetadataAllowlist, c.PerfEventsConfig, time.Duration(c.ResctrlInterval), rawOpts)
 	if err != nil {
