@@ -32,6 +32,8 @@ var DefaultConfig = Config{
 
 	// Raw config defaults
 	DockerOnly: false,
+
+	DisableRootCgroupStats: false,
 }
 
 // Config controls cadvisor
@@ -90,6 +92,9 @@ type Config struct {
 	// Raw config options
 	// DockerOnly only report docker containers in addition to root stats
 	DockerOnly bool `yaml:"docker_only,omitempty"`
+
+	// DisableRootCgroupStats informs the exporter not collecting stats from the root cgroup.
+	DisableRootCgroupStats bool `yaml:"disable_root_cgroup_stats,omitempty"`
 
 	// Hold on to the logger passed to config.NewIntegration, to be passed to klog, as yet another unsafe global that needs to be set.
 	logger log.Logger //nolint:unused,structcheck // logger is only used on linux

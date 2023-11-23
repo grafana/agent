@@ -15,8 +15,12 @@ Main (unreleased)
 - Agent Management: Introduce support for templated configuration. (@jcreixell)
 
 ### Enhancements
- 
+
 - Flow Windows service: Support environment variables. (@jkroepke)
+
+- Allow disabling collection of root Cgroup stats in
+  `prometheus.exporter.cadvisor` (flow mode) and the `cadvisor` integration
+  (static mode). (@hainenber)
 
 ### Bugfixes
 
