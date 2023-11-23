@@ -331,6 +331,11 @@ discovery.relabel "integrations_mongodb_exporter" {
 		target_label  = "mongodb_cluster"
 		replacement   = "prod-cluster"
 	}
+
+	rule {
+		target_label = "instance"
+		replacement  = "instance-key-value"
+	}
 }
 
 prometheus.scrape "integrations_mongodb_exporter" {
@@ -349,8 +354,17 @@ prometheus.exporter.mssql "integrations_mssql" {
 	connection_string = "sqlserver://<USERNAME>:<PASSWORD>@<HOST>:<PORT>"
 }
 
+discovery.relabel "integrations_mssql" {
+	targets = prometheus.exporter.mssql.integrations_mssql.targets
+
+	rule {
+		target_label = "instance"
+		replacement  = "instance-key-value"
+	}
+}
+
 prometheus.scrape "integrations_mssql" {
-	targets    = prometheus.exporter.mssql.integrations_mssql.targets
+	targets    = discovery.relabel.integrations_mssql.output
 	forward_to = [prometheus.remote_write.integrations.receiver]
 	job_name   = "integrations/mssql"
 
@@ -387,10 +401,10 @@ prometheus.scrape "integrations_mysqld_exporter" {
 	}
 }
 
-prometheus.exporter.unix "default" { }
+prometheus.exporter.unix "integrations_node_exporter" { }
 
 discovery.relabel "integrations_node_exporter" {
-	targets = prometheus.exporter.unix.default.targets
+	targets = prometheus.exporter.unix.integrations_node_exporter.targets
 
 	rule {
 		source_labels = ["__address__"]

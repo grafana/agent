@@ -4,6 +4,7 @@ aliases:
 - /docs/grafana-cloud/agent/flow/setup/install/windows/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/setup/install/windows/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/setup/install/windows/
+- /docs/grafana-cloud/send-data/agent/flow/setup/install/windows/
 canonical: https://grafana.com/docs/agent/latest/flow/setup/install/windows/
 description: Learn how to install Grafana Agent in flow mode on Windows
 menuTitle: Windows
@@ -56,6 +57,14 @@ To do a silent install of Grafana Agent on Windows, perform the following steps.
 * `/CONFIG=<path>` Path to the configuration file. Default: `$INSTDIR\config.river`
 * `/DISABLEREPORTING=<yes|no>` Disable [data collection][]. Default: `no`
 * `/DISABLEPROFILING=<yes|no>` Disable profiling endpoint. Default: `no`
+* `/ENVIRONMENT="KEY=VALUE\0KEY2=VALUE2"` Define environment variables for Windows Service. Default: ``
+
+## Service Configuration
+
+Grafana Agent uses the Windows Registry `HKLM\Software\Grafana\Grafana Agent Flow` for service configuration.
+
+* `Arguments` (Type `REG_MULTI_SZ`) Each value represents a binary argument for grafana-agent-flow binary.
+* `Environment` (Type `REG_MULTI_SZ`) Each value represents a environment value `KEY=VALUE` for grafana-agent-flow binary.
 
 ## Uninstall
 
@@ -72,9 +81,9 @@ Grafana Agent can also be silently uninstalled by running `uninstall.exe /S` as 
 
 {{% docs/reference %}}
 [Start Grafana Agent]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/start-agent.md#windows"
-[Start Grafana Agent]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/setup/start-agent.md#windows"
+[Start Grafana Agent]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/setup/start-agent.md#windows"
 [Configure Grafana Agent]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/configure/configure-windows.md"
-[Configure Grafana Agent]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/setup/configure/configure-windows.md"
+[Configure Grafana Agent]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/setup/configure/configure-windows.md"
 [data collection]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/data-collection.md"
-[data collection]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/data-collection.md"
+[data collection]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/data-collection.md"
 {{% /docs/reference %}}

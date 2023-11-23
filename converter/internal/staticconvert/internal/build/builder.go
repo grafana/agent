@@ -39,8 +39,10 @@ import (
 	"github.com/grafana/agent/pkg/integrations/statsd_exporter"
 	agent_exporter_v2 "github.com/grafana/agent/pkg/integrations/v2/agent"
 	apache_exporter_v2 "github.com/grafana/agent/pkg/integrations/v2/apache_http"
+	blackbox_exporter_v2 "github.com/grafana/agent/pkg/integrations/v2/blackbox_exporter"
 	common_v2 "github.com/grafana/agent/pkg/integrations/v2/common"
 	"github.com/grafana/agent/pkg/integrations/v2/metricsutils"
+	snmp_exporter_v2 "github.com/grafana/agent/pkg/integrations/v2/snmp_exporter"
 	"github.com/grafana/agent/pkg/integrations/windows_exporter"
 	"github.com/grafana/river/scanner"
 	"github.com/grafana/river/token/builder"
@@ -105,53 +107,53 @@ func (b *IntegrationsConfigBuilder) appendV1Integrations() {
 		case *apache_http.Config:
 			exports = b.appendApacheExporter(itg)
 		case *node_exporter.Config:
-			exports = b.appendNodeExporter(itg)
+			exports = b.appendNodeExporter(itg, nil)
 		case *blackbox_exporter.Config:
 			exports = b.appendBlackboxExporter(itg)
 		case *cloudwatch_exporter.Config:
-			exports = b.appendCloudwatchExporter(itg)
+			exports = b.appendCloudwatchExporter(itg, nil)
 		case *consul_exporter.Config:
-			exports = b.appendConsulExporter(itg)
+			exports = b.appendConsulExporter(itg, nil)
 		case *dnsmasq_exporter.Config:
-			exports = b.appendDnsmasqExporter(itg)
+			exports = b.appendDnsmasqExporter(itg, nil)
 		case *elasticsearch_exporter.Config:
-			exports = b.appendElasticsearchExporter(itg)
+			exports = b.appendElasticsearchExporter(itg, nil)
 		case *gcp_exporter.Config:
-			exports = b.appendGcpExporter(itg)
+			exports = b.appendGcpExporter(itg, nil)
 		case *github_exporter.Config:
-			exports = b.appendGithubExporter(itg)
+			exports = b.appendGithubExporter(itg, nil)
 		case *kafka_exporter.Config:
-			exports = b.appendKafkaExporter(itg)
+			exports = b.appendKafkaExporter(itg, nil)
 		case *memcached_exporter.Config:
-			exports = b.appendMemcachedExporter(itg)
+			exports = b.appendMemcachedExporter(itg, nil)
 		case *mongodb_exporter.Config:
-			exports = b.appendMongodbExporter(itg)
+			exports = b.appendMongodbExporter(itg, nil)
 		case *mssql_exporter.Config:
-			exports = b.appendMssqlExporter(itg)
+			exports = b.appendMssqlExporter(itg, nil)
 		case *mysqld_exporter.Config:
-			exports = b.appendMysqldExporter(itg)
+			exports = b.appendMysqldExporter(itg, nil)
 		case *oracledb_exporter.Config:
-			exports = b.appendOracledbExporter(itg)
+			exports = b.appendOracledbExporter(itg, nil)
 		case *postgres_exporter.Config:
-			exports = b.appendPostgresExporter(itg)
+			exports = b.appendPostgresExporter(itg, nil)
 		case *process_exporter.Config:
-			exports = b.appendProcessExporter(itg)
+			exports = b.appendProcessExporter(itg, nil)
 		case *redis_exporter.Config:
-			exports = b.appendRedisExporter(itg)
+			exports = b.appendRedisExporter(itg, nil)
 		case *snmp_exporter.Config:
 			exports = b.appendSnmpExporter(itg)
 		case *snowflake_exporter.Config:
-			exports = b.appendSnowflakeExporter(itg)
+			exports = b.appendSnowflakeExporter(itg, nil)
 		case *squid_exporter.Config:
-			exports = b.appendSquidExporter(itg)
+			exports = b.appendSquidExporter(itg, nil)
 		case *statsd_exporter.Config:
-			exports = b.appendStatsdExporter(itg)
+			exports = b.appendStatsdExporter(itg, nil)
 		case *windows_exporter.Config:
-			exports = b.appendWindowsExporter(itg)
+			exports = b.appendWindowsExporter(itg, nil)
 		case *azure_exporter.Config:
 			exports = b.appendAzureExporter(itg, nil)
 		case *cadvisor.Config:
-			exports = b.appendCadvisorExporter(itg)
+			exports = b.appendCadvisorExporter(itg, nil)
 		}
 
 		if len(exports.Targets) > 0 {
@@ -161,9 +163,19 @@ func (b *IntegrationsConfigBuilder) appendV1Integrations() {
 }
 
 func (b *IntegrationsConfigBuilder) appendExporter(commonConfig *int_config.Common, name string, extraTargets []discovery.Target) {
+	var relabelConfigs []*relabel.Config
+	if commonConfig.InstanceKey != nil {
+		defaultConfig := relabel.DefaultRelabelConfig
+		relabelConfig := &defaultConfig
+		relabelConfig.TargetLabel = "instance"
+		relabelConfig.Replacement = *commonConfig.InstanceKey
+
+		relabelConfigs = append(relabelConfigs, relabelConfig)
+	}
+
 	scrapeConfig := prom_config.DefaultScrapeConfig
 	scrapeConfig.JobName = b.formatJobName(name, nil)
-	scrapeConfig.RelabelConfigs = commonConfig.RelabelConfigs
+	scrapeConfig.RelabelConfigs = append(commonConfig.RelabelConfigs, relabelConfigs...)
 	scrapeConfig.MetricRelabelConfigs = commonConfig.MetricRelabelConfigs
 	scrapeConfig.HTTPClientConfig.TLSConfig = b.cfg.Integrations.ConfigV1.TLSConfig
 
@@ -205,11 +217,59 @@ func (b *IntegrationsConfigBuilder) appendV2Integrations() {
 		case *apache_exporter_v2.Config:
 			exports = b.appendApacheExporterV2(itg)
 			commonConfig = itg.Common
+		case *blackbox_exporter_v2.Config:
+			exports = b.appendBlackboxExporterV2(itg)
+			commonConfig = itg.Common
+		case *snmp_exporter_v2.Config:
+			exports = b.appendSnmpExporterV2(itg)
+			commonConfig = itg.Common
 		case *metricsutils.ConfigShim:
 			commonConfig = itg.Common
 			switch v1_itg := itg.Orig.(type) {
 			case *azure_exporter.Config:
 				exports = b.appendAzureExporter(v1_itg, itg.Common.InstanceKey)
+			case *cadvisor.Config:
+				exports = b.appendCadvisorExporter(v1_itg, itg.Common.InstanceKey)
+			case *cloudwatch_exporter.Config:
+				exports = b.appendCloudwatchExporter(v1_itg, itg.Common.InstanceKey)
+			case *consul_exporter.Config:
+				exports = b.appendConsulExporter(v1_itg, itg.Common.InstanceKey)
+			case *dnsmasq_exporter.Config:
+				exports = b.appendDnsmasqExporter(v1_itg, itg.Common.InstanceKey)
+			case *elasticsearch_exporter.Config:
+				exports = b.appendElasticsearchExporter(v1_itg, itg.Common.InstanceKey)
+			case *gcp_exporter.Config:
+				exports = b.appendGcpExporter(v1_itg, itg.Common.InstanceKey)
+			case *github_exporter.Config:
+				exports = b.appendGithubExporter(v1_itg, itg.Common.InstanceKey)
+			case *kafka_exporter.Config:
+				exports = b.appendKafkaExporter(v1_itg, itg.Common.InstanceKey)
+			case *memcached_exporter.Config:
+				exports = b.appendMemcachedExporter(v1_itg, itg.Common.InstanceKey)
+			case *mongodb_exporter.Config:
+				exports = b.appendMongodbExporter(v1_itg, itg.Common.InstanceKey)
+			case *mssql_exporter.Config:
+				exports = b.appendMssqlExporter(v1_itg, itg.Common.InstanceKey)
+			case *mysqld_exporter.Config:
+				exports = b.appendMysqldExporter(v1_itg, itg.Common.InstanceKey)
+			case *node_exporter.Config:
+				exports = b.appendNodeExporter(v1_itg, itg.Common.InstanceKey)
+			case *oracledb_exporter.Config:
+				exports = b.appendOracledbExporter(v1_itg, itg.Common.InstanceKey)
+			case *postgres_exporter.Config:
+				exports = b.appendPostgresExporter(v1_itg, itg.Common.InstanceKey)
+			case *process_exporter.Config:
+				exports = b.appendProcessExporter(v1_itg, itg.Common.InstanceKey)
+			case *redis_exporter.Config:
+				exports = b.appendRedisExporter(v1_itg, itg.Common.InstanceKey)
+			case *snowflake_exporter.Config:
+				exports = b.appendSnowflakeExporter(v1_itg, itg.Common.InstanceKey)
+			case *squid_exporter.Config:
+				exports = b.appendSquidExporter(v1_itg, itg.Common.InstanceKey)
+			case *statsd_exporter.Config:
+				exports = b.appendStatsdExporter(v1_itg, itg.Common.InstanceKey)
+			case *windows_exporter.Config:
+				exports = b.appendWindowsExporter(v1_itg, itg.Common.InstanceKey)
 			}
 		}
 
@@ -232,14 +292,22 @@ func (b *IntegrationsConfigBuilder) appendExporterV2(commonConfig *common_v2.Met
 		relabelConfigs = append(relabelConfigs, relabelConfig)
 	}
 
+	if commonConfig.InstanceKey != nil {
+		defaultConfig := relabel.DefaultRelabelConfig
+		relabelConfig := &defaultConfig
+		relabelConfig.TargetLabel = "instance"
+		relabelConfig.Replacement = *commonConfig.InstanceKey
+
+		relabelConfigs = append(relabelConfigs, relabelConfig)
+	}
+
 	commonConfig.ApplyDefaults(b.cfg.Integrations.ConfigV2.Metrics.Autoscrape)
 	scrapeConfig := prom_config.DefaultScrapeConfig
 	scrapeConfig.JobName = b.formatJobName(name, commonConfig.InstanceKey)
-	scrapeConfig.RelabelConfigs = commonConfig.Autoscrape.RelabelConfigs
+	scrapeConfig.RelabelConfigs = append(commonConfig.Autoscrape.RelabelConfigs, relabelConfigs...)
 	scrapeConfig.MetricRelabelConfigs = commonConfig.Autoscrape.MetricRelabelConfigs
 	scrapeConfig.ScrapeInterval = commonConfig.Autoscrape.ScrapeInterval
 	scrapeConfig.ScrapeTimeout = commonConfig.Autoscrape.ScrapeTimeout
-	scrapeConfig.RelabelConfigs = relabelConfigs
 
 	scrapeConfigs := []*prom_config.ScrapeConfig{&scrapeConfig}
 

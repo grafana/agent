@@ -1,9 +1,11 @@
 ---
 aliases:
 - ../../configuration/flags/
+- /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/flags/
+- /docs/grafana-cloud/send-data/agent/static/configuration/flags/
 canonical: https://grafana.com/docs/agent/latest/static/configuration/flags/
-title: Command-line flags
 description: Learn about command-line flags
+title: Command-line flags
 weight: 100
 ---
 
@@ -146,11 +148,11 @@ YAML configuration when the `-server.http.tls-enabled` flag is used.
 
 {{% docs/reference %}}
 [retrieving]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/configuration#remote-configuration-experimental"
-[retrieving]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration#remote-configuration-experimental"
+[retrieving]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/static/configuration#remote-configuration-experimental"
 
 [revamp]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/configuration/integrations/integrations-next/"
-[revamp]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/integrations/integrations-next"
+[revamp]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/static/configuration/integrations/integrations-next"
 
 [management]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/configuration/agent-management"
-[management]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/agent-management"
+[management]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/static/configuration/agent-management"
 {{% /docs/reference %}}

@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/go-kit/log"
+	"github.com/grafana/agent/internal/useragent"
 	"github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/grafana/dskit/backoff"
 	"github.com/prometheus/client_golang/prometheus"
@@ -20,7 +21,7 @@ import (
 	"github.com/prometheus/common/model"
 
 	"github.com/grafana/agent/component/common/loki"
-	"github.com/grafana/agent/pkg/build"
+	"github.com/grafana/agent/pkg/util"
 	lokiutil "github.com/grafana/loki/pkg/util"
 )
 
@@ -46,7 +47,7 @@ const (
 
 var Reasons = []string{ReasonGeneric, ReasonRateLimited, ReasonStreamLimited, ReasonLineTooLong}
 
-var UserAgent = fmt.Sprintf("GrafanaAgent/%s", build.Version)
+var userAgent = useragent.Get()
 
 type Metrics struct {
 	encodedBytes                 *prometheus.CounterVec
@@ -116,28 +117,18 @@ func NewMetrics(reg prometheus.Registerer) *Metrics {
 	}
 
 	if reg != nil {
-		m.encodedBytes = mustRegisterOrGet(reg, m.encodedBytes).(*prometheus.CounterVec)
-		m.sentBytes = mustRegisterOrGet(reg, m.sentBytes).(*prometheus.CounterVec)
-		m.droppedBytes = mustRegisterOrGet(reg, m.droppedBytes).(*prometheus.CounterVec)
-		m.sentEntries = mustRegisterOrGet(reg, m.sentEntries).(*prometheus.CounterVec)
-		m.droppedEntries = mustRegisterOrGet(reg, m.droppedEntries).(*prometheus.CounterVec)
-		m.mutatedEntries = mustRegisterOrGet(reg, m.mutatedEntries).(*prometheus.CounterVec)
-		m.mutatedBytes = mustRegisterOrGet(reg, m.mutatedBytes).(*prometheus.CounterVec)
-		m.requestDuration = mustRegisterOrGet(reg, m.requestDuration).(*prometheus.HistogramVec)
-		m.batchRetries = mustRegisterOrGet(reg, m.batchRetries).(*prometheus.CounterVec)
+		m.encodedBytes = util.MustRegisterOrGet(reg, m.encodedBytes).(*prometheus.CounterVec)
+		m.sentBytes = util.MustRegisterOrGet(reg, m.sentBytes).(*prometheus.CounterVec)
+		m.droppedBytes = util.MustRegisterOrGet(reg, m.droppedBytes).(*prometheus.CounterVec)
+		m.sentEntries = util.MustRegisterOrGet(reg, m.sentEntries).(*prometheus.CounterVec)
+		m.droppedEntries = util.MustRegisterOrGet(reg, m.droppedEntries).(*prometheus.CounterVec)
+		m.mutatedEntries = util.MustRegisterOrGet(reg, m.mutatedEntries).(*prometheus.CounterVec)
+		m.mutatedBytes = util.MustRegisterOrGet(reg, m.mutatedBytes).(*prometheus.CounterVec)
+		m.requestDuration = util.MustRegisterOrGet(reg, m.requestDuration).(*prometheus.HistogramVec)
+		m.batchRetries = util.MustRegisterOrGet(reg, m.batchRetries).(*prometheus.CounterVec)
 	}
 
 	return &m
-}
-
-func mustRegisterOrGet(reg prometheus.Registerer, c prometheus.Collector) prometheus.Collector {
-	if err := reg.Register(c); err != nil {
-		if are, ok := err.(prometheus.AlreadyRegisteredError); ok {
-			return are.ExistingCollector
-		}
-		panic(err)
-	}
-	return c
 }
 
 // Client pushes entries to Loki and can be stopped
@@ -428,7 +419,7 @@ func (c *client) send(ctx context.Context, tenantID string, buf []byte) (int, er
 	}
 	req = req.WithContext(ctx)
 	req.Header.Set("Content-Type", contentType)
-	req.Header.Set("User-Agent", UserAgent)
+	req.Header.Set("User-Agent", userAgent)
 
 	// If the tenant ID is not empty promtail is running in multi-tenant mode, so
 	// we should send it to Loki

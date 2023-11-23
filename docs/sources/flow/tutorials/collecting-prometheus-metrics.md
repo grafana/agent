@@ -4,6 +4,7 @@ aliases:
 - /docs/grafana-cloud/agent/flow/tutorials/collecting-prometheus-metrics/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/tutorials/collecting-prometheus-metrics/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/tutorials/collecting-prometheus-metrics/
+- /docs/grafana-cloud/send-data/agent/flow/tutorials/collecting-prometheus-metrics/
 canonical: https://grafana.com/docs/agent/latest/flow/tutorials/collecting-prometheus-metrics/
 description: Learn how to collect Prometheus metrics
 menuTitle: Collect Prometheus metrics
@@ -97,13 +98,13 @@ To try out the Grafana Agent without using Docker:
 
 {{% docs/reference %}}
 [prometheus.scrape]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/prometheus.scrape.md"
-[prometheus.scrape]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/prometheus.scrape.md"
+[prometheus.scrape]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/components/prometheus.scrape.md"
 [attribute]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/configuration_language.md#attributes"
-[attribute]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/concepts/configuration_language.md#attributes"
+[attribute]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/concepts/configuration_language.md#attributes"
 [argument]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/components"
-[argument]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/concepts/components"
+[argument]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/concepts/components"
 [export]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/components"
-[export]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/concepts/components"
+[export]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/concepts/components"
 [prometheus.remote_write]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/prometheus.remote_write.md"
-[prometheus.remote_write]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/prometheus.remote_write.md"
+[prometheus.remote_write]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/components/prometheus.remote_write.md"
 {{% /docs/reference %}}

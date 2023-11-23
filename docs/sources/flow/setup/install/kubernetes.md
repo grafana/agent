@@ -4,6 +4,7 @@ aliases:
 - /docs/grafana-cloud/agent/flow/setup/install/kubernetes/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/setup/install/kubernetes/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/setup/install/kubernetes/
+- /docs/grafana-cloud/send-data/agent/flow/setup/install/kubernetes/
 canonical: https://grafana.com/docs/agent/latest/flow/setup/install/kubernetes/
 description: Learn how to deploy Grafana Agent in flow mode on Kubernetes
 menuTitle: Kubernetes
@@ -63,5 +64,5 @@ For more information on the Grafana Agent Helm chart, refer to the Helm chart do
 
 {{% docs/reference %}}
 [Configure Grafana Agent]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/configure/configure-kubernetes.md"
-[Configure Grafana Agent]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/setup/configure/configure-kubernetes.md"
+[Configure Grafana Agent]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/setup/configure/configure-kubernetes.md"
 {{% /docs/reference %}}

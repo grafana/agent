@@ -3,6 +3,7 @@ aliases:
 - /docs/grafana-cloud/agent/
 - /docs/grafana-cloud/monitor-infrastructure/agent/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/
+- /docs/grafana-cloud/send-data/agent/
 canonical: https://grafana.com/docs/agent/latest/
 title: Grafana Agent
 description: Grafana Agent is a flexible, performant, vendor-neutral, telemetry collector
@@ -103,13 +104,13 @@ Patch and security releases may be created at any time.
 
 {{% docs/reference %}}
 [variants]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/about"
-[variants]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/about"
+[variants]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/about"
 
 [Static mode]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static"
-[Static mode]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/static"
+[Static mode]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/static"
 
 [Static mode Kubernetes operator]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/operator"
-[Static mode Kubernetes operator]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/operator"
+[Static mode Kubernetes operator]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/operator"
 
 [Flow mode]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/flow"
 [Flow mode]: "/docs/grafana-cloud/ -> /docs/agent/<AGENT VERSION>/flow"

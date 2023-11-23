@@ -3,10 +3,11 @@ aliases:
 - /docs/grafana-cloud/agent/flow/monitoring/component_metrics/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/monitoring/component_metrics/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/monitoring/component_metrics/
+- /docs/grafana-cloud/send-data/agent/flow/monitoring/component_metrics/
 - component-metrics/
 canonical: https://grafana.com/docs/agent/latest/flow/monitoring/component_metrics/
-title: Component metrics
 description: Learn about component metrics
+title: Component metrics
 weight: 200
 ---
 
@@ -39,9 +40,9 @@ expose metrics.
 
 {{% docs/reference %}}
 [components]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/components.md"
-[components]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/concepts/components.md"
+[components]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/concepts/components.md"
 [grafana-agent run]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/cli/run.md"
-[grafana-agent run]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/cli/run.md"
+[grafana-agent run]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/cli/run.md"
 [reference documentation]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components"
-[reference documentation]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components"
+[reference documentation]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/components"
 {{% /docs/reference %}}

@@ -3,6 +3,7 @@ aliases:
 - /docs/grafana-cloud/agent/flow/setup/start-agent/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/setup/start-agent/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/setup/start-agent/
+- /docs/grafana-cloud/send-data/agent/flow/setup/start-agent/
 canonical: https://grafana.com/docs/agent/latest/flow/setup/start-agent/
 description: Learn how to start, restart, and stop Grafana Agent after it is installed
 menuTitle: Start flow mode
@@ -252,5 +253,5 @@ These steps assume you have a default systemd and Grafana Agent configuration.
 
 {{% docs/reference %}}
 [Configure the Grafana Agent service]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/configure/configure-macos.md#configure-the-grafana-agent-service"
-[Configure the Grafana Agent service]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/setup/configure/configure-macos.md#configure-the-grafana-agent-service"
+[Configure the Grafana Agent service]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/setup/configure/configure-macos.md#configure-the-grafana-agent-service"
 {{% /docs/reference %}}

@@ -3,11 +3,12 @@ aliases:
 - /docs/grafana-cloud/agent/flow/reference/components/otelcol.exporter.loadbalancing/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/otelcol.exporter.loadbalancing/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/otelcol.exporter.loadbalancing/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/otelcol.exporter.loadbalancing/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.exporter.loadbalancing/
+description: Learn about otelcol.exporter.loadbalancing
 labels:
   stage: beta
 title: otelcol.exporter.loadbalancing
-description: Learn about otelcol.exporter.loadbalancing
 ---
 
 # otelcol.exporter.loadbalancing
@@ -80,6 +81,7 @@ Hierarchy | Block | Description | Required
 resolver | [resolver][] | Configures discovering the endpoints to export to. | yes
 resolver > static | [static][] | Static list of endpoints to export to. | no
 resolver > dns | [dns][] | DNS-sourced list of endpoints to export to. | no
+resolver > kubernetes | [kubernetes][] | Kubernetes-sourced list of endpoints to export to. | no
 protocol | [protocol][] | Protocol settings. Only OTLP is supported at the moment. | no
 protocol > otlp | [otlp][] | Configures an OTLP exporter. | no
 protocol > otlp > client | [client][] | Configures the exporter gRPC client. | no
@@ -95,6 +97,7 @@ refers to a `static` block defined inside a `resolver` block.
 [resolver]: #resolver-block
 [static]: #static-block
 [dns]: #dns-block
+[kubernetes]: #kubernetes-block
 [protocol]: #protocol-block
 [otlp]: #otlp-block
 [client]: #client-block
@@ -135,6 +138,26 @@ Name | Type | Description | Default | Required
 `interval` | `duration` | Resolver interval. | `"5s"` | no
 `timeout`  | `duration` | Resolver timeout. | `"1s"`  | no
 `port`     | `string`   | Port to be used with the IP addresses resolved from the DNS hostname. | `"4317"` | no
+
+### kubernetes block
+
+You can use the `kubernetes` block to load balance across the pods of a Kubernetes service. The Agent will be notified
+by the Kubernetes API whenever a new pod is added or removed from the service.
+
+The following arguments are supported:
+
+Name | Type | Description | Default | Required
+---- | ---- | ----------- | ------- | --------
+`service` | `string`       | Kubernetes service to resolve. |  | yes
+`ports`   | `list(number)` | Ports to use with the IP addresses resolved from `service`. | `[4317]` | no
+
+If no namespace is specified inside `service`, an attempt will be made to infer the namespace for this Agent. 
+If this fails, the `default` namespace will be used.
+
+Each of the ports listed in `ports` will be used with each of the IPs resolved from `service`. 
+
+The "get", "list", and "watch" [roles](https://kubernetes.io/docs/reference/access-authn-authz/rbac/#role-example)
+must be granted in Kubernetes for the resolver to work.
 
 ### protocol block
 

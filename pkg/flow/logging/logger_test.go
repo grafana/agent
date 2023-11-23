@@ -1,12 +1,15 @@
 package logging_test
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"log/slog"
+	"strings"
 	"testing"
 	"time"
 
+	"github.com/go-kit/log"
 	gokitlevel "github.com/go-kit/log/level"
 	"github.com/grafana/agent/pkg/flow/logging"
 	flowlevel "github.com/grafana/agent/pkg/flow/logging/level"
@@ -18,21 +21,152 @@ $ go test -count=1 -benchmem ./pkg/flow/logging -run ^$ -bench BenchmarkLogging_
 goos: darwin
 goarch: arm64
 pkg: github.com/grafana/agent/pkg/flow/logging
-BenchmarkLogging_NoLevel_Prints-8             	  797337	      1492 ns/op	     368 B/op	      11 allocs/op
-BenchmarkLogging_NoLevel_Drops-8              	44667505	        27.06 ns/op	       8 B/op	       0 allocs/op
-BenchmarkLogging_GoKitLevel_Drops_Sprintf-8   	 3569900	       336.1 ns/op	     320 B/op	       8 allocs/op
-BenchmarkLogging_GoKitLevel_Drops-8           	 6698175	       180.7 ns/op	     472 B/op	       5 allocs/op
-BenchmarkLogging_GoKitLevel_Prints-8          	  705537	      1688 ns/op	     849 B/op	      16 allocs/op
-BenchmarkLogging_Slog_Drops-8                 	79589450	        15.10 ns/op	       8 B/op	       0 allocs/op
-BenchmarkLogging_Slog_Prints-8                	 1000000	      1127 ns/op	      32 B/op	       2 allocs/op
-BenchmarkLogging_FlowLevel_Drops-8            	20856249	        55.64 ns/op	     168 B/op	       2 allocs/op
-BenchmarkLogging_FlowLevel_Prints-8           	  701811	      1713 ns/op	     849 B/op	      16 allocs/op
+BenchmarkLogging_NoLevel_Prints-8             	  722358	      1524 ns/op	     368 B/op	      11 allocs/op
+BenchmarkLogging_NoLevel_Drops-8              	47103154	        25.59 ns/op	       8 B/op	       0 allocs/op
+BenchmarkLogging_GoKitLevel_Drops_Sprintf-8   	 3585387	       332.1 ns/op	     320 B/op	       8 allocs/op
+BenchmarkLogging_GoKitLevel_Drops-8           	 6705489	       176.6 ns/op	     472 B/op	       5 allocs/op
+BenchmarkLogging_GoKitLevel_Prints-8          	  678214	      1669 ns/op	     849 B/op	      16 allocs/op
+BenchmarkLogging_Slog_Drops-8                 	79687671	        15.09 ns/op	       8 B/op	       0 allocs/op
+BenchmarkLogging_Slog_Prints-8                	 1000000	      1119 ns/op	      32 B/op	       2 allocs/op
+BenchmarkLogging_FlowLevel_Drops-8            	21693330	        58.45 ns/op	     168 B/op	       2 allocs/op
+BenchmarkLogging_FlowLevel_Prints-8           	  720554	      1672 ns/op	     833 B/op	      15 allocs/op
 */
 
 const testStr = "this is a test string"
 
+func TestLevels(t *testing.T) {
+	type testCase struct {
+		name     string
+		logger   func(w io.Writer) (log.Logger, error)
+		message  string
+		expected string
+	}
+
+	var testCases = []testCase{
+		{
+			name:     "no level - prints",
+			logger:   func(w io.Writer) (log.Logger, error) { return logging.New(w, debugLevel()) },
+			message:  "hello",
+			expected: "level=info msg=hello\n",
+		},
+		{
+			name:     "no level - drops",
+			logger:   func(w io.Writer) (log.Logger, error) { return logging.New(w, warnLevel()) },
+			message:  "hello",
+			expected: "",
+		},
+		{
+			name: "flow info level - drops",
+			logger: func(w io.Writer) (log.Logger, error) {
+				logger, err := logging.New(w, warnLevel())
+				return flowlevel.Info(logger), err
+			},
+			message:  "hello",
+			expected: "",
+		},
+		{
+			name: "flow debug level - prints",
+			logger: func(w io.Writer) (log.Logger, error) {
+				logger, err := logging.New(w, debugLevel())
+				return flowlevel.Debug(logger), err
+			},
+			message:  "hello",
+			expected: "level=debug msg=hello\n",
+		},
+		{
+			name: "flow info level - prints",
+			logger: func(w io.Writer) (log.Logger, error) {
+				logger, err := logging.New(w, infoLevel())
+				return flowlevel.Info(logger), err
+			},
+			message:  "hello",
+			expected: "level=info msg=hello\n",
+		},
+		{
+			name: "flow warn level - prints",
+			logger: func(w io.Writer) (log.Logger, error) {
+				logger, err := logging.New(w, debugLevel())
+				return flowlevel.Warn(logger), err
+			},
+			message:  "hello",
+			expected: "level=warn msg=hello\n",
+		},
+		{
+			name: "flow error level - prints",
+			logger: func(w io.Writer) (log.Logger, error) {
+				logger, err := logging.New(w, debugLevel())
+				return flowlevel.Error(logger), err
+			},
+			message:  "hello",
+			expected: "level=error msg=hello\n",
+		},
+		{
+			name: "gokit info level - drops",
+			logger: func(w io.Writer) (log.Logger, error) {
+				logger, err := logging.New(w, warnLevel())
+				return gokitlevel.Info(logger), err
+			},
+			message:  "hello",
+			expected: "",
+		},
+		{
+			name: "gokit debug level - prints",
+			logger: func(w io.Writer) (log.Logger, error) {
+				logger, err := logging.New(w, debugLevel())
+				return gokitlevel.Debug(logger), err
+			},
+			message:  "hello",
+			expected: "level=debug msg=hello\n",
+		},
+		{
+			name: "gokit info level - prints",
+			logger: func(w io.Writer) (log.Logger, error) {
+				logger, err := logging.New(w, infoLevel())
+				return gokitlevel.Info(logger), err
+			},
+			message:  "hello",
+			expected: "level=info msg=hello\n",
+		},
+		{
+			name: "gokit warn level - prints",
+			logger: func(w io.Writer) (log.Logger, error) {
+				logger, err := logging.New(w, debugLevel())
+				return gokitlevel.Warn(logger), err
+			},
+			message:  "hello",
+			expected: "level=warn msg=hello\n",
+		},
+		{
+			name: "gokit error level - prints",
+			logger: func(w io.Writer) (log.Logger, error) {
+				logger, err := logging.New(w, debugLevel())
+				return gokitlevel.Error(logger), err
+			},
+			message:  "hello",
+			expected: "level=error msg=hello\n",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			buffer := bytes.NewBuffer(nil)
+			logger, err := tc.logger(buffer)
+			require.NoError(t, err)
+			logger.Log("msg", tc.message)
+
+			if tc.expected == "" {
+				require.Empty(t, buffer.String())
+			} else {
+				require.Contains(t, buffer.String(), "ts=")
+				noTimestamp := strings.Join(strings.Split(buffer.String(), " ")[1:], " ")
+				require.Equal(t, tc.expected, noTimestamp)
+			}
+		})
+	}
+}
+
 func BenchmarkLogging_NoLevel_Prints(b *testing.B) {
-	logger, err := logging.New(io.Discard, debugLevelOptions())
+	logger, err := logging.New(io.Discard, infoLevel())
 	require.NoError(b, err)
 
 	testErr := fmt.Errorf("test error")
@@ -42,7 +176,7 @@ func BenchmarkLogging_NoLevel_Prints(b *testing.B) {
 }
 
 func BenchmarkLogging_NoLevel_Drops(b *testing.B) {
-	logger, err := logging.New(io.Discard, warnLevelOptions())
+	logger, err := logging.New(io.Discard, warnLevel())
 	require.NoError(b, err)
 
 	testErr := fmt.Errorf("test error")
@@ -52,7 +186,7 @@ func BenchmarkLogging_NoLevel_Drops(b *testing.B) {
 }
 
 func BenchmarkLogging_GoKitLevel_Drops_Sprintf(b *testing.B) {
-	logger, err := logging.New(io.Discard, debugLevelOptions())
+	logger, err := logging.New(io.Discard, infoLevel())
 	require.NoError(b, err)
 
 	testErr := fmt.Errorf("test error")
@@ -62,7 +196,7 @@ func BenchmarkLogging_GoKitLevel_Drops_Sprintf(b *testing.B) {
 }
 
 func BenchmarkLogging_GoKitLevel_Drops(b *testing.B) {
-	logger, err := logging.New(io.Discard, debugLevelOptions())
+	logger, err := logging.New(io.Discard, infoLevel())
 	require.NoError(b, err)
 
 	testErr := fmt.Errorf("test error")
@@ -72,7 +206,7 @@ func BenchmarkLogging_GoKitLevel_Drops(b *testing.B) {
 }
 
 func BenchmarkLogging_GoKitLevel_Prints(b *testing.B) {
-	logger, err := logging.New(io.Discard, debugLevelOptions())
+	logger, err := logging.New(io.Discard, infoLevel())
 	require.NoError(b, err)
 
 	testErr := fmt.Errorf("test error")
@@ -105,7 +239,7 @@ func BenchmarkLogging_Slog_Prints(b *testing.B) {
 }
 
 func BenchmarkLogging_FlowLevel_Drops(b *testing.B) {
-	logger, err := logging.New(io.Discard, debugLevelOptions())
+	logger, err := logging.New(io.Discard, infoLevel())
 	require.NoError(b, err)
 
 	testErr := fmt.Errorf("test error")
@@ -115,7 +249,7 @@ func BenchmarkLogging_FlowLevel_Drops(b *testing.B) {
 }
 
 func BenchmarkLogging_FlowLevel_Prints(b *testing.B) {
-	logger, err := logging.New(io.Discard, debugLevelOptions())
+	logger, err := logging.New(io.Discard, infoLevel())
 	require.NoError(b, err)
 
 	testErr := fmt.Errorf("test error")
@@ -124,15 +258,21 @@ func BenchmarkLogging_FlowLevel_Prints(b *testing.B) {
 	}
 }
 
-func debugLevelOptions() logging.Options {
+func debugLevel() logging.Options {
 	opts := logging.Options{}
 	opts.SetToDefault()
+	opts.Level = logging.LevelDebug
+	return opts
+}
+
+func infoLevel() logging.Options {
+	opts := debugLevel()
 	opts.Level = logging.LevelInfo
 	return opts
 }
 
-func warnLevelOptions() logging.Options {
-	opts := debugLevelOptions()
+func warnLevel() logging.Options {
+	opts := debugLevel()
 	opts.Level = logging.LevelWarn
 	return opts
 }

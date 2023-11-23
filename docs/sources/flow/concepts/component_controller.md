@@ -4,9 +4,10 @@ aliases:
 - /docs/grafana-cloud/agent/flow/concepts/component_controller/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/concepts/component_controller/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/concepts/component_controller/
+- /docs/grafana-cloud/send-data/agent/flow/concepts/component_controller/
 canonical: https://grafana.com/docs/agent/latest/flow/concepts/component_controller/
-title: Component controller
 description: Learn about the component controller
+title: Component controller
 weight: 200
 ---
 
@@ -140,9 +141,9 @@ reloading.
 
 {{% docs/reference %}}
 [prometheus.exporter.unix]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/prometheus.exporter.unix.md"
-[prometheus.exporter.unix]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/prometheus.exporter.unix.md"
+[prometheus.exporter.unix]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/components/prometheus.exporter.unix.md"
 [run]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/cli/run.md"
-[run]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/cli/run.md"
+[run]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/cli/run.md"
 [Components]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/components.md"
-[Components]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/concepts/components.md"
+[Components]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/concepts/components.md"
 {{% /docs/reference %}}

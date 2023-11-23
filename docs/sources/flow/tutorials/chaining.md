@@ -4,6 +4,7 @@ aliases:
 - /docs/grafana-cloud/agent/flow/tutorials/chaining/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/tutorials/chaining/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/tutorials/chaining/
+- /docs/grafana-cloud/send-data/agent/flow/tutorials/chaining/
 canonical: https://grafana.com/docs/agent/latest/flow/tutorials/chaining/
 description: Learn how to chain Prometheus components
 menuTitle: Chain Prometheus components
@@ -87,5 +88,5 @@ In `multiple-input.river` add a new `prometheus.relabel` component that adds a `
 
 {{% docs/reference %}}
 [Filtering metrics]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/tutorials/filtering-metrics.md"
-[Filtering metrics]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/tutorials/filtering-metrics.md"
+[Filtering metrics]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/tutorials/filtering-metrics.md"
 {{% /docs/reference %}}

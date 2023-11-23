@@ -1,10 +1,12 @@
 ---
 aliases:
-- ../../configuration/loki-config/
 - ../../configuration/logs-config/
+- ../../configuration/loki-config/
+- /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/logs-config/
+- /docs/grafana-cloud/send-data/agent/static/configuration/logs-config/
 canonical: https://grafana.com/docs/agent/latest/static/configuration/logs-config/
-title: logs_config
 description: Learn about logs_config
+title: logs_config
 weight: 300
 ---
 

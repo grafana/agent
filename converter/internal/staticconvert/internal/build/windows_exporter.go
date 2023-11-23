@@ -1,34 +1,26 @@
 package build
 
 import (
-	"fmt"
+	"strings"
 
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/prometheus/exporter/windows"
-	"github.com/grafana/agent/converter/internal/common"
 	"github.com/grafana/agent/pkg/integrations/windows_exporter"
 )
 
-func (b *IntegrationsConfigBuilder) appendWindowsExporter(config *windows_exporter.Config) discovery.Exports {
+func (b *IntegrationsConfigBuilder) appendWindowsExporter(config *windows_exporter.Config, instanceKey *string) discovery.Exports {
 	args := toWindowsExporter(config)
-	compLabel := common.LabelForParts(b.globalCtx.LabelPrefix, config.Name())
-	b.f.Body().AppendBlock(common.NewBlockWithOverride(
-		[]string{"prometheus", "exporter", "windows"},
-		compLabel,
-		args,
-	))
-
-	return common.NewDiscoveryExports(fmt.Sprintf("prometheus.exporter.windows.%s.targets", compLabel))
+	return b.appendExporterBlock(args, config.Name(), instanceKey, "windows")
 }
 
 func toWindowsExporter(config *windows_exporter.Config) *windows.Arguments {
 	return &windows.Arguments{
-		EnabledCollectors: splitByCommaNullOnEmpty(config.EnabledCollectors),
+		EnabledCollectors: strings.Split(config.EnabledCollectors, ","),
 		Dfsr: windows.DfsrConfig{
-			SourcesEnabled: splitByCommaNullOnEmpty(config.Dfsr.SourcesEnabled),
+			SourcesEnabled: strings.Split(config.Dfsr.SourcesEnabled, ","),
 		},
 		Exchange: windows.ExchangeConfig{
-			EnabledList: splitByCommaNullOnEmpty(config.Exchange.EnabledList),
+			EnabledList: strings.Split(config.Exchange.EnabledList, ","),
 		},
 		IIS: windows.IISConfig{
 			AppBlackList:  config.IIS.AppBlackList,
@@ -50,13 +42,13 @@ func toWindowsExporter(config *windows_exporter.Config) *windows.Arguments {
 			Where: config.MSMQ.Where,
 		},
 		MSSQL: windows.MSSQLConfig{
-			EnabledClasses: splitByCommaNullOnEmpty(config.MSSQL.EnabledClasses),
+			EnabledClasses: strings.Split(config.MSSQL.EnabledClasses, ","),
 		},
 		Network: windows.NetworkConfig{
 			BlackList: config.Network.BlackList,
 			WhiteList: config.Network.WhiteList,
-			Exclude:   config.Network.Include,
-			Include:   config.Network.Exclude,
+			Exclude:   config.Network.Exclude,
+			Include:   config.Network.Include,
 		},
 		Process: windows.ProcessConfig{
 			BlackList: config.Process.BlackList,

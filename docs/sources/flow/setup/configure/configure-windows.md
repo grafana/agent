@@ -3,6 +3,7 @@ aliases:
 - /docs/grafana-cloud/agent/flow/setup/configure/configure-windows/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/setup/configure/configure-windows/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/setup/configure/configure-windows/
+- /docs/grafana-cloud/send-data/agent/flow/setup/configure/configure-windows/
 canonical: https://grafana.com/docs/agent/latest/flow/setup/configure/configure-windows/
 description: Learn how to configure Grafana Agent in flow mode on Windows
 menuTitle: Windows
@@ -90,6 +91,6 @@ To expose the UI to other machines, complete the following steps:
 
 {{% docs/reference %}}
 [UI]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/monitoring/debugging.md#grafana-agent-flow-ui"
-[UI]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/monitoring/debugging.md#grafana-agent-flow-ui"
+[UI]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/monitoring/debugging.md#grafana-agent-flow-ui"
 {{% /docs/reference %}}
 

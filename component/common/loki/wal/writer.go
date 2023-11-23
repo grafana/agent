@@ -59,6 +59,7 @@ type Writer struct {
 
 	reclaimedOldSegmentsSpaceCounter *prometheus.CounterVec
 	lastReclaimedSegment             *prometheus.GaugeVec
+	lastWrittenTimestamp             *prometheus.GaugeVec
 
 	closeCleaner chan struct{}
 }
@@ -96,10 +97,17 @@ func NewWriter(walCfg Config, logger log.Logger, reg prometheus.Registerer) (*Wr
 		Name:      "last_reclaimed_segment",
 		Help:      "Last reclaimed segment number",
 	}, []string{})
+	wrt.lastWrittenTimestamp = prometheus.NewGaugeVec(prometheus.GaugeOpts{
+		Namespace: "loki_write",
+		Subsystem: "wal_writer",
+		Name:      "last_written_timestamp",
+		Help:      "Latest timestamp that was written to the WAL",
+	}, []string{})
 
 	if reg != nil {
 		_ = reg.Register(wrt.reclaimedOldSegmentsSpaceCounter)
 		_ = reg.Register(wrt.lastReclaimedSegment)
+		_ = reg.Register(wrt.lastWrittenTimestamp)
 	}
 
 	wrt.start(walCfg.MaxSegmentAge)
@@ -117,6 +125,9 @@ func (wrt *Writer) start(maxSegmentAge time.Duration) {
 				// if an error occurred while writing the wal, go to next entry and don't notify write subscribers
 				continue
 			}
+
+			// emit metric with latest written timestamp, to be able to track delay from writer to watcher
+			wrt.lastWrittenTimestamp.WithLabelValues().Set(float64(e.Timestamp.Unix()))
 
 			wrt.writeSubscribersLock.RLock()
 			for _, s := range wrt.writeSubscribers {

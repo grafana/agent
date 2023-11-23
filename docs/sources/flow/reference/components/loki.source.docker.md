@@ -1,12 +1,13 @@
 ---
 aliases:
-- /docs/agent/latest/flow/reference/components/loki.source.docker
+- /docs/agent/latest/flow/reference/components/loki.source.docker/
 - /docs/grafana-cloud/agent/flow/reference/components/loki.source.docker/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/loki.source.docker/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/loki.source.docker/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/loki.source.docker/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/loki.source.docker/
-title: loki.source.docker
 description: Learn about loki.source.docker
+title: loki.source.docker
 ---
 
 # loki.source.docker

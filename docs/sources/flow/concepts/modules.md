@@ -4,9 +4,10 @@ aliases:
 - /docs/grafana-cloud/agent/flow/concepts/modules/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/concepts/modules/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/concepts/modules/
+- /docs/grafana-cloud/send-data/agent/flow/concepts/modules/
 canonical: https://grafana.com/docs/agent/latest/flow/concepts/modules/
-title: Modules
 description: Learn about modules
+title: Modules
 weight: 300
 ---
 
@@ -142,11 +143,11 @@ loki.write "default" {
 
 {{% docs/reference %}}
 [argument block]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/config-blocks/argument.md"
-[argument block]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/config-blocks/argument.md"
+[argument block]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/config-blocks/argument.md"
 [export block]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/config-blocks/export.md"
-[export block]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/config-blocks/export.md"
+[export block]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/config-blocks/export.md"
 [Component controller]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/component_controller.md"
-[Component controller]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/concepts/component_controller.md"
+[Component controller]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/concepts/component_controller.md"
 [Components]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components"
-[Components]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components"
+[Components]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/components"
 {{% /docs/reference %}}

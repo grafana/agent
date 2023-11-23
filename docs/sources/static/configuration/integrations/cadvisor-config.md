@@ -1,9 +1,11 @@
 ---
 aliases:
 - ../../../configuration/integrations/cadvisor-config/
+- /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/integrations/cadvisor-config/
+- /docs/grafana-cloud/send-data/agent/static/configuration/integrations/cadvisor-config/
 canonical: https://grafana.com/docs/agent/latest/static/configuration/integrations/cadvisor-config/
-title: cadvisor_config
 description: Learn about cadvisor_config
+title: cadvisor_config
 ---
 
 # cadvisor_config

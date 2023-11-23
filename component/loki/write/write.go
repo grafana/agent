@@ -12,7 +12,6 @@ import (
 	"github.com/grafana/agent/component/common/loki/client"
 	"github.com/grafana/agent/component/common/loki/limit"
 	"github.com/grafana/agent/component/common/loki/wal"
-	"github.com/grafana/agent/pkg/build"
 )
 
 func init() {
@@ -25,8 +24,6 @@ func init() {
 			return New(opts, args.(Arguments))
 		},
 	})
-
-	client.UserAgent = fmt.Sprintf("GrafanaAgent/%s", build.Version)
 }
 
 // Arguments holds values which are used to configure the loki.write component.
@@ -119,11 +116,14 @@ func (c *Component) Run(ctx context.Context) error {
 		case <-ctx.Done():
 			return nil
 		case entry := <-c.receiver.Chan():
+			c.mut.RLock()
 			select {
 			case <-ctx.Done():
+				c.mut.RUnlock()
 				return nil
 			case c.sink.Chan() <- entry:
 			}
+			c.mut.RUnlock()
 		}
 	}
 }

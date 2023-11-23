@@ -3,9 +3,10 @@ aliases:
 - /docs/grafana-cloud/agent/operator/operator-integrations/
 - /docs/grafana-cloud/monitor-infrastructure/agent/operator/operator-integrations/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/operator/operator-integrations/
+- /docs/grafana-cloud/send-data/agent/operator/operator-integrations/
 canonical: https://grafana.com/docs/agent/latest/operator/operator-integrations/
-title: Set up integrations
 description: Learn how to set up integrations
+title: Set up integrations
 weight: 350
 ---
 # Set up integrations

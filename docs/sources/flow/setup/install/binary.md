@@ -4,6 +4,7 @@ aliases:
 - /docs/grafana-cloud/agent/flow/setup/install/binary/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/setup/install/binary/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/setup/install/binary/
+- /docs/grafana-cloud/send-data/agent/flow/setup/install/binary/
 canonical: https://grafana.com/docs/agent/latest/flow/setup/install/binary/
 description: Learn how to install Grafana Agent in flow mode as a standalone binary
 menuTitle: Standalone
@@ -47,7 +48,7 @@ To download Grafana Agent as a standalone binary, perform the following steps.
 
 {{% docs/reference %}}
 [Start Grafana Agent]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/start-agent.md#standalone-binary"
-[Start Grafana Agent]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/setup/start-agent.md#standalone-binary"
+[Start Grafana Agent]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/setup/start-agent.md#standalone-binary"
 [Configure Grafana Agent]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/configure"
-[Configure Grafana Agent]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/setup/configure/"
+[Configure Grafana Agent]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/setup/configure/"
 {{% /docs/reference %}}

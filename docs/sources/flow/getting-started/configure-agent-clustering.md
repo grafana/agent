@@ -3,10 +3,11 @@ aliases:
 - /docs/grafana-cloud/agent/flow/getting-started/configure-agent-clustering/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/getting-started/configure-agent-clustering/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/getting-started/configure-agent-clustering/
+- /docs/grafana-cloud/send-data/agent/flow/getting-started/configure-agent-clustering/
 canonical: https://grafana.com/docs/agent/latest/flow/getting-started/configure-agent-clustering/
+description: Learn how to configure Grafana Agent clustering in an existing installation
 menuTitle: Configure Grafana Agent clustering
 title: Configure Grafana Agent clustering in an existing installation
-description: Learn how to configure Grafana Agent clustering in an existing installation
 weight: 400
 ---
 
@@ -62,11 +63,11 @@ To configure clustering:
 
 {{% docs/reference %}}
 [clustering]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/clustering.md"
-[clustering]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/concepts/clustering.md"
+[clustering]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/concepts/clustering.md"
 [beta]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/stability.md#beta"
-[beta]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/stability.md#beta"
+[beta]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/stability.md#beta"
 [install-helm]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/install/kubernetes.md"
-[install-helm]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/setup/install/kubernetes.md"
+[install-helm]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/setup/install/kubernetes.md"
 [UI]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/monitoring/debugging.md#component-detail-page"
-[UI]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/monitoring/debugging.md#component-detail-page"
+[UI]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/monitoring/debugging.md#component-detail-page"
 {{% /docs/reference %}}

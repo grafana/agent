@@ -3,9 +3,10 @@ aliases:
 - /docs/grafana-cloud/agent/flow/monitoring/debugging/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/monitoring/debugging/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/monitoring/debugging/
+- /docs/grafana-cloud/send-data/agent/flow/monitoring/debugging/
 canonical: https://grafana.com/docs/agent/latest/flow/monitoring/debugging/
-title: Debugging
 description: Learn about debugging
+title: Debugging
 weight: 300
 ---
 
@@ -127,14 +128,14 @@ terminating Agent has been shut down.
 
 {{% docs/reference %}}
 [logging]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/config-blocks/logging.md"
-[logging]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/config-blocks/logging.md"
+[logging]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/config-blocks/logging.md"
 [clustering]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/clustering.md"
-[clustering]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/concepts/clustering.md"
+[clustering]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/concepts/clustering.md"
 [install]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/install"
-[install]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/setup/install"
+[install]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/setup/install"
 [secret]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/config-language/expressions/types_and_values.md#secrets.md"
-[secret]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/config-language/expressions/types_and_values.md#secrets.md"
+[secret]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/config-language/expressions/types_and_values.md#secrets.md"
 [grafana-agent run]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/cli/run.md"
-[grafana-agent run]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/cli/run.md"
+[grafana-agent run]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/cli/run.md"
 {{% /docs/reference %}}
 

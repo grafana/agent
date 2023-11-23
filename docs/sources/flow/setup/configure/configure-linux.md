@@ -3,6 +3,7 @@ aliases:
 - /docs/grafana-cloud/agent/flow/setup/configure/configure-linux/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/setup/configure/configure-linux/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/setup/configure/configure-linux/
+- /docs/grafana-cloud/send-data/agent/flow/setup/configure/configure-linux/
 canonical: https://grafana.com/docs/agent/latest/flow/setup/configure/configure-linux/
 description: Learn how to configure Grafana Agent in flow mode on Linux
 menuTitle: Linux
@@ -91,7 +92,7 @@ To expose the UI to other machines, complete the following steps:
 
 {{% docs/reference %}}
 [run]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/cli/run.md"
-[run]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/cli/run.md"
+[run]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/cli/run.md"
 [UI]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/monitoring/debugging.md#grafana-agent-flow-ui"
-[UI]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/monitoring/debugging.md#grafana-agent-flow-ui"
+[UI]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/monitoring/debugging.md#grafana-agent-flow-ui"
 {{% /docs/reference %}}

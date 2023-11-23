@@ -3,10 +3,11 @@ aliases:
 - /docs/grafana-cloud/agent/flow/getting-started/migrating-from-promtail/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/getting-started/migrating-from-promtail/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/getting-started/migrating-from-promtail/
+- /docs/grafana-cloud/send-data/agent/flow/getting-started/migrating-from-promtail/
 canonical: https://grafana.com/docs/agent/latest/flow/getting-started/migrating-from-promtail/
+description: Learn how to migrate from Promtail to Grafana Agent Flow
 menuTitle: Migrate from Promtail
 title: Migrate from Promtail to Grafana Agent Flow
-description: Learn how to migrate from Promtail to Grafana Agent Flow
 weight: 330
 ---
 
@@ -236,23 +237,23 @@ Furthermore, we recommend that you review the following checklist:
 
 {{% docs/reference %}}
 [local.file_match]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/local.file_match.md"
-[local.file_match]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/local.file_match.md"
+[local.file_match]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/components/local.file_match.md"
 [loki.source.file]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/loki.source.file.md"
-[loki.source.file]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/loki.source.file.md"
+[loki.source.file]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/components/loki.source.file.md"
 [loki.write]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/loki.write.md"
-[loki.write]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/loki.write.md"
+[loki.write]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/components/loki.write.md"
 [Components]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/components.md"
-[Components]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/concepts/components.md"
+[Components]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/concepts/components.md"
 [convert]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/cli/convert.md"
-[convert]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/cli/convert.md"
+[convert]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/cli/convert.md"
 [run]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/cli/run.md"
-[run]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/cli/run.md"
+[run]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/cli/run.md"
 [Start the agent]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/start-agent.md"
-[Start the agent]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/setup/start-agent.md"
+[Start the agent]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/setup/start-agent.md"
 [Flow Debugging]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/monitoring/debugging.md"
-[Flow Debugging]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/monitoring/debugging.md"
+[Flow Debugging]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/monitoring/debugging.md"
 [River]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/config-language/_index.md"
-[River]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/config-language/_index.md"
+[River]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/config-language/_index.md"
 [Grafana Agent Flow UI]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/monitoring/debugging#grafana-agent-flow-ui"
-[Grafana Agent Flow UI]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/monitoring/debugging#grafana-agent-flow-ui"
+[Grafana Agent Flow UI]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/monitoring/debugging#grafana-agent-flow-ui"
 {{% /docs/reference %}}

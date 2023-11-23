@@ -4,6 +4,7 @@ aliases:
 - /docs/grafana-cloud/agent/shared/flow/reference/components/otelcol-debug-metrics-block/
 - /docs/grafana-cloud/monitor-infrastructure/agent/shared/flow/reference/components/otelcol-debug-metrics-block/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/shared/flow/reference/components/otelcol-debug-metrics-block/
+- /docs/grafana-cloud/send-data/agent/shared/flow/reference/components/otelcol-debug-metrics-block/
 canonical: https://grafana.com/docs/agent/latest/shared/flow/reference/components/otelcol-debug-metrics-block/
 description: Shared content, otelcol debug metrics block
 headless: true

@@ -1,7 +1,10 @@
 ---
+aliases:
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/prometheus.exporter.agent/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/prometheus.exporter.agent/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.agent/
-title: prometheus.exporter.agent
 description: Learn about prometheus.exporter.agen
+title: prometheus.exporter.agent
 ---
 
 # prometheus.exporter.agent
@@ -42,7 +45,7 @@ This example uses a [`prometheus.scrape` component][scrape] to collect metrics
 from `prometheus.exporter.agent`:
 
 ```river
-prometheus.exporter.agent "agent" {}
+prometheus.exporter.agent "example" {}
 
 // Configure a prometheus.scrape component to collect agent metrics.
 prometheus.scrape "demo" {

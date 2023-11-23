@@ -4,9 +4,10 @@ aliases:
 - /docs/grafana-cloud/agent/flow/config-language/components/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/config-language/components/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/config-language/components/
+- /docs/grafana-cloud/send-data/agent/flow/config-language/components/
 canonical: https://grafana.com/docs/agent/latest/flow/config-language/components/
-title: Components configuration language
 description: Learn about the components configuration language
+title: Components configuration language
 weight: 300
 ---
 

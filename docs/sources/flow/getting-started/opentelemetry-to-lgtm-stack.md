@@ -3,9 +3,11 @@ aliases:
 - /docs/grafana-cloud/agent/flow/getting-started/opentelemetry-to-lgtm-stack/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/getting-started/opentelemetry-to-lgtm-stack/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/getting-started/opentelemetry-to-lgtm-stack/
+- /docs/grafana-cloud/send-data/agent/flow/getting-started/opentelemetry-to-lgtm-stack/
 canonical: https://grafana.com/docs/agent/latest/flow/getting-started/opentelemetry-to-lgtm-stack/
+description: Learn how to collect OpenTelemetry data and forward it to the Grafana
+  stack
 title: OpenTelemetry to Grafana stack
-description: Learn how to collect OpenTelemetry data and forward it to the Grafana stack
 weight: 350
 ---
 
@@ -309,23 +311,23 @@ You can now check the pipeline graphically by visiting http://localhost:12345/gr
 
 {{% docs/reference %}}
 [Collect open telemetry data]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/getting-started/collect-opentelemetry-data.md"
-[Collect open telemetry data]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/getting-started/collect-opentelemetry-data.md"
+[Collect open telemetry data]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/getting-started/collect-opentelemetry-data.md"
 [Components]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/components.md"
-[Components]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/concepts/components.md"
+[Components]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/concepts/components.md"
 [loki.write]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/loki.write.md"
-[loki.write]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/loki.write.md"
+[loki.write]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/components/loki.write.md"
 [otelcol.auth.basic]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/otelcol.auth.basic.md"
-[otelcol.auth.basic]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/otelcol.auth.basic.md"
+[otelcol.auth.basic]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/components/otelcol.auth.basic.md"
 [otelcol.exporter.loki]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/otelcol.exporter.loki.md"
-[otelcol.exporter.loki]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/otelcol.exporter.loki.md"
+[otelcol.exporter.loki]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/components/otelcol.exporter.loki.md"
 [otelcol.exporter.otlp]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/otelcol.exporter.otlp.md"
-[otelcol.exporter.otlp]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/otelcol.exporter.otlp.md"
+[otelcol.exporter.otlp]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/components/otelcol.exporter.otlp.md"
 [otelcol.exporter.prometheus]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/otelcol.exporter.prometheus.md"
-[otelcol.exporter.prometheus]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/otelcol.exporter.prometheus.md"
+[otelcol.exporter.prometheus]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/components/otelcol.exporter.prometheus.md"
 [otelcol.processor.batch]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/otelcol.processor.batch.md"
-[otelcol.processor.batch]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/otelcol.processor.batch.md"
+[otelcol.processor.batch]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/components/otelcol.processor.batch.md"
 [otelcol.receiver.otlp]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/otelcol.receiver.otlp.md"
-[otelcol.receiver.otlp]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/otelcol.receiver.otlp.md"
+[otelcol.receiver.otlp]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/components/otelcol.receiver.otlp.md"
 [prometheus.remote_write]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/prometheus.remote_write.md"
-[prometheus.remote_write]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/prometheus.remote_write.md"
+[prometheus.remote_write]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/components/prometheus.remote_write.md"
 {{% /docs/reference %}}

@@ -4,6 +4,7 @@ aliases:
 - /docs/grafana-cloud/agent/flow/tutorials/filtering-metrics/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/tutorials/filtering-metrics/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/tutorials/filtering-metrics/
+- /docs/grafana-cloud/send-data/agent/flow/tutorials/filtering-metrics/
 canonical: https://grafana.com/docs/agent/latest/flow/tutorials/filtering-metrics/
 description: Learn how to filter Prometheus metrics
 menuTitle: Filter Prometheus metrics
@@ -59,7 +60,7 @@ Open the `relabel.river` file that was downloaded and change the name of the ser
 
 {{% docs/reference %}}
 [prometheus.relabel]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/prometheus.relabel.md"
-[prometheus.relabel]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/prometheus.relabel.md"
+[prometheus.relabel]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/components/prometheus.relabel.md"
 [Collecting Prometheus metrics]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/tutorials/collecting-prometheus-metrics.md"
-[Collecting Prometheus metrics]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/tutorials/collecting-prometheus-metrics.md"
+[Collecting Prometheus metrics]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/tutorials/collecting-prometheus-metrics.md"
 {{% /docs/reference %}}

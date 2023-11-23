@@ -15,5 +15,6 @@ func TestConvert(t *testing.T) {
 
 	if runtime.GOOS == "windows" {
 		test_common.TestDirectory(t, "testdata_windows", ".yaml", true, []string{}, staticconvert.Convert)
+		test_common.TestDirectory(t, "testdata-v2_windows", ".yaml", true, []string{"-enable-features", "integrations-next"}, staticconvert.Convert)
 	}
 }

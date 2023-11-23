@@ -4,10 +4,11 @@ aliases:
 - /docs/grafana-cloud/agent/data-collection/
 - /docs/grafana-cloud/monitor-infrastructure/agent/data-collection/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/data-collection/
+- /docs/grafana-cloud/send-data/agent/data-collection/
 canonical: https://grafana.com/docs/agent/latest/data-collection/
+description: Grafana Agent data collection
 menuTitle: Data collection
 title: Grafana Agent data collection
-description: Grafana Agent data collection
 weight: 500
 ---
 
@@ -42,7 +43,7 @@ You can use the `-disable-reporting` [command line flag][] to disable the report
 [components]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/components.md"
 [components]: "/docs/grafana-cloud/ -> /docs/agent/<AGENT_VERSION>/flow/reference/cli/run.md"
 [Static]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static"
-[Static]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/static
+[Static]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/static
 [Flow]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow"
 [Flow]: "/docs/grafana-cloud/ -> /docs/agent/<AGENT_VERSION>/flow"
 {{% /docs/reference %}}

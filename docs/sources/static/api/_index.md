@@ -1,10 +1,12 @@
 ---
 aliases:
 - ../api/
+- /docs/grafana-cloud/monitor-infrastructure/agent/static/api/
+- /docs/grafana-cloud/send-data/agent/static/api/
 canonical: https://grafana.com/docs/agent/latest/static/api/
-title: Static mode APIs (Stable)
-menuTitle: Static mode API
 description: Learn about the Grafana Agent static mode API
+menuTitle: Static mode API
+title: Static mode APIs (Stable)
 weight: 400
 ---
 

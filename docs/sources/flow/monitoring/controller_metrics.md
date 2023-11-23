@@ -3,10 +3,11 @@ aliases:
 - /docs/grafana-cloud/agent/flow/monitoring/controller_metrics/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/monitoring/controller_metrics/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/monitoring/controller_metrics/
+- /docs/grafana-cloud/send-data/agent/flow/monitoring/controller_metrics/
 - controller-metrics/
 canonical: https://grafana.com/docs/agent/latest/flow/monitoring/controller_metrics/
-title: Controller metrics
 description: Learn about controller metrics
+title: Controller metrics
 weight: 100
 ---
 
@@ -41,7 +42,7 @@ The controller exposes the following metrics:
 
 {{% docs/reference %}}
 [component controller]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/component_controller.md"
-[component controller]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/concepts/component_controller.md"
+[component controller]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/concepts/component_controller.md"
 [grafana-agent run]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/cli/run.md"
-[grafana-agent run]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/cli/run.md"
+[grafana-agent run]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/cli/run.md"
 {{% /docs/reference %}}

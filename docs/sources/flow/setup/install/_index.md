@@ -3,11 +3,12 @@ aliases:
 - /docs/grafana-cloud/agent/flow/setup/install/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/setup/install/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/setup/install/
+- /docs/grafana-cloud/send-data/agent/flow/setup/install/
 - /docs/sources/flow/install/
 canonical: https://grafana.com/docs/agent/latest/flow/setup/install/
+description: Learn how to install Grafana Agent in flow mode
 menuTitle: Install flow mode
 title: Install Grafana Agent in flow mode
-description: Learn how to install Grafana Agent in flow mode
 weight: 50
 ---
 
@@ -35,5 +36,5 @@ about what data is collected and how you can opt-out.
 
 {{% docs/reference %}}
 [data collection]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/data-collection.md"
-[data collection]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/data-collection.md"
+[data collection]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/data-collection.md"
 {{% /docs/reference %}}

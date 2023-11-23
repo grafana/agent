@@ -3,8 +3,10 @@ aliases:
 - /docs/grafana-cloud/agent/flow/getting-started/migrating-from-static/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/getting-started/migrating-from-static/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/getting-started/migrating-from-static/
+- /docs/grafana-cloud/send-data/agent/flow/getting-started/migrating-from-static/
 canonical: https://grafana.com/docs/agent/latest/flow/getting-started/migrating-from-static/
-description: Learn how to migrate your configuration from Grafana Agent Static mode to Flow mode
+description: Learn how to migrate your configuration from Grafana Agent Static mode
+  to Flow mode
 menuTitle: Migrate from Static mode to Flow mode
 title: Migrate Grafana Agent from Static mode to Flow mode
 weight: 340
@@ -324,47 +326,47 @@ Furthermore, we recommend that you review the following checklist:
 
 {{% docs/reference %}}
 [Static]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static"
-[Static]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/static"
+[Static]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/static"
 [prometheus.scrape]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/prometheus.scrape.md"
-[prometheus.scrape]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/prometheus.scrape.md"
+[prometheus.scrape]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/components/prometheus.scrape.md"
 [prometheus.remote_write]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/prometheus.remote_write.md"
-[prometheus.remote_write]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/prometheus.remote_write.md"
+[prometheus.remote_write]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/components/prometheus.remote_write.md"
 [local.file_match]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/local.file_match.md"
-[local.file_match]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/local.file_match.md"
+[local.file_match]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/components/local.file_match.md"
 [loki.process]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/loki.process.md"
-[loki.process]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/loki.process.md"
+[loki.process]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/components/loki.process.md"
 [loki.source.file]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/loki.source.file.md"
-[loki.source.file]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/loki.source.file.md"
+[loki.source.file]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/components/loki.source.file.md"
 [loki.write]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/loki.write.md"
-[loki.write]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/loki.write.md"
+[loki.write]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/components/loki.write.md"
 [Components]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/components.md"
-[Components]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/concepts/components.md"
+[Components]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/concepts/components.md"
 [convert]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/cli/convert.md"
-[convert]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/cli/convert.md"
+[convert]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/cli/convert.md"
 [run]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/cli/run.md"
-[run]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/cli/run.md"
+[run]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/cli/run.md"
 [Start the agent]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/start-agent.md"
-[Start the agent]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/setup/start-agent.md"
+[Start the agent]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/setup/start-agent.md"
 [Flow Debugging]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/monitoring/debugging.md"
-[Flow Debugging]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/monitoring/debugging.md"
+[Flow Debugging]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/monitoring/debugging.md"
 [River]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/config-language/"
-[River]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/config-language/"
+[River]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/config-language/"
 [Integrations next]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static/configuration/integrations/integrations-next/_index.md"
-[Integrations next]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/traces-config.md
+[Integrations next]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/static/configuration/traces-config.md
 [Traces]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static/configuration/traces-config.md"
-[Traces]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/traces-config.md"
+[Traces]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/static/configuration/traces-config.md"
 [Agent Management]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static/configuration/agent-management.md"
-[Agent Management]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/agent-management.md"
+[Agent Management]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/static/configuration/agent-management.md"
 [env]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/stdlib/env.md"
-[env]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/stdlib/env.md"
+[env]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/stdlib/env.md"
 [Prometheus Limitations]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/getting-started/migrating-from-prometheus.md#limitations"
-[Prometheus Limitations]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/getting-started/migrating-from-prometheus.md#limitations"
+[Prometheus Limitations]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/getting-started/migrating-from-prometheus.md#limitations"
 [Promtail Limitations]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/getting-started/migrating-from-promtail.md#limitations"
-[Promtail Limitations]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/getting-started/migrating-from-promtail.md#limitations"
+[Promtail Limitations]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/getting-started/migrating-from-promtail.md#limitations"
 [Metrics]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static/configuration/metrics-config.md"
-[Metrics]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/metrics-config.md"
+[Metrics]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/static/configuration/metrics-config.md"
 [Logs]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static/configuration/logs-config.md"
-[Logs]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/static/logs-config.md"
+[Logs]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/static/logs-config.md"
 [Grafana Agent Flow UI]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/monitoring/debugging#grafana-agent-flow-ui"
-[Grafana Agent Flow UI]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/monitoring/debugging#grafana-agent-flow-ui"
+[Grafana Agent Flow UI]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/monitoring/debugging#grafana-agent-flow-ui"
 {{% /docs/reference %}}
