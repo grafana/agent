@@ -47,8 +47,8 @@ func toWindowsExporter(config *windows_exporter.Config) *windows.Arguments {
 		Network: windows.NetworkConfig{
 			BlackList: config.Network.BlackList,
 			WhiteList: config.Network.WhiteList,
-			Exclude:   config.Network.Include,
-			Include:   config.Network.Exclude,
+			Exclude:   config.Network.Exclude,
+			Include:   config.Network.Include,
 		},
 		Process: windows.ProcessConfig{
 			BlackList: config.Process.BlackList,
