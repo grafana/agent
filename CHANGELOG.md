@@ -10,6 +10,23 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+### Features
+
+- Agent Management: Introduce support for templated configuration. (@jcreixell)
+
+### Enhancements
+ 
+- Flow Windows service: Support environment variables. (@jkroepke)
+
+### Bugfixes
+
+- Permit `X-Faro-Session-ID` header in CORS requests for the `faro.receiver`
+  component (flow mode) and the `app_agent_receiver` integration (static mode).
+  (@cedricziel)
+
+v0.38.0 (2023-11-21)
+--------------------
+
 ### Breaking changes
 
 - Remove `otelcol.exporter.jaeger` component (@hainenber)
@@ -25,11 +42,6 @@ Main (unreleased)
     - metric "transaction_in_queue" was Counter instead of Gauge
     - renamed 3 metrics starting with `mysql_perf_schema_transaction_` to start with `mysql_perf_schema_transactions_` to be consistent with column names.
     - exposing only server's own stats by matching `MEMBER_ID` with `@@server_uuid` resulting "member_id" label to be dropped.
-
-### Other changes
-
-- Bump `mysqld_exporter` version to v0.15.0. (@marctc)
-- Bump `github-exporter` version to 1.0.6. (@marctc)
 
 ### Features
 
@@ -62,6 +74,9 @@ Main (unreleased)
 
   - `otelcol.processor.filter` - filters OTLP telemetry data using OpenTelemetry
     Transformation Language (OTTL). (@hainenber)
+  - `otelcol.receiver.vcenter` - receives metrics telemetry data from vCenter. (@marctc)
+
+- Agent Management: Introduce support for remotely managed external labels for logs. (@jcreixell)
 
 ### Enhancements
 
@@ -97,7 +112,15 @@ Main (unreleased)
 
 - Added support for replaying not sent data for `loki.write` when WAL is enabled. (@thepalbi)
 
+- Make the result of 'discovery.kubelet' support pods that without ports, such as k8s control plane static pods. (@masonmei)
+
 - Added support for unicode strings in `pyroscope.ebpf` python profiles. (@korniltsev)
+
+- Improved resilience of graph evaluation in presence of slow components. (@thampiotr)
+
+- Updated windows exporter to use prometheus-community/windows_exporter commit 1836cd1. (@mattdurham)
+
+- Allow agent to start with `module.git` config if cached before. (@hainenber)
 
 ### Bugfixes
 
@@ -136,6 +159,38 @@ Main (unreleased)
 - Fixed a bug where UDP syslog messages were never processed (@joshuapare)
 
 - Updating configuration for `loki.write` no longer drops data. (@thepalbi)
+
+- Fixed a bug in WAL where exemplars were recorded before the first native histogram samples for new series,
+  resulting in remote write sending the exemplar first and Prometheus failing to ingest it due to missing
+  series. (@krajorama)
+
+- Fixed an issue in the static config converter where exporter instance values
+  were not being mapped when translating to flow. (@erikbaranowski)
+
+- Fix a bug which prevented Agent from running `otelcol.exporter.loadbalancing`
+  with a `routing_key` of `traceID`. (@ptodev)
+
+- Added Kubernetes service resolver to static node's loadbalancing exporter
+  and to Flow's `otelcol.exporter.loadbalancing`. (@ptodev)
+
+- Fix default configuration file `grafana-agent-flow.river` used in downstream
+  packages. (@bricewge)
+
+- Fix converter output for prometheus.exporter.windows to not unnecessarily add
+  empty blocks. (@erikbaranowski)
+
+### Other changes
+
+- Bump `mysqld_exporter` version to v0.15.0. (@marctc)
+
+- Bump `github-exporter` version to 1.0.6. (@marctc)
+
+- Use Go 1.21.4 for builds. (@rfratto)
+
+- Change User-Agent header for outbound requests to include agent-mode, goos, and deployment mode. Example `GrafanaAgent/v0.38.0 (flow; linux; docker)` (@captncraig)
+
+- `loki.source.windowsevent` and `loki.source.*` changed to use a more robust positions file to prevent corruption on reboots when writing
+  the positions file. (@mattdurham)
 
 v0.37.4 (2023-11-06)
 -----------------

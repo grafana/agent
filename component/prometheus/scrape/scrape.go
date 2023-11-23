@@ -12,7 +12,7 @@ import (
 	component_config "github.com/grafana/agent/component/common/config"
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/prometheus"
-	"github.com/grafana/agent/pkg/build"
+	"github.com/grafana/agent/internal/useragent"
 	"github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/grafana/agent/service/cluster"
 	"github.com/grafana/agent/service/http"
@@ -27,7 +27,7 @@ import (
 )
 
 func init() {
-	scrape.UserAgent = fmt.Sprintf("GrafanaAgent/%s", build.Version)
+	scrape.UserAgent = useragent.Get()
 
 	component.Register(component.Registration{
 		Name:          "prometheus.scrape",
