@@ -20,6 +20,6 @@ Name                 | Type           | Description                             
 `scopes`             | `list(string)` | List of scopes to authenticate with.            |         | no
 `token_url`          | `string`       | URL to fetch the token from.                    |         | no
 
-`client_secret` and `client_secret_file` are mutually exclusive and only one can be provided inside of an `oauth2` block.
+`client_secret` and `client_secret_file` are mutually exclusive, and only one can be provided inside an `oauth2` block.
 
-The `oauth2` block may also contain its own separate `tls_config` sub-block.
+The `oauth2` block may also contain a separate `tls_config` sub-block.

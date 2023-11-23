@@ -21,5 +21,5 @@ Name      | Type     | Description                   | Default | Required
 `name`    | `string` | The attribute key.            |         | yes
 `version` | `string` | The version to match against. | null    | no
 
-If `version` is unset, any version will match.
-If `version` is set to an empty string, it will only match a library version which is also an empty string.
+If `version` is unset, any version matches.
+If `version` is set to an empty string, it only matches a library version, which is also an empty string.

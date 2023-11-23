@@ -20,6 +20,6 @@ Name      | Type                     | Description                           | D
 `metrics` | `list(otelcol.Consumer)` | List of consumers to send metrics to. | `[]`    | no
 `traces`  | `list(otelcol.Consumer)` | List of consumers to send traces to.  | `[]`    | no
 
-The `output` block must be specified, but all of its arguments are optional.
+You must specify the `output` block, but all its arguments are optional.
 By default, telemetry data is dropped.
-To send telemetry data to other components, configure the `metrics`, `logs`, and `traces` arguments accordingly.
+Configure the `metrics`, `logs`, and `traces` arguments accordingly to send telemetry data to other components.

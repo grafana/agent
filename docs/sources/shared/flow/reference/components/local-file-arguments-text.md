@@ -12,7 +12,7 @@ headless: true
 
 ### File change detectors
 
-File change detectors are used to detect when the file needs to be re-read from disk. `local.file` supports two detectors: `fsnotify` and `poll`.
+File change detectors detect when the file needs to be re-read from disk. `local.file` supports two detectors: `fsnotify` and `poll`.
 
 #### fsnotify
 
@@ -20,13 +20,13 @@ The `fsnotify` detector subscribes to filesystem events, which indicate when the
 This detector requires a filesystem that supports events at the operating system level. Network-based filesystems like NFS or FUSE won't work.
 
 The component re-reads the watched file when a filesystem event is received.
-This happens for any filesystem event to the file, including a change of permissions.
+This re-read happens for any filesystem event related to the file, including a permissions change.
 
 `fsnotify` also polls for changes to the file with the configured `poll_frequency` as a fallback.
 
-`fsnotify` will stop receiving filesystem events if the watched file has been deleted, renamed, or moved.
-The subscription will be re-established on the next poll once the watched file exists again.
+`fsnotify` stops receiving filesystem events if the watched file has been deleted, renamed, or moved.
+The subscription is re-established on the next poll once the watched file exists again.
 
 #### poll
 
-The `poll` file change detector will cause the watched file to be re-read every `poll_frequency`, regardless of whether the file changed.
+The `poll` file change detector causes the watched file to be re-read every `poll_frequency`, regardless of whether the file changed.

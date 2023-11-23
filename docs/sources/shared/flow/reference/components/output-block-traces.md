@@ -18,6 +18,6 @@ Name     | Type                     | Description                          | Def
 ---------|--------------------------|--------------------------------------|---------|---------
 `traces` | `list(otelcol.Consumer)` | List of consumers to send traces to. | `[]`    | no
 
-The `output` block must be specified, but all of its arguments are optional.
+You must specify the `output` block, but all its arguments are optional.
 By default, telemetry data is dropped.
-To send telemetry data to other components, configure the `traces` argument accordingly.
+Configure the `traces` argument accordingly to send telemetry data to other components.

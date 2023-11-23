@@ -20,7 +20,7 @@ Name              | Type     | Description                                   | D
 
 If `match_undefined` is true, entries with undefined severity will match.
 
-The severities supported by Otel are listed in the table below.
+The following table lists the severities supported by OTel.
 The value for `min` should be one of the values in the "Log Severity" column.
 
 Log Severity | Severity number
