@@ -117,7 +117,7 @@ func (ar *AppAgentReceiverHandler) HTTPHandler(logger log.Logger) http.Handler {
 	if len(ar.config.Server.CORSAllowedOrigins) > 0 {
 		c := cors.New(cors.Options{
 			AllowedOrigins: ar.config.Server.CORSAllowedOrigins,
-			AllowedHeaders: []string{apiKeyHeader, "content-type"},
+			AllowedHeaders: []string{apiKeyHeader, "content-type", "x-faro-session-id"},
 		})
 		handler = c.Handler(handler)
 	}

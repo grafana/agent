@@ -1,6 +1,9 @@
 package config
 
 import (
+	"bytes"
+	"text/template"
+
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/logs"
 	"github.com/grafana/agent/pkg/metrics/instance"
@@ -28,7 +31,8 @@ type (
 	}
 
 	AgentMetadata struct {
-		ExternalLabels map[string]string `json:"external_labels,omitempty" yaml:"external_labels,omitempty"`
+		ExternalLabels    map[string]string `json:"external_labels,omitempty" yaml:"external_labels,omitempty"`
+		TemplateVariables map[string]any    `json:"template_variables,omitempty" yaml:"template_variables,omitempty"`
 	}
 
 	// SnippetContent defines the internal structure of a snippet configuration.
@@ -55,8 +59,13 @@ func NewRemoteConfig(buf []byte) (*RemoteConfig, error) {
 
 // BuildAgentConfig builds an agent configuration from a base config and a list of snippets
 func (rc *RemoteConfig) BuildAgentConfig() (*Config, error) {
+	baseConfig, err := evaluateTemplate(string(rc.BaseConfig), rc.AgentMetadata.TemplateVariables)
+	if err != nil {
+		return nil, err
+	}
+
 	c := DefaultConfig()
-	err := yaml.Unmarshal([]byte(rc.BaseConfig), &c)
+	err = yaml.Unmarshal([]byte(baseConfig), &c)
 	if err != nil {
 		return nil, err
 	}
@@ -66,7 +75,7 @@ func (rc *RemoteConfig) BuildAgentConfig() (*Config, error) {
 		return nil, err
 	}
 
-	err = appendSnippets(&c, rc.Snippets)
+	err = appendSnippets(&c, rc.Snippets, rc.AgentMetadata.TemplateVariables)
 	if err != nil {
 		return nil, err
 	}
@@ -74,7 +83,7 @@ func (rc *RemoteConfig) BuildAgentConfig() (*Config, error) {
 	return &c, nil
 }
 
-func appendSnippets(c *Config, snippets []Snippet) error {
+func appendSnippets(c *Config, snippets []Snippet, templateVars map[string]any) error {
 	metricsConfigs := instance.DefaultConfig
 	metricsConfigs.Name = "snippets"
 	logsConfigs := logs.InstanceConfig{
@@ -91,8 +100,13 @@ func appendSnippets(c *Config, snippets []Snippet) error {
 	}
 
 	for _, snippet := range snippets {
+		snippetConfig, err := evaluateTemplate(snippet.Config, templateVars)
+		if err != nil {
+			return err
+		}
+
 		var snippetContent SnippetContent
-		err := yaml.Unmarshal([]byte(snippet.Config), &snippetContent)
+		err = yaml.Unmarshal([]byte(snippetConfig), &snippetContent)
 		if err != nil {
 			return err
 		}
@@ -147,4 +161,19 @@ func appendExternalLabels(c *Config, externalLabels map[string]string) {
 	for i, cc := range c.Logs.Global.ClientConfigs {
 		c.Logs.Global.ClientConfigs[i].ExternalLabels.LabelSet = logsExternalLabels.Merge(cc.ExternalLabels.LabelSet)
 	}
+}
+
+func evaluateTemplate(config string, templateVariables map[string]any) (string, error) {
+	tpl, err := template.New("config").Parse(config)
+	if err != nil {
+		return "", err
+	}
+
+	var buf bytes.Buffer
+	err = tpl.Execute(&buf, templateVariables)
+	if err != nil {
+		return "", err
+	}
+
+	return buf.String(), nil
 }
