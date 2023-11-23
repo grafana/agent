@@ -1,7 +1,6 @@
 package common
 
 import (
-	"os"
 	"testing"
 	"golang.org/x/exp/maps"
 
@@ -23,8 +22,7 @@ import (
 )
 
 func TestClearConfigsSameNsSamePrefix(t *testing.T) {
-	// logger := log.NewNopLogger()
-	logger := log.NewLogfmtLogger(os.Stdout)
+	logger := log.NewNopLogger()
 	m := newCrdManager(
 		component.Options{
 			Logger: logger,
@@ -81,9 +79,9 @@ func TestClearConfigsSameNsSamePrefix(t *testing.T) {
 			},
 		},	})
 
-	require.Equal(t, []string{"serviceMonitor/monitoring/svcmonitor-another/0", "serviceMonitor/monitoring/svcmonitor/0"}, maps.Keys(m.discoveryConfigs))
+	require.ElementsMatch(t, []string{"serviceMonitor/monitoring/svcmonitor-another/0", "serviceMonitor/monitoring/svcmonitor/0"}, maps.Keys(m.discoveryConfigs))
 	m.clearConfigs("monitoring", "svcmonitor")
-	require.Equal(t, []string{"serviceMonitor/monitoring/svcmonitor-another/0"}, maps.Keys(m.discoveryConfigs))
+	require.ElementsMatch(t, []string{"serviceMonitor/monitoring/svcmonitor-another/0"}, maps.Keys(m.discoveryConfigs))
 }
 
 type mockDiscoveryManager struct {
