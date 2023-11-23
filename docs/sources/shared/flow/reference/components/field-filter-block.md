@@ -19,8 +19,8 @@ Name    | Type     | Description                                                
 `op`    | `string` | The filter operation to apply on the given key: value pair.   | `equals` | no
 `value` | `string` | The value associated with the key that a filter can use.      |          | yes
 
-For `op` the following values are allowed:
-* `equals`: The field value must be equal to the provided value.
+For `op`, the following values are allowed:
+* `equals`: The field value must equal the provided value.
 * `not-equals`: The field value must not be equal to the provided value.
-* `exists`: The field value must exist. (Only for `annotation` fields).
-* `does-not-exist`: The field value must not exist. (Only for `annotation` fields).
+* `exists`: The field value must exist. Only applicable to `annotation` fields.
+* `does-not-exist`: The field value must not exist. Only applicable to `annotation` fields.

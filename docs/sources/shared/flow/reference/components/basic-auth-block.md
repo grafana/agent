@@ -16,4 +16,4 @@ Name            | Type     | Description                              | Default 
 `password`      | `secret` | Basic auth password.                     |         | no
 `username`      | `string` | Basic auth username.                     |         | no
 
-`password` and `password_file` are mutually exclusive and only one can be provided inside of a `basic_auth` block.
+`password` and `password_file` are mutually exclusive, and only one can be provided inside a `basic_auth` block.

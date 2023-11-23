@@ -16,4 +16,4 @@ Name               | Type     | Description                                | Def
 `credentials`      | `secret` | Secret value.                              |         | no
 `type`             | `string` | Authorization type, for example, "Bearer". |         | no
 
-`credential` and `credentials_file` are mutually exclusive and only one can be provided inside of an `authorization` block.
+`credential` and `credentials_file` are mutually exclusive, and only one can be provided inside an `authorization` block.
