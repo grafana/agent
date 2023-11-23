@@ -343,7 +343,7 @@ func TestWatcher(t *testing.T) {
 			}
 			// create new watcher, and defer stop
 			watcher := NewWatcher(dir, "test", metrics, writeTo, logger, DefaultWatchConfig, noMarker{})
-			defer watcher.Stop(false)
+			defer watcher.Stop()
 			wl, err := New(Config{
 				Enabled: true,
 				Dir:     dir,
@@ -421,7 +421,7 @@ func TestWatcher_Replay(t *testing.T) {
 				return 0
 			},
 		})
-		defer watcher.Stop(false)
+		defer watcher.Stop()
 		wl, err := New(Config{
 			Enabled: true,
 			Dir:     dir,
@@ -503,7 +503,7 @@ func TestWatcher_Replay(t *testing.T) {
 				return -1
 			},
 		})
-		defer watcher.Stop(false)
+		defer watcher.Stop()
 		wl, err := New(Config{
 			Enabled: true,
 			Dir:     dir,
@@ -682,7 +682,8 @@ func TestWatcher_StopAndDrainWAL(t *testing.T) {
 
 		// Upon calling Stop drain, the Watcher should finish burning through segment 0, and also consume segment 1
 		now := time.Now()
-		watcher.Stop(true)
+		watcher.Drain()
+		watcher.Stop()
 
 		// expecting 15s (missing 15 entries * 1 sec delay in AppendEntries) +/- 1.1s (taking into account the drain timeout
 		// has one extra second.
@@ -733,7 +734,8 @@ func TestWatcher_StopAndDrainWAL(t *testing.T) {
 
 		// Upon calling Stop drain, the Watcher should finish burning through segment 0, and also consume segment 1
 		now := time.Now()
-		watcher.Stop(true)
+		watcher.Drain()
+		watcher.Stop()
 
 		// expecting 15s (missing 15 entries * 1 sec delay in AppendEntries) +/- 1.1s (taking into account the drain timeout
 		// has one extra second.
@@ -785,7 +787,8 @@ func TestWatcher_StopAndDrainWAL(t *testing.T) {
 
 		// Upon calling Stop drain, the Watcher should finish burning through segment 0, and also consume segment 1
 		now := time.Now()
-		watcher.Stop(true)
+		watcher.Drain()
+		watcher.Stop()
 
 		require.InDelta(t, time.Second*10, time.Since(now), float64(time.Millisecond*1100), "expected the drain procedure to take around 15s")
 		require.Less(t, int(writeTo.entriesReceived.Load()), 20, "expected watcher to have not consumed WAL fully")

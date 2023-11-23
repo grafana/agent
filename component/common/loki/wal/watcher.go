@@ -349,22 +349,22 @@ func (w *Watcher) decodeAndDispatch(b []byte, segmentNum int) (bool, error) {
 	return readData, firstErr
 }
 
-// Stop stops the Watcher, draining the WAL until the end of the last segment if drain is true. Since the writer of the WAL
-// is expected to have stopped before the Watcher, no further writes are expected, so segments can be safely consumed.
-//
-// Note if drain is enabled, the caller routine of Stop will block executing the drain procedure.
-func (w *Watcher) Stop(drain bool) {
-	if drain {
-		level.Info(w.logger).Log("msg", "Draining Watcher")
-		w.state.Transition(internal.StateDraining)
-		// wait for drain timeout, or stopping state, in case the Watcher does the transition itself promptly
-		select {
-		case <-time.NewTimer(w.drainTimeout).C:
-			level.Warn(w.logger).Log("msg", "Watcher drain timeout occurred, transitioning to Stopping")
-		case <-w.state.WaitForStopping():
-		}
+// Drain moves the Watcher to a draining state, which will assume no more data is being written to the WAL, and it will
+// attempt to read until the end of the last written segment. The calling routine of Drain will block until all data is
+// read, or a timeout occurs.
+func (w *Watcher) Drain() {
+	level.Info(w.logger).Log("msg", "Draining Watcher")
+	w.state.Transition(internal.StateDraining)
+	// wait for drain timeout, or stopping state, in case the Watcher does the transition itself promptly
+	select {
+	case <-time.NewTimer(w.drainTimeout).C:
+		level.Warn(w.logger).Log("msg", "Watcher drain timeout occurred, transitioning to Stopping")
+	case <-w.state.WaitForStopping():
 	}
+}
 
+// Stop stops the Watcher, shutting down the main routine.
+func (w *Watcher) Stop() {
 	w.state.Transition(internal.StateStopping)
 
 	// upon calling stop, wait for main mainLoop execution to stop

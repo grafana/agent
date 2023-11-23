@@ -35,8 +35,9 @@ func (n nilNotifier) SubscribeCleanup(_ wal.CleanupEventSubscriber) {}
 
 func (n nilNotifier) SubscribeWrite(_ wal.WriteEventSubscriber) {}
 
-type Stoppable interface {
-	Stop(drain bool)
+type StoppableWatcher interface {
+	Stop()
+	Drain()
 }
 
 type StoppableClient interface {
@@ -53,7 +54,7 @@ type StoppableClient interface {
 type Manager struct {
 	name        string
 	clients     []Client
-	walWatchers []Stoppable
+	walWatchers []StoppableWatcher
 
 	// stoppableClients is kept separate from clients for avoiding having to couple queueClient to the Client interface
 	stoppableClients []StoppableClient
@@ -78,7 +79,7 @@ func NewManager(metrics *Metrics, logger log.Logger, limits limit.Config, reg pr
 
 	clientsCheck := make(map[string]struct{})
 	clients := make([]Client, 0, len(clientCfgs))
-	watchers := make([]Stoppable, 0, len(clientCfgs))
+	watchers := make([]StoppableWatcher, 0, len(clientCfgs))
 	stoppableClients := make([]StoppableClient, 0, len(clientCfgs))
 	for _, cfg := range clientCfgs {
 		// Don't allow duplicate clients, we have client specific metrics that need at least one unique label value (name).
@@ -203,7 +204,11 @@ func (m *Manager) StopWithDrain(drain bool) {
 
 	// stop wal watchers
 	for _, walWatcher := range m.walWatchers {
-		walWatcher.Stop(drain)
+		// if drain enabled, drain the WAL
+		if drain {
+			walWatcher.Drain()
+		}
+		walWatcher.Stop()
 	}
 	// close clients
 	for _, c := range m.stoppableClients {

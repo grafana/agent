@@ -10,9 +10,9 @@ const (
 
 // DefaultWatchConfig is the opinionated defaults for operating the Watcher.
 var DefaultWatchConfig = WatchConfig{
-	MinReadFrequency: time.Millisecond * 250,
+	MinReadFrequency: 250 * time.Millisecond,
 	MaxReadFrequency: time.Second,
-	DrainTimeout:     time.Second * 30,
+	DrainTimeout:     15 * time.Second,
 }
 
 // Config contains all WAL-related settings.
