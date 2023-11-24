@@ -23,4 +23,4 @@ Name    | Type     | Description                           | Default | Required
 `value` | `any`    | The attribute value to match against. |         | no
 
 If `value` isn't set, any value will match.
-The type of `value` could be a number, a string, or a Boolean.
+The type of `value` could be a number, a string, or a boolean.
