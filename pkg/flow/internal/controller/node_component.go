@@ -234,14 +234,7 @@ func (cn *ComponentNode) NodeID() string { return cn.nodeID }
 // UpdateBlock updates the River block used to construct arguments for the
 // managed component. The new block isn't used until the next time Evaluate is
 // invoked.
-//
-// UpdateBlock will panic if the block does not match the component ID of the
-// ComponentNode.
 func (cn *ComponentNode) UpdateBlock(b *ast.BlockStmt) {
-	if !BlockComponentID(b).Equals(cn.id) {
-		panic("UpdateBlock called with an River block with a different component ID")
-	}
-
 	cn.mut.Lock()
 	defer cn.mut.Unlock()
 	cn.block = b

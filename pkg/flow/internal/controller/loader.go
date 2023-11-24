@@ -616,7 +616,7 @@ func (l *Loader) populateComponentNodes(g *dag.Graph, componentBlocks []*ast.Blo
 
 		if graph, exist := graphTemplates[componentName]; exist {
 			clonedGraph := graph.DeepClone(id)
-			g.Merge(clonedGraph)
+			l.MergeSubgraph(g, clonedGraph)
 			declareComponentNode := NewDeclareComponentNode(l.globals, block)
 			g.Add(declareComponentNode)
 			// Connect the corresponding arguments to the declareComponentNode.
@@ -643,6 +643,22 @@ func (l *Loader) populateComponentNodes(g *dag.Graph, componentBlocks []*ast.Blo
 		}
 	}
 	return diags
+}
+
+func (l *Loader) MergeSubgraph(new *dag.Graph, subgraph *dag.Graph) {
+	for _, node := range subgraph.Nodes() {
+		if exists := l.graph.GetByID(node.NodeID()); exists != nil {
+			if existingComponent, ok := exists.(*ComponentNode); ok {
+				if newComponent, ok := node.(*ComponentNode); ok {
+					existingComponent.UpdateBlock(newComponent.Block())
+					new.Add(existingComponent)
+					continue
+				}
+			}
+		}
+		new.Add(node)
+	}
+	new.MergeEdges(subgraph)
 }
 
 // Wire up all the related nodes

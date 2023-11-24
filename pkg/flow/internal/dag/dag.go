@@ -286,10 +286,7 @@ func (g *Graph) DeepClone(prefix string) *Graph {
 	return newGraph
 }
 
-func (g *Graph) Merge(other *Graph) {
-	for _, value := range other.Nodes() {
-		g.Add(value)
-	}
+func (g *Graph) MergeEdges(other *Graph) {
 	for node, set := range other.outEdges {
 		g.outEdges[node] = set.Clone()
 	}
