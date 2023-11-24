@@ -79,7 +79,12 @@ func TestModule(t *testing.T) {
 			args:                  map[string]interface{}{"different_argument": "test", "username": "bad"},
 			expectedErrorContains: "Provided argument \"username\" is not defined in the module",
 		},
-
+		{
+			name:                  "Missing required argument",
+			argumentModuleContent: argumentConfig,
+			exportModuleContent:   exportStringConfig,
+			expectedErrorContains: "Failed to evaluate node for config block: missing required argument \"username\" to module",
+		},
 		{
 			name:                  "Duplicate argument config",
 			argumentModuleContent: argumentConfig + argumentConfig,

@@ -223,6 +223,26 @@ func TestDeclareBlockSort(t *testing.T) {
 	require.ErrorContains(t, diags.ErrorOrNil(), `Detected a cycle in declare dependencies; cannot sort: [a c d e]`)
 }
 
+func TestDeclareMissingRequiredArgument(t *testing.T) {
+	testFile := `
+		add "example" {
+			b = 6
+		}
+	`
+	testDeclare := `
+		declare "add" {
+			argument "a" { }
+			argument "b" { }
+			export "sum" {
+				value = argument.a.value + argument.b.value
+			}
+		}
+	`
+	l := setupLoader(t)
+	diags := applyFromContent(t, l, []byte(testFile), nil, []byte(testDeclare))
+	require.ErrorContains(t, diags.ErrorOrNil(), `missing required argument "a" to declare`)
+}
+
 // TestScopeWithFailingComponent is used to ensure that the scope is filled out, even if the component
 // fails to properly start.
 func TestScopeWithFailingComponent(t *testing.T) {

@@ -883,7 +883,7 @@ func (l *Loader) postEvaluate(logger log.Logger, bn BlockNode, err error) error 
 		l.cache.CacheArguments(c.ID(), c.Arguments())
 		l.cache.CacheExports(c.ID(), c.Exports())
 	case *ArgumentConfigNode:
-		// This part is for new modules
+		// This part is for new modules.
 		if namespaceArgs, found := l.cache.declareValues[c.Namespace()]; found {
 			parts := strings.Split(c.NodeID(), ".")
 			label := parts[len(parts)-1]
@@ -891,18 +891,21 @@ func (l *Loader) postEvaluate(logger log.Logger, bn BlockNode, err error) error 
 				if c.Optional() {
 					namespaceArgs[label] = c.Default()
 				} else {
-					// Should be an error here once the old modules are removed
+					err = fmt.Errorf("missing required argument %q to declare", c.Label())
 				}
 			}
 		}
 
-		// This part is for old modules
-		if _, found := l.cache.moduleArguments[c.Label()]; !found {
-			if c.Optional() {
-				l.cache.CacheModuleArgument(c.Label(), c.Default())
-			} else {
-				// Removing this error because it would be triggered for new modules
-				//err = fmt.Errorf("missing required argument %q to module", c.Label())
+		// This part is for old modules, all argument blocks should have a namespace if they are in a declare block.
+		if c.Namespace() == "" {
+			if _, found := l.cache.moduleArguments[c.Label()]; !found {
+				if c.Optional() {
+					l.cache.CacheModuleArgument(c.Label(), c.Default())
+				} else {
+					// NOTE: this masks the previous evaluation error, but we treat a missing module arguments as
+					// a more important error to address.
+					err = fmt.Errorf("missing required argument %q to module", c.Label())
+				}
 			}
 		}
 	}
