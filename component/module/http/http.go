@@ -9,19 +9,14 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/module"
 	remote_http "github.com/grafana/agent/component/remote/http"
-	"github.com/grafana/agent/service/cluster"
-	http_service "github.com/grafana/agent/service/http"
-	"github.com/grafana/agent/service/labelstore"
-	otel_service "github.com/grafana/agent/service/otel"
 	"github.com/grafana/river/rivertypes"
 )
 
 func init() {
 	component.Register(component.Registration{
-		Name:          "module.http",
-		Args:          Arguments{},
-		Exports:       module.Exports{},
-		NeedsServices: []string{http_service.ServiceName, cluster.ServiceName, otel_service.ServiceName, labelstore.ServiceName},
+		Name:    "module.http",
+		Args:    Arguments{},
+		Exports: module.Exports{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			return New(opts, args.(Arguments))
