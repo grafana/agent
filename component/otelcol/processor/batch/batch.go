@@ -8,7 +8,6 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/otelcol"
 	"github.com/grafana/agent/component/otelcol/processor"
-	otel_service "github.com/grafana/agent/service/otel"
 	otelcomponent "go.opentelemetry.io/collector/component"
 	otelextension "go.opentelemetry.io/collector/extension"
 	"go.opentelemetry.io/collector/processor/batchprocessor"
@@ -16,10 +15,9 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name:          "otelcol.processor.batch",
-		Args:          Arguments{},
-		Exports:       otelcol.ConsumerExports{},
-		NeedsServices: []string{otel_service.ServiceName},
+		Name:    "otelcol.processor.batch",
+		Args:    Arguments{},
+		Exports: otelcol.ConsumerExports{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			fact := batchprocessor.NewFactory()

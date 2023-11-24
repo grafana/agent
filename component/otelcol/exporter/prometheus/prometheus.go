@@ -19,10 +19,10 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name:          "otelcol.exporter.prometheus",
-		Args:          Arguments{},
-		Exports:       otelcol.ConsumerExports{},
-		NeedsServices: []string{labelstore.ServiceName},
+		Name:    "otelcol.exporter.prometheus",
+		Args:    Arguments{},
+		Exports: otelcol.ConsumerExports{},
+
 		Build: func(o component.Options, a component.Arguments) (component.Component, error) {
 			return New(o, a.(Arguments))
 		},

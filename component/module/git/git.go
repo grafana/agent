@@ -14,18 +14,13 @@ import (
 	"github.com/grafana/agent/component/module"
 	"github.com/grafana/agent/component/module/git/internal/vcs"
 	"github.com/grafana/agent/pkg/flow/logging/level"
-	"github.com/grafana/agent/service/cluster"
-	"github.com/grafana/agent/service/http"
-	"github.com/grafana/agent/service/labelstore"
-	otel_service "github.com/grafana/agent/service/otel"
 )
 
 func init() {
 	component.Register(component.Registration{
-		Name:          "module.git",
-		Args:          Arguments{},
-		Exports:       module.Exports{},
-		NeedsServices: []string{http.ServiceName, cluster.ServiceName, otel_service.ServiceName, labelstore.ServiceName},
+		Name:    "module.git",
+		Args:    Arguments{},
+		Exports: module.Exports{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			return New(opts, args.(Arguments))

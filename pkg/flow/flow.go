@@ -192,7 +192,7 @@ func newController(o controllerOptions) *Flow {
 			OnExportsChange: o.OnExportsChange,
 			Registerer:      o.Reg,
 			ControllerID:    o.ControllerID,
-			NewModuleController: func(id string, availableServices []string) controller.ModuleController {
+			NewModuleController: func(id string) controller.ModuleController {
 				return newModuleController(&moduleControllerOptions{
 					ComponentRegistry: o.ComponentRegistry,
 					ModuleRegistry:    o.ModuleRegistry,
@@ -201,7 +201,7 @@ func newController(o controllerOptions) *Flow {
 					Reg:               o.Reg,
 					DataPath:          o.DataPath,
 					ID:                id,
-					ServiceMap:        serviceMap.FilterByName(availableServices),
+					ServiceMap:        serviceMap,
 					WorkerPool:        workerPool,
 				})
 			},

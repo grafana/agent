@@ -97,8 +97,7 @@ type Options struct {
 	// GetServiceData retrieves data for a service by calling
 	// [service.Service.Data] for the specified service.
 	//
-	// GetServiceData will return an error if the service does not exist or was
-	// not listed as a dependency with the registration of the component.
+	// GetServiceData will return an error if the service does not exist.
 	//
 	// The result of GetServiceData may be cached as the value will not change at
 	// runtime.
@@ -126,15 +125,6 @@ type Registration struct {
 	// An example Exports value that the registered component may emit as output.
 	// A component which does not expose exports must leave this set to nil.
 	Exports Exports
-
-	// NeedsServices holds the set of service names which this component depends
-	// on to run. If NeedsServices includes an invalid service name (either
-	// because of a cyclic dependency or the named service doesn't exist),
-	// components will fail to evaluate.
-	//
-	// Modules which are loaded by the registered component will only be able to
-	// access services in this list.
-	NeedsServices []string
 
 	// Build should construct a new component from an initial Arguments and set
 	// of options.
