@@ -35,8 +35,6 @@ Main (unreleased)
 
 - Fix issue with windows_exporter defaults not being set correctly. (@mattdurham)
 
-- Use official HashiCorp Consul image. (@tranngoclam)
-
 v0.38.0 (2023-11-21)
 --------------------
 
