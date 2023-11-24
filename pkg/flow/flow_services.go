@@ -35,15 +35,6 @@ func serviceConsumersForGraph(graph *dag.Graph, serviceName string, includePeerS
 	for _, consumer := range dependants {
 		// Only return instances of component.Component and service.Service.
 		switch consumer := consumer.(type) {
-		case *controller.ComponentNode:
-			if component := consumer.Component(); component != nil {
-				consumers = append(consumers, service.Consumer{
-					Type:  service.ConsumerTypeComponent,
-					ID:    consumer.NodeID(),
-					Value: component,
-				})
-			}
-
 		case *controller.ServiceNode:
 			if !includePeerServices {
 				continue

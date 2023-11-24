@@ -14,8 +14,20 @@ Unreleased
 
 - Add secrets which are mounted as environment variables into container. Pod is restarted if secret is changed. (@christianjedroCDT)
 - Add environment variables which can be defined through key=value pair. (@christianjedroCDT)
-- Ensure that `app.kubernetes.io/version` label accounts for any 
+
+### Other changes
+
+- Update `container.securityContext` Helm value reference to renamed `agent.securityContext`. (@hainenber)
+
+0.28.0 (2023-11-21)
+-------------------
+
+### Enhancements
+
+- Ensure that `app.kubernetes.io/version` label accounts for any
   image tag overrides supplied to the chart Values. (@tristanburgess)
+
+- Update Grafana Agent version to v0.38.0. (@rfratto)
 
 0.27.2 (2023-11-07)
 ----------

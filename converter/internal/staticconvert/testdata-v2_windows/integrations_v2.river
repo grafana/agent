@@ -9,13 +9,7 @@ prometheus.remote_write "metrics_default" {
 	}
 }
 
-prometheus.exporter.windows "integrations_windows_exporter" {
-	exchange { }
-
-	network {
-		exclude = ".+"
-	}
-}
+prometheus.exporter.windows "integrations_windows_exporter" { }
 
 prometheus.scrape "integrations_windows" {
 	targets    = prometheus.exporter.windows.integrations_windows_exporter.targets

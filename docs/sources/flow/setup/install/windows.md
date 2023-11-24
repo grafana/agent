@@ -57,6 +57,14 @@ To do a silent install of Grafana Agent on Windows, perform the following steps.
 * `/CONFIG=<path>` Path to the configuration file. Default: `$INSTDIR\config.river`
 * `/DISABLEREPORTING=<yes|no>` Disable [data collection][]. Default: `no`
 * `/DISABLEPROFILING=<yes|no>` Disable profiling endpoint. Default: `no`
+* `/ENVIRONMENT="KEY=VALUE\0KEY2=VALUE2"` Define environment variables for Windows Service. Default: ``
+
+## Service Configuration
+
+Grafana Agent uses the Windows Registry `HKLM\Software\Grafana\Grafana Agent Flow` for service configuration.
+
+* `Arguments` (Type `REG_MULTI_SZ`) Each value represents a binary argument for grafana-agent-flow binary.
+* `Environment` (Type `REG_MULTI_SZ`) Each value represents a environment value `KEY=VALUE` for grafana-agent-flow binary.
 
 ## Uninstall
 
