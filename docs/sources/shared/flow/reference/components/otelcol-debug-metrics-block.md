@@ -20,4 +20,4 @@ Name                               | Type      | Description                    
 
 `disable_high_cardinality_metrics` is the Grafana Agent equivalent to the `telemetry.disableHighCardinalityMetrics` feature gate in the OpenTelemetry Collector.
 It removes attributes that could cause high cardinality metrics.
-For example, attributes with IP addresses and port numbers in metrics about HTTP and gRPC connections will be removed.
+For example, attributes with IP addresses and port numbers in metrics about HTTP and gRPC connections are removed.
