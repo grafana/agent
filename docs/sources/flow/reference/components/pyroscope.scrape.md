@@ -20,7 +20,7 @@ title: pyroscope.scrape
 `pyroscope.scrape` borrows the scraping behavior of `prometheus.scrape`.
 Similarly to how Prometheus scrapes metrics via HTTP, `pyroscope.scrape` collects profiles via HTTP requests.
 
-Unlike how Prometheus usually only scrapes one `/metrics` endpoint per target, 
+Unlike Prometheus, which usually only scrapes one `/metrics` endpoint per target, 
 `pyroscope.scrape` may need to scrape multiple endpoints for the same target.
 This is because different types of profiles are scraped on different endpoints. 
 For example, "mutex" profiles may be scraped on a `/debug/pprof/delta_mutex` HTTP endpoint, whereas 
@@ -130,14 +130,16 @@ so that they can be linked to a scrape target:
 
 If `scrape_interval` is short:
 * Advantages:
-  * Less profiles may be lost if the application being scraped crashes.
+  * Fewer profiles may be lost if the application being scraped crashes.
 * Disadvantages:
-  * Greater network load during scrapes and remote writes.
+  * Greater consumption of CPU, memory, and network resources during scrapes and remote writes.
+  * The backend database (Pyroscope) will consume more storage space.
 
 If `scrape_interval` is long:
 * Advantages:
-  * More profiles may be lost if the application being scraped crashes.
+  * Lower resource consumption.
 * Disadvantages:
+  * More profiles may be lost if the application being scraped crashes.
   * If the [delta argument][] is set to `true`, the batch size of 
     each remote write to Pyroscope may be bigger.
     The Pyroscope database may need to be tuned with higher limits.
@@ -152,7 +154,7 @@ For example, consider this situation:
 
 #### `scrape_timeout` argument
 
-`scrape_timeout` should be larger than `scrape_interval`.
+`scrape_timeout` must be larger than `scrape_interval`.
 
 ## Blocks
 
