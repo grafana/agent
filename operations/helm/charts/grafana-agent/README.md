@@ -1,6 +1,6 @@
 # Grafana Agent Helm chart
 
-![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![Version: 0.27.2](https://img.shields.io/badge/Version-0.27.2-informational?style=flat-square) ![AppVersion: v0.37.4](https://img.shields.io/badge/AppVersion-v0.37.4-informational?style=flat-square)
+![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![Version: 0.28.0](https://img.shields.io/badge/Version-0.28.0-informational?style=flat-square) ![AppVersion: v0.38.0](https://img.shields.io/badge/AppVersion-v0.38.0-informational?style=flat-square)
 
 Helm chart for deploying [Grafana Agent][] to Kubernetes.
 
@@ -168,9 +168,9 @@ used. When provided, `agent.configMap.content` must hold a valid River configura
 
 [default-config]: ./config/example.river
 
-### controller.securityContext
+### agent.securityContext
 
-`controller.securityContext` sets the securityContext passed to the Grafana
+`agent.securityContext` sets the securityContext passed to the Grafana
 Agent container.
 
 By default, Grafana Agent containers are not able to collect telemetry from the
@@ -241,7 +241,7 @@ This capability is disabled by default.
 To expose logs from other containers to Grafana Agent:
 
 * Set `agent.mounts.dockercontainers` to `true`.
-* Set `controller.securityContext` to:
+* Set `agent.securityContext` to:
   ```yaml
   privileged: true
   runAsUser: 0
@@ -256,7 +256,7 @@ To expose this information to Grafana Agent for telemetry collection:
 
 * Set `agent.mounts.dockercontainers` to `true`.
 * Mount `/proc` and `/sys` from the host into the container.
-* Set `controller.securityContext` to:
+* Set `agent.securityContext` to:
   ```yaml
   privileged: true
   runAsUser: 0

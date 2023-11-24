@@ -44,6 +44,33 @@ type Arguments interface {
 	DebugMetricsConfig() otelcol.DebugMetricsArguments
 }
 
+// TypeSignal is a bit field to indicate which telemetry signals the exporter supports.
+type TypeSignal byte
+
+const (
+	TypeLogs    TypeSignal = 1 << iota // 1
+	TypeMetrics                        // 2
+	TypeTraces                         // 4
+)
+
+// TypeAll indicates that the exporter supports all telemetry signals.
+const TypeAll = TypeLogs | TypeMetrics | TypeTraces
+
+// SupportsLogs returns true if the exporter supports logs.
+func (s TypeSignal) SupportsLogs() bool {
+	return s&TypeLogs != 0
+}
+
+// SupportsMetrics returns true if the exporter supports metrics.
+func (s TypeSignal) SupportsMetrics() bool {
+	return s&TypeMetrics != 0
+}
+
+// SupportsTraces returns true if the exporter supports traces.
+func (s TypeSignal) SupportsTraces() bool {
+	return s&TypeTraces != 0
+}
+
 // Exporter is a Flow component shim which manages an OpenTelemetry Collector
 // exporter component.
 type Exporter struct {
@@ -56,6 +83,10 @@ type Exporter struct {
 
 	sched     *scheduler.Scheduler
 	collector *lazycollector.Collector
+
+	// Signals which the exporter is able to export.
+	// Can be logs, metrics, traces or any combination of them.
+	supportedSignals TypeSignal
 }
 
 var (
@@ -69,7 +100,7 @@ var (
 //
 // The registered component must be registered to export the
 // otelcol.ConsumerExports type, otherwise New will panic.
-func New(opts component.Options, f otelexporter.Factory, args Arguments) (*Exporter, error) {
+func New(opts component.Options, f otelexporter.Factory, args Arguments, supportedSignals TypeSignal) (*Exporter, error) {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	consumer := lazyconsumer.New(ctx)
@@ -96,6 +127,8 @@ func New(opts component.Options, f otelexporter.Factory, args Arguments) (*Expor
 
 		sched:     scheduler.New(opts.Logger),
 		collector: collector,
+
+		supportedSignals: supportedSignals,
 	}
 	if err := e.Update(args); err != nil {
 		return nil, err
@@ -162,25 +195,34 @@ func (e *Exporter) Update(args component.Arguments) error {
 	// supported telemetry signals.
 	var components []otelcomponent.Component
 
-	tracesExporter, err := e.factory.CreateTracesExporter(e.ctx, settings, exporterConfig)
-	if err != nil && !errors.Is(err, otelcomponent.ErrDataTypeIsNotSupported) {
-		return err
-	} else if tracesExporter != nil {
-		components = append(components, tracesExporter)
+	var tracesExporter otelexporter.Traces
+	if e.supportedSignals.SupportsTraces() {
+		tracesExporter, err = e.factory.CreateTracesExporter(e.ctx, settings, exporterConfig)
+		if err != nil && !errors.Is(err, otelcomponent.ErrDataTypeIsNotSupported) {
+			return err
+		} else if tracesExporter != nil {
+			components = append(components, tracesExporter)
+		}
 	}
 
-	metricsExporter, err := e.factory.CreateMetricsExporter(e.ctx, settings, exporterConfig)
-	if err != nil && !errors.Is(err, otelcomponent.ErrDataTypeIsNotSupported) {
-		return err
-	} else if metricsExporter != nil {
-		components = append(components, metricsExporter)
+	var metricsExporter otelexporter.Metrics
+	if e.supportedSignals.SupportsMetrics() {
+		metricsExporter, err = e.factory.CreateMetricsExporter(e.ctx, settings, exporterConfig)
+		if err != nil && !errors.Is(err, otelcomponent.ErrDataTypeIsNotSupported) {
+			return err
+		} else if metricsExporter != nil {
+			components = append(components, metricsExporter)
+		}
 	}
 
-	logsExporter, err := e.factory.CreateLogsExporter(e.ctx, settings, exporterConfig)
-	if err != nil && !errors.Is(err, otelcomponent.ErrDataTypeIsNotSupported) {
-		return err
-	} else if logsExporter != nil {
-		components = append(components, logsExporter)
+	var logsExporter otelexporter.Logs
+	if e.supportedSignals.SupportsLogs() {
+		logsExporter, err = e.factory.CreateLogsExporter(e.ctx, settings, exporterConfig)
+		if err != nil && !errors.Is(err, otelcomponent.ErrDataTypeIsNotSupported) {
+			return err
+		} else if logsExporter != nil {
+			components = append(components, logsExporter)
+		}
 	}
 
 	// Schedule the components to run once our component is running.

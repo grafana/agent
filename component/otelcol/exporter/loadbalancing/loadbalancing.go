@@ -29,7 +29,10 @@ func init() {
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			fact := loadbalancingexporter.NewFactory()
-			return exporter.New(opts, fact, args.(Arguments))
+			//TODO(ptodev): LB exporter cannot yet work with metrics due to a limitation in the Agent:
+			// https://github.com/grafana/agent/pull/5684
+			// Once the limitation is removed, we may be able to remove the need for exporter.TypeSignal altogether.
+			return exporter.New(opts, fact, args.(Arguments), exporter.TypeLogs|exporter.TypeTraces)
 		},
 	})
 }

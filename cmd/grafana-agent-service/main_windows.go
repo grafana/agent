@@ -29,9 +29,10 @@ func main() {
 	}
 
 	cfg := serviceManagerConfig{
-		Path: managerConfig.ServicePath,
-		Args: managerConfig.Args,
-		Dir:  managerConfig.WorkingDirectory,
+		Path:        managerConfig.ServicePath,
+		Args:        managerConfig.Args,
+		Environment: managerConfig.Environment,
+		Dir:         managerConfig.WorkingDirectory,
 
 		// Send logs directly to the event logger.
 		Stdout: logger,
