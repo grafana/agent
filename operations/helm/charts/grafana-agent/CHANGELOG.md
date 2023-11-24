@@ -12,9 +12,10 @@ Unreleased
 
 ### Enhancements
 
+- Add secrets which are mounted as environment variables into container. Pod is restarted if secret is changed. (@christianjedroCDT)
+- Add environment variables which can be defined through key=value pair. (@christianjedroCDT)
 - Ensure that `app.kubernetes.io/version` label accounts for any 
   image tag overrides supplied to the chart Values. (@tristanburgess)
-- Add secrets which are mounted as environment variables into container. Pod is restarted if secret is changed. (@christianjedroCDT)
 
 0.27.2 (2023-11-07)
 ----------

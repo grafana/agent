@@ -43,6 +43,10 @@
           name: "{{ include "grafana-agent.fullname" $ }}"
           key: {{ $name | quote }}
     {{- end }}
+    {{- range $name, $value := .Values.env }}
+    - name: {{ $name | quote }}
+      value: {{ $value | quote }}
+    {{- end }}
   {{- if .Values.agent.envFrom }}
   envFrom:
     {{- toYaml .Values.agent.envFrom | nindent 4 }}

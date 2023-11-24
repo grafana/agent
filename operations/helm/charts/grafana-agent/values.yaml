@@ -291,3 +291,6 @@ ingress:
 
 # definition of secrets which are accessible through environment variables in the agent container
 secrets: {}
+
+# definition of environment variables as key=value pair
+env: {}

@@ -93,6 +93,7 @@ use the older mode (called "static mode"), set the `agent.mode` value to
 | controller.volumeClaimTemplates | list | `[]` | volumeClaimTemplates to add when controller.type is 'statefulset'. |
 | controller.volumes.extra | list | `[]` | Extra volumes to add to the Grafana Agent pod. |
 | crds.create | bool | `true` | Whether to install CRDs for monitoring. |
+| env | object | `{}` |  |
 | fullnameOverride | string | `nil` | Overrides the chart's computed fullname. Used to change the full prefix of resource names. |
 | global.image.pullSecrets | list | `[]` | Optional set of global image pull secrets. |
 | global.image.registry | string | `""` | Global image registry to use if it needs to be overriden for some specific use cases (e.g local registries, custom images, ...) |
@@ -114,6 +115,7 @@ use the older mode (called "static mode"), set the `agent.mode` value to
 | ingress.tls | list | `[]` |  |
 | nameOverride | string | `nil` | Overrides the chart's name. Used to change the infix in the resource names. |
 | rbac.create | bool | `true` | Whether to create RBAC resources for the agent. |
+| secrets | object | `{}` |  |
 | service.annotations | object | `{}` |  |
 | service.clusterIP | string | `""` | Cluster IP, can be set to None, empty "" or an IP address |
 | service.enabled | bool | `true` | Creates a Service for the controller's pods. |
