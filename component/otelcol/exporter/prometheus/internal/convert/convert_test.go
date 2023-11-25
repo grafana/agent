@@ -881,6 +881,47 @@ func TestConverter(t *testing.T) {
 			resourceToTelemetryConversion: true,
 		},
 		{
+			name: "Gauge: NOT convert resource attributes to metric label",
+			input: `{
+				"resource_metrics": [{
+					"resource": {
+						"attributes": [{
+							"key": "service.name",
+							"value": { "stringValue": "myservice" }
+						}, {
+							"key": "service.instance.id",
+							"value": { "stringValue": "instance" }
+						}, {
+							"key": "raw",
+							"value": { "stringValue": "test" }
+						},{
+							"key": "foo.one",
+							"value": { "stringValue": "foo" }
+						}, {
+							"key": "bar.one",
+							"value": { "stringValue": "bar" }
+						}]
+					},
+					"scope_metrics": [{
+						"metrics": [{
+							"name": "test_metric_gauge",
+							"gauge": {
+								"data_points": [{
+									"as_double": 1234.56
+								}]
+							}
+						}]
+					}]
+				}]
+			}`,
+			expect: `
+				# TYPE test_metric_gauge gauge
+				test_metric_gauge{instance="instance",job="myservice"} 1234.56
+			`,
+			enableOpenMetrics:             true,
+			resourceToTelemetryConversion: false,
+		},
+		{
 			name: "Summary: convert resource attributes to metric label",
 			input: `{
 				"resource_metrics": [{
