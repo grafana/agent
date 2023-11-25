@@ -29,6 +29,10 @@ func Logs(in []otelcol.Consumer) otelconsumer.Logs {
 	for i := 0; i < len(in)-1; i++ {
 		consumer := in[i]
 
+		if consumer == nil {
+			continue
+		}
+
 		if consumer.Capabilities().MutatesData {
 			clone = append(clone, consumer)
 		} else {
@@ -40,10 +44,12 @@ func Logs(in []otelcol.Consumer) otelconsumer.Logs {
 
 	// The final consumer can be given to the passthrough list regardless of
 	// whether it mutates as long as there's no other read-only consumers.
-	if len(passthrough) == 0 || !last.Capabilities().MutatesData {
-		passthrough = append(passthrough, last)
-	} else {
-		clone = append(clone, last)
+	if last != nil {
+		if len(passthrough) == 0 || !last.Capabilities().MutatesData {
+			passthrough = append(passthrough, last)
+		} else {
+			clone = append(clone, last)
+		}
 	}
 
 	return &logsFanout{
