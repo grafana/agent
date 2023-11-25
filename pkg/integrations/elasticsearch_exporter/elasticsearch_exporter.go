@@ -14,11 +14,11 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
-	commoncfg "github.com/grafana/agent/component/common/config"
 	"github.com/grafana/agent/pkg/integrations"
 	integrations_v2 "github.com/grafana/agent/pkg/integrations/v2"
 	"github.com/grafana/agent/pkg/integrations/v2/metricsutils"
 	"github.com/prometheus/client_golang/prometheus"
+	promCfg "github.com/prometheus/common/config"
 
 	"github.com/prometheus-community/elasticsearch_exporter/collector"
 	"github.com/prometheus-community/elasticsearch_exporter/pkg/clusterinfo"
@@ -71,7 +71,7 @@ type Config struct {
 	// Export stats for Snapshot Lifecycle Management
 	ExportSLM bool `yaml:"slm,omitempty"`
 	// BasicAuth block allows secure connection with Elasticsearch cluster via Basic-Auth
-	BasicAuth *commoncfg.BasicAuth `yaml:"basic_auth,omitempty"`
+	BasicAuth *promCfg.BasicAuth `yaml:"basic_auth,omitempty"`
 }
 
 // Custom http.Transport struct for Basic Auth-secured communication with ES cluster
@@ -150,7 +150,15 @@ func New(logger log.Logger, c *Config) (integrations.Integration, error) {
 			}
 			password = strings.TrimSpace(string(buff))
 		}
-		encodedAuth := base64.StdEncoding.EncodeToString([]byte(c.BasicAuth.Username + ":" + password))
+		username := string(c.BasicAuth.Username)
+		if len(c.BasicAuth.UsernameFile) > 0 {
+			buff, err := os.ReadFile(c.BasicAuth.UsernameFile)
+			if err != nil {
+				return nil, fmt.Errorf("unable to load username file %s: %w", c.BasicAuth.UsernameFile, err)
+			}
+			username = strings.TrimSpace(string(buff))
+		}
+		encodedAuth := base64.StdEncoding.EncodeToString([]byte(username + ":" + password))
 		esHttpTransport.authHeader = "Basic " + encodedAuth
 	}
 

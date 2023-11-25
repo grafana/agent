@@ -4,10 +4,11 @@ import (
 	"testing"
 	"time"
 
-	commoncfg "github.com/grafana/agent/component/common/config"
+	commonCfg "github.com/grafana/agent/component/common/config"
 	"github.com/grafana/agent/pkg/integrations/elasticsearch_exporter"
 	"github.com/grafana/river"
 	"github.com/grafana/river/rivertypes"
+	promCfg "github.com/prometheus/common/config"
 	"github.com/stretchr/testify/require"
 )
 
@@ -56,7 +57,7 @@ func TestRiverUnmarshal(t *testing.T) {
 		InsecureSkipVerify:        true,
 		ExportDataStreams:         true,
 		ExportSLM:                 true,
-		BasicAuth: &commoncfg.BasicAuth{
+		BasicAuth: &commonCfg.BasicAuth{
 			Username: "username",
 			Password: rivertypes.Secret("pass"),
 		},
@@ -111,9 +112,9 @@ func TestConvert(t *testing.T) {
 		InsecureSkipVerify:        true,
 		ExportDataStreams:         true,
 		ExportSLM:                 true,
-		BasicAuth: &commoncfg.BasicAuth{
+		BasicAuth: &promCfg.BasicAuth{
 			Username: "username",
-			Password: rivertypes.Secret("pass"),
+			Password: promCfg.Secret("pass"),
 		},
 	}
 	require.Equal(t, expected, *res)

@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/grafana/agent/component"
-	commoncfg "github.com/grafana/agent/component/common/config"
+	commonCfg "github.com/grafana/agent/component/common/config"
 	"github.com/grafana/agent/component/prometheus/exporter"
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/integrations/elasticsearch_exporter"
@@ -53,7 +53,7 @@ type Arguments struct {
 	InsecureSkipVerify        bool                 `river:"ssl_skip_verify,attr,optional"`
 	ExportDataStreams         bool                 `river:"data_stream,attr,optional"`
 	ExportSLM                 bool                 `river:"slm,attr,optional"`
-	BasicAuth                 *commoncfg.BasicAuth `river:"basic_auth,block,optional"`
+	BasicAuth                 *commonCfg.BasicAuth `river:"basic_auth,block,optional"`
 }
 
 // SetToDefault implements river.Defaulter.
@@ -80,6 +80,6 @@ func (a *Arguments) Convert() *elasticsearch_exporter.Config {
 		InsecureSkipVerify:        a.InsecureSkipVerify,
 		ExportDataStreams:         a.ExportDataStreams,
 		ExportSLM:                 a.ExportSLM,
-		BasicAuth:                 a.BasicAuth,
+		BasicAuth:                 a.BasicAuth.Convert(),
 	}
 }
