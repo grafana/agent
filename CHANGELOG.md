@@ -139,11 +139,8 @@ v0.38.0 (2023-11-21)
 
 - Allow agent to start with `module.git` config if cached before. (@hainenber)
 
-<<<<<<< HEAD
 ### Bugfixes
 
-=======
->>>>>>> 853522597 (misc: fix changelog entry (#5812))
 - Set exit code 1 on grafana-agentctl non-runnable command. (@fgouteroux)
 
 - Fixed an issue where `loki.process` validation for stage `metric.counter` was
