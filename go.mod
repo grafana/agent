@@ -156,7 +156,7 @@ require (
 	github.com/prometheus/statsd_exporter v0.22.8
 	github.com/richardartoul/molecule v1.0.1-0.20221107223329-32cfee06a052
 	github.com/rs/cors v1.10.1
-	github.com/shirou/gopsutil/v3 v3.23.9
+	github.com/shirou/gopsutil/v3 v3.23.10
 	github.com/sijms/go-ora/v2 v2.7.6
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spaolacci/murmur3 v1.1.0
@@ -171,39 +171,39 @@ require (
 	github.com/wk8/go-ordered-map v0.2.0
 	github.com/xdg-go/scram v1.1.2
 	github.com/zeebo/xxh3 v1.0.2
-	go.opentelemetry.io/collector v0.87.0
-	go.opentelemetry.io/collector/component v0.87.0
+	go.opentelemetry.io/collector v0.89.0
+	go.opentelemetry.io/collector/component v0.89.0
 	go.opentelemetry.io/collector/config/configauth v0.87.0
 	go.opentelemetry.io/collector/config/configcompression v0.87.0
 	go.opentelemetry.io/collector/config/configgrpc v0.87.0
 	go.opentelemetry.io/collector/config/confighttp v0.87.0
 	go.opentelemetry.io/collector/config/confignet v0.87.0
 	go.opentelemetry.io/collector/config/configopaque v0.87.0
-	go.opentelemetry.io/collector/config/configtelemetry v0.87.0
+	go.opentelemetry.io/collector/config/configtelemetry v0.89.0
 	go.opentelemetry.io/collector/config/configtls v0.87.0
-	go.opentelemetry.io/collector/confmap v0.87.0
-	go.opentelemetry.io/collector/connector v0.87.0
-	go.opentelemetry.io/collector/consumer v0.87.0
-	go.opentelemetry.io/collector/exporter v0.87.0
+	go.opentelemetry.io/collector/confmap v0.89.0
+	go.opentelemetry.io/collector/connector v0.89.0
+	go.opentelemetry.io/collector/consumer v0.89.0
+	go.opentelemetry.io/collector/exporter v0.89.0
 	go.opentelemetry.io/collector/exporter/loggingexporter v0.87.0
 	go.opentelemetry.io/collector/exporter/otlpexporter v0.87.0
 	go.opentelemetry.io/collector/exporter/otlphttpexporter v0.87.0
-	go.opentelemetry.io/collector/extension v0.87.0
+	go.opentelemetry.io/collector/extension v0.89.0
 	go.opentelemetry.io/collector/extension/auth v0.87.0
-	go.opentelemetry.io/collector/featuregate v1.0.0-rcv0016
+	go.opentelemetry.io/collector/featuregate v1.0.0-rcv0018
 	go.opentelemetry.io/collector/otelcol v0.87.0
-	go.opentelemetry.io/collector/pdata v1.0.0-rcv0016
-	go.opentelemetry.io/collector/processor v0.87.0
+	go.opentelemetry.io/collector/pdata v1.0.0-rcv0018
+	go.opentelemetry.io/collector/processor v0.89.0
 	go.opentelemetry.io/collector/processor/batchprocessor v0.87.0
 	go.opentelemetry.io/collector/processor/memorylimiterprocessor v0.87.0
-	go.opentelemetry.io/collector/receiver v0.87.0
+	go.opentelemetry.io/collector/receiver v0.89.0
 	go.opentelemetry.io/collector/receiver/otlpreceiver v0.87.0
 	go.opentelemetry.io/collector/semconv v0.87.0
-	go.opentelemetry.io/collector/service v0.87.0
+	go.opentelemetry.io/collector/service v0.89.0
 	go.opentelemetry.io/contrib/instrumentation/github.com/gorilla/mux/otelmux v0.45.0
 	go.opentelemetry.io/otel v1.21.0
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.19.0
-	go.opentelemetry.io/otel/exporters/prometheus v0.42.0
+	go.opentelemetry.io/otel/exporters/prometheus v0.43.0
 	go.opentelemetry.io/otel/metric v1.21.0
 	go.opentelemetry.io/otel/sdk v1.21.0
 	go.opentelemetry.io/otel/sdk/metric v1.20.0
@@ -615,6 +615,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/filterprocessor v0.87.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusreceiver v0.87.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/vcenterreceiver v0.87.0
+	go.opentelemetry.io/collector/exporter/debugexporter v0.89.0
 	go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp v0.42.0
 	golang.org/x/crypto/x509roots/fallback v0.0.0-20240208163226-62c9f1799c91
 	k8s.io/apimachinery v0.28.3
@@ -645,8 +646,13 @@ require (
 	github.com/go-jose/go-jose/v3 v3.0.1 // indirect
 	github.com/golang-jwt/jwt/v5 v5.0.0 // indirect
 	github.com/google/gnostic-models v0.6.8 // indirect
+<<<<<<< HEAD
 	github.com/grafana/jfr-parser v0.8.0 // indirect
 	github.com/hetznercloud/hcloud-go/v2 v2.4.0 // indirect
+=======
+	github.com/hashicorp/go-version v1.6.0 // indirect
+	github.com/hetznercloud/hcloud-go/v2 v2.0.0 // indirect
+>>>>>>> 8594a755c (otelcol debug exporter)
 	github.com/julienschmidt/httprouter v1.3.0 // indirect
 	github.com/knadh/koanf/v2 v2.0.1 // indirect
 	github.com/lightstep/go-expohisto v1.0.0 // indirect
