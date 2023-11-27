@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"fmt"
+	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -10,9 +11,7 @@ import (
 )
 
 const (
-	agentBinaryPath  = "../../../build/grafana-agent-flow"
-	dockerComposeCmd = "docker-compose"
-	makeCmd          = "make"
+	agentBinaryPath = "../../../build/grafana-agent-flow"
 )
 
 type TestLog struct {
@@ -23,20 +22,22 @@ type TestLog struct {
 
 var logChan chan TestLog
 
-func buildAgent() {
-	fmt.Println("Building agent...")
-	cmd := exec.Command(makeCmd, "-C", "..", "agent-flow")
+func executeCommand(command string, args []string, taskDescription string) {
+	fmt.Printf("%s...\n", taskDescription)
+	cmd := exec.Command(command, args...)
+	var stderr bytes.Buffer
+	cmd.Stderr = &stderr
 	if err := cmd.Run(); err != nil {
-		panic(err)
+		log.Fatalf("Error: %s\n", stderr.String())
 	}
 }
 
+func buildAgent() {
+	executeCommand("make", []string{"-C", "..", "agent-flow"}, "Building agent")
+}
+
 func setupEnvironment() {
-	fmt.Println("Setting up environment with Docker Compose...")
-	cmd := exec.Command(dockerComposeCmd, "up", "-d")
-	if err := cmd.Run(); err != nil {
-		panic(err)
-	}
+	executeCommand("docker-compose", []string{"up", "-d"}, "Setting up environment with Docker Compose")
 }
 
 func runSingleTest(testDir string) {
@@ -105,18 +106,18 @@ func runAllTests() {
 		}(testDir)
 	}
 	wg.Wait()
+	close(logChan)
 }
 
 func cleanUpEnvironment() {
 	fmt.Println("Cleaning up Docker environment...")
-	err := exec.Command(dockerComposeCmd, "down", "--volumes", "--rmi", "all").Run()
+	err := exec.Command("docker-compose", "down", "--volumes", "--rmi", "all").Run()
 	if err != nil {
 		panic(err)
 	}
 }
 
 func reportResults() {
-	close(logChan)
 	testsFailed := 0
 	for log := range logChan {
 		fmt.Printf("Failure detected in %s:\n", log.TestDir)

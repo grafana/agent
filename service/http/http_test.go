@@ -16,7 +16,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/config"
 	"github.com/stretchr/testify/require"
-	"go.opentelemetry.io/otel/trace"
+	"go.opentelemetry.io/otel/trace/noop"
 )
 
 func TestHTTP(t *testing.T) {
@@ -168,7 +168,7 @@ func newTestEnvironment(t *testing.T) (*testEnvironment, error) {
 
 	svc := New(Options{
 		Logger:   util.TestLogger(t),
-		Tracer:   trace.NewNoopTracerProvider(),
+		Tracer:   noop.NewTracerProvider(),
 		Gatherer: prometheus.NewRegistry(),
 
 		ReadyFunc:  func() bool { return true },
