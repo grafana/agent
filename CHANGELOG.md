@@ -199,6 +199,8 @@ v0.39.0 (2024-01-09)
 
 ### Enhancements
 
+- Added `otelcol.exporter.debug` component based on `go.opentelemetry.io/collector/exporter/debugexporter`. (@BarunKGP)
+
 - Flow Windows service: Support environment variables. (@jkroepke)
 
 - Allow disabling collection of root Cgroup stats in
