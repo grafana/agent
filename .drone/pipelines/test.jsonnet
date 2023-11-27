@@ -88,10 +88,19 @@ local pipelines = import '../util/pipelines.jsonnet';
     steps: [{
       name: 'Run integration tests',
       image: build_image.linux,
-
+      volumes: [{
+        name: 'docker',
+        path: '/var/run/docker.sock',
+      }],
       commands: [
         'make integration-test',
       ],
+    }],
+    volumes: [{
+      name: 'docker',
+      host: {
+        path: '/var/run/docker.sock',
+      },
     }],
   },
 

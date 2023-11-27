@@ -161,10 +161,17 @@ steps:
   - make integration-test
   image: grafana/agent-build-image:0.30.4
   name: Run integration tests
+  volumes:
+  - name: docker
+    path: /var/run/docker.sock
 trigger:
   event:
   - pull_request
 type: docker
+volumes:
+- host:
+    path: /var/run/docker.sock
+  name: docker
 ---
 kind: pipeline
 name: Test (Full)
@@ -1442,6 +1449,6 @@ kind: secret
 name: updater_private_key
 ---
 kind: signature
-hmac: 8f1d869e3e0627ee266cbb00a8dc98f6b3208d11b92fdd661a782feb97fb3d9d
+hmac: b2804fac3a22d71112243d8736f990aec7cdabec5cf2df35bd33dfbfd0e9724e
 
 ...
