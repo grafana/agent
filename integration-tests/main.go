@@ -29,13 +29,12 @@ func main() {
 
 func runIntegrationTests(cmd *cobra.Command, args []string) {
 	ctx := context.Background()
+	network := setupNetwork(ctx)
 
 	defer reportResults()
 	defer cleanUpImages()
+	defer cleanUpNetwork(ctx, network)
 	defer cleanUpEnvironment(ctx)
-
-	network := setupNetwork(ctx)
-	defer network.Remove(ctx)
 
 	setupContainers(ctx)
 
@@ -54,5 +53,4 @@ func runIntegrationTests(cmd *cobra.Command, args []string) {
 		logChan = make(chan TestLog, len(testDirs))
 		runAllTests(ctx)
 	}
-
 }

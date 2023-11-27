@@ -74,13 +74,11 @@ func runSingleTest(ctx context.Context, testDir string) {
 	dirName := filepath.Base(testDir)
 
 	agentContainer := startContainer(ctx, createAgentContainer(agentImage, dirName))
-	defer agentContainer.Terminate(ctx)
 
 	err = agentContainer.StartLogProducer(ctx)
 	if err != nil {
 		panic(err)
 	}
-	defer agentContainer.StopLogProducer()
 
 	var agentLogBuffer bytes.Buffer
 	logConsumer := &logConsumer{buf: &agentLogBuffer}
@@ -98,6 +96,16 @@ func runSingleTest(ctx context.Context, testDir string) {
 			AgentLog:   agentLog,
 			TestOutput: string(testOutput),
 		}
+	}
+
+	err = agentContainer.StopLogProducer()
+	if err != nil {
+		panic(err)
+	}
+
+	err = agentContainer.Terminate(ctx)
+	if err != nil {
+		panic(err)
 	}
 
 	err = os.RemoveAll(filepath.Join(testDir, "data-agent"))
@@ -183,6 +191,13 @@ func cleanUpImages() {
 	cmd.Stderr = &stderr
 	if err := cmd.Run(); err != nil {
 		fmt.Printf("Error removing images: %s\n", stderr.String())
+	}
+}
+
+func cleanUpNetwork(ctx context.Context, network testcontainers.Network) {
+	err := network.Remove(ctx)
+	if err != nil {
+		fmt.Printf("Failed to remove network: %s\n", err)
 	}
 }
 
