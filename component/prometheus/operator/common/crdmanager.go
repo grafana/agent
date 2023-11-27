@@ -53,8 +53,8 @@ type crdManager struct {
 	// debug info by `kind/ns/name`
 	debugInfo map[string]*operator.DiscoveredResource
 
-	discoveryManager  *discovery.Manager
-	scrapeManager     *scrape.Manager
+	discoveryManager  DiscoveryManager
+	scrapeManager     ScrapeManager
 	clusteringUpdated chan struct{}
 	ls                labelstore.LabelStore
 
