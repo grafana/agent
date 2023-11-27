@@ -26,7 +26,7 @@ import (
 	"github.com/grafana/agent/pkg/traces/traceutils"
 	"github.com/grafana/agent/pkg/util"
 	prom_client "github.com/prometheus/client_golang/prometheus"
-	"go.opentelemetry.io/otel/trace"
+	"go.opentelemetry.io/otel/trace/noop"
 )
 
 // Instance wraps the OpenTelemetry collector to enable tracing pipelines
@@ -153,7 +153,7 @@ func (i *Instance) buildAndStartPipeline(ctx context.Context, cfg InstanceConfig
 		OtelMetricReader:         promExporter,
 		DisableProcessMetrics:    true,
 		UseExternalMetricsServer: true,
-		TracerProvider:           trace.NewNoopTracerProvider(),
+		TracerProvider:           noop.NewTracerProvider(),
 		//TODO: Plug in an AsyncErrorChannel to shut down the Agent in case of a fatal event
 		LoggingOptions: []zap.Option{
 			zap.WrapCore(func(zapcore.Core) zapcore.Core {

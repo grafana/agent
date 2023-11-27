@@ -76,6 +76,7 @@ func (opts *JaegerRemoteSamplerOptions) SetToDefault() {
 // [trace.TracerProvider] and can be used to forward internally generated
 // traces to a OpenTelemetry Collector-compatible Flow component.
 type Tracer struct {
+	trace.TracerProvider
 	sampler *lazySampler
 	client  *client
 	exp     *otlptrace.Exporter
