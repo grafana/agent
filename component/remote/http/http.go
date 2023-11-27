@@ -20,6 +20,7 @@ import (
 	"github.com/grafana/agent/pkg/build"
 	"github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/grafana/river/rivertypes"
+	"github.com/prometheus/client_golang/prometheus"
 	prom_config "github.com/prometheus/common/config"
 )
 
@@ -100,6 +101,8 @@ type Component struct {
 	log  log.Logger
 	opts component.Options
 
+	metrics *metrics
+
 	mut            sync.Mutex
 	args           Arguments
 	cli            *http.Client
@@ -112,6 +115,11 @@ type Component struct {
 
 	healthMut sync.RWMutex
 	health    component.Health
+}
+
+type metrics struct {
+	cacheFallbacks prometheus.Counter
+	cacheFallbacksFailures prometheus.Counter
 }
 
 var (
@@ -132,6 +140,23 @@ func New(opts component.Options, args Arguments) (*Component, error) {
 			Message:    "component started",
 			UpdateTime: time.Now(),
 		},
+	}
+
+	c.metrics = &metrics{
+		cacheFallbacks: prometheus.NewCounter(prometheus.CounterOpts{
+			Name: "remote_http_fallbacks_total",
+			Help: "The total number of fallbacks to local cache",
+		}),
+		cacheFallbacksFailures: prometheus.NewCounter(prometheus.CounterOpts{
+			Name: "remote_http_fallbacks_failed_total",
+			Help: "The total number of fallbacks to local cache that failed",
+		}),
+	}
+
+	for _, m := range []prometheus.Collector{c.metrics.cacheFallbacks, c.metrics.cacheFallbacksFailures} {
+		if err := opts.Registerer.Register(m); err != nil {
+			return nil, err
+		}
 	}
 
 	if err := c.Update(args); err != nil {
@@ -276,9 +301,11 @@ func (c *Component) fallbackToCache() error {
 	// If we have a local cache, we can still return the cached value.
 	// This is useful for when the remote endpoint is down.
 	level.Warn(c.log).Log("msg", "polling failed, using local cache")
+	c.metrics.cacheFallbacks.Inc()
 	cacheContents, err := c.readCache()
 	if err != nil {
 		level.Error(c.log).Log("msg", "failed to read cache", "err", err)
+		c.metrics.cacheFallbacksFailures.Inc()
 		return fmt.Errorf("reading cache: %w", err)
 	}
 	c.updateExports(cacheContents)
