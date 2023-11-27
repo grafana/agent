@@ -76,7 +76,7 @@ basic_auth` refers to an `basic_auth` block defined inside a `client` block.
 [authorization]: #authorization-block
 [oauth2]: #oauth2-block
 [tls_config]: #tls_config-block
-[fallback_cache]: #fallback_cache-(experimental)
+[fallback_cache]: #fallback_cache-experimental
 
 ### client block
 
@@ -133,7 +133,9 @@ request of the specified URL succeeds.
 
 ## Debug information
 
-`remote.http` does not expose any component-specific debug information.
+`remote.http` exposes the following debug information:
+
+* (Relevant only when [fallback_cache][] is enabled) The total number of fallbacks to the local cache and the total number of failed fallbacks.
 
 ## Debug metrics
 
