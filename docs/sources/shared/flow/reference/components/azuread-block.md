@@ -9,8 +9,8 @@ description: Shared content, azuread block
 headless: true
 ---
 
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
+Name    | Type     | Description      | Default         | Required
+--------|----------|------------------|-----------------|---------
 `cloud` | `string` | The Azure Cloud. | `"AzurePublic"` | no
 
 The supported values for `cloud` are:
