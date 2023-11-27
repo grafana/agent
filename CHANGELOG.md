@@ -31,6 +31,8 @@ Main (unreleased)
   Previously, only `remote.*` and `local.*` components could be referenced
   without a circular dependency. (@rfratto)
 
+- `pyroscope.ebpf` support python on arm64 platforms. (@korniltsev)  
+
 ### Bugfixes
 
 - Permit `X-Faro-Session-ID` header in CORS requests for the `faro.receiver`
