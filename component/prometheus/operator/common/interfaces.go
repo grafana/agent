@@ -7,15 +7,15 @@ import (
 	"github.com/prometheus/prometheus/scrape"
 )
 
-// DiscoveryManager is an interface around discovery.Manager
-type DiscoveryManager interface {
+// discoveryManager is an interface around discovery.Manager
+type discoveryManager interface {
 	Run() error
 	SyncCh() <-chan map[string][]*targetgroup.Group
 	ApplyConfig(cfg map[string]discovery.Configs) error
 }
 
-// ScrapeManager is an interface around scrape.Manager
-type ScrapeManager interface {
+// scrapeManager is an interface around scrape.Manager
+type scrapeManager interface {
 	Run(tsets <-chan map[string][]*targetgroup.Group) error
 	Stop()
 	TargetsActive() map[string][]*scrape.Target
