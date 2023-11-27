@@ -26,6 +26,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.opentelemetry.io/contrib/instrumentation/github.com/gorilla/mux/otelmux"
 	"go.opentelemetry.io/otel/trace"
+	"go.opentelemetry.io/otel/trace/noop"
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
 )
@@ -93,7 +94,7 @@ func New(opts Options) *Service {
 		l = log.NewNopLogger()
 	}
 	if t == nil {
-		t = trace.NewNoopTracerProvider()
+		t = noop.NewTracerProvider()
 	}
 	if r == nil {
 		r = prometheus.NewRegistry()
