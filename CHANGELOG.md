@@ -31,7 +31,8 @@ Main (unreleased)
   Previously, only `remote.*` and `local.*` components could be referenced
   without a circular dependency. (@rfratto)
 
-- Added support to convert resource attributes to Prometheus labels in `otelcol.exporter.prometheus`. (@hainenber)
+- Add a `resource_to_telemetry_conversion` argument to `otelcol.exporter.prometheus`
+  for converting resource attributes to Prometheus labels. (@hainenber)
 
 ### Bugfixes
 
