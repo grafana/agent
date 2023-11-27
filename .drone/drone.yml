@@ -152,6 +152,21 @@ trigger:
 type: docker
 ---
 kind: pipeline
+name: Integration Tests
+platform:
+  arch: amd64
+  os: linux
+steps:
+- commands:
+  - make integration-test
+  image: grafana/agent-build-image:0.30.4
+  name: Run integration tests
+trigger:
+  event:
+  - pull_request
+type: docker
+---
+kind: pipeline
 name: Test (Full)
 platform:
   arch: amd64
