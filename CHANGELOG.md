@@ -48,6 +48,8 @@ Main (unreleased)
 
 - Fix issue with windows_exporter defaults not being set correctly. (@mattdurham)
 
+- Fix agent crash when process null OTel's fan out consumers. (@hainenber)
+
 v0.38.0 (2023-11-21)
 --------------------
 
