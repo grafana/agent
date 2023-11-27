@@ -64,6 +64,10 @@ func TestJoin(t *testing.T) {
 					"foo":                        "bar",
 				},
 				{
+					"__meta_docker_container_id": "7edda1de1e0d1d366351e478359cf5fa16bb8ab53063a99bb119e56971bfb7e2",
+					"foo":                        "bar",
+				},
+				{
 					"__process_pid__":    "241",
 					"__meta_process_exe": "/bin/bash",
 					"__meta_process_cwd": "/opt",

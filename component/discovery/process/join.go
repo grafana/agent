@@ -6,7 +6,6 @@ func join(processes, containers []discovery.Target) []discovery.Target {
 	res := make([]discovery.Target, 0, len(processes)+len(containers))
 
 	cid2container := make(map[string]discovery.Target, len(containers))
-	foundContainers := make(map[string]struct{})
 	for _, container := range containers {
 		cid := getContainerIDFromTarget(container)
 		if cid != "" {
@@ -25,7 +24,6 @@ func join(processes, containers []discovery.Target) []discovery.Target {
 		if !ok {
 			continue
 		}
-		foundContainers[cid] = struct{}{}
 		mergedTarget := make(discovery.Target, len(p)+len(container))
 		for k, v := range p {
 			mergedTarget[k] = v
@@ -35,10 +33,8 @@ func join(processes, containers []discovery.Target) []discovery.Target {
 		}
 		res = append(res, mergedTarget)
 	}
-	for cid, target := range cid2container {
-		if _, ok := foundContainers[cid]; !ok {
-			res = append(res, target)
-		}
+	for _, target := range cid2container {
+		res = append(res, target)
 	}
 	return res
 }
