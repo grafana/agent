@@ -34,6 +34,8 @@ Main (unreleased)
 - Add a `resource_to_telemetry_conversion` argument to `otelcol.exporter.prometheus`
   for converting resource attributes to Prometheus labels. (@hainenber)
 
+- `pyroscope.ebpf` support python on arm64 platforms. (@korniltsev)
+
 ### Bugfixes
 
 - Permit `X-Faro-Session-ID` header in CORS requests for the `faro.receiver`
