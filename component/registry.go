@@ -3,6 +3,8 @@ package component
 import (
 	"context"
 	"fmt"
+	"golang.org/x/exp/maps"
+	"golang.org/x/exp/slices"
 	"reflect"
 	"strings"
 
@@ -201,4 +203,10 @@ func validatePrefixMatch(check parsedName, against map[string]parsedName) error 
 func Get(name string) (Registration, bool) {
 	r, ok := registered[name]
 	return r, ok
+}
+
+func AllNames() []string {
+	keys := maps.Keys(registered)
+	slices.Sort(keys)
+	return keys
 }
