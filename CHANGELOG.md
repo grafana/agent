@@ -135,7 +135,7 @@ v0.38.0 (2023-11-21)
 - Make component list sortable in web UI. (@hainenber)
 
 - Adds new metrics (`mssql_server_total_memory_bytes`, `mssql_server_target_memory_bytes`,
-  and `mssql_available_commit_memory_bytes`) for `mssql` integration.
+  and `mssql_available_commit_memory_bytes`) for `mssql` integration (@StefanKurek).
 
 - Grafana Agent Operator: `config-reloader` container no longer runs as root.
   (@rootmout)
@@ -151,6 +151,8 @@ v0.38.0 (2023-11-21)
 - Updated windows exporter to use prometheus-community/windows_exporter commit 1836cd1. (@mattdurham)
 
 - Allow agent to start with `module.git` config if cached before. (@hainenber)
+
+- Adds new optional config parameter `query_config` to `mssql` integration to allow for custom metrics (@StefanKurek)
 
 ### Bugfixes
 
