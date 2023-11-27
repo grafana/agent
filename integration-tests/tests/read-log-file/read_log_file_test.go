@@ -15,7 +15,7 @@ func TestReadLogFile(t *testing.T) {
 		err := common.FetchDataFromURL(query, &logResponse)
 		assert.NoError(c, err)
 		if assert.NotEmpty(c, logResponse.Data.Result) {
-			assert.Equal(c, logResponse.Data.Result[0].Stream["filename"], "logs.txt")
+			assert.Equal(c, logResponse.Data.Result[0].Stream["filename"], "/etc/agent/logs.txt")
 			logs := make([]string, len(logResponse.Data.Result[0].Values))
 			for i, valuePair := range logResponse.Data.Result[0].Values {
 				logs[i] = valuePair[1]

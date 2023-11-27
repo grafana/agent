@@ -2,16 +2,28 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"sync"
+
+	"github.com/testcontainers/testcontainers-go"
 )
 
 const (
-	agentBinaryPath = "../../../build/grafana-agent-flow"
+	agentImage                     = "agent-integration-tests"
+	prometheusMetricGeneratorImage = "prometheus-metrics-generator"
+	otelMetricsGeneratorImage      = "otel-metrics-generator"
+	mimirImage                     = "grafana/mimir:2.10.4"
+	lokiImage                      = "grafana/loki:2.9.2"
+	networkName                    = "integration-tests"
+)
+
+var (
+	runningContainers []testcontainers.Container
 )
 
 type TestLog struct {
@@ -32,15 +44,25 @@ func executeCommand(command string, args []string, taskDescription string) {
 	}
 }
 
-func buildAgent() {
-	executeCommand("make", []string{"-C", "..", "agent-flow"}, "Building agent")
+func setupContainers(ctx context.Context) {
+	executeCommand("make", []string{"-C", "..", "AGENT_IMAGE=" + agentImage, "agent-image"}, "Building agent")
+	buildDockerImage("./configs/prom-gen/Dockerfile", "../", prometheusMetricGeneratorImage)
+	buildDockerImage("./configs/otel-gen/Dockerfile", "../", otelMetricsGeneratorImage)
+	runningContainers = append(runningContainers, startContainer(ctx, createMimirContainer(mimirImage)))
+	runningContainers = append(runningContainers, startContainer(ctx, createLokiContainer(lokiImage)))
+	runningContainers = append(runningContainers, startContainer(ctx, createPrometheusMetricGeneratorContainer(prometheusMetricGeneratorImage)))
+	runningContainers = append(runningContainers, startContainer(ctx, createOTLPMetricsGeneratorContainer(otelMetricsGeneratorImage)))
 }
 
-func setupEnvironment() {
-	executeCommand("docker-compose", []string{"up", "-d"}, "Setting up environment with Docker Compose")
+func buildDockerImage(dockerfilePath, contextPath, imageName string) {
+	cmd := exec.Command("docker", "build", "-f", dockerfilePath, "-t", imageName, contextPath)
+	err := cmd.Run()
+	if err != nil {
+		log.Fatalf("Failed to build Docker image: %s", err)
+	}
 }
 
-func runSingleTest(testDir string) {
+func runSingleTest(ctx context.Context, testDir string) {
 	info, err := os.Stat(testDir)
 	if err != nil {
 		panic(err)
@@ -51,28 +73,22 @@ func runSingleTest(testDir string) {
 
 	dirName := filepath.Base(testDir)
 
-	var agentLogBuffer bytes.Buffer
-	cmd := exec.Command(agentBinaryPath, "run", "config.river")
-	cmd.Dir = testDir
-	cmd.Stdout = &agentLogBuffer
-	cmd.Stderr = &agentLogBuffer
+	agentContainer := startContainer(ctx, createAgentContainer(agentImage, dirName))
+	defer agentContainer.Terminate(ctx)
 
-	if err := cmd.Start(); err != nil {
-		logChan <- TestLog{
-			TestDir:  dirName,
-			AgentLog: fmt.Sprintf("Failed to start agent: %v", err),
-		}
-		return
+	err = agentContainer.StartLogProducer(ctx)
+	if err != nil {
+		panic(err)
 	}
+	defer agentContainer.StopLogProducer()
+
+	var agentLogBuffer bytes.Buffer
+	logConsumer := &logConsumer{buf: &agentLogBuffer}
+	agentContainer.FollowOutput(logConsumer)
 
 	testCmd := exec.Command("go", "test")
 	testCmd.Dir = testDir
 	testOutput, errTest := testCmd.CombinedOutput()
-
-	err = cmd.Process.Kill()
-	if err != nil {
-		panic(err)
-	}
 
 	agentLog := agentLogBuffer.String()
 
@@ -90,7 +106,7 @@ func runSingleTest(testDir string) {
 	}
 }
 
-func runAllTests() {
+func runAllTests(ctx context.Context) {
 	testDirs, err := filepath.Glob("./tests/*")
 	if err != nil {
 		panic(err)
@@ -102,18 +118,26 @@ func runAllTests() {
 		wg.Add(1)
 		go func(td string) {
 			defer wg.Done()
-			runSingleTest(td)
+			runSingleTest(ctx, td)
 		}(testDir)
 	}
 	wg.Wait()
 	close(logChan)
 }
 
-func cleanUpEnvironment() {
-	fmt.Println("Cleaning up Docker environment...")
-	err := exec.Command("docker-compose", "down", "--volumes", "--rmi", "all").Run()
-	if err != nil {
-		panic(err)
+func cleanUpEnvironment(ctx context.Context) {
+	fmt.Println("Terminate test containers...")
+	var errors []error
+
+	for _, container := range runningContainers {
+		err := container.Terminate(ctx)
+		if err != nil {
+			errors = append(errors, err)
+		}
+	}
+
+	if len(errors) > 0 {
+		panic(fmt.Sprintf("Errors occurred while terminating containers: %v", errors))
 	}
 }
 
@@ -132,4 +156,40 @@ func reportResults() {
 	} else {
 		fmt.Println("All integration tests passed!")
 	}
+}
+
+func setupNetwork(ctx context.Context) testcontainers.Network {
+	networkRequest := testcontainers.GenericNetworkRequest{
+		NetworkRequest: testcontainers.NetworkRequest{
+			Name:           networkName,
+			CheckDuplicate: true,
+		},
+	}
+	network, err := testcontainers.GenericNetwork(ctx, networkRequest)
+	if err != nil {
+		panic(err)
+	}
+	return network
+}
+
+func cleanUpImages() {
+	fmt.Println("Cleaning up Docker images...")
+
+	images := []string{agentImage, mimirImage, lokiImage, prometheusMetricGeneratorImage, otelMetricsGeneratorImage}
+
+	args := append([]string{"rmi"}, images...)
+	cmd := exec.Command("docker", args...)
+	var stderr bytes.Buffer
+	cmd.Stderr = &stderr
+	if err := cmd.Run(); err != nil {
+		fmt.Printf("Error removing images: %s\n", stderr.String())
+	}
+}
+
+type logConsumer struct {
+	buf *bytes.Buffer
+}
+
+func (c *logConsumer) Accept(l testcontainers.Log) {
+	c.buf.Write(l.Content)
 }

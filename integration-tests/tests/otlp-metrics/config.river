@@ -1,5 +1,7 @@
 otelcol.receiver.otlp "otlp_metrics" {
-  http {}
+  http {
+    endpoint = "otlp-metrics:4318"
+  }
 
   output {
     metrics = [otelcol.processor.attributes.otlp_metrics.input]
@@ -20,7 +22,7 @@ otelcol.processor.attributes "otlp_metrics" {
 
 otelcol.exporter.otlphttp "otlp_metrics" {
   client {
-    endpoint = "http://localhost:9009/otlp"
+    endpoint = "http://mimir:9009/otlp"
     tls {
       insecure             = true
       insecure_skip_verify = true

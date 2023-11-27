@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -10,7 +11,6 @@ import (
 )
 
 var specificTest string
-var skipBuild bool
 
 func main() {
 	rootCmd := &cobra.Command{
@@ -20,7 +20,6 @@ func main() {
 	}
 
 	rootCmd.PersistentFlags().StringVar(&specificTest, "test", "", "Specific test directory to run")
-	rootCmd.PersistentFlags().BoolVar(&skipBuild, "skip-build", false, "Skip building the agent")
 
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println(err)
@@ -29,13 +28,16 @@ func main() {
 }
 
 func runIntegrationTests(cmd *cobra.Command, args []string) {
-	defer reportResults()
-	defer cleanUpEnvironment()
+	ctx := context.Background()
 
-	if !skipBuild {
-		buildAgent()
-	}
-	setupEnvironment()
+	defer reportResults()
+	defer cleanUpImages()
+	defer cleanUpEnvironment(ctx)
+
+	network := setupNetwork(ctx)
+	defer network.Remove(ctx)
+
+	setupContainers(ctx)
 
 	if specificTest != "" {
 		fmt.Println("Running", specificTest)
@@ -43,13 +45,14 @@ func runIntegrationTests(cmd *cobra.Command, args []string) {
 			specificTest = "./tests/" + specificTest
 		}
 		logChan = make(chan TestLog, 1)
-		runSingleTest(specificTest)
+		runSingleTest(ctx, specificTest)
 	} else {
 		testDirs, err := filepath.Glob("./tests/*")
 		if err != nil {
 			panic(err)
 		}
 		logChan = make(chan TestLog, len(testDirs))
-		runAllTests()
+		runAllTests(ctx)
 	}
+
 }
