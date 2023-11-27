@@ -26,6 +26,10 @@ Main (unreleased)
 
 - Fix issue with windows_exporter defaults not being set correctly. (@mattdurham)
 
+- Fix agent crash when process null OTel's fan out consumers. (@hainenber)
+
+- Fix issue in `prometheus.operator.*` where targets would be dropped if two crds share a common prefix in their names. (@Paul424, @captncraig)
+
 v0.38.0 (2023-11-21)
 --------------------
 
