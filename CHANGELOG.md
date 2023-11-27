@@ -10,6 +10,10 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+### Security fixes
+
+- Fix CVE-2023-47108 by updating `otelgrpc` from v0.45.0 to v0.46.0. (@hainenber)
+
 ### Features
 
 - Agent Management: Introduce support for templated configuration. (@jcreixell)
@@ -40,10 +44,6 @@ Main (unreleased)
   (@cedricziel)
 
 - Fix issue with windows_exporter defaults not being set correctly. (@mattdurham)
-
-### Security
-
-- Fix CVE-2023-47108 by updating `otelgrpc` from v0.45.0 to v0.46.0. (@hainenber)
 
 v0.38.0 (2023-11-21)
 --------------------
