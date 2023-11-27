@@ -81,6 +81,20 @@ local pipelines = import '../util/pipelines.jsonnet';
     }],
   },
 
+    pipelines.linux('Integration tests') {
+    trigger: {
+      event: ['pull_request'],
+    },
+    steps: [{
+      name: 'Run integration tests',
+      image: build_image.linux,
+
+      commands: [
+        'make integration-test',
+      ],
+    }],
+  },
+
   pipelines.linux('Test (Full)') {
     trigger: {
       ref: ['refs/heads/main'],

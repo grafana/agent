@@ -152,7 +152,7 @@ trigger:
 type: docker
 ---
 kind: pipeline
-name: Integration Tests
+name: Integration tests
 platform:
   arch: amd64
   os: linux
@@ -1442,6 +1442,6 @@ kind: secret
 name: updater_private_key
 ---
 kind: signature
-hmac: 28ba52df6f22c10bf77a95386a49aff65a1c372127f7d89489ac2d3ee02ce618
+hmac: 8f1d869e3e0627ee266cbb00a8dc98f6b3208d11b92fdd661a782feb97fb3d9d
 
 ...
