@@ -11,7 +11,7 @@ require (
 	github.com/Lusitaniae/apache_exporter v0.11.1-0.20220518131644-f9522724dab4
 	github.com/Masterminds/sprig/v3 v3.2.3
 	github.com/PuerkitoBio/rehttp v1.1.0
-	github.com/alecthomas/kingpin/v2 v2.3.2
+	github.com/alecthomas/kingpin/v2 v2.4.0
 	github.com/alecthomas/units v0.0.0-20211218093645-b94a6e3cc137
 	github.com/aws/aws-sdk-go v1.45.24
 	github.com/aws/aws-sdk-go-v2 v1.21.1
@@ -138,7 +138,7 @@ require (
 	github.com/prometheus-community/elasticsearch_exporter v1.5.0
 	github.com/prometheus-community/postgres_exporter v0.11.1
 	github.com/prometheus-community/stackdriver_exporter v0.13.0
-	github.com/prometheus-community/windows_exporter v0.24.1-0.20231116150933-ab05f43716d4
+	github.com/prometheus-community/windows_exporter v0.24.1-0.20231127180936-5a872a227c2f
 	github.com/prometheus-operator/prometheus-operator v0.66.0
 	github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring v0.66.0
 	github.com/prometheus-operator/prometheus-operator/pkg/client v0.66.0
