@@ -166,6 +166,8 @@ dist/grafana-agentctl-freebsd-amd64:
 # Flow-specific system packages. As such, they are built in a dist.temp
 # directory instead of the normal dist directory.
 #
+# However, two standalone Flow binaries for amd64 and arm64 are provided 
+# for custom installation.
 # Only targets needed for system packages are used here.
 #
 
@@ -173,7 +175,9 @@ dist-agent-flow-binaries: dist.temp/grafana-agent-flow-linux-amd64       \
                           dist.temp/grafana-agent-flow-linux-arm64       \
                           dist.temp/grafana-agent-flow-linux-ppc64le     \
                           dist.temp/grafana-agent-flow-linux-s390x       \
-                          dist.temp/grafana-agent-flow-windows-amd64.exe
+                          dist.temp/grafana-agent-flow-windows-amd64.exe \
+                          dist/grafana-agent-flow-linux-amd64            \
+                          dist/grafana-agent-flow-linux-arm64            \
 
 dist.temp/grafana-agent-flow-linux-amd64: GO_TAGS += netgo builtinassets promtail_journal_enabled
 dist.temp/grafana-agent-flow-linux-amd64: GOOS    := linux
@@ -203,6 +207,18 @@ dist.temp/grafana-agent-flow-windows-amd64.exe: GO_TAGS += builtinassets
 dist.temp/grafana-agent-flow-windows-amd64.exe: GOOS    := windows
 dist.temp/grafana-agent-flow-windows-amd64.exe: GOARCH  := amd64
 dist.temp/grafana-agent-flow-windows-amd64.exe: generate-ui
+	$(PACKAGING_VARS) FLOW_BINARY=$@ "$(MAKE)" -f $(PARENT_MAKEFILE) agent-flow
+
+dist/grafana-agent-flow-linux-amd64: GO_TAGS += netgo builtinassets promtail_journal_enabled
+dist/grafana-agent-flow-linux-amd64: GOOS    := linux
+dist/grafana-agent-flow-linux-amd64: GOARCH  := amd64
+dist/grafana-agent-flow-linux-amd64: generate-ui
+	$(PACKAGING_VARS) FLOW_BINARY=$@ "$(MAKE)" -f $(PARENT_MAKEFILE) agent-flow
+
+dist.temp/grafana-agent-flow-linux-arm64: GO_TAGS += netgo builtinassets promtail_journal_enabled
+dist.temp/grafana-agent-flow-linux-arm64: GOOS    := linux
+dist.temp/grafana-agent-flow-linux-arm64: GOARCH  := arm64
+dist.temp/grafana-agent-flow-linux-arm64: generate-ui
 	$(PACKAGING_VARS) FLOW_BINARY=$@ "$(MAKE)" -f $(PARENT_MAKEFILE) agent-flow
 
 #
