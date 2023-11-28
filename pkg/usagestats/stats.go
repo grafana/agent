@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"runtime"
 	"time"
 
@@ -20,24 +21,26 @@ var (
 
 // Report is the payload to be sent to stats.grafana.org
 type Report struct {
-	UsageStatsID string                 `json:"usageStatsId"`
-	CreatedAt    time.Time              `json:"createdAt"`
-	Interval     time.Time              `json:"interval"`
-	Version      string                 `json:"version"`
-	Metrics      map[string]interface{} `json:"metrics"`
-	Os           string                 `json:"os"`
-	Arch         string                 `json:"arch"`
+	UsageStatsID   string                 `json:"usageStatsId"`
+	CreatedAt      time.Time              `json:"createdAt"`
+	Interval       time.Time              `json:"interval"`
+	Version        string                 `json:"version"`
+	Metrics        map[string]interface{} `json:"metrics"`
+	Os             string                 `json:"os"`
+	Arch           string                 `json:"arch"`
+	DeploymentMode string                 `json:"deploymentMode"`
 }
 
 func sendReport(ctx context.Context, seed *AgentSeed, interval time.Time, metrics map[string]interface{}) error {
 	report := Report{
-		UsageStatsID: seed.UID,
-		CreatedAt:    seed.CreatedAt,
-		Version:      version.Version,
-		Os:           runtime.GOOS,
-		Arch:         runtime.GOARCH,
-		Interval:     interval,
-		Metrics:      metrics,
+		UsageStatsID:   seed.UID,
+		CreatedAt:      seed.CreatedAt,
+		Version:        version.Version,
+		Os:             runtime.GOOS,
+		Arch:           runtime.GOARCH,
+		Interval:       interval,
+		Metrics:        metrics,
+		DeploymentMode: getDeployMode(),
 	}
 	out, err := json.MarshalIndent(report, "", " ")
 	if err != nil {
@@ -62,4 +65,14 @@ func sendReport(ctx context.Context, seed *AgentSeed, interval time.Time, metric
 		return fmt.Errorf("failed to send usage stats: %s  body: %s", resp.Status, string(data))
 	}
 	return nil
+}
+
+func getDeployMode() string {
+	op := os.Getenv("AGENT_DEPLOY_MODE")
+	// only return known modes. Use "binary" as a default catch-all.
+	switch op {
+	case "operator", "helm", "docker", "deb", "rpm", "brew":
+		return op
+	}
+	return "binary"
 }
