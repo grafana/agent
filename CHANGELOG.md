@@ -18,6 +18,8 @@ Main (unreleased)
 
 - Agent Management: Introduce support for templated configuration. (@jcreixell)
 
+- Allow adding sidecar containers in the helm chart
+
 ### Enhancements
 
 - Flow Windows service: Support environment variables. (@jkroepke)
