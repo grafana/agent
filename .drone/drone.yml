@@ -164,6 +164,8 @@ steps:
   volumes:
   - name: docker
     path: /var/run/docker.sock
+  - name: tests
+    path: /integration-tests
 trigger:
   event:
   - pull_request
@@ -172,6 +174,9 @@ volumes:
 - host:
     path: /var/run/docker.sock
   name: docker
+- host:
+    path: /agent/integration-tests
+  name: tests
 ---
 kind: pipeline
 name: Test (Full)
@@ -1449,6 +1454,6 @@ kind: secret
 name: updater_private_key
 ---
 kind: signature
-hmac: b2804fac3a22d71112243d8736f990aec7cdabec5cf2df35bd33dfbfd0e9724e
+hmac: 8bfca67a142e2d4ae303f5887ecc6299dc60ba342fde3d681e65e7dab2f1e1a1
 
 ...
