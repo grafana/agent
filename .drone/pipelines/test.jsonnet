@@ -91,10 +91,6 @@ local pipelines = import '../util/pipelines.jsonnet';
       volumes: [{
         name: 'docker',
         path: '/var/run/docker.sock',
-      },
-      {
-        name: 'tests',
-        path: '/integration-tests',
       }],
       commands: [
         'make integration-test',
@@ -104,12 +100,6 @@ local pipelines = import '../util/pipelines.jsonnet';
       name: 'docker',
       host: {
         path: '/var/run/docker.sock',
-      },
-    },
-    {
-      name: 'tests',
-      host: {
-        path: '/agent/integration-tests',
       },
     }],
   },
