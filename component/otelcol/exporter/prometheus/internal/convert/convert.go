@@ -65,6 +65,8 @@ type Options struct {
 	IncludeScopeLabels bool
 	// AddMetricSuffixes controls whether suffixes are added to metric names. Defaults to true.
 	AddMetricSuffixes bool
+	// ResourceToTelemetryConversion controls whether to convert resource attributes to Prometheus-compatible datapoint attributes
+	ResourceToTelemetryConversion bool
 }
 
 var _ consumer.Metrics = (*Converter)(nil)
@@ -131,6 +133,7 @@ func (conv *Converter) consumeResourceMetrics(app storage.Appender, rm pmetric.R
 		Type: textparse.MetricTypeGauge,
 		Help: "Target metadata",
 	})
+	resAttrs := rm.Resource().Attributes()
 	memResource := conv.getOrCreateResource(rm.Resource())
 
 	if conv.getOpts().IncludeTargetInfo {
@@ -144,7 +147,7 @@ func (conv *Converter) consumeResourceMetrics(app storage.Appender, rm pmetric.R
 
 	for smcount := 0; smcount < rm.ScopeMetrics().Len(); smcount++ {
 		sm := rm.ScopeMetrics().At(smcount)
-		conv.consumeScopeMetrics(app, memResource, sm)
+		conv.consumeScopeMetrics(app, memResource, sm, resAttrs)
 	}
 }
 
@@ -219,7 +222,7 @@ func (conv *Converter) getOrCreateResource(res pcommon.Resource) *memorySeries {
 	return entry
 }
 
-func (conv *Converter) consumeScopeMetrics(app storage.Appender, memResource *memorySeries, sm pmetric.ScopeMetrics) {
+func (conv *Converter) consumeScopeMetrics(app storage.Appender, memResource *memorySeries, sm pmetric.ScopeMetrics, resAttrs pcommon.Map) {
 	scopeMD := conv.createOrUpdateMetadata("otel_scope_info", metadata.Metadata{
 		Type: textparse.MetricTypeGauge,
 	})
@@ -236,7 +239,7 @@ func (conv *Converter) consumeScopeMetrics(app storage.Appender, memResource *me
 
 	for mcount := 0; mcount < sm.Metrics().Len(); mcount++ {
 		m := sm.Metrics().At(mcount)
-		conv.consumeMetric(app, memResource, memScope, m)
+		conv.consumeMetric(app, memResource, memScope, m, resAttrs)
 	}
 }
 
@@ -274,20 +277,27 @@ func (conv *Converter) getOrCreateScope(res *memorySeries, scope pcommon.Instrum
 	return entry
 }
 
-func (conv *Converter) consumeMetric(app storage.Appender, memResource *memorySeries, memScope *memorySeries, m pmetric.Metric) {
+func (conv *Converter) consumeMetric(app storage.Appender, memResource *memorySeries, memScope *memorySeries, m pmetric.Metric, resAttrs pcommon.Map) {
 	switch m.Type() {
 	case pmetric.MetricTypeGauge:
-		conv.consumeGauge(app, memResource, memScope, m)
+		conv.consumeGauge(app, memResource, memScope, m, resAttrs)
 	case pmetric.MetricTypeSum:
-		conv.consumeSum(app, memResource, memScope, m)
+		conv.consumeSum(app, memResource, memScope, m, resAttrs)
 	case pmetric.MetricTypeHistogram:
-		conv.consumeHistogram(app, memResource, memScope, m)
+		conv.consumeHistogram(app, memResource, memScope, m, resAttrs)
 	case pmetric.MetricTypeSummary:
-		conv.consumeSummary(app, memResource, memScope, m)
+		conv.consumeSummary(app, memResource, memScope, m, resAttrs)
 	}
 }
 
-func (conv *Converter) consumeGauge(app storage.Appender, memResource *memorySeries, memScope *memorySeries, m pmetric.Metric) {
+func joinAttributeMaps(from, to pcommon.Map) {
+	from.Range(func(k string, v pcommon.Value) bool {
+		v.CopyTo(to.PutEmpty(k))
+		return true
+	})
+}
+
+func (conv *Converter) consumeGauge(app storage.Appender, memResource *memorySeries, memScope *memorySeries, m pmetric.Metric, resAttrs pcommon.Map) {
 	metricName := prometheus.BuildCompliantName(m, "", conv.opts.AddMetricSuffixes)
 
 	metricMD := conv.createOrUpdateMetadata(metricName, metadata.Metadata{
@@ -301,6 +311,10 @@ func (conv *Converter) consumeGauge(app storage.Appender, memResource *memorySer
 
 	for dpcount := 0; dpcount < m.Gauge().DataPoints().Len(); dpcount++ {
 		dp := m.Gauge().DataPoints().At(dpcount)
+
+		if conv.getOpts().ResourceToTelemetryConversion {
+			joinAttributeMaps(resAttrs, dp.Attributes())
+		}
 
 		memSeries := conv.getOrCreateSeries(memResource, memScope, metricName, dp.Attributes())
 		if err := writeSeries(app, memSeries, dp, getNumberDataPointValue(dp)); err != nil {
@@ -389,7 +403,7 @@ func getNumberDataPointValue(dp pmetric.NumberDataPoint) float64 {
 	return 0
 }
 
-func (conv *Converter) consumeSum(app storage.Appender, memResource *memorySeries, memScope *memorySeries, m pmetric.Metric) {
+func (conv *Converter) consumeSum(app storage.Appender, memResource *memorySeries, memScope *memorySeries, m pmetric.Metric, resAttrs pcommon.Map) {
 	metricName := prometheus.BuildCompliantName(m, "", conv.opts.AddMetricSuffixes)
 
 	// Excerpt from the spec:
@@ -430,6 +444,10 @@ func (conv *Converter) consumeSum(app storage.Appender, memResource *memorySerie
 	for dpcount := 0; dpcount < m.Sum().DataPoints().Len(); dpcount++ {
 		dp := m.Sum().DataPoints().At(dpcount)
 
+		if conv.getOpts().ResourceToTelemetryConversion {
+			joinAttributeMaps(resAttrs, dp.Attributes())
+		}
+
 		memSeries := conv.getOrCreateSeries(memResource, memScope, metricName, dp.Attributes())
 
 		val := getNumberDataPointValue(dp)
@@ -447,7 +465,7 @@ func (conv *Converter) consumeSum(app storage.Appender, memResource *memorySerie
 	}
 }
 
-func (conv *Converter) consumeHistogram(app storage.Appender, memResource *memorySeries, memScope *memorySeries, m pmetric.Metric) {
+func (conv *Converter) consumeHistogram(app storage.Appender, memResource *memorySeries, memScope *memorySeries, m pmetric.Metric, resAttrs pcommon.Map) {
 	metricName := prometheus.BuildCompliantName(m, "", conv.opts.AddMetricSuffixes)
 
 	if m.Histogram().AggregationTemporality() != pmetric.AggregationTemporalityCumulative {
@@ -468,6 +486,10 @@ func (conv *Converter) consumeHistogram(app storage.Appender, memResource *memor
 
 	for dpcount := 0; dpcount < m.Histogram().DataPoints().Len(); dpcount++ {
 		dp := m.Histogram().DataPoints().At(dpcount)
+
+		if conv.getOpts().ResourceToTelemetryConversion {
+			joinAttributeMaps(resAttrs, dp.Attributes())
+		}
 
 		// Sum metric
 		if dp.HasSum() {
@@ -606,7 +628,7 @@ func (conv *Converter) convertExemplar(otelExemplar pmetric.Exemplar, ts time.Ti
 	}
 }
 
-func (conv *Converter) consumeSummary(app storage.Appender, memResource *memorySeries, memScope *memorySeries, m pmetric.Metric) {
+func (conv *Converter) consumeSummary(app storage.Appender, memResource *memorySeries, memScope *memorySeries, m pmetric.Metric, resAttrs pcommon.Map) {
 	metricName := prometheus.BuildCompliantName(m, "", conv.opts.AddMetricSuffixes)
 
 	metricMD := conv.createOrUpdateMetadata(metricName, metadata.Metadata{
@@ -620,6 +642,10 @@ func (conv *Converter) consumeSummary(app storage.Appender, memResource *memoryS
 
 	for dpcount := 0; dpcount < m.Summary().DataPoints().Len(); dpcount++ {
 		dp := m.Summary().DataPoints().At(dpcount)
+
+		if conv.getOpts().ResourceToTelemetryConversion {
+			joinAttributeMaps(resAttrs, dp.Attributes())
+		}
 
 		// Sum metric
 		{

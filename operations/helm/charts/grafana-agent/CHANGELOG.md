@@ -10,6 +10,10 @@ internal API changes are not present.
 Unreleased
 ----------
 
+### Other changes
+
+- Update `container.securityContext` Helm value reference to renamed `agent.securityContext`. (@hainenber)
+
 0.28.0 (2023-11-21)
 -------------------
 

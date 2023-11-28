@@ -46,6 +46,7 @@ Name | Type | Description                                               | Defaul
 `add_metric_suffixes` | `boolean` | Whether to add type and unit suffixes to metrics names.   | `true` | no
 `gc_frequency` | `duration` | How often to clean up stale metrics from memory.          | `"5m"` | no
 `forward_to` | `list(receiver)` | Where to forward converted Prometheus metrics.            | | yes
+`resource_to_telemetry_conversion` | `boolean` | Whether to convert OTel resource attributes to Prometheus labels. | `false` | no
 
 By default, OpenTelemetry resources are converted into `target_info` metrics. 
 OpenTelemetry instrumentation scopes are converted into `otel_scope_info`

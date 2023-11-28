@@ -16,15 +16,6 @@ title: http block
 HTTP server functions. `http` is specified without a label and can only be
 provided once per configuration file.
 
-{{% admonition type="note" %}}
-While the `http` block can reference component exports, some components that
-rely on the HTTP server have a hidden dependency on the `http` block that may
-result in a circular dependency error.
-
-Only references to components named `remote.*` or `local.*` are guaranteed to
-work without any circular dependency errors.
-{{% /admonition %}}
-
 ## Example
 
 ```river
@@ -184,7 +175,7 @@ will serve the found certificate even if it is not compatible with the specified
 
 ### server block
 
-The `server` block is used to find the certificate to check the signer. If multiple certificates are found the 
+The `server` block is used to find the certificate to check the signer. If multiple certificates are found the
 `windows_certificate_filter` will choose the certificate with the expiration farthest in the future.
 
 Name | Type           | Description                                                                               | Default | Required
