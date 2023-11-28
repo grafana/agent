@@ -93,6 +93,11 @@ local pipelines = import '../util/pipelines.jsonnet';
         path: '/var/run/docker.sock',
       }],
       commands: [
+        'docker run --rm -v /drone/src/integration-tests/configs/mimir/mimir.yaml:/mimir.yaml alpine ls -la /mimir.yaml',
+        'docker run --rm -v /drone/src/integration-tests/tests/otlp-metrics/config.river:/config.river alpine ls -la /config.river',
+        'docker run --rm -v /drone/src/integration-tests/tests/scrape-prom-metrics/config.river:/config.river alpine ls -la /config.river',
+        'docker run --rm -v /drone/src/integration-tests/tests/read-log-file/config.river:/config.river alpine ls -la /config.river',
+        'docker run --rm -v /drone/src/integration-tests/tests/read-log-file/logs.txt:/logs.txt alpine ls -la /logs.txt',
         'make integration-test',
       ],
     }],

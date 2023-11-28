@@ -158,6 +158,16 @@ platform:
   os: linux
 steps:
 - commands:
+  - docker run --rm -v /drone/src/integration-tests/configs/mimir/mimir.yaml:/mimir.yaml
+    alpine ls -la /mimir.yaml
+  - docker run --rm -v /drone/src/integration-tests/tests/otlp-metrics/config.river:/config.river
+    alpine ls -la /config.river
+  - docker run --rm -v /drone/src/integration-tests/tests/scrape-prom-metrics/config.river:/config.river
+    alpine ls -la /config.river
+  - docker run --rm -v /drone/src/integration-tests/tests/read-log-file/config.river:/config.river
+    alpine ls -la /config.river
+  - docker run --rm -v /drone/src/integration-tests/tests/read-log-file/logs.txt:/logs.txt
+    alpine ls -la /logs.txt
   - make integration-test
   image: grafana/agent-build-image:0.30.4
   name: Run integration tests
@@ -1449,6 +1459,6 @@ kind: secret
 name: updater_private_key
 ---
 kind: signature
-hmac: b2804fac3a22d71112243d8736f990aec7cdabec5cf2df35bd33dfbfd0e9724e
+hmac: 54b112e1c61a2a02cf822923d35cec7b5a9229441768f71d8c04caef434c2908
 
 ...
