@@ -274,7 +274,7 @@ See the linked documentation on each collector for more information on reported 
 {{% admonition type="caution" %}}
 Certain collectors will cause the application to crash if they are used and the required infrastructure is not installed.
 These include but are not limited to mscluster_*, vmware, nps, dns, msmq, teradici_pcoip, ad, hyperv, and scheduled_task.
-{{%/admonition %}}
+{{% /admonition %}}
 
 ## Example
 
