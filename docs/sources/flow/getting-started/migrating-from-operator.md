@@ -34,7 +34,7 @@ This guide will provide some steps to get started with Grafana Agent for users c
         enabled: true
     controller:
       type: 'statefulset'
-    replicas: 2
+      replicas: 2
     crds:
       create: false
     ```
