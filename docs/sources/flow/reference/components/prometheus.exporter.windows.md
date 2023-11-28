@@ -271,6 +271,11 @@ Name     | Description | Enabled by default
 
 See the linked documentation on each collector for more information on reported metrics, configuration settings and usage examples.
 
+{{% admonition type="caution" %}}
+Certain collectors will cause Grafana Agent to crash if those collectors are used and the required infrastructure is not installed.
+These include but are not limited to mscluster_*, vmware, nps, dns, msmq, teradici_pcoip, ad, hyperv, and scheduled_task.
+{{% /admonition %}}
+
 ## Example
 
 This example uses a [`prometheus.scrape` component][scrape] to collect metrics
