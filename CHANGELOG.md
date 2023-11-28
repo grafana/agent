@@ -14,6 +14,14 @@ Main (unreleased)
 
 - Fix CVE-2023-47108 by updating `otelgrpc` from v0.45.0 to v0.46.0. (@hainenber)
 
+### Breaking changes
+
+- `otelcol.receiver.prometheus` will drop all `otel_scope_info` metrics when converting them to OTLP. (@wildum)
+  - If the `otel_scope_info` metric has labels `otel_scope_name` and `otel_scope_version`,
+    their values will be used to set OTLP Instrumentation Scope "name" and  "version" respectively. 
+  - Labels of `otel_scope_info` metrics other than `otel_scope_name` and `otel_scope_version` 
+    are added as scope attributes with the matching name and version.
+
 ### Features
 
 - Agent Management: Introduce support for templated configuration. (@jcreixell)
@@ -41,12 +49,6 @@ Main (unreleased)
 - `pyroscope.ebpf` support python on arm64 platforms. (@korniltsev)
 
 - `otelcol.receiver.prometheus` does not drop histograms without buckets anymore. (@wildum)
-
--  `otelcol.receiver.prometheus` will drop all `otel_scope_info` metrics when converting them to OTLP. (@wildum)
-  *  If the `otel_scope_info` metric has labels `otel_scope_name` and `otel_scope_version`,
-    their values will be used to set OTLP Instrumentation Scope "name" and  "version" respectively. 
-  * Labels of `otel_scope_info` metrics other than `otel_scope_name` and `otel_scope_version` 
-    are added as scope attributes with the matching name and version. (@wildum)
 
 - Added exemplars support to `otelcol.receiver.prometheus`. (@wildum)
 
