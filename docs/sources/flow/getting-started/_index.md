@@ -12,8 +12,8 @@ title: Get started with Grafana Agent in flow mode
 weight: 200
 ---
 
-# Get started with Grafana Agent in flow mode
+# Get started with {{< param "PRODUCT_NAME" >}}
 
-This section details guides for getting started with Grafana Agent in flow mode.
+This section details guides for getting started with {{< param "PRODUCT_NAME" >}}.
 
 {{< section >}}

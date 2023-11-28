@@ -12,7 +12,7 @@ weight: 300
 
 # Collect OpenTelemetry data
 
-Grafana Agent Flow can be configured to collect [OpenTelemetry][]-compatible
+{{< param "PRODUCT_NAME" >}} can be configured to collect [OpenTelemetry][]-compatible
 data and forward it to any OpenTelemetry-compatible endpoint.
 
 This topic describes how to:
@@ -33,10 +33,9 @@ This topic describes how to:
 
 * Ensure that you have basic familiarity with instrumenting applications with
   OpenTelemetry.
-* Have a set of OpenTelemetry applications ready to push telemetry data to
-  Grafana Agent Flow.
-* Identify where Grafana Agent Flow will write received telemetry data.
-* Be familiar with the concept of [Components][] in Grafana Agent Flow.
+* Have a set of OpenTelemetry applications ready to push telemetry data to {{< param "PRODUCT_NAME" >}}.
+* Identify where {{< param "PRODUCT_NAME" >}} will write received telemetry data.
+* Be familiar with the concept of [Components][] in {{< param "PRODUCT_NAME" >}}.
 
 ## Configure an OpenTelemetry Protocol exporter
 
@@ -47,7 +46,7 @@ to an external system.
 
 In this task, we will use the [otelcol.exporter.otlp][] component to send
 OpenTelemetry data to a server using the OpenTelemetry Protocol (OTLP). Once an
-exporter component is defined, other Grafana Agent Flow components can be used
+exporter component is defined, other {{< param "PRODUCT_NAME" >}} components can be used
 to forward data to it.
 
 > Refer to the list of available [Components][] for the full list of
@@ -153,7 +152,7 @@ Protocol, refer to [otelcol.exporter.otlp][].
 
 ## Configure batching
 
-Production-ready Grafana Agent Flow configurations should not send
+Production-ready {{< param "PRODUCT_NAME" >}} configurations should not send
 OpenTelemetry data directly to an exporter for delivery. Instead, data is
 usually sent to one or more _processor components_ that perform various
 transformations on the data.
@@ -238,14 +237,13 @@ For more information on configuring OpenTelemetry data batching, refer to
 
 ## Configure an OpenTelemetry Protocol receiver
 
-Grafana Agent Flow can be configured to receive OpenTelemetry metrics, logs,
+{{< param "PRODUCT_NAME" >}} can be configured to receive OpenTelemetry metrics, logs,
 and traces. An OpenTelemetry _receiver_ component is responsible for receiving
 OpenTelemetry data from an external system.
 
 In this task, we will use the [otelcol.receiver.otlp][] component to receive
 OpenTelemetry data over the network using the OpenTelemetry Protocol (OTLP). A
-receiver component can be configured to forward received data to other Grafana
-Agent Flow components.
+receiver component can be configured to forward received data to other {{< param "PRODUCT_NAME" >}} components.
 
 > Refer to the list of available [Components][] for the full list of
 > `otelcol.receiver` components that can be used to receive
