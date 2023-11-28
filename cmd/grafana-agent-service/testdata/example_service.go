@@ -7,6 +7,7 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"strings"
 )
 
 func main() {
@@ -45,6 +46,9 @@ func run() error {
 	})
 	mux.HandleFunc("/echo/response", func(w http.ResponseWriter, r *http.Request) {
 		_, _ = io.Copy(w, r.Body)
+	})
+	mux.HandleFunc("/echo/env", func(w http.ResponseWriter, r *http.Request) {
+		_, _ = w.Write([]byte(strings.Join(os.Environ(), "\n")))
 	})
 
 	srv := &http.Server{Handler: mux}

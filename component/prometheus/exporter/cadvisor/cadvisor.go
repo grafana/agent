@@ -11,11 +11,11 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name:          "prometheus.exporter.cadvisor",
-		Args:          Arguments{},
-		Exports:       exporter.Exports{},
-		NeedsServices: exporter.RequiredServices(),
-		Build:         exporter.New(createExporter, "cadvisor"),
+		Name:    "prometheus.exporter.cadvisor",
+		Args:    Arguments{},
+		Exports: exporter.Exports{},
+
+		Build: exporter.New(createExporter, "cadvisor"),
 	})
 }
 
@@ -44,7 +44,8 @@ var DefaultArguments = Arguments{
 	DockerTLSKey:  "key.pem",
 	DockerTLSCA:   "ca.pem",
 
-	DockerOnly: false,
+	DockerOnly:             false,
+	DisableRootCgroupStats: false,
 }
 
 // Arguments configures the prometheus.exporter.cadvisor component.
@@ -66,6 +67,7 @@ type Arguments struct {
 	DockerTLSKey               string        `river:"docker_tls_key,attr,optional"`
 	DockerTLSCA                string        `river:"docker_tls_ca,attr,optional"`
 	DockerOnly                 bool          `river:"docker_only,attr,optional"`
+	DisableRootCgroupStats     bool          `river:"disable_root_cgroup_stats,attr,optional"`
 }
 
 // SetToDefault implements river.Defaulter.
@@ -103,6 +105,7 @@ func (a *Arguments) Convert() *cadvisor.Config {
 		DockerTLSKey:               a.DockerTLSKey,
 		DockerTLSCA:                a.DockerTLSCA,
 		DockerOnly:                 a.DockerOnly,
+		DisableRootCgroupStats:     a.DisableRootCgroupStats,
 	}
 
 	return cfg

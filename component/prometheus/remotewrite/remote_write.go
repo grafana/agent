@@ -38,10 +38,10 @@ func init() {
 	remote.UserAgent = useragent.Get()
 
 	component.Register(component.Registration{
-		Name:          "prometheus.remote_write",
-		Args:          Arguments{},
-		Exports:       Exports{},
-		NeedsServices: []string{labelstore.ServiceName},
+		Name:    "prometheus.remote_write",
+		Args:    Arguments{},
+		Exports: Exports{},
+
 		Build: func(o component.Options, c component.Arguments) (component.Component, error) {
 			return New(o, c.(Arguments))
 		},

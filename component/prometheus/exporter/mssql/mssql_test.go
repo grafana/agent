@@ -4,11 +4,13 @@ import (
 	"testing"
 	"time"
 
+	"github.com/burningalchemist/sql_exporter/config"
 	"github.com/grafana/agent/pkg/integrations/mssql"
 	"github.com/grafana/river"
 	"github.com/grafana/river/rivertypes"
 	config_util "github.com/prometheus/common/config"
 	"github.com/stretchr/testify/require"
+	"gopkg.in/yaml.v2"
 )
 
 func TestRiverUnmarshal(t *testing.T) {
@@ -16,8 +18,7 @@ func TestRiverUnmarshal(t *testing.T) {
 	connection_string = "sqlserver://user:pass@localhost:1433"
 	max_idle_connections = 3
 	max_open_connections = 3
-	timeout = "10s"
-	`
+	timeout = "10s"`
 
 	var args Arguments
 	err := river.Unmarshal([]byte(riverConfig), &args)
@@ -33,6 +34,64 @@ func TestRiverUnmarshal(t *testing.T) {
 	require.Equal(t, expected, args)
 }
 
+func TestRiverUnmarshalWithInlineQueryConfig(t *testing.T) {
+	riverConfig := `
+	connection_string = "sqlserver://user:pass@localhost:1433"
+	max_idle_connections = 3
+	max_open_connections = 3
+	timeout = "10s"
+	query_config = "{ collector_name: mssql_standard, metrics: [ { metric_name: mssql_local_time_seconds, type: gauge, help: 'Local time in seconds since epoch (Unix time).', values: [ unix_time ], query: \"SELECT DATEDIFF(second, '19700101', GETUTCDATE()) AS unix_time\" } ] }"`
+
+	var args Arguments
+	err := river.Unmarshal([]byte(riverConfig), &args)
+	require.NoError(t, err)
+	var collectorConfig config.CollectorConfig
+	err = yaml.UnmarshalStrict([]byte(args.QueryConfig.Value), &collectorConfig)
+	require.NoError(t, err)
+
+	require.Equal(t, rivertypes.Secret("sqlserver://user:pass@localhost:1433"), args.ConnectionString)
+	require.Equal(t, 3, args.MaxIdleConnections)
+	require.Equal(t, 3, args.MaxOpenConnections)
+	require.Equal(t, 10*time.Second, args.Timeout)
+	require.Equal(t, "mssql_standard", collectorConfig.Name)
+	require.Equal(t, 1, len(collectorConfig.Metrics))
+	require.Equal(t, "mssql_local_time_seconds", collectorConfig.Metrics[0].Name)
+	require.Equal(t, "gauge", collectorConfig.Metrics[0].TypeString)
+	require.Equal(t, "Local time in seconds since epoch (Unix time).", collectorConfig.Metrics[0].Help)
+	require.Equal(t, 1, len(collectorConfig.Metrics[0].Values))
+	require.Contains(t, collectorConfig.Metrics[0].Values, "unix_time")
+	require.Equal(t, "SELECT DATEDIFF(second, '19700101', GETUTCDATE()) AS unix_time", collectorConfig.Metrics[0].QueryLiteral)
+}
+
+func TestRiverUnmarshalWithInlineQueryConfigYaml(t *testing.T) {
+	riverConfig := `
+	connection_string = "sqlserver://user:pass@localhost:1433"
+	max_idle_connections = 3
+	max_open_connections = 3
+	timeout = "10s"
+	query_config = "collector_name: mssql_standard\nmetrics:\n- metric_name: mssql_local_time_seconds\n  type: gauge\n  help: 'Local time in seconds since epoch (Unix time).'\n  values: [unix_time]\n  query: \"SELECT DATEDIFF(second, '19700101', GETUTCDATE()) AS unix_time\""`
+
+	var args Arguments
+	err := river.Unmarshal([]byte(riverConfig), &args)
+	require.NoError(t, err)
+	var collectorConfig config.CollectorConfig
+	err = yaml.UnmarshalStrict([]byte(args.QueryConfig.Value), &collectorConfig)
+	require.NoError(t, err)
+
+	require.Equal(t, rivertypes.Secret("sqlserver://user:pass@localhost:1433"), args.ConnectionString)
+	require.Equal(t, 3, args.MaxIdleConnections)
+	require.Equal(t, 3, args.MaxOpenConnections)
+	require.Equal(t, 10*time.Second, args.Timeout)
+	require.Equal(t, "mssql_standard", collectorConfig.Name)
+	require.Equal(t, 1, len(collectorConfig.Metrics))
+	require.Equal(t, "mssql_local_time_seconds", collectorConfig.Metrics[0].Name)
+	require.Equal(t, "gauge", collectorConfig.Metrics[0].TypeString)
+	require.Equal(t, "Local time in seconds since epoch (Unix time).", collectorConfig.Metrics[0].Help)
+	require.Equal(t, 1, len(collectorConfig.Metrics[0].Values))
+	require.Contains(t, collectorConfig.Metrics[0].Values, "unix_time")
+	require.Equal(t, "SELECT DATEDIFF(second, '19700101', GETUTCDATE()) AS unix_time", collectorConfig.Metrics[0].QueryLiteral)
+}
+
 func TestUnmarshalInvalid(t *testing.T) {
 	invalidRiverConfig := `
 	connection_string = "sqlserver://user:pass@localhost:1433"
@@ -44,6 +103,37 @@ func TestUnmarshalInvalid(t *testing.T) {
 	var invalidArgs Arguments
 	err := river.Unmarshal([]byte(invalidRiverConfig), &invalidArgs)
 	require.Error(t, err)
+	require.EqualError(t, err, "timeout must be positive")
+}
+
+func TestUnmarshalInvalidQueryConfigYaml(t *testing.T) {
+	invalidRiverConfig := `
+	connection_string = "sqlserver://user:pass@localhost:1433"
+	max_idle_connections = 1
+	max_open_connections = 1
+	timeout = "1s"
+	query_config = "{ collector_name: mssql_standard, metrics: [ { metric_name: mssql_local_time_seconds, type: gauge, help: 'Local time in seconds since epoch (Unix time).', values: [ unix_time ], query: \"SELECT DATEDIFF(second, '19700101', GETUTCDATE()) AS unix_time\" }"
+	`
+
+	var invalidArgs Arguments
+	err := river.Unmarshal([]byte(invalidRiverConfig), &invalidArgs)
+	require.Error(t, err)
+	require.EqualError(t, err, "invalid query_config: yaml: line 1: did not find expected ',' or ']'")
+}
+
+func TestUnmarshalInvalidProperty(t *testing.T) {
+	invalidRiverConfig := `
+	connection_string = "sqlserver://user:pass@localhost:1433"
+	max_idle_connections = 1
+	max_open_connections = 1
+	timeout = "1s"
+	query_config = "collector_name: mssql_standard\nbad_param: true\nmetrics:\n- metric_name: mssql_local_time_seconds\n  type: gauge\n  help: 'Local time in seconds since epoch (Unix time).'\n  values: [unix_time]\n  query: \"SELECT DATEDIFF(second, '19700101', GETUTCDATE()) AS unix_time\""
+	`
+
+	var invalidArgs Arguments
+	err := river.Unmarshal([]byte(invalidRiverConfig), &invalidArgs)
+	require.Error(t, err)
+	require.EqualError(t, err, "invalid query_config: unknown fields in collector: bad_param")
 }
 
 func TestArgumentsValidate(t *testing.T) {
@@ -89,6 +179,9 @@ func TestArgumentsValidate(t *testing.T) {
 				MaxIdleConnections: 1,
 				MaxOpenConnections: 1,
 				Timeout:            10 * time.Second,
+				QueryConfig: rivertypes.OptionalSecret{
+					Value: `{ collector_name: mssql_standard, metrics: [ { metric_name: mssql_local_time_seconds, type: gauge, help: 'Local time in seconds since epoch (Unix time).', values: [ unix_time ], query: "SELECT DATEDIFF(second, '19700101', GETUTCDATE()) AS unix_time" } ] }`,
+				},
 			},
 			wantErr: false,
 		},
@@ -107,20 +200,31 @@ func TestArgumentsValidate(t *testing.T) {
 }
 
 func TestConvert(t *testing.T) {
-	riverConfig := `
-	connection_string = "sqlserver://user:pass@localhost:1433"
-	`
-	var args Arguments
-	err := river.Unmarshal([]byte(riverConfig), &args)
-	require.NoError(t, err)
+	strQueryConfig := `collector_name: mssql_standard
+metrics:
+- metric_name: mssql_local_time_seconds
+  type: gauge
+  help: 'Local time in seconds since epoch (Unix time).'
+  values: [unix_time]
+  query: "SELECT DATEDIFF(second, '19700101', GETUTCDATE()) AS unix_time"`
 
+	args := Arguments{
+		ConnectionString:   rivertypes.Secret("sqlserver://user:pass@localhost:1433"),
+		MaxIdleConnections: 1,
+		MaxOpenConnections: 1,
+		Timeout:            10 * time.Second,
+		QueryConfig: rivertypes.OptionalSecret{
+			Value: strQueryConfig,
+		},
+	}
 	res := args.Convert()
 
 	expected := mssql.Config{
 		ConnectionString:   config_util.Secret("sqlserver://user:pass@localhost:1433"),
-		MaxIdleConnections: DefaultArguments.MaxIdleConnections,
-		MaxOpenConnections: DefaultArguments.MaxOpenConnections,
-		Timeout:            DefaultArguments.Timeout,
+		MaxIdleConnections: 1,
+		MaxOpenConnections: 1,
+		Timeout:            10 * time.Second,
+		QueryConfig:        []byte(strQueryConfig),
 	}
 	require.Equal(t, expected, *res)
 }

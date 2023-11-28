@@ -26,10 +26,10 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name:          "prometheus.relabel",
-		Args:          Arguments{},
-		Exports:       Exports{},
-		NeedsServices: []string{labelstore.ServiceName},
+		Name:    "prometheus.relabel",
+		Args:    Arguments{},
+		Exports: Exports{},
+
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			return New(opts, args.(Arguments))
 		},
