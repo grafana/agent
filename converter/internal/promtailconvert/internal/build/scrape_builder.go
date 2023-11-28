@@ -105,6 +105,10 @@ func (s *ScrapeConfigBuilder) getOrNewLokiRelabel() string {
 			RelabelConfigs: component.ToFlowRelabelConfigs(s.cfg.RelabelConfigs),
 		}
 		compLabel := common.LabelForParts(s.globalCtx.LabelPrefix, s.cfg.JobName)
+		// max_cache_size doesnt exist in static, and we need to manually set it  to default.
+		// Else since the go default value will be 0, the IsZero is also 0, so it will assume it should be 0 when comparing
+		// in appendblock. The check against the default value of 10_000 ensures it will always be written as 0.
+		args.MaxCacheSize = 10_000
 		s.f.Body().AppendBlock(common.NewBlockWithOverride([]string{"loki", "relabel"}, compLabel, args))
 		s.lokiRelabelReceiverExpr = "[loki.relabel." + compLabel + ".receiver]"
 	}
