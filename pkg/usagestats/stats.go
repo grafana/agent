@@ -21,26 +21,26 @@ var (
 
 // Report is the payload to be sent to stats.grafana.org
 type Report struct {
-	UsageStatsID   string                 `json:"usageStatsId"`
-	CreatedAt      time.Time              `json:"createdAt"`
-	Interval       time.Time              `json:"interval"`
-	Version        string                 `json:"version"`
-	Metrics        map[string]interface{} `json:"metrics"`
-	Os             string                 `json:"os"`
-	Arch           string                 `json:"arch"`
-	DeploymentMode string                 `json:"deploymentMode"`
+	UsageStatsID string                 `json:"usageStatsId"`
+	CreatedAt    time.Time              `json:"createdAt"`
+	Interval     time.Time              `json:"interval"`
+	Version      string                 `json:"version"`
+	Metrics      map[string]interface{} `json:"metrics"`
+	Os           string                 `json:"os"`
+	Arch         string                 `json:"arch"`
+	DeployMode   string                 `json:"deployMode"`
 }
 
 func sendReport(ctx context.Context, seed *AgentSeed, interval time.Time, metrics map[string]interface{}) error {
 	report := Report{
-		UsageStatsID:   seed.UID,
-		CreatedAt:      seed.CreatedAt,
-		Version:        version.Version,
-		Os:             runtime.GOOS,
-		Arch:           runtime.GOARCH,
-		Interval:       interval,
-		Metrics:        metrics,
-		DeploymentMode: getDeployMode(),
+		UsageStatsID: seed.UID,
+		CreatedAt:    seed.CreatedAt,
+		Version:      version.Version,
+		Os:           runtime.GOOS,
+		Arch:         runtime.GOARCH,
+		Interval:     interval,
+		Metrics:      metrics,
+		DeployMode:   getDeployMode(),
 	}
 	out, err := json.MarshalIndent(report, "", " ")
 	if err != nil {
