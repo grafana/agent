@@ -18,7 +18,7 @@ Main (unreleased)
 
 - Agent Management: Introduce support for templated configuration. (@jcreixell)
 
-- Allow adding sidecar containers in the helm chart
+- Allow adding sidecar containers in the helm chart (@juangom)
 
 ### Enhancements
 
