@@ -42,7 +42,11 @@ Main (unreleased)
 
 - `otelcol.receiver.prometheus` does not drop histograms without buckets anymore. (@wildum)
 
-- The labels`otel_scope_name` and `otel_scope_version` in `otelcol.receiver.prometheus` are dropped and used as Instrumentation Scope name and version respectively. All `otel_scope_info` metrics are dropped and labels on `otel_scope_info` metric points other than `otel_scope_name` and `otel_scope_version` are added as scope attributes with the matching name and version. (@wildum)
+-  `otelcol.receiver.prometheus` will drop all `otel_scope_info` metrics when converting them to OTLP. (@wildum)
+  *  If the `otel_scope_info` metric has labels `otel_scope_name` and `otel_scope_version`,
+    their values will be used to set OTLP Instrumentation Scope "name" and  "version" respectively. 
+  * Labels of `otel_scope_info` metrics other than `otel_scope_name` and `otel_scope_version` 
+    are added as scope attributes with the matching name and version. (@wildum)
 
 - Added exemplars support to `otelcol.receiver.prometheus`. (@wildum)
 
