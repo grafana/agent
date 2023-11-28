@@ -13,7 +13,7 @@ weight: 100
 
 # Components
 
-_Components_ are the building blocks of Grafana Agent Flow. Each component is
+_Components_ are the building blocks of {{< param "PRODUCT_NAME" >}}. Each component is
 responsible for handling a single task, such as retrieving secrets or
 collecting Prometheus metrics.
 
