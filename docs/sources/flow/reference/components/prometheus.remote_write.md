@@ -353,7 +353,7 @@ prometheus.remote_write "staging" {
     url = "http://mimir:9009/api/v1/push"
 
     headers = {
-      "X-Scope-OrgID" = "staging"
+      "X-Scope-OrgID" = "staging",
     }
   }
 }
