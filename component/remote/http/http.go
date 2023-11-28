@@ -118,7 +118,7 @@ type Component struct {
 }
 
 type metrics struct {
-	cacheFallbacks prometheus.Counter
+	cacheFallbacks         prometheus.Counter
 	cacheFallbacksFailures prometheus.Counter
 }
 
