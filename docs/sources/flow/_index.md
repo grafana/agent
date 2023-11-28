@@ -9,11 +9,13 @@ description: Grafana Agent Flow is a component-based revision of Grafana Agent w
   a focus on ease-of-use, debuggability, and adaptability
 title: Flow mode
 weight: 400
+cascade:
+  PRODUCT_NAME: Grafana Agent Flow
 ---
 
-# Flow mode
+# {{< param "PRODUCT_NAME" >}}
 
-The Flow mode of Grafana Agent (also called Grafana Agent Flow) is a
+The Flow mode of Grafana Agent (also called {{< param "PRODUCT_NAME" >}}) is a
 _component-based_ revision of Grafana Agent with a focus on ease-of-use,
 debuggability, and ability to adapt to the needs of power users.
 
