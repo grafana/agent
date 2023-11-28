@@ -211,6 +211,8 @@ v0.38.0 (2023-11-21)
 - Fix converter output for prometheus.exporter.windows to not unnecessarily add
   empty blocks. (@erikbaranowski)
 
+- Fix converter issue with `loki.relabel` and `max_cache_size` being set to 0 instead of default (10_000). (@mattdurham)
+
 ### Other changes
 
 - Bump `mysqld_exporter` version to v0.15.0. (@marctc)
