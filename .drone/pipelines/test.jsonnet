@@ -93,7 +93,6 @@ local pipelines = import '../util/pipelines.jsonnet';
         path: '/var/run/docker.sock',
       }],
       commands: [
-        'docker run --rm -v /drone/src/integration-tests/configs/mimir/mimir.yaml:/mimir.yaml alpine ls -la /mimir.yaml',
         'make integration-test',
       ],
     }],

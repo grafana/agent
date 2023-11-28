@@ -158,8 +158,6 @@ platform:
   os: linux
 steps:
 - commands:
-  - docker run --rm -v /drone/src/integration-tests/configs/mimir/mimir.yaml:/mimir.yaml
-    alpine ls -la /mimir.yaml
   - make integration-test
   image: grafana/agent-build-image:0.30.4
   name: Run integration tests
@@ -1451,6 +1449,6 @@ kind: secret
 name: updater_private_key
 ---
 kind: signature
-hmac: 2b5c3faa029d8d0327a8b7072491eb0425e07e2400d34a45e04cbe1099a28c6c
+hmac: b2804fac3a22d71112243d8736f990aec7cdabec5cf2df35bd33dfbfd0e9724e
 
 ...

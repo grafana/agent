@@ -44,26 +44,7 @@ func executeCommand(command string, args []string, taskDescription string) {
 	}
 }
 
-func visit(path string, f os.FileInfo, err error) error {
-	if err != nil {
-		fmt.Printf("Error accessing path %s: %v\n", path, err)
-		return err
-	}
-	fmt.Println(path)
-	return nil
-}
-
 func setupContainers(ctx context.Context) {
-	dir, err := os.Getwd()
-	if err != nil {
-		fmt.Println("Error:", err)
-		return
-	}
-	fmt.Println("Current working directory:", dir)
-	err = filepath.Walk(".", visit)
-	if err != nil {
-		fmt.Printf("Error walking through directory %s: %v\n", ".", err)
-	}
 	executeCommand("make", []string{"-C", "..", "AGENT_IMAGE=" + agentImage, "agent-image"}, "Building agent")
 	buildDockerImage("./configs/prom-gen/Dockerfile", "../", prometheusMetricGeneratorImage)
 	buildDockerImage("./configs/otel-gen/Dockerfile", "../", otelMetricsGeneratorImage)
