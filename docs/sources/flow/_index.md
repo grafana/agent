@@ -11,11 +11,12 @@ title: Grafana Agent Flow
 weight: 400
 cascade:
   PRODUCT_NAME: Grafana Agent Flow
+  PRODUCT_ROOT_NAME: Grafana Agent
 ---
 
 # {{< param "PRODUCT_NAME" >}}
 
-{{< param "PRODUCT_NAME" >}} is a _component-based_ revision of Grafana Agent with a focus on ease-of-use,
+{{< param "PRODUCT_NAME" >}} is a _component-based_ revision of {{< param "PRODUCT_ROOT_NAME" >}} with a focus on ease-of-use,
 debuggability, and ability to adapt to the needs of power users.
 
 Components allow for reusability, composability, and focus on a single task.
@@ -35,7 +36,7 @@ Components allow for reusability, composability, and focus on a single task.
 ## Example
 
 ```river
-// Discover Kubernetes pods to collect metrics from.
+// Discover Kubernetes pods to collect metrics from.fagent
 discovery.kubernetes "pods" {
   role = "pod"
 }
@@ -66,9 +67,9 @@ prometheus.remote_write "default" {
 }
 ```
 
-## Grafana Agent configuration generator
+## {{< param "PRODUCT_ROOT_NAME" >}} configuration generator
 
-The [Grafana Agent configuration generator](https://grafana.github.io/agent-configurator/) will help you get a head start on creating flow code.
+The [{{< param "PRODUCT_ROOT_NAME" >}} configuration generator](https://grafana.github.io/agent-configurator/) will help you get a head start on creating flow code.
 {{% admonition type="note" %}}
 This feature is experimental, and it doesn't support all River components.
 {{% /admonition %}}

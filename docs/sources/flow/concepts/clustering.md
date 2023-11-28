@@ -59,7 +59,7 @@ scraping without explicitly communicating ownership over the network.
 Target auto-distribution allows you to dynamically scale the number of agents to distribute workload during peaks.
 It also provides resiliency because targets are automatically picked up by one of the node peers if a node goes away.
 
-Grafana Agent uses a fully-local consistent hashing algorithm to distribute
+{{< param "PRODUCT_NAME" >}} uses a fully-local consistent hashing algorithm to distribute
 targets, meaning that, on average, only ~1/N of the targets are redistributed.
 
 Refer to component reference documentation to discover whether it supports
