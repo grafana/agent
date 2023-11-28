@@ -93,6 +93,7 @@ local pipelines = import '../util/pipelines.jsonnet';
         path: '/var/run/docker.sock',
       }],
       commands: [
+        'ls -la integration-tests/configs/mimir/mimir.yaml',
         'make integration-test',
       ],
     }],

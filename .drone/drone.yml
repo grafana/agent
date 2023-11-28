@@ -158,6 +158,7 @@ platform:
   os: linux
 steps:
 - commands:
+  - ls -la integration-tests/configs/mimir/mimir.yaml
   - make integration-test
   image: grafana/agent-build-image:0.30.4
   name: Run integration tests
@@ -1449,6 +1450,6 @@ kind: secret
 name: updater_private_key
 ---
 kind: signature
-hmac: b2804fac3a22d71112243d8736f990aec7cdabec5cf2df35bd33dfbfd0e9724e
+hmac: b065b35b249a131f0a7fd805890d39a1384ffa6d556b82d7f59ce1a70303d619
 
 ...
