@@ -13,7 +13,7 @@ weight: 200
 
 # Component controller
 
-The _component controller_ is the core part of Grafana Agent Flow which manages
+The _component controller_ is the core part of {{< param "PRODUCT_NAME" >}} which manages
 components at runtime.
 
 The component controller is responsible for:

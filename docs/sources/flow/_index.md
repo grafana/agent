@@ -15,8 +15,7 @@ cascade:
 
 # {{< param "PRODUCT_NAME" >}}
 
-The Flow mode of Grafana Agent (also called {{< param "PRODUCT_NAME" >}}) is a
-_component-based_ revision of Grafana Agent with a focus on ease-of-use,
+{{< param "PRODUCT_NAME" >}} is a _component-based_ revision of Grafana Agent with a focus on ease-of-use,
 debuggability, and ability to adapt to the needs of power users.
 
 Components allow for reusability, composability, and focus on a single task.
@@ -71,15 +70,15 @@ prometheus.remote_write "default" {
 
 The [Grafana Agent configuration generator](https://grafana.github.io/agent-configurator/) will help you get a head start on creating flow code.
 {{% admonition type="note" %}}
-This feature is experimental, and it does not support all River components.
+This feature is experimental, and it doesn't support all River components.
 {{% /admonition %}}
 
 ## Next steps
 
-* [Install][] Grafana Agent in flow mode.
-* Learn about the core [Concepts][] of flow mode.
-* Follow our [Getting started][] guides for Grafana Agent in flow mode.
-* Follow our [Tutorials][] to get started with Grafana Agent in flow mode.
+* [Install][] {{< param "PRODUCT_NAME" >}}.
+* Learn about the core [Concepts][] of {{< param "PRODUCT_NAME" >}}.
+* Follow our [Getting started][] guides for {{< param "PRODUCT_NAME" >}}.
+* Follow our [Tutorials][] to get started with {{< param "PRODUCT_NAME" >}}.
 * Learn how to use the [Configuration language][].
 * Check out our [Reference][] documentation to find specific information you
   might be looking for.

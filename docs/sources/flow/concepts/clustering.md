@@ -19,7 +19,7 @@ Clustering enables a fleet of agents to work together for workload distribution
 and high availability. It helps create horizontally scalable deployments with
 minimal resource and operational overhead.
 
-To achieve this, Grafana Agent makes use of an eventually consistent model that
+To achieve this, {{< param "PRODUCT_NAME" >}} makes use of an eventually consistent model that
 assumes all participating Agents are interchangeable and converge on using the
 same configuration file.
 
@@ -72,7 +72,7 @@ clustering, such as:
 
 ## Cluster monitoring and troubleshooting
 
-To monitor your cluster status, you can check the Flow UI [clustering page][].
+To monitor your cluster status, you can check the {{< param "PRODUCT_NAME" >}} UI [clustering page][].
 The [debugging][] topic contains some clues to help pin down probable
 clustering issues.
 
