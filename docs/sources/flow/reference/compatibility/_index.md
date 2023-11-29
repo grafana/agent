@@ -34,10 +34,8 @@ that can export or consume it.
 
 Targets are a `list(map(string))` - a [list]({{< relref "../../config-language/expressions/types_and_values/#naming-convention" >}}) of [maps]({{< relref "../../config-language/expressions/types_and_values/#naming-convention" >}}) with [string]({{< relref "../../config-language/expressions/types_and_values/#strings" >}}) values. As such,
 they can contain different key-value pairs and can be used with a wide range of
-components. Some components export Targets with key-value pairs specified in
-the reference documentation, while other components accept Targets as arguments.
-Some components require Targets to contain specific key-value pairs in order
-to work correctly. It is recommended to always check component reference for
+components. Some components require Targets to contain specific key-value pairs in order
+to work correctly, it is recommended to always check component reference for
 details when working with Targets.
 
 <!-- NOTE: this title is used as an anchor in links. Do not change. -->
