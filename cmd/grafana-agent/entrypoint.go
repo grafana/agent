@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/signal"
 	"strconv"
+	"strings"
 	"sync"
 	"syscall"
 	"time"
@@ -26,8 +27,11 @@ import (
 	"github.com/grafana/agent/pkg/traces"
 	"github.com/grafana/agent/pkg/usagestats"
 	"github.com/grafana/dskit/signals"
+	promtailclient "github.com/grafana/loki/clients/pkg/promtail/client"
 	"github.com/oklog/run"
 	"github.com/prometheus/client_golang/prometheus"
+	promcfg "github.com/prometheus/prometheus/config"
+	"golang.org/x/exp/maps"
 	"google.golang.org/grpc"
 	"gopkg.in/yaml.v2"
 )
@@ -251,10 +255,89 @@ func (ep *Entrypoint) reloadHandler(rw http.ResponseWriter, r *http.Request) {
 func (ep *Entrypoint) getReporterMetrics() map[string]interface{} {
 	ep.mut.Lock()
 	defer ep.mut.Unlock()
-	return map[string]interface{}{
+	metrics := map[string]interface{}{
 		"enabled-features":     ep.cfg.EnabledFeatures,
 		"enabled-integrations": ep.cfg.Integrations.EnabledIntegrations(),
 	}
+	if i := getMetricsInstances(ep.cfg); i != nil {
+		metrics["metrics-instances"] = i
+	}
+	if i := getLogsInstances(ep.cfg); i != nil {
+		metrics["logs-instances"] = i
+	}
+	if i := getTraceInstances(ep.cfg); i != nil {
+		metrics["trace-instances"] = i
+	}
+	return metrics
+}
+
+const gcomSuffix = ".grafana.net"
+
+func getMetricsInstances(cfg config.Config) interface{} {
+	instances := map[string]bool{}
+	checkRemoteWrite := func(rw *promcfg.RemoteWriteConfig) {
+		if rw.URL == nil || !strings.HasSuffix(rw.URL.Host, gcomSuffix) || rw.HTTPClientConfig.BasicAuth == nil || rw.HTTPClientConfig.BasicAuth.Username == "" {
+			return
+		}
+		// todo: usernamefile?
+		instances[rw.HTTPClientConfig.BasicAuth.Username] = true
+	}
+	for _, rw := range cfg.Metrics.Global.RemoteWrite {
+		checkRemoteWrite(rw)
+	}
+	for _, i := range cfg.Metrics.Configs {
+		for _, rw := range i.RemoteWrite {
+			checkRemoteWrite(rw)
+		}
+	}
+	if len(instances) == 0 {
+		return nil
+	}
+	return maps.Keys(instances)
+}
+
+func getLogsInstances(cfg config.Config) interface{} {
+	instances := map[string]bool{}
+	checkClientConfig := func(c *promtailclient.Config) {
+		if !strings.HasSuffix(c.URL.Host, gcomSuffix) || c.Client.BasicAuth == nil || c.Client.BasicAuth.Username == "" {
+			return
+		}
+		// todo: usernamefile?
+		instances[c.Client.BasicAuth.Username] = true
+	}
+	for _, c := range cfg.Logs.Global.ClientConfigs {
+		checkClientConfig(&c)
+	}
+	for _, i := range cfg.Logs.Configs {
+		for _, c := range i.ClientConfigs {
+			checkClientConfig(&c)
+		}
+	}
+	if len(instances) == 0 {
+		return nil
+	}
+	return maps.Keys(instances)
+}
+
+func getTraceInstances(cfg config.Config) interface{} {
+	instances := map[string]bool{}
+
+	for _, i := range cfg.Traces.Configs {
+		for _, rw := range i.RemoteWrite {
+			if u, err := url.Parse(rw.Endpoint); err != nil || !strings.HasSuffix(u.Hostname(), gcomSuffix) {
+				continue
+			}
+			if rw.BasicAuth == nil || rw.BasicAuth.Username == "" {
+				continue
+			}
+			// todo: usernamefile?
+			instances[rw.BasicAuth.Username] = true
+		}
+	}
+	if len(instances) == 0 {
+		return nil
+	}
+	return maps.Keys(instances)
 }
 
 func getServerWriteTimeout(r *http.Request) time.Duration {

@@ -33,6 +33,7 @@ func getReporterMetricsFunc(f *flow.Flow) func() map[string]interface{} {
 		if instances := getProfileInstances(f); instances != nil {
 			metrics["profile-instances"] = instances
 		}
+		// todo: trace instances
 		return metrics
 	}
 }
@@ -118,7 +119,7 @@ func getGrafanaNetInstance(u string, h *config.HTTPClientConfig) string {
 	if err != nil {
 		return ""
 	}
-	if !strings.HasSuffix(uParsed.Host, "grafana.net") {
+	if !strings.HasSuffix(uParsed.Hostname(), ".grafana.net") {
 		return ""
 	}
 	return h.BasicAuth.Username
