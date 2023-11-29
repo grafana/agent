@@ -24,6 +24,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
+	"go.opentelemetry.io/otel/trace/noop"
 	"golang.org/x/net/http2"
 )
 
@@ -94,7 +95,7 @@ func New(opts Options) (*Service, error) {
 		l = log.NewNopLogger()
 	}
 	if t == nil {
-		t = trace.NewNoopTracerProvider()
+		t = noop.NewTracerProvider()
 	}
 
 	ckitConfig := ckit.Config{
