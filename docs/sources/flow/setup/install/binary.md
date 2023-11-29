@@ -25,7 +25,7 @@ weight: 600
 
 To download {{< param "PRODUCT_NAME" >}} as a standalone binary, perform the following steps.
 
-1. Navigate to the current {{< param "PRODUCT_NAME" >}} [release](https://github.com/grafana/agent/releases) page.
+1. Navigate to the current {{< param "PRODUCT_ROOT_NAME" >}} [release](https://github.com/grafana/agent/releases) page.
 
 1. Scroll down to the **Assets** section.
 

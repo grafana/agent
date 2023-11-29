@@ -7,6 +7,7 @@ aliases:
 canonical: https://grafana.com/docs/agent/latest/flow/monitoring/
 description: Learn about monitoring Grafana Agent Flow
 title: Monitoring Grafana Agent Flow
+menuTitle: Monitoring
 weight: 500
 ---
 

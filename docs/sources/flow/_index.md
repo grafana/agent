@@ -7,7 +7,7 @@ aliases:
 canonical: https://grafana.com/docs/agent/latest/flow/
 description: Grafana Agent Flow is a component-based revision of Grafana Agent with
   a focus on ease-of-use, debuggability, and adaptability
-title: Grafana Agent Flow
+title: Flow mode
 weight: 400
 cascade:
   PRODUCT_NAME: Grafana Agent Flow

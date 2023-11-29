@@ -21,7 +21,7 @@ to a series of user-supplied endpoints using [Pyroscope' Push API](/oss/pyroscop
 Multiple `pyroscope.write` components can be specified by giving them
 different labels.
 
-## Usage for {{< param "PRODUCT_NAME" >}}
+## Usage
 
 ```river
 pyroscope.write "LABEL" {

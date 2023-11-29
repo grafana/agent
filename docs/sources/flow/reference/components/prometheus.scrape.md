@@ -122,7 +122,7 @@ Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `enabled` | `bool` | Enables sharing targets with other cluster nodes. | `false` | yes
 
-When {{< param "PRODUCT_ROOT_NAME" >}} is [using clustering][], and `enabled` is set to true,
+When {{< param "PRODUCT_NAME" >}} is [using clustering][], and `enabled` is set to true,
 then this `prometheus.scrape` component instance opts-in to participating in
 the cluster to distribute scrape load between all cluster nodes.
 
@@ -142,7 +142,7 @@ sharding where _all_ nodes have to be re-distributed, as only 1/N of the
 targets ownership is transferred, but is eventually consistent (rather than
 fully consistent like hashmod sharding is).
 
-If {{< param "PRODUCT_ROOT_NAME" >}} is _not_ running in clustered mode, then the block is a no-op and
+If {{< param "PRODUCT_NAME" >}} is _not_ running in clustered mode, then the block is a no-op and
 `prometheus.scrape` scrapes every target it receives in its arguments.
 
 [using clustering]: {{< relref "../../concepts/clustering.md" >}}

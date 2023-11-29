@@ -133,7 +133,7 @@ configuration file rather than a Flow mode configuration file.
    a diagnostic report.
 
 1. Refer to the {{< param "PRODUCT_NAME" >}}  [Debugging][DebuggingUI] for more information about
-   running {{< param "PRODUCT_NAME" >}}e.
+   running {{< param "PRODUCT_NAME" >}}.
 
 1. If your Promtail configuration can't be converted and loaded directly into
    {{< param "PRODUCT_ROOT_NAME" >}}, diagnostic information is sent to `stderr`. You can bypass any

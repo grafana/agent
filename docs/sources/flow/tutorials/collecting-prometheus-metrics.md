@@ -14,7 +14,7 @@ weight: 200
 
 # Collect Prometheus metrics
 
-{{< param "PRODUCT_ROOT_NAME" >}} is a telemetry collector with the primary goal of moving telemetry data from one location to another. In this tutorial, you'll set up a {{< param "PRODUCT_NAME" >}}.
+{{< param "PRODUCT_ROOT_NAME" >}} is a telemetry collector with the primary goal of moving telemetry data from one location to another. In this tutorial, you'll set up {{< param "PRODUCT_NAME" >}}.
 
 ## Prerequisites
 

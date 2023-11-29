@@ -38,7 +38,7 @@ following arguments to the {{< param "PRODUCT_NAME" >}} binary:
 * `C:\Program Files\Grafana Agent Flow\config.river`
 * `--storage.path=C:\ProgramData\Grafana Agent Flow\data`
 
-To change the set of command-line arguments passed to the Grafana Agent
+To change the set of command-line arguments passed to the {{< param "PRODUCT_ROOT_NAME" >}}
 binary, perform the following steps:
 
 1. Open the Registry Editor:
@@ -51,7 +51,7 @@ binary, perform the following steps:
 
 1. Double-click on the value called **Arguments***.
 
-1. In the dialog box, enter the new set of arguments to pass to the {{< param "PRODUCT_NAME" >}} binary.
+1. In the dialog box, enter the new set of arguments to pass to the {{< param "PRODUCT_ROOT_NAME" >}} binary.
 
 1. Restart the {{< param "PRODUCT_NAME" >}} service:
 
