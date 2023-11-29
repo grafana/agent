@@ -19,6 +19,7 @@ const (
 
 // settable by tests
 var goos = runtime.GOOS
+var executable = os.Executable
 
 func Get() string {
 	parenthesis := ""
@@ -58,7 +59,7 @@ func GetDeployMode() string {
 		return op
 	}
 	// try to detect if executable is in homebrew directory
-	if path, err := os.Executable(); err == nil && runtime.GOOS == "darwin" && strings.Contains(path, "brew") {
+	if path, err := executable(); err == nil && goos == "darwin" && strings.Contains(path, "brew") {
 		return "brew"
 	}
 	// fallback to binary
