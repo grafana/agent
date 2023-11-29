@@ -22,7 +22,6 @@ func getReporterMetricsFunc(f *flow.Flow) func() map[string]interface{} {
 		}
 		metrics := map[string]interface{}{
 			"enabled-components": getEnabledComponents(f),
-			"metrics-instances":  getMetricsInstances(f),
 		}
 		if instances := getMetricsInstances(f); instances != nil {
 			metrics["metrics-instances"] = instances
