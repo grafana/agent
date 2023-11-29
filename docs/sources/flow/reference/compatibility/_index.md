@@ -15,12 +15,20 @@ weight: 400
 This section provides an overview of _some_ of the possible connections between 
 compatible components in Grafana Agent Flow. 
 
-For each common telemetry data type, we provide a list of compatible components
+For each common data type, we provide a list of compatible components
 that can export or consume it.
 
-> Note that connecting some components may require further configuration to make
-> the connection work correctly. Please refer to the linked documentation for more
-> details.
+{{% admonition type="note" %}}
+
+> The type of export may not be the only requirement for chaining components together.
+> The value of an attribute may matter as well as its type.
+> Please refer to each component's documentation for more details on what values are acceptable.
+>
+> For example:
+> * A Prometheus component may always expect an `"__address__"` label inside a list of targets.
+> * A `string` argument may only accept certain values like "traceID" or "spanID".
+
+{{% /admonition %}}
 
 ## Targets
 
