@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io/fs"
-	"net/url"
 	"os"
 	"os/signal"
 	"path/filepath"
@@ -16,9 +15,6 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/go-kit/log"
-	"github.com/grafana/agent/component"
-	"github.com/grafana/agent/component/loki/write"
-	"github.com/grafana/agent/component/prometheus/remotewrite"
 	"github.com/grafana/agent/converter"
 	convert_diag "github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/pkg/boringcrypto"
@@ -40,7 +36,6 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/spf13/cobra"
 	"go.opentelemetry.io/otel"
-	"golang.org/x/exp/maps"
 
 	// Install Components
 	_ "github.com/grafana/agent/component/all"
@@ -351,103 +346,6 @@ func (fr *flowRun) Run(configPath string) error {
 			}
 		}
 	}
-}
-
-func getReporterMetricsFunc(f *flow.Flow) func() map[string]interface{} {
-	return func() map[string]interface{} {
-		components := component.GetAllComponents(f, component.InfoOptions{})
-		componentNames := map[string]struct{}{}
-		for _, c := range components {
-			componentNames[c.Registration.Name] = struct{}{}
-		}
-		metrics := map[string]interface{}{
-			"enabled-components": getEnabledComponents(f),
-			"metrics-instances":  getMetricsInstances(f),
-		}
-		if instances := getMetricsInstances(f); instances != nil {
-			metrics["metrics-instances"] = instances
-		}
-		if instances := getLogsInstances(f); instances != nil {
-			metrics["logs-instances"] = instances
-		}
-		return metrics
-	}
-}
-
-// getMetricsInstances returns all grafana cloud hosted metrics instances referenced by prometheus.remote_write components
-func getMetricsInstances(f *flow.Flow) interface{} {
-	components := component.GetAllComponents(f, component.InfoOptions{GetHealth: true, GetArguments: true})
-	instances := map[string]bool{}
-	for _, c := range components {
-		if c.Registration.Name != "prometheus.remote_write" {
-			continue
-		}
-		args, ok := c.Arguments.(remotewrite.Arguments)
-		if !ok {
-			continue
-		}
-		for _, e := range args.Endpoints {
-			// only look at endpoints that are very clearly pointed at grafana.net, with basic auth
-			if e.HTTPClientConfig == nil || e.HTTPClientConfig.BasicAuth == nil {
-				continue
-			}
-			u, err := url.Parse(e.URL)
-			if err != nil {
-				continue
-			}
-			if !strings.HasSuffix(u.Host, "grafana.net") {
-				continue
-			}
-			instances[e.HTTPClientConfig.BasicAuth.Username] = true
-		}
-	}
-	if len(instances) == 0 {
-		return nil
-	}
-	return maps.Keys(instances)
-}
-
-// getLogsInstances returns all grafana cloud hosted logs instances referenced by loki.write components
-func getLogsInstances(f *flow.Flow) interface{} {
-	components := component.GetAllComponents(f, component.InfoOptions{GetHealth: true, GetArguments: true})
-	instances := map[string]bool{}
-	for _, c := range components {
-		if c.Registration.Name != "loki.write" {
-			continue
-		}
-		args, ok := c.Arguments.(write.Arguments)
-		if !ok {
-			continue
-		}
-		for _, e := range args.Endpoints {
-			// only look at endpoints that are very clearly pointed at grafana.net, with basic auth
-			if e.HTTPClientConfig == nil || e.HTTPClientConfig.BasicAuth == nil {
-				continue
-			}
-			u, err := url.Parse(e.URL)
-			if err != nil {
-				continue
-			}
-			if !strings.HasSuffix(u.Host, "grafana.net") {
-				continue
-			}
-			instances[e.HTTPClientConfig.BasicAuth.Username] = true
-		}
-	}
-	if len(instances) == 0 {
-		return nil
-	}
-	return maps.Keys(instances)
-}
-
-// getEnabledComponents returns the current enabled components
-func getEnabledComponents(f *flow.Flow) interface{} {
-	components := component.GetAllComponents(f, component.InfoOptions{})
-	componentNames := map[string]struct{}{}
-	for _, c := range components {
-		componentNames[c.Registration.Name] = struct{}{}
-	}
-	return maps.Keys(componentNames)
 }
 
 func loadFlowSource(path string, converterSourceFormat string, converterBypassErrors bool) (*flow.Source, error) {
