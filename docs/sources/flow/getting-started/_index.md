@@ -6,9 +6,9 @@ aliases:
 - /docs/grafana-cloud/send-data/agent/flow/getting-started/
 - getting_started/
 canonical: https://grafana.com/docs/agent/latest/flow/getting-started/
-description: Learn how to use Grafana Agent in flow mode
+description: Learn how to use Grafana Agent Flow
 menuTitle: Get started
-title: Get started with Grafana Agent in flow mode
+title: Get started with Grafana Agent Flow
 weight: 200
 ---
 

@@ -113,23 +113,22 @@ additional features available in {{< param "PRODUCT_NAME" >}}.
 ## Run a Prometheus configuration
 
 If you’re not ready to completely switch to a flow configuration, you can run Grafana Agent using your existing Prometheus configuration.
-The `--config.format=prometheus` flag tells Grafana Agent to convert your Prometheus configuration to flow mode and load it directly without saving the new configuration.
-This allows you to try flow mode without modifying your existing Prometheus configuration infrastructure.
+The `--config.format=prometheus` flag tells Grafana Agent to convert your Prometheus configuration to a {{< param "PRODUCT_NAME" >}} configuration and load it directly without saving the new configuration.
+This allows you to try {{< param "PRODUCT_NAME" >}} without modifying your existing Prometheus configuration infrastructure.
 
 > In this task, we will use the [run][] CLI command to run Grafana Agent in flow
 > mode using a Prometheus configuration.
 
-[Start the agent][] in flow mode and include the command line flag
+[Start][] {{< param "PRODUCT_NAME" >}} and include the command line flag
    `--config.format=prometheus`. Your configuration file must be a valid
-   Prometheus configuration file rather than a flow mode configuration file.
+   Prometheus configuration file rather than a {{< param "PRODUCT_NAME" >}} configuration file.
 
 ### Debugging
 
 1. You can follow the convert CLI command [debugging][] instructions to
    generate a diagnostic report.
 
-1. Refer to the {{< param "PRODUCT_NAME" >}} [Debugging][DebuggingUI] for more information about a running Grafana
-   Agent in flow mode.
+1. Refer to the {{< param "PRODUCT_NAME" >}} [Debugging][DebuggingUI] for more information about a running {{< param "PRODUCT_NAME" >}}.
 
 1. If your Prometheus configuration can't be converted and
     loaded directly into {{< param "PRODUCT_NAME" >}}, diagnostic information
@@ -221,12 +220,12 @@ Configuration conversion is done on a best-effort basis. {{< param "PRODUCT_ROOT
 warnings or errors where the conversion cannot be performed.
 
 Once the configuration is converted, we recommend that you review
-the Flow Mode configuration file created and verify that it is correct
+the {{< param "PRODUCT_NAME" >}} configuration file created and verify that it is correct
 before starting to use it in a production environment.
 
 Furthermore, we recommend that you review the following checklist:
 
-* The following configurations are not available for conversion to flow mode:
+* The following configurations are not available for conversion to {{< param "PRODUCT_NAME" >}}:
   `rule_files`, `alerting`, `remote_read`, `storage`, and `tracing`. Any
   additional unsupported features are returned as errors during conversion.
 * Check if you are using any extra command line arguments with Prometheus that

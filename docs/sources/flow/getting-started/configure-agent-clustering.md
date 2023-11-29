@@ -14,7 +14,7 @@ weight: 400
 # Configure {{< param "PRODUCT_NAME" >}} clustering in an existing installation
 
 You can configure {{< param "PRODUCT_NAME" >}} to run with [clustering][] so that
-individual agents can work together for workload distribution and high
+individual {{< param "PRODUCT_ROOT_NAME" >}}s can work together for workload distribution and high
 availability.
 
 

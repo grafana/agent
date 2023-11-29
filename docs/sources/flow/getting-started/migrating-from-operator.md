@@ -40,7 +40,7 @@ You may start with the [default values](https://github.com/grafana/agent/blob/ma
       create: false
     ```
 
-    This configuration will deploy {{< param "PRODUCT_NAME" >}} as a `StatefulSet` using the built-in [clustering](https://grafana.com/docs/agent/latest/flow/concepts/clustering/) functionality to allow distributing scrapes across all Agent Pods.
+    This configuration will deploy {{< param "PRODUCT_NAME" >}} as a `StatefulSet` using the built-in [clustering](https://grafana.com/docs/agent/latest/flow/concepts/clustering/) functionality to allow distributing scrapes across all {{< param "PRODUCT_ROOT_NAME" >}} Pods.
 
     This is not the only deployment mode possible. For example, you may want to use a `DaemonSet` to collect host-level logs or metrics. See the {{< param "PRODUCT_NAME" >}} [deployment guide](https://grafana.com/docs/agent/latest/flow/setup/deploy-agent/) for more details about different topologies.
 

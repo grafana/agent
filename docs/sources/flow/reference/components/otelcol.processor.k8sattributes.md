@@ -16,7 +16,7 @@ components and adds Kubernetes metadata to the resource attributes of spans, log
 
 {{% admonition type="note" %}}
 `otelcol.processor.k8sattributes` is a wrapper over the upstream OpenTelemetry
-Collector `k8sattributes` processor.  If necessary, bug reports or feature requests
+Collector `k8sattributes` processor. If necessary, bug reports or feature requests
 will be redirected to the upstream repository.
 {{% /admonition %}}
 
@@ -54,12 +54,12 @@ Setting `passthrough` to `true` enables the "passthrough mode" of `otelcol.proce
 * Only a `k8s.pod.ip` resource attribute will be added.
 * No other metadata will be added.
 * The Kubernetes API will not be accessed.
-* To correctly detect the pod IPs, the Agent must receive spans directly from services.
+* To correctly detect the pod IPs, {{< param "PRODUCT_ROOT_NAME" >}} must receive spans directly from services.
 * The `passthrough` setting is useful when configuring the Agent as a Kubernetes Deployment.
-An Agent running as a Deployment cannot detect the IP addresses of pods generating telemetry 
-data without any of the well-known IP attributes. If the Deployment Agent receives telemetry from 
-Agents deployed as DaemonSet, then some of those attributes might be missing. As a workaround, 
-you can configure the DaemonSet Agents with `passthrough` set to `true`.
+A {{< param "PRODUCT_ROOT_NAME" >}} running as a Deployment cannot detect the IP addresses of pods generating telemetry
+data without any of the well-known IP attributes. If the Deployment {{< param "PRODUCT_ROOT_NAME" >}} receives telemetry from
+{{< param "PRODUCT_ROOT_NAME" >}}s deployed as DaemonSet, then some of those attributes might be missing. As a workaround,
+you can configure the DaemonSet {{< param "PRODUCT_ROOT_NAME" >}}s with `passthrough` set to `true`.
 
 ## Blocks
 

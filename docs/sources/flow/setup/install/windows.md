@@ -28,7 +28,7 @@ To do a standard graphical install of {{< param "PRODUCT_NAME" >}} on Windows, p
 
 1. Unzip the downloaded file.
 
-1. Double-click on `grafana-agent-installer.exe` to install Grafana Agent.
+1. Double-click on `grafana-agent-installer.exe` to install {{< param "PRODUCT_NAME" >}}.
 
 {{< param "PRODUCT_NAME" >}} is installed into the default directory `C:\Program Files\Grafana Agent Flow`.
 

@@ -15,15 +15,15 @@ weight: 500
 
 # Clustering (beta)
 
-Clustering enables a fleet of agents to work together for workload distribution
+Clustering enables a fleet of {{< param "PRODUCT_ROOT_NAME" >}}s to work together for workload distribution
 and high availability. It helps create horizontally scalable deployments with
 minimal resource and operational overhead.
 
 To achieve this, {{< param "PRODUCT_NAME" >}} makes use of an eventually consistent model that
-assumes all participating Agents are interchangeable and converge on using the
+assumes all participating {{< param "PRODUCT_ROOT_NAME" >}}s are interchangeable and converge on using the
 same configuration file.
 
-The behavior of a standalone, non-clustered agent is the same as if it was a
+The behavior of a standalone, non-clustered {{< param "PRODUCT_ROOT_NAME" >}} is the same as if it was a
 single-node cluster.
 
 You configure clustering by passing `cluster` command-line flags to the [run][]
@@ -35,7 +35,7 @@ command.
 
 Target auto-distribution is the most basic use case of clustering; it allows
 scraping components running on all peers to distribute scrape load between
-themselves. For target auto-distribution to work correctly, all agents in the
+themselves. For target auto-distribution to work correctly, all {{< param "PRODUCT_ROOT_NAME" >}} in the
 same cluster must be able to reach the same service discovery APIs and must be
 able to scrape the same targets.
 
@@ -56,7 +56,7 @@ A cluster state change is detected when a new node joins or an existing node goe
 recalculate target ownership and re-balance the number of targets they’re
 scraping without explicitly communicating ownership over the network.
 
-Target auto-distribution allows you to dynamically scale the number of agents to distribute workload during peaks.
+Target auto-distribution allows you to dynamically scale the number of {{< param "PRODUCT_ROOT_NAME" >}}s to distribute workload during peaks.
 It also provides resiliency because targets are automatically picked up by one of the node peers if a node goes away.
 
 {{< param "PRODUCT_NAME" >}} uses a fully-local consistent hashing algorithm to distribute

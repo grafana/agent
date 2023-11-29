@@ -21,7 +21,7 @@ Kubernetes API. It has the following benefits over `loki.source.file`:
 * It works without a privileged container.
 * It works without a root user.
 * It works without needing access to the filesystem of the Kubernetes node.
-* It doesn't require a DaemonSet to collect logs, so one agent could collect
+* It doesn't require a DaemonSet to collect logs, so one {{< param "PRODUCT_ROOT_NAME" >}} could collect
   logs for the whole cluster.
 
 > **NOTE**: Because `loki.source.kubernetes` uses the Kubernetes API to tail
@@ -144,11 +144,11 @@ Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `enabled` | `bool` | Distribute log collection with other cluster nodes. | | yes
 
-When the agent is [using clustering][], and `enabled` is set to true, then this
+When {{< param "PRODUCT_ROOT_NAME" >}} is [using clustering][], and `enabled` is set to true, then this
 `loki.source.kubernetes` component instance opts-in to participating in the
 cluster to distribute the load of log collection between all cluster nodes.
 
-If the agent is _not_ running in clustered mode, then the block is a no-op and
+If {{< param "PRODUCT_ROOT_NAME" >}} is _not_ running in clustered mode, then the block is a no-op and
 `loki.source.kubernetes` collects logs from every target it receives in its
 arguments.
 

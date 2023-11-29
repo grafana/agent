@@ -5,9 +5,9 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/setup/configure/
 - /docs/grafana-cloud/send-data/agent/flow/setup/configure/
 canonical: https://grafana.com/docs/agent/latest/flow/setup/configure/
-description: Configure Grafana Agent in flow mode after it is installed
-menuTitle: Configure flow mode
-title: Configure Grafana Agent in flow mode
+description: Configure Grafana Agent Flow after it is installed
+menuTitle: Configure Grafana Agent Flow
+title: Configure Grafana Agent Flow
 weight: 150
 ---
 

@@ -8,7 +8,7 @@ aliases:
 canonical: https://grafana.com/docs/agent/latest/flow/setup/install/
 description: Learn how to install Grafana Agent  Flow
 menuTitle: Install Grafana Agent Flow
-title: Install Grafana Agent  Flow
+title: Install Grafana Agent Flow
 weight: 50
 ---
 

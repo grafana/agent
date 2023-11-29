@@ -41,15 +41,14 @@ To distribute Prometheus metrics scrape load with clustering:
    }
    ```
 
-2. Restart or reload agents for them to use the new configuration.
+1. Restart or reload {{< param "PRODUCT_ROOT_NAME" >}} for them to use the new configuration.
 
-3. Validate that auto-distribution is functioning:
+1. Validate that auto-distribution is functioning:
 
-   1. Using the {{< param "PRODUCT_ROOT_NAME" >}} [UI][] on each agent, navigate to the details page for one of
+   1. Using the {{< param "PRODUCT_ROOT_NAME" >}} [UI][] on each {{< param "PRODUCT_ROOT_NAME" >}}, navigate to the details page for one of
       the `prometheus.scrape` components you modified.
 
-   2. Compare the Debug Info sections between two different agents to ensure
-      that they're not scraping the same sets of targets.
+   1. Compare the Debug Info sections between two different {{< param "PRODUCT_ROOT_NAME" >}} to ensure that they're not scraping the same sets of targets.
 
 {{% docs/reference %}}
 [Clustering]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/clustering.md"

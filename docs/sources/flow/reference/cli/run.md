@@ -156,23 +156,19 @@ Attempting to join a cluster with a wrong `--cluster.name` will result in a "fai
 
 ### Clustering states
 
-Clustered agents are in one of three states:
+Clustered {{< param "PRODUCT_ROOT_NAME" >}}s are in one of three states:
 
-* **Viewer**: {{< param "PRODUCT_NAME" >}} has a read-only view of the cluster and is not
-  participating in workload distribution.
+* **Viewer**: {{< param "PRODUCT_NAME" >}} has a read-only view of the cluster and isn't participating in workload distribution.
 
-* **Participant**: {{< param "PRODUCT_NAME" >}} is participating in workload distribution for
-  components that have clustering enabled.
+* **Participant**: {{< param "PRODUCT_NAME" >}} is participating in workload distribution for components that have clustering enabled.
 
-* **Terminating**: {{< param "PRODUCT_NAME" >}} is shutting down and will no longer assign new
-  work to itself.
+* **Terminating**: {{< param "PRODUCT_NAME" >}} is shutting down and will no longer assign new work to itself.
 
-Agents initially join the cluster in the viewer state and then transition to
-the participant state after the process startup completes. Agents then
-transition to the terminating state when shutting down.
+Each {{< param "PRODUCT_ROOT_NAME" >}} initially joins the cluster in the viewer state and then transitions to
+the participant state after the process startup completes. Each {{< param "PRODUCT_ROOT_NAME" >}} then
+transitions to the terminating state when shutting down.
 
-The current state of a clustered agent is shown on the clustering page in the
-[UI][].
+The current state of a clustered {{< param "PRODUCT_ROOT_NAME" >}} is shown on the clustering page in the [UI][].
 
 [UI]: {{< relref "../../monitoring/debugging.md#clustering-page" >}}
 
