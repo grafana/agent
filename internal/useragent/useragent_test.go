@@ -15,6 +15,7 @@ func TestUserAgent(t *testing.T) {
 		Expected   string
 		DeployMode string
 		GOOS       string
+		Exe        string
 	}{
 		{
 			Name:     "basic",
@@ -76,9 +77,21 @@ func TestUserAgent(t *testing.T) {
 			Expected:   "GrafanaAgent/v1.2.3 (flow; linux; helm)",
 			GOOS:       "linux",
 		},
+		{
+			Name:     "brew",
+			Mode:     "flow",
+			Expected: "GrafanaAgent/v1.2.3 (flow; darwin; brew)",
+			GOOS:     "darwin",
+			Exe:      "/opt/homebrew/bin/agent",
+		},
 	}
 	for _, tst := range tests {
 		t.Run(tst.Name, func(t *testing.T) {
+			if tst.Exe != "" {
+				executable = func() (string, error) { return tst.Exe, nil }
+			} else {
+				executable = func() (string, error) { return "/agent", nil }
+			}
 			goos = tst.GOOS
 			t.Setenv(deployModeEnv, tst.DeployMode)
 			t.Setenv(modeEnv, tst.Mode)
