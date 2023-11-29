@@ -7,10 +7,10 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"os"
 	"runtime"
 	"time"
 
+	"github.com/grafana/agent/internal/useragent"
 	"github.com/prometheus/common/version"
 )
 
@@ -40,7 +40,7 @@ func sendReport(ctx context.Context, seed *AgentSeed, interval time.Time, metric
 		Arch:         runtime.GOARCH,
 		Interval:     interval,
 		Metrics:      metrics,
-		DeployMode:   getDeployMode(),
+		DeployMode:   useragent.GetDeployMode(),
 	}
 	out, err := json.MarshalIndent(report, "", " ")
 	if err != nil {
@@ -65,14 +65,4 @@ func sendReport(ctx context.Context, seed *AgentSeed, interval time.Time, metric
 		return fmt.Errorf("failed to send usage stats: %s  body: %s", resp.Status, string(data))
 	}
 	return nil
-}
-
-func getDeployMode() string {
-	op := os.Getenv("AGENT_DEPLOY_MODE")
-	// only return known modes. Use "binary" as a default catch-all.
-	switch op {
-	case "operator", "helm", "docker", "deb", "rpm", "brew":
-		return op
-	}
-	return "binary"
 }

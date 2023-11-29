@@ -27,7 +27,7 @@ func Get() string {
 		metadata = append(metadata, mode)
 	}
 	metadata = append(metadata, goos)
-	if op := getDeployMode(); op != "" {
+	if op := GetDeployMode(); op != "" {
 		metadata = append(metadata, op)
 	}
 	if len(metadata) > 0 {
@@ -49,12 +49,18 @@ func getRunMode() string {
 	}
 }
 
-func getDeployMode() string {
+// GetDeployMode returns our best-effort guess at the way Grafana Agent was deployed.
+func GetDeployMode() string {
 	op := os.Getenv(deployModeEnv)
 	// only return known modes. Use "binary" as a default catch-all.
 	switch op {
 	case "operator", "helm", "docker", "deb", "rpm", "brew":
 		return op
 	}
+	// try to detect if executable is in homebrew directory
+	if path, err := os.Executable(); err == nil && runtime.GOOS == "darwin" && strings.Contains(path, "brew") {
+		return "brew"
+	}
+	// fallback to binary
 	return "binary"
 }
