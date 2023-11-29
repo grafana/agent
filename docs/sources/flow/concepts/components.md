@@ -50,7 +50,7 @@ discovery.kubernetes "nodes" {
 
 ## Pipelines
 
-Most arguments for a component in a config file are constant values, such
+Most arguments for a component in a configuration file are constant values, such
 setting a `log_level` attribute to the quoted string `"debug"`:
 
 ```river
@@ -87,7 +87,7 @@ An example pipeline may look like this:
 <img src="../../../assets/concepts_example_pipeline.svg" alt="Flow of example pipeline" width="500" />
 </p>
 
-The following config file represents the above pipeline:
+The following configuration file represents the pipeline:
 
 ```river
 // Get our API key from disk.

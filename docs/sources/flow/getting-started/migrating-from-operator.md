@@ -11,19 +11,20 @@ weight: 320
 
 # Migrating from Grafana Agent Operator to {{< param "PRODUCT_NAME" >}}
 
-With the release of {{< param "PRODUCT_NAME" >}}, Grafana Agent Operator is no longer the recommended way to deploy {{< param "PRODUCT_ROOT_NAME" >}} in Kubernetes. Some of the Operator functionality has been moved into {{< param "PRODUCT_NAME" >}}
-itself, and the remaining functionality has been replaced by our Helm Chart.
+With the release of {{< param "PRODUCT_NAME" >}}, Grafana Agent Operator is no longer the recommended way to deploy {{< param "PRODUCT_ROOT_NAME" >}} in Kubernetes.
+Some of the Operator functionality has been moved into {{< param "PRODUCT_NAME" >}} itself, and the remaining functionality has been replaced by our Helm Chart.
 
-- The Monitor types (`PodMonitor`, `ServiceMonitor`, `Probe`, and `LogsInstance`) are all supported natively by {{< param "PRODUCT_NAME" >}}. You are no longer
-required to use the Operator to consume those CRDs for dynamic monitoring in your cluster.
-- The parts of the Operator that deploy the {{< param "PRODUCT_ROOT_NAME" >}} itself (`GrafanaAgent`, `MetricsInstance`, and `LogsInstance` CRDs) are deprecated. We now recommend
-operator users use the [{{< param "PRODUCT_ROOT_NAME" >}} Helm Chart](https://grafana.com/docs/agent/latest/flow/setup/install/kubernetes/) to deploy the Agent directly to your clusters.
+- The Monitor types (`PodMonitor`, `ServiceMonitor`, `Probe`, and `LogsInstance`) are all supported natively by {{< param "PRODUCT_NAME" >}}.
+  You are no longer required to use the Operator to consume those CRDs for dynamic monitoring in your cluster.
+- The parts of the Operator that deploy the {{< param "PRODUCT_ROOT_NAME" >}} itself (`GrafanaAgent`, `MetricsInstance`, and `LogsInstance` CRDs) are deprecated.
+  We now recommend operator users use the {{< param "PRODUCT_ROOT_NAME" >}} [Helm Chart](https://grafana.com/docs/agent/latest/flow/setup/install/kubernetes/) to deploy {{< param "PRODUCT_ROOT_NAME" >}} directly to your clusters.
 
 This guide will provide some steps to get started with {{< param "PRODUCT_NAME" >}} for users coming from Grafana Agent Operator.
 
 ## Deploy {{< param "PRODUCT_NAME" >}} with Helm
 
-1. You will need to create a `values.yaml` file, which contains options for deploying your {{< param "PRODUCT_ROOT_NAME" >}}. You may start with the [default values](https://github.com/grafana/agent/blob/main/operations/helm/charts/grafana-agent/values.yaml) and customize as you see fit, or start with this snippet, which should be a good starting point for what the Operator does:
+1. You will need to create a `values.yaml` file, which contains options for deploying your {{< param "PRODUCT_ROOT_NAME" >}}.
+You may start with the [default values](https://github.com/grafana/agent/blob/main/operations/helm/charts/grafana-agent/values.yaml) and customize as you see fit, or start with this snippet, which should be a good starting point for what the Operator does:
 
     ```yaml
     agent:
@@ -41,13 +42,13 @@ This guide will provide some steps to get started with {{< param "PRODUCT_NAME" 
 
     This configuration will deploy {{< param "PRODUCT_NAME" >}} as a `StatefulSet` using the built-in [clustering](https://grafana.com/docs/agent/latest/flow/concepts/clustering/) functionality to allow distributing scrapes across all Agent Pods.
 
-    This is not the only deployment mode possible. For example, you may want to use a `DaemonSet` to collect host-level logs or metrics. See [the {{< param "PRODUCT_NAME" >}} deployment guide](https://grafana.com/docs/agent/latest/flow/setup/deploy-agent/) for more details about different topologies.
+    This is not the only deployment mode possible. For example, you may want to use a `DaemonSet` to collect host-level logs or metrics. See the {{< param "PRODUCT_NAME" >}} [deployment guide](https://grafana.com/docs/agent/latest/flow/setup/deploy-agent/) for more details about different topologies.
 
-2. Create a Flow config file, `agent.river`.
+2. Create a {{< param "PRODUCT_ROOT_NAME" >}} configuration file, `agent.river`.
 
-    We will be adding to this config in the next step as we convert `MetricsInstances`. You can add any additional configuration to this file as you desire.
+    We will be adding to this configuration in the next step as we convert `MetricsInstances`. You can add any additional configuration to this file as you desire.
 
-3. Install the grafana helm repository:
+3. Install the Grafana Helm repository:
 
     ```
     helm repo add grafana https://grafana.github.io/helm-charts
@@ -113,7 +114,7 @@ You will need to replace `PROMETHEUS_URL` with the actual endpoint you want to s
 
 This configuration will discover all `PodMonitor`, `ServiceMonitor`, and `Probe` resources in your cluster that match our label selector `instance=primary`. It will then scrape metrics from their targets and forward them to your remote write endpoint.
 
-You may need to customize this configuration further if you use additional features in your `MetricsInstance` resources.  Refer to the documentation for the relevant components for additional information:
+You may need to customize this configuration further if you use additional features in your `MetricsInstance` resources. Refer to the documentation for the relevant components for additional information:
 
 - [remote.kubernetes.secret](https://grafana.com/docs/agent/latest/flow/reference/components/remote.kubernetes.secret)
 - [prometheus.remote_write](https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.remote_write)

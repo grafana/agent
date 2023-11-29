@@ -36,7 +36,7 @@ Components allow for reusability, composability, and focus on a single task.
 ## Example
 
 ```river
-// Discover Kubernetes pods to collect metrics from.fagent
+// Discover Kubernetes pods to collect metrics from
 discovery.kubernetes "pods" {
   role = "pod"
 }
@@ -69,7 +69,8 @@ prometheus.remote_write "default" {
 
 ## {{< param "PRODUCT_ROOT_NAME" >}} configuration generator
 
-The [{{< param "PRODUCT_ROOT_NAME" >}} configuration generator](https://grafana.github.io/agent-configurator/) will help you get a head start on creating flow code.
+The {{< param "PRODUCT_ROOT_NAME" >}} [configuration generator](https://grafana.github.io/agent-configurator/) will help you get a head start on creating flow code.
+
 {{% admonition type="note" %}}
 This feature is experimental, and it doesn't support all River components.
 {{% /admonition %}}

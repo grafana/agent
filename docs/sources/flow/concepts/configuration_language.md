@@ -13,7 +13,7 @@ weight: 400
 
 # Configuration language concepts
 
-The G{{< param "PRODUCT_NAME" >}} _configuration language_ refers to the language used in
+The {{< param "PRODUCT_NAME" >}} _configuration language_ refers to the language used in
 configuration files which define and configure components to run.
 
 The configuration language is called River, a Terraform/HCL-inspired language:

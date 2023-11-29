@@ -26,7 +26,7 @@ This topic describes how to add clustering to an existing installation.
 ## Configure {{< param "PRODUCT_NAME" >}} clustering with Helm Chart
 
 This section guides you through enabling clustering when {{< param "PRODUCT_NAME" >}} is
-installed on Kubernetes using the [G{{< param "PRODUCT_ROOT_NAME" >}} Helm chart][install-helm].
+installed on Kubernetes using the {{< param "PRODUCT_ROOT_NAME" >}} [Helm chart][install-helm].
 
 ### Before you begin
 
@@ -55,7 +55,7 @@ To configure clustering:
    Replace `RELEASE_NAME` with the name of the installation you chose when you
    installed the Helm chart.
 
-1. Use the [{{< param "PRODUCT_ROOT_NAME" >}} UI][UI] to verify the cluster status:
+1. Use the {{< param "PRODUCT_ROOT_NAME" >}} [UI][] to verify the cluster status:
 
    1. Click **Clustering** in the navigation bar.
 

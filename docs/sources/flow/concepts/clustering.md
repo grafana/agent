@@ -53,7 +53,7 @@ prometheus.scrape "default" {
 ```
 
 A cluster state change is detected when a new node joins or an existing node goes away. All participating components locally
-recalculate target ownership and rebalance the number of targets they’re
+recalculate target ownership and re-balance the number of targets they’re
 scraping without explicitly communicating ownership over the network.
 
 Target auto-distribution allows you to dynamically scale the number of agents to distribute workload during peaks.
