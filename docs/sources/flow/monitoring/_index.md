@@ -10,8 +10,8 @@ title: Monitoring Grafana Agent Flow
 weight: 500
 ---
 
-# Monitoring Grafana Agent Flow
+# Monitoring {{< param "PRODUCT_NAME" >}}
 
-This section details various ways to monitor and debug Grafana Agent Flow.
+This section details various ways to monitor and debug {{< param "PRODUCT_NAME" >}}.
 
 {{< section >}}
