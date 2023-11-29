@@ -54,6 +54,10 @@ Main (unreleased)
 
 - Fix issue in `prometheus.operator.*` where targets would be dropped if two crds share a common prefix in their names. (@Paul424, @captncraig)
 
+### Other changes
+
+- Add Agent Deploy Mode to usage report. (@captncraig)
+
 v0.38.0 (2023-11-21)
 --------------------
 
