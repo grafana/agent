@@ -6,15 +6,15 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/setup/install/binary/
 - /docs/grafana-cloud/send-data/agent/flow/setup/install/binary/
 canonical: https://grafana.com/docs/agent/latest/flow/setup/install/binary/
-description: Learn how to install Grafana Agent in flow mode as a standalone binary
+description: Learn how to install Grafana Agent Flow as a standalone binary
 menuTitle: Standalone
-title: Install Grafana Agent in flow mode as a standalone binary
+title: Install Grafana Agent  Flow as a standalone binary
 weight: 600
 ---
 
-# Install Grafana Agent in flow mode as a standalone binary
+# Install {{< param "PRODUCT_NAME" >}} as a standalone binary
 
-Grafana Agent is distributed as a standalone binary for the following operating systems and architectures:
+{{< param "PRODUCT_NAME" >}} is distributed as a standalone binary for the following operating systems and architectures:
 
 * Linux: AMD64, ARM64
 * Windows: AMD64
@@ -23,9 +23,9 @@ Grafana Agent is distributed as a standalone binary for the following operating 
 
 ## Download Grafana Agent
 
-To download Grafana Agent as a standalone binary, perform the following steps.
+To download {{< param "PRODUCT_NAME" >}} as a standalone binary, perform the following steps.
 
-1. Navigate to the current Grafana Agent [release](https://github.com/grafana/agent/releases) page.
+1. Navigate to the current {{< param "PRODUCT_NAME" >}} [release](https://github.com/grafana/agent/releases) page.
 
 1. Scroll down to the **Assets** section.
 
@@ -33,7 +33,7 @@ To download Grafana Agent as a standalone binary, perform the following steps.
 
 1. Extract the package contents into a directory.
 
-1. If you are installing Grafana Agent on Linux, macOS, or FreeBSD, run the following command in a terminal:
+1. If you are installing {{< param "PRODUCT_NAME" >}} on Linux, macOS, or FreeBSD, run the following command in a terminal:
 
    ```shell
    chmod +x BINARY_PATH
@@ -43,12 +43,12 @@ To download Grafana Agent as a standalone binary, perform the following steps.
 
 ## Next steps
 
-* [Start Grafana Agent][]
-* [Configure Grafana Agent][]
+* [Start Grafana Agent Flow][]
+* [Configure Grafana Agent Flow][]
 
 {{% docs/reference %}}
-[Start Grafana Agent]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/start-agent.md#standalone-binary"
-[Start Grafana Agent]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/setup/start-agent.md#standalone-binary"
-[Configure Grafana Agent]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/configure"
-[Configure Grafana Agent]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/setup/configure/"
+[Start Grafana Agent Flow]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/start-agent.md#standalone-binary"
+[Start Grafana Agent Flow]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/setup/start-agent.md#standalone-binary"
+[Configure Grafana Agent Flow]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/configure"
+[Configure Grafana Agent Flow]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/setup/configure/"
 {{% /docs/reference %}}
