@@ -49,7 +49,6 @@ func (s *ScrapeConfigBuilder) AppendDockerPipeline() {
 			overrideHook,
 		))
 	}
-
 }
 
 func toLokiSourceDocker(sd *moby.DockerSDConfig, forwardTo []loki.LogsReceiver) *loki_docker.Arguments {
@@ -77,7 +76,6 @@ func toDiscoveryDocker(sdConfig *moby.DockerSDConfig) *docker.Arguments {
 		Filters:            toFlowDockerSDFilters(sdConfig.Filters),
 		HTTPClientConfig:   *common.ToHttpClientConfig(&sdConfig.HTTPClientConfig),
 	}
-
 }
 
 func toFlowDockerSDFilters(filters []moby.Filter) []docker.Filter {

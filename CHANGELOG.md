@@ -39,6 +39,9 @@ Main (unreleased)
 
 - Fix issue with windows_exporter defaults not being set correctly. (@mattdurham)
 
+- Fix issue where `convert` command would generate incorrect Flow Mode config 
+  when provided `promtail` configuration that uses `docker_sd_configs` (@thampiotr) 
+
 v0.38.0 (2023-11-21)
 --------------------
 
