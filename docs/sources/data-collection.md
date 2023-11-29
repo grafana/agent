@@ -30,6 +30,7 @@ The usage information includes the following details:
 * List of enabled feature flags ([Static] mode only).
 * List of enabled integrations ([Static] mode only).
 * List of enabled [components][] ([Flow] mode only).
+* Method used to deploy Grafana Agent (docker, helm, rpm, operator, etc.)
 
 This list may change over time. All newly reported data is documented in the CHANGELOG.
 
