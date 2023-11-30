@@ -60,6 +60,8 @@ v0.38.1 (2023-11-30)
 - Fix issue where `convert` command would generate incorrect Flow Mode config
   when provided `promtail` configuration that uses `docker_sd_configs` (@thampiotr)
 
+- Fix converter issue with `loki.relabel` and `max_cache_size` being set to 0 instead of default (10_000). (@mattdurham)
+
 ### Other changes
 
 - Add Agent Deploy Mode to usage report. (@captncraig)
@@ -220,8 +222,6 @@ v0.38.0 (2023-11-21)
 
 - Fix converter output for prometheus.exporter.windows to not unnecessarily add
   empty blocks. (@erikbaranowski)
-
-- Fix converter issue with `loki.relabel` and `max_cache_size` being set to 0 instead of default (10_000). (@mattdurham)
 
 ### Other changes
 
