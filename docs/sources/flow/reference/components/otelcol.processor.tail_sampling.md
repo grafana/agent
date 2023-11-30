@@ -333,7 +333,7 @@ information.
 
 ## Example
 
-This example batches trace data from Grafana Agent before sending it to
+This example batches trace data from {{< param "PRODUCT_NAME" >}} before sending it to
 [otelcol.exporter.otlp][] for further processing. This example shows an impractical number of policies for the purpose of demonstrating how to set up each type.
 
 ```river

@@ -46,8 +46,7 @@ Exactly one of the [`bearer_token`](#arguments) and [`bearer_token_file`](#argum
 [arguments]: #arguments
 
 ## Blocks
-The `discovery.digitalocean` component does not support any blocks, and is configured 
-fully through arguments.
+The `discovery.digitalocean` component does not support any blocks, and is configured fully through arguments.
 
 
 ## Exported fields

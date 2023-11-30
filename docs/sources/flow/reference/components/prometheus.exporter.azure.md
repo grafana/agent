@@ -19,9 +19,9 @@ the Egress metric for BlobService would be exported as `azure_microsoft_storage_
 
 ## Authentication
 
-Grafana agent must be running in an environment with access to Azure. The exporter uses the Azure SDK for go and supports [authentication](https://learn.microsoft.com/en-us/azure/developer/go/azure-sdk-authentication?tabs=bash#2-authenticate-with-azure).
+{{< param "PRODUCT_NAME" >}} must be running in an environment with access to Azure. The exporter uses the Azure SDK for go and supports [authentication](https://learn.microsoft.com/en-us/azure/developer/go/azure-sdk-authentication?tabs=bash#2-authenticate-with-azure).
 
-The account used by Grafana Agent needs:
+The account used by {{< param "PRODUCT_NAME" >}} needs:
 
 - [Read access to the resources that will be queried by Resource Graph](https://learn.microsoft.com/en-us/azure/governance/resource-graph/overview#permissions-in-azure-resource-graph)
 - Permissions to call the [Microsoft.Insights Metrics API](https://learn.microsoft.com/en-us/rest/api/monitor/metrics/list) which should be the `Microsoft.Insights/Metrics/Read` permission

@@ -6,19 +6,19 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/setup/install/linux/
 - /docs/grafana-cloud/send-data/agent/flow/setup/install/linux/
 canonical: https://grafana.com/docs/agent/latest/flow/setup/install/linux/
-description: Learn how to install Grafana Agent in flow mode on Linux
+description: Learn how to install Grafana Agent Flow on Linux
 menuTitle: Linux
-title: Install or uninstall Grafana Agent in flow mode on Linux
+title: Install Grafana Agent Flow on Linux
 weight: 300
 ---
 
-# Install or uninstall Grafana Agent in flow mode on Linux
+# Install or uninstall {{< param "PRODUCT_NAME" >}} on Linux
 
-You can install Grafana Agent in flow mode as a systemd service on Linux.
+You can install {{< param "PRODUCT_NAME" >}} as a systemd service on Linux.
 
 ## Install
 
-To install Grafana Agent in flow mode on Linux, run the following commands in a terminal window.
+To install {{< param "PRODUCT_NAME" >}} on Linux, run the following commands in a terminal window.
 
 1. Import the GPG key and add the Grafana package repository.
 
@@ -59,7 +59,7 @@ sslcacert=/etc/pki/tls/certs/ca-bundle.crt' | sudo tee /etc/yum.repos.d/grafana.
    ```
    {{< /code >}}
 
-1. Install Grafana Agent.
+1. Install {{< param "PRODUCT_NAME" >}}.
 
    {{< code >}}
    ```debian-ubuntu
@@ -77,15 +77,15 @@ sslcacert=/etc/pki/tls/certs/ca-bundle.crt' | sudo tee /etc/yum.repos.d/grafana.
 
 ## Uninstall
 
-To uninstall Grafana Agent on Linux, run the following commands in a terminal window.
+To uninstall {{< param "PRODUCT_NAME" >}} on Linux, run the following commands in a terminal window.
 
-1. Stop the systemd service for Grafana Agent.
+1. Stop the systemd service for {{< param "PRODUCT_NAME" >}}.
 
    ```All-distros
    sudo systemctl stop grafana-agent-flow
    ```
 
-1. Uninstall Grafana Agent.
+1. Uninstall {{< param "PRODUCT_NAME" >}}.
 
    {{< code >}}
    ```debian-ubuntu
@@ -119,12 +119,12 @@ To uninstall Grafana Agent on Linux, run the following commands in a terminal wi
 
 ## Next steps
 
-- [Start Grafana Agent][]
-- [Configure Grafana Agent][]
+- [Start {{< param "PRODUCT_NAME" >}}][Start]
+- [Configure {{< param "PRODUCT_NAME" >}}][Configure]
 
 {{% docs/reference %}}
-[Start Grafana Agent]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/start-agent.md#linux"
-[Start Grafana Agent]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/setup/start-agent.md#linux"
-[Configure Grafana Agent]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/configure/configure-linux.md"
-[Configure Grafana Agent]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/setup/configure/configure-linux.md"
+[Start]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/start-agent.md#linux"
+[Start]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/setup/start-agent.md#linux"
+[Configure]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/configure/configure-linux.md"
+[Configure]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/setup/configure/configure-linux.md"
 {{% /docs/reference %}}

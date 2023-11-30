@@ -54,8 +54,8 @@ Name | Type | Description | Default | Required
 `forward_to`               | `list(ProfilesReceiver)` | List of receivers to send scraped profiles to. | | yes
 `job_name`                 | `string`   | The job name to override the job label with. | component name | no
 `params`                   | `map(list(string))` | A set of query parameters with which the target is scraped. | | no
-`scrape_interval`          | `duration` | How frequently to scrape the targets of this scrape config. | `"15s"` | no
-`scrape_timeout`           | `duration` | The timeout for scraping targets of this config. | `"15s"` | no
+`scrape_interval`          | `duration` | How frequently to scrape the targets of this scrape configuration. | `"15s"` | no
+`scrape_timeout`           | `duration` | The timeout for scraping targets of this configuration. | `"15s"` | no
 `scheme`                   | `string`   | The URL scheme with which to fetch metrics from targets. | | no
 `bearer_token`             | `secret`   | Bearer token to authenticate with. | | no
 `bearer_token_file`        | `string`   | File containing a bearer token to authenticate with. | | no
@@ -94,7 +94,7 @@ The following blocks are supported inside the definition of `pyroscope.scrape`:
 | profiling_config > profile.godeltaprof_mutex  | [profile.godeltaprof_mutex][]  | Collect [godeltaprof][] mutex profiles.                                  | no       |
 | profiling_config > profile.godeltaprof_block  | [profile.godeltaprof_block][]        | Collect [godeltaprof][] block profiles.                                  | no       |
 | profiling_config > profile.custom             | [profile.custom][]             | Collect custom profiles.                                                 | no       |
-| clustering                                    | [clustering][]                 | Configure the component for when the Agent is running in clustered mode. | no       |
+| clustering                                    | [clustering][]                 | Configure the component for when {{< param "PRODUCT_NAME" >}} is running in clustered mode. | no       |
 
 The `>` symbol indicates deeper levels of nesting. For example,
 `oauth2 > tls_config` refers to a `tls_config` block defined inside
@@ -305,7 +305,7 @@ Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `enabled` | `bool` | Enables sharing targets with other cluster nodes. | `false` | yes
 
-When the agent is [using clustering][], and `enabled` is set to true,
+When {{< param "PRODUCT_NAME" >}} is [using clustering][], and `enabled` is set to true,
 then this `pyroscope.scrape` component instance opts-in to participating in the
 cluster to distribute scrape load between all cluster nodes.
 
@@ -314,11 +314,11 @@ subset per node, where each node is roughly assigned the same number of
 targets. If the state of the cluster changes, such as a new node joins, then
 the subset of targets to scrape per node will be recalculated.
 
-When clustering mode is enabled, all agents participating in the cluster must
+When clustering mode is enabled, all {{< param "PRODUCT_ROOT_NAME" >}}s participating in the cluster must
 use the same configuration file and have access to the same service discovery
 APIs.
 
-If the agent is _not_ running in clustered mode, this block is a no-op.
+If {{< param "PRODUCT_NAME" >}} is _not_ running in clustered mode, this block is a no-op.
 
 [using clustering]: {{< relref "../../concepts/clustering.md" >}}
 
@@ -354,7 +354,7 @@ label `__address__` _must always_ be present and corresponds to the
 `<host>:<port>` that is used for the scrape request.
 
 The special label `service_name` is required and must always be present. If it's not specified, it is
-attempted to be inferred from multiple sources: 
+attempted to be inferred from multiple sources:
 - `__meta_kubernetes_pod_annotation_pyroscope_io_service_name` which is a `pyroscope.io/service_name` pod annotation.
 - `__meta_kubernetes_namespace` and `__meta_kubernetes_pod_container_name`
 - `__meta_docker_container_name`
@@ -392,7 +392,7 @@ can help pin down a scrape target.
 
 ## Example
 
-The following example sets up the scrape job with certain attributes (profiling config, targets) and lets it scrape two local applications (the Agent itself and Pyroscope).
+The following example sets up the scrape job with certain attributes (profiling configuration, targets) and lets it scrape two local applications ({{< param "PRODUCT_ROOT_NAME" >}} itself and Pyroscope).
 The exposed profiles are sent over to the provided list of receivers, as defined by other components.
 
 ```river
