@@ -1,14 +1,18 @@
 ---
 aliases:
-- /docs/grafana-cloud/agent/flow/tutorials/flow-by-example/first-components-and-stdlib/guide/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/tutorials/flow-by-example/first-components-and-stdlib/guide/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/tutorials/flow-by-example/first-components-and-stdlib/guide/
-- /docs/grafana-cloud/send-data/agent/flow/tutorials/first-components-and-stdlib/guide/
-canonical: https://grafana.com/docs/agent/latest/flow/tutorials/flow-by-example/first-components-and-stdlib/guide/
+- /docs/grafana-cloud/agent/flow/tutorials/flow-by-example/first-components-and-stdlib/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/tutorials/flow-by-example/first-components-and-stdlib/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/tutorials/flow-by-example/first-components-and-stdlib/
+- /docs/grafana-cloud/send-data/agent/flow/tutorials/first-components-and-stdlib/
+canonical: https://grafana.com/docs/agent/latest/flow/tutorials/flow-by-example/first-components-and-stdlib/
 description: Learn about the basics of River and the Flow configuration language
-title: Guide
+title: First Components and Introducing the Standard Library
 weight: 300
 ---
+
+# First Components and the Standard Library
+
+_This section covers the basics of the River language and the standard library. It then introduces a basic pipeline that collects metrics from the host and sends them to Prometheus._
 
 ## River basics
 
@@ -92,9 +96,8 @@ This pipeline has two components: `local.file` and `prometheus.remote_write`. Th
 The `prometheus.remote_write` component is configured with an `endpoint` block, which contains the `url` attribute and a `basic_auth` block. The `url` attribute is set to the URL of the Prometheus remote write endpoint. The `basic_auth` block contains the `username` and `password` attributes, which are set to the string `"admin"` and the `content` export of the `local.file` component, respectively. Note that the `content` export is referenced by using the syntax `local.file.example.content`, where `local.file.example` is the fully qualified name of the component (the component's type + it's label) and `content` is the name of the export.
 
 <p align="center">
-<img src="../assets/component_diagram.svg" alt="Flow of example pipeline" width="200" />
+<img src="../../../../assets/flow-by-example/diagram-flow-by-example-basic-0.svg" alt="Flow of example pipeline with local.file and prometheus.remote_write components" width="200" />
 </p>
-
 
 **Pro tip**: _The `local.file` component's label is set to `"example"`, so the fully qualified name of the component is `local.file.example`. The `prometheus.remote_write` component's label is set to `"local_prom"`, so the fully qualified name of the component is `prometheus.remote_write.local_prom`._
 
@@ -144,12 +147,16 @@ Run the agent with:
 
 And navigate to [http://localhost:3000/explore](http://localhost:3000/explore) in your browser. After ~15-20 seconds you should be able to see the metrics from the `prometheus.exporter.unix` component! Try querying for `node_memory_Active_bytes` to see the active memory of your host.
 
+<p align="center">
+<img src="/media/docs/agent/screenshot-flow-by-example-memory-usage.png" alt="Screenshot of node_memory_Active_bytes query in Grafana" />
+</p>
+
 ## Visualizing the Relationship Between Components
 
 Let's look at an example pipeline:
 
 <p align="center">
-<img src="../assets/component_diagram_full.svg" alt="Flow of example pipeline" width="400" />
+<img src="../../../../assets/flow-by-example/diagram-flow-by-example-full-0.svg" alt="Flow of example pipeline with a prometheus.scrape, prometheus.exporter.unix, and prometheus.remote_write components" width="400" />
 </p>
 
 The above configuration defines three components:
@@ -166,7 +173,6 @@ One rule is that components cannot form a cycle. This means that a component can
 
 [prometheus.exporter.redis]: {{< relref "../../../reference/components/prometheus.exporter.redis.md" >}}
 [concat]: {{< relref "../../../reference/stdlib/concat" >}}
-[solution]: {{< relref "./solution.md" >}}
 
 **Recommended Reading**
 
@@ -183,12 +189,12 @@ Try modifying the above pipeline to also scrape metrics from the Redis exporter.
 To give a visual hint, you want to create a pipeline that looks like this:
 
 <p align="center">
-<img src="../assets/exercise_component_diagram.svg" alt="Flow of example pipeline" width="600" />
+<img src="../../../../assets/flow-by-example/diagram-flow-by-example-exercise-0.svg" alt="Flow of exercise pipeline, with a scrape, unix_exporter, redis_exporter, and remote_write component" width="600" />
 </p>
 
 _Hint: You may find the [concat][] standard library function useful._
 
-If you get stuck, you can always look at the [solution][].
+If you get stuck, you can always <a href="./solution.river" download="solution.river">click here to download the solution</a>.
 
 You can run the agent with the new config file by running:
 

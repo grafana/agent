@@ -12,7 +12,7 @@ weight: 300
 
 ## Who is this for?
 
-This repository contains a collection of examples that build on each other to demonstrate how to configure and use the [Grafana Agent](https://grafana.com/docs/agent/latest/) in [Flow mode](https://grafana.com/docs/agent/latest/flow/). It assumes you have a basic understanding of what the Agent is and telemetry collection in general. It also assumes a base level of familiarity with Prometheus and PromQL, Loki and LogQL, and basic Grafana navigation. It assumes no knowledge of Flow or River concepts.
+This set of tutorials contains a collection of examples that build on each other to demonstrate how to configure and use the [Grafana Agent](https://grafana.com/docs/agent/latest/) in [Flow mode](https://grafana.com/docs/agent/latest/flow/). It assumes you have a basic understanding of what the Agent is and telemetry collection in general. It also assumes a base level of familiarity with Prometheus and PromQL, Loki and LogQL, and basic Grafana navigation. It assumes no knowledge of Flow or River concepts.
 
 ## What is Flow?
 
@@ -26,10 +26,10 @@ To run the examples, you should have a Grafana Agent binary available. You can f
 
 ## How should I follow along?
 
-The `docker-compose.yml` file in the root of this repository will start Prometheus, Loki, and Grafana containers to use with the examples. You can start these containers with `docker compose up` and stop them with `docker compose down`. The examples are designed to work with the default configuration of these containers, so you should not need to modify them.
+You can <a href="../docker-compose.yaml" download="docker-compose.yaml">click here to download the docker-compose</a> file to run and play with the examples.
 
 After running `docker-compose up`, open [http://localhost:3000](http://localhost:3000) in your browser to view the Grafana UI.
 
-The examples in this repository are designed to be followed in order. Examples generally build on each other, and each example contains a README that explains what it does and how it works. The examples are designed to be run locally, so you can follow along and experiment with them yourself.
+The tutorials are designed to be followed in order and generally build on each other. Each example explains what it does and how it works. They are designed to be run locally, so you can follow along and experiment with them yourself.
 
-Each example's README will contain a list of Recommended Reading. These are links to documentation that will help you understand the concepts used in the example, and should be read in order. Some information may be included in the README as well, but the Recommended Reading will provide more detail.
+Each section of the the tutorials will contain a list of Recommended Reading. These are links to documentation that will help you understand the concepts used in the example, and should be read in order. Some information may be included in the tutorial as well, but the Recommended Reading will provide more detail.

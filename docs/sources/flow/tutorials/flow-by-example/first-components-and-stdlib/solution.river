@@ -1,22 +1,3 @@
----
-aliases:
-- /docs/grafana-cloud/agent/flow/tutorials/flow-by-example/first-components-and-stdlib/full-config/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/tutorials/flow-by-example/first-components-and-stdlib/full-config/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/tutorials/flow-by-example/first-components-and-stdlib/full-config/
-- /docs/grafana-cloud/send-data/agent/flow/tutorials/full-config/
-canonical: https://grafana.com/docs/agent/latest/flow/tutorials/flow-by-example/first-components-and-stdlib/full-config/
-description: Solution to the First Components and Standard Library Exercise
-title: Solution
-weight: 300
----
-
-# Solution
-
-[this section's example]: {{< relref "./guide/#exercise-for-the-reader" >}}
-
-_This is the solution for [this section's example][]._
-
-```river
 // Configure your first components, learn about the standard library, and learn how to run the Agent!
 
 // prometheus.exporter.redis collects information about Redis and exposes
@@ -49,4 +30,3 @@ prometheus.remote_write "local_prom" {
         url = "http://localhost:9090/api/v1/write"
     }
 }
-```
