@@ -461,7 +461,11 @@ discovery job, the `type` field of each `discovery_job` must match either the de
 
 - Components that consume [Targets]({{< relref "../compatibility/#targets-consumers" >}})
 
-Note that connecting some components may not be feasible or components may require further configuration to make the connection work correctly. Please refer to the linked documentation for more details.
+{{% admonition type="note" %}}
 
+Connecting some components may not be sensible or components may require further configuration to make the 
+connection work correctly. Refer to the linked documentation for more details.
+
+{{% /admonition %}}
 
 <!-- END GENERATED COMPATIBLE COMPONENTS -->

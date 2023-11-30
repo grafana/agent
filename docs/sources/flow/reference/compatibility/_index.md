@@ -32,16 +32,15 @@ that can export or consume it.
 
 ## Targets
 
-Targets are a `list(map(string))` - a [list]({{< relref "../../config-language/expressions/types_and_values/#naming-convention" >}}) of [maps]({{< relref "../../config-language/expressions/types_and_values/#naming-convention" >}}) with [string]({{< relref "../../config-language/expressions/types_and_values/#strings" >}}) values. As such,
-they can contain different key-value pairs and can be used with a wide range of
-components. Some components require Targets to contain specific key-value pairs in order
-to work correctly, it is recommended to always check component reference for
+Targets are a `list(map(string))` - a [list]({{< relref "../../config-language/expressions/types_and_values/#naming-convention" >}}) of [maps]({{< relref "../../config-language/expressions/types_and_values/#naming-convention" >}}) with [string]({{< relref "../../config-language/expressions/types_and_values/#strings" >}}) values.
+They can contain different key-value pairs, and you can use them with a wide range of
+components. Some components require Targets to contain specific key-value pairs
+to work correctly. It is recommended to always check component references for
 details when working with Targets.
 
 <!-- NOTE: this title is used as an anchor in links. Do not change. -->
 ### Targets Exporters
-Below are components that _export_ Targets grouped by namespace. Click
-on the namespace to expand and see more detail.
+The following components, grouped by namespace, _export_ Targets.
 
 <!-- START GENERATED SECTION: EXPORTERS OF Targets -->
 
@@ -116,8 +115,7 @@ on the namespace to expand and see more detail.
 
 <!-- NOTE: this title is used as an anchor in links. Do not change. -->
 ### Targets Consumers
-Below are components that _consume_ Targets grouped by namespace. Click
-on the namespace to expand and see more detail.
+The following components, grouped by namespace, _consume_ Targets.
 
 <!-- START GENERATED SECTION: CONSUMERS OF Targets -->
 
@@ -161,8 +159,7 @@ following components to build your Prometheus metrics pipeline:
 
 <!-- NOTE: this title is used as an anchor in links. Do not change. -->
 ### Prometheus `MetricsReceiver` Exporters
-Below are components that _export_ Prometheus `MetricsReceiver`, grouped by namespace. Click
-on the namespace to expand and see more detail.
+The following components, grouped by namespace, _export_ Prometheus `MetricsReceiver`.
 
 <!-- START GENERATED SECTION: EXPORTERS OF Prometheus `MetricsReceiver` -->
 
@@ -179,8 +176,8 @@ on the namespace to expand and see more detail.
 
 <!-- NOTE: this title is used as an anchor in links. Do not change. -->
 ### Prometheus `MetricsReceiver` Consumers
-Below are components that _consume_ Prometheus `MetricsReceiver`, grouped by namespace. Click
-on the namespace to expand and see more detail.
+The following components, grouped by namespace, _consume_ Prometheus `MetricsReceiver`.
+ 
 
 <!-- START GENERATED SECTION: CONSUMERS OF Prometheus `MetricsReceiver` -->
 
@@ -210,8 +207,7 @@ following components to build your Loki logs pipeline:
 
 <!-- NOTE: this title is used as an anchor in links. Do not change. -->
 ### Loki `LogsReceiver` Exporters
-Below are components that _export_ Loki `LogsReceiver` grouped by namespace. Click
-on the namespace to expand and see more detail.
+The following components, grouped by namespace, _export_ Loki `LogsReceiver`.
 
 <!-- START GENERATED SECTION: EXPORTERS OF Loki `LogsReceiver` -->
 
@@ -230,8 +226,7 @@ on the namespace to expand and see more detail.
 
 <!-- NOTE: this title is used as an anchor in links. Do not change. -->
 ### Loki `LogsReceiver` Consumers
-Below are components that _consume_ Loki `LogsReceiver` grouped by namespace. Click
-on the namespace to expand and see more detail.
+The following components, grouped by namespace, _consume_ Loki `LogsReceiver`.
 
 <!-- START GENERATED SECTION: CONSUMERS OF Loki `LogsReceiver` -->
 
@@ -273,13 +268,12 @@ The OpenTelemetry data is sent between components using `otelcol.Consumer`s.
 `otelcol.Consumer`s are [capsules]({{< relref "../../config-language/expressions/types_and_values/#capsules" >}})
 that are exported by components that can receive OpenTelemetry data. Components that
 can consume OpenTelemetry data can be passed the `otelcol.Consumer` as an argument. Note that some components
-that use `otelcol.Consumer` only support a subset of telemetry signals, e.g. only traces. Check the component
+that use `otelcol.Consumer` only support a subset of telemetry signals, for example, only traces. Check the component
 reference pages for more details on what is supported. Use the following components to build your OpenTelemetry pipeline:
 
 <!-- NOTE: this title is used as an anchor in links. Do not change. -->
 ### OpenTelemetry `otelcol.Consumer` Exporters
-Below are components that _export_ OpenTelemetry `otelcol.Consumer`, grouped by namespace. Click
-on the namespace to expand and see more detail.
+The following components, grouped by namespace, _export_ OpenTelemetry `otelcol.Consumer`.
 
 <!-- START GENERATED SECTION: EXPORTERS OF OpenTelemetry `otelcol.Consumer` -->
 
@@ -309,8 +303,7 @@ on the namespace to expand and see more detail.
 
 <!-- NOTE: this title is used as an anchor in links. Do not change. -->
 ### OpenTelemetry `otelcol.Consumer` Consumers
-Below are components that _consume_ OpenTelemetry `otelcol.Consumer`, grouped by namespace. Click
-on the namespace to expand and see more detail.
+The following components, grouped by namespace, _consume_ OpenTelemetry `otelcol.Consumer`.
 
 <!-- START GENERATED SECTION: CONSUMERS OF OpenTelemetry `otelcol.Consumer` -->
 
@@ -356,8 +349,7 @@ following components to build your Pyroscope profiles pipeline:
 
 <!-- NOTE: this title is used as an anchor in links. Do not change. -->
 ### Pyroscope `ProfilesReceiver` Exporters
-Below are components that _export_ Pyroscope `ProfilesReceiver`, grouped by namespace. Click
-on the namespace to expand and see more detail.
+The following components, grouped by namespace, _export_ Pyroscope `ProfilesReceiver`.
 
 <!-- START GENERATED SECTION: EXPORTERS OF Pyroscope `ProfilesReceiver` -->
 
@@ -369,8 +361,7 @@ on the namespace to expand and see more detail.
 
 <!-- NOTE: this title is used as an anchor in links. Do not change. -->
 ### Pyroscope `ProfilesReceiver` Consumers
-Below are components that _consume_ Pyroscope `ProfilesReceiver`, grouped by namespace. Click
-on the namespace to expand and see more detail.
+The following components, grouped by namespace, _consume_ Pyroscope `ProfilesReceiver`.
 
 <!-- START GENERATED SECTION: CONSUMERS OF Pyroscope `ProfilesReceiver` -->
 

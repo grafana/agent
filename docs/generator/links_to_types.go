@@ -37,9 +37,14 @@ func (l *LinksToTypesGenerator) Generate() (string, error) {
 		return "", nil
 	}
 
-	note := "\nNote that connecting some components may not be feasible or components may require further " +
-		"configuration to make the connection work correctly. " +
-		"Please refer to the linked documentation for more details.\n\n"
+	note := `
+{{% admonition type="note" %}}
+
+Connecting some components may not be sensible or components may require further configuration to make the 
+connection work correctly. Refer to the linked documentation for more details.
+
+{{% /admonition %}}
+`
 
 	return heading + acceptingSection + outputSection + note, nil
 }

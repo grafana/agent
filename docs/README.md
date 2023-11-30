@@ -23,11 +23,11 @@ If the check fails, then the doc supported services list should be updated. For 
 
 ## Update generated reference docs
 
-Some sections of Agent Flow reference documentation are automatically generated. To update them, run `make generate-docs`.
+Some sections of Grafana Agent Flow reference documentation are automatically generated. To update them, run `make generate-docs`.
 
 ### Community Projects
 
-Below is a list of community-led projects for working with Grafana Agent. These projects are not maintained or supported by Grafana Labs.
+The following is a list of community-led projects for working with Grafana Agent. These projects are not maintained or supported by Grafana Labs.
 
 #### Helm (Kubernetes Deployment)
 

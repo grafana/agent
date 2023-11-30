@@ -439,7 +439,11 @@ http://localhost:12345/debug/fgprof?seconds=14
 - Components that export [Pyroscope `ProfilesReceiver`]({{< relref "../compatibility/#pyroscope-profilesreceiver-exporters" >}})
 
 
-Note that connecting some components may not be feasible or components may require further configuration to make the connection work correctly. Please refer to the linked documentation for more details.
+{{% admonition type="note" %}}
 
+Connecting some components may not be sensible or components may require further configuration to make the 
+connection work correctly. Refer to the linked documentation for more details.
+
+{{% /admonition %}}
 
 <!-- END GENERATED COMPATIBLE COMPONENTS -->
