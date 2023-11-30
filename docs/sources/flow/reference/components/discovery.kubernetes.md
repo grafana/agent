@@ -469,7 +469,7 @@ discovery.kubernetes "k8s_pods" {
   role = "pod"
   selectors {
     role = "pod"
-    field = "spec.nodeName=" + constants.hostname
+    field = "spec.nodeName=" + coalesce(env("HOSTNAME"), constants.hostname)
   }
 }
 
