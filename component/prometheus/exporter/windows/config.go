@@ -6,72 +6,6 @@ import (
 	windows_integration "github.com/grafana/agent/pkg/integrations/windows_exporter"
 )
 
-// DefaultArguments holds non-zero default options for Arguments when it is
-// unmarshaled from YAML.
-//
-// Some defaults are populated from init functions in the github.com/grafana/agent/pkg/integrations/windows_exporter package.
-
-var DefaultArguments = Arguments{
-	EnabledCollectors: strings.Split(windows_integration.DefaultConfig.EnabledCollectors, ","),
-	Dfsr: DfsrConfig{
-		SourcesEnabled: strings.Split(windows_integration.DefaultConfig.Dfsr.SourcesEnabled, ","),
-	},
-	Exchange: ExchangeConfig{
-		EnabledList: strings.Split(windows_integration.DefaultConfig.Exchange.EnabledList, ","),
-	},
-	IIS: IISConfig{
-		AppBlackList:  windows_integration.DefaultConfig.IIS.AppBlackList,
-		AppWhiteList:  windows_integration.DefaultConfig.IIS.AppWhiteList,
-		SiteBlackList: windows_integration.DefaultConfig.IIS.SiteBlackList,
-		SiteWhiteList: windows_integration.DefaultConfig.IIS.SiteWhiteList,
-		AppInclude:    windows_integration.DefaultConfig.IIS.AppInclude,
-		AppExclude:    windows_integration.DefaultConfig.IIS.AppExclude,
-		SiteInclude:   windows_integration.DefaultConfig.IIS.SiteInclude,
-		SiteExclude:   windows_integration.DefaultConfig.IIS.SiteExclude,
-	},
-	LogicalDisk: LogicalDiskConfig{
-		BlackList: windows_integration.DefaultConfig.LogicalDisk.BlackList,
-		WhiteList: windows_integration.DefaultConfig.LogicalDisk.WhiteList,
-		Include:   windows_integration.DefaultConfig.LogicalDisk.Include,
-		Exclude:   windows_integration.DefaultConfig.LogicalDisk.Exclude,
-	},
-	MSMQ: MSMQConfig{
-		Where: windows_integration.DefaultConfig.MSMQ.Where,
-	},
-	MSSQL: MSSQLConfig{
-		EnabledClasses: strings.Split(windows_integration.DefaultConfig.MSSQL.EnabledClasses, ","),
-	},
-	Network: NetworkConfig{
-		BlackList: windows_integration.DefaultConfig.Network.BlackList,
-		WhiteList: windows_integration.DefaultConfig.Network.WhiteList,
-		Include:   windows_integration.DefaultConfig.Network.Include,
-		Exclude:   windows_integration.DefaultConfig.Network.Exclude,
-	},
-	Process: ProcessConfig{
-		BlackList: windows_integration.DefaultConfig.Process.BlackList,
-		WhiteList: windows_integration.DefaultConfig.Process.WhiteList,
-		Include:   windows_integration.DefaultConfig.Process.Include,
-		Exclude:   windows_integration.DefaultConfig.Process.Exclude,
-	},
-	ScheduledTask: ScheduledTaskConfig{
-		Include: windows_integration.DefaultConfig.ScheduledTask.Include,
-		Exclude: windows_integration.DefaultConfig.ScheduledTask.Exclude,
-	},
-	Service: ServiceConfig{
-		UseApi: windows_integration.DefaultConfig.Service.UseApi,
-		Where:  windows_integration.DefaultConfig.Service.Where,
-	},
-	SMTP: SMTPConfig{
-		BlackList: windows_integration.DefaultConfig.SMTP.BlackList,
-		WhiteList: windows_integration.DefaultConfig.SMTP.WhiteList,
-		Include:   windows_integration.DefaultConfig.SMTP.Include,
-		Exclude:   windows_integration.DefaultConfig.SMTP.Exclude,
-	},
-	TextFile: TextFileConfig{
-		TextFileDirectory: windows_integration.DefaultConfig.TextFile.TextFileDirectory,
-	},
-}
-
 // Arguments is used for controlling for this exporter.
 type Arguments struct {
 	// Collectors to mark as enabled
@@ -90,11 +24,6 @@ type Arguments struct {
 	Service       ServiceConfig       `river:"service,block,optional"`
 	SMTP          SMTPConfig          `river:"smtp,block,optional"`
 	TextFile      TextFileConfig      `river:"text_file,block,optional"`
-}
-
-// SetToDefault implements river.Defaulter.
-func (a *Arguments) SetToDefault() {
-	*a = DefaultArguments
 }
 
 // Convert converts the component's Arguments to the integration's Config.

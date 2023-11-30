@@ -20,8 +20,8 @@ import (
 	"github.com/prometheus/prometheus/storage"
 	otelcomponent "go.opentelemetry.io/collector/component"
 	otelreceiver "go.opentelemetry.io/collector/receiver"
-	"go.opentelemetry.io/otel/metric/noop"
-	"go.opentelemetry.io/otel/trace"
+	metricNoop "go.opentelemetry.io/otel/metric/noop"
+	traceNoop "go.opentelemetry.io/otel/trace/noop"
 )
 
 func init() {
@@ -109,8 +109,8 @@ func (c *Component) Update(newConfig component.Arguments) error {
 			Logger: zapadapter.New(c.opts.Logger),
 
 			// TODO(tpaschalis): expose tracing and logging statistics.
-			TracerProvider: trace.NewNoopTracerProvider(),
-			MeterProvider:  noop.NewMeterProvider(),
+			TracerProvider: traceNoop.NewTracerProvider(),
+			MeterProvider:  metricNoop.NewMeterProvider(),
 
 			ReportComponentStatus: func(*otelcomponent.StatusEvent) error {
 				return nil
