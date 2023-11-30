@@ -96,7 +96,7 @@ This pipeline has two components: `local.file` and `prometheus.remote_write`. Th
 The `prometheus.remote_write` component is configured with an `endpoint` block, which contains the `url` attribute and a `basic_auth` block. The `url` attribute is set to the URL of the Prometheus remote write endpoint. The `basic_auth` block contains the `username` and `password` attributes, which are set to the string `"admin"` and the `content` export of the `local.file` component, respectively. Note that the `content` export is referenced by using the syntax `local.file.example.content`, where `local.file.example` is the fully qualified name of the component (the component's type + it's label) and `content` is the name of the export.
 
 <p align="center">
-<img src="../../../../assets/flow-by-example/diagram-flow-by-example-basic-0.svg" alt="Flow of example pipeline with local.file and prometheus.remote_write components" width="200" />
+<img src="/media/docs/agent/diagram-flow-by-example-basic-0.svg" alt="Flow of example pipeline with local.file and prometheus.remote_write components" width="200" />
 </p>
 
 **Pro tip**: _The `local.file` component's label is set to `"example"`, so the fully qualified name of the component is `local.file.example`. The `prometheus.remote_write` component's label is set to `"local_prom"`, so the fully qualified name of the component is `prometheus.remote_write.local_prom`._
@@ -156,7 +156,7 @@ And navigate to [http://localhost:3000/explore](http://localhost:3000/explore) i
 Let's look at an example pipeline:
 
 <p align="center">
-<img src="../../../../assets/flow-by-example/diagram-flow-by-example-full-0.svg" alt="Flow of example pipeline with a prometheus.scrape, prometheus.exporter.unix, and prometheus.remote_write components" width="400" />
+<img src="/media/docs/agent/diagram-flow-by-example-full-0.svg" alt="Flow of example pipeline with a prometheus.scrape, prometheus.exporter.unix, and prometheus.remote_write components" width="400" />
 </p>
 
 The above configuration defines three components:
@@ -189,7 +189,7 @@ Try modifying the above pipeline to also scrape metrics from the Redis exporter.
 To give a visual hint, you want to create a pipeline that looks like this:
 
 <p align="center">
-<img src="../../../../assets/flow-by-example/diagram-flow-by-example-exercise-0.svg" alt="Flow of exercise pipeline, with a scrape, unix_exporter, redis_exporter, and remote_write component" width="600" />
+<img src="/media/docs/agent/diagram-flow-by-example-exercise-0.svg" alt="Flow of exercise pipeline, with a scrape, unix_exporter, redis_exporter, and remote_write component" width="600" />
 </p>
 
 _Hint: You may find the [concat][] standard library function useful._
