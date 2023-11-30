@@ -55,6 +55,10 @@ Main (unreleased)
 - Fix issue where `convert` command would generate incorrect Flow Mode config
   when provided `promtail` configuration that uses `docker_sd_configs` (@thampiotr)
 
+### Other changes
+
+- Add Agent Deploy Mode to usage report. (@captncraig)
+
 v0.38.0 (2023-11-21)
 --------------------
 
