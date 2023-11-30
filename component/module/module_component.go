@@ -20,7 +20,7 @@ func init() {
 	})
 }
 
-// Arguments holds values which are used to configure the module.file component.
+// Arguments holds values which are used to configure the module.
 type Arguments = map[string]any
 
 // Component implements the module.file component.
