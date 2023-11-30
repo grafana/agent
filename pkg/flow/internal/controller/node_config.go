@@ -8,15 +8,16 @@ import (
 )
 
 const (
-	argumentBlockID = "argument"
-	exportBlockID   = "export"
-	loggingBlockID  = "logging"
-	tracingBlockID  = "tracing"
+	argumentBlockID   = "argument"
+	exportBlockID     = "export"
+	loggingBlockID    = "logging"
+	tracingBlockID    = "tracing"
+	importFileBlockID = "import.file"
 )
 
 // NewConfigNode creates a new ConfigNode from an initial ast.BlockStmt.
 // The underlying config isn't applied until Evaluate is called.
-func NewConfigNode(block *ast.BlockStmt, globals ComponentGlobals) (BlockNode, diag.Diagnostics) {
+func NewConfigNode(block *ast.BlockStmt, globals ComponentGlobals, onImportContentChange func(importLabel string, newContent string)) (BlockNode, diag.Diagnostics) {
 	switch block.GetBlockName() {
 	case argumentBlockID:
 		return NewArgumentConfigNode(block, globals), nil
@@ -26,6 +27,8 @@ func NewConfigNode(block *ast.BlockStmt, globals ComponentGlobals) (BlockNode, d
 		return NewLoggingConfigNode(block, globals), nil
 	case tracingBlockID:
 		return NewTracingConfigNode(block, globals), nil
+	case importFileBlockID:
+		return NewImportFileConfigNode(block, globals, onImportContentChange), nil
 	default:
 		var diags diag.Diagnostics
 		diags.Add(diag.Diagnostic{
@@ -42,20 +45,22 @@ func NewConfigNode(block *ast.BlockStmt, globals ComponentGlobals) (BlockNode, d
 // This is helpful when validating node conditions specific to config node
 // types.
 type ConfigNodeMap struct {
-	logging     *LoggingConfigNode
-	tracing     *TracingConfigNode
-	argumentMap map[string]*ArgumentConfigNode
-	exportMap   map[string]*ExportConfigNode
+	logging       *LoggingConfigNode
+	tracing       *TracingConfigNode
+	argumentMap   map[string]*ArgumentConfigNode
+	exportMap     map[string]*ExportConfigNode
+	importFileMap map[string]*ImportFileConfigNode
 }
 
 // NewConfigNodeMap will create an initial ConfigNodeMap. Append must be called
 // to populate NewConfigNodeMap.
 func NewConfigNodeMap() *ConfigNodeMap {
 	return &ConfigNodeMap{
-		logging:     nil,
-		tracing:     nil,
-		argumentMap: map[string]*ArgumentConfigNode{},
-		exportMap:   map[string]*ExportConfigNode{},
+		logging:       nil,
+		tracing:       nil,
+		argumentMap:   map[string]*ArgumentConfigNode{},
+		exportMap:     map[string]*ExportConfigNode{},
+		importFileMap: map[string]*ImportFileConfigNode{},
 	}
 }
 
@@ -73,6 +78,8 @@ func (nodeMap *ConfigNodeMap) Append(configNode BlockNode) diag.Diagnostics {
 		nodeMap.logging = n
 	case *TracingConfigNode:
 		nodeMap.tracing = n
+	case *ImportFileConfigNode:
+		nodeMap.importFileMap[n.Label()] = n
 	default:
 		diags.Add(diag.Diagnostic{
 			Severity: diag.SeverityLevelError,
