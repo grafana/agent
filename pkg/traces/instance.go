@@ -112,8 +112,13 @@ func (i *Instance) buildAndStartPipeline(ctx context.Context, cfg InstanceConfig
 	}
 
 	if cfg.LoadBalancing == nil && (cfg.TailSampling != nil || cfg.ServiceGraphs != nil) {
-		i.logger.Warn("Configuring tail_sampling and/or service_graphs without load_balance." +
-			"Load balancing is required for those features to properly work in multi agent deployments")
+		i.logger.Warn("Configuring tail_sampling and/or service_graphs without load_balancing." +
+			"Load balancing via trace ID is required for those features to work properly in multi agent deployments")
+	}
+
+	if cfg.LoadBalancing == nil && cfg.SpanMetrics != nil {
+		i.logger.Warn("Configuring spanmetrics without load_balancing." +
+			"Load balancing via service name is required for spanmetrics to work properly in multi agent deployments")
 	}
 
 	if cfg.AutomaticLogging != nil && cfg.AutomaticLogging.Backend != automaticloggingprocessor.BackendStdout {
