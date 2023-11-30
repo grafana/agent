@@ -41,7 +41,7 @@ To distribute Prometheus metrics scrape load with clustering:
    }
    ```
 
-1. Restart or reload {{< param "PRODUCT_ROOT_NAME" >}} for them to use the new configuration.
+1. Restart or reload {{< param "PRODUCT_ROOT_NAME" >}}s for them to use the new configuration.
 
 1. Validate that auto-distribution is functioning:
 

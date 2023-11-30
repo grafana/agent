@@ -82,6 +82,6 @@ To help you write configuration files in River, the following tools are availabl
   * [river-mode](https://github.com/jdbaldry/river-mode) for Emacs
 * Code formatting using the [`agent fmt` command]({{< relref "../reference/cli/fmt" >}})
 
-You can also start developing your own tooling using the {{< param "PRODUCT_NAME" >}} repository as a
+You can also start developing your own tooling using the {{< param "PRODUCT_ROOT_NAME" >}} repository as a
 go package or use the [tree-sitter
 grammar](https://github.com/grafana/tree-sitter-river) with other programming languages.

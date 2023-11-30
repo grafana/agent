@@ -92,7 +92,7 @@ prometheus.exporter.unix "example" { /* ... */ }
 ### Breaking change: The default value of `retry_on_http_429` is changed to `true` for the `queue_config` in `prometheus.remote_write`
 
 The default value of `retry_on_http_429` is changed from `false` to `true` for the `queue_config` block in `prometheus.remote_write`
-so that {{< param "PRODUCT_NAME" >}} can retry sending and avoid data being lost for metric pipelines by default.
+so that {{< param "PRODUCT_ROOT_NAME" >}} can retry sending and avoid data being lost for metric pipelines by default.
 
 * If you set the `retry_on_http_429` explicitly - no action is required.
 * If you do not set `retry_on_http_429` explicitly and you do *not* want to retry on HTTP 429, make sure you set it to `false` as you upgrade to this new version.

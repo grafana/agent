@@ -308,7 +308,7 @@ Furthermore, we recommend that you review the following checklist:
 * The following configuration options are not available for conversion to {{< param "PRODUCT_NAME" >}}:
  [Integrations next][], [Traces][], and [Agent Management][]. Any
   additional unsupported features are returned as errors during conversion.
-* There is no gRPC server to configure for {{< param "PRODUCT_NAME" >}}, so any non-default configuration
+* There is no gRPC server to configure for {{< param "PRODUCT_NAME" >}}, as any non-default configuration
   will show as unsupported during the conversion.
 * Check if you are using any extra command line arguments with Static that
   are not present in your configuration file. For example, `-server.http.address`.
@@ -321,7 +321,7 @@ Furthermore, we recommend that you review the following checklist:
   [Logs] config.
 * The logs produced by {{< param "PRODUCT_NAME" >}} mode will differ from those
   produced by Static.
-* {{< param "PRODUCT_ROOT_NAME" >}} exposes {{< param "PRODUCT_NAME" >}} the [UI][].
+* {{< param "PRODUCT_ROOT_NAME" >}} exposes the {{< param "PRODUCT_NAME" >}} [UI][].
 
 [debugging]: #debugging
 

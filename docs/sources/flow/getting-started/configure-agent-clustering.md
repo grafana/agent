@@ -55,7 +55,7 @@ To configure clustering:
    Replace `RELEASE_NAME` with the name of the installation you chose when you
    installed the Helm chart.
 
-1. Use the {{< param "PRODUCT_ROOT_NAME" >}} [UI][] to verify the cluster status:
+1. Use the {{< param "PRODUCT_NAME" >}} [UI][] to verify the cluster status:
 
    1. Click **Clustering** in the navigation bar.
 

@@ -20,7 +20,7 @@ Follow these steps to debug issues with {{< param "PRODUCT_NAME" >}}:
 
 ## {{< param "PRODUCT_NAME" >}} UI
 
-{{< param "PRODUCT_NAME" >}} includes an embedded UI viewable from the {{< param "PRODUCT_NAME" >}} HTTP
+{{< param "PRODUCT_NAME" >}} includes an embedded UI viewable from the {{< param "PRODUCT_ROOT_NAME" >}} HTTP
 server, which defaults to listening at `http://localhost:12345`.
 
 > **NOTE**: For security reasons, installations of {{< param "PRODUCT_NAME" >}} on
