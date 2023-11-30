@@ -6,7 +6,7 @@ import (
 
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/config"
-	"github.com/grafana/agent/component/module/git/internal/vcs"
+	vcs "github.com/grafana/agent/pkg/util/git"
 	"github.com/stretchr/testify/require"
 )
 

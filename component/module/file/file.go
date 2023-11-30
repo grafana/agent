@@ -58,7 +58,7 @@ var (
 
 // New creates a new module.file component.
 func New(o component.Options, args Arguments) (*Component, error) {
-	m, err := module.NewModuleComponent(o)
+	m, err := module.NewModuleComponentDeprecated(o)
 	if err != nil {
 		return nil, err
 	}
@@ -88,7 +88,7 @@ func (c *Component) newManagedLocalComponent(o component.Options) (*file.Compone
 
 		if !c.inUpdate.Load() && c.isCreated.Load() {
 			// Any errors found here are reported via component health
-			_ = c.mod.LoadFlowSource(c.getArgs().Arguments, c.getContent().Value)
+			_ = c.mod.LoadFlowSource(c.getArgs().Arguments, c.getContent().Value, nil)
 		}
 	}
 
@@ -135,7 +135,7 @@ func (c *Component) Update(args component.Arguments) error {
 
 	// Force a content load here and bubble up any error. This will catch problems
 	// on initial load.
-	return c.mod.LoadFlowSource(newArgs.Arguments, c.getContent().Value)
+	return c.mod.LoadFlowSource(newArgs.Arguments, c.getContent().Value, nil)
 }
 
 // CurrentHealth implements component.HealthComponent.

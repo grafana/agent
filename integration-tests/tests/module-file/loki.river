@@ -1,0 +1,17 @@
+import.file "logTarget" {
+  filename = "logfile.river"
+}
+
+import.file "write" {
+  filename = "loki_write.river"
+}
+
+declare "loki" {
+  logTarget.getLogFile "logFile" {}
+  loki.source.file "test" {
+    targets    = logTarget.getLogFile.logFile.output
+    forward_to = [write.loki_write.default.receiver]
+  }
+  write.loki_write "default" {}
+}
+

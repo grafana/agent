@@ -128,12 +128,12 @@ func newModule(o *moduleOptions) *module {
 }
 
 // LoadConfig parses River config and loads it.
-func (c *module) LoadConfig(config []byte, args map[string]any) error {
+func (c *module) LoadConfig(config []byte, args map[string]any, parentModuleDefinitions map[string]string) error {
 	ff, err := ParseSource(c.o.ID, config)
 	if err != nil {
 		return err
 	}
-	return c.f.LoadSource(ff, args)
+	return c.f.LoadSource(ff, args, parentModuleDefinitions)
 }
 
 // Run starts the Module. No components within the Module

@@ -274,7 +274,7 @@ func (fr *flowRun) Run(configPath string) error {
 		if err != nil {
 			return nil, fmt.Errorf("reading config path %q: %w", configPath, err)
 		}
-		if err := f.LoadSource(flowSource, nil); err != nil {
+		if err := f.LoadSource(flowSource, nil, nil); err != nil {
 			return flowSource, fmt.Errorf("error during the initial grafana/agent load: %w", err)
 		}
 
@@ -360,7 +360,7 @@ func getEnabledComponentsFunc(f *flow.Flow) func() map[string]interface{} {
 		components := component.GetAllComponents(f, component.InfoOptions{})
 		componentNames := map[string]struct{}{}
 		for _, c := range components {
-			componentNames[c.Registration.Name] = struct{}{}
+			componentNames[c.BlockName] = struct{}{}
 		}
 		return map[string]interface{}{"enabled-components": maps.Keys(componentNames)}
 	}

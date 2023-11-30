@@ -37,7 +37,7 @@ func TestServices(t *testing.T) {
 	opts.Services = append(opts.Services, svc)
 
 	ctrl := New(opts)
-	require.NoError(t, ctrl.LoadSource(makeEmptyFile(t), nil))
+	require.NoError(t, ctrl.LoadSource(makeEmptyFile(t), nil, nil))
 
 	// Start the controller. This should cause our service to run.
 	go ctrl.Run(ctx)
@@ -88,7 +88,7 @@ func TestServices_Configurable(t *testing.T) {
 
 	ctrl := New(opts)
 
-	require.NoError(t, ctrl.LoadSource(f, nil))
+	require.NoError(t, ctrl.LoadSource(f, nil, nil))
 
 	// Start the controller. This should cause our service to run.
 	go ctrl.Run(ctx)
@@ -134,7 +134,7 @@ func TestServices_Configurable_Optional(t *testing.T) {
 
 	ctrl := New(opts)
 
-	require.NoError(t, ctrl.LoadSource(makeEmptyFile(t), nil))
+	require.NoError(t, ctrl.LoadSource(makeEmptyFile(t), nil, nil))
 
 	// Start the controller. This should cause our service to run.
 	go ctrl.Run(ctx)
@@ -168,7 +168,7 @@ func TestFlow_GetServiceConsumers(t *testing.T) {
 
 	ctrl := New(opts)
 	defer cleanUpController(ctrl)
-	require.NoError(t, ctrl.LoadSource(makeEmptyFile(t), nil))
+	require.NoError(t, ctrl.LoadSource(makeEmptyFile(t), nil, nil))
 
 	expectConsumers := []service.Consumer{{
 		Type:  service.ConsumerTypeService,
@@ -246,7 +246,7 @@ func TestComponents_Using_Services(t *testing.T) {
 		ComponentRegistry: registry,
 		ModuleRegistry:    newModuleRegistry(),
 	})
-	require.NoError(t, ctrl.LoadSource(f, nil))
+	require.NoError(t, ctrl.LoadSource(f, nil, nil))
 	go ctrl.Run(ctx)
 
 	require.NoError(t, componentBuilt.Wait(5*time.Second), "Component should have been built")
@@ -276,7 +276,7 @@ func TestComponents_Using_Services_In_Modules(t *testing.T) {
 					mod, err := opts.ModuleController.NewModule("", nil)
 					require.NoError(t, err, "Failed to create module")
 
-					err = mod.LoadConfig([]byte(`service_consumer "example" {}`), nil)
+					err = mod.LoadConfig([]byte(`service_consumer "example" {}`), nil, nil)
 					require.NoError(t, err, "Failed to load module config")
 
 					return &testcomponents.Fake{
@@ -321,7 +321,7 @@ func TestComponents_Using_Services_In_Modules(t *testing.T) {
 		ComponentRegistry: registry,
 		ModuleRegistry:    newModuleRegistry(),
 	})
-	require.NoError(t, ctrl.LoadSource(f, nil))
+	require.NoError(t, ctrl.LoadSource(f, nil, nil))
 	go ctrl.Run(ctx)
 
 	require.NoError(t, componentBuilt.Wait(5*time.Second), "Component should have been built")

@@ -15,14 +15,14 @@ func init() {
 		Exports: mod.Exports{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
-			m, err := mod.NewModuleComponent(opts)
+			m, err := mod.NewModuleComponentDeprecated(opts)
 			if err != nil {
 				return nil, err
 			}
 			if args.(TestFailArguments).Fail {
 				return nil, fmt.Errorf("module told to fail")
 			}
-			err = m.LoadFlowSource(nil, args.(TestFailArguments).Content)
+			err = m.LoadFlowSource(nil, args.(TestFailArguments).Content, nil)
 			if err != nil {
 				return nil, err
 			}
@@ -58,7 +58,7 @@ func (t *TestFailModule) Run(ctx context.Context) error {
 
 func (t *TestFailModule) UpdateContent(content string) error {
 	t.content = content
-	err := t.mc.LoadFlowSource(nil, t.content)
+	err := t.mc.LoadFlowSource(nil, t.content, nil)
 	return err
 }
 

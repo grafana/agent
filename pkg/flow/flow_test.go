@@ -42,7 +42,7 @@ func TestController_LoadSource_Evaluation(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, f)
 
-	err = ctrl.LoadSource(f, nil)
+	err = ctrl.LoadSource(f, nil, nil)
 	require.NoError(t, err)
 	require.Len(t, ctrl.loader.Components(), 4)
 
@@ -59,7 +59,7 @@ func getFields(t *testing.T, g *dag.Graph, nodeID string) (component.Arguments, 
 	n := g.GetByID(nodeID)
 	require.NotNil(t, n, "couldn't find node %q in graph", nodeID)
 
-	uc := n.(*controller.ComponentNode)
+	uc := n.(*controller.NativeComponentNode)
 	return uc.Arguments(), uc.Exports()
 }
 

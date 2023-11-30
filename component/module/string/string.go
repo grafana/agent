@@ -42,7 +42,7 @@ var (
 
 // New creates a new module.string component.
 func New(o component.Options, args Arguments) (*Component, error) {
-	m, err := module.NewModuleComponent(o)
+	m, err := module.NewModuleComponentDeprecated(o)
 	if err != nil {
 		return nil, err
 	}
@@ -66,7 +66,7 @@ func (c *Component) Run(ctx context.Context) error {
 func (c *Component) Update(args component.Arguments) error {
 	newArgs := args.(Arguments)
 
-	return c.mod.LoadFlowSource(newArgs.Arguments, newArgs.Content.Value)
+	return c.mod.LoadFlowSource(newArgs.Arguments, newArgs.Content.Value, nil)
 }
 
 // CurrentHealth implements component.HealthComponent.

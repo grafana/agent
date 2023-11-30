@@ -10,8 +10,8 @@ import (
 // for later reevaluation.
 type Queue struct {
 	mut         sync.Mutex
-	queuedSet   map[*ComponentNode]struct{}
-	queuedOrder []*ComponentNode
+	queuedSet   map[NodeWithDependants]struct{}
+	queuedOrder []NodeWithDependants
 
 	updateCh chan struct{}
 }
@@ -20,14 +20,14 @@ type Queue struct {
 func NewQueue() *Queue {
 	return &Queue{
 		updateCh:    make(chan struct{}, 1),
-		queuedSet:   make(map[*ComponentNode]struct{}),
-		queuedOrder: make([]*ComponentNode, 0),
+		queuedSet:   make(map[NodeWithDependants]struct{}),
+		queuedOrder: make([]NodeWithDependants, 0),
 	}
 }
 
 // Enqueue inserts a new component into the Queue. Enqueue is a no-op if the
 // component is already in the Queue.
-func (q *Queue) Enqueue(c *ComponentNode) {
+func (q *Queue) Enqueue(c NodeWithDependants) {
 	q.mut.Lock()
 	defer q.mut.Unlock()
 
@@ -48,13 +48,13 @@ func (q *Queue) Enqueue(c *ComponentNode) {
 func (q *Queue) Chan() <-chan struct{} { return q.updateCh }
 
 // DequeueAll removes all components from the queue and returns them.
-func (q *Queue) DequeueAll() []*ComponentNode {
+func (q *Queue) DequeueAll() []NodeWithDependants {
 	q.mut.Lock()
 	defer q.mut.Unlock()
 
 	all := q.queuedOrder
-	q.queuedOrder = make([]*ComponentNode, 0)
-	q.queuedSet = make(map[*ComponentNode]struct{})
+	q.queuedOrder = make([]NodeWithDependants, 0)
+	q.queuedSet = make(map[NodeWithDependants]struct{})
 
 	return all
 }

@@ -60,7 +60,7 @@ func TestUpdates_EmptyModule(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, f)
 
-	err = ctrl.LoadSource(f, nil)
+	err = ctrl.LoadSource(f, nil, nil)
 	require.NoError(t, err)
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -121,7 +121,7 @@ func TestUpdates_ThroughModule(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, f)
 
-	err = ctrl.LoadSource(f, nil)
+	err = ctrl.LoadSource(f, nil, nil)
 	require.NoError(t, err)
 
 	ctx, cancel := context.WithCancel(context.Background())
