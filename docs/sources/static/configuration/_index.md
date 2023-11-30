@@ -142,18 +142,18 @@ This beta feature is subject to change in future releases.
 {{% /admonition %}}
 
 {{% docs/reference %}}
-[flags]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/configuration/flags"
+[flags]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static/configuration/flags"
 [flags]: "/docs/grafana-cloud/ -> ./flags"
-[server]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/configuration/server-config"
+[server]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static/configuration/server-config"
 [server]: "/docs/grafana-cloud/ -> ./server-config"
-[metrics]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/configuration/metrics-config"
+[metrics]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static/configuration/metrics-config"
 [metrics]: "/docs/grafana-cloud/ -> ./metrics-config"
-[logs]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/configuration/logs-config"
+[logs]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static/configuration/logs-config"
 [logs]: "/docs/grafana-cloud/ -> ./logs-config"
-[traces]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/configuration/traces-config"
+[traces]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static/configuration/traces-config"
 [traces]: "/docs/grafana-cloud/ -> ./traces-config"
-[integrations]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/configuration/integrations"
+[integrations]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static/configuration/integrations"
 [integrations]: "/docs/grafana-cloud/ -> ./integrations"
-[api]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/api#reload-configuration-file-beta"
+[api]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static/api#reload-configuration-file-beta"
 [api]: "/docs/grafana-cloud/ -> ../api#reload-configuration-file-beta"
 {{% /docs/reference %}}

@@ -53,14 +53,14 @@ To download the Grafana Agent as a standalone binary, perform the following step
 * [Configure Grafana Agent][configure]
 
 {{% docs/reference %}}
-[linux]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/set-up/install/install-agent-linux"
+[linux]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static/set-up/install/install-agent-linux"
 [linux]: "/docs/grafana-cloud/ -> ./install-agent-linux"
-[macos]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/set-up/install/install-agent-macos"
+[macos]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static/set-up/install/install-agent-macos"
 [macos]: "/docs/grafana-cloud/ -> ./install-agent-macos"
-[windows]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/set-up/install/install-agent-on-windows"
+[windows]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static/set-up/install/install-agent-on-windows"
 [windows]: "/docs/grafana-cloud/ -> ./install-agent-on-windows"
-[start]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/set-up/start-agent#standalone-binary"
+[start]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static/set-up/start-agent#standalone-binary"
 [start]: "/docs/grafana-cloud/ -> ../start-agent#standalone-binary"
-[configure]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/configuration"
+[configure]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static/configuration"
 [configure]: "/docs/grafana-cloud/ -> ../../configuration"
 {{% /docs/reference %}}

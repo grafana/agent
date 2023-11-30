@@ -73,7 +73,7 @@ tls_config | [tls_config][] | TLS configuration for requests to the OpenStack AP
 
 ### tls_config block
 
-{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ## Exported fields
 
