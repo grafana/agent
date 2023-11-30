@@ -218,8 +218,8 @@ Logs of Grafana Agent can be found by running the following command in a termina
 - [Configure Grafana Agent][configure]
 
 {{% docs/reference %}}
-[start]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/set-up/start-agent"
+[start]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static/set-up/start-agent"
 [start]: "/docs/grafana-cloud/ -> ../start-agent"
-[configure]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/configuration/create-config-file"
+[configure]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static/configuration/create-config-file"
 [configure]: "/docs/grafana-cloud/ -> ../../configuration/create-config-file"
 {{% /docs/reference %}}
