@@ -11,7 +11,7 @@ title: otelcol.processor.probabilistic_sampler
 
 # otelcol.processor.probabilistic_sampler
 
-{{< docs/shared lookup="flow/stability/experimental.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/stability/experimental.md" source="agent" version="<AGENT_VERSION>" >}}
 
 `otelcol.processor.probabilistic_sampler` accepts logs and traces data from other otelcol components and applies probabilistic sampling based on configuration options.
 

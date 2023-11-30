@@ -187,6 +187,6 @@ integrations:
 ```
 
 {{% docs/reference %}}
-[configure]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/configuration"
+[configure]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static/configuration"
 [configure]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/static/configuration"
 {{% /docs/reference %}}

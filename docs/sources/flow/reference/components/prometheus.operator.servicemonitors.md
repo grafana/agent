@@ -13,7 +13,7 @@ title: prometheus.operator.servicemonitors
 
 # prometheus.operator.servicemonitors
 
-{{< docs/shared lookup="flow/stability/beta.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/stability/beta.md" source="agent" version="<AGENT_VERSION>" >}}
 
 `prometheus.operator.servicemonitors` discovers [ServiceMonitor](https://prometheus-operator.dev/docs/operator/api/#monitoring.coreos.com/v1.ServiceMonitor) resources in your kubernetes cluster and scrapes the targets they reference. This component performs three main functions:
 
@@ -102,27 +102,27 @@ Name | Type | Description | Default | Required
 
 ### basic_auth block
 
-{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### authorization block
 
-{{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### oauth2 block
 
-{{< docs/shared lookup="flow/reference/components/oauth2-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/oauth2-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### tls_config block
 
-{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### rule block
 
-{{< docs/shared lookup="flow/reference/components/rule-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/rule-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### scrape block
 
-{{< docs/shared lookup="flow/reference/components/prom-operator-scrape.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/prom-operator-scrape.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### selector block
 

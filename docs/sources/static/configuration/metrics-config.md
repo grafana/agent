@@ -344,9 +344,9 @@ remote_write:
 
 ## Data retention
 
-{{< docs/shared source="agent" lookup="/wal-data-retention.md" version="<AGENT VERSION>" >}}
+{{< docs/shared source="agent" lookup="/wal-data-retention.md" version="<AGENT_VERSION>" >}}
 
 {{% docs/reference %}}
-[scrape]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/configuration/scraping-service"
+[scrape]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static/configuration/scraping-service"
 [scrape]: "/docs/grafana-cloud/ -> ./scraping-service"
 {{% /docs/reference %}}

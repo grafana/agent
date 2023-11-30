@@ -127,31 +127,31 @@ metrics fails.
 
 ### basic_auth block
 
-{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### authorization block
 
-{{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### oauth2 block
 
-{{< docs/shared lookup="flow/reference/components/oauth2-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/oauth2-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### sigv4 block
 
-{{< docs/shared lookup="flow/reference/components/sigv4-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/sigv4-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### azuread block
 
-{{< docs/shared lookup="flow/reference/components/azuread-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/azuread-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### managed_identity block
 
-{{< docs/shared lookup="flow/reference/components/managed_identity-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/managed_identity-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### tls_config block
 
-{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### queue_config block
 
@@ -201,7 +201,7 @@ Name | Type | Description | Default | Required
 
 ### write_relabel_config block
 
-{{< docs/shared lookup="flow/reference/components/rule-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/rule-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### wal block
 
@@ -403,5 +403,5 @@ Any labels that start with `__` will be removed before sending to the endpoint.
 
 ## Data retention
 
-{{< docs/shared source="agent" lookup="/wal-data-retention.md" version="<AGENT VERSION>" >}}
+{{< docs/shared source="agent" lookup="/wal-data-retention.md" version="<AGENT_VERSION>" >}}
 

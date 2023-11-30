@@ -147,12 +147,12 @@ YAML configuration when the `-server.http.tls-enabled` flag is used.
 * `-metrics.wal-directory`: Directory to store the metrics Write-Ahead Log in
 
 {{% docs/reference %}}
-[retrieving]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/configuration#remote-configuration-experimental"
+[retrieving]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static/configuration#remote-configuration-experimental"
 [retrieving]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/static/configuration#remote-configuration-experimental"
 
-[revamp]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/configuration/integrations/integrations-next/"
+[revamp]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static/configuration/integrations/integrations-next/"
 [revamp]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/static/configuration/integrations/integrations-next"
 
-[management]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/configuration/agent-management"
+[management]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static/configuration/agent-management"
 [management]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/static/configuration/agent-management"
 {{% /docs/reference %}}

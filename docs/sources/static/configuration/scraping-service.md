@@ -169,8 +169,8 @@ utilize `grafana/agentctl` and sync a set of configurations to the API
 are planned for the future.
 
 {{% docs/reference %}}
-[api]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/api"
+[api]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static/api"
 [api]: "/docs/grafana-cloud/ -> ../api"
-[metrics]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/configuration/metrics-config"
+[metrics]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static/configuration/metrics-config"
 [metrics]: "/docs/grafana-cloud/ -> ./metrics-config"
 {{% /docs/reference %}}

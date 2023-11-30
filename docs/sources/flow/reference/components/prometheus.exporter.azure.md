@@ -84,7 +84,7 @@ Valid values for `azure_cloud_environment` are `azurecloud`, `azurechinacloud`, 
 
 ## Exported fields
 
-{{< docs/shared lookup="flow/reference/components/exporter-component-exports.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/exporter-component-exports.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ## Component health
 

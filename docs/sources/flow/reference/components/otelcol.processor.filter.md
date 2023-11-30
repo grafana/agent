@@ -174,7 +174,7 @@ Only one of the statements inside the list of statements has to be satisfied.
 
 ### output block
 
-{{< docs/shared lookup="flow/reference/components/output-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/output-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ## Exported fields
 

@@ -522,10 +522,10 @@ Agent is Healthy.
 ```
 
 {{% docs/reference %}}
-[scrape]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/configuration/scraping-service"
+[scrape]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static/configuration/scraping-service"
 [scrape]: "/docs/grafana-cloud/ -> ../configuration/scraping-service
-[metrics]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/configuration/metrics-config"
+[metrics]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static/configuration/metrics-config"
 [metrics]: "/docs/grafana-cloud/ -> ../configuration/metrics-config"
-[integrations]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/configuration/integrations/integrations-next"
+[integrations]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static/configuration/integrations/integrations-next"
 [integrations]: "/docs/grafana-cloud/ -> ../configuration/integrations/integrations-next"
 {{% /docs/reference %}}
