@@ -10,14 +10,6 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
-### Security fixes
-
-- Fix CVE-2023-47108 by updating `otelgrpc` from v0.45.0 to v0.46.0. (@hainenber)
-
-### Features
-
-- Agent Management: Introduce support for templated configuration. (@jcreixell)
-
 ### Enhancements
 
 - Added a new `otelcol.exporter.debug` component based on OTel Collector's "debug" exporter`. (@BarunKGP)
@@ -41,6 +33,17 @@ Main (unreleased)
   for converting resource attributes to Prometheus labels. (@hainenber)
 
 - `pyroscope.ebpf` support python on arm64 platforms. (@korniltsev)
+
+v0.38.1 (2023-11-30)
+--------------------
+
+### Security fixes
+
+- Fix CVE-2023-47108 by updating `otelgrpc` from v0.45.0 to v0.46.0. (@hainenber)
+
+### Features
+
+- Agent Management: Introduce support for templated configuration. (@jcreixell)
 
 ### Bugfixes
 
