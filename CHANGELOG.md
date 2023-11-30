@@ -10,14 +10,6 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
-### Security fixes
-
-- Fix CVE-2023-47108 by updating `otelgrpc` from v0.45.0 to v0.46.0. (@hainenber)
-
-### Features
-
-- Agent Management: Introduce support for templated configuration. (@jcreixell)
-
 ### Enhancements
 
 - Flow Windows service: Support environment variables. (@jkroepke)
@@ -40,6 +32,17 @@ Main (unreleased)
 
 - `pyroscope.ebpf` support python on arm64 platforms. (@korniltsev)
 
+v0.38.1 (2023-11-30)
+--------------------
+
+### Security fixes
+
+- Fix CVE-2023-47108 by updating `otelgrpc` from v0.45.0 to v0.46.0. (@hainenber)
+
+### Features
+
+- Agent Management: Introduce support for templated configuration. (@jcreixell)
+
 ### Bugfixes
 
 - Permit `X-Faro-Session-ID` header in CORS requests for the `faro.receiver`
@@ -51,6 +54,11 @@ Main (unreleased)
 - Fix agent crash when process null OTel's fan out consumers. (@hainenber)
 
 - Fix issue in `prometheus.operator.*` where targets would be dropped if two crds share a common prefix in their names. (@Paul424, @captncraig)
+
+- Fix issue where `convert` command would generate incorrect Flow Mode config
+  when provided `promtail` configuration that uses `docker_sd_configs` (@thampiotr)
+
+- Fix converter issue with `loki.relabel` and `max_cache_size` being set to 0 instead of default (10_000). (@mattdurham)
 
 ### Other changes
 
@@ -212,8 +220,6 @@ v0.38.0 (2023-11-21)
 
 - Fix converter output for prometheus.exporter.windows to not unnecessarily add
   empty blocks. (@erikbaranowski)
-
-- Fix converter issue with `loki.relabel` and `max_cache_size` being set to 0 instead of default (10_000). (@mattdurham)
 
 ### Other changes
 

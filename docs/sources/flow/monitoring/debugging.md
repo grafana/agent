@@ -12,29 +12,29 @@ weight: 300
 
 # Debugging
 
-Follow these steps to debug issues with Grafana Agent Flow:
+Follow these steps to debug issues with {{< param "PRODUCT_NAME" >}}:
 
-1. Use the Grafana Agent Flow UI to debug issues.
-2. If the UI doesn't help with debugging an issue, logs can be examined
+1. Use the {{< param "PRODUCT_NAME" >}} UI to debug issues.
+2. If the {{< param "PRODUCT_NAME" >}} UI doesn't help with debugging an issue, logs can be examined
    instead.
 
-## Grafana Agent Flow UI
+## {{< param "PRODUCT_NAME" >}} UI
 
-Grafana Agent Flow includes an embedded UI viewable from Grafana Agent's HTTP
+{{< param "PRODUCT_NAME" >}} includes an embedded UI viewable from the {{< param "PRODUCT_ROOT_NAME" >}} HTTP
 server, which defaults to listening at `http://localhost:12345`.
 
-> **NOTE**: For security reasons, installations of Grafana Agent Flow on
+> **NOTE**: For security reasons, installations of {{< param "PRODUCT_NAME" >}} on
 > non-containerized platforms default to listening on `localhost`. default
 > prevents other machines on the network from being able to view the UI.
 >
 > To expose the UI to other machines on the network on non-containerized
 > platforms, refer to the documentation for how you [installed][install]
-> Grafana Agent Flow.
+> {{< param "PRODUCT_NAME" >}}.
 >
-> If you are running a custom installation of Grafana Agent Flow, refer to the
+> If you are running a custom installation of {{< param "PRODUCT_NAME" >}}, refer to the
 > documentation for [the `grafana-agent run` command][grafana-agent run] to
 > learn how to change the HTTP listen address, and pass the appropriate flag
-> when running Grafana Agent Flow.
+> when running {{< param "PRODUCT_NAME" >}}.
 
 ### Home page
 
@@ -46,7 +46,7 @@ their health.
 Click **View** on a row in the table to navigate to the [Component detail page](#component-detail-page)
 for that component.
 
-Click the Grafana Agent logo to navigate back to the home page.
+Click the {{< param "PRODUCT_ROOT_NAME" >}} logo to navigate back to the home page.
 
 ### Graph page
 
@@ -91,13 +91,13 @@ To debug using the UI:
 
 ## Examining logs
 
-Logs may also help debug issues with Grafana Agent Flow.
+Logs may also help debug issues with {{< param "PRODUCT_NAME" >}}.
 
 To reduce logging noise, many components hide debugging info behind debug-level
 log lines. It is recommended that you configure the [`logging` block][logging]
-to show debug-level log lines when debugging issues with Grafana Agent Flow.
+to show debug-level log lines when debugging issues with {{< param "PRODUCT_NAME" >}}.
 
-The location of Grafana Agent's logs is different based on how it is deployed.
+The location of {{< param "PRODUCT_NAME" >}} logs is different based on how it is deployed.
 Refer to the [`logging` block][logging] page to see how to find logs for your
 system.
 
@@ -124,7 +124,7 @@ check the logs for any reported name conflict events.
 - **Node stuck in terminating state**: The node attempted to gracefully shut
 down and set its state to Terminating, but it has not completely gone away. Check
 the clustering page to view the state of the peers and verify that the
-terminating Agent has been shut down.
+terminating {{< param "PRODUCT_ROOT_NAME" >}} has been shut down.
 
 {{% docs/reference %}}
 [logging]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/config-blocks/logging.md"
