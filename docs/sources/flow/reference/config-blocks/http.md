@@ -82,12 +82,12 @@ configured at a time:
 * `key_pem` and `key_file`
 * `client_ca_pem` and `client_ca_file`
 
-The `client_auth` argument determines whether to validate client certificates.
+The `client_auth_type` argument determines whether to validate client certificates.
 The default value, `NoClientCert`, indicates that the client certificate is not
 validated. The `client_ca_pem` and `client_ca_file` arguments may only
-be configured when `client_auth` is not `NoClientCert`.
+be configured when `client_auth_type` is not `NoClientCert`.
 
-The following values are accepted for `client_auth`:
+The following values are accepted for `client_auth_type`:
 
 * `NoClientCert`: client certificates are neither requested nor validated.
 * `RequestClientCert`: requests clients to send an optional certificate. Certificates provided by clients are not validated.
@@ -96,7 +96,7 @@ The following values are accepted for `client_auth`:
 * `RequireAndVerifyClientCert`: requires clients to send a valid certificate.
 
 The `client_ca_pem` or `client_ca_file` arguments may be used to perform client
-certificate validation. These arguments may only be provided when `client_auth`
+certificate validation. These arguments may only be provided when `client_auth_type`
 is not set to `NoClientCert`.
 
 The `cipher_suites` argument determines what cipher suites to use. If not
