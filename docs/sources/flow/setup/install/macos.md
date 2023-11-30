@@ -6,15 +6,15 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/setup/install/macos/
 - /docs/grafana-cloud/send-data/agent/flow/setup/install/macos/
 canonical: https://grafana.com/docs/agent/latest/flow/setup/install/macos/
-description: Learn how to install Grafana Agent in flow mode on macOS
+description: Learn how to install Grafana AgentFlow on macOS
 menuTitle: macOS
-title: Install Grafana Agent in flow mode on macOS
+title: Install Grafana Agent Flow on macOS
 weight: 400
 ---
 
-# Install Grafana Agent in flow mode on macOS
+# Install {{< param "PRODUCT_NAME" >}} on macOS
 
-You can install Grafana Agent in flow mode on macOS with Homebrew .
+You can install {{< param "PRODUCT_NAME" >}} on macOS with Homebrew .
 
 {{% admonition type="note" %}}
 The default prefix for Homebrew on Intel is `/usr/local`. The default prefix for Homebrew on Apple Silicon is `/opt/Homebrew`. To verify the default prefix for Homebrew on your computer, open a terminal window and type `brew --prefix`.
@@ -26,7 +26,7 @@ The default prefix for Homebrew on Intel is `/usr/local`. The default prefix for
 
 ## Install
 
-To install Grafana Agent on macOS, run the following commands in a terminal window.
+To install {{< param "PRODUCT_NAME" >}} on macOS, run the following commands in a terminal window.
 
 1. Add the Grafana Homebrew tap:
 
@@ -34,7 +34,7 @@ To install Grafana Agent on macOS, run the following commands in a terminal wind
    brew tap grafana/grafana
    ```
 
-1. Install Grafana Agent:
+1. Install {{< param "PRODUCT_NAME" >}}:
 
    ```shell
    brew install grafana-agent-flow
@@ -42,15 +42,15 @@ To install Grafana Agent on macOS, run the following commands in a terminal wind
 
 ## Upgrade
 
-To upgrade Grafana Agent on macOS, run the following commands in a terminal window.
+To upgrade {{< param "PRODUCT_NAME" >}} on macOS, run the following commands in a terminal window.
 
-1. Upgrade Grafana Agent:
+1. Upgrade {{< param "PRODUCT_NAME" >}}:
 
    ```shell
    brew upgrade grafana-agent-flow
    ```
 
-1. Restart Grafana Agent:
+1. Restart {{< param "PRODUCT_NAME" >}}:
 
    ```shell
    brew services restart grafana-agent-flow
@@ -58,7 +58,7 @@ To upgrade Grafana Agent on macOS, run the following commands in a terminal wind
 
 ## Uninstall
 
-To uninstall Grafana Agent on macOS, run the following command in a terminal window:
+To uninstall {{< param "PRODUCT_NAME" >}} on macOS, run the following command in a terminal window:
 
 ```shell
 brew uninstall grafana-agent-flow
@@ -66,14 +66,14 @@ brew uninstall grafana-agent-flow
 
 ## Next steps
 
-- [Start Grafana Agent][]
-- [Configure Grafana Agent][]
+- [Start {{< param "PRODUCT_NAME" >}}][Start]
+- [Configure {{< param "PRODUCT_NAME" >}}][Configure]
 
 [Homebrew]: https://brew.sh
 
 {{% docs/reference %}}
-[Start Grafana Agent]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/start-agent.md#macos"
-[Start Grafana Agent]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/setup/start-agent.md#macos"
-[Configure Grafana Agent]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/configure/configure-macos.md"
-[Configure Grafana Agent]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/setup/configure/configure-macos.md"
+[Start]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/start-agent.md#macos"
+[Start]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/setup/start-agent.md#macos"
+[Configure]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/configure/configure-macos.md"
+[Configure]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/setup/configure/configure-macos.md"
 {{% /docs/reference %}}

@@ -6,15 +6,15 @@ aliases:
 - /docs/grafana-cloud/send-data/agent/flow/setup/install/
 - /docs/sources/flow/install/
 canonical: https://grafana.com/docs/agent/latest/flow/setup/install/
-description: Learn how to install Grafana Agent in flow mode
-menuTitle: Install flow mode
-title: Install Grafana Agent in flow mode
+description: Learn how to install Grafana Agent  Flow
+menuTitle: Install Grafana Agent Flow
+title: Install Grafana Agent Flow
 weight: 50
 ---
 
-# Install Grafana Agent in flow mode
+# Install {{< param "PRODUCT_NAME" >}}
 
-You can install Grafana Agent in flow mode on Docker, Kubernetes, Linux, macOS, or Windows.
+You can install {{< param "PRODUCT_NAME" >}} on Docker, Kubernetes, Linux, macOS, or Windows.
 
 The following architectures are supported:
 
@@ -24,14 +24,14 @@ The following architectures are supported:
 - FreeBSD: AMD64
 
 {{% admonition type="note" %}}
-Installing Grafana Agent on other operating systems is possible, but is not recommended or supported.
+Installing {{< param "PRODUCT_NAME" >}} on other operating systems is possible, but is not recommended or supported.
 {{% /admonition %}}
 
 {{< section >}}
 
 ## Data collection
 
-By default, Grafana Agent sends anonymous usage information to Grafana Labs. Refer to [data collection][] for more information
+By default, {{< param "PRODUCT_NAME" >}} sends anonymous usage information to Grafana Labs. Refer to [data collection][] for more information
 about what data is collected and how you can opt-out.
 
 {{% docs/reference %}}

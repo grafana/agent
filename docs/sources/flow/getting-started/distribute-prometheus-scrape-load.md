@@ -13,9 +13,9 @@ weight: 500
 
 # Distribute Prometheus metrics scrape load
 
-A good predictor for the size of an agent deployment is the number of
-Prometheus targets each agent scrapes. [Clustering][] with target
-auto-distribution allows a fleet of agents to work together to dynamically
+A good predictor for the size of an {{< param "PRODUCT_NAME" >}} deployment is the number of
+Prometheus targets each {{< param "PRODUCT_ROOT_NAME" >}} scrapes. [Clustering][] with target
+auto-distribution allows a fleet of {{< param "PRODUCT_ROOT_NAME" >}}s to work together to dynamically
 distribute their scrape load, providing high-availability.
 
 > **Note:** Clustering is a [beta][] feature. Beta features are subject to breaking
@@ -23,10 +23,10 @@ distribute their scrape load, providing high-availability.
 
 ## Before you begin
 
-- Familiarize yourself with how to [configure existing Grafana Agent installations][configure-grafana-agent].
+- Familiarize yourself with how to [configure existing {{< param "PRODUCT_NAME" >}} installations][configure-grafana-agent].
 - [Configure Prometheus metrics collection][].
-- [Configure clustering][] of agents.
-- Ensure that all of your clustered agents have the same configuration file.
+- [Configure clustering][].
+- Ensure that all of your clustered {{< param "PRODUCT_ROOT_NAME" >}}s have the same configuration file.
 
 ## Steps
 
@@ -41,15 +41,14 @@ To distribute Prometheus metrics scrape load with clustering:
    }
    ```
 
-2. Restart or reload agents for them to use the new configuration.
+1. Restart or reload {{< param "PRODUCT_ROOT_NAME" >}}s for them to use the new configuration.
 
-3. Validate that auto-distribution is functioning:
+1. Validate that auto-distribution is functioning:
 
-   1. Using the [Grafana Agent UI][UI] on each agent, navigate to the details page for one of
+   1. Using the {{< param "PRODUCT_ROOT_NAME" >}} [UI][] on each {{< param "PRODUCT_ROOT_NAME" >}}, navigate to the details page for one of
       the `prometheus.scrape` components you modified.
 
-   2. Compare the Debug Info sections between two different agents to ensure
-      that they're not scraping the same sets of targets.
+   1. Compare the Debug Info sections between two different {{< param "PRODUCT_ROOT_NAME" >}} to ensure that they're not scraping the same sets of targets.
 
 {{% docs/reference %}}
 [Clustering]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/clustering.md"
