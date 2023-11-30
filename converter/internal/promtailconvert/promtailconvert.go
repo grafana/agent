@@ -166,4 +166,7 @@ func appendScrapeConfig(
 	b.AppendAzureEventHubs()
 	b.AppendGelfConfig()
 	b.AppendHerokuDrainConfig()
+
+	// Docker has a special treatment in Promtail, we replicate it here.
+	b.AppendDockerPipeline()
 }

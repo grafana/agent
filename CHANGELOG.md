@@ -54,6 +54,9 @@ Main (unreleased)
 
 - Fix issue in `prometheus.operator.*` where targets would be dropped if two crds share a common prefix in their names. (@Paul424, @captncraig)
 
+- Fix issue where `convert` command would generate incorrect Flow Mode config
+  when provided `promtail` configuration that uses `docker_sd_configs` (@thampiotr)
+
 ### Other changes
 
 - Add Agent Deploy Mode to usage report. (@captncraig)

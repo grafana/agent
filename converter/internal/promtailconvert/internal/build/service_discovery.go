@@ -69,10 +69,6 @@ func toDiscoveryConfig(cfg *scrapeconfig.Config) prom_discover.Configs {
 		sdConfigs = append(sdConfigs, sd)
 	}
 
-	for _, sd := range cfg.DockerSDConfigs {
-		sdConfigs = append(sdConfigs, sd)
-	}
-
 	for _, sd := range cfg.ServiceDiscoveryConfig.DNSSDConfigs {
 		sdConfigs = append(sdConfigs, sd)
 	}

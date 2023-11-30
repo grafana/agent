@@ -28,6 +28,30 @@ discovery.docker "fun" {
 	}
 }
 
+loki.source.docker "fun" {
+	host          = "unix:///var/run/docker.sock"
+	targets       = discovery.docker.fun.targets
+	forward_to    = []
+	relabel_rules = null
+
+	http_client_config {
+		basic_auth {
+			username      = "robin"
+			password_file = "/home/robin/.password"
+		}
+		proxy_url = "http://proxy.example.com"
+
+		tls_config {
+			ca_file              = "/home/robin/.ca"
+			cert_file            = "/home/robin/.cert"
+			key_file             = "/home/robin/.key"
+			server_name          = "example.local"
+			insecure_skip_verify = true
+		}
+	}
+	refresh_interval = "10s"
+}
+
 discovery.docker "fun_2" {
 	host             = "unix:///var/run/docker.sock"
 	port             = 54321
@@ -52,14 +76,25 @@ discovery.docker "fun_2" {
 	}
 }
 
-local.file_match "fun" {
-	path_targets = concat(
-		discovery.docker.fun.targets,
-		discovery.docker.fun_2.targets,
-	)
-}
+loki.source.docker "fun_2" {
+	host          = "unix:///var/run/docker.sock"
+	targets       = discovery.docker.fun_2.targets
+	forward_to    = []
+	relabel_rules = null
 
-loki.source.file "fun" {
-	targets    = local.file_match.fun.targets
-	forward_to = []
+	http_client_config {
+		oauth2 {
+			client_id          = "client_id"
+			client_secret_file = "foo/bar"
+			scopes             = ["scope1", "scope2"]
+			token_url          = "https://example/oauth2/token"
+			endpoint_params    = {
+				host = "example",
+				path = "/oauth2/token",
+			}
+
+			tls_config { }
+		}
+	}
+	refresh_interval = "10s"
 }
