@@ -6,21 +6,21 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/release-notes/
 - /docs/grafana-cloud/send-data/agent/flow/release-notes/
 canonical: https://grafana.com/docs/agent/latest/flow/release-notes/
-description: Release notes for Grafana Agent flow mode
+description: Release notes for Grafana Agent Flow
 menuTitle: Release notes
-title: Release notes for Grafana Agent flow mode
+title: Release notes for Grafana Agent Flow
 weight: 999
 ---
 
-# Release notes for Grafana Agent flow mode
+# Release notes for {{< param "PRODUCT_NAME" >}}
 
-The release notes provide information about deprecations and breaking changes in Grafana Agent flow mode.
+The release notes provide information about deprecations and breaking changes in {{< param "PRODUCT_NAME" >}}.
 
-For a complete list of changes to Grafana Agent, with links to pull requests and related issues when available, refer to the [Changelog](https://github.com/grafana/agent/blob/main/CHANGELOG.md).
+For a complete list of changes to {{< param "PRODUCT_ROOT_NAME" >}}, with links to pull requests and related issues when available, refer to the [Changelog](https://github.com/grafana/agent/blob/main/CHANGELOG.md).
 
 {{% admonition type="note" %}}
-These release notes are specific to Grafana Agent flow mode.
-Other release notes for the different Grafana Agent variants are contained on separate pages:
+These release notes are specific to {{< param "PRODUCT_NAME" >}}.
+Other release notes for the different {{< param "PRODUCT_ROOT_NAME" >}} variants are contained on separate pages:
 
 * [Static mode release notes][release-notes-static]
 * [Static mode Kubernetes operator release notes][release-notes-operator]
@@ -41,7 +41,7 @@ supports OTLP.
 
 ### Breaking change: Renamed `non_indexed_labels` Loki processing stage to `structured_metadata`.
 
-If you use the Loki processing stage in your Agent configuration, you must rename the `non_indexed_labels` pipeline stage definition to `structured_metadata`.
+If you use the Loki processing stage in your {{< param "PRODUCT_NAME" >}} configuration, you must rename the `non_indexed_labels` pipeline stage definition to `structured_metadata`.
 
 Old configuration example:
 
@@ -58,7 +58,7 @@ stage.structured_metadata {
 }
 ```
 
-### Breaking change: `otelcol.exporter.prometheus` scope labels updated.
+### Breaking change: `otelcol.exporter.prometheus` scope labels updated
 
 There are 2 changes to the way scope labels work for this component.
 
@@ -92,7 +92,7 @@ prometheus.exporter.unix "example" { /* ... */ }
 ### Breaking change: The default value of `retry_on_http_429` is changed to `true` for the `queue_config` in `prometheus.remote_write`
 
 The default value of `retry_on_http_429` is changed from `false` to `true` for the `queue_config` block in `prometheus.remote_write`
-so that the agent can retry sending and avoid data being lost for metric pipelines by default.
+so that {{< param "PRODUCT_ROOT_NAME" >}} can retry sending and avoid data being lost for metric pipelines by default.
 
 * If you set the `retry_on_http_429` explicitly - no action is required.
 * If you do not set `retry_on_http_429` explicitly and you do *not* want to retry on HTTP 429, make sure you set it to `false` as you upgrade to this new version.
@@ -108,12 +108,12 @@ format. By default, the decompression of files is entirely disabled.
 
 How to migrate:
 
-* If your agent never reads logs from files with
+* If {{< param "PRODUCT_NAME" >}} never reads logs from files with
   extensions `.gz`, `.tar.gz`, `.z` or `.bz2` then no action is required.
-  > You can check what are the file extensions your agent reads from by looking
+  > You can check what are the file extensions {{< param "PRODUCT_NAME" >}} reads from by looking
   at the `path` label on `loki_source_file_file_bytes_total` metric.
 
-* If your agent extracts data from compressed files, please add the following
+* If {{< param "PRODUCT_NAME" >}} extracts data from compressed files, please add the following
   configuration block to your `loki.source.file` component:
 
     ```river
@@ -331,7 +331,7 @@ The change was made in PR [#18070](https://github.com/open-telemetry/opentelemet
 The `remote_sampling` block in `otelcol.receiver.jaeger` has been an undocumented no-op configuration for some time, and has now been removed.
 Customers are advised to use `otelcol.extension.jaeger_remote_sampling` instead.
 
-### Deprecation: `otelcol.exporter.jaeger` has been deprecated and will be removed in Agent v0.38.0.
+### Deprecation: `otelcol.exporter.jaeger` has been deprecated and will be removed in {{< param "PRODUCT_NAME" >}} v0.38.0.
 
 This is because Jaeger supports OTLP directly and OpenTelemetry Collector is also removing its
 [Jaeger receiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/jaegerexporter).
@@ -527,7 +527,7 @@ prometheus.exporter.unix { }
 As first announced in v0.30.0, support for using the `EXPERIMENTAL_ENABLE_FLOW`
 environment variable to enable Flow mode has been removed.
 
-To enable Flow mode, set the `AGENT_MODE` environment variable to `flow`.
+To enable {{< param "PRODUCT_NAME" >}}, set the `AGENT_MODE` environment variable to `flow`.
 
 ## v0.31
 
@@ -550,7 +550,7 @@ removed.
 
 ### Deprecation: `EXPERIMENTAL_ENABLE_FLOW` environment variable changed
 
-As part of graduating Grafana Agent Flow to beta, the
+As part of graduating {{< param "PRODUCT_NAME" >}} to beta, the
 `EXPERIMENTAL_ENABLE_FLOW` environment variable is replaced by setting
 `AGENT_MODE` to `flow`.
 

@@ -220,7 +220,7 @@ The WAL serves two primary purposes:
 * Populate in-memory cache after a process restart.
 
 The WAL is located inside a component-specific directory relative to the
-storage path Grafana Agent is configured to use. See the
+storage path {{< param "PRODUCT_NAME" >}} is configured to use. See the
 [`agent run` documentation][run] for how to change the storage path.
 
 The `truncate_frequency` argument configures how often to clean up the WAL.
@@ -355,7 +355,7 @@ prometheus.remote_write "staging" {
 // prometheus.remote_write component.
 prometheus.scrape "demo" {
   targets = [
-    // Collect metrics from Grafana Agent's default HTTP listen address.
+    // Collect metrics from the default HTTP listen address.
     {"__address__" = "127.0.0.1:12345"},
   ]
   forward_to = [prometheus.remote_write.staging.receiver]

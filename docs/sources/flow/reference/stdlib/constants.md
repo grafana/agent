@@ -13,12 +13,12 @@ title: constants
 # constants
 
 The `constants` object exposes a list of constant values about the system
-Grafana Agent is running on:
+{{< param "PRODUCT_NAME" >}} is running on:
 
-* `constants.hostname`: The hostname of the machine Grafana Agent is running
+* `constants.hostname`: The hostname of the machine {{< param "PRODUCT_NAME" >}} is running
   on.
-* `constants.os`: The operating system Grafana Agent is running on.
-* `constants.arch`: The architecture of the system Grafana Agent is running on.
+* `constants.os`: The operating system {{< param "PRODUCT_NAME" >}} is running on.
+* `constants.arch`: The architecture of the system {{< param "PRODUCT_NAME" >}} is running on.
 
 ## Examples
 

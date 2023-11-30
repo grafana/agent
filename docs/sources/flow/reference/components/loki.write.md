@@ -155,7 +155,7 @@ following two mechanisms:
 `min_read_frequency` and `max_read_frequency`.
 
 The WAL is located inside a component-specific directory relative to the
-storage path Grafana Agent is configured to use. See the
+storage path {{< param "PRODUCT_NAME" >}} is configured to use. See the
 [`agent run` documentation][run] for how to change the storage path.
 
 The following arguments are supported:

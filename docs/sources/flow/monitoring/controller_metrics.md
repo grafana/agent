@@ -13,15 +13,15 @@ weight: 100
 
 # Controller metrics
 
-The Grafana Agent Flow [component controller][] exposes Prometheus metrics
+The {{< param "PRODUCT_NAME" >}} [component controller][] exposes Prometheus metrics
 which can be used to investigate the controller state.
 
 Metrics for the controller are exposed at the `/metrics` HTTP endpoint of the
-Grafana Agent HTTP server, which defaults to listening on
+{{< param "PRODUCT_NAME" >}} HTTP server, which defaults to listening on
 `http://localhost:12345`.
 
 > The documentation for the [`grafana-agent run`][grafana-agent run] command
-> describes how to modify the address Grafana Agent listens on for HTTP
+> describes how to modify the address {{< param "PRODUCT_NAME" >}} listens on for HTTP
 > traffic.
 
 The controller exposes the following metrics:

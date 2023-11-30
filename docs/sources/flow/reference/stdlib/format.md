@@ -58,9 +58,9 @@ The specification may contain the following verbs.
 | `%%` | Literal percent sign, consuming no value.                                                 |
 | `%t` | Convert to boolean and produce `true` or `false`.                                         |
 | `%b` | Convert to integer number and produce binary representation.                              |
-| `%d` | Convert to integer and produce decimal representation.                             |
-| `%o` | Convert to integer and produce octal representation.                               |
-| `%x` | Convert to integer and produce hexadecimal representation with lowercase letters.  |
+| `%d` | Convert to integer and produce decimal representation.                                    |
+| `%o` | Convert to integer and produce octal representation.                                      |
+| `%x` | Convert to integer and produce hexadecimal representation with lowercase letters.         |
 | `%X` | Like `%x`, but use uppercase letters.                                                     |
 | `%e` | Convert to number and produce scientific notation, like `-1.234456e+78`.                  |
 | `%E` | Like `%e`, but use an uppercase `E` to introduce the exponent.                            |

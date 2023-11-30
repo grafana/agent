@@ -12,7 +12,8 @@ title: prometheus.exporter.gcp
 # prometheus.exporter.gcp
 
 The `prometheus.exporter.gcp` component embeds [`stackdriver_exporter`](https://github.com/prometheus-community/stackdriver_exporter).
-It lets you collect [GCP Cloud Monitoring (formerly stackdriver)](https://cloud.google.com/monitoring/docs), translate them to prometheus-compatible format and remote write. The component supports all metrics available via [GCP's monitoring API](https://cloud.google.com/monitoring/api/metrics_gcp).
+It lets you collect [GCP Cloud Monitoring (formerly stackdriver)](https://cloud.google.com/monitoring/docs), translate them to prometheus-compatible format and remote write.
+The component supports all metrics available via [GCP's monitoring API](https://cloud.google.com/monitoring/api/metrics_gcp).
 
 Metric names follow the template `stackdriver_<monitored_resource>_<metric_type_prefix>_<metric_type>`.
 
@@ -30,10 +31,10 @@ These attributes result in a final metric name of:
 
 ## Authentication
 
-Grafana Agent must be running in an environment with access to the GCP project it is scraping. The exporter
+{{< param "PRODUCT_ROOT_NAME" >}} must be running in an environment with access to the GCP project it is scraping. The exporter
 uses the Google Golang Client Library, which offers a variety of ways to [provide credentials](https://developers.google.com/identity/protocols/application-default-credentials). Choose the option that works best for you.
 
-After deciding how Agent will obtain credentials, ensure the account is set up with the IAM role `roles/monitoring.viewer`.
+After deciding how {{< param "PRODUCT_ROOT_NAME" >}} will obtain credentials, ensure the account is set up with the IAM role `roles/monitoring.viewer`.
 Since the exporter gathers all of its data from [GCP monitoring APIs](https://cloud.google.com/monitoring/api/v3), this is the only permission needed.
 
 ## Usage

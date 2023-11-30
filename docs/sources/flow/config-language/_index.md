@@ -13,7 +13,7 @@ weight: 400
 
 # Configuration language
 
-Grafana Agent Flow contains a custom configuration language called River to
+{{< param "PRODUCT_NAME" >}} contains a custom configuration language called River to
 dynamically configure and connect components.
 
 River aims to reduce errors in configuration files by making configurations
@@ -21,7 +21,7 @@ easier to read and write. River configurations are done in blocks which can be
 easily copied-and-pasted from documentation to help users get started as
 quickly as possible.
 
-A River configuration file tells Grafana Agent Flow which components to launch
+A River configuration file tells {{< param "PRODUCT_NAME" >}} which components to launch
 and how to bind them together into a pipeline.
 
 The syntax of River is centered around blocks, attributes, and expressions:
@@ -82,6 +82,6 @@ To help you write configuration files in River, the following tools are availabl
   * [river-mode](https://github.com/jdbaldry/river-mode) for Emacs
 * Code formatting using the [`agent fmt` command]({{< relref "../reference/cli/fmt" >}})
 
-You can also start developing your own tooling using the agent repository as a
+You can also start developing your own tooling using the {{< param "PRODUCT_ROOT_NAME" >}} repository as a
 go package or use the [tree-sitter
 grammar](https://github.com/grafana/tree-sitter-river) with other programming languages.

@@ -47,11 +47,11 @@ The following blocks are supported inside the definition of
 `prometheus.exporter.windows` to configure collector-specific options:
 
 Hierarchy      | Name               | Description                              | Required
----------------|--------------------|------------------------------------------|----------
-dfsr           | [dfsr][]           | Configures the dfsr collector.           | no       
+---------------|--------------------|------------------------------------------|---------
+dfsr           | [dfsr][]           | Configures the dfsr collector.           | no
 exchange       | [exchange][]       | Configures the exchange collector.       | no
 iis            | [iis][]            | Configures the iis collector.            | no
-logical_disk   | [logical_disk][]   | Configures the logical_disk collector.   | no       
+logical_disk   | [logical_disk][]   | Configures the logical_disk collector.   | no
 msmq           | [msmq][]           | Configures the msmq collector.           | no
 mssql          | [mssql][]          | Configures the mssql collector.          | no
 network        | [network][]        | Configures the network collector.        | no
@@ -272,7 +272,7 @@ Name     | Description | Enabled by default
 See the linked documentation on each collector for more information on reported metrics, configuration settings and usage examples.
 
 {{% admonition type="caution" %}}
-Certain collectors will cause Grafana Agent to crash if those collectors are used and the required infrastructure is not installed.
+Certain collectors will cause {{< param "PRODUCT_ROOT_NAME" >}} to crash if those collectors are used and the required infrastructure is not installed.
 These include but are not limited to mscluster_*, vmware, nps, dns, msmq, teradici_pcoip, ad, hyperv, and scheduled_task.
 {{% /admonition %}}
 

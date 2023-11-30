@@ -13,7 +13,7 @@ weight: 400
 
 # Configuration language concepts
 
-The Grafana Agent Flow _configuration language_ refers to the language used in
+The {{< param "PRODUCT_NAME" >}} _configuration language_ refers to the language used in
 configuration files which define and configure components to run.
 
 The configuration language is called River, a Terraform/HCL-inspired language:
@@ -99,7 +99,7 @@ This file has two blocks:
 ## More information
 
 River is documented in detail in [Configuration language][config-docs] section
-of the Grafana Agent Flow docs.
+of the {{< param "PRODUCT_NAME" >}} docs.
 
 {{% docs/reference %}}
 [config-docs]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/config-language"

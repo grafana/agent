@@ -12,7 +12,7 @@ title: Grafana Agent data collection
 weight: 500
 ---
 
-# Data collection
+# Grafana Agent Data collection
 
 By default, Grafana Agent sends anonymous but uniquely identifiable usage information from
 your Grafana Agent instance to Grafana Labs. These statistics are sent to `stats.grafana.org`.

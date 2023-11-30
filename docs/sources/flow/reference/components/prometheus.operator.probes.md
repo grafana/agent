@@ -15,15 +15,18 @@ title: prometheus.operator.probes
 
 {{< docs/shared lookup="flow/stability/beta.md" source="agent" version="<AGENT VERSION>" >}}
 
-`prometheus.operator.probes` discovers [Probe](https://prometheus-operator.dev/docs/operator/api/#monitoring.coreos.com/v1.Probe) resources in your Kubernetes cluster and scrapes the targets they reference. This component performs three main functions:
+`prometheus.operator.probes` discovers [Probe](https://prometheus-operator.dev/docs/operator/api/#monitoring.coreos.com/v1.Probe) resources in your Kubernetes cluster and scrapes the targets they reference.
+ This component performs three main functions:
 
 1. Discover Probe resources from your Kubernetes cluster.
-2. Discover targets or ingresses that match those Probes.
-3. Scrape metrics from those endpoints, and forward them to a receiver.
+1. Discover targets or ingresses that match those Probes.
+1. Scrape metrics from those endpoints, and forward them to a receiver.
 
-The default configuration assumes the agent is running inside a Kubernetes cluster, and uses the in-cluster config to access the Kubernetes API. It can be run from outside the cluster by supplying connection info in the `client` block, but network level access to pods is required to scrape metrics from them.
+The default configuration assumes {{< param "PRODUCT_NAME" >}} is running inside a Kubernetes cluster, and uses the in-cluster config to access the Kubernetes API.
+It can be run from outside the cluster by supplying connection info in the `client` block, but network level access to pods is required to scrape metrics from them.
 
-Probes may reference secrets for authenticating to targets to scrape them. In these cases, the secrets are loaded and refreshed only when the Probe is updated or when this component refreshes its' internal state, which happens on a 5-minute refresh cycle.
+Probes may reference secrets for authenticating to targets to scrape them.
+In these cases, the secrets are loaded and refreshed only when the Probe is updated or when this component refreshes its' internal state, which happens on a 5-minute refresh cycle.
 
 ## Usage
 
@@ -78,8 +81,7 @@ inside a `client` block.
 ### client block
 
 The `client` block configures the Kubernetes client used to discover Probes. If the `client` block isn't provided, the default in-cluster
-configuration with the service account of the running Grafana Agent pod is
-used.
+configuration with the service account of the running {{< param "PRODUCT_ROOT_NAME" >}} pod is used.
 
 The following arguments are supported:
 
@@ -163,7 +165,7 @@ Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `enabled` | `bool` | Enables sharing targets with other cluster nodes. | `false` | yes
 
-When the agent is running in [clustered mode][], and `enabled` is set to true,
+When {{< param "PRODUCT_NAME" >}} is running in [clustered mode][], and `enabled` is set to true,
 then this component instance opts-in to participating in
 the cluster to distribute scrape load between all cluster nodes.
 
@@ -182,7 +184,7 @@ sharding where _all_ nodes have to be re-distributed, as only 1/N of the
 target's ownership is transferred, but is eventually consistent (rather than
 fully consistent like hashmod sharding is).
 
-If the agent is _not_ running in clustered mode, then the block is a no-op, and
+If {{< param "PRODUCT_NAME" >}} is _not_ running in clustered mode, then the block is a no-op, and
 `prometheus.operator.probes` scrapes every target it receives in its arguments.
 
 [clustered mode]: {{< relref "../cli/run.md#clustering-beta" >}}
@@ -244,7 +246,7 @@ prometheus.operator.probes "pods" {
 }
 ```
 
-This example will apply additional relabel rules to discovered targets to filter by hostname. This may be useful if running the agent as a DaemonSet.
+This example will apply additional relabel rules to discovered targets to filter by hostname. This may be useful if running {{< param "PRODUCT_NAME" >}} as a DaemonSet.
 
 ```river
 prometheus.operator.probes "probes" {

@@ -13,7 +13,7 @@ weight: 100
 
 # Components
 
-_Components_ are the building blocks of Grafana Agent Flow. Each component is
+_Components_ are the building blocks of {{< param "PRODUCT_NAME" >}}. Each component is
 responsible for handling a single task, such as retrieving secrets or
 collecting Prometheus metrics.
 
@@ -50,7 +50,7 @@ discovery.kubernetes "nodes" {
 
 ## Pipelines
 
-Most arguments for a component in a config file are constant values, such
+Most arguments for a component in a configuration file are constant values, such
 setting a `log_level` attribute to the quoted string `"debug"`:
 
 ```river
@@ -87,7 +87,7 @@ An example pipeline may look like this:
 <img src="../../../assets/concepts_example_pipeline.svg" alt="Flow of example pipeline" width="500" />
 </p>
 
-The following config file represents the above pipeline:
+The following configuration file represents the pipeline:
 
 ```river
 // Get our API key from disk.

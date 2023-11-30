@@ -12,7 +12,7 @@ weight: 200
 
 # Collect and forward Prometheus metrics
 
-Grafana Agent Flow can be configured to collect [Prometheus][] metrics and
+{{< param "PRODUCT_NAME" >}} can be configured to collect [Prometheus][] metrics and
 forward them to any Prometheus-compatible database.
 
 This topic describes how to:
@@ -35,7 +35,7 @@ This topic describes how to:
 * Identify where you will write collected metrics. Metrics may be written to
   Prometheus or Prometheus-compatible endpoints such as Grafana Mimir, Grafana
   Cloud, or Grafana Enterprise Metrics.
-* Be familiar with the concept of [Components][] in Grafana Agent Flow.
+* Be familiar with the concept of [Components][] in {{< param "PRODUCT_NAME" >}}.
 
 ## Configure metrics delivery
 
@@ -44,7 +44,7 @@ responsible for writing those metrics somewhere.
 
 The [prometheus.remote_write][] component is responsible for delivering
 Prometheus metrics to one or Prometheus-compatible endpoints. Once a
-`prometheus.remote_write` component is defined, other Grafana Agent Flow
+`prometheus.remote_write` component is defined, other {{< param "PRODUCT_NAME" >}}
 components can be used to forward metrics to it.
 
 To configure a `prometheus.remote_write` component for metrics delivery,
@@ -108,7 +108,7 @@ prometheus.remote_write "default" {
 }
 
 prometheus.scrape "example" {
-  // Collect metrics from Grafana Agent's default listen address.
+  // Collect metrics from the default listen address.
   targets = [{
     __address__ = "127.0.0.1:12345",
   }]
@@ -122,7 +122,7 @@ For more information on configuring metrics delivery, refer to
 
 ## Collect metrics from Kubernetes Pods
 
-Grafana Agent Flow can be configured to collect metrics from Kubernetes Pods
+{{< param "PRODUCT_NAME" >}} can be configured to collect metrics from Kubernetes Pods
 by:
 
 1. Discovering Kubernetes Pods to collect metrics from.
@@ -161,8 +161,7 @@ To collect metrics from Kubernetes Pods, complete the following steps:
        }
        ```
 
-        1. If you don't want to search for Pods in the Namespace Grafana
-           Agent is running in, set `own_namespace` to `false`.
+        1. If you don't want to search for Pods in the Namespace {{< param "PRODUCT_NAME" >}} is running in, set `own_namespace` to `false`.
 
         2. Replace `NAMESPACE_NAMES` with a comma-delimited list of strings
            representing Namespaces to search. Each string must be wrapped in
@@ -226,7 +225,7 @@ To collect metrics from Kubernetes Pods, complete the following steps:
         3. Replace `REMOTE_WRITE_LABEL` with the label chosen for your existing
            `prometheus.remote_write` component.
 
-The following example demonstrates configuring Grafana Agent to collect metrics
+The following example demonstrates configuring {{< param "PRODUCT_NAME" >}} to collect metrics
 from running production Kubernetes Pods in the `default` Namespace:
 
 ```river
@@ -262,7 +261,7 @@ metrics, refer to [discovery.kubernetes][] and [prometheus.scrape][].
 
 ## Collect metrics from Kubernetes Services
 
-Grafana Agent Flow can be configured to collect metrics from Kubernetes Services
+{{< param "PRODUCT_NAME" >}} can be configured to collect metrics from Kubernetes Services
 by:
 
 1. Discovering Kubernetes Services to collect metrics from.
@@ -301,8 +300,7 @@ To collect metrics from Kubernetes Services, complete the following steps:
        }
        ```
 
-        1. If you do not want to search for Services in the Namespace Grafana
-           Agent is running in, set `own_namespace` to `false`.
+        1. If you do not want to search for Services in the Namespace {{< param "PRODUCT_NAME" >}} is running in, set `own_namespace` to `false`.
 
         2. Replace `NAMESPACE_NAMES` with a comma-delimited list of strings
            representing Namespaces to search. Each string must be wrapped in
@@ -366,7 +364,7 @@ To collect metrics from Kubernetes Services, complete the following steps:
         3. Replace `REMOTE_WRITE_LABEL` with the label chosen for your existing
            `prometheus.remote_write` component.
 
-The following example demonstrates configuring Grafana Agent to collect metrics
+The following example demonstrates configuring {{< param "PRODUCT_NAME" >}} to collect metrics
 from running production Kubernetes Services in the `default` Namespace:
 
 ```river
@@ -402,7 +400,7 @@ metrics, refer to [discovery.kubernetes][] and [prometheus.scrape][].
 
 ## Collect metrics from custom targets
 
-Grafana Agent Flow can be configured to collect metrics from a custom set of
+{{< param "PRODUCT_NAME" >}} can be configured to collect metrics from a custom set of
 targets without the need for service discovery.
 
 To collect metrics from a custom set of targets, complete the following steps:

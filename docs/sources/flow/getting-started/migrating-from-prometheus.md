@@ -11,14 +11,14 @@ title: Migrate from Prometheus to Grafana Agent Flow
 weight: 320
 ---
 
-# Migrate from Prometheus to Grafana Agent Flow
+# Migrate from Prometheus to {{< param "PRODUCT_NAME" >}}
 
-The built-in Grafana Agent convert command can migrate your [Prometheus][] configuration to a Grafana Agent flow configuration.
+The built-in {{< param "PRODUCT_ROOT_NAME" >}} convert command can migrate your [Prometheus][] configuration to a {{< param "PRODUCT_NAME" >}} configuration.
 
 This topic describes how to:
 
-* Convert a Prometheus configuration to a flow configuration.
-* Run a Prometheus configuration natively using Grafana Agent flow mode.
+* Convert a Prometheus configuration to a {{< param "PRODUCT_NAME" >}} configuration.
+* Run a Prometheus configuration natively using {{< param "PRODUCT_NAME" >}}.
 
 ## Components used in this topic
 
@@ -28,15 +28,15 @@ This topic describes how to:
 ## Before you begin
 
 * You must have an existing Prometheus configuration.
-* You must have a set of Prometheus applications ready to push telemetry data to Grafana Agent.
-* You must be familiar with the concept of [Components][] in Grafana Agent flow mode.
+* You must have a set of Prometheus applications ready to push telemetry data to {{< param "PRODUCT_NAME" >}}.
+* You must be familiar with the concept of [Components][] in {{< param "PRODUCT_NAME" >}}.
 
 ## Convert a Prometheus configuration
 
-To fully migrate your configuration from [Prometheus] to Grafana Agent
-in flow mode, you must convert your Prometheus configuration into a Grafana Agent flow
-mode configuration. This conversion will enable you to take full advantage of the many
-additional features available in Grafana Agent flow mode.
+To fully migrate your configuration from [Prometheus] to {{< param "PRODUCT_NAME" >}},
+you must convert your Prometheus configuration into a {{< param "PRODUCT_NAME" >}} configuration.
+This conversion will enable you to take full advantage of the many
+additional features available in {{< param "PRODUCT_NAME" >}}.
 
 > In this task, we will use the [convert][] CLI command to output a flow
 > configuration from a Prometheus configuration.
@@ -57,9 +57,9 @@ additional features available in Grafana Agent flow mode.
 
     Replace the following:
       * `INPUT_CONFIG_PATH`: The full path to the Prometheus configuration.
-      * `OUTPUT_CONFIG_PATH`: The full path to output the flow configuration.
+      * `OUTPUT_CONFIG_PATH`: The full path to output the {{< param "PRODUCT_NAME" >}} configuration.
 
-1. [Start the agent][] in flow mode using the new flow configuration from `OUTPUT_CONFIG_PATH`:
+1. [Start][] {{< param "PRODUCT_NAME" >}} using the new flow configuration from `OUTPUT_CONFIG_PATH`:
 
 ### Debugging
 
@@ -112,27 +112,26 @@ additional features available in Grafana Agent flow mode.
 
 ## Run a Prometheus configuration
 
-If you’re not ready to completely switch to a flow configuration, you can run Grafana Agent using your existing Prometheus configuration.
-The `--config.format=prometheus` flag tells Grafana Agent to convert your Prometheus configuration to flow mode and load it directly without saving the new configuration.
-This allows you to try flow mode without modifying your existing Prometheus configuration infrastructure.
+If you’re not ready to completely switch to a flow configuration, you can run {{< param "PRODUCT_ROOT_NAME" >}} using your existing Prometheus configuration.
+The `--config.format=prometheus` flag tells {{< param "PRODUCT_ROOT_NAME" >}} to convert your Prometheus configuration to a {{< param "PRODUCT_NAME" >}} configuration and load it directly without saving the new configuration.
+This allows you to try {{< param "PRODUCT_NAME" >}} without modifying your existing Prometheus configuration infrastructure.
 
-> In this task, we will use the [run][] CLI command to run Grafana Agent in flow
-> mode using a Prometheus configuration.
+> In this task, we will use the [run][] CLI command to run {{< param "PRODUCT_NAME" >}}
+> using a Prometheus configuration.
 
-[Start the agent][] in flow mode and include the command line flag
+[Start][] {{< param "PRODUCT_NAME" >}} and include the command line flag
    `--config.format=prometheus`. Your configuration file must be a valid
-   Prometheus configuration file rather than a flow mode configuration file.
+   Prometheus configuration file rather than a {{< param "PRODUCT_NAME" >}} configuration file.
 
 ### Debugging
 
 1. You can follow the convert CLI command [debugging][] instructions to
    generate a diagnostic report.
 
-1. Refer to the Grafana Agent [Flow Debugging][] for more information about a running Grafana
-   Agent in flow mode.
+1. Refer to the {{< param "PRODUCT_NAME" >}} [Debugging][DebuggingUI] for more information about a running {{< param "PRODUCT_NAME" >}}.
 
-1. If your Prometheus configuration cannot be converted and
-    loaded directly into Grafana Agent, diagnostic information
+1. If your Prometheus configuration can't be converted and
+    loaded directly into {{< param "PRODUCT_NAME" >}}, diagnostic information
     is sent to `stderr`. You can bypass any non-critical issues
     and start the Agent by including the
    `--config.bypass-conversion-errors` flag in addition to
@@ -145,7 +144,7 @@ This allows you to try flow mode without modifying your existing Prometheus conf
 
 ## Example
 
-This example demonstrates converting a Prometheus configuration file to a Grafana Agent flow mode configuration file.
+This example demonstrates converting a Prometheus configuration file to a {{< param "PRODUCT_NAME" >}} configuration file.
 
 The following Prometheus configuration file provides the input for the conversion:
 
@@ -217,26 +216,26 @@ prometheus.remote_write "default" {
 
 ## Limitations
 
-Configuration conversion is done on a best-effort basis. The Agent will issue
+Configuration conversion is done on a best-effort basis. {{< param "PRODUCT_ROOT_NAME" >}} will issue
 warnings or errors where the conversion cannot be performed.
 
 Once the configuration is converted, we recommend that you review
-the Flow Mode configuration file created and verify that it is correct
+the {{< param "PRODUCT_NAME" >}} configuration file created and verify that it is correct
 before starting to use it in a production environment.
 
 Furthermore, we recommend that you review the following checklist:
 
-* The following configurations are not available for conversion to flow mode:
+* The following configurations are not available for conversion to {{< param "PRODUCT_NAME" >}}:
   `rule_files`, `alerting`, `remote_read`, `storage`, and `tracing`. Any
   additional unsupported features are returned as errors during conversion.
 * Check if you are using any extra command line arguments with Prometheus that
   are not present in your configuration file. For example, `--web.listen-address`.
-* Metamonitoring metrics exposed by the Flow Mode usually match Prometheus
+* Metamonitoring metrics exposed by {{< param "PRODUCT_NAME" >}} usually match Prometheus
   metamonitoring metrics but will use a different name. Make sure that you use
   the new metric names, for example, in your alerts and dashboards queries.
-* The logs produced by Grafana Agent will differ from those
+* The logs produced by {{< param "PRODUCT_NAME" >}} differ from those
   produced by Prometheus.
-* Grafana Agent exposes the [Grafana Agent Flow UI][].
+* {{< param "PRODUCT_ROOT_NAME" >}} exposes the {{< param "PRODUCT_NAME" >}} [UI][].
 
 [Prometheus]: https://prometheus.io/docs/prometheus/latest/configuration/configuration/
 [debugging]: #debugging
@@ -252,12 +251,12 @@ Furthermore, we recommend that you review the following checklist:
 [convert]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/cli/convert.md"
 [run]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/cli/run.md"
 [run]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/cli/run.md"
-[Start the agent]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/start-agent.md"
-[Start the agent]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/setup/start-agent.md"
-[Flow Debugging]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/monitoring/debugging.md"
-[Flow Debugging]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/monitoring/debugging.md"
+[Start]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/start-agent.md"
+[Start]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/setup/start-agent.md"
+[DebuggingUI]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/monitoring/debugging.md"
+[DebuggingUI]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/monitoring/debugging.md"
 [River]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/config-language/_index.md"
 [River]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/config-language/_index.md"
-[Grafana Agent Flow UI]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/monitoring/debugging#grafana-agent-flow-ui"
-[Grafana Agent Flow UI]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/monitoring/debugging#grafana-agent-flow-ui"
+[UI]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/monitoring/debugging#grafana-agent-flow-ui"
+[UI]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/monitoring/debugging#grafana-agent-flow-ui"
 {{% /docs/reference %}}

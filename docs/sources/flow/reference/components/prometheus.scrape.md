@@ -53,8 +53,8 @@ Name | Type | Description | Default | Required
 `honor_timestamps`         | `bool`     | Indicator whether the scraped timestamps should be respected. | `true` | no
 `params`                   | `map(list(string))` | A set of query parameters with which the target is scraped. | | no
 `scrape_classic_histograms` | `bool`     | Whether to scrape a classic histogram that is also exposed as a native histogram. | `false` | no
-`scrape_interval`          | `duration` | How frequently to scrape the targets of this scrape config. | `"60s"` | no
-`scrape_timeout`           | `duration` | The timeout for scraping targets of this config. | `"10s"` | no
+`scrape_interval`          | `duration` | How frequently to scrape the targets of this scrape configuration. | `"60s"` | no
+`scrape_timeout`           | `duration` | The timeout for scraping targets of this configuration. | `"10s"` | no
 `metrics_path`             | `string`   | The HTTP resource path on which to fetch metrics from targets. | `/metrics` | no
 `scheme`                   | `string`   | The URL scheme with which to fetch metrics from targets. | | no
 `body_size_limit`          | `int`      | An uncompressed response body larger than this many bytes causes the scrape to fail. 0 means no limit. | | no
@@ -122,7 +122,7 @@ Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `enabled` | `bool` | Enables sharing targets with other cluster nodes. | `false` | yes
 
-When the agent is [using clustering][], and `enabled` is set to true,
+When {{< param "PRODUCT_NAME" >}} is [using clustering][], and `enabled` is set to true,
 then this `prometheus.scrape` component instance opts-in to participating in
 the cluster to distribute scrape load between all cluster nodes.
 
@@ -142,7 +142,7 @@ sharding where _all_ nodes have to be re-distributed, as only 1/N of the
 targets ownership is transferred, but is eventually consistent (rather than
 fully consistent like hashmod sharding is).
 
-If the agent is _not_ running in clustered mode, then the block is a no-op and
+If {{< param "PRODUCT_NAME" >}} is _not_ running in clustered mode, then the block is a no-op and
 `prometheus.scrape` scrapes every target it receives in its arguments.
 
 [using clustering]: {{< relref "../../concepts/clustering.md" >}}

@@ -11,10 +11,10 @@ title: Configure Grafana Agent clustering in an existing installation
 weight: 400
 ---
 
-# Configure Grafana Agent clustering in an existing installation
+# Configure {{< param "PRODUCT_NAME" >}} clustering in an existing installation
 
-You can configure Grafana Agent to run with [clustering][] so that
-individual agents can work together for workload distribution and high
+You can configure {{< param "PRODUCT_NAME" >}} to run with [clustering][] so that
+individual {{< param "PRODUCT_ROOT_NAME" >}}s can work together for workload distribution and high
 availability.
 
 
@@ -23,10 +23,10 @@ availability.
 
 This topic describes how to add clustering to an existing installation.
 
-## Configure Grafana Agent clustering with Helm Chart
+## Configure {{< param "PRODUCT_NAME" >}} clustering with Helm Chart
 
-This section guides you through enabling clustering when Grafana Agent is
-installed on Kubernetes using the [Grafana Agent Helm chart][install-helm].
+This section guides you through enabling clustering when {{< param "PRODUCT_NAME" >}} is
+installed on Kubernetes using the {{< param "PRODUCT_ROOT_NAME" >}} [Helm chart][install-helm].
 
 ### Before you begin
 
@@ -55,7 +55,7 @@ To configure clustering:
    Replace `RELEASE_NAME` with the name of the installation you chose when you
    installed the Helm chart.
 
-1. Use the [Grafana Agent UI][UI] to verify the cluster status:
+1. Use the {{< param "PRODUCT_NAME" >}} [UI][] to verify the cluster status:
 
    1. Click **Clustering** in the navigation bar.
 

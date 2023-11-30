@@ -5,15 +5,15 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/setup/configure/configure-linux/
 - /docs/grafana-cloud/send-data/agent/flow/setup/configure/configure-linux/
 canonical: https://grafana.com/docs/agent/latest/flow/setup/configure/configure-linux/
-description: Learn how to configure Grafana Agent in flow mode on Linux
+description: Learn how to configure Grafana Agent Flow on Linux
 menuTitle: Linux
-title: Configure Grafana Agent in flow mode on Linux
+title: Configure Grafana Agent Flow on Linux
 weight: 300
 ---
 
-# Configure Grafana Agent in flow mode on Linux
+# Configure {{< param "PRODUCT_NAME" >}} on Linux
 
-To configure Grafana Agent in flow mode on Linux, perform the following steps:
+To configure {{< param "PRODUCT_NAME" >}} on Linux, perform the following steps:
 
 1. Edit the default configuration file at `/etc/grafana-agent-flow.river`.
 
@@ -33,7 +33,7 @@ To change the configuration file used by the service, perform the following step
 1. Change the contents of the `CONFIG_FILE` environment variable to point to
    the new configuration file to use.
 
-1. Restart the Grafana Agent service:
+1. Restart the {{< param "PRODUCT_NAME" >}} service:
 
    ```shell
    sudo systemctl restart grafana-agent-flow
@@ -41,12 +41,12 @@ To change the configuration file used by the service, perform the following step
 
 ## Pass additional command-line flags
 
-By default, the Grafana Agent service launches with the [run][]
+By default, the {{< param "PRODUCT_NAME" >}} service launches with the [run][]
 command, passing the following flags:
 
 * `--storage.path=/var/lib/grafana-agent-flow`
 
-To pass additional command-line flags to the Grafana Agent binary, perform
+To pass additional command-line flags to the {{< param "PRODUCT_NAME" >}} binary, perform
 the following steps:
 
 1. Edit the environment file for the service:
@@ -57,7 +57,7 @@ the following steps:
 1. Change the contents of the `CUSTOM_ARGS` environment variable to specify
    command-line flags to pass.
 
-1. Restart the Grafana Agent service:
+1. Restart the {{< param "PRODUCT_NAME" >}} service:
 
    ```shell
    sudo systemctl restart grafana-agent-flow
@@ -68,14 +68,14 @@ refer to the documentation for the [run][] command.
 
 ## Expose the UI to other machines
 
-By default, Grafana Agent listens on the local network for its HTTP
+By default, {{< param "PRODUCT_NAME" >}} listens on the local network for its HTTP
 server. This prevents other machines on the network from being able to access
 the [UI for debugging][UI].
 
 To expose the UI to other machines, complete the following steps:
 
 1. Follow [Pass additional command-line flags](#pass-additional-command-line-flags)
-   to edit command line flags passed to Grafana Agent, including the
+   to edit command line flags passed to {{< param "PRODUCT_NAME" >}}, including the
    following customizations:
 
     1. Add the following command line argument to `CUSTOM_ARGS`:
@@ -86,7 +86,7 @@ To expose the UI to other machines, complete the following steps:
 
        Replace `LISTEN_ADDR` with an address which other machines on the
        network have access to, like the network IP address of the machine
-       Grafana Agent is running on.
+       {{< param "PRODUCT_NAME" >}} is running on.
 
        To listen on all interfaces, replace `LISTEN_ADDR` with `0.0.0.0`.
 
