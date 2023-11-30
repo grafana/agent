@@ -1,7 +1,6 @@
 package relabel
 
 import (
-	"github.com/prometheus/prometheus/model/value"
 	"math"
 	"strconv"
 	"testing"
@@ -19,6 +18,7 @@ import (
 	prom "github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/prometheus/model/labels"
 	"github.com/prometheus/prometheus/model/relabel"
+	"github.com/prometheus/prometheus/model/value"
 	"github.com/prometheus/prometheus/storage"
 	"github.com/stretchr/testify/require"
 )
