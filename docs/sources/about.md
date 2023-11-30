@@ -23,12 +23,12 @@ Grafana Agent is available in three different variants:
 - [Flow mode][]: The new, component-based Grafana Agent.
 
 {{% docs/reference %}}
-[Static mode]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static"
+[Static mode]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static"
 [Static mode]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/static"
-[Static mode Kubernetes operator]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/operator"
+[Static mode Kubernetes operator]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/operator"
 [Static mode Kubernetes operator]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/operator"
-[Flow mode]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/flow"
-[Flow mode]: "/docs/grafana-cloud/ -> /docs/agent/<AGENT VERSION>/flow"
+[Flow mode]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow"
+[Flow mode]: "/docs/grafana-cloud/ -> /docs/agent/<AGENT_VERSION>/flow"
 [Prometheus]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/getting-started/collect-prometheus-metrics.md"
 [Prometheus]: "/docs/grafana-cloud/ -> /docs/agent/<AGENT_VERSION>/flow/getting-started/collect-prometheus-metrics.md"
 [OTel]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/getting-started/collect-opentelemetry-data.md"
@@ -148,9 +148,9 @@ You should run Flow mode when:
 binaries and images with BoringCrypto enabled. Builds and Docker images for Linux arm64/amd64 are made available.
 
 {{% docs/reference %}}
-[integrations]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/configuration/integrations"
+[integrations]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static/configuration/integrations"
 [integrations]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/static/configuration/integrations"
 
-[components]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/flow/reference/components"
-[components]: "/docs/grafana-cloud/ -> /docs/agent/<AGENT VERSION>/flow/reference/components"
+[components]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components"
+[components]: "/docs/grafana-cloud/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components"
 {{% /docs/reference %}}
