@@ -13,7 +13,7 @@ weight: 200
 
 # Component controller
 
-The _component controller_ is the core part of Grafana Agent Flow which manages
+The _component controller_ is the core part of {{< param "PRODUCT_NAME" >}} which manages
 components at runtime.
 
 The component controller is responsible for:
@@ -29,8 +29,8 @@ As discussed in [Components][], a relationship between components is created
 when an expression is used to set the argument of one component to an exported
 field of another component.
 
-The set of all components and the relationships between them define a [directed
-acyclic graph][DAG] (DAG), which informs the component controller which
+The set of all components and the relationships between them define a [Directed
+Acyclic Graph][DAG] (DAG), which informs the component controller which
 references are valid and in what order components must be evaluated.
 
 For a configuration file to be valid, components must not reference themselves or

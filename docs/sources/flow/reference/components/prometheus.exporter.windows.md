@@ -47,11 +47,11 @@ The following blocks are supported inside the definition of
 `prometheus.exporter.windows` to configure collector-specific options:
 
 Hierarchy      | Name               | Description                              | Required
----------------|--------------------|------------------------------------------|----------
-dfsr           | [dfsr][]           | Configures the dfsr collector.           | no       
+---------------|--------------------|------------------------------------------|---------
+dfsr           | [dfsr][]           | Configures the dfsr collector.           | no
 exchange       | [exchange][]       | Configures the exchange collector.       | no
 iis            | [iis][]            | Configures the iis collector.            | no
-logical_disk   | [logical_disk][]   | Configures the logical_disk collector.   | no       
+logical_disk   | [logical_disk][]   | Configures the logical_disk collector.   | no
 msmq           | [msmq][]           | Configures the msmq collector.           | no
 mssql          | [mssql][]          | Configures the mssql collector.          | no
 network        | [network][]        | Configures the network collector.        | no

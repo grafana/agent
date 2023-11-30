@@ -24,7 +24,7 @@ The HTTP API exposed is compatible with [Loki push API][loki-push-api] and the `
 loki.source.api "LABEL" {
     http {
         listen_address = "LISTEN_ADDRESS"
-        listen_port = PORT 
+        listen_port = PORT
     }
     forward_to = RECEIVER_LIST
 }
@@ -32,10 +32,10 @@ loki.source.api "LABEL" {
 
 The component will start HTTP server on the configured port and address with the following endpoints:
 
-- `/loki/api/v1/push` - accepting `POST` requests compatible with [Loki push API][loki-push-api], for example, from another Grafana Agent's [`loki.write`][loki.write] component.
-- `/loki/api/v1/raw` - accepting `POST` requests with newline-delimited log lines in body. This can be used to send NDJSON or plaintext logs. This is compatible with promtail's push API endpoint - see [promtail's documentation][promtail-push-api] for more information. NOTE: when this endpoint is used, the incoming timestamps cannot be used and the `use_incoming_timestamp = true` setting will be ignored. 
+- `/loki/api/v1/push` - accepting `POST` requests compatible with [Loki push API][loki-push-api], for example, from another {{< param "PRODUCT_ROOT_NAME" >}}'s [`loki.write`][loki.write] component.
+- `/loki/api/v1/raw` - accepting `POST` requests with newline-delimited log lines in body. This can be used to send NDJSON or plaintext logs. This is compatible with promtail's push API endpoint - see [promtail's documentation][promtail-push-api] for more information. NOTE: when this endpoint is used, the incoming timestamps cannot be used and the `use_incoming_timestamp = true` setting will be ignored.
 - `/loki/ready` - accepting `GET` requests - can be used to confirm the server is reachable and healthy.
-- `/api/v1/push` - internally reroutes to `/loki/api/v1/push` 
+- `/api/v1/push` - internally reroutes to `/loki/api/v1/push`
 - `/api/v1/raw` - internally reroutes to `/loki/api/v1/raw`
 
 
@@ -45,12 +45,12 @@ The component will start HTTP server on the configured port and address with the
 
 `loki.source.api` supports the following arguments:
 
- Name                     | Type                 | Description                                                | Default | Required 
---------------------------|----------------------|------------------------------------------------------------|---------|----------
- `forward_to`             | `list(LogsReceiver)` | List of receivers to send log entries to.                  |         | yes      
- `use_incoming_timestamp` | `bool`               | Whether or not to use the timestamp received from request. | `false` | no       
- `labels`                 | `map(string)`        | The labels to associate with each received logs record.    | `{}`    | no       
- `relabel_rules`          | `RelabelRules`       | Relabeling rules to apply on log entries.                  | `{}`    | no       
+Name                     | Type                 | Description                                                | Default | Required
+-------------------------|----------------------|------------------------------------------------------------|---------|---------
+`forward_to`             | `list(LogsReceiver)` | List of receivers to send log entries to.                  |         | yes
+`use_incoming_timestamp` | `bool`               | Whether or not to use the timestamp received from request. | `false` | no
+`labels`                 | `map(string)`        | The labels to associate with each received logs record.    | `{}`    | no
+`relabel_rules`          | `RelabelRules`       | Relabeling rules to apply on log entries.                  | `{}`    | no
 
 The `relabel_rules` field can make use of the `rules` export value from a
 [`loki.relabel`][loki.relabel] component to apply one or more relabeling rules to log entries before they're forwarded to the list of receivers in `forward_to`.
@@ -61,9 +61,9 @@ The `relabel_rules` field can make use of the `rules` export value from a
 
 The following blocks are supported inside the definition of `loki.source.api`:
 
- Hierarchy | Name     | Description                                        | Required 
------------|----------|----------------------------------------------------|----------
- `http`    | [http][] | Configures the HTTP server that receives requests. | no       
+Hierarchy | Name     | Description                                        | Required
+----------|----------|----------------------------------------------------|---------
+`http`    | [http][] | Configures the HTTP server that receives requests. | no
 
 [http]: #http
 
