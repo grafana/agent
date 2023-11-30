@@ -32,11 +32,11 @@ curl https://raw.githubusercontent.com/grafana/agent/main/docs/sources/flow/tuto
 
 The `runt.sh` script does:
 
-1. Downloads the configurations necessary for Mimir, Grafana, and Grafana Agent.
-2. Downloads the docker image for Grafana Agent explicitly.
-3. Runs the docker-compose up command to bring all the services up.
+1. Downloads the configurations necessary for Mimir, Grafana, and {{< param "PRODUCT_ROOT_NAME" >}}.
+2. Downloads the docker image for {{< param "PRODUCT_ROOT_NAME" >}} explicitly.
+3. Runs the `docker-compose up` command to bring all the services up.
 
-Allow Grafana Agent to run for two minutes, then navigate to [Grafana][] to see the Agent scrape metrics. The [node_exporter][] metrics also show up now.
+Allow {{< param "PRODUCT_ROOT_NAME" >}} to run for two minutes, then navigate to [Grafana][] to see {{< param "PRODUCT_ROOT_NAME" >}} scrape metrics. The [node_exporter][] metrics also show up now.
 
 There are two scrapes each sending metrics to one filter. Note the `job` label lists the full name of the scrape component.
 
