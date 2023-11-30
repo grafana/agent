@@ -75,7 +75,7 @@ the [UI for debugging][UI].
 To expose the UI to other machines, complete the following steps:
 
 1. Follow [Pass additional command-line flags](#pass-additional-command-line-flags)
-   to edit command line flags passed to Grafana Agent, including the
+   to edit command line flags passed to {{< param "PRODUCT_NAME" >}}, including the
    following customizations:
 
     1. Add the following command line argument to `CUSTOM_ARGS`:

@@ -462,7 +462,7 @@ Replace the following:
 
 ### Limit to only pods on the same node
 
-This example limits the search to pods on the same node as this Grafana Agent. This configuration could be useful if you are running the Agent as a DaemonSet:
+This example limits the search to pods on the same node as this {{< param "PRODUCT_ROOT_NAME" >}}. This configuration could be useful if you are running {{< param "PRODUCT_ROOT_NAME" >}} as a DaemonSet:
 
 ```river
 discovery.kubernetes "k8s_pods" {

@@ -119,12 +119,12 @@ To uninstall {{< param "PRODUCT_NAME" >}} on Linux, run the following commands i
 
 ## Next steps
 
-- [Start Grafana Agent Flow][]
-- [Configure Grafana Agent Flow][]
+- [Start {{< param "PRODUCT_NAME" >}}][Start]
+- [Configure {{< param "PRODUCT_NAME" >}}][Configure]
 
 {{% docs/reference %}}
-[Start Grafana Agent Flow]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/start-agent.md#linux"
-[Start Grafana Agent Flow]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/setup/start-agent.md#linux"
-[Configure Grafana Agent Flow]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/configure/configure-linux.md"
-[Configure Grafana Agent Flow]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/setup/configure/configure-linux.md"
+[Start]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/start-agent.md#linux"
+[Start]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/setup/start-agent.md#linux"
+[Configure]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/configure/configure-linux.md"
+[Configure]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/setup/configure/configure-linux.md"
 {{% /docs/reference %}}

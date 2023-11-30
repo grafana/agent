@@ -19,7 +19,7 @@ title: pyroscope.ebpf
 to the list of receivers passed in `forward_to`.
 
 {{% admonition type="note" %}}
-To use the  `pyroscope.ebpf` component you must run Grafana Agent as root and inside host pid namespace.
+To use the  `pyroscope.ebpf` component you must run {{< param "PRODUCT_NAME" >}} as root and inside host pid namespace.
 {{% /admonition %}}
 
 You can specify multiple `pyroscope.ebpf` components by giving them different labels, however it is not recommended as

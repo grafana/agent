@@ -22,15 +22,13 @@ To configure {{< param "PRODUCT_NAME" >}} on Kubernetes, perform the following s
 
    Refer to the inline documentation in the `values.yaml` for more information about each option.
 
-1. Run the following command in a terminal to upgrade your Grafana Agent
-   installation:
+1. Run the following command in a terminal to upgrade your {{< param "PRODUCT_NAME" >}} installation:
 
    ```shell
    helm upgrade RELEASE_NAME grafana/grafana-agent -f VALUES_PATH
    ```
 
-   1. Replace `RELEASE_NAME` with the name you used for your Grafana Agent
-      installation.
+   1. Replace `RELEASE_NAME` with the name you used for your {{< param "PRODUCT_NAME" >}} installation.
 
    1. Replace `VALUES_PATH` with the path to your copy of `values.yaml` to use.
 

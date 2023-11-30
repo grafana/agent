@@ -66,14 +66,14 @@ brew uninstall grafana-agent-flow
 
 ## Next steps
 
-- [Start Grafana Agent Flow][]
-- [Configure Grafana Agent Flow][]
+- [Start {{< param "PRODUCT_NAME" >}}][Start]
+- [Configure {{< param "PRODUCT_NAME" >}}][Configure]
 
 [Homebrew]: https://brew.sh
 
 {{% docs/reference %}}
-[Start Grafana Agent Flow]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/start-agent.md#macos"
-[Start Grafana Agent Flow]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/setup/start-agent.md#macos"
-[Configure Grafana Agent Flow]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/configure/configure-macos.md"
-[Configure Grafana Agent Flow]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/setup/configure/configure-macos.md"
+[Start]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/start-agent.md#macos"
+[Start]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/setup/start-agent.md#macos"
+[Configure]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/configure/configure-macos.md"
+[Configure]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/setup/configure/configure-macos.md"
 {{% /docs/reference %}}

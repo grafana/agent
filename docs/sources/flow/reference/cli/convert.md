@@ -55,10 +55,10 @@ The following flags are supported:
 
 ### Defaults
 
-Flow Defaults are managed as follows:
-* If a provided source config value matches a Flow default value, the property is left off the Flow output.
-* If a non-provided source config value default matches a Flow default value, the property is left off the Flow output.
-* If a non-provided source config value default doesn't match a Flow default value, the Flow default value is included in the Flow output.
+{{< param "PRODUCT_NAME" >}} defaults are managed as follows:
+* If a provided source configuration value matches a {{< param "PRODUCT_NAME" >}} default value, the property is left off the output.
+* If a non-provided source configuration value default matches a {{< param "PRODUCT_NAME" >}} default value, the property is left off the output.
+* If a non-provided source configuration value default doesn't match a {{< param "PRODUCT_NAME" >}} default value, the default value is included in the output.
 
 ### Errors
 
@@ -80,7 +80,7 @@ This includes Prometheus features such as
 and many supported *_sd_configs. Unsupported features in a source configuration result
 in [errors].
 
-Refer to [Migrate from Prometheus to Grafana Agent Flow]({{< relref "../../getting-started/migrating-from-prometheus/" >}}) for a detailed migration guide.
+Refer to [Migrate from Prometheus to {{< param "PRODUCT_NAME" >}}]({{< relref "../../getting-started/migrating-from-prometheus/" >}}) for a detailed migration guide.
 
 ### Promtail
 
@@ -94,14 +94,14 @@ are supported and can be converted to {{< param "PRODUCT_NAME" >}} configuration
 If you have unsupported features in a source configuration, you will receive [errors] when you convert to a flow configuration. The converter will
 also raise warnings for configuration options that may require your attention.
 
-Refer to [Migrate from Promtail to Grafana Agent Flow]({{< relref "../../getting-started/migrating-from-promtail/" >}}) for a detailed migration guide.
+Refer to [Migrate from Promtail to {{< param "PRODUCT_NAME" >}}]({{< relref "../../getting-started/migrating-from-promtail/" >}}) for a detailed migration guide.
 
 ### Static
 
 Using the `--source-format=static` will convert the source configuration from a
-Grafana Agent [Static]({{< relref "../../../static" >}}) to a {{< param "PRODUCT_NAME" >}} configuration.
+[Grafana Agent Static]({{< relref "../../../static" >}}) configuration to a {{< param "PRODUCT_NAME" >}} configuration.
 
 If you have unsupported features in a Static mode source configuration, you will receive [errors][] when you convert to a Flow mode configuration. The converter will
 also raise warnings for configuration options that may require your attention.
 
-Refer to [Migrate Grafana Agent from Static mode to Flow mode]({{< relref "../../getting-started/migrating-from-static/" >}}) for a detailed migration guide.
+Refer to [Migrate from Grafana Agent Static to {{< param "PRODUCT_NAME" >}}]({{< relref "../../getting-started/migrating-from-static/" >}}) for a detailed migration guide.

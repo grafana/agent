@@ -70,8 +70,8 @@ the [UI for debugging][UI].
 
 To expose the UI to other machines, complete the following steps:
 
-1. Follow [Configure the Grafana Agent Flow service](#configure-the-grafana-agent-flow-service)
-   to edit command line flags passed to Grafana Agent, including the
+1. Follow [Configure the {{< param "PRODUCT_NAME" >}} service](#configure-the-grafana-agent-flow-service)
+   to edit command line flags passed to {{< param "PRODUCT_NAME" >}}, including the
    following customizations:
 
     1. Modify the line inside the `service` block containing

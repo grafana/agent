@@ -19,14 +19,14 @@ weight: 200
 ## Before you begin
 
 * Install [Helm][] on your computer.
-* Configure a Kubernetes cluster that you can use for Grafana Agent.
+* Configure a Kubernetes cluster that you can use for {{< param "PRODUCT_NAME" >}}.
 * Configure your local Kubernetes context to point to the cluster.
 
 ## Deploy
 
 {{% admonition type="note" %}}
-These instructions show you how to install the generic [Helm chart](https://github.com/grafana/agent/tree/main/operations/helm/charts/grafana-agent) for Grafana
-Agent. You can deploy {{< param "PRODUCT_ROOT_NAME" >}} either in static mode or flow mode. The Helm chart deploys {{< param "PRODUCT_NAME" >}} by default.
+These instructions show you how to install the generic [Helm chart](https://github.com/grafana/agent/tree/main/operations/helm/charts/grafana-agent) for {{< param "PRODUCT_NAME" >}}.
+You can deploy {{< param "PRODUCT_ROOT_NAME" >}} either in static mode or flow mode. The Helm chart deploys {{< param "PRODUCT_NAME" >}} by default.
 {{% /admonition %}}
 
 To deploy {{< param "PRODUCT_ROOT_NAME" >}} on Kubernetes using Helm, run the following commands in a terminal window:
@@ -43,7 +43,7 @@ To deploy {{< param "PRODUCT_ROOT_NAME" >}} on Kubernetes using Helm, run the fo
    helm repo update
    ```
 
-1. Install Grafana Agent:
+1. Install {{< param "PRODUCT_ROOT_NAME" >}}:
 
    ```shell
    helm install RELEASE_NAME grafana/grafana-agent
@@ -58,11 +58,11 @@ For more information on the {{< param "PRODUCT_ROOT_NAME" >}} Helm chart, refer 
 
 ## Next steps
 
-- [Configure Grafana Agent Flow][]
+- [Configure {{< param "PRODUCT_NAME" >}}][Configure]
 
 [Helm]: https://helm.sh
 
 {{% docs/reference %}}
-[Configure Grafana Agent Flow]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/configure/configure-kubernetes.md"
-[Configure Grafana Agent Flow]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/setup/configure/configure-kubernetes.md"
+[Configure]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/configure/configure-kubernetes.md"
+[Configure]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/setup/configure/configure-kubernetes.md"
 {{% /docs/reference %}}

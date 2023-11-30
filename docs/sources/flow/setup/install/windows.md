@@ -76,16 +76,16 @@ This includes any configuration files in the installation directory.
 
 ## Next steps
 
-- [Start Grafana Agent Flow][]
-- [Configure Grafana Agent Flow][]
+- [Start {{< param "PRODUCT_NAME" >}}][Start]
+- [Configure {{< param "PRODUCT_NAME" >}}][Configure]
 
 [latest]: https://github.com/grafana/agent/releases/latest
 
 {{% docs/reference %}}
-[Start Grafana Agent Flow]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/start-agent.md#windows"
-[Start Grafana Agent Flow]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/setup/start-agent.md#windows"
-[Configure Grafana Agent Flow]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/configure/configure-windows.md"
-[Configure Grafana Agent Flow]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/setup/configure/configure-windows.md"
+[Start]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/start-agent.md#windows"
+[Start]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/setup/start-agent.md#windows"
+[Configure]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/configure/configure-windows.md"
+[Configure]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/setup/configure/configure-windows.md"
 [data collection]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/data-collection.md"
 [data collection]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/data-collection.md"
 {{% /docs/reference %}}

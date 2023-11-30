@@ -112,12 +112,12 @@ additional features available in {{< param "PRODUCT_NAME" >}}.
 
 ## Run a Prometheus configuration
 
-If you’re not ready to completely switch to a flow configuration, you can run Grafana Agent using your existing Prometheus configuration.
-The `--config.format=prometheus` flag tells Grafana Agent to convert your Prometheus configuration to a {{< param "PRODUCT_NAME" >}} configuration and load it directly without saving the new configuration.
+If you’re not ready to completely switch to a flow configuration, you can run {{< param "PRODUCT_ROOT_NAME" >}} using your existing Prometheus configuration.
+The `--config.format=prometheus` flag tells {{< param "PRODUCT_ROOT_NAME" >}} to convert your Prometheus configuration to a {{< param "PRODUCT_NAME" >}} configuration and load it directly without saving the new configuration.
 This allows you to try {{< param "PRODUCT_NAME" >}} without modifying your existing Prometheus configuration infrastructure.
 
-> In this task, we will use the [run][] CLI command to run Grafana Agent in flow
-> mode using a Prometheus configuration.
+> In this task, we will use the [run][] CLI command to run {{< param "PRODUCT_NAME" >}}
+> using a Prometheus configuration.
 
 [Start][] {{< param "PRODUCT_NAME" >}} and include the command line flag
    `--config.format=prometheus`. Your configuration file must be a valid

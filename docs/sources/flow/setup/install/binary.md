@@ -21,7 +21,7 @@ weight: 600
 * macOS: AMD64 (Intel), ARM64 (Apple Silicon)
 * FreeBSD: AMD64
 
-## Download Grafana Agent
+## Download {{< param "PRODUCT_ROOT_NAME" >}}
 
 To download {{< param "PRODUCT_NAME" >}} as a standalone binary, perform the following steps.
 
@@ -43,12 +43,11 @@ To download {{< param "PRODUCT_NAME" >}} as a standalone binary, perform the fol
 
 ## Next steps
 
-* [Start Grafana Agent Flow][]
-* [Configure Grafana Agent Flow][]
+{{< param "PRODUCT_NAME" >}}
 
 {{% docs/reference %}}
-[Start Grafana Agent Flow]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/start-agent.md#standalone-binary"
-[Start Grafana Agent Flow]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/setup/start-agent.md#standalone-binary"
-[Configure Grafana Agent Flow]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/configure"
-[Configure Grafana Agent Flow]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/setup/configure/"
+[Start]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/start-agent.md#standalone-binary"
+[Start]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/setup/start-agent.md#standalone-binary"
+[Configure]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/configure"
+[Configure]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/setup/configure/"
 {{% /docs/reference %}}

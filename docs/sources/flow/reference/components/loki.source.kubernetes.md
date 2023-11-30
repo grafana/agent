@@ -83,7 +83,7 @@ client > authorization | [authorization][] | Configure generic authorization to 
 client > oauth2 | [oauth2][] | Configure OAuth2 for authenticating to the endpoint. | no
 client > oauth2 > tls_config | [tls_config][] | Configure TLS settings for connecting to the endpoint. | no
 client > tls_config | [tls_config][] | Configure TLS settings for connecting to the endpoint. | no
-clustering | [clustering][] | Configure the component for when the Agent is running in clustered mode. | no
+clustering | [clustering][] | Configure the component for when {{< param "PRODUCT_NAME" >}} is running in clustered mode. | no
 
 The `>` symbol indicates deeper levels of nesting. For example, `client >
 basic_auth` refers to a `basic_auth` block defined
@@ -100,7 +100,7 @@ inside a `client` block.
 
 The `client` block configures the Kubernetes client used to tail logs from
 containers. If the `client` block isn't provided, the default in-cluster
-configuration with the service account of the running Grafana Agent pod is
+configuration with the service account of the running {{< param "PRODUCT_ROOT_NAME" >}} pod is
 used.
 
 The following arguments are supported:
