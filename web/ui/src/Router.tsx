@@ -6,6 +6,7 @@ import PageClusteringPeers from './pages/Clustering';
 import ComponentDetailPage from './pages/ComponentDetailPage';
 import Graph from './pages/Graph';
 import PageComponentList from './pages/PageComponentList';
+import PageStreaming from './pages/Streaming';
 
 interface Props {
   basePath: string;
@@ -21,6 +22,7 @@ const Router = ({ basePath }: Props) => {
           <Route path="/component/*" element={<ComponentDetailPage />} />
           <Route path="/graph" element={<Graph />} />
           <Route path="/clustering" element={<PageClusteringPeers />} />
+          <Route path="/xray" element={<PageStreaming />} />
         </Routes>
       </main>
     </BrowserRouter>
