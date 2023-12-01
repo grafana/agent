@@ -59,7 +59,7 @@ require (
 	github.com/grafana/loki v1.6.2-0.20231004111112-07cbef92268a
 	github.com/grafana/pyroscope-go/godeltaprof v0.1.3
 	github.com/grafana/pyroscope/api v0.2.0
-	github.com/grafana/pyroscope/ebpf v0.3.3
+	github.com/grafana/pyroscope/ebpf v0.4.0
 	github.com/grafana/regexp v0.0.0-20221123153739-15dc172cd2db
 	github.com/grafana/river v0.3.0
 	github.com/grafana/snowflake-prometheus-exporter v0.0.0-20221213150626-862cad8e9538
@@ -86,7 +86,7 @@ require (
 	github.com/jaegertracing/jaeger v1.50.0
 	github.com/jmespath/go-jmespath v0.4.0
 	github.com/json-iterator/go v1.1.12
-	github.com/klauspost/compress v1.17.1
+	github.com/klauspost/compress v1.17.3
 	github.com/lib/pq v1.10.7
 	github.com/mackerelio/go-osstat v0.2.3
 	github.com/miekg/dns v1.1.55
