@@ -12,12 +12,12 @@ weight: 300
 
 # First Components and the Standard Library
 
-_This section covers the basics of the River language and the standard library. It then introduces a basic pipeline that collects metrics from the host and sends them to Prometheus._
+This tutorial covers the basics of the River language and the standard library. It introduces a basic pipeline that collects metrics from the host and sends them to Prometheus.
 
 ## River basics
 
-[Flow Configuration Language]: {{< relref "../../../config-language" >}}
-[Flow Configuration Language Concepts]: {{< relref "../../../concepts/configuration_language" >}}
+[Configuration Language]: {{< relref "../../../config-language" >}}
+[Configuration Language Concepts]: {{< relref "../../../concepts/configuration_language" >}}
 [Standard Library Documentation]: {{< relref "../../../reference/stdlib" >}}
 
 **Recommended Reading**
@@ -25,7 +25,7 @@ _This section covers the basics of the River language and the standard library. 
 - [Flow Configuration Language][]
 - [Flow Configuration Language Concepts][]
 
-[River](https://github.com/grafana/river) is an HCL-inspired configuration language, and is what is used to configure the Grafana Agent in Flow mode. A River file is mainly comprised of three things:
+[River](https://github.com/grafana/river) is an HCL-inspired configuration language used to configure {{< param "PRODUCT_NAME" >}}. A River file is comprised of three things:
 
 1. **Attributes**: `key = value` pairs used to configure individual settings.
 
@@ -33,7 +33,7 @@ _This section covers the basics of the River language and the standard library. 
     url = "http://localhost:9090"
     ```
 
-2. **Expressions**: Expressions are used to compute values. They can be constant values (e.g. `"localhost:9090"`) or they can be more complex (e.g. referencing a component's export: `prometheus.exporter.unix.targets`, a mathematical expression: `(1 + 2) * 3`, or a standard library function call: `env("HOME")`). We will use more expressions as we go along the examples. If you are curious, you can find a list of available standard library functions in the [Standard Library Documentation][].
+2. **Expressions**: Expressions are used to compute values. They can be constant values (for example, `"localhost:9090"`), or they can be more complex (for example, referencing a component's export: `prometheus.exporter.unix.targets`. They can also be a mathematical expression: `(1 + 2) * 3`, or a standard library function call: `env("HOME")`). We will use more expressions as we go along the examples. If you are curious, you can find a list of available standard library functions in the [Standard Library Documentation][].
 
 3. **Blocks**: Blocks are used to configure components with groups of attributes or nested blocks. The following example block can be used to configure the logging output of a Grafana Agent in Flow mode:
 
@@ -44,13 +44,15 @@ _This section covers the basics of the River language and the standard library. 
     }
     ```
 
-    **Note:** The default log level is `info` and the default log format is `logfmt`.
+   {{% admonition type="note" %}}
+   The default log level is `info` and the default log format is `logfmt`.
+   {{% /admonition %}}
 
-    Try pasting this into `config.river` and running `/path/to/agent run config.river` to see what happens!
+    Try pasting this into `config.river` and running `/path/to/agent run config.river` to see what happens.
 
-    Congratulations, you've just written your first River file! You've also just written your first Grafana Agent Flow configuration file. This configuration won't do anything, so let's add some components to it.
+    Congratulations, you've just written your first River file! You've also just written your first {{< param "PRODUCT_NAME" >}} configuration file. This configuration won't do anything, so let's add some components to it.
 
-**Pro tip**: _Comments in River are prefixed with `//` and are single-line only. e.g.:_
+**Pro tip**: _Comments in River are prefixed with `//` and are single-line only. For example:
 
 ```river
 // This is a comment
@@ -68,7 +70,7 @@ _This section covers the basics of the River language and the standard library. 
 - [Components][]
 - [Component Controller][]
 
-Components are the building blocks of a Grafana Agent Flow configuration. They are configured and linked together in order to create pipelines that collects, processes, and outputs your telemetry data. Components are configured with `Arguments` and have `Exports` that may be referenced by other components.
+Components are the building blocks of a {{< param "PRODUCT_NAME" >}} configuration. They are configured and linked to create pipelines that collect, process, and output your telemetry data. Components are configured with `Arguments` and have `Exports` that may be referenced by other components.
 
 Let's look at a simple example pipeline:
 
@@ -93,7 +95,7 @@ prometheus.remote_write "local_prom" {
 
 This pipeline has two components: `local.file` and `prometheus.remote_write`. The `local.file` component is configured with a single argument, `path`, which is set by calling the [env][] standard library function to retrieve the value of the `HOME` environment variable and concatenating it with the string `"file.txt"`. The `local.file` component has a single export, `content`, which contains the contents of the file.
 
-The `prometheus.remote_write` component is configured with an `endpoint` block, which contains the `url` attribute and a `basic_auth` block. The `url` attribute is set to the URL of the Prometheus remote write endpoint. The `basic_auth` block contains the `username` and `password` attributes, which are set to the string `"admin"` and the `content` export of the `local.file` component, respectively. Note that the `content` export is referenced by using the syntax `local.file.example.content`, where `local.file.example` is the fully qualified name of the component (the component's type + it's label) and `content` is the name of the export.
+The `prometheus.remote_write` component is configured with an `endpoint` block, containing the `url` attribute and a `basic_auth` block. The `url` attribute is set to the URL of the Prometheus remote write endpoint. The `basic_auth` block contains the `username` and `password` attributes, which are set to the string `"admin"` and the `content` export of the `local.file` component, respectively. The `content` export is referenced by using the syntax `local.file.example.content`, where `local.file.example` is the fully qualified name of the component (the component's type + its label) and `content` is the name of the export.
 
 <p align="center">
 <img src="/media/docs/agent/diagram-flow-by-example-basic-0.svg" alt="Flow of example pipeline with local.file and prometheus.remote_write components" width="200" />
@@ -145,7 +147,7 @@ Run the agent with:
 /path/to/agent run config.river
 ```
 
-And navigate to [http://localhost:3000/explore](http://localhost:3000/explore) in your browser. After ~15-20 seconds you should be able to see the metrics from the `prometheus.exporter.unix` component! Try querying for `node_memory_Active_bytes` to see the active memory of your host.
+Navigate to [http://localhost:3000/explore](http://localhost:3000/explore) in your browser. After ~15-20 seconds, you should be able to see the metrics from the `prometheus.exporter.unix` component! Try querying for `node_memory_Active_bytes` to see the active memory of your host.
 
 <p align="center">
 <img src="/media/docs/agent/screenshot-flow-by-example-memory-usage.png" alt="Screenshot of node_memory_Active_bytes query in Grafana" />
@@ -167,7 +169,7 @@ The above configuration defines three components:
 
 The `prometheus.scrape` component references the `prometheus.exporter.unix` component's targets export, which is a list of scrape targets. The `prometheus.scrape` component then forwards the scraped metrics to the `prometheus.remote_write` component.
 
-One rule is that components cannot form a cycle. This means that a component cannot reference itself, directly or indirectly. This is to prevent infinite loops from forming in the pipeline.
+One rule is that components cannot form a cycle. This means that a component cannot reference itself directly or indirectly. This is to prevent infinite loops from forming in the pipeline.
 
 ## Exercise for the reader
 
@@ -184,7 +186,7 @@ Let's start a container running Redis and configure the agent to scrape metrics 
 docker container run -d --name flow-redis -p 6379:6379 --rm redis
 ```
 
-Try modifying the above pipeline to also scrape metrics from the Redis exporter. You can refer to the [prometheus.exporter.redis][] component documentation for more information on how to configure it.
+Try modifying the above pipeline to scrape metrics from the Redis exporter. You can refer to the [prometheus.exporter.redis][] component documentation for more information on how to configure it.
 
 To give a visual hint, you want to create a pipeline that looks like this:
 
@@ -202,7 +204,7 @@ You can run the agent with the new config file by running:
 /path/to/agent run config.river
 ```
 
-And navigate to [http://localhost:3000/explore](http://localhost:3000/explore) in your browser. After the first scrape you should be able to query for `redis` metrics as well as `node` metrics!
+Navigate to [http://localhost:3000/explore](http://localhost:3000/explore) in your browser. After the first scrape, you should be able to query for `redis` metrics as well as `node` metrics!
 
 To shut down the Redis container, run:
 
@@ -212,8 +214,8 @@ docker container stop flow-redis
 
 ## Finishing up and next steps
 
-You might have noticed that running the agent with the above configs created a directory called `data-agent` in the directory you ran the agent from. This directory is where components can store data, such as the `prometheus.exporter.unix` component storing its WAL (Write Ahead Log). If you look in the directory, do you notice anything interesting? The directory for each component is the fully-qualified name!
+You might have noticed that running the agent with the above configurations created a directory called `data-agent` in the directory you ran the agent from. This directory is where components can store data, such as the `prometheus.exporter.unix` component storing its WAL (Write Ahead Log). If you look in the directory, do you notice anything interesting? The directory for each component is the fully-qualified name!
 
-If you'd like to store the data elsewhere, you can specify a different directory by supplying the `--storage.path` flag to the agent's run command, e.g. `/path/to/agent run config.river --storage.path /etc/grafana-agent`. Generally you will want to use a persistent directory for this, as some components may use the data stored in this directory to perform their function.
+If you'd like to store the data elsewhere, you can specify a different directory by supplying the `--storage.path` flag to the agent's run command, for example, `/path/to/agent run config.river --storage.path /etc/grafana-agent`. Generally, you will want to use a persistent directory for this, as some components may use the data stored in this directory to perform their function.
 
-In the next section we will look at how to configure the agent to collect logs from a file and send them to Loki. We will also look at using different components to process metrics and logs before sending them.
+In the next tutorial, we will look at how to configure the agent to collect logs from a file and send them to Loki. We will also look at using different components to process metrics and logs before sending them.

@@ -12,6 +12,6 @@ weight: 300
 
 # Flow by Example
 
-This section provides a set of step-by-step tutorials that show how to use the Grafana Agent in Flow mode.
+This section provides a set of step-by-step tutorials that show how to use {{< param "PRODUCT_NAME" >}}.
 
 {{< section >}}
