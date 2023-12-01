@@ -47,27 +47,31 @@ type Component struct {
 	exited atomic.Bool
 	ls     labelstore.LabelStore
 
-	seriesByName map[string]*SeriesCounter
-	seriesByJob  map[string]*SeriesCounter
-
-	cacheMut sync.RWMutex
+	allSeries map[string]*SeriesSummary
+	cacheMut  sync.RWMutex
 }
 
-// count number of uniquie series
-// should probably do rolling time buckets. For now just collect all
-type SeriesCounter struct {
-	series map[string]struct{}
+type SeriesSummary struct {
+	Labels     labels.Labels
+	LabelsStr  string  `river:"labels,attr"`
+	DataPoints uint64  `river:"dataPoints,attr"`
+	LastValue  float64 `river:"last,attr"`
 }
 
-func NewSeriesCounter() *SeriesCounter {
-	return &SeriesCounter{
-		series: map[string]struct{}{},
-	}
-}
+// {a=1,b=2} 234 last=42.65
 
-func (s *SeriesCounter) Add(l labels.Labels) {
-	s.series[l.String()] = struct{}{}
-}
+// Queries:
+
+// /reset
+// /summary?label=__name__&label=job
+// /details?job=integration/agent&__name__=cpu_requests
+
+// Summarize by __name__
+// cpu_whatever - 234 series (2k dp)
+// mem_foo - 15 series (15k dp)
+
+// Series Details {__name__ = cpu_whatever}
+// {a=b} 1k dp last=23
 
 var (
 	_ component.Component = (*Component)(nil)
@@ -80,10 +84,9 @@ func New(o component.Options, args Arguments) (*Component, error) {
 		return nil, err
 	}
 	c := &Component{
-		opts:         o,
-		ls:           data.(labelstore.LabelStore),
-		seriesByName: map[string]*SeriesCounter{},
-		seriesByJob:  map[string]*SeriesCounter{},
+		opts:      o,
+		ls:        data.(labelstore.LabelStore),
+		allSeries: map[string]*SeriesSummary{},
 	}
 
 	c.fanout = prometheus.NewFanout(nil, o.ID, o.Registerer, c.ls)
@@ -95,23 +98,17 @@ func New(o component.Options, args Arguments) (*Component, error) {
 				return 0, fmt.Errorf("%s has exited", o.ID)
 			}
 			c.cacheMut.Lock()
-			name := l.Get("__name__")
-			job := l.Get("job")
-
-			scount := c.seriesByName[name]
-			if scount == nil {
-				scount = NewSeriesCounter()
-				c.seriesByName[name] = scount
+			labelStr := l.String()
+			ss := c.allSeries[labelStr]
+			if ss == nil {
+				ss = &SeriesSummary{
+					Labels:    l,
+					LabelsStr: labelStr,
+				}
+				c.allSeries[labelStr] = ss
 			}
-			scount.Add(l)
-
-			scount = c.seriesByJob[job]
-			if scount == nil {
-				scount = NewSeriesCounter()
-				c.seriesByJob[job] = scount
-			}
-			scount.Add(l)
-
+			ss.DataPoints++
+			ss.LastValue = v
 			c.cacheMut.Unlock()
 			return 0, nil
 		}),
@@ -168,23 +165,68 @@ func (c *Component) Update(args component.Arguments) error {
 
 // ScraperStatus reports the status of the scraper's jobs.
 type debugInfo struct {
-	Metrics map[string]int `river:"metrics,attr"`
-	Jobs    map[string]int `river:"jobs,attr"`
+	Metrics map[string]*summary `river:"metrics,attr"`
+	Jobs    map[string]*summary `river:"jobs,attr"`
+	Details []*SeriesSummary    `river:"details,attr"`
 }
 
 // DebugInfo implements component.DebugComponent
 func (c *Component) DebugInfo() interface{} {
-	di := &debugInfo{
-		Metrics: map[string]int{},
-		Jobs:    map[string]int{},
-	}
+
 	c.cacheMut.RLock()
-	for m, scount := range c.seriesByName {
-		di.Metrics[m] = len(scount.series)
-	}
-	for m, scount := range c.seriesByJob {
-		di.Jobs[m] = len(scount.series)
+	di := &debugInfo{
+		Metrics: c.Summarize("__name__"),
+		Jobs:    c.Summarize("job"),
+		Details: c.Details(map[string]string{"__name__": "prometheus_sd_kubernetes_events_total"}),
 	}
 	c.cacheMut.RUnlock()
 	return di
+}
+
+type summary struct {
+	Labels         labels.Labels
+	SeriesCount    int `river:"seriesCount,attr"`
+	DataPointCount int `river:"dataPointCount,attr"`
+}
+
+// summarize by __name__
+// summarize by job
+// summarize by __name__,job
+func (c *Component) Summarize(ls ...string) map[string]*summary {
+	summaries := map[string]*summary{}
+	for _, v := range c.allSeries {
+		thisLabels := map[string]string{}
+		for _, l := range ls {
+			thisLabels[l] = v.Labels.Get(l)
+		}
+		labs := labels.FromMap(thisLabels)
+		summ := summaries[labs.String()]
+		if summ == nil {
+			summ = &summary{
+				Labels: labs,
+			}
+			summaries[labs.String()] = summ
+		}
+		summ.DataPointCount += int(v.DataPoints)
+		summ.SeriesCount++
+	}
+	return summaries
+}
+
+// details for __name__ = prometheus_sd_kubernetes_events_total
+func (c *Component) Details(matchers map[string]string) []*SeriesSummary {
+	matches := []*SeriesSummary{}
+	for _, s := range c.allSeries {
+		match := true
+		for k, v := range matchers {
+			if s.Labels.Get(k) != v {
+				match = false
+				break
+			}
+		}
+		if match {
+			matches = append(matches, s)
+		}
+	}
+	return matches
 }
