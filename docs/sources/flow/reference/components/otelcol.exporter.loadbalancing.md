@@ -15,6 +15,8 @@ title: otelcol.exporter.loadbalancing
 
 {{< docs/shared lookup="flow/stability/beta.md" source="agent" version="<AGENT_VERSION>" >}}
 
+<!-- Include a picture of the LB architecture? -->
+
 `otelcol.exporter.loadbalancing` accepts logs and traces from other `otelcol` components
 and writes them over the network using the OpenTelemetry Protocol (OTLP) protocol. 
 
@@ -142,7 +144,8 @@ Name | Type | Description | Default | Required
 ### kubernetes block
 
 You can use the `kubernetes` block to load balance across the pods of a Kubernetes service. The Agent will be notified
-by the Kubernetes API whenever a new pod is added or removed from the service.
+by the Kubernetes API whenever a new pod is added or removed from the service. The `kubernetes` resolver has a
+much faster response time than the `dns` resolver, because it doesn't require polling.
 
 The following arguments are supported:
 
@@ -264,6 +267,95 @@ Name | Type | Description
 * logs
 * traces
 
+## Choosing a load balancing strategy
+
+<!-- TODO: Mention gropubytrace processor when Flow supports it -->
+<!-- TODO: Should we run more than 1 LB instance for better resiliency and spreading out the load? -->
+
+There are various stateful Flow components which require specific load balancing strategies.
+<!-- TODO: "stateful" should be a link to the other doc which defines it -->
+
+### otelcol.processor.tail_sampling
+<!-- TODO: Add a picture of the architecture?  -->
+All spans for a given trace ID must go to the same tail sampling Agent.
+* This can be done by configuring `otelcol.exporter.loadbalancing` with `routing_key = "traceID"`.
+* If this is not done, the sampling decision may be incorrect. This is because the tail sampler must
+  have a full view of the trace when making a sampling decision.
+  * For example, a `rate_limiting` tail sampling strategy may incorrectly pass through 
+    more spans than expected if the spans for the same trace are spread out to more than one Agent instance.
+
+<!-- Make "rate limiting" a URL to the tail sampler doc -->
+
+### otelcol.connector.spanmetrics
+All spans for a given `service.name` must go to the same spanmetrics Agent.
+* This can be done by configuring `otelcol.exporter.loadbalancing` with `routing_key = "service"`.
+* If this is not done, metrics generated from spans might be incorrect.
+  * For example, if similar spans for the same `service.name` end up on different Agent instances,
+    the two Agents will have identical metic series for calculating span latency, errors, and number of requests.
+  * When both Agents attempt to remote write the metrics to a database such as Mimir,
+    the series with clash with each other.
+  * At best this will lead to an error in the Agent and a rejected remote write. 
+  * At worst, it could lead to an inaccurate data dure to overlapping samples for the metric series.
+
+However, there are ways to scale `otelcol.connector.spanmetrics` without the need for a load balancer:
+1. Each Agent could add an attribute such as `agent.id` in order to make its series unique.
+  * A `sum by` PromQL query could be used to aggregate the metrics from different Agents.
+  * An extra `agent.id` attribute has a downside that the metrics stored in the database will have extra cardinality.
+2. Spanmetrics could be generated in the backend database instead of the Agent.
+  * For example, span metrics can be [generated][tempo-spanmetrics] in Grafana Cloud by the Tempo traces database.
+
+[tempo-spanmetrics]: https://grafana.com/docs/tempo/latest/metrics-generator/span_metrics/
+
+### otelcol.connector.servicegraph
+Unfortunately, there is generally no reliable way to scale `otelcol.connector.servicegraph` over multiple Agent instance.
+<!-- Or is there? Can we fix the issue below using a PromQL query? There may still be higher than normal cardinality though? -->
+* For `otelcol.connector.servicegraph` to work correctly, each "client" span must be paired 
+  with a "server" span in order to calculate metrics such as span duration.
+* If a "client" span goes to one Agent, but a "server" span goes to another Agent, 
+  then no single Agent will be able to pair the spans and a metric won't be generated.
+
+`otelcol.exporter.loadbalancing` can solve this problem partially if it is configured with `routing_key = "traceID"`.
+  * Each Agent will then be able to calculate service graph for each client/server pair in a trace.
+  * However, it is possible to have a span with similar "server"/"client" values 
+    in a different trace, processed by another Agent.
+  * If two different Agents, process similar "server"/"client" spans, 
+    they will generate the same service graph metric series.
+  * If the series from two Agents are the same, this will lead to issues 
+    when remote writing them in the backend database.
+
+  * Users could differentiate the series by adding a label such as `"agent_instance"`, 
+    but there is currently no method in the Agent to aggregate those series from different Agents and merge them into one series.
+
+There are ways to work around this:
+  1. Each Agent could add an attribute such as `agent.id` in order to make its series unique.
+    * A PromQL query could be used to aggregate the metrics from different Agents.
+    * An extra `agent.id` attribute has a downside that the metrics stored in the database will have extra cardinality.
+  2. A simpler, more scalable alternative to generating service graph metrics 
+    in the Agent is to do them in the backend database. 
+    * For example service graphs can be [generated][tempo-servicegraphs] in Grafana Cloud by the Tempo traces database.
+
+[tempo-servicegraphs]: https://grafana.com/docs/tempo/latest/metrics-generator/service_graphs/
+
+### Mixing stateful components
+<!-- TODO: Add a picture of the architecture?  -->
+Different Flow components may require a different `routing_key` for `otelcol.exporter.loadbalancing`.
+* For example, `otelcol.processor.tail_sampling` requires `routing_key = "traceID"` 
+  whereas `otelcol.connector.spanmetrics` requires `routing_key = "service"`.
+* Therefore, it is not possible to use the same load balancer for both tail sampling and span metrics.
+* Two different sets of load balancers have to be set up:
+  * One set of `otelcol.exporter.loadbalancing` with `routing_key = "traceID"`, sending spans to Agents doing tail sampling and no span metrics.
+  * Another set of `otelcol.exporter.loadbalancing` with `routing_key = "service"`, sending spans to Agents doing span metrics and no service graphs.
+* Unfortunately, this can also lead to side effects. For example, if `otelcol.connector.spanmetrics` is configured to generate exemplars,
+  the tail sampling Agents might drop the trace which the exemplar points to. There is no coordination between the tail sampling Agents and
+  the span metrics Agents to make sure trace IDs for exemplars are kept.
+
+<!-- 
+TODO: Add a troubleshooting section?
+1. Use GODEBUG for DNS resolver logging
+2. Enable debug logging on the Agent
+3. gRPC debug env variables?
+ -->
+
 ## Component health
 
 `otelcol.exporter.loadbalancing` is only reported as unhealthy if given an invalid
@@ -274,7 +366,9 @@ configuration.
 `otelcol.exporter.loadbalancing` does not expose any component-specific debug
 information.
 
-## Example
+## Examples
+
+### Static resolver
 
 This example accepts OTLP logs and traces over gRPC. It then sends them in a load-balanced 
 way to "localhost:55690" or "localhost:55700".
@@ -301,6 +395,568 @@ otelcol.exporter.loadbalancing "default" {
     }
 }
 ```
+
+### DNS resolver
+
+When configured with a `dns` resolver, `otelcol.exporter.loadbalancing` will do a DNS lookup 
+on regular intervals. Spans will then be exported to the addresses which the DNS lookup had returned.
+
+```river
+otelcol.exporter.loadbalancing "default" {
+    resolver {
+        dns {
+            hostname = "grafana-agent-traces-sampling.grafana-cloud-monitoring.svc.cluster.local"
+            port     = "34621"
+            interval = "5s"
+            timeout  = "1s"
+        }
+    }
+    protocol {
+        otlp {
+            client {}
+        }
+    }
+}
+```
+
+Below is an example Kubernetes configuration which sets up two sets of Agents:
+* A pool of "load balancer" Agents:
+  * Spans are received from instrumented applications via `otelcol.receiver.otlp`
+  * Spans are then exported via `otelcol.exporter.loadbalancing`.
+* A pool of "backing" Agents:
+  * The "backing" Agents run behind a headless service to enable the "load balancer" Agents to discover them.
+  * Spans are received from the "load balancer" Agents via `otelcol.receiver.otlp`
+  * Traces are then sampled via `otelcol.processor.tail_sampling`.
+  * The traces are exported via `otelcol.exporter.otlp` to a an OTLP-compatible database such as Tempo.
+
+{{< collapse title="Example Kubernetes configuration" >}}
+
+```yaml
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: grafana-cloud-monitoring
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: k6-trace-generator
+  namespace: grafana-cloud-monitoring
+spec:
+  minReadySeconds: 10
+  replicas: 1
+  revisionHistoryLimit: 1
+  selector:
+    matchLabels:
+      name: k6-trace-generator
+  template:
+    metadata:
+      labels:
+        name: k6-trace-generator
+    spec:
+      containers:
+      - env:
+        - name: ENDPOINT
+          value: agent-traces-lb.grafana-cloud-monitoring.svc.cluster.local:9411
+        image: ghcr.io/grafana/xk6-client-tracing:v0.0.2
+        imagePullPolicy: IfNotPresent
+        name: k6-trace-generator
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: agent-traces-lb
+  namespace: grafana-cloud-monitoring
+spec:
+  clusterIP: None
+  ports:
+  - name: agent-traces-otlp-grpc
+    port: 9411
+    protocol: TCP
+    targetPort: 9411
+  selector:
+    name: agent-traces-lb
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: agent-traces-lb
+  namespace: grafana-cloud-monitoring
+spec:
+  minReadySeconds: 10
+  replicas: 1
+  revisionHistoryLimit: 1
+  selector:
+    matchLabels:
+      name: agent-traces-lb
+  template:
+    metadata:
+      labels:
+        name: agent-traces-lb
+    spec:
+      containers:
+      - args:
+        - run
+        - /etc/agent/agent_lb.river
+        command:
+        - /bin/grafana-agent
+        env:
+        - name: AGENT_MODE
+          value: flow
+        image: grafana/agent:v0.38.0
+        imagePullPolicy: IfNotPresent
+        name: agent-traces
+        ports:
+        - containerPort: 9411
+          name: otlp-grpc
+          protocol: TCP
+        - containerPort: 34621
+          name: agent-lb
+          protocol: TCP
+        volumeMounts:
+        - mountPath: /etc/agent
+          name: agent-traces
+      volumes:
+      - configMap:
+          name: agent-traces
+        name: agent-traces
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: agent-traces-sampling
+  namespace: grafana-cloud-monitoring
+spec:
+  clusterIP: None
+  ports:
+  - name: agent-lb
+    port: 34621
+    protocol: TCP
+    targetPort: agent-lb
+  selector:
+    name: agent-traces-sampling
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: agent-traces-sampling
+  namespace: grafana-cloud-monitoring
+spec:
+  minReadySeconds: 10
+  replicas: 3
+  revisionHistoryLimit: 1
+  selector:
+    matchLabels:
+      name: agent-traces-sampling
+  template:
+    metadata:
+      labels:
+        name: agent-traces-sampling
+    spec:
+      containers:
+      - args:
+        - run
+        - /etc/agent/agent_sampling.river
+        command:
+        - /bin/grafana-agent
+        env:
+        - name: AGENT_MODE
+          value: flow
+        image: grafana/agent:v0.38.0
+        imagePullPolicy: IfNotPresent
+        name: agent-traces
+        ports:
+        - containerPort: 9411
+          name: otlp-grpc
+          protocol: TCP
+        - containerPort: 34621
+          name: agent-lb
+          protocol: TCP
+        volumeMounts:
+        - mountPath: /etc/agent
+          name: agent-traces
+      volumes:
+      - configMap:
+          name: agent-traces
+        name: agent-traces
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: agent-traces
+  namespace: grafana-cloud-monitoring
+data:
+  agent_lb.river: |
+    otelcol.receiver.otlp "default" {
+      grpc {
+        endpoint = "0.0.0.0:9411"
+      }
+      output {
+        traces = [otelcol.exporter.loadbalancing.default.input,otelcol.exporter.logging.default.input]
+      }
+    }
+
+    otelcol.exporter.logging "default" {
+      verbosity = "detailed"
+    }
+
+    otelcol.exporter.loadbalancing "default" {
+      resolver {
+        dns {
+          hostname = "agent-traces-sampling.grafana-cloud-monitoring.svc.cluster.local"
+          port = "34621"
+        }
+      }
+      protocol {
+        otlp {
+          client {
+            tls {
+              insecure = true
+            }
+          }
+        }
+      }
+    }
+
+  agent_sampling.river: |
+    otelcol.receiver.otlp "default" {
+      grpc {
+        endpoint = "0.0.0.0:34621"
+      }
+      output {
+        traces = [otelcol.exporter.otlp.default.input,otelcol.exporter.logging.default.input]
+      }
+    }
+
+    otelcol.exporter.logging "default" {
+      verbosity = "detailed"
+    }
+
+    otelcol.exporter.otlp "default" {
+      client {
+        endpoint = "tempo-prod-06-prod-gb-south-0.grafana.net:443"
+        auth     = otelcol.auth.basic.creds.handler
+      }
+    }
+
+    otelcol.auth.basic "creds" {
+      username = "111111"
+      password = "pass"
+    }
+```
+{{< /collapse >}}
+
+You need to fill in correct OTLP credentials prior to running the above example.
+The example above can be started by using k3d:
+<!-- TODO: Link to the k3d page -->
+```bash
+k3d cluster create grafana-agent-lb-test
+kubectl apply -f kubernetes_config.yaml
+```
+
+To delete the cluster, run:
+```bash
+k3d cluster delete grafana-agent-lb-test
+```
+
+### Kubernetes resolver
+
+`otelcol.exporter.loadbalancing` can export to a statically configured 
+list of Agents using configuration like this:
+
+```river
+otelcol.exporter.loadbalancing "default" {
+    resolver {
+        kubernetes {
+            service = "grafana-agent-traces-headless"
+            ports   = [ 34621 ]
+        }
+    }
+    protocol {
+        otlp {
+            client {}
+        }
+    }
+}
+```
+
+Below is an example Kubernetes configuration which sets up two sets of Agents:
+* A pool of "load balancer" Agents:
+  * Spans are received from instrumented applications via `otelcol.receiver.otlp`
+  * Spans are then exported via `otelcol.exporter.loadbalancing`.
+  * The "load balancer" Agents will get notified by the Kubernetes API any time a pod 
+    is added or removed from the pool of "backing" Agents.
+* A pool of "backing" Agents:
+  * The "backing" Agents do not need to run behind a headless service.
+  * Spans are received from the "load balancer" Agents via `otelcol.receiver.otlp`
+  * Traces are then sampled via `otelcol.processor.tail_sampling`.
+  * The traces are exported via `otelcol.exporter.otlp` to a an OTLP-compatible database such as Tempo.
+
+<!-- TODO: In the k8s config, why does the LB service has to be headless? -->
+{{< collapse title="Example Kubernetes configuration" >}}
+
+```yaml
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: grafana-cloud-monitoring
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: grafana-agent-traces
+  namespace: grafana-cloud-monitoring
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: grafana-agent-traces-role
+  namespace: grafana-cloud-monitoring
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - endpoints
+  verbs:
+  - list
+  - watch
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: grafana-agent-traces-rolebinding
+  namespace: grafana-cloud-monitoring
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: grafana-agent-traces-role
+subjects:
+- kind: ServiceAccount
+  name: grafana-agent-traces
+  namespace: grafana-cloud-monitoring
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: k6-trace-generator
+  namespace: grafana-cloud-monitoring
+spec:
+  minReadySeconds: 10
+  replicas: 1
+  revisionHistoryLimit: 1
+  selector:
+    matchLabels:
+      name: k6-trace-generator
+  template:
+    metadata:
+      labels:
+        name: k6-trace-generator
+    spec:
+      containers:
+      - env:
+        - name: ENDPOINT
+          value: agent-traces-lb.grafana-cloud-monitoring.svc.cluster.local:9411
+        image: ghcr.io/grafana/xk6-client-tracing:v0.0.2
+        imagePullPolicy: IfNotPresent
+        name: k6-trace-generator
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: agent-traces-lb
+  namespace: grafana-cloud-monitoring
+spec:
+  clusterIP: None
+  ports:
+  - name: agent-traces-otlp-grpc
+    port: 9411
+    protocol: TCP
+    targetPort: 9411
+  selector:
+    name: agent-traces-lb
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: agent-traces-lb
+  namespace: grafana-cloud-monitoring
+spec:
+  minReadySeconds: 10
+  replicas: 1
+  revisionHistoryLimit: 1
+  selector:
+    matchLabels:
+      name: agent-traces-lb
+  template:
+    metadata:
+      labels:
+        name: agent-traces-lb
+    spec:
+      containers:
+      - args:
+        - run
+        - /etc/agent/agent_lb.river
+        command:
+        - /bin/grafana-agent
+        env:
+        - name: AGENT_MODE
+          value: flow
+        image: grafana/agent:v0.38.0
+        imagePullPolicy: IfNotPresent
+        name: agent-traces
+        ports:
+        - containerPort: 9411
+          name: otlp-grpc
+          protocol: TCP
+        volumeMounts:
+        - mountPath: /etc/agent
+          name: agent-traces
+      serviceAccount: grafana-agent-traces
+      volumes:
+      - configMap:
+          name: agent-traces
+        name: agent-traces
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: agent-traces-sampling
+  namespace: grafana-cloud-monitoring
+spec:
+  ports:
+  - name: agent-lb
+    port: 34621
+    protocol: TCP
+    targetPort: agent-lb
+  selector:
+    name: agent-traces-sampling
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: agent-traces-sampling
+  namespace: grafana-cloud-monitoring
+spec:
+  minReadySeconds: 10
+  replicas: 3
+  revisionHistoryLimit: 1
+  selector:
+    matchLabels:
+      name: agent-traces-sampling
+  template:
+    metadata:
+      labels:
+        name: agent-traces-sampling
+    spec:
+      containers:
+      - args:
+        - run
+        - /etc/agent/agent_sampling.river
+        command:
+        - /bin/grafana-agent
+        env:
+        - name: AGENT_MODE
+          value: flow
+        image: grafana/agent:v0.38.0
+        imagePullPolicy: IfNotPresent
+        name: agent-traces
+        ports:
+        - containerPort: 34621
+          name: agent-lb
+          protocol: TCP
+        volumeMounts:
+        - mountPath: /etc/agent
+          name: agent-traces
+      volumes:
+      - configMap:
+          name: agent-traces
+        name: agent-traces
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: agent-traces
+  namespace: grafana-cloud-monitoring
+data:
+  agent_lb.river: |
+    otelcol.receiver.otlp "default" {
+      grpc {
+        endpoint = "0.0.0.0:9411"
+      }
+      output {
+        traces = [otelcol.exporter.loadbalancing.default.input,otelcol.exporter.logging.default.input]
+      }
+    }
+
+    otelcol.exporter.logging "default" {
+      verbosity = "detailed"
+    }
+
+    otelcol.exporter.loadbalancing "default" {
+      resolver {
+        kubernetes {
+          service = "agent-traces-sampling"
+          ports = ["34621"]
+        }
+      }
+      protocol {
+        otlp {
+          client {
+            tls {
+              insecure = true
+            }
+          }
+        }
+      }
+    }
+
+  agent_sampling.river: |
+    otelcol.receiver.otlp "default" {
+      grpc {
+        endpoint = "0.0.0.0:34621"
+      }
+      output {
+        traces = [otelcol.exporter.otlp.default.input,otelcol.exporter.logging.default.input]
+      }
+    }
+
+    otelcol.exporter.logging "default" {
+      verbosity = "detailed"
+    }
+
+    otelcol.exporter.otlp "default" {
+      client {
+        endpoint = "tempo-prod-06-prod-gb-south-0.grafana.net:443"
+        auth     = otelcol.auth.basic.creds.handler
+      }
+    }
+
+    otelcol.auth.basic "creds" {
+      username = "111111"
+      password = "pass"
+    }
+```
+
+{{< /collapse >}}
+
+You need to fill in correct OTLP credentials prior to running the above example.
+The example above can be started by using k3d:
+<!-- TODO: Link to the k3d page -->
+```bash
+k3d cluster create grafana-agent-lb-test
+kubectl apply -f kubernetes_config.yaml
+```
+
+To delete the cluster, run:
+```bash
+k3d cluster delete grafana-agent-lb-test
+```
+
 <!-- START GENERATED COMPATIBLE COMPONENTS -->
 
 ## Compatible components

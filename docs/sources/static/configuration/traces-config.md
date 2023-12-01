@@ -308,13 +308,27 @@ tail_sampling:
 # It ensures that all spans of a trace are sampled in the same instance.
 # It works by exporting spans based on their traceID via consistent hashing.
 #
-# Enabling this feature is required for tail_sampling to correctly work when
-# different agent instances can receive spans for the same trace.
+# Enabling this feature is required for "tail_sampling", "spanmetrics", and "service_graphs"
+# to correctly work when spans are ingested by multiple agent instances.
 #
 # Load balancing works by layering two pipelines and consistently exporting
 # spans belonging to a trace to the same agent instance.
 # Agent instances need to be able to communicate with each other via gRPC.
 #
+# When load_balancing is enabled:
+# 1. When an Agent receives spans from the configures "receivers".
+# 2. If the "attributes" processor is configured, it will be ran on the spans.
+# 3. The spans will be exported using the "load_balancing" configuration to any of the Agent instances.
+#    This may or may not be the same Agent which has already received the span.
+# 4. The Agent which received the span from the loadbalancer will run these processors, 
+#    in this order, if they are configured:
+#    1. "spanmetrics"
+#    2. "service_graphs"
+#    3. "tail_sampling"
+#    4. "automatic_logging"
+#    5. "batch"
+# 5. The spans are then remote written using the "remote_write" configuration.
+# 
 # Load balancing significantly increases CPU usage. This is because spans are
 # exported an additional time between agents.
 load_balancing:
