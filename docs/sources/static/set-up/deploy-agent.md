@@ -180,8 +180,174 @@ data:
 
 {{< collapse title="Example Kubernetes configuration with Kubernetes load balancing" >}}
 
-<!-- TODO: Fill in the Kubernetes yaml once I have a working configuration -->
 ```yaml
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: grafana-cloud-monitoring
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: grafana-agent-traces
+  namespace: grafana-cloud-monitoring
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: grafana-agent-traces-role
+  namespace: grafana-cloud-monitoring
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - endpoints
+  verbs:
+  - list
+  - watch
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: grafana-agent-traces-rolebinding
+  namespace: grafana-cloud-monitoring
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: grafana-agent-traces-role
+subjects:
+- kind: ServiceAccount
+  name: grafana-agent-traces
+  namespace: grafana-cloud-monitoring
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: agent-traces
+  namespace: grafana-cloud-monitoring
+spec:
+  ports:
+  - name: agent-traces-otlp-grpc
+    port: 9411
+    protocol: TCP
+    targetPort: 9411
+  selector:
+    name: agent-traces
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: k6-trace-generator
+  namespace: grafana-cloud-monitoring
+spec:
+  minReadySeconds: 10
+  replicas: 1
+  revisionHistoryLimit: 1
+  selector:
+    matchLabels:
+      name: k6-trace-generator
+  template:
+    metadata:
+      labels:
+        name: k6-trace-generator
+    spec:
+      containers:
+      - env:
+        - name: ENDPOINT
+          value: agent-traces-headless.grafana-cloud-monitoring.svc.cluster.local:9411
+        image: ghcr.io/grafana/xk6-client-tracing:v0.0.2
+        imagePullPolicy: IfNotPresent
+        name: k6-trace-generator
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: agent-traces
+  namespace: grafana-cloud-monitoring
+spec:
+  minReadySeconds: 10
+  replicas: 3
+  revisionHistoryLimit: 1
+  selector:
+    matchLabels:
+      name: agent-traces
+  template:
+    metadata:
+      labels:
+        name: agent-traces
+    spec:
+      containers:
+      - args:
+        - -config.file=/etc/agent/agent.yaml
+        command:
+        - /bin/grafana-agent
+        image: grafana/agent:v0.38.0
+        imagePullPolicy: IfNotPresent
+        name: agent-traces
+        ports:
+        - containerPort: 9411
+          name: otlp-grpc
+          protocol: TCP
+        - containerPort: 34621
+          name: agent-lb
+          protocol: TCP
+        volumeMounts:
+        - mountPath: /etc/agent
+          name: agent-traces
+      serviceAccount: grafana-agent-traces
+      volumes:
+      - configMap:
+          name: agent-traces
+        name: agent-traces
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: agent-traces-headless
+  namespace: grafana-cloud-monitoring
+spec:
+  clusterIP: None
+  ports:
+  - name: agent-lb
+    port: 34621
+    protocol: TCP
+    targetPort: agent-lb
+  selector:
+    name: agent-traces
+  type: ClusterIP
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: agent-traces
+  namespace: grafana-cloud-monitoring
+data:
+  agent.yaml: |
+    traces:
+      configs:
+      - name: default
+        load_balancing:
+          exporter:
+            insecure: true
+          resolver:
+            kubernetes:
+              service: agent-traces-headless
+              ports: 
+              - 34621
+          receiver_port: 34621
+        receivers:
+          otlp:
+            protocols:
+              grpc:
+                endpoint: 0.0.0.0:9411
+        remote_write:
+        - basic_auth:
+            username: 111111
+            password: pass
+          endpoint: tempo-prod-06-prod-gb-south-0.grafana.net:443
+          retry_on_failure:
+            enabled: false```
 ```
 
 {{< /collapse >}}
