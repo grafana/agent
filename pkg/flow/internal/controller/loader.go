@@ -46,6 +46,7 @@ type Loader struct {
 	blocks            []*ast.BlockStmt // Most recently loaded blocks, used for writing
 	cm                *controllerMetrics
 	cc                *controllerCollector
+	debugger          *DebuggingConfigNode
 	moduleExportIndex int
 }
 
@@ -236,6 +237,8 @@ func (l *Loader) Apply(args map[string]any, componentBlocks []*ast.BlockStmt, co
 		l.moduleExportIndex = l.cache.ExportChangeIndex()
 		l.globals.OnExportsChange(l.cache.CreateModuleExports())
 	}
+
+	l.debugger.StartDebugging(l.componentNodes)
 	return diags
 }
 
@@ -411,6 +414,12 @@ func (l *Loader) populateConfigBlockNodes(args map[string]any, g *dag.Graph, con
 	if nodeMap.tracing == nil && !l.isModule() {
 		c := NewDefaulTracingConfigNode(l.globals)
 		g.Add(c)
+	}
+
+	if nodeMap.debugging != nil {
+		l.debugger = nodeMap.debugging
+	} else {
+		l.debugger = NewDefaultDebuggingConfigNode()
 	}
 
 	return diags

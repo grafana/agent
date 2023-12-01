@@ -8,10 +8,11 @@ import (
 )
 
 const (
-	argumentBlockID = "argument"
-	exportBlockID   = "export"
-	loggingBlockID  = "logging"
-	tracingBlockID  = "tracing"
+	argumentBlockID  = "argument"
+	exportBlockID    = "export"
+	loggingBlockID   = "logging"
+	tracingBlockID   = "tracing"
+	debuggingBlockID = "debugging"
 )
 
 // NewConfigNode creates a new ConfigNode from an initial ast.BlockStmt.
@@ -26,6 +27,8 @@ func NewConfigNode(block *ast.BlockStmt, globals ComponentGlobals) (BlockNode, d
 		return NewLoggingConfigNode(block, globals), nil
 	case tracingBlockID:
 		return NewTracingConfigNode(block, globals), nil
+	case debuggingBlockID:
+		return NewDebuggingConfigNode(block, globals), nil
 	default:
 		var diags diag.Diagnostics
 		diags.Add(diag.Diagnostic{
@@ -44,6 +47,7 @@ func NewConfigNode(block *ast.BlockStmt, globals ComponentGlobals) (BlockNode, d
 type ConfigNodeMap struct {
 	logging     *LoggingConfigNode
 	tracing     *TracingConfigNode
+	debugging   *DebuggingConfigNode
 	argumentMap map[string]*ArgumentConfigNode
 	exportMap   map[string]*ExportConfigNode
 }
@@ -54,6 +58,7 @@ func NewConfigNodeMap() *ConfigNodeMap {
 	return &ConfigNodeMap{
 		logging:     nil,
 		tracing:     nil,
+		debugging:   nil,
 		argumentMap: map[string]*ArgumentConfigNode{},
 		exportMap:   map[string]*ExportConfigNode{},
 	}
@@ -69,6 +74,8 @@ func (nodeMap *ConfigNodeMap) Append(configNode BlockNode) diag.Diagnostics {
 		nodeMap.argumentMap[n.Label()] = n
 	case *ExportConfigNode:
 		nodeMap.exportMap[n.Label()] = n
+	case *DebuggingConfigNode:
+		nodeMap.debugging = n
 	case *LoggingConfigNode:
 		nodeMap.logging = n
 	case *TracingConfigNode:
@@ -117,6 +124,16 @@ func (nodeMap *ConfigNodeMap) ValidateModuleConstraints(isInModule bool) diag.Di
 			diags.Add(diag.Diagnostic{
 				Severity: diag.SeverityLevelError,
 				Message:  "tracing block not allowed inside a module",
+				StartPos: ast.StartPos(nodeMap.tracing.Block()).Position(),
+				EndPos:   ast.EndPos(nodeMap.tracing.Block()).Position(),
+			})
+		}
+
+		// for now let's not allow it in modules
+		if nodeMap.debugging != nil {
+			diags.Add(diag.Diagnostic{
+				Severity: diag.SeverityLevelError,
+				Message:  "debugging block not allowed inside a module",
 				StartPos: ast.StartPos(nodeMap.tracing.Block()).Position(),
 				EndPos:   ast.EndPos(nodeMap.tracing.Block()).Position(),
 			})
