@@ -419,6 +419,7 @@ func (l *Loader) populateConfigBlockNodes(args map[string]any, g *dag.Graph, con
 	if nodeMap.debugging != nil {
 		l.debugger = nodeMap.debugging
 	} else {
+		// this node here is not added
 		l.debugger = NewDefaultDebuggingConfigNode()
 	}
 
