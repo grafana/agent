@@ -162,10 +162,14 @@ func (c *Component) collectProfiles() error {
 	level.Debug(c.options.Logger).Log("msg", "ebpf  collectProfiles")
 	args := c.args
 	builders := pprof.NewProfileBuilders(int64(args.SampleRate))
-	err := c.session.CollectProfiles(func(target *sd.Target, stack []string, value uint64, pid uint32) {
+	err := c.session.CollectProfiles(func(target *sd.Target, stack []string, value uint64, pid uint32, aggregation ebpfspy.SampleAggregation) {
 		labelsHash, labels := target.Labels()
 		builder := builders.BuilderForTarget(labelsHash, labels)
-		builder.AddSample(stack, value)
+		if aggregation == ebpfspy.SampleAggregated {
+			builder.CreateSample(stack, value)
+		} else {
+			builder.CreateSampleOrAddValue(stack, value)
+		}
 	})
 
 	if err != nil {
