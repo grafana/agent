@@ -2,7 +2,9 @@ package metrics
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"net/http"
 	"sync"
 
 	"go.uber.org/atomic"
@@ -11,6 +13,7 @@ import (
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/prometheus"
+	"github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/grafana/agent/service/labelstore"
 	"github.com/prometheus/prometheus/model/exemplar"
 	"github.com/prometheus/prometheus/model/histogram"
@@ -78,7 +81,6 @@ var (
 )
 
 func New(o component.Options, args Arguments) (*Component, error) {
-
 	data, err := o.GetServiceData(labelstore.ServiceName)
 	if err != nil {
 		return nil, err
@@ -185,8 +187,8 @@ func (c *Component) DebugInfo() interface{} {
 
 type summary struct {
 	Labels         labels.Labels
-	SeriesCount    int `river:"seriesCount,attr"`
-	DataPointCount int `river:"dataPointCount,attr"`
+	SeriesCount    int `river:"seriesCount,attr" json:"seriesCount"`
+	DataPointCount int `river:"dataPointCount,attr" json:"dataPointCount"`
 }
 
 // summarize by __name__
@@ -229,4 +231,41 @@ func (c *Component) Details(matchers map[string]string) []*SeriesSummary {
 		}
 	}
 	return matches
+}
+
+func (c *Component) Handler() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		level.Error(c.opts.Logger).Log("msg", "got request", "path", r.URL.Path)
+		switch r.URL.Path {
+		case "/summary":
+			params := r.URL.Query()
+			ls := append([]string{}, params["label"]...)
+			level.Error(c.opts.Logger).Log("msg", "got summary request", "labels", ls)
+			summaries := c.Summarize(ls...)
+			w.Header().Set("Content-Type", "application/json")
+			err := json.NewEncoder(w).Encode(summaries)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+			} else {
+				w.WriteHeader(http.StatusOK)
+			}
+		case "/details":
+			params := r.URL.Query()
+			ls := map[string]string{}
+			for k, v := range params {
+				ls[k] = v[0]
+			}
+			level.Error(c.opts.Logger).Log("msg", "got summary request", "labels", ls)
+			details := c.Details(ls)
+			w.Header().Set("Content-Type", "application/json")
+			err := json.NewEncoder(w).Encode(details)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+			} else {
+				w.WriteHeader(http.StatusOK)
+			}
+		default:
+			w.WriteHeader(http.StatusNotFound)
+		}
+	})
 }
