@@ -333,19 +333,27 @@ tail_sampling:
 # exported an additional time between agents.
 load_balancing:
   # resolver configures the resolution strategy for the involved backends
-  # It can be static, with a fixed list of hostnames, or DNS, with a hostname
-  # (and port) that will resolve to all IP addresses.
+  # It can be either "static", "dns" or "kubernetes".
   resolver:
     static:
+      # A fixed list of hostnames.
       hostnames:
         [ - <string> ... ]
     dns:
+      # DNS hostname from which to resolve IP addresses.
       hostname: <string>
+      # Port number to use with the resolved IP address when exporting spans.
       [ port: <int> | default = 4317 ]
       # Resolver interval
       [ interval: <duration> | default = 5s ]
       # Resolver timeout
       [ timeout: <duration> | default = 1s ]
+    # The kubernetes resolver receives IP addresses of a Kubernetes service 
+    # from the Kubernetes API. It does not require polling. The Kubernetes API
+    # notifies the Agent when a new pod is available and when an old pod has exited.
+    #
+    # For the kubernetes resolver to work, Agent must be running under
+    # a system account with "list", "watch" and "get" permissions.
     kubernetes:
       service: <string>
       [ ports: <int array> | default = 4317 ]
