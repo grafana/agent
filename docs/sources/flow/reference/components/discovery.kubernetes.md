@@ -322,19 +322,19 @@ Name | Type | Description | Default | Required
 
 ### basic_auth block
 
-{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### authorization block
 
-{{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### oauth2 block
 
-{{< docs/shared lookup="flow/reference/components/oauth2-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/oauth2-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### tls_config block
 
-{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ## Exported fields
 
@@ -462,14 +462,20 @@ Replace the following:
 
 ### Limit to only pods on the same node
 
-This example limits the search to pods on the same node as this {{< param "PRODUCT_ROOT_NAME" >}}. This configuration could be useful if you are running {{< param "PRODUCT_ROOT_NAME" >}} as a DaemonSet:
+This example limits the search to pods on the same node as this {{< param "PRODUCT_ROOT_NAME" >}}.
+This configuration could be useful if you are running {{< param "PRODUCT_ROOT_NAME" >}} as a DaemonSet.
+
+{{% admonition type="note" %}}
+This example assumes you have used Helm chart to deploy {{< param "PRODUCT_NAME" >}} in Kubernetes and sets `HOSTNAME` to the Kubernetes host name.
+If you have a custom Kubernetes deployment, you must adapt this example to your configuration.
+{{% /admonition %}}
 
 ```river
 discovery.kubernetes "k8s_pods" {
   role = "pod"
   selectors {
     role = "pod"
-    field = "spec.nodeName=" + constants.hostname
+    field = "spec.nodeName=" + coalesce(env("HOSTNAME"), constants.hostname)
   }
 }
 
@@ -489,6 +495,7 @@ prometheus.remote_write "demo" {
   }
 }
 ```
+
 Replace the following:
   - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
   - `USERNAME`: The username to use for authentication to the remote_write API.

@@ -13,7 +13,7 @@ title: loki.source.kubernetes
 
 # loki.source.kubernetes
 
-{{< docs/shared lookup="flow/stability/experimental.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/stability/experimental.md" source="agent" version="<AGENT_VERSION>" >}}
 
 `loki.source.kubernetes` tails logs from Kubernetes containers using the
 Kubernetes API. It has the following benefits over `loki.source.file`:
@@ -124,19 +124,19 @@ Name | Type | Description | Default | Required
 
 ### basic_auth block
 
-{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### authorization block
 
-{{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### oauth2 block
 
-{{< docs/shared lookup="flow/reference/components/oauth2-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/oauth2-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### tls_config block
 
-{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### clustering (beta)
 

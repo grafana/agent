@@ -45,13 +45,13 @@ func (m *mockSession) UpdateTargets(_ sd.TargetsOptions) {
 
 }
 
-func (m *mockSession) CollectProfiles(f func(target *sd.Target, stack []string, value uint64, pid uint32)) error {
+func (m *mockSession) CollectProfiles(f ebpfspy.CollectProfilesCallback) error {
 	m.collected++
 	if m.collectError != nil {
 		return m.collectError
 	}
 	for _, stack := range m.data {
-		f(m.dataTarget, stack, 1, 1)
+		f(m.dataTarget, stack, 1, 1, ebpfspy.SampleNotAggregated)
 	}
 	return nil
 }

@@ -64,11 +64,11 @@ tls_config | [tls_config][] | Configure TLS settings for connecting to the endpo
 
 ### authorization block
 
-{{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### tls_config block
 
-{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ## Exported fields
 
