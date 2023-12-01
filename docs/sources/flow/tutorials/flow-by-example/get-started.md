@@ -5,7 +5,7 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/tutorials/flow-by-example/faq/
 - /docs/grafana-cloud/send-data/agent/flow/tutorials/flow-by-example/faq/
 canonical: https://grafana.com/docs/agent/latest/flow/tutorials/flow-by-example/faq/
-description: FAQ About Flow-by-Example Tutorials
+description: Getting started with Flow-by-Example Tutorials
 title: Get started
 weight: 300
 ---
@@ -18,7 +18,7 @@ This set of tutorials contains a collection of examples that build on each other
 
 ## What is Flow?
 
-Flow is a new way to configure{{< param "PRODUCT_NAME" >}}. It is a declarative configuration language that allows you to define a pipeline of telemetry collection, processing, and output. It is built on top of the [River](https://github.com/grafana/river) configuration language, which is designed to be fast, simple, and debuggable.
+Flow is a new way to configure {{< param "PRODUCT_NAME" >}}. It is a declarative configuration language that allows you to define a pipeline of telemetry collection, processing, and output. It is built on top of the [River](https://github.com/grafana/river) configuration language, which is designed to be fast, simple, and debuggable.
 
 ## What do I need to get started?
 
