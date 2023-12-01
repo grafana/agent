@@ -32,6 +32,8 @@ Main (unreleased)
 
 - `pyroscope.ebpf` support python on arm64 platforms. (@korniltsev)
 
+- `discovery.relabel` now uses a cache for relabel rules instead of computing each one. (@mattdurham)
+
 v0.38.1 (2023-11-30)
 --------------------
 

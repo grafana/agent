@@ -7,6 +7,7 @@ import (
 	"github.com/grafana/agent/component"
 	flow_relabel "github.com/grafana/agent/component/common/relabel"
 	"github.com/grafana/agent/component/discovery"
+	"github.com/grafana/agent/service/labelstore"
 	"github.com/prometheus/prometheus/model/labels"
 	"github.com/prometheus/prometheus/model/relabel"
 )
@@ -42,16 +43,28 @@ type Exports struct {
 type Component struct {
 	opts component.Options
 
-	mut sync.RWMutex
-	rcs []*relabel.Config
+	mut   sync.RWMutex
+	rcs   []*relabel.Config
+	cache *flow_relabel.Cache
 }
 
 var _ component.Component = (*Component)(nil)
 
 // New creates a new discovery.relabel component.
 func New(o component.Options, args Arguments) (*Component, error) {
-	c := &Component{opts: o}
+	data, err := o.GetServiceData(labelstore.ServiceName)
+	if err != nil {
+		return nil, err
+	}
 
+	cache, err := flow_relabel.NewCache(data.(labelstore.LabelStore), 100_000, "discovery", o.Registerer)
+	if err != nil {
+		return nil, err
+	}
+	c := &Component{
+		opts:  o,
+		cache: cache,
+	}
 	// Call to Update() to set the output once at the start
 	if err := c.Update(args); err != nil {
 		return nil, err
@@ -79,9 +92,9 @@ func (c *Component) Update(args component.Arguments) error {
 
 	for _, t := range newArgs.Targets {
 		lset := componentMapToPromLabels(t)
-		lset, keep := relabel.Process(lset, relabelConfigs...)
-		if keep {
-			targets = append(targets, promLabelsToComponent(lset))
+		lbls := c.cache.Relabel(0, 0, lset, c.rcs)
+		if !lbls.IsEmpty() {
+			targets = append(targets, promLabelsToComponent(lbls))
 		}
 	}
 
@@ -92,7 +105,6 @@ func (c *Component) Update(args component.Arguments) error {
 
 	return nil
 }
-
 func componentMapToPromLabels(ls discovery.Target) labels.Labels {
 	res := make([]labels.Label, 0, len(ls))
 	for k, v := range ls {

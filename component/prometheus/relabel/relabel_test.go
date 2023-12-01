@@ -27,21 +27,21 @@ func TestCache(t *testing.T) {
 	lc := labelstore.New(nil)
 	relabeller := generateRelabel(t)
 	lbls := labels.FromStrings("__address__", "localhost")
-	relabeller.relabel(0, lbls)
+	relabeller.cache.Relabel(0, 0, lbls, relabeller.mrc)
 	require.True(t, relabeller.cache.Len() == 1)
-	entry, found := relabeller.getFromCache(lc.GetOrAddGlobalRefID(lbls))
+	entry, found := relabeller.cache.GetFromCache(lc.GetOrAddGlobalRefID(lbls))
 	require.True(t, found)
 	require.NotNil(t, entry)
 	require.True(
 		t,
-		lc.GetOrAddGlobalRefID(entry.labels) != lc.GetOrAddGlobalRefID(lbls),
+		lc.GetOrAddGlobalRefID(entry.Labels) != lc.GetOrAddGlobalRefID(lbls),
 	)
 }
 
 func TestUpdateReset(t *testing.T) {
 	relabeller := generateRelabel(t)
 	lbls := labels.FromStrings("__address__", "localhost")
-	relabeller.relabel(0, lbls)
+	relabeller.cache.Relabel(0, 0, lbls, relabeller.mrc)
 	require.True(t, relabeller.cache.Len() == 1)
 	_ = relabeller.Update(Arguments{
 		MetricRelabelConfigs: []*flow_relabel.Config{},
@@ -77,7 +77,7 @@ func TestNil(t *testing.T) {
 	require.NoError(t, err)
 
 	lbls := labels.FromStrings("__address__", "localhost")
-	relabeller.relabel(0, lbls)
+	relabeller.cache.Relabel(0, 0, lbls, relabeller.mrc)
 }
 
 func TestLRU(t *testing.T) {
@@ -85,7 +85,7 @@ func TestLRU(t *testing.T) {
 
 	for i := 0; i < 600_000; i++ {
 		lbls := labels.FromStrings("__address__", "localhost", "inc", strconv.Itoa(i))
-		relabeller.relabel(0, lbls)
+		relabeller.cache.Relabel(0, 0, lbls, relabeller.mrc)
 	}
 	require.True(t, relabeller.cache.Len() == 100_000)
 }
@@ -93,9 +93,9 @@ func TestLRU(t *testing.T) {
 func TestLRUNaN(t *testing.T) {
 	relabeller := generateRelabel(t)
 	lbls := labels.FromStrings("__address__", "localhost")
-	relabeller.relabel(0, lbls)
+	relabeller.cache.Relabel(0, 0, lbls, relabeller.mrc)
 	require.True(t, relabeller.cache.Len() == 1)
-	relabeller.relabel(math.Float64frombits(value.StaleNaN), lbls)
+	relabeller.cache.Relabel(math.Float64frombits(value.StaleNaN), 0, lbls, relabeller.mrc)
 	require.True(t, relabeller.cache.Len() == 0)
 }
 
