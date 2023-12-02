@@ -35,7 +35,7 @@ This tutorial covers the basics of the River language and the standard library. 
 
 2. **Expressions**: Expressions are used to compute values. They can be constant values (for example, `"localhost:9090"`), or they can be more complex (for example, referencing a component's export: `prometheus.exporter.unix.targets`. They can also be a mathematical expression: `(1 + 2) * 3`, or a standard library function call: `env("HOME")`). We will use more expressions as we go along the examples. If you are curious, you can find a list of available standard library functions in the [Standard Library Documentation][].
 
-3. **Blocks**: Blocks are used to configure components with groups of attributes or nested blocks. The following example block can be used to configure the logging output of a Grafana Agent in Flow mode:
+3. **Blocks**: Blocks are used to configure components with groups of attributes or nested blocks. The following example block can be used to configure the logging output of {{< param "PRODUCT_NAME" >}}:
 
     ```river
     logging {
