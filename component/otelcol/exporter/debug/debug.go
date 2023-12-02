@@ -1,6 +1,8 @@
 package debug
 
 import (
+	"fmt"
+
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/otelcol"
 	"github.com/grafana/agent/component/otelcol/exporter"
@@ -23,14 +25,32 @@ func init() {
 	})
 }
 
+type Verbosity struct {
+  Type string 
+}
+
+func (v Verbosity) convert() configtelemetry.Level {
+  if (v.Type == "basic") {
+    return configtelemetry.LevelBasic
+  } else if (v.Type == "normal") {
+    return configtelemetry.LevelNormal    
+  } else if (v.Tyep == "detailed") {
+    return configtelemetry.LevelDetailed
+  } else {
+    return fmt.Errorf("invalid type in verbosity %v", v)
+  }
+
+}
+
 // Arguments configures the otelcol.exporter.debug component.
 type Arguments struct {
-	Verbosity          configtelemetry.Level `river:"verbosity,attr,optional"`
+	// Verbosity          configtelemetry.Level `river:"verbosity,attr,optional"`
+  Verbosity string                         `river:"verbosity, attr, optional"`
 	SamplingInitial    int                   `river:"sampling_initial,attr,optional"`
 	SamplingThereafter int                   `river:"sampling_thereafter,attr,optional"`
 
-	// DebugMetrics configures component internal metrics. Optional.
-	DebugMetrics otelcol.DebugMetricsArguments `river:"debug_metrics,block,optional"`
+  // DebugMetrics configures component internal metrics. Optional.
+  _ DebugMetrics otelcol.DebugMetricsArguments `river: ";"`
 }
 
 var _ exporter.Arguments = Arguments{}
@@ -64,9 +84,4 @@ func (args Arguments) Extensions() map[otelcomponent.ID]otelextension.Extension 
 // Exporters implements exporter.Arguments.
 func (args Arguments) Exporters() map[otelcomponent.DataType]map[otelcomponent.ID]otelcomponent.Component {
 	return nil
-}
-
-// DebugMetricsConfig implements receiver.Arguments.
-func (args Arguments) DebugMetricsConfig() otelcol.DebugMetricsArguments {
-	return args.DebugMetrics
 }
