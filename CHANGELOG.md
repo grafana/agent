@@ -32,6 +32,8 @@ Main (unreleased)
 
 - `pyroscope.ebpf` support python on arm64 platforms. (@korniltsev)
 
+- `mimir.rules.kubernetes` may now retry its startup on failure. (@hainenber)
+
 ### Bugfixes
 
 - Update `pyroscope.ebpf` to fix a logical bug causing to profile to many kthreads instead of regular processes https://github.com/grafana/pyroscope/pull/2778 (@korniltsev)
