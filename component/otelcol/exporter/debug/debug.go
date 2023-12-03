@@ -25,39 +25,52 @@ func init() {
 	})
 }
 
-type Verbosity struct {
-  Type string 
-}
-
-func (v Verbosity) convert() configtelemetry.Level {
-  if (v.Type == "basic") {
-    return configtelemetry.LevelBasic
-  } else if (v.Type == "normal") {
-    return configtelemetry.LevelNormal    
-  } else if (v.Tyep == "detailed") {
-    return configtelemetry.LevelDetailed
-  } else {
-    return fmt.Errorf("invalid type in verbosity %v", v)
-  }
-
-}
-
 // Arguments configures the otelcol.exporter.debug component.
-type Arguments struct {
+type exporterArguments struct {
 	// Verbosity          configtelemetry.Level `river:"verbosity,attr,optional"`
-  Verbosity string                         `river:"verbosity, attr, optional"`
+	Verbosity          configtelemetry.Level `river:"verbosity, attr, optional"`
 	SamplingInitial    int                   `river:"sampling_initial,attr,optional"`
 	SamplingThereafter int                   `river:"sampling_thereafter,attr,optional"`
 
-  // DebugMetrics configures component internal metrics. Optional.
-  _ DebugMetrics otelcol.DebugMetricsArguments `river: ";"`
+	// DebugMetrics configures component internal metrics. Optional.
+	DebugMetrics otelcol.DebugMetricsArguments `river:"debug_metrics,block,optional"`
+}
+
+type Arguments struct {
+	// Verbosity          configtelemetry.Level `river:"verbosity,attr,optional"`
+	Verbosity          string `river:"verbosity, attr, optional"`
+	SamplingInitial    int    `river:"sampling_initial,attr,optional"`
+	SamplingThereafter int    `river:"sampling_thereafter,attr,optional"`
+
+	// DebugMetrics configures component internal metrics. Optional.
+	// DebugMetrics otelcol.DebugMetricsArguments `river:"debug_metrics,block,optional"`
+}
+
+func (args Arguments) convertToExporter() (exporterArguments, error) {
+	const exporterVerbosity = map[string]configtelemetry.Level{
+		"basic":    configtelemetry.LevelBasic,
+		"normal":   configtelemetry.LevelNormal,
+		"detailed": configtelemetry.LevelDetailed,
+	}
+
+	if _, ok := exporterVerbosity[args.Verbosity]; !ok {
+		return exporterArguments{}, fmt.Errorf("Invalid verbosity in arguments %v", args)
+	}
+
+	e := &exporterArguments{
+		Verbosity: args.Verbosity, 
+		SamplingInitial: args.SamplingInitial, 
+		SamplingThereafter: args.SamplingThereafter,
+	}
+
+	return *e, nil
 }
 
 var _ exporter.Arguments = Arguments{}
 
 // DefaultArguments holds default values for Arguments.
 var DefaultArguments = Arguments{
-	Verbosity:          configtelemetry.LevelBasic,
+	Verbosity:          "basic",
 	SamplingInitial:    2,
 	SamplingThereafter: 500,
 }
@@ -69,10 +82,15 @@ func (args *Arguments) SetToDefault() {
 
 // Convert implements exporter.Arguments.
 func (args Arguments) Convert() (otelcomponent.Config, error) {
+	exporterArgs, err := args.convertToExporter()
+	if err != nil {
+		return nil, fmt.Errorf("Error in conversion to config arguments, %v", err)
+	}
+
 	return &debugexporter.Config{
-		Verbosity:          args.Verbosity,
-		SamplingInitial:    args.SamplingInitial,
-		SamplingThereafter: args.SamplingInitial,
+		Verbosity:          exporterArgs.Verbosity,
+		SamplingInitial:    exporterArgs.SamplingInitial,
+		SamplingThereafter: exporterArgs.SamplingInitial,
 	}, nil
 }
 
@@ -84,4 +102,10 @@ func (args Arguments) Extensions() map[otelcomponent.ID]otelextension.Extension 
 // Exporters implements exporter.Arguments.
 func (args Arguments) Exporters() map[otelcomponent.DataType]map[otelcomponent.ID]otelcomponent.Component {
 	return nil
+}
+
+// DebugMetricsConfig implements receiver.Arguments.
+func (args Arguments) DebugMetricsConfig() otelcol.DebugMetricsArguments {
+	exporterArgs, _ := args.convertToExporter()
+	return exporterArgs.DebugMetrics
 }
