@@ -6,24 +6,24 @@ aliases:
 - /docs/grafana-cloud/send-data/agent/flow/tutorials/first-components-and-stdlib/
 canonical: https://grafana.com/docs/agent/latest/flow/tutorials/flow-by-example/first-components-and-stdlib/
 description: Learn about the basics of River and the Flow configuration language
-title: First Components and Introducing the Standard Library
+title: First components and introducing the standard library
 weight: 300
 ---
 
-# First Components and the Standard Library
+# First components and the standard library
 
 This tutorial covers the basics of the River language and the standard library. It introduces a basic pipeline that collects metrics from the host and sends them to Prometheus.
 
 ## River basics
 
-[Configuration Language]: {{< relref "../../../config-language" >}}
-[Configuration Language Concepts]: {{< relref "../../../concepts/configuration_language" >}}
-[Standard Library Documentation]: {{< relref "../../../reference/stdlib" >}}
+[Configuration language]: {{< relref "../../../config-language" >}}
+[Configuration language concepts]: {{< relref "../../../concepts/configuration_language" >}}
+[Standard library documentation]: {{< relref "../../../reference/stdlib" >}}
 
-**Recommended Reading**
+**Recommended reading**
 
-- [Configuration Language][]
-- [Configuration Language Concepts][]
+- [Configuration language][]
+- [Configuration language concepts][]
 
 [River](https://github.com/grafana/river) is an HCL-inspired configuration language used to configure {{< param "PRODUCT_NAME" >}}. A River file is comprised of three things:
 
@@ -37,7 +37,7 @@ This tutorial covers the basics of the River language and the standard library. 
 
 1. **Expressions**
 
-   Expressions are used to compute values. They can be constant values (for example, `"localhost:9090"`), or they can be more complex (for example, referencing a component's export: `prometheus.exporter.unix.targets`. They can also be a mathematical expression: `(1 + 2) * 3`, or a standard library function call: `env("HOME")`). We will use more expressions as we go along the examples. If you are curious, you can find a list of available standard library functions in the [Standard Library Documentation][].
+   Expressions are used to compute values. They can be constant values (for example, `"localhost:9090"`), or they can be more complex (for example, referencing a component's export: `prometheus.exporter.unix.targets`. They can also be a mathematical expression: `(1 + 2) * 3`, or a standard library function call: `env("HOME")`). We will use more expressions as we go along the examples. If you are curious, you can find a list of available standard library functions in the [Standard library documentation][].
 
 1. **Blocks**
 
@@ -65,13 +65,13 @@ Comments in River are prefixed with `//` and are single-line only. For example: 
 ## Components
 
 [Components]: {{< relref "../../../concepts/components" >}}
-[Component Controller]: {{< relref "../../../concepts/component_controller" >}}
+[Component controller]: {{< relref "../../../concepts/component_controller" >}}
 [env]: {{< relref "../../../reference/stdlib/env" >}}
 
-**Recommended Reading**
+**Recommended reading**
 
 - [Components][]
-- [Component Controller][]
+- [Component controller][]
 
 Components are the building blocks of a {{< param "PRODUCT_NAME" >}} configuration. They are configured and linked to create pipelines that collect, process, and output your telemetry data. Components are configured with `Arguments` and have `Exports` that may be referenced by other components.
 
@@ -95,9 +95,9 @@ prometheus.remote_write "local_prom" {
 ```
 
 {{% admonition type="note" %}}
-[Component Reference]: {{< relref "../../../reference/components" >}}
+[Component reference]: {{< relref "../../../reference/components" >}}
 
-A list of all available components can be found in the [Component Reference][]. Each component has a link to its documentation, which contains a description of what the component does, its arguments, its exports, and Example(s).
+A list of all available components can be found in the [Component reference][]. Each component has a link to its documentation, which contains a description of what the component does, its arguments, its exports, and Example(s).
 {{% /admonition %}}
 
 This pipeline has two components: `local.file` and `prometheus.remote_write`. The `local.file` component is configured with a single argument, `path`, which is set by calling the [env][] standard library function to retrieve the value of the `HOME` environment variable and concatenating it with the string `"file.txt"`. The `local.file` component has a single export, `content`, which contains the contents of the file.
@@ -120,7 +120,7 @@ This example pipeline still doesn't do anything, so let's add some more componen
 [prometheus.scrape]: {{< relref "../../../reference/components/prometheus.scrape.md" >}}
 [prometheus.remote_write]: {{< relref "../../../reference/components/prometheus.remote_write.md" >}}
 
-**Recommended Reading**
+**Recommended reading**
 
 - Optional: [prometheus.exporter.unix][]
 - Optional: [prometheus.scrape][]
@@ -162,7 +162,7 @@ Navigate to [http://localhost:3000/explore](http://localhost:3000/explore) in yo
 <img src="/media/docs/agent/screenshot-flow-by-example-memory-usage.png" alt="Screenshot of node_memory_Active_bytes query in Grafana" />
 </p>
 
-## Visualizing the Relationship Between Components
+## Visualizing the relationship between components
 
 Let's look at an example pipeline:
 
