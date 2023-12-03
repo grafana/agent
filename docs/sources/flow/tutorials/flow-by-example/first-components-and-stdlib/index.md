@@ -16,9 +16,9 @@ This tutorial covers the basics of the River language and the standard library. 
 
 ## River basics
 
-[Configuration language]: {{< relref "../../../config-language" >}}
-[Configuration language concepts]: {{< relref "../../../concepts/configuration_language" >}}
-[Standard library documentation]: {{< relref "../../../reference/stdlib" >}}
+[Configuration language]: https://grafana.com/docs/agent/latest/flow/config-language/
+[Configuration language concepts]: https://grafana.com/docs/agent/latest/flow/concepts/configuration_language/
+[Standard library documentation]: https://grafana.com/docs/agent/latest/flow/reference/stdlib/
 
 **Recommended reading**
 
@@ -64,13 +64,15 @@ Comments in River are prefixed with `//` and are single-line only. For example: 
 
 ## Components
 
-[Components]: {{< relref "../../../concepts/components" >}}
-[Component controller]: {{< relref "../../../concepts/component_controller" >}}
-[env]: {{< relref "../../../reference/stdlib/env" >}}
+[Components]: https://grafana.com/docs/agent/latest/flow/concepts/components/
+[Component controller]: https://grafana.com/docs/agent/latest/flow/concepts/component_controller/
+[Components configuration language]: https://grafana.com/docs/agent/latest/flow/config-language/components/
+[env]: https://grafana.com/docs/agent/latest/flow/reference/stdlib/env/
 
 **Recommended reading**
 
 - [Components][]
+- [Components configuration language][]
 - [Component controller][]
 
 Components are the building blocks of a {{< param "PRODUCT_NAME" >}} configuration. They are configured and linked to create pipelines that collect, process, and output your telemetry data. Components are configured with `Arguments` and have `Exports` that may be referenced by other components.
@@ -95,7 +97,7 @@ prometheus.remote_write "local_prom" {
 ```
 
 {{% admonition type="note" %}}
-[Component reference]: {{< relref "../../../reference/components" >}}
+[Component reference]: https://grafana.com/docs/agent/latest/flow/reference/components/
 
 A list of all available components can be found in the [Component reference][]. Each component has a link to its documentation, which contains a description of what the component does, its arguments, its exports, and Example(s).
 {{% /admonition %}}
@@ -116,9 +118,9 @@ This example pipeline still doesn't do anything, so let's add some more componen
 
 ## Shipping our first metrics
 
-[prometheus.exporter.unix]: {{< relref "../../../reference/components/prometheus.exporter.unix.md" >}}
-[prometheus.scrape]: {{< relref "../../../reference/components/prometheus.scrape.md" >}}
-[prometheus.remote_write]: {{< relref "../../../reference/components/prometheus.remote_write.md" >}}
+[prometheus.exporter.unix]: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.unix/
+[prometheus.scrape]: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.scrape/
+[prometheus.remote_write]: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.remote_write/
 
 **Recommended reading**
 
@@ -182,7 +184,7 @@ One rule is that components cannot form a cycle. This means that a component can
 
 ## Exercise for the reader
 
-[prometheus.exporter.redis]: {{< relref "../../../reference/components/prometheus.exporter.redis.md" >}}
+[prometheus.exporter.redis]: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.redis/
 
 **Recommended Reading**
 
@@ -203,7 +205,7 @@ To give a visual hint, you want to create a pipeline that looks like this:
 </p>
 
 {{% admonition type="note" %}}
-[concat]: {{< relref "../../../reference/stdlib/concat.md" >}}
+[concat]: https://grafana.com/docs/agent/latest/flow/reference/stdlib/concat/
 
 You may find the [concat][] standard library function useful.
 {{% /admonition %}}
