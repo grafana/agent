@@ -16,9 +16,9 @@ This tutorial covers the basics of the River language and the standard library. 
 
 ## River basics
 
-[Configuration language]: https://grafana.com/docs/agent/latest/flow/config-language/
-[Configuration language concepts]: https://grafana.com/docs/agent/latest/flow/concepts/configuration_language/
-[Standard library documentation]: https://grafana.com/docs/agent/latest/flow/reference/stdlib/
+[Configuration language]: https://grafana.com/docs/agent/<AGENT_VERSION>/flow/config-language/
+[Configuration language concepts]: https://grafana.com/docs/agent/<AGENT_VERSION>/flow/concepts/configuration_language/
+[Standard library documentation]: https://grafana.com/docs/agent/<AGENT_VERSION>/flow/reference/stdlib/
 
 **Recommended reading**
 
@@ -64,10 +64,10 @@ Comments in River are prefixed with `//` and are single-line only. For example: 
 
 ## Components
 
-[Components]: https://grafana.com/docs/agent/latest/flow/concepts/components/
-[Component controller]: https://grafana.com/docs/agent/latest/flow/concepts/component_controller/
-[Components configuration language]: https://grafana.com/docs/agent/latest/flow/config-language/components/
-[env]: https://grafana.com/docs/agent/latest/flow/reference/stdlib/env/
+[Components]: https://grafana.com/docs/agent/<AGENT_VERSION>/flow/concepts/components/
+[Component controller]: https://grafana.com/docs/agent/<AGENT_VERSION>/flow/concepts/component_controller/
+[Components configuration language]: https://grafana.com/docs/agent/<AGENT_VERSION>/flow/config-language/components/
+[env]: https://grafana.com/docs/agent/<AGENT_VERSION>/flow/reference/stdlib/env/
 
 **Recommended reading**
 
@@ -97,7 +97,7 @@ prometheus.remote_write "local_prom" {
 ```
 
 {{% admonition type="note" %}}
-[Component reference]: https://grafana.com/docs/agent/latest/flow/reference/components/
+[Component reference]: https://grafana.com/docs/agent/<AGENT_VERSION>/flow/reference/components/
 
 A list of all available components can be found in the [Component reference][]. Each component has a link to its documentation, which contains a description of what the component does, its arguments, its exports, and Example(s).
 {{% /admonition %}}
@@ -118,9 +118,9 @@ This example pipeline still doesn't do anything, so let's add some more componen
 
 ## Shipping our first metrics
 
-[prometheus.exporter.unix]: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.unix/
-[prometheus.scrape]: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.scrape/
-[prometheus.remote_write]: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.remote_write/
+[prometheus.exporter.unix]: https://grafana.com/docs/agent/<AGENT_VERSION>/flow/reference/components/prometheus.exporter.unix/
+[prometheus.scrape]: https://grafana.com/docs/agent/<AGENT_VERSION>/flow/reference/components/prometheus.scrape/
+[prometheus.remote_write]: https://grafana.com/docs/agent/<AGENT_VERSION>/flow/reference/components/prometheus.remote_write/
 
 **Recommended reading**
 
@@ -184,7 +184,7 @@ One rule is that components cannot form a cycle. This means that a component can
 
 ## Exercise for the reader
 
-[prometheus.exporter.redis]: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.redis/
+[prometheus.exporter.redis]: https://grafana.com/docs/agent/<AGENT_VERSION>/flow/reference/components/prometheus.exporter.redis/
 
 **Recommended Reading**
 
@@ -205,7 +205,7 @@ To give a visual hint, you want to create a pipeline that looks like this:
 </p>
 
 {{% admonition type="note" %}}
-[concat]: https://grafana.com/docs/agent/latest/flow/reference/stdlib/concat/
+[concat]: https://grafana.com/docs/agent/<AGENT_VERSION>/flow/reference/stdlib/concat/
 
 You may find the [concat][] standard library function useful.
 {{% /admonition %}}
