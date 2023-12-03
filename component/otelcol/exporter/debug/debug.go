@@ -47,21 +47,33 @@ type Arguments struct {
 }
 
 func (args Arguments) convertToExporter() (exporterArguments, error) {
-	const exporterVerbosity = map[string]configtelemetry.Level{
-		"basic":    configtelemetry.LevelBasic,
-		"normal":   configtelemetry.LevelNormal,
-		"detailed": configtelemetry.LevelDetailed,
-	}
-
-	if _, ok := exporterVerbosity[args.Verbosity]; !ok {
-		return exporterArguments{}, fmt.Errorf("Invalid verbosity %q", args.Verbosity)
-	}
-
+	// const exporterVerbosity = map[string]configtelemetry.Level{
+	// 	"basic":    configtelemetry.LevelBasic,
+	// 	"normal":   configtelemetry.LevelNormal,
+	// 	"detailed": configtelemetry.LevelDetailed,
+	// }
 	e := &exporterArguments{
-		Verbosity:          args.Verbosity,
 		SamplingInitial:    args.SamplingInitial,
 		SamplingThereafter: args.SamplingThereafter,
 	}
+
+	switch args.Verbosity {
+	case "basic":
+		e.Verbosity = configtelemetry.LevelBasic
+	case "normal":
+		e.Verbosity = configtelemetry.LevelNormal
+	case "detailed":
+		e.Verbosity = configtelemetry.LevelDetailed
+	default:
+		// Invalid verbosity
+		// debugexporter only supports basic, normal and detailed levels
+		return exporterArguments{}, fmt.Errorf("invalid verbosity %q", args.Verbosity)
+	}
+
+	// if _, ok := exporterVerbosity[args.Verbosity]; !ok {
+	// 	return exporterArguments{}, fmt.Errorf("Invalid verbosity %q", args.Verbosity)
+	// }
+
 
 	return *e, nil
 }
@@ -84,7 +96,7 @@ func (args *Arguments) SetToDefault() {
 func (args Arguments) Convert() (otelcomponent.Config, error) {
 	exporterArgs, err := args.convertToExporter()
 	if err != nil {
-		return nil, fmt.Errorf("Error in conversion to config arguments, %v", err)
+		return nil, fmt.Errorf("error in conversion to config arguments, %v", err)
 	}
 
 	return &debugexporter.Config{
