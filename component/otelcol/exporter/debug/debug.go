@@ -27,7 +27,6 @@ func init() {
 
 // Arguments configures the otelcol.exporter.debug component.
 type exporterArguments struct {
-	// Verbosity          configtelemetry.Level `river:"verbosity,attr,optional"`
 	Verbosity          configtelemetry.Level `river:"verbosity, attr, optional"`
 	SamplingInitial    int                   `river:"sampling_initial,attr,optional"`
 	SamplingThereafter int                   `river:"sampling_thereafter,attr,optional"`
@@ -37,21 +36,12 @@ type exporterArguments struct {
 }
 
 type Arguments struct {
-	// Verbosity          configtelemetry.Level `river:"verbosity,attr,optional"`
 	Verbosity          string `river:"verbosity, attr, optional"`
 	SamplingInitial    int    `river:"sampling_initial,attr,optional"`
 	SamplingThereafter int    `river:"sampling_thereafter,attr,optional"`
-
-	// DebugMetrics configures component internal metrics. Optional.
-	// DebugMetrics otelcol.DebugMetricsArguments `river:"debug_metrics,block,optional"`
 }
 
 func (args Arguments) convertToExporter() (exporterArguments, error) {
-	// const exporterVerbosity = map[string]configtelemetry.Level{
-	// 	"basic":    configtelemetry.LevelBasic,
-	// 	"normal":   configtelemetry.LevelNormal,
-	// 	"detailed": configtelemetry.LevelDetailed,
-	// }
 	e := &exporterArguments{
 		SamplingInitial:    args.SamplingInitial,
 		SamplingThereafter: args.SamplingThereafter,
@@ -69,11 +59,6 @@ func (args Arguments) convertToExporter() (exporterArguments, error) {
 		// debugexporter only supports basic, normal and detailed levels
 		return exporterArguments{}, fmt.Errorf("invalid verbosity %q", args.Verbosity)
 	}
-
-	// if _, ok := exporterVerbosity[args.Verbosity]; !ok {
-	// 	return exporterArguments{}, fmt.Errorf("Invalid verbosity %q", args.Verbosity)
-	// }
-
 
 	return *e, nil
 }
