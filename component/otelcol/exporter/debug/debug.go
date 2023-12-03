@@ -54,12 +54,12 @@ func (args Arguments) convertToExporter() (exporterArguments, error) {
 	}
 
 	if _, ok := exporterVerbosity[args.Verbosity]; !ok {
-		return exporterArguments{}, fmt.Errorf("Invalid verbosity in arguments %v", args)
+		return exporterArguments{}, fmt.Errorf("Invalid verbosity %q", args.Verbosity)
 	}
 
 	e := &exporterArguments{
-		Verbosity: args.Verbosity, 
-		SamplingInitial: args.SamplingInitial, 
+		Verbosity:          args.Verbosity,
+		SamplingInitial:    args.SamplingInitial,
 		SamplingThereafter: args.SamplingThereafter,
 	}
 
