@@ -6,10 +6,8 @@ package api
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"path"
-	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/grafana/agent/component"
@@ -38,7 +36,7 @@ func (f *FlowAPI) RegisterRoutes(urlPrefix string, r *mux.Router) {
 	r.Handle(path.Join(urlPrefix, "/components"), httputil.CompressionHandler{Handler: f.listComponentsHandler()})
 	r.Handle(path.Join(urlPrefix, "/components/{id:.+}"), httputil.CompressionHandler{Handler: f.getComponentHandler()})
 	r.Handle(path.Join(urlPrefix, "/peers"), httputil.CompressionHandler{Handler: f.getClusteringPeersHandler()})
-	r.Handle(path.Join(urlPrefix, "/streamDatas"), f.getStreamingHandler2())
+	r.Handle(path.Join(urlPrefix, "/debugStream/{id:.+}"), f.getComponentDebugStream())
 }
 
 func (f *FlowAPI) listComponentsHandler() http.HandlerFunc {
@@ -106,16 +104,36 @@ func (f *FlowAPI) getClusteringPeersHandler() http.HandlerFunc {
 	}
 }
 
-func (f *FlowAPI) getStreamingHandler2() http.HandlerFunc {
-	return func(w http.ResponseWriter, _ *http.Request) {
-		i := 0
+func (f *FlowAPI) getComponentDebugStream() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		requestedComponent := component.ParseID(vars["id"])
+		dataCh := make(chan string)
+		ctx := r.Context()
+
+		err := f.flow.GetComponentDebugStream(requestedComponent, func(data string) {
+			select {
+			case <-ctx.Done():
+				return
+			default:
+				dataCh <- data
+			}
+		})
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
 		for {
-			w.Write([]byte(fmt.Sprintf("Hello there??? %d\n", i)))
-			w.(http.Flusher).Flush()
-			time.Sleep(500 * time.Millisecond)
-			i++
-			if i > 10 {
-				break
+			select {
+			case data := <-dataCh:
+				_, writeErr := w.Write([]byte(data))
+				if writeErr != nil {
+					return
+				}
+				w.(http.Flusher).Flush()
+			case <-ctx.Done():
+				return
 			}
 		}
 	}

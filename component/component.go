@@ -113,3 +113,7 @@ type DebugComponent interface {
 	// DebugInfo must be safe for calling concurrently.
 	DebugInfo() interface{}
 }
+
+type DebugStream interface {
+	HookDebugStream(func(string))
+}

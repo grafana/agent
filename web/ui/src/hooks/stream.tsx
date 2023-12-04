@@ -3,17 +3,18 @@ import { useEffect, useState } from 'react';
 /**
  * useStreaming ...
  */
-export const useStreaming = () => {
+export const useStreaming = (componentID: string) => {
   const [data, setData] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const response = await fetch('./api/v0/web/streamDatas');
+        const response = await fetch(`./api/v0/web/debugStream/${componentID}`);
         if (!response.ok || !response.body) {
-          throw response.statusText;
+          throw new Error(response.statusText || 'Unknown error');
         }
 
         const reader = response.body.getReader();
@@ -28,23 +29,15 @@ export const useStreaming = () => {
 
           const decodedChunk = decoder.decode(value, { stream: true });
           setData((prevValue) => `${prevValue}${decodedChunk}`);
-          console.log(`received data ${decodedChunk}`);
         }
       } catch (error) {
         setLoading(false);
-        // Handle other errors
+        setError((error as Error).message);
       }
     };
 
     fetchData();
-  }, []);
+  }, [componentID]);
 
-  return (
-    <div>
-      <div>
-        <b>Request Response: {loading && <i>Fetching data...</i>}</b>
-        {data}
-      </div>
-    </div>
-  );
+  return { data, loading, error };
 };

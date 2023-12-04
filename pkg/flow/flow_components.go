@@ -127,3 +127,24 @@ func (f *Flow) getComponentDetail(cn *controller.ComponentNode, graph *dag.Graph
 		DebugInfo: debugInfo,
 	}
 }
+
+func (f *Flow) GetComponentDebugStream(id component.ID, hook func(data string)) error {
+	f.loadMut.RLock()
+	defer f.loadMut.RUnlock()
+
+	// TODO: support modules
+
+	graph := f.loader.OriginalGraph()
+
+	node := graph.GetByID(id.LocalID)
+	if node == nil {
+		return component.ErrComponentNotFound
+	}
+
+	cn, ok := node.(*controller.ComponentNode)
+	if !ok {
+		return fmt.Errorf("%q is not a component", id)
+	}
+
+	return cn.DebugStream(hook)
+}

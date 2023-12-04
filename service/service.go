@@ -54,6 +54,8 @@ type Host interface {
 	// GetServiceConsumers gets the list of components and services which depend
 	// on a service by name.
 	GetServiceConsumers(serviceName string) []Consumer
+
+	GetComponentDebugStream(id component.ID, hook func(data string)) error
 }
 
 type Consumer struct {
