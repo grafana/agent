@@ -15,21 +15,19 @@ import (
 	"github.com/grafana/agent/component/otelcol/receiver/prometheus/internal"
 	"github.com/grafana/agent/pkg/build"
 	"github.com/grafana/agent/pkg/util/zapadapter"
-	otel_service "github.com/grafana/agent/service/otel"
 	"github.com/prometheus/prometheus/model/labels"
 	"github.com/prometheus/prometheus/storage"
 	otelcomponent "go.opentelemetry.io/collector/component"
 	otelreceiver "go.opentelemetry.io/collector/receiver"
-	"go.opentelemetry.io/otel/metric/noop"
-	"go.opentelemetry.io/otel/trace"
+	metricNoop "go.opentelemetry.io/otel/metric/noop"
+	traceNoop "go.opentelemetry.io/otel/trace/noop"
 )
 
 func init() {
 	component.Register(component.Registration{
-		Name:          "otelcol.receiver.prometheus",
-		Args:          Arguments{},
-		Exports:       Exports{},
-		NeedsServices: []string{otel_service.ServiceName},
+		Name:    "otelcol.receiver.prometheus",
+		Args:    Arguments{},
+		Exports: Exports{},
 
 		Build: func(o component.Options, a component.Arguments) (component.Component, error) {
 			return New(o, a.(Arguments))
@@ -109,8 +107,8 @@ func (c *Component) Update(newConfig component.Arguments) error {
 			Logger: zapadapter.New(c.opts.Logger),
 
 			// TODO(tpaschalis): expose tracing and logging statistics.
-			TracerProvider: trace.NewNoopTracerProvider(),
-			MeterProvider:  noop.NewMeterProvider(),
+			TracerProvider: traceNoop.NewTracerProvider(),
+			MeterProvider:  metricNoop.NewMeterProvider(),
 
 			ReportComponentStatus: func(*otelcomponent.StatusEvent) error {
 				return nil

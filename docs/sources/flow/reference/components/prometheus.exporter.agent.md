@@ -22,7 +22,7 @@ prometheus.exporter.agent "agent" {
 
 ## Exported fields
 
-{{< docs/shared lookup="flow/reference/components/exporter-component-exports.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/exporter-component-exports.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ## Component health
 
@@ -45,7 +45,7 @@ This example uses a [`prometheus.scrape` component][scrape] to collect metrics
 from `prometheus.exporter.agent`:
 
 ```river
-prometheus.exporter.agent "agent" {}
+prometheus.exporter.agent "example" {}
 
 // Configure a prometheus.scrape component to collect agent metrics.
 prometheus.scrape "demo" {

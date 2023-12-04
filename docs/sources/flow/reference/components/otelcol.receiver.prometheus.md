@@ -13,7 +13,7 @@ title: otelcol.receiver.prometheus
 
 # otelcol.receiver.prometheus
 
-{{< docs/shared lookup="flow/stability/beta.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/stability/beta.md" source="agent" version="<AGENT_VERSION>" >}}
 
 `otelcol.receiver.prometheus` receives Prometheus metrics, converts them to the
 OpenTelemetry metrics format, and forwards them to other `otelcol.*`
@@ -50,7 +50,7 @@ output | [output][] | Configures where to send received telemetry data. | yes
 
 ### output block
 
-{{< docs/shared lookup="flow/reference/components/output-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/output-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ## Exported fields
 
@@ -81,7 +81,7 @@ endpoint:
 
 ```river
 prometheus.scrape "default" {
-    // Collect metrics from Grafana Agent's default HTTP listen address.
+    // Collect metrics from the default HTTP listen address.
     targets = [{"__address__"   = "127.0.0.1:12345"}]
 
     forward_to = [otelcol.receiver.prometheus.default.receiver]

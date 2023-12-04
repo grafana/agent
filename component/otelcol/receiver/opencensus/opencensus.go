@@ -6,7 +6,6 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/otelcol"
 	"github.com/grafana/agent/component/otelcol/receiver"
-	otel_service "github.com/grafana/agent/service/otel"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/opencensusreceiver"
 	otelcomponent "go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/extension"
@@ -14,9 +13,8 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name:          "otelcol.receiver.opencensus",
-		Args:          Arguments{},
-		NeedsServices: []string{otel_service.ServiceName},
+		Name: "otelcol.receiver.opencensus",
+		Args: Arguments{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			fact := opencensusreceiver.NewFactory()

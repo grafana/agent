@@ -43,6 +43,7 @@ Name | Type | Description | Default | Required
 `docker_tls_key` | `string` | Path to private key for TLS connection to docker. | `key.pem` | no
 `docker_tls_ca` | `string` | Path to a trusted CA for TLS connection to docker. | `ca.pem` | no
 `docker_only` | `bool` | Only report docker containers in addition to root stats. | `false` | no
+`disable_root_cgroup_stats` | `bool` | Disable collecting root Cgroup stats. | `false` | no
 
 For `allowlisted_container_labels` to take effect, `store_container_labels` must be set to `false`.
 
@@ -70,7 +71,7 @@ fully through arguments.
 
 ## Exported fields
 
-{{< docs/shared lookup="flow/reference/components/exporter-component-exports.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/exporter-component-exports.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ## Component health
 

@@ -8,7 +8,6 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/otelcol"
 	"github.com/grafana/agent/component/otelcol/connector"
-	otel_service "github.com/grafana/agent/service/otel"
 	"github.com/grafana/river"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/connector/spanmetricsconnector"
 	otelcomponent "go.opentelemetry.io/collector/component"
@@ -17,10 +16,9 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name:          "otelcol.connector.spanmetrics",
-		Args:          Arguments{},
-		Exports:       otelcol.ConsumerExports{},
-		NeedsServices: []string{otel_service.ServiceName},
+		Name:    "otelcol.connector.spanmetrics",
+		Args:    Arguments{},
+		Exports: otelcol.ConsumerExports{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			fact := spanmetricsconnector.NewFactory()

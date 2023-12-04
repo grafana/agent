@@ -19,11 +19,11 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name:          "prometheus.exporter.blackbox",
-		Args:          Arguments{},
-		Exports:       exporter.Exports{},
-		NeedsServices: exporter.RequiredServices(),
-		Build:         exporter.NewWithTargetBuilder(createExporter, "blackbox", buildBlackboxTargets),
+		Name:    "prometheus.exporter.blackbox",
+		Args:    Arguments{},
+		Exports: exporter.Exports{},
+
+		Build: exporter.NewWithTargetBuilder(createExporter, "blackbox", buildBlackboxTargets),
 	})
 }
 

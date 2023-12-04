@@ -11,7 +11,7 @@ title: discovery.file
 
 # discovery.file
 
-> **NOTE:** In `v0.35.0` of the Grafana Agent, the `discovery.file` component was renamed to [local.file_match][],
+> **NOTE:** In {{< param "PRODUCT_ROOT_NAME" >}} `v0.35.0`, the `discovery.file` component was renamed to [local.file_match][],
 > and `discovery.file` was repurposed to discover scrape targets from one or more files.
 >
 > <br>

@@ -6,10 +6,10 @@ if [ -z "$AGENT_VERSION" ]; then
     exit 1
 fi
 
-versionMatcher='^v[0-9]+\.[0-9]+\.[0-9]+(-rc[0-9]+)?$'
+versionMatcher='^v[0-9]+\.[0-9]+\.[0-9]+(-rc\.[0-9]+)?$'
 
 if ! echo "$AGENT_VERSION" | grep -Eq "$versionMatcher"; then
-    echo "AGENT_VERSION env var is not in the correct format. It should be in the format of vX.Y.Z or vX.Y.Z-rcN"
+    echo "AGENT_VERSION env var is not in the correct format. It should be in the format of vX.Y.Z or vX.Y.Z-rc.N"
     exit 1
 fi
 

@@ -117,19 +117,19 @@ enabled, the retry mechanism will be governed by the backoff configuration speci
 
 ### basic_auth block
 
-{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### authorization block
 
-{{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### oauth2 block
 
-{{< docs/shared lookup="flow/reference/components/oauth2-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/oauth2-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### tls_config block
 
-{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### queue_config block (experimental)
 
@@ -155,7 +155,7 @@ following two mechanisms:
 `min_read_frequency` and `max_read_frequency`.
 
 The WAL is located inside a component-specific directory relative to the
-storage path Grafana Agent is configured to use. See the
+storage path {{< param "PRODUCT_NAME" >}} is configured to use. See the
 [`agent run` documentation][run] for how to change the storage path.
 
 The following arguments are supported:

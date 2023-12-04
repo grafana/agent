@@ -3,12 +3,12 @@ package write
 import (
 	"context"
 	"errors"
-	"fmt"
 	"strings"
 	"time"
 
 	"github.com/bufbuild/connect-go"
 	"github.com/grafana/agent/component/pyroscope"
+	"github.com/grafana/agent/internal/useragent"
 	"github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/oklog/run"
 	commonconfig "github.com/prometheus/common/config"
@@ -18,7 +18,6 @@ import (
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/common/config"
-	"github.com/grafana/agent/pkg/build"
 	"github.com/grafana/dskit/backoff"
 	pushv1 "github.com/grafana/pyroscope/api/gen/proto/go/push/v1"
 	"github.com/grafana/pyroscope/api/gen/proto/go/push/v1/pushv1connect"
@@ -26,7 +25,7 @@ import (
 )
 
 var (
-	userAgent        = fmt.Sprintf("GrafanaAgent/%s", build.Version)
+	userAgent        = useragent.Get()
 	DefaultArguments = func() Arguments {
 		return Arguments{}
 	}
