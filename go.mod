@@ -615,7 +615,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/filterprocessor v0.87.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusreceiver v0.87.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/vcenterreceiver v0.87.0
-	go.opentelemetry.io/collector/exporter/debugexporter v0.89.0
+	go.opentelemetry.io/collector/exporter/debugexporter v0.87.0
 	go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp v0.42.0
 	golang.org/x/crypto/x509roots/fallback v0.0.0-20240208163226-62c9f1799c91
 	k8s.io/apimachinery v0.28.3
@@ -647,10 +647,13 @@ require (
 	github.com/golang-jwt/jwt/v5 v5.0.0 // indirect
 	github.com/google/gnostic-models v0.6.8 // indirect
 <<<<<<< HEAD
+<<<<<<< HEAD
 	github.com/grafana/jfr-parser v0.8.0 // indirect
 	github.com/hetznercloud/hcloud-go/v2 v2.4.0 // indirect
 =======
 	github.com/hashicorp/go-version v1.6.0 // indirect
+=======
+>>>>>>> 0eeb762e8 (Revert dependency versions in go.mod)
 	github.com/hetznercloud/hcloud-go/v2 v2.0.0 // indirect
 >>>>>>> 8594a755c (otelcol debug exporter)
 	github.com/julienschmidt/httprouter v1.3.0 // indirect
