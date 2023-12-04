@@ -128,7 +128,7 @@ func (f *Flow) getComponentDetail(cn *controller.ComponentNode, graph *dag.Graph
 	}
 }
 
-func (f *Flow) GetComponentDebugStream(id component.ID, hook func(data string)) error {
+func (f *Flow) GetComponentDebugStream(id component.ID, hook func(computeDataFunc func() string)) error {
 	f.loadMut.RLock()
 	defer f.loadMut.RUnlock()
 

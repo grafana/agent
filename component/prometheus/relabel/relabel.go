@@ -80,7 +80,7 @@ type Component struct {
 
 	cacheMut            sync.RWMutex
 	cache               *lru.Cache[uint64, *labelAndID]
-	debugStreamCallback func(string)
+	debugStreamCallback func(computeDataFunc func() string)
 }
 
 var (
@@ -102,7 +102,7 @@ func New(o component.Options, args Arguments) (*Component, error) {
 		opts:                o,
 		cache:               cache,
 		ls:                  data.(labelstore.LabelStore),
-		debugStreamCallback: func(string) {},
+		debugStreamCallback: func(computeDataFunc func() string) {},
 	}
 	c.metricsProcessed = prometheus_client.NewCounter(prometheus_client.CounterOpts{
 		Name: "agent_prometheus_relabel_metrics_processed",
@@ -256,7 +256,7 @@ func (c *Component) relabel(val float64, lbls labels.Labels) labels.Labels {
 	// TODO(@mattdurham): Instead of setting this each time could collect on demand for better performance.
 	c.cacheSize.Set(float64(c.cache.Len()))
 
-	c.debugStreamCallback(fmt.Sprintf("%s => %s", lbls.String(), relabelled.String()))
+	c.debugStreamCallback(func() string { return fmt.Sprintf("%s => %s", lbls.String(), relabelled.String()) })
 	return relabelled
 }
 
@@ -304,6 +304,6 @@ type labelAndID struct {
 	id     uint64
 }
 
-func (c *Component) HookDebugStream(debugStreamCallback func(string)) {
+func (c *Component) HookDebugStream(debugStreamCallback func(computeDataFunc func() string)) {
 	c.debugStreamCallback = debugStreamCallback
 }

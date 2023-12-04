@@ -35,7 +35,7 @@ type Provider interface {
 	// Returns ErrModuleNotFound if the provided moduleID doesn't exist.
 	ListComponents(moduleID string, opts InfoOptions) ([]*Info, error)
 
-	GetComponentDebugStream(id ID, hook func(data string)) error
+	GetComponentDebugStream(id ID, hook func(computeDataFunc func() string)) error
 }
 
 // ID is a globally unique identifier for a component.

@@ -115,5 +115,5 @@ type DebugComponent interface {
 }
 
 type DebugStream interface {
-	HookDebugStream(func(string))
+	HookDebugStream(func(computeDataFunc func() string))
 }

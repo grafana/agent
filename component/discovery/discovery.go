@@ -2,6 +2,7 @@ package discovery
 
 import (
 	"context"
+	"fmt"
 	"sort"
 	"strings"
 	"sync"
@@ -99,9 +100,10 @@ type Creator func(component.Arguments) (Discoverer, error)
 type Component struct {
 	opts component.Options
 
-	discMut       sync.Mutex
-	latestDisc    discovery.Discoverer
-	newDiscoverer chan struct{}
+	discMut             sync.Mutex
+	latestDisc          discovery.Discoverer
+	newDiscoverer       chan struct{}
+	debugStreamCallback func(func() string)
 
 	creator Creator
 }
@@ -112,7 +114,8 @@ func New(o component.Options, args component.Arguments, creator Creator) (*Compo
 		opts:    o,
 		creator: creator,
 		// buffered to avoid deadlock from the first immediate update
-		newDiscoverer: make(chan struct{}, 1),
+		newDiscoverer:       make(chan struct{}, 1),
+		debugStreamCallback: func(func() string) {},
 	}
 	return c, c.Update(args)
 }
@@ -192,6 +195,9 @@ func (c *Component) runDiscovery(ctx context.Context, d Discoverer) {
 				allTargets = append(allTargets, labels)
 			}
 		}
+		c.debugStreamCallback(func() string {
+			return fmt.Sprintf("%s", allTargets)
+		})
 		c.opts.OnStateChange(Exports{Targets: allTargets})
 	}
 
@@ -221,4 +227,8 @@ func (c *Component) runDiscovery(ctx context.Context, d Discoverer) {
 			haveUpdates = true
 		}
 	}
+}
+
+func (c *Component) HookDebugStream(debugStreamCallback func(computeDataFunc func() string)) {
+	c.debugStreamCallback = debugStreamCallback
 }

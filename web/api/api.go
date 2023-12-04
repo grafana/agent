@@ -108,19 +108,24 @@ func (f *FlowAPI) getComponentDebugStream() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		requestedComponent := component.ParseID(vars["id"])
-		dataCh := make(chan string)
+		dataCh := make(chan string, 1000) // Define the size of the channel, is 1000 ok?
 		ctx := r.Context()
 
 		// Probably a cleaner way?
 		var send = true
 
-		err := f.flow.GetComponentDebugStream(requestedComponent, func(data string) {
+		err := f.flow.GetComponentDebugStream(requestedComponent, func(computeDataFunc func() string) {
 			if send {
 				select {
 				case <-ctx.Done():
 					send = false
 				default:
-					dataCh <- data
+					// Avoid blocking the channel when the channel is full
+					select {
+					case dataCh <- computeDataFunc():
+					default:
+					}
+
 				}
 			}
 		})

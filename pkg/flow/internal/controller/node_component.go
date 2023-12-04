@@ -419,7 +419,7 @@ func (cn *ComponentNode) DebugInfo() interface{} {
 	return nil
 }
 
-func (cn *ComponentNode) DebugStream(hook func(string)) error {
+func (cn *ComponentNode) DebugStream(hook func(computeDataFunc func() string)) error {
 	cn.mut.RLock()
 	defer cn.mut.RUnlock()
 
@@ -427,7 +427,7 @@ func (cn *ComponentNode) DebugStream(hook func(string)) error {
 		dc.HookDebugStream(hook)
 		return nil
 	}
-	return fmt.Errorf("debug stream not support for component %s", cn.componentName)
+	return fmt.Errorf("debug stream not supported for component %s", cn.componentName)
 }
 
 // setEvalHealth sets the internal health from a call to Evaluate. See Health

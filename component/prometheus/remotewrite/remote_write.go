@@ -53,10 +53,11 @@ type Component struct {
 	log  log.Logger
 	opts component.Options
 
-	walStore    *wal.Storage
-	remoteStore *remote.Storage
-	storage     storage.Storage
-	exited      atomic.Bool
+	walStore            *wal.Storage
+	remoteStore         *remote.Storage
+	storage             storage.Storage
+	exited              atomic.Bool
+	debugStreamCallback func(func() string)
 
 	mut sync.RWMutex
 	cfg Arguments
@@ -91,11 +92,12 @@ func New(o component.Options, c Arguments) (*Component, error) {
 	ls := service.(labelstore.LabelStore)
 
 	res := &Component{
-		log:         o.Logger,
-		opts:        o,
-		walStore:    walStorage,
-		remoteStore: remoteStore,
-		storage:     storage.NewFanout(o.Logger, walStorage, remoteStore),
+		log:                 o.Logger,
+		opts:                o,
+		walStore:            walStorage,
+		remoteStore:         remoteStore,
+		storage:             storage.NewFanout(o.Logger, walStorage, remoteStore),
+		debugStreamCallback: func(func() string) {},
 	}
 	res.receiver = prometheus.NewInterceptor(
 		res.storage,
@@ -117,6 +119,7 @@ func New(o component.Options, c Arguments) (*Component, error) {
 			if localID == 0 {
 				ls.GetOrAddLink(res.opts.ID, uint64(newRef), l)
 			}
+			res.debugStreamCallback(func() string { return fmt.Sprintf("ts(%d), %s, value(%f)", t, l, v) })
 			return globalRef, nextErr
 		}),
 		prometheus.WithHistogramHook(func(globalRef storage.SeriesRef, l labels.Labels, t int64, h *histogram.Histogram, fh *histogram.FloatHistogram, next storage.Appender) (storage.SeriesRef, error) {
@@ -129,6 +132,14 @@ func New(o component.Options, c Arguments) (*Component, error) {
 			if localID == 0 {
 				ls.GetOrAddLink(res.opts.ID, uint64(newRef), l)
 			}
+			res.debugStreamCallback(func() string {
+				if h != nil {
+					return fmt.Sprintf("ts(%d), %s, histogram(%s)", t, l, h.String())
+				} else if fh != nil {
+					return fmt.Sprintf("ts(%d), %s, float_histogram(%s)", t, l, fh.String())
+				}
+				return fmt.Sprintf("ts(%d), %s, no_value", t, l)
+			})
 			return globalRef, nextErr
 		}),
 		prometheus.WithMetadataHook(func(globalRef storage.SeriesRef, l labels.Labels, m metadata.Metadata, next storage.Appender) (storage.SeriesRef, error) {
@@ -141,6 +152,9 @@ func New(o component.Options, c Arguments) (*Component, error) {
 			if localID == 0 {
 				ls.GetOrAddLink(res.opts.ID, uint64(newRef), l)
 			}
+			res.debugStreamCallback(func() string {
+				return fmt.Sprintf("%s, type(%s), unit(%s), help(%s)", l, m.Type, m.Unit, m.Help)
+			})
 			return globalRef, nextErr
 		}),
 		prometheus.WithExemplarHook(func(globalRef storage.SeriesRef, l labels.Labels, e exemplar.Exemplar, next storage.Appender) (storage.SeriesRef, error) {
@@ -153,6 +167,9 @@ func New(o component.Options, c Arguments) (*Component, error) {
 			if localID == 0 {
 				ls.GetOrAddLink(res.opts.ID, uint64(newRef), l)
 			}
+			res.debugStreamCallback(func() string {
+				return fmt.Sprintf("ts(%d), %s, exemplar_labels(%s), value(%f)", e.Ts, l, e.Labels, e.Value)
+			})
 			return globalRef, nextErr
 		}),
 	)
@@ -264,4 +281,8 @@ func (c *Component) Update(newConfig component.Arguments) error {
 
 	c.cfg = cfg
 	return nil
+}
+
+func (c *Component) HookDebugStream(debugStreamCallback func(computeDataFunc func() string)) {
+	c.debugStreamCallback = debugStreamCallback
 }

@@ -22,6 +22,10 @@ import (
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/config"
 	"github.com/prometheus/prometheus/discovery/targetgroup"
+	"github.com/prometheus/prometheus/model/exemplar"
+	"github.com/prometheus/prometheus/model/histogram"
+	"github.com/prometheus/prometheus/model/labels"
+	"github.com/prometheus/prometheus/model/metadata"
 	"github.com/prometheus/prometheus/scrape"
 	"github.com/prometheus/prometheus/storage"
 )
@@ -121,11 +125,12 @@ type Component struct {
 
 	reloadTargets chan struct{}
 
-	mut          sync.RWMutex
-	args         Arguments
-	scraper      *scrape.Manager
-	appendable   *prometheus.Fanout
-	targetsGauge client_prometheus.Gauge
+	mut                 sync.RWMutex
+	args                Arguments
+	scraper             *scrape.Manager
+	appendable          *prometheus.Fanout
+	targetsGauge        client_prometheus.Gauge
+	debugStreamCallback func(func() string)
 }
 
 var (
@@ -160,7 +165,6 @@ func New(o component.Options, args Arguments) (*Component, error) {
 		},
 		EnableProtobufNegotiation: args.EnableProtobufNegotiation,
 	}
-	scraper := scrape.NewManager(scrapeOptions, o.Logger, flowAppendable)
 
 	targetsGauge := client_prometheus.NewGauge(client_prometheus.GaugeOpts{
 		Name: "agent_prometheus_scrape_targets_gauge",
@@ -171,13 +175,53 @@ func New(o component.Options, args Arguments) (*Component, error) {
 	}
 
 	c := &Component{
-		opts:          o,
-		cluster:       clusterData,
-		reloadTargets: make(chan struct{}, 1),
-		scraper:       scraper,
-		appendable:    flowAppendable,
-		targetsGauge:  targetsGauge,
+		opts:                o,
+		cluster:             clusterData,
+		reloadTargets:       make(chan struct{}, 1),
+		appendable:          flowAppendable,
+		targetsGauge:        targetsGauge,
+		debugStreamCallback: func(func() string) {},
 	}
+
+	interceptor := prometheus.NewInterceptor(flowAppendable, ls,
+		prometheus.WithAppendHook(func(globalRef storage.SeriesRef, l labels.Labels, t int64, v float64, next storage.Appender) (storage.SeriesRef, error) {
+			localID := ls.GetLocalRefID(c.opts.ID, uint64(globalRef))
+			_, nextErr := next.Append(storage.SeriesRef(localID), l, t, v)
+			c.debugStreamCallback(func() string { return fmt.Sprintf("ts(%d), %s, value(%f)", t, l, v) })
+			return globalRef, nextErr
+		}),
+		prometheus.WithHistogramHook(func(globalRef storage.SeriesRef, l labels.Labels, t int64, h *histogram.Histogram, fh *histogram.FloatHistogram, next storage.Appender) (storage.SeriesRef, error) {
+			localID := ls.GetLocalRefID(c.opts.ID, uint64(globalRef))
+			_, nextErr := next.AppendHistogram(storage.SeriesRef(localID), l, t, h, fh)
+			c.debugStreamCallback(func() string {
+				if h != nil {
+					return fmt.Sprintf("ts(%d), %s, histogram(%s)", t, l, h.String())
+				} else if fh != nil {
+					return fmt.Sprintf("ts(%d), %s, float_histogram(%s)", t, l, fh.String())
+				}
+				return fmt.Sprintf("ts(%d), %s, no_value", t, l)
+			})
+			return globalRef, nextErr
+		}),
+		prometheus.WithMetadataHook(func(globalRef storage.SeriesRef, l labels.Labels, m metadata.Metadata, next storage.Appender) (storage.SeriesRef, error) {
+			localID := ls.GetLocalRefID(c.opts.ID, uint64(globalRef))
+			_, nextErr := next.UpdateMetadata(storage.SeriesRef(localID), l, m)
+			c.debugStreamCallback(func() string {
+				return fmt.Sprintf("%s, type(%s), unit(%s), help(%s)", l, m.Type, m.Unit, m.Help)
+			})
+			return globalRef, nextErr
+		}),
+		prometheus.WithExemplarHook(func(globalRef storage.SeriesRef, l labels.Labels, e exemplar.Exemplar, next storage.Appender) (storage.SeriesRef, error) {
+			localID := ls.GetLocalRefID(c.opts.ID, uint64(globalRef))
+			_, nextErr := next.AppendExemplar(storage.SeriesRef(localID), l, e)
+			c.debugStreamCallback(func() string {
+				return fmt.Sprintf("ts(%d), %s, exemplar_labels(%s), value(%f)", e.Ts, l, e.Labels, e.Value)
+			})
+			return globalRef, nextErr
+		}),
+	)
+
+	c.scraper = scrape.NewManager(scrapeOptions, o.Logger, interceptor)
 
 	// Call to Update() to set the receivers and targets once at the start.
 	if err := c.Update(args); err != nil {
@@ -383,4 +427,8 @@ func convertLabelSet(tg discovery.Target) model.LabelSet {
 		lset[model.LabelName(k)] = model.LabelValue(v)
 	}
 	return lset
+}
+
+func (c *Component) HookDebugStream(debugStreamCallback func(computeDataFunc func() string)) {
+	c.debugStreamCallback = debugStreamCallback
 }

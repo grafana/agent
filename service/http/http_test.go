@@ -216,4 +216,6 @@ func (fakeHost) ListComponents(moduleID string, opts component.InfoOptions) ([]*
 
 func (fakeHost) GetServiceConsumers(serviceName string) []service.Consumer { return nil }
 
-func (fakeHost) GetComponentDebugStream(id component.ID, hook func(data string)) error { return nil }
+func (fakeHost) GetComponentDebugStream(id component.ID, hook func(computeDataFunc func() string)) error {
+	return nil
+}
