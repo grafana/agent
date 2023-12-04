@@ -28,8 +28,8 @@ func init() {
 // Arguments configures the otelcol.exporter.debug component.
 type exporterArguments struct {
 	Verbosity          configtelemetry.Level `river:"verbosity, attr, optional"`
-	SamplingInitial    int                   `river:"sampling_initial,attr,optional"`
-	SamplingThereafter int                   `river:"sampling_thereafter,attr,optional"`
+	SamplingInitial    int                   `river:"sampling_initial,attr, optional"`
+	SamplingThereafter int                   `river:"sampling_thereafter,attr, optional"`
 
 	// DebugMetrics configures component internal metrics. Optional.
 	DebugMetrics otelcol.DebugMetricsArguments `river:"debug_metrics,block,optional"`
@@ -37,8 +37,8 @@ type exporterArguments struct {
 
 type Arguments struct {
 	Verbosity          string `river:"verbosity, attr, optional"`
-	SamplingInitial    int    `river:"sampling_initial,attr,optional"`
-	SamplingThereafter int    `river:"sampling_thereafter,attr,optional"`
+	SamplingInitial    int    `river:"sampling_initial,attr, optional"`
+	SamplingThereafter int    `river:"sampling_thereafter,attr, optional"`
 }
 
 func (args Arguments) convertToExporter() (exporterArguments, error) {
