@@ -111,12 +111,17 @@ func (f *FlowAPI) getComponentDebugStream() http.HandlerFunc {
 		dataCh := make(chan string)
 		ctx := r.Context()
 
+		// Probably a cleaner way?
+		var send = true
+
 		err := f.flow.GetComponentDebugStream(requestedComponent, func(data string) {
-			select {
-			case <-ctx.Done():
-				return
-			default:
-				dataCh <- data
+			if send {
+				select {
+				case <-ctx.Done():
+					send = false
+				default:
+					dataCh <- data
+				}
 			}
 		})
 		if err != nil {
@@ -127,12 +132,17 @@ func (f *FlowAPI) getComponentDebugStream() http.HandlerFunc {
 		for {
 			select {
 			case data := <-dataCh:
-				_, writeErr := w.Write([]byte(data))
+				if !send {
+					close(dataCh)
+					return
+				}
+				_, writeErr := w.Write([]byte(data + "\n"))
 				if writeErr != nil {
 					return
 				}
 				w.(http.Flusher).Flush()
 			case <-ctx.Done():
+				close(dataCh)
 				return
 			}
 		}

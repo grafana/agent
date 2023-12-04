@@ -4,6 +4,8 @@ import { faNetworkWired } from '@fortawesome/free-solid-svg-icons';
 import Page from '../features/layout/Page';
 import { useStreaming } from '../hooks/stream';
 
+import styles from './Streaming.module.css';
+
 function PageStreaming() {
   const { componentID } = useParams();
   const { data, loading, error } = useStreaming(String(componentID));
@@ -12,7 +14,7 @@ function PageStreaming() {
     <Page name="DebugStream" desc="Debug stream of data" icon={faNetworkWired}>
       {loading && <p>Loading...</p>}
       {error && <p>Error: {error}</p>}
-      <pre>{data}</pre>
+      <pre className={styles.streamingData}>{data}</pre>
     </Page>
   );
 }

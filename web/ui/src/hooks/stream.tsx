@@ -1,18 +1,18 @@
 import { useEffect, useState } from 'react';
 
-/**
- * useStreaming ...
- */
 export const useStreaming = (componentID: string) => {
   const [data, setData] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
+    const abortController = new AbortController();
     const fetchData = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`./api/v0/web/debugStream/${componentID}`);
+        const response = await fetch(`./api/v0/web/debugStream/${componentID}`, {
+          signal: abortController.signal,
+        });
         if (!response.ok || !response.body) {
           throw new Error(response.statusText || 'Unknown error');
         }
@@ -31,12 +31,19 @@ export const useStreaming = (componentID: string) => {
           setData((prevValue) => `${prevValue}${decodedChunk}`);
         }
       } catch (error) {
+        if ((error as Error).name !== 'AbortError') {
+          setError((error as Error).message);
+        }
+      } finally {
         setLoading(false);
-        setError((error as Error).message);
       }
     };
 
     fetchData();
+
+    return () => {
+      abortController.abort();
+    };
   }, [componentID]);
 
   return { data, loading, error };
