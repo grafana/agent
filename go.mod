@@ -616,7 +616,7 @@ require (
 	github.com/natefinch/atomic v1.0.1
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/filterprocessor v0.87.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/vcenterreceiver v0.87.0
-	go.opentelemetry.io/collector/exporter/debugexporter v0.89.0
+	go.opentelemetry.io/collector/exporter/debugexporter v0.87.0
 	go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp v0.42.0
 )
 
@@ -627,7 +627,6 @@ require (
 	github.com/drone/envsubst v1.0.3 // indirect
 	github.com/go-jose/go-jose/v3 v3.0.0 // indirect
 	github.com/google/gnostic-models v0.6.8 // indirect
-	github.com/hashicorp/go-version v1.6.0 // indirect
 	github.com/hetznercloud/hcloud-go/v2 v2.0.0 // indirect
 	github.com/julienschmidt/httprouter v1.3.0 // indirect
 	github.com/knadh/koanf/v2 v2.0.1 // indirect
