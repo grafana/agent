@@ -191,7 +191,7 @@ If {{< param "PRODUCT_NAME" >}} is _not_ running in clustered mode, then the blo
 
 ## Exported fields
 
-`prometheus.operator.probes` does not export any fields. It forwards all metrics it scrapes to the receiver configures with the `forward_to` argument.
+`prometheus.operator.probes` does not export any fields. It forwards all metrics it scrapes to the receivers configured with the `forward_to` argument.
 
 ## Component health
 
@@ -258,3 +258,20 @@ prometheus.operator.probes "probes" {
     }
 }
 ```
+<!-- START GENERATED COMPATIBLE COMPONENTS -->
+
+## Compatible components
+
+`prometheus.operator.probes` can accept arguments from the following components:
+
+- Components that export [Prometheus `MetricsReceiver`]({{< relref "../compatibility/#prometheus-metricsreceiver-exporters" >}})
+
+
+{{% admonition type="note" %}}
+
+Connecting some components may not be sensible or components may require further configuration to make the 
+connection work correctly. Refer to the linked documentation for more details.
+
+{{% /admonition %}}
+
+<!-- END GENERATED COMPATIBLE COMPONENTS -->
