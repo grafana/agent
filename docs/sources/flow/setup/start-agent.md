@@ -156,8 +156,8 @@ AGENT_MODE=flow <BINARY_PATH> run <CONFIG_PATH>
 
 Replace the following:
 
-* _<BINARY_PATH>_: The path to the {{< param "PRODUCT_NAME" >}} binary file.
-* _<CONFIG_PATH>_: The path to the {{< param "PRODUCT_NAME" >}} configuration file.
+* _`<BINARY_PATH>`_: The path to the {{< param "PRODUCT_NAME" >}} binary file.
+* _`<CONFIG_PATH>`_: The path to the {{< param "PRODUCT_NAME" >}} configuration file.
 
 ### Start {{< param "PRODUCT_NAME" >}} on Windows
 
@@ -170,8 +170,8 @@ set AGENT_MODE=flow
 
 Replace the following:
 
-* _<BINARY_PATH>_`: The path to the {{< param "PRODUCT_NAME" >}} binary file.
-* _<CONFIG_PATH>_: The path to the {{< param "PRODUCT_NAME" >}} configuration file.
+* _`<BINARY_PATH>`_: The path to the {{< param "PRODUCT_NAME" >}} binary file.
+* _`<CONFIG_PATH>`_: The path to the {{< param "PRODUCT_NAME" >}} configuration file.
 
 ### Set up {{< param "PRODUCT_NAME" >}} as a Linux systemd service
 
@@ -213,8 +213,8 @@ These steps assume you have a default systemd and {{< param "PRODUCT_NAME" >}} c
 
    Replace the following:
 
-   * _<BINARY_PATH>_: The path to the {{< param "PRODUCT_NAME" >}} binary file.
-   * _<WORKING_DIRECTORY.>_`: The path to a working directory, for example `/var/lib/grafana-agent-flow`.
+   * _`<BINARY_PATH>`_: The path to the {{< param "PRODUCT_NAME" >}} binary file.
+   * _`<WORKING_DIRECTORY>`_: The path to a working directory, for example `/var/lib/grafana-agent-flow`.
 
 1. Create an environment file in `/etc/default/` called `grafana-agent-flow` with the following contents:
 
@@ -239,7 +239,7 @@ These steps assume you have a default systemd and {{< param "PRODUCT_NAME" >}} c
 
    Replace the following:
 
-      * _<CONFIG_PATH>_: The path to the {{< param "PRODUCT_NAME" >}} configuration file.
+      * _`<CONFIG_PATH>`_: The path to the {{< param "PRODUCT_NAME" >}} configuration file.
 
 1. To reload the service files, run the following command in a terminal window:
 

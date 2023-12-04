@@ -41,7 +41,7 @@ To download {{< param "PRODUCT_NAME" >}} as a standalone binary, perform the fol
 
    Replace the following:
 
-   - _<BINARY_PATH>_: The path to the extracted binary.
+   - _`<BINARY_PATH>`_: The path to the extracted binary.
 
 ## Next steps
 

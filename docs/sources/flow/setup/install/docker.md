@@ -46,7 +46,7 @@ docker run \
 
 Replace the following:
 
-- _<CONFIG_FILE_PATH>_: The path of the configuration file on your host system.
+- _`<CONFIG_FILE_PATH>`_: The path of the configuration file on your host system.
 
 You can modify the last line to change the arguments passed to the {{< param "PRODUCT_NAME" >}} binary.
 Refer to the documentation for [run][] for more information about the options available to the `run` command.
@@ -71,7 +71,7 @@ docker run \
 
 Replace the following:
 
-- _<CONFIG_FILE_PATH>_: The path of the configuration file on your host system.
+- _`<CONFIG_FILE_PATH>`_: The path of the configuration file on your host system.
 
 You can modify the last line to change the arguments passed to the {{< param "PRODUCT_NAME" >}} binary.
 Refer to the documentation for [run][] for more information about the options available to the `run` command.

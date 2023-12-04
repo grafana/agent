@@ -59,51 +59,48 @@ data using OTLP, complete the following steps:
    file:
 
    ```river
-   otelcol.exporter.otlp "EXPORTER_LABEL" {
+   otelcol.exporter.otlp "<EXPORTER_LABEL>" {
      client {
-       url = "HOST:PORT"
+       url = "<HOST>:<PORT>"
      }
    }
    ```
 
-    1. Replace `EXPORTER_LABEL` with a label to use for the component, such as
-       `default`. The label chosen must be unique across all
-       `otelcol.exporter.otlp` components in the same configuration file.
+   Replace the following:
 
-    2. Replace `HOST` with the hostname or IP address of the server to send
-       OTLP requests to.
-
-    3. Replace `PORT` with the port of the server to send OTLP requests to.
+   - _`<EXPORTER_LABEL>`_: A label to use for the component, such as `default`.
+     The label chosen must be unique across all `otelcol.exporter.otlp` components in the same configuration file.
+   * _`<HOST>`_: The hostname or IP address of the server to send OTLP requests to.
+   - _`<PORT>`_: The port of the server to send OTLP requests to.
 
 2. If your server requires basic authentication, complete the following:
 
     1. Add the following `otelcol.auth.basic` component to your configuration file:
 
        ```river
-       otelcol.auth.basic "BASIC_AUTH_LABEL" {
-         username = "USERNAME"
-         password = "PASSWORD"
+       otelcol.auth.basic "<BASIC_AUTH_LABEL>" {
+         username = "<USERNAME>"
+         password = "<PASSWORD>"
        }
        ```
 
-        1. Replace `BASIC_AUTH_LABEL` with a label to use for the component, such
-           as `default`. The label chosen must be unique across all
-           `otelcol.auth.basic` components in the same configuration file.
+       Replace the following:
 
-        2. Replace `USERNAME` with the basic authentication username to use.
-
-        3. Replace `PASSWORD` with the basic authentication password or API key to
-           use.
+       - _`<BASIC_AUTH_LABEL>`_: A label to use for the component, such as `default`.
+         The label chosen must be unique across all `otelcol.auth.basic` components in the same configuration file.
+       - _`<USERNAME>`_: The basic authentication username to use.
+       - _`<PASSWORD>`_: The basic authentication password or API key to use.
 
     2. Add the following line inside of the `client` block of your
        `otelcol.exporter.otlp` component:
 
        ```river
-       auth = otelcol.auth.basic.BASIC_AUTH_LABEL.handler
+       auth = otelcol.auth.basic.<BASIC_AUTH_LABEL>.handler
        ```
 
-        1. Replace `BASIC_AUTH_LABEL` with the label used for the
-           `otelcol.auth.basic` component in step 2.1.1.
+       Replace the following:
+
+       - _`<BASIC_AUTH_LABEL>`_: The label used for the `otelcol.auth.basic` component.
 
 3. If you have more than one server to export metrics to, create a new
    `otelcol.exporter.otlp` component for each additional server.
@@ -176,31 +173,27 @@ steps:
    exporter](#configure-an-opentelemetry-protocol-exporter) to ensure received
    data can be written to an external system.
 
-2. Add the following `otelcol.processor.batch` component into your
-   configuration file:
+1. Add the following `otelcol.processor.batch` component into your configuration file:
 
    ```river
-   otelcol.processor.batch "PROCESSOR_LABEL" {
+   otelcol.processor.batch "<PROCESSOR_LABEL>" {
      output {
-       metrics = [otelcol.exporter.otlp.EXPORTER_LABEL.input]
-       logs    = [otelcol.exporter.otlp.EXPORTER_LABEL.input]
-       traces  = [otelcol.exporter.otlp.EXPORTER_LABEL.input]
+       metrics = [otelcol.exporter.otlp.<EXPORTER_LABEL>.input]
+       logs    = [otelcol.exporter.otlp.<EXPORTER_LABEL>.input]
+       traces  = [otelcol.exporter.otlp.>EXPORTER_LABEL>.input]
      }
    }
    ```
 
-    1. Replace `PROCESSOR_LABEL` with a label to use for the component, such as
-       `default`. The label chosen must be unique across all
-       `otelcol.processor.batch` components in the same configuration file.
+   Replace the following:
 
-    2. Replace `EXPORTER_LABEL` with the label for your existing
-       `otelcol.exporter.otlp` component.
+   - _`<PROCESSOR_LABEL>`_: A label to use for the component, such as `default`.
+     The label chosen must be unique across all `otelcol.processor.batch` components in the same configuration file.
+   - _`<EXPORTER_LABEL>`_: The label for your existing `otelcol.exporter.otlp` component.
 
-    3. To disable one of the telemetry types, set the relevant type in the
-       `output` block to the empty list, such as `metrics = []`.
+   1. To disable one of the telemetry types, set the relevant type in the `output` block to the empty list, such as `metrics = []`.
 
-    4. To send batched data to another processor, replace the components in the
-       `output` list with the processor components to use.
+   1. To send batched data to another processor, replace the components in the `output` list with the processor components to use.
 
 The following example demonstrates configuring a sequence of
 `otelcol.processor` components before ultimately being exported:
@@ -263,56 +256,50 @@ complete the following steps:
    file:
 
    ```river
-   otelcol.receiver.otlp "LABEL" {
+   otelcol.receiver.otlp "<LABEL>" {
      output {
-       metrics = [COMPONENT_INPUT_LIST]
-       logs    = [COMPONENT_INPUT_LIST]
-       traces  = [COMPONENT_INPUT_LIST]
+       metrics = [<COMPONENT_INPUT_LIST>]
+       logs    = [<COMPONENT_INPUT_LIST>]
+       traces  = [<COMPONENT_INPUT_LIST>]
      }
    }
    ```
 
-    1. Replace `LABEL` with a label to use for the component, such as
-       `default`. The label chosen must be unique across all
-       `otelcol.receiver.otlp` components in the same configuration file.
+   Replace the following:
 
-    2. Replace `COMPONENT_INPUT_LIST` with a comma-delimited list of component
-       inputs to forward received data to. For example, to send data to an
-       existing batch processor component, use
-       `otelcol.processor.batch.PROCESSOR_LABEL.input`. To send data directly
-       to an existing exporter component, use
-       `otelcol.exporter.otlp.EXPORTER_LABEL.input`.
+   - _`<LABEL>`_: A label to use for the component, such as `default`.
+     The label chosen must be unique across all `otelcol.receiver.otlp` components in the same configuration file.
+   - _`<COMPONENT_INPUT_LIST>`_: A comma-delimited list of component inputs to forward received data to.
+     For example, to send data to an existing batch processor component, use `otelcol.processor.batch.PROCESSOR_LABEL.input`.
+     To send data directly to an existing exporter component, use `otelcol.exporter.otlp.EXPORTER_LABEL.input`.
 
-    3. To allow applications to send OTLP data over gRPC on port `4317`, add
-       the following to your `otelcol.receiver.otlp` component:
+   1. To allow applications to send OTLP data over gRPC on port `4317`, add the following to your `otelcol.receiver.otlp` component:
 
-       ```river
-       grpc {
-         endpoint = "HOST:4317"
-       }
-       ```
+      ```river
+      grpc {
+        endpoint = "<HOST>:4317"
+      }
+      ```
 
-        1. Replace `HOST` with a host to listen to traffic on. It is
-           recommended to use a narrowly-scoped listen address whenever
-           possible. To listen on all network interfaces, replace `HOST` with
-           `0.0.0.0`.
+      Replace the following:
 
-    4. To allow applications to send OTLP data over HTTP/1.1 on port `4318`,
-       add the following to your `otelcol.receiver.otlp` component:
+      - _`<HOST>`_: A host to listen to traffic on. It is recommended to use a narrowly-scoped listen address whenever possible.
+        To listen on all network interfaces, replace _`<HOST>`_ with `0.0.0.0`.
 
-       ```river
-       http {
-         endpoint = "HOST:4318"
-       }
-       ```
+   1. To allow applications to send OTLP data over HTTP/1.1 on port `4318`, add the following to your `otelcol.receiver.otlp` component:
 
-        1. Replace `HOST` with a host to listen to traffic on. It is
-           recommended to use a narrowly-scoped listen address whenever
-           possible. To listen on all network interfaces, replace `HOST` with
-           `0.0.0.0`.
+      ```river
+      http {
+        endpoint = "<HOST>:4318"
+      }
+      ```
 
-    5. To disable one of the telemetry types, set the relevant type in the
-       `output` block to the empty list, such as `metrics = []`.
+      Replace the following:
+
+      - _`<HOST>`_: A host to listen to traffic on. It is recommended to use a narrowly-scoped listen address whenever possible.
+        To listen on all network interfaces, replace _`<HOST>`_ with `0.0.0.0`.
+
+   1. To disable one of the telemetry types, set the relevant type in the `output` block to the empty list, such as `metrics = []`.
 
 The following example demonstrates configuring `otelcol.receiver.otlp` and
 sending it to an exporter:
