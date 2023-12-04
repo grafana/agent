@@ -233,3 +233,20 @@ loki.write "default" {
 `loki.write` uses [snappy](https://en.wikipedia.org/wiki/Snappy_(compression)) for compression.
 
 Any labels that start with `__` will be removed before sending to the endpoint.
+
+<!-- START GENERATED COMPATIBLE COMPONENTS -->
+
+## Compatible components
+
+`loki.write` has exports that can be consumed by the following components:
+
+- Components that consume [Loki `LogsReceiver`]({{< relref "../compatibility/#loki-logsreceiver-consumers" >}})
+
+{{% admonition type="note" %}}
+
+Connecting some components may not be sensible or components may require further configuration to make the 
+connection work correctly. Refer to the linked documentation for more details.
+
+{{% /admonition %}}
+
+<!-- END GENERATED COMPATIBLE COMPONENTS -->

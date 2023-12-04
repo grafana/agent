@@ -428,3 +428,22 @@ http://localhost:12345/debug/pprof/goroutine
 http://localhost:12345/debug/pprof/profile?seconds=14
 http://localhost:12345/debug/fgprof?seconds=14
 ```
+
+<!-- START GENERATED COMPATIBLE COMPONENTS -->
+
+## Compatible components
+
+`pyroscope.scrape` can accept arguments from the following components:
+
+- Components that export [Targets]({{< relref "../compatibility/#targets-exporters" >}})
+- Components that export [Pyroscope `ProfilesReceiver`]({{< relref "../compatibility/#pyroscope-profilesreceiver-exporters" >}})
+
+
+{{% admonition type="note" %}}
+
+Connecting some components may not be sensible or components may require further configuration to make the 
+connection work correctly. Refer to the linked documentation for more details.
+
+{{% /admonition %}}
+
+<!-- END GENERATED COMPATIBLE COMPONENTS -->

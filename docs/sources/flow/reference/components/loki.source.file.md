@@ -234,3 +234,22 @@ loki.write "local" {
 ```
 
 [IANA encoding]: https://www.iana.org/assignments/character-sets/character-sets.xhtml
+
+<!-- START GENERATED COMPATIBLE COMPONENTS -->
+
+## Compatible components
+
+`loki.source.file` can accept arguments from the following components:
+
+- Components that export [Targets]({{< relref "../compatibility/#targets-exporters" >}})
+- Components that export [Loki `LogsReceiver`]({{< relref "../compatibility/#loki-logsreceiver-exporters" >}})
+
+
+{{% admonition type="note" %}}
+
+Connecting some components may not be sensible or components may require further configuration to make the 
+connection work correctly. Refer to the linked documentation for more details.
+
+{{% /admonition %}}
+
+<!-- END GENERATED COMPATIBLE COMPONENTS -->

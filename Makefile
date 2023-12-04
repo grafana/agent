@@ -287,7 +287,7 @@ smoke-image:
 #
 
 .PHONY: generate generate-crds generate-drone generate-helm-docs generate-helm-tests generate-manifests generate-dashboards generate-protos generate-ui generate-versioned-files
-generate: generate-crds generate-drone generate-helm-docs generate-helm-tests generate-manifests generate-dashboards generate-protos generate-ui generate-versioned-files
+generate: generate-crds generate-drone generate-helm-docs generate-helm-tests generate-manifests generate-dashboards generate-protos generate-ui generate-versioned-files generate-docs
 
 generate-crds:
 ifeq ($(USE_CONTAINER),1)
@@ -350,6 +350,12 @@ else
 	sh ./tools/gen-versioned-files/gen-versioned-files.sh
 endif
 
+generate-docs:
+ifeq ($(USE_CONTAINER),1)
+	$(RERUN_IN_CONTAINER)
+else
+	go generate ./docs
+endif
 #
 # Other targets
 #
