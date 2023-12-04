@@ -234,38 +234,38 @@ func (c *Component) Details(matchers map[string]string) []*SeriesSummary {
 }
 
 func (c *Component) Handler() http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		level.Error(c.opts.Logger).Log("msg", "got request", "path", r.URL.Path)
-		switch r.URL.Path {
-		case "/summary":
-			params := r.URL.Query()
-			ls := append([]string{}, params["label"]...)
-			level.Error(c.opts.Logger).Log("msg", "got summary request", "labels", ls)
-			summaries := c.Summarize(ls...)
-			w.Header().Set("Content-Type", "application/json")
-			err := json.NewEncoder(w).Encode(summaries)
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-			} else {
-				w.WriteHeader(http.StatusOK)
-			}
-		case "/details":
-			params := r.URL.Query()
-			ls := map[string]string{}
-			for k, v := range params {
-				ls[k] = v[0]
-			}
-			level.Error(c.opts.Logger).Log("msg", "got summary request", "labels", ls)
-			details := c.Details(ls)
-			w.Header().Set("Content-Type", "application/json")
-			err := json.NewEncoder(w).Encode(details)
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-			} else {
-				w.WriteHeader(http.StatusOK)
-			}
-		default:
-			w.WriteHeader(http.StatusNotFound)
+	router := http.NewServeMux()
+
+	router.HandleFunc("/summary", func(w http.ResponseWriter, r *http.Request) {
+		params := r.URL.Query()
+		ls := append([]string{}, params["label"]...)
+
+		summaries := c.Summarize(ls...)
+
+		w.Header().Set("Content-Type", "application/json")
+		err := json.NewEncoder(w).Encode(summaries)
+		if err != nil {
+			level.Error(c.opts.Logger).Log("msg", "failed to encode json", "err", err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 	})
+
+	router.HandleFunc("/details", func(w http.ResponseWriter, r *http.Request) {
+		params := r.URL.Query()
+		ls := map[string]string{}
+		for k, v := range params {
+			ls[k] = v[0]
+		}
+
+		details := c.Details(ls)
+
+		w.Header().Set("Content-Type", "application/json")
+		err := json.NewEncoder(w).Encode(details)
+		if err != nil {
+			level.Error(c.opts.Logger).Log("msg", "failed to encode json", "err", err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+	})
+
+	return router
 }
