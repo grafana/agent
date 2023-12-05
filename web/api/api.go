@@ -6,6 +6,7 @@ package api
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"path"
 
@@ -124,6 +125,7 @@ func (f *FlowAPI) startDebugStream() http.HandlerFunc {
 			}
 		})
 		if err != nil {
+			fmt.Println(err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}

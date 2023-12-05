@@ -9,6 +9,7 @@ import (
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/otelcol"
+	debugstreamconsumer "github.com/grafana/agent/component/otelcol/internal/debugStreamConsumer"
 	"github.com/grafana/agent/component/otelcol/internal/fanoutconsumer"
 	"github.com/grafana/agent/component/otelcol/internal/lazycollector"
 	"github.com/grafana/agent/component/otelcol/internal/scheduler"
@@ -56,13 +57,15 @@ type Receiver struct {
 	opts    component.Options
 	factory otelreceiver.Factory
 
-	sched     *scheduler.Scheduler
-	collector *lazycollector.Collector
+	sched               *scheduler.Scheduler
+	collector           *lazycollector.Collector
+	debugStreamConsumer *debugstreamconsumer.Consumer
 }
 
 var (
 	_ component.Component       = (*Receiver)(nil)
 	_ component.HealthComponent = (*Receiver)(nil)
+	_ component.DebugStream     = (*Receiver)(nil)
 )
 
 // New creates a new Flow component which encapsulates an OpenTelemetry
@@ -87,8 +90,9 @@ func New(opts component.Options, f otelreceiver.Factory, args Arguments) (*Recei
 		opts:    opts,
 		factory: f,
 
-		sched:     scheduler.New(opts.Logger),
-		collector: collector,
+		sched:               scheduler.New(opts.Logger),
+		collector:           collector,
+		debugStreamConsumer: debugstreamconsumer.New(),
 	}
 	if err := r.Update(args); err != nil {
 		return nil, err
@@ -153,9 +157,9 @@ func (r *Receiver) Update(args component.Arguments) error {
 
 	var (
 		next        = rargs.NextConsumers()
-		nextTraces  = fanoutconsumer.Traces(next.Traces)
-		nextMetrics = fanoutconsumer.Metrics(next.Metrics)
-		nextLogs    = fanoutconsumer.Logs(next.Logs)
+		nextTraces  = fanoutconsumer.Traces(append(next.Traces, r.debugStreamConsumer))
+		nextMetrics = fanoutconsumer.Metrics(append(next.Metrics, r.debugStreamConsumer))
+		nextLogs    = fanoutconsumer.Logs(append(next.Logs, r.debugStreamConsumer))
 	)
 
 	// Create instances of the receiver from our factory for each of our
@@ -191,4 +195,8 @@ func (r *Receiver) Update(args component.Arguments) error {
 // CurrentHealth implements component.HealthComponent.
 func (r *Receiver) CurrentHealth() component.Health {
 	return r.sched.CurrentHealth()
+}
+
+func (r *Receiver) HookDebugStream(active bool, debugStreamCallback func(computeDataFunc func() string)) {
+	r.debugStreamConsumer.HookDebugStream(active, debugStreamCallback)
 }

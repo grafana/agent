@@ -14,6 +14,10 @@ import (
 	"github.com/grafana/agent/component/otelcol/internal/lazyconsumer"
 	"github.com/grafana/agent/component/prometheus"
 	"github.com/grafana/agent/service/labelstore"
+	"github.com/prometheus/prometheus/model/exemplar"
+	"github.com/prometheus/prometheus/model/histogram"
+	"github.com/prometheus/prometheus/model/labels"
+	"github.com/prometheus/prometheus/model/metadata"
 	"github.com/prometheus/prometheus/storage"
 )
 
@@ -72,8 +76,9 @@ type Component struct {
 	fanout    *prometheus.Fanout
 	converter *convert.Converter
 
-	mut sync.RWMutex
-	cfg Arguments
+	mut                 sync.RWMutex
+	cfg                 Arguments
+	debugStreamCallback func(func() string)
 }
 
 var _ component.Component = (*Component)(nil)
@@ -85,17 +90,55 @@ func New(o component.Options, c Arguments) (*Component, error) {
 		return nil, err
 	}
 	ls := service.(labelstore.LabelStore)
-	fanout := prometheus.NewFanout(nil, o.ID, o.Registerer, ls)
-
-	converter := convert.New(o.Logger, fanout, convertArgumentsToConvertOptions(c))
 
 	res := &Component{
-		log:  o.Logger,
-		opts: o,
-
-		fanout:    fanout,
-		converter: converter,
+		log:                 o.Logger,
+		opts:                o,
+		debugStreamCallback: func(func() string) {},
 	}
+
+	res.fanout = prometheus.NewFanout(nil, o.ID, o.Registerer, ls)
+
+	interceptor := prometheus.NewInterceptor(res.fanout, ls,
+		prometheus.WithAppendHook(func(globalRef storage.SeriesRef, l labels.Labels, t int64, v float64, next storage.Appender) (storage.SeriesRef, error) {
+			localID := ls.GetLocalRefID(res.opts.ID, uint64(globalRef))
+			_, nextErr := next.Append(storage.SeriesRef(localID), l, t, v)
+			res.debugStreamCallback(func() string { return fmt.Sprintf("ts(%d), %s, value(%f)", t, l, v) })
+			return globalRef, nextErr
+		}),
+		prometheus.WithHistogramHook(func(globalRef storage.SeriesRef, l labels.Labels, t int64, h *histogram.Histogram, fh *histogram.FloatHistogram, next storage.Appender) (storage.SeriesRef, error) {
+			localID := ls.GetLocalRefID(res.opts.ID, uint64(globalRef))
+			_, nextErr := next.AppendHistogram(storage.SeriesRef(localID), l, t, h, fh)
+			res.debugStreamCallback(func() string {
+				if h != nil {
+					return fmt.Sprintf("ts(%d), %s, histogram(%s)", t, l, h.String())
+				} else if fh != nil {
+					return fmt.Sprintf("ts(%d), %s, float_histogram(%s)", t, l, fh.String())
+				}
+				return fmt.Sprintf("ts(%d), %s, no_value", t, l)
+			})
+			return globalRef, nextErr
+		}),
+		prometheus.WithMetadataHook(func(globalRef storage.SeriesRef, l labels.Labels, m metadata.Metadata, next storage.Appender) (storage.SeriesRef, error) {
+			localID := ls.GetLocalRefID(res.opts.ID, uint64(globalRef))
+			_, nextErr := next.UpdateMetadata(storage.SeriesRef(localID), l, m)
+			res.debugStreamCallback(func() string {
+				return fmt.Sprintf("%s, type(%s), unit(%s), help(%s)", l, m.Type, m.Unit, m.Help)
+			})
+			return globalRef, nextErr
+		}),
+		prometheus.WithExemplarHook(func(globalRef storage.SeriesRef, l labels.Labels, e exemplar.Exemplar, next storage.Appender) (storage.SeriesRef, error) {
+			localID := ls.GetLocalRefID(res.opts.ID, uint64(globalRef))
+			_, nextErr := next.AppendExemplar(storage.SeriesRef(localID), l, e)
+			res.debugStreamCallback(func() string {
+				return fmt.Sprintf("ts(%d), %s, exemplar_labels(%s), value(%f)", e.Ts, l, e.Labels, e.Value)
+			})
+			return globalRef, nextErr
+		}),
+	)
+
+	res.converter = convert.New(o.Logger, interceptor, convertArgumentsToConvertOptions(c))
+
 	if err := res.Update(c); err != nil {
 		return nil, err
 	}
@@ -104,7 +147,7 @@ func New(o component.Options, c Arguments) (*Component, error) {
 	// remain the same throughout the component's lifetime, so we do this during
 	// component construction.
 	export := lazyconsumer.New(context.Background())
-	export.SetConsumers(nil, converter, nil)
+	export.SetConsumers(nil, res.converter, nil)
 	o.OnStateChange(otelcol.ConsumerExports{Input: export})
 
 	return res, nil
@@ -158,4 +201,8 @@ func convertArgumentsToConvertOptions(args Arguments) convert.Options {
 		AddMetricSuffixes:             args.AddMetricSuffixes,
 		ResourceToTelemetryConversion: args.ResourceToTelemetryConversion,
 	}
+}
+
+func (c *Component) HookDebugStream(active bool, debugStreamCallback func(computeDataFunc func() string)) {
+	c.debugStreamCallback = debugStreamCallback
 }

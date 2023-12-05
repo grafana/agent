@@ -3,6 +3,7 @@ package loki
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/component"
@@ -34,10 +35,14 @@ type Component struct {
 	log  log.Logger
 	opts component.Options
 
-	converter *convert.Converter
+	converter               *convert.Converter
+	logsReceiverStreamDebug *logsReceiverStreamDebug
 }
 
-var _ component.Component = (*Component)(nil)
+var (
+	_ component.Component   = (*Component)(nil)
+	_ component.DebugStream = (*Component)(nil)
+)
 
 // New creates a new otelcol.exporter.loki component.
 func New(o component.Options, c Arguments) (*Component, error) {
@@ -48,6 +53,10 @@ func New(o component.Options, c Arguments) (*Component, error) {
 		opts: o,
 
 		converter: converter,
+		logsReceiverStreamDebug: &logsReceiverStreamDebug{
+			entries:             make(chan loki.Entry),
+			debugStreamCallback: func(func() string) {},
+		},
 	}
 	if err := res.Update(c); err != nil {
 		return nil, err
@@ -65,13 +74,34 @@ func New(o component.Options, c Arguments) (*Component, error) {
 
 // Run implements Component.
 func (c *Component) Run(ctx context.Context) error {
-	<-ctx.Done()
-	return nil
+	for {
+		select {
+		case <-ctx.Done():
+			return nil
+		case entry := <-c.logsReceiverStreamDebug.Chan():
+			c.logsReceiverStreamDebug.debugStreamCallback(func() string {
+				return fmt.Sprintf("ts(%s), %s, %s", entry.Timestamp.String(), entry.Labels.String(), entry.Line)
+			})
+		}
+	}
 }
 
 // Update implements Component.
 func (c *Component) Update(newConfig component.Arguments) error {
 	cfg := newConfig.(Arguments)
-	c.converter.UpdateFanout(cfg.ForwardTo)
+	c.converter.UpdateFanout(append(cfg.ForwardTo, c.logsReceiverStreamDebug))
 	return nil
+}
+
+type logsReceiverStreamDebug struct {
+	entries             chan loki.Entry
+	debugStreamCallback func(computeDataFunc func() string)
+}
+
+func (l *logsReceiverStreamDebug) Chan() chan loki.Entry {
+	return l.entries
+}
+
+func (c *Component) HookDebugStream(active bool, debugStreamCallback func(computeDataFunc func() string)) {
+	c.logsReceiverStreamDebug.debugStreamCallback = debugStreamCallback
 }

@@ -11,6 +11,7 @@ import (
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/otelcol"
+	debugstreamconsumer "github.com/grafana/agent/component/otelcol/internal/debugStreamConsumer"
 	"github.com/grafana/agent/component/otelcol/internal/fanoutconsumer"
 	"github.com/grafana/agent/component/otelcol/receiver/prometheus/internal"
 	"github.com/grafana/agent/pkg/build"
@@ -52,18 +53,23 @@ type Component struct {
 	log  log.Logger
 	opts component.Options
 
-	mut        sync.RWMutex
-	cfg        Arguments
-	appendable storage.Appendable
+	mut                 sync.RWMutex
+	cfg                 Arguments
+	appendable          storage.Appendable
+	debugStreamConsumer *debugstreamconsumer.Consumer
 }
 
-var _ component.Component = (*Component)(nil)
+var (
+	_ component.Component   = (*Component)(nil)
+	_ component.DebugStream = (*Component)(nil)
+)
 
 // New creates a new otelcol.receiver.prometheus component.
 func New(o component.Options, c Arguments) (*Component, error) {
 	res := &Component{
-		log:  o.Logger,
-		opts: o,
+		log:                 o.Logger,
+		opts:                o,
+		debugStreamConsumer: debugstreamconsumer.New(),
 	}
 
 	if err := res.Update(c); err != nil {
@@ -121,7 +127,7 @@ func (c *Component) Update(newConfig component.Arguments) error {
 			Version:     build.Version,
 		},
 	}
-	metricsSink := fanoutconsumer.Metrics(cfg.Output.Metrics)
+	metricsSink := fanoutconsumer.Metrics(append(cfg.Output.Metrics, c.debugStreamConsumer))
 
 	appendable, err := internal.NewAppendable(
 		metricsSink,
@@ -141,4 +147,8 @@ func (c *Component) Update(newConfig component.Arguments) error {
 	c.opts.OnStateChange(Exports{Receiver: c.appendable})
 
 	return nil
+}
+
+func (c *Component) HookDebugStream(active bool, debugStreamCallback func(computeDataFunc func() string)) {
+	c.debugStreamConsumer.HookDebugStream(active, debugStreamCallback)
 }

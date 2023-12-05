@@ -11,6 +11,7 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/common/loki"
 	"github.com/grafana/agent/component/otelcol"
+	debugstreamconsumer "github.com/grafana/agent/component/otelcol/internal/debugStreamConsumer"
 	"github.com/grafana/agent/component/otelcol/internal/fanoutconsumer"
 	"github.com/grafana/agent/pkg/flow/logging/level"
 	loki_translator "github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/loki"
@@ -49,9 +50,10 @@ type Component struct {
 	log  log.Logger
 	opts component.Options
 
-	mut      sync.RWMutex
-	receiver loki.LogsReceiver
-	logsSink consumer.Logs
+	mut                 sync.RWMutex
+	receiver            loki.LogsReceiver
+	logsSink            consumer.Logs
+	debugStreamConsumer *debugstreamconsumer.Consumer
 }
 
 var _ component.Component = (*Component)(nil)
@@ -61,8 +63,9 @@ func New(o component.Options, c Arguments) (*Component, error) {
 	// TODO(@tpaschalis) Create a metrics struct to count
 	// total/successful/errored log entries?
 	res := &Component{
-		log:  o.Logger,
-		opts: o,
+		log:                 o.Logger,
+		opts:                o,
+		debugStreamConsumer: debugstreamconsumer.New(),
 	}
 
 	// Create and immediately export the receiver which remains the same for
@@ -101,7 +104,7 @@ func (c *Component) Update(newConfig component.Arguments) error {
 	defer c.mut.Unlock()
 
 	cfg := newConfig.(Arguments)
-	c.logsSink = fanoutconsumer.Logs(cfg.Output.Logs)
+	c.logsSink = fanoutconsumer.Logs(append(cfg.Output.Logs, c.debugStreamConsumer))
 
 	return nil
 }
@@ -146,4 +149,8 @@ func convertLokiEntryToPlog(lokiEntry loki.Entry) plog.Logs {
 	loki_translator.ConvertEntryToLogRecord(&lokiEntry.Entry, &lr, lokiEntry.Labels, true)
 
 	return logs
+}
+
+func (c *Component) HookDebugStream(active bool, debugStreamCallback func(computeDataFunc func() string)) {
+	c.debugStreamConsumer.HookDebugStream(active, debugStreamCallback)
 }

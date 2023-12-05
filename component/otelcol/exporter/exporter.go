@@ -9,6 +9,7 @@ import (
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/otelcol"
+	debugstreamconsumer "github.com/grafana/agent/component/otelcol/internal/debugStreamConsumer"
 	"github.com/grafana/agent/component/otelcol/internal/lazycollector"
 	"github.com/grafana/agent/component/otelcol/internal/lazyconsumer"
 	"github.com/grafana/agent/component/otelcol/internal/scheduler"
@@ -87,6 +88,8 @@ type Exporter struct {
 	// Signals which the exporter is able to export.
 	// Can be logs, metrics, traces or any combination of them.
 	supportedSignals TypeSignal
+
+	debugStreamConsumer *debugstreamconsumer.Consumer
 }
 
 var (
@@ -128,7 +131,8 @@ func New(opts component.Options, f otelexporter.Factory, args Arguments, support
 		sched:     scheduler.New(opts.Logger),
 		collector: collector,
 
-		supportedSignals: supportedSignals,
+		supportedSignals:    supportedSignals,
+		debugStreamConsumer: debugstreamconsumer.New(),
 	}
 	if err := e.Update(args); err != nil {
 		return nil, err
@@ -234,4 +238,8 @@ func (e *Exporter) Update(args component.Arguments) error {
 // CurrentHealth implements component.HealthComponent.
 func (e *Exporter) CurrentHealth() component.Health {
 	return e.sched.CurrentHealth()
+}
+
+func (e *Exporter) HookDebugStream(active bool, debugStreamCallback func(computeDataFunc func() string)) {
+	e.debugStreamConsumer.HookDebugStream(active, debugStreamCallback)
 }

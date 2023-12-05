@@ -58,7 +58,6 @@ type Processor struct {
 	sched     *scheduler.Scheduler
 	collector *lazycollector.Collector
 
-	args                Arguments
 	debugStreamConsumer *debugstreamconsumer.Consumer
 }
 
@@ -118,12 +117,12 @@ func (p *Processor) Run(ctx context.Context) error {
 // configuration for OpenTelemetry Collector processor configuration and manage
 // the underlying OpenTelemetry Collector processor.
 func (p *Processor) Update(args component.Arguments) error {
-	p.args = args.(Arguments)
+	pargs := args.(Arguments)
 
 	host := scheduler.NewHost(
 		p.opts.Logger,
-		scheduler.WithHostExtensions(p.args.Extensions()),
-		scheduler.WithHostExporters(p.args.Exporters()),
+		scheduler.WithHostExtensions(pargs.Extensions()),
+		scheduler.WithHostExporters(pargs.Exporters()),
 	)
 
 	reg := prometheus.NewRegistry()
@@ -153,13 +152,13 @@ func (p *Processor) Update(args component.Arguments) error {
 		},
 	}
 
-	processorConfig, err := p.args.Convert()
+	processorConfig, err := pargs.Convert()
 	if err != nil {
 		return err
 	}
 
 	var (
-		next        = p.args.NextConsumers()
+		next        = pargs.NextConsumers()
 		nextTraces  = fanoutconsumer.Traces(append(next.Traces, p.debugStreamConsumer))
 		nextMetrics = fanoutconsumer.Metrics(append(next.Metrics, p.debugStreamConsumer))
 		nextLogs    = fanoutconsumer.Logs(append(next.Logs, p.debugStreamConsumer))
