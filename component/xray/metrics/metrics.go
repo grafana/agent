@@ -235,9 +235,9 @@ func (c *Component) Details(matchers map[string]string) []*SeriesSummary {
 }
 
 type metricLabelCardinality struct {
-	Name          string         `json:"name"`
-	TotalSeries   int            `json:"total_series"`
-	Cardinalities map[string]int `json:"cardinalities"`
+	Name               string         `json:"name"`
+	TotalSeries        int            `json:"total_series"`
+	LabelCardinalities map[string]int `json:"label_cardinalities"`
 }
 
 type overview struct {
@@ -296,9 +296,9 @@ func (c *Component) Handler() http.Handler {
 				}
 			}
 			topSeriesDetails = append(topSeriesDetails, &metricLabelCardinality{
-				Name:          s.Labels.Get("__name__"),
-				Cardinalities: cardinalities,
-				TotalSeries:   s.SeriesCount,
+				Name:               s.Labels.Get("__name__"),
+				LabelCardinalities: cardinalities,
+				TotalSeries:        s.SeriesCount,
 			})
 		}
 
