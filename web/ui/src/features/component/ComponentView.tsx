@@ -1,6 +1,6 @@
 import { FC, Fragment, ReactElement } from 'react';
 import { Link } from 'react-router-dom';
-import { faCubes, faLink, faNetworkWired } from '@fortawesome/free-solid-svg-icons';
+import { faCubes, faLink, faNetworkWired, faSkull } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { partitionBody } from '../../utils/partition';
@@ -100,9 +100,9 @@ export const ComponentView: FC<ComponentViewProps> = (props) => {
           </a>
         </div>
 
-        <div className={styles.docsLink}>
+        <div className={styles.xrayLink}>
           <a href={`xray/${props.component.localID}`}>
-            Debug <FontAwesomeIcon icon={faNetworkWired} />
+            Debug with X-Ray <FontAwesomeIcon icon={faSkull} />
           </a>
         </div>
 
