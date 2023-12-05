@@ -41,6 +41,10 @@ Main (unreleased)
  
 - Update `pyroscope.ebpf` to produce more optimal pprof profiles for python processes https://github.com/grafana/pyroscope/pull/2788 (@korniltsev)
 
+### Other changes
+
+- Bump github.com/IBM/sarama from v1.41.2 to v1.42.1
+
 v0.38.1 (2023-11-30)
 --------------------
 
