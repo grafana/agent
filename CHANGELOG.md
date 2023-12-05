@@ -32,6 +32,9 @@ Main (unreleased)
 
 - `pyroscope.ebpf` support python on arm64 platforms. (@korniltsev)
 
+- Added links between compatible components in the documentation to make it
+  easier to discover them. (@thampiotr)
+
 - Added support for NS records to `discovery.dns`. (@djcode)
 
 ### Bugfixes
