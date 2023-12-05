@@ -36,7 +36,7 @@ func (f *FlowAPI) RegisterRoutes(urlPrefix string, r *mux.Router) {
 	r.Handle(path.Join(urlPrefix, "/components"), httputil.CompressionHandler{Handler: f.listComponentsHandler()})
 	r.Handle(path.Join(urlPrefix, "/components/{id:.+}"), httputil.CompressionHandler{Handler: f.getComponentHandler()})
 	r.Handle(path.Join(urlPrefix, "/peers"), httputil.CompressionHandler{Handler: f.getClusteringPeersHandler()})
-	r.Handle(path.Join(urlPrefix, "/debugStream/{id:.+}"), f.getComponentDebugStream())
+	r.Handle(path.Join(urlPrefix, "/debugStream/{id:.+}"), f.startDebugStream())
 }
 
 func (f *FlowAPI) listComponentsHandler() http.HandlerFunc {
@@ -104,28 +104,22 @@ func (f *FlowAPI) getClusteringPeersHandler() http.HandlerFunc {
 	}
 }
 
-func (f *FlowAPI) getComponentDebugStream() http.HandlerFunc {
+func (f *FlowAPI) startDebugStream() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		requestedComponent := component.ParseID(vars["id"])
 		dataCh := make(chan string, 1000) // Define the size of the channel, is 1000 ok?
 		ctx := r.Context()
 
-		// Probably a cleaner way?
-		var send = true
-
-		err := f.flow.GetComponentDebugStream(requestedComponent, func(computeDataFunc func() string) {
-			if send {
+		err := f.flow.SetDebugStream(requestedComponent, true, func(computeDataFunc func() string) {
+			select {
+			case <-ctx.Done():
+				return
+			default:
+				// Avoid blocking the channel when the channel is full
 				select {
-				case <-ctx.Done():
-					send = false
+				case dataCh <- computeDataFunc():
 				default:
-					// Avoid blocking the channel when the channel is full
-					select {
-					case dataCh <- computeDataFunc():
-					default:
-					}
-
 				}
 			}
 		})
@@ -134,20 +128,22 @@ func (f *FlowAPI) getComponentDebugStream() http.HandlerFunc {
 			return
 		}
 
+		stopStreaming := func() {
+			close(dataCh)
+			_ = f.flow.SetDebugStream(requestedComponent, false, func(func() string) {})
+		}
+
 		for {
 			select {
 			case data := <-dataCh:
-				if !send {
-					close(dataCh)
-					return
-				}
 				_, writeErr := w.Write([]byte(data + "\n"))
 				if writeErr != nil {
+					stopStreaming()
 					return
 				}
 				w.(http.Flusher).Flush()
 			case <-ctx.Done():
-				close(dataCh)
+				stopStreaming()
 				return
 			}
 		}

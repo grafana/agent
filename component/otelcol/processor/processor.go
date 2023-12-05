@@ -9,6 +9,7 @@ import (
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/otelcol"
+	debugstreamconsumer "github.com/grafana/agent/component/otelcol/internal/debugStreamConsumer"
 	"github.com/grafana/agent/component/otelcol/internal/fanoutconsumer"
 	"github.com/grafana/agent/component/otelcol/internal/lazycollector"
 	"github.com/grafana/agent/component/otelcol/internal/lazyconsumer"
@@ -56,6 +57,9 @@ type Processor struct {
 
 	sched     *scheduler.Scheduler
 	collector *lazycollector.Collector
+
+	args                Arguments
+	debugStreamConsumer *debugstreamconsumer.Consumer
 }
 
 var (
@@ -94,8 +98,9 @@ func New(opts component.Options, f otelprocessor.Factory, args Arguments) (*Proc
 		factory:  f,
 		consumer: consumer,
 
-		sched:     scheduler.New(opts.Logger),
-		collector: collector,
+		sched:               scheduler.New(opts.Logger),
+		collector:           collector,
+		debugStreamConsumer: debugstreamconsumer.New(),
 	}
 	if err := p.Update(args); err != nil {
 		return nil, err
@@ -113,12 +118,12 @@ func (p *Processor) Run(ctx context.Context) error {
 // configuration for OpenTelemetry Collector processor configuration and manage
 // the underlying OpenTelemetry Collector processor.
 func (p *Processor) Update(args component.Arguments) error {
-	pargs := args.(Arguments)
+	p.args = args.(Arguments)
 
 	host := scheduler.NewHost(
 		p.opts.Logger,
-		scheduler.WithHostExtensions(pargs.Extensions()),
-		scheduler.WithHostExporters(pargs.Exporters()),
+		scheduler.WithHostExtensions(p.args.Extensions()),
+		scheduler.WithHostExporters(p.args.Exporters()),
 	)
 
 	reg := prometheus.NewRegistry()
@@ -148,16 +153,16 @@ func (p *Processor) Update(args component.Arguments) error {
 		},
 	}
 
-	processorConfig, err := pargs.Convert()
+	processorConfig, err := p.args.Convert()
 	if err != nil {
 		return err
 	}
 
 	var (
-		next        = pargs.NextConsumers()
-		nextTraces  = fanoutconsumer.Traces(next.Traces)
-		nextMetrics = fanoutconsumer.Metrics(next.Metrics)
-		nextLogs    = fanoutconsumer.Logs(next.Logs)
+		next        = p.args.NextConsumers()
+		nextTraces  = fanoutconsumer.Traces(append(next.Traces, p.debugStreamConsumer))
+		nextMetrics = fanoutconsumer.Metrics(append(next.Metrics, p.debugStreamConsumer))
+		nextLogs    = fanoutconsumer.Logs(append(next.Logs, p.debugStreamConsumer))
 	)
 
 	// Create instances of the processor from our factory for each of our
@@ -203,4 +208,8 @@ func (p *Processor) Update(args component.Arguments) error {
 // CurrentHealth implements component.HealthComponent.
 func (p *Processor) CurrentHealth() component.Health {
 	return p.sched.CurrentHealth()
+}
+
+func (p *Processor) HookDebugStream(active bool, debugStreamCallback func(computeDataFunc func() string)) {
+	p.debugStreamConsumer.HookDebugStream(active, debugStreamCallback)
 }

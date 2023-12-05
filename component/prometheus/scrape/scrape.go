@@ -429,6 +429,6 @@ func convertLabelSet(tg discovery.Target) model.LabelSet {
 	return lset
 }
 
-func (c *Component) HookDebugStream(debugStreamCallback func(computeDataFunc func() string)) {
+func (c *Component) HookDebugStream(active bool, debugStreamCallback func(computeDataFunc func() string)) {
 	c.debugStreamCallback = debugStreamCallback
 }

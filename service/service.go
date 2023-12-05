@@ -55,7 +55,7 @@ type Host interface {
 	// name.
 	GetServiceConsumers(serviceName string) []Consumer
 
-	GetComponentDebugStream(id component.ID, hook func(computeDataFunc func() string)) error
+	SetDebugStream(id component.ID, active bool, hook func(computeDataFunc func() string)) error
 }
 
 type Consumer struct {

@@ -128,7 +128,7 @@ func (f *Flow) getComponentDetail(cn *controller.ComponentNode, graph *dag.Graph
 	}
 }
 
-func (f *Flow) GetComponentDebugStream(id component.ID, hook func(computeDataFunc func() string)) error {
+func (f *Flow) SetDebugStream(id component.ID, active bool, hook func(computeDataFunc func() string)) error {
 	f.loadMut.RLock()
 	defer f.loadMut.RUnlock()
 
@@ -146,5 +146,5 @@ func (f *Flow) GetComponentDebugStream(id component.ID, hook func(computeDataFun
 		return fmt.Errorf("%q is not a component", id)
 	}
 
-	return cn.DebugStream(hook)
+	return cn.DebugStream(active, hook)
 }

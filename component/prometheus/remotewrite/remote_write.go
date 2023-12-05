@@ -283,6 +283,6 @@ func (c *Component) Update(newConfig component.Arguments) error {
 	return nil
 }
 
-func (c *Component) HookDebugStream(debugStreamCallback func(computeDataFunc func() string)) {
+func (c *Component) HookDebugStream(active bool, debugStreamCallback func(computeDataFunc func() string)) {
 	c.debugStreamCallback = debugStreamCallback
 }

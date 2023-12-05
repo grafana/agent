@@ -304,6 +304,6 @@ type labelAndID struct {
 	id     uint64
 }
 
-func (c *Component) HookDebugStream(debugStreamCallback func(computeDataFunc func() string)) {
+func (c *Component) HookDebugStream(active bool, debugStreamCallback func(computeDataFunc func() string)) {
 	c.debugStreamCallback = debugStreamCallback
 }

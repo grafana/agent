@@ -115,5 +115,6 @@ type DebugComponent interface {
 }
 
 type DebugStream interface {
-	HookDebugStream(func(computeDataFunc func() string))
+	// TODO: return error
+	HookDebugStream(active bool, callback func(computeDataFunc func() string))
 }
