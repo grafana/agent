@@ -71,6 +71,5 @@ func TestMarkerFileHandler(t *testing.T) {
 		} else {
 			require.Equal(t, MarkerFileMode, stats.Mode().Perm())
 		}
-
 	})
 }
