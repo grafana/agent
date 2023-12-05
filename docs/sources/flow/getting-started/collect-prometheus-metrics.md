@@ -12,8 +12,7 @@ weight: 200
 
 # Collect and forward Prometheus metrics
 
-{{< param "PRODUCT_NAME" >}} can be configured to collect [Prometheus][] metrics and
-forward them to any Prometheus-compatible database.
+You can configure {{< param "PRODUCT_NAME" >}} to collect [Prometheus][] metrics and forward them to any Prometheus-compatible database.
 
 This topic describes how to:
 
@@ -36,18 +35,14 @@ This topic describes how to:
 
 ## Configure metrics delivery
 
-Before components can collect Prometheus metrics, you must have a component
-responsible for writing those metrics somewhere.
+Before components can collect Prometheus metrics, you must have a component responsible for writing those metrics somewhere.
 
-The [prometheus.remote_write][] component is responsible for delivering
-Prometheus metrics to one or Prometheus-compatible endpoints. Once a
-`prometheus.remote_write` component is defined, other {{< param "PRODUCT_NAME" >}}
-components can be used to forward metrics to it.
+The [prometheus.remote_write][] component is responsible for delivering Prometheus metrics to one or Prometheus-compatible endpoints.
+After a `prometheus.remote_write` component is defined, other {{< param "PRODUCT_NAME" >}} components can be used to forward metrics to it.
 
-To configure a `prometheus.remote_write` component for metrics delivery,
-complete the following steps:
+To configure a `prometheus.remote_write` component for metrics delivery, complete the following steps:
 
-1. Add the following `prometheus.remote_write` component to your configuration file:
+1. Add the following `prometheus.remote_write` component to your configuration file.
 
    ```river
    prometheus.remote_write "<LABEL>" {
@@ -59,11 +54,11 @@ complete the following steps:
 
    Replace the following:
 
-   - _`<LABEL>`_: A label to use for the component, such as `default`.
-     The label chosen must be unique across all `prometheus.remote_write` components in the same configuration file.
+   - _`<LABEL>`_: The label to use for the component, such as `default`.
+     The label you use must be unique across all `prometheus.remote_write` components in the same configuration file.
    - _`<PROMETHEUS_URL>`_ The full URL of the Prometheus-compatible endpoint where metrics will be sent, such as `https://prometheus-us-central1.grafana.net/api/prom/push`.
 
-1. If your endpoint requires basic authentication, paste the following inside of the `endpoint` block:
+1. If your endpoint requires basic authentication, paste the following inside of the `endpoint` block.
 
    ```river
    basic_auth {
@@ -77,12 +72,9 @@ complete the following steps:
    - _`<USERNAME>`_: The basic authentication username to use.
    - _`<PASSWORD>`_: The basic authentication password or API key to use.
 
-1. If you have more than one endpoint to write metrics to, repeat the
-   `endpoint` block for additional endpoints.
+1. If you have more than one endpoint to write metrics to, repeat the `endpoint` block for additional endpoints.
 
-The following example demonstrates configuring `prometheus.remote_write` with
-multiple endpoints and mixed usage of basic authentication, and a
-`prometheus.scrape` component which forwards metrics to it:
+The following example demonstrates configuring `prometheus.remote_write` with multiple endpoints and mixed usage of basic authentication, and a `prometheus.scrape` component which forwards metrics to it.
 
 ```river
 prometheus.remote_write "default" {
@@ -111,26 +103,22 @@ prometheus.scrape "example" {
 }
 ```
 
-For more information on configuring metrics delivery, refer to
-[prometheus.remote_write][].
+For more information on configuring metrics delivery, refer to [prometheus.remote_write][].
 
 ## Collect metrics from Kubernetes Pods
 
-{{< param "PRODUCT_NAME" >}} can be configured to collect metrics from Kubernetes Pods
-by:
+{{< param "PRODUCT_NAME" >}} can be configured to collect metrics from Kubernetes Pods by:
 
 1. Discovering Kubernetes Pods to collect metrics from.
 1. Collecting metrics from those discovered Pods.
 
 To collect metrics from Kubernetes Pods, complete the following steps:
 
-1. Follow [Configure metrics delivery](#configure-metrics-delivery) to ensure
-   collected metrics can be written somewhere.
+1. Follow [Configure metrics delivery](#configure-metrics-delivery) to ensure collected metrics can be written somewhere.
 
 1. Discover Kubernetes Pods:
 
-    1. Add the following `discovery.kubernetes` component to your configuration
-       file to discover every Pod in the cluster across all Namespaces:
+    1. Add the following `discovery.kubernetes` component to your configuration file to discover every Pod in the cluster across all Namespaces.
 
        ```river
        discovery.kubernetes "<DISCOVERY_LABEL>" {
@@ -141,13 +129,11 @@ To collect metrics from Kubernetes Pods, complete the following steps:
        Replace the following
 
        - _`<DISCOVERY_LABEL>`_: A label to use for the component, such as `pods`.
-         The label chosen must be unique across all `discovery.kubernetes` components in the same configuration file.
+         The label you use must be unique across all `discovery.kubernetes` components in the same configuration file.
 
        This will generate one Prometheus target for every exposed port on every discovered Pod.
 
-
-    1. To limit the Namespaces that Pods are discovered in, add the following
-       block inside of the `discovery.kubernetes` component:
+    1. To limit the Namespaces that Pods are discovered in, add the following block inside of the `discovery.kubernetes` component.
 
        ```river
        namespaces {
@@ -163,8 +149,7 @@ To collect metrics from Kubernetes Pods, complete the following steps:
 
        If you don't want to search for Pods in the Namespace {{< param "PRODUCT_NAME" >}} is running in, set `own_namespace` to `false`.
 
-    1. To use a field selector to limit the number of discovered Pods, add the
-       following block inside of the `discovery.kubernetes` component:
+    1. To use a field selector to limit the number of discovered Pods, add the following block inside of the `discovery.kubernetes` component.
 
        ```river
        selectors {
@@ -180,8 +165,7 @@ To collect metrics from Kubernetes Pods, complete the following steps:
 
        Create additional `selectors` blocks for each field selector you want to apply.
 
-    4. To use a label selector to limit the number of discovered Pods, add the
-       following block inside of the `discovery.kubernetes` component:
+    4. To use a label selector to limit the number of discovered Pods, add the following block inside of the `discovery.kubernetes` component.
 
        ```river
        selectors {
@@ -199,8 +183,7 @@ To collect metrics from Kubernetes Pods, complete the following steps:
 
 3. Collect metrics from discovered Pods:
 
-    1. Add the following `prometheus.scrape` component to your configuration
-       file:
+    1. Add the following `prometheus.scrape` component to your configuration file.
 
        ```river
        prometheus.scrape "<SCRAPE_LABEL>" {
@@ -211,13 +194,12 @@ To collect metrics from Kubernetes Pods, complete the following steps:
 
        Replace the following:
 
-       - _`<SCRAPE_LABEL>`_: A label to use for the component, such as `pods`.
-         The label chosen must be unique across all `prometheus.scrape` components in the same configuration file.
+       - _`<SCRAPE_LABEL>`_: The label to use for the component, such as `pods`.
+         The label you use must be unique across all `prometheus.scrape` components in the same configuration file.
        - _`<DISCOVERY_LABEL>`_: The label chosen for the `discovery.kubernetes` component.
        - _`<REMOTE_WRITE_LABEL>`_: The label chosen for your existing `prometheus.remote_write` component.
 
-The following example demonstrates configuring {{< param "PRODUCT_NAME" >}} to collect metrics
-from running production Kubernetes Pods in the `default` Namespace:
+The following example demonstrates configuring {{< param "PRODUCT_NAME" >}} to collect metrics from running production Kubernetes Pods in the `default` Namespace.
 
 ```river
 discovery.kubernetes "pods" {
@@ -247,25 +229,22 @@ prometheus.remote_write "default" {
 }
 ```
 
-For more information on configuring Kubernetes service delivery and collecting
-metrics, refer to [discovery.kubernetes][] and [prometheus.scrape][].
+For more information on configuring Kubernetes service delivery and collecting metrics, refer to [discovery.kubernetes][] and [prometheus.scrape][].
 
 ## Collect metrics from Kubernetes Services
 
-{{< param "PRODUCT_NAME" >}} can be configured to collect metrics from Kubernetes Services by:
+You can configure {{< param "PRODUCT_NAME" >}} to collect metrics from Kubernetes Services by:
 
 1. Discovering Kubernetes Services to collect metrics from.
 1. Collecting metrics from those discovered Services.
 
-To collect metrics from Kubernetes Services, complete the following steps:
+To collect metrics from Kubernetes Services, complete the following steps.
 
-1. Follow [Configure metrics delivery](#configure-metrics-delivery) to ensure
-   collected metrics can be written somewhere.
+1. Follow [Configure metrics delivery](#configure-metrics-delivery) to ensure collected metrics can be written somewhere.
 
 1. Discover Kubernetes Services:
 
-    1. Add the following `discovery.kubernetes` component to your configuration
-       file to discover every Services in the cluster across all Namespaces:
+    1. Add the following `discovery.kubernetes` component to your configuration file to discover every Services in the cluster across all Namespaces.
 
        ```river
        discovery.kubernetes "<DISCOVERY_LABEL>" {
@@ -280,8 +259,7 @@ To collect metrics from Kubernetes Services, complete the following steps:
 
        This will generate one Prometheus target for every exposed port on every discovered Service.
 
-    1. To limit the Namespaces that Services are discovered in, add the following
-       block inside of the `discovery.kubernetes` component:
+    1. To limit the Namespaces that Services are discovered in, add the following block inside of the `discovery.kubernetes` component.
 
        ```river
        namespaces {
@@ -297,8 +275,7 @@ To collect metrics from Kubernetes Services, complete the following steps:
 
        If you don't want to search for Services in the Namespace {{< param "PRODUCT_NAME" >}} is running in, set `own_namespace` to `false`.
 
-    1. To use a field selector to limit the number of discovered Services, add the
-       following block inside of the `discovery.kubernetes` component:
+    1. To use a field selector to limit the number of discovered Services, add the following block inside of the `discovery.kubernetes` component.
 
        ```river
        selectors {
@@ -314,8 +291,7 @@ To collect metrics from Kubernetes Services, complete the following steps:
 
        Create additional `selectors` blocks for each field selector you want to apply.
 
-    1. To use a label selector to limit the number of discovered Services, add the
-       following block inside of the `discovery.kubernetes` component:
+    1. To use a label selector to limit the number of discovered Services, add the following block inside of the `discovery.kubernetes` component.
 
        ```river
        selectors {
@@ -333,8 +309,7 @@ To collect metrics from Kubernetes Services, complete the following steps:
 
 1. Collect metrics from discovered Services:
 
-    1. Add the following `prometheus.scrape` component to your configuration
-       file:
+    1. Add the following `prometheus.scrape` component to your configuration file.
 
        ```river
        prometheus.scrape "<SCRAPE_LABEL>" {
@@ -345,13 +320,12 @@ To collect metrics from Kubernetes Services, complete the following steps:
 
        Replace the following:
 
-       - _`<SCRAPE_LABEL>`_: A label to use for the component, such as `services`.
-         The label chosen must be unique across all `prometeus.scrape` components in the same configuration file.
+       - _`<SCRAPE_LABEL>`_: The label to use for the component, such as `services`.
+         The label you use must be unique across all `prometeus.scrape` components in the same configuration file.
        - _`<DISCOVERY_LABEL>`_: The label chosen for the `discovery.kubernetes` component.
-       -`<REMOTE_WRITE_LABEL>`_: The label chosen for your existing `prometheus.remote_write` component.
+       - _`<REMOTE_WRITE_LABEL>`_: The label chosen for your existing `prometheus.remote_write` component.
 
-The following example demonstrates configuring {{< param "PRODUCT_NAME" >}} to collect metrics
-from running production Kubernetes Services in the `default` Namespace:
+The following example demonstrates configuring {{< param "PRODUCT_NAME" >}} to collect metrics from running production Kubernetes Services in the `default` Namespace.
 
 ```river
 discovery.kubernetes "services" {
@@ -381,17 +355,15 @@ prometheus.remote_write "default" {
 }
 ```
 
-For more information on configuring Kubernetes service delivery and collecting
-metrics, refer to [discovery.kubernetes][] and [prometheus.scrape][].
+For more information on configuring Kubernetes service delivery and collecting metrics, refer to [discovery.kubernetes][] and [prometheus.scrape][].
 
 ## Collect metrics from custom targets
 
-{{< param "PRODUCT_NAME" >}} can be configured to collect metrics from a custom set of
-targets without the need for service discovery.
+You can configure {{< param "PRODUCT_NAME" >}} to collect metrics from a custom set of targets without the need for service discovery.
 
-To collect metrics from a custom set of targets, complete the following steps:
+To collect metrics from a custom set of targets, complete the following steps.
 
-1. Follow [Configure metrics delivery](#configure-metrics-delivery) to ensure collected metrics can be written somewhere.
+1. Follow [Configure metrics delivery][] to ensure collected metrics can be written somewhere.
 
 1. Add the following `prometheus.scrape` component to your configuration file:
 
@@ -404,22 +376,22 @@ To collect metrics from a custom set of targets, complete the following steps:
 
    Replace the following:
 
-   - _`<SCRAPE_LABEL>`: A label to use for the component, such as `custom_targets`.
-     The label chosen must be unique across all `prometheus.scrape` components in the same configuration file.
+   - _`<SCRAPE_LABEL>`: The label to use for the component, such as `custom_targets`.
+     The label you use must be unique across all `prometheus.scrape` components in the same configuration file.
    - _`<TARGET_LIST>`_: A comma-delimited list of [Objects][] denoting the Prometheus target.
      Each object must conform to the following rules:
 
      * There must be an `__address__` key denoting the `HOST:PORT` of the target to collect metrics from.
      * To explicitly specify which protocol to use, set the `__scheme__` key to `"http"` or `"https"`.
-       If the `__scheme__` key is not provided, the protocol to use is inherited by the settings of the `prometheus.scrape` component. The default is `"http"`.
+       If the `__scheme__` key isn't provided, the protocol to use is inherited by the settings of the `prometheus.scrape` component. The default is `"http"`.
      * To explicitly specify which HTTP path to collect metrics from, set the `__metrics_path__` key to the HTTP path to use.
-       If the `__metrics_path__` key is not provided, the path to use is inherited by the settings of the `prometheus.scrape` component. The default is `"/metrics"`.
+       If the `__metrics_path__` key isn't provided, the path to use is inherited by the settings of the `prometheus.scrape` component. The default is `"/metrics"`.
      * Add additional keys as desired to inject extra labels to collected metrics.
        Any label starting with two underscores (`__`) will be dropped prior to scraping.
 
-   - _`<REMOTE_WRITE_LABEL>`_: The label chosen for your existing `prometheus.remote_write` component.
+   - _`<REMOTE_WRITE_LABEL>`_: The label you use for your existing `prometheus.remote_write` component.
 
-The following example demonstrates configuring `prometheus.scrape` to collect metrics from a custom set of endpoints:
+The following example demonstrates configuring `prometheus.scrape` to collect metrics from a custom set of endpoints.
 
 ```river
 prometheus.scrape "custom_targets" {
@@ -457,6 +429,7 @@ prometheus.remote_write "default" {
 [Labels and Selectors]: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#set-based-requirement
 [Field Selectors]: https://kubernetes.io/docs/concepts/overview/working-with-objects/field-selectors/
 [Labels and Selectors]: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#set-based-requirement
+[Configure metrics delivery](#configure-metrics-delivery)
 
 {{% docs/reference %}}
 [discovery.kubernetes]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/discovery.kubernetes.md"

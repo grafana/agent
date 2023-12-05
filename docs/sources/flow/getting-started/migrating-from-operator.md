@@ -85,7 +85,7 @@ remote.kubernetes.secret "credentials" {
 
 prometheus.remote_write "primary" {
     endpoint {
-        url = "https://PROMETHEUS_URL/api/v1/push"
+        url = "https://<PROMETHEUS_URL>/api/v1/push"
         basic_auth {
             username = nonsensitive(remote.kubernetes.secret.credentials.data["username"])
             password = remote.kubernetes.secret.credentials.data["password"]
@@ -111,7 +111,9 @@ prometheus.operator.servicemonitors "primary" {
 
 ```
 
-You will need to replace `PROMETHEUS_URL` with the actual endpoint you want to send metrics to.
+Replace the following:
+
+- _`<PROMETHEUS_URL>`_: The endpoint you want to send metrics to.
 
 This configuration will discover all `PodMonitor`, `ServiceMonitor`, and `Probe` resources in your cluster that match our label selector `instance=primary`.
 It will then scrape metrics from their targets and forward them to your remote write endpoint.
@@ -260,7 +262,9 @@ loki.write "loki" {
 }
 ```
 
-You will need to replace `LOKI_URL` with the actual endpoint of your Loki instance.
+Replace the following:
+
+- _`<LOKI_URL>`_: The endpoint of your Loki instance.
 
 The logging subsystem is very powerful and has many options for processing logs. For further details see the [component documentation][].
 
