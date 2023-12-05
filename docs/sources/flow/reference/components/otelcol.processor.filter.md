@@ -238,7 +238,6 @@ otelcol.processor.filter "default" {
   error_mode = "ignore"
 
   metrics {
-    context = "resource"
     metric = [
        "name == \"my.metric\" and resource.attributes[\"my_label\"] == \"abc123\""
        "type == METRIC_DATA_TYPE_HISTOGRAM"
