@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"slices"
 	"sync"
 
 	"go.uber.org/atomic"
@@ -233,6 +234,11 @@ func (c *Component) Details(matchers map[string]string) []*SeriesSummary {
 	return matches
 }
 
+type overview struct {
+	SummariesBySeriesCount []*summary       `json:"summaries_by_series_count"`
+	TopSeriesDetails       []*SeriesSummary `json:"top_series_details"`
+}
+
 func (c *Component) Handler() http.Handler {
 	router := http.NewServeMux()
 
@@ -244,6 +250,28 @@ func (c *Component) Handler() http.Handler {
 
 		w.Header().Set("Content-Type", "application/json")
 		err := json.NewEncoder(w).Encode(summaries)
+		if err != nil {
+			level.Error(c.opts.Logger).Log("msg", "failed to encode json", "err", err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+	})
+
+	router.HandleFunc("/overview", func(w http.ResponseWriter, r *http.Request) {
+		summByName := c.Summarize("__name__")
+		summaries := []*summary{}
+		for _, v := range summByName {
+			summaries = append(summaries, v)
+		}
+
+		slices.SortFunc(summaries, func(a, b *summary) int {
+			return b.SeriesCount - a.SeriesCount
+		})
+
+		w.Header().Set("Content-Type", "application/json")
+		overview := &overview{
+			SummariesBySeriesCount: summaries,
+		}
+		err := json.NewEncoder(w).Encode(overview)
 		if err != nil {
 			level.Error(c.opts.Logger).Log("msg", "failed to encode json", "err", err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
