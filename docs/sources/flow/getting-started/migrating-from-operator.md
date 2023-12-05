@@ -17,14 +17,14 @@ Some of the Operator functionality has been moved into {{< param "PRODUCT_NAME" 
 - The Monitor types (`PodMonitor`, `ServiceMonitor`, `Probe`, and `LogsInstance`) are all supported natively by {{< param "PRODUCT_NAME" >}}.
   You are no longer required to use the Operator to consume those CRDs for dynamic monitoring in your cluster.
 - The parts of the Operator that deploy the {{< param "PRODUCT_ROOT_NAME" >}} itself (`GrafanaAgent`, `MetricsInstance`, and `LogsInstance` CRDs) are deprecated.
-  We now recommend operator users use the {{< param "PRODUCT_ROOT_NAME" >}} [Helm Chart](https://grafana.com/docs/agent/latest/flow/setup/install/kubernetes/) to deploy {{< param "PRODUCT_ROOT_NAME" >}} directly to your clusters.
+  We now recommend operator users use the {{< param "PRODUCT_ROOT_NAME" >}} [Helm Chart][] to deploy {{< param "PRODUCT_ROOT_NAME" >}} directly to your clusters.
 
 This guide will provide some steps to get started with {{< param "PRODUCT_NAME" >}} for users coming from Grafana Agent Operator.
 
 ## Deploy {{< param "PRODUCT_NAME" >}} with Helm
 
 1. You will need to create a `values.yaml` file, which contains options for deploying your {{< param "PRODUCT_ROOT_NAME" >}}.
-You may start with the [default values](https://github.com/grafana/agent/blob/main/operations/helm/charts/grafana-agent/values.yaml) and customize as you see fit, or start with this snippet, which should be a good starting point for what the Operator does:
+   You may start with the [default values][] and customize as you see fit, or start with this snippet, which should be a good starting point for what the Operator does.
 
     ```yaml
     agent:
@@ -40,22 +40,23 @@ You may start with the [default values](https://github.com/grafana/agent/blob/ma
       create: false
     ```
 
-    This configuration will deploy {{< param "PRODUCT_NAME" >}} as a `StatefulSet` using the built-in [clustering](https://grafana.com/docs/agent/latest/flow/concepts/clustering/) functionality to allow distributing scrapes across all {{< param "PRODUCT_ROOT_NAME" >}} Pods.
+    This configuration will deploy {{< param "PRODUCT_NAME" >}} as a `StatefulSet` using the built-in [clustering][] functionality to allow distributing scrapes across all {{< param "PRODUCT_ROOT_NAME" >}} Pods.
 
-    This is not the only deployment mode possible. For example, you may want to use a `DaemonSet` to collect host-level logs or metrics. See the {{< param "PRODUCT_NAME" >}} [deployment guide](https://grafana.com/docs/agent/latest/flow/setup/deploy-agent/) for more details about different topologies.
+    This is not the only deployment mode possible. For example, you may want to use a `DaemonSet` to collect host-level logs or metrics.
+    See the {{< param "PRODUCT_NAME" >}} [deployment guide][] for more details about different topologies.
 
-2. Create a {{< param "PRODUCT_ROOT_NAME" >}} configuration file, `agent.river`.
+1. Create a {{< param "PRODUCT_ROOT_NAME" >}} configuration file, `agent.river`.
 
     We will be adding to this configuration in the next step as we convert `MetricsInstances`. You can add any additional configuration to this file as you desire.
 
-3. Install the Grafana Helm repository:
+1. Install the Grafana Helm repository:
 
     ```
     helm repo add grafana https://grafana.github.io/helm-charts
     helm repo update
     ```
 
-4. Create a Helm release. You may name the release anything you like. Here we are installing a release named `grafana-agent-metrics` in the `monitoring` namespace.
+1. Create a Helm release. You may name the release anything you like. Here we are installing a release named `grafana-agent-metrics` in the `monitoring` namespace.
 
     ```shell
     helm upgrade grafana-agent-metrics grafana/grafana-agent -i -n monitoring -f values.yaml --set-file agent.configMap.content=agent.river
@@ -72,7 +73,7 @@ A `MetricsInstance` resource primarily defines:
 
 These functions can be done in {{< param "PRODUCT_NAME" >}} with the `prometheus.remote_write`, `prometheus.operator.podmonitors`, `prometheus.operator.servicemonitors`, and `prometheus.operator.probes` components respectively.
 
-This is a River sample that is equivalent to the `MetricsInstance` from our [operator guide](https://grafana.com/docs/agent/latest/operator/deploy-agent-operator-resources/#deploy-a-metricsinstance-resource):
+The following River sample is equivalent to the `MetricsInstance` from our [operator guide][]:
 
 ```river
 
@@ -112,24 +113,26 @@ prometheus.operator.servicemonitors "primary" {
 
 You will need to replace `PROMETHEUS_URL` with the actual endpoint you want to send metrics to.
 
-This configuration will discover all `PodMonitor`, `ServiceMonitor`, and `Probe` resources in your cluster that match our label selector `instance=primary`. It will then scrape metrics from their targets and forward them to your remote write endpoint.
+This configuration will discover all `PodMonitor`, `ServiceMonitor`, and `Probe` resources in your cluster that match our label selector `instance=primary`.
+It will then scrape metrics from their targets and forward them to your remote write endpoint.
 
-You may need to customize this configuration further if you use additional features in your `MetricsInstance` resources. Refer to the documentation for the relevant components for additional information:
+You may need to customize this configuration further if you use additional features in your `MetricsInstance` resources.
+Refer to the documentation for the relevant components for additional information:
 
-- [remote.kubernetes.secret](https://grafana.com/docs/agent/latest/flow/reference/components/remote.kubernetes.secret)
-- [prometheus.remote_write](https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.remote_write)
-- [prometheus.operator.podmonitors](https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.operator.podmonitors)
-- [prometheus.operator.servicemonitors](https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.operator.servicemonitors)
-- [prometheus.operator.probes](https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.operator.probes)
-- [prometheus.scrape](https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.scrape)
+- [remote.kubernetes.secret][]
+- [prometheus.remote_write][]
+- [prometheus.operator.podmonitors][]
+- [prometheus.operator.servicemonitors][]
+- [prometheus.operator.probes][]
+- [prometheus.scrape][]
 
 ## Collecting Logs
 
 Our current recommendation is to create an additional DaemonSet deployment of {{< param "PRODUCT_ROOT_NAME" >}}s to scrape logs.
 
 > We have components that can scrape pod logs directly from the Kubernetes API without needing a DaemonSet deployment. These are
-> still considered experimental, but if you would like to try them, see the documentation for [loki.source.kubernetes](https://grafana.com/docs/agent/latest/flow/reference/components/loki.source.kubernetes/) and
-> [loki.source.podlogs](https://grafana.com/docs/agent/latest/flow/reference/components/loki.source.podlogs/).
+> still considered experimental, but if you would like to try them, see the documentation for [loki.source.kubernetes][] and
+> [loki.source.podlogs][].
 
 These values are close to what the Operator currently deploys for logs:
 
@@ -167,7 +170,7 @@ discovery.kubernetes "pods" {
   // limit to pods on this node to reduce the amount we need to filter
   selectors {
     role  = "pod"
-    field = "spec.nodeName=" + env("HOSTNAME")
+    field = "spec.nodeName=" + env("<HOSTNAME>")
   }
 }
 
@@ -248,7 +251,7 @@ loki.process "pod_logs" {
 
 loki.write "loki" {
   endpoint {
-    url = "https://LOKI_URL/loki/api/v1/push"
+    url = "https://<LOKI_URL>/loki/api/v1/push"
     basic_auth {
       username = nonsensitive(remote.kubernetes.secret.credentials.data["username"])
       password = remote.kubernetes.secret.credentials.data["password"]
@@ -257,10 +260,44 @@ loki.write "loki" {
 }
 ```
 
-You will need to replace `LOKI_URL` with the actual endpoint of your Loki instance. The logging subsytem is very powerful
-and has many options for processing logs. For further details see the [component documentation](https://grafana.com/docs/agent/latest/flow/reference/components/).
+You will need to replace `LOKI_URL` with the actual endpoint of your Loki instance.
 
+The logging subsystem is very powerful and has many options for processing logs. For further details see the [component documentation][].
 
 ## Integrations
 
-The `Integration` CRD is not supported with {{< param "PRODUCT_NAME" >}}, however all static mode integrations have an equivalent component in the [`prometheus.exporter`](https://grafana.com/docs/agent/latest/flow/reference/components) namespace. The reference docs should help convert those integrations to their Flow equivalent.
+The `Integration` CRD isn't supported with {{< param "PRODUCT_NAME" >}}, however all static mode integrations have an equivalent component in the [`prometheus.exporter`][] namespace.
+The reference docs should help convert those integrations to their {{< param "PRODUCT_NAME" >}} equivalent.
+
+[default values]: https://github.com/grafana/agent/blob/main/operations/helm/charts/grafana-agent/values.yaml
+
+{{% docs/reference %}}
+[clustering]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/clustering.md"
+[clustering]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/concepts/clustering.md"
+[deployment guide]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/deploy-agent/"
+[deployment guide]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/flow/setup/deploy-agent/"
+[operator guide]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/operator/deploy-agent-operator-resources/#deploy-a-metricsinstance-resource"
+[operator guide]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/operator/deploy-agent-operator-resources/#deploy-a-metricsinstance-resource"
+[Helm chart]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/install/kubernetes/"
+[Helm chart]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/flow/setup/install/kubernetes/"
+[remote.kubernetes.secret]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/remote.kubernetes.secret"
+[remote.kubernetes.secret]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/flow/reference/components/remote.kubernetes.secret"
+[prometheus.remote_write]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/prometheus.remote_write"
+[prometheus.remote_write]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/flow/reference/components/prometheus.remote_write"
+[prometheus.operator.podmonitors]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/prometheus.operator.podmonitors"
+[prometheus.operator.podmonitors]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/flow/reference/components/prometheus.operator.podmonitors"
+[prometheus.operator.servicemonitors]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/prometheus.operator.servicemonitors"
+[prometheus.operator.servicemonitors]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/flow/reference/components/prometheus.operator.servicemonitors"
+[prometheus.operator.probes]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/prometheus.operator.probes"
+[prometheus.operator.probes]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/flow/reference/components/prometheus.operator.probes"
+[prometheus.scrape]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/prometheus.scrape"
+[prometheus.scrape]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/flow/reference/components/prometheus.scrape"
+[loki.source.kubernetes]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/loki.source.kubernetes/"
+[loki.source.kubernetes]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/flow/reference/components/loki.source.kubernetes/"
+[loki.source.podlogs]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/loki.source.podlogs/"
+[loki.source.podlogs]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/flow/reference/components/loki.source.podlogs/"
+[component documentation]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/latest/flow/reference/components/"
+[component documentation]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/latest/flow/reference/components/"
+[`prometheus.exporter`]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/latest/flow/reference/components/prometheus.exporter"
+[`prometheus.exporter`]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/latest/flow/reference/components/prometheus.exporter"
+{{% /docs/reference %}}
