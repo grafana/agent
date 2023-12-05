@@ -126,8 +126,8 @@ func (c *Component) DebugInfo() interface{} {
 }
 
 type debugInfo struct {
-	LogsSummary      *logsSummary     `river:"logs_summary,attr"`
-	LogsSummaryStats logsSummaryStats `river:"recent_logs_stats,attr"`
+	LogsSummary      *logsSummary                 `river:"logs_summary,attr"`
+	LogsSummaryStats map[string]*logsSummaryStats `river:"recent_logs_stats,attr"`
 }
 
 func (c *Component) initializeLogsSummary() {
@@ -146,37 +146,50 @@ type logsSummary struct {
 }
 
 type logsSummaryStats struct {
+	MinLength     int     `river:"min_length,attr"`
+	MaxLength     int     `river:"max_length,attr"`
 	MedianLength  int     `river:"median_length,attr"`
 	AverageLength float64 `river:"average_length,attr"`
-	MaxLength     int     `river:"max_length,attr"`
-	MinLength     int     `river:"min_length,attr"`
+	NumEntries    int     `river:"num_entries,attr"`
 }
 
-func (l *logsSummary) getLogsSummaryStats() logsSummaryStats {
+func (l *logsSummary) getLogsSummaryStats() map[string]*logsSummaryStats {
+	stats := make(map[string]*logsSummaryStats)
 	if l.SetEntries == 0 {
-		return logsSummaryStats{}
+		return stats
 	}
 
-	entryLengths := make([]int, 0, l.SetEntries)
+	entryLengths := make([]loki.Entry, 0, l.SetEntries)
 	l.LogsRingBuffer.Do(func(v interface{}) {
 		if v == nil {
 			return
 		}
-		entryLengths = append(entryLengths, len(v.(loki.Entry).Line))
+		entryLengths = append(entryLengths, v.(loki.Entry))
 	})
 
 	// Sort the entry lengths in ascending order.
-	slices.SortFunc(entryLengths, func(a, b int) int {
-		return a - b
+	slices.SortFunc(entryLengths, func(a, b loki.Entry) int {
+		return len(a.Entry.Line) - len(b.Entry.Line)
 	})
-	total := 0
+
+	entriesByLabels := make(map[string][]int)
+
 	for _, v := range entryLengths {
-		total += v
+		entriesByLabels[v.Labels.String()] = append(entriesByLabels[v.Labels.String()], len(v.Entry.Line))
 	}
-	return logsSummaryStats{
-		MedianLength:  entryLengths[len(entryLengths)/2],
-		AverageLength: float64(total) / float64(len(entryLengths)),
-		MaxLength:     entryLengths[len(entryLengths)-1],
-		MinLength:     entryLengths[0],
+
+	for labels, entries := range entriesByLabels {
+		total := 0
+		for _, v := range entries {
+			total += v
+		}
+		stats[labels] = &logsSummaryStats{
+			MedianLength:  entries[len(entries)/2],
+			AverageLength: float64(total) / float64(len(entries)),
+			MaxLength:     entries[len(entries)-1],
+			MinLength:     entries[0],
+			NumEntries:    len(entries),
+		}
 	}
+	return stats
 }
