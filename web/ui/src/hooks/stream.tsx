@@ -4,6 +4,7 @@ export const useStreaming = (componentID: string) => {
   const [data, setData] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const maxLines = 50000;
 
   useEffect(() => {
     const abortController = new AbortController();
@@ -28,7 +29,16 @@ export const useStreaming = (componentID: string) => {
           }
 
           const decodedChunk = decoder.decode(value, { stream: true });
-          setData((prevValue) => `${prevValue}${decodedChunk}`);
+
+          setData((prevValue) => {
+            let dataArr = `${prevValue}${decodedChunk}`.split('\n');
+
+            if (dataArr.length > maxLines) {
+              const difference = dataArr.length - maxLines;
+              dataArr = dataArr.slice(difference, dataArr.length);
+            }
+            return dataArr.join('\n');
+          });
         }
       } catch (error) {
         if ((error as Error).name !== 'AbortError') {
