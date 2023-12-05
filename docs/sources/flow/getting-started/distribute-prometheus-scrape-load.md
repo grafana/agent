@@ -30,7 +30,7 @@ A good predictor for the size of an {{< param "PRODUCT_NAME" >}} deployment is t
 
 To distribute Prometheus metrics scrape load with clustering:
 
-1. Add the following block to all `prometheus.scrape` components which should use auto-distribution:
+1. Add the following block to all `prometheus.scrape` components, which should use auto-distribution:
 
    ```river
    clustering {

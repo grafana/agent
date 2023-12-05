@@ -36,7 +36,7 @@ This topic describes how to:
 To fully migrate from [Promtail] to {{< param "PRODUCT_NAME" >}}, you must convert your Promtail configuration into a {{< param "PRODUCT_NAME" >}} configuration.
 This conversion will enable you to take full advantage of the many additional features available in {{< param "PRODUCT_NAME" >}}.
 
-> In this task, we will use the [convert][] CLI command to output a {{< param "PRODUCT_NAME" >}}
+> In this task, you will use the [convert][] CLI command to output a {{< param "PRODUCT_NAME" >}}
 > configuration from a Promtail configuration.
 
 1. Open a terminal window and run the following command.
@@ -63,7 +63,7 @@ This conversion will enable you to take full advantage of the many additional fe
 ### Debugging
 
 1. If the convert command can't convert a Promtail configuration, diagnostic information is sent to `stderr`.
-   You can bypass any non-critical issues and output the flow configuration using a best-effort conversion by including the `--bypass-errors` flag.
+   You can bypass any non-critical issues and output the {{< param "PRODUCT_NAME" >}} configuration using a best-effort conversion by including the `--bypass-errors` flag.
 
    {{% admonition type="caution" %}}
    If you bypass the errors, the behavior of the converted configuration may not match the original Promtail configuration.
@@ -106,7 +106,7 @@ This conversion will enable you to take full advantage of the many additional fe
    * _`<OUTPUT_CONFIG_PATH>`_: The full path to output the {{< param "PRODUCT_NAME" >}} configuration.
    * _`<OUTPUT_REPORT_PATH>`_: The output path for the report.
 
-   Using the [example](#example) Promtail configuration below, the diagnostic    report provides the following information:
+   If you use the [example](#example) Promtail configuration below, the diagnostic report provides the following information:
 
     ```plaintext
     (Warning) If you have a tracing set up for Promtail, it cannot be migrated to {{< param "PRODUCT_NAME" >}} automatically. Refer to the documentation on how to configure tracing in {{< param "PRODUCT_NAME" >}}.
@@ -115,14 +115,14 @@ This conversion will enable you to take full advantage of the many additional fe
 
 ## Run a Promtail configuration
 
-If you’re not ready to completely switch to a flow configuration, you can run {{< param "PRODUCT_ROOT_NAME" >}} using your existing Promtail configuration.
+If you’re not ready to completely switch to a {{< param "PRODUCT_NAME" >}} configuration, you can run {{< param "PRODUCT_ROOT_NAME" >}} using your existing Promtail configuration.
 The `--config.format=promtail` flag tells {{< param "PRODUCT_ROOT_NAME" >}} to convert your Promtail configuration to {{< param "PRODUCT_NAME" >}} and load it directly without saving the new configuration.
 This allows you to try {{< param "PRODUCT_NAME" >}} without modifying your existing Promtail configuration infrastructure.
 
-> In this task, we will use the [run][] CLI command to run {{< param "PRODUCT_NAME" >}} using a Promtail configuration.
+> In this task, you will use the [run][] CLI command to run {{< param "PRODUCT_NAME" >}} using a Promtail configuration.
 
 [Start][] {{< param "PRODUCT_NAME" >}} and include the command line flag `--config.format=promtail`.
-Your configuration file must be a valid Promtail configuration file rather than a Flow mode configuration file.
+Your configuration file must be a valid Promtail configuration file rather than a {{< param "PRODUCT_NAME" >}} configuration file.
 
 ### Debugging
 
@@ -202,16 +202,16 @@ loki.write "default" {
 
 Configuration conversion is done on a best-effort basis. {{< param "PRODUCT_ROOT_NAME" >}} will issue warnings or errors where the conversion can't be performed.
 
-After the configuration is converted, we recommend that you review the {{< param "PRODUCT_NAME" >}} configuration file created, and verify that it's correct before starting to use it in a production environment.
+After the configuration is converted, review the {{< param "PRODUCT_NAME" >}} configuration file created and verify that it's correct before starting to use it in a production environment.
 
-Furthermore, we recommend that you review the following checklist:
+Review the following checklist:
 
-* Check if you are using any extra command line arguments with Promtail which aren't present in your configuration file. For example, `-max-line-size`.
+* Check if you are using any extra command line arguments with Promtail that aren't present in your configuration file. For example, `-max-line-size`.
 * Check if you are setting any environment variables, whether [expanded in the config file][] itself or consumed directly by Promtail, such as `JAEGER_AGENT_HOST`.
 * In {{< param "PRODUCT_NAME" >}}, the positions file is saved at a different location.
   Refer to the [loki.source.file][] documentation for more details.
   Check if you have any existing setup, for example, a Kubernetes Persistent Volume, that you must update to use the new positions file path.
-* Metamonitoring metrics exposed by the Flow Mode usually match Promtail metamonitoring metrics but will use a different name.
+* Metamonitoring metrics exposed by {{< param "PRODUCT_NAME" >}} usually match Promtail metamonitoring metrics but will use a different name.
   Make sure that you use the new metric names, for example, in your alerts and dashboards queries.
 * The logs produced by {{< param "PRODUCT_NAME" >}} will differ from those produced by Promtail.
 * {{< param "PRODUCT_NAME" >}} exposes the {{< param "PRODUCT_NAME" >}} [UI][], which differs from Promtail's Web UI.

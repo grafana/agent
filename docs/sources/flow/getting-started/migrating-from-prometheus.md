@@ -36,7 +36,7 @@ This topic describes how to:
 To fully migrate your configuration from [Prometheus] to {{< param "PRODUCT_NAME" >}}, you must convert your Prometheus configuration into a {{< param "PRODUCT_NAME" >}} configuration.
 This conversion will enable you to take full advantage of the many additional features available in {{< param "PRODUCT_NAME" >}}.
 
-> In this task, we will use the [convert][] CLI command to output a flow
+> In this task, you will use the [convert][] CLI command to output a {{< param "PRODUCT_NAME" >}}
 > configuration from a Prometheus configuration.
 
 1. Open a terminal window and run the following command.
@@ -58,12 +58,12 @@ This conversion will enable you to take full advantage of the many additional fe
    - _`<INPUT_CONFIG_PATH>`_: The full path to the Prometheus configuration.
    - _`<OUTPUT_CONFIG_PATH>`_: The full path to output the {{< param "PRODUCT_NAME" >}} configuration.
 
-1. [Start][] {{< param "PRODUCT_NAME" >}} using the new flow configuration from _`<OUTPUT_CONFIG_PATH>`_:
+1. [Start][] {{< param "PRODUCT_NAME" >}} using the new {{< param "PRODUCT_NAME" >}} configuration from _`<OUTPUT_CONFIG_PATH>`_:
 
 ### Debugging
 
 1. If the convert command can't convert a Prometheus configuration, diagnostic information is sent to `stderr`.\
-   You can bypass any non-critical issues and output the flow configuration using a best-effort conversion by including the `--bypass-errors` flag.
+   You can bypass any non-critical issues and output the {{< param "PRODUCT_NAME" >}} configuration using a best-effort conversion by including the `--bypass-errors` flag.
 
     {{% admonition type="caution" %}}
     If you bypass the errors, the behavior of the converted configuration may not match the original Prometheus configuration.
@@ -118,11 +118,11 @@ This conversion will enable you to take full advantage of the many additional fe
 
 ## Run a Prometheus configuration
 
-If you’re not ready to completely switch to a flow configuration, you can run {{< param "PRODUCT_ROOT_NAME" >}} using your existing Prometheus configuration.
+If you’re not ready to completely switch to a {{< param "PRODUCT_NAME" >}} configuration, you can run {{< param "PRODUCT_ROOT_NAME" >}} using your existing Prometheus configuration.
 The `--config.format=prometheus` flag tells {{< param "PRODUCT_ROOT_NAME" >}} to convert your Prometheus configuration to a {{< param "PRODUCT_NAME" >}} configuration and load it directly without saving the new configuration.
 This allows you to try {{< param "PRODUCT_NAME" >}} without modifying your existing Prometheus configuration infrastructure.
 
-> In this task, we will use the [run][] CLI command to run {{< param "PRODUCT_NAME" >}}
+> In this task, you will use the [run][] CLI command to run {{< param "PRODUCT_NAME" >}}
 > using a Prometheus configuration.
 
 [Start][] {{< param "PRODUCT_NAME" >}} and include the command line flag `--config.format=prometheus`.
@@ -184,7 +184,7 @@ Replace the following:
 - _`<INPUT_CONFIG_PATH>`_: The full path to the Prometheus configuration.
 - _`<OUTPUT_CONFIG_PATH>`_: The full path to output the {{< param "PRODUCT_NAME" >}} configuration.
 
-The new flow configuration file looks like this:
+The new {{< param "PRODUCT_NAME" >}} configuration file looks like this:
 
 ```river
 prometheus.scrape "prometheus" {
@@ -223,9 +223,9 @@ prometheus.remote_write "default" {
 
 Configuration conversion is done on a best-effort basis. {{< param "PRODUCT_ROOT_NAME" >}} will issue warnings or errors where the conversion can't be performed.
 
-After the configuration is converted, we recommend that you review the {{< param "PRODUCT_NAME" >}} configuration file created and verify that it's correct before starting to use it in a production environment.
+After the configuration is converted, review the {{< param "PRODUCT_NAME" >}} configuration file created and verify that it's correct before starting to use it in a production environment.
 
-Furthermore, we recommend that you review the following checklist:
+Review the following checklist:
 
 * The following configurations aren't available for conversion to {{< param "PRODUCT_NAME" >}}: `rule_files`, `alerting`, `remote_read`, `storage`, and `tracing`.
   Any additional unsupported features are returned as errors during conversion.

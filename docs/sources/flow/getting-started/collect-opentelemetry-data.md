@@ -41,7 +41,7 @@ This topic describes how to:
 Before components can receive OpenTelemetry data, you must have a component responsible for exporting the OpenTelemetry data.
 An OpenTelemetry _exporter component_ is responsible for writing (exporting) OpenTelemetry data to an external system.
 
-In this task, we will use the [otelcol.exporter.otlp][] component to send OpenTelemetry data to a server using the OpenTelemetry Protocol (OTLP).
+In this task, you will use the [otelcol.exporter.otlp][] component to send OpenTelemetry data to a server using the OpenTelemetry Protocol (OTLP).
 After an exporter component is defined, you can use other {{< param "PRODUCT_NAME" >}} components to forward data to it.
 
 > Refer to the list of available [Components][] for the full list of
@@ -143,7 +143,7 @@ Instead, data is usually sent to one or more _processor components_ that perform
 
 Ensuring data is batched is a production-readiness step to improve data compression and reduce the number of outgoing network requests to external systems.
 
-In this task, we will configure an [otelcol.processor.batch][] component to batch data before sending it to the exporter.
+In this task, you will configure an [otelcol.processor.batch][] component to batch data before sending it to the exporter.
 
 > Refer to the list of available [Components][] for the full list of
 > `otelcol.processor` components that you can use to process OpenTelemetry
@@ -212,7 +212,7 @@ For more information on configuring OpenTelemetry data batching, refer to [otelc
 You can configure {{< param "PRODUCT_NAME" >}} to receive OpenTelemetry metrics, logs, and traces.
 An OpenTelemetry _receiver_ component is responsible for receiving OpenTelemetry data from an external system.
 
-In this task, we will use the [otelcol.receiver.otlp][] component to receive OpenTelemetry data over the network using the OpenTelemetry Protocol (OTLP).
+In this task, you will use the [otelcol.receiver.otlp][] component to receive OpenTelemetry data over the network using the OpenTelemetry Protocol (OTLP).
 You can configure a receiver component to forward received data to other {{< param "PRODUCT_NAME" >}} components.
 
 > Refer to the list of available [Components][] for the full list of

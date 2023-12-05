@@ -92,7 +92,7 @@ Traces: OTel → batch processor → OTel exporter
 ## Grafana Loki
 
 [Grafana Loki][] is a horizontally scalable, highly available, multi-tenant log aggregation system inspired by Prometheus.
-Similar to Prometheus, to send from OTLP to Loki, we will do a passthrough from the [otelcol.exporter.loki] component to [loki.write] component.
+Similar to Prometheus, to send from OTLP to Loki, you can do a passthrough from the [otelcol.exporter.loki] component to [loki.write] component.
 
 ```river
 otelcol.exporter.loki "default" {
@@ -162,7 +162,7 @@ otelcol.auth.basic "grafana_cloud_tempo" {
 ## Grafana Mimir or Prometheus Remote Write
 
 [Prometheus Remote Write][] is a popular metrics transmission protocol supported by most metrics systems, including [Grafana Mimir][] and Grafana Cloud.
-To send from OTLP to Prometheus, we do a passthrough from the [otelcol.exporter.prometheus][] to the [prometheus.remote_write][] component.
+To send from OTLP to Prometheus, you can do a passthrough from the [otelcol.exporter.prometheus][] to the [prometheus.remote_write][] component.
 The Prometheus remote write component in {{< param "PRODUCT_NAME" >}} is a robust protocol implementation, including a Write Ahead Log (WAL) for resiliency.
 
 ```river
@@ -201,7 +201,7 @@ prometheus.remote_write "grafana_cloud_prometheus" {
 
 ## Putting it all together
 
-Instead of referencing `otelcol.exporter.otlp.default.input` in the output of `otelcol.processor.batch`, we need to reference the three exporters we set up.
+Instead of referencing `otelcol.exporter.otlp.default.input` in the output of `otelcol.processor.batch`, you need to reference the three exporters you set up.
 The final configuration becomes:
 
 ```river

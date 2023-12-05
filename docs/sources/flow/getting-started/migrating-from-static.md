@@ -39,7 +39,7 @@ This topic describes how to:
 To fully migrate Grafana Agent [Static][] to {{< param "PRODUCT_NAME" >}}, you must convert your Static configuration into a {{< param "PRODUCT_NAME" >}} configuration.
 This conversion will enable you to take full advantage of the many additional features available in {{< param "PRODUCT_NAME" >}}.
 
-> In this task, we will use the [convert][] CLI command to output a {{< param "PRODUCT_NAME" >}}
+> In this task, you will use the [convert][] CLI command to output a {{< param "PRODUCT_NAME" >}}
 > configuration from a Static configuration.
 
 1. Open a terminal window and run the following command.
@@ -113,7 +113,7 @@ This conversion will enable you to take full advantage of the many additional fe
    Using the [example][] Grafana Agent Static configuration below, the diagnostic report provides the following information.
 
     ```plaintext
-    (Warning) Please review your agent command line flags and ensure they are set in your Flow mode config file where necessary.
+    (Warning) Please review your agent command line flags and ensure they are set in your {{< param "PRODUCT_NAME" >}} configuration file where necessary.
     ```
 
 ## Run a Static mode configuration
@@ -122,7 +122,7 @@ If you’re not ready to completely switch to a {{< param "PRODUCT_NAME" >}} con
 The `--config.format=static` flag tells {{< param "PRODUCT_ROOT_NAME" >}} to convert your [Static] configuration to {{< param "PRODUCT_NAME" >}} and load it directly without saving the new configuration.
 This allows you to try {{< param "PRODUCT_NAME" >}} without modifying your existing Grafana Agent Static configuration infrastructure.
 
-> In this task, we will use the [run][] CLI command to run {{< param "PRODUCT_NAME" >}} using a Static configuration.
+> In this task, you will use the [run][] CLI command to run {{< param "PRODUCT_NAME" >}} using a Static configuration.
 
 [Start][] {{< param "PRODUCT_NAME" >}} and include the command line flag `--config.format=static`.
 Your configuration file must be a valid [Static] configuration file.
@@ -301,14 +301,14 @@ loki.write "logs_varlogs" {
 
 Configuration conversion is done on a best-effort basis. {{< param "PRODUCT_ROOT_NAME" >}} will issue warnings or errors where the conversion can't be performed.
 
-After the configuration is converted, we recommend that you review the {{< param "PRODUCT_NAME" >}} configuration file, and verify that it's correct before starting to use it in a production environment.
+After the configuration is converted, review the {{< param "PRODUCT_NAME" >}} configuration file and verify that it's correct before starting to use it in a production environment.
 
-Furthermore, we recommend that you review the following checklist:
+Review the following checklist:
 
 * The following configuration options are not available for conversion to {{< param "PRODUCT_NAME" >}}: [Integrations next][], [Traces][], and [Agent Management][].
   Any additional unsupported features are returned as errors during conversion.
 * There is no gRPC server to configure for {{< param "PRODUCT_NAME" >}}, as any non-default configuration will show as unsupported during the conversion.
-* Check if you are using any extra command line arguments with Static that are not present in your configuration file. For example, `-server.http.address`.
+* Check if you are using any extra command line arguments with Static that aren't present in your configuration file. For example, `-server.http.address`.
 * Check if you are using any environment variables in your [Static] configuration.
   These will be evaluated during conversion and you may want to replace them with the {{< param "PRODUCT_NAME" >}} Standard library [env] function after conversion.
 * Review additional [Prometheus Limitations] for limitations specific to your [Metrics] config.

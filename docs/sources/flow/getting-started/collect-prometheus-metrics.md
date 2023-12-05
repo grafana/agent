@@ -54,7 +54,7 @@ To configure a `prometheus.remote_write` component for metrics delivery, complet
 
    Replace the following:
 
-   - _`<LABEL>`_: The label to use for the component, such as `default`.
+   - _`<LABEL>`_: The label for the component, such as `default`.
      The label you use must be unique across all `prometheus.remote_write` components in the same configuration file.
    - _`<PROMETHEUS_URL>`_ The full URL of the Prometheus-compatible endpoint where metrics will be sent, such as `https://prometheus-us-central1.grafana.net/api/prom/push`.
 
