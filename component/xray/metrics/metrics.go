@@ -245,6 +245,52 @@ type overview struct {
 	TopSeriesDetails       []*metricLabelCardinality `json:"top_metrics_details"`
 }
 
+func (c *Component) getOverview() *overview {
+	summByName := c.Summarize("__name__")
+	summaries := []*summary{}
+	for _, v := range summByName {
+		summaries = append(summaries, v)
+	}
+
+	slices.SortFunc(summaries, func(a, b *summary) int {
+		return b.SeriesCount - a.SeriesCount
+	})
+
+	var topSeries []*summary
+	if len(summaries) > 10 {
+		topSeries = summaries[:10]
+	} else {
+		topSeries = summaries
+	}
+
+	var topSeriesDetails []*metricLabelCardinality
+	for _, s := range topSeries {
+		details := c.Details(map[string]string{"__name__": s.Labels.Get("__name__")})
+		cardinalities := map[string]int{}
+		seen := map[labels.Label]struct{}{}
+
+		for _, d := range details {
+			for _, l := range d.Labels {
+				if _, ok := seen[l]; ok {
+					continue
+				}
+				seen[l] = struct{}{}
+				cardinalities[l.Name]++
+			}
+		}
+		topSeriesDetails = append(topSeriesDetails, &metricLabelCardinality{
+			Name:               s.Labels.Get("__name__"),
+			LabelCardinalities: cardinalities,
+			TotalSeries:        s.SeriesCount,
+		})
+	}
+
+	return &overview{
+		SummariesBySeriesCount: summaries,
+		TopSeriesDetails:       topSeriesDetails,
+	}
+}
+
 func (c *Component) Handler() http.Handler {
 	router := http.NewServeMux()
 
@@ -263,50 +309,9 @@ func (c *Component) Handler() http.Handler {
 	})
 
 	router.HandleFunc("/overview", func(w http.ResponseWriter, r *http.Request) {
-		summByName := c.Summarize("__name__")
-		summaries := []*summary{}
-		for _, v := range summByName {
-			summaries = append(summaries, v)
-		}
-
-		slices.SortFunc(summaries, func(a, b *summary) int {
-			return b.SeriesCount - a.SeriesCount
-		})
-
-		var topSeries []*summary
-		if len(summaries) > 10 {
-			topSeries = summaries[:10]
-		} else {
-			topSeries = summaries
-		}
-
-		var topSeriesDetails []*metricLabelCardinality
-		for _, s := range topSeries {
-			details := c.Details(map[string]string{"__name__": s.Labels.Get("__name__")})
-			cardinalities := map[string]int{}
-			seen := map[labels.Label]struct{}{}
-
-			for _, d := range details {
-				for _, l := range d.Labels {
-					if _, ok := seen[l]; ok {
-						continue
-					}
-					seen[l] = struct{}{}
-					cardinalities[l.Name]++
-				}
-			}
-			topSeriesDetails = append(topSeriesDetails, &metricLabelCardinality{
-				Name:               s.Labels.Get("__name__"),
-				LabelCardinalities: cardinalities,
-				TotalSeries:        s.SeriesCount,
-			})
-		}
+		overview := c.getOverview()
 
 		w.Header().Set("Content-Type", "application/json")
-		overview := &overview{
-			SummariesBySeriesCount: summaries,
-			TopSeriesDetails:       topSeriesDetails,
-		}
 		err := json.NewEncoder(w).Encode(overview)
 		if err != nil {
 			level.Error(c.opts.Logger).Log("msg", "failed to encode json", "err", err)
