@@ -110,7 +110,7 @@ output    | [output][]  | Configures where to send received telemetry data. | ye
 
 ### traces block
 
-The `traces` block specifies statements that filter trace telemetry signals. 
+The `traces` block specifies statements that filter trace telemetry signals.
 Only one `traces` block can be specified.
 
 Name        | Type           | Description                                         | Default | Required
@@ -118,8 +118,7 @@ Name        | Type           | Description                                      
 `span`      | `list(string)` | List of OTTL statements filtering OTLP spans.       |         | no
 `spanevent` | `list(string)` | List of OTTL statements filtering OTLP span events. |         | no
 
-The syntax of OTTL statements depends on the OTTL context. See the OpenTelemetry 
-documentation for more information:
+The syntax of OTTL statements depends on the OTTL context. See the OpenTelemetry documentation for more information:
 * [OTTL span context][]
 * [OTTL spanevent context][]
 
@@ -295,6 +294,11 @@ Some values in the River strings are [escaped][river-strings]:
 
 
 [OTTL]: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/v0.85.0/pkg/ottl/README.md
+[OTTL span context]: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/{{< param "OTEL_VERSION" >}}/pkg/ottl/contexts/ottlspan/README.md
+[OTTL spanevent context]: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/{{< param "OTEL_VERSION" >}}/pkg/ottl/contexts/ottlspanevent/README.md
+[OTTL metric context]: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/{{< param "OTEL_VERSION" >}}/pkg/ottl/contexts/ottlmetric/README.md
+[OTTL datapoint context]: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/{{< param "OTEL_VERSION" >}}/pkg/ottl/contexts/ottldatapoint/README.md
+[OTTL log context]: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/{{< param "OTEL_VERSION" >}}/pkg/ottl/contexts/ottllog/README.md
 [OTTL Converter functions]: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/pkg/ottl/ottlfuncs#converters
 [HasAttrKeyOnDataPoint]: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/processor/filterprocessor/README.md#hasattrkeyondatapoint
 [HasAttrOnDataPoint]: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/processor/filterprocessor/README.md#hasattrondatapoint
