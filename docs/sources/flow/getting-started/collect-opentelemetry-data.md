@@ -17,9 +17,9 @@ data and forward it to any OpenTelemetry-compatible endpoint.
 
 This topic describes how to:
 
-* Configure OpenTelemetry data delivery
-* Configure batching
-* Receive OpenTelemetry data over OTLP
+* Configure OpenTelemetry data delivery.
+* Configure batching.
+* Receive OpenTelemetry data over OTLP.
 
 ## Components used in this topic
 
@@ -79,10 +79,10 @@ To configure an `otelcol.exporter.otlp` component for exporting OpenTelemetry da
 
        Replace the following:
 
-       - _`<BASIC_AUTH_LABEL>`_: The label to use for the component, such as `default`.
+       - _`<BASIC_AUTH_LABEL>`_: The label for the component, such as `default`.
          The label you use must be unique across all `otelcol.auth.basic` components in the same configuration file.
-       - _`<USERNAME>`_: The basic authentication username to use.
-       - _`<PASSWORD>`_: The basic authentication password or API key to use.
+       - _`<USERNAME>`_: The basic authentication username.
+       - _`<PASSWORD>`_: The basic authentication password or API key.
 
     1. Add the following line inside of the `client` block of your `otelcol.exporter.otlp` component:
 
@@ -92,7 +92,7 @@ To configure an `otelcol.exporter.otlp` component for exporting OpenTelemetry da
 
        Replace the following:
 
-       - _`<BASIC_AUTH_LABEL>`_: The label used for the `otelcol.auth.basic` component.
+       - _`<BASIC_AUTH_LABEL>`_: The label for the `otelcol.auth.basic` component.
 
 1. If you have more than one server to export metrics to, create a new `otelcol.exporter.otlp` component for each additional server.
 
@@ -141,12 +141,12 @@ For more information on writing OpenTelemetry data using the OpenTelemetry Proto
 Production-ready {{< param "PRODUCT_NAME" >}} configurations shouldn't send OpenTelemetry data directly to an exporter for delivery.
 Instead, data is usually sent to one or more _processor components_ that perform various transformations on the data.
 
-Ensuring data is batched is a production-readiness step to improve the compression of data and reduce the number of outgoing network requests to external systems.
+Ensuring data is batched is a production-readiness step to improve data compression and reduce the number of outgoing network requests to external systems.
 
 In this task, we will configure an [otelcol.processor.batch][] component to batch data before sending it to the exporter.
 
 > Refer to the list of available [Components][] for the full list of
-> `otelcol.processor` components that can be used to process OpenTelemetry
+> `otelcol.processor` components that you can use to process OpenTelemetry
 > data. You can chain processors by having one processor send data to another
 > processor.
 
@@ -168,7 +168,7 @@ To configure an `otelcol.processor.batch` component, complete the following step
 
    Replace the following:
 
-   - _`<PROCESSOR_LABEL>`_: The label to use for the component, such as `default`.
+   - _`<PROCESSOR_LABEL>`_: The label for the component, such as `default`.
      The label you use must be unique across all `otelcol.processor.batch` components in the same configuration file.
    - _`<EXPORTER_LABEL>`_: The label for your existing `otelcol.exporter.otlp` component.
 
@@ -176,7 +176,7 @@ To configure an `otelcol.processor.batch` component, complete the following step
 
    1. To send batched data to another processor, replace the components in the `output` list with the processor components to use.
 
-The following example demonstrates configuring a sequence of `otelcol.processor` components before ultimately being exported.
+The following example demonstrates configuring a sequence of `otelcol.processor` components before being exported.
 
 ```river
 otelcol.processor.memory_limiter "default" {
@@ -239,8 +239,8 @@ To configure an `otelcol.receiver.otlp` component for receiving OTLP data, compl
 
    Replace the following:
 
-   - _`<LABEL>`_: A label to use for the component, such as `default`.
-     The label chosen must be unique across all `otelcol.receiver.otlp` components in the same configuration file.
+   - _`<LABEL>`_: The label for the component, such as `default`.
+     The label you use must be unique across all `otelcol.receiver.otlp` components in the same configuration file.
    - _`<COMPONENT_INPUT_LIST>`_: A comma-delimited list of component inputs to forward received data to.
      For example, to send data to an existing batch processor component, use `otelcol.processor.batch.PROCESSOR_LABEL.input`.
      To send data directly to an existing exporter component, use `otelcol.exporter.otlp.EXPORTER_LABEL.input`.
@@ -255,7 +255,7 @@ To configure an `otelcol.receiver.otlp` component for receiving OTLP data, compl
 
       Replace the following:
 
-      - _`<HOST>`_: A host to listen to traffic on. It is recommended to use a narrowly scoped listen address whenever possible.
+      - _`<HOST>`_: A host to listen to traffic on. Use a narrowly scoped listen address whenever possible.
         To listen on all network interfaces, replace _`<HOST>`_ with `0.0.0.0`.
 
    1. To allow applications to send OTLP data over HTTP/1.1 on port `4318`, add the following to your `otelcol.receiver.otlp` component.
@@ -268,7 +268,7 @@ To configure an `otelcol.receiver.otlp` component for receiving OTLP data, compl
 
       Replace the following:
 
-      - _`<HOST>`_: A host to listen to traffic on. It is recommended to use a narrowly-scoped listen address whenever possible.
+      - _`<HOST>`_: The host to listen to traffic on. Use a narrowly scoped listen address whenever possible.
         To listen on all network interfaces, replace _`<HOST>`_ with `0.0.0.0`.
 
    1. To disable one of the telemetry types, set the relevant type in the `output` block to the empty list, such as `metrics = []`.

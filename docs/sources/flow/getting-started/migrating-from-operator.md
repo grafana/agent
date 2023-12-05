@@ -42,7 +42,7 @@ This guide will provide some steps to get started with {{< param "PRODUCT_NAME" 
 
     This configuration will deploy {{< param "PRODUCT_NAME" >}} as a `StatefulSet` using the built-in [clustering][] functionality to allow distributing scrapes across all {{< param "PRODUCT_ROOT_NAME" >}} Pods.
 
-    This is not the only deployment mode possible. For example, you may want to use a `DaemonSet` to collect host-level logs or metrics.
+    This isn't the only deployment mode possible. For example, you may want to use a `DaemonSet` to collect host-level logs or metrics.
     See the {{< param "PRODUCT_NAME" >}} [deployment guide][] for more details about different topologies.
 
 1. Create a {{< param "PRODUCT_ROOT_NAME" >}} configuration file, `agent.river`.

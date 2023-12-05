@@ -32,7 +32,7 @@ This section guides you through enabling clustering when {{< param "PRODUCT_NAME
 
 To configure clustering:
 
-1. Amend your existing `values.yaml` file to add `clustering.enabled=true` inside of the `agent` block.
+1. Amend your existing `values.yaml` file to add `clustering.enabled=true` inside the `agent` block.
 
    ```yaml
    agent:
