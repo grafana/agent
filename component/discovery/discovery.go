@@ -94,6 +94,9 @@ type Discoverer discovery.Discoverer
 // Creator is a function provided by an implementation to create a concrete Discoverer instance.
 type Creator func(component.Arguments) (Discoverer, error)
 
+// targetsPublisher is a function that publishes discovered targets.
+type targetsPublisher func([]Target)
+
 // Component is a reusable component for any discovery implementation.
 // it will handle dynamic updates and exporting targets appropriately for a scrape implementation.
 type Component struct {
@@ -103,7 +106,9 @@ type Component struct {
 	latestDisc    discovery.Discoverer
 	newDiscoverer chan struct{}
 
-	creator Creator
+	creator          Creator
+	publisherFn      targetsPublisher
+	cleanUpPublisher func()
 }
 
 // New creates a discovery component given arguments and a concrete Discovery implementation function.
@@ -113,12 +118,18 @@ func New(o component.Options, args component.Arguments, creator Creator) (*Compo
 		creator: creator,
 		// buffered to avoid deadlock from the first immediate update
 		newDiscoverer: make(chan struct{}, 1),
+		publisherFn: func(targets []Target) {
+			o.OnStateChange(Exports{Targets: targets})
+		},
+		cleanUpPublisher: func() {},
 	}
+
 	return c, c.Update(args)
 }
 
 // Run implements component.Component.
 func (c *Component) Run(ctx context.Context) error {
+	defer c.cleanUpPublisher()
 	var cancel context.CancelFunc
 	for {
 		select {
@@ -151,6 +162,11 @@ func (c *Component) Update(args component.Arguments) error {
 		return err
 	}
 	c.discMut.Lock()
+	c.cleanUpPublisher()
+	// Check if the component supports the new-style target receivers.
+	if provider, ok := args.(TargetsReceiversProvider); ok {
+		c.setUpTargetsReceiver(provider)
+	}
 	c.latestDisc = disc
 	c.discMut.Unlock()
 
@@ -160,6 +176,15 @@ func (c *Component) Update(args component.Arguments) error {
 	}
 
 	return nil
+}
+
+func (c *Component) setUpTargetsReceiver(provider TargetsReceiversProvider) {
+	if trs := provider.TargetsReceivers(); !trs.Empty() {
+		c.cleanUpPublisher = func() { trs.RemovePublisher(c.opts.ID) }
+		c.publisherFn = func(targets []Target) {
+			trs.Publish(c.opts.ID, targets)
+		}
+	}
 }
 
 // MaxUpdateFrequency is the minimum time to wait between updating targets.
@@ -192,7 +217,7 @@ func (c *Component) runDiscovery(ctx context.Context, d Discoverer) {
 				allTargets = append(allTargets, labels)
 			}
 		}
-		c.opts.OnStateChange(Exports{Targets: allTargets})
+		c.publisherFn(allTargets)
 	}
 
 	ticker := time.NewTicker(MaxUpdateFrequency)

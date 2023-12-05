@@ -20,8 +20,9 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name: "loki.source.file",
-		Args: Arguments{},
+		Name:    "loki.source.file",
+		Args:    Arguments{},
+		Exports: Exports{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			return New(opts, args.(Arguments))
@@ -37,12 +38,16 @@ const (
 // Arguments holds values which are used to configure the loki.source.file
 // component.
 type Arguments struct {
-	Targets             []discovery.Target  `river:"targets,attr"`
+	Targets             []discovery.Target  `river:"targets,attr,optional"`
 	ForwardTo           []loki.LogsReceiver `river:"forward_to,attr"`
 	Encoding            string              `river:"encoding,attr,optional"`
 	DecompressionConfig DecompressionConfig `river:"decompression,block,optional"`
 	FileWatch           FileWatch           `river:"file_watch,block,optional"`
 	TailFromEnd         bool                `river:"tail_from_end,attr,optional"`
+}
+
+type Exports struct {
+	Receiver discovery.TargetsReceiver `river:"receiver,attr"`
 }
 
 type FileWatch struct {
@@ -76,6 +81,7 @@ var (
 type Component struct {
 	opts    component.Options
 	metrics *metrics
+	onExit  func()
 
 	updateMut sync.Mutex
 
@@ -118,7 +124,26 @@ func New(o component.Options, args Arguments) (*Component, error) {
 		return nil, err
 	}
 
+	c.setUpTargetsReceiver()
+
 	return c, nil
+}
+
+func (c *Component) setUpTargetsReceiver() {
+	targetsReceiver := discovery.NewConcatenatingTargetsReceiver()
+	// Subscribe to new target updates
+	targetsReceiver.Subscribe(c.opts.ID, func(targets []discovery.Target) {
+		argsCopy := c.args
+		argsCopy.Targets = targets
+		// We can use Update to update the targets. Update for this component never fails.
+		_ = c.Update(argsCopy)
+	})
+	// Unsubscribe when we exit
+	c.onExit = func() {
+		targetsReceiver.Unsubscribe(c.opts.ID)
+	}
+	// Export the targets receiver
+	c.opts.OnStateChange(Exports{Receiver: targetsReceiver})
 }
 
 // Run implements component.Component.
@@ -126,6 +151,7 @@ func New(o component.Options, args Arguments) (*Component, error) {
 // comes alive _after_ it's been passed to us and we never receive another
 // Update()? Or should it be a responsibility of the discovery component?
 func (c *Component) Run(ctx context.Context) error {
+	defer c.onExit()
 	defer func() {
 		level.Info(c.opts.Logger).Log("msg", "loki.source.file component shutting down, stopping readers and positions file")
 		c.mut.RLock()

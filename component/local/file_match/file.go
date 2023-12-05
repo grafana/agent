@@ -25,8 +25,9 @@ func init() {
 // Arguments holds values which are used to configure the local.file_match
 // component.
 type Arguments struct {
-	PathTargets []discovery.Target `river:"path_targets,attr"`
-	SyncPeriod  time.Duration      `river:"sync_period,attr,optional"`
+	PathTargets []discovery.Target         `river:"path_targets,attr"`
+	SyncPeriod  time.Duration              `river:"sync_period,attr,optional"`
+	ForwardTo   discovery.TargetsReceivers `river:"forward_to,attr,optional"`
 }
 
 var _ component.Component = (*Component)(nil)
@@ -70,12 +71,18 @@ func (a *Arguments) SetToDefault() {
 func (c *Component) Update(args component.Arguments) error {
 	c.mut.Lock()
 	defer c.mut.Unlock()
+	newArgs := args.(Arguments)
+
+	// Remove current publisher if needed
+	if !c.args.ForwardTo.Empty() {
+		c.args.ForwardTo.RemovePublisher(c.opts.ID)
+	}
 
 	// Check to see if our ticker timer needs to be reset.
-	if args.(Arguments).SyncPeriod != c.args.SyncPeriod {
+	if newArgs.SyncPeriod != c.args.SyncPeriod {
 		c.watchDog.Reset(c.args.SyncPeriod)
 	}
-	c.args = args.(Arguments)
+	c.args = newArgs
 	c.watches = c.watches[:0]
 	for _, v := range c.args.PathTargets {
 		c.watches = append(c.watches, watch{
@@ -87,24 +94,41 @@ func (c *Component) Update(args component.Arguments) error {
 	return nil
 }
 
-// Run satisfies the component interface.
-func (c *Component) Run(ctx context.Context) error {
-	update := func() {
-		c.mut.Lock()
-		defer c.mut.Unlock()
+func (c *Component) publishNewTargets() {
+	c.mut.Lock()
+	defer c.mut.Unlock()
 
-		paths := c.getWatchedFiles()
+	paths := c.getWatchedFiles()
+
+	if c.args.ForwardTo.Empty() {
 		// The component node checks to see if exports have actually changed.
 		c.opts.OnStateChange(discovery.Exports{Targets: paths})
+	} else {
+		// New-style target receiver is used
+		c.args.ForwardTo.Publish(c.opts.ID, paths)
 	}
+}
+
+func (c *Component) onExitCleanUp() {
+	c.mut.Lock()
+	defer c.mut.Unlock()
+
+	if !c.args.ForwardTo.Empty() {
+		c.args.ForwardTo.RemovePublisher(c.opts.ID)
+	}
+}
+
+// Run satisfies the component interface.
+func (c *Component) Run(ctx context.Context) error {
+	defer c.onExitCleanUp()
 	// Trigger initial check
-	update()
+	c.publishNewTargets()
 	defer c.watchDog.Stop()
 	for {
 		select {
 		case <-c.watchDog.C:
 			// This triggers a check for any new paths, along with pushing new targets.
-			update()
+			c.publishNewTargets()
 		case <-ctx.Done():
 			return nil
 		}
