@@ -106,6 +106,7 @@ h6 {
 .docsLink a {
   color: #ffffff;
   text-decoration: none;
+  margin-right: 2px;
 }
 
 .content blockquote {

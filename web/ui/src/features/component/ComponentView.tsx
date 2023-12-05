@@ -1,6 +1,6 @@
 import { FC, Fragment, ReactElement } from 'react';
 import { Link } from 'react-router-dom';
-import { faCubes, faLink } from '@fortawesome/free-solid-svg-icons';
+import { faCubes, faLink, faNetworkWired } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { partitionBody } from '../../utils/partition';
@@ -97,6 +97,12 @@ export const ComponentView: FC<ComponentViewProps> = (props) => {
         <div className={styles.docsLink}>
           <a href={`https://grafana.com/docs/agent/latest/flow/reference/components/${props.component.name}`}>
             Documentation <FontAwesomeIcon icon={faLink} />
+          </a>
+        </div>
+
+        <div className={styles.docsLink}>
+          <a href={`xray/${props.component.localID}`}>
+            Debug <FontAwesomeIcon icon={faNetworkWired} />
           </a>
         </div>
 
