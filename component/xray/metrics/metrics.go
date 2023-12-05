@@ -186,9 +186,9 @@ func (c *Component) DebugInfo() interface{} {
 }
 
 type summary struct {
-	Labels         labels.Labels
-	SeriesCount    int `river:"seriesCount,attr" json:"seriesCount"`
-	DataPointCount int `river:"dataPointCount,attr" json:"dataPointCount"`
+	Labels              labels.Labels
+	SeriesCount         int `river:"series_count,attr" json:"series_count"`
+	DataPointCountTotal int `river:"data_point_count_total,attr" json:"data_point_count_total"`
 }
 
 // summarize by __name__
@@ -209,7 +209,7 @@ func (c *Component) Summarize(ls ...string) map[string]*summary {
 			}
 			summaries[labs.String()] = summ
 		}
-		summ.DataPointCount += int(v.DataPoints)
+		summ.DataPointCountTotal += int(v.DataPoints)
 		summ.SeriesCount++
 	}
 	return summaries
@@ -265,6 +265,12 @@ func (c *Component) Handler() http.Handler {
 			level.Error(c.opts.Logger).Log("msg", "failed to encode json", "err", err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
+	})
+
+	router.HandleFunc("/clear", func(w http.ResponseWriter, r *http.Request) {
+		c.cacheMut.Lock()
+		defer c.cacheMut.Unlock()
+		c.allSeries = map[string]*SeriesSummary{}
 	})
 
 	return router
