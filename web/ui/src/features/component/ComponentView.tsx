@@ -9,6 +9,7 @@ import ComponentBody from './ComponentBody';
 import ComponentList from './ComponentList';
 import { HealthLabel } from './HealthLabel';
 import { ComponentDetail, ComponentInfo, PartitionedBody } from './types';
+import { XRayView } from './xray';
 
 import styles from './ComponentView.module.css';
 
@@ -114,6 +115,7 @@ export const ComponentView: FC<ComponentViewProps> = (props) => {
 
         <ComponentBody partition={argsPartition} />
         {exportsPartition && <ComponentBody partition={exportsPartition} />}
+        {props.component.name === 'xray.metrics' && <XRayView component={props.component} />}
         {debugPartition && <ComponentBody partition={debugPartition} />}
 
         {props.component.referencesTo.length > 0 && (
