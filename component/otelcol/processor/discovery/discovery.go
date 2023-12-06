@@ -9,6 +9,7 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/otelcol"
+	debugstreamconsumer "github.com/grafana/agent/component/otelcol/internal/debugStreamConsumer"
 	"github.com/grafana/agent/component/otelcol/internal/fanoutconsumer"
 	"github.com/grafana/agent/component/otelcol/internal/lazyconsumer"
 	"github.com/grafana/agent/pkg/flow/logging/level"
@@ -77,8 +78,9 @@ func (args *Arguments) Validate() error {
 
 // Component is the otelcol.exporter.discovery component.
 type Component struct {
-	consumer *promsdconsumer.Consumer
-	logger   log.Logger
+	consumer            *promsdconsumer.Consumer
+	logger              log.Logger
+	debugStreamConsumer *debugstreamconsumer.Consumer
 }
 
 var _ component.Component = (*Component)(nil)
@@ -89,7 +91,9 @@ func New(o component.Options, c Arguments) (*Component, error) {
 		level.Warn(o.Logger).Log("msg", "non-trace output detected; this component only works for traces")
 	}
 
-	nextTraces := fanoutconsumer.Traces(c.Output.Traces)
+	debugStreamConsumer := debugstreamconsumer.New()
+
+	nextTraces := fanoutconsumer.Traces(append(c.Output.Traces, debugStreamConsumer))
 
 	consumerOpts := promsdconsumer.Options{
 		// Don't bother setting up labels - this will be done by the Update() function.
@@ -104,8 +108,9 @@ func New(o component.Options, c Arguments) (*Component, error) {
 	}
 
 	res := &Component{
-		consumer: consumer,
-		logger:   o.Logger,
+		consumer:            consumer,
+		logger:              o.Logger,
+		debugStreamConsumer: debugStreamConsumer,
 	}
 
 	if err := res.Update(c); err != nil {
@@ -157,4 +162,8 @@ func (c *Component) Update(newConfig component.Arguments) error {
 	}
 
 	return nil
+}
+
+func (c *Component) HookDebugStream(active bool, debugStreamCallback func(computeDataFunc func() string)) {
+	c.debugStreamConsumer.HookDebugStream(active, debugStreamCallback)
 }
