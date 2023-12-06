@@ -1,5 +1,9 @@
 // ====== New style example ========
 
+logging {
+  level = "debug"
+}
+
 local.file_match "logs" {
 	path_targets = [{"__path__" = "./*.log"}]
 	forward_to = [loki.source.file.tail_file.receiver]

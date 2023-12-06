@@ -7,11 +7,20 @@ import (
 
 type TargetsSubscriber func([]Target)
 
+// TargetsReceiver allows components to publish and subscribe to []Target updates.
 type TargetsReceiver interface {
+	// Publish publishes a new set of targets from a given source. The source is used to identify the publisher, so that
+	// it can request to be removed via RemovePublisher.
 	Publish(source string, message []Target)
+	// RemovePublisher removes the publisher with the given identifier. This will remove targets that were most recently
+	// published by that publisher and, if necessary, publish a new set of targets to all subscribers.
 	RemovePublisher(identifier string)
 
+	// Subscribe subscribes to updates of all the current targets from all publishers. The callback will be called with
+	// the concatenated set of the most recent targets from all active publishers.
 	Subscribe(identifier string, callback TargetsSubscriber)
+	// Unsubscribe removes the subscriber with the given identifier, so that it will no longer receive updates when
+	// targets are updated.
 	Unsubscribe(identifier string)
 }
 
