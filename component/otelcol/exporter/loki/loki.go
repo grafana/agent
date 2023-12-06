@@ -4,6 +4,7 @@ package loki
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/component"
@@ -80,7 +81,7 @@ func (c *Component) Run(ctx context.Context) error {
 			return nil
 		case entry := <-c.logsReceiverStreamDebug.Chan():
 			c.logsReceiverStreamDebug.debugStreamCallback(func() string {
-				return fmt.Sprintf("ts(%s), %s, %s", entry.Timestamp.String(), entry.Labels.String(), entry.Line)
+				return fmt.Sprintf("ts=%s, labels=%s, entry=%s", entry.Timestamp.Format(time.RFC3339Nano), entry.Labels.String(), entry.Line)
 			})
 		}
 	}

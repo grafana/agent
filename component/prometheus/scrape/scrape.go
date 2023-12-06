@@ -187,7 +187,7 @@ func New(o component.Options, args Arguments) (*Component, error) {
 		prometheus.WithAppendHook(func(globalRef storage.SeriesRef, l labels.Labels, t int64, v float64, next storage.Appender) (storage.SeriesRef, error) {
 			localID := ls.GetLocalRefID(c.opts.ID, uint64(globalRef))
 			_, nextErr := next.Append(storage.SeriesRef(localID), l, t, v)
-			c.debugStreamCallback(func() string { return fmt.Sprintf("ts(%d), %s, value(%f)", t, l, v) })
+			c.debugStreamCallback(func() string { return fmt.Sprintf("ts=%d, labels=%s, value=%f", t, l, v) })
 			return globalRef, nextErr
 		}),
 		prometheus.WithHistogramHook(func(globalRef storage.SeriesRef, l labels.Labels, t int64, h *histogram.Histogram, fh *histogram.FloatHistogram, next storage.Appender) (storage.SeriesRef, error) {
@@ -195,11 +195,11 @@ func New(o component.Options, args Arguments) (*Component, error) {
 			_, nextErr := next.AppendHistogram(storage.SeriesRef(localID), l, t, h, fh)
 			c.debugStreamCallback(func() string {
 				if h != nil {
-					return fmt.Sprintf("ts(%d), %s, histogram(%s)", t, l, h.String())
+					return fmt.Sprintf("ts=%d, labels=%s, histogram=%s", t, l, h.String())
 				} else if fh != nil {
-					return fmt.Sprintf("ts(%d), %s, float_histogram(%s)", t, l, fh.String())
+					return fmt.Sprintf("ts=%d, labels=%s, float_histogram=%s", t, l, fh.String())
 				}
-				return fmt.Sprintf("ts(%d), %s, no_value", t, l)
+				return fmt.Sprintf("ts=%d, labels=%s, no_value", t, l)
 			})
 			return globalRef, nextErr
 		}),
@@ -207,7 +207,7 @@ func New(o component.Options, args Arguments) (*Component, error) {
 			localID := ls.GetLocalRefID(c.opts.ID, uint64(globalRef))
 			_, nextErr := next.UpdateMetadata(storage.SeriesRef(localID), l, m)
 			c.debugStreamCallback(func() string {
-				return fmt.Sprintf("%s, type(%s), unit(%s), help(%s)", l, m.Type, m.Unit, m.Help)
+				return fmt.Sprintf("labels=%s, type=%s, unit=%s, help=%s", l, m.Type, m.Unit, m.Help)
 			})
 			return globalRef, nextErr
 		}),
@@ -215,7 +215,7 @@ func New(o component.Options, args Arguments) (*Component, error) {
 			localID := ls.GetLocalRefID(c.opts.ID, uint64(globalRef))
 			_, nextErr := next.AppendExemplar(storage.SeriesRef(localID), l, e)
 			c.debugStreamCallback(func() string {
-				return fmt.Sprintf("ts(%d), %s, exemplar_labels(%s), value(%f)", e.Ts, l, e.Labels, e.Value)
+				return fmt.Sprintf("ts=%d, labels=%s, exemplar_labels=%s, value=%f", e.Ts, l, e.Labels, e.Value)
 			})
 			return globalRef, nextErr
 		}),
