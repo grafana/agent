@@ -1,17 +1,17 @@
 ---
 aliases:
-- /docs/grafana-cloud/agent/flow/reference/components/otelcol.processor.tail_sampling/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/otelcol.processor.tail_sampling/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/otelcol.processor.tail_sampling/
-- /docs/grafana-cloud/send-data/agent/flow/reference/components/otelcol.processor.tail_sampling/
-canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.processor.tail_sampling/
+- /docs/grafana-cloud/agent/flow/reference/components/otelcol.processor.tail_sampling_2/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/otelcol.processor.tail_sampling_2/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/otelcol.processor.tail_sampling_2/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/otelcol.processor.tail_sampling_2/
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.processor.tail_sampling_2/
 description: Learn about otelcol.processor.tail_sampling
 labels:
   stage: beta
-title: otelcol.processor.tail_sampling
+title: otelcol.processor.tail_sampling_2
 ---
 
-# otelcol.processor.tail_sampling
+# otelcol.processor.tail_sampling_2
 
 {{< docs/shared lookup="flow/stability/beta.md" source="agent" version="<AGENT_VERSION>" >}}
 
@@ -48,6 +48,47 @@ otelcol.processor.tail_sampling "LABEL" {
   }
 }
 ```
+
+## Configuration hierarchy
+
+Hierarchy                                                     | Block                  | Description                                                                                                      | Required | Multiple allowed | Defaults if omitted
+------------------------------------------------------------- | ---------------------- | ---------------------------------------------------------------------------------------------------------------  | -------- | ---------------- | -------------------
+policy                                                        | [policy]               | Policies used to make a sampling decision.                                                                       | yes      | yes              | no
+policy > latency                                              | [latency]              | The policy will sample based on the duration of the trace.                                                       | no       | no               | no
+policy > numeric_attribute                                    | [numeric_attribute]    | The policy will sample based on the duration of the trace.                                                       | no       | no               | no
+policy > probabilistic                                        | [probabilistic]        | The policy will sample a percentage of traces.                                                                   | no       | no               | no
+policy > status_code                                          | [status_code]          | The policy will sample based upon the status code.                                                               | no       | no               | no
+policy > string_attribute                                     | [string_attribute]     | The policy will sample based on string attributes (resource and record) value matches.                           | no       | no               | no
+policy > rate_limiting                                        | [rate_limiting]        | The policy will sample based on rate.                                                                            | no       | no               | no
+policy > span_count                                           | [span_count]           | The policy will sample based on the minimum number of spans within a batch.                                      | no       | no               | no
+policy > boolean_attribute                                    | [boolean_attribute]    | The policy will sample based on a boolean attribute (resource and record).                                       | no       | no               | no
+policy > ottl_condition                                       | [ottl_condition]       | The policy will sample based on a given boolean OTTL condition (span and span event).                            | no       | no               | no
+policy > trace_state                                          | [trace_state]          | The policy will sample based on TraceState value matches.                                                        | no       | no               | no
+policy > and                                                  | [and]                  | The policy will sample based on multiple policies, creates an `and` policy.                                      | no       | no               | no
+policy > and > and_sub_policy                                 | [and_sub_policy]       | A set of policies underneath an `and` policy type.                                                               | no       | no               | no
+policy > and > and_sub_policy > latency                       | [latency]              | The policy will sample based on the duration of the trace.                                                       | no       | no               | no
+policy > and > and_sub_policy > numeric_attribute             | [numeric_attribute]    | The policy will sample based on the duration of the trace.                                                       | no       | no               | no
+policy > and > and_sub_policy > probabilistic                 | [probabilistic]        | The policy will sample a percentage of traces.                                                                   | no       | no               | no
+policy > and > and_sub_policy > status_code                   | [status_code]          | The policy will sample based upon the status code.                                                               | no       | no               | no
+policy > and > and_sub_policy > string_attribute              | [string_attribute]     | The policy will sample based on string attributes (resource and record) value matches.                           | no       | no               | no
+policy > and > and_sub_policy > rate_limiting                 | [rate_limiting]        | The policy will sample based on rate.                                                                            | no       | no               | no
+policy > and > and_sub_policy > span_count                    | [span_count]           | The policy will sample based on the minimum number of spans within a batch.                                      | no       | no               | no
+policy > and > and_sub_policy > boolean_attribute             | [boolean_attribute]    | The policy will sample based on a boolean attribute (resource and record).                                       | no       | no               | no
+policy > and > and_sub_policy > ottl_condition                | [ottl_condition]       | The policy will sample based on a given boolean OTTL condition (span and span event).                            | no       | no               | no
+policy > and > and_sub_policy > trace_state                   | [trace_state]          | The policy will sample based on TraceState value matches.                                                        | no       | no               | no
+policy > composite                                            | [composite]            | This policy will sample based on a combination of above samplers, with ordering and rate allocation per sampler. | no       | no               | no
+policy > composite > composite_sub_policy                     | [composite_sub_policy] | A set of policies underneath a `composite` policy type.                                                          | no       | no               | no
+policy > composite > composite_sub_policy > latency           | [latency]              | The policy will sample based on the duration of the trace.                                                       | no       | no               | no
+policy > composite > composite_sub_policy > numeric_attribute | [numeric_attribute]    | The policy will sample based on the duration of the trace.                                                       | no       | no               | no
+policy > composite > composite_sub_policy > probabilistic     | [probabilistic]        | The policy will sample a percentage of traces.                                                                   | no       | no               | no
+policy > composite > composite_sub_policy > status_code       | [status_code]          | The policy will sample based upon the status code.                                                               | no       | no               | no
+policy > composite > composite_sub_policy > string_attribute  | [string_attribute]     | The policy will sample based on string attributes (resource and record) value matches.                           | no       | no               | no
+policy > composite > composite_sub_policy > rate_limiting     | [rate_limiting]        | The policy will sample based on rate.                                                                            | no       | no               | no
+policy > composite > composite_sub_policy > span_count        | [span_count]           | The policy will sample based on the minimum number of spans within a batch.                                      | no       | no               | no
+policy > composite > composite_sub_policy > boolean_attribute | [boolean_attribute]    | The policy will sample based on a boolean attribute (resource and record).                                       | no       | no               | no
+policy > composite > composite_sub_policy > ottl_condition    | [ottl_condition]       | The policy will sample based on a given boolean OTTL condition (span and span event).                            | no       | no               | no
+policy > composite > composite_sub_policy > trace_state       | [trace_state]          | The policy will sample based on TraceState value matches.                                                        | no       | no               | no
+output                                                        | [output]               | Configures where to send received telemetry data. | yes
 
 ## Configuration
 
