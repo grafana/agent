@@ -16,8 +16,10 @@ const (
 	MarkerFolderName = "remote"
 	MarkerFileName   = "segment_marker"
 
-	MarkerFolderMode os.FileMode = 0o700
-	MarkerFileMode   os.FileMode = 0o600
+	MarkerFolderMode        os.FileMode = 0o700
+	MarkerWindowsFolderMode os.FileMode = 0o777
+	MarkerFileMode          os.FileMode = 0o600
+	MarkerWindowsFileMode   os.FileMode = 0o666
 )
 
 // MarkerFileHandler is a file-backed wal.Marker, that also allows one to write to the backing store as particular
