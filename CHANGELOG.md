@@ -35,6 +35,9 @@ Main (unreleased)
 - Added links between compatible components in the documentation to make it
   easier to discover them. (@thampiotr)
 
+- Expose `physical_disk` collector from `windows_exporter` v0.24.0 to 
+  Flow configuration. (@hainenber)
+
 ### Bugfixes
 
 - Update `pyroscope.ebpf` to fix a logical bug causing to profile to many kthreads instead of regular processes https://github.com/grafana/pyroscope/pull/2778 (@korniltsev)
