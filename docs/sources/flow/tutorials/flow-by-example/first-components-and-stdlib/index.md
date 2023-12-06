@@ -7,7 +7,7 @@ aliases:
 canonical: https://grafana.com/docs/agent/latest/flow/tutorials/flow-by-example/first-components-and-stdlib/
 description: Learn about the basics of River and the Flow configuration language
 title: First components and introducing the standard library
-weight: 300
+weight: 20
 ---
 
 # First components and the standard library

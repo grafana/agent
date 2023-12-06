@@ -7,7 +7,7 @@ aliases:
 canonical: https://grafana.com/docs/agent/latest/flow/tutorials/flow-by-example/faq/
 description: Getting started with Flow-by-Example Tutorials
 title: Get started
-weight: 300
+weight: 10
 ---
 
 ## Who is this for?
