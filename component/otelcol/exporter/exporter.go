@@ -9,9 +9,8 @@ import (
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/otelcol"
-	debugstreamconsumer "github.com/grafana/agent/component/otelcol/internal/debugStreamConsumer"
 	"github.com/grafana/agent/component/otelcol/internal/lazycollector"
-	"github.com/grafana/agent/component/otelcol/internal/lazyconsumer"
+	"github.com/grafana/agent/component/otelcol/internal/lazyexporterconsumer"
 	"github.com/grafana/agent/component/otelcol/internal/scheduler"
 	"github.com/grafana/agent/component/otelcol/internal/views"
 	"github.com/grafana/agent/pkg/build"
@@ -80,7 +79,7 @@ type Exporter struct {
 
 	opts     component.Options
 	factory  otelexporter.Factory
-	consumer *lazyconsumer.Consumer
+	consumer *lazyexporterconsumer.Consumer
 
 	sched     *scheduler.Scheduler
 	collector *lazycollector.Collector
@@ -88,8 +87,6 @@ type Exporter struct {
 	// Signals which the exporter is able to export.
 	// Can be logs, metrics, traces or any combination of them.
 	supportedSignals TypeSignal
-
-	debugStreamConsumer *debugstreamconsumer.Consumer
 }
 
 var (
@@ -106,7 +103,7 @@ var (
 func New(opts component.Options, f otelexporter.Factory, args Arguments, supportedSignals TypeSignal) (*Exporter, error) {
 	ctx, cancel := context.WithCancel(context.Background())
 
-	consumer := lazyconsumer.New(ctx)
+	consumer := lazyexporterconsumer.New(ctx)
 
 	// Create a lazy collector where metrics from the upstream component will be
 	// forwarded.
@@ -131,8 +128,7 @@ func New(opts component.Options, f otelexporter.Factory, args Arguments, support
 		sched:     scheduler.New(opts.Logger),
 		collector: collector,
 
-		supportedSignals:    supportedSignals,
-		debugStreamConsumer: debugstreamconsumer.New(),
+		supportedSignals: supportedSignals,
 	}
 	if err := e.Update(args); err != nil {
 		return nil, err
@@ -241,5 +237,5 @@ func (e *Exporter) CurrentHealth() component.Health {
 }
 
 func (e *Exporter) HookDebugStream(active bool, debugStreamCallback func(computeDataFunc func() string)) {
-	e.debugStreamConsumer.HookDebugStream(active, debugStreamCallback)
+	e.consumer.HookDebugStream(active, debugStreamCallback)
 }
