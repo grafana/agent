@@ -6,3 +6,18 @@
   overflow-x: auto;
   overflow-y: hidden;
 }
+
+.xrayLink {
+  display: inline-block;
+  width: fit-content;
+  height: fit-content;
+  font-size: 10px;
+  padding: 5px;
+
+  color: #ffffff;
+  background-color: rgb(2, 16, 32);
+  border: 1px solid rgb(2, 16, 32);
+  border-radius: 3px;
+  margin-right: 10px;
+  cursor: pointer;
+}

@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react';
 
-export const useStreaming = (componentID: string) => {
-  const [data, setData] = useState('');
+export const useStreaming = (
+  componentID: string,
+  enabled: boolean,
+  setData: React.Dispatch<React.SetStateAction<string>>
+) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const maxLines = 50000;
@@ -21,7 +24,7 @@ export const useStreaming = (componentID: string) => {
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
 
-        while (true) {
+        while (enabled) {
           const { value, done } = await reader.read();
           if (done) {
             setLoading(false);
@@ -56,5 +59,5 @@ export const useStreaming = (componentID: string) => {
     };
   }, [componentID]);
 
-  return { data, loading, error };
+  return { loading, error };
 };
