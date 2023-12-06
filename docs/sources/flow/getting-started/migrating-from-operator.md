@@ -68,7 +68,7 @@ This guide provides some steps to get started with {{< param "PRODUCT_NAME" >}} 
 
 A `MetricsInstance` resource primarily defines:
 
-- The remote endpoint(s) {{< param "PRODUCT_NAME" >}} should send metrics to.
+- The remote endpoints {{< param "PRODUCT_NAME" >}} should send metrics to.
 - The `PodMonitor`, `ServiceMonitor`, and `Probe` resources this {{< param "PRODUCT_ROOT_NAME" >}} should discover.
 
 You can use these functions in {{< param "PRODUCT_NAME" >}} with the `prometheus.remote_write`, `prometheus.operator.podmonitors`, `prometheus.operator.servicemonitors`, and `prometheus.operator.probes` components respectively.

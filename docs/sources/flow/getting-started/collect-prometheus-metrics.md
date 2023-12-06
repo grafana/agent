@@ -429,7 +429,7 @@ prometheus.remote_write "default" {
 [Labels and Selectors]: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#set-based-requirement
 [Field Selectors]: https://kubernetes.io/docs/concepts/overview/working-with-objects/field-selectors/
 [Labels and Selectors]: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#set-based-requirement
-[Configure metrics delivery](#configure-metrics-delivery)
+[Configure metrics delivery]: #configure-metrics-delivery
 
 {{% docs/reference %}}
 [discovery.kubernetes]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/discovery.kubernetes.md"

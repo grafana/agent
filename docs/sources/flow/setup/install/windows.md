@@ -52,7 +52,7 @@ To do a silent install of {{< param "PRODUCT_NAME" >}} on Windows, perform the f
 
    Replace the following:
 
-   - _`<PATH_TO_INSTALLER>`_ with the path where the unzipped installer executable is located.
+   - _`<PATH_TO_INSTALLER>`_: The path where the unzipped installer executable is located.
 
 ### Silent install options
 
