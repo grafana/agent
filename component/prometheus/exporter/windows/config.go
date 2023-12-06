@@ -19,7 +19,7 @@ type Arguments struct {
 	MSMQ          MSMQConfig          `river:"msmq,block,optional"`
 	MSSQL         MSSQLConfig         `river:"mssql,block,optional"`
 	Network       NetworkConfig       `river:"network,block,optional"`
-	PhysicalDisk  PhysicalDiskConfig  `river:"network,block,optional"`
+	PhysicalDisk  PhysicalDiskConfig  `river:"physical_disk,block,optional"`
 	Process       ProcessConfig       `river:"process,block,optional"`
 	ScheduledTask ScheduledTaskConfig `river:"scheduled_task,block,optional"`
 	Service       ServiceConfig       `river:"service,block,optional"`
