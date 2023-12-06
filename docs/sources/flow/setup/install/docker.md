@@ -38,20 +38,23 @@ To run {{< param "PRODUCT_NAME" >}} as a Linux Docker container, run the followi
 ```shell
 docker run \
   -e AGENT_MODE=flow \
-  -v CONFIG_FILE_PATH:/etc/agent/config.river \
+  -v <CONFIG_FILE_PATH>:/etc/agent/config.river \
   -p 12345:12345 \
   grafana/agent:latest \
     run --server.http.listen-addr=0.0.0.0:12345 /etc/agent/config.river
 ```
 
-Replace `CONFIG_FILE_PATH` with the path of the configuration file on your host system.
+Replace the following:
+
+- _`<CONFIG_FILE_PATH>`_: The path of the configuration file on your host system.
 
 You can modify the last line to change the arguments passed to the {{< param "PRODUCT_NAME" >}} binary.
 Refer to the documentation for [run][] for more information about the options available to the `run` command.
 
-> **Note:** Make sure you pass `--server.http.listen-addr=0.0.0.0:12345` as an argument as shown in the example above.
-> If you don't pass this argument, the [debugging UI][UI] won't be available outside of the Docker container.
-
+{{% admonition type="note" %}}
+Make sure you pass `--server.http.listen-addr=0.0.0.0:12345` as an argument as shown in the example above.
+If you don't pass this argument, the [debugging UI][UI] won't be available outside of the Docker container.
+{{% /admonition %}}
 
 ## Run a Windows Docker container
 
@@ -60,20 +63,23 @@ To run {{< param "PRODUCT_NAME" >}} as a Windows Docker container, run the follo
 ```shell
 docker run \
   -e AGENT_MODE=flow \
-  -v CONFIG_FILE_PATH:C:\etc\grafana-agent\config.river \
+  -v <CONFIG_FILE_PATH>:C:\etc\grafana-agent\config.river \
   -p 12345:12345 \
   grafana/agent:latest-windows \
     run --server.http.listen-addr=0.0.0.0:12345 C:\etc\grafana-agent\config.river
 ```
 
-Replace `CONFIG_FILE_PATH` with the path of the configuration file on your host system.
+Replace the following:
+
+- _`<CONFIG_FILE_PATH>`_: The path of the configuration file on your host system.
 
 You can modify the last line to change the arguments passed to the {{< param "PRODUCT_NAME" >}} binary.
 Refer to the documentation for [run][] for more information about the options available to the `run` command.
 
-
-> **Note:** Make sure you pass `--server.http.listen-addr=0.0.0.0:12345` as an argument as shown in the example above.
-> If you don't pass this argument, the [debugging UI][UI] won't be available outside of the Docker container.
+{{% admonition type="note" %}}
+Make sure you pass `--server.http.listen-addr=0.0.0.0:12345` as an argument as shown in the example above.
+If you don't pass this argument, the [debugging UI][UI] won't be available outside of the Docker container.
+{{% /admonition %}}
 
 ## Verify
 

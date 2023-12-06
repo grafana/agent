@@ -91,7 +91,7 @@ The supported escape sequences are as follows:
 
 ## Raw strings
 
-Raw strings are represented by sequences of Unicode characters surrounded by backticks ``` `` ```. 
+Raw strings are represented by sequences of Unicode characters surrounded by backticks ``` `` ```.
 Raw strings do not support any escape sequences:
 
 ```river
@@ -102,7 +102,7 @@ Within the backticks, any character may appear except a backtick. A backtick
 can be included by concatenating a double quoted string that contains a
 backtick using `+`.
 
-A multiline raw string will be interpretted exactly as written:
+A multiline raw string is interpreted exactly as written:
 
 ```river
 `Hello,
