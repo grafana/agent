@@ -69,7 +69,7 @@ This conversion will enable you to take full advantage of the many additional fe
    You can use the `--bypass-errors` flag to bypass any non-critical issues and output the {{< param "PRODUCT_NAME" >}} configuration using a best-effort conversion.
 
    {{% admonition type="caution" %}}
-   If you bypass the errors, the behavior of the converted configuration may not match the original [Static] configuration.
+   If you bypass the errors, the behavior of the converted configuration may not match the original Grafana Agent Static configuration.
    Make sure you fully test the converted configuration before using it in a production environment.
    {{% /admonition %}}
 
@@ -131,7 +131,7 @@ Your configuration file must be a valid [Static] configuration file.
 
 1. You can follow the convert CLI command [debugging][] instructions to generate a diagnostic report.
 
-1. Refer to the {{< param "PRODUCT_NAME" >}} [DebuggingUI][] for more information about running {{< param "PRODUCT_NAME" >}}.
+1. Refer to the {{< param "PRODUCT_NAME" >}} [debugging UI][DebuggingUI] for more information about running {{< param "PRODUCT_NAME" >}}.
 
 1. If your [Static] configuration can't be converted and loaded directly into {{< param "PRODUCT_NAME" >}}, diagnostic information is sent to `stderr`.
    You can use the `--config.bypass-conversion-errors` flag with `--config.format=static` to bypass any non-critical issues and start {{< param "PRODUCT_NAME" >}}.
