@@ -12,7 +12,7 @@ function PageStreaming() {
 
   return (
     <Page name="Debug with X-Ray" desc="Debug stream of data" icon={faSkull}>
-      {loading && <p>Loading...</p>}
+      {loading && <p>Streaming data...</p>}
       {error && <p>Error: {error}</p>}
       <pre className={styles.streamingData}>{data}</pre>
     </Page>
