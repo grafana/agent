@@ -121,7 +121,3 @@ func (t *TargetsReceivers) Unsubscribe(identifier string) {
 		tr.Unsubscribe(identifier)
 	}
 }
-
-type TargetsReceiversProvider interface {
-	TargetsReceivers() TargetsReceivers
-}

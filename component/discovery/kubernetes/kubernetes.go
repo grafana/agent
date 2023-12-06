@@ -22,18 +22,14 @@ func init() {
 
 // Arguments configures the discovery.kubernetes component.
 type Arguments struct {
-	APIServer          config.URL                  `river:"api_server,attr,optional"`
-	Role               string                      `river:"role,attr"`
-	KubeConfig         string                      `river:"kubeconfig_file,attr,optional"`
-	HTTPClientConfig   config.HTTPClientConfig     `river:",squash"`
-	NamespaceDiscovery NamespaceDiscovery          `river:"namespaces,block,optional"`
-	Selectors          []SelectorConfig            `river:"selectors,block,optional"`
-	AttachMetadata     AttachMetadataConfig        `river:"attach_metadata,block,optional"`
-	ForwardTo          []discovery.TargetsReceiver `river:"forward_to,attr,optional"`
+	APIServer          config.URL              `river:"api_server,attr,optional"`
+	Role               string                  `river:"role,attr"`
+	KubeConfig         string                  `river:"kubeconfig_file,attr,optional"`
+	HTTPClientConfig   config.HTTPClientConfig `river:",squash"`
+	NamespaceDiscovery NamespaceDiscovery      `river:"namespaces,block,optional"`
+	Selectors          []SelectorConfig        `river:"selectors,block,optional"`
+	AttachMetadata     AttachMetadataConfig    `river:"attach_metadata,block,optional"`
 }
-
-// TargetsReceivers implements discovery.TargetsReceiversProvider.
-func (args *Arguments) TargetsReceivers() discovery.TargetsReceivers { return args.ForwardTo }
 
 // DefaultConfig holds defaults for SDConfig.
 var DefaultConfig = Arguments{
