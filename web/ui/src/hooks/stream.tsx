@@ -3,11 +3,11 @@ import { useEffect, useState } from 'react';
 export const useStreaming = (
   componentID: string,
   enabled: boolean,
-  setData: React.Dispatch<React.SetStateAction<string>>
+  setData: React.Dispatch<React.SetStateAction<string[]>>
 ) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const maxLines = 50000;
+  const maxLines = 5000;
 
   useEffect(() => {
     const abortController = new AbortController();
@@ -41,13 +41,13 @@ export const useStreaming = (
           const decodedChunk = decoder.decode(value, { stream: true });
 
           setData((prevValue) => {
-            let dataArr = `${prevValue}${decodedChunk}`.split('\n');
+            let newValue = decodedChunk.slice(0, -1).split('\n');
+            let dataArr = prevValue.concat(newValue);
 
             if (dataArr.length > maxLines) {
-              const difference = dataArr.length - maxLines;
-              dataArr = dataArr.slice(difference, dataArr.length);
+              dataArr = dataArr.slice(-maxLines);
             }
-            return dataArr.join('\n');
+            return dataArr;
           });
         }
       } catch (error) {

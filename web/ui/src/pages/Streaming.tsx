@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
+import AutoScroll from '@brianmcallister/react-auto-scroll';
 import { faBroom, faDownload, faRoad, faSkull, faStop } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
@@ -11,7 +12,7 @@ import styles from './Streaming.module.css';
 function PageStreaming() {
   const { componentID } = useParams();
   const [enabled, setEnabled] = useState(true);
-  const [data, setData] = useState('');
+  const [data, setData] = useState<string[]>([]);
   const { loading, error } = useStreaming(String(componentID), enabled, setData);
 
   function toggleEnableButton() {
@@ -34,7 +35,7 @@ function PageStreaming() {
   }
 
   function downloadData() {
-    const blob = new Blob([data], { type: 'text/plain' });
+    const blob = new Blob([data.join('\n')], { type: 'text/plain' });
     const href = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = href;
@@ -49,7 +50,7 @@ function PageStreaming() {
     <>
       {toggleEnableButton()}
       <div className={styles.xrayLink}>
-        <button className={styles.clearButton} onClick={() => setData('')}>
+        <button className={styles.clearButton} onClick={() => setData([])}>
           Clear <FontAwesomeIcon icon={faBroom} />
         </button>
       </div>
@@ -65,7 +66,11 @@ function PageStreaming() {
     <Page name="Debug with X-Ray" desc="Debug stream of data" icon={faSkull} controls={controls}>
       {loading && <p>Streaming data...</p>}
       {error && <p>Error: {error}</p>}
-      <pre className={styles.streamingData}>{data}</pre>
+      <AutoScroll height={document.body.scrollHeight - 260}>
+        {data.map((msg) => {
+          return <div key={msg}>{msg}</div>;
+        })}
+      </AutoScroll>
     </Page>
   );
 }
