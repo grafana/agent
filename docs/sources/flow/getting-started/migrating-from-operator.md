@@ -272,7 +272,7 @@ The logging subsystem is very powerful and has many options for processing logs.
 
 The `Integration` CRD isn't supported with {{< param "PRODUCT_NAME" >}}.
 However, all static mode integrations have an equivalent component in the [`prometheus.exporter`][] namespace.
-The reference docs should help convert those integrations to their {{< param "PRODUCT_NAME" >}} equivalent.
+The [reference documentation][component documentation] should help convert those integrations to their {{< param "PRODUCT_NAME" >}} equivalent.
 
 [default values]: https://github.com/grafana/agent/blob/main/operations/helm/charts/grafana-agent/values.yaml
 

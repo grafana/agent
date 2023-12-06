@@ -42,7 +42,7 @@ This topic describes how to:
 
 ## The pipeline
 
-You can start with the {{< param "PRODUCT_NAME" >}} configuration you created in the previous Getting Started guide.
+You can start with the {{< param "PRODUCT_NAME" >}} configuration you created in the [Collect open telemetry data][] Getting Started guide.
 
 ```river
 otelcol.receiver.otlp "example" {
