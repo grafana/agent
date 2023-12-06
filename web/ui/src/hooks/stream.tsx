@@ -11,9 +11,17 @@ export const useStreaming = (
 
   useEffect(() => {
     const abortController = new AbortController();
+    let isCancelled = false;
+
     const fetchData = async () => {
+      if (!enabled) {
+        setLoading(false);
+        return;
+      }
+
+      setLoading(true);
+
       try {
-        setLoading(true);
         const response = await fetch(`./api/v0/web/debugStream/${componentID}`, {
           signal: abortController.signal,
         });
@@ -24,10 +32,9 @@ export const useStreaming = (
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
 
-        while (enabled) {
+        while (enabled && !isCancelled) {
           const { value, done } = await reader.read();
           if (done) {
-            setLoading(false);
             break;
           }
 
@@ -44,20 +51,23 @@ export const useStreaming = (
           });
         }
       } catch (error) {
-        if ((error as Error).name !== 'AbortError') {
+        if (!isCancelled && (error as Error).name !== 'AbortError') {
           setError((error as Error).message);
         }
       } finally {
-        setLoading(false);
+        if (!isCancelled) {
+          setLoading(false);
+        }
       }
     };
 
     fetchData();
 
     return () => {
+      isCancelled = true;
       abortController.abort();
     };
-  }, [componentID]);
+  }, [componentID, enabled]);
 
   return { loading, error };
 };
