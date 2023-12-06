@@ -91,11 +91,11 @@ This conversion will enable you to take full advantage of the many additional fe
    {{< code >}}
 
    ```static-binary
-   AGENT_MODE=flow grafana-agent convert --source-format=promtail --report=OUTPUT_REPORT_PATH --output=<OUTPUT_CONFIG_PATH> <INPUT_CONFIG_PATH>
+   AGENT_MODE=flow grafana-agent convert --source-format=promtail --report=<OUTPUT_REPORT_PATH> --output=<OUTPUT_CONFIG_PATH> <INPUT_CONFIG_PATH>
    ```
 
    ```flow-binary
-   grafana-agent-flow convert --source-format=promtail --report=OUTPUT_REPORT_PATH --output=<OUTPUT_CONFIG_PATH> <INPUT_CONFIG_PATH>
+   grafana-agent-flow convert --source-format=promtail --report=<OUTPUT_REPORT_PATH> --output=<OUTPUT_CONFIG_PATH> <INPUT_CONFIG_PATH>
    ```
 
    {{< /code >}}

@@ -62,7 +62,7 @@ This conversion will enable you to take full advantage of the many additional fe
 
 ### Debugging
 
-1. If the convert command can't convert a Prometheus configuration, diagnostic information is sent to `stderr`.\
+1. If the `convert` command can't convert a Prometheus configuration, diagnostic information is sent to `stderr`.\
    You can bypass any non-critical issues and output the {{< param "PRODUCT_NAME" >}} configuration using a best-effort conversion by including the `--bypass-errors` flag.
 
     {{% admonition type="caution" %}}
