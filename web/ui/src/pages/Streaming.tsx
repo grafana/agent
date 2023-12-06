@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { faBroom, faRoad, faSkull, faStop } from '@fortawesome/free-solid-svg-icons';
+import { faBroom, faDownload, faRoad, faSkull, faStop } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import Page from '../features/layout/Page';
@@ -33,12 +33,29 @@ function PageStreaming() {
     );
   }
 
+  function downloadData() {
+    const blob = new Blob([data], { type: 'text/plain' });
+    const href = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = href;
+    link.download = `${componentID}-debug.txt`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(href);
+  }
+
   const controls = (
     <>
       {toggleEnableButton()}
       <div className={styles.xrayLink}>
         <button className={styles.clearButton} onClick={() => setData('')}>
           Clear <FontAwesomeIcon icon={faBroom} />
+        </button>
+      </div>
+      <div className={styles.xrayLink}>
+        <button className={styles.downloadButton} onClick={downloadData}>
+          Download <FontAwesomeIcon icon={faDownload} />
         </button>
       </div>
     </>

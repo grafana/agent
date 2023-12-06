@@ -59,3 +59,14 @@
   background-color: #1e7e34;
   border-color: #155724;
 }
+
+.xrayLink .downloadButton {
+  background-color: #ffb01e;
+  color: #ffffff;
+  border-color: #e69500;
+}
+
+.xrayLink .downloadButton:hover {
+  background-color: #e69500;
+  border-color: #cc8400;
+}
