@@ -18,17 +18,17 @@ function PageStreaming() {
     if (enabled) {
       return (
         <div className={styles.xrayLink}>
-          <a onClick={() => setEnabled(false)}>
+          <button className={styles.stopButton} onClick={() => setEnabled(false)}>
             Stop <FontAwesomeIcon icon={faStop} />
-          </a>
+          </button>
         </div>
       );
     }
     return (
       <div className={styles.xrayLink}>
-        <a onClick={() => setEnabled(true)}>
+        <button className={styles.resumeButton} onClick={() => setEnabled(true)}>
           Resume <FontAwesomeIcon icon={faRoad} />
-        </a>
+        </button>
       </div>
     );
   }
@@ -37,9 +37,9 @@ function PageStreaming() {
     <>
       {toggleEnableButton()}
       <div className={styles.xrayLink}>
-        <a onClick={() => setData('')}>
+        <button className={styles.clearButton} onClick={() => setData('')}>
           Clear <FontAwesomeIcon icon={faBroom} />
-        </a>
+        </button>
       </div>
     </>
   );

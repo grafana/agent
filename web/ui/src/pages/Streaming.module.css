@@ -9,15 +9,53 @@
 
 .xrayLink {
   display: inline-block;
-  width: fit-content;
-  height: fit-content;
-  font-size: 10px;
-  padding: 5px;
-
-  color: #ffffff;
-  background-color: rgb(2, 16, 32);
-  border: 1px solid rgb(2, 16, 32);
-  border-radius: 3px;
   margin-right: 10px;
+  margin-bottom: 5px;
+}
+
+.xrayLink button {
+  font-size: 16px;
+  padding: 10px 20px;
+  border: 2px solid transparent;
+  border-radius: 5px;
   cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.xrayLink button:focus {
+  outline: none;
+  box-shadow: 0 0 0 0.2rem rgba(220, 220, 220, 0.5);
+}
+
+.xrayLink .stopButton {
+  background-color: #dc3545;
+  color: #ffffff;
+  border-color: #bd2130;
+}
+
+.xrayLink .stopButton:hover {
+  background-color: #bd2130;
+  border-color: #7a1c21;
+}
+
+.xrayLink .clearButton {
+  background-color: #6c757d;
+  color: #ffffff;
+  border-color: #5a6268;
+}
+
+.xrayLink .clearButton:hover {
+  background-color: #5a6268;
+  border-color: #545b62;
+}
+
+.xrayLink .resumeButton {
+  background-color: #28a745;
+  color: #ffffff;
+  border-color: #1e7e34;
+}
+
+.xrayLink .resumeButton:hover {
+  background-color: #1e7e34;
+  border-color: #155724;
 }
