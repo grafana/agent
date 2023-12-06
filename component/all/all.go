@@ -133,5 +133,6 @@ import (
 	_ "github.com/grafana/agent/component/remote/kubernetes/secret"                 // Import remote.kubernetes.secret
 	_ "github.com/grafana/agent/component/remote/s3"                                // Import remote.s3
 	_ "github.com/grafana/agent/component/remote/vault"                             // Import remote.vault
+	_ "github.com/grafana/agent/component/xray/logs"                                // import xray.logs
 	_ "github.com/grafana/agent/component/xray/metrics"                             // import xray.metrics
 )
