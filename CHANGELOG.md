@@ -35,6 +35,8 @@ Main (unreleased)
 - Added links between compatible components in the documentation to make it
   easier to discover them. (@thampiotr)
 
+- Added 'country' mmdb-type to log pipeline-stage geoip. (@superstes)
+
 ### Bugfixes
 
 - Update `pyroscope.ebpf` to fix a logical bug causing to profile to many kthreads instead of regular processes https://github.com/grafana/pyroscope/pull/2778 (@korniltsev)
