@@ -724,6 +724,9 @@ replace (
 	go.opentelemetry.io/collector/service => github.com/grafana/opentelemetry-collector/service v0.0.0-20231018134914-c0109e052230
 )
 
+// Replacing for temporary fork
+replace github.com/influxdata/go-syslog/v3 => github.com/grafana/go-syslog/v3 v3.0.0-20221204003629-e14cd679cedf
+
 // Required to avoid an ambiguous import with github.com/tencentcloud/tencentcloud-sdk-go
 exclude github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common v1.0.194
 
