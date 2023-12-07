@@ -12,6 +12,7 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/common/loki"
 	"github.com/grafana/agent/pkg/flow/logging/level"
+	"github.com/prometheus/common/model"
 )
 
 func init() {
@@ -99,11 +100,11 @@ func (c *Component) Run(ctx context.Context) error {
 
 			// Add entry to the ring buffer, overwriting the oldest entry if
 			// necessary.
-			c.logsSummary.LogsRingBuffer.Value = entry
-			if c.logsSummary.SetEntries < c.args.EntriesToTrack {
-				c.logsSummary.SetEntries++
+			c.logsSummary.logsRingBuffer.Value = entry
+			if c.logsSummary.setEntries < c.args.EntriesToTrack {
+				c.logsSummary.setEntries++
 			}
-			c.logsSummary.LogsRingBuffer = c.logsSummary.LogsRingBuffer.Next()
+			c.logsSummary.logsRingBuffer = c.logsSummary.logsRingBuffer.Next()
 
 			c.mut.Unlock()
 		}
@@ -136,7 +137,7 @@ type debugInfo struct {
 func (c *Component) initializeLogsSummary() {
 	c.logsSummary = &logsSummary{
 		LogLabelFrequencies: make(map[string]int),
-		LogsRingBuffer:      ring.New(c.args.EntriesToTrack),
+		logsRingBuffer:      ring.New(c.args.EntriesToTrack),
 	}
 }
 
@@ -144,8 +145,8 @@ type logsSummary struct {
 	LogLabelFrequencies map[string]int `river:"log_label_frequencies,attr" json:"log_label_frequencies"`
 	TotalLogs           int            `river:"total_log_entries,attr" json:"total_log_entries"`
 
-	LogsRingBuffer *ring.Ring
-	SetEntries     int
+	logsRingBuffer *ring.Ring
+	setEntries     int
 }
 
 type logsSummaryStats struct {
@@ -158,12 +159,12 @@ type logsSummaryStats struct {
 
 func (l *logsSummary) getLogsSummaryStats() map[string]*logsSummaryStats {
 	stats := make(map[string]*logsSummaryStats)
-	if l.SetEntries == 0 {
+	if l.setEntries == 0 {
 		return stats
 	}
 
-	entryLengths := make([]loki.Entry, 0, l.SetEntries)
-	l.LogsRingBuffer.Do(func(v interface{}) {
+	entryLengths := make([]loki.Entry, 0, l.setEntries)
+	l.logsRingBuffer.Do(func(v interface{}) {
 		if v == nil {
 			return
 		}
@@ -201,9 +202,44 @@ func (c *Component) Handler() http.Handler {
 	router := http.NewServeMux()
 
 	router.HandleFunc("/summary", func(w http.ResponseWriter, r *http.Request) {
-		di := c.DebugInfo()
+		di := c.DebugInfo().(*debugInfo)
 		w.Header().Set("Content-Type", "application/json")
 		err := json.NewEncoder(w).Encode(di)
+		if err != nil {
+			level.Error(c.opts.Logger).Log("msg", "failed to encode json", "err", err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+	})
+
+	router.HandleFunc("/recent-logs", func(w http.ResponseWriter, r *http.Request) {
+		params := r.URL.Query()
+		matches := make([]loki.Entry, 0)
+		c.logsSummary.logsRingBuffer.Do(func(v interface{}) {
+			if v == nil {
+				return
+			}
+			entry := v.(loki.Entry)
+
+			// If no params are specified, return all entries.
+			if len(params) == 0 {
+				matches = append(matches, entry)
+			} else {
+				match := true
+				for labelName, labelValues := range params {
+					labelValue := labelValues[0]
+					if entry.Labels[model.LabelName(labelName)] != model.LabelValue(labelValue) {
+						match = false
+						break
+					}
+				}
+				if match {
+					matches = append(matches, entry)
+				}
+			}
+		})
+
+		w.Header().Set("Content-Type", "application/json")
+		err := json.NewEncoder(w).Encode(matches)
 		if err != nil {
 			level.Error(c.opts.Logger).Log("msg", "failed to encode json", "err", err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
