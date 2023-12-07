@@ -316,8 +316,8 @@ tail_sampling:
 # Agent instances need to be able to communicate with each other via gRPC.
 #
 # When load_balancing is enabled:
-# 1. When an Agent receives spans from the configures "receivers".
-# 2. If the "attributes" processor is configured, it will be ran on the spans.
+# 1. When an Agent receives spans from the configured "receivers".
+# 2. If the "attributes" processor is configured, it will run through all the spans.
 # 3. The spans will be exported using the "load_balancing" configuration to any of the Agent instances.
 #    This may or may not be the same Agent which has already received the span.
 # 4. The Agent which received the span from the loadbalancer will run these processors, 

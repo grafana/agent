@@ -291,16 +291,16 @@ All spans for a given `service.name` must go to the same spanmetrics Agent.
 * This can be done by configuring `otelcol.exporter.loadbalancing` with `routing_key = "service"`.
 * If this is not done, metrics generated from spans might be incorrect.
   * For example, if similar spans for the same `service.name` end up on different Agent instances,
-    the two Agents will have identical metic series for calculating span latency, errors, and number of requests.
+    the two Agents will have identical metric series for calculating span latency, errors, and number of requests.
   * When both Agents attempt to remote write the metrics to a database such as Mimir,
-    the series with clash with each other.
-  * At best this will lead to an error in the Agent and a rejected remote write. 
-  * At worst, it could lead to an inaccurate data dure to overlapping samples for the metric series.
+    the series may clash with each other.
+  * At best this will lead to an error in the Agent and a rejected write to the metrics database. 
+  * At worst, it could lead to an inaccurate data due to overlapping samples for the metric series.
 
 However, there are ways to scale `otelcol.connector.spanmetrics` without the need for a load balancer:
 1. Each Agent could add an attribute such as `agent.id` in order to make its series unique.
   * A `sum by` PromQL query could be used to aggregate the metrics from different Agents.
-  * An extra `agent.id` attribute has a downside that the metrics stored in the database will have extra cardinality.
+  * An extra `agent.id` attribute has a downside that the metrics stored in the database will have higher cardinality.
 2. Spanmetrics could be generated in the backend database instead of the Agent.
   * For example, span metrics can be [generated][tempo-spanmetrics] in Grafana Cloud by the Tempo traces database.
 
@@ -329,7 +329,7 @@ Unfortunately, there is generally no reliable way to scale `otelcol.connector.se
 There are ways to work around this:
   1. Each Agent could add an attribute such as `agent.id` in order to make its series unique.
     * A PromQL query could be used to aggregate the metrics from different Agents.
-    * An extra `agent.id` attribute has a downside that the metrics stored in the database will have extra cardinality.
+    * An extra `agent.id` attribute has a downside that the metrics stored in the database will have higher cardinality.
   2. A simpler, more scalable alternative to generating service graph metrics 
     in the Agent is to do them in the backend database. 
     * For example service graphs can be [generated][tempo-servicegraphs] in Grafana Cloud by the Tempo traces database.
@@ -419,7 +419,7 @@ otelcol.exporter.loadbalancing "default" {
 }
 ```
 
-Below is an example Kubernetes configuration which sets up two sets of Agents:
+Below is an example Kubernetes configuration which configures two sets of Agents:
 * A pool of "load balancer" Agents:
   * Spans are received from instrumented applications via `otelcol.receiver.otlp`
   * Spans are then exported via `otelcol.exporter.loadbalancing`.

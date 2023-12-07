@@ -20,8 +20,8 @@ all necessary telemetry signals in the same Agent process. For example,
 a single Agent can process all of the incoming metrics, logs, traces, and profiles.
 
 However, if the load on the Agents is big, it may be beneficial to
-process different telemetry signals in different sets of Agents:
-* This provides bettor stability due to the isolation between processes.
+process different telemetry signals in different deployments of Agents:
+* This provides better stability due to the isolation between processes.
   * For example, an overloaded Agent processing traces won't impact an Agent processing metrics.
 * Different types of signal collection require different methods for scaling:
   * "Pull" components such as `prometheus.scrape` and `pyroscope.scrape` are scaled using hashmod sharing or clustering. 
@@ -57,11 +57,11 @@ Examples of stateful components:
 <!-- TODO: link to the otelcol.exporter.loadbalancing docs for more info -->
 
 A "stateless component" does not need to aggregate specific spans in 
-order to work correctly - it can work correctly even it only has 
+order to work correctly - it can work correctly even if it only has 
 some of the spans of a trace.
 
 Stateless Agents can be scaled without using `otelcol.exporter.loadbalancing`.
-You could use an off the shelf load balancer, or simply do a round-robin load balancing.
+You could use an off-the-shelf load balancer to, for example, do a round-robin load balancing.
 
 Examples of stateless components:
 * `otelcol.processor.probabilistic_sampler`
