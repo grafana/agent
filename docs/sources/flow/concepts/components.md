@@ -13,22 +13,19 @@ weight: 100
 
 # Components
 
-_Components_ are the building blocks of {{< param "PRODUCT_NAME" >}}. Each component is
-responsible for handling a single task, such as retrieving secrets or
-collecting Prometheus metrics.
+_Components_ are the building blocks of {{< param "PRODUCT_NAME" >}}.
+Each component is responsible for handling a single task, such as retrieving secrets or collecting Prometheus metrics.
 
 Components are composed of two parts:
 
-* Arguments: settings which configure a component.
-* Exports: named values which a component exposes to other components.
+* Arguments: Settings that configure a component.
+* Exports: Named values that a component exposes to other components.
 
-Each component has a name which describes what that component is responsible
-for. For example, the `local.file` component is responsible for retrieving the
-contents of files on disk.
+Each component has a name which describes what that component is responsible for.
+For example, the `local.file` component is responsible for retrieving the contents of files on disk.
 
-Components are specified in the config file by first providing the component's
-name with a user-specified label, and then by providing arguments to configure
-the component:
+Components are specified in the configuration file by first providing the component's name with a user-specified label,
+and then by providing arguments to configure the component:
 
 ```river
 discovery.kubernetes "pods" {
@@ -40,54 +37,42 @@ discovery.kubernetes "nodes" {
 }
 ```
 
-> Components are referenced by combining the component name with its label. For
-> example, a `local.file` component labeled `foo` would be referenced as
-> `local.file.foo`.
+> Components are referenced by combining the component name with its label.
+> For > example, a `local.file` component labeled `foo` would be referenced as `local.file.foo`.
 >
-> The combination of a component's name and its label must be unique within the
-> configuration file. This means multiple instances of a component may be
-> defined as long as each instance has a different label value.
+> The combination of a component's name and its label must be unique within the configuration file.
+> This means multiple instances of a component may be defined as long as each instance has a different label value.
 
 ## Pipelines
 
-Most arguments for a component in a configuration file are constant values, such
-setting a `log_level` attribute to the quoted string `"debug"`:
+Most arguments for a component in a configuration file are constant values, such as setting a `log_level` attribute to the quoted string `"debug"`:
 
 ```river
 log_level = "debug"
 ```
 
-_Expressions_ can be used to dynamically compute the value of an argument at
-runtime. Among other things, expressions can be used to retrieve the value of
-an environment variable (`log_level = env("LOG_LEVEL")`) or to reference an
-exported field of another component (`log_level = local.file.log_level.content`).
+_Expressions_ can be used to dynamically compute the value of an argument at runtime.
+Among other things, expressions can be used to retrieve the value of an environment variable
+(`log_level = env("LOG_LEVEL")`) or to reference an exported field of another component (`log_level = local.file.log_level.content`).
 
-When a component's argument references an exported field of another component,
-a dependant relationship is created: a component's input (arguments) now
-depends on another component's output (exports). The input of the component
-will now be re-evaluated any time the exports of the components it references
-get updated.
+When a component's argument references an exported field of another component, a dependant relationship is created.
+A component's input (arguments) now depends on another component's output (exports).
+The input of the component will now be re-evaluated any time the exports of the components it references get updated.
 
-The flow of data through the set of references between components forms a
-_pipeline_.
+The flow of data through the set of references between components forms a _pipeline_.
 
 An example pipeline may look like this:
 
 1. A `local.file` component watches a file on disk containing an API key.
-2. A `prometheus.remote_write` component is configured to receive metrics and
-   forward them to an external database using the API key from the `local.file`
-   for authentication.
-3. A `discovery.kubernetes` component discovers and exports Kubernetes Pods
-   where metrics can be collected.
-4. A `prometheus.scrape` component references the exports of the previous
-   component, and sends collected metrics to the `prometheus.remote_write`
-   component.
+1. A `prometheus.remote_write` component is configured to receive metrics and  forward them to an external database using the API key from the `local.file` for authentication.
+1. A `discovery.kubernetes` component discovers and exports Kubernetes Pods where metrics can be collected.
+1. A `prometheus.scrape` component references the exports of the previous component, and sends collected metrics to the `prometheus.remote_write` component.
 
 <p align="center">
 <img src="../../../assets/concepts_example_pipeline.svg" alt="Flow of example pipeline" width="500" />
 </p>
 
-The following configuration file represents the pipeline:
+The following configuration file represents the pipeline.
 
 ```river
 // Get our API key from disk.

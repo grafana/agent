@@ -13,26 +13,22 @@ weight: 300
 
 # Modules
 
-_Modules_ are a way to create {{< param "PRODUCT_NAME" >}} configurations which can be
-loaded as a component. Modules are a great way to parameterize a configuration
-to create reusable pipelines.
+_Modules_ are a way to create {{< param "PRODUCT_NAME" >}} configurations which can be loaded as a component.
+Modules are a great way to parameterize a configuration to create reusable pipelines.
 
 Modules are {{< param "PRODUCT_NAME" >}} configurations which have:
 
-* Arguments: settings which configure a module.
-* Exports: named values which a module exposes to the consumer of the module.
+* Arguments: Settings that configure a module.
+* Exports: Named values that a module exposes to the consumer of the module.
 * Components: {{< param "PRODUCT_NAME" >}} Components to run when the module is running.
 
-Modules are loaded into {{< param "PRODUCT_NAME" >}} by using a [Module
-loader](#module-loaders).
+Modules are loaded into {{< param "PRODUCT_NAME" >}} by using a [Module loader](#module-loaders).
 
-Refer to the documentation for the [argument block][] and [export block][] to
-learn how to define arguments and exports for a module.
+Refer to the documentation for the [argument block][] and [export block][] to learn how to define arguments and exports for a module.
 
 ## Module loaders
 
-A _Module loader_ is a {{< param "PRODUCT_NAME" >}} component which retrieves a module
-and runs the components defined inside of it.
+A _Module loader_ is a {{< param "PRODUCT_NAME" >}} component which retrieves a module and runs the components defined inside of it.
 
 Module loader components are responsible for:
 
@@ -41,26 +37,22 @@ Module loader components are responsible for:
 * Passing arguments to the loaded module.
 * Exposing exports from the loaded module.
 
-Module loaders typically are called `module.LOADER_NAME`. The list of module
-loader components can be found in the list of {{< param "PRODUCT_NAME" >}}
-[Components][].
+Module loaders typically are called `module.LOADER_NAME`.
+The list of module loader components can be found in the list of {{< param "PRODUCT_NAME" >}} [Components][].
 
 Some module loaders may not support running modules with arguments or exports.
-Refer to the documentation for the module loader you are using for more
-information.
+Refer to the documentation for the module loader you are using for more information.
 
 ## Module sources
 
-Modules are designed to be flexible, and can have their configuration retrieved
-from anywhere, such as:
+Modules are designed to be flexible, and can have their configuration retrieved from anywhere, such as:
 
-* The local filesystem
-* An S3 bucket
-* An HTTP endpoint
+* The local filesystem.
+* An S3 bucket.
+* An HTTP endpoint.
 
-Each module loader component will support different ways of retrieving module
-sources. The most generic module loader component, `module.string`, can load
-modules from the export of another Flow component:
+Each module loader component supports different ways of retrieving module.sources.
+The most generic module loader component, `module.string`, can load modules from the export of another {{< param "PRODUCT_NAME" >}} component:
 
 ```river
 local.file "my_module" {
@@ -80,8 +72,7 @@ module.string "my_module" {
 
 ## Example module
 
-This example module manages a pipeline which filters out debug- and info-level
-log lines which are given to it:
+This example module manages a pipeline which filters out debug- and info-level log lines which are given to it:
 
 ```river
 // argument.write_to is a required argument which specifies where filtered
