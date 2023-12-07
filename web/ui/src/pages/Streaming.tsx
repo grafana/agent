@@ -64,7 +64,7 @@ function PageStreaming() {
 
   const samplingControl = (
     <div className={styles.sliderContainer}>
-      <span className={styles.sliderLabel}>{Math.round(sliderProb * 100)}% Sampling</span>
+      <span className={styles.sliderLabel}>Sample rate: {Math.round(sliderProb * 100)}%</span>
       <input
         className={styles.slider}
         type="range"
@@ -82,7 +82,7 @@ function PageStreaming() {
     setFilterValue(e.target.value.toLowerCase());
   }
 
-  const filterControl = <input type="search" onChange={handleFilterChange} minLength={0} />;
+  const filterControl = <input type="search" placeholder="Filter stream..." onChange={handleFilterChange} minLength={0} />;
 
   const controls = (
     <>

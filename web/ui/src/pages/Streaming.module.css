@@ -14,10 +14,16 @@
 }
 
 .xrayLink button {
-  font-size: 16px;
-  padding: 10px 20px;
-  border: 2px solid transparent;
-  border-radius: 5px;
+  font-size: .8em;
+  line-height: 24px;
+  margin-left: auto;
+  padding: 0 15px;
+  text-decoration: none;
+  background: none;
+  background-color: #3885dc;
+  border: 1px solid #3885dc;
+  border-radius: 3px;
+  color: #fff;
   cursor: pointer;
   transition: all 0.3s ease;
 }
@@ -74,40 +80,50 @@
 .sliderContainer {
   font-family: Arial, sans-serif;
   color: #333;
-  padding: 10px;
 }
 
 .slider {
   -webkit-appearance: none;
-  width: 100%;
-  height: 10px;
+  height: 5px;
   border-radius: 5px;
   outline: none;
   opacity: 0.7;
   -webkit-transition: .2s;
   transition: opacity .2s;
   margin-left: 10px;
+  background-color: #24292ebf;
+  vertical-align: middle;
 }
 
 .slider:hover {
   opacity: 1;
 }
 
+input[type=search] {
+  padding:5px;
+  border-radius:3px;
+  font-size: .8em;
+  border: none;
+  outline: none;
+  flex-grow: 1;
+  min-width: 300px;
+}
+
 .slider::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  width: 25px;
-  height: 25px;
+  width: 15px;
+  height: 15px;
   border-radius: 50%;
-  background: #FF4500;
+  background: #ffb01e;
   cursor: pointer;
 }
 
 .slider::-moz-range-thumb {
-  width: 25px;
-  height: 25px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
-  background: #FF4500;
+  background: #ffb01e;
   cursor: pointer;
 }
 
@@ -118,6 +134,7 @@
 
 .logLine {
   white-space: pre-wrap;
+  color: #24292e;
 }
 
 .autoScroll .logLine:nth-child(odd) {
