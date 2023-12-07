@@ -154,7 +154,7 @@ func (f *FlowAPI) startDebugStream() http.HandlerFunc {
 		for {
 			select {
 			case data := <-dataCh:
-				_, writeErr := w.Write([]byte(data + "\n"))
+				_, writeErr := w.Write([]byte(data + "|xray|"))
 				if writeErr != nil {
 					stopStreaming()
 					return

@@ -42,7 +42,7 @@ export const useStreaming = (
           const decodedChunk = decoder.decode(value, { stream: true });
 
           setData((prevValue) => {
-            const newValue = decodedChunk.slice(0, -1).split('\n');
+            const newValue = decodedChunk.slice(0, -6).split('|xray|');
             let dataArr = prevValue.concat(newValue);
 
             if (dataArr.length > maxLines) {

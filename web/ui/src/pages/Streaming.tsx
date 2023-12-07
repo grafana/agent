@@ -98,9 +98,13 @@ function PageStreaming() {
     <Page name="Debug with X-Ray" desc="Debug stream of data" icon={faSkull} controls={controls}>
       {loading && <p>Streaming data...</p>}
       {error && <p>Error: {error}</p>}
-      <AutoScroll height={document.body.scrollHeight - 260}>
+      <AutoScroll className={styles.autoScroll} height={document.body.scrollHeight - 260}>
         {data.map((msg) => {
-          return <div key={msg}>{msg}</div>;
+          return (
+            <div className={styles.logLine} key={msg}>
+              {msg}
+            </div>
+          );
         })}
       </AutoScroll>
     </Page>
