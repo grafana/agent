@@ -54,7 +54,7 @@ func (c *concatenatingTargetsReceiver) RemovePublisher(identifier string) {
 	if len(prevTargets) == 0 {
 		return
 	}
-	c.concatAndPublishAll(identifier)
+	c.concatAndPublishAll()
 }
 
 func (c *concatenatingTargetsReceiver) Subscribe(identifier string, callback TargetsSubscriber) {
@@ -83,12 +83,12 @@ func (c *concatenatingTargetsReceiver) Publish(source string, newTargets []Targe
 	}
 	c.currentTargets[source] = newTargets
 
-	c.concatAndPublishAll(source)
+	c.concatAndPublishAll()
 }
 
 // concatAndPublishAll concatenates all targets and publishes them to all subscribers. The lock must be held when
 // calling this function.
-func (c *concatenatingTargetsReceiver) concatAndPublishAll(source string) {
+func (c *concatenatingTargetsReceiver) concatAndPublishAll() {
 	// Concatenate all targets into a single slice.
 	concatenatedTargets := make([]Target, 0, len(c.currentTargets))
 	for _, targets := range c.currentTargets {
