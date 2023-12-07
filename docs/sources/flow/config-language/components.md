@@ -1,12 +1,18 @@
 ---
 aliases:
 - ../configuration-language/components/
-title: Components
+- /docs/grafana-cloud/agent/flow/config-language/components/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/config-language/components/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/config-language/components/
+- /docs/grafana-cloud/send-data/agent/flow/config-language/components/
+canonical: https://grafana.com/docs/agent/latest/flow/config-language/components/
+description: Learn about the components configuration language
+title: Components configuration language
 weight: 300
 ---
 
-# Components
-Components are the defining feature of Grafana Agent Flow. They are small,
+# Components configuration language
+Components are the defining feature of {{< param "PRODUCT_NAME" >}}. They are small,
 reusable pieces of business logic that perform a single task (like retrieving
 secrets or collecting Prometheus metrics) and can be wired together to form
 programmable pipelines of telemetry data.
@@ -19,7 +25,7 @@ re-evaluating their arguments and providing their exports.
 ## Configuring components
 Components are created by defining a top-level River block. All components
 are identified by their name, describing what the component is responsible for,
-while some allow or require to provide an extra user-specified _label_.
+and a user-specified _label_.
 
 The [components docs]({{< relref "../reference/components/_index.md" >}}) contain a list
 of all available components. Each one has a complete reference page, so getting
@@ -87,7 +93,7 @@ prometheus.scrape "default" {
 ```
 
 Every time the file contents change, the `local.file` will update its exports,
-so the new value will provided to `prometheus.scrape` targets field.
+so the new value will be provided to the `prometheus.scrape` targets field.
 
 Each argument and exported field has an underlying [type]({{< relref "./expressions/types_and_values.md" >}}).
 River will type-check expressions before assigning a value to an attribute; the
@@ -97,4 +103,3 @@ you can wire components together.
 In the previous example, the contents of the `local.file.targets.content`
 expression must first be evaluated in a concrete value then type-checked and
 substituted into `prometheus.scrape.default` for it to be configured in turn.
-

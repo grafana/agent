@@ -2,7 +2,6 @@ package config
 
 import (
 	"bytes"
-	"errors"
 	"flag"
 	"fmt"
 	"os"
@@ -13,6 +12,8 @@ import (
 	"github.com/drone/envsubst/v2"
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
+	"github.com/grafana/agent/pkg/build"
+	"github.com/grafana/agent/pkg/config/encoder"
 	"github.com/grafana/agent/pkg/config/features"
 	"github.com/grafana/agent/pkg/config/instrumentation"
 	"github.com/grafana/agent/pkg/logs"
@@ -21,7 +22,6 @@ import (
 	"github.com/grafana/agent/pkg/traces"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/common/config"
-	"github.com/prometheus/common/version"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v2"
 )
@@ -29,14 +29,12 @@ import (
 var (
 	featRemoteConfigs    = features.Feature("remote-configs")
 	featIntegrationsNext = features.Feature("integrations-next")
-	featDynamicConfig    = features.Feature("dynamic-config")
 	featExtraMetrics     = features.Feature("extra-scrape-metrics")
 	featAgentManagement  = features.Feature("agent-management")
 
 	allFeatures = []features.Feature{
 		featRemoteConfigs,
 		featIntegrationsNext,
-		featDynamicConfig,
 		featExtraMetrics,
 		featAgentManagement,
 	}
@@ -50,15 +48,18 @@ var (
 )
 
 // DefaultConfig holds default settings for all the subsystems.
-var DefaultConfig = Config{
-	// All subsystems with a DefaultConfig should be listed here.
-	Server:                &server.DefaultConfig,
-	ServerFlags:           server.DefaultFlags,
-	Metrics:               metrics.DefaultConfig,
-	Integrations:          DefaultVersionedIntegrations,
-	DisableSupportBundle:  false,
-	EnableConfigEndpoints: false,
-	EnableUsageReport:     true,
+func DefaultConfig() Config {
+	defaultServerCfg := server.DefaultConfig()
+	return Config{
+		// All subsystems with a DefaultConfig should be listed here.
+		Server:                &defaultServerCfg,
+		ServerFlags:           server.DefaultFlags,
+		Metrics:               metrics.DefaultConfig,
+		Integrations:          DefaultVersionedIntegrations(),
+		DisableSupportBundle:  false,
+		EnableConfigEndpoints: false,
+		EnableUsageReport:     true,
+	}
 }
 
 // Config contains underlying configurations for the agent
@@ -95,7 +96,7 @@ type Config struct {
 func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	// Apply defaults to the config from our struct and any defaults inherited
 	// from flags before unmarshaling.
-	*c = DefaultConfig
+	*c = DefaultConfig()
 	util.DefaultConfigFromFlags(c)
 
 	type baseConfig Config
@@ -183,6 +184,12 @@ func (c *Config) Validate(fs *flag.FlagSet) error {
 		return err
 	}
 
+	if c.Logs != nil {
+		if err := c.Logs.ApplyDefaults(); err != nil {
+			return err
+		}
+	}
+
 	// Need to propagate the listen address to the host and grpcPort
 	_, grpcPort, err := c.ServerFlags.GRPC.ListenHostPort()
 	if err != nil {
@@ -190,6 +197,10 @@ func (c *Config) Validate(fs *flag.FlagSet) error {
 	}
 	c.Metrics.ServiceConfig.Lifecycler.ListenPort = grpcPort
 
+	// TODO(jcreixell): Make this method side-effect free and, if necessary, implement a
+	// method bundling defaults application and validation. Rationale: sometimes (for example
+	// in tests) we want to validate a config without mutating it, or apply all defaults
+	// for comparison.
 	if err := c.Integrations.ApplyDefaults(&c.ServerFlags, &c.Metrics); err != nil {
 		return err
 	}
@@ -235,13 +246,10 @@ func (c *Config) RegisterFlags(f *flag.FlagSet) {
 // LoadFile reads a file and passes the contents to Load
 func LoadFile(filename string, expandEnvVars bool, c *Config) error {
 	buf, err := os.ReadFile(filename)
-
 	if err != nil {
 		return fmt.Errorf("error reading config file %w", err)
 	}
-
 	instrumentation.InstrumentConfig(buf)
-
 	return LoadBytes(buf, expandEnvVars, c)
 }
 
@@ -251,7 +259,7 @@ func LoadFile(filename string, expandEnvVars bool, c *Config) error {
 //     a) Fetch from remote. If this fails or is invalid:
 //     b) Read the remote config from cache. If this fails, return an error.
 //  4. Merge the initial and remote config into c.
-func loadFromAgentManagementAPI(path string, expandEnvVars bool, c *Config, log *server.Logger, fs *flag.FlagSet, args []string) error {
+func loadFromAgentManagementAPI(path string, expandEnvVars bool, c *Config, log *server.Logger, fs *flag.FlagSet) error {
 	// Load the initial config from disk without instrumenting the config hash
 	buf, err := os.ReadFile(path)
 	if err != nil {
@@ -267,7 +275,7 @@ func loadFromAgentManagementAPI(path string, expandEnvVars bool, c *Config, log 
 	if err != nil {
 		return err
 	}
-	remoteConfig, err := getRemoteConfig(expandEnvVars, configProvider, log, fs, args, path)
+	remoteConfig, err := getRemoteConfig(expandEnvVars, configProvider, log, fs, true)
 	if err != nil {
 		return err
 	}
@@ -312,7 +320,7 @@ func LoadRemote(url string, expandEnvVars bool, c *Config) error {
 		remoteOpts.HTTPClientConfig.SetDirectory(dir)
 	}
 
-	rc, err := newRemoteConfig(url, remoteOpts)
+	rc, err := newRemoteProvider(url, remoteOpts)
 	if err != nil {
 		return fmt.Errorf("error reading remote config: %w", err)
 	}
@@ -320,7 +328,7 @@ func LoadRemote(url string, expandEnvVars bool, c *Config) error {
 	if rc == nil {
 		return LoadFile(url, expandEnvVars, c)
 	}
-	bb, err := rc.retrieve()
+	bb, _, err := rc.retrieve()
 	if err != nil {
 		return fmt.Errorf("error retrieving remote config: %w", err)
 	}
@@ -330,42 +338,32 @@ func LoadRemote(url string, expandEnvVars bool, c *Config) error {
 	return LoadBytes(bb, expandEnvVars, c)
 }
 
-// LoadDynamicConfiguration is used to load configuration from a variety of sources using
-// dynamic loader, this is a templated approach
-func LoadDynamicConfiguration(url string, expandvar bool, c *Config) error {
-	if expandvar {
-		return errors.New("expand var is not supported when using dynamic configuration, use gomplate env instead")
-	}
-	cmf, err := NewDynamicLoader()
+func performEnvVarExpansion(buf []byte, expandEnvVars bool) ([]byte, error) {
+	utf8Buf, err := encoder.EnsureUTF8(buf, false)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	err = cmf.LoadConfigByPath(url)
-	if err != nil {
-		return err
+	// (Optionally) expand with environment variables
+	if expandEnvVars {
+		s, err := envsubst.Eval(string(utf8Buf), getenv)
+		if err != nil {
+			return nil, fmt.Errorf("unable to substitute config with environment variables: %w", err)
+		}
+		return []byte(s), nil
 	}
-
-	err = cmf.ProcessConfigs(c)
-	if err != nil {
-		return fmt.Errorf("error processing config templates %w", err)
-	}
-	return nil
+	return utf8Buf, nil
 }
 
 // LoadBytes unmarshals a config from a buffer. Defaults are not
 // applied to the file and must be done manually if LoadBytes
 // is called directly.
 func LoadBytes(buf []byte, expandEnvVars bool, c *Config) error {
-	// (Optionally) expand with environment variables
-	if expandEnvVars {
-		s, err := envsubst.Eval(string(buf), getenv)
-		if err != nil {
-			return fmt.Errorf("unable to substitute config with environment variables: %w", err)
-		}
-		buf = []byte(s)
+	expandedBuf, err := performEnvVarExpansion(buf, expandEnvVars)
+	if err != nil {
+		return err
 	}
 	// Unmarshal yaml config
-	return yaml.UnmarshalStrict(buf, c)
+	return yaml.UnmarshalStrict(expandedBuf, c)
 }
 
 // getenv is a wrapper around os.Getenv that ignores patterns that are numeric
@@ -391,27 +389,16 @@ func getenv(name string) string {
 // to the flagset before parsing them with the values specified by
 // args.
 func Load(fs *flag.FlagSet, args []string, log *server.Logger) (*Config, error) {
-	cfg, error := load(fs, args, func(path, fileType string, expandArgs bool, c *Config) error {
+	cfg, error := LoadFromFunc(fs, args, func(path, fileType string, expandEnvVars bool, c *Config) error {
 		switch fileType {
 		case fileTypeYAML:
 			if features.Enabled(fs, featRemoteConfigs) {
-				return LoadRemote(path, expandArgs, c)
+				return LoadRemote(path, expandEnvVars, c)
 			}
 			if features.Enabled(fs, featAgentManagement) {
-				return loadFromAgentManagementAPI(path, expandArgs, c, log, fs, args)
+				return loadFromAgentManagementAPI(path, expandEnvVars, c, log, fs)
 			}
-			return LoadFile(path, expandArgs, c)
-		case fileTypeDynamic:
-			if !features.Enabled(fs, featDynamicConfig) {
-				return fmt.Errorf("feature %q must be enabled to use file type %s", featDynamicConfig, fileTypeDynamic)
-			} else if !features.Enabled(fs, featIntegrationsNext) {
-				return fmt.Errorf("feature %q must be enabled to use file type %s", featIntegrationsNext, fileTypeDynamic)
-			} else if features.Enabled(fs, featRemoteConfigs) {
-				return fmt.Errorf("feature %q can not be enabled with file type %s", featRemoteConfigs, fileTypeDynamic)
-			} else if expandArgs {
-				return fmt.Errorf("-config.expand-env can not be used with file type %s", fileTypeDynamic)
-			}
-			return LoadDynamicConfiguration(path, expandArgs, c)
+			return LoadFile(path, expandEnvVars, c)
 		default:
 			return fmt.Errorf("unknown file type %q. accepted values: %s", fileType, strings.Join(fileTypes, ", "))
 		}
@@ -421,7 +408,7 @@ func Load(fs *flag.FlagSet, args []string, log *server.Logger) (*Config, error) 
 	return cfg, error
 }
 
-type loaderFunc func(path string, fileType string, expandArgs bool, target *Config) error
+type loaderFunc func(path string, fileType string, expandEnvVars bool, target *Config) error
 
 func applyIntegrationValuesFromFlagset(fs *flag.FlagSet, args []string, path string, cfg *Config) error {
 	// Parse the flags again to override any YAML values with command line flag
@@ -432,9 +419,9 @@ func applyIntegrationValuesFromFlagset(fs *flag.FlagSet, args []string, path str
 
 	// Complete unmarshaling integrations using the version from the flag. This
 	// MUST be called before ApplyDefaults.
-	version := integrationsVersion1
+	version := IntegrationsVersion1
 	if features.Enabled(fs, featIntegrationsNext) {
-		version = integrationsVersion2
+		version = IntegrationsVersion2
 	}
 
 	if err := cfg.Integrations.setVersion(version); err != nil {
@@ -443,11 +430,11 @@ func applyIntegrationValuesFromFlagset(fs *flag.FlagSet, args []string, path str
 	return nil
 }
 
-// load allows for tests to inject a function for retrieving the config file that
+// LoadFromFunc injects a function for retrieving the config file that
 // doesn't require having a literal file on disk.
-func load(fs *flag.FlagSet, args []string, loader loaderFunc) (*Config, error) {
+func LoadFromFunc(fs *flag.FlagSet, args []string, loader loaderFunc) (*Config, error) {
 	var (
-		cfg = DefaultConfig
+		cfg = DefaultConfig()
 
 		printVersion          bool
 		file                  string
@@ -472,7 +459,7 @@ func load(fs *flag.FlagSet, args []string, loader loaderFunc) (*Config, error) {
 	}
 
 	if printVersion {
-		fmt.Println(version.Print("agent"))
+		fmt.Println(build.Print("agent"))
 		os.Exit(0)
 	}
 
@@ -517,7 +504,7 @@ func CheckSecret(t *testing.T, rawCfg string, originalValue string) {
 
 	// Set integrations version to make sure our marshal function goes through
 	// the custom marshaling code.
-	err = cfg.Integrations.setVersion(integrationsVersion1)
+	err = cfg.Integrations.setVersion(IntegrationsVersion1)
 	require.NoError(t, err)
 
 	bb, err := yaml.Marshal(&cfg)

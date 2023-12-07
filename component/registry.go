@@ -1,14 +1,17 @@
 package component
 
 import (
+	"context"
 	"fmt"
 	"reflect"
 	"strings"
 
-	"github.com/grafana/agent/pkg/flow/logging"
+	"github.com/go-kit/log"
 	"github.com/grafana/regexp"
 	"github.com/prometheus/client_golang/prometheus"
 	"go.opentelemetry.io/otel/trace"
+	"golang.org/x/exp/maps"
+	"golang.org/x/exp/slices"
 )
 
 // The parsedName of a component is the parts of its name ("remote.http") split
@@ -25,16 +28,48 @@ var (
 	parsedNames = map[string]parsedName{}
 )
 
+// ModuleController is a mechanism responsible for allowing components to create other components via modules.
+type ModuleController interface {
+	// NewModule creates a new, un-started Module with a given ID. Multiple calls to
+	// NewModule must provide unique values for id. The empty string is a valid unique
+	// value for id.
+	//
+	// If id is non-empty, it must be a valid River identifier, matching the
+	// regex /[A-Za-z_][A-Za-z0-9_]/.
+	NewModule(id string, export ExportFunc) (Module, error)
+}
+
+// Module is a controller for running components within a Module.
+type Module interface {
+	// LoadConfig parses River config and loads it into the Module.
+	// LoadConfig can be called multiple times, and called prior to
+	// [Module.Run].
+	LoadConfig(config []byte, args map[string]any) error
+
+	// Run starts the Module. No components within the Module
+	// will be run until Run is called.
+	//
+	// Run blocks until the provided context is canceled. The ID of a module as defined in
+	// ModuleController.NewModule will not be released until Run returns.
+	Run(context.Context) error
+}
+
+// ExportFunc is used for onExport of the Module
+type ExportFunc func(exports map[string]any)
+
 // Options are provided to a component when it is being constructed. Options
 // are static for the lifetime of a component.
 type Options struct {
+	// ModuleController allows for the creation of modules.
+	ModuleController ModuleController
+
 	// ID of the component. Guaranteed to be globally unique across all running
 	// components.
 	ID string
 
 	// Logger the component may use for logging. Logs emitted with the logger
 	// always include the component ID as a field.
-	Logger *logging.Logger
+	Logger log.Logger
 
 	// A path to a directory with this component may use for storage. The path is
 	// guaranteed to be unique across all running components.
@@ -61,12 +96,14 @@ type Options struct {
 	// attribute denoting the component ID.
 	Tracer trace.TracerProvider
 
-	// HTTPListenAddr is the address the server is configured to listen on.
-	HTTPListenAddr string
-
-	// HTTPPath is the base path that requests need in order to route to this component.
-	// Requests received by a component handler will have this already trimmed off.
-	HTTPPath string
+	// GetServiceData retrieves data for a service by calling
+	// [service.Service.Data] for the specified service.
+	//
+	// GetServiceData will return an error if the service does not exist.
+	//
+	// The result of GetServiceData may be cached as the value will not change at
+	// runtime.
+	GetServiceData func(name string) (interface{}, error)
 }
 
 // Registration describes a single component.
@@ -81,29 +118,6 @@ type Registration struct {
 	// Each identifier must start with a valid ASCII letter, and be followed by
 	// any number of underscores or alphanumeric ASCII characters.
 	Name string
-
-	// A singleton component only supports one instance of itself across the
-	// whole process. Normally, multiple components of the same type may be
-	// created.
-	//
-	// The fully-qualified name of a component is the combination of River block
-	// name and all of its labels. Fully-qualified names must be unique across
-	// the process. Components which are *NOT* singletons automatically support
-	// user-supplied identifiers:
-	//
-	//     // Fully-qualified names: remote.s3.object-a, remote.s3.object-b
-	//     remote.s3 "object-a" { ... }
-	//     remote.s3 "object-b" { ... }
-	//
-	// This allows for multiple instances of the same component to be defined.
-	// However, components registered as a singleton do not support user-supplied
-	// identifiers:
-	//
-	//     node_exporter { ... }
-	//
-	// This prevents the user from defining multiple instances of node_exporter
-	// with different fully-qualified names.
-	Singleton bool
 
 	// An example Arguments value that the registered component expects to
 	// receive as input. Components should provide the zero value of their
@@ -189,4 +203,10 @@ func validatePrefixMatch(check parsedName, against map[string]parsedName) error 
 func Get(name string) (Registration, bool) {
 	r, ok := registered[name]
 	return r, ok
+}
+
+func AllNames() []string {
+	keys := maps.Keys(registered)
+	slices.Sort(keys)
+	return keys
 }

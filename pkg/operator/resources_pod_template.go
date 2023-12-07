@@ -154,11 +154,13 @@ func generatePodTemplate(
 	}
 
 	var (
-		podAnnotations    = map[string]string{}
-		podLabels         = map[string]string{}
+		podAnnotations = map[string]string{}
+		podLabels      = map[string]string{
+			// version can be a pod label, but should not go in selectors
+			versionLabelName: clientutil.SanitizeVolumeName(build.Version),
+		}
 		podSelectorLabels = map[string]string{
 			"app.kubernetes.io/name":     "grafana-agent",
-			"app.kubernetes.io/version":  clientutil.SanitizeVolumeName(build.Version),
 			"app.kubernetes.io/instance": d.Agent.Name,
 			"grafana-agent":              d.Agent.Name,
 			managedByOperatorLabel:       managedByOperatorLabelValue,
@@ -188,22 +190,44 @@ func generatePodTemplate(
 		finalLabels         = cfg.Labels.Merge(podLabels)
 	)
 
-	envVars := []core_v1.EnvVar{{
-		Name: "POD_NAME",
-		ValueFrom: &core_v1.EnvVarSource{
-			FieldRef: &core_v1.ObjectFieldSelector{FieldPath: "metadata.name"},
+	envVars := []core_v1.EnvVar{
+		{
+			Name: "POD_NAME",
+			ValueFrom: &core_v1.EnvVarSource{
+				FieldRef: &core_v1.ObjectFieldSelector{FieldPath: "metadata.name"},
+			},
 		},
-	}}
+		// Allows the agent to identify this is an operator-created pod.
+		{
+			Name:  "AGENT_DEPLOY_MODE",
+			Value: "operator",
+		},
+	}
 	envVars = append(envVars, opts.ExtraEnvVars...)
 
+	useConfigReloaderVersion := d.Agent.Spec.ConfigReloaderVersion
+	if useConfigReloaderVersion == "" {
+		useConfigReloaderVersion = DefaultConfigReloaderVersion
+	}
+	imagePathConfigReloader := fmt.Sprintf("%s:%s", DefaultConfigReloaderBaseImage, useConfigReloaderVersion)
+	if d.Agent.Spec.ConfigReloaderImage != nil && *d.Agent.Spec.ConfigReloaderImage != "" {
+		imagePathConfigReloader = *d.Agent.Spec.ConfigReloaderImage
+	}
+
+	boolFalse := false
+	boolTrue := true
 	operatorContainers := []core_v1.Container{
 		{
 			Name:         "config-reloader",
-			Image:        "quay.io/prometheus-operator/prometheus-config-reloader:v0.62.0",
+			Image:        imagePathConfigReloader,
 			VolumeMounts: volumeMounts,
 			Env:          envVars,
 			SecurityContext: &core_v1.SecurityContext{
-				RunAsUser: pointer.Int64(0),
+				AllowPrivilegeEscalation: &boolFalse,
+				ReadOnlyRootFilesystem:   &boolTrue,
+				Capabilities: &core_v1.Capabilities{
+					Drop: []core_v1.Capability{"ALL"},
+				},
 			},
 			Args: []string{
 				"--config-file=/var/lib/grafana-agent/config-in/agent.yml",

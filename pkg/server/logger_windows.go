@@ -4,8 +4,6 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/weaveworks/common/logging"
-
 	"github.com/go-kit/log/level"
 
 	"github.com/go-kit/log"
@@ -21,7 +19,7 @@ func NewWindowsEventLogger(cfg *Config) *Logger {
 }
 
 func makeWindowsEventLogger(cfg *Config) (log.Logger, error) {
-	// Setup the log in windows events
+	// Set up the log in windows events
 	err := el.InstallAsEventCreate(ServiceName, el.Error|el.Info|el.Warning)
 
 	// Agent should expect an error of 'already exists' if the Event Log sink has already previously been installed
@@ -38,8 +36,8 @@ func makeWindowsEventLogger(cfg *Config) (log.Logger, error) {
 		l.Close()
 	})
 
-	// These are setup to be writers for each Windows log level
-	// Setup this way so we can utilize all the benefits of logformatter
+	// These are set up to be writers for each Windows log level
+	// Set up this way so we can utilize all the benefits of logformatter
 	infoLogger := newWinLogWrapper(cfg.LogFormat, func(p []byte) error {
 		return il.Info(1, string(p))
 	})
@@ -56,7 +54,7 @@ func makeWindowsEventLogger(cfg *Config) (log.Logger, error) {
 		infoLogger:    infoLogger,
 		warningLogger: warningLogger,
 	}
-	return level.NewFilter(wl, cfg.LogLevel.Gokit), nil
+	return level.NewFilter(wl, cfg.LogLevel.Level.Option), nil
 }
 
 // Looks through the key value pairs in the log for level and extract the value
@@ -69,10 +67,10 @@ func getLevel(keyvals ...interface{}) level.Value {
 	return nil
 }
 
-func newWinLogWrapper(format logging.Format, write func(p []byte) error) log.Logger {
+func newWinLogWrapper(format string, write func(p []byte) error) log.Logger {
 	infoWriter := &winLogWriter{writer: write}
 	infoLogger := log.NewLogfmtLogger(infoWriter)
-	if format.String() == "json" {
+	if format == "json" {
 		infoLogger = log.NewJSONLogger(infoWriter)
 	}
 	return infoLogger

@@ -30,6 +30,7 @@ var DefaultConfig = Config{
 	PerfSchemaEventsStatementsTextLimit: 120,
 	PerfSchemaFileInstancesFilter:       ".*",
 	PerfSchemaFileInstancesRemovePrefix: "/var/lib/mysql",
+	PerfSchemaMemoryEventsRemovePrefix:  "memory/",
 
 	HeartbeatDatabase: "heartbeat",
 	HeartbeatTable:    "heartbeat",
@@ -62,6 +63,7 @@ type Config struct {
 	PerfSchemaEventsStatementsTextLimit  int    `yaml:"perf_schema_eventsstatements_digtext_text_limit,omitempty"`
 	PerfSchemaFileInstancesFilter        string `yaml:"perf_schema_file_instances_filter,omitempty"`
 	PerfSchemaFileInstancesRemovePrefix  string `yaml:"perf_schema_file_instances_remove_prefix,omitempty"`
+	PerfSchemaMemoryEventsRemovePrefix   string `yaml:"perf_schema_memory_events_remove_prefix,omitempty"`
 	HeartbeatDatabase                    string `yaml:"heartbeat_database,omitempty"`
 	HeartbeatTable                       string `yaml:"heartbeat_table,omitempty"`
 	HeartbeatUTC                         bool   `yaml:"heartbeat_utc,omitempty"`
@@ -120,7 +122,7 @@ func New(log log.Logger, c *Config) (integrations.Integration, error) {
 	}
 
 	scrapers := GetScrapers(c)
-	exporter := collector.New(context.Background(), string(dsn), collector.NewMetrics(), scrapers, log, collector.Config{
+	exporter := collector.New(context.Background(), string(dsn), scrapers, log, collector.Config{
 		LockTimeout:   c.LockWaitTimeout,
 		SlowLogFilter: c.LogSlowFilter,
 	})
@@ -168,6 +170,7 @@ func GetScrapers(c *Config) []collector.Scraper {
 		&collector.ScrapeSlaveStatus{}:                         true,
 		&collector.ScrapeTableStat{}:                           false,
 		&collector.ScrapeUserStat{}:                            false,
+		&collector.ScrapeSysUserSummary{}:                      false,
 
 		// Collectors that have configuration
 		&collector.ScrapeHeartbeat{
@@ -185,6 +188,10 @@ func GetScrapers(c *Config) []collector.Scraper {
 		&collector.ScrapePerfFileInstances{
 			Filter:       c.PerfSchemaFileInstancesFilter,
 			RemovePrefix: c.PerfSchemaFileInstancesRemovePrefix,
+		}: false,
+
+		&collector.ScrapePerfMemoryEvents{
+			RemovePrefix: c.PerfSchemaMemoryEventsRemovePrefix,
 		}: false,
 
 		&collector.ScrapeProcesslist{

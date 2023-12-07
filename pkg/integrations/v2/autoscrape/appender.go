@@ -37,6 +37,6 @@ func (fa *failedAppender) UpdateMetadata(ref storage.SeriesRef, l labels.Labels,
 	return 0, fmt.Errorf("no such instance %s", fa.instanceName)
 }
 
-func (fa *failedAppender) AppendHistogram(ref storage.SeriesRef, l labels.Labels, t int64, h *histogram.Histogram) (storage.SeriesRef, error) {
+func (fa *failedAppender) AppendHistogram(ref storage.SeriesRef, l labels.Labels, t int64, h *histogram.Histogram, fh *histogram.FloatHistogram) (storage.SeriesRef, error) {
 	return 0, fmt.Errorf("no such instance %s", fa.instanceName)
 }

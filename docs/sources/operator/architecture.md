@@ -1,9 +1,16 @@
 ---
-title: Agent Operator architecture
+aliases:
+- /docs/grafana-cloud/agent/operator/architecture/
+- /docs/grafana-cloud/monitor-infrastructure/agent/operator/architecture/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/operator/architecture/
+- /docs/grafana-cloud/send-data/agent/operator/architecture/
+canonical: https://grafana.com/docs/agent/latest/operator/architecture/
+description: Learn about Grafana Agent architecture
+title: Architecture
 weight: 300
 ---
 
-# Grafana Agent Operator architecture
+# Architecture
 
 Grafana Agent Operator works by watching for Kubernetes [custom resources](https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/) that specify how to collect telemetry data from your Kubernetes cluster and where to send it. Agent Operator manages corresponding Grafana Agent deployments in your cluster by watching for changes against the custom resources.
 
@@ -79,7 +86,7 @@ deployment will also be deleted.
 Reconciling creates the following cluster resources:
 
 1. A Secret that holds the Grafana Agent
-   [configuration]({{< relref "../configuration/_index.md" >}}) is generated.
+   [configuration]({{< relref "../static/configuration/_index.md" >}}) is generated.
 2. A Secret that holds all referenced Secrets or ConfigMaps from
    the resource hierarchy is generated. This ensures that Secrets referenced from a custom
    resource in another namespace can still be read.
@@ -113,7 +120,7 @@ The sharding mechanism is borrowed from the Prometheus Operator.
 
 The number of replicas can be defined, similarly to the number of shards. This
 creates deduplicate shards. This must be paired with a `remote_write` system that
-can perform HA deduplication. [Grafana Cloud](https://grafana.com/docs/grafana-cloud/) and [Mimir](https://grafana.com/docs/mimir/latest/) provide this out of the
+can perform HA deduplication. [Grafana Cloud](/docs/grafana-cloud/) and [Mimir](/docs/mimir/latest/) provide this out of the
 box, and the Grafana Agent Operator defaults support these two systems.
 
 The total number of created metrics pods will be the product of `numShards *

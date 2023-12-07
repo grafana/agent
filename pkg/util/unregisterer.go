@@ -51,7 +51,7 @@ func (u *Unregisterer) Unregister(c prometheus.Collector) bool {
 }
 
 // UnregisterAll unregisters all collectors that were registered through the
-// Reigsterer.
+// Registerer.
 func (u *Unregisterer) UnregisterAll() bool {
 	success := true
 	for c := range u.cs {

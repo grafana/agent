@@ -1,6 +1,0 @@
-name: instance2
-scrape_configs:
-  - job_name: instance2_job
-    static_configs:
-      - targets:
-          - localhost:5555

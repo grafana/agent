@@ -62,7 +62,7 @@ func TestServer_InMemory(t *testing.T) {
 }
 
 func newTestConfig() Config {
-	cfg := DefaultConfig
+	cfg := DefaultConfig()
 	return cfg
 }
 

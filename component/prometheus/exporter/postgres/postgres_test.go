@@ -3,9 +3,9 @@ package postgres
 import (
 	"testing"
 
-	"github.com/grafana/agent/pkg/flow/rivertypes"
 	"github.com/grafana/agent/pkg/integrations/postgres_exporter"
-	"github.com/grafana/agent/pkg/river"
+	"github.com/grafana/river"
+	"github.com/grafana/river/rivertypes"
 	config_util "github.com/prometheus/common/config"
 	"github.com/stretchr/testify/require"
 )
@@ -71,4 +71,20 @@ func TestRiverConfigConvert(t *testing.T) {
 		QueryPath:              "/tmp/queries.yaml",
 	}
 	require.Equal(t, expected, *c)
+}
+
+func TestParsePostgresURL(t *testing.T) {
+	dsn := "postgresql://linus:42secret@localhost:5432/postgres?sslmode=disable"
+	expected := map[string]string{
+		"dbname":   "postgres",
+		"host":     "localhost",
+		"password": "42secret",
+		"port":     "5432",
+		"sslmode":  "disable",
+		"user":     "linus",
+	}
+
+	actual, err := parsePostgresURL(dsn)
+	require.NoError(t, err)
+	require.Equal(t, actual, expected)
 }

@@ -12,8 +12,8 @@ import (
 	integrations_v2 "github.com/grafana/agent/pkg/integrations/v2"
 	"github.com/grafana/agent/pkg/integrations/v2/metricsutils"
 	"github.com/grafana/dskit/flagext"
+	"github.com/prometheus/node_exporter/collector"
 	"github.com/prometheus/procfs"
-	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 var (
@@ -23,8 +23,9 @@ var (
 	// DefaultConfig's defaults are populated from init functions in this package.
 	// See the init function here and in node_exporter_linux.go.
 	DefaultConfig = Config{
-		ProcFSPath: procfs.DefaultMountPoint,
-		RootFSPath: "/",
+		ProcFSPath:   procfs.DefaultMountPoint,
+		RootFSPath:   "/",
+		UdevDataPath: "/run/udev/data",
 
 		DiskStatsDeviceExclude: "^(ram|loop|fd|(h|s|v|xv)d[a-z]|nvme\\d+n\\d+p)\\d+$",
 
@@ -82,9 +83,10 @@ func init() {
 type Config struct {
 	IncludeExporterMetrics bool `yaml:"include_exporter_metrics,omitempty"`
 
-	ProcFSPath string `yaml:"procfs_path,omitempty"`
-	SysFSPath  string `yaml:"sysfs_path,omitempty"`
-	RootFSPath string `yaml:"rootfs_path,omitempty"`
+	ProcFSPath   string `yaml:"procfs_path,omitempty"`
+	SysFSPath    string `yaml:"sysfs_path,omitempty"`
+	RootFSPath   string `yaml:"rootfs_path,omitempty"`
+	UdevDataPath string `yaml:"udev_data_path,omitempty"`
 
 	// Collectors to mark as enabled
 	EnableCollectors flagext.StringSlice `yaml:"enable_collectors,omitempty"`
@@ -125,6 +127,12 @@ type Config struct {
 	NetstatFields                    string              `yaml:"netstat_fields,omitempty"`
 	PerfCPUS                         string              `yaml:"perf_cpus,omitempty"`
 	PerfTracepoint                   flagext.StringSlice `yaml:"perf_tracepoint,omitempty"`
+	PerfDisableHardwareProfilers     bool                `yaml:"perf_disable_hardware_profilers,omitempty"`
+	PerfDisableSoftwareProfilers     bool                `yaml:"perf_disable_software_profilers,omitempty"`
+	PerfDisableCacheProfilers        bool                `yaml:"perf_disable_cache_profilers,omitempty"`
+	PerfHardwareProfilers            flagext.StringSlice `yaml:"perf_hardware_profilers,omitempty"`
+	PerfSoftwareProfilers            flagext.StringSlice `yaml:"perf_software_profilers,omitempty"`
+	PerfCacheProfilers               flagext.StringSlice `yaml:"perf_cache_profilers,omitempty"`
 	PowersupplyIgnoredSupplies       string              `yaml:"powersupply_ignored_supplies,omitempty"`
 	RunitServiceDir                  string              `yaml:"runit_service_dir,omitempty"`
 	SupervisordURL                   string              `yaml:"supervisord_url,omitempty"`
@@ -257,10 +265,8 @@ func init() {
 	integrations_v2.RegisterLegacy(&Config{}, integrations_v2.TypeSingleton, metricsutils.Shim)
 }
 
-// MapConfigToNodeExporterFlags takes in a node_exporter Config and converts
-// it to the set of flags that node_exporter usually expects when running as a
-// separate binary.
-func MapConfigToNodeExporterFlags(c *Config) (accepted []string, ignored []string) {
+func (c *Config) mapConfigToNodeConfig() *collector.NodeCollectorConfig {
+	validCollectors := make(map[string]bool)
 	collectors := make(map[string]CollectorState, len(Collectors))
 	for k, v := range Collectors {
 		collectors[k] = v
@@ -282,8 +288,12 @@ func MapConfigToNodeExporterFlags(c *Config) (accepted []string, ignored []strin
 				collectors[k] = CollectorStateDisabled
 			}
 		}
+	} else {
+		// This gets the default enabled passed in via register.
+		for k, v := range collector.GetDefaults() {
+			collectors[k] = CollectorState(v)
+		}
 	}
-
 	// Explicitly disable/enable specific collectors
 	for _, c := range c.DisableCollectors {
 		collectors[c] = CollectorStateDisabled
@@ -292,189 +302,236 @@ func MapConfigToNodeExporterFlags(c *Config) (accepted []string, ignored []strin
 		collectors[c] = CollectorStateEnabled
 	}
 
-	DisableUnavailableCollectors(collectors)
-
-	var flags flags
-	flags.accepted = append(flags.accepted, MapCollectorsToFlags(collectors)...)
-
-	flags.add(
-		"--path.procfs", c.ProcFSPath,
-		"--path.sysfs", c.SysFSPath,
-		"--path.rootfs", c.RootFSPath,
-	)
-
-	if collectors[CollectorBCache] {
-		flags.addBools(map[*bool]string{
-			&c.BcachePriorityStats: "collector.bcache.priorityStats",
-		})
+	for k, v := range collectors {
+		validCollectors[k] = bool(v)
 	}
 
-	if collectors[CollectorCPU] {
-		flags.addBools(map[*bool]string{
-			&c.CPUEnableCPUGuest: "collector.cpu.guest",
-			&c.CPUEnableCPUInfo:  "collector.cpu.info",
-		})
-		flags.add("--collector.cpu.info.flags-include", c.CPUFlagsInclude)
-		flags.add("--collector.cpu.info.bugs-include", c.CPUBugsInclude)
-	}
-
-	if collectors[CollectorDiskstats] {
-		flags.add("--collector.diskstats.device-include", c.DiskStatsDeviceInclude)
-		flags.add("--collector.diskstats.device-exclude", c.DiskStatsDeviceExclude)
-	}
-
-	if collectors[CollectorEthtool] {
-		flags.add("--collector.ethtool.device-include", c.EthtoolDeviceInclude)
-		flags.add("--collector.ethtool.device-exclude", c.EthtoolDeviceExclude)
-		flags.add("--collector.ethtool.metrics-include", c.EthtoolMetricsInclude)
-	}
-
-	if collectors[CollectorFilesystem] {
-		flags.add(
-			"--collector.filesystem.mount-timeout", c.FilesystemMountTimeout.String(),
-			"--collector.filesystem.mount-points-exclude", c.FilesystemMountPointsExclude,
-			"--collector.filesystem.fs-types-exclude", c.FilesystemFSTypesExclude,
-		)
-	}
-
-	if collectors[CollectorIPVS] {
-		flags.add("--collector.ipvs.backend-labels", strings.Join(c.IPVSBackendLabels, ","))
-	}
-
-	if collectors[CollectorNetclass] {
-		flags.addBools(map[*bool]string{
-			&c.NetclassIgnoreInvalidSpeedDevice: "collector.netclass.ignore-invalid-speed",
-		})
-
-		flags.add("--collector.netclass.ignored-devices", c.NetclassIgnoredDevices)
-	}
-
-	if collectors[CollectorNetdev] {
-		flags.addBools(map[*bool]string{
-			&c.NetdevAddressInfo: "collector.netdev.address-info",
-		})
-
-		flags.add(
-			"--collector.netdev.device-include", c.NetdevDeviceInclude,
-			"--collector.netdev.device-exclude", c.NetdevDeviceExclude,
-		)
-	}
-
-	if collectors[CollectorNetstat] {
-		flags.add("--collector.netstat.fields", c.NetstatFields)
-	}
-
-	if collectors[CollectorNTP] {
-		flags.add(
-			"--collector.ntp.server", c.NTPServer,
-			"--collector.ntp.protocol-version", fmt.Sprintf("%d", c.NTPProtocolVersion),
-			"--collector.ntp.ip-ttl", fmt.Sprintf("%d", c.NTPIPTTL),
-			"--collector.ntp.max-distance", c.NTPMaxDistance.String(),
-			"--collector.ntp.local-offset-tolerance", c.NTPLocalOffsetTolerance.String(),
-		)
-
-		flags.addBools(map[*bool]string{
-			&c.NTPServerIsLocal: "collector.ntp.server-is-local",
-		})
-	}
-
-	if collectors[CollectorPerf] {
-		flags.add("--collector.perf.cpus", c.PerfCPUS)
-
-		for _, tp := range c.PerfTracepoint {
-			flags.add("--collector.perf.tracepoint", tp)
+	// This removes any collectors not available on the platform.
+	availableCollectors := collector.GetAvailableCollectors()
+	for name := range validCollectors {
+		var found bool
+		for _, availableName := range availableCollectors {
+			if name != availableName {
+				continue
+			}
+			found = true
+			break
+		}
+		if !found {
+			delete(validCollectors, name)
 		}
 	}
 
-	if collectors[CollectorPowersuppply] {
-		flags.add("--collector.powersupply.ignored-supplies", c.PowersupplyIgnoredSupplies)
+	// blankString is a hack to emulate the behavior of kingpin, where node_exporter checks for blank string against a pointer
+	// without first checking the validity of the pointer.
+	// TODO change node_exporter to check for nil first.
+	blankString := ""
+	blankBool := false
+	blankInt := 0
+
+	cfg := &collector.NodeCollectorConfig{}
+
+	// It is safe to set all these configs these since only collectors that are enabled are used.
+
+	cfg.Path = collector.PathConfig{
+		ProcPath:     &c.ProcFSPath,
+		SysPath:      &c.SysFSPath,
+		RootfsPath:   &c.RootFSPath,
+		UdevDataPath: &c.UdevDataPath,
 	}
 
-	if collectors[CollectorRunit] {
-		flags.add("--collector.runit.servicedir", c.RunitServiceDir)
+	cfg.Bcache = collector.BcacheConfig{
+		PriorityStats: &c.BcachePriorityStats,
 	}
-
-	if collectors[CollectorSupervisord] {
-		flags.add("--collector.supervisord.url", c.SupervisordURL)
+	cfg.CPU = collector.CPUConfig{
+		EnableCPUGuest: &c.CPUEnableCPUGuest,
+		EnableCPUInfo:  &c.CPUEnableCPUInfo,
+		BugsInclude:    &c.CPUBugsInclude,
+		FlagsInclude:   &c.CPUFlagsInclude,
 	}
-
-	if collectors[CollectorSysctl] {
-		for _, numValue := range c.SysctlInclude {
-			flags.add("--collector.sysctl.include", numValue)
+	if c.DiskStatsDeviceInclude != "" {
+		cfg.DiskstatsDeviceFilter = collector.DiskstatsDeviceFilterConfig{
+			DeviceInclude:    &c.DiskStatsDeviceInclude,
+			OldDeviceExclude: &blankString,
+			DeviceExclude:    &blankString,
+			DeviceExcludeSet: false,
 		}
-
-		for _, stringValue := range c.SysctlIncludeInfo {
-			flags.add("--collector.sysctl.include-info", stringValue)
+	} else {
+		cfg.DiskstatsDeviceFilter = collector.DiskstatsDeviceFilterConfig{
+			DeviceExclude:    &c.DiskStatsDeviceExclude,
+			DeviceExcludeSet: true,
+			OldDeviceExclude: &blankString,
+			DeviceInclude:    &blankString,
 		}
 	}
 
-	if collectors[CollectorSystemd] {
-		flags.add(
-			"--collector.systemd.unit-include", c.SystemdUnitInclude,
-			"--collector.systemd.unit-exclude", c.SystemdUnitExclude,
-		)
-
-		flags.addBools(map[*bool]string{
-			&c.SystemdEnableTaskMetrics:      "collector.systemd.enable-task-metrics",
-			&c.SystemdEnableRestartsMetrics:  "collector.systemd.enable-restarts-metrics",
-			&c.SystemdEnableStartTimeMetrics: "collector.systemd.enable-start-time-metrics",
-		})
+	cfg.Ethtool = collector.EthtoolConfig{
+		DeviceInclude:   &c.EthtoolDeviceInclude,
+		DeviceExclude:   &c.EthtoolDeviceExclude,
+		IncludedMetrics: &c.EthtoolMetricsInclude,
 	}
 
-	if collectors[CollectorTapestats] {
-		flags.add("--collector.tapestats.ignored-devices", c.TapestatsIgnoredDevices)
+	cfg.Filesystem = collector.FilesystemConfig{
+		MountPointsExclude:     &c.FilesystemMountPointsExclude,
+		MountPointsExcludeSet:  true,
+		MountTimeout:           &c.FilesystemMountTimeout,
+		FSTypesExclude:         &c.FilesystemFSTypesExclude,
+		FSTypesExcludeSet:      true,
+		OldFSTypesExcluded:     &blankString,
+		OldMountPointsExcluded: &blankString,
+		StatWorkerCount:        &blankInt,
 	}
 
-	if collectors[CollectorTextfile] {
-		flags.add("--collector.textfile.directory", c.TextfileDirectory)
+	var joinedLabels string
+	if len(c.IPVSBackendLabels) > 0 {
+		joinedLabels = strings.Join(c.IPVSBackendLabels, ",")
+		cfg.IPVS = collector.IPVSConfig{
+			Labels:    &joinedLabels,
+			LabelsSet: true,
+		}
+	} else {
+		cfg.IPVS = collector.IPVSConfig{
+			Labels:    &joinedLabels,
+			LabelsSet: false,
+		}
 	}
 
-	if collectors[CollectorVMStat] {
-		flags.add("--collector.vmstat.fields", c.VMStatFields)
+	cfg.NetClass = collector.NetClassConfig{
+		IgnoredDevices: &c.NetclassIgnoredDevices,
+		InvalidSpeed:   &c.NetclassIgnoreInvalidSpeedDevice,
+		Netlink:        &blankBool,
+		RTNLWithStats:  &blankBool,
 	}
 
-	return flags.accepted, flags.ignored
+	cfg.NetDev = collector.NetDevConfig{
+		DeviceInclude:    &c.NetdevDeviceInclude,
+		DeviceExclude:    &c.NetdevDeviceExclude,
+		AddressInfo:      &c.NetdevAddressInfo,
+		OldDeviceInclude: &blankString,
+		OldDeviceExclude: &blankString,
+		Netlink:          &blankBool,
+		DetailedMetrics:  &blankBool,
+	}
+
+	cfg.NetStat = collector.NetStatConfig{
+		Fields: &c.NetstatFields,
+	}
+
+	defaultPort := 123
+	cfg.NTP = collector.NTPConfig{
+		Server:          &c.NTPServer,
+		ServerPort:      &defaultPort,
+		ProtocolVersion: &c.NTPProtocolVersion,
+		IPTTL:           &c.NTPIPTTL,
+		MaxDistance:     &c.NTPMaxDistance,
+		OffsetTolerance: &c.NTPLocalOffsetTolerance,
+		ServerIsLocal:   &c.NTPServerIsLocal,
+	}
+
+	cfg.Perf = collector.PerfConfig{
+		CPUs:           &c.PerfCPUS,
+		Tracepoint:     flagSliceToStringSlice(c.PerfTracepoint),
+		NoHwProfiler:   &c.PerfDisableHardwareProfilers,
+		HwProfiler:     flagSliceToStringSlice(c.PerfHardwareProfilers),
+		NoSwProfiler:   &c.PerfDisableSoftwareProfilers,
+		SwProfiler:     flagSliceToStringSlice(c.PerfSoftwareProfilers),
+		NoCaProfiler:   &c.PerfDisableCacheProfilers,
+		CaProfilerFlag: flagSliceToStringSlice(c.PerfCacheProfilers),
+	}
+
+	cfg.PowerSupplyClass = collector.PowerSupplyClassConfig{
+		IgnoredPowerSupplies: &c.PowersupplyIgnoredSupplies,
+	}
+
+	cfg.Runit = collector.RunitConfig{
+		ServiceDir: &c.RunitServiceDir,
+	}
+
+	cfg.Supervisord = collector.SupervisordConfig{
+		URL: &c.SupervisordURL,
+	}
+
+	cfg.Sysctl = collector.SysctlConfig{
+		Include:     flagSliceToStringSlice(c.SysctlInclude),
+		IncludeInfo: flagSliceToStringSlice(c.SysctlIncludeInfo),
+	}
+
+	cfg.Systemd = collector.SystemdConfig{
+		UnitInclude:            &c.SystemdUnitInclude,
+		UnitIncludeSet:         true,
+		UnitExclude:            &c.SystemdUnitExclude,
+		UnitExcludeSet:         true,
+		EnableTaskMetrics:      &c.SystemdEnableTaskMetrics,
+		EnableRestartsMetrics:  &c.SystemdEnableRestartsMetrics,
+		EnableStartTimeMetrics: &c.SystemdEnableStartTimeMetrics,
+		OldUnitExclude:         &blankString,
+		OldUnitInclude:         &blankString,
+		Private:                &blankBool,
+	}
+
+	cfg.Tapestats = collector.TapestatsConfig{
+		IgnoredDevices: &c.TapestatsIgnoredDevices,
+	}
+
+	cfg.TextFile = collector.TextFileConfig{
+		Directory: &c.TextfileDirectory,
+	}
+
+	cfg.VmStat = collector.VmStatConfig{
+		Fields: &c.VMStatFields,
+	}
+
+	cfg.Arp = collector.ArpConfig{
+		DeviceInclude: &blankString,
+		DeviceExclude: &blankString,
+		Netlink:       &blankBool,
+	}
+
+	cfg.Stat = collector.StatConfig{
+		Softirq: &blankBool,
+	}
+
+	cfg.HwMon = collector.HwMonConfig{
+		ChipInclude: &blankString,
+		ChipExclude: &blankString,
+	}
+
+	cfg.Qdisc = collector.QdiscConfig{
+		Fixtures:         &blankString,
+		DeviceInclude:    &blankString,
+		OldDeviceInclude: &blankString,
+		DeviceExclude:    &blankString,
+		OldDeviceExclude: &blankString,
+	}
+
+	cfg.Rapl = collector.RaplConfig{
+		ZoneLabel: &blankBool,
+	}
+
+	cfg.Systemd = collector.SystemdConfig{
+		UnitInclude:            &c.SystemdUnitInclude,
+		UnitIncludeSet:         true,
+		UnitExclude:            &c.SystemdUnitExclude,
+		UnitExcludeSet:         true,
+		OldUnitInclude:         &blankString,
+		OldUnitExclude:         &blankString,
+		Private:                &blankBool,
+		EnableTaskMetrics:      &c.SystemdEnableTaskMetrics,
+		EnableRestartsMetrics:  &c.SystemdEnableRestartsMetrics,
+		EnableStartTimeMetrics: &c.SystemdEnableStartTimeMetrics,
+	}
+
+	cfg.Wifi = collector.WifiConfig{
+		Fixtures: &blankString,
+	}
+
+	cfg.Collectors = validCollectors
+
+	return cfg
 }
 
-type flags struct {
-	accepted []string
-	ignored  []string
-}
-
-// add pushes new flags as key value pairs. If the flag isn't registered with kingpin,
-// it will be ignored.
-func (f *flags) add(kvp ...string) {
-	if (len(kvp) % 2) != 0 {
-		panic("missing value for added flag")
-	}
-
-	for i := 0; i < len(kvp); i += 2 {
-		key := kvp[i+0]
-		value := kvp[i+1]
-
-		rawFlag := strings.TrimPrefix(key, "--")
-		if kingpin.CommandLine.GetFlag(rawFlag) == nil {
-			f.ignored = append(f.ignored, rawFlag)
-			continue
-		}
-
-		f.accepted = append(f.accepted, key, value)
-	}
-}
-
-func (f *flags) addBools(m map[*bool]string) {
-	for setting, key := range m {
-		// The flag might not exist on this platform, so skip it if it's not
-		// defined.
-		if kingpin.CommandLine.GetFlag(key) == nil {
-			f.ignored = append(f.ignored, key)
-			continue
-		}
-
-		if *setting {
-			f.accepted = append(f.accepted, "--"+key)
-		} else {
-			f.accepted = append(f.accepted, "--no-"+key)
-		}
-	}
+func flagSliceToStringSlice(fl flagext.StringSlice) *[]string {
+	sl := make([]string, len(fl))
+	copy(sl, fl)
+	return &sl
 }

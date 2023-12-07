@@ -2,19 +2,22 @@ package controller_test
 
 import (
 	"errors"
-	"io"
+	"os"
 	"strings"
 	"testing"
 
+	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/pkg/flow/internal/controller"
 	"github.com/grafana/agent/pkg/flow/internal/dag"
 	"github.com/grafana/agent/pkg/flow/logging"
-	"github.com/grafana/agent/pkg/river/ast"
-	"github.com/grafana/agent/pkg/river/diag"
-	"github.com/grafana/agent/pkg/river/parser"
+	"github.com/grafana/river/ast"
+	"github.com/grafana/river/diag"
+	"github.com/grafana/river/parser"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/require"
-	"go.opentelemetry.io/otel/trace"
+	"go.opentelemetry.io/otel/trace/noop"
+
+	_ "github.com/grafana/agent/pkg/flow/internal/testcomponents" // Include test components
 )
 
 func TestLoader(t *testing.T) {
@@ -36,14 +39,26 @@ func TestLoader(t *testing.T) {
 		}
 	`
 
+	testConfig := `
+		logging {
+			level = "debug"
+			format = "logfmt"
+		}
+
+		tracing {
+			sampling_fraction = 1
+		}
+	`
+
 	// corresponds to testFile
 	testGraphDefinition := graphDefinition{
 		Nodes: []string{
-			"configNode", // The config node is always present
 			"testcomponents.tick.ticker",
 			"testcomponents.passthrough.static",
 			"testcomponents.passthrough.ticker",
 			"testcomponents.passthrough.forwarded",
+			"logging",
+			"tracing",
 		},
 		OutEdges: []edge{
 			{From: "testcomponents.passthrough.ticker", To: "testcomponents.tick.ticker"},
@@ -51,20 +66,32 @@ func TestLoader(t *testing.T) {
 		},
 	}
 
-	newGlobals := func() controller.ComponentGlobals {
-		return controller.ComponentGlobals{
-			LogSink:           noOpSink(),
-			Logger:            logging.New(nil),
-			TraceProvider:     trace.NewNoopTracerProvider(),
-			DataPath:          t.TempDir(),
-			OnComponentUpdate: func(cn *controller.ComponentNode) { /* no-op */ },
-			Registerer:        prometheus.NewRegistry(),
+	newLoaderOptions := func() controller.LoaderOptions {
+		l, _ := logging.New(os.Stderr, logging.DefaultOptions)
+		return controller.LoaderOptions{
+			ComponentGlobals: controller.ComponentGlobals{
+				Logger:            l,
+				TraceProvider:     noop.NewTracerProvider(),
+				DataPath:          t.TempDir(),
+				OnComponentUpdate: func(cn *controller.ComponentNode) { /* no-op */ },
+				Registerer:        prometheus.NewRegistry(),
+				NewModuleController: func(id string) controller.ModuleController {
+					return nil
+				},
+			},
 		}
 	}
 
 	t.Run("New Graph", func(t *testing.T) {
-		l := controller.NewLoader(newGlobals())
-		diags := applyFromContent(t, l, []byte(testFile))
+		l := controller.NewLoader(newLoaderOptions())
+		diags := applyFromContent(t, l, []byte(testFile), []byte(testConfig))
+		require.NoError(t, diags.ErrorOrNil())
+		requireGraph(t, l.Graph(), testGraphDefinition)
+	})
+
+	t.Run("New Graph No Config", func(t *testing.T) {
+		l := controller.NewLoader(newLoaderOptions())
+		diags := applyFromContent(t, l, []byte(testFile), nil)
 		require.NoError(t, diags.ErrorOrNil())
 		requireGraph(t, l.Graph(), testGraphDefinition)
 	})
@@ -81,12 +108,12 @@ func TestLoader(t *testing.T) {
 				frequency = "1m"
 			}
 		`
-		l := controller.NewLoader(newGlobals())
-		diags := applyFromContent(t, l, []byte(startFile))
+		l := controller.NewLoader(newLoaderOptions())
+		diags := applyFromContent(t, l, []byte(startFile), []byte(testConfig))
 		origGraph := l.Graph()
 		require.NoError(t, diags.ErrorOrNil())
 
-		diags = applyFromContent(t, l, []byte(testFile))
+		diags = applyFromContent(t, l, []byte(testFile), []byte(testConfig))
 		require.NoError(t, diags.ErrorOrNil())
 		newGraph := l.Graph()
 
@@ -100,8 +127,8 @@ func TestLoader(t *testing.T) {
 			doesnotexist "bad_component" {
 			}
 		`
-		l := controller.NewLoader(newGlobals())
-		diags := applyFromContent(t, l, []byte(invalidFile))
+		l := controller.NewLoader(newLoaderOptions())
+		diags := applyFromContent(t, l, []byte(invalidFile), nil)
 		require.ErrorContains(t, diags.ErrorOrNil(), `Unrecognized component name "doesnotexist`)
 	})
 
@@ -119,20 +146,13 @@ func TestLoader(t *testing.T) {
 				input = testcomponents.tick.doesnotexist.tick_time
 			}
 		`
-		l := controller.NewLoader(newGlobals())
-		diags := applyFromContent(t, l, []byte(invalidFile))
+		l := controller.NewLoader(newLoaderOptions())
+		diags := applyFromContent(t, l, []byte(invalidFile), nil)
 		require.Error(t, diags.ErrorOrNil())
 
 		requireGraph(t, l.Graph(), graphDefinition{
-			Nodes: []string{
-				"configNode", // The config node is always present
-				"testcomponents.tick.ticker",
-				"testcomponents.passthrough.valid",
-				"testcomponents.passthrough.invalid",
-			},
-			OutEdges: []edge{
-				{From: "testcomponents.passthrough.valid", To: "testcomponents.tick.ticker"},
-			},
+			Nodes:    nil,
+			OutEdges: nil,
 		})
 	})
 
@@ -154,22 +174,9 @@ func TestLoader(t *testing.T) {
 				input = testcomponents.passthrough.ticker.output
 			}
 		`
-		l := controller.NewLoader(newGlobals())
-		diags := applyFromContent(t, l, []byte(invalidFile))
+		l := controller.NewLoader(newLoaderOptions())
+		diags := applyFromContent(t, l, []byte(invalidFile), nil)
 		require.Error(t, diags.ErrorOrNil())
-	})
-
-	t.Run("Handling of singleton component labels", func(t *testing.T) {
-		invalidFile := `
-			testcomponents.tick {
-			}
-			testcomponents.singleton "first" {
-			}
-		`
-		l := controller.NewLoader(newGlobals())
-		diags := applyFromContent(t, l, []byte(invalidFile))
-		require.ErrorContains(t, diags[0], `Component "testcomponents.tick" must have a label`)
-		require.ErrorContains(t, diags[1], `Component "testcomponents.singleton" does not support labels`)
 	})
 }
 
@@ -193,39 +200,63 @@ func TestScopeWithFailingComponent(t *testing.T) {
 			input = testcomponents.passthrough.ticker.output
 		}
 	`
-	newGlobals := func() controller.ComponentGlobals {
-		return controller.ComponentGlobals{
-			LogSink:           noOpSink(),
-			Logger:            logging.New(nil),
-			TraceProvider:     trace.NewNoopTracerProvider(),
-			DataPath:          t.TempDir(),
-			OnComponentUpdate: func(cn *controller.ComponentNode) { /* no-op */ },
-			Registerer:        prometheus.NewRegistry(),
+	newLoaderOptions := func() controller.LoaderOptions {
+		l, _ := logging.New(os.Stderr, logging.DefaultOptions)
+		return controller.LoaderOptions{
+			ComponentGlobals: controller.ComponentGlobals{
+				Logger:            l,
+				TraceProvider:     noop.NewTracerProvider(),
+				DataPath:          t.TempDir(),
+				OnComponentUpdate: func(cn *controller.ComponentNode) { /* no-op */ },
+				Registerer:        prometheus.NewRegistry(),
+				NewModuleController: func(id string) controller.ModuleController {
+					return fakeModuleController{}
+				},
+			},
 		}
 	}
 
-	l := controller.NewLoader(newGlobals())
-	diags := applyFromContent(t, l, []byte(testFile))
+	l := controller.NewLoader(newLoaderOptions())
+	diags := applyFromContent(t, l, []byte(testFile), nil)
 	require.Error(t, diags.ErrorOrNil())
 	require.Len(t, diags, 1)
 	require.True(t, strings.Contains(diags.Error(), `unrecognized attribute name "frequenc"`))
 }
 
-func noOpSink() *logging.Sink {
-	s, _ := logging.WriterSink(io.Discard, logging.DefaultSinkOptions)
-	return s
-}
-
-func applyFromContent(t *testing.T, l *controller.Loader, bb []byte) diag.Diagnostics {
+func applyFromContent(t *testing.T, l *controller.Loader, componentBytes []byte, configBytes []byte) diag.Diagnostics {
 	t.Helper()
 
-	var diags diag.Diagnostics
+	var (
+		diags           diag.Diagnostics
+		componentBlocks []*ast.BlockStmt
+		configBlocks    []*ast.BlockStmt = nil
+	)
 
-	file, err := parser.ParseFile(t.Name(), bb)
+	componentBlocks, diags = fileToBlock(t, componentBytes)
+	if diags.HasErrors() {
+		return diags
+	}
+
+	if string(configBytes) != "" {
+		configBlocks, diags = fileToBlock(t, configBytes)
+		if diags.HasErrors() {
+			return diags
+		}
+	}
+
+	applyDiags := l.Apply(nil, componentBlocks, configBlocks)
+	diags = append(diags, applyDiags...)
+
+	return diags
+}
+
+func fileToBlock(t *testing.T, bytes []byte) ([]*ast.BlockStmt, diag.Diagnostics) {
+	var diags diag.Diagnostics
+	file, err := parser.ParseFile(t.Name(), bytes)
 
 	var parseDiags diag.Diagnostics
 	if errors.As(err, &parseDiags); parseDiags.HasErrors() {
-		return parseDiags
+		return nil, parseDiags
 	}
 
 	var blocks []*ast.BlockStmt
@@ -242,14 +273,8 @@ func applyFromContent(t *testing.T, l *controller.Loader, bb []byte) diag.Diagno
 			})
 		}
 	}
-	if diags.HasErrors() {
-		return diags
-	}
 
-	applyDiags := l.Apply(nil, blocks, nil)
-	diags = append(diags, applyDiags...)
-
-	return diags
+	return blocks, diags
 }
 
 type graphDefinition struct {
@@ -279,4 +304,17 @@ func requireGraph(t *testing.T, g *dag.Graph, expect graphDefinition) {
 		})
 	}
 	require.ElementsMatch(t, expect.OutEdges, actualEdges, "List of edges do not match")
+}
+
+type fakeModuleController struct{}
+
+func (f fakeModuleController) NewModule(id string, export component.ExportFunc) (component.Module, error) {
+	return nil, nil
+}
+
+func (f fakeModuleController) ModuleIDs() []string {
+	return nil
+}
+
+func (f fakeModuleController) ClearModuleIDs() {
 }

@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"net/url"
 
+	gh_config "github.com/githubexporter/github-exporter/config"
+	"github.com/githubexporter/github-exporter/exporter"
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/pkg/integrations"
 	integrations_v2 "github.com/grafana/agent/pkg/integrations/v2"
 	"github.com/grafana/agent/pkg/integrations/v2/metricsutils"
-	gh_config "github.com/infinityworks/github-exporter/config"
-	"github.com/infinityworks/github-exporter/exporter"
 	config_util "github.com/prometheus/common/config"
 )
 
@@ -21,22 +21,22 @@ var DefaultConfig = Config{
 
 // Config controls github_exporter
 type Config struct {
-	// URL for the github API
+	// URL for the GitHub API
 	APIURL string `yaml:"api_url,omitempty"`
 
-	// A list of github repositories for which to collect metrics.
+	// A list of GitHub repositories for which to collect metrics.
 	Repositories []string `yaml:"repositories,omitempty"`
 
-	// A list of github organizations for which to collect metrics.
+	// A list of GitHub organizations for which to collect metrics.
 	Organizations []string `yaml:"organizations,omitempty"`
 
-	// A list of github users for which to collect metrics.
+	// A list of GitHub users for which to collect metrics.
 	Users []string `yaml:"users,omitempty"`
 
-	// A github authentication token that allows the API to be queried more often.
+	// A GitHub authentication token that allows the API to be queried more often.
 	APIToken config_util.Secret `yaml:"api_token,omitempty"`
 
-	// A path to a file containing a github authentication token that allows the API to be queried more often. If supplied, this supercedes `api_token`
+	// A path to a file containing a GitHub authentication token that allows the API to be queried more often. If supplied, this supersedes `api_token`
 	APITokenFile string `yaml:"api_token_file,omitempty"`
 }
 
@@ -89,7 +89,7 @@ func New(logger log.Logger, c *Config) (integrations.Integration, error) {
 	if c.APITokenFile != "" {
 		err = conf.SetAPITokenFromFile(c.APITokenFile)
 		if err != nil {
-			level.Error(logger).Log("msg", "unable to load Github API token from file", "err", err)
+			level.Error(logger).Log("msg", "unable to load GitHub API token from file", "err", err)
 			return nil, err
 		}
 	}

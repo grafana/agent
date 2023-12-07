@@ -6,7 +6,7 @@ local service = k.core.v1.service;
 local container = k.core.v1.container;
 
 {
-  // newDeployment creates a new single-replicaed Deployment of the
+  // newDeployment creates a new single-replicated Deployment of the
   // grafana-agent. By default, this deployment will do no collection. You must
   // merge the result of this function with the following:
   //

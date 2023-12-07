@@ -17,11 +17,11 @@ package jaegerremotesampling
 import (
 	"context"
 
-	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/config"
+	otelcomponent "go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config/configgrpc"
 	"go.opentelemetry.io/collector/config/confighttp"
 	"go.opentelemetry.io/collector/config/confignet"
+	otelextension "go.opentelemetry.io/collector/extension"
 )
 
 const (
@@ -30,18 +30,17 @@ const (
 )
 
 // NewFactory creates a factory for the OIDC Authenticator extension.
-func NewFactory() component.ExtensionFactory {
-	return component.NewExtensionFactory(
+func NewFactory() otelextension.Factory {
+	return otelextension.NewFactory(
 		typeStr,
 		createDefaultConfig,
 		createExtension,
-		component.StabilityLevelBeta,
+		otelcomponent.StabilityLevelBeta,
 	)
 }
 
-func createDefaultConfig() config.Extension {
+func createDefaultConfig() otelcomponent.Config {
 	return &Config{
-		ExtensionSettings: config.NewExtensionSettings(config.NewComponentID(typeStr)),
 		HTTPServerSettings: &confighttp.HTTPServerSettings{
 			Endpoint: ":5778",
 		},
@@ -55,6 +54,6 @@ func createDefaultConfig() config.Extension {
 	}
 }
 
-func createExtension(_ context.Context, set component.ExtensionCreateSettings, cfg config.Extension) (component.Extension, error) {
+func createExtension(_ context.Context, set otelextension.CreateSettings, cfg otelcomponent.Config) (otelcomponent.Component, error) {
 	return newExtension(cfg.(*Config), set.TelemetrySettings), nil
 }

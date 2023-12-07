@@ -1,5 +1,5 @@
 // Package dnsmasq_exporter embeds https://github.com/google/dnsmasq_exporter
-package dnsmasq_exporter //nolint:golint
+package dnsmasq_exporter
 
 import (
 	"github.com/go-kit/log"
@@ -14,6 +14,7 @@ import (
 var DefaultConfig = Config{
 	DnsmasqAddress: "localhost:53",
 	LeasesPath:     "/var/lib/misc/dnsmasq.leases",
+	ExposeLeases:   false,
 }
 
 // Config controls the dnsmasq_exporter integration.
@@ -21,8 +22,11 @@ type Config struct {
 	// DnsmasqAddress is the address of the dnsmasq server (host:port).
 	DnsmasqAddress string `yaml:"dnsmasq_address,omitempty"`
 
-	// Path to the dnsmasq leases file.
+	// LeasesFile is the path to the dnsmasq leases file.
 	LeasesPath string `yaml:"leases_path,omitempty"`
+
+	// ExposeLeases controls whether expose dnsmasq leases as metrics (high cardinality).
+	ExposeLeases bool `yaml:"expose_leases,omitempty"`
 }
 
 // Name returns the name of the integration that this config is for.
@@ -56,9 +60,15 @@ func init() {
 // New creates a new dnsmasq_exporter integration. The integration scrapes metrics
 // from a dnsmasq server.
 func New(log log.Logger, c *Config) (integrations.Integration, error) {
-	exporter := collector.New(log, &dns.Client{
-		SingleInflight: true,
-	}, c.DnsmasqAddress, c.LeasesPath)
+	dnsmasqConfig := collector.Config{
+		DnsClient: &dns.Client{
+			SingleInflight: true,
+		},
+		DnsmasqAddr:  c.DnsmasqAddress,
+		LeasesPath:   c.LeasesPath,
+		ExposeLeases: c.ExposeLeases,
+	}
+	exporter := collector.New(dnsmasqConfig)
 
 	return integrations.NewCollectorIntegration(c.Name(), integrations.WithCollectors(exporter)), nil
 }

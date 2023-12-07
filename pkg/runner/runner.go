@@ -142,7 +142,7 @@ func (s *Runner[TaskType]) ApplyTasks(ctx context.Context, tt []TaskType) error 
 		// Ignore tasks for workers that are already running.
 		//
 		// We use a temporary workerTask here where only the task field is used
-		// for comparison. This prevent unnecessarily creating a new worker when
+		// for comparison. This prevents unnecessarily creating a new worker when
 		// one isn't needed.
 		if s.workers.Has(&workerTask{Task: definedTask}) {
 			continue
@@ -197,7 +197,7 @@ func (s *Runner[TaskType]) Workers() []Worker {
 	return res
 }
 
-// Stop the Schduler and all running Workers. Close blocks until all running
+// Stop the Scheduler and all running Workers. Close blocks until all running
 // Workers exit.
 func (s *Runner[TaskType]) Stop() {
 	s.cancel()

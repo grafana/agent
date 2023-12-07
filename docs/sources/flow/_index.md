@@ -1,13 +1,23 @@
 ---
-title: Grafana Agent Flow
-weight: 900
+aliases:
+- /docs/grafana-cloud/agent/flow/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/
+- /docs/grafana-cloud/send-data/agent/flow/
+canonical: https://grafana.com/docs/agent/latest/flow/
+description: Grafana Agent Flow is a component-based revision of Grafana Agent with
+  a focus on ease-of-use, debuggability, and adaptability
+title: Flow mode
+weight: 400
+cascade:
+  PRODUCT_NAME: Grafana Agent Flow
+  PRODUCT_ROOT_NAME: Grafana Agent
 ---
 
-# Grafana Agent Flow
+# {{< param "PRODUCT_NAME" >}}
 
-Grafana Agent Flow is a _component-based_ revision of Grafana Agent with a
-focus on ease-of-use, debuggability, and ability to adapt to the needs of power
-users.
+{{< param "PRODUCT_NAME" >}} is a _component-based_ revision of {{< param "PRODUCT_ROOT_NAME" >}} with a focus on ease-of-use,
+debuggability, and ability to adapt to the needs of power users.
 
 Components allow for reusability, composability, and focus on a single task.
 
@@ -26,7 +36,7 @@ Components allow for reusability, composability, and focus on a single task.
 ## Example
 
 ```river
-// Discover Kubernetes pods to collect metrics from.
+// Discover Kubernetes pods to collect metrics from
 discovery.kubernetes "pods" {
   role = "pod"
 }
@@ -57,18 +67,28 @@ prometheus.remote_write "default" {
 }
 ```
 
+## {{< param "PRODUCT_ROOT_NAME" >}} configuration generator
+
+The {{< param "PRODUCT_ROOT_NAME" >}} [configuration generator](https://grafana.github.io/agent-configurator/) will help you get a head start on creating flow code.
+
+{{% admonition type="note" %}}
+This feature is experimental, and it doesn't support all River components.
+{{% /admonition %}}
+
 ## Next steps
 
-* Read about how to [install and run][] Grafana Agent Flow.
-* Learn about the [core concepts][] of Grafana Agent Flow.
-* Follow our [tutorials][] to get started with Grafana Agent Flow.
-* Learn how to use Grafana Agent Flow's [configuration language][].
-* Check out our [reference documentation][] to find specific information you
+* [Install][] {{< param "PRODUCT_NAME" >}}.
+* Learn about the core [Concepts][] of {{< param "PRODUCT_NAME" >}}.
+* Follow our [Getting started][] guides for {{< param "PRODUCT_NAME" >}}.
+* Follow our [Tutorials][] to get started with {{< param "PRODUCT_NAME" >}}.
+* Learn how to use the [Configuration language][].
+* Check out our [Reference][] documentation to find specific information you
   might be looking for.
 
-[install and run]: {{< relref "./getting_started" >}}
-[core concepts]: {{< relref "./concepts/" >}}
-[tutorials]: {{< relref "./tutorials/ ">}}
-[configuration language]: {{< relref "./config-language/" >}}
-[reference documentation]: {{< relref "./reference" >}}
+[Install]: {{< relref "./setup/install/" >}}
+[Concepts]: {{< relref "./concepts/" >}}
+[Getting started]: {{< relref "./getting-started/" >}}
+[Tutorials]: {{< relref "./tutorials/ ">}}
+[Configuration language]: {{< relref "./config-language/" >}}
+[Reference]: {{< relref "./reference" >}}
 

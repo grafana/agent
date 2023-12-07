@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"os"
 
-	cortex_log "github.com/cortexproject/cortex/pkg/util/log"
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
+	"github.com/grafana/agent/pkg/build"
 	"github.com/grafana/agent/pkg/operator"
 	"github.com/grafana/agent/pkg/operator/logutil"
-	"github.com/prometheus/common/version"
+	util_log "github.com/grafana/agent/pkg/util/log"
 	controller "sigs.k8s.io/controller-runtime"
 
 	// Needed for clients.
@@ -64,7 +64,7 @@ func loadConfig(l log.Logger) *operator.Config {
 	}
 
 	if printVersion {
-		fmt.Println(version.Print("agent-operator"))
+		fmt.Println(build.Print("agent-operator"))
 		os.Exit(0)
 	}
 
@@ -74,7 +74,7 @@ func loadConfig(l log.Logger) *operator.Config {
 // setupLogger sets up our logger. If this function fails, the program will
 // exit.
 func setupLogger(l log.Logger, cfg *operator.Config) log.Logger {
-	newLogger, err := cortex_log.NewPrometheusLogger(cfg.LogLevel, cfg.LogFormat)
+	newLogger, err := util_log.NewPrometheusLogger(cfg.LogLevel, cfg.LogFormat)
 	if err != nil {
 		level.Error(l).Log("msg", "failed to create logger", "err", err)
 		os.Exit(1)

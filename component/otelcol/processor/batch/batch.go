@@ -8,9 +8,8 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/otelcol"
 	"github.com/grafana/agent/component/otelcol/processor"
-	"github.com/grafana/agent/pkg/river"
 	otelcomponent "go.opentelemetry.io/collector/component"
-	otelconfig "go.opentelemetry.io/collector/config"
+	otelextension "go.opentelemetry.io/collector/extension"
 	"go.opentelemetry.io/collector/processor/batchprocessor"
 )
 
@@ -29,9 +28,11 @@ func init() {
 
 // Arguments configures the otelcol.processor.batch component.
 type Arguments struct {
-	Timeout          time.Duration `river:"timeout,attr,optional"`
-	SendBatchSize    uint32        `river:"send_batch_size,attr,optional"`
-	SendBatchMaxSize uint32        `river:"send_batch_max_size,attr,optional"`
+	Timeout                  time.Duration `river:"timeout,attr,optional"`
+	SendBatchSize            uint32        `river:"send_batch_size,attr,optional"`
+	SendBatchMaxSize         uint32        `river:"send_batch_max_size,attr,optional"`
+	MetadataKeys             []string      `river:"metadata_keys,attr,optional"`
+	MetadataCardinalityLimit uint32        `river:"metadata_cardinality_limit,attr,optional"`
 
 	// Output configures where to send processed data. Required.
 	Output *otelcol.ConsumerArguments `river:"output,block"`
@@ -39,25 +40,22 @@ type Arguments struct {
 
 var (
 	_ processor.Arguments = Arguments{}
-	_ river.Unmarshaler   = (*Arguments)(nil)
 )
 
 // DefaultArguments holds default settings for Arguments.
 var DefaultArguments = Arguments{
-	Timeout:       200 * time.Millisecond,
-	SendBatchSize: 8192,
+	Timeout:                  200 * time.Millisecond,
+	SendBatchSize:            8192,
+	MetadataCardinalityLimit: 1000,
 }
 
-// UnmarshalRiver implements river.Unmarshaler. It applies defaults to args and
-// validates settings provided by the user.
-func (args *Arguments) UnmarshalRiver(f func(interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (args *Arguments) SetToDefault() {
 	*args = DefaultArguments
+}
 
-	type arguments Arguments
-	if err := f((*arguments)(args)); err != nil {
-		return err
-	}
-
+// Validate implements river.Validator.
+func (args *Arguments) Validate() error {
 	if args.SendBatchMaxSize > 0 && args.SendBatchMaxSize < args.SendBatchSize {
 		return fmt.Errorf("send_batch_max_size must be greater or equal to send_batch_size when not 0")
 	}
@@ -65,22 +63,23 @@ func (args *Arguments) UnmarshalRiver(f func(interface{}) error) error {
 }
 
 // Convert implements processor.Arguments.
-func (args Arguments) Convert() otelconfig.Processor {
+func (args Arguments) Convert() (otelcomponent.Config, error) {
 	return &batchprocessor.Config{
-		ProcessorSettings: otelconfig.NewProcessorSettings(otelconfig.NewComponentID("batch")),
-		Timeout:           args.Timeout,
-		SendBatchSize:     args.SendBatchSize,
-		SendBatchMaxSize:  args.SendBatchMaxSize,
-	}
+		Timeout:                  args.Timeout,
+		SendBatchSize:            args.SendBatchSize,
+		SendBatchMaxSize:         args.SendBatchMaxSize,
+		MetadataKeys:             args.MetadataKeys,
+		MetadataCardinalityLimit: args.MetadataCardinalityLimit,
+	}, nil
 }
 
 // Extensions implements processor.Arguments.
-func (args Arguments) Extensions() map[otelconfig.ComponentID]otelcomponent.Extension {
+func (args Arguments) Extensions() map[otelcomponent.ID]otelextension.Extension {
 	return nil
 }
 
 // Exporters implements processor.Arguments.
-func (args Arguments) Exporters() map[otelconfig.DataType]map[otelconfig.ComponentID]otelcomponent.Exporter {
+func (args Arguments) Exporters() map[otelcomponent.DataType]map[otelcomponent.ID]otelcomponent.Component {
 	return nil
 }
 

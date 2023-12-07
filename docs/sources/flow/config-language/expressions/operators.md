@@ -1,6 +1,12 @@
 ---
 aliases:
 - ../../configuration-language/expressions/operators/
+- /docs/grafana-cloud/agent/flow/config-language/expressions/operators/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/config-language/expressions/operators/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/config-language/expressions/operators/
+- /docs/grafana-cloud/send-data/agent/flow/config-language/expressions/operators/
+canonical: https://grafana.com/docs/agent/latest/flow/config-language/expressions/operators/
+description: Learn about operators
 title: Operators
 weight: 300
 ---
@@ -21,7 +27,11 @@ Operator | Description
 `%`      | Computes the remainder after dividing two numbers.
 `^`      | Raises the number to the specified power.
 
-The `+` operator can also be used for string concatenation.
+## String operators
+
+Operator | Description
+-------- | -----------
+`+`      | Concatenate two strings.
 
 ## Comparison operators
 
@@ -106,3 +116,9 @@ arr[1]
 obj.app
 local.file.token.content
 ```
+
+If the `[ ]` operator is used to access a member of an object where the member
+doesn't exist, the resulting value is `null`.
+
+If the `.` operator is used to access a named member of an object where the
+named member doesn't exist, an error is generated.

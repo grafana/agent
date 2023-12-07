@@ -1,8 +1,8 @@
 package dockertarget
 
-// This code is copied from Promtail. The dockertarget package is used to
-// configure and run the targets that can read logs from Docker containers and
-// forward them to other loki components.
+// NOTE: This code is adapted from Promtail (90a1d4593e2d690b37333386383870865fe177bf).
+// The dockertarget package is used to configure and run the targets that can
+// read logs from Docker containers and forward them to other loki components.
 
 import (
 	"encoding/json"
@@ -14,12 +14,13 @@ import (
 	"testing"
 	"time"
 
+	"github.com/grafana/agent/component/common/loki/client/fake"
+
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/component/common/loki/positions"
-	"github.com/grafana/agent/component/loki/source/docker/internal/fake"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/model/relabel"
@@ -52,7 +53,7 @@ func TestDockerTarget(t *testing.T) {
 
 	w := log.NewSyncWriter(os.Stderr)
 	logger := log.NewLogfmtLogger(w)
-	entryHandler := fake.New(func() {})
+	entryHandler := fake.NewClient(func() {})
 	client, err := client.NewClientWithOpts(client.WithHost(ts.URL))
 	require.NoError(t, err)
 

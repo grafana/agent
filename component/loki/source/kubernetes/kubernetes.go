@@ -11,19 +11,15 @@ import (
 	"time"
 
 	"github.com/go-kit/log"
-	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
-	"github.com/grafana/agent/component/common/config"
+	commonk8s "github.com/grafana/agent/component/common/kubernetes"
 	"github.com/grafana/agent/component/common/loki"
 	"github.com/grafana/agent/component/common/loki/positions"
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/loki/source/kubernetes/kubetail"
-	"github.com/grafana/agent/pkg/build"
-	"github.com/grafana/agent/pkg/river"
-	promconfig "github.com/prometheus/common/config"
+	"github.com/grafana/agent/pkg/flow/logging/level"
+	"github.com/grafana/agent/service/cluster"
 	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/rest"
-	"k8s.io/client-go/tools/clientcmd"
 )
 
 func init() {
@@ -44,91 +40,19 @@ type Arguments struct {
 	ForwardTo []loki.LogsReceiver `river:"forward_to,attr"`
 
 	// Client settings to connect to Kubernetes.
-	Client ClientArguments `river:"client,block,optional"`
-}
+	Client commonk8s.ClientArguments `river:"client,block,optional"`
 
-var _ river.Unmarshaler = (*Arguments)(nil)
+	Clustering cluster.ComponentBlock `river:"clustering,block,optional"`
+}
 
 // DefaultArguments holds default settings for loki.source.kubernetes.
 var DefaultArguments = Arguments{
-	Client: ClientArguments{
-		HTTPClientConfig: config.DefaultHTTPClientConfig,
-	},
+	Client: commonk8s.DefaultClientArguments,
 }
 
-// UnmarshalRiver implements river.Unmarshaler and applies defaults.
-func (args *Arguments) UnmarshalRiver(f func(interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (args *Arguments) SetToDefault() {
 	*args = DefaultArguments
-
-	type arguments Arguments
-	return f((*arguments)(args))
-}
-
-// ClientArguments controls how loki.source.kubernetes connects to Kubernetes.
-type ClientArguments struct {
-	APIServer        config.URL              `river:"api_server,attr,optional"`
-	KubeConfig       string                  `river:"kubeconfig_file,attr,optional"`
-	HTTPClientConfig config.HTTPClientConfig `river:",squash"`
-}
-
-// UnmarshalRiver unmarshals ClientArguments and performs validations.
-func (args *ClientArguments) UnmarshalRiver(f func(interface{}) error) error {
-	type arguments ClientArguments
-	if err := f((*arguments)(args)); err != nil {
-		return err
-	}
-
-	if args.APIServer.URL != nil && args.KubeConfig != "" {
-		return fmt.Errorf("only one of api_server and kubeconfig_file can be set")
-	}
-	if args.KubeConfig != "" && !reflect.DeepEqual(args.HTTPClientConfig, config.DefaultHTTPClientConfig) {
-		return fmt.Errorf("custom HTTP client configuration is not allowed when kubeconfig_file is set")
-	}
-	if args.APIServer.URL == nil && !reflect.DeepEqual(args.HTTPClientConfig, config.DefaultHTTPClientConfig) {
-		return fmt.Errorf("api_server must be set when custom HTTP client configuration is provided")
-	}
-
-	// We must explicitly Validate because HTTPClientConfig is squashed and it won't run otherwise
-	return args.HTTPClientConfig.Validate()
-}
-
-// BuildRESTConfig converts ClientArguments to a Kubernetes REST config.
-func (args *ClientArguments) BuildRESTConfig(l log.Logger) (*rest.Config, error) {
-	var (
-		cfg *rest.Config
-		err error
-	)
-
-	switch {
-	case args.KubeConfig != "":
-		cfg, err = clientcmd.BuildConfigFromFlags("", args.KubeConfig)
-		if err != nil {
-			return nil, err
-		}
-
-	case args.APIServer.URL == nil:
-		// Use in-cluster config.
-		cfg, err = rest.InClusterConfig()
-		if err != nil {
-			return nil, err
-		}
-		level.Info(l).Log("msg", "Using pod service account via in-cluster config")
-
-	default:
-		rt, err := promconfig.NewRoundTripperFromConfig(*args.HTTPClientConfig.Convert(), "loki.source.kubernetes")
-		if err != nil {
-			return nil, err
-		}
-		cfg = &rest.Config{
-			Host:      args.APIServer.String(),
-			Transport: rt,
-		}
-	}
-
-	cfg.UserAgent = fmt.Sprintf("GrafanaAgent/%s", build.Version)
-	cfg.ContentType = "application/vnd.kubernetes.protobuf"
-
-	return cfg, nil
 }
 
 // Component implements the loki.source.kubernetes component.
@@ -136,6 +60,7 @@ type Component struct {
 	log       log.Logger
 	opts      component.Options
 	positions positions.Positions
+	cluster   cluster.Cluster
 
 	mut         sync.Mutex
 	args        Arguments
@@ -151,6 +76,7 @@ type Component struct {
 var (
 	_ component.Component      = (*Component)(nil)
 	_ component.DebugComponent = (*Component)(nil)
+	_ cluster.Component        = (*Component)(nil)
 )
 
 // New creates a new loki.source.kubernetes component.
@@ -168,10 +94,16 @@ func New(o component.Options, args Arguments) (*Component, error) {
 		return nil, err
 	}
 
+	data, err := o.GetServiceData(cluster.ServiceName)
+	if err != nil {
+		return nil, err
+	}
+
 	c := &Component{
+		cluster:   data.(cluster.Cluster),
 		log:       o.Logger,
 		opts:      o,
-		handler:   make(loki.LogsReceiver),
+		handler:   loki.NewLogsReceiver(),
 		positions: positionsFile,
 	}
 	if err := c.Update(args); err != nil {
@@ -199,13 +131,13 @@ func (c *Component) Run(ctx context.Context) error {
 		select {
 		case <-ctx.Done():
 			return nil
-		case entry := <-c.handler:
+		case entry := <-c.handler.Chan():
 			c.receiversMut.RLock()
 			receivers := c.receivers
 			c.receiversMut.RUnlock()
 
 			for _, receiver := range receivers {
-				receiver <- entry
+				receiver.Chan() <- entry
 			}
 		}
 	}
@@ -247,28 +179,43 @@ func (c *Component) Update(args component.Arguments) error {
 		// No-op: manager already exists and options didn't change.
 	}
 
-	// Convert input targets into targets to give to tailer.
-	targets := make([]*kubetail.Target, 0, len(newArgs.Targets))
+	c.resyncTargets(newArgs.Targets)
+	c.args = newArgs
+	return nil
+}
 
-	for _, inTarget := range newArgs.Targets {
-		lset := inTarget.Labels()
+func (c *Component) resyncTargets(targets []discovery.Target) {
+	distTargets := discovery.NewDistributedTargets(c.args.Clustering.Enabled, c.cluster, targets)
+	targets = distTargets.Get()
+
+	tailTargets := make([]*kubetail.Target, 0, len(targets))
+	for _, target := range targets {
+		lset := target.Labels()
 		processed, err := kubetail.PrepareLabels(lset, c.opts.ID)
 		if err != nil {
 			// TODO(rfratto): should this set the health of the component?
 			level.Error(c.log).Log("msg", "failed to process input target", "target", lset.String(), "err", err)
 			continue
 		}
-		targets = append(targets, kubetail.NewTarget(lset, processed))
+		tailTargets = append(tailTargets, kubetail.NewTarget(lset, processed))
 	}
 
 	// This will never fail because it only fails if the context gets canceled.
 	//
 	// TODO(rfratto): should we have a generous update timeout to prevent this
 	// from potentially hanging forever?
-	_ = c.tailer.SyncTargets(context.Background(), targets)
+	_ = c.tailer.SyncTargets(context.Background(), tailTargets)
+}
 
-	c.args = newArgs
-	return nil
+// NotifyClusterChange implements cluster.Component.
+func (c *Component) NotifyClusterChange() {
+	c.mut.Lock()
+	defer c.mut.Unlock()
+
+	if !c.args.Clustering.Enabled {
+		return
+	}
+	c.resyncTargets(c.args.Targets)
 }
 
 // getTailerOptions gets tailer options from arguments. If args hasn't changed
@@ -292,7 +239,7 @@ func (c *Component) getTailerOptions(args Arguments) (*kubetail.Options, error) 
 
 	return &kubetail.Options{
 		Client:    clientSet,
-		Handler:   loki.NewEntryHandler(c.handler, func() {}),
+		Handler:   loki.NewEntryHandler(c.handler.Chan(), func() {}),
 		Positions: c.positions,
 	}, nil
 }
@@ -318,7 +265,7 @@ func (c *Component) DebugInfo() interface{} {
 	return info
 }
 
-// DebugInfo represents debug information for loki.source.kubernets.
+// DebugInfo represents debug information for loki.source.kubernetes.
 type DebugInfo struct {
 	Targets []DebugInfoTarget `river:"target,block,optional"`
 }

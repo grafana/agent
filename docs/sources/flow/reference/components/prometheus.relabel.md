@@ -1,4 +1,11 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/prometheus.relabel/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/prometheus.relabel/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/prometheus.relabel/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/prometheus.relabel/
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.relabel/
+description: Learn about prometheus.relabel
 title: prometheus.relabel
 ---
 
@@ -48,7 +55,7 @@ The following arguments are supported:
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`forward_to` | `list(receiver)` | Where the metrics should be forwarded to, after relabeling takes place. | | yes
+`forward_to` | `list(MetricsReceiver)` | Where the metrics should be forwarded to, after relabeling takes place. | | yes
 
 ## Blocks
 
@@ -62,7 +69,7 @@ rule | [rule][] | Relabeling rules to apply to received metrics. | no
 
 ### rule block
 
-{{< docs/shared lookup="flow/reference/components/rule-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/rule-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ## Exported fields
 
@@ -70,7 +77,7 @@ The following fields are exported and can be referenced by other components:
 
 Name | Type | Description
 ---- | ---- | -----------
-`receiver` | `receiver` | The input receiver where samples are sent to be relabeled.
+`receiver` | `MetricsReceiver` | The input receiver where samples are sent to be relabeled.
 `rules`    | `RelabelRules` | The currently configured relabeling rules.
 
 ## Component health
@@ -143,7 +150,7 @@ metric_a{host = "cluster_b/production",  __address__ = "cluster_a", instance = "
 
 On the second relabeling rule, the `keep` action only keeps the metrics whose
 `app` label matches `regex`, dropping everything else, so the list of metrics
-is be trimmed down to:
+is trimmed down to:
 
 ```
 metric_a{host = "localhost/development", __address__ = "localhost", instance = "development", app = "backend"}  2
@@ -161,3 +168,23 @@ metric_a{host = "cluster_a/production",  __address__ = "cluster_a", app = "backe
 
 The two resulting metrics are then propagated to each receiver defined in the
 `forward_to` argument.
+<!-- START GENERATED COMPATIBLE COMPONENTS -->
+
+## Compatible components
+
+`prometheus.relabel` can accept arguments from the following components:
+
+- Components that export [Prometheus `MetricsReceiver`]({{< relref "../compatibility/#prometheus-metricsreceiver-exporters" >}})
+
+`prometheus.relabel` has exports that can be consumed by the following components:
+
+- Components that consume [Prometheus `MetricsReceiver`]({{< relref "../compatibility/#prometheus-metricsreceiver-consumers" >}})
+
+{{% admonition type="note" %}}
+
+Connecting some components may not be sensible or components may require further configuration to make the 
+connection work correctly. Refer to the linked documentation for more details.
+
+{{% /admonition %}}
+
+<!-- END GENERATED COMPATIBLE COMPONENTS -->

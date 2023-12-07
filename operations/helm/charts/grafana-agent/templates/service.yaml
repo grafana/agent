@@ -1,9 +1,14 @@
+{{- if .Values.service.enabled -}}
 apiVersion: v1
 kind: Service
 metadata:
   name: {{ include "grafana-agent.fullname" . }}
   labels:
     {{- include "grafana-agent.labels" . | nindent 4 }}
+  {{- with .Values.service.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
 spec:
   type: {{ .Values.service.type }}
   {{- if .Values.service.clusterIP }}
@@ -16,13 +21,10 @@ spec:
       port: {{ .Values.agent.listenPort }}
       targetPort: {{ .Values.agent.listenPort }}
       protocol: "TCP"
-    - name: faro
-      port: {{ .Values.agent.faroPort }}
-      targetPort: {{ .Values.agent.faroPort }}
-      protocol: "TCP"
 {{- range $portMap := .Values.agent.extraPorts }}
     - name: {{ $portMap.name }}
       port: {{ $portMap.port }}
       targetPort: {{ $portMap.targetPort }}
       protocol: {{ coalesce $portMap.protocol "TCP" }}
+{{- end }}
 {{- end }}

@@ -123,7 +123,7 @@ var (
 func (f *Flags) RegisterFlags(fs *flag.FlagSet) {
 	d := DefaultFlags
 
-	fs.BoolVar(&f.RegisterInstrumentation, "server.register-instrumentation", d.RegisterInstrumentation, "Register the intrumentation handlers (e.g., /metrics)")
+	fs.BoolVar(&f.RegisterInstrumentation, "server.register-instrumentation", d.RegisterInstrumentation, "Register the instrumentation handlers (e.g., /metrics)")
 	fs.DurationVar(&f.GracefulShutdownTimeout, "server.graceful-shutdown-timeout", d.GracefulShutdownTimeout, "Timeout for a graceful server shutdown")
 	fs.BoolVar(&f.LogSourceIPs, "server.log.source-ips.enabled", d.LogSourceIPs, "Log IP address of client for incoming requests")
 	fs.StringVar(&f.LogSourceIPsHeader, "server.log.source-ips.header", d.LogSourceIPsHeader, "Header field storing the source IPs. Only used if server.log-source-ips-enabled is true. Defaults to Forwarded, X-Real-IP, and X-Forwarded-For")
@@ -160,7 +160,7 @@ func (f *GRPCFlags) RegisterFlags(fs *flag.FlagSet) {
 	fs.UintVar(&f.MaxConcurrentStreams, "server.grpc.max-concurrent-streams", d.MaxConcurrentStreams, "Maximum number of concurrent gRPC streams (0 = unlimited)")
 	fs.DurationVar(&f.MaxConnectionIdle, "server.grpc.keepalive.max-connection-idle", d.MaxConnectionIdle, "Time to wait before closing idle gRPC connections")
 	fs.DurationVar(&f.MaxConnectionAge, "server.grpc.keepalive.max-connection-age", d.MaxConnectionAge, "Maximum age for any gRPC connection for a graceful shutdown")
-	fs.DurationVar(&f.MaxConnectionAgeGrace, "server.grpc.keepalive.max-connection-age-grace", d.MaxConnectionAgeGrace, "Grace period to forceibly close connections after a graceful shutdown starts")
+	fs.DurationVar(&f.MaxConnectionAgeGrace, "server.grpc.keepalive.max-connection-age-grace", d.MaxConnectionAgeGrace, "Grace period to forcibly close connections after a graceful shutdown starts")
 	fs.DurationVar(&f.KeepaliveTime, "server.grpc.keepalive.time", d.KeepaliveTime, "Frequency to send keepalive pings from the server")
 	fs.DurationVar(&f.KeepaliveTimeout, "server.grpc.keepalive.timeout", d.KeepaliveTimeout, "How long to wait for a keepalive pong before closing the connection")
 	fs.DurationVar(&f.MinTimeBetweenPings, "server.grpc.keepalive.min-time-between-pings", d.MinTimeBetweenPings, "Maximum frequency that clients may send pings at")

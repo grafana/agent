@@ -1,11 +1,9 @@
 //go:build linux && cgo && promtail_journal_enabled
-// +build linux,cgo,promtail_journal_enabled
 
 package journal
 
 import (
 	"context"
-	"os"
 	"strings"
 	"testing"
 	"time"
@@ -21,7 +19,7 @@ import (
 func TestJournal(t *testing.T) {
 	// Create opts for component
 	tmp := t.TempDir()
-	lr := make(loki.LogsReceiver)
+	lr := loki.NewLogsReceiver()
 	c, err := New(component.Options{
 		ID:         "loki.source.journal.test",
 		Logger:     util.TestFlowLogger(t),
@@ -48,7 +46,7 @@ func TestJournal(t *testing.T) {
 			found = true
 			// Timed out getting message
 			require.True(t, false)
-		case msg := <-lr:
+		case msg := <-lr.Chan():
 			if strings.Contains(msg.Line, ts) {
 				found = true
 				break

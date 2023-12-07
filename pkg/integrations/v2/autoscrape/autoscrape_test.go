@@ -81,7 +81,7 @@ var noOpAppender = mockAppender{
 	AppendExemplarFunc: func(ref storage.SeriesRef, l labels.Labels, e exemplar.Exemplar) (storage.SeriesRef, error) {
 		return storage.SeriesRef(globalRef.Inc()), nil
 	},
-	AppendHistogramFunc: func(ref storage.SeriesRef, l labels.Labels, t int64, h *histogram.Histogram) (storage.SeriesRef, error) {
+	AppendHistogramFunc: func(ref storage.SeriesRef, l labels.Labels, t int64, h *histogram.Histogram, fh *histogram.FloatHistogram) (storage.SeriesRef, error) {
 		return storage.SeriesRef(globalRef.Inc()), nil
 	},
 }
@@ -92,7 +92,7 @@ type mockAppender struct {
 	RollbackFunc        func() error
 	AppendExemplarFunc  func(ref storage.SeriesRef, l labels.Labels, e exemplar.Exemplar) (storage.SeriesRef, error)
 	UpdateMetadataFunc  func(ref storage.SeriesRef, l labels.Labels, m metadata.Metadata) (storage.SeriesRef, error)
-	AppendHistogramFunc func(ref storage.SeriesRef, l labels.Labels, t int64, h *histogram.Histogram) (storage.SeriesRef, error)
+	AppendHistogramFunc func(ref storage.SeriesRef, l labels.Labels, t int64, h *histogram.Histogram, fh *histogram.FloatHistogram) (storage.SeriesRef, error)
 }
 
 func (ma *mockAppender) Append(ref storage.SeriesRef, l labels.Labels, t int64, v float64) (storage.SeriesRef, error) {
@@ -106,8 +106,8 @@ func (ma *mockAppender) AppendExemplar(ref storage.SeriesRef, l labels.Labels, e
 func (ma *mockAppender) UpdateMetadata(ref storage.SeriesRef, l labels.Labels, m metadata.Metadata) (storage.SeriesRef, error) {
 	return ma.UpdateMetadataFunc(ref, l, m)
 }
-func (ma *mockAppender) AppendHistogram(ref storage.SeriesRef, l labels.Labels, t int64, h *histogram.Histogram) (storage.SeriesRef, error) {
-	return ma.AppendHistogramFunc(ref, l, t, h)
+func (ma *mockAppender) AppendHistogram(ref storage.SeriesRef, l labels.Labels, t int64, h *histogram.Histogram, fh *histogram.FloatHistogram) (storage.SeriesRef, error) {
+	return ma.AppendHistogramFunc(ref, l, t, h, fh)
 }
 
 type mockInstance struct {

@@ -12,7 +12,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// NewLogger transalates log.Logger to logrus.Logger
+// NewLogger translates log.Logger to logrus.Logger
 func NewLogger(logger log.Logger, opts ...Option) *logrus.Logger {
 	o := output{}
 	for _, apply := range opts {

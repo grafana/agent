@@ -1,4 +1,11 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/otelcol.exporter.otlphttp/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/otelcol.exporter.otlphttp/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/otelcol.exporter.otlphttp/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/otelcol.exporter.otlphttp/
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.exporter.otlphttp/
+description: Learn about otelcol.exporter.otlphttp
 title: otelcol.exporter.otlphttp
 ---
 
@@ -47,16 +54,18 @@ Hierarchy | Block | Description | Required
 --------- | ----- | ----------- | --------
 client           | [client][] | Configures the HTTP server to send telemetry data to. | yes
 client > tls     | [tls][] | Configures TLS for the HTTP client. | no
-queue            | [queue][] | Configures batching of data before sending. | no
-retry            | [retry][] | Configures retry mechanism for failed requests. | no
+sending_queue    | [sending_queue][] | Configures batching of data before sending. | no
+retry_on_failure | [retry_on_failure][] | Configures retry mechanism for failed requests. | no
+debug_metrics | [debug_metrics][] | Configures the metrics that this component generates to monitor its state. | no
 
 The `>` symbol indicates deeper levels of nesting. For example, `client > tls`
 refers to a `tls` block defined inside a `client` block.
 
 [client]: #client-block
 [tls]: #tls-block
-[queue]: #queue-block
-[retry]: #retry-block
+[sending_queue]: #sending_queue-block
+[retry_on_failure]: #retry_on_failure-block
+[debug_metrics]: #debug_metrics-block
 
 ### client block
 
@@ -66,7 +75,7 @@ The following arguments are supported:
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`endpoint`           | `string`      | `host:port` to send telemetry data to. | | yes
+`endpoint`           | `string`      | The target URL to send telemetry data to. | | yes
 `read_buffer_size`   | `string`      | Size of the read buffer the HTTP client uses for reading server responses. | `0` | no
 `write_buffer_size`  | `string`      | Size of the write buffer the HTTP client uses for writing requests. | `"512KiB"` | no
 `timeout`            | `duration`    | Time to wait before marking a request as failed. | `"30s"` | no
@@ -76,30 +85,38 @@ Name | Type | Description | Default | Required
 `max_idle_conns_per_host` | `int`    | Limits the number of idle HTTP connections the host can keep open. | `0` | no
 `max_conns_per_host` | `int`         | Limits the total (dialing,active, and idle) number of connections per host. | `0` | no
 `idle_conn_timeout`  | `duration`    | Time to wait before an idle connection closes itself. | `"90s"` | no
+`disable_keep_alives`| `bool`        | Disable HTTP keep-alive. | `false` | no
 `auth`               | `capsule(otelcol.Handler)` | Handler from an `otelcol.auth` component to use for authenticating requests. | | no
 
-{{< docs/shared lookup="flow/reference/components/otelcol-compression-field.md" source="agent" >}}
+Setting `disable_keep_alives` to `true` will result in significant overhead establishing a new HTTP(s) connection for every request.
+Before enabling this option, consider whether changes to idle connection settings can achieve your goal.
+
+{{< docs/shared lookup="flow/reference/components/otelcol-compression-field.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### tls block
 
 The `tls` block configures TLS settings used for the connection to the HTTP
 server.
 
-{{< docs/shared lookup="flow/reference/components/otelcol-tls-config-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/otelcol-tls-config-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
-### queue block
+### sending_queue block
 
-The `queue` block configures an in-memory buffer of batches before data is sent
+The `sending_queue` block configures an in-memory buffer of batches before data is sent
 to the HTTP server.
 
-{{< docs/shared lookup="flow/reference/components/otelcol-queue-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/otelcol-queue-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
-### retry block
+### retry_on_failure block
 
-The `retry` block configures how failed requests to the HTTP server are
+The `retry_on_failure` block configures how failed requests to the HTTP server are
 retried.
 
-{{< docs/shared lookup="flow/reference/components/otelcol-retry-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/otelcol-retry-block.md" source="agent" version="<AGENT_VERSION>" >}}
+
+### debug_metrics block
+
+{{< docs/shared lookup="flow/reference/components/otelcol-debug-metrics-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ## Exported fields
 
@@ -130,7 +147,7 @@ Tempo without TLS:
 ```river
 otelcol.exporter.otlphttp "tempo" {
     client {
-        endpoint = "tempo:4317"
+        endpoint = "http://tempo:4317"
         tls {
             insecure             = true
             insecure_skip_verify = true
@@ -138,3 +155,19 @@ otelcol.exporter.otlphttp "tempo" {
     }
 }
 ```
+<!-- START GENERATED COMPATIBLE COMPONENTS -->
+
+## Compatible components
+
+`otelcol.exporter.otlphttp` has exports that can be consumed by the following components:
+
+- Components that consume [OpenTelemetry `otelcol.Consumer`]({{< relref "../compatibility/#opentelemetry-otelcolconsumer-consumers" >}})
+
+{{% admonition type="note" %}}
+
+Connecting some components may not be sensible or components may require further configuration to make the 
+connection work correctly. Refer to the linked documentation for more details.
+
+{{% /admonition %}}
+
+<!-- END GENERATED COMPATIBLE COMPONENTS -->

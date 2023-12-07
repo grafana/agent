@@ -6,12 +6,16 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/go-kit/log/level"
+	"github.com/grafana/agent/pkg/flow/logging/level"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/prometheus/model/relabel"
+
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/common/loki"
 	flow_relabel "github.com/grafana/agent/component/common/relabel"
+	"github.com/grafana/agent/component/loki/source/gcplog/gcptypes"
 	gt "github.com/grafana/agent/component/loki/source/gcplog/internal/gcplogtarget"
-	"github.com/prometheus/prometheus/model/relabel"
+	"github.com/grafana/agent/pkg/util"
 )
 
 func init() {
@@ -28,24 +32,19 @@ func init() {
 // Arguments holds values which are used to configure the loki.source.gcplog
 // component.
 type Arguments struct {
-	// TODO(@tpaschalis) Having these types defined in an internal package
-	// means that an external caller cannot build this component's Arguments
-	// by hand for now.
-	PullTarget   *gt.PullConfig      `river:"pull,block,optional"`
-	PushTarget   *gt.PushConfig      `river:"push,block,optional"`
-	ForwardTo    []loki.LogsReceiver `river:"forward_to,attr"`
-	RelabelRules flow_relabel.Rules  `river:"relabel_rules,attr,optional"`
+	PullTarget   *gcptypes.PullConfig `river:"pull,block,optional"`
+	PushTarget   *gcptypes.PushConfig `river:"push,block,optional"`
+	ForwardTo    []loki.LogsReceiver  `river:"forward_to,attr"`
+	RelabelRules flow_relabel.Rules   `river:"relabel_rules,attr,optional"`
 }
 
-// UnmarshalRiver implements the unmarshaller
-func (a *Arguments) UnmarshalRiver(f func(v interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (a *Arguments) SetToDefault() {
 	*a = Arguments{}
-	type arguments Arguments
-	err := f((*arguments)(a))
-	if err != nil {
-		return err
-	}
+}
 
+// Validate implements river.Validator.
+func (a *Arguments) Validate() error {
 	if (a.PullTarget != nil) == (a.PushTarget != nil) {
 		return fmt.Errorf("exactly one of 'push' or 'pull' must be provided")
 	}
@@ -54,8 +53,9 @@ func (a *Arguments) UnmarshalRiver(f func(v interface{}) error) error {
 
 // Component implements the loki.source.gcplog component.
 type Component struct {
-	opts    component.Options
-	metrics *gt.Metrics
+	opts          component.Options
+	metrics       *gt.Metrics
+	serverMetrics *util.UncheckedCollector
 
 	mut    sync.RWMutex
 	fanout []loki.LogsReceiver
@@ -67,11 +67,14 @@ type Component struct {
 // New creates a new loki.source.gcplog component.
 func New(o component.Options, args Arguments) (*Component, error) {
 	c := &Component{
-		opts:    o,
-		metrics: gt.NewMetrics(o.Registerer),
-		handler: make(loki.LogsReceiver),
-		fanout:  args.ForwardTo,
+		opts:          o,
+		metrics:       gt.NewMetrics(o.Registerer),
+		handler:       loki.NewLogsReceiver(),
+		fanout:        args.ForwardTo,
+		serverMetrics: util.NewUncheckedCollector(nil),
 	}
+
+	o.Registerer.MustRegister(c.serverMetrics)
 
 	// Call to Update() to start readers and set receivers once at the start.
 	if err := c.Update(args); err != nil {
@@ -97,10 +100,10 @@ func (c *Component) Run(ctx context.Context) error {
 		select {
 		case <-ctx.Done():
 			return nil
-		case entry := <-c.handler:
+		case entry := <-c.handler.Chan():
 			c.mut.RLock()
 			for _, receiver := range c.fanout {
-				receiver <- entry
+				receiver.Chan() <- entry
 			}
 			c.mut.RUnlock()
 		}
@@ -126,7 +129,7 @@ func (c *Component) Update(args component.Arguments) error {
 			level.Error(c.opts.Logger).Log("msg", "error while stopping gcplog target", "err", err)
 		}
 	}
-	entryHandler := loki.NewEntryHandler(c.handler, func() {})
+	entryHandler := loki.NewEntryHandler(c.handler.Chan(), func() {})
 	jobName := strings.Replace(c.opts.ID, ".", "_", -1)
 
 	if newArgs.PullTarget != nil {
@@ -140,7 +143,14 @@ func (c *Component) Update(args component.Arguments) error {
 		c.target = t
 	}
 	if newArgs.PushTarget != nil {
-		t, err := gt.NewPushTarget(c.metrics, c.opts.Logger, entryHandler, jobName, newArgs.PushTarget, rcs, c.opts.Registerer)
+		// [gt.NewPushTarget] registers new metrics every time it is called. To
+		// avoid issues with re-registering metrics with the same name, we create a
+		// new registry for the target every time we create one, and pass it to an
+		// unchecked collector to bypass uniqueness checking.
+		registry := prometheus.NewRegistry()
+		c.serverMetrics.SetCollector(registry)
+
+		t, err := gt.NewPushTarget(c.metrics, c.opts.Logger, entryHandler, jobName, newArgs.PushTarget, rcs, registry)
 		if err != nil {
 			level.Error(c.opts.Logger).Log("msg", "failed to create gcplog target with provided config", "err", err)
 			return err

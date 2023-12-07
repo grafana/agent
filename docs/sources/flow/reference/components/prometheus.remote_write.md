@@ -1,4 +1,11 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/prometheus.remote_write/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/prometheus.remote_write/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/prometheus.remote_write/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/prometheus.remote_write/
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.remote_write/
+description: Learn about prometheus.remote_write
 title: prometheus.remote_write
 ---
 
@@ -48,9 +55,13 @@ endpoint > basic_auth | [basic_auth][] | Configure basic_auth for authenticating
 endpoint > authorization | [authorization][] | Configure generic authorization to the endpoint. | no
 endpoint > oauth2 | [oauth2][] | Configure OAuth2 for authenticating to the endpoint. | no
 endpoint > oauth2 > tls_config | [tls_config][] | Configure TLS settings for connecting to the endpoint. | no
+endpoint > sigv4 | [sigv4][] | Configure AWS Signature Verification 4 for authenticating to the endpoint. | no
+endpoint > azuread | [azuread][] | Configure AzureAD for authenticating to the endpoint. | no
+endpoint > azuread > managed_identity | [managed_identity][] | Configure Azure user-assigned managed identity. | yes
 endpoint > tls_config | [tls_config][] | Configure TLS settings for connecting to the endpoint. | no
 endpoint > queue_config | [queue_config][] | Configuration for how metrics are batched before sending. | no
 endpoint > metadata_config | [metadata_config][] | Configuration for how metric metadata is sent. | no
+endpoint > write_relabel_config | [write_relabel_config][] | Configuration for write_relabel_config. | no
 wal | [wal][] | Configuration for the component's WAL. | no
 
 The `>` symbol indicates deeper levels of nesting. For example, `endpoint >
@@ -61,9 +72,13 @@ basic_auth` refers to a `basic_auth` block defined inside an
 [basic_auth]: #basic_auth-block
 [authorization]: #authorization-block
 [oauth2]: #oauth2-block
+[sigv4]: #sigv4-block
+[azuread]: #azuread-block
+[managed_identity]: #managed_identity-block
 [tls_config]: #tls_config-block
 [queue_config]: #queue_config-block
 [metadata_config]: #metadata_config-block
+[write_relabel_config]: #write_relabel_config-block
 [wal]: #wal-block
 
 ### endpoint block
@@ -89,10 +104,12 @@ Name | Type | Description | Default | Required
 
  At most one of the following can be provided:
  - [`bearer_token` argument](#endpoint-block).
- - [`bearer_token_file` argument](#endpoint-block). 
+ - [`bearer_token_file` argument](#endpoint-block).
  - [`basic_auth` block][basic_auth].
  - [`authorization` block][authorization].
  - [`oauth2` block][oauth2].
+ - [`sigv4` block][sigv4].
+ - [`azuread` block][azuread].
 
 When multiple `endpoint` blocks are provided, metrics are concurrently sent to all
 configured locations. Each endpoint has a _queue_ which is used to read metrics
@@ -110,32 +127,44 @@ metrics fails.
 
 ### basic_auth block
 
-{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### authorization block
 
-{{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### oauth2 block
 
-{{< docs/shared lookup="flow/reference/components/oauth2-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/oauth2-block.md" source="agent" version="<AGENT_VERSION>" >}}
+
+### sigv4 block
+
+{{< docs/shared lookup="flow/reference/components/sigv4-block.md" source="agent" version="<AGENT_VERSION>" >}}
+
+### azuread block
+
+{{< docs/shared lookup="flow/reference/components/azuread-block.md" source="agent" version="<AGENT_VERSION>" >}}
+
+### managed_identity block
+
+{{< docs/shared lookup="flow/reference/components/managed_identity-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### tls_config block
 
-{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### queue_config block
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`capacity` | `number` | Number of samples to buffer per shard. | `2500` | no
+`capacity` | `number` | Number of samples to buffer per shard. | `10000` | no
 `min_shards` | `number` | Minimum amount of concurrent shards sending samples to the endpoint. | `1` | no
-`max_shards` | `number` | Maximum number of concurrent shards sending samples to the endpoint. | `200` | no
-`max_samples_per_send` | `number` | Maximum number of samples per send. | `500` | no
+`max_shards` | `number` | Maximum number of concurrent shards sending samples to the endpoint. | `50` | no
+`max_samples_per_send` | `number` | Maximum number of samples per send. | `2000` | no
 `batch_send_deadline` | `duration` | Maximum time samples will wait in the buffer before sending. | `"5s"` | no
 `min_backoff` | `duration` | Initial retry delay. The backoff time gets doubled for each retry. | `"30ms"` | no
 `max_backoff` | `duration` | Maximum retry delay. | `"5s"` | no
-`retry_on_http_429` | `bool` | Retry when an HTTP 429 status code is received. | `false` | no
+`retry_on_http_429` | `bool` | Retry when an HTTP 429 status code is received. | `true` | no
 
 Each queue then manages a number of concurrent _shards_ which is responsible
 for sending a fraction of data to their respective endpoints. The number of
@@ -145,7 +174,7 @@ quickly enough. The range of permitted shards can be configured with the
 
 Each shard has a buffer of samples it will keep in memory, controlled with the
 `capacity` argument. New metrics aren't read from the WAL unless there is at
-least one shard that is not at maximum capcity.
+least one shard that is not at maximum capacity.
 
 The buffer of a shard is flushed and sent to the endpoint either after the
 shard reaches the number of samples specified by `max_samples_per_send` or the
@@ -168,7 +197,11 @@ Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `send` | `bool` | Controls whether metric metadata is sent to the endpoint. | `true` | no
 `send_interval` | `duration` | How frequently metric metadata is sent to the endpoint. | `"1m"` | no
-`max_samples_per_send` | `number` | Maximum number of metadata samples to send to the endpoint at once. | `500` | no
+`max_samples_per_send` | `number` | Maximum number of metadata samples to send to the endpoint at once. | `2000` | no
+
+### write_relabel_config block
+
+{{< docs/shared lookup="flow/reference/components/rule-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### wal block
 
@@ -187,7 +220,7 @@ The WAL serves two primary purposes:
 * Populate in-memory cache after a process restart.
 
 The WAL is located inside a component-specific directory relative to the
-storage path Grafana Agent is configured to use. See the
+storage path {{< param "PRODUCT_NAME" >}} is configured to use. See the
 [`agent run` documentation][run] for how to change the storage path.
 
 The `truncate_frequency` argument configures how often to clean up the WAL.
@@ -209,7 +242,7 @@ The following fields are exported and can be referenced by other components:
 
 Name | Type | Description
 ---- | ---- | -----------
-`receiver` | `receiver` | A value which other components can use to send metrics to.
+`receiver` | `MetricsReceiver` | A value which other components can use to send metrics to.
 
 ## Component health
 
@@ -222,12 +255,14 @@ values.
 `prometheus.remote_write` does not expose any component-specific debug
 information.
 
-### Debug metrics
+## Debug metrics
 
 * `agent_wal_storage_active_series` (gauge): Current number of active series
   being tracked by the WAL.
 * `agent_wal_storage_deleted_series` (gauge): Current number of series marked
   for deletion from memory.
+* `agent_wal_out_of_order_samples_total` (counter): Total number of out of
+  order samples ingestion failed attempts.
 * `agent_wal_storage_created_series_total` (counter): Total number of created
   series appended to the WAL.
 * `agent_wal_storage_removed_series_total` (counter): Total number of series
@@ -295,7 +330,13 @@ information.
 * `prometheus_remote_storage_exemplars_in_total` (counter): Exemplars read into
   remote storage.
 
-## Example
+## Examples
+
+The following examples show you how to create `prometheus.remote_write` components that send metrics to different destinations.
+
+### Send metrics to a local Mimir instance
+
+You can create a `prometheus.remote_write` component that sends your metrics to a local Mimir instance:
 
 ```river
 prometheus.remote_write "staging" {
@@ -314,9 +355,69 @@ prometheus.remote_write "staging" {
 // prometheus.remote_write component.
 prometheus.scrape "demo" {
   targets = [
-    // Collect metrics from Grafana Agent's default HTTP listen address.
+    // Collect metrics from the default HTTP listen address.
     {"__address__" = "127.0.0.1:12345"},
   ]
   forward_to = [prometheus.remote_write.staging.receiver]
 }
 ```
+
+
+### Send metrics to a Mimir instance with a tenant specified
+
+You can create a `prometheus.remote_write` component that sends your metrics to a specific tenant within the Mimir instance. This is useful when your Mimir instance is using more than one tenant:
+
+```river
+prometheus.remote_write "staging" {
+  // Send metrics to a Mimir instance
+  endpoint {
+    url = "http://mimir:9009/api/v1/push"
+
+    headers = {
+      "X-Scope-OrgID" = "staging",
+    }
+  }
+}
+```
+
+### Send metrics to a managed service
+
+You can create a `prometheus.remote_write` component that sends your metrics to a managed service, for example, Grafana Cloud. The Prometheus username and the Grafana Cloud API Key are injected in this example through environment variables.
+
+```river
+prometheus.remote_write "default" {
+  endpoint {
+    url = "https://prometheus-xxx.grafana.net/api/prom/push"
+      basic_auth {
+        username = env("PROMETHEUS_USERNAME")
+        password = env("GRAFANA_CLOUD_API_KEY")
+      }
+  }
+}
+```
+## Technical details
+
+`prometheus.remote_write` uses [snappy](https://en.wikipedia.org/wiki/Snappy_(compression)) for compression.
+
+Any labels that start with `__` will be removed before sending to the endpoint.
+
+## Data retention
+
+{{< docs/shared source="agent" lookup="/wal-data-retention.md" version="<AGENT_VERSION>" >}}
+
+<!-- START GENERATED COMPATIBLE COMPONENTS -->
+
+## Compatible components
+
+`prometheus.remote_write` has exports that can be consumed by the following components:
+
+- Components that consume [Prometheus `MetricsReceiver`]({{< relref "../compatibility/#prometheus-metricsreceiver-consumers" >}})
+
+{{% admonition type="note" %}}
+
+Connecting some components may not be sensible or components may require further configuration to make the 
+connection work correctly. Refer to the linked documentation for more details.
+
+{{% /admonition %}}
+
+<!-- END GENERATED COMPATIBLE COMPONENTS -->

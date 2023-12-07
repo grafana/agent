@@ -1,24 +1,31 @@
 package process
 
+// NOTE: This code is copied from Promtail (07cbef92268aecc0f20d1791a6df390c2df5c072) with changes kept to the minimum.
+
 import (
 	"context"
+	"os"
 	"testing"
 	"time"
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/common/loki"
-	"github.com/grafana/agent/component/loki/process/internal/stages"
-	"github.com/grafana/agent/pkg/river"
+	"github.com/grafana/agent/component/discovery"
+	"github.com/grafana/agent/component/loki/process/stages"
+	lsf "github.com/grafana/agent/component/loki/source/file"
+	"github.com/grafana/agent/pkg/flow/componenttest"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/grafana/loki/pkg/logproto"
+	"github.com/grafana/river"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/atomic"
 	"go.uber.org/goleak"
 )
 
 func TestJSONLabelsStage(t *testing.T) {
-	defer goleak.VerifyNone(t)
+	defer goleak.VerifyNone(t, goleak.IgnoreTopFunction("go.opencensus.io/stats/view.(*worker).start"))
 
 	// The following stages will attempt to parse input lines as JSON.
 	// The first stage _extract_ any fields found with the correct names:
@@ -63,7 +70,7 @@ func TestJSONLabelsStage(t *testing.T) {
 	err := river.Unmarshal([]byte(stg), &stagesCfg)
 	require.NoError(t, err)
 
-	ch1, ch2 := make(loki.LogsReceiver), make(loki.LogsReceiver)
+	ch1, ch2 := loki.NewLogsReceiver(), loki.NewLogsReceiver()
 
 	// Create and run the component, so that it can process and forwards logs.
 	opts := component.Options{
@@ -93,7 +100,7 @@ func TestJSONLabelsStage(t *testing.T) {
 		},
 	}
 
-	c.receiver <- logEntry
+	c.receiver.Chan() <- logEntry
 
 	wantLabelSet := model.LabelSet{
 		"filename": "/var/log/pods/agent/agent/1.log",
@@ -107,11 +114,11 @@ func TestJSONLabelsStage(t *testing.T) {
 	// stages correctly applied.
 	for i := 0; i < 2; i++ {
 		select {
-		case logEntry := <-ch1:
+		case logEntry := <-ch1.Chan():
 			require.WithinDuration(t, time.Now(), logEntry.Timestamp, 1*time.Second)
 			require.Equal(t, logline, logEntry.Line)
 			require.Equal(t, wantLabelSet, logEntry.Labels)
-		case logEntry := <-ch2:
+		case logEntry := <-ch2.Chan():
 			require.WithinDuration(t, time.Now(), logEntry.Timestamp, 1*time.Second)
 			require.Equal(t, logline, logEntry.Line)
 			require.Equal(t, wantLabelSet, logEntry.Labels)
@@ -122,7 +129,7 @@ func TestJSONLabelsStage(t *testing.T) {
 }
 
 func TestStaticLabelsLabelAllowLabelDrop(t *testing.T) {
-	defer goleak.VerifyNone(t)
+	defer goleak.VerifyNone(t, goleak.IgnoreTopFunction("go.opencensus.io/stats/view.(*worker).start"))
 
 	// The following stages manipulate the label set of a log entry.
 	// The first stage will define a static set of labels (foo, bar, baz, qux)
@@ -150,7 +157,7 @@ stage.label_keep {
 	err := river.Unmarshal([]byte(stg), &stagesCfg)
 	require.NoError(t, err)
 
-	ch1, ch2 := make(loki.LogsReceiver), make(loki.LogsReceiver)
+	ch1, ch2 := loki.NewLogsReceiver(), loki.NewLogsReceiver()
 
 	// Create and run the component, so that it can process and forwards logs.
 	opts := component.Options{
@@ -180,7 +187,7 @@ stage.label_keep {
 		},
 	}
 
-	c.receiver <- logEntry
+	c.receiver.Chan() <- logEntry
 
 	wantLabelSet := model.LabelSet{
 		"filename": "/var/log/pods/agent/agent/1.log",
@@ -191,11 +198,11 @@ stage.label_keep {
 	// stages correctly applied.
 	for i := 0; i < 2; i++ {
 		select {
-		case logEntry := <-ch1:
+		case logEntry := <-ch1.Chan():
 			require.WithinDuration(t, time.Now(), logEntry.Timestamp, 1*time.Second)
 			require.Equal(t, logline, logEntry.Line)
 			require.Equal(t, wantLabelSet, logEntry.Labels)
-		case logEntry := <-ch2:
+		case logEntry := <-ch2.Chan():
 			require.WithinDuration(t, time.Now(), logEntry.Timestamp, 1*time.Second)
 			require.Equal(t, logline, logEntry.Line)
 			require.Equal(t, wantLabelSet, logEntry.Labels)
@@ -206,7 +213,7 @@ stage.label_keep {
 }
 
 func TestRegexTimestampOutput(t *testing.T) {
-	defer goleak.VerifyNone(t)
+	defer goleak.VerifyNone(t, goleak.IgnoreTopFunction("go.opencensus.io/stats/view.(*worker).start"))
 
 	// The first stage will attempt to parse the input line using a regular
 	// expression with named capture groups. The three capture groups (time,
@@ -245,7 +252,7 @@ stage.labels {
 	err := river.Unmarshal([]byte(stg), &stagesCfg)
 	require.NoError(t, err)
 
-	ch1, ch2 := make(loki.LogsReceiver), make(loki.LogsReceiver)
+	ch1, ch2 := loki.NewLogsReceiver(), loki.NewLogsReceiver()
 
 	// Create and run the component, so that it can process and forwards logs.
 	opts := component.Options{
@@ -275,7 +282,7 @@ stage.labels {
 		},
 	}
 
-	c.receiver <- logEntry
+	c.receiver.Chan() <- logEntry
 
 	wantLabelSet := model.LabelSet{
 		"filename": "/var/log/pods/agent/agent/1.log",
@@ -290,11 +297,11 @@ stage.labels {
 	// stages correctly applied.
 	for i := 0; i < 2; i++ {
 		select {
-		case logEntry := <-ch1:
+		case logEntry := <-ch1.Chan():
 			require.Equal(t, wantLogline, logEntry.Line)
 			require.Equal(t, wantTimestamp, logEntry.Timestamp)
 			require.Equal(t, wantLabelSet, logEntry.Labels)
-		case logEntry := <-ch2:
+		case logEntry := <-ch2.Chan():
 			require.Equal(t, wantLogline, logEntry.Line)
 			require.Equal(t, wantTimestamp, logEntry.Timestamp)
 			require.Equal(t, wantLabelSet, logEntry.Labels)
@@ -302,4 +309,180 @@ stage.labels {
 			require.FailNow(t, "failed waiting for log line")
 		}
 	}
+}
+
+func TestEntrySentToTwoProcessComponents(t *testing.T) {
+	// Set up two different loki.process components.
+	stg1 := `
+forward_to = []
+stage.static_labels {
+    values = { "lbl" = "foo" }
+}
+`
+	stg2 := `
+forward_to = []
+stage.static_labels {
+    values = { "lbl" = "bar" }
+}
+`
+
+	ch1, ch2 := loki.NewLogsReceiver(), loki.NewLogsReceiver()
+	var args1, args2 Arguments
+	require.NoError(t, river.Unmarshal([]byte(stg1), &args1))
+	require.NoError(t, river.Unmarshal([]byte(stg2), &args2))
+	args1.ForwardTo = []loki.LogsReceiver{ch1}
+	args2.ForwardTo = []loki.LogsReceiver{ch2}
+
+	// Start the loki.process components.
+	tc1, err := componenttest.NewControllerFromID(util.TestLogger(t), "loki.process")
+	require.NoError(t, err)
+	tc2, err := componenttest.NewControllerFromID(util.TestLogger(t), "loki.process")
+	require.NoError(t, err)
+	go func() { require.NoError(t, tc1.Run(componenttest.TestContext(t), args1)) }()
+	go func() { require.NoError(t, tc2.Run(componenttest.TestContext(t), args2)) }()
+	require.NoError(t, tc1.WaitExports(time.Second))
+	require.NoError(t, tc2.WaitExports(time.Second))
+
+	// Create a file to log to.
+	f, err := os.CreateTemp(t.TempDir(), "example")
+	require.NoError(t, err)
+	defer f.Close()
+
+	// Create and start a component that will read from that file and fan out to both components.
+	ctrl, err := componenttest.NewControllerFromID(util.TestLogger(t), "loki.source.file")
+	require.NoError(t, err)
+
+	go func() {
+		err := ctrl.Run(context.Background(), lsf.Arguments{
+			Targets: []discovery.Target{{"__path__": f.Name(), "somelbl": "somevalue"}},
+			ForwardTo: []loki.LogsReceiver{
+				tc1.Exports().(Exports).Receiver,
+				tc2.Exports().(Exports).Receiver,
+			},
+		})
+		require.NoError(t, err)
+	}()
+	ctrl.WaitRunning(time.Minute)
+
+	// Write a line to the file.
+	_, err = f.Write([]byte("writing some text\n"))
+	require.NoError(t, err)
+
+	wantLabelSet := model.LabelSet{
+		"filename": model.LabelValue(f.Name()),
+		"somelbl":  "somevalue",
+	}
+
+	// The lines were received after processing by each component, with no
+	// race condition between them.
+	for i := 0; i < 2; i++ {
+		select {
+		case logEntry := <-ch1.Chan():
+			require.WithinDuration(t, time.Now(), logEntry.Timestamp, 1*time.Second)
+			require.Equal(t, "writing some text", logEntry.Line)
+			require.Equal(t, wantLabelSet.Clone().Merge(model.LabelSet{"lbl": "foo"}), logEntry.Labels)
+		case logEntry := <-ch2.Chan():
+			require.WithinDuration(t, time.Now(), logEntry.Timestamp, 1*time.Second)
+			require.Equal(t, "writing some text", logEntry.Line)
+			require.Equal(t, wantLabelSet.Clone().Merge(model.LabelSet{"lbl": "bar"}), logEntry.Labels)
+		case <-time.After(5 * time.Second):
+			require.FailNow(t, "failed waiting for log line")
+		}
+	}
+}
+
+func TestDeadlockWithFrequentUpdates(t *testing.T) {
+	stg := `stage.json { 
+			    expressions    = {"output" = "log", stream = "stream", timestamp = "time", "extra" = "" }
+				drop_malformed = true
+		    }
+			stage.json {
+			    expressions = { "user" = "" }
+				source      = "extra"
+			}
+			stage.labels {
+			    values = { 
+				  stream = "",
+				  user   = "",
+				  ts     = "timestamp",
+			    }
+			}`
+
+	// Unmarshal the River relabel rules into a custom struct, as we don't have
+	// an easy way to refer to a loki.LogsReceiver value for the forward_to
+	// argument.
+	type cfg struct {
+		Stages []stages.StageConfig `river:"stage,enum"`
+	}
+	var stagesCfg cfg
+	err := river.Unmarshal([]byte(stg), &stagesCfg)
+	require.NoError(t, err)
+
+	ch1, ch2 := loki.NewLogsReceiver(), loki.NewLogsReceiver()
+
+	// Create and run the component, so that it can process and forwards logs.
+	opts := component.Options{
+		Logger:        util.TestFlowLogger(t),
+		Registerer:    prometheus.NewRegistry(),
+		OnStateChange: func(e component.Exports) {},
+	}
+	args := Arguments{
+		ForwardTo: []loki.LogsReceiver{ch1, ch2},
+		Stages:    stagesCfg.Stages,
+	}
+
+	c, err := New(opts, args)
+	require.NoError(t, err)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	go c.Run(ctx)
+
+	var lastSend atomic.Value
+	// Drain received logs
+	go func() {
+		for {
+			select {
+			case <-ch1.Chan():
+				lastSend.Store(time.Now())
+			case <-ch2.Chan():
+				lastSend.Store(time.Now())
+			}
+		}
+	}()
+
+	// Continuously send entries to both channels
+	go func() {
+		for {
+			ts := time.Now()
+			logline := `{"log":"log message\n","stream":"stderr","time":"2019-04-30T02:12:41.8443515Z","extra":"{\"user\":\"smith\"}"}`
+			logEntry := loki.Entry{
+				Labels: model.LabelSet{"filename": "/var/log/pods/agent/agent/1.log", "foo": "bar"},
+				Entry: logproto.Entry{
+					Timestamp: ts,
+					Line:      logline,
+				},
+			}
+			c.receiver.Chan() <- logEntry
+		}
+	}()
+
+	// Call Updates
+	args1 := Arguments{
+		ForwardTo: []loki.LogsReceiver{ch1},
+		Stages:    stagesCfg.Stages,
+	}
+	args2 := Arguments{
+		ForwardTo: []loki.LogsReceiver{ch2},
+		Stages:    stagesCfg.Stages,
+	}
+	go func() {
+		for {
+			c.Update(args1)
+			c.Update(args2)
+		}
+	}()
+
+	// Run everything for a while
+	time.Sleep(1 * time.Second)
+	require.WithinDuration(t, time.Now(), lastSend.Load().(time.Time), 300*time.Millisecond)
 }

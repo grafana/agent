@@ -6,9 +6,10 @@ import (
 	"net/http"
 	"strings"
 
+	"go.uber.org/zap"
+
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"github.com/sirupsen/logrus"
 	azure_config "github.com/webdevops/azure-metrics-exporter/config"
 	"github.com/webdevops/azure-metrics-exporter/metrics"
 	"github.com/webdevops/go-common/azuresdk/armclient"
@@ -18,7 +19,7 @@ import (
 
 type Exporter struct {
 	cfg               Config
-	logger            *logrus.Logger // used by azure client
+	logger            *zap.SugaredLogger // used by azure client
 	ConcurrencyConfig azure_config.Opts
 }
 
@@ -43,13 +44,20 @@ func (e Exporter) MetricsHandler() (http.Handler, error) {
 			return
 		}
 
-		logEntry := e.logger.WithFields(logrus.Fields{
-			"resource_type":               mergedConfig.ResourceType,
-			"resource_graph_query_filter": mergedConfig.ResourceGraphQueryFilter,
-			"subscriptions":               strings.Join(mergedConfig.Subscriptions, ","),
-			"metric_namespace":            mergedConfig.MetricNamespace,
-			"metrics":                     strings.Join(mergedConfig.Metrics, ","),
-		})
+		tagManager, err := client.TagManager.ParseTagConfig(mergedConfig.IncludedResourceTags)
+		if err != nil {
+			err = fmt.Errorf("unable to create azure tag manager from included_resource_tags %s, %v", strings.Join(mergedConfig.IncludedResourceTags, ","), err)
+			e.logger.Error(err)
+			http.Error(resp, err.Error(), http.StatusBadRequest)
+		}
+
+		logEntry := e.logger.With(
+			"resource_type", mergedConfig.ResourceType,
+			"resource_graph_query_filter", mergedConfig.ResourceGraphQueryFilter,
+			"subscriptions", strings.Join(mergedConfig.Subscriptions, ","),
+			"metric_namespace", mergedConfig.MetricNamespace,
+			"metrics", strings.Join(mergedConfig.Metrics, ","),
+		)
 
 		settings, err := mergedConfig.ToScrapeSettings()
 		if err != nil {
@@ -61,6 +69,7 @@ func (e Exporter) MetricsHandler() (http.Handler, error) {
 		prober := metrics.NewMetricProber(ctx, logEntry, nil, settings, e.ConcurrencyConfig)
 		prober.SetAzureClient(client)
 		prober.SetPrometheusRegistry(reg)
+		prober.SetAzureResourceTagManager(tagManager)
 
 		err = prober.ServiceDiscovery.FindResourceGraph(ctx, settings.Subscriptions, settings.ResourceType, settings.Filter)
 		if err != nil {

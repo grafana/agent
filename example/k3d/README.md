@@ -11,7 +11,7 @@ that implements a full Grafana Agent environment for testing.
 - Kubectl
 - Docker
 - [Tanka >= v0.9.2](https://github.com/grafana/tanka)
-- [k3d >= v4.0.0,<= v5.2.2](https://github.com/rancher/k3d)
+- [k3d >= v4.0.0,<= v5.2.2](https://github.com/k3d-io/k3d)
 - [jsonnet-bundler >= v0.4.0](https://github.com/jsonnet-bundler/jsonnet-bundler)
 
 ### Getting Started

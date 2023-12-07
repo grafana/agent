@@ -7,42 +7,28 @@ import (
 	"github.com/grafana/agent/pkg/integrations/v2/metricsutils"
 )
 
-// DefaultConfig holds the default settings for the windows_exporter integration.
-var DefaultConfig = Config{
-	EnabledCollectors: "cpu,cs,logical_disk,net,os,service,system",
-
-	// NOTE(rfratto): there is an init function in config_windows.go that
-	// populates defaults for collectors based on the exporter defaults.
-}
-
 func init() {
 	integrations.RegisterIntegration(&Config{})
 	integrations_v2.RegisterLegacy(&Config{}, integrations_v2.TypeSingleton, metricsutils.NewNamedShim("windows"))
 }
 
 // Config controls the windows_exporter integration.
-// All of these and their child fields are pointers so we can determine if the value was set or not.
+// All of these and their child fields are pointers, so we can determine if the value was set or not.
 type Config struct {
 	EnabledCollectors string `yaml:"enabled_collectors"`
 
-	Exchange    ExchangeConfig    `yaml:"exchange,omitempty"`
-	IIS         IISConfig         `yaml:"iis,omitempty"`
-	TextFile    TextFileConfig    `yaml:"text_file,omitempty"`
-	SMTP        SMTPConfig        `yaml:"smtp,omitempty"`
-	Service     ServiceConfig     `yaml:"service,omitempty"`
-	Process     ProcessConfig     `yaml:"process,omitempty"`
-	Network     NetworkConfig     `yaml:"network,omitempty"`
-	MSSQL       MSSQLConfig       `yaml:"mssql,omitempty"`
-	MSMQ        MSMQConfig        `yaml:"msmq,omitempty"`
-	LogicalDisk LogicalDiskConfig `yaml:"logical_disk,omitempty"`
-}
-
-// UnmarshalYAML implements yaml.Unmarshaler for Config.
-func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	*c = DefaultConfig
-
-	type plain Config
-	return unmarshal((*plain)(c))
+	Dfsr          DfsrConfig          `yaml:"dfsr,omitempty"`
+	Exchange      ExchangeConfig      `yaml:"exchange,omitempty"`
+	IIS           IISConfig           `yaml:"iis,omitempty"`
+	TextFile      TextFileConfig      `yaml:"text_file,omitempty"`
+	SMTP          SMTPConfig          `yaml:"smtp,omitempty"`
+	Service       ServiceConfig       `yaml:"service,omitempty"`
+	Process       ProcessConfig       `yaml:"process,omitempty"`
+	Network       NetworkConfig       `yaml:"network,omitempty"`
+	MSSQL         MSSQLConfig         `yaml:"mssql,omitempty"`
+	MSMQ          MSMQConfig          `yaml:"msmq,omitempty"`
+	LogicalDisk   LogicalDiskConfig   `yaml:"logical_disk,omitempty"`
+	ScheduledTask ScheduledTaskConfig `yaml:"scheduled_task,omitempty"`
 }
 
 // Name returns the name used, "windows_explorer"
@@ -60,6 +46,11 @@ func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) 
 	return New(l, c)
 }
 
+// DfsrConfig handles settings for the windows_exporter dfsr collector
+type DfsrConfig struct {
+	SourcesEnabled string `yaml:"sources_enabled,omitempty"`
+}
+
 // ExchangeConfig handles settings for the windows_exporter Exchange collector
 type ExchangeConfig struct {
 	EnabledList string `yaml:"enabled_list,omitempty"`
@@ -71,6 +62,10 @@ type IISConfig struct {
 	SiteBlackList string `yaml:"site_blacklist,omitempty"`
 	AppWhiteList  string `yaml:"app_whitelist,omitempty"`
 	AppBlackList  string `yaml:"app_blacklist,omitempty"`
+	SiteInclude   string `yaml:"site_include,omitempty"`
+	SiteExclude   string `yaml:"site_exclude,omitempty"`
+	AppInclude    string `yaml:"app_include,omitempty"`
+	AppExclude    string `yaml:"app_exclude,omitempty"`
 }
 
 // TextFileConfig handles settings for the windows_exporter Text File collector
@@ -80,25 +75,32 @@ type TextFileConfig struct {
 
 // SMTPConfig handles settings for the windows_exporter SMTP collector
 type SMTPConfig struct {
-	WhiteList string `yaml:"whitelist,omitempty"`
 	BlackList string `yaml:"blacklist,omitempty"`
+	WhiteList string `yaml:"whitelist,omitempty"`
+	Include   string `yaml:"include,omitempty"`
+	Exclude   string `yaml:"exclude,omitempty"`
 }
 
 // ServiceConfig handles settings for the windows_exporter service collector
 type ServiceConfig struct {
-	Where string `yaml:"where_clause,omitempty"`
+	UseApi string `yaml:"use_api,omitempty"`
+	Where  string `yaml:"where_clause,omitempty"`
 }
 
 // ProcessConfig handles settings for the windows_exporter process collector
 type ProcessConfig struct {
-	WhiteList string `yaml:"whitelist,omitempty"`
 	BlackList string `yaml:"blacklist,omitempty"`
+	WhiteList string `yaml:"whitelist,omitempty"`
+	Include   string `yaml:"include,omitempty"`
+	Exclude   string `yaml:"exclude,omitempty"`
 }
 
 // NetworkConfig handles settings for the windows_exporter network collector
 type NetworkConfig struct {
-	WhiteList string `yaml:"whitelist,omitempty"`
 	BlackList string `yaml:"blacklist,omitempty"`
+	WhiteList string `yaml:"whitelist,omitempty"`
+	Include   string `yaml:"include,omitempty"`
+	Exclude   string `yaml:"exclude,omitempty"`
 }
 
 // MSSQLConfig handles settings for the windows_exporter SQL server collector
@@ -113,6 +115,14 @@ type MSMQConfig struct {
 
 // LogicalDiskConfig handles settings for the windows_exporter logical disk collector
 type LogicalDiskConfig struct {
-	WhiteList string `yaml:"whitelist,omitempty"`
 	BlackList string `yaml:"blacklist,omitempty"`
+	WhiteList string `yaml:"whitelist,omitempty"`
+	Include   string `yaml:"include,omitempty"`
+	Exclude   string `yaml:"exclude,omitempty"`
+}
+
+// ScheduledTaskConfig handles settings for the windows_exporter scheduled_task collector
+type ScheduledTaskConfig struct {
+	Include string `yaml:"include,omitempty"`
+	Exclude string `yaml:"exclude,omitempty"`
 }

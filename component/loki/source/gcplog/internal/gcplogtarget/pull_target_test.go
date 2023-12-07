@@ -9,11 +9,13 @@ import (
 
 	"cloud.google.com/go/pubsub"
 	"github.com/go-kit/log"
-	"github.com/grafana/agent/component/loki/source/gcplog/internal/fake"
 	"github.com/grafana/dskit/backoff"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/require"
 	"gotest.tools/assert"
+
+	"github.com/grafana/agent/component/common/loki/client/fake"
+	"github.com/grafana/agent/component/loki/source/gcplog/gcptypes"
 )
 
 func TestPullTarget_RunStop(t *testing.T) {
@@ -107,7 +109,7 @@ func testPullTarget(t *testing.T) *testContext {
 
 	ctx, cancel := context.WithCancel(context.Background())
 	sub := newFakeSubscription()
-	promClient := fake.New(func() {})
+	promClient := fake.NewClient(func() {})
 	target := &PullTarget{
 		metrics:       NewMetrics(prometheus.NewRegistry()),
 		logger:        log.NewNopLogger(),
@@ -202,7 +204,7 @@ const (
 `
 )
 
-var testConfig = &PullConfig{
+var testConfig = &gcptypes.PullConfig{
 	ProjectID:    project,
 	Subscription: subscription,
 	Labels: map[string]string{

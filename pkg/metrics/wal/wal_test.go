@@ -3,6 +3,8 @@ package wal
 import (
 	"context"
 	"math"
+	"os"
+	"path/filepath"
 	"sort"
 	"testing"
 	"time"
@@ -99,6 +101,35 @@ func TestStorage(t *testing.T) {
 	require.Equal(t, expectedExemplars, actualExemplars)
 }
 
+func TestStorage_Rollback(t *testing.T) {
+	walDir := t.TempDir()
+	s, err := NewStorage(log.NewNopLogger(), nil, walDir)
+	require.NoError(t, err)
+	t.Cleanup(func() {
+		require.NoError(t, s.Close())
+	})
+
+	app := s.Appender(context.Background())
+
+	payload := buildSeries([]string{"foo", "bar", "baz", "blerg"})
+	for _, metric := range payload {
+		metric.Write(t, app)
+	}
+
+	require.NoError(t, app.Rollback())
+
+	var collector walDataCollector
+
+	replayer := walReplayer{w: &collector}
+	require.NoError(t, replayer.Replay(s.wal.Dir()))
+
+	require.Len(t, collector.series, 4, "Series records should be written on Rollback")
+	require.Len(t, collector.samples, 0, "Samples should not be written on rollback")
+	require.Len(t, collector.exemplars, 0, "Exemplars should not be written on rollback")
+	require.Len(t, collector.histograms, 0, "Histograms should not be written on rollback")
+	require.Len(t, collector.floatHistograms, 0, "Native histograms should not be written on rollback")
+}
+
 func TestStorage_DuplicateExemplarsIgnored(t *testing.T) {
 	walDir := t.TempDir()
 
@@ -132,12 +163,16 @@ func TestStorage_DuplicateExemplarsIgnored(t *testing.T) {
 	_, _ = app.AppendExemplar(sRef, nil, e)
 	_, _ = app.AppendExemplar(sRef, nil, e)
 
+	e.Ts = 24
+	_, _ = app.AppendExemplar(sRef, nil, e)
+	_, _ = app.AppendExemplar(sRef, nil, e)
+
 	require.NoError(t, app.Commit())
 	collector := walDataCollector{}
 	replayer := walReplayer{w: &collector}
 	require.NoError(t, replayer.Replay(s.wal.Dir()))
 
-	// We had 9 calls to AppendExemplar but only 4 of those should have gotten through
+	// We had 11 calls to AppendExemplar but only 4 of those should have gotten through.
 	require.Equal(t, 4, len(collector.exemplars))
 }
 
@@ -230,7 +265,7 @@ func TestStorage_ExistingWAL_RefID(t *testing.T) {
 	require.NoError(t, err)
 	defer require.NoError(t, s.Close())
 
-	require.Equal(t, uint64(len(payload)), s.ref.Load(), "cached ref ID should be equal to the number of series written")
+	require.Equal(t, uint64(len(payload)), s.nextRef.Load(), "cached ref ID should be equal to the number of series written")
 }
 
 func TestStorage_Truncate(t *testing.T) {
@@ -256,7 +291,7 @@ func TestStorage_Truncate(t *testing.T) {
 
 	require.NoError(t, app.Commit())
 
-	// Forefully create a bunch of new segments so when we truncate
+	// Forcefully create a bunch of new segments so when we truncate
 	// there's enough segments to be considered for truncation.
 	for i := 0; i < 5; i++ {
 		_, err := s.wal.NextSegmentSync()
@@ -359,6 +394,23 @@ func TestStorage_TruncateAfterClose(t *testing.T) {
 	require.Error(t, ErrWALClosed, s.Truncate(0))
 }
 
+func TestStorage_Corruption(t *testing.T) {
+	walDir := t.TempDir()
+
+	// Write a corrupt segment
+	err := os.Mkdir(filepath.Join(walDir, "wal"), 0755)
+	require.NoError(t, err)
+	err = os.WriteFile(filepath.Join(walDir, "wal", "00000000"), []byte("hello world"), 0644)
+	require.NoError(t, err)
+
+	// The storage should be initialized correctly anyway.
+	s, err := NewStorage(log.NewNopLogger(), nil, walDir)
+	require.NoError(t, err)
+	require.NotNil(t, s)
+
+	require.NoError(t, s.Close())
+}
+
 func TestGlobalReferenceID_Normal(t *testing.T) {
 	walDir := t.TempDir()
 
@@ -384,6 +436,32 @@ func TestGlobalReferenceID_Normal(t *testing.T) {
 	ref3, err := app.Append(0, l2, time.Now().UnixMilli(), 0.1)
 	require.NoError(t, err)
 	require.True(t, ref3 == 2)
+}
+
+func TestDBAllowOOOSamples(t *testing.T) {
+	walDir := t.TempDir()
+
+	s, err := NewStorage(log.NewNopLogger(), nil, walDir)
+	require.NoError(t, err)
+	defer func() {
+		require.NoError(t, s.Close())
+	}()
+
+	app := s.Appender(context.Background())
+
+	// Write some samples
+	payload := buildSeries([]string{"foo", "bar", "baz"})
+	for _, metric := range payload {
+		metric.Write(t, app)
+	}
+
+	require.NoError(t, app.Commit())
+
+	for _, metric := range payload {
+		// We want to set the timestamp to before using this offset.
+		// This should no longer trigger an out of order.
+		metric.WriteOOO(t, app, 10_000)
+	}
 }
 
 func BenchmarkAppendExemplar(b *testing.B) {
@@ -444,6 +522,28 @@ func (s *series) Write(t *testing.T, app storage.Appender) {
 	for _, exemplar := range s.exemplars {
 		var err error
 		sRef, err = app.AppendExemplar(sRef, nil, exemplar)
+		require.NoError(t, err)
+	}
+}
+
+func (s *series) WriteOOO(t *testing.T, app storage.Appender, tsOffset int64) {
+	t.Helper()
+
+	lbls := labels.FromMap(map[string]string{"__name__": s.name})
+
+	offset := 0
+	if s.ref == nil {
+		// Write first sample to get ref ID
+		ref, err := app.Append(0, lbls, s.samples[0].ts-tsOffset, s.samples[0].val)
+		require.NoError(t, err)
+
+		s.ref = &ref
+		offset = 1
+	}
+
+	// Write other data points with AddFast
+	for _, sample := range s.samples[offset:] {
+		_, err := app.Append(*s.ref, lbls, sample.ts-tsOffset, sample.val)
 		require.NoError(t, err)
 	}
 }

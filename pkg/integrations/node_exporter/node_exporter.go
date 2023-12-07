@@ -1,3 +1,5 @@
+//go:build !windows
+
 package node_exporter //nolint:golint
 
 import (
@@ -5,16 +7,14 @@ import (
 	"fmt"
 	"net/http"
 	"sort"
-	"strings"
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
+	"github.com/grafana/agent/pkg/build"
 	"github.com/grafana/agent/pkg/integrations/config"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"github.com/prometheus/common/version"
 	"github.com/prometheus/node_exporter/collector"
-	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 // Integration is the node_exporter integration. The integration scrapes metrics
@@ -29,23 +29,8 @@ type Integration struct {
 
 // New creates a new node_exporter integration.
 func New(log log.Logger, c *Config) (*Integration, error) {
-	// NOTE(rfratto): this works as long as node_exporter is the only thing using
-	// kingpin across the codebase. node_exporter may need a PR eventually to pass
-	// in a custom kingpin application or expose methods to explicitly enable/disable
-	// collectors that we can use instead of this command line hack.
-	flags, _ := MapConfigToNodeExporterFlags(c)
-	level.Debug(log).Log("msg", "initializing node_exporter with flags converted from agent config", "flags", strings.Join(flags, " "))
-
-	for _, warn := range c.UnmarshalWarnings {
-		level.Warn(log).Log("msg", warn)
-	}
-
-	_, err := kingpin.CommandLine.Parse(flags)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse flags for generating node_exporter configuration: %w", err)
-	}
-
-	nc, err := collector.NewNodeCollector(log)
+	cfg := c.mapConfigToNodeConfig()
+	nc, err := collector.NewNodeCollector(cfg, log)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create node_exporter: %w", err)
 	}
@@ -86,7 +71,7 @@ func (i *Integration) MetricsHandler() (http.Handler, error) {
 
 	// Register node_exporter_build_info metrics, generally useful for
 	// dashboards that depend on them for discovering targets.
-	if err := r.Register(version.NewCollector(i.c.Name())); err != nil {
+	if err := r.Register(build.NewCollector(i.c.Name())); err != nil {
 		return nil, fmt.Errorf("couldn't register %s: %w", i.c.Name(), err)
 	}
 

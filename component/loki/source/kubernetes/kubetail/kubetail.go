@@ -6,9 +6,9 @@ import (
 	"sync"
 
 	"github.com/go-kit/log"
-	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component/common/loki"
 	"github.com/grafana/agent/component/common/loki/positions"
+	"github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/grafana/agent/pkg/runner"
 	"k8s.io/client-go/kubernetes"
 )
@@ -113,7 +113,7 @@ func entryForTarget(t *Target) positions.Entry {
 	// it's probably not worth handling.
 	//
 	// The path is fed into positions.CursorKey to treat it as a "cursor";
-	// otherise positions.Positions will try to read the path as a file and
+	// otherwise positions.Positions will try to read the path as a file and
 	// delete the entry when it can't find it.
 	return positions.Entry{
 		Path:   positions.CursorKey(t.String() + ":" + t.UID()),

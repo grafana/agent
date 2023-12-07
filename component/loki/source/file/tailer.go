@@ -1,21 +1,24 @@
 package file
 
-// This code is copied from Promtail. tailer implements the reader interface by
-// using the github.com/hpcloud/tail package to tail files.
+// This code is copied from loki/promtail@a8d5815510bd959a6dd8c176a5d9fd9bbfc8f8b5.
+// tailer implements the reader interface by using the github.com/grafana/tail package to tail files.
 
 import (
+	"bytes"
 	"fmt"
+	"io"
 	"os"
 	"sync"
 	"time"
 
 	"github.com/go-kit/log"
-	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component/common/loki"
 	"github.com/grafana/agent/component/common/loki/positions"
+	"github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/grafana/loki/pkg/logproto"
 	"github.com/grafana/loki/pkg/util"
-	"github.com/hpcloud/tail"
+	"github.com/grafana/tail"
+	"github.com/grafana/tail/watch"
 	"github.com/prometheus/common/model"
 	"go.uber.org/atomic"
 	"golang.org/x/text/encoding"
@@ -44,7 +47,8 @@ type tailer struct {
 	decoder *encoding.Decoder
 }
 
-func newTailer(metrics *metrics, logger log.Logger, handler loki.EntryHandler, positions positions.Positions, path string, labels string, encoding string) (*tailer, error) {
+func newTailer(metrics *metrics, logger log.Logger, handler loki.EntryHandler, positions positions.Positions, path string,
+	labels string, encoding string, pollOptions watch.PollingFileWatcherOptions, tailFromEnd bool) (*tailer, error) {
 	// Simple check to make sure the file we are tailing doesn't
 	// have a position already saved which is past the end of the file.
 	fi, err := os.Stat(path)
@@ -60,6 +64,17 @@ func newTailer(metrics *metrics, logger log.Logger, handler loki.EntryHandler, p
 		positions.Remove(path, labels)
 	}
 
+	// If no cached position is found and the tailFromEnd option is enabled.
+	if pos == 0 && tailFromEnd {
+		pos, err = getLastLinePosition(path)
+		if err != nil {
+			level.Error(logger).Log("msg", "failed to get a position from the end of the file, default to start of file", err)
+		} else {
+			positions.Put(path, labels, pos)
+			level.Info(logger).Log("msg", "retrieved and stored the position of the last line")
+		}
+	}
+
 	tail, err := tail.TailFile(path, tail.Config{
 		Follow:    true,
 		Poll:      true,
@@ -69,7 +84,8 @@ func newTailer(metrics *metrics, logger log.Logger, handler loki.EntryHandler, p
 			Offset: pos,
 			Whence: 0,
 		},
-		Logger: util.NewLogAdapter(logger),
+		Logger:      util.NewLogAdapter(logger),
+		PollOptions: pollOptions,
 	})
 	if err != nil {
 		return nil, err
@@ -106,6 +122,62 @@ func newTailer(metrics *metrics, logger log.Logger, handler loki.EntryHandler, p
 	return tailer, nil
 }
 
+// getLastLinePosition returns the offset of the start of the last line in the file at the given path.
+// It will read chunks of bytes starting from the end of the file to return the position of the last '\n' + 1.
+// If it cannot find any '\n' it will return 0.
+func getLastLinePosition(path string) (int64, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return 0, err
+	}
+	defer file.Close()
+
+	const chunkSize = 1024
+
+	buf := make([]byte, chunkSize)
+	fi, err := file.Stat()
+	if err != nil {
+		return 0, err
+	}
+
+	if fi.Size() == 0 {
+		return 0, nil
+	}
+
+	var pos int64 = fi.Size() - chunkSize
+	if pos < 0 {
+		pos = 0
+	}
+
+	for {
+		_, err = file.Seek(pos, io.SeekStart)
+		if err != nil {
+			return 0, err
+		}
+
+		bytesRead, err := file.Read(buf)
+		if err != nil {
+			return 0, err
+		}
+
+		idx := bytes.LastIndexByte(buf[:bytesRead], '\n')
+		// newline found
+		if idx != -1 {
+			return pos + int64(idx) + 1, nil
+		}
+
+		// no newline found in the entire file
+		if pos == 0 {
+			return 0, nil
+		}
+
+		pos -= chunkSize
+		if pos < 0 {
+			pos = 0
+		}
+	}
+}
+
 // updatePosition is run in a goroutine and checks the current size of the file
 // and saves it to the positions file at a regular interval. If there is ever
 // an error it stops the tailer and exits, the tailer will be re-opened by the
@@ -117,6 +189,8 @@ func (t *tailer) updatePosition() {
 	defer func() {
 		positionWait.Stop()
 		level.Info(t.logger).Log("msg", "position timer: exited", "path", t.path)
+		// NOTE: metrics must be cleaned up after the position timer exits, as MarkPositionAndSize() updates metrics.
+		t.cleanupMetrics()
 		close(t.posdone)
 	}()
 
@@ -152,10 +226,11 @@ func (t *tailer) readLines() {
 	// This function runs in a goroutine, if it exits this tailer will never do any more tailing.
 	// Clean everything up.
 	defer func() {
-		t.cleanupMetrics()
 		t.running.Store(false)
 		level.Info(t.logger).Log("msg", "tail routine: exited", "path", t.path)
 		close(t.done)
+		// Shut down the position marker thread
+		close(t.posquit)
 	}()
 	entries := t.handler.Chan()
 	for {
@@ -209,12 +284,14 @@ func (t *tailer) MarkPositionAndSize() error {
 		}
 		return err
 	}
-	t.metrics.totalBytes.WithLabelValues(t.path).Set(float64(size))
 
 	pos, err := t.tail.Tell()
 	if err != nil {
 		return err
 	}
+
+	// Update metrics and positions file all together to avoid race conditions when `t.tail` is stopped.
+	t.metrics.totalBytes.WithLabelValues(t.path).Set(float64(size))
 	t.metrics.readBytes.WithLabelValues(t.path).Set(float64(pos))
 	t.positions.Put(t.path, t.labels, pos)
 
@@ -225,10 +302,6 @@ func (t *tailer) Stop() {
 	// stop can be called by two separate threads in filetarget, to avoid a panic closing channels more than once
 	// we wrap the stop in a sync.Once.
 	t.stopOnce.Do(func() {
-		// Shut down the position marker thread
-		close(t.posquit)
-		<-t.posdone
-
 		// Save the current position before shutting down tailer
 		err := t.MarkPositionAndSize()
 		if err != nil {
@@ -242,6 +315,8 @@ func (t *tailer) Stop() {
 		}
 		// Wait for readLines() to consume all the remaining messages and exit when the channel is closed
 		<-t.done
+		// Wait for the position marker thread to exit
+		<-t.posdone
 		level.Info(t.logger).Log("msg", "stopped tailing file", "path", t.path)
 		t.handler.Stop()
 	})

@@ -1,20 +1,27 @@
 ---
-title: Install Grafana Agent Operator with Helm
+aliases:
+- /docs/grafana-cloud/agent/operator/helm-getting-started/
+- /docs/grafana-cloud/monitor-infrastructure/agent/operator/helm-getting-started/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/operator/helm-getting-started/
+- /docs/grafana-cloud/send-data/agent/operator/helm-getting-started/
+canonical: https://grafana.com/docs/agent/latest/operator/helm-getting-started/
+description: Learn how to install the Operator with Helm charts
+title: Install the Operator with Helm
 weight: 100
 ---
-# Install Grafana Agent Operator with Helm
+# Install the Operator with Helm
 
 In this guide, you'll learn how to deploy [Grafana Agent Operator]({{< relref "./_index.md" >}}) into your Kubernetes cluster using the [grafana-agent-operator Helm chart](https://github.com/grafana/helm-charts/tree/main/charts/agent-operator). To learn how to deploy Agent Operator without using Helm, see [Install Grafana Agent Operator]({{< relref "./getting-started.md" >}}).
 
-> **Note**: If you are shipping your data to Grafana Cloud, use [Kubernetes Monitoring](https://grafana.com/docs/grafana-cloud/kubernetes-monitoring/) to set up Agent Operator. Kubernetes Monitoring provides a simplified approach and preconfigured dashboards and alerts.
+> **Note**: If you are shipping your data to Grafana Cloud, use [Kubernetes Monitoring](/docs/grafana-cloud/kubernetes-monitoring/) to set up Agent Operator. Kubernetes Monitoring provides a simplified approach and preconfigured dashboards and alerts.
 
 ## Before you begin
 
 To deploy Agent Operator with Helm, make sure that you have the following:
 
 - A Kubernetes cluster
-- The `kubectl` command-line client installed and configured on your machine
-- The `helm` command-line client installed and configured on your machine
+- The [`kubectl`](https://kubernetes.io/docs/tasks/tools/#kubectl) command-line client installed and configured on your machine
+- The [`helm`](https://helm.sh/docs/intro/install/) command-line client installed and configured on your machine
 
 > **Note:** Agent Operator is currently in beta and its custom resources are subject to change.
 
@@ -61,4 +68,4 @@ To install the Agent Operator Helm chart:
 
 ## Deploy the Grafana Agent Operator resources
 
- Agent Operator is now up and running. Next, you need to install a Grafana Agent for Agent Operator to run for you. To do so, follow the instructions in the [Deploy the Grafana Agent Operator resources]({{< relref "./deploy-agent-operator-resources.md" >}}) topic. To learn more about the custom resources Agent Operator provides and their hierarchy, see [Grafana Agent Operator architecture]({{< relref "./architecture/" >}}).
+ Agent Operator is now up and running. Next, you need to install a Grafana Agent for Agent Operator to run for you. To do so, follow the instructions in the [Deploy the Grafana Agent Operator resources]({{< relref "./deploy-agent-operator-resources.md" >}}) topic. To learn more about the custom resources Agent Operator provides and their hierarchy, see [Grafana Agent Operator architecture]({{< relref "./architecture" >}}).

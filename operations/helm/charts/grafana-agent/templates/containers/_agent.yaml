@@ -1,6 +1,6 @@
 {{- define "grafana-agent.container" -}}
 - name: grafana-agent
-  image: {{ .Values.image.repository }}:{{ include "grafana-agent.imageTag" . }}
+  image: {{ .Values.global.image.registry | default .Values.image.registry }}/{{ .Values.image.repository }}{{ include "grafana-agent.imageId" . }}
   imagePullPolicy: {{ .Values.image.pullPolicy }}
   args:
     {{- if eq .Values.agent.mode "flow"}}
@@ -8,8 +8,13 @@
     - /etc/agent/{{ include "grafana-agent.config-map.key" . }}
     - --storage.path={{ .Values.agent.storagePath }}
     - --server.http.listen-addr={{ .Values.agent.listenAddr }}:{{ .Values.agent.listenPort }}
+    - --server.http.ui-path-prefix={{ .Values.agent.uiPathPrefix }}
     {{- if not .Values.agent.enableReporting }}
     - --disable-reporting
+    {{- end}}
+    {{- if .Values.agent.clustering.enabled }}
+    - --cluster.enabled=true
+    - --cluster.join-addresses={{ include "grafana-agent.fullname" . }}-cluster
     {{- end}}
     {{- end}}
     {{- if eq .Values.agent.mode "static"}}
@@ -22,6 +27,8 @@
   env:
     - name: AGENT_MODE
       value: {{ .Values.agent.mode }}
+    - name: AGENT_DEPLOY_MODE
+      value: "helm"
     - name: HOSTNAME
       valueFrom:
         fieldRef:
@@ -29,11 +36,13 @@
     {{- range .Values.agent.extraEnv }}
     - {{- toYaml . | nindent 6 }}
     {{- end }}
+  {{- if .Values.agent.envFrom }}
+  envFrom:
+    {{- toYaml .Values.agent.envFrom | nindent 4 }}
+  {{- end }}
   ports:
     - containerPort: {{ .Values.agent.listenPort }}
       name: http-metrics
-    - containerPort: {{ .Values.agent.faroPort }}
-      name: faro
     {{- range $portMap := .Values.agent.extraPorts }}
     - containerPort: {{ $portMap.targetPort }}
       {{- if $portMap.hostPort }}

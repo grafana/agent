@@ -1,5 +1,4 @@
 //go:build windows
-// +build windows
 
 package main
 
@@ -8,10 +7,10 @@ import (
 	"log"
 	"os"
 
-	util_log "github.com/cortexproject/cortex/pkg/util/log"
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/pkg/config"
 	"github.com/grafana/agent/pkg/server"
+	util_log "github.com/grafana/agent/pkg/util/log"
 
 	"golang.org/x/sys/windows/svc"
 )
@@ -30,7 +29,8 @@ func (m *AgentService) Execute(args []string, serviceRequests <-chan svc.ChangeR
 	// oddly enough args is blank
 
 	// Set up logging using default values before loading the config
-	logger := server.NewWindowsEventLogger(&server.DefaultConfig)
+	defaultServerCfg := server.DefaultConfig()
+	logger := server.NewWindowsEventLogger(&defaultServerCfg)
 
 	reloader := func(log *server.Logger) (*config.Config, error) {
 		fs := flag.NewFlagSet(os.Args[0], flag.ExitOnError)

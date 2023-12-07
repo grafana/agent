@@ -1,12 +1,19 @@
 ---
-title: mimir.rules.kubernetes
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/mimir.rules.kubernetes/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/mimir.rules.kubernetes/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/mimir.rules.kubernetes/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/mimir.rules.kubernetes/
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/mimir.rules.kubernetes/
+description: Learn about mimir.rules.kubernetes
 labels:
   stage: beta
+title: mimir.rules.kubernetes
 ---
 
 # mimir.rules.kubernetes
 
-{{< docs/shared lookup="flow/stability/beta.md" source="agent" >}}
+{{< docs/shared lookup="flow/stability/beta.md" source="agent" version="<AGENT_VERSION>" >}}
 
 `mimir.rules.kubernetes` discovers `PrometheusRule` Kubernetes resources and
 loads them into a Mimir instance.
@@ -40,18 +47,18 @@ mimir.rules.kubernetes "LABEL" {
 
 `mimir.rules.kubernetes` supports the following arguments:
 
-Name                     | Type       | Description                                              | Default | Required
--------------------------|------------|----------------------------------------------------------|---------|---------
-`address`                | `string`   | URL of the Mimir ruler.                                  |         | yes
-`tenant_id`              | `string`   | Mimir tenant ID.                                         |         | no
-`use_legacy_routes`      | `bool`     | Whether to use deprecated ruler API endpoints.           | false   | no
-`sync_interval`          | `duration` | Amount of time between reconciliations with Mimir.       | "30s"   | no
-`mimir_namespace_prefix` | `string`   | Prefix used to differentiate multiple agent deployments. | "agent" | no
-`bearer_token`           | `secret`   | Bearer token to authenticate with.                       |         | no
-`bearer_token_file`      | `string`   | File containing a bearer token to authenticate with.     |         | no
-`proxy_url`              | `string`   | HTTP proxy to proxy requests through.                    |         | no
-`follow_redirects`       | `bool`     | Whether redirects returned by the server should be followed. | `true` | no
-`enable_http2`           | `bool`     | Whether HTTP2 is supported for requests.                 | `true`  | no
+Name                     | Type       | Description                                                                     | Default | Required
+-------------------------|------------|---------------------------------------------------------------------------------|---------|---------
+`address`                | `string`   | URL of the Mimir ruler.                                                         |         | yes
+`tenant_id`              | `string`   | Mimir tenant ID.                                                                |         | no
+`use_legacy_routes`      | `bool`     | Whether to use deprecated ruler API endpoints.                                  | false   | no
+`sync_interval`          | `duration` | Amount of time between reconciliations with Mimir.                              | "30s"   | no
+`mimir_namespace_prefix` | `string`   | Prefix used to differentiate multiple {{< param "PRODUCT_NAME" >}} deployments. | "agent" | no
+`bearer_token`           | `secret`   | Bearer token to authenticate with.                                              |         | no
+`bearer_token_file`      | `string`   | File containing a bearer token to authenticate with.                            |         | no
+`proxy_url`              | `string`   | HTTP proxy to proxy requests through.                                           |         | no
+`follow_redirects`       | `bool`     | Whether redirects returned by the server should be followed.                    | `true`  | no
+`enable_http2`           | `bool`     | Whether HTTP2 is supported for requests.                                        | `true`  | no
 
  At most one of the following can be provided:
  - [`bearer_token` argument](#arguments).
@@ -71,7 +78,7 @@ differently. Updates are processed as events from the Kubernetes API server
 according to the informer pattern.
 
 The `mimir_namespace_prefix` argument can be used to separate the rules managed
-by multiple agent deployments across your infrastructure. It should be set to a
+by multiple {{< param "PRODUCT_NAME" >}} deployments across your infrastructure. It should be set to a
 unique value for each deployment.
 
 ## Blocks
@@ -120,33 +127,36 @@ The `match_expression` block describes a Kubernetes label match expression for r
 
 The following arguments are supported:
 
-Name       | Type       | Description                                        | Default | Required
------------|------------|----------------------------------------------------|---------|---------
-`key`      | `string`   | The label name to match against.                   |         | yes
-`operator` | `string`   | The operator to use when matching. |         | yes
-`values`   | `[]string` | The values used when matching.                     |         | no
+Name       | Type           | Description                                        | Default | Required
+-----------|----------------|----------------------------------------------------|---------|---------
+`key`      | `string`       | The label name to match against.                   |         | yes
+`operator` | `string`       | The operator to use when matching.                 |         | yes
+`values`   | `list(string)` | The values used when matching.                     |         | no
 
 The `operator` argument should be one of the following strings:
 
-* `"in"`
-* `"notin"`
-* `"exists"`
+* `"In"`
+* `"NotIn"`
+* `"Exists"`
+* `"DoesNotExist"`
+
+The `values` argument must not be provided when `operator` is set to `"Exists"` or `"DoesNotExist"`.
 
 ### basic_auth block
 
-{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### authorization block
 
-{{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### oauth2 block
 
-{{< docs/shared lookup="flow/reference/components/oauth2-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/oauth2-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### tls_config block
 
-{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ## Exported fields
 

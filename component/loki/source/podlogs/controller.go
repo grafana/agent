@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/go-kit/log"
-	"github.com/go-kit/log/level"
 	monitoringv1alpha2 "github.com/grafana/agent/component/loki/source/podlogs/internal/apis/monitoring/v1alpha2"
+	"github.com/grafana/agent/pkg/flow/logging/level"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/rest"
@@ -58,19 +58,16 @@ func (ctrl *controller) UpdateConfig(cfg *rest.Config) error {
 		}
 	}
 
-	cli, err := client.New(cfg, client.Options{Scheme: scheme})
-	if err != nil {
-		return err
-	}
-
 	cache, err := cache.New(cfg, cache.Options{Scheme: scheme})
 	if err != nil {
 		return err
 	}
 
-	delegateCli, err := client.NewDelegatingClient(client.NewDelegatingClientInput{
-		CacheReader: cache,
-		Client:      cli,
+	cli, err := client.New(cfg, client.Options{
+		Scheme: scheme,
+		Cache: &client.CacheOptions{
+			Reader: cache,
+		},
 	})
 	if err != nil {
 		return err
@@ -79,7 +76,7 @@ func (ctrl *controller) UpdateConfig(cfg *rest.Config) error {
 	// Update the stored informers and client and schedule a reload.
 	ctrl.mut.Lock()
 	ctrl.informers = cache
-	ctrl.client = delegateCli
+	ctrl.client = cli
 	ctrl.mut.Unlock()
 
 	select {
@@ -183,7 +180,10 @@ func (ctrl *controller) configureInformers(ctx context.Context, informers cache.
 
 			return err
 		}
-		informer.AddEventHandler(onChangeEventHandler{ChangeFunc: ctrl.RequestReconcile})
+		_, err = informer.AddEventHandler(onChangeEventHandler{ChangeFunc: ctrl.RequestReconcile})
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -204,6 +204,6 @@ type onChangeEventHandler struct {
 
 var _ toolscache.ResourceEventHandler = onChangeEventHandler{}
 
-func (h onChangeEventHandler) OnAdd(_ interface{})       { h.ChangeFunc() }
-func (h onChangeEventHandler) OnUpdate(_, _ interface{}) { h.ChangeFunc() }
-func (h onChangeEventHandler) OnDelete(_ interface{})    { h.ChangeFunc() }
+func (h onChangeEventHandler) OnAdd(_ interface{}, _ bool) { h.ChangeFunc() }
+func (h onChangeEventHandler) OnUpdate(_, _ interface{})   { h.ChangeFunc() }
+func (h onChangeEventHandler) OnDelete(_ interface{})      { h.ChangeFunc() }

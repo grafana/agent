@@ -2,17 +2,19 @@ package relabel
 
 import (
 	"math"
+	"strconv"
 	"testing"
 	"time"
 
-	"golang.org/x/net/context"
+	"context"
 
 	"github.com/grafana/agent/component"
 	flow_relabel "github.com/grafana/agent/component/common/relabel"
 	"github.com/grafana/agent/component/prometheus"
 	"github.com/grafana/agent/pkg/flow/componenttest"
-	"github.com/grafana/agent/pkg/river"
 	"github.com/grafana/agent/pkg/util"
+	"github.com/grafana/agent/service/labelstore"
+	"github.com/grafana/river"
 	prom "github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/prometheus/model/labels"
 	"github.com/prometheus/prometheus/model/relabel"
@@ -22,41 +24,34 @@ import (
 )
 
 func TestCache(t *testing.T) {
+	lc := labelstore.New(nil)
 	relabeller := generateRelabel(t)
 	lbls := labels.FromStrings("__address__", "localhost")
 	relabeller.relabel(0, lbls)
-	require.Len(t, relabeller.cache, 1)
-	entry, found := relabeller.getFromCache(prometheus.GlobalRefMapping.GetOrAddGlobalRefID(lbls))
+	require.True(t, relabeller.cache.Len() == 1)
+	entry, found := relabeller.getFromCache(lc.GetOrAddGlobalRefID(lbls))
 	require.True(t, found)
 	require.NotNil(t, entry)
 	require.True(
 		t,
-		prometheus.GlobalRefMapping.GetOrAddGlobalRefID(entry.labels) != prometheus.GlobalRefMapping.GetOrAddGlobalRefID(lbls),
+		lc.GetOrAddGlobalRefID(entry.labels) != lc.GetOrAddGlobalRefID(lbls),
 	)
-}
-
-func TestEviction(t *testing.T) {
-	relabeller := generateRelabel(t)
-	lbls := labels.FromStrings("__address__", "localhost")
-	relabeller.relabel(0, lbls)
-	require.Len(t, relabeller.cache, 1)
-	relabeller.relabel(math.Float64frombits(value.StaleNaN), lbls)
-	require.Len(t, relabeller.cache, 0)
 }
 
 func TestUpdateReset(t *testing.T) {
 	relabeller := generateRelabel(t)
 	lbls := labels.FromStrings("__address__", "localhost")
 	relabeller.relabel(0, lbls)
-	require.Len(t, relabeller.cache, 1)
+	require.True(t, relabeller.cache.Len() == 1)
 	_ = relabeller.Update(Arguments{
 		MetricRelabelConfigs: []*flow_relabel.Config{},
 	})
-	require.Len(t, relabeller.cache, 0)
+	require.True(t, relabeller.cache.Len() == 0)
 }
 
 func TestNil(t *testing.T) {
-	fanout := prometheus.NewInterceptor(nil, prometheus.WithAppendHook(func(ref storage.SeriesRef, _ labels.Labels, _ int64, _ float64, _ storage.Appender) (storage.SeriesRef, error) {
+	ls := labelstore.New(nil)
+	fanout := prometheus.NewInterceptor(nil, ls, prometheus.WithAppendHook(func(ref storage.SeriesRef, _ labels.Labels, _ int64, _ float64, _ storage.Appender) (storage.SeriesRef, error) {
 		require.True(t, false)
 		return ref, nil
 	}))
@@ -65,6 +60,9 @@ func TestNil(t *testing.T) {
 		Logger:        util.TestFlowLogger(t),
 		OnStateChange: func(e component.Exports) {},
 		Registerer:    prom.NewRegistry(),
+		GetServiceData: func(name string) (interface{}, error) {
+			return labelstore.New(nil), nil
+		},
 	}, Arguments{
 		ForwardTo: []storage.Appendable{fanout},
 		MetricRelabelConfigs: []*flow_relabel.Config{
@@ -82,8 +80,28 @@ func TestNil(t *testing.T) {
 	relabeller.relabel(0, lbls)
 }
 
+func TestLRU(t *testing.T) {
+	relabeller := generateRelabel(t)
+
+	for i := 0; i < 600_000; i++ {
+		lbls := labels.FromStrings("__address__", "localhost", "inc", strconv.Itoa(i))
+		relabeller.relabel(0, lbls)
+	}
+	require.True(t, relabeller.cache.Len() == 100_000)
+}
+
+func TestLRUNaN(t *testing.T) {
+	relabeller := generateRelabel(t)
+	lbls := labels.FromStrings("__address__", "localhost")
+	relabeller.relabel(0, lbls)
+	require.True(t, relabeller.cache.Len() == 1)
+	relabeller.relabel(math.Float64frombits(value.StaleNaN), lbls)
+	require.True(t, relabeller.cache.Len() == 0)
+}
+
 func BenchmarkCache(b *testing.B) {
-	fanout := prometheus.NewInterceptor(nil, prometheus.WithAppendHook(func(ref storage.SeriesRef, l labels.Labels, _ int64, _ float64, _ storage.Appender) (storage.SeriesRef, error) {
+	ls := labelstore.New(nil)
+	fanout := prometheus.NewInterceptor(nil, ls, prometheus.WithAppendHook(func(ref storage.SeriesRef, l labels.Labels, _ int64, _ float64, _ storage.Appender) (storage.SeriesRef, error) {
 		require.True(b, l.Has("new_label"))
 		return ref, nil
 	}))
@@ -119,7 +137,8 @@ func BenchmarkCache(b *testing.B) {
 }
 
 func generateRelabel(t *testing.T) *Component {
-	fanout := prometheus.NewInterceptor(nil, prometheus.WithAppendHook(func(ref storage.SeriesRef, l labels.Labels, _ int64, _ float64, _ storage.Appender) (storage.SeriesRef, error) {
+	ls := labelstore.New(nil)
+	fanout := prometheus.NewInterceptor(nil, ls, prometheus.WithAppendHook(func(ref storage.SeriesRef, l labels.Labels, _ int64, _ float64, _ storage.Appender) (storage.SeriesRef, error) {
 		require.True(t, l.Has("new_label"))
 		return ref, nil
 	}))
@@ -128,6 +147,9 @@ func generateRelabel(t *testing.T) *Component {
 		Logger:        util.TestFlowLogger(t),
 		OnStateChange: func(e component.Exports) {},
 		Registerer:    prom.NewRegistry(),
+		GetServiceData: func(name string) (interface{}, error) {
+			return labelstore.New(nil), nil
+		},
 	}, Arguments{
 		ForwardTo: []storage.Appendable{fanout},
 		MetricRelabelConfigs: []*flow_relabel.Config{

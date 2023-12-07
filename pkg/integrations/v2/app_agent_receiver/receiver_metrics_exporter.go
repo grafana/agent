@@ -6,7 +6,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 )
 
-// ReceiverMetricsExporter is a app agent receiver exporter that will capture metrics
+// ReceiverMetricsExporter is an app agent receiver exporter that will capture metrics
 // about counts of logs, exceptions, measurements, traces being ingested
 type ReceiverMetricsExporter struct {
 	totalLogs         prometheus.Counter
@@ -16,7 +16,7 @@ type ReceiverMetricsExporter struct {
 }
 
 // NewReceiverMetricsExporter creates a new ReceiverMetricsExporter
-func NewReceiverMetricsExporter(reg prometheus.Registerer) appAgentReceiverExporter {
+func NewReceiverMetricsExporter(reg prometheus.Registerer) AppAgentReceiverExporter {
 	exp := &ReceiverMetricsExporter{
 		totalLogs: prometheus.NewCounter(prometheus.CounterOpts{
 			Name: "app_agent_receiver_logs_total",
@@ -54,3 +54,8 @@ func (re *ReceiverMetricsExporter) Export(ctx context.Context, payload Payload) 
 	re.totalEvents.Add(float64(len(payload.Events)))
 	return nil
 }
+
+// Static typecheck tests
+var (
+	_ AppAgentReceiverExporter = (*ReceiverMetricsExporter)(nil)
+)

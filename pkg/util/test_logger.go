@@ -11,7 +11,7 @@ import (
 )
 
 // TestLogger generates a logger for a test.
-func TestLogger(t *testing.T) log.Logger {
+func TestLogger(t testing.TB) log.Logger {
 	t.Helper()
 
 	l := log.NewSyncLogger(log.NewLogfmtLogger(os.Stderr))
@@ -29,13 +29,12 @@ func TestFlowLogger(t require.TestingT) *logging.Logger {
 		t.Helper()
 	}
 
-	sink, err := logging.WriterSink(os.Stderr, logging.SinkOptions{
+	l, err := logging.New(os.Stderr, logging.Options{
 		Level:  logging.LevelDebug,
 		Format: logging.FormatLogfmt,
 	})
 	require.NoError(t, err)
-
-	return logging.New(sink)
+	return l
 }
 
 // testTimestamp is a log.Valuer that returns the timestamp

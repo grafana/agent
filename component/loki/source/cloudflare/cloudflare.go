@@ -1,5 +1,10 @@
 package cloudflare
 
+// This code is copied from Promtail (a1c1152b79547a133cc7be520a0b2e6db8b84868).
+// The cloudflaretarget package is used to configure and run a target that can
+// read from the Cloudflare Logpull API and forward entries to other loki
+// components.
+
 import (
 	"context"
 	"fmt"
@@ -8,13 +13,12 @@ import (
 	"sync"
 	"time"
 
-	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/common/loki"
 	"github.com/grafana/agent/component/common/loki/positions"
 	cft "github.com/grafana/agent/component/loki/source/cloudflare/internal/cloudflaretarget"
-	"github.com/grafana/agent/pkg/flow/rivertypes"
-	"github.com/grafana/agent/pkg/river"
+	"github.com/grafana/agent/pkg/flow/logging/level"
+	"github.com/grafana/river/rivertypes"
 	"github.com/prometheus/common/model"
 )
 
@@ -32,13 +36,14 @@ func init() {
 // Arguments holds values which are used to configure the
 // loki.source.cloudflare component.
 type Arguments struct {
-	APIToken   rivertypes.Secret   `river:"api_token,attr"`
-	ZoneID     string              `river:"zone_id,attr"`
-	Labels     map[string]string   `river:"labels,attr,optional"`
-	Workers    int                 `river:"workers,attr,optional"`
-	PullRange  time.Duration       `river:"pull_range,attr,optional"`
-	FieldsType string              `river:"fields_type,attr,optional"`
-	ForwardTo  []loki.LogsReceiver `river:"forward_to,attr"`
+	APIToken         rivertypes.Secret   `river:"api_token,attr"`
+	ZoneID           string              `river:"zone_id,attr"`
+	Labels           map[string]string   `river:"labels,attr,optional"`
+	Workers          int                 `river:"workers,attr,optional"`
+	PullRange        time.Duration       `river:"pull_range,attr,optional"`
+	FieldsType       string              `river:"fields_type,attr,optional"`
+	AdditionalFields []string            `river:"additional_fields,attr,optional"`
+	ForwardTo        []loki.LogsReceiver `river:"forward_to,attr"`
 }
 
 // Convert returns a cloudflaretarget Config struct from the Arguments.
@@ -48,12 +53,13 @@ func (c Arguments) Convert() *cft.Config {
 		lbls[model.LabelName(k)] = model.LabelValue(v)
 	}
 	return &cft.Config{
-		APIToken:   string(c.APIToken),
-		ZoneID:     c.ZoneID,
-		Labels:     lbls,
-		Workers:    c.Workers,
-		PullRange:  model.Duration(c.PullRange),
-		FieldsType: c.FieldsType,
+		APIToken:         string(c.APIToken),
+		ZoneID:           c.ZoneID,
+		Labels:           lbls,
+		Workers:          c.Workers,
+		PullRange:        model.Duration(c.PullRange),
+		FieldsType:       c.FieldsType,
+		AdditionalFields: c.AdditionalFields,
 	}
 }
 
@@ -64,22 +70,19 @@ var DefaultArguments = Arguments{
 	FieldsType: string(cft.FieldsTypeDefault),
 }
 
-var _ river.Unmarshaler = (*Arguments)(nil)
-
-// UnmarshalRiver implements the unmarshaller
-func (c *Arguments) UnmarshalRiver(f func(v interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (c *Arguments) SetToDefault() {
 	*c = DefaultArguments
-	type args Arguments
-	err := f((*args)(c))
-	if err != nil {
-		return err
-	}
+}
+
+// Validate implements river.Validator.
+func (c *Arguments) Validate() error {
 	if c.PullRange < 0 {
 		return fmt.Errorf("pull_range must be a positive duration")
 	}
-	_, err = cft.Fields(cft.FieldsType(c.FieldsType))
+	_, err := cft.Fields(cft.FieldsType(c.FieldsType), c.AdditionalFields)
 	if err != nil {
-		return fmt.Errorf("invalid fields_type set; the available values are 'default', 'minimal', 'extended' and 'all'")
+		return fmt.Errorf("invalid fields_type set; the available values are 'default', 'minimal', 'extended', 'custom' and 'all'")
 	}
 	return nil
 }
@@ -116,7 +119,7 @@ func New(o component.Options, args Arguments) (*Component, error) {
 	c := &Component{
 		opts:    o,
 		metrics: cft.NewMetrics(o.Registerer),
-		handler: make(loki.LogsReceiver),
+		handler: loki.NewLogsReceiver(),
 		fanout:  args.ForwardTo,
 		posFile: positionsFile,
 	}
@@ -142,10 +145,10 @@ func (c *Component) Run(ctx context.Context) error {
 		select {
 		case <-ctx.Done():
 			return nil
-		case entry := <-c.handler:
+		case entry := <-c.handler.Chan():
 			c.mut.RLock()
 			for _, receiver := range c.fanout {
-				receiver <- entry
+				receiver.Chan() <- entry
 			}
 			c.mut.RUnlock()
 		}
@@ -163,7 +166,7 @@ func (c *Component) Update(args component.Arguments) error {
 	if c.target != nil {
 		c.target.Stop()
 	}
-	entryHandler := loki.NewEntryHandler(c.handler, func() {})
+	entryHandler := loki.NewEntryHandler(c.handler.Chan(), func() {})
 
 	t, err := cft.NewTarget(c.metrics, c.opts.Logger, entryHandler, c.posFile, newArgs.Convert())
 	if err != nil {

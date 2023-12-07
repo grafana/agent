@@ -1,5 +1,4 @@
 //go:build !linux
-// +build !linux
 
 // Package process_exporter embeds https://github.com/ncabatoff/process-exporter
 package process_exporter //nolint:golint

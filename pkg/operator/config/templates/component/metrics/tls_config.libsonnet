@@ -8,7 +8,7 @@ local new_safe_tls_config = import './safe_tls_config.libsonnet';
 function(namespace, config) new_safe_tls_config(namespace, config.SafeTLSConfig) + {
   // Local configurations for ca_file, cert_file, and key_file take precedence
   // over the SafeTLSConfig. Check local settings first and then fall back
-  // to the safe setings.
+  // to the safe settings.
 
   local has_ca_file = std.objectHasAll(config, 'CAFile'),
   local has_cert_file = std.objectHasAll(config, 'CertFile'),

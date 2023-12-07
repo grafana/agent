@@ -11,11 +11,10 @@ import (
 	"github.com/grafana/agent/component/otelcol"
 	"github.com/grafana/agent/pkg/build"
 	"github.com/grafana/agent/pkg/flow/tracing/internal/jaegerremote"
-	"github.com/grafana/agent/pkg/river"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
 	"go.opentelemetry.io/otel/sdk/resource"
 	tracesdk "go.opentelemetry.io/otel/sdk/trace"
-	semconv "go.opentelemetry.io/otel/semconv/v1.12.0"
+	semconv "go.opentelemetry.io/otel/semconv/v1.21.0"
 	"go.opentelemetry.io/otel/trace"
 )
 
@@ -63,32 +62,21 @@ type JaegerRemoteSamplerOptions struct {
 	RefreshInterval time.Duration `river:"refresh_interval,attr,optional"`
 }
 
-// Implementations to apply defaults and perform validations
-var (
-	_ river.Unmarshaler = (*Options)(nil)
-	_ river.Unmarshaler = (*JaegerRemoteSamplerOptions)(nil)
-)
-
-// UnmarshalRiver implements river.Unmarshaler.
-func (opts *Options) UnmarshalRiver(f func(interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (opts *Options) SetToDefault() {
 	*opts = DefaultOptions
-
-	type options Options
-	return f((*options)(opts))
 }
 
-// UnmarshalRiver implements river.Unmarshaler.
-func (opts *JaegerRemoteSamplerOptions) UnmarshalRiver(f func(interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (opts *JaegerRemoteSamplerOptions) SetToDefault() {
 	*opts = DefaultJaegerRemoteSamplerOptions
-
-	type options JaegerRemoteSamplerOptions
-	return f((*options)(opts))
 }
 
 // Tracer is the tracing subsystem of Grafana Agent Flow. It implements
 // [trace.TracerProvider] and can be used to forward internally generated
 // traces to a OpenTelemetry Collector-compatible Flow component.
 type Tracer struct {
+	trace.TracerProvider
 	sampler *lazySampler
 	client  *client
 	exp     *otlptrace.Exporter

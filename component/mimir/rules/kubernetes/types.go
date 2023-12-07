@@ -25,14 +25,13 @@ var DefaultArguments = Arguments{
 	HTTPClientConfig:     config.DefaultHTTPClientConfig,
 }
 
-func (args *Arguments) UnmarshalRiver(f func(interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (args *Arguments) SetToDefault() {
 	*args = DefaultArguments
+}
 
-	type arguments Arguments
-	if err := f((*arguments)(args)); err != nil {
-		return err
-	}
-
+// Validate implements river.Validator.
+func (args *Arguments) Validate() error {
 	if args.SyncInterval <= 0 {
 		return fmt.Errorf("sync_interval must be greater than 0")
 	}

@@ -12,13 +12,13 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
+	"github.com/grafana/agent/pkg/build"
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/integrations/config"
 	integrations_v2 "github.com/grafana/agent/pkg/integrations/v2"
 	"github.com/grafana/agent/pkg/integrations/v2/metricsutils"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"github.com/prometheus/common/version"
 	"github.com/prometheus/statsd_exporter/pkg/address"
 	"github.com/prometheus/statsd_exporter/pkg/event"
 	"github.com/prometheus/statsd_exporter/pkg/exporter"
@@ -27,6 +27,7 @@ import (
 	"github.com/prometheus/statsd_exporter/pkg/mapper"
 	"github.com/prometheus/statsd_exporter/pkg/mappercache/lru"
 	"github.com/prometheus/statsd_exporter/pkg/mappercache/randomreplacement"
+	"github.com/prometheus/statsd_exporter/pkg/relay"
 	"gopkg.in/yaml.v2"
 )
 
@@ -46,15 +47,17 @@ var DefaultConfig = Config{
 	ParseInfluxDB:  true,
 	ParseLibrato:   true,
 	ParseSignalFX:  true,
+
+	RelayPacketLength: 1400,
 }
 
 // Config controls the statsd_exporter integration.
 type Config struct {
-	ListenUDP      string               `yaml:"listen_udp,omitempty"`
-	ListenTCP      string               `yaml:"listen_tcp,omitempty"`
-	ListenUnixgram string               `yaml:"listen_unixgram,omitempty"`
-	UnixSocketMode string               `yaml:"unix_socket_mode,omitempty"`
-	MappingConfig  *mapper.MetricMapper `yaml:"mapping_config,omitempty"`
+	ListenUDP      string `yaml:"listen_udp,omitempty"`
+	ListenTCP      string `yaml:"listen_tcp,omitempty"`
+	ListenUnixgram string `yaml:"listen_unixgram,omitempty"`
+	UnixSocketMode string `yaml:"unix_socket_mode,omitempty"`
+	MappingConfig  any    `yaml:"mapping_config,omitempty"`
 
 	ReadBuffer          int           `yaml:"read_buffer,omitempty"`
 	CacheSize           int           `yaml:"cache_size,omitempty"`
@@ -67,6 +70,9 @@ type Config struct {
 	ParseInfluxDB  bool `yaml:"parse_influxdb_tags,omitempty"`
 	ParseLibrato   bool `yaml:"parse_librato_tags,omitempty"`
 	ParseSignalFX  bool `yaml:"parse_signalfx_tags,omitempty"`
+
+	RelayAddr         string `yaml:"relay_addr,omitempty"`
+	RelayPacketLength int    `yaml:"relay_packet_length,omitempty"`
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler for Config.
@@ -157,7 +163,7 @@ func New(log log.Logger, c *Config) (integrations.Integration, error) {
 
 	e := exporter.NewExporter(reg, statsdMapper, log, m.EventsActions, m.EventsUnmapped, m.ErrorEventStats, m.EventStats, m.ConflictingEventStats, m.MetricsCount)
 
-	if err := reg.Register(version.NewCollector("statsd_exporter")); err != nil {
+	if err := reg.Register(build.NewCollector("statsd_exporter")); err != nil {
 		return nil, fmt.Errorf("couldn't register version metrics: %w", err)
 	}
 
@@ -202,6 +208,15 @@ func (e *Exporter) Run(ctx context.Context) error {
 	defer close(events)
 	eventQueue := event.NewEventQueue(events, e.cfg.EventFlushThreshold, e.cfg.EventFlushInterval, e.metrics.EventsFlushed)
 
+	var relayTarget *relay.Relay
+	if e.cfg.RelayAddr != "" {
+		var err error
+		relayTarget, err = relay.NewRelay(e.log, e.cfg.RelayAddr, uint(e.cfg.RelayPacketLength))
+		if err != nil {
+			return fmt.Errorf("failed to create relay: %w", err)
+		}
+	}
+
 	if e.cfg.ListenUDP != "" {
 		addr, err := address.UDPAddrFromString(e.cfg.ListenUDP)
 		if err != nil {
@@ -228,6 +243,7 @@ func (e *Exporter) Run(ctx context.Context) error {
 		ul := &listener.StatsDUDPListener{
 			Conn:            uconn,
 			EventHandler:    eventQueue,
+			Relay:           relayTarget,
 			Logger:          e.log,
 			LineParser:      parser,
 			UDPPackets:      e.metrics.UDPPackets,
@@ -261,6 +277,7 @@ func (e *Exporter) Run(ctx context.Context) error {
 		tl := &listener.StatsDTCPListener{
 			Conn:            tconn,
 			EventHandler:    eventQueue,
+			Relay:           relayTarget,
 			Logger:          e.log,
 			LineParser:      parser,
 			LinesReceived:   e.metrics.LinesReceived,
@@ -307,6 +324,7 @@ func (e *Exporter) Run(ctx context.Context) error {
 			Conn:            uxgconn,
 			EventHandler:    eventQueue,
 			Logger:          e.log,
+			Relay:           relayTarget,
 			LineParser:      parser,
 			UnixgramPackets: e.metrics.UnixgramPackets,
 			LinesReceived:   e.metrics.LinesReceived,

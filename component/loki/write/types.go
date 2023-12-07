@@ -5,13 +5,14 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/grafana/agent/component/common/loki/client"
+	"github.com/grafana/agent/component/common/loki/utils"
+
 	"github.com/alecthomas/units"
 	types "github.com/grafana/agent/component/common/config"
-	"github.com/grafana/agent/component/loki/write/internal/client"
 	"github.com/grafana/dskit/backoff"
 	"github.com/grafana/dskit/flagext"
 	lokiflagext "github.com/grafana/loki/pkg/util/flagext"
-	"github.com/prometheus/common/model"
 )
 
 // EndpointOptions describes an individual location to send logs to.
@@ -21,11 +22,14 @@ type EndpointOptions struct {
 	BatchWait         time.Duration           `river:"batch_wait,attr,optional"`
 	BatchSize         units.Base2Bytes        `river:"batch_size,attr,optional"`
 	RemoteTimeout     time.Duration           `river:"remote_timeout,attr,optional"`
+	Headers           map[string]string       `river:"headers,attr,optional"`
 	MinBackoff        time.Duration           `river:"min_backoff_period,attr,optional"`  // start backoff at this level
 	MaxBackoff        time.Duration           `river:"max_backoff_period,attr,optional"`  // increase exponentially to this level
 	MaxBackoffRetries int                     `river:"max_backoff_retries,attr,optional"` // give up after this many; zero means infinite retries
 	TenantID          string                  `river:"tenant_id,attr,optional"`
+	RetryOnHTTP429    bool                    `river:"retry_on_http_429,attr,optional"`
 	HTTPClientConfig  *types.HTTPClientConfig `river:",squash"`
+	QueueConfig       QueueConfig             `river:"queue_config,block,optional"`
 }
 
 // GetDefaultEndpointOptions defines the default settings for sending logs to a
@@ -42,20 +46,19 @@ func GetDefaultEndpointOptions() EndpointOptions {
 		MaxBackoff:        5 * time.Minute,
 		MaxBackoffRetries: 10,
 		HTTPClientConfig:  types.CloneDefaultHTTPClientConfig(),
+		RetryOnHTTP429:    true,
 	}
 
 	return defaultEndpointOptions
 }
 
-// UnmarshalRiver implements river.Unmarshaler.
-func (r *EndpointOptions) UnmarshalRiver(f func(v interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (r *EndpointOptions) SetToDefault() {
 	*r = GetDefaultEndpointOptions()
+}
 
-	type arguments EndpointOptions
-	if err := f((*arguments)(r)); err != nil {
-		return err
-	}
-
+// Validate implements river.Validator.
+func (r *EndpointOptions) Validate() error {
 	if _, err := url.Parse(r.URL); err != nil {
 		return fmt.Errorf("failed to parse remote url %q: %w", r.URL, err)
 	}
@@ -68,6 +71,21 @@ func (r *EndpointOptions) UnmarshalRiver(f func(v interface{}) error) error {
 	return nil
 }
 
+// QueueConfig controls how the queue logs remote write client is configured. Note that this client is only used when the
+// loki.write component has WAL support enabled.
+type QueueConfig struct {
+	Capacity     units.Base2Bytes `river:"capacity,attr,optional"`
+	DrainTimeout time.Duration    `river:"drain_timeout,attr,optional"`
+}
+
+// SetToDefault implements river.Defaulter.
+func (q *QueueConfig) SetToDefault() {
+	*q = QueueConfig{
+		Capacity:     10 * units.MiB, // considering the default BatchSize of 1MiB, this gives us a default buffered channel of size 10
+		DrainTimeout: time.Minute,
+	}
+}
+
 func (args Arguments) convertClientConfigs() []client.Config {
 	var res []client.Config
 	for _, cfg := range args.Endpoints {
@@ -75,6 +93,7 @@ func (args Arguments) convertClientConfigs() []client.Config {
 		cc := client.Config{
 			Name:      cfg.Name,
 			URL:       flagext.URLValue{URL: url},
+			Headers:   cfg.Headers,
 			BatchWait: cfg.BatchWait,
 			BatchSize: int(cfg.BatchSize),
 			Client:    *cfg.HTTPClientConfig.Convert(),
@@ -83,20 +102,17 @@ func (args Arguments) convertClientConfigs() []client.Config {
 				MaxBackoff: cfg.MaxBackoff,
 				MaxRetries: cfg.MaxBackoffRetries,
 			},
-			ExternalLabels: lokiflagext.LabelSet{LabelSet: toLabelSet(args.ExternalLabels)},
-			Timeout:        cfg.RemoteTimeout,
-			TenantID:       cfg.TenantID,
+			ExternalLabels:         lokiflagext.LabelSet{LabelSet: utils.ToLabelSet(args.ExternalLabels)},
+			Timeout:                cfg.RemoteTimeout,
+			TenantID:               cfg.TenantID,
+			DropRateLimitedBatches: !cfg.RetryOnHTTP429,
+			Queue: client.QueueConfig{
+				Capacity:     int(cfg.QueueConfig.Capacity),
+				DrainTimeout: cfg.QueueConfig.DrainTimeout,
+			},
 		}
 		res = append(res, cc)
 	}
 
-	return res
-}
-
-func toLabelSet(in map[string]string) model.LabelSet {
-	res := make(model.LabelSet, len(in))
-	for k, v := range in {
-		res[model.LabelName(k)] = model.LabelValue(v)
-	}
 	return res
 }

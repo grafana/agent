@@ -1,113 +1,121 @@
-package windows_exporter //nolint:golint
+package windows_exporter
 
 import (
-	"github.com/prometheus-community/windows_exporter/collector"
-	"gopkg.in/alecthomas/kingpin.v2"
+	"github.com/prometheus-community/windows_exporter/pkg/collector"
 )
 
-// Populate defaults for all collector configs.
-func init() {
-	// Register flags from all collector configs to a fake integration and then
-	// parse an empty command line to force defaults to be populated.
-	ka := kingpin.New("init", "")
+func (c *Config) ToWindowsExporterConfig() collector.Config {
+	cfg := collector.ConfigDefaults
+	cfg.Dfsr.DfsrEnabledCollectors = c.Dfsr.SourcesEnabled
+	cfg.Exchange.CollectorsEnabled = c.Exchange.EnabledList
 
-	configs := collector.AllConfigs()
-	for _, cfg := range configs {
-		cfg.RegisterFlags(ka)
-	}
-	_, err := ka.Parse(nil)
-	if err != nil {
-		panic(err)
-	}
+	cfg.Iis.SiteInclude = coalesceString(c.IIS.SiteInclude, c.IIS.SiteWhiteList)
+	cfg.Iis.SiteExclude = coalesceString(c.IIS.SiteExclude, c.IIS.SiteBlackList)
+	cfg.Iis.AppInclude = coalesceString(c.IIS.AppInclude, c.IIS.AppWhiteList)
+	cfg.Iis.AppExclude = coalesceString(c.IIS.AppExclude, c.IIS.AppBlackList)
 
-	// Map the configs with defaults applied to our default config.
-	DefaultConfig.fromExporterConfig(configs)
+	cfg.Service.ServiceWhereClause = c.Service.Where
+	cfg.Service.UseAPI = c.Service.UseApi == "true"
+
+	cfg.Smtp.ServerInclude = coalesceString(c.SMTP.Include, c.SMTP.WhiteList)
+	cfg.Smtp.ServerExclude = coalesceString(c.SMTP.Exclude, c.SMTP.BlackList)
+
+	cfg.Textfile.TextFileDirectories = c.TextFile.TextFileDirectory
+
+	cfg.Process.ProcessExclude = coalesceString(c.Process.Exclude, c.Process.BlackList)
+	cfg.Process.ProcessInclude = coalesceString(c.Process.Include, c.Process.WhiteList)
+
+	cfg.Net.NicExclude = coalesceString(c.Network.Exclude, c.Network.BlackList)
+	cfg.Net.NicInclude = coalesceString(c.Network.Include, c.Network.WhiteList)
+
+	cfg.Mssql.EnabledCollectors = c.MSSQL.EnabledClasses
+
+	cfg.Msmq.QueryWhereClause = c.MSMQ.Where
+
+	cfg.LogicalDisk.VolumeInclude = coalesceString(c.LogicalDisk.Include, c.LogicalDisk.WhiteList)
+	cfg.LogicalDisk.VolumeExclude = coalesceString(c.LogicalDisk.Exclude, c.LogicalDisk.BlackList)
+
+	cfg.ScheduledTask.TaskInclude = c.ScheduledTask.Include
+	cfg.ScheduledTask.TaskExclude = c.ScheduledTask.Exclude
+
+	return cfg
 }
 
-// fromExporterConfig converts windows_exporter configs into the integration Config.
-func (c *Config) fromExporterConfig(configs []collector.Config) {
-	for _, ec := range configs {
-		switch other := ec.(type) {
-		case *collector.ExchangeConfig:
-			c.Exchange.EnabledList = other.Enabled
-
-		case *collector.IISConfig:
-			c.IIS.SiteWhiteList = other.SiteWhitelist
-			c.IIS.SiteBlackList = other.SiteBlacklist
-			c.IIS.AppWhiteList = other.AppWhitelist
-			c.IIS.AppBlackList = other.AppBlacklist
-
-		case *collector.TextFileConfig:
-			c.TextFile.TextFileDirectory = other.Directory
-
-		case *collector.SMTPConfig:
-			c.SMTP.WhiteList = other.ServerWhitelist
-			c.SMTP.BlackList = other.ServerBlacklist
-
-		case *collector.ServiceConfig:
-			c.Service.Where = other.WhereClause
-
-		case *collector.ProcessConfig:
-			c.Process.WhiteList = other.ProcessWhitelist
-			c.Process.BlackList = other.ProcessBlacklist
-
-		case *collector.NetworkConfig:
-			c.Network.WhiteList = other.NICWhitelist
-			c.Network.BlackList = other.NICBlacklist
-
-		case *collector.MSSQLConfig:
-			c.MSSQL.EnabledClasses = other.EnabledCollectors
-
-		case *collector.MSMQConfig:
-			c.MSMQ.Where = other.WhereClause
-
-		case *collector.LogicalDiskConfig:
-			c.LogicalDisk.WhiteList = other.VolumeWhitelist
-			c.LogicalDisk.BlackList = other.VolumeBlacklist
+func coalesceString(v ...string) string {
+	for _, s := range v {
+		if s != "" {
+			return s
 		}
 	}
+	return ""
 }
 
-// toExporterConfig converts integration Configs into windows_exporter configs.
-func (c *Config) toExporterConfig(configs []collector.Config) {
-	for _, ec := range configs {
-		switch other := ec.(type) {
-		case *collector.ExchangeConfig:
-			other.Enabled = c.Exchange.EnabledList
+// DefaultConfig holds the default settings for the windows_exporter integration.
+var DefaultConfig = Config{
+	EnabledCollectors: "cpu,cs,logical_disk,net,os,service,system",
+	Dfsr: DfsrConfig{
+		SourcesEnabled: collector.ConfigDefaults.Dfsr.DfsrEnabledCollectors,
+	},
+	Exchange: ExchangeConfig{
+		EnabledList: collector.ConfigDefaults.Exchange.CollectorsEnabled,
+	},
+	IIS: IISConfig{
+		AppBlackList:  collector.ConfigDefaults.Iis.AppExclude,
+		AppWhiteList:  collector.ConfigDefaults.Iis.AppInclude,
+		SiteBlackList: collector.ConfigDefaults.Iis.SiteExclude,
+		SiteWhiteList: collector.ConfigDefaults.Iis.SiteInclude,
+		AppInclude:    collector.ConfigDefaults.Iis.AppInclude,
+		AppExclude:    collector.ConfigDefaults.Iis.AppExclude,
+		SiteInclude:   collector.ConfigDefaults.Iis.SiteInclude,
+		SiteExclude:   collector.ConfigDefaults.Iis.SiteExclude,
+	},
+	LogicalDisk: LogicalDiskConfig{
+		BlackList: collector.ConfigDefaults.LogicalDisk.VolumeExclude,
+		WhiteList: collector.ConfigDefaults.LogicalDisk.VolumeInclude,
+		Include:   collector.ConfigDefaults.LogicalDisk.VolumeInclude,
+		Exclude:   collector.ConfigDefaults.LogicalDisk.VolumeExclude,
+	},
+	MSMQ: MSMQConfig{
+		Where: collector.ConfigDefaults.Msmq.QueryWhereClause,
+	},
+	MSSQL: MSSQLConfig{
+		EnabledClasses: collector.ConfigDefaults.Mssql.EnabledCollectors,
+	},
+	Network: NetworkConfig{
+		BlackList: collector.ConfigDefaults.Net.NicExclude,
+		WhiteList: collector.ConfigDefaults.Net.NicInclude,
+		Include:   collector.ConfigDefaults.Net.NicInclude,
+		Exclude:   collector.ConfigDefaults.Net.NicExclude,
+	},
+	Process: ProcessConfig{
+		BlackList: collector.ConfigDefaults.Process.ProcessExclude,
+		WhiteList: collector.ConfigDefaults.Process.ProcessInclude,
+		Include:   collector.ConfigDefaults.Process.ProcessInclude,
+		Exclude:   collector.ConfigDefaults.Process.ProcessExclude,
+	},
+	ScheduledTask: ScheduledTaskConfig{
+		Include: collector.ConfigDefaults.ScheduledTask.TaskInclude,
+		Exclude: collector.ConfigDefaults.ScheduledTask.TaskExclude,
+	},
+	Service: ServiceConfig{
+		UseApi: "false",
+		Where:  collector.ConfigDefaults.Service.ServiceWhereClause,
+	},
+	SMTP: SMTPConfig{
+		BlackList: collector.ConfigDefaults.Smtp.ServerExclude,
+		WhiteList: collector.ConfigDefaults.Smtp.ServerInclude,
+		Include:   collector.ConfigDefaults.Smtp.ServerInclude,
+		Exclude:   collector.ConfigDefaults.Smtp.ServerExclude,
+	},
+	TextFile: TextFileConfig{
+		TextFileDirectory: collector.ConfigDefaults.Textfile.TextFileDirectories,
+	},
+}
 
-		case *collector.IISConfig:
-			other.SiteWhitelist = c.IIS.SiteWhiteList
-			other.SiteBlacklist = c.IIS.SiteBlackList
-			other.AppWhitelist = c.IIS.AppWhiteList
-			other.AppBlacklist = c.IIS.AppBlackList
+// UnmarshalYAML implements yaml.Unmarshaler for Config.
+func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	*c = DefaultConfig
 
-		case *collector.TextFileConfig:
-			other.Directory = c.TextFile.TextFileDirectory
-
-		case *collector.SMTPConfig:
-			other.ServerWhitelist = c.SMTP.WhiteList
-			other.ServerBlacklist = c.SMTP.BlackList
-
-		case *collector.ServiceConfig:
-			other.WhereClause = c.Service.Where
-
-		case *collector.ProcessConfig:
-			other.ProcessWhitelist = c.Process.WhiteList
-			other.ProcessBlacklist = c.Process.BlackList
-
-		case *collector.NetworkConfig:
-			other.NICWhitelist = c.Network.WhiteList
-			other.NICBlacklist = c.Network.BlackList
-
-		case *collector.MSSQLConfig:
-			other.EnabledCollectors = c.MSSQL.EnabledClasses
-
-		case *collector.MSMQConfig:
-			other.WhereClause = c.MSMQ.Where
-
-		case *collector.LogicalDiskConfig:
-			other.VolumeWhitelist = c.LogicalDisk.WhiteList
-			other.VolumeBlacklist = c.LogicalDisk.BlackList
-		}
-	}
+	type plain Config
+	return unmarshal((*plain)(c))
 }

@@ -1,12 +1,19 @@
 ---
-title: otelcol.​processor.tail_sampling
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/otelcol.processor.tail_sampling/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/otelcol.processor.tail_sampling/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/otelcol.processor.tail_sampling/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/otelcol.processor.tail_sampling/
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.processor.tail_sampling/
+description: Learn about otelcol.processor.tail_sampling
 labels:
   stage: beta
+title: otelcol.processor.tail_sampling
 ---
 
 # otelcol.processor.tail_sampling
 
-{{< docs/shared lookup="flow/stability/beta.md" source="agent" >}}
+{{< docs/shared lookup="flow/stability/beta.md" source="agent" version="<AGENT_VERSION>" >}}
 
 `otelcol.processor.tail_sampling` samples traces based on a set of defined
 policies. All spans for a given trace *must* be received by the same collector
@@ -73,6 +80,8 @@ policy > status_code                                          | [status_code] | 
 policy > string_attribute                                     | [string_attribute] | The policy will sample based on string attributes (resource and record) value matches. | no
 policy > rate_limiting                                        | [rate_limiting] | The policy will sample based on rate. | no
 policy > span_count                                           | [span_count] | The policy will sample based on the minimum number of spans within a batch. | no
+policy > boolean_attribute                                    | [boolean_attribute] | The policy will sample based on a boolean attribute (resource and record). | no
+policy > ottl_condition                                       | [ottl_condition] | The policy will sample based on a given boolean OTTL condition (span and span event).| no
 policy > trace_state                                          | [trace_state] | The policy will sample based on TraceState value matches. | no
 policy > and                                                  | [and] | The policy will sample based on multiple policies, creates an `and` policy. | no
 policy > and > and_sub_policy                                 | [and_sub_policy] [] | A set of policies underneath an `and` policy type. | no
@@ -83,6 +92,8 @@ policy > and > and_sub_policy > status_code                   | [status_code] | 
 policy > and > and_sub_policy > string_attribute              | [string_attribute] | The policy will sample based on string attributes (resource and record) value matches. | no
 policy > and > and_sub_policy > rate_limiting                 | [rate_limiting] | The policy will sample based on rate. | no
 policy > and > and_sub_policy > span_count                    | [span_count] | The policy will sample based on the minimum number of spans within a batch. | no
+policy > and > and_sub_policy > boolean_attribute             | [boolean_attribute] | The policy will sample based on a boolean attribute (resource and record). | no
+policy > and > and_sub_policy > ottl_condition                | [ottl_condition] | The policy will sample based on a given boolean OTTL condition (span and span event). | no
 policy > and > and_sub_policy > trace_state                   | [trace_state] | The policy will sample based on TraceState value matches. | no
 policy > composite                                            | [composite] | This policy will sample based on a combination of above samplers, with ordering and rate allocation per sampler. | no
 policy > composite > composite_sub_policy                     | [composite_sub_policy] [] | A set of policies underneath a `composite` policy type. | no
@@ -93,6 +104,8 @@ policy > composite > composite_sub_policy > status_code       | [status_code] | 
 policy > composite > composite_sub_policy > string_attribute  | [string_attribute] | The policy will sample based on string attributes (resource and record) value matches. | no
 policy > composite > composite_sub_policy > rate_limiting     | [rate_limiting] | The policy will sample based on rate. | no
 policy > composite > composite_sub_policy > span_count        | [span_count] | The policy will sample based on the minimum number of spans within a batch. | no
+policy > composite > composite_sub_policy > boolean_attribute | [boolean_attribute] | The policy will sample based on a boolean attribute (resource and record). | no
+policy > composite > composite_sub_policy > ottl_condition    | [ottl_condition] | The policy will sample based on a given boolean OTTL condition (span and span event). | no
 policy > composite > composite_sub_policy > trace_state       | [trace_state] | The policy will sample based on TraceState value matches. | no
 output                                                        | [output] [] | Configures where to send received telemetry data. | yes
 
@@ -104,6 +117,8 @@ output                                                        | [output] [] | Co
 [string_attribute]: #string_attribute-block
 [rate_limiting]: #rate_limiting-block
 [span_count]: #span_count-block
+[boolean_attribute]: #boolean_attribute-block
+[ottl_condition]: #ottl_condition-block
 [trace_state]: #trace_state-block
 [and]: #and-block
 [and_sub_policy]: #and_sub_policy-block
@@ -215,6 +230,37 @@ Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `min_spans` | `number` | Minimum number of spans in a trace. | | yes
 
+### boolean_attribute block
+
+The `boolean_attribute` block configures a policy of type `boolean_attribute`. 
+The policy samples based on a boolean attribute (resource and record).
+
+The following arguments are supported:
+
+Name | Type | Description | Default | Required
+---- | ---- | ----------- | ------- | --------
+`key`   | `string` | Attribute key to match against. | | yes
+`value` | `bool` | The bool value (`true` or `false`) to use when matching against attribute values. | | yes
+
+### ottl_condition block
+
+The `ottl_condition` block configures a policy of type `ottl_condition`. The policy samples based on a given boolean 
+[OTTL](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/pkg/ottl) condition (span and span event).
+
+The following arguments are supported:
+
+Name | Type | Description | Default | Required
+---- | ---- | ----------- | ------- | --------
+`error_mode` | `string` | Error handling if OTTL conditions fail to evaluate. | | yes
+`span`       | `list(string)` | OTTL conditions for spans. | `[]` | no
+`spanevent`  | `list(string)` | OTTL conditions for span events. | `[]` | no
+
+The supported values for `error_mode` are:
+* `ignore`: Errors cause evaluation to continue to the next statement.
+* `propagate`: Errors cause the evaluation to be false and an error is returned.
+
+At least one of `span` or `spanevent` should be specified. Both `span` and `spanevent` can also be specified.
+
 ### trace_state block
 
 The `trace_state` block configures a policy of type `trace_state`. The policy samples based on TraceState value matches.
@@ -262,7 +308,7 @@ Name | Type | Description | Default | Required
 
 ### output block
 
-{{< docs/shared lookup="flow/reference/components/output-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/output-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ## Exported fields
 
@@ -287,7 +333,7 @@ information.
 
 ## Example
 
-This example batches trace data from Grafana Agent before sending it to
+This example batches trace data from {{< param "PRODUCT_NAME" >}} before sending it to
 [otelcol.exporter.otlp][] for further processing. This example shows an impractical number of policies for the purpose of demonstrating how to set up each type.
 
 ```river
@@ -407,6 +453,22 @@ otelcol.processor.tail_sampling "default" {
   }
 
   policy {
+    name = "test-policy-12"
+    type = "ottl_condition"
+    ottl_condition {
+      error_mode = "ignore"
+      span = [
+        "attributes[\"test_attr_key_1\"] == \"test_attr_val_1\"",
+        "attributes[\"test_attr_key_2\"] != \"test_attr_val_1\"",
+      ]
+      spanevent = [
+        "name != \"test_span_event_name\"",
+        "attributes[\"test_event_attr_key_2\"] != \"test_event_attr_val_1\"",
+      ]
+    }
+  }
+
+  policy {
     name = "and-policy-1"
     type = "and"
 
@@ -491,3 +553,23 @@ otelcol.exporter.otlp "production" {
   }
 }
 ```
+<!-- START GENERATED COMPATIBLE COMPONENTS -->
+
+## Compatible components
+
+`otelcol.processor.tail_sampling` can accept arguments from the following components:
+
+- Components that export [OpenTelemetry `otelcol.Consumer`]({{< relref "../compatibility/#opentelemetry-otelcolconsumer-exporters" >}})
+
+`otelcol.processor.tail_sampling` has exports that can be consumed by the following components:
+
+- Components that consume [OpenTelemetry `otelcol.Consumer`]({{< relref "../compatibility/#opentelemetry-otelcolconsumer-consumers" >}})
+
+{{% admonition type="note" %}}
+
+Connecting some components may not be sensible or components may require further configuration to make the 
+connection work correctly. Refer to the linked documentation for more details.
+
+{{% /admonition %}}
+
+<!-- END GENERATED COMPATIBLE COMPONENTS -->

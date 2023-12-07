@@ -11,7 +11,7 @@ import (
 var backoffRetry = backoff.Config{
 	MinBackoff: 10 * time.Millisecond,
 	MaxBackoff: 1 * time.Second,
-	MaxRetries: 5,
+	MaxRetries: 10,
 }
 
 // Eventually calls the check function several times until it doesn't report an

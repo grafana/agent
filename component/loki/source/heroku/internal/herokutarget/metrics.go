@@ -7,22 +7,22 @@ package herokutarget
 import "github.com/prometheus/client_golang/prometheus"
 
 type Metrics struct {
-	herokuEntries *prometheus.CounterVec
-	herokuErrors  *prometheus.CounterVec
+	herokuEntries prometheus.Counter
+	herokuErrors  prometheus.Counter
 }
 
 func NewMetrics(reg prometheus.Registerer) *Metrics {
 	var m Metrics
 
-	m.herokuEntries = prometheus.NewCounterVec(prometheus.CounterOpts{
+	m.herokuEntries = prometheus.NewCounter(prometheus.CounterOpts{
 		Name: "loki_source_heroku_drain_entries_total",
 		Help: "Number of successful entries received by the Heroku target",
-	}, []string{})
+	})
 
-	m.herokuErrors = prometheus.NewCounterVec(prometheus.CounterOpts{
+	m.herokuErrors = prometheus.NewCounter(prometheus.CounterOpts{
 		Name: "loki_source_heroku_drain_parsing_errors_total",
 		Help: "Number of parsing errors while receiving Heroku messages",
-	}, []string{})
+	})
 
 	reg.MustRegister(m.herokuEntries, m.herokuErrors)
 	return &m

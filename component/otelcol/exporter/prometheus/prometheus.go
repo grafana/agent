@@ -13,7 +13,7 @@ import (
 	"github.com/grafana/agent/component/otelcol/exporter/prometheus/internal/convert"
 	"github.com/grafana/agent/component/otelcol/internal/lazyconsumer"
 	"github.com/grafana/agent/component/prometheus"
-	"github.com/grafana/agent/pkg/river"
+	"github.com/grafana/agent/service/labelstore"
 	"github.com/prometheus/prometheus/storage"
 )
 
@@ -31,30 +31,32 @@ func init() {
 
 // Arguments configures the otelcol.exporter.prometheus component.
 type Arguments struct {
-	IncludeTargetInfo bool                 `river:"include_target_info,attr,optional"`
-	IncludeScopeInfo  bool                 `river:"include_scope_info,attr,optional"`
-	GCFrequency       time.Duration        `river:"gc_frequency,attr,optional"`
-	ForwardTo         []storage.Appendable `river:"forward_to,attr"`
+	IncludeTargetInfo             bool                 `river:"include_target_info,attr,optional"`
+	IncludeScopeInfo              bool                 `river:"include_scope_info,attr,optional"`
+	IncludeScopeLabels            bool                 `river:"include_scope_labels,attr,optional"`
+	GCFrequency                   time.Duration        `river:"gc_frequency,attr,optional"`
+	ForwardTo                     []storage.Appendable `river:"forward_to,attr"`
+	AddMetricSuffixes             bool                 `river:"add_metric_suffixes,attr,optional"`
+	ResourceToTelemetryConversion bool                 `river:"resource_to_telemetry_conversion,attr,optional"`
 }
-
-var _ river.Unmarshaler = (*Arguments)(nil)
 
 // DefaultArguments holds defaults values.
 var DefaultArguments = Arguments{
-	IncludeTargetInfo: true,
-	IncludeScopeInfo:  true,
-	GCFrequency:       5 * time.Minute,
+	IncludeTargetInfo:             true,
+	IncludeScopeInfo:              false,
+	IncludeScopeLabels:            true,
+	GCFrequency:                   5 * time.Minute,
+	AddMetricSuffixes:             true,
+	ResourceToTelemetryConversion: false,
 }
 
-// UnmarshalRiver implements river.Unmarshaler and applies defaults.
-func (args *Arguments) UnmarshalRiver(f func(interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (args *Arguments) SetToDefault() {
 	*args = DefaultArguments
+}
 
-	type arguments Arguments
-	if err := f((*arguments)(args)); err != nil {
-		return err
-	}
-
+// Validate implements river.Validator.
+func (args *Arguments) Validate() error {
 	if args.GCFrequency == 0 {
 		return fmt.Errorf("gc_frequency must be greater than 0")
 	}
@@ -78,12 +80,14 @@ var _ component.Component = (*Component)(nil)
 
 // New creates a new otelcol.exporter.prometheus component.
 func New(o component.Options, c Arguments) (*Component, error) {
-	fanout := prometheus.NewFanout(nil, o.ID, o.Registerer)
+	service, err := o.GetServiceData(labelstore.ServiceName)
+	if err != nil {
+		return nil, err
+	}
+	ls := service.(labelstore.LabelStore)
+	fanout := prometheus.NewFanout(nil, o.ID, o.Registerer, ls)
 
-	converter := convert.New(o.Logger, fanout, convert.Options{
-		IncludeTargetInfo: true,
-		IncludeScopeInfo:  true,
-	})
+	converter := convert.New(o.Logger, fanout, convertArgumentsToConvertOptions(c))
 
 	res := &Component{
 		log:  o.Logger,
@@ -136,10 +140,7 @@ func (c *Component) Update(newConfig component.Arguments) error {
 	c.cfg = cfg
 
 	c.fanout.UpdateChildren(cfg.ForwardTo)
-	c.converter.UpdateOptions(convert.Options{
-		IncludeTargetInfo: cfg.IncludeTargetInfo,
-		IncludeScopeInfo:  cfg.IncludeScopeInfo,
-	})
+	c.converter.UpdateOptions(convertArgumentsToConvertOptions(cfg))
 
 	// If our forward_to argument changed, we need to flush the metadata cache to
 	// ensure the new children have all the metadata they need.
@@ -148,4 +149,13 @@ func (c *Component) Update(newConfig component.Arguments) error {
 	// more intelligent here in the future.
 	c.converter.FlushMetadata()
 	return nil
+}
+
+func convertArgumentsToConvertOptions(args Arguments) convert.Options {
+	return convert.Options{
+		IncludeTargetInfo:             args.IncludeTargetInfo,
+		IncludeScopeInfo:              args.IncludeScopeInfo,
+		AddMetricSuffixes:             args.AddMetricSuffixes,
+		ResourceToTelemetryConversion: args.ResourceToTelemetryConversion,
+	}
 }

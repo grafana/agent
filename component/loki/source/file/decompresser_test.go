@@ -1,6 +1,6 @@
 package file
 
-// This code is copied from Promtail to test their decompresser implementation
+// This code is copied from Promtail to test their decompressor implementation
 // of the reader interface.
 
 import (
@@ -8,6 +8,8 @@ import (
 	"sync"
 	"testing"
 	"time"
+
+	"github.com/grafana/agent/component/common/loki/client/fake"
 
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/component/common/loki"
@@ -40,69 +42,6 @@ func newNoopClient() *noopClient {
 		}
 	}()
 	return c
-}
-
-// fakeClient is a fake client to be used for testing.
-type fakeClient struct {
-	entries  chan loki.Entry
-	received []loki.Entry
-	once     sync.Once
-	mtx      sync.Mutex
-	wg       sync.WaitGroup
-	OnStop   func()
-}
-
-func newFakeClient(stop func()) *fakeClient {
-	c := &fakeClient{
-		OnStop:  stop,
-		entries: make(chan loki.Entry),
-	}
-	c.wg.Add(1)
-	go func() {
-		defer c.wg.Done()
-		for e := range c.entries {
-			c.mtx.Lock()
-			c.received = append(c.received, e)
-			c.mtx.Unlock()
-		}
-	}()
-	return c
-}
-
-// Stop implements client.Client
-func (c *fakeClient) Stop() {
-	c.once.Do(func() { close(c.entries) })
-	c.wg.Wait()
-	c.OnStop()
-}
-
-func (c *fakeClient) Chan() chan<- loki.Entry {
-	return c.entries
-}
-
-func (c *fakeClient) Received() []loki.Entry {
-	c.mtx.Lock()
-	defer c.mtx.Unlock()
-	cpy := make([]loki.Entry, len(c.received))
-	copy(cpy, c.received)
-	return cpy
-}
-
-// StopNow implements client.Client
-func (c *fakeClient) StopNow() {
-	c.Stop()
-}
-
-func (c *fakeClient) Name() string {
-	return "fake"
-}
-
-// Clear is used to cleanup the buffered received entries, so the same client can be re-used between
-// test cases.
-func (c *fakeClient) Clear() {
-	c.mtx.Lock()
-	defer c.mtx.Unlock()
-	c.received = []loki.Entry{}
 }
 
 func BenchmarkReadlines(b *testing.B) {
@@ -144,7 +83,7 @@ func BenchmarkReadlines(b *testing.B) {
 
 func TestGigantiqueGunzipFile(t *testing.T) {
 	file := "testdata/long-access.gz"
-	handler := newFakeClient(func() {})
+	handler := fake.NewClient(func() {})
 	defer handler.Stop()
 
 	d := &decompressor{
@@ -154,6 +93,7 @@ func TestGigantiqueGunzipFile(t *testing.T) {
 		path:    file,
 		done:    make(chan struct{}),
 		metrics: newMetrics(prometheus.NewRegistry()),
+		cfg:     DecompressionConfig{Format: "gz"},
 	}
 
 	d.readLines()
@@ -173,7 +113,7 @@ func TestOnelineFiles(t *testing.T) {
 	require.NoError(t, err)
 	t.Run("gunzip file", func(t *testing.T) {
 		file := "testdata/onelinelog.log.gz"
-		handler := newFakeClient(func() {})
+		handler := fake.NewClient(func() {})
 		defer handler.Stop()
 
 		d := &decompressor{
@@ -183,6 +123,7 @@ func TestOnelineFiles(t *testing.T) {
 			path:    file,
 			done:    make(chan struct{}),
 			metrics: newMetrics(prometheus.NewRegistry()),
+			cfg:     DecompressionConfig{Format: "gz"},
 		}
 
 		d.readLines()
@@ -197,7 +138,7 @@ func TestOnelineFiles(t *testing.T) {
 
 	t.Run("bzip2 file", func(t *testing.T) {
 		file := "testdata/onelinelog.log.bz2"
-		handler := newFakeClient(func() {})
+		handler := fake.NewClient(func() {})
 		defer handler.Stop()
 
 		d := &decompressor{
@@ -207,6 +148,7 @@ func TestOnelineFiles(t *testing.T) {
 			path:    file,
 			done:    make(chan struct{}),
 			metrics: newMetrics(prometheus.NewRegistry()),
+			cfg:     DecompressionConfig{Format: "bz2"},
 		}
 
 		d.readLines()
@@ -221,7 +163,7 @@ func TestOnelineFiles(t *testing.T) {
 
 	t.Run("tar.gz file", func(t *testing.T) {
 		file := "testdata/onelinelog.tar.gz"
-		handler := newFakeClient(func() {})
+		handler := fake.NewClient(func() {})
 		defer handler.Stop()
 
 		d := &decompressor{
@@ -231,6 +173,7 @@ func TestOnelineFiles(t *testing.T) {
 			path:    file,
 			done:    make(chan struct{}),
 			metrics: newMetrics(prometheus.NewRegistry()),
+			cfg:     DecompressionConfig{Format: "gz"},
 		}
 
 		d.readLines()

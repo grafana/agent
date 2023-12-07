@@ -1,4 +1,11 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/otelcol.receiver.otlp/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/otelcol.receiver.otlp/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/otelcol.receiver.otlp/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/otelcol.receiver.otlp/
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.receiver.otlp/
+description: Learn about otelcol.receiver.otlp
 title: otelcol.receiver.otlp
 ---
 
@@ -49,6 +56,7 @@ grpc > keepalive > enforcement_policy | [enforcement_policy][] | Enforcement pol
 http | [http][] | Configures the HTTP server to receive telemetry data. | no
 http > tls | [tls][] | Configures TLS for the HTTP server. | no
 http > cors | [cors][] | Configures CORS for the HTTP server. | no
+debug_metrics | [debug_metrics][] | Configures the metrics that this component generates to monitor its state. | no
 output | [output][] | Configures where to send received telemetry data. | yes
 
 The `>` symbol indicates deeper levels of nesting. For example, `grpc > tls`
@@ -61,6 +69,7 @@ refers to a `tls` block defined inside a `grpc` block.
 [enforcement_policy]: #enforcement_policy-block
 [http]: #http-block
 [cors]: #cors-block
+[debug_metrics]: #debug_metrics-block
 [output]: #output-block
 
 ### grpc block
@@ -145,6 +154,14 @@ Name | Type | Description | Default | Required
 `endpoint` | `string` | `host:port` to listen for traffic on. | `"0.0.0.0:4318"` | no
 `max_request_body_size` | `string` | Maximum request body size the server will allow. No limit when unset. | | no
 `include_metadata` | `boolean` | Propagate incoming connection metadata to downstream consumers. | | no
+`traces_url_path` | `string` | The URL path to receive traces on. | `"/v1/traces"`| no
+`metrics_url_path` | `string` | The URL path to receive metrics on. | `"/v1/metrics"` | no
+`logs_url_path` | `string` | The URL path to receive logs on. | `"/v1/logs"` | no
+
+To send telemetry signals to `otelcol.receiver.otlp` with HTTP/JSON, POST to:
+* `[endpoint][traces_url_path]` for traces.
+* `[endpoint][metrics_url_path]` for metrics.
+* `[endpoint][logs_url_path]` for logs.
 
 ### cors block
 
@@ -168,9 +185,13 @@ CORS request. The following headers are always implicitly allowed:
 
 If `allowed_headers` includes `"*"`, all headers are permitted.
 
+### debug_metrics block
+
+{{< docs/shared lookup="flow/reference/components/otelcol-debug-metrics-block.md" source="agent" version="<AGENT_VERSION>" >}}
+
 ### output block
 
-{{< docs/shared lookup="flow/reference/components/output-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/output-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ## Exported fields
 
@@ -185,6 +206,12 @@ configuration.
 
 `otelcol.receiver.otlp` does not expose any component-specific debug
 information.
+
+## Debug metrics
+
+* `receiver_accepted_spans_ratio_total` (counter): Number of spans successfully pushed into the pipeline.
+* `receiver_refused_spans_ratio_total` (counter): Number of spans that could not be pushed into the pipeline.
+* `rpc_server_duration_milliseconds` (histogram): Duration of RPC requests from a gRPC server.
 
 ## Example
 
@@ -217,3 +244,24 @@ otelcol.exporter.otlp "default" {
   }
 }
 ```
+
+## Technical details
+
+`otelcol.receiver.otlp` supports [gzip](https://en.wikipedia.org/wiki/Gzip) for compression.
+<!-- START GENERATED COMPATIBLE COMPONENTS -->
+
+## Compatible components
+
+`otelcol.receiver.otlp` can accept arguments from the following components:
+
+- Components that export [OpenTelemetry `otelcol.Consumer`]({{< relref "../compatibility/#opentelemetry-otelcolconsumer-exporters" >}})
+
+
+{{% admonition type="note" %}}
+
+Connecting some components may not be sensible or components may require further configuration to make the 
+connection work correctly. Refer to the linked documentation for more details.
+
+{{% /admonition %}}
+
+<!-- END GENERATED COMPATIBLE COMPONENTS -->

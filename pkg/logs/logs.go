@@ -11,18 +11,21 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
+	"github.com/grafana/agent/internal/useragent"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/grafana/loki/clients/pkg/promtail"
 	"github.com/grafana/loki/clients/pkg/promtail/api"
 	"github.com/grafana/loki/clients/pkg/promtail/client"
 	"github.com/grafana/loki/clients/pkg/promtail/config"
 	"github.com/grafana/loki/clients/pkg/promtail/server"
+	"github.com/grafana/loki/clients/pkg/promtail/targets/file"
+	"github.com/grafana/loki/clients/pkg/promtail/wal"
+	"github.com/grafana/loki/pkg/tracing"
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/common/version"
 )
 
 func init() {
-	client.UserAgent = fmt.Sprintf("GrafanaAgent/%s", version.Version)
+	client.UserAgent = useragent.Get()
 }
 
 // Logs is a Logs log collection. It uses multiple distinct sets of Logs
@@ -62,7 +65,7 @@ func (l *Logs) ApplyConfig(c *Config, dryRun bool) error {
 	for _, ic := range c.Configs {
 		// If an old instance existed, update it and move it to the new map.
 		if old, ok := l.instances[ic.Name]; ok {
-			err := old.ApplyConfig(ic, dryRun)
+			err := old.ApplyConfig(ic, c.Global, dryRun)
 			if err != nil {
 				return err
 			}
@@ -71,7 +74,7 @@ func (l *Logs) ApplyConfig(c *Config, dryRun bool) error {
 			continue
 		}
 
-		inst, err := NewInstance(l.reg, ic, l.l, dryRun)
+		inst, err := NewInstance(l.reg, ic, c.Global, l.l, dryRun)
 		if err != nil {
 			return fmt.Errorf("unable to apply config for %s: %w", ic.Name, err)
 		}
@@ -121,23 +124,32 @@ type Instance struct {
 }
 
 // NewInstance creates and starts a Logs instance.
-func NewInstance(reg prometheus.Registerer, c *InstanceConfig, l log.Logger, dryRun bool) (*Instance, error) {
+func NewInstance(reg prometheus.Registerer, c *InstanceConfig, g GlobalConfig, l log.Logger, dryRun bool) (*Instance, error) {
 	instReg := prometheus.WrapRegistererWith(prometheus.Labels{"logs_config": c.Name}, reg)
 
 	inst := Instance{
 		reg: util.WrapWithUnregisterer(instReg),
 		log: log.With(l, "logs_config", c.Name),
 	}
-	if err := inst.ApplyConfig(c, dryRun); err != nil {
+	if err := inst.ApplyConfig(c, g, dryRun); err != nil {
 		return nil, err
 	}
 	return &inst, nil
 }
 
+// DefaultConfig returns a default config for a Logs instance.
+func DefaultConfig() config.Config {
+	return config.Config{
+		ServerConfig: server.Config{Disable: true},
+		Tracing:      tracing.Config{Enabled: false},
+		WAL:          wal.Config{Enabled: false},
+	}
+}
+
 // ApplyConfig will apply a new InstanceConfig. If the config hasn't changed,
 // then nothing will happen, otherwise the old Promtail will be stopped and
 // then replaced with a new one.
-func (i *Instance) ApplyConfig(c *InstanceConfig, dryRun bool) error {
+func (i *Instance) ApplyConfig(c *InstanceConfig, g GlobalConfig, dryRun bool) error {
 	i.mut.Lock()
 	defer i.mut.Unlock()
 
@@ -171,14 +183,21 @@ func (i *Instance) ApplyConfig(c *InstanceConfig, dryRun bool) error {
 		return nil
 	}
 
-	clientMetrics := client.NewMetrics(i.reg, nil)
-	p, err := promtail.New(config.Config{
-		ServerConfig:    server.Config{Disable: true},
-		ClientConfigs:   c.ClientConfigs,
-		PositionsConfig: c.PositionsConfig,
-		ScrapeConfig:    c.ScrapeConfig,
-		TargetConfig:    c.TargetConfig,
-	}, nil, clientMetrics, dryRun, promtail.WithLogger(i.log), promtail.WithRegisterer(i.reg))
+	clientMetrics := client.NewMetrics(i.reg)
+	cfg := DefaultConfig()
+	cfg.Global = config.GlobalConfig{
+		FileWatch: file.WatchConfig{
+			MinPollFrequency: g.FileWatch.MinPollFrequency,
+			MaxPollFrequency: g.FileWatch.MaxPollFrequency,
+		},
+	}
+	cfg.ClientConfigs = c.ClientConfigs
+	cfg.PositionsConfig = c.PositionsConfig
+	cfg.ScrapeConfig = c.ScrapeConfig
+	cfg.TargetConfig = c.TargetConfig
+	cfg.LimitsConfig = c.LimitsConfig
+
+	p, err := promtail.New(cfg, nil, clientMetrics, dryRun, promtail.WithLogger(i.log), promtail.WithRegisterer(i.reg))
 	if err != nil {
 		return fmt.Errorf("unable to create logs instance: %w", err)
 	}

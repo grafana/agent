@@ -1,6 +1,0 @@
-configs:
-- name: default
-global:
-  scrape_interval: 60s
-  scrape_timeout: 20s
-wal_directory: /tmp/grafana-agent-wal

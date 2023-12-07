@@ -25,7 +25,7 @@ function(ctx, addReplica) (
     else metrics.ExternalLabels
   ) +
 
-  // Finally, add the replica label. We don't want the user to overrwrite the
+  // Finally, add the replica label. We don't want the user to overwrite the
   // replica label since it can cause duplicate sample problems.
   if !addReplica then {} else (
     local replicaValue = 'replica-$(STATEFULSET_ORDINAL_NUMBER)';

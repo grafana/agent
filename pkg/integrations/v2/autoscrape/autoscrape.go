@@ -145,7 +145,7 @@ func (s *Scraper) ApplyConfig(jobs []*ScrapeConfig) error {
 		}
 	}
 
-	// Garbage collect: if if there's a key in s.scrapers that wasn't in
+	// Garbage collect: If there's a key in s.scrapers that wasn't in
 	// shardedJobs, stop that unused scraper.
 	for instance, is := range s.iscrapers {
 		_, current := shardedJobs[instance]

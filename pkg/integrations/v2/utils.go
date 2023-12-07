@@ -24,8 +24,8 @@ var NoOpIntegration = FuncIntegration(func(ctx context.Context) error {
 	return nil
 })
 
-// CompareConfigs will return true if a and b are equal. If neither a or b
-// implement ComparableConfig, then configs are compared by marshaling to YAML
+// CompareConfigs will return true if a and b are equal. If neither a nor b
+// implements ComparableConfig, then configs are compared by marshaling to YAML
 // and comparing the results.
 func CompareConfigs(a, b Config) bool {
 	if a, ok := a.(ComparableConfig); ok {

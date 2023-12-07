@@ -6,7 +6,6 @@ import (
 
 	"github.com/grafana/agent/component/common/config"
 	st "github.com/grafana/agent/component/loki/source/syslog/internal/syslogtarget"
-	"github.com/grafana/agent/pkg/river"
 	"github.com/grafana/loki/clients/pkg/promtail/scrapeconfig"
 	"github.com/prometheus/common/model"
 )
@@ -31,18 +30,13 @@ var DefaultListenerConfig = ListenerConfig{
 	MaxMessageLength: st.DefaultMaxMessageLength,
 }
 
-var _ river.Unmarshaler = (*ListenerConfig)(nil)
-
-// UnmarshalRiver implements river.Unmarshaler.
-func (sc *ListenerConfig) UnmarshalRiver(f func(interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (sc *ListenerConfig) SetToDefault() {
 	*sc = DefaultListenerConfig
+}
 
-	type syslogcfg ListenerConfig
-	err := f((*syslogcfg)(sc))
-	if err != nil {
-		return err
-	}
-
+// Validate implements river.Validator.
+func (sc *ListenerConfig) Validate() error {
 	if sc.ListenProtocol != "tcp" && sc.ListenProtocol != "udp" {
 		return fmt.Errorf("syslog listener protocol should be either 'tcp' or 'udp', got %s", sc.ListenProtocol)
 	}

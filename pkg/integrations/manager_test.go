@@ -7,10 +7,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/cortexproject/cortex/pkg/util/test"
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/pkg/integrations/config"
 	"github.com/grafana/agent/pkg/metrics/instance"
+	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/prometheus/common/model"
 	promConfig "github.com/prometheus/prometheus/config"
@@ -104,7 +104,7 @@ agent:
 
 	// Ensure that the relabel configs are functional
 	require.Len(t, relabels, 1)
-	result := relabel.Process(labels.FromStrings("__address__", "127.0.0.1"), relabels...)
+	result, _ := relabel.Process(labels.FromStrings("__address__", "127.0.0.1"), relabels...)
 
 	require.Equal(t, result.Get("instance"), expectHostname+":12345")
 }
@@ -146,9 +146,10 @@ func TestManager_NoIntegrationsScrape(t *testing.T) {
 	require.NoError(t, err)
 	defer m.Stop()
 
-	// Normally we'd use test.Poll here, but since im.ListConfigs starts out with a
-	// length of zero, test.Poll would immediately pass. Instead we want to wait for a
-	// bit to make sure that the length of ListConfigs doesn't become non-zero.
+	// Normally we'd use util.Eventually here, but since im.ListConfigs starts
+	// out with a length of zero, util.Eventually would immediately pass. Instead
+	// we want to wait for a bit to make sure that the length of ListConfigs
+	// doesn't become non-zero.
 	time.Sleep(time.Second)
 	require.Zero(t, len(im.ListConfigs()))
 }
@@ -190,13 +191,13 @@ func TestManager_StartsIntegrations(t *testing.T) {
 	require.NoError(t, err)
 	defer m.Stop()
 
-	test.Poll(t, time.Second, 1, func() interface{} {
-		return len(im.ListConfigs())
+	util.Eventually(t, func(t require.TestingT) {
+		require.Equal(t, 1, len(im.ListConfigs()))
 	})
 
 	// Check that the instance was set to run
-	test.Poll(t, time.Second, 1, func() interface{} {
-		return int(mock.startedCount.Load())
+	util.Eventually(t, func(t require.TestingT) {
+		require.Equal(t, 1, int(mock.startedCount.Load()))
 	})
 }
 
@@ -214,8 +215,8 @@ func TestManager_RestartsIntegrations(t *testing.T) {
 
 	mock.err <- fmt.Errorf("I can't believe this horrible error happened")
 
-	test.Poll(t, time.Second, 2, func() interface{} {
-		return int(mock.startedCount.Load())
+	util.Eventually(t, func(t require.TestingT) {
+		require.Equal(t, 2, int(mock.startedCount.Load()))
 	})
 }
 
@@ -230,8 +231,8 @@ func TestManager_GracefulStop(t *testing.T) {
 	m, err := NewManager(cfg, log.NewNopLogger(), im, noOpValidator)
 	require.NoError(t, err)
 
-	test.Poll(t, time.Second, 1, func() interface{} {
-		return int(mock.startedCount.Load())
+	util.Eventually(t, func(t require.TestingT) {
+		require.Equal(t, 1, int(mock.startedCount.Load()))
 	})
 
 	m.Stop()
@@ -239,8 +240,8 @@ func TestManager_GracefulStop(t *testing.T) {
 	time.Sleep(500 * time.Millisecond)
 	require.Equal(t, 1, int(mock.startedCount.Load()), "graceful shutdown should not have restarted the Integration")
 
-	test.Poll(t, time.Second, false, func() interface{} {
-		return mock.running.Load()
+	util.Eventually(t, func(t require.TestingT) {
+		require.Equal(t, false, mock.running.Load())
 	})
 }
 

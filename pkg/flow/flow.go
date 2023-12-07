@@ -1,5 +1,5 @@
 // Package flow implements the Flow component graph system. Flow configuration
-// files are parsed from River, which contain a listing of components to run.
+// sources are parsed from River, which contain a listing of components to run.
 //
 // # Components
 //
@@ -47,18 +47,15 @@ package flow
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"sync"
-	"time"
 
-	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/pkg/flow/internal/controller"
-	"github.com/grafana/agent/pkg/flow/internal/dag"
-	"github.com/grafana/agent/pkg/flow/internal/stdlib"
+	"github.com/grafana/agent/pkg/flow/internal/worker"
 	"github.com/grafana/agent/pkg/flow/logging"
+	"github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/grafana/agent/pkg/flow/tracing"
-	"github.com/grafana/agent/pkg/river/vm"
+	"github.com/grafana/agent/service"
 	"github.com/prometheus/client_golang/prometheus"
 	"go.uber.org/atomic"
 )
@@ -74,9 +71,9 @@ type Options struct {
 	// components in telemetry data.
 	ControllerID string
 
-	// LogSink to use for controller logs and components. A no-op logger will be
+	// Logger to use for controller logs and components. A no-op logger will be
 	// created if this is nil.
-	LogSink *logging.Sink
+	Logger *logging.Logger
 
 	// Tracer for components to use. A no-op tracer will be created if this is
 	// nil.
@@ -92,37 +89,29 @@ type Options struct {
 	// Reg is the prometheus register to use
 	Reg prometheus.Registerer
 
-	// HTTPPathPrefix is the path prefix given to managed components. May be
-	// empty. When provided, it should be an absolute path.
-	//
-	// Components will be given a path relative to HTTPPathPrefix using their
-	// local ID.
-	//
-	// If running multiple Flow controllers, each controller must have a
-	// different value for HTTPPathPrefix to prevent components from colliding.
-	HTTPPathPrefix string
-
-	// HTTPListenAddr is the base address that the server is listening on.
-	// The controller does not itself listen here, but some components
-	// need to know this to set the correct targets.
-	HTTPListenAddr string
-
 	// OnExportsChange is called when the exports of the controller change.
 	// Exports are controlled by "export" configuration blocks. If
 	// OnExportsChange is nil, export configuration blocks are not allowed in the
-	// loaded config file.
+	// loaded config source.
 	OnExportsChange func(exports map[string]any)
+
+	// List of Services to run with the Flow controller.
+	//
+	// Services are configured when LoadFile is invoked. Services are started
+	// when the Flow controller runs after LoadFile is invoked at least once.
+	Services []service.Service
 }
 
 // Flow is the Flow system.
 type Flow struct {
 	log    *logging.Logger
 	tracer *tracing.Tracer
-	opts   Options
+	opts   controllerOptions
 
 	updateQueue *controller.Queue
 	sched       *controller.Scheduler
 	loader      *controller.Loader
+	modules     *moduleRegistry
 
 	loadFinished chan struct{}
 
@@ -130,12 +119,36 @@ type Flow struct {
 	loadedOnce atomic.Bool
 }
 
-// New creates and starts a new Flow controller. Call Close to stop
-// the controller.
+// New creates a new, unstarted Flow controller. Call Run to run the controller.
 func New(o Options) *Flow {
+	return newController(controllerOptions{
+		Options:        o,
+		ModuleRegistry: newModuleRegistry(),
+		IsModule:       false, // We are creating a new root controller.
+		WorkerPool:     worker.NewDefaultWorkerPool(),
+	})
+}
+
+// controllerOptions are internal options used to create both root Flow
+// controller and controllers for modules.
+type controllerOptions struct {
+	Options
+
+	ComponentRegistry controller.ComponentRegistry // Custom component registry used in tests.
+	ModuleRegistry    *moduleRegistry              // Where to register created modules.
+	IsModule          bool                         // Whether this controller is for a module.
+	// A worker pool to evaluate components asynchronously. A default one will be created if this is nil.
+	WorkerPool worker.Pool
+}
+
+// newController creates a new, unstarted Flow controller with a specific
+// moduleRegistry. Modules created by the controller will be passed to the
+// given modReg.
+func newController(o controllerOptions) *Flow {
 	var (
-		log    = logging.New(o.LogSink)
-		tracer = o.Tracer
+		log        = o.Logger
+		tracer     = o.Tracer
+		workerPool = o.WorkerPool
 	)
 
 	if tracer == nil {
@@ -147,127 +160,136 @@ func New(o Options) *Flow {
 		}
 	}
 
-	var (
-		queue  = controller.NewQueue()
-		sched  = controller.NewScheduler()
-		loader = controller.NewLoader(controller.ComponentGlobals{
-			LogSink:       o.LogSink,
+	if workerPool == nil {
+		level.Info(log).Log("msg", "no worker pool provided, creating a default pool", "controller", o.ControllerID)
+		workerPool = worker.NewDefaultWorkerPool()
+	}
+
+	f := &Flow{
+		log:    log,
+		tracer: tracer,
+		opts:   o,
+
+		updateQueue: controller.NewQueue(),
+		sched:       controller.NewScheduler(),
+
+		modules: o.ModuleRegistry,
+
+		loadFinished: make(chan struct{}, 1),
+	}
+
+	serviceMap := controller.NewServiceMap(o.Services)
+
+	f.loader = controller.NewLoader(controller.LoaderOptions{
+		ComponentGlobals: controller.ComponentGlobals{
 			Logger:        log,
 			TraceProvider: tracer,
 			DataPath:      o.DataPath,
 			OnComponentUpdate: func(cn *controller.ComponentNode) {
 				// Changed components should be queued for reevaluation.
-				queue.Enqueue(cn)
+				f.updateQueue.Enqueue(cn)
 			},
 			OnExportsChange: o.OnExportsChange,
 			Registerer:      o.Reg,
-			HTTPPathPrefix:  o.HTTPPathPrefix,
-			HTTPListenAddr:  o.HTTPListenAddr,
 			ControllerID:    o.ControllerID,
-		})
-	)
+			NewModuleController: func(id string) controller.ModuleController {
+				return newModuleController(&moduleControllerOptions{
+					ComponentRegistry: o.ComponentRegistry,
+					ModuleRegistry:    o.ModuleRegistry,
+					Logger:            log,
+					Tracer:            tracer,
+					Reg:               o.Reg,
+					DataPath:          o.DataPath,
+					ID:                id,
+					ServiceMap:        serviceMap,
+					WorkerPool:        workerPool,
+				})
+			},
+			GetServiceData: func(name string) (interface{}, error) {
+				svc, found := serviceMap.Get(name)
+				if !found {
+					return nil, fmt.Errorf("service %q does not exist", name)
+				}
+				return svc.Data(), nil
+			},
+		},
 
-	return &Flow{
-		log:    log,
-		tracer: tracer,
-		opts:   o,
+		Services:          o.Services,
+		Host:              f,
+		ComponentRegistry: o.ComponentRegistry,
+		WorkerPool:        workerPool,
+	})
 
-		updateQueue: queue,
-		sched:       sched,
-		loader:      loader,
-
-		loadFinished: make(chan struct{}, 1),
-	}
+	return f
 }
 
 // Run starts the Flow controller, blocking until the provided context is
 // canceled. Run must only be called once.
-func (c *Flow) Run(ctx context.Context) {
-	defer c.sched.Close()
-	defer level.Debug(c.log).Log("msg", "flow controller exiting")
+func (f *Flow) Run(ctx context.Context) {
+	defer func() { _ = f.sched.Close() }()
+	defer f.loader.Cleanup(!f.opts.IsModule)
+	defer level.Debug(f.log).Log("msg", "flow controller exiting")
 
 	for {
 		select {
 		case <-ctx.Done():
 			return
 
-		case <-c.updateQueue.Chan():
-			// We need to pop _everything_ from the queue and evaluate each of them.
-			// If we only pop a single element, other components may sit waiting for
-			// evaluation forever.
-			for {
-				updated := c.updateQueue.TryDequeue()
-				if updated == nil {
-					break
+		case <-f.updateQueue.Chan():
+			// Evaluate all components that have been updated. Sending the entire batch together will improve
+			// throughput - it prevents the situation where two components have the same dependency, and the first time
+			// it's picked up by the worker pool and the second time it's enqueued again, resulting in more evaluations.
+			all := f.updateQueue.DequeueAll()
+			f.loader.EvaluateDependencies(ctx, all)
+		case <-f.loadFinished:
+			level.Info(f.log).Log("msg", "scheduling loaded components and services")
+
+			var (
+				components = f.loader.Components()
+				services   = f.loader.Services()
+
+				runnables = make([]controller.RunnableNode, 0, len(components)+len(services))
+			)
+			for _, c := range components {
+				runnables = append(runnables, c)
+			}
+
+			// Only the root controller should run services, since modules share the
+			// same service instance as the root.
+			if !f.opts.IsModule {
+				for _, svc := range services {
+					runnables = append(runnables, svc)
 				}
-
-				level.Debug(c.log).Log("msg", "handling component with updated state", "node_id", updated.NodeID())
-				c.loader.EvaluateDependencies(nil, updated)
 			}
 
-		case <-c.loadFinished:
-			level.Info(c.log).Log("msg", "scheduling loaded components")
-
-			components := c.loader.Components()
-			runnables := make([]controller.RunnableNode, 0, len(components))
-			for _, uc := range components {
-				runnables = append(runnables, uc)
-			}
-			err := c.sched.Synchronize(runnables)
+			err := f.sched.Synchronize(runnables)
 			if err != nil {
-				level.Error(c.log).Log("msg", "failed to load components", "err", err)
+				level.Error(f.log).Log("msg", "failed to load components and services", "err", err)
 			}
 		}
 	}
 }
 
-// LoadFile synchronizes the state of the controller with the current config
-// file. Components in the graph will be marked as unhealthy if there was an
+// LoadSource synchronizes the state of the controller with the current config
+// source. Components in the graph will be marked as unhealthy if there was an
 // error encountered during Load.
 //
 // The controller will only start running components after Load is called once
 // without any configuration errors.
-func (c *Flow) LoadFile(file *File, args map[string]any) error {
-	c.loadMut.Lock()
-	defer c.loadMut.Unlock()
+func (f *Flow) LoadSource(source *Source, args map[string]any) error {
+	f.loadMut.Lock()
+	defer f.loadMut.Unlock()
 
-	// Fill out the values for the scope so that argument.NAME.value can be used
-	// to reference expressions.
-	evaluatedArgs := make(map[string]any, len(file.Arguments))
-
-	// TODO(rfratto): error on unrecognized args.
-	for _, arg := range file.Arguments {
-		val := arg.Default
-
-		if setVal, ok := args[arg.Name]; !ok && !arg.Optional {
-			return fmt.Errorf("required argument %q not set", arg.Name)
-		} else if ok {
-			val = setVal
-		}
-
-		evaluatedArgs[arg.Name] = map[string]any{"value": val}
-	}
-
-	argumentScope := &vm.Scope{
-		// The top scope is the Flow-specific stdlib.
-		Parent: &vm.Scope{
-			Variables: stdlib.Identifiers,
-		},
-		Variables: map[string]interface{}{
-			"argument": evaluatedArgs,
-		},
-	}
-
-	diags := c.loader.Apply(argumentScope, file.Components, file.ConfigBlocks)
-	if !c.loadedOnce.Load() && diags.HasErrors() {
+	diags := f.loader.Apply(args, source.components, source.configBlocks)
+	if !f.loadedOnce.Load() && diags.HasErrors() {
 		// The first call to Load should not run any components if there were
 		// errors in the configuration file.
 		return diags
 	}
-	c.loadedOnce.Store(true)
+	f.loadedOnce.Store(true)
 
 	select {
-	case c.loadFinished <- struct{}{}:
+	case f.loadFinished <- struct{}{}:
 	default:
 		// A refresh is already scheduled
 	}
@@ -275,87 +297,6 @@ func (c *Flow) LoadFile(file *File, args map[string]any) error {
 }
 
 // Ready returns whether the Flow controller has finished its initial load.
-func (c *Flow) Ready() bool {
-	return c.loadedOnce.Load()
-}
-
-// ComponentInfos returns the component infos.
-func (c *Flow) ComponentInfos() []*ComponentInfo {
-	c.loadMut.RLock()
-	defer c.loadMut.RUnlock()
-
-	cns := c.loader.Components()
-	infos := make([]*ComponentInfo, len(cns))
-	edges := c.loader.OriginalGraph().Edges()
-	for i, com := range cns {
-		nn := newFromNode(com, edges)
-		infos[i] = nn
-	}
-	return infos
-}
-
-func newFromNode(cn *controller.ComponentNode, edges []dag.Edge) *ComponentInfo {
-	references := make([]string, 0)
-	referencedBy := make([]string, 0)
-	for _, e := range edges {
-		// Skip over any edge which isn't between two component nodes. This is a
-		// temporary workaround needed until there's the conept of configuration
-		// blocks from the API.
-		//
-		// Without this change, the graph fails to render when a configuration
-		// block is referenced in the graph.
-		//
-		// TODO(rfratto): add support for config block nodes in the API and UI.
-		if !isComponentNode(e.From) || !isComponentNode(e.To) {
-			continue
-		}
-
-		if e.From.NodeID() == cn.NodeID() {
-			references = append(references, e.To.NodeID())
-		} else if e.To.NodeID() == cn.NodeID() {
-			referencedBy = append(referencedBy, e.From.NodeID())
-		}
-	}
-	h := cn.CurrentHealth()
-	ci := &ComponentInfo{
-		Label:        cn.Label(),
-		ID:           cn.NodeID(),
-		Name:         cn.ComponentName(),
-		Type:         "block",
-		References:   references,
-		ReferencedBy: referencedBy,
-		Health: &ComponentHealth{
-			State:       h.Health.String(),
-			Message:     h.Message,
-			UpdatedTime: h.UpdateTime,
-		},
-	}
-	return ci
-}
-
-func isComponentNode(n dag.Node) bool {
-	_, ok := n.(*controller.ComponentNode)
-	return ok
-}
-
-// ComponentInfo represents a component in flow.
-type ComponentInfo struct {
-	Name         string           `json:"name,omitempty"`
-	Type         string           `json:"type,omitempty"`
-	ID           string           `json:"id,omitempty"`
-	Label        string           `json:"label,omitempty"`
-	References   []string         `json:"referencesTo"`
-	ReferencedBy []string         `json:"referencedBy"`
-	Health       *ComponentHealth `json:"health"`
-	Original     string           `json:"original"`
-	Arguments    json.RawMessage  `json:"arguments,omitempty"`
-	Exports      json.RawMessage  `json:"exports,omitempty"`
-	DebugInfo    json.RawMessage  `json:"debugInfo,omitempty"`
-}
-
-// ComponentHealth represents the health of a component.
-type ComponentHealth struct {
-	State       string    `json:"state"`
-	Message     string    `json:"message"`
-	UpdatedTime time.Time `json:"updatedTime"`
+func (f *Flow) Ready() bool {
+	return f.loadedOnce.Load()
 }

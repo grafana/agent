@@ -17,10 +17,11 @@ import (
 )
 
 const (
-	metricsPerQuery       = 500
-	cloudWatchConcurrency = 5
-	tagConcurrency        = 5
-	labelsSnakeCase       = false
+	metricsPerQuery                  = 500
+	cloudWatchConcurrency            = 5
+	tagConcurrency                   = 5
+	labelsSnakeCase                  = false
+	defaultDecoupledScrapingInterval = time.Minute * 5
 )
 
 // Since we are gathering metrics from CloudWatch and writing them in prometheus during each scrape, the timestamp
@@ -28,7 +29,7 @@ const (
 var addCloudwatchTimestamp = false
 
 // Avoid producing absence of values in metrics
-var nilToZero = true
+var defaultNilToZero = true
 
 func init() {
 	integrations.RegisterIntegration(&Config{})
@@ -37,9 +38,19 @@ func init() {
 
 // Config is the configuration for the CloudWatch metrics integration
 type Config struct {
-	STSRegion string          `yaml:"sts_region"`
-	Discovery DiscoveryConfig `yaml:"discovery"`
-	Static    []StaticJob     `yaml:"static"`
+	STSRegion       string                `yaml:"sts_region"`
+	FIPSDisabled    bool                  `yaml:"fips_disabled"`
+	Discovery       DiscoveryConfig       `yaml:"discovery"`
+	Static          []StaticJob           `yaml:"static"`
+	Debug           bool                  `yaml:"debug"`
+	DecoupledScrape DecoupledScrapeConfig `yaml:"decoupled_scraping"`
+}
+
+// DecoupledScrapeConfig is the configuration for decoupled scraping feature.
+type DecoupledScrapeConfig struct {
+	Enabled bool `yaml:"enabled"`
+	// ScrapeInterval defines the decoupled scraping interval. If left empty, a default interval of 5m is used
+	ScrapeInterval *time.Duration `yaml:"scrape_interval,omitempty"`
 }
 
 // DiscoveryConfig configures scraping jobs that will auto-discover metrics dimensions for a given service.
@@ -53,11 +64,13 @@ type TagsPerNamespace map[string][]string
 
 // DiscoveryJob configures a discovery job for a given service.
 type DiscoveryJob struct {
-	InlineRegionAndRoles `yaml:",inline"`
-	InlineCustomTags     `yaml:",inline"`
-	SearchTags           []Tag    `yaml:"search_tags"`
-	Type                 string   `yaml:"type"`
-	Metrics              []Metric `yaml:"metrics"`
+	InlineRegionAndRoles      `yaml:",inline"`
+	InlineCustomTags          `yaml:",inline"`
+	SearchTags                []Tag    `yaml:"search_tags"`
+	Type                      string   `yaml:"type"`
+	DimensionNameRequirements []string `yaml:"dimension_name_requirements"`
+	Metrics                   []Metric `yaml:"metrics"`
+	NilToZero                 *bool    `yaml:"nil_to_zero,omitempty"`
 }
 
 // StaticJob will scrape metrics that match all defined dimensions.
@@ -68,6 +81,7 @@ type StaticJob struct {
 	Namespace            string      `yaml:"namespace"`
 	Dimensions           []Dimension `yaml:"dimensions"`
 	Metrics              []Metric    `yaml:"metrics"`
+	NilToZero            *bool       `yaml:"nil_to_zero,omitempty"`
 }
 
 // InlineRegionAndRoles exposes for each supported job, the AWS regions and IAM roles in which the agent should perform the
@@ -100,6 +114,8 @@ type Metric struct {
 	Name       string        `yaml:"name"`
 	Statistics []string      `yaml:"statistics"`
 	Period     time.Duration `yaml:"period"`
+	Length     time.Duration `yaml:"length"`
+	NilToZero  *bool         `yaml:"nil_to_zero,omitempty"`
 }
 
 // Name returns the name of the integration this config is for.
@@ -113,11 +129,19 @@ func (c *Config) InstanceKey(agentKey string) (string, error) {
 
 // NewIntegration creates a new integration from the config.
 func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) {
-	exporterConfig, err := ToYACEConfig(c)
+	exporterConfig, fipsEnabled, err := ToYACEConfig(c)
 	if err != nil {
 		return nil, fmt.Errorf("invalid cloudwatch exporter configuration: %w", err)
 	}
-	return newCloudwatchExporter(c.Name(), l, exporterConfig), nil
+	if c.DecoupledScrape.Enabled {
+		scrapeInterval := defaultDecoupledScrapingInterval
+		if v := c.DecoupledScrape.ScrapeInterval; v != nil {
+			scrapeInterval = *v
+		}
+		return NewDecoupledCloudwatchExporter(c.Name(), l, exporterConfig, scrapeInterval, fipsEnabled, c.Debug), nil
+	}
+
+	return NewCloudwatchExporter(c.Name(), l, exporterConfig, fipsEnabled, c.Debug), nil
 }
 
 // getHash calculates the MD5 hash of the yaml representation of the config
@@ -132,7 +156,8 @@ func getHash(c *Config) (string, error) {
 
 // ToYACEConfig converts a Config into YACE's config model. Note that the conversion is not direct, some values
 // have been opinionated to simplify the config model the agent exposes for this integration.
-func ToYACEConfig(c *Config) (yaceConf.ScrapeConf, error) {
+// The returned boolean is whether or not AWS FIPS endpoints will be enabled.
+func ToYACEConfig(c *Config) (yaceConf.ScrapeConf, bool, error) {
 	discoveryJobs := []*yaceConf.Job{}
 	for _, job := range c.Discovery.Jobs {
 		discoveryJobs = append(discoveryJobs, toYACEDiscoveryJob(job))
@@ -145,23 +170,27 @@ func ToYACEConfig(c *Config) (yaceConf.ScrapeConf, error) {
 		APIVersion: "v1alpha1",
 		StsRegion:  c.STSRegion,
 		Discovery: yaceConf.Discovery{
-			ExportedTagsOnMetrics: yaceConf.ExportedTagsOnMetrics(c.Discovery.ExportedTags),
+			ExportedTagsOnMetrics: yaceModel.ExportedTagsOnMetrics(c.Discovery.ExportedTags),
 			Jobs:                  discoveryJobs,
 		},
 		Static: staticJobs,
 	}
+
+	// yaceSess expects a default value of True
+	fipsEnabled := !c.FIPSDisabled
+
 	// Run the exporter's config validation. Between other things, it will check that the service for which a discovery
 	// job is instantiated, it's supported.
 	if err := conf.Validate(); err != nil {
-		return conf, err
+		return conf, fipsEnabled, err
 	}
-	patchYACEDefaults(&conf)
+	PatchYACEDefaults(&conf)
 
-	return conf, nil
+	return conf, fipsEnabled, nil
 }
 
-// patchYACEDefaults overrides some default values YACE applies after validation.
-func patchYACEDefaults(yc *yaceConf.ScrapeConf) {
+// PatchYACEDefaults overrides some default values YACE applies after validation.
+func PatchYACEDefaults(yc *yaceConf.ScrapeConf) {
 	// YACE doesn't allow during validation a zero-delay in each metrics scrape. Override this behaviour since it's taken
 	// into account by the rounding period.
 	// https://github.com/nerdswords/yet-another-cloudwatch-exporter/blob/7e5949124bb5f26353eeff298724a5897de2a2a4/pkg/config/config.go#L320
@@ -170,9 +199,18 @@ func patchYACEDefaults(yc *yaceConf.ScrapeConf) {
 			metric.Delay = 0
 		}
 	}
+	for _, staticConf := range yc.Static {
+		for _, metric := range staticConf.Metrics {
+			metric.Delay = 0
+		}
+	}
 }
 
 func toYACEStaticJob(job StaticJob) *yaceConf.Static {
+	nilToZero := job.NilToZero
+	if nilToZero == nil {
+		nilToZero = &defaultNilToZero
+	}
 	return &yaceConf.Static{
 		Name:       job.Name,
 		Regions:    job.Regions,
@@ -180,7 +218,7 @@ func toYACEStaticJob(job StaticJob) *yaceConf.Static {
 		Namespace:  job.Namespace,
 		CustomTags: toYACETags(job.CustomTags),
 		Dimensions: toYACEDimensions(job.Dimensions),
-		Metrics:    toYACEMetrics(job.Metrics),
+		Metrics:    toYACEMetrics(job.Metrics, nilToZero),
 	}
 }
 
@@ -197,13 +235,18 @@ func toYACEDimensions(dim []Dimension) []yaceConf.Dimension {
 
 func toYACEDiscoveryJob(job *DiscoveryJob) *yaceConf.Job {
 	roles := toYACERoles(job.Roles)
+	nilToZero := job.NilToZero
+	if nilToZero == nil {
+		nilToZero = &defaultNilToZero
+	}
 	yaceJob := yaceConf.Job{
-		Regions:    job.Regions,
-		Roles:      roles,
-		CustomTags: toYACETags(job.CustomTags),
-		Type:       job.Type,
-		Metrics:    toYACEMetrics(job.Metrics),
-		SearchTags: toYACETags(job.SearchTags),
+		Regions:                   job.Regions,
+		Roles:                     roles,
+		CustomTags:                toYACETags(job.CustomTags),
+		Type:                      job.Type,
+		Metrics:                   toYACEMetrics(job.Metrics, nilToZero),
+		SearchTags:                toYACETags(job.SearchTags),
+		DimensionNameRequirements: job.DimensionNameRequirements,
 
 		// By setting RoundingPeriod to nil, the exporter will align the start and end times for retrieving CloudWatch
 		// metrics, with the smallest period in the retrieved batch.
@@ -215,18 +258,27 @@ func toYACEDiscoveryJob(job *DiscoveryJob) *yaceConf.Job {
 			Period:                 0,
 			Length:                 0,
 			Delay:                  0,
-			NilToZero:              &nilToZero,
+			NilToZero:              nilToZero,
 			AddCloudwatchTimestamp: &addCloudwatchTimestamp,
 		},
 	}
 	return &yaceJob
 }
 
-func toYACEMetrics(metrics []Metric) []*yaceConf.Metric {
+func toYACEMetrics(metrics []Metric, jobNilToZero *bool) []*yaceConf.Metric {
 	yaceMetrics := []*yaceConf.Metric{}
 	for _, metric := range metrics {
 		periodSeconds := int64(metric.Period.Seconds())
 		lengthSeconds := periodSeconds
+		// If `length` is configured, override default
+		if metric.Length != 0 {
+			lengthSeconds = int64(metric.Length.Seconds())
+		}
+		nilToZero := metric.NilToZero
+		if nilToZero == nil {
+			nilToZero = jobNilToZero
+		}
+
 		yaceMetrics = append(yaceMetrics, &yaceConf.Metric{
 			Name:       metric.Name,
 			Statistics: metric.Statistics,
@@ -243,7 +295,7 @@ func toYACEMetrics(metrics []Metric) []*yaceConf.Metric {
 			// this with RoundingPeriod (see toYACEDiscoveryJob), we should omit this setting.
 			Delay: 0,
 
-			NilToZero:              &nilToZero,
+			NilToZero:              nilToZero,
 			AddCloudwatchTimestamp: &addCloudwatchTimestamp,
 		})
 	}

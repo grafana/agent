@@ -4,13 +4,14 @@ import (
 	"testing"
 
 	"github.com/grafana/agent/pkg/integrations/mysqld_exporter"
-	"github.com/grafana/agent/pkg/river"
+	"github.com/grafana/river"
+	"github.com/grafana/river/rivertypes"
 	"github.com/stretchr/testify/require"
 )
 
 func TestRiverConfigUnmarshal(t *testing.T) {
 	var exampleRiverConfig = `
-	data_source_name = "DataSourceName"
+	data_source_name = "root:secret_password@tcp(localhost:3306)/mydb"
 	enable_collectors = ["collector1"]
 	disable_collectors = ["collector2"]
 	set_collectors = ["collector3", "collector4"]
@@ -38,6 +39,10 @@ func TestRiverConfigUnmarshal(t *testing.T) {
 		remove_prefix = "instances_remove"
 	}
 
+	perf_schema.memory_events {
+		remove_prefix = "innodb/"
+	}
+
 	heartbeat {
 		database = "heartbeat_database"
 		table = "heartbeat_table"
@@ -53,7 +58,7 @@ func TestRiverConfigUnmarshal(t *testing.T) {
 	err := river.Unmarshal([]byte(exampleRiverConfig), &args)
 	require.NoError(t, err)
 
-	require.Equal(t, "DataSourceName", string(args.DataSourceName))
+	require.Equal(t, "root:secret_password@tcp(localhost:3306)/mydb", string(args.DataSourceName))
 	require.Equal(t, []string{"collector1"}, args.EnableCollectors)
 	require.Equal(t, []string{"collector2"}, args.DisableCollectors)
 	require.Equal(t, []string{"collector3", "collector4"}, args.SetCollectors)
@@ -68,6 +73,7 @@ func TestRiverConfigUnmarshal(t *testing.T) {
 	require.Equal(t, 5, args.PerfSchemaEventsStatements.TextLimit)
 	require.Equal(t, "instances_filter", args.PerfSchemaFileInstances.Filter)
 	require.Equal(t, "instances_remove", args.PerfSchemaFileInstances.RemovePrefix)
+	require.Equal(t, "innodb/", args.PerfSchemaMemoryEvents.RemovePrefix)
 	require.Equal(t, "heartbeat_database", args.Heartbeat.Database)
 	require.Equal(t, "heartbeat_table", args.Heartbeat.Table)
 	require.True(t, args.Heartbeat.UTC)
@@ -76,7 +82,7 @@ func TestRiverConfigUnmarshal(t *testing.T) {
 
 func TestRiverConfigConvert(t *testing.T) {
 	var exampleRiverConfig = `
-	data_source_name = "DataSourceName"
+	data_source_name = "root:secret_password@tcp(localhost:3306)/mydb"
 	enable_collectors = ["collector1"]
 	disable_collectors = ["collector2"]
 	set_collectors = ["collector3", "collector4"]
@@ -104,6 +110,10 @@ func TestRiverConfigConvert(t *testing.T) {
 		remove_prefix = "instances_remove"
 	}
 
+	perf_schema.memory_events {
+		remove_prefix = "innodb/"
+	}
+
 	heartbeat {
 		database = "heartbeat_database"
 		table = "heartbeat_table"
@@ -120,7 +130,7 @@ func TestRiverConfigConvert(t *testing.T) {
 	require.NoError(t, err)
 
 	c := args.Convert()
-	require.Equal(t, "DataSourceName", string(c.DataSourceName))
+	require.Equal(t, "root:secret_password@tcp(localhost:3306)/mydb", string(c.DataSourceName))
 	require.Equal(t, []string{"collector1"}, c.EnableCollectors)
 	require.Equal(t, []string{"collector2"}, c.DisableCollectors)
 	require.Equal(t, []string{"collector3", "collector4"}, c.SetCollectors)
@@ -135,6 +145,7 @@ func TestRiverConfigConvert(t *testing.T) {
 	require.Equal(t, 5, c.PerfSchemaEventsStatementsTextLimit)
 	require.Equal(t, "instances_filter", c.PerfSchemaFileInstancesFilter)
 	require.Equal(t, "instances_remove", c.PerfSchemaFileInstancesRemovePrefix)
+	require.Equal(t, "innodb/", c.PerfSchemaMemoryEventsRemovePrefix)
 	require.Equal(t, "heartbeat_database", c.HeartbeatDatabase)
 	require.Equal(t, "heartbeat_table", c.HeartbeatTable)
 	require.True(t, c.HeartbeatUTC)
@@ -145,4 +156,18 @@ func TestRiverConfigConvert(t *testing.T) {
 func TestDefaultsSame(t *testing.T) {
 	convertedDefaults := DefaultArguments.Convert()
 	require.Equal(t, mysqld_exporter.DefaultConfig, *convertedDefaults)
+}
+
+func TestValidate_ValidDataSource(t *testing.T) {
+	args := Arguments{
+		DataSourceName: rivertypes.Secret("root:secret_password@tcp(localhost:3306)/mydb"),
+	}
+	require.NoError(t, args.Validate())
+}
+
+func TestValidate_InvalidDataSource(t *testing.T) {
+	args := Arguments{
+		DataSourceName: rivertypes.Secret("root:secret_password@invalid/mydb"),
+	}
+	require.Error(t, args.Validate())
 }

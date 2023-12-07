@@ -89,10 +89,19 @@ type GrafanaAgentSpec struct {
 	// Grafana Agent Operator knows which version of Grafana Agent is being
 	// configured.
 	Image *string `json:"image,omitempty"`
+
+	// Version of Config Reloader to be deployed.
+	ConfigReloaderVersion string `json:"configReloaderVersion,omitempty"`
+	// Image, when specified, overrides the image used to run Config Reloader. Specify
+	// the image along with a tag. You still need to set the version to ensure
+	// Grafana Agent Operator knows which version of Grafana Agent is being
+	// configured.
+	ConfigReloaderImage *string `json:"configReloaderImage,omitempty"`
+
 	// ImagePullSecrets holds an optional list of references to Secrets within
 	// the same namespace used for pulling the Grafana Agent image from
 	// registries.
-	// More info: https://kubernetes.io/docs/user-guide/images#specifying-imagepullsecrets-on-a-pod
+	// More info: https://kubernetes.io/docs/concepts/containers/images/#specifying-imagepullsecrets-on-a-pod
 	ImagePullSecrets []v1.LocalObjectReference `json:"imagePullSecrets,omitempty"`
 	// Storage spec to specify how storage will be used.
 	Storage *prom_v1.StorageSpec `json:"storage,omitempty"`
@@ -113,12 +122,12 @@ type GrafanaAgentSpec struct {
 	ServiceAccountName string `json:"serviceAccountName,omitempty"`
 	// Secrets is a list of secrets in the same namespace as the GrafanaAgent
 	// object which will be mounted into each running Grafana Agent pod.
-	// The secrets are mounted into /etc/grafana-agent/extra-secrets/<secret-name>.
+	// The secrets are mounted into /var/lib/grafana-agent/extra-secrets/<secret-name>.
 	Secrets []string `json:"secrets,omitempty"`
 	// ConfigMaps is a list of config maps in the same namespace as the
 	// GrafanaAgent object which will be mounted into each running Grafana Agent
 	// pod.
-	// The ConfigMaps are mounted into /etc/grafana-agent/extra-configmaps/<configmap-name>.
+	// The ConfigMaps are mounted into /var/lib/grafana-agent/extra-configmaps/<configmap-name>.
 	ConfigMaps []string `json:"configMaps,omitempty"`
 	// Affinity, if specified, controls pod scheduling constraints.
 	Affinity *v1.Affinity `json:"affinity,omitempty"`

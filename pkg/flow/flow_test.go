@@ -1,6 +1,7 @@
 package flow
 
 import (
+	"context"
 	"os"
 	"testing"
 
@@ -10,6 +11,7 @@ import (
 	"github.com/grafana/agent/pkg/flow/internal/testcomponents"
 	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/goleak"
 )
 
 var testFile = `
@@ -30,15 +32,17 @@ var testFile = `
 	}
 `
 
-func TestController_LoadFile_Evaluation(t *testing.T) {
+func TestController_LoadSource_Evaluation(t *testing.T) {
+	defer verifyNoGoroutineLeaks(t)
 	ctrl := New(testOptions(t))
+	defer cleanUpController(ctrl)
 
 	// Use testFile from graph_builder_test.go.
-	f, err := ReadFile(t.Name(), []byte(testFile))
+	f, err := ParseSource(t.Name(), []byte(testFile))
 	require.NoError(t, err)
 	require.NotNil(t, f)
 
-	err = ctrl.LoadFile(f, nil)
+	err = ctrl.LoadSource(f, nil)
 	require.NoError(t, err)
 	require.Len(t, ctrl.loader.Components(), 4)
 
@@ -47,10 +51,6 @@ func TestController_LoadFile_Evaluation(t *testing.T) {
 	in, out := getFields(t, ctrl.loader.Graph(), "testcomponents.passthrough.static")
 	require.Equal(t, "hello, world!", in.(testcomponents.PassthroughConfig).Input)
 	require.Equal(t, "hello, world!", out.(testcomponents.PassthroughExports).Output)
-
-	// Check the config node is present and has the default values applied.
-	opts := getConfigOpts(t, ctrl.loader.Graph())
-	require.Equal(t, logging.DefaultSinkOptions, opts)
 }
 
 func getFields(t *testing.T, g *dag.Graph, nodeID string) (component.Arguments, component.Exports) {
@@ -63,24 +63,36 @@ func getFields(t *testing.T, g *dag.Graph, nodeID string) (component.Arguments, 
 	return uc.Arguments(), uc.Exports()
 }
 
-func getConfigOpts(t *testing.T, g *dag.Graph) logging.SinkOptions {
-	t.Helper()
-	n := g.GetByID("configNode")
-	require.NotNil(t, n, "couldn't find config node in graph")
-
-	cn := n.(*controller.ConfigNode)
-	return cn.LoggingArgs()
-}
-
 func testOptions(t *testing.T) Options {
 	t.Helper()
 
-	s, err := logging.WriterSink(os.Stderr, logging.DefaultSinkOptions)
+	s, err := logging.New(os.Stderr, logging.DefaultOptions)
 	require.NoError(t, err)
 
 	return Options{
-		LogSink:  s,
+		Logger:   s,
 		DataPath: t.TempDir(),
 		Reg:      nil,
 	}
+}
+
+func cleanUpController(ctrl *Flow) {
+	// To avoid leaking goroutines and clean-up, we need to run and shut down the controller.
+	ctx, cancel := context.WithCancel(context.Background())
+	done := make(chan struct{})
+	go func() {
+		ctrl.Run(ctx)
+		close(done)
+	}()
+	cancel()
+	<-done
+}
+
+func verifyNoGoroutineLeaks(t *testing.T) {
+	t.Helper()
+	goleak.VerifyNone(
+		t,
+		goleak.IgnoreTopFunction("go.opencensus.io/stats/view.(*worker).start"),
+		goleak.IgnoreTopFunction("go.opentelemetry.io/otel/sdk/trace.(*batchSpanProcessor).processQueue"),
+	)
 }

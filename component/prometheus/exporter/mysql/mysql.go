@@ -1,11 +1,12 @@
 package mysql
 
 import (
+	"github.com/go-sql-driver/mysql"
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/prometheus/exporter"
-	"github.com/grafana/agent/pkg/flow/rivertypes"
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/integrations/mysqld_exporter"
+	"github.com/grafana/river/rivertypes"
 	config_util "github.com/prometheus/common/config"
 )
 
@@ -14,13 +15,14 @@ func init() {
 		Name:    "prometheus.exporter.mysql",
 		Args:    Arguments{},
 		Exports: exporter.Exports{},
-		Build:   exporter.New(createExporter, "mysql"),
+
+		Build: exporter.New(createExporter, "mysql"),
 	})
 }
 
-func createExporter(opts component.Options, args component.Arguments) (integrations.Integration, error) {
-	cfg := args.(Arguments)
-	return cfg.Convert().NewIntegration(opts.Logger)
+func createExporter(opts component.Options, args component.Arguments, defaultInstanceKey string) (integrations.Integration, string, error) {
+	a := args.(Arguments)
+	return integrations.NewIntegrationWithInstanceKey(opts.Logger, a.Convert(), defaultInstanceKey)
 }
 
 // DefaultArguments holds the default settings for the mysqld_exporter integration.
@@ -41,6 +43,9 @@ var DefaultArguments = Arguments{
 	PerfSchemaFileInstances: PerfSchemaFileInstances{
 		Filter:       ".*",
 		RemovePrefix: "/var/lib/mysql",
+	},
+	PerfSchemaMemoryEvents: PerfSchemaMemoryEvents{
+		RemovePrefix: "memory/",
 	},
 	Heartbeat: Heartbeat{
 		Database: "heartbeat",
@@ -70,8 +75,10 @@ type Arguments struct {
 	InfoSchemaTables           InfoSchemaTables           `river:"info_schema.tables,block,optional"`
 	PerfSchemaEventsStatements PerfSchemaEventsStatements `river:"perf_schema.eventsstatements,block,optional"`
 	PerfSchemaFileInstances    PerfSchemaFileInstances    `river:"perf_schema.file_instances,block,optional"`
-	Heartbeat                  Heartbeat                  `river:"heartbeat,block,optional"`
-	MySQLUser                  MySQLUser                  `river:"mysql.user,block,optional"`
+	PerfSchemaMemoryEvents     PerfSchemaMemoryEvents     `river:"perf_schema.memory_events,block,optional"`
+
+	Heartbeat Heartbeat `river:"heartbeat,block,optional"`
+	MySQLUser MySQLUser `river:"mysql.user,block,optional"`
 }
 
 // InfoSchemaProcessList configures the info_schema.processlist collector
@@ -99,6 +106,11 @@ type PerfSchemaFileInstances struct {
 	RemovePrefix string `river:"remove_prefix,attr,optional"`
 }
 
+// PerfSchemaMemoryEvents configures the perf_schema.memory_events collector
+type PerfSchemaMemoryEvents struct {
+	RemovePrefix string `river:"remove_prefix,attr,optional"`
+}
+
 // Heartbeat controls the heartbeat collector
 type Heartbeat struct {
 	Database string `river:"database,attr,optional"`
@@ -111,12 +123,18 @@ type MySQLUser struct {
 	Privileges bool `river:"privileges,attr,optional"`
 }
 
-// UnmarshalRiver implements River unmarshalling for Config.
-func (c *Arguments) UnmarshalRiver(f func(interface{}) error) error {
-	*c = DefaultArguments
+// SetToDefault implements river.Defaulter.
+func (a *Arguments) SetToDefault() {
+	*a = DefaultArguments
+}
 
-	type cfg Arguments
-	return f((*cfg)(c))
+// Validate implements river.Validator.
+func (a *Arguments) Validate() error {
+	_, err := mysql.ParseDSN(string(a.DataSourceName))
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (a *Arguments) Convert() *mysqld_exporter.Config {
@@ -136,6 +154,7 @@ func (a *Arguments) Convert() *mysqld_exporter.Config {
 		PerfSchemaEventsStatementsTextLimit:  a.PerfSchemaEventsStatements.TextLimit,
 		PerfSchemaFileInstancesFilter:        a.PerfSchemaFileInstances.Filter,
 		PerfSchemaFileInstancesRemovePrefix:  a.PerfSchemaFileInstances.RemovePrefix,
+		PerfSchemaMemoryEventsRemovePrefix:   a.PerfSchemaMemoryEvents.RemovePrefix,
 		HeartbeatDatabase:                    a.Heartbeat.Database,
 		HeartbeatTable:                       a.Heartbeat.Table,
 		HeartbeatUTC:                         a.Heartbeat.UTC,

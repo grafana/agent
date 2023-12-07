@@ -109,7 +109,7 @@ func (bbh *blackboxHandler) createHandler(targets []blackbox_exporter.BlackboxTa
 			params.Set("module", t.Module)
 		}
 
-		prober.Handler(w, r, bbh.modules, bbh.log, &prober.ResultHistory{}, bbh.cfg.ProbeTimeoutOffset, params)
+		prober.Handler(w, r, bbh.modules, bbh.log, &prober.ResultHistory{}, bbh.cfg.ProbeTimeoutOffset, params, nil)
 	}
 }
 

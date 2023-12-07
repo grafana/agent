@@ -13,13 +13,14 @@ func init() {
 		Name:    "prometheus.exporter.process",
 		Args:    Arguments{},
 		Exports: exporter.Exports{},
-		Build:   exporter.New(createIntegration, "process"),
+
+		Build: exporter.New(createIntegration, "process"),
 	})
 }
 
-func createIntegration(opts component.Options, args component.Arguments) (integrations.Integration, error) {
-	cfg := args.(Arguments)
-	return cfg.Convert().NewIntegration(opts.Logger)
+func createIntegration(opts component.Options, args component.Arguments, defaultInstanceKey string) (integrations.Integration, string, error) {
+	a := args.(Arguments)
+	return integrations.NewIntegrationWithInstanceKey(opts.Logger, a.Convert(), defaultInstanceKey)
 }
 
 // DefaultArguments holds the default arguments for the prometheus.exporter.process
@@ -51,12 +52,9 @@ type MatcherGroup struct {
 	CmdlineRules []string `river:"cmdline,attr,optional"`
 }
 
-// UnmarshalRiver implements River unmarshalling for Config.
-func (c *Arguments) UnmarshalRiver(f func(interface{}) error) error {
-	*c = DefaultArguments
-
-	type cfg Arguments
-	return f((*cfg)(c))
+// SetToDefault implements river.Defaulter.
+func (a *Arguments) SetToDefault() {
+	*a = DefaultArguments
 }
 
 func (a *Arguments) Convert() *process_exporter.Config {

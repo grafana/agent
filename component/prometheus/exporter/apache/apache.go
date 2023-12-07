@@ -10,43 +10,41 @@ import (
 func init() {
 	component.Register(component.Registration{
 		Name:    "prometheus.exporter.apache",
-		Args:    Config{},
+		Args:    Arguments{},
 		Exports: exporter.Exports{},
-		Build:   exporter.New(createExporter, "apache"),
+
+		Build: exporter.New(createExporter, "apache"),
 	})
 }
 
-func createExporter(opts component.Options, args component.Arguments) (integrations.Integration, error) {
-	cfg := args.(Config)
-	return cfg.Convert().NewIntegration(opts.Logger)
+func createExporter(opts component.Options, args component.Arguments, defaultInstanceKey string) (integrations.Integration, string, error) {
+	a := args.(Arguments)
+	return integrations.NewIntegrationWithInstanceKey(opts.Logger, a.Convert(), defaultInstanceKey)
 }
 
-// DefaultConfig holds the default settings for the apache exporter
-var DefaultConfig = Config{
+// DefaultArguments holds the default settings for the apache exporter
+var DefaultArguments = Arguments{
 	ApacheAddr:         "http://localhost/server-status?auto",
 	ApacheHostOverride: "",
 	ApacheInsecure:     false,
 }
 
-// Config controls the apache exporter.
-type Config struct {
+// Arguments controls the apache exporter.
+type Arguments struct {
 	ApacheAddr         string `river:"scrape_uri,attr,optional"`
 	ApacheHostOverride string `river:"host_override,attr,optional"`
 	ApacheInsecure     bool   `river:"insecure,attr,optional"`
 }
 
-// UnmarshalRiver implements River unmarshalling for Config.
-func (c *Config) UnmarshalRiver(f func(interface{}) error) error {
-	*c = DefaultConfig
-
-	type cfg Config
-	return f((*cfg)(c))
+// SetToDefault implements river.Defaulter.
+func (a *Arguments) SetToDefault() {
+	*a = DefaultArguments
 }
 
-func (c *Config) Convert() *apache_http.Config {
+func (a *Arguments) Convert() *apache_http.Config {
 	return &apache_http.Config{
-		ApacheAddr:         c.ApacheAddr,
-		ApacheHostOverride: c.ApacheHostOverride,
-		ApacheInsecure:     c.ApacheInsecure,
+		ApacheAddr:         a.ApacheAddr,
+		ApacheHostOverride: a.ApacheHostOverride,
+		ApacheInsecure:     a.ApacheInsecure,
 	}
 }

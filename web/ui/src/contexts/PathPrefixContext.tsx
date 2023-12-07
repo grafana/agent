@@ -1,7 +1,7 @@
 import React from 'react';
 
 /**
- * PathPrefixContext propgates the base URL throughout the component tree where
+ * PathPrefixContext propagates the base URL throughout the component tree where
  * the application is hosted.
  */
 const PathPrefixContext = React.createContext('');

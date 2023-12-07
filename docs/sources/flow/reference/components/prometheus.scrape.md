@@ -1,4 +1,11 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/prometheus.scrape/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/prometheus.scrape/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/prometheus.scrape/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/prometheus.scrape/
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.scrape/
+description: Learn about prometheus.scrape
 title: prometheus.scrape
 ---
 
@@ -22,14 +29,14 @@ prometheus.scrape "LABEL" {
 
 ## Arguments
 
-The component configures and starts a new scrape job to scrape all of the
+The component configures and starts a new scrape job to scrape all the
 input targets. The list of arguments that can be used to configure the block is
 presented below.
 
 The scrape job name defaults to the component's unique identifier.
 
 Any omitted fields take on their default values. In case that conflicting
-attributes are being passed (eg. defining both a BearerToken and
+attributes are being passed (e.g. defining both a BearerToken and
 BearerTokenFile or configuring both Basic Authorization and OAuth2 at the same
 time), the component reports an error.
 
@@ -39,13 +46,15 @@ Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `targets`                  | `list(map(string))`     | List of targets to scrape. | | yes
 `forward_to`               | `list(MetricsReceiver)` | List of receivers to send scraped metrics to. | | yes
-`job_name`                 | `string`   | The job name to override the job label with. | component name | no
+`job_name`                 | `string`   | The value to use for the job label if not already set. | component name | no
 `extra_metrics`            | `bool`     | Whether extra metrics should be generated for scrape targets. | `false` | no
+`enable_protobuf_negotiation` | `bool`     | Whether to enable protobuf negotiation with the client. | `false` | no
 `honor_labels`             | `bool`     | Indicator whether the scraped metrics should remain unmodified. | `false` | no
 `honor_timestamps`         | `bool`     | Indicator whether the scraped timestamps should be respected. | `true` | no
 `params`                   | `map(list(string))` | A set of query parameters with which the target is scraped. | | no
-`scrape_interval`          | `duration` | How frequently to scrape the targets of this scrape config. | `"60s"` | no
-`scrape_timeout`           | `duration` | The timeout for scraping targets of this config. | `"10s"` | no
+`scrape_classic_histograms` | `bool`     | Whether to scrape a classic histogram that is also exposed as a native histogram. | `false` | no
+`scrape_interval`          | `duration` | How frequently to scrape the targets of this scrape configuration. | `"60s"` | no
+`scrape_timeout`           | `duration` | The timeout for scraping targets of this configuration. | `"10s"` | no
 `metrics_path`             | `string`   | The HTTP resource path on which to fetch metrics from targets. | `/metrics` | no
 `scheme`                   | `string`   | The URL scheme with which to fetch metrics from targets. | | no
 `body_size_limit`          | `int`      | An uncompressed response body larger than this many bytes causes the scrape to fail. 0 means no limit. | | no
@@ -62,7 +71,7 @@ Name | Type | Description | Default | Required
 
  At most one of the following can be provided:
  - [`bearer_token` argument](#arguments).
- - [`bearer_token_file` argument](#arguments). 
+ - [`bearer_token_file` argument](#arguments).
  - [`basic_auth` block][basic_auth].
  - [`authorization` block][authorization].
  - [`oauth2` block][oauth2].
@@ -78,6 +87,7 @@ authorization | [authorization][] | Configure generic authorization to targets. 
 oauth2 | [oauth2][] | Configure OAuth2 for authenticating to targets. | no
 oauth2 > tls_config | [tls_config][] | Configure TLS settings for connecting to targets via OAuth2. | no
 tls_config | [tls_config][] | Configure TLS settings for connecting to targets. | no
+clustering | [clustering][] | Configure the component for when the Agent is running in clustered mode. | no
 
 The `>` symbol indicates deeper levels of nesting. For example,
 `oauth2 > tls_config` refers to a `tls_config` block defined inside
@@ -88,22 +98,54 @@ an `oauth2` block.
 [authorization]: #authorization-block
 [oauth2]: #oauth2-block
 [tls_config]: #tls_config-block
+[clustering]: #clustering-beta
 
 ### basic_auth block
 
-{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### authorization block
 
-{{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### oauth2 block
 
-{{< docs/shared lookup="flow/reference/components/oauth2-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/oauth2-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### tls_config block
 
-{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" version="<AGENT_VERSION>" >}}
+
+### clustering (beta)
+
+Name | Type | Description | Default | Required
+---- | ---- | ----------- | ------- | --------
+`enabled` | `bool` | Enables sharing targets with other cluster nodes. | `false` | yes
+
+When {{< param "PRODUCT_NAME" >}} is [using clustering][], and `enabled` is set to true,
+then this `prometheus.scrape` component instance opts-in to participating in
+the cluster to distribute scrape load between all cluster nodes.
+
+Clustering assumes that all cluster nodes are running with the same
+configuration file, have access to the same service discovery APIs and that all
+`prometheus.scrape` components that have opted-in to using clustering, over
+the course of a scrape interval, are converging on the same target set from
+upstream components in their `targets` argument.
+
+All `prometheus.scrape` components instances opting in to clustering use target
+labels and a consistent hashing algorithm to determine ownership for each of
+the targets between the cluster peers. Then, each peer only scrapes the subset
+of targets that it is responsible for, so that the scrape load is distributed.
+When a node joins or leaves the cluster, every peer recalculates ownership and
+continues scraping with the new target set. This performs better than hashmod
+sharding where _all_ nodes have to be re-distributed, as only 1/N of the
+targets ownership is transferred, but is eventually consistent (rather than
+fully consistent like hashmod sharding is).
+
+If {{< param "PRODUCT_NAME" >}} is _not_ running in clustered mode, then the block is a no-op and
+`prometheus.scrape` scrapes every target it receives in its arguments.
+
+[using clustering]: {{< relref "../../concepts/clustering.md" >}}
 
 ## Exported fields
 
@@ -142,6 +184,10 @@ endpoints using HTTP, with a scrape interval of 1 minute and scrape timeout of
 10 seconds. The metrics path, protocol scheme, scrape interval and timeout,
 query parameters, as well as any other settings can be configured using the
 component's arguments.
+
+If a target is hosted at the [in-memory traffic][] address specified by the
+[run command][], `prometheus.scrape` will scrape the metrics in-memory,
+bypassing the network.
 
 The scrape job expects the metrics exposed by the endpoint to follow the
 [OpenMetrics](https://openmetrics.io/) format. All metrics are then propagated
@@ -187,6 +233,15 @@ times out while scraping, or because the samples from the target could not be
 processed. When the target is behaving normally, the `up` metric is set to
 `1`.
 
+To enable scraping of Prometheus' native histograms over gRPC, the
+`enable_protobuf_negotiation` must be set to true. The
+`scrape_classic_histograms` argument controls whether the component should also
+scrape the 'classic' histogram equivalent of a native histogram, if it is
+present.
+
+[in-memory traffic]: {{< relref "../../concepts/component_controller.md#in-memory-traffic" >}}
+[run command]: {{< relref "../cli/run.md" >}}
+
 ## Example
 
 The following example sets up the scrape job with certain attributes (scrape
@@ -210,10 +265,44 @@ prometheus.scrape "blackbox_scraper" {
 }
 ```
 
-Here's the the endpoints that are being scraped every 10 seconds:
+Here are the endpoints that are being scraped every 10 seconds:
 ```
 http://blackbox-exporter:9115/probe?target=grafana.com&module=http_2xx
 http://blackbox-exporter:9116/probe?target=grafana.com&module=http_2xx
 ```
 
+### Technical details
 
+`prometheus.scrape` supports [gzip](https://en.wikipedia.org/wiki/Gzip) compression.
+
+The following special labels can change the behavior of prometheus.scrape:
+* `__address__` is the name of the label that holds the `<host>:<port>` address of a scrape target.
+* `__metrics_path__`   is the name of the label that holds the path on which to scrape a target.
+* `__scheme__` is the name of the label that holds the scheme (http,https) on which to  scrape a target.
+* `__scrape_interval__` is the name of the label that holds the scrape interval used to scrape a target.
+* `__scrape_timeout__` is the name of the label that holds the scrape timeout used to scrape a target.
+* `__param__` is a prefix for labels that provide URL parameters used to scrape a target.
+
+Special labels added after a scrape
+* `__name__` is the label name indicating the metric name of a timeseries.
+* `job` is the label name indicating the job from which a timeseries was scraped.
+* `instance` is the label name used for the instance label.
+
+<!-- START GENERATED COMPATIBLE COMPONENTS -->
+
+## Compatible components
+
+`prometheus.scrape` can accept arguments from the following components:
+
+- Components that export [Targets]({{< relref "../compatibility/#targets-exporters" >}})
+- Components that export [Prometheus `MetricsReceiver`]({{< relref "../compatibility/#prometheus-metricsreceiver-exporters" >}})
+
+
+{{% admonition type="note" %}}
+
+Connecting some components may not be sensible or components may require further configuration to make the 
+connection work correctly. Refer to the linked documentation for more details.
+
+{{% /admonition %}}
+
+<!-- END GENERATED COMPATIBLE COMPONENTS -->

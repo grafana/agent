@@ -11,6 +11,7 @@ import (
 	"github.com/grafana/agent/pkg/operator/config"
 	"github.com/grafana/agent/pkg/operator/hierarchy"
 	"github.com/grafana/agent/pkg/operator/logutil"
+	"github.com/prometheus/prometheus/model/labels"
 	core_v1 "k8s.io/api/core/v1"
 	k8s_errors "k8s.io/apimachinery/pkg/api/errors"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -45,6 +46,11 @@ func (r *reconciler) Reconcile(ctx context.Context, req controller.Request) (con
 	}
 
 	if agent.Spec.Paused {
+		return controller.Result{}, nil
+	}
+
+	if r.config.agentLabelSelector != nil && !r.config.agentLabelSelector.Matches(labels.FromMap(agent.ObjectMeta.Labels)) {
+		level.Debug(l).Log("msg", "grafana-agent does not match agent selector. Skipping reconcile")
 		return controller.Result{}, nil
 	}
 

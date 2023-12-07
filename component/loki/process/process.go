@@ -1,3 +1,6 @@
+// The code in this package is adapted/ported over from grafana/loki/clients/pkg/logentry.
+//
+// The last Loki commit scanned for upstream changes was 7d5475541c66a819f6f456a45f8c143a084e6831.
 package process
 
 import (
@@ -7,8 +10,13 @@ import (
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/common/loki"
-	"github.com/grafana/agent/component/loki/process/internal/stages"
+	"github.com/grafana/agent/component/loki/process/stages"
 )
+
+// TODO(thampiotr): We should reconsider which parts of this component should be exported and which should
+//                  be internal before 1.0, specifically the metrics and stages configuration structures.
+//					To keep the `stages` package internal, we may need to move the `converter` logic into
+//					the `component/loki/process` package.
 
 func init() {
 	component.Register(component.Registration{
@@ -44,11 +52,13 @@ type Component struct {
 
 	mut          sync.RWMutex
 	receiver     loki.LogsReceiver
-	fanout       []loki.LogsReceiver
 	processIn    chan<- loki.Entry
 	processOut   chan loki.Entry
 	entryHandler loki.EntryHandler
 	stages       []stages.StageConfig
+
+	fanoutMut sync.RWMutex
+	fanout    []loki.LogsReceiver
 }
 
 // New creates a new loki.process component.
@@ -59,8 +69,8 @@ func New(o component.Options, args Arguments) (*Component, error) {
 
 	// Create and immediately export the receiver which remains the same for
 	// the component's lifetime.
-	c.receiver = make(loki.LogsReceiver)
-	c.processOut = make(loki.LogsReceiver)
+	c.receiver = loki.NewLogsReceiver()
+	c.processOut = make(chan loki.Entry)
 	o.OnStateChange(Exports{Receiver: c.receiver})
 
 	// Call to Update() to start readers and set receivers once at the start.
@@ -78,7 +88,6 @@ func (c *Component) Run(ctx context.Context) error {
 		if c.entryHandler != nil {
 			c.entryHandler.Stop()
 		}
-		close(c.processOut)
 		close(c.processIn)
 		c.mut.RUnlock()
 	}()
@@ -95,6 +104,12 @@ func (c *Component) Run(ctx context.Context) error {
 func (c *Component) Update(args component.Arguments) error {
 	newArgs := args.(Arguments)
 
+	// Update c.fanout first in case anything else fails.
+	c.fanoutMut.Lock()
+	c.fanout = newArgs.ForwardTo
+	c.fanoutMut.Unlock()
+
+	// Then update the pipeline itself.
 	c.mut.Lock()
 	defer c.mut.Unlock()
 
@@ -115,8 +130,6 @@ func (c *Component) Update(args component.Arguments) error {
 		c.stages = newArgs.Stages
 	}
 
-	c.fanout = newArgs.ForwardTo
-
 	return nil
 }
 
@@ -126,13 +139,17 @@ func (c *Component) handleIn(ctx context.Context, wg *sync.WaitGroup) {
 		select {
 		case <-ctx.Done():
 			return
-		case entry := <-c.receiver:
+		case entry := <-c.receiver.Chan():
 			c.mut.RLock()
 			select {
 			case <-ctx.Done():
 				return
-			case c.processIn <- entry:
+			case c.processIn <- entry.Clone():
 				// no-op
+				// TODO(@tpaschalis) Instead of calling Clone() at the
+				// component's entrypoint here, we can try a copy-on-write
+				// approach instead, so that the copy only gets made on the
+				// first stage that needs to modify the entry's labels.
 			}
 			c.mut.RUnlock()
 		}
@@ -146,16 +163,17 @@ func (c *Component) handleOut(ctx context.Context, wg *sync.WaitGroup) {
 		case <-ctx.Done():
 			return
 		case entry := <-c.processOut:
-			c.mut.RLock()
-			for _, f := range c.fanout {
+			c.fanoutMut.RLock()
+			fanout := c.fanout
+			c.fanoutMut.RUnlock()
+			for _, f := range fanout {
 				select {
 				case <-ctx.Done():
 					return
-				case f <- entry:
+				case f.Chan() <- entry:
 					// no-op
 				}
 			}
-			c.mut.RUnlock()
 		}
 	}
 }

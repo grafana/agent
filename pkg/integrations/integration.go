@@ -14,7 +14,7 @@ type Config interface {
 	// pull the configuration from the Agent config YAML.
 	Name() string
 
-	// InstanceKey should return the key the reprsents the config, which will be
+	// InstanceKey should return the key that represents the config, which will be
 	// used to populate the value of the `instance` label for metrics.
 	//
 	// InstanceKey is given an agentKey that represents the agent process. This
@@ -47,4 +47,15 @@ type Integration interface {
 	// An error will be returned if the integration failed. Integrations should
 	// not return the ctx error.
 	Run(ctx context.Context) error
+}
+
+// NewIntegrationWithInstanceKey uses cfg to construct an integration and
+// return it along its instance key.
+func NewIntegrationWithInstanceKey(l log.Logger, cfg Config, key string) (Integration, string, error) {
+	key, err := cfg.InstanceKey(key)
+	if err != nil {
+		return nil, key, err
+	}
+	integration, err := cfg.NewIntegration(l)
+	return integration, key, err
 }

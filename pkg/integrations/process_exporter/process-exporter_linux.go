@@ -7,10 +7,10 @@ import (
 	"net/http"
 
 	"github.com/go-kit/log"
+	"github.com/grafana/agent/pkg/build"
 	"github.com/grafana/agent/pkg/integrations/config"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"github.com/prometheus/common/version"
 
 	"github.com/ncabatoff/process-exporter/collector"
 )
@@ -23,7 +23,7 @@ type Integration struct {
 	collector *collector.NamedProcessCollector
 }
 
-// New creaets a new instance of the process_exporter integration.
+// New creates a new instance of the process_exporter integration.
 func New(logger log.Logger, c *Config) (*Integration, error) {
 	cfg, err := c.ProcessExporter.ToConfig()
 	if err != nil {
@@ -55,7 +55,7 @@ func (i *Integration) MetricsHandler() (http.Handler, error) {
 
 	// Register process_exporter_build_info metrics, generally useful for
 	// dashboards that depend on them for discovering targets.
-	if err := r.Register(version.NewCollector("process_exporter")); err != nil {
+	if err := r.Register(build.NewCollector("process_exporter")); err != nil {
 		return nil, fmt.Errorf("couldn't register process_exporter: %w", err)
 	}
 

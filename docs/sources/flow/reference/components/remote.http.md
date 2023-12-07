@@ -1,4 +1,11 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/remote.http/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/remote.http/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/remote.http/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/remote.http/
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/remote.http/
+description: Learn about remote.http
 title: remote.http
 ---
 
@@ -28,6 +35,8 @@ The following arguments are supported:
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `url` | `string` | URL to poll. | | yes
+`method` | `string` | Define HTTP method for the request | `"GET"` | no
+`headers` | `map(string)` | Custom headers for the request. | `{}` | no
 `poll_frequency` | `duration` | Frequency to poll the URL. | `"1m"` | no
 `poll_timeout` | `duration` | Timeout when polling the URL. | `"10s"` | no
 `is_secret` | `bool` | Whether the response body should be treated as a secret. | false | no
@@ -73,34 +82,34 @@ basic_auth` refers to an `basic_auth` block defined inside a `client` block.
 The `client` block configures settings used to connect to the HTTP
 server.
 
-{{< docs/shared lookup="flow/reference/components/http-client-config-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/http-client-config-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### basic_auth block
 
 The `basic_auth` block configures basic authentication to use when polling the
 configured URL.
 
-{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### authorization block
 
 The `authorization` block configures custom authorization to use when polling
 the configured URL.
 
-{{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### oauth2 block
 
 The `oauth2` block configures OAuth2 authorization to use when polling the
 configured URL.
 
-{{< docs/shared lookup="flow/reference/components/oauth2-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/oauth2-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### tls_config block
 
 The `tls_config` block configures TLS settings for connecting to HTTPS servers.
 
-{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ## Exported fields
 
@@ -121,7 +130,7 @@ request of the specified URL succeeds.
 
 `remote.http` does not expose any component-specific debug information.
 
-### Debug metrics
+## Debug metrics
 
 `remote.http` does not expose any component-specific debug metrics.
 

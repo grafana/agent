@@ -16,7 +16,9 @@ import (
 	"github.com/prometheus/prometheus/discovery/file"
 	"github.com/prometheus/prometheus/discovery/gce"
 	"github.com/prometheus/prometheus/discovery/hetzner"
+	"github.com/prometheus/prometheus/discovery/http"
 	"github.com/prometheus/prometheus/discovery/kubernetes"
+	"github.com/prometheus/prometheus/discovery/linode"
 	"github.com/prometheus/prometheus/discovery/marathon"
 	"github.com/prometheus/prometheus/discovery/moby"
 	"github.com/prometheus/prometheus/discovery/openstack"
@@ -126,6 +128,14 @@ func validateDiscoveryNoFiles(disc discovery.Config) error {
 		}
 	case *triton.SDConfig:
 		if err := validateHTTPNoFiles(&config.HTTPClientConfig{TLSConfig: d.TLSConfig}); err != nil {
+			return err
+		}
+	case *http.SDConfig:
+		if err := validateHTTPNoFiles(&d.HTTPClientConfig); err != nil {
+			return err
+		}
+	case *linode.SDConfig:
+		if err := validateHTTPNoFiles(&d.HTTPClientConfig); err != nil {
 			return err
 		}
 	case *zookeeper.NerveSDConfig:

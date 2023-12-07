@@ -1,4 +1,11 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/discovery.docker/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/discovery.docker/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/discovery.docker/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/discovery.docker/
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.docker/
+description: Learn about discovery.docker
 title: discovery.docker
 ---
 
@@ -12,7 +19,7 @@ title: discovery.docker
 
 ```river
 discovery.docker "LABEL" {
-  host = "DOCKER_ENGINE_HOST"
+  host = DOCKER_ENGINE_HOST
 }
 ```
 
@@ -34,7 +41,7 @@ Name | Type | Description | Default | Required
 
  At most one of the following can be provided:
  - [`bearer_token` argument](#arguments).
- - [`bearer_token_file` argument](#arguments). 
+ - [`bearer_token_file` argument](#arguments).
  - [`basic_auth` block][basic_auth].
  - [`authorization` block][authorization].
  - [`oauth2` block][oauth2].
@@ -82,19 +89,19 @@ documentation for the list of supported filters and their meaning.
 
 ### basic_auth block
 
-{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### authorization block
 
-{{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### oauth2 block
 
-{{< docs/shared lookup="flow/reference/components/oauth2-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/oauth2-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### tls_config block
 
-{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ## Exported fields
 
@@ -139,7 +146,7 @@ values.
 
 `discovery.docker` does not expose any component-specific debug information.
 
-### Debug metrics
+## Debug metrics
 
 `discovery.docker` does not expose any component-specific debug metrics.
 
@@ -154,7 +161,27 @@ Linux:
 discovery.docker "containers" {
   host = "unix:///var/run/docker.sock"
 }
+
+prometheus.scrape "demo" {
+  targets    = discovery.docker.containers.targets
+  forward_to = [prometheus.remote_write.demo.receiver]
+}
+
+prometheus.remote_write "demo" {
+  endpoint {
+    url = PROMETHEUS_REMOTE_WRITE_URL
+
+    basic_auth {
+      username = USERNAME
+      password = PASSWORD
+    }
+  }
+}
 ```
+Replace the following:
+  - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
+  - `USERNAME`: The username to use for authentication to the remote_write API.
+  - `PASSWORD`: The password to use for authentication to the remote_write API.
 
 ### Windows hosts
 
@@ -164,7 +191,44 @@ This example discovers Docker containers when the host machine is Windows:
 discovery.docker "containers" {
   host = "tcp://localhost:2375"
 }
+
+prometheus.scrape "demo" {
+  targets    = discovery.docker.containers.example.targets
+  forward_to = [prometheus.remote_write.demo.receiver]
+}
+
+prometheus.remote_write "demo" {
+  endpoint {
+    url = PROMETHEUS_REMOTE_WRITE_URL
+
+    basic_auth {
+      username = USERNAME
+      password = PASSWORD
+    }
+  }
+}
 ```
+Replace the following:
+  - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
+  - `USERNAME`: The username to use for authentication to the remote_write API.
+  - `PASSWORD`: The password to use for authentication to the remote_write API.
 
 > **NOTE**: This example requires the "Expose daemon on tcp://localhost:2375
 > without TLS" setting to be enabled in the Docker Engine settings.
+
+<!-- START GENERATED COMPATIBLE COMPONENTS -->
+
+## Compatible components
+
+`discovery.docker` has exports that can be consumed by the following components:
+
+- Components that consume [Targets]({{< relref "../compatibility/#targets-consumers" >}})
+
+{{% admonition type="note" %}}
+
+Connecting some components may not be sensible or components may require further configuration to make the 
+connection work correctly. Refer to the linked documentation for more details.
+
+{{% /admonition %}}
+
+<!-- END GENERATED COMPATIBLE COMPONENTS -->

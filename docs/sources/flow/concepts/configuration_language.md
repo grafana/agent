@@ -1,13 +1,19 @@
 ---
 aliases:
 - ../../concepts/configuration-language/
-title: Configuration language
+- /docs/grafana-cloud/agent/flow/concepts/configuration_language/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/concepts/configuration_language/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/concepts/configuration_language/
+- /docs/grafana-cloud/send-data/agent/flow/concepts/configuration_language/
+canonical: https://grafana.com/docs/agent/latest/flow/concepts/configuration_language/
+description: Learn about configuration language concepts
+title: Configuration language concepts
 weight: 400
 ---
 
-# Configuration language
+# Configuration language concepts
 
-The Grafana Agent Flow _configuration language_ refers to the language used in
+The {{< param "PRODUCT_NAME" >}} _configuration language_ refers to the language used in
 configuration files which define and configure components to run.
 
 The configuration language is called River, a Terraform/HCL-inspired language:
@@ -34,7 +40,7 @@ River was designed with the following requirements in mind:
 * _Simple_: The configuration language must be easy to read and write to
   minimize the learning curve.
 * _Debuggable_: The configuration language must give detailed information when
-  there's a mistake in the config file.
+  there's a mistake in the configuration file.
 
 ## Attributes
 
@@ -68,10 +74,6 @@ The most common expression is to reference the exports of a component like
 formed by merging the component's name (e.g., `local.file`), label (e.g.,
 `password_file`), and export name (e.g., `content`), delimited by period.
 
-For components that don't use labels, like
-`prometheus.exporter.unix`, only combine the component name with
-export name: `prometheus.exporter.unix.targets`.
-
 ## Blocks
 
 _Blocks_ are used to configure components and groups of attributes. Each block
@@ -90,13 +92,16 @@ This file has two blocks:
 * `prometheus.remote_write "default"`: A labeled block which instantiates a
   `prometheus.remote_write` component. The label is the string `"default"`.
 
-* `remote_write`: An unlabeled block inside the component which configures an
+* `endpoint`: An unlabeled block inside the component which configures an
   endpoint to send metrics to. This block sets the `url` attribute to specify
   what the endpoint is.
 
 ## More information
 
 River is documented in detail in [Configuration language][config-docs] section
-of the Grafana Agent Flow docs.
+of the {{< param "PRODUCT_NAME" >}} docs.
 
-[config-docs]: {{< relref "../config-language/" >}}
+{{% docs/reference %}}
+[config-docs]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/config-language"
+[config-docs]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/config-language"
+{{% /docs/reference %}}

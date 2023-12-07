@@ -13,7 +13,7 @@ regardless of why the project is being made; even personal side projects likely
 start by someone designing alone.
 
 Meanwhile, many open source projects might want to create a community of
-developers. Much of the beauty of succesful open source projects originates
+developers. Much of the beauty of successful open source projects originates
 from the varied backgrounds of its contributors: different people with
 different use cases combining together to make a widely useful piece of
 software.
@@ -25,7 +25,7 @@ find themselves simply as spectators:
 
 * Initial design is gated to core maintainers, in particular if they all work
   for the same company. This leaves less room for new people to help out.
-* New concerns are less impactful if the proposal already receieved core
+* New concerns are less impactful if the proposal already received core
   maintainer consensus.
 * Historical proposals with context and discussions become hard to find.
 

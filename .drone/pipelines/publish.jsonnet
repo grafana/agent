@@ -1,17 +1,18 @@
 local build_image = import '../util/build_image.jsonnet';
 local pipelines = import '../util/pipelines.jsonnet';
+local secrets = import '../util/secrets.jsonnet';
+local ghTokenFilename = '/drone/src/gh-token.txt';
 
 // job_names gets the list of job names for use in depends_on.
 local job_names = function(jobs) std.map(function(job) job.name, jobs);
 
-local linux_containers = ['agent', 'agentctl', 'agent-operator', 'smoke', 'crow'];
+local linux_containers = ['agent','agent-boringcrypto', 'agentctl', 'agent-operator', 'smoke', 'crow'];
 local linux_containers_jobs = std.map(function(container) (
   pipelines.linux('Publish Linux %s container' % container) {
     trigger: {
       ref: [
         'refs/heads/main',
         'refs/tags/v*',
-        'refs/heads/dev.*',
       ],
     },
     steps: [{
@@ -35,9 +36,9 @@ local linux_containers_jobs = std.map(function(container) (
         path: '/var/run/docker.sock',
       }],
       environment: {
-        DOCKER_LOGIN: { from_secret: 'DOCKER_LOGIN' },
-        DOCKER_PASSWORD: { from_secret: 'DOCKER_PASSWORD' },
-        GCR_CREDS: { from_secret: 'gcr_admin' },
+        DOCKER_LOGIN: secrets.docker_login.fromSecret,
+        DOCKER_PASSWORD: secrets.docker_password.fromSecret,
+        GCR_CREDS: secrets.gcr_admin.fromSecret,
       },
       commands: [
         'mkdir -p $HOME/.docker',
@@ -66,7 +67,6 @@ local windows_containers_jobs = std.map(function(container) (
       ref: [
         'refs/heads/main',
         'refs/tags/v*',
-        'refs/heads/dev.*',
       ],
     },
     steps: [{
@@ -77,11 +77,10 @@ local windows_containers_jobs = std.map(function(container) (
         path: '//./pipe/docker_engine/',
       }],
       environment: {
-        DOCKER_LOGIN: { from_secret: 'DOCKER_LOGIN' },
-        DOCKER_PASSWORD: { from_secret: 'DOCKER_PASSWORD' },
+        DOCKER_LOGIN: secrets.docker_login.fromSecret,
+        DOCKER_PASSWORD: secrets.docker_password.fromSecret,
       },
       commands: [
-        'git config --global --add safe.directory C:/drone/src/',
         '& "C:/Program Files/git/bin/bash.exe" ./tools/ci/docker-containers-windows %s' % container,
       ],
     }],
@@ -114,12 +113,11 @@ linux_containers_jobs + windows_containers_jobs + [
         settings: {
           config_json: |||
             {
+              "git_committer_name": "updater-for-ci[bot]",
+              "git_author_name": "updater-for-ci[bot]",
+              "git_committer_email": "119986603+updater-for-ci[bot]@users.noreply.github.com",
+              "git_author_email": "119986603+updater-for-ci[bot]@users.noreply.github.com",
               "destination_branch": "master",
-              "pull_request_branch_prefix": "cd-agent",
-              "pull_request_enabled": false,
-              "pull_request_team_reviewers": [
-                "agent-squad"
-              ],
               "repo_name": "deployment_tools",
               "update_jsonnet_attribute_configs": [
                 {
@@ -131,13 +129,18 @@ linux_containers_jobs + windows_containers_jobs + [
                   "file_path": "ksonnet/environments/grafana-agent/waves/agent.libsonnet",
                   "jsonnet_key": "dev_canary",
                   "jsonnet_value_file": ".image-tag"
+                },
+                {
+                  "file_path": "ksonnet/environments/pyroscope-ebpf/waves/ebpf.libsonnet",
+                  "jsonnet_key": "dev_canary",
+                  "jsonnet_value_file": ".image-tag"
                 }
               ]
             }
           |||,
-          github_token: {
-            from_secret: 'gh_token',
-          },
+          github_app_id: secrets.updater_app_id.fromSecret,
+          github_app_installation_id: secrets.updater_app_installation_id.fromSecret,
+          github_app_private_key: secrets.updater_private_key.fromSecret,
         },
       },
     ],
@@ -149,29 +152,44 @@ linux_containers_jobs + windows_containers_jobs + [
       ref: ['refs/tags/v*'],
     },
     depends_on: job_names(linux_containers_jobs + windows_containers_jobs),
-    steps: [{
-      name: 'Publish release',
-      image: build_image.linux,
-      volumes: [{
-        name: 'docker',
-        path: '/var/run/docker.sock',
-      }],
-      environment: {
-        DOCKER_LOGIN: { from_secret: 'DOCKER_LOGIN' },
-        DOCKER_PASSWORD: { from_secret: 'DOCKER_PASSWORD' },
-        GITHUB_TOKEN: { from_secret: 'GITHUB_KEY' },
-        GPG_PRIVATE_KEY: { from_secret: 'gpg_private_key' },
-        GPG_PUBLIC_KEY: { from_secret: 'gpg_public_key' },
-        GPG_PASSPHRASE: { from_secret: 'gpg_passphrase' },
+    image_pull_secrets: ['dockerconfigjson'],
+    steps: [
+      {
+        name: 'Generate GitHub token',
+        image: 'us.gcr.io/kubernetes-dev/github-app-secret-writer:latest',
+        environment: {
+          GITHUB_APP_ID: secrets.updater_app_id.fromSecret,
+          GITHUB_APP_INSTALLATION_ID: secrets.updater_app_installation_id.fromSecret,
+          GITHUB_APP_PRIVATE_KEY: secrets.updater_private_key.fromSecret,
+        },
+        commands: [
+          '/usr/bin/github-app-external-token > %s' % ghTokenFilename
+        ]
       },
-      commands: [
-        'docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD',
-        'make -j4 RELEASE_BUILD=1 VERSION=${DRONE_TAG} dist',
-        |||
-          VERSION=${DRONE_TAG} RELEASE_DOC_TAG=$(echo ${DRONE_TAG} | awk -F '.' '{print $1"."$2}') ./tools/release
-        |||,
-      ],
-    }],
+      {
+        name: 'Publish release',
+        image: build_image.linux,
+        volumes: [{
+          name: 'docker',
+          path: '/var/run/docker.sock',
+        }],
+        environment: {
+          DOCKER_LOGIN: secrets.docker_login.fromSecret,
+          DOCKER_PASSWORD: secrets.docker_password.fromSecret,
+          GPG_PRIVATE_KEY: secrets.gpg_private_key.fromSecret,
+          GPG_PUBLIC_KEY: secrets.gpg_public_key.fromSecret,
+          GPG_PASSPHRASE: secrets.gpg_passphrase.fromSecret,
+        },
+        commands: [
+          'export GITHUB_TOKEN=$(cat %s)' % ghTokenFilename,
+          'docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD',
+          'make -j4 RELEASE_BUILD=1 VERSION=${DRONE_TAG} dist',
+          |||
+            VERSION=${DRONE_TAG} RELEASE_DOC_TAG=$(echo ${DRONE_TAG} | awk -F '.' '{print $1"."$2}') ./tools/release
+          |||,
+        ],
+      }
+    ],
     volumes: [{
       name: 'docker',
       host: { path: '/var/run/docker.sock' },

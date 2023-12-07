@@ -7,24 +7,27 @@ import (
 	"sync"
 	"time"
 
-	"github.com/prometheus/prometheus/storage"
-
 	"github.com/alecthomas/units"
-	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
 	component_config "github.com/grafana/agent/component/common/config"
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/prometheus"
-	"github.com/grafana/agent/pkg/build"
+	"github.com/grafana/agent/internal/useragent"
+	"github.com/grafana/agent/pkg/flow/logging/level"
+	"github.com/grafana/agent/service/cluster"
+	"github.com/grafana/agent/service/http"
+	"github.com/grafana/agent/service/labelstore"
 	client_prometheus "github.com/prometheus/client_golang/prometheus"
+	config_util "github.com/prometheus/common/config"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/config"
 	"github.com/prometheus/prometheus/discovery/targetgroup"
 	"github.com/prometheus/prometheus/scrape"
+	"github.com/prometheus/prometheus/storage"
 )
 
 func init() {
-	scrape.UserAgent = fmt.Sprintf("GrafanaAgent/%s", build.Version)
+	scrape.UserAgent = useragent.Get()
 
 	component.Register(component.Registration{
 		Name: "prometheus.scrape",
@@ -50,6 +53,8 @@ type Arguments struct {
 	HonorTimestamps bool `river:"honor_timestamps,attr,optional"`
 	// A set of query parameters with which the target is scraped.
 	Params url.Values `river:"params,attr,optional"`
+	// Whether to scrape a classic histogram that is also exposed as a native histogram.
+	ScrapeClassicHistograms bool `river:"scrape_classic_histograms,attr,optional"`
 	// How frequently to scrape the targets of this scrape config.
 	ScrapeInterval time.Duration `river:"scrape_interval,attr,optional"`
 	// The timeout for scraping targets of this config.
@@ -80,28 +85,29 @@ type Arguments struct {
 	HTTPClientConfig component_config.HTTPClientConfig `river:",squash"`
 
 	// Scrape Options
-	ExtraMetrics bool `river:"extra_metrics,attr,optional"`
+	ExtraMetrics              bool `river:"extra_metrics,attr,optional"`
+	EnableProtobufNegotiation bool `river:"enable_protobuf_negotiation,attr,optional"`
+
+	Clustering cluster.ComponentBlock `river:"clustering,block,optional"`
 }
 
-// DefaultArguments defines the default settings for a scrape job.
-var DefaultArguments = Arguments{
-	MetricsPath:      "/metrics",
-	Scheme:           "http",
-	HonorLabels:      false,
-	HonorTimestamps:  true,
-	HTTPClientConfig: component_config.DefaultHTTPClientConfig,
-	ScrapeInterval:   1 * time.Minute,  // From config.DefaultGlobalConfig
-	ScrapeTimeout:    10 * time.Second, // From config.DefaultGlobalConfig
+// SetToDefault implements river.Defaulter.
+func (arg *Arguments) SetToDefault() {
+	*arg = Arguments{
+		MetricsPath:      "/metrics",
+		Scheme:           "http",
+		HonorLabels:      false,
+		HonorTimestamps:  true,
+		HTTPClientConfig: component_config.DefaultHTTPClientConfig,
+		ScrapeInterval:   1 * time.Minute,  // From config.DefaultGlobalConfig
+		ScrapeTimeout:    10 * time.Second, // From config.DefaultGlobalConfig
+	}
 }
 
-// UnmarshalRiver implements river.Unmarshaler.
-func (arg *Arguments) UnmarshalRiver(f func(interface{}) error) error {
-	*arg = DefaultArguments
-
-	type args Arguments
-	err := f((*args)(arg))
-	if err != nil {
-		return err
+// Validate implements river.Validator.
+func (arg *Arguments) Validate() error {
+	if arg.ScrapeTimeout > arg.ScrapeInterval {
+		return fmt.Errorf("scrape_timeout (%s) greater than scrape_interval (%s) for scrape config with job name %q", arg.ScrapeTimeout, arg.ScrapeInterval, arg.JobName)
 	}
 
 	// We must explicitly Validate because HTTPClientConfig is squashed and it won't run otherwise
@@ -110,7 +116,8 @@ func (arg *Arguments) UnmarshalRiver(f func(interface{}) error) error {
 
 // Component implements the prometheus.scrape component.
 type Component struct {
-	opts component.Options
+	opts    component.Options
+	cluster cluster.Cluster
 
 	reloadTargets chan struct{}
 
@@ -127,20 +134,45 @@ var (
 
 // New creates a new prometheus.scrape component.
 func New(o component.Options, args Arguments) (*Component, error) {
-	flowAppendable := prometheus.NewFanout(args.ForwardTo, o.ID, o.Registerer)
-	scrapeOptions := &scrape.Options{ExtraMetrics: args.ExtraMetrics}
+	data, err := o.GetServiceData(http.ServiceName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get information about HTTP server: %w", err)
+	}
+	httpData := data.(http.Data)
+
+	data, err = o.GetServiceData(cluster.ServiceName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get information about cluster: %w", err)
+	}
+	clusterData := data.(cluster.Cluster)
+
+	service, err := o.GetServiceData(labelstore.ServiceName)
+	if err != nil {
+		return nil, err
+	}
+	ls := service.(labelstore.LabelStore)
+
+	flowAppendable := prometheus.NewFanout(args.ForwardTo, o.ID, o.Registerer, ls)
+	scrapeOptions := &scrape.Options{
+		ExtraMetrics: args.ExtraMetrics,
+		HTTPClientOptions: []config_util.HTTPClientOption{
+			config_util.WithDialContextFunc(httpData.DialFunc),
+		},
+		EnableProtobufNegotiation: args.EnableProtobufNegotiation,
+	}
 	scraper := scrape.NewManager(scrapeOptions, o.Logger, flowAppendable)
 
 	targetsGauge := client_prometheus.NewGauge(client_prometheus.GaugeOpts{
 		Name: "agent_prometheus_scrape_targets_gauge",
 		Help: "Number of targets this component is configured to scrape"})
-	err := o.Registerer.Register(targetsGauge)
+	err = o.Registerer.Register(targetsGauge)
 	if err != nil {
 		return nil, err
 	}
 
 	c := &Component{
 		opts:          o,
+		cluster:       clusterData,
 		reloadTargets: make(chan struct{}, 1),
 		scraper:       scraper,
 		appendable:    flowAppendable,
@@ -176,14 +208,16 @@ func (c *Component) Run(ctx context.Context) error {
 		case <-c.reloadTargets:
 			c.mut.RLock()
 			var (
-				tgs     = c.args.Targets
-				jobName = c.opts.ID
+				targets           = c.args.Targets
+				jobName           = c.opts.ID
+				clusteringEnabled = c.args.Clustering.Enabled
 			)
 			if c.args.JobName != "" {
 				jobName = c.args.JobName
 			}
 			c.mut.RUnlock()
-			promTargets := c.componentTargetsToProm(jobName, tgs)
+
+			promTargets := c.distTargets(targets, jobName, clusteringEnabled)
 
 			select {
 			case targetSetsChan <- promTargets:
@@ -218,8 +252,23 @@ func (c *Component) Update(args component.Arguments) error {
 	default:
 	}
 
-	c.targetsGauge.Set(float64(len(c.args.Targets)))
 	return nil
+}
+
+// NotifyClusterChange implements component.ClusterComponent.
+func (c *Component) NotifyClusterChange() {
+	c.mut.RLock()
+	defer c.mut.RUnlock()
+
+	if !c.args.Clustering.Enabled {
+		return // no-op
+	}
+
+	// Schedule a reload so targets get redistributed.
+	select {
+	case c.reloadTargets <- struct{}{}:
+	default:
+	}
 }
 
 // Helper function to bridge the in-house configuration with the Prometheus
@@ -239,6 +288,7 @@ func getPromScrapeConfigs(jobName string, c Arguments) *config.ScrapeConfig {
 	dec.HonorLabels = c.HonorLabels
 	dec.HonorTimestamps = c.HonorTimestamps
 	dec.Params = c.Params
+	dec.ScrapeClassicHistograms = c.ScrapeClassicHistograms
 	dec.ScrapeInterval = model.Duration(c.ScrapeInterval)
 	dec.ScrapeTimeout = model.Duration(c.ScrapeTimeout)
 	dec.MetricsPath = c.MetricsPath
@@ -253,6 +303,20 @@ func getPromScrapeConfigs(jobName string, c Arguments) *config.ScrapeConfig {
 	// HTTP scrape client settings
 	dec.HTTPClientConfig = *c.HTTPClientConfig.Convert()
 	return &dec
+}
+
+func (c *Component) distTargets(
+	targets []discovery.Target,
+	jobName string,
+	clustering bool,
+) map[string][]*targetgroup.Group {
+	// NOTE(@tpaschalis) First approach, manually building the
+	// 'clustered' targets implementation every time.
+	dt := discovery.NewDistributedTargets(clustering, c.cluster, targets)
+	flowTargets := dt.Get()
+	c.targetsGauge.Set(float64(len(flowTargets)))
+	promTargets := c.componentTargetsToProm(jobName, flowTargets)
+	return promTargets
 }
 
 // ScraperStatus reports the status of the scraper's jobs.
@@ -271,11 +335,11 @@ type TargetStatus struct {
 	LastScrapeDuration time.Duration     `river:"last_scrape_duration,attr,optional"`
 }
 
-// DebugInfo implements component.DebugComponent
-func (c *Component) DebugInfo() interface{} {
+// BuildTargetStatuses transforms the targets from a scrape manager into our internal status type for debug info.
+func BuildTargetStatuses(targets map[string][]*scrape.Target) []TargetStatus {
 	var res []TargetStatus
 
-	for job, stt := range c.scraper.TargetsActive() {
+	for job, stt := range targets {
 		for _, st := range stt {
 			var lastError string
 			if st.LastError() != nil {
@@ -294,8 +358,14 @@ func (c *Component) DebugInfo() interface{} {
 			}
 		}
 	}
+	return res
+}
 
-	return ScraperStatus{TargetStatus: res}
+// DebugInfo implements component.DebugComponent
+func (c *Component) DebugInfo() interface{} {
+	return ScraperStatus{
+		TargetStatus: BuildTargetStatuses(c.scraper.TargetsActive()),
+	}
 }
 
 func (c *Component) componentTargetsToProm(jobName string, tgs []discovery.Target) map[string][]*targetgroup.Group {

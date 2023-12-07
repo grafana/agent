@@ -1,5 +1,4 @@
 //go:build linux
-// +build linux
 
 package cadvisor //nolint:golint
 
@@ -26,12 +25,10 @@ import (
 	// Register container providers
 
 	"github.com/google/cadvisor/container/containerd"
-	_ "github.com/google/cadvisor/container/containerd/install" // register containerd container plugin
-	_ "github.com/google/cadvisor/container/crio/install"       // register crio container plugin
+	"github.com/google/cadvisor/container/crio"
 	"github.com/google/cadvisor/container/docker"
-	_ "github.com/google/cadvisor/container/docker/install" // register docker container plugin
 	"github.com/google/cadvisor/container/raw"
-	_ "github.com/google/cadvisor/container/systemd/install" // register systemd container plugin
+	"github.com/google/cadvisor/container/systemd"
 )
 
 // Matching the default disabled set from cadvisor - https://github.com/google/cadvisor/blob/3c6e3093c5ca65c57368845ddaea2b4ca6bc0da8/cmd/cadvisor.go#L78-L93
@@ -81,58 +78,57 @@ func (c *Config) NewIntegration(logger log.Logger) (integrations.Integration, er
 	return New(logger, c)
 }
 
-// Integration implements the cadvisor integration
-type Integration struct {
-	c *Config
-	i *integrations.CollectorIntegration
-}
-
-// Run holds all the configuration logic for globals, as well as starting the resource manager and registering the collectors with the collector integration
-func (i *Integration) Run(ctx context.Context) error {
+// New creates a new cadvisor integration
+func New(logger log.Logger, c *Config) (integrations.Integration, error) {
+	c.logger = logger
 	// Do gross global configs. This works, so long as there is only one instance of the cAdvisor integration
 	// per host.
 
-	// klog
-	klog.SetLogger(i.c.logger)
-
-	// Containerd
-	containerd.ArgContainerdEndpoint = &i.c.Containerd
-	containerd.ArgContainerdNamespace = &i.c.ContainerdNamespace
-
-	// Docker
-	docker.ArgDockerEndpoint = &i.c.Docker
-	docker.ArgDockerTLS = &i.c.DockerTLS
-	docker.ArgDockerCert = &i.c.DockerTLSCert
-	docker.ArgDockerKey = &i.c.DockerTLSKey
-	docker.ArgDockerCA = &i.c.DockerTLSCA
-
-	// Raw
-	raw.DockerOnly = &i.c.DockerOnly
+	klog.SetLogger(c.logger)
+	plugins := map[string]container.Plugin{
+		"containerd": containerd.NewPluginWithOptions(&containerd.Options{
+			ContainerdEndpoint:  c.Containerd,
+			ContainerdNamespace: c.ContainerdNamespace,
+		}),
+		"crio": crio.NewPlugin(),
+		"docker": docker.NewPluginWithOptions(&docker.Options{
+			DockerEndpoint: c.Docker,
+			DockerTLS:      c.DockerTLS,
+			DockerCert:     c.DockerTLSCert,
+			DockerKey:      c.DockerTLSKey,
+			DockerCA:       c.DockerTLSCA,
+		}),
+		"systemd": systemd.NewPlugin(),
+	}
 
 	// Only using in-memory storage, with no backup storage for cadvisor stats
-	memoryStorage := memory.New(i.c.StorageDuration, []storage.StorageDriver{})
+	memoryStorage := memory.New(c.StorageDuration, []storage.StorageDriver{})
 
 	sysFs := sysfs.NewRealSysFs()
 
 	var collectorHTTPClient http.Client
 
-	includedMetrics, err := i.c.GetIncludedMetrics()
+	includedMetrics, err := c.GetIncludedMetrics()
 	if err != nil {
-		return fmt.Errorf("unable to determine included metrics: %w", err)
+		return nil, fmt.Errorf("unable to determine included metrics: %w", err)
 	}
 
-	rm, err := manager.New(memoryStorage, sysFs, manager.HousekeepingConfigFlags, includedMetrics, &collectorHTTPClient, i.c.RawCgroupPrefixAllowlist, i.c.EnvMetadataAllowlist, i.c.PerfEventsConfig, time.Duration(i.c.ResctrlInterval))
+	rawOpts := raw.Options{
+		DockerOnly:             c.DockerOnly,
+		DisableRootCgroupStats: c.DisableRootCgroupStats,
+	}
+	rm, err := manager.New(plugins, memoryStorage, sysFs, manager.HousekeepingConfigFlags, includedMetrics, &collectorHTTPClient, c.RawCgroupPrefixAllowlist, c.EnvMetadataAllowlist, c.PerfEventsConfig, time.Duration(c.ResctrlInterval), rawOpts)
 	if err != nil {
-		return fmt.Errorf("failed to create a manager: %w", err)
+		return nil, fmt.Errorf("failed to create a manager: %w", err)
 	}
 
 	if err := rm.Start(); err != nil {
-		return fmt.Errorf("failed to start manager: %w", err)
+		return nil, fmt.Errorf("failed to start manager: %w", err)
 	}
 
 	containerLabelFunc := metrics.DefaultContainerLabels
-	if !i.c.StoreContainerLabels {
-		containerLabelFunc = metrics.BaseContainerLabels(i.c.AllowlistedContainerLabels)
+	if !c.StoreContainerLabels {
+		containerLabelFunc = metrics.BaseContainerLabels(c.AllowlistedContainerLabels)
 	}
 
 	machCol := metrics.NewPrometheusMachineCollector(rm, includedMetrics)
@@ -146,25 +142,21 @@ func (i *Integration) Run(ctx context.Context) error {
 		Recursive: true,
 	}
 	contCol := metrics.NewPrometheusCollector(rm, containerLabelFunc, includedMetrics, clock.RealClock{}, reqOpts)
-	integrations.WithCollectors(machCol, contCol)(i.i)
 
-	<-ctx.Done()
+	start := func(ctx context.Context) error {
+		<-ctx.Done()
 
-	if err := rm.Stop(); err != nil {
-		return fmt.Errorf("failed to stop manager: %w", err)
+		if err := rm.Stop(); err != nil {
+			return fmt.Errorf("failed to stop manager: %w", err)
+		}
+		return nil
 	}
-	return nil
-}
 
-// New creates a new cadvisor integration
-func New(logger log.Logger, c *Config) (integrations.Integration, error) {
-	c.logger = logger
+	ci := integrations.NewCollectorIntegration(
+		c.Name(),
+		integrations.WithRunner(start),
+		integrations.WithCollectors(machCol, contCol),
+	)
 
-	ci := integrations.NewCollectorIntegration(c.Name())
-	integration := Integration{
-		c: c,
-		i: ci,
-	}
-	integrations.WithRunner(integration.Run)(ci)
 	return ci, nil
 }

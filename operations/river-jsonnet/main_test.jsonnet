@@ -57,6 +57,29 @@ local tests = [
     |||,
   },
   {
+    name: 'Ordered blocks',
+    input: {
+      [river.block('labeled_block', 'foobar', index=1)]: {
+        attr_1: 15,
+        attr_2: 30,
+      },
+      [river.block('unlabeled_block', index=0)]: {
+        attr_1: 15,
+        attr_2: 30,
+      },
+    },
+    expect: |||
+      unlabeled_block {
+        attr_1 = 15
+        attr_2 = 30
+      }
+      labeled_block "foobar" {
+        attr_1 = 15
+        attr_2 = 30
+      }
+    |||,
+  },
+  {
     name: 'Nested blocks',
     input: {
       [river.block('outer.block')]: {

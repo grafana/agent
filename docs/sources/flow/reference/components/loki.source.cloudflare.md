@@ -1,11 +1,18 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/loki.source.cloudflare/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/loki.source.cloudflare/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/loki.source.cloudflare/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/loki.source.cloudflare/
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/loki.source.cloudflare/
+description: Learn about loki.source.cloudflare
 title: loki.source.cloudflare
 ---
 
 # loki.source.cloudflare
 
 `loki.source.cloudflare` pulls logs from the Cloudflare Logpull API and
-forwards them to other `loki.*` components. 
+forwards them to other `loki.*` components.
 
 These logs contain data related to the connecting client, the request path
 through the Cloudflare network, and the response from the origin web server and
@@ -38,6 +45,7 @@ Name            | Type                 | Description          | Default | Requir
 `workers`       | `int`                | The number of workers to use for parsing logs.     |  `3` | no
 `pull_range`    | `duration`           | The timeframe to fetch for each pull request.      | `"1m"` | no
 `fields_type`   | `string`             | The set of fields to fetch for log entries.        | `"default"` | no
+`additional_fields` | `list(string)`   | The additional list of fields to supplement those provided via `fields_type`. |  | no
 
 
 By default `loki.source.cloudflare` fetches logs with the `default` set of
@@ -48,21 +56,27 @@ and the fields they include:
 ```
 "ClientIP", "ClientRequestHost", "ClientRequestMethod", "ClientRequestURI", "EdgeEndTimestamp", "EdgeResponseBytes", "EdgeRequestHost", "EdgeResponseStatus", "EdgeStartTimestamp", "RayID"
 ```
+plus any extra fields provided via `additional_fields` argument.
 
 * `minimal` includes all `default` fields and adds:
 ```
-"ZoneID", "ClientSSLProtocol", "ClientRequestProtocol", "ClientRequestPath", "ClientRequestUserAgent", "ClientRequestReferer", "EdgeColoCode", "ClientCountry", "CacheCacheStatus", "CacheResponseStatus", "EdgeResponseContentType
+"ZoneID", "ClientSSLProtocol", "ClientRequestProtocol", "ClientRequestPath", "ClientRequestUserAgent", "ClientRequestReferer", "EdgeColoCode", "ClientCountry", "CacheCacheStatus", "CacheResponseStatus", "EdgeResponseContentType"
 ```
+plus any extra fields provided via `additional_fields` argument.
 
 * `extended` includes all `minimal` fields and adds:
 ```
 "ClientSSLCipher", "ClientASN", "ClientIPClass", "CacheResponseBytes", "EdgePathingOp", "EdgePathingSrc", "EdgePathingStatus", "ParentRayID", "WorkerCPUTime", "WorkerStatus", "WorkerSubrequest", "WorkerSubrequestCount", "OriginIP", "OriginResponseStatus", "OriginSSLProtocol", "OriginResponseHTTPExpires", "OriginResponseHTTPLastModified"
 ```
+plus any extra fields provided via `additional_fields` argument.
 
 * `all` includes all `extended` fields and adds:
 ```
- "BotScore", "BotScoreSrc", "ClientRequestBytes", "ClientSrcPort", "ClientXRequestedWith", "CacheTieredFill", "EdgeResponseCompressionRatio", "EdgeServerIP", "FirewallMatchesSources", "FirewallMatchesActions", "FirewallMatchesRuleIDs", "OriginResponseBytes", "OriginResponseTime", "ClientDeviceType", "WAFFlags", "WAFMatchedVar", "EdgeColoID", "RequestHeaders", "ResponseHeaders"`k
+ "BotScore", "BotScoreSrc", "BotTags", "ClientRequestBytes", "ClientSrcPort", "ClientXRequestedWith", "CacheTieredFill", "EdgeResponseCompressionRatio", "EdgeServerIP", "FirewallMatchesSources", "FirewallMatchesActions", "FirewallMatchesRuleIDs", "OriginResponseBytes", "OriginResponseTime", "ClientDeviceType", "WAFFlags", "WAFMatchedVar", "EdgeColoID", "RequestHeaders", "ResponseHeaders", "ClientRequestSource"`
 ```
+plus any extra fields provided via `additional_fields` argument (this is still relevant in this case if new fields are made available via Cloudflare API but are not yet included in `all`).
+
+* `custom` includes only the fields defined in `additional_fields`.
 
 The component saves the last successfully-fetched timestamp in its positions
 file. If a position is found in the file for a given zone ID, the component
@@ -79,74 +93,75 @@ The last timestamp fetched by the component is recorded in the
 `loki_source_cloudflare_target_last_requested_end_timestamp` debug metric.
 
 All incoming Cloudflare log entries are in JSON format. You can make use of the
-`loki.process` component and a JSON procssing stage to extract more labels or
+`loki.process` component and a JSON processing stage to extract more labels or
 change the log line format. A sample log looks like this:
-```
+```json
 {
-	"CacheCacheStatus": "miss",
-	"CacheResponseBytes": 8377,
-	"CacheResponseStatus": 200,
-	"CacheTieredFill": false,
-	"ClientASN": 786,
-	"ClientCountry": "gb",
-	"ClientDeviceType": "desktop",
-	"ClientIP": "100.100.5.5",
-	"ClientIPClass": "noRecord",
-	"ClientRequestBytes": 2691,
-	"ClientRequestHost": "www.foo.com",
-	"ClientRequestMethod": "GET",
-	"ClientRequestPath": "/comments/foo/",
-	"ClientRequestProtocol": "HTTP/1.0",
-	"ClientRequestReferer": "https://www.foo.com/foo/168855/?offset=8625",
-	"ClientRequestURI": "/foo/15248108/",
-	"ClientRequestUserAgent": "some bot",
-	"ClientSSLCipher": "ECDHE-ECDSA-AES128-GCM-SHA256",
-	"ClientSSLProtocol": "TLSv1.2",
-	"ClientSrcPort": 39816,
-	"ClientXRequestedWith": "",
-	"EdgeColoCode": "MAN",
-	"EdgeColoID": 341,
-	"EdgeEndTimestamp": 1637336610671000000,
-	"EdgePathingOp": "wl",
-	"EdgePathingSrc": "macro",
-	"EdgePathingStatus": "nr",
-	"EdgeRateLimitAction": "",
-	"EdgeRateLimitID": 0,
-	"EdgeRequestHost": "www.foo.com",
-	"EdgeResponseBytes": 14878,
-	"EdgeResponseCompressionRatio": 1,
-	"EdgeResponseContentType": "text/html",
-	"EdgeResponseStatus": 200,
-	"EdgeServerIP": "8.8.8.8",
-	"EdgeStartTimestamp": 1637336610517000000,
-	"FirewallMatchesActions": [],
-	"FirewallMatchesRuleIDs": [],
-	"FirewallMatchesSources": [],
-	"OriginIP": "8.8.8.8",
-	"OriginResponseBytes": 0,
-	"OriginResponseHTTPExpires": "",
-	"OriginResponseHTTPLastModified": "",
-	"OriginResponseStatus": 200,
-	"OriginResponseTime": 123000000,
-	"OriginSSLProtocol": "TLSv1.2",
-	"ParentRayID": "00",
-	"RayID": "6b0a...",
-  "RequestHeaders": [],
-  "ResponseHeaders": [
-    "x-foo": "bar"
-  ],
-	"SecurityLevel": "med",
-	"WAFAction": "unknown",
-	"WAFFlags": "0",
-	"WAFMatchedVar": "",
-	"WAFProfile": "unknown",
-	"WAFRuleID": "",
-	"WAFRuleMessage": "",
-	"WorkerCPUTime": 0,
-	"WorkerStatus": "unknown",
-	"WorkerSubrequest": false,
-	"WorkerSubrequestCount": 0,
-	"ZoneID": 1234
+    "CacheCacheStatus": "miss",
+    "CacheResponseBytes": 8377,
+    "CacheResponseStatus": 200,
+    "CacheTieredFill": false,
+    "ClientASN": 786,
+    "ClientCountry": "gb",
+    "ClientDeviceType": "desktop",
+    "ClientIP": "100.100.5.5",
+    "ClientIPClass": "noRecord",
+    "ClientRequestBytes": 2691,
+    "ClientRequestHost": "www.foo.com",
+    "ClientRequestMethod": "GET",
+    "ClientRequestPath": "/comments/foo/",
+    "ClientRequestProtocol": "HTTP/1.0",
+    "ClientRequestReferer": "https://www.foo.com/foo/168855/?offset=8625",
+    "ClientRequestURI": "/foo/15248108/",
+    "ClientRequestUserAgent": "some bot",
+    "ClientRequestSource": "1"
+    "ClientSSLCipher": "ECDHE-ECDSA-AES128-GCM-SHA256",
+    "ClientSSLProtocol": "TLSv1.2",
+    "ClientSrcPort": 39816,
+    "ClientXRequestedWith": "",
+    "EdgeColoCode": "MAN",
+    "EdgeColoID": 341,
+    "EdgeEndTimestamp": 1637336610671000000,
+    "EdgePathingOp": "wl",
+    "EdgePathingSrc": "macro",
+    "EdgePathingStatus": "nr",
+    "EdgeRateLimitAction": "",
+    "EdgeRateLimitID": 0,
+    "EdgeRequestHost": "www.foo.com",
+    "EdgeResponseBytes": 14878,
+    "EdgeResponseCompressionRatio": 1,
+    "EdgeResponseContentType": "text/html",
+    "EdgeResponseStatus": 200,
+    "EdgeServerIP": "8.8.8.8",
+    "EdgeStartTimestamp": 1637336610517000000,
+    "FirewallMatchesActions": [],
+    "FirewallMatchesRuleIDs": [],
+    "FirewallMatchesSources": [],
+    "OriginIP": "8.8.8.8",
+    "OriginResponseBytes": 0,
+    "OriginResponseHTTPExpires": "",
+    "OriginResponseHTTPLastModified": "",
+    "OriginResponseStatus": 200,
+    "OriginResponseTime": 123000000,
+    "OriginSSLProtocol": "TLSv1.2",
+    "ParentRayID": "00",
+    "RayID": "6b0a...",
+    "RequestHeaders": [],
+    "ResponseHeaders": [
+      "x-foo": "bar"
+    ],
+    "SecurityLevel": "med",
+    "WAFAction": "unknown",
+    "WAFFlags": "0",
+    "WAFMatchedVar": "",
+    "WAFProfile": "unknown",
+    "WAFRuleID": "",
+    "WAFRuleMessage": "",
+    "WorkerCPUTime": 0,
+    "WorkerStatus": "unknown",
+    "WorkerSubrequest": false,
+    "WorkerSubrequestCount": 0,
+    "ZoneID": 1234
 }
 ```
 
@@ -194,4 +209,20 @@ loki.write "local" {
   }
 }
 ```
+<!-- START GENERATED COMPATIBLE COMPONENTS -->
 
+## Compatible components
+
+`loki.source.cloudflare` can accept arguments from the following components:
+
+- Components that export [Loki `LogsReceiver`]({{< relref "../compatibility/#loki-logsreceiver-exporters" >}})
+
+
+{{% admonition type="note" %}}
+
+Connecting some components may not be sensible or components may require further configuration to make the 
+connection work correctly. Refer to the linked documentation for more details.
+
+{{% /admonition %}}
+
+<!-- END GENERATED COMPATIBLE COMPONENTS -->

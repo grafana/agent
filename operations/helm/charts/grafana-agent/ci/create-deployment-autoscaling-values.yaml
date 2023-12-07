@@ -1,0 +1,9 @@
+# Test rendering of the chart with the controller explicitly set to Deployment and autoscaling enabled.
+controller:
+  type: deployment
+  autoscaling:
+    enabled: true
+agent:
+  resources:
+    requests:
+      memory: 100Mi

@@ -6,15 +6,18 @@ import (
 	"sort"
 	"time"
 
-	"github.com/prometheus/prometheus/model/labels"
-	"github.com/prometheus/prometheus/storage"
-
-	"github.com/prometheus/prometheus/config"
-
 	types "github.com/grafana/agent/component/common/config"
-	"github.com/grafana/agent/pkg/river"
+	flow_relabel "github.com/grafana/agent/component/common/relabel"
+	"github.com/grafana/river/rivertypes"
+
+	"github.com/google/uuid"
 	common "github.com/prometheus/common/config"
 	"github.com/prometheus/common/model"
+	promsigv4 "github.com/prometheus/common/sigv4"
+	"github.com/prometheus/prometheus/config"
+	"github.com/prometheus/prometheus/model/labels"
+	"github.com/prometheus/prometheus/storage"
+	"github.com/prometheus/prometheus/storage/remote/azuread"
 )
 
 // Defaults for config blocks.
@@ -24,20 +27,20 @@ var (
 	}
 
 	DefaultQueueOptions = QueueOptions{
-		Capacity:          2500,
-		MaxShards:         200,
+		Capacity:          10000,
+		MaxShards:         50,
 		MinShards:         1,
-		MaxSamplesPerSend: 500,
+		MaxSamplesPerSend: 2000,
 		BatchSendDeadline: 5 * time.Second,
 		MinBackoff:        30 * time.Millisecond,
 		MaxBackoff:        5 * time.Second,
-		RetryOnHTTP429:    false,
+		RetryOnHTTP429:    true,
 	}
 
 	DefaultMetadataOptions = MetadataOptions{
 		Send:              true,
 		SendInterval:      1 * time.Minute,
-		MaxSamplesPerSend: 500,
+		MaxSamplesPerSend: 2000,
 	}
 
 	DefaultWALOptions = WALOptions{
@@ -45,8 +48,6 @@ var (
 		MinKeepaliveTime:  5 * time.Minute,
 		MaxKeepaliveTime:  8 * time.Hour,
 	}
-
-	_ river.Unmarshaler = (*QueueOptions)(nil)
 )
 
 // Arguments represents the input state of the prometheus.remote_write
@@ -57,12 +58,9 @@ type Arguments struct {
 	WALOptions     WALOptions         `river:"wal,block,optional"`
 }
 
-// UnmarshalRiver implements river.Unmarshaler.
-func (rc *Arguments) UnmarshalRiver(f func(interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (rc *Arguments) SetToDefault() {
 	*rc = DefaultArguments
-
-	type config Arguments
-	return f((*config)(rc))
 }
 
 // EndpointOptions describes an individual location for where metrics in the WAL
@@ -77,31 +75,57 @@ type EndpointOptions struct {
 	HTTPClientConfig     *types.HTTPClientConfig `river:",squash"`
 	QueueOptions         *QueueOptions           `river:"queue_config,block,optional"`
 	MetadataOptions      *MetadataOptions        `river:"metadata_config,block,optional"`
+	WriteRelabelConfigs  []*flow_relabel.Config  `river:"write_relabel_config,block,optional"`
+	SigV4                *SigV4Config            `river:"sigv4,block,optional"`
+	AzureAD              *AzureADConfig          `river:"azuread,block,optional"`
 }
 
-func GetDefaultEndpointOptions() EndpointOptions {
-	var defaultEndpointOptions = EndpointOptions{
+// SetToDefault implements river.Defaulter.
+func (r *EndpointOptions) SetToDefault() {
+	*r = EndpointOptions{
 		RemoteTimeout:    30 * time.Second,
 		SendExemplars:    true,
 		HTTPClientConfig: types.CloneDefaultHTTPClientConfig(),
 	}
-
-	return defaultEndpointOptions
 }
 
-// UnmarshalRiver implements river.Unmarshaler.
-func (r *EndpointOptions) UnmarshalRiver(f func(v interface{}) error) error {
-	*r = GetDefaultEndpointOptions()
+func isAuthSetInHttpClientConfig(cfg *types.HTTPClientConfig) bool {
+	return cfg.BasicAuth != nil ||
+		cfg.OAuth2 != nil ||
+		cfg.Authorization != nil ||
+		len(cfg.BearerToken) > 0 ||
+		len(cfg.BearerTokenFile) > 0
+}
 
-	type arguments EndpointOptions
-	err := f((*arguments)(r))
-	if err != nil {
-		return err
-	}
-
+// Validate implements river.Validator.
+func (r *EndpointOptions) Validate() error {
 	// We must explicitly Validate because HTTPClientConfig is squashed and it won't run otherwise
 	if r.HTTPClientConfig != nil {
-		return r.HTTPClientConfig.Validate()
+		if err := r.HTTPClientConfig.Validate(); err != nil {
+			return err
+		}
+	}
+
+	const tooManyAuthErr = "at most one of sigv4, azuread, basic_auth, oauth2, bearer_token & bearer_token_file must be configured"
+
+	if r.SigV4 != nil {
+		if r.AzureAD != nil || isAuthSetInHttpClientConfig(r.HTTPClientConfig) {
+			return fmt.Errorf(tooManyAuthErr)
+		}
+	}
+
+	if r.AzureAD != nil {
+		if r.SigV4 != nil || isAuthSetInHttpClientConfig(r.HTTPClientConfig) {
+			return fmt.Errorf(tooManyAuthErr)
+		}
+	}
+
+	if r.WriteRelabelConfigs != nil {
+		for _, relabelConfig := range r.WriteRelabelConfigs {
+			if err := relabelConfig.Validate(); err != nil {
+				return err
+			}
+		}
 	}
 
 	return nil
@@ -119,17 +143,16 @@ type QueueOptions struct {
 	RetryOnHTTP429    bool          `river:"retry_on_http_429,attr,optional"`
 }
 
-// UnmarshalRiver allows injecting of default values
-func (r *QueueOptions) UnmarshalRiver(f func(v interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (r *QueueOptions) SetToDefault() {
 	*r = DefaultQueueOptions
-
-	type arguments QueueOptions
-	return f((*arguments)(r))
 }
 
 func (r *QueueOptions) toPrometheusType() config.QueueConfig {
 	if r == nil {
-		return config.DefaultQueueConfig
+		var res QueueOptions
+		res.SetToDefault()
+		return res.toPrometheusType()
 	}
 
 	return config.QueueConfig{
@@ -152,17 +175,16 @@ type MetadataOptions struct {
 	MaxSamplesPerSend int           `river:"max_samples_per_send,attr,optional"`
 }
 
-// UnmarshalRiver allows injecting of default values
-func (o *MetadataOptions) UnmarshalRiver(f func(v interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (o *MetadataOptions) SetToDefault() {
 	*o = DefaultMetadataOptions
-
-	type options MetadataOptions
-	return f((*options)(o))
 }
 
 func (o *MetadataOptions) toPrometheusType() config.MetadataConfig {
 	if o == nil {
-		return config.DefaultMetadataConfig
+		var res MetadataOptions
+		res.SetToDefault()
+		return res.toPrometheusType()
 	}
 
 	return config.MetadataConfig{
@@ -179,15 +201,13 @@ type WALOptions struct {
 	MaxKeepaliveTime  time.Duration `river:"max_keepalive_time,attr,optional"`
 }
 
-// UnmarshalRiver implements river.Unmarshaler.
-func (o *WALOptions) UnmarshalRiver(f func(interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (o *WALOptions) SetToDefault() {
 	*o = DefaultWALOptions
+}
 
-	type config WALOptions
-	if err := f((*config)(o)); err != nil {
-		return err
-	}
-
+// Validate implements river.Validator.
+func (o *WALOptions) Validate() error {
 	switch {
 	case o.TruncateFrequency == 0:
 		return fmt.Errorf("truncate_frequency must not be 0")
@@ -216,15 +236,16 @@ func convertConfigs(cfg Arguments) (*config.Config, error) {
 			URL:                  &common.URL{URL: parsedURL},
 			RemoteTimeout:        model.Duration(rw.RemoteTimeout),
 			Headers:              rw.Headers,
-			WriteRelabelConfigs:  nil, // WriteRelabelConfigs are currently not supported
 			Name:                 rw.Name,
 			SendExemplars:        rw.SendExemplars,
 			SendNativeHistograms: rw.SendNativeHistograms,
 
-			HTTPClientConfig: *rw.HTTPClientConfig.Convert(),
-			QueueConfig:      rw.QueueOptions.toPrometheusType(),
-			MetadataConfig:   rw.MetadataOptions.toPrometheusType(),
-			// TODO(rfratto): SigV4Config
+			WriteRelabelConfigs: flow_relabel.ComponentToPromRelabelConfigs(rw.WriteRelabelConfigs),
+			HTTPClientConfig:    *rw.HTTPClientConfig.Convert(),
+			QueueConfig:         rw.QueueOptions.toPrometheusType(),
+			MetadataConfig:      rw.MetadataOptions.toPrometheusType(),
+			SigV4Config:         rw.SigV4.toPrometheusType(),
+			AzureADConfig:       rw.AzureAD.toPrometheusType(),
 		})
 	}
 
@@ -243,4 +264,85 @@ func toLabels(in map[string]string) labels.Labels {
 	}
 	sort.Sort(res)
 	return res
+}
+
+// ManagedIdentityConfig is used to store managed identity config values
+type ManagedIdentityConfig struct {
+	// ClientID is the clientId of the managed identity that is being used to authenticate.
+	ClientID string `river:"client_id,attr"`
+}
+
+func (m ManagedIdentityConfig) toPrometheusType() azuread.ManagedIdentityConfig {
+	return azuread.ManagedIdentityConfig{
+		ClientID: m.ClientID,
+	}
+}
+
+type AzureADConfig struct {
+	// ManagedIdentity is the managed identity that is being used to authenticate.
+	ManagedIdentity ManagedIdentityConfig `river:"managed_identity,block"`
+
+	// Cloud is the Azure cloud in which the service is running. Example: AzurePublic/AzureGovernment/AzureChina.
+	Cloud string `river:"cloud,attr,optional"`
+}
+
+func (a *AzureADConfig) Validate() error {
+	if a.Cloud != azuread.AzureChina && a.Cloud != azuread.AzureGovernment && a.Cloud != azuread.AzurePublic {
+		return fmt.Errorf("must provide a cloud in the Azure AD config")
+	}
+
+	_, err := uuid.Parse(a.ManagedIdentity.ClientID)
+	if err != nil {
+		return fmt.Errorf("the provided Azure Managed Identity client_id provided is invalid")
+	}
+
+	return nil
+}
+
+// SetToDefault implements river.Defaulter.
+func (a *AzureADConfig) SetToDefault() {
+	*a = AzureADConfig{
+		Cloud: azuread.AzurePublic,
+	}
+}
+
+func (a *AzureADConfig) toPrometheusType() *azuread.AzureADConfig {
+	if a == nil {
+		return nil
+	}
+
+	mangedIdentity := a.ManagedIdentity.toPrometheusType()
+	return &azuread.AzureADConfig{
+		ManagedIdentity: &mangedIdentity,
+		Cloud:           a.Cloud,
+	}
+}
+
+type SigV4Config struct {
+	Region    string            `river:"region,attr,optional"`
+	AccessKey string            `river:"access_key,attr,optional"`
+	SecretKey rivertypes.Secret `river:"secret_key,attr,optional"`
+	Profile   string            `river:"profile,attr,optional"`
+	RoleARN   string            `river:"role_arn,attr,optional"`
+}
+
+func (s *SigV4Config) Validate() error {
+	if (s.AccessKey == "") != (s.SecretKey == "") {
+		return fmt.Errorf("must provide an AWS SigV4 access key and secret key if credentials are specified in the SigV4 config")
+	}
+	return nil
+}
+
+func (s *SigV4Config) toPrometheusType() *promsigv4.SigV4Config {
+	if s == nil {
+		return nil
+	}
+
+	return &promsigv4.SigV4Config{
+		Region:    s.Region,
+		AccessKey: s.AccessKey,
+		SecretKey: common.Secret(s.SecretKey),
+		Profile:   s.Profile,
+		RoleARN:   s.RoleARN,
+	}
 }

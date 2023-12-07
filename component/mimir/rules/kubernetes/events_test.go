@@ -145,7 +145,7 @@ func TestEventLoop(t *testing.T) {
 	// Add a namespace and rule to kubernetes
 	nsIndexer.Add(ns)
 	ruleIndexer.Add(rule)
-	eventHandler.OnAdd(rule)
+	eventHandler.OnAdd(rule, false)
 
 	// Wait for the rule to be added to mimir
 	require.Eventually(t, func() bool {

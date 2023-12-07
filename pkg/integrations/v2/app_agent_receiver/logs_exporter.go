@@ -40,7 +40,7 @@ type LogsExporter struct {
 
 // NewLogsExporter creates a new logs exporter with the given
 // configuration
-func NewLogsExporter(logger kitlog.Logger, conf LogsExporterConfig, sourceMapStore SourceMapStore) appAgentReceiverExporter {
+func NewLogsExporter(logger kitlog.Logger, conf LogsExporterConfig, sourceMapStore SourceMapStore) AppAgentReceiverExporter {
 	return &LogsExporter{
 		logger:           logger,
 		getLogsInstance:  conf.GetLogsInstance,
@@ -135,6 +135,6 @@ func (le *LogsExporter) labelSet(kv *KeyVal) prommodel.LabelSet {
 
 // Static typecheck tests
 var (
-	_ appAgentReceiverExporter = (*LogsExporter)(nil)
+	_ AppAgentReceiverExporter = (*LogsExporter)(nil)
 	_ logsInstance             = (*logs.Instance)(nil)
 )

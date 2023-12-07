@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	pc "github.com/prometheus/common/config"
 	"github.com/stretchr/testify/require"
@@ -89,12 +90,28 @@ func TestConfig_ApplyDefaults_Validations(t *testing.T) {
 				- name: config-b
 		  `),
 		},
+		{
+			name: "global filewatcher",
+			err:  nil,
+			cfg: untab(`
+				global:
+    				file_watch_config:
+      					min_poll_frequency: 1s
+      					max_poll_frequency: 20s
+				positions_directory: /tmp
+				configs:
+				- name: config-a
+				- name: config-b
+		  `),
+		},
 	}
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
 			var cfg Config
 			err := yaml.UnmarshalStrict([]byte(tc.cfg), &cfg)
+			require.NoError(t, err)
+			err = cfg.ApplyDefaults()
 			if tc.err == nil {
 				require.NoError(t, err)
 			} else {
@@ -128,6 +145,8 @@ func TestConfig_ApplyDefaults_Defaults(t *testing.T) {
 	var cfg Config
 	err := yaml.UnmarshalStrict([]byte(cfgText), &cfg)
 	require.NoError(t, err)
+	err = cfg.ApplyDefaults()
+	require.NoError(t, err)
 
 	var (
 		pathA = cfg.Configs[0].PositionsConfig.PositionsFile
@@ -156,4 +175,19 @@ func TestConfig_ApplyDefaults_Defaults(t *testing.T) {
 // will insert tabs into strings by default.
 func untab(s string) string {
 	return strings.ReplaceAll(s, "\t", "  ")
+}
+
+func TestInstanceConfig_Initialize(t *testing.T) {
+	cfgText := `
+name: config-c
+`
+	var cfg InstanceConfig
+	err := yaml.UnmarshalStrict([]byte(cfgText), &cfg)
+	require.NoError(t, err)
+
+	// Make sure the default values from flags are applied
+	require.Equal(t, 10*time.Second, cfg.PositionsConfig.SyncPeriod)
+	require.Equal(t, "", cfg.PositionsConfig.PositionsFile)
+	require.Equal(t, false, cfg.PositionsConfig.IgnoreInvalidYaml)
+	require.Equal(t, false, cfg.TargetConfig.Stdin)
 }

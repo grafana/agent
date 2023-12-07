@@ -1,12 +1,19 @@
 ---
-title: loki.source.podlogs
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/loki.source.podlogs/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/loki.source.podlogs/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/loki.source.podlogs/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/loki.source.podlogs/
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/loki.source.podlogs/
+description: Learn about loki.source.podlogs
 labels:
   stage: experimental
+title: loki.source.podlogs
 ---
 
 # loki.source.podlogs
 
-{{< docs/shared lookup="flow/stability/experimental.md" source="agent" >}}
+{{< docs/shared lookup="flow/stability/experimental.md" source="agent" version="<AGENT_VERSION>" >}}
 
 `loki.source.podlogs` discovers `PodLogs` resources on Kubernetes and, using
 the Kubernetes API, tails logs from Kubernetes containers of Pods specified by
@@ -16,8 +23,8 @@ the discovered them.
 resources rather than being fed targets from another Flow component.
 
 > **NOTE**: Unlike `loki.source.kubernetes`, it is not possible to distribute
-> responsibility of collecting logs across multiple agents. To avoid collecting
-> duplicate logs, only one agent should be running a `loki.source.podlogs`
+> responsibility of collecting logs across multiple {{< param "PRODUCT_ROOT_NAME" >}}s. To avoid collecting
+> duplicate logs, only one {{< param "PRODUCT_ROOT_NAME" >}} should be running a `loki.source.podlogs`
 > component.
 
 > **NOTE**: Because `loki.source.podlogs` uses the Kubernetes API to tail logs,
@@ -55,7 +62,7 @@ The `PodLogs` resource describes a set of Pods to collect logs from.
 
 > **NOTE**: `loki.source.podlogs` looks for `PodLogs` of
 > `monitoring.grafana.com/v1alpha2`, and is not compatible with `PodLogs` from
-> the Grafana Agent Operator, which are version `v1alpha1`.
+> the {{< param "PRODUCT_ROOT_NAME" >}} Operator, which are version `v1alpha1`.
 
 Field | Type | Description
 ----- | ---- | -----------
@@ -137,6 +144,7 @@ selector | [selector][] | Label selector for which `PodLogs` to discover. | no
 selector > match_expression | [match_expression][] | Label selector expression for which `PodLogs` to discover. | no
 namespace_selector | [selector][] | Label selector for which namespaces to discover `PodLogs` in. | no
 namespace_selector > match_expression | [match_expression][] | Label selector expression for which namespaces to discover `PodLogs` in. | no
+clustering | [clustering][] | Configure the component for when {{< param "PRODUCT_ROOT_NAME" >}} is running in clustered mode. | no
 
 The `>` symbol indicates deeper levels of nesting. For example, `client >
 basic_auth` refers to a `basic_auth` block defined
@@ -149,12 +157,13 @@ inside a `client` block.
 [tls_config]: #tls_config-block
 [selector]: #selector-block
 [match_expression]: #match_expression-block
+[clustering]: #clustering-beta
 
 ### client block
 
 The `client` block configures the Kubernetes client used to tail logs from
 containers. If the `client` block isn't provided, the default in-cluster
-configuration with the service account of the running Grafana Agent pod is
+configuration with the service account of the running {{< param "PRODUCT_ROOT_NAME" >}} pod is
 used.
 
 The following arguments are supported:
@@ -177,19 +186,19 @@ Name | Type | Description | Default | Required
 
 ### basic_auth block
 
-{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### authorization block
 
-{{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### oauth2 block
 
-{{< docs/shared lookup="flow/reference/components/oauth2-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/oauth2-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### tls_config block
 
-{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### selector block
 
@@ -226,6 +235,21 @@ The `operator` argument must be one of the following strings:
 
 Both `selector` and `namespace_selector` can make use of multiple
 `match_expression` inner blocks which are treated as AND clauses.
+
+### clustering (beta)
+
+Name | Type | Description | Default | Required
+---- | ---- | ----------- | ------- | --------
+`enabled` | `bool` | Distribute log collection with other cluster nodes. | | yes
+
+When {{< param "PRODUCT_NAME" >}} is [using clustering][], and `enabled` is set to true, then this
+`loki.source.podlogs` component instance opts-in to participating in the
+cluster to distribute the load of log collection between all cluster nodes.
+
+If {{< param "PRODUCT_NAME" >}} is _not_ running in clustered mode, then the block is a no-op and
+`loki.source.podlogs` collects logs based on every PodLogs resource discovered.
+
+[using clustering]: {{< relref "../../concepts/clustering.md" >}}
 
 ## Exported fields
 
@@ -266,3 +290,20 @@ loki.write "local" {
   }
 }
 ```
+<!-- START GENERATED COMPATIBLE COMPONENTS -->
+
+## Compatible components
+
+`loki.source.podlogs` can accept arguments from the following components:
+
+- Components that export [Loki `LogsReceiver`]({{< relref "../compatibility/#loki-logsreceiver-exporters" >}})
+
+
+{{% admonition type="note" %}}
+
+Connecting some components may not be sensible or components may require further configuration to make the 
+connection work correctly. Refer to the linked documentation for more details.
+
+{{% /admonition %}}
+
+<!-- END GENERATED COMPATIBLE COMPONENTS -->

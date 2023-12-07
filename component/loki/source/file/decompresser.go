@@ -1,8 +1,8 @@
 package file
 
-// This code is copied from Promtail. decompresser implements the reader
-// interface and is used to read compressed log files. It uses the Go stdlib's
-// compress/* packages for decoding.
+// This code is copied from loki/promtail@a8d5815510bd959a6dd8c176a5d9fd9bbfc8f8b5.
+// Decompressor implements the reader interface and is used to read compressed log files.
+// It uses the Go stdlib's compress/* packages for decoding.
 
 import (
 	"bufio"
@@ -19,9 +19,9 @@ import (
 	"unsafe"
 
 	"github.com/go-kit/log"
-	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component/common/loki"
 	"github.com/grafana/agent/component/common/loki/positions"
+	"github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/grafana/loki/pkg/logproto"
 	"github.com/prometheus/common/model"
 	"go.uber.org/atomic"
@@ -32,11 +32,10 @@ import (
 
 func supportedCompressedFormats() map[string]struct{} {
 	return map[string]struct{}{
-		".gz":     {},
-		".tar.gz": {},
-		".z":      {},
-		".bz2":    {},
-		// TODO: add support for .zip extension.
+		"gz":  {},
+		"z":   {},
+		"bz2": {},
+		// TODO: add support for zip.
 	}
 }
 
@@ -61,9 +60,20 @@ type decompressor struct {
 
 	position int64
 	size     int64
+	cfg      DecompressionConfig
 }
 
-func newDecompressor(metrics *metrics, logger log.Logger, handler loki.EntryHandler, positions positions.Positions, path string, labels string, encodingFormat string) (*decompressor, error) {
+func newDecompressor(
+	metrics *metrics,
+	logger log.Logger,
+	handler loki.EntryHandler,
+	positions positions.Positions,
+	path string,
+	labels string,
+	encodingFormat string,
+	cfg DecompressionConfig,
+) (*decompressor, error) {
+
 	logger = log.With(logger, "component", "decompressor")
 
 	pos, err := positions.Get(path, labels)
@@ -94,6 +104,7 @@ func newDecompressor(metrics *metrics, logger log.Logger, handler loki.EntryHand
 		done:      make(chan struct{}),
 		position:  pos,
 		decoder:   decoder,
+		cfg:       cfg,
 	}
 
 	go decompressor.readLines()
@@ -104,39 +115,39 @@ func newDecompressor(metrics *metrics, logger log.Logger, handler loki.EntryHand
 
 // mountReader instantiate a reader ready to be used by the decompressor.
 //
-// The selected reader implementation is based on the extension of the given file name.
-// It'll error if the extension isn't supported.
-func mountReader(f *os.File, logger log.Logger) (reader io.Reader, err error) {
-	ext := filepath.Ext(f.Name())
+// The reader implementation is selected based on the given CompressionFormat.
+// If the actual file format is incorrect, the reading of the header may fail and return an error - depending on the
+// implementation of the underlying compression library. In any case, when a file is corrupted, the subsequent reading
+// of lines will fail.
+func mountReader(f *os.File, logger log.Logger, format CompressionFormat) (reader io.Reader, err error) {
 	var decompressLib string
 
-	if strings.Contains(ext, "gz") { // .gz, .tar.gz
+	switch format.String() {
+	case "gz":
 		decompressLib = "compress/gzip"
 		reader, err = gzip.NewReader(f)
-	} else if ext == ".z" {
+	case "z":
 		decompressLib = "compress/zlib"
 		reader, err = zlib.NewReader(f)
-	} else if ext == ".bz2" {
+	case "bz2":
 		decompressLib = "bzip2"
 		reader = bzip2.NewReader(f)
-	}
-	// TODO: add support for .zip extension.
-
-	level.Debug(logger).Log("msg", fmt.Sprintf("using %q to decompress file %q", decompressLib, f.Name()))
-
-	if reader != nil {
-		return reader, nil
 	}
 
 	if err != nil && err != io.EOF {
 		return nil, err
 	}
 
-	supportedExtsList := strings.Builder{}
-	for ext := range supportedCompressedFormats() {
-		supportedExtsList.WriteString(ext)
+	if reader == nil {
+		supportedFormatsList := strings.Builder{}
+		for format := range supportedCompressedFormats() {
+			supportedFormatsList.WriteString(format)
+		}
+		return nil, fmt.Errorf("file %q has unsupported format, it has to be one of %q", f.Name(), supportedFormatsList.String())
 	}
-	return nil, fmt.Errorf("file %q has unsupported extension, it has to be one of %q", f.Name(), supportedExtsList.String())
+
+	level.Debug(logger).Log("msg", fmt.Sprintf("using %q to decompress file %q", decompressLib, f.Name()))
+	return reader, nil
 }
 
 func (d *decompressor) updatePosition() {
@@ -163,12 +174,17 @@ func (d *decompressor) updatePosition() {
 
 // readLines read all existing lines of the given compressed file.
 //
-// It first decompress the file as a whole using a reader and then it will iterate
+// It first decompresses the file as a whole using a reader and then it will iterate
 // over its chunks, separated by '\n'.
 // During each iteration, the parsed and decoded log line is then sent to the API with the current timestamp.
 func (d *decompressor) readLines() {
 	level.Info(d.logger).Log("msg", "read lines routine: started", "path", d.path)
 	d.running.Store(true)
+
+	if d.cfg.InitialDelay > 0 {
+		level.Info(d.logger).Log("msg", "sleeping before starting decompression", "path", d.path, "duration", d.cfg.InitialDelay.String())
+		time.Sleep(d.cfg.InitialDelay)
+	}
 
 	defer func() {
 		d.cleanupMetrics()
@@ -184,7 +200,7 @@ func (d *decompressor) readLines() {
 	}
 	defer f.Close()
 
-	r, err := mountReader(f, d.logger)
+	r, err := mountReader(f, d.logger, d.cfg.Format)
 	if err != nil {
 		level.Error(d.logger).Log("msg", "error mounting new reader", "err", err)
 		return
@@ -300,16 +316,4 @@ func (d *decompressor) cleanupMetrics() {
 
 func (d *decompressor) Path() string {
 	return d.path
-}
-
-func isCompressed(p string) bool {
-	ext := filepath.Ext(p)
-
-	for format := range supportedCompressedFormats() {
-		if ext == format {
-			return true
-		}
-	}
-
-	return false
 }

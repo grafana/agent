@@ -47,7 +47,7 @@ func (r *reconciler) createLogsDaemonSet(
 	}
 
 	level.Info(l).Log("msg", "reconciling logs daemonset", "ds", key)
-	err = clientutil.CreateOrUpdateDaemonSet(ctx, r.Client, ds)
+	err = clientutil.CreateOrUpdateDaemonSet(ctx, r.Client, ds, l)
 	if err != nil {
 		return fmt.Errorf("failed to reconcile statefulset governing service: %w", err)
 	}

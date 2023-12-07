@@ -5,10 +5,10 @@ local utils = import './internal/utils.jsonnet';
   attr(name):: name,
 
   // block returns the field name that should be used for River blocks.
-  block(name, label='')::
+  block(name, label='', index=0)::
     if label == ''
-    then ('block %s' % name)
-    else ('block %s %s' % [name, label]),
+    then ('block %s %d' % [name, index])
+    else ('block %s %s %d' % [name, label, index]),
 
   // expr returns an object which represents a literal River expression.
   expr(lit):: {

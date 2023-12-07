@@ -1,7 +1,1 @@
 pkg/operator/crds/*.yaml linguist-generated=true
-
-# Git on Windows may automatically check out files with crlf line endings,
-# which breaks the Fuzz parser in 1.18 (golang/go#52268). A fix is scheduled
-# for 1.19, but in the meantime we have to disable autocrlf for Fuzz files and
-# ensure that \n is the only end-of-line character used.
-**/testdata/fuzz/Fuzz*/** -text eol=lf

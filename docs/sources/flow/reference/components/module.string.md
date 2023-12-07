@@ -1,15 +1,22 @@
 ---
-title: module.string
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/module.string/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/module.string/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/module.string/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/module.string/
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/module.string/
+description: Learn about module.string
 labels:
   stage: beta
+title: module.string
 ---
 
 # module.string
 
-{{< docs/shared lookup="flow/stability/beta.md" source="agent" >}}
+{{< docs/shared lookup="flow/stability/beta.md" source="agent" version="<AGENT_VERSION>" >}}
 
-`module.string` is a *module loader* component. A module loader is a Grafana Agent Flow
-component which retreives a [module][] and runs the components defined inside of it.
+`module.string` is a *module loader* component. A module loader is a {{< param "PRODUCT_NAME" >}}
+component which retrieves a [module][] and runs the components defined inside of it.
 
 [module]: {{< relref "../../concepts/modules.md" >}}
 
@@ -17,10 +24,11 @@ component which retreives a [module][] and runs the components defined inside of
 
 ```river
 module.string "LABEL" {
-  content   = CONTENT
-  arguments = {
-    argument1 = ARGUMENT1,
-    argument2 = ARGUMENT2,
+  content = CONTENT
+
+  arguments {
+    MODULE_ARGUMENT_1 = VALUE_1
+    MODULE_ARGUMENT_2 = VALUE_2
     ...
   }
 }
@@ -33,7 +41,6 @@ The following arguments are supported:
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `content`   | `secret` or `string` | The contents of the module to load as a secret or string. | | yes
-`arguments` | `map(any)`  | The values for the supported arguments in the module contents. | | no
 
 `content` is a string that contains the configuration of the module to load.
 `content` is typically loaded by using the exports of another component. For example,
@@ -42,13 +49,29 @@ Name | Type | Description | Default | Required
 - `remote.http.LABEL.content`
 - `remote.s3.LABEL.content`
 
-`arguments` allows us to pass parameterized input into a module. The values
-passed in `arguments` correspond to [argument blocks][] defined in the module
-source.
+## Blocks
 
-An `argument` marked non-optional in the module being loaded is required in the
-`arguments`. It is also not valid to provide an `argument` not defined in the
-module being loaded.
+The following blocks are supported inside the definition of `module.string`:
+
+Hierarchy        | Block      | Description | Required
+---------------- | ---------- | ----------- | --------
+arguments | [arguments][] | Arguments to pass to the module. | no
+
+[arguments]: #arguments-block
+
+### arguments block
+
+The `arguments` block specifies the list of values to pass to the loaded
+module.
+
+The attributes provided in the `arguments` block are validated based on the
+[argument blocks][] defined in the module source:
+
+* If a module source marks one of its arguments as required, it must be
+  provided as an attribute in the `arguments` block of the module loader.
+
+* Attributes in the `argument` block of the module loader will be rejected if
+  they are not defined in the module source.
 
 [argument blocks]: {{< relref "../config-blocks/argument.md" >}}
 
@@ -80,7 +103,7 @@ unhealthy and the health includes the error from loading the module.
 
 `module.string` does not expose any component-specific debug information.
 
-### Debug metrics
+## Debug metrics
 
 `module.string` does not expose any component-specific debug metrics.
 
@@ -99,17 +122,18 @@ local.file "metrics" {
 }
 
 module.string "metrics" {
-  content   = local.file.metrics.content
-  arguments = {
-    username = env("PROMETHEUS_USERNAME"),
-    password = env("PROMETHEUS_PASSWORD"),
+  content = local.file.metrics.content
+
+  arguments {
+    username = env("PROMETHEUS_USERNAME")
+    password = env("PROMETHEUS_PASSWORD")
   }
 }
 
-prometheus.exporter.unix { }
+prometheus.exporter.unix "default" { }
 
 prometheus.scrape "local_agent" {
-  targets         = prometheus.exporter.unix.targets
+  targets         = prometheus.exporter.unix.default.targets
   forward_to      = [module.string.metrics.exports.prometheus_remote_write.receiver]
   scrape_interval = "10s"
 }

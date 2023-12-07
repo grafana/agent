@@ -17,6 +17,7 @@ rules:
       - ingresses
       - nodes
       - nodes/proxy
+      - nodes/metrics
       - pods
       - services
     verbs:
@@ -69,6 +70,15 @@ rules:
       - ""
     resources:
       - events
+    verbs:
+      - get
+      - list
+      - watch
+  # needed for remote.kubernetes.*
+  - apiGroups: [""]
+    resources:
+      - "configmaps"
+      - "secrets"
     verbs:
       - get
       - list

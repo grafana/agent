@@ -9,8 +9,8 @@ import (
 	"time"
 
 	"github.com/go-kit/log"
-	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/pkg/flow/logging/level"
 	otelcomponent "go.opentelemetry.io/collector/component"
 	"go.uber.org/multierr"
 )
@@ -72,7 +72,7 @@ func (cs *Scheduler) Schedule(h otelcomponent.Host, cc ...otelcomponent.Componen
 	}
 }
 
-// Run starts the Schduler. Run will watch for schedule components to appear
+// Run starts the Scheduler. Run will watch for schedule components to appear
 // and run them, terminating previously running components if they exist.
 func (cs *Scheduler) Run(ctx context.Context) error {
 	var components []otelcomponent.Component

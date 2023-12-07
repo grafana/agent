@@ -1,6 +1,12 @@
 ---
 aliases:
 - ../../configuration-language/expressions/types-and-values/
+- /docs/grafana-cloud/agent/flow/config-language/expressions/types_and_values/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/config-language/expressions/types_and_values/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/config-language/expressions/types_and_values/
+- /docs/grafana-cloud/send-data/agent/flow/config-language/expressions/types_and_values/
+canonical: https://grafana.com/docs/agent/latest/flow/config-language/expressions/types_and_values/
+description: Learn about the River types and values
 title: Types and values
 weight: 100
 ---
@@ -23,11 +29,31 @@ River uses the following types for its values:
   or more arguments as input and always return a single value as output.
 * `null`: A type that has no value.
 
+### Naming convention
+
+In addition to the types above, [component reference][] documentation will use
+the following conventions for referring to types:
+
+* `any`: A value of any type.
+* `map(T)`: an `object` where the value type is `T`. For example, `map(string)`
+  is an object where all the values are strings. The key type of an object is
+  always a string, or an identifier which is converted into a string.
+* `list(T)`: an `array` where the value type is `T`. For example, `list(string)`
+  is an array where all the values are strings.
+* `duration`: a `string` denoting a duration of time, such as `"1d"`, `"1h30m"`,
+  `"10s"`. Valid units are `d` (for days), `h` (for hours), `m` (for minutes),
+  `s` (for seconds), `ms` (for milliseconds), `ns` (for nanoseconds). Values of
+  descending units can be combined to add their values together; `"1h30m"` is
+  the same as `"90m"`.
+
+[component reference]: {{< relref "../../reference/components" >}}
+
 ## Numbers
+
 River handles integers, unsigned integers and floating-point values as a single
 'number' type which simplifies writing and reading River configuration files.
 
-```
+```river
 3    == 3.00     // true
 5.0  == (10 / 2) // true
 1e+2 == 100      // true
@@ -35,9 +61,11 @@ River handles integers, unsigned integers and floating-point values as a single
 ```
 
 ## Strings
+
 Strings are represented by sequences of Unicode characters surrounded by double
 quotes `""`:
-```
+
+```river
 "Hello, world!"
 ```
 
@@ -46,6 +74,7 @@ The supported escape sequences are as follows:
 
 | Sequence | Replacement |
 | -------- | ----------- |
+| `\\` | The `\` character `U+005C` |
 | `\a` | The alert or bell character `U+0007` |
 | `\b` | The backspace character `U+0008` |
 | `\f` | The formfeed character `U+000C` |
@@ -60,20 +89,51 @@ The supported escape sequences are as follows:
 | `\uNNNN` | A Unicode character from the basic multilingual plane (NNNN is four hexadecimal digits) |
 | `\UNNNNNNNN` | A Unicode character from supplementary planes (NNNNNNNN is eight hexadecimal digits) |
 
+## Raw strings
+
+Raw strings are represented by sequences of Unicode characters surrounded by backticks ``` `` ```.
+Raw strings do not support any escape sequences:
+
+```river
+`Hello, "world"!`
+```
+
+Within the backticks, any character may appear except a backtick. A backtick
+can be included by concatenating a double quoted string that contains a
+backtick using `+`.
+
+A multiline raw string is interpreted exactly as written:
+
+```river
+`Hello,
+"world"!`
+```
+
+is interpretted as a string with the value:
+
+```string
+Hello,
+"world"!
+```
+
 ## Bools
+
 Bools are represented by the symbols `true` and `false`.
 
 ## Arrays
+
 Array values are constructed by a sequence of comma separated values surrounded
 by square brackets `[]`:
-```
+
+```river
 [0, 1, 2, 3]
 ```
 
 Values in array elements may be placed on separate lines for readability. A
 comma after the final value must be present if the closing bracket `]`
 is on a different line as the final value:
-```
+
+```river
 [
   0,
   1,
@@ -82,25 +142,53 @@ is on a different line as the final value:
 ```
 
 ## Objects
+
 Object values are constructed by a sequence of comma separated key-value pairs
 surrounded by curly braces `{}`:
-```
+
+```river
 {
   first_name = "John",
-  last_name = "Doe",
+  last_name  = "Doe",
 }
 ```
+
 A comma after the final key-value pair may be omitted if the closing curly
 brace `}` is on the same line as the final pair:
-```
+
+```river
 { name = "John" }
 ```
 
+If the key is not a valid identifier, it must be wrapped in double quotes like
+a string:
+
+```river
+{
+  "app.kubernetes.io/name"     = "mysql",
+  "app.kubernetes.io/instance" = "mysql-abcxyz",
+  namespace                    = "default",
+}
+```
+
+> **NOTE**: Be careful not to confuse objects with blocks.
+>
+> An _object_ is a value assigned to an [Attribute][Attributes], where
+> commas **must** be provided between key-value pairs on separate lines.
+>
+> A [Block][Blocks] is a named structural element composed of multiple attributes,
+> where commas **must not** be provided between attributes.
+
+[Attributes]: {{< relref "../syntax.md#Attributes" >}}
+[Blocks]: {{< relref "../syntax.md#Blocks" >}}
+
 ## Functions
+
 Function values cannot be constructed by users, but can be called from the
 standard library or when exported by a component.
 
 ## Null
+
 The null value is represented by the symbol `null`.
 
 ## Special Types

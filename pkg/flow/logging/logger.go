@@ -1,74 +1,156 @@
 package logging
 
 import (
+	"context"
+	"fmt"
 	"io"
+	"log/slog"
+	"sync"
+	"time"
 
-	"github.com/go-kit/log"
+	"github.com/grafana/agent/component/common/loki"
+	"github.com/grafana/agent/internal/slogadapter"
+	"github.com/grafana/loki/pkg/logproto"
+	"github.com/prometheus/common/model"
 )
 
-// Logger is a logger for Grafana Agent Flow components and controllers. It
-// implements the [log.Logger] interface.
-type Logger struct {
-	sink *Sink
-
-	parentComponentID string
-	componentID       string
-
-	orig log.Logger // Original logger before the component name was added.
-	log  log.Logger // Logger with component name injected.
+type EnabledAware interface {
+	Enabled(context.Context, slog.Level) bool
 }
 
-// New creates a new Logger from the provided logging Sink.
-func New(sink *Sink, opts ...LoggerOption) *Logger {
-	if sink == nil {
-		sink, _ = WriterSink(io.Discard, DefaultSinkOptions)
-	}
+// Logger is the logging subsystem of Flow. It supports being dynamically
+// updated at runtime.
+type Logger struct {
+	inner io.Writer // Writer passed to New.
+
+	level   *slog.LevelVar // Current configured level.
+	format  *formatVar     // Current configured format.
+	writer  *writerVar     // Current configured multiwriter (inner + write_to).
+	handler *handler       // Handler which handles logs.
+}
+
+var _ EnabledAware = (*Logger)(nil)
+
+// Enabled implements EnabledAware interface.
+func (l *Logger) Enabled(ctx context.Context, level slog.Level) bool {
+	return l.handler.Enabled(ctx, level)
+}
+
+// New creates a New logger with the default log level and format.
+func New(w io.Writer, o Options) (*Logger, error) {
+	var (
+		leveler slog.LevelVar
+		format  formatVar
+		writer  writerVar
+	)
 
 	l := &Logger{
-		sink:              sink,
-		parentComponentID: sink.parentComponentID,
-		orig:              sink.logger,
-	}
-	for _, opt := range opts {
-		opt(l)
+		inner: w,
+
+		level:  &leveler,
+		format: &format,
+		writer: &writer,
+		handler: &handler{
+			w:         &writer,
+			leveler:   &leveler,
+			formatter: &format,
+		},
 	}
 
-	// Build the final logger.
-	l.log = wrapWithComponentID(sink.logger, sink.parentComponentID, l.componentID)
-
-	return l
+	if err := l.Update(o); err != nil {
+		return nil, err
+	}
+	return l, nil
 }
 
-// LoggerOption is passed to New to customize the constructed Logger.
-type LoggerOption func(*Logger)
+// Handler returns a [slog.Handler]. The returned Handler remains valid if l is
+// updated.
+func (l *Logger) Handler() slog.Handler { return l.handler }
 
-// WithComponentID provides a component ID to the Logger.
-func WithComponentID(id string) LoggerOption {
-	return func(l *Logger) {
-		l.componentID = id
+// Update re-configures the options used for the logger.
+func (l *Logger) Update(o Options) error {
+	switch o.Format {
+	case FormatLogfmt, FormatJSON:
+		// no-op
+	default:
+		return fmt.Errorf("unrecognized log format %q", o.Format)
 	}
+
+	l.level.Set(slogLevel(o.Level).Level())
+	l.format.Set(o.Format)
+
+	newWriter := l.inner
+	if len(o.WriteTo) > 0 {
+		newWriter = io.MultiWriter(l.inner, &lokiWriter{o.WriteTo})
+	}
+	l.writer.Set(newWriter)
+
+	return nil
 }
 
 // Log implements log.Logger.
-func (c *Logger) Log(kvps ...interface{}) error {
-	return c.log.Log(kvps...)
+func (l *Logger) Log(kvps ...interface{}) error {
+	// NOTE(rfratto): this method is a temporary shim while log/slog is still
+	// being adopted throughout the codebase.
+	return slogadapter.GoKit(l.handler).Log(kvps...)
 }
 
-func wrapWithComponentID(l log.Logger, parentID, componentID string) log.Logger {
-	id := fullID(parentID, componentID)
-	if id == "" {
-		return l
-	}
-	return log.With(l, "component", id)
+type lokiWriter struct {
+	f []loki.LogsReceiver
 }
 
-func fullID(parentID, componentID string) string {
-	switch {
-	case componentID == "":
-		return parentID
-	case parentID == "":
-		return componentID
-	default:
-		return parentID + "/" + componentID
+func (fw *lokiWriter) Write(p []byte) (int, error) {
+	for _, receiver := range fw.f {
+		select {
+		case receiver.Chan() <- loki.Entry{
+			Labels: model.LabelSet{"component": "agent"},
+			Entry: logproto.Entry{
+				Timestamp: time.Now(),
+				Line:      string(p),
+			},
+		}:
+		default:
+			return 0, fmt.Errorf("lokiWriter failed to forward entry, channel was blocked")
+		}
 	}
+	return len(p), nil
+}
+
+type formatVar struct {
+	mut sync.RWMutex
+	f   Format
+}
+
+func (f *formatVar) Format() Format {
+	f.mut.RLock()
+	defer f.mut.RUnlock()
+	return f.f
+}
+
+func (f *formatVar) Set(format Format) {
+	f.mut.Lock()
+	defer f.mut.Unlock()
+	f.f = format
+}
+
+type writerVar struct {
+	mut sync.RWMutex
+	w   io.Writer
+}
+
+func (w *writerVar) Set(inner io.Writer) {
+	w.mut.Lock()
+	defer w.mut.Unlock()
+	w.w = inner
+}
+
+func (w *writerVar) Write(p []byte) (n int, err error) {
+	w.mut.RLock()
+	defer w.mut.RUnlock()
+
+	if w.w == nil {
+		return 0, fmt.Errorf("no writer available")
+	}
+
+	return w.w.Write(p)
 }

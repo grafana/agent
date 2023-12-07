@@ -1,4 +1,11 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/loki.source.heroku/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/loki.source.heroku/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/loki.source.heroku/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/loki.source.heroku/
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/loki.source.heroku/
+description: Learn about loki.source.heroku
 title: loki.source.heroku
 ---
 
@@ -12,7 +19,7 @@ block and fans out incoming entries to the list of receivers in `forward_to`.
 
 Before using `loki.source.heroku`, Heroku should be configured with the URL where the Agent will be listening. Follow the steps in [Heroku HTTPS Drain docs](https://devcenter.heroku.com/articles/log-drains#https-drains) for using the Heroku CLI with a command like the following:
 
-```
+```shell
 heroku drains:add [http|https]://HOSTNAME:PORT/heroku/api/v1/drain -a HEROKU_APP_NAME
 ```
 
@@ -23,9 +30,9 @@ different labels.
 
 ```river
 loki.source.heroku "LABEL" {
-    listener {
+    http {
         address = "LISTEN_ADDRESS"
-        port    = PORT
+        port    = LISTEN_PORT
     }
     forward_to = RECEIVER_LIST
 }
@@ -35,12 +42,13 @@ loki.source.heroku "LABEL" {
 
 `loki.source.heroku` supports the following arguments:
 
-Name                     | Type                   | Description          | Default | Required
------------------------- | ---------------------- | -------------------- | ------- | --------
-`use_incoming_timestamp` | `bool`                 | Whether or not to use the timestamp received from Heroku. | `false` | no
-`labels`                 | `map(string)`          | The labels to associate with each received Heroku record. | `{}`    | no
-`forward_to`             | `list(LogsReceiver)`   | List of receivers to send log entries to.                 |         | yes
-`relabel_rules`          | `RelabelRules`         | Relabeling rules to apply on log entries.                 | `{}`    | no
+Name                     | Type                   | Description                                                                        | Default | Required
+------------------------ | ---------------------- |------------------------------------------------------------------------------------| ------- | --------
+`use_incoming_timestamp` | `bool`                 | Whether or not to use the timestamp received from Heroku.                          | `false` | no
+`labels`                 | `map(string)`          | The labels to associate with each received Heroku record.                          | `{}`    | no
+`forward_to`             | `list(LogsReceiver)`   | List of receivers to send log entries to.                                          |         | yes
+`relabel_rules`          | `RelabelRules`         | Relabeling rules to apply on log entries.                                          | `{}`    | no
+`graceful_shutdown_timeout` | `duration` | Timeout for servers graceful shutdown. If configured, should be greater than zero. | "30s"    | no
 
 The `relabel_rules` field can make use of the `rules` export value from a
 `loki.relabel` component to apply one or more relabeling rules to log entries
@@ -50,21 +58,21 @@ before they're forwarded to the list of receivers in `forward_to`.
 
 The following blocks are supported inside the definition of `loki.source.heroku`:
 
-Hierarchy | Name | Description | Required
---------- | ---- | ----------- | --------
-listener | [listener] | Configures a listener for Heroku messages. | yes
+ Hierarchy | Name     | Description                                        | Required 
+-----------|----------|----------------------------------------------------|----------
+ `http`    | [http][] | Configures the HTTP server that receives requests. | no       
+ `grpc`    | [grpc][] | Configures the gRPC server that receives requests. | no       
 
-[listener]: #listener-block
+[http]: #http
+[grpc]: #grpc
 
-### listener block
+### http
 
-The `listener` block defines the listen address and port where the listener
-expects Heroku messages to be sent to.
+{{< docs/shared lookup="flow/reference/components/loki-server-http.md" source="agent" version="<AGENT_VERSION>" >}}
 
-Name                     | Type          | Description | Default | Required
------------------------- | ------------- | ----------- | ------- | --------
-`address`                | `string`      | The `<host>` address to listen to for heroku messages. | `0.0.0.0` | no
-`port`                   | `int`         | The `<port>` to listen to for heroku messages. | | yes
+### grpc
+
+{{< docs/shared lookup="flow/reference/components/loki-server-grpc.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ## Labels
 
@@ -105,9 +113,9 @@ This example listens for Heroku messages over TCP in the specified port and forw
 
 ```river
 loki.source.heroku "local" {
-    listener {
+    http {
         address = "0.0.0.0"
-        port    = 8080
+        port    = 4040
     }
     use_incoming_timestamp = true
     labels                 = {component = "loki.source.heroku"}
@@ -121,3 +129,35 @@ loki.write "local" {
 }
 ```
 
+When using the default `http` block settings, the server listen for new connection on port `8080`.
+
+```river
+loki.source.heroku "local" {
+    use_incoming_timestamp = true
+    labels                 = {component = "loki.source.heroku"}
+    forward_to             = [loki.write.local.receiver]
+}
+
+loki.write "local" {
+    endpoint {
+        url = "loki:3100/api/v1/push"
+    }
+}
+```
+<!-- START GENERATED COMPATIBLE COMPONENTS -->
+
+## Compatible components
+
+`loki.source.heroku` can accept arguments from the following components:
+
+- Components that export [Loki `LogsReceiver`]({{< relref "../compatibility/#loki-logsreceiver-exporters" >}})
+
+
+{{% admonition type="note" %}}
+
+Connecting some components may not be sensible or components may require further configuration to make the 
+connection work correctly. Refer to the linked documentation for more details.
+
+{{% /admonition %}}
+
+<!-- END GENERATED COMPATIBLE COMPONENTS -->

@@ -15,7 +15,7 @@ import (
 	"time"
 
 	"github.com/go-kit/log"
-	"github.com/go-kit/log/level"
+	"github.com/grafana/agent/pkg/flow/logging/level"
 	yaml "gopkg.in/yaml.v2"
 )
 
@@ -33,7 +33,7 @@ type Config struct {
 	ReadOnly          bool          `mapstructure:"-" yaml:"-"`
 }
 
-// RegisterFlags with prefix registers flags where every name is prefixed by
+// RegisterFlagsWithPrefix registers flags where every name is prefixed by
 // prefix. If prefix is a non-empty string, prefix should end with a period.
 func (cfg *Config) RegisterFlagsWithPrefix(prefix string, f *flag.FlagSet) {
 	f.DurationVar(&cfg.SyncPeriod, prefix+"positions.sync-period", 10*time.Second, "Period with this to sync the position file.")
@@ -56,7 +56,7 @@ type positions struct {
 	done      chan struct{}
 }
 
-// Entry desribes a positions file entry consisting of an absolute file path and
+// Entry describes a positions file entry consisting of an absolute file path and
 // the matching label set.
 // An entry expects the string representation of a LabelSet or a Labels slice
 // so that it can be utilized as a YAML key. The caller should make sure that

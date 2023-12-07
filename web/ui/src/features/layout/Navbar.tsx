@@ -19,6 +19,11 @@ function Navbar() {
           </NavLink>
         </li>
         <li>
+          <NavLink to="/clustering" className="nav-link">
+            Clustering
+          </NavLink>
+        </li>
+        <li>
           <a href="https://grafana.com/docs/agent/latest">Help</a>
         </li>
       </ul>

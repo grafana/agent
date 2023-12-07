@@ -1,6 +1,0 @@
-configs:
-  - name: test_traces
-    automatic_logging:
-      backend: stdout
-      loki_name: default
-      spans: true

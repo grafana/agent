@@ -8,10 +8,9 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/otelcol"
 	"github.com/grafana/agent/component/otelcol/exporter"
-	"github.com/grafana/agent/pkg/river"
 	otelcomponent "go.opentelemetry.io/collector/component"
-	otelconfig "go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/exporter/otlphttpexporter"
+	otelextension "go.opentelemetry.io/collector/extension"
 )
 
 func init() {
@@ -22,7 +21,7 @@ func init() {
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			fact := otlphttpexporter.NewFactory()
-			return exporter.New(opts, fact, args.(Arguments))
+			return exporter.New(opts, fact, args.(Arguments), exporter.TypeAll)
 		},
 	})
 }
@@ -33,6 +32,9 @@ type Arguments struct {
 	Queue  otelcol.QueueArguments `river:"sending_queue,block,optional"`
 	Retry  otelcol.RetryArguments `river:"retry_on_failure,block,optional"`
 
+	// DebugMetrics configures component internal metrics. Optional.
+	DebugMetrics otelcol.DebugMetricsArguments `river:"debug_metrics,block,optional"`
+
 	// The URLs to send metrics/logs/traces to. If omitted the exporter will
 	// use Client.Endpoint by appending "/v1/metrics", "/v1/logs" or
 	// "/v1/traces", respectively. If set, these settings override
@@ -42,11 +44,7 @@ type Arguments struct {
 	LogsEndpoint    string `river:"logs_endpoint,attr,optional"`
 }
 
-var (
-	_ river.Unmarshaler  = (*Arguments)(nil)
-	_ river.Unmarshaler  = (*HTTPClientArguments)(nil)
-	_ exporter.Arguments = Arguments{}
-)
+var _ exporter.Arguments = Arguments{}
 
 // DefaultArguments holds default values for Arguments.
 var DefaultArguments = Arguments{
@@ -55,38 +53,39 @@ var DefaultArguments = Arguments{
 	Client: DefaultHTTPClientArguments,
 }
 
-// UnmarshalRiver implements river.Unmarshaler.
-func (args *Arguments) UnmarshalRiver(f func(interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (args *Arguments) SetToDefault() {
 	*args = DefaultArguments
-	type arguments Arguments
-	err := f((*arguments)(args))
-	if err != nil {
-		return err
-	}
-	return args.Validate()
 }
 
 // Convert implements exporter.Arguments.
-func (args Arguments) Convert() otelconfig.Exporter {
+func (args Arguments) Convert() (otelcomponent.Config, error) {
 	return &otlphttpexporter.Config{
-		ExporterSettings:   otelconfig.NewExporterSettings(otelconfig.NewComponentID("otlp")),
 		HTTPClientSettings: *(*otelcol.HTTPClientArguments)(&args.Client).Convert(),
 		QueueSettings:      *args.Queue.Convert(),
 		RetrySettings:      *args.Retry.Convert(),
-	}
+		TracesEndpoint:     args.TracesEndpoint,
+		MetricsEndpoint:    args.MetricsEndpoint,
+		LogsEndpoint:       args.LogsEndpoint,
+	}, nil
 }
 
 // Extensions implements exporter.Arguments.
-func (args Arguments) Extensions() map[otelconfig.ComponentID]otelcomponent.Extension {
+func (args Arguments) Extensions() map[otelcomponent.ID]otelextension.Extension {
 	return (*otelcol.HTTPClientArguments)(&args.Client).Extensions()
 }
 
 // Exporters implements exporter.Arguments.
-func (args Arguments) Exporters() map[otelconfig.DataType]map[otelconfig.ComponentID]otelcomponent.Exporter {
+func (args Arguments) Exporters() map[otelcomponent.DataType]map[otelcomponent.ID]otelcomponent.Component {
 	return nil
 }
 
-// Validate returns an error if the configuration is invalid.
+// DebugMetricsConfig implements receiver.Arguments.
+func (args Arguments) DebugMetricsConfig() otelcol.DebugMetricsArguments {
+	return args.DebugMetrics
+}
+
+// Validate implements river.Validator.
 func (args *Arguments) Validate() error {
 	if args.Client.Endpoint == "" && args.TracesEndpoint == "" && args.MetricsEndpoint == "" && args.LogsEndpoint == "" {
 		return errors.New("at least one endpoint must be specified")
@@ -114,9 +113,7 @@ var (
 	}
 )
 
-// UnmarshalRiver implements river.Unmarshaler and supplies defaults.
-func (args *HTTPClientArguments) UnmarshalRiver(f func(interface{}) error) error {
+// SetToDefault implements river.Defaulter.
+func (args *HTTPClientArguments) SetToDefault() {
 	*args = DefaultHTTPClientArguments
-	type arguments HTTPClientArguments
-	return f((*arguments)(args))
 }

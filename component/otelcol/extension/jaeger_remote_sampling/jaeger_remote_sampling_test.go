@@ -10,10 +10,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/grafana/agent/component/otelcol"
 	"github.com/grafana/agent/component/otelcol/extension/jaeger_remote_sampling"
 	"github.com/grafana/agent/pkg/flow/componenttest"
-	"github.com/grafana/agent/pkg/river"
 	"github.com/grafana/agent/pkg/util"
+	"github.com/grafana/river"
 	"github.com/phayes/freeport"
 	"github.com/stretchr/testify/require"
 )
@@ -30,9 +31,9 @@ func TestFileSource(t *testing.T) {
 		}
 	}
 	`
+	// The strategy type is not returned by proto-gen/api_v2 if set to probabilistic.
 	expectedRemoteSamplingConfig := `
 	{
-		"strategyType": "PROBABILISTIC",
 		"probabilisticSampling": {
 			"samplingRate": 0.5
 		}
@@ -63,9 +64,9 @@ func TestFileSource(t *testing.T) {
 func TestContentSource(t *testing.T) {
 	// write remote sampling config to a temp file
 	remoteSamplingConfig := `{ \"default_strategy\": {\"type\": \"probabilistic\", \"param\": 0.5 } }`
+	// The strategy type is not returned by proto-gen/api_v2 if set to probabilistic.
 	expectedRemoteSamplingConfig := `
 	{
-		"strategyType": "PROBABILISTIC",
 		"probabilisticSampling": {
 			"samplingRate": 0.5
 		}
@@ -197,6 +198,32 @@ func TestUnmarshalUsesDefaults(t *testing.T) {
 			expected: jaeger_remote_sampling.Arguments{
 				GRPC:   &jaeger_remote_sampling.GRPCServerArguments{Endpoint: "blerg", Transport: "blarg"},
 				Source: jaeger_remote_sampling.ArgumentsSource{File: "remote.json"},
+			},
+		},
+		// tests source grpc defaults
+		{
+			cfg: `
+				grpc {
+					endpoint = "blerg"
+					transport = "blarg"
+				}
+				source {
+					remote {
+						endpoint = "TestRemoteEndpoint"
+					}
+				}
+			`,
+			expected: jaeger_remote_sampling.Arguments{
+				GRPC: &jaeger_remote_sampling.GRPCServerArguments{Endpoint: "blerg", Transport: "blarg"},
+				Source: jaeger_remote_sampling.ArgumentsSource{
+					Remote: &jaeger_remote_sampling.GRPCClientArguments{
+						Endpoint:        "TestRemoteEndpoint",
+						Headers:         map[string]string{},
+						Compression:     otelcol.CompressionTypeGzip,
+						WriteBufferSize: 512 * 1024,
+						BalancerName:    "pick_first",
+					},
+				},
 			},
 		},
 	}

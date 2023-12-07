@@ -1,5 +1,4 @@
 //go:build !windows
-// +build !windows
 
 package main
 
@@ -9,7 +8,7 @@ func IsWindowsService() bool {
 	return false
 }
 
-// RunService runs the current process as a Windows servce. On non-Windows platforms,
+// RunService runs the current process as a Windows service. On non-Windows platforms,
 // this is always a no-op.
 func RunService() error {
 	return nil

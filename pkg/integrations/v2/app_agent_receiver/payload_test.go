@@ -68,6 +68,7 @@ func TestUnmarshalPayloadJSON(t *testing.T) {
 	require.Len(t, payload.Exceptions[0].Stacktrace.Frames, 26)
 	require.Equal(t, "Error", payload.Exceptions[0].Type)
 	require.Equal(t, "Cannot read property 'find' of undefined", payload.Exceptions[0].Value)
+	require.EqualValues(t, ExceptionContext{"ReactError": "Annoying Error", "component": "ReactErrorBoundary"}, payload.Exceptions[0].Context)
 
 	require.Equal(t, []Log{
 		{
@@ -117,4 +118,25 @@ func TestUnmarshalPayloadJSON(t *testing.T) {
 			Timestamp: now,
 		},
 	}, payload.Events)
+
+	require.Len(t, payload.Measurements, 1)
+
+	require.Equal(t, []Measurement{
+		{
+			Type: "foobar",
+			Values: map[string]float64{
+				"ttfp":  20.12,
+				"ttfcp": 22.12,
+				"ttfb":  14,
+			},
+			Timestamp: now,
+			Trace: TraceContext{
+				TraceID: "abcd",
+				SpanID:  "def",
+			},
+			Context: MeasurementContext{
+				"hello": "world",
+			},
+		},
+	}, payload.Measurements)
 }

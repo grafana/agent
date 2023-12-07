@@ -9,12 +9,14 @@ import (
 	"sync"
 	"time"
 
+	"github.com/grafana/agent/service/labelstore"
 	"github.com/prometheus/client_golang/prometheus"
-	"go.opentelemetry.io/otel/trace"
+	"go.uber.org/atomic"
 
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/pkg/flow/logging"
+	"go.opentelemetry.io/otel/trace/noop"
 )
 
 // A Controller is a testing controller which controls a single component.
@@ -22,8 +24,9 @@ type Controller struct {
 	reg component.Registration
 	log log.Logger
 
-	onRun   sync.Once
-	running chan struct{}
+	onRun    sync.Once
+	running  chan struct{}
+	runError atomic.Error
 
 	innerMut sync.Mutex
 	inner    component.Component
@@ -83,6 +86,9 @@ func (c *Controller) WaitRunning(timeout time.Duration) error {
 	case <-time.After(timeout):
 		return fmt.Errorf("timed out waiting for the controller to start running")
 	case <-c.running:
+		if err := c.runError.Load(); err != nil {
+			return fmt.Errorf("component failed to start: %w", err)
+		}
 		return nil
 	}
 }
@@ -119,11 +125,17 @@ func (c *Controller) Run(ctx context.Context, args component.Arguments) error {
 	}()
 
 	run, err := c.buildComponent(dataPath, args)
+
+	// We close c.running before checking the error, since the component will
+	// never run if we return an error anyway.
+	c.onRun.Do(func() {
+		c.runError.Store(err)
+		close(c.running)
+	})
+
 	if err != nil {
 		return err
 	}
-
-	c.onRun.Do(func() { close(c.running) })
 	return run.Run(ctx)
 }
 
@@ -132,7 +144,7 @@ func (c *Controller) buildComponent(dataPath string, args component.Arguments) (
 	defer c.innerMut.Unlock()
 
 	writerAdapter := log.NewStdlibAdapter(c.log)
-	sink, err := logging.WriterSink(writerAdapter, logging.SinkOptions{
+	l, err := logging.New(writerAdapter, logging.Options{
 		Level:  logging.LevelDebug,
 		Format: logging.FormatLogfmt,
 	})
@@ -142,11 +154,19 @@ func (c *Controller) buildComponent(dataPath string, args component.Arguments) (
 
 	opts := component.Options{
 		ID:            c.reg.Name + ".test",
-		Logger:        logging.New(sink),
-		Tracer:        trace.NewNoopTracerProvider(),
+		Logger:        l,
+		Tracer:        noop.NewTracerProvider(),
 		DataPath:      dataPath,
 		OnStateChange: c.onStateChange,
 		Registerer:    prometheus.NewRegistry(),
+		GetServiceData: func(name string) (interface{}, error) {
+			switch name {
+			case labelstore.ServiceName:
+				return labelstore.New(nil), nil
+			default:
+				return nil, fmt.Errorf("no service named %s defined", name)
+			}
+		},
 	}
 
 	inner, err := c.reg.Build(opts, args)

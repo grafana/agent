@@ -21,7 +21,7 @@ import (
 // Grafana Agent Flow UI. The UI will be served relative to pathPrefix. If no
 // pathPrefix is specified, the UI will be served at root.
 //
-// By default, the UI is retreived from the ./web/ui/build directory relative
+// By default, the UI is retrieved from the ./web/ui/build directory relative
 // to working directory, assuming that the Agent is run from the repo root.
 // However, if the builtinassets Go tag is present, the built UI will be
 // embedded into the binary; run go generate -tags builtinassets for this
@@ -93,9 +93,9 @@ func (tr *templateRenderer) Open(name string) (http.File, error) {
 	}
 
 	// Return the underlying file if we got a directory. Otherwise, we're going
-	// to create our own synthethic file.
+	// to create our own synthetic file.
 	//
-	// When we create a synthethic file, we close the original file, f, on
+	// When we create a synthetic file, we close the original file, f, on
 	// return. Otherwise, we leave f open on return so the caller can read and
 	// close it.
 	if fi.IsDir() {
@@ -155,7 +155,7 @@ func (tr *templateRenderer) getCacheEntry(name string, fi fs.FileInfo, lock bool
 		return nil, false
 	}
 
-	// Before returning, make sure that that fi isn't newer than our cache time.
+	// Before returning, make sure that fi isn't newer than our cache time.
 	if fi.ModTime().After(tr.contentCacheTime[name]) {
 		// The file has changed since we cached it. It needs to be re-cached. This
 		// is only common to happen during development, but would rarely happen in

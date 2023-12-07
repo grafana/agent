@@ -1,3 +1,5 @@
+@import url('./static/fonts.css');
+
 html, body, #root {
   height: 100%;
 }
