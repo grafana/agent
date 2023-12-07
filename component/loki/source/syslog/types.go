@@ -19,6 +19,7 @@ type ListenerConfig struct {
 	Labels               map[string]string `river:"labels,attr,optional"`
 	UseIncomingTimestamp bool              `river:"use_incoming_timestamp,attr,optional"`
 	UseRFC5424Message    bool              `river:"use_rfc5424_message,attr,optional"`
+	AllowRFC3164Message  bool              `river:"allow_rfc3164_message,attr,optional"`
 	MaxMessageLength     int               `river:"max_message_length,attr,optional"`
 	TLSConfig            config.TLSConfig  `river:"tls_config,block,optional"`
 }

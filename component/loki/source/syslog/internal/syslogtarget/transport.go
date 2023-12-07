@@ -26,8 +26,8 @@ import (
 	"github.com/prometheus/common/config"
 	"github.com/prometheus/prometheus/model/labels"
 
+	"github.com/grafana/agent/component/loki/source/syslog/internal/syslogparser"
 	"github.com/grafana/loki/clients/pkg/promtail/scrapeconfig"
-	"github.com/grafana/loki/clients/pkg/promtail/targets/syslog/syslogparser"
 )
 
 var (
@@ -47,8 +47,9 @@ type handleMessage func(labels.Labels, syslog.Message)
 type handleMessageError func(error)
 
 type baseTransport struct {
-	config *scrapeconfig.SyslogTargetConfig
-	logger log.Logger
+	allowRFC3164Message bool
+	config              *scrapeconfig.SyslogTargetConfig
+	logger              log.Logger
 
 	openConnections *sync.WaitGroup
 
@@ -108,16 +109,17 @@ func lookupAddr(addr string) string {
 	return strings.Join(names, ",")
 }
 
-func newBaseTransport(config *scrapeconfig.SyslogTargetConfig, handleMessage handleMessage, handleError handleMessageError, logger log.Logger) *baseTransport {
+func newBaseTransport(config *scrapeconfig.SyslogTargetConfig, handleMessage handleMessage, handleError handleMessageError, logger log.Logger, allowRFC3164Message bool) *baseTransport {
 	ctx, cancel := context.WithCancel(context.Background())
 	return &baseTransport{
-		config:             config,
-		logger:             logger,
-		openConnections:    new(sync.WaitGroup),
-		handleMessage:      handleMessage,
-		handleMessageError: handleError,
-		ctx:                ctx,
-		ctxCancel:          cancel,
+		allowRFC3164Message: allowRFC3164Message,
+		config:              config,
+		logger:              logger,
+		openConnections:     new(sync.WaitGroup),
+		handleMessage:       handleMessage,
+		handleMessageError:  handleError,
+		ctx:                 ctx,
+		ctxCancel:           cancel,
 	}
 }
 
@@ -164,9 +166,9 @@ type TCPTransport struct {
 	listener net.Listener
 }
 
-func NewSyslogTCPTransport(config *scrapeconfig.SyslogTargetConfig, handleMessage handleMessage, handleError handleMessageError, logger log.Logger) Transport {
+func NewSyslogTCPTransport(config *scrapeconfig.SyslogTargetConfig, handleMessage handleMessage, handleError handleMessageError, logger log.Logger, allowRFC3164Message bool) Transport {
 	return &TCPTransport{
-		baseTransport: newBaseTransport(config, handleMessage, handleError, logger),
+		baseTransport: newBaseTransport(config, handleMessage, handleError, logger, allowRFC3164Message),
 	}
 }
 
@@ -328,7 +330,7 @@ func (t *TCPTransport) handleConnection(cn net.Conn) {
 			return
 		}
 		t.handleMessage(lbs.Copy(), result.Message)
-	}, t.maxMessageLength())
+	}, t.maxMessageLength(), t.allowRFC3164Message)
 
 	if err != nil {
 		level.Warn(t.logger).Log("msg", "error initializing syslog stream", "err", err)
@@ -356,9 +358,9 @@ type UDPTransport struct {
 	udpConn *net.UDPConn
 }
 
-func NewSyslogUDPTransport(config *scrapeconfig.SyslogTargetConfig, handleMessage handleMessage, handleError handleMessageError, logger log.Logger) Transport {
+func NewSyslogUDPTransport(config *scrapeconfig.SyslogTargetConfig, handleMessage handleMessage, handleError handleMessageError, logger log.Logger, allowRFC3164Message bool) Transport {
 	return &UDPTransport{
-		baseTransport: newBaseTransport(config, handleMessage, handleError, logger),
+		baseTransport: newBaseTransport(config, handleMessage, handleError, logger, allowRFC3164Message),
 	}
 }
 
@@ -452,7 +454,7 @@ func (t *UDPTransport) handleRcv(c *ConnPipe) {
 			} else {
 				t.handleMessage(lbs.Copy(), result.Message)
 			}
-		}, t.maxMessageLength())
+		}, t.maxMessageLength(), t.allowRFC3164Message)
 
 		if err != nil {
 			level.Warn(t.logger).Log("msg", "error parsing syslog stream", "err", err)

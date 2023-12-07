@@ -321,7 +321,9 @@ func Benchmark_SyslogTarget(b *testing.B) {
 				Labels: model.LabelSet{
 					"test": "syslog_target",
 				},
-			})
+			},
+				false,
+			)
 			b.Cleanup(func() {
 				require.NoError(b, tgt.Stop())
 			})
@@ -384,7 +386,9 @@ func TestSyslogTarget(t *testing.T) {
 				Labels: model.LabelSet{
 					"test": "syslog_target",
 				},
-			})
+			},
+				false,
+			)
 			require.NoError(t, err)
 
 			require.Eventually(t, tgt.Ready, time.Second, 10*time.Millisecond)
@@ -499,7 +503,9 @@ func TestSyslogTarget_RFC5424Messages(t *testing.T) {
 					"test": "syslog_target",
 				},
 				UseRFC5424Message: true,
-			})
+			},
+				false,
+			)
 			require.NoError(t, err)
 			require.Eventually(t, tgt.Ready, time.Second, 10*time.Millisecond)
 			defer func() {
@@ -546,7 +552,9 @@ func TestSyslogTarget_TLSConfigWithoutServerCertificate(t *testing.T) {
 		TLSConfig: promconfig.TLSConfig{
 			KeyFile: "foo",
 		},
-	})
+	},
+		false,
+	)
 	require.Error(t, err, "error setting up syslog target: certificate and key files are required")
 }
 
@@ -561,7 +569,9 @@ func TestSyslogTarget_TLSConfigWithoutServerKey(t *testing.T) {
 		TLSConfig: promconfig.TLSConfig{
 			CertFile: "foo",
 		},
-	})
+	},
+		false,
+	)
 	require.Error(t, err, "error setting up syslog target: certificate and key files are required")
 }
 
@@ -605,7 +615,9 @@ func testSyslogTargetWithTLS(t *testing.T, fmtFunc formatFunc) {
 			CertFile: serverCertFile.Name(),
 			KeyFile:  serverKeyFile.Name(),
 		},
-	})
+	},
+		false,
+	)
 	require.NoError(t, err)
 	defer func() {
 		require.NoError(t, tgt.Stop())
@@ -738,7 +750,9 @@ func testSyslogTargetWithTLSVerifyClientCertificate(t *testing.T, fmtFunc format
 			CertFile: serverCertFile.Name(),
 			KeyFile:  serverKeyFile.Name(),
 		},
-	})
+	},
+		false,
+	)
 	require.NoError(t, err)
 	defer func() {
 		require.NoError(t, tgt.Stop())
@@ -807,7 +821,9 @@ func TestSyslogTarget_InvalidData(t *testing.T) {
 
 	tgt, err := NewSyslogTarget(metrics, logger, client, relabelConfig(t), &scrapeconfig.SyslogTargetConfig{
 		ListenAddress: "127.0.0.1:0",
-	})
+	},
+		false,
+	)
 	require.NoError(t, err)
 	defer func() {
 		require.NoError(t, tgt.Stop())
@@ -838,7 +854,9 @@ func TestSyslogTarget_NonUTF8Message(t *testing.T) {
 
 	tgt, err := NewSyslogTarget(metrics, logger, client, relabelConfig(t), &scrapeconfig.SyslogTargetConfig{
 		ListenAddress: "127.0.0.1:0",
-	})
+	},
+		false,
+	)
 	require.NoError(t, err)
 	defer func() {
 		require.NoError(t, tgt.Stop())
@@ -877,7 +895,9 @@ func TestSyslogTarget_IdleTimeout(t *testing.T) {
 	tgt, err := NewSyslogTarget(metrics, logger, client, relabelConfig(t), &scrapeconfig.SyslogTargetConfig{
 		ListenAddress: "127.0.0.1:0",
 		IdleTimeout:   time.Millisecond,
-	})
+	},
+		false,
+	)
 	require.NoError(t, err)
 	defer func() {
 		require.NoError(t, tgt.Stop())

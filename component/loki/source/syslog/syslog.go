@@ -114,7 +114,7 @@ func (c *Component) Update(args component.Arguments) error {
 		entryHandler := loki.NewEntryHandler(c.handler.Chan(), func() {})
 
 		for _, cfg := range newArgs.SyslogListeners {
-			t, err := st.NewSyslogTarget(c.metrics, c.opts.Logger, entryHandler, rcs, cfg.Convert())
+			t, err := st.NewSyslogTarget(c.metrics, c.opts.Logger, entryHandler, rcs, cfg.Convert(), cfg.AllowRFC3164Message)
 			if err != nil {
 				level.Error(c.opts.Logger).Log("msg", "failed to create syslog listener with provided config", "err", err)
 				continue
