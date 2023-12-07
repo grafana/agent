@@ -17,7 +17,7 @@ title: pyroscope.scrape
 
 `pyroscope.scrape` collects [pprof] performance profiles for a given set of HTTP `targets`. 
 
-`pyroscope.scrape` borrows the scraping behavior of `prometheus.scrape`.
+`pyroscope.scrape` mimcks the scraping behavior of `prometheus.scrape`.
 Similarly to how Prometheus scrapes metrics via HTTP, `pyroscope.scrape` collects profiles via HTTP requests.
 
 Unlike Prometheus, which usually only scrapes one `/metrics` endpoint per target, 
