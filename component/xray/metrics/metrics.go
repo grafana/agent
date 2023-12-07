@@ -4,8 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"math"
 	"net/http"
-	"slices"
+	"sort"
 	"sync"
 
 	"go.uber.org/atomic"
@@ -168,9 +169,9 @@ func (c *Component) Update(args component.Arguments) error {
 
 // ScraperStatus reports the status of the scraper's jobs.
 type debugInfo struct {
-	Metrics map[string]*summary `river:"metrics,attr"`
-	Jobs    map[string]*summary `river:"jobs,attr"`
-	Details []*SeriesSummary    `river:"details,attr"`
+	Metrics []*summary       `river:"metrics,attr"`
+	Jobs    []*summary       `river:"jobs,attr"`
+	Details []*SeriesSummary `river:"details,attr"`
 }
 
 // DebugInfo implements component.DebugComponent
@@ -195,7 +196,7 @@ type summary struct {
 // summarize by __name__
 // summarize by job
 // summarize by __name__,job
-func (c *Component) Summarize(ls ...string) map[string]*summary {
+func (c *Component) Summarize(ls ...string) []*summary {
 	summaries := map[string]*summary{}
 	for _, v := range c.allSeries {
 		thisLabels := map[string]string{}
@@ -213,13 +214,23 @@ func (c *Component) Summarize(ls ...string) map[string]*summary {
 		summ.DataPointCountTotal += int(v.DataPoints)
 		summ.SeriesCount++
 	}
-	return summaries
+	arr := make([]*summary, 0, len(summaries))
+	for _, v := range summaries {
+		arr = append(arr, v)
+	}
+	sort.Slice(arr, func(i, j int) bool {
+		return arr[i].SeriesCount > arr[j].SeriesCount
+	})
+	return arr
 }
 
 // details for __name__ = prometheus_sd_kubernetes_events_total
 func (c *Component) Details(matchers map[string]string) []*SeriesSummary {
 	matches := []*SeriesSummary{}
 	for _, s := range c.allSeries {
+		if math.IsNaN(s.LastValue) {
+			s.LastValue = 0
+		}
 		match := true
 		for k, v := range matchers {
 			if s.Labels.Get(k) != v {
@@ -245,51 +256,51 @@ type overview struct {
 	TopSeriesDetails       []*metricLabelCardinality `json:"top_metrics_details"`
 }
 
-func (c *Component) getOverview() *overview {
-	summByName := c.Summarize("__name__")
-	summaries := []*summary{}
-	for _, v := range summByName {
-		summaries = append(summaries, v)
-	}
+// func (c *Component) getOverview() *overview {
+// 	summByName := c.Summarize("__name__")
+// 	summaries := []*summary{}
+// 	for _, v := range summByName {
+// 		summaries = append(summaries, v)
+// 	}
 
-	slices.SortFunc(summaries, func(a, b *summary) int {
-		return b.SeriesCount - a.SeriesCount
-	})
+// 	slices.SortFunc(summaries, func(a, b *summary) int {
+// 		return b.SeriesCount - a.SeriesCount
+// 	})
 
-	var topSeries []*summary
-	if len(summaries) > 10 {
-		topSeries = summaries[:10]
-	} else {
-		topSeries = summaries
-	}
+// 	var topSeries []*summary
+// 	if len(summaries) > 10 {
+// 		topSeries = summaries[:10]
+// 	} else {
+// 		topSeries = summaries
+// 	}
 
-	var topSeriesDetails []*metricLabelCardinality
-	for _, s := range topSeries {
-		details := c.Details(map[string]string{"__name__": s.Labels.Get("__name__")})
-		cardinalities := map[string]int{}
-		seen := map[labels.Label]struct{}{}
+// 	var topSeriesDetails []*metricLabelCardinality
+// 	for _, s := range topSeries {
+// 		details := c.Details(map[string]string{"__name__": s.Labels.Get("__name__")})
+// 		cardinalities := map[string]int{}
+// 		seen := map[labels.Label]struct{}{}
 
-		for _, d := range details {
-			for _, l := range d.Labels {
-				if _, ok := seen[l]; ok {
-					continue
-				}
-				seen[l] = struct{}{}
-				cardinalities[l.Name]++
-			}
-		}
-		topSeriesDetails = append(topSeriesDetails, &metricLabelCardinality{
-			Name:               s.Labels.Get("__name__"),
-			LabelCardinalities: cardinalities,
-			TotalSeries:        s.SeriesCount,
-		})
-	}
+// 		for _, d := range details {
+// 			for _, l := range d.Labels {
+// 				if _, ok := seen[l]; ok {
+// 					continue
+// 				}
+// 				seen[l] = struct{}{}
+// 				cardinalities[l.Name]++
+// 			}
+// 		}
+// 		topSeriesDetails = append(topSeriesDetails, &metricLabelCardinality{
+// 			Name:               s.Labels.Get("__name__"),
+// 			LabelCardinalities: cardinalities,
+// 			TotalSeries:        s.SeriesCount,
+// 		})
+// 	}
 
-	return &overview{
-		SummariesBySeriesCount: summaries,
-		TopSeriesDetails:       topSeriesDetails,
-	}
-}
+// 	return &overview{
+// 		SummariesBySeriesCount: summaries,
+// 		TopSeriesDetails:       topSeriesDetails,
+// 	}
+// }
 
 func (c *Component) Handler() http.Handler {
 	router := http.NewServeMux()
@@ -308,16 +319,16 @@ func (c *Component) Handler() http.Handler {
 		}
 	})
 
-	router.HandleFunc("/overview", func(w http.ResponseWriter, r *http.Request) {
-		overview := c.getOverview()
+	// router.HandleFunc("/overview", func(w http.ResponseWriter, r *http.Request) {
+	// 	overview := c.getOverview()
 
-		w.Header().Set("Content-Type", "application/json")
-		err := json.NewEncoder(w).Encode(overview)
-		if err != nil {
-			level.Error(c.opts.Logger).Log("msg", "failed to encode json", "err", err)
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-		}
-	})
+	// 	w.Header().Set("Content-Type", "application/json")
+	// 	err := json.NewEncoder(w).Encode(overview)
+	// 	if err != nil {
+	// 		level.Error(c.opts.Logger).Log("msg", "failed to encode json", "err", err)
+	// 		http.Error(w, err.Error(), http.StatusInternalServerError)
+	// 	}
+	// })
 
 	router.HandleFunc("/details", func(w http.ResponseWriter, r *http.Request) {
 		params := r.URL.Query()
