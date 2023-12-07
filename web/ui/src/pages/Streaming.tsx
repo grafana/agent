@@ -15,7 +15,8 @@ function PageStreaming() {
   const [data, setData] = useState<string[]>([]);
   const [sampleProb, setSampleProb] = useState(1);
   const [sliderProb, setSliderProb] = useState(1);
-  const { loading, error } = useStreaming(String(componentID), enabled, sampleProb, setData);
+  const [filterValue, setFilterValue] = useState('');
+  const { loading, error } = useStreaming(String(componentID), enabled, sampleProb, filterValue, setData);
 
   function toggleEnableButton() {
     if (enabled) {
@@ -77,8 +78,15 @@ function PageStreaming() {
     </div>
   );
 
+  function handleFilterChange(e: ChangeEvent<HTMLInputElement>) {
+    setFilterValue(e.target.value.toLowerCase());
+  }
+
+  const filterControl = <input type="search" onChange={handleFilterChange} minLength={0} />;
+
   const controls = (
     <>
+      {filterControl}
       {samplingControl}
       {toggleEnableButton()}
       <div className={styles.xrayLink}>

@@ -1,14 +1,21 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 export const useStreaming = (
   componentID: string,
   enabled: boolean,
   sampleProb: number,
+  filterValue: string,
   setData: React.Dispatch<React.SetStateAction<string[]>>
 ) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const maxLines = 5000;
+
+  const filterValueRef = useRef(filterValue);
+
+  useEffect(() => {
+    filterValueRef.current = filterValue;
+  }, [filterValue]);
 
   useEffect(() => {
     const abortController = new AbortController();
@@ -42,7 +49,10 @@ export const useStreaming = (
           const decodedChunk = decoder.decode(value, { stream: true });
 
           setData((prevValue) => {
-            const newValue = decodedChunk.slice(0, -6).split('|xray|');
+            const newValue = decodedChunk
+              .slice(0, -6)
+              .split('|xray|')
+              .filter((n) => n.toLowerCase().includes(filterValueRef.current));
             let dataArr = prevValue.concat(newValue);
 
             if (dataArr.length > maxLines) {
