@@ -3,12 +3,15 @@ package write
 import (
 	"container/ring"
 	"context"
+	"encoding/json"
 	"fmt"
+	"net/http"
 	"slices"
 	"sync"
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/common/loki"
+	"github.com/grafana/agent/pkg/flow/logging/level"
 )
 
 func init() {
@@ -126,8 +129,8 @@ func (c *Component) DebugInfo() interface{} {
 }
 
 type debugInfo struct {
-	LogsSummary      *logsSummary                 `river:"logs_summary,attr"`
-	LogsSummaryStats map[string]*logsSummaryStats `river:"recent_logs_stats,attr"`
+	LogsSummary      *logsSummary                 `river:"logs_summary,attr" json:"logs_summary"`
+	LogsSummaryStats map[string]*logsSummaryStats `river:"recent_logs_stats,attr" json:"recent_logs_stats"`
 }
 
 func (c *Component) initializeLogsSummary() {
@@ -138,19 +141,19 @@ func (c *Component) initializeLogsSummary() {
 }
 
 type logsSummary struct {
-	LogLabelFrequencies map[string]int `river:"log_label_frequencies,attr"`
-	TotalLogs           int            `river:"total_log_entries,attr"`
+	LogLabelFrequencies map[string]int `river:"log_label_frequencies,attr" json:"log_label_frequencies"`
+	TotalLogs           int            `river:"total_log_entries,attr" json:"total_log_entries"`
 
 	LogsRingBuffer *ring.Ring
 	SetEntries     int
 }
 
 type logsSummaryStats struct {
-	MinLength     int     `river:"min_length,attr"`
-	MaxLength     int     `river:"max_length,attr"`
-	MedianLength  int     `river:"median_length,attr"`
-	AverageLength float64 `river:"average_length,attr"`
-	NumEntries    int     `river:"num_entries,attr"`
+	MinLength     int     `river:"min_length,attr" json:"min_length"`
+	MaxLength     int     `river:"max_length,attr" json:"max_length"`
+	MedianLength  int     `river:"median_length,attr" json:"median_length"`
+	AverageLength float64 `river:"average_length,attr" json:"average_length"`
+	NumEntries    int     `river:"num_entries,attr" json:"num_entries"`
 }
 
 func (l *logsSummary) getLogsSummaryStats() map[string]*logsSummaryStats {
@@ -192,4 +195,20 @@ func (l *logsSummary) getLogsSummaryStats() map[string]*logsSummaryStats {
 		}
 	}
 	return stats
+}
+
+func (c *Component) Handler() http.Handler {
+	router := http.NewServeMux()
+
+	router.HandleFunc("/summary", func(w http.ResponseWriter, r *http.Request) {
+		di := c.DebugInfo()
+		w.Header().Set("Content-Type", "application/json")
+		err := json.NewEncoder(w).Encode(di)
+		if err != nil {
+			level.Error(c.opts.Logger).Log("msg", "failed to encode json", "err", err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+	})
+
+	return router
 }
