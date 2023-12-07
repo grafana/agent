@@ -12,7 +12,7 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/common/loki"
 	"github.com/grafana/agent/pkg/flow/logging/level"
-	"github.com/prometheus/common/model"
+	"github.com/prometheus/alertmanager/pkg/labels"
 )
 
 func init() {
@@ -213,6 +213,16 @@ func (c *Component) Handler() http.Handler {
 
 	router.HandleFunc("/recent-logs", func(w http.ResponseWriter, r *http.Request) {
 		params := r.URL.Query()
+
+		// Construct matchers from the query params
+		matchers := labels.Matchers{}
+		for k, v := range params {
+			// Error is ignored because errors are only produces when using
+			// labels.MatchRegexp or labels.MatchNotRegexp
+			m, _ := labels.NewMatcher(labels.MatchEqual, k, v[0])
+			matchers = append(matchers, m)
+		}
+
 		matches := make([]loki.Entry, 0)
 		c.logsSummary.logsRingBuffer.Do(func(v interface{}) {
 			if v == nil {
@@ -224,15 +234,7 @@ func (c *Component) Handler() http.Handler {
 			if len(params) == 0 {
 				matches = append(matches, entry)
 			} else {
-				match := true
-				for labelName, labelValues := range params {
-					labelValue := labelValues[0]
-					if entry.Labels[model.LabelName(labelName)] != model.LabelValue(labelValue) {
-						match = false
-						break
-					}
-				}
-				if match {
+				if matchers.Matches(entry.Labels) {
 					matches = append(matches, entry)
 				}
 			}
