@@ -7,8 +7,10 @@ package api
 import (
 	"encoding/json"
 	"fmt"
+	"math/rand"
 	"net/http"
 	"path"
+	"strconv"
 
 	"github.com/gorilla/mux"
 	"github.com/grafana/agent/component"
@@ -112,11 +114,25 @@ func (f *FlowAPI) startDebugStream() http.HandlerFunc {
 		dataCh := make(chan string, 1000) // Define the size of the channel, is 1000 ok?
 		ctx := r.Context()
 
+		sampleProbParam := r.URL.Query().Get("sampleProb")
+		sampleProb := 1.0
+		if sampleProbParam != "" {
+			var err error
+			sampleProb, err = strconv.ParseFloat(sampleProbParam, 64)
+			if err != nil || sampleProb < 0 || sampleProb > 1 {
+				http.Error(w, "Invalid sample probability", http.StatusBadRequest)
+				return
+			}
+		}
+
 		err := f.flow.SetDebugStream(requestedComponent, true, func(computeDataFunc func() string) {
 			select {
 			case <-ctx.Done():
 				return
 			default:
+				if sampleProb < 1 && rand.Float64() > sampleProb {
+					return
+				}
 				// Avoid blocking the channel when the channel is full
 				select {
 				case dataCh <- computeDataFunc():

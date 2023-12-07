@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { ChangeEvent, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import AutoScroll from '@brianmcallister/react-auto-scroll';
 import { faBroom, faDownload, faRoad, faSkull, faStop } from '@fortawesome/free-solid-svg-icons';
@@ -13,7 +13,9 @@ function PageStreaming() {
   const { componentID } = useParams();
   const [enabled, setEnabled] = useState(true);
   const [data, setData] = useState<string[]>([]);
-  const { loading, error } = useStreaming(String(componentID), enabled, setData);
+  const [sampleProb, setSampleProb] = useState(1);
+  const [sliderProb, setSliderProb] = useState(1);
+  const { loading, error } = useStreaming(String(componentID), enabled, sampleProb, setData);
 
   function toggleEnableButton() {
     if (enabled) {
@@ -34,6 +36,19 @@ function PageStreaming() {
     );
   }
 
+  function handleSampleChange(e: ChangeEvent<HTMLInputElement>) {
+    const sampleValue = parseFloat(e.target.value);
+    setSliderProb(sampleValue);
+  }
+
+  function handleSampleChangeComplete() {
+    setSampleProb(sliderProb);
+    if (enabled) {
+      setEnabled(false);
+      setTimeout(() => setEnabled(true), 200);
+    }
+  }
+
   function downloadData() {
     const blob = new Blob([data.join('\n')], { type: 'text/plain' });
     const href = URL.createObjectURL(blob);
@@ -46,8 +61,25 @@ function PageStreaming() {
     URL.revokeObjectURL(href);
   }
 
+  const samplingControl = (
+    <div className={styles.sliderContainer}>
+      <span className={styles.sliderLabel}>{Math.round(sliderProb * 100)}% Sampling</span>
+      <input
+        className={styles.slider}
+        type="range"
+        min="0"
+        max="1"
+        step="0.01"
+        value={sliderProb}
+        onChange={handleSampleChange}
+        onMouseUp={handleSampleChangeComplete}
+      />
+    </div>
+  );
+
   const controls = (
     <>
+      {samplingControl}
       {toggleEnableButton()}
       <div className={styles.xrayLink}>
         <button className={styles.clearButton} onClick={() => setData([])}>

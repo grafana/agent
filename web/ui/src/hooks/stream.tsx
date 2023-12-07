@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 export const useStreaming = (
   componentID: string,
   enabled: boolean,
+  sampleProb: number,
   setData: React.Dispatch<React.SetStateAction<string[]>>
 ) => {
   const [loading, setLoading] = useState(false);
@@ -22,7 +23,7 @@ export const useStreaming = (
       setLoading(true);
 
       try {
-        const response = await fetch(`./api/v0/web/debugStream/${componentID}`, {
+        const response = await fetch(`./api/v0/web/debugStream/${componentID}?sampleProb=${sampleProb}`, {
           signal: abortController.signal,
         });
         if (!response.ok || !response.body) {
@@ -41,7 +42,7 @@ export const useStreaming = (
           const decodedChunk = decoder.decode(value, { stream: true });
 
           setData((prevValue) => {
-            let newValue = decodedChunk.slice(0, -1).split('\n');
+            const newValue = decodedChunk.slice(0, -1).split('\n');
             let dataArr = prevValue.concat(newValue);
 
             if (dataArr.length > maxLines) {
@@ -67,7 +68,7 @@ export const useStreaming = (
       isCancelled = true;
       abortController.abort();
     };
-  }, [componentID, enabled]);
+  }, [componentID, enabled, sampleProb]);
 
   return { loading, error };
 };

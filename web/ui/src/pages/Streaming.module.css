@@ -9,7 +9,7 @@
 
 .xrayLink {
   display: inline-block;
-  margin-right: 10px;
+  margin-left: 10px;
   margin-bottom: 5px;
 }
 
@@ -69,4 +69,48 @@
 .xrayLink .downloadButton:hover {
   background-color: #e69500;
   border-color: #cc8400;
+}
+
+.sliderContainer {
+  font-family: Arial, sans-serif;
+  color: #333;
+  padding: 10px;
+}
+
+.slider {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 10px;
+  border-radius: 5px;
+  outline: none;
+  opacity: 0.7;
+  -webkit-transition: .2s;
+  transition: opacity .2s;
+}
+
+.slider:hover {
+  opacity: 1;
+}
+
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
+  background: #FF4500;
+  cursor: pointer;
+}
+
+.slider::-moz-range-thumb {
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
+  background: #FF4500;
+  cursor: pointer;
+}
+
+.sliderLabel {
+  display: inline-block;
+  margin-left: 10px;
 }
