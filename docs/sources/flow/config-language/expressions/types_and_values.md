@@ -178,16 +178,16 @@ The null value is represented by the symbol `null`.
 
 #### Secrets
 
-A `secret` is a special type of string that is never displayed to the user.
+A `secret` is a special type of string that's never displayed to the user.
 `string` values may be assigned to an attribute expecting a `secret`, but never the inverse.
 It's impossible to convert a secret to a string or assign a secret to an attribute expecting a string.
 
 #### Capsules
 
 River has a special type called a `capsule`, which represents a category of _internal_ types used by {{< param "PRODUCT_NAME" >}}.
-Each capsule type has a unique name and will be represented to the user as `capsule("SOME_INTERNAL_NAME")`.
+Each capsule type has a unique name and is represented to the user as `capsule("SOME_INTERNAL_NAME")`.
 Capsule values can't be constructed by the user, but can be used in expressions as any other type.
-Capsules are not inter-compatible, and an attribute expecting a capsule can only be given a capsule of the same internal type.
+Capsules aren't inter-compatible, and an attribute expecting a capsule can only be given a capsule of the same internal type.
 That means, if an attribute expects a `capsule("prometheus.Receiver")`, it can only be assigned a `capsule("prometheus.Receiver")` type.
 The specific type of capsule expected is explicitly documented for any component that uses or exports them.
 

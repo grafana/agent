@@ -48,7 +48,7 @@ The equality operators `==` and `!=` can be applied to any operands.
 On the other hand, for the ordering operators `<` `<=` `>` and `>=`, the two operands must both be _orderable_ and of the same type.
 The results of the comparisons are defined as follows:
 
-* Boolean values are equal if they are either both true or both false.
+* Boolean values are equal if they're either both true or both false.
 * Numerical (integer and floating-point) values are orderable in the usual way.
 * String values are orderable lexically byte-wise.
 * Objects are equal if all their fields are equal.
@@ -68,7 +68,7 @@ Logical operators apply to boolean values and yield a boolean result.
 River uses `=` as its assignment operator.
 
 An assignment statement may only assign a single value.
-In assignments, each value must be _assignable_ to the attribute or object key to which it is being assigned.
+In assignments, each value must be _assignable_ to the attribute or object key to which it's being assigned.
 
 * The `null` value can be assigned to any attribute.
 * Numerical, string, boolean, array, function, capsule, and object types are assignable to attributes of the corresponding type.

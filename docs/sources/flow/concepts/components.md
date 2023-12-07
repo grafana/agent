@@ -14,14 +14,14 @@ weight: 100
 # Components
 
 _Components_ are the building blocks of {{< param "PRODUCT_NAME" >}}.
-Each component is responsible for handling a single task, such as retrieving secrets or collecting Prometheus metrics.
+Each component handles a single task, such as retrieving secrets or collecting Prometheus metrics.
 
 Components are composed of two parts:
 
 * Arguments: Settings that configure a component.
 * Exports: Named values that a component exposes to other components.
 
-Each component has a name which describes what that component is responsible for.
+Each component has a name that describes what that component is responsible for.
 For example, the `local.file` component is responsible for retrieving the contents of files on disk.
 
 Components are specified in the configuration file by first providing the component's name with a user-specified label,
@@ -55,16 +55,16 @@ _Expressions_ can be used to dynamically compute the value of an argument at run
 Among other things, expressions can be used to retrieve the value of an environment variable
 (`log_level = env("LOG_LEVEL")`) or to reference an exported field of another component (`log_level = local.file.log_level.content`).
 
-When a component's argument references an exported field of another component, a dependant relationship is created.
+A dependent relationship is created when a component's argument references an exported field of another component.
 A component's input (arguments) now depends on another component's output (exports).
-The input of the component will now be re-evaluated any time the exports of the components it references get updated.
+The input of the component is re-evaluated whenever the exports of the components it references get updated.
 
 The flow of data through the set of references between components forms a _pipeline_.
 
 An example pipeline may look like this:
 
 1. A `local.file` component watches a file on disk containing an API key.
-1. A `prometheus.remote_write` component is configured to receive metrics and  forward them to an external database using the API key from the `local.file` for authentication.
+1. A `prometheus.remote_write` component is configured to receive metrics and forward them to an external database using the API key from the `local.file` for authentication.
 1. A `discovery.kubernetes` component discovers and exports Kubernetes Pods where metrics can be collected.
 1. A `prometheus.scrape` component references the exports of the previous component, and sends collected metrics to the `prometheus.remote_write` component.
 
@@ -90,10 +90,10 @@ local.file "api_key" {
   is_secret = true
 }
 
-// Create a prometheus.remote_write component which other components can send
+// Create a prometheus.remote_write component, which other components can send
 // metrics to.
 //
-// This component exports a "receiver" value which can be used by other
+// This component exports a "receiver" value, which can be used by other
 // components to send metrics.
 prometheus.remote_write "prod" {
   endpoint {
@@ -110,7 +110,7 @@ prometheus.remote_write "prod" {
 
 // Find Kubernetes pods where we can collect metrics.
 //
-// This component exports a "targets" value which contains the list of
+// This component exports a "targets" value, which contains the list of
 // discovered pods.
 discovery.kubernetes "pods" {
   role = "pod"

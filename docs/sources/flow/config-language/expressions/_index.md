@@ -19,7 +19,7 @@ Basic expressions are literal values, like `"Hello, world!"` or `true`.
 Expressions may also do things like [refer to values][] exported by components, perform arithmetic, or [call functions][].
 
 Expressions can be used when configuring any component.
-As all component arguments have an underlying [type][], River will type-check expressions before assigning the result to an attribute.
+As all component arguments have an underlying [type][], River type-checks expressions before assigning the result to an attribute.
 
 [refer to values]: {{< relref "./referencing_exports.md" >}}
 [call functions]: {{< relref "./function_calls.md" >}}

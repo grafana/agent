@@ -28,9 +28,9 @@ Refer to the documentation for the [argument block][] and [export block][] to le
 
 ## Module loaders
 
-A _Module loader_ is a {{< param "PRODUCT_NAME" >}} component which retrieves a module and runs the components defined inside of it.
+A _Module loader_ is a {{< param "PRODUCT_NAME" >}} component that retrieves a module and runs the components defined inside of it.
 
-Module loader components are responsible for:
+Module loader components are responsible for the following:
 
 * Retrieving the module source to run.
 * Creating a [Component controller][] for the module to run in.
@@ -45,7 +45,7 @@ Refer to the documentation for the module loader you are using for more informat
 
 ## Module sources
 
-Modules are designed to be flexible, and can have their configuration retrieved from anywhere, such as:
+Modules are designed to be flexible and can have their configuration retrieved from anywhere, such as:
 
 * The local filesystem.
 * An S3 bucket.
@@ -72,10 +72,10 @@ module.string "my_module" {
 
 ## Example module
 
-This example module manages a pipeline which filters out debug- and info-level log lines which are given to it:
+This example module manages a pipeline that filters out debug- and info-level log lines that are given to it:
 
 ```river
-// argument.write_to is a required argument which specifies where filtered
+// argument.write_to is a required argument that specifies where filtered
 // log lines should be sent.
 //
 // The value of the argument can be retrieved in this file with
@@ -105,8 +105,7 @@ export "filter_input" {
 }
 ```
 
-The module above can be saved to a file and then used as a processing step
-before writing logs to Loki:
+The module above can be saved to a file and then used as a processing step before writing logs to Loki:
 
 ```river
 loki.source.file "self" {

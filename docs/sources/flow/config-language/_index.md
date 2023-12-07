@@ -13,14 +13,14 @@ weight: 400
 
 # Configuration language
 
-{{< param "PRODUCT_NAME" >}} contains a custom configuration language called River to dynamically configure and connect components.
+{{< param "PRODUCT_NAME" >}} uses a custom configuration language called River to dynamically configure and connect components.
 
 River aims to reduce errors in configuration files by making configurations easier to read and write.
-River configurations are done in blocks which can be easily copied-and-pasted from documentation to help you get started as quickly as possible.
+River configurations use blocks which can be easily copied-and-pasted from documentation to help you get started as quickly as possible.
 
 A River configuration file tells {{< param "PRODUCT_NAME" >}} which components to launch and how to bind them together into a pipeline.
 
-The syntax of River is centered around blocks, attributes, and expressions:
+The syntax of River is centered around blocks, attributes, and expressions.
 
 ```river
 // Create a local.file component labeled my_file.

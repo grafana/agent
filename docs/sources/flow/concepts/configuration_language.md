@@ -13,8 +13,7 @@ weight: 400
 
 # Configuration language concepts
 
-The {{< param "PRODUCT_NAME" >}} _configuration language_ refers to the language used in
-configuration files which define and configure components to run.
+The {{< param "PRODUCT_NAME" >}} _configuration language_ refers to the language used in configuration files that define and configure components to run.
 
 The configuration language is called River, a Terraform/HCL-inspired language:
 
@@ -35,12 +34,9 @@ prometheus.remote_write "default" {
 
 River was designed with the following requirements in mind:
 
-* _Fast_: The configuration language must be fast so the component controller
-  can evaluate changes as quickly as possible.
-* _Simple_: The configuration language must be easy to read and write to
-  minimize the learning curve.
-* _Debuggable_: The configuration language must give detailed information when
-  there's a mistake in the configuration file.
+* _Fast_: The configuration language must be fast so the component controller can quickly evaluate changes.
+* _Simple_: The configuration language must be easy to read and write to minimize the learning curve.
+* _Debuggable_: The configuration language must give detailed information when there's a mistake in the configuration file.
 
 ## Attributes
 
@@ -69,7 +65,8 @@ Expressions may be used for any attribute inside a component definition.
 ### Referencing component exports
 
 The most common expression is to reference the exports of a component like `local.file.password_file.content`.
-A reference to a component's exports is formed by merging the component's name (for example, `local.file`), label (for example, `password_file`), and export name (for eample, `content`), delimited by period.
+A reference to a component's exports is formed by merging the component's name (for example, `local.file`),
+label (for example, `password_file`), and export name (for example, `content`), delimited by period.
 
 ## Blocks
 

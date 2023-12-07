@@ -55,7 +55,7 @@ The computed values are then used to configure the component's runtime behavior.
 The component controller is finished loading once all components are evaluated, configured, and running.
 
 The component controller only evaluates a given component after evaluating all of that component's dependencies.
-Components that do not depend on other components can be evaluated at any time during the evaluation process.
+Components that don't depend on other components can be evaluated anytime during the evaluation process.
 
 ## Component reevaluation
 
@@ -90,14 +90,14 @@ A component can be marked as healthy even if it references an exported field of 
 When a component fails to evaluate, it's marked as unhealthy with the reason for why the evaluation failed.
 
 When an evaluation fails, the component continues operating as normal.
-The component continues using its previous set of evaluated arguments, and it can continue exporting new values.
+The component continues using its previous set of evaluated arguments and can continue exporting new values.
 
 This prevents failure propagation.
 If your `local.file` component, which watches API keys, suddenly stops working, other components continue using the last valid API key until the component returns to a healthy state.
 
 ## In-memory traffic
 
-Components that expose HTTP endpoints, such as [prometheus.exporter.unix][], can expose an internal address that will completely bypass the network and communicate in-memory.
+Components that expose HTTP endpoints, such as [prometheus.exporter.unix][], can expose an internal address that completely bypasses the network and communicate in-memory.
 This allows components within the same process to communicate with one another without needing to be aware of any network-level protections such as authentication or mutual TLS.
 
 The internal address defaults to `agent.internal:12345`.
@@ -108,10 +108,10 @@ Refer to the individual documentation for components to learn if in-memory traff
 
 ## Updating the configuration file
 
-Both the `/-/reload` HTTP endpoint and the `SIGHUP` signal can be used to inform the component controller to reload the configuration file.
-When this happens, the component controller will synchronize the set of running components with the ones in the configuration file,
-removing components that are no longer defined in the configuration file and creating new components that were added to the configuration file.
-All components managed by the controller will be reevaluated after reloading.
+Both the `/-/reload` HTTP endpoint and the `SIGHUP` signal can inform the component controller to reload the configuration file.
+When this happens, the component controller synchronizes the set of running components with the ones in the configuration file,
+removing components no longer defined in the configuration file and creating new components added to the configuration file.
+All components managed by the controller are reevaluated after reloading.
 
 [DAG]: https://en.wikipedia.org/wiki/Directed_acyclic_graph
 

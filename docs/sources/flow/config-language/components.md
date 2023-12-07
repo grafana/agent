@@ -12,14 +12,16 @@ weight: 300
 ---
 
 # Components configuration language
+
 Components are the defining feature of {{< param "PRODUCT_NAME" >}}.
-They are small, reusable pieces of business logic that perform a single task (like retrieving secrets or collecting Prometheus metrics)
-and can be wired together to form programmable pipelines of telemetry data.
+Components are small, reusable pieces of business logic that perform a single task like retrieving secrets or collecting Prometheus metrics,
+and you can wire them together to form programmable pipelines of telemetry data.
 
 Under the hood, components are orchestrated via the [_component controller_]({{< relref "../concepts/component_controller.md" >}}),
-which is responsible for scheduling them, reporting their health and debug status, re-evaluating their arguments and providing their exports.
+which is responsible for scheduling them, reporting their health and debug status, re-evaluating their arguments, and providing their exports.
 
 ## Configuring components
+
 Components are created by defining a top-level River block.
 All components are identified by their name, describing what the component is responsible for, and a user-specified _label_.
 
@@ -27,11 +29,12 @@ The [components docs]({{< relref "../reference/components/_index.md" >}}) contai
 Each one has a complete reference page, so getting a component to work for you should be as easy as reading its documentation and copy/pasting from an example.
 
 ## Arguments and exports
+
 Most user interactions with components center around two basic concepts, _arguments_ and _exports_.
 
 * _Arguments_ are settings which modify the behavior of a component.
   They can be any number of attributes or nested unlabeled blocks, some of them being required and some being optional.
-  Any optional arguments that are not set take on their default values.
+  Any optional arguments that aren't set take on their default values.
 
 * _Exports_ are zero or more output values that can be referred to by other components, and can be of any River type.
 
@@ -59,6 +62,7 @@ local.file "targets" {
 ```
 
 ## Referencing components
+
 To wire components together, one can use the exports of one as the arguments to another by using references.
 References can only appear in components.
 
