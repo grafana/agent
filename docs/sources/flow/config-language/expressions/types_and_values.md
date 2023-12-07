@@ -13,38 +13,36 @@ weight: 100
 
 # Types and values
 
-## Types
-
 River uses the following types for its values:
 
 * `number`: Any numeric value, like `3` or `3.14`.
 * `string`: A sequence of Unicode characters representing text, like `"Hello, world!"`.
 * `bool`: A boolean value, either `true` or `false`.
 * `array`: A sequence of values, like `[1, 2, 3]`. Elements within the list are indexed by whole numbers, starting with zero.
-* `object`: A group of values that are identified by named labels, like `{ name = "John" }`.
+* `object`: A group of values identified by named labels, like `{ name = "John" }`.
 * `function`: A value representing a routine that can be executed with arguments to compute another value, like `env("HOME")`.
   Functions take zero or more arguments as input and always return a single value as output.
 * `null`: A type that has no value.
 
-### Naming convention
+## Naming convention
 
 In addition to the preceding types, the [component reference][] documentation uses the following conventions for referring to types:
 
 * `any`: A value of any type.
 * `map(T)`: an `object` where the value type is `T`.
   For example, `map(string)` is an object where all the values are strings.
-  The key type of an object is always a string, or an identifier that is converted into a string.
+  The key type of an object is always a string or an identifier that is converted into a string.
 * `list(T)`: an `array` where the value type is `T`.
   For example, `list(string)` is an array where all the values are strings.
 * `duration`: a `string` denoting a duration of time, such as `"1d"`, `"1h30m"`, `"10s"`.
   Valid units are `d` (for days), `h` (for hours), `m` (for minutes), `s` (for seconds), `ms` (for milliseconds), `ns` (for nanoseconds).
-  Values of descending units can be combined to add their values together; `"1h30m"` is the same as `"90m"`.
+  Values of descending units can be combined to add their values together. `"1h30m"` is the same as `"90m"`.
 
 [component reference]: {{< relref "../../reference/components" >}}
 
 ## Numbers
 
-River handles integers, unsigned integers, and floating-point values as a single 'number' type that simplifies writing and reading River configuration files.
+River handles integers, unsigned integers, and floating-point values as a single 'number' type simplifying writing and reading River configuration files.
 
 ```river
 3    == 3.00     // true
@@ -93,14 +91,14 @@ Raw strings don't support any escape sequences:
 Within the backticks, any character may appear except a backtick.
 A backtick can be included by concatenating a double-quoted string that contains a backtick using `+`.
 
-A multiline raw string is interpreted exactly as written:
+A multiline raw string is interpreted exactly as written.
 
 ```river
 `Hello,
 "world"!`
 ```
 
-is interpreted as a string with the value:
+The preceding multiline raw string is interpreted as a string with the following value:
 
 ```string
 Hello,
@@ -168,7 +166,7 @@ If the key is not a valid identifier, it must be wrapped in double quotes like a
 
 ## Functions
 
-Function values can't be constructed by users but can be called from the standard library or when exported by a component.
+Function values can't be constructed by users but can be called from the standard library or when it's exported by a component.
 
 ## Null
 

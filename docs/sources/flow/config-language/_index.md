@@ -16,7 +16,7 @@ weight: 400
 {{< param "PRODUCT_NAME" >}} uses a custom configuration language called River to dynamically configure and connect components.
 
 River aims to reduce errors in configuration files by making configurations easier to read and write.
-River configurations use blocks which can be easily copied-and-pasted from documentation to help you get started as quickly as possible.
+River configurations use blocks that can be easily copied and pasted from the documentation to help you get started as quickly as possible.
 
 A River configuration file tells {{< param "PRODUCT_NAME" >}} which components to launch and how to bind them together into a pipeline.
 
@@ -42,18 +42,14 @@ BLOCK_NAME {
 }
 ```
 
-> You may have noticed that River looks similar to HCL, the language used by Terraform and other Hashicorp projects.
+> River is similar to HCL, the language Terraform and other Hashicorp projects use.
 > River was inspired by HCL, but is a distinct language with different syntax and features, such as first-class functions.
-> If you are already familiar with HCL or Terraform, writing River should seem mostly natural to you.
 
-> For historical context on why we decided to introduce River, you can read the original [RFC][].
+> For historical context on River was introduced, you can read the original [RFC][].
 
-* Blocks are a group of related settings, and usually represent creating a component.
-  Blocks have a name which consist of zero or more identifiers separated by `.` (like `my_block` or `local.file` above),
-  an optional user label, and a body which contains attributes and nested blocks.
-
+* Blocks are a group of related settings and usually represent creating a component.
+  Blocks have a name that consist of zero or more identifiers separated by `.`, an optional user label, and a body that contains attributes and nested blocks.
 * Attributes appear within blocks and assign a value to a name.
-
 * Expressions represent a value, either literally or by referencing and combining other values.
   Expressions are used to compute a value for an attribute.
 
@@ -64,7 +60,7 @@ The order of operations is determined by the relationship between components.
 
 ## Tooling
 
-To help you write configuration files in River, the following tools are available:
+You can use one or all of the following tools to help you write configuration files in River.
 
 * Experimental editor support for
   * [vim](https://github.com/rfratto/vim-river)

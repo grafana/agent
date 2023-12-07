@@ -12,7 +12,8 @@ weight: 200
 ---
 
 # Referencing component exports
-Referencing exports is what enables River to dynamically configure and connect components using expressions.
+
+Referencing exports enables River to configure and connect components dynamically using expressions.
 While components can work in isolation, they're more useful when one component's behavior and data flow is bound to the exports of another,
 building a dependency relationship between the two.
 
@@ -20,6 +21,7 @@ Such references can only appear as part of another component's arguments or a co
 That means that components can't reference themselves.
 
 ## Using references
+
 These references are built by combining the component's name, label, and named export with dots.
 
 For example, the contents of a file exported by the `local.file` component labeled `target` might be referenced as `local.file.target.content`.
@@ -50,8 +52,8 @@ In the previous example, you wired together a very simple pipeline by writing a 
 <img src="../../../../assets/flow_referencing_exports_diagram.svg" alt="Flow of example pipeline" width="500" />
 </p>
 
-As with all expressions, once the value is resolved, it must match the [type][] of the attribute being assigned to.
-While users can only configure attributes using the basic River types,
-the exports of components can also take on special internal River types such as Secrets or Capsules, which expose different functionality.
+As with all expressions, once the value is resolved, it must match the [type][] of the attribute it is assigned to.
+While you can only configure attributes using the basic River types,
+the exports of components can take on special internal River types such as Secrets or Capsules, which expose different functionality.
 
 [type]: {{< relref "./types_and_values.md" >}}

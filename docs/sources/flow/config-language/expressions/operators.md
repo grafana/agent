@@ -12,6 +12,7 @@ weight: 300
 ---
 
 # Operators
+
 River uses a set of operators that most should be familiar with.
 All operations follow the standard [PEMDAS][] rule for operator precedence.
 
@@ -65,10 +66,11 @@ Operator | Description
 Logical operators apply to boolean values and yield a boolean result.
 
 ## Assignment operator
+
 River uses `=` as its assignment operator.
 
 An assignment statement may only assign a single value.
-In assignments, each value must be _assignable_ to the attribute or object key to which it's being assigned.
+Each value must be _assignable_ to the attribute or object key.
 
 * The `null` value can be assigned to any attribute.
 * Numerical, string, boolean, array, function, capsule, and object types are assignable to attributes of the corresponding type.
@@ -99,8 +101,8 @@ Operator | Description
 `.`      | Access a named member of an object or an exported field of a component.
 
 River's access operators support accessing of arbitrarily nested values.
-Square brackets can be used to access zero-indexed array indices and object fields by enclosing the field name in double quotes.
-You can use the dot operator to access both object fields (without double quotes) and component exports.
+You can use square brackets to access zero-indexed array indices and object fields by enclosing the field name in double quotes.
+You can use the dot operator to access both object fields without double quotes, and component exports.
 
 ```river
 obj["app"]
@@ -110,8 +112,8 @@ obj.app
 local.file.token.content
 ```
 
-If the `[ ]` operator is used to access a member of an object where the member doesn't exist, the resulting value is `null`.
+If you use the `[ ]` operator to access a member of an object where the member doesn't exist, the resulting value is `null`.
 
-If the `.` operator is used to access a named member of an object where the named member doesn't exist, an error is generated.
+If you use the `.` operator to access a named member of an object where the named member doesn't exist, an error is generated.
 
 [PEMDAS]: https://en.wikipedia.org/wiki/Order_of_operations

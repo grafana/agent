@@ -13,16 +13,15 @@ weight: 200
 
 # Syntax
 
-The River syntax is designed to be easy to read and write.
-Essentially, there are just two high-level elements to it: _Attributes_ and _Blocks_.
+The River syntax is easy to read and write. It has only two high-level elements, _Attributes_ and _Blocks_.
 
 River is a _declarative_ language used to build programmable pipelines.
-As such, the ordering of blocks and attributes within the River configuration file isn't important.
+The order of blocks and attributes within the River configuration file isn't important.
 The language considers all direct and indirect dependencies between elements to determine their relationships.
 
 ## Comments
 
-River configuration files support single-line `//` as well as block `/* */` comments.
+River configuration files support single-line `//` and block `/* */` comments.
 
 ## Identifiers
 
@@ -87,11 +86,11 @@ BLOCK_NAME "BLOCK_LABEL" {
 
 The `BLOCK_NAME` has to be recognized by Flow as either a valid component name or a special block for configuring global settings.
 If the `BLOCK_LABEL` has to be set, it must be a valid River [identifier](#identifiers) wrapped in double quotes.
-In these cases the label will be used to disambiguate between multiple top-level blocks of the same name.
+In these cases, the label is used to disambiguate between multiple top-level blocks of the same name.
 
 The following snippet defines a block named `local.file` with its label set to "token".
-The block's body sets `filename` to the content of the `TOKEN_FILE_PATH` environment variable by using an expression and the `is_secret`
-attribute is set to the boolean `true`, marking the file content as sensitive.
+The block's body sets `filename` to the content of the `TOKEN_FILE_PATH` environment variable by using an expression,
+and the `is_secret` attribute is set to the boolean `true`, marking the file content as sensitive.
 
 ```river
 local.file "token" {
@@ -104,5 +103,5 @@ local.file "token" {
 
 All block and attribute definitions are followed by a newline, which River calls a _terminator_, as it terminates the current statement.
 
-A newline is treated as terminator when it follows any expression, `]`, `)`, or `}`.
-Other newlines are ignored by River and and a user can enter as many newlines as they want.
+A newline is treated as a terminator when it follows any expression, `]`, `)`, or `}`.
+River ignores other newlines and you can can enter as many newlines as you want.
