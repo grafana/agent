@@ -9,6 +9,13 @@ prometheus.remote_write "metrics_default" {
 	}
 }
 
+loki.write "logs_log_config" {
+	endpoint {
+		url = "http://localhost/loki/api/v1/push"
+	}
+	external_labels = {}
+}
+
 prometheus.exporter.azure "integrations_azure1" {
 	subscriptions = ["subId"]
 	resource_type = "Microsoft.Dashboard/grafana"
@@ -469,6 +476,32 @@ prometheus.scrape "integrations_apache2" {
 	targets    = discovery.relabel.integrations_apache2.output
 	forward_to = [prometheus.remote_write.metrics_default.receiver]
 	job_name   = "integrations/apache2"
+}
+
+faro.receiver "integrations_app_agent_receiver" {
+	extra_log_labels = {}
+
+	server {
+		listen_address           = "localhost"
+		listen_port              = 55678
+		max_allowed_payload_size = "4MiB786KiB832B"
+
+		rate_limiting {
+			enabled    = true
+			rate       = 100
+			burst_size = 50
+		}
+	}
+
+	sourcemaps {
+		download_from_origins = ["*"]
+		download_timeout      = "1s"
+	}
+
+	output {
+		logs   = [loki.write.logs_log_config.receiver]
+		traces = []
+	}
 }
 
 prometheus.exporter.blackbox "integrations_blackbox" {
