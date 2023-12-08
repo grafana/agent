@@ -156,51 +156,51 @@ The following examples show you how to enable sharding and replication in a Kube
 
 * To shard the data into three shards and replicate each shard to two other Grafana Agent instances, you would use the following deployment manifest:
 
-```
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: grafana-agent
-spec:
-  replicas: 3
-  selector:
-    matchLabels:
-      app: grafana-agent
-  template:
-    metadata:
-      labels:
+  ```
+  apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    name: grafana-agent
+  spec:
+    replicas: 3
+    selector:
+      matchLabels:
         app: grafana-agent
-    spec:
-      containers:
-      - name: grafana-agent
-        image: grafana/agent:latest
-        args:
-        - "--shards=3"
-        - "--replicas=2"
-```
+    template:
+      metadata:
+        labels:
+          app: grafana-agent
+      spec:
+        containers:
+        - name: grafana-agent
+          image: grafana/agent:latest
+          args:
+          - "--shards=3"
+          - "--replicas=2"
+  ```
 
 * To shard the data into 10 shards and replicate each shard to three other Grafana Agent instances, you would use the following deployment manifest:
 
-```
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: grafana-agent
-spec:
-  replicas: 10
-  selector:
-    matchLabels:
-      app: grafana-agent
-  template:
-    metadata:
-      labels:
+  ```
+  apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    name: grafana-agent
+  spec:
+    replicas: 10
+    selector:
+      matchLabels:
         app: grafana-agent
-    spec:
-      containers:
-      - name: grafana-agent
-        image: grafana/agent:latest
-        args:
-        - "--shards=10"
-        - "--replicas=3"
-```
+    template:
+      metadata:
+        labels:
+          app: grafana-agent
+      spec:
+        containers:
+        - name: grafana-agent
+          image: grafana/agent:latest
+          args:
+          - "--shards=10"
+          - "--replicas=3"
+  ```
 
