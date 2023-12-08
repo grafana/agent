@@ -894,14 +894,6 @@ func (a *appender) log() error {
 		buf = buf[:0]
 	}
 
-	if len(a.pendingExamplars) > 0 {
-		buf = encoder.Exemplars(a.pendingExamplars, buf)
-		if err := a.w.wal.Log(buf); err != nil {
-			return err
-		}
-		buf = buf[:0]
-	}
-
 	if len(a.pendingHistograms) > 0 {
 		buf = encoder.HistogramSamples(a.pendingHistograms, buf)
 		if err := a.w.wal.Log(buf); err != nil {
@@ -912,6 +904,18 @@ func (a *appender) log() error {
 
 	if len(a.pendingFloatHistograms) > 0 {
 		buf = encoder.FloatHistogramSamples(a.pendingFloatHistograms, buf)
+		if err := a.w.wal.Log(buf); err != nil {
+			return err
+		}
+		buf = buf[:0]
+	}
+
+	// Exemplars should be logged after samples (float/native histogram/etc),
+	// otherwise it might happen that we send the exemplars in a remote write
+	// batch before the samples, which in turn means the exemplar is rejected
+	// for missing series, since series are created due to samples.
+	if len(a.pendingExamplars) > 0 {
+		buf = encoder.Exemplars(a.pendingExamplars, buf)
 		if err := a.w.wal.Log(buf); err != nil {
 			return err
 		}

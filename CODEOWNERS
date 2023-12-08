@@ -1,25 +1,10 @@
-# The following groups are used to refer to a changing set of users:
+# The CODEOWNERS file is used to define ownership of individuals or teams
+# outside of the core set of Grafana Agent maintainers.
 #
-# * @grafana/grafana-agent-core-maintainers: maintainers of type/core issues.
-# * @grafana/grafana-agent-signals-maintainers: maintainers of type/signals issues.
-# * @grafana/grafana-agent-operator-maintainers: maintainers of type/operator issues.
-# * @grafana/grafana-agent-infrastructure-maintainers: maintainers of type/infrastructure issues.
-#
-# Other users may be listed explicitly if maintainership does not fall into one
-# of the above groups.
-
-# The default owners for everything in the repo. Unless a later match takes
-# precedence, these owners are requested for review whenever someone opens a
-# pull request.
-* @grafana/grafana-agent-core-maintainers
-
-# Some directories have shared ownership with the respective owners of the
-# specific code for the PR being opened, so there's no CODEOWNERS.
-/CHANGELOG.md
-/component/all
-
-# Binaries:
-/cmd/grafana-agent-operator/  @grafana/grafana-agent-operator-maintainers
+# If a directory is not listed here, it is assumed to be owned by the
+# @grafana/grafana-agent-maintainers; they are not explicitly listed as
+# CODEOWNERS as a GitHub project board is used instead for PR tracking, which
+# helps reduce notification noise of the members of that team.
 
 # `make docs` procedure and related workflows are owned by @jdbaldry.
 /.github/workflows/publish-technical-documentation-next.yml    @jdbaldry
@@ -30,25 +15,7 @@
 /docs/variables.mk                                             @jdbaldry
 
 # Documentation:
-/docs/sources/  @clayton-cornell
+/docs/sources/ @clayton-cornell
 
 # Components:
-/component/discovery/               @grafana/grafana-agent-infrastructure-maintainers
-/component/local/                   @grafana/grafana-agent-infrastructure-maintainers
-/component/loki/                    @grafana/grafana-agent-signals-maintainers
-/component/loki/source/podlogs/     @grafana/grafana-agent-infrastructure-maintainers
-/component/mimir/rules/kubernetes/  @grafana/grafana-agent-infrastructure-maintainers
-/component/otelcol/                 @grafana/grafana-agent-signals-maintainers
-/component/prometheus/              @grafana/grafana-agent-signals-maintainers
-/component/prometheus/exporter/     @grafana/grafana-agent-infrastructure-maintainers
-/component/prometheus/operator/     @grafana/grafana-agent-operator-maintainers
-/component/pyroscope/               @grafana/grafana-agent-profiling-maintainers
-/component/remote/                  @grafana/grafana-agent-infrastructure-maintainers
-
-# Static mode packages:
-/pkg/integrations/  @grafana/grafana-agent-infrastructure-maintainers
-/pkg/logs/          @grafana/grafana-agent-signals-maintainers
-/pkg/metrics/       @grafana/grafana-agent-signals-maintainers
-/pkg/mimir/client/  @grafana/grafana-agent-infrastructure-maintainers
-/pkg/operator/      @grafana/grafana-agent-operator-maintainers
-/pkg/traces/        @grafana/grafana-agent-signals-maintainers
+/component/pyroscope/ @grafana/grafana-agent-profiling-maintainers

@@ -1,7 +1,10 @@
+//go:build !windows
+
 package main
 
 import (
 	"fmt"
+	"strconv"
 	"testing"
 
 	"github.com/grafana/agent/integration-tests/common"
@@ -15,28 +18,26 @@ func metricQuery(metricName string) string {
 }
 
 func TestScrapePromMetrics(t *testing.T) {
-	tests := []struct {
-		query  string
-		metric string
-	}{
+	metrics := []string{
 		// TODO: better differentiate these metric types?
-		{metricQuery("golang_counter"), "golang_counter"},
-		{metricQuery("golang_gauge"), "golang_gauge"},
-		{metricQuery("golang_histogram_bucket"), "golang_histogram_bucket"},
-		{metricQuery("golang_summary"), "golang_summary"},
+		"golang_counter",
+		"golang_gauge",
+		"golang_histogram_bucket",
+		"golang_summary",
+		"golang_native_histogram",
 	}
 
-	for _, tt := range tests {
-		tt := tt
-		t.Run(tt.metric, func(t *testing.T) {
+	for _, metric := range metrics {
+		metric := metric
+		t.Run(metric, func(t *testing.T) {
 			t.Parallel()
-			assertMetricData(t, tt.query, tt.metric)
+			if metric == "golang_native_histogram" {
+				assertHistogramData(t, metricQuery(metric), metric)
+			} else {
+				assertMetricData(t, metricQuery(metric), metric)
+			}
 		})
 	}
-	t.Run("golang_native_histogram", func(t *testing.T) {
-		t.Parallel()
-		assertHistogramData(t, metricQuery("golang_native_histogram"), "golang_native_histogram")
-	})
 }
 
 func assertHistogramData(t *testing.T, query string, expectedMetric string) {
@@ -49,8 +50,14 @@ func assertHistogramData(t *testing.T, query string, expectedMetric string) {
 			assert.Equal(c, metricResponse.Data.Result[0].Metric.TestName, "scrape_prom_metrics")
 			if assert.NotNil(c, metricResponse.Data.Result[0].Histogram) {
 				histogram := metricResponse.Data.Result[0].Histogram
-				assert.NotEmpty(c, histogram.Data.Count)
-				assert.NotEmpty(c, histogram.Data.Sum)
+				if assert.NotEmpty(c, histogram.Data.Count) {
+					count, _ := strconv.Atoi(histogram.Data.Count)
+					assert.Greater(c, count, 10, "Count should be at some point greater than 10.")
+				}
+				if assert.NotEmpty(c, histogram.Data.Sum) {
+					sum, _ := strconv.ParseFloat(histogram.Data.Sum, 64)
+					assert.Greater(c, sum, 10., "Sum should be at some point greater than 10.")
+				}
 				assert.NotEmpty(c, histogram.Data.Buckets)
 				assert.Nil(c, metricResponse.Data.Result[0].Value)
 			}

@@ -233,6 +233,28 @@ local filename = 'agent-flow-controller.json';
         ])
       ),
 
+      // Slow components evaluation time %
+      (
+        panel.new(title='Slow components evaluation times', type='timeseries') +
+        panel.withUnit('percentunit') +
+        panel.withDescription(|||
+          The percentage of time spent evaluating 'slow' components - components that took longer than 1 minute to evaluate.
+
+          Ideally, no component should take more than 1 minute to evaluate. The components displayed in this chart
+          may be a sign of a problem with the pipeline.
+        |||) +
+        panel.withPosition({ x: 16, y: 12, w: 8, h: 10 }) +
+        panel.withQueries([
+          panel.newQuery(
+            expr=|||
+              sum by (component_id) (rate(agent_component_evaluation_slow_seconds{cluster="$cluster", namespace="$namespace"}[$__rate_interval]))
+              / scalar(sum(rate(agent_component_evaluation_seconds_sum{cluster="$cluster", namespace="$namespace"}[$__rate_interval])))
+            |||,
+            legendFormat='{{component_id}}',
+          ),
+        ])
+      ),
+
       // Component evaluation histogram
       (
         panel.newHeatmap('Component evaluation histogram') +
@@ -242,7 +264,7 @@ local filename = 'agent-flow-controller.json';
           The goal is to design your config so that evaluations take as little
           time as possible; under 100ms is a good goal.
         |||) +
-        panel.withPosition({ x: 16, y: 12, w: 8, h: 10 }) +
+        panel.withPosition({ x: 0, y: 22, w: 8, h: 10 }) +
         panel.withQueries([
           panel.newQuery(
             expr='sum by (le) (increase(agent_component_evaluation_seconds_bucket{cluster="$cluster", namespace="$namespace"}[$__rate_interval]))',
@@ -261,7 +283,7 @@ local filename = 'agent-flow-controller.json';
           The goal is to design your config so that most of the time components do not
           queue for long; under 10ms is a good goal.
         |||) +
-        panel.withPosition({ x: 0, y: 22, w: 8, h: 10 }) +
+        panel.withPosition({ x: 8, y: 22, w: 8, h: 10 }) +
         panel.withQueries([
           panel.newQuery(
             expr='sum by (le) (increase(agent_component_dependencies_wait_seconds_bucket{cluster="$cluster", namespace="$namespace"}[$__rate_interval]))',

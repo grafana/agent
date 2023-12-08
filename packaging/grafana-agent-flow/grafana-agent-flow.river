@@ -5,14 +5,14 @@ logging {
 	level = "warn"
 }
 
-prometheus.exporter.unix {
+prometheus.exporter.unix "default" {
 	include_exporter_metrics = true
 	disable_collectors       = ["mdadm"]
 }
 
 prometheus.scrape "default" {
 	targets = concat(
-		prometheus.exporter.unix.targets,
+		prometheus.exporter.unix.default.targets,
 		[{
 			// Self-collect metrics
 			job         = "agent",
