@@ -52,8 +52,10 @@ type Component struct {
 	exited atomic.Bool
 	ls     labelstore.LabelStore
 
-	allSeries map[string]*SeriesSummary
-	cacheMut  sync.RWMutex
+	allSeries  map[string]*SeriesSummary
+	labelsSeen map[string]map[string]bool
+
+	cacheMut sync.RWMutex
 }
 
 type SeriesSummary struct {
@@ -88,9 +90,10 @@ func New(o component.Options, args Arguments) (*Component, error) {
 		return nil, err
 	}
 	c := &Component{
-		opts:      o,
-		ls:        data.(labelstore.LabelStore),
-		allSeries: map[string]*SeriesSummary{},
+		opts:       o,
+		ls:         data.(labelstore.LabelStore),
+		allSeries:  map[string]*SeriesSummary{},
+		labelsSeen: map[string]map[string]bool{},
 	}
 
 	c.fanout = prometheus.NewFanout(nil, o.ID, o.Registerer, c.ls)
@@ -103,6 +106,12 @@ func New(o component.Options, args Arguments) (*Component, error) {
 			}
 			c.cacheMut.Lock()
 			labelStr := l.String()
+			for _, lab := range l {
+				if c.labelsSeen[lab.Name] == nil {
+					c.labelsSeen[lab.Name] = map[string]bool{}
+				}
+				c.labelsSeen[lab.Name][lab.Value] = true
+			}
 			ss := c.allSeries[labelStr]
 			if ss == nil {
 				ss = &SeriesSummary{
@@ -176,15 +185,15 @@ type debugInfo struct {
 
 // DebugInfo implements component.DebugComponent
 func (c *Component) DebugInfo() interface{} {
-
-	c.cacheMut.RLock()
-	di := &debugInfo{
-		Metrics: c.Summarize("__name__"),
-		Jobs:    c.Summarize("job"),
-		Details: c.Details(map[string]string{"__name__": "prometheus_sd_kubernetes_events_total"}),
-	}
-	c.cacheMut.RUnlock()
-	return di
+	return nil
+	// c.cacheMut.RLock()
+	// di := &debugInfo{
+	// 	Metrics: c.Summarize("__name__"),
+	// 	Jobs:    c.Summarize("job"),
+	// 	Details: c.Details(map[string]string{"__name__": "prometheus_sd_kubernetes_events_total"}),
+	// }
+	// c.cacheMut.RUnlock()
+	// return di
 }
 
 type summary struct {
@@ -197,6 +206,8 @@ type summary struct {
 // summarize by job
 // summarize by __name__,job
 func (c *Component) Summarize(ls ...string) []*summary {
+	//c.cacheMut.RLock()
+	//defer c.cacheMut.RUnlock()
 	summaries := map[string]*summary{}
 	for _, v := range c.allSeries {
 		thisLabels := map[string]string{}
@@ -226,6 +237,8 @@ func (c *Component) Summarize(ls ...string) []*summary {
 
 // details for __name__ = prometheus_sd_kubernetes_events_total
 func (c *Component) Details(matchers map[string]string) []*SeriesSummary {
+	//c.cacheMut.RLock()
+	//defer c.cacheMut.RUnlock()
 	matches := []*SeriesSummary{}
 	for _, s := range c.allSeries {
 		if math.IsNaN(s.LastValue) {
@@ -243,6 +256,24 @@ func (c *Component) Details(matchers map[string]string) []*SeriesSummary {
 		}
 	}
 	return matches
+}
+
+type labelSummary struct {
+	Name  string `json:"name"`
+	Count int    `json:"count"`
+}
+
+func (c *Component) TopLabels() []labelSummary {
+	//c.cacheMut.RLock()
+	//defer c.cacheMut.RUnlock()
+	summs := []labelSummary{}
+	for k, v := range c.labelsSeen {
+		summs = append(summs, labelSummary{Name: k, Count: len(v)})
+	}
+	sort.Slice(summs, func(i, j int) bool {
+		return summs[j].Count < summs[i].Count
+	})
+	return summs
 }
 
 type metricLabelCardinality struct {
@@ -339,6 +370,16 @@ func (c *Component) Handler() http.Handler {
 
 		details := c.Details(ls)
 
+		w.Header().Set("Content-Type", "application/json")
+		err := json.NewEncoder(w).Encode(details)
+		if err != nil {
+			level.Error(c.opts.Logger).Log("msg", "failed to encode json", "err", err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+	})
+
+	router.HandleFunc("/labels", func(w http.ResponseWriter, r *http.Request) {
+		details := c.TopLabels()
 		w.Header().Set("Content-Type", "application/json")
 		err := json.NewEncoder(w).Encode(details)
 		if err != nil {

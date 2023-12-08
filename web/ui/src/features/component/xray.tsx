@@ -17,10 +17,16 @@ interface SeriesSummary {
   last_value: number;
 }
 
+interface LabelSummary {
+  name: string;
+  count: number;
+}
+
 export const XRayView: FC<XRayProps> = (props) => {
   const [topMetrics, setTopMetrics] = useState<SeriesSummary[]>([]);
   const [topByLabel, setTopByLabel] = useState<SeriesSummary[]>([]);
   const [details, setDetails] = useState<SeriesSummary[]>([]);
+  const [topLabels, setTopLabels] = useState<LabelSummary[]>([]);
   const [selectedLabel, setSelectedLabel] = useState<string>('job');
   const [detailQuery, setDetailQuery] = useState<string>('__name__=go_gc_duration_seconds');
   const renderTableData = () => {
@@ -41,6 +47,11 @@ export const XRayView: FC<XRayProps> = (props) => {
           <td>{el.name}</td>
           <td>{el.series_count}</td>
           <td>{el.data_point_count_total}</td>
+          <td>
+            <div className={styles.docsLink}>
+              <a onClick={() => setDetailQuery(selectedLabel + '=' + el.name)}>Details</a>
+            </div>
+          </td>
         </tr>
       );
     });
@@ -52,6 +63,21 @@ export const XRayView: FC<XRayProps> = (props) => {
           <td>{el.name}</td>
           <td>{el.data_point_count_total}</td>
           <td>{el.last_value}</td>
+        </tr>
+      );
+    });
+  };
+  const renderTopLabelsTableData = () => {
+    return topLabels?.map((el) => {
+      return (
+        <tr>
+          <td>{el.name}</td>
+          <td>{el.count}</td>
+          <td>
+            <div className={styles.docsLink}>
+              <a onClick={() => setSelectedLabel(el.name)}>Details</a>
+            </div>
+          </td>
         </tr>
       );
     });
@@ -74,6 +100,17 @@ export const XRayView: FC<XRayProps> = (props) => {
         summs.push(ss);
       });
       setTopMetrics(summs);
+    };
+    worker().catch(console.error);
+  }, []);
+  useEffect(function () {
+    const worker = async () => {
+      const resp = await fetch(`./api/v0/component/${props.component.localID}/labels`, {
+        cache: 'no-cache',
+        credentials: 'same-origin',
+      });
+      const data: LabelSummary[] = await resp.json();
+      setTopLabels(data);
     };
     worker().catch(console.error);
   }, []);
@@ -147,6 +184,10 @@ export const XRayView: FC<XRayProps> = (props) => {
         </h3>
         <div className={styles.list}>
           <Table tableHeaders={['Name', 'Series', 'Samples']} renderTableData={renderJobTableData} />
+        </div>
+        <h3>Highest Cardinality Labels</h3>
+        <div className={styles.list}>
+          <Table tableHeaders={['Name', 'Unique Values', '']} renderTableData={renderTopLabelsTableData} />
         </div>
         <h3>
           Details for Series with:{' '}
