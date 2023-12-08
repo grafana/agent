@@ -34,6 +34,8 @@ Main (unreleased)
 
 - `pyroscope.ebpf` support python on arm64 platforms. (@korniltsev)
 
+- `mimir.rules.kubernetes` may now retry its startup on failure. (@hainenber)
+
 - Added links between compatible components in the documentation to make it
   easier to discover them. (@thampiotr)
   
