@@ -32,8 +32,12 @@ Main (unreleased)
 
 - `pyroscope.ebpf` support python on arm64 platforms. (@korniltsev)
 
+- `mimir.rules.kubernetes` may now retry its startup on failure. (@hainenber)
+
 - Added links between compatible components in the documentation to make it
   easier to discover them. (@thampiotr)
+  
+- Allow defining `HTTPClientConfig` for `discovery.ec2`. (@cmbrad)
 
 ### Bugfixes
 
@@ -44,6 +48,8 @@ Main (unreleased)
 - In Static mode's `traces` subsystem, `spanmetrics` used to be generated prior to load balancing.
   This could lead to inaccurate metrics. This issue only affects Agents using both `spanmetrics` and 
   `load_balancing`, when running in a load balanced cluster with more than one Agent instance. (@ptodev)
+
+- Fixes `loki.source.docker` a behavior that synced an incomplete list of targets to the tailer manager. (@FerdinandvHagen)
 
 v0.38.1 (2023-11-30)
 --------------------
