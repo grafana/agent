@@ -30,7 +30,7 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
     GOEXPERIMENT=${GOEXPERIMENT} \
     make agent
 
-FROM ubuntu:lunar
+FROM ubuntu:mantic
 
 LABEL org.opencontainers.image.source="https://github.com/grafana/agent"
 
@@ -38,7 +38,6 @@ LABEL org.opencontainers.image.source="https://github.com/grafana/agent"
 RUN <<EOF
   apt-get update
   apt-get install -qy libsystemd-dev tzdata ca-certificates
-  apt-get upgrade -y
   rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 EOF
 
