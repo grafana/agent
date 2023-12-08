@@ -246,7 +246,7 @@ func (c *Component) Update(args component.Arguments) error {
 
 	// This will never fail because it only fails if the context gets canceled.
 	_ = c.manager.syncTargets(context.Background(), targets)
-	
+
 	c.args = newArgs
 	return nil
 }
