@@ -45,6 +45,8 @@ Main (unreleased)
  
 - Update `pyroscope.ebpf` to produce more optimal pprof profiles for python processes https://github.com/grafana/pyroscope/pull/2788 (@korniltsev)
 
+- Fixes `loki.source.docker` a behavior that synced an incomplete list of targets to the tailer manager. (@FerdinandvHagen)
+
 v0.38.1 (2023-11-30)
 --------------------
 

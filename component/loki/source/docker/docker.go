@@ -242,10 +242,10 @@ func (c *Component) Update(args component.Arguments) error {
 			return err
 		}
 		targets = append(targets, tgt)
-
-		// This will never fail because it only fails if the context gets canceled.
-		_ = c.manager.syncTargets(context.Background(), targets)
 	}
+
+	// This will never fail because it only fails if the context gets canceled.
+	_ = c.manager.syncTargets(context.Background(), targets)
 
 	c.args = newArgs
 	return nil
