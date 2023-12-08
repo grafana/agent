@@ -139,9 +139,9 @@ Two labels are added by default to every metric:
 The shard number is not added as a label, as sharding is designed to be
 transparent on the receiver end.
 
-## Enabling sharding and replication
+## Enable sharding and replication
 
-To enable sharding and replication, you need to set the `shards` and `replicas` properties in the Grafana Agent configuration file. For example, the following configuration file would shard the data into 3 shards and replicate each shard to 2 other Grafana Agent instances:
+To enable sharding and replication, you must set the `shards` and `replicas` properties in the Grafana Agent configuration file. For example, the following configuration file would shard the data into three shards and replicate each shard to two other Grafana Agent instances:
 
 ```
 shards: 3
@@ -152,9 +152,9 @@ You can also enable sharding and replication by setting the `shards` and `replic
 
 ### Examples
 
-Here are some examples of how to enable sharding and replication in a Kubernetes environment:
+The following examples show you how to enable sharding and replication in a Kubernetes environment.
 
-* To shard the data into 3 shards and replicate each shard to 2 other Grafana Agent instances, you would use the following deployment manifest:
+* To shard the data into three shards and replicate each shard to two other Grafana Agent instances, you would use the following deployment manifest:
 
 ```
 apiVersion: apps/v1
@@ -179,7 +179,7 @@ spec:
         - "--replicas=2"
 ```
 
-* To shard the data into 10 shards and replicate each shard to 3 other Grafana Agent instances, you would use the following deployment manifest:
+* To shard the data into 10 shards and replicate each shard to three other Grafana Agent instances, you would use the following deployment manifest:
 
 ```
 apiVersion: apps/v1
