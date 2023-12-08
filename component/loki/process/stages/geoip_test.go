@@ -12,6 +12,11 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const (
+	dummyIP     = "192.0.2.1"
+	dummySource = "dummy"
+)
+
 func Test_ValidateConfigs(t *testing.T) {
 	source := "ip"
 	tests := []struct {
@@ -108,7 +113,7 @@ func Test_MaxmindAsn(t *testing.T) {
 		return
 	}
 	defer mmdb.Close()
-	ip := "192.0.2.1"
+	ip := dummyIP
 
 	var record geoip2.ASN
 	err = mmdb.Lookup(net.ParseIP(ip), &record)
@@ -116,7 +121,7 @@ func Test_MaxmindAsn(t *testing.T) {
 		t.Error(err)
 	}
 
-	source := "dummy"
+	source := dummySource
 	config := GeoIPConfig{
 		DB:     "test",
 		Source: &source,
@@ -154,7 +159,7 @@ func Test_MaxmindCity(t *testing.T) {
 		return
 	}
 	defer mmdb.Close()
-	ip := "192.0.2.1"
+	ip := dummyIP
 
 	var record geoip2.City
 	err = mmdb.Lookup(net.ParseIP(ip), &record)
@@ -162,7 +167,7 @@ func Test_MaxmindCity(t *testing.T) {
 		t.Error(err)
 	}
 
-	source := "dummy"
+	source := dummySource
 	config := GeoIPConfig{
 		DB:     "test",
 		Source: &source,
@@ -210,7 +215,7 @@ func Test_MaxmindCountry(t *testing.T) {
 		return
 	}
 	defer mmdb.Close()
-	ip := "192.0.2.1"
+	ip := dummyIP
 
 	var record geoip2.Country
 	err = mmdb.Lookup(net.ParseIP(ip), &record)
@@ -218,7 +223,7 @@ func Test_MaxmindCountry(t *testing.T) {
 		t.Error(err)
 	}
 
-	source := "dummy"
+	source := dummySource
 	config := GeoIPConfig{
 		DB:     "test",
 		Source: &source,
