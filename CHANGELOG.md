@@ -36,6 +36,8 @@ Main (unreleased)
 
 - Added links between compatible components in the documentation to make it
   easier to discover them. (@thampiotr)
+  
+- Allow defining `HTTPClientConfig` for `discovery.ec2`. (@cmbrad)
 
 ### Bugfixes
 
