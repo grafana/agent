@@ -16,7 +16,7 @@ weight: 100
 _Components_ are the building blocks of {{< param "PRODUCT_NAME" >}}.
 Each component handles a single task, such as retrieving secrets or collecting Prometheus metrics.
 
-Components are composed of two parts:
+Components are composed of the following:
 
 * Arguments: Settings that configure a component.
 * Exports: Named values that a component exposes to other components.
@@ -25,7 +25,7 @@ Each component has a name that describes what that component is responsible for.
 For example, the `local.file` component is responsible for retrieving the contents of files on disk.
 
 Components are specified in the configuration file by first providing the component's name with a user-specified label,
-and then by providing arguments to configure the component:
+and then by providing arguments to configure the component.
 
 ```river
 discovery.kubernetes "pods" {
@@ -38,7 +38,7 @@ discovery.kubernetes "nodes" {
 ```
 
 > Components are referenced by combining the component name with its label.
-> For > example, a `local.file` component labeled `foo` would be referenced as `local.file.foo`.
+> For example, a `local.file` component labeled `foo` would be referenced as `local.file.foo`.
 >
 > The combination of a component's name and its label must be unique within the configuration file.
 > This means multiple instances of a component may be defined as long as each instance has a different label value.

@@ -31,8 +31,7 @@ You configure clustering by passing `cluster` command-line flags to the [run][] 
 
 Target auto-distribution is the most basic use case of clustering.
 It allows scraping components running on all peers to distribute the scrape load between themselves.
-For target auto-distribution to work correctly,
-all {{< param "PRODUCT_ROOT_NAME" >}} in the same cluster must be able to reach the same service discovery APIs and must be able to scrape the same targets.
+Target auto-distribution requires that all {{< param "PRODUCT_ROOT_NAME" >}} in the same cluster can reach the same service discovery APIs and scrape the same targets.
 
 You must explicitly enable target auto-distribution on components by defining a `clustering` block, such as:
 
@@ -50,7 +49,7 @@ A cluster state change is detected when a new node joins or an existing node lea
 All participating components locally recalculate target ownership and re-balance the number of targets they’re scraping without explicitly communicating ownership over the network.
 
 Target auto-distribution allows you to dynamically scale the number of {{< param "PRODUCT_ROOT_NAME" >}}s to distribute workload during peaks.
-It also provides resiliency because targets are automatically picked up by one of the node peers if a node goes away.
+It also provides resiliency because targets are automatically picked up by one of the node peers if a node leaves.
 
 {{< param "PRODUCT_NAME" >}} uses a fully local consistent hashing algorithm to distribute targets, meaning that, on average, only ~1/N of the targets are redistributed.
 
@@ -63,8 +62,8 @@ Refer to component reference documentation to discover whether it supports clust
 
 ## Cluster monitoring and troubleshooting
 
-To monitor your cluster status, you can check the {{< param "PRODUCT_NAME" >}} UI [clustering page][].
-The [debugging][] topic contains some clues to help pin down probable clustering issues.
+You can use the {{< param "PRODUCT_NAME" >}} UI [clustering page][] to monitor your cluster status.
+Refer to [Debugging clustering issues][debugging] for additional troubleshooting information.
 
 {{% docs/reference %}}
 [run]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/cli/run.md#clustering-beta"
