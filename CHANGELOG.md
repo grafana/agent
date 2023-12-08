@@ -55,6 +55,10 @@ Main (unreleased)
 
 - Fixes `loki.source.docker` a behavior that synced an incomplete list of targets to the tailer manager. (@FerdinandvHagen)
 
+### Other changes
+
+- Bump github.com/IBM/sarama from v1.41.2 to v1.42.1
+
 v0.38.1 (2023-11-30)
 --------------------
 
