@@ -13,14 +13,12 @@ weight: 900
 
 {{< docs/shared source="agent" lookup="/deploy-agent.md" version="<AGENT_VERSION>" >}}
 
-## Scaling Grafana Agent
+## Processing different types of telemetry in different Agent instances
 
-If the load on the Agents is small, it is recommended to process
-all necessary telemetry signals in the same Agent process. For example, 
-a single Agent can process all of the incoming metrics, logs, traces, and profiles.
+If the load on the Agents is small, it is recommended to process all necessary telemetry signals in the same Agent process. 
+For example, a single Agent can process all of the incoming metrics, logs, traces, and profiles.
 
-However, if the load on the Agents is big, it may be beneficial to
-process different telemetry signals in different deployments of Agents:
+However, if the load on the Agents is big, it may be beneficial to process different telemetry signals in different deployments of Agents:
 * This provides better stability due to the isolation between processes.
   * For example, an overloaded Agent processing traces won't impact an Agent processing metrics.
 * Different types of signal collection require different methods for scaling:
@@ -29,14 +27,17 @@ process different telemetry signals in different deployments of Agents:
 
 ### Traces
 
-<!-- TODO: Link to https://opentelemetry.io/docs/collector/scaling/ ? -->
+Scaling Agent instances for tracing is very similar to [scaling OpenTelemetry Collector][scaling-collector] instances.
+This is because most Flow components used for tracing are based on components from the Collector.
+
+[scaling-collector]: https://opentelemetry.io/docs/collector/scaling/
 
 #### When to scale
 
-<!-- 
-TODO: Include information from https://opentelemetry.io/docs/collector/scaling/#when-to-scale
-Unfortunately the Agent doesn't have many of the metrics they mention because they're instrumented with OpenCensus and not OpenTelemetry.
--->
+To decide whether scaling is necessary, check metrics such as:
+* `receiver_refused_spans_ratio_total` from receivers such as `otelcol.receiver.otlp`.
+* `processor_refused_spans_ratio_total` from processors such as `otelcol.processor.batch`.
+* `exporter_send_failed_spans_ratio_total` from exporters such as `otelcol.exporter.otlp` and `otelcol.exporter.loadbalancing`.
 
 #### Stateful and stateless components
 
@@ -56,9 +57,8 @@ Examples of stateful components:
 
 <!-- TODO: link to the otelcol.exporter.loadbalancing docs for more info -->
 
-A "stateless component" does not need to aggregate specific spans in 
-order to work correctly - it can work correctly even if it only has 
-some of the spans of a trace.
+A "stateless component" does not need to aggregate specific spans in order to work correctly - 
+it can work correctly even if it only has some of the spans of a trace.
 
 Stateless Agents can be scaled without using `otelcol.exporter.loadbalancing`.
 You could use an off-the-shelf load balancer to, for example, do a round-robin load balancing.

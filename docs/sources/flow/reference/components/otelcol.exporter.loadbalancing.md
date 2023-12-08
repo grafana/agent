@@ -143,9 +143,9 @@ Name | Type | Description | Default | Required
 
 ### kubernetes block
 
-You can use the `kubernetes` block to load balance across the pods of a Kubernetes service. The Agent will be notified
-by the Kubernetes API whenever a new pod is added or removed from the service. The `kubernetes` resolver has a
-much faster response time than the `dns` resolver, because it doesn't require polling.
+You can use the `kubernetes` block to load balance across the pods of a Kubernetes service. 
+The Agent will be notified by the Kubernetes API whenever a new pod is added or removed from the service. 
+The `kubernetes` resolver has a much faster response time than the `dns` resolver, because it doesn't require polling.
 
 The following arguments are supported:
 
@@ -292,49 +292,44 @@ All spans for a given `service.name` must go to the same spanmetrics Agent.
 * If this is not done, metrics generated from spans might be incorrect.
   * For example, if similar spans for the same `service.name` end up on different Agent instances,
     the two Agents will have identical metric series for calculating span latency, errors, and number of requests.
-  * When both Agents attempt to remote write the metrics to a database such as Mimir,
-    the series may clash with each other.
+  * When both Agents attempt to write the metrics to a database such as Mimir, the series may clash with each other.
   * At best this will lead to an error in the Agent and a rejected write to the metrics database. 
   * At worst, it could lead to an inaccurate data due to overlapping samples for the metric series.
 
 However, there are ways to scale `otelcol.connector.spanmetrics` without the need for a load balancer:
 1. Each Agent could add an attribute such as `agent.id` in order to make its series unique.
   * A `sum by` PromQL query could be used to aggregate the metrics from different Agents.
-  * An extra `agent.id` attribute has a downside that the metrics stored in the database will have higher cardinality.
+  * An extra `agent.id` attribute has a downside that the metrics stored in the database will have higher {{< term "cardinality" >}}cardinality{{< /term >}}.
 2. Spanmetrics could be generated in the backend database instead of the Agent.
   * For example, span metrics can be [generated][tempo-spanmetrics] in Grafana Cloud by the Tempo traces database.
 
 [tempo-spanmetrics]: https://grafana.com/docs/tempo/latest/metrics-generator/span_metrics/
 
 ### otelcol.connector.servicegraph
-Unfortunately, there is generally no reliable way to scale `otelcol.connector.servicegraph` over multiple Agent instance.
-<!-- Or is there? Can we fix the issue below using a PromQL query? There may still be higher than normal cardinality though? -->
+It is challenging to scale `otelcol.connector.servicegraph` over multiple Agent instances.
 * For `otelcol.connector.servicegraph` to work correctly, each "client" span must be paired 
   with a "server" span in order to calculate metrics such as span duration.
 * If a "client" span goes to one Agent, but a "server" span goes to another Agent, 
   then no single Agent will be able to pair the spans and a metric won't be generated.
 
 `otelcol.exporter.loadbalancing` can solve this problem partially if it is configured with `routing_key = "traceID"`.
-  * Each Agent will then be able to calculate service graph for each client/server pair in a trace.
+  * Each Agent will then be able to calculate service graph for each "client"/"server" pair in a trace.
   * However, it is possible to have a span with similar "server"/"client" values 
     in a different trace, processed by another Agent.
-  * If two different Agents, process similar "server"/"client" spans, 
+  * If two different Agents process similar "server"/"client" spans, 
     they will generate the same service graph metric series.
   * If the series from two Agents are the same, this will lead to issues 
-    when remote writing them in the backend database.
-
-  * Users could differentiate the series by adding a label such as `"agent_instance"`, 
-    but there is currently no method in the Agent to aggregate those series from different Agents and merge them into one series.
-
-There are ways to work around this:
-  1. Each Agent could add an attribute such as `agent.id` in order to make its series unique.
+    when writing them to the backend database.
+  * Users could differentiate the series by adding an attribute such as `"agent.id"`.
+      * Unfortunately, there is currently no method in the Agent to aggregate those series from different Agents and merge them into one series.
     * A PromQL query could be used to aggregate the metrics from different Agents.
-    * An extra `agent.id` attribute has a downside that the metrics stored in the database will have higher cardinality.
-  2. A simpler, more scalable alternative to generating service graph metrics 
-    in the Agent is to do them in the backend database. 
-    * For example service graphs can be [generated][tempo-servicegraphs] in Grafana Cloud by the Tempo traces database.
+    * If the metrics are stored in Grafana Mimir, cardinality issues due to `"agent.id"` labels can be solved using [Adaptive Metrics][adaptive-metrics].
+
+A simpler, more scalable alternative to generating service graph metrics in the Agent is to generate them entirely in the backend database. 
+For example, service graphs can be [generated][tempo-servicegraphs] in Grafana Cloud by the Tempo traces database.
 
 [tempo-servicegraphs]: https://grafana.com/docs/tempo/latest/metrics-generator/service_graphs/
+[adaptive-metrics]: https://grafana.com/docs/grafana-cloud/cost-management-and-billing/reduce-costs/metrics-costs/control-metrics-usage-via-adaptive-metrics/
 
 ### Mixing stateful components
 <!-- TODO: Add a picture of the architecture?  -->
@@ -343,7 +338,7 @@ Different Flow components may require a different `routing_key` for `otelcol.exp
   whereas `otelcol.connector.spanmetrics` requires `routing_key = "service"`.
 * Therefore, it is not possible to use the same load balancer for both tail sampling and span metrics.
 * Two different sets of load balancers have to be set up:
-  * One set of `otelcol.exporter.loadbalancing` with `routing_key = "traceID"`, sending spans to Agents doing tail sampling and no span metrics.
+  * One set of `otelcol.exporter.loadbalancing` with `routing_key = "traceID"`, sending spans to Agents which doing tail sampling and no span metrics.
   * Another set of `otelcol.exporter.loadbalancing` with `routing_key = "service"`, sending spans to Agents doing span metrics and no service graphs.
 * Unfortunately, this can also lead to side effects. For example, if `otelcol.connector.spanmetrics` is configured to generate exemplars,
   the tail sampling Agents might drop the trace which the exemplar points to. There is no coordination between the tail sampling Agents and
@@ -420,12 +415,12 @@ otelcol.exporter.loadbalancing "default" {
 ```
 
 Below is an example Kubernetes configuration which configures two sets of Agents:
-* A pool of "load balancer" Agents:
+* A pool of load-balancer Agents:
   * Spans are received from instrumented applications via `otelcol.receiver.otlp`
   * Spans are then exported via `otelcol.exporter.loadbalancing`.
-* A pool of "backing" Agents:
-  * The "backing" Agents run behind a headless service to enable the "load balancer" Agents to discover them.
-  * Spans are received from the "load balancer" Agents via `otelcol.receiver.otlp`
+* A pool of sampling Agents:
+  * The sampling Agents run behind a headless service to enable the load-balancer Agents to discover them.
+  * Spans are received from the load-balancer Agents via `otelcol.receiver.otlp`
   * Traces are then sampled via `otelcol.processor.tail_sampling`.
   * The traces are exported via `otelcol.exporter.otlp` to a an OTLP-compatible database such as Tempo.
 
@@ -649,7 +644,7 @@ data:
 {{< /collapse >}}
 
 You need to fill in correct OTLP credentials prior to running the above example.
-The example above can be started by using k3d:
+The example above can be started by using [k3d][]:
 <!-- TODO: Link to the k3d page -->
 ```bash
 k3d cluster create grafana-agent-lb-test
@@ -661,10 +656,13 @@ To delete the cluster, run:
 k3d cluster delete grafana-agent-lb-test
 ```
 
+[k3d]: https://k3d.io/v5.6.0/
+
 ### Kubernetes resolver
 
-`otelcol.exporter.loadbalancing` can export to a statically configured 
-list of Agents using configuration like this:
+When configured with a `kubernetes` resolver, `otelcol.exporter.loadbalancing` will be notified by 
+the Kubernetes API any time a pod has left or joined the `service`. 
+Spans will then be exported to the addresses from the Kubernetes API, combined with all the possible `ports`.
 
 ```river
 otelcol.exporter.loadbalancing "default" {
@@ -683,14 +681,14 @@ otelcol.exporter.loadbalancing "default" {
 ```
 
 Below is an example Kubernetes configuration which sets up two sets of Agents:
-* A pool of "load balancer" Agents:
+* A pool of load-balancer Agents:
   * Spans are received from instrumented applications via `otelcol.receiver.otlp`
   * Spans are then exported via `otelcol.exporter.loadbalancing`.
-  * The "load balancer" Agents will get notified by the Kubernetes API any time a pod 
-    is added or removed from the pool of "backing" Agents.
-* A pool of "backing" Agents:
-  * The "backing" Agents do not need to run behind a headless service.
-  * Spans are received from the "load balancer" Agents via `otelcol.receiver.otlp`
+  * The load-balancer Agents will get notified by the Kubernetes API any time a pod 
+    is added or removed from the pool of sampling Agents.
+* A pool of sampling Agents:
+  * The sampling Agents do not need to run behind a headless service.
+  * Spans are received from the load-balancer Agents via `otelcol.receiver.otlp`
   * Traces are then sampled via `otelcol.processor.tail_sampling`.
   * The traces are exported via `otelcol.exporter.otlp` to a an OTLP-compatible database such as Tempo.
 
@@ -706,13 +704,13 @@ metadata:
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: grafana-agent-traces
+  name: agent-traces
   namespace: grafana-cloud-monitoring
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: grafana-agent-traces-role
+  name: agent-traces-role
   namespace: grafana-cloud-monitoring
 rules:
 - apiGroups:
@@ -727,15 +725,15 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: grafana-agent-traces-rolebinding
+  name: agent-traces-rolebinding
   namespace: grafana-cloud-monitoring
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
-  name: grafana-agent-traces-role
+  name: agent-traces-role
 subjects:
 - kind: ServiceAccount
-  name: grafana-agent-traces
+  name: agent-traces
   namespace: grafana-cloud-monitoring
 ---
 apiVersion: apps/v1
@@ -815,7 +813,7 @@ spec:
         volumeMounts:
         - mountPath: /etc/agent
           name: agent-traces
-      serviceAccount: grafana-agent-traces
+      serviceAccount: agent-traces
       volumes:
       - configMap:
           name: agent-traces
@@ -945,8 +943,7 @@ data:
 {{< /collapse >}}
 
 You need to fill in correct OTLP credentials prior to running the above example.
-The example above can be started by using k3d:
-<!-- TODO: Link to the k3d page -->
+The example above can be started by using [k3d][]s:
 ```bash
 k3d cluster create grafana-agent-lb-test
 kubectl apply -f kubernetes_config.yaml

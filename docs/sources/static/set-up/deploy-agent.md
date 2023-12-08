@@ -13,10 +13,8 @@ weight: 300
 
 ## For scalable ingestion of traces
 
-For small workloads, it is normal to have just one Agent handle all incoming
-spans with no need of load balancing. However, for large workloads there it
-is desirable to spread out the load of ingesting spans over multiple Agent
-instances.
+For small workloads, it is normal to have just one Agent handle all incoming spans with no need of load balancing. 
+However, for large workloads it is desirable to spread out the load of processing spans over multiple Agent instances.
 
 To scale the Agent for trace ingestion, do the following:
 1. Set up the `load_balancing` section of the Agent's `traces` config.
@@ -30,15 +28,42 @@ To scale the Agent for trace ingestion, do the following:
 <!-- For more detail, send people over to the load_balancing section in traces_config -->
 
 ### tail_sampling
-Agents configured with `tail_sampling` must have all spans for 
-a given trace in order to work correctly. If some of the spans for a trace end up
-in a different Agent, `tail_sampling` will not sample correctly.
+
+If some of the spans for a trace end up in a different Agent, `tail_sampling` will not sample correctly.
+Enabling `load_balancing` is necessary if `tail_sampling` is enabled and when there could be more than one Agent instance processing spans for the same trace.
+`load_balancing` will make sure that all spans of a given trace will be processed by the same Agent instance.
 
 ### spanmetrics
-<!-- TODO: Also talk about span metrics -->
+
+All spans for a given `service.name` must be processed by the same `spanmetrics` Agent.
+To make sure that this is the case, set up `load_balancing` with `routing_key: service`.
 
 ### service_graphs
-<!-- TODO: Also talk about service_graphs -->
+
+It is challenging to scale `service_graphs` over multiple Agent instances.
+* For `service_graphs` to work correctly, each "client" span must be paired 
+  with a "server" span in order to calculate metrics such as span duration.
+* If a "client" span goes to one Agent, but a "server" span goes to another Agent, 
+  then no single Agent will be able to pair the spans and a metric won't be generated.
+
+`load_balancing` can solve this problem partially if it is configured with `routing_key: traceID`.
+  * Each Agent will then be able to calculate service graph for each "client"/"server" pair in a trace.
+  * However, it is possible to have a span with similar "server"/"client" values 
+    in a different trace, processed by another Agent.
+  * If two different Agents process similar "server"/"client" spans, 
+    they will generate the same service graph metric series.
+  * If the series from two Agents are the same, this will lead to issues 
+    when writing them to the backend database.
+  * Users could differentiate the series by adding a label such as `"agent_id"`.
+      * Unfortunately, there is currently no method in the Agent to aggregate those series from different Agents and merge them into one series.
+    * A PromQL query could be used to aggregate the metrics from different Agents.
+    * If the metrics are stored in Grafana Mimir, cardinality issues due to `"agent_id"` labels can be solved using [Adaptive Metrics][adaptive-metrics].
+
+A simpler, more scalable alternative to generating service graph metrics in the Agent is to generate them entirely in the backend database. 
+For example, service graphs can be [generated][tempo-servicegraphs] in Grafana Cloud by the Tempo traces database.
+
+[tempo-servicegraphs]: https://grafana.com/docs/tempo/latest/metrics-generator/service_graphs/
+[adaptive-metrics]: https://grafana.com/docs/grafana-cloud/cost-management-and-billing/reduce-costs/metrics-costs/control-metrics-usage-via-adaptive-metrics/
 
 ### Example Kubernetes configuration
 {{< collapse title="Example Kubernetes configuration with DNS load balancing" >}}
@@ -352,9 +377,9 @@ data:
 
 {{< /collapse >}}
 
-You need to fill in correct OTLP credentials prior to running the above example.
-The example above can be started by using k3d:
-<!-- TODO: Link to the k3d page -->
+You need to fill in correct OTLP credentials prior to running the above examples.
+The example above can be started by using [k3d][]:
+
 ```bash
 k3d cluster create grafana-agent-lb-test
 kubectl apply -f kubernetes_config.yaml
@@ -364,3 +389,5 @@ To delete the cluster, run:
 ```bash
 k3d cluster delete grafana-agent-lb-test
 ```
+
+[k3d]: https://k3d.io/v5.6.0/
