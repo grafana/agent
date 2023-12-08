@@ -169,6 +169,12 @@ v0.38.0 (2023-11-21)
 
 - Improved resilience of graph evaluation in presence of slow components. (@thampiotr)
 
+- Updated windows exporter to use prometheus-community/windows_exporter commit 1836cd1. (@mattdurham)
+
+- Allow agent to start with `module.git` config if cached before. (@hainenber)
+
+- Adds new optional config parameter `query_config` to `mssql` integration to allow for custom metrics (@StefanKurek)
+
 ### Bugfixes
 
 - Set exit code 1 on grafana-agentctl non-runnable command. (@fgouteroux)
