@@ -41,6 +41,8 @@ Main (unreleased)
   
 - Allow defining `HTTPClientConfig` for `discovery.ec2`. (@cmbrad)
 
+- The `remote.http` component can optionally define a request body. (@tpaschalis)
+
 ### Bugfixes
 
 - Update `pyroscope.ebpf` to fix a logical bug causing to profile to many kthreads instead of regular processes https://github.com/grafana/pyroscope/pull/2778 (@korniltsev)
