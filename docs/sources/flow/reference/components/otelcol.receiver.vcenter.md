@@ -219,6 +219,8 @@ otelcol.exporter.otlp "default" {
     endpoint = env("OTLP_ENDPOINT")
   }
 }
+```
+
 <!-- START GENERATED COMPATIBLE COMPONENTS -->
 
 ## Compatible components
