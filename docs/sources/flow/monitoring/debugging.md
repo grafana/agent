@@ -15,7 +15,7 @@ weight: 300
 Follow these steps to debug issues with {{< param "PRODUCT_NAME" >}}:
 
 1. Use the {{< param "PRODUCT_NAME" >}} UI to debug issues.
-2. If the {{< param "PRODUCT_NAME" >}} UI doesn't help with debugging an issue, logs can be examined instead.
+1. If the {{< param "PRODUCT_NAME" >}} UI doesn't help with debugging an issue, logs can be examined instead.
 
 ## {{< param "PRODUCT_NAME" >}} UI
 
