@@ -10,6 +10,11 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+### Breaking changes
+
+- `target` block in `prometheus.exporter.blackbox` requires mandatory `name`
+  attribute instead of label block previously. (@hainenber)
+
 ### Enhancements
 
 - Flow Windows service: Support environment variables. (@jkroepke)
