@@ -12,6 +12,11 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+var (
+	geoipTestIP     string = "192.0.2.1"
+	geoipTestSource string = "dummy"
+)
+
 func Test_ValidateConfigs(t *testing.T) {
 	source := "ip"
 	tests := []struct {
@@ -108,18 +113,16 @@ func Test_MaxmindAsn(t *testing.T) {
 		return
 	}
 	defer mmdb.Close()
-	ip := "192.0.2.1"
 
 	var record geoip2.ASN
-	err = mmdb.Lookup(net.ParseIP(ip), &record)
+	err = mmdb.Lookup(net.ParseIP(geoipTestIP), &record)
 	if err != nil {
 		t.Error(err)
 	}
 
-	source := "dummy"
 	config := GeoIPConfig{
 		DB:     "test",
-		Source: &source,
+		Source: &geoipTestSource,
 		DBType: "asn",
 	}
 	valuesExpressions, err := validateGeoIPConfig(config)
@@ -154,18 +157,16 @@ func Test_MaxmindCity(t *testing.T) {
 		return
 	}
 	defer mmdb.Close()
-	ip := "192.0.2.1"
 
 	var record geoip2.City
-	err = mmdb.Lookup(net.ParseIP(ip), &record)
+	err = mmdb.Lookup(net.ParseIP(geoipTestIP), &record)
 	if err != nil {
 		t.Error(err)
 	}
 
-	source := "dummy"
 	config := GeoIPConfig{
 		DB:     "test",
-		Source: &source,
+		Source: &geoipTestSource,
 		DBType: "city",
 	}
 	valuesExpressions, err := validateGeoIPConfig(config)
@@ -210,18 +211,16 @@ func Test_MaxmindCountry(t *testing.T) {
 		return
 	}
 	defer mmdb.Close()
-	ip := "192.0.2.1"
 
 	var record geoip2.Country
-	err = mmdb.Lookup(net.ParseIP(ip), &record)
+	err = mmdb.Lookup(net.ParseIP(geoipTestIP), &record)
 	if err != nil {
 		t.Error(err)
 	}
 
-	source := "dummy"
 	config := GeoIPConfig{
 		DB:     "test",
-		Source: &source,
+		Source: &geoipTestSource,
 		DBType: "country",
 	}
 	valuesExpressions, err := validateGeoIPConfig(config)
