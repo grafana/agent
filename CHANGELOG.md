@@ -53,6 +53,8 @@ Main (unreleased)
 
 - Fixes `loki.source.docker` a behavior that synced an incomplete list of targets to the tailer manager. (@FerdinandvHagen)
 
+- Sort kubelet endpoint to reduce pressure on K8s's API server and watcher endpoints. (@hainenber)
+
 ### Other changes
 
 - Bump github.com/IBM/sarama from v1.41.2 to v1.42.1
