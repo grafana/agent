@@ -42,10 +42,8 @@ BLOCK_NAME {
 }
 ```
 
-> River is similar to HCL, the language Terraform and other Hashicorp projects use.
-> River was inspired by HCL, but is a distinct language with different syntax and features, such as first-class functions.
-
-> For historical context on River was introduced, you can read the original [RFC][].
+[River][RFC] is similar to HCL, the language Terraform and other Hashicorp projects use.
+River was inspired by HCL, but is a distinct language with different syntax and features, such as first-class functions.
 
 * Blocks are a group of related settings and usually represent creating a component.
   Blocks have a name that consist of zero or more identifiers separated by `.`, an optional user label, and a body that contains attributes and nested blocks.

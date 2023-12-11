@@ -84,8 +84,8 @@ BLOCK_NAME "BLOCK_LABEL" {
 
 #### Block naming rules
 
-The `BLOCK_NAME` has to be recognized by Flow as either a valid component name or a special block for configuring global settings.
-If the `BLOCK_LABEL` has to be set, it must be a valid River [identifier](#identifiers) wrapped in double quotes.
+The `BLOCK_NAME` has to be recognized by {{< param "PRODUCT_NAME" >}} as either a valid component name or a special block for configuring global settings.
+If the `BLOCK_LABEL` must be set, it must be a valid River [identifier](#identifiers) wrapped in double quotes.
 In these cases, the label is used to disambiguate between multiple top-level blocks of the same name.
 
 The following snippet defines a block named `local.file` with its label set to "token".

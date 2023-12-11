@@ -18,16 +18,16 @@ While components can work in isolation, they're more useful when one component's
 building a dependency relationship between the two.
 
 Such references can only appear as part of another component's arguments or a configuration block's fields.
-That means that components can't reference themselves.
+Components can't reference themselves.
 
 ## Using references
 
-These references are built by combining the component's name, label, and named export with dots.
+You build references by combining the component's name, label, and named export with dots.
 
-For example, the contents of a file exported by the `local.file` component labeled `target` might be referenced as `local.file.target.content`.
+For example, you can reference the contents of a file exported by the `local.file` component labeled `target` as `local.file.target.content`.
 Similarly, a `prometheus.remote_write` component instance labeled `onprem` exposes its receiver for metrics on `prometheus.remote_write.onprem.receiver`.
 
-The following example shows this.
+The following example shows some references.
 
 ```river
 local.file "target" {
@@ -46,11 +46,9 @@ prometheus.remote_write "onprem" {
 }
 ```
 
-In the previous example, you wired together a very simple pipeline by writing a few River expressions.
+In the preceding example, you wired together a very simple pipeline by writing a few River expressions.
 
-<p align="center">
-<img src="../../../../assets/flow_referencing_exports_diagram.svg" alt="Flow of example pipeline" width="500" />
-</p>
+![Flow of example pipeline](/media/docs/agent/flow_referencing_exports_diagram.svg)
 
 As with all expressions, once the value is resolved, it must match the [type][] of the attribute it is assigned to.
 While you can only configure attributes using the basic River types,

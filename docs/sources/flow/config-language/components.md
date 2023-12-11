@@ -17,12 +17,11 @@ Components are the defining feature of {{< param "PRODUCT_NAME" >}}.
 Components are small, reusable pieces of business logic that perform a single task like retrieving secrets or collecting Prometheus metrics,
 and you can wire them together to form programmable pipelines of telemetry data.
 
-Under the hood, components are orchestrated via the [_component controller_]({{< relref "../concepts/component_controller.md" >}}),
-which is responsible for scheduling them, reporting their health and debug status, re-evaluating their arguments, and providing their exports.
+The [_component controller_]controller[] is responsible for scheduling components, reporting their health and debug status, re-evaluating their arguments, and providing their exports.
 
 ## Configuring components
 
-[Components]({{< relref "../reference/components/_index.md" >}}) are created by defining a top-level River block.
+You create [components][] by defining a top-level River block.
 All components are identified by their name, describing what the component is responsible for, and a user-specified _label_.
 
 ## Arguments and exports
@@ -33,14 +32,14 @@ Most user interactions with components center around two basic concepts, _argume
   They can be any number of attributes or nested unlabeled blocks, some required and some optional.
   Any optional arguments that aren't set take on their default values.
 
-* _Exports_ are zero or more output values that can be referred to by other components and can be of any River type.
+* _Exports_ are zero or more output values that other components can refer to, and they can be of any River type.
 
 The following block defines a `local.file` component labeled "targets".
 The `local.file.targets` component exposes the file `content` as a string in its exports.
 
 The `filename` attribute is a _required_ argument.
 You can also define a number of _optional_ arguments, in this case, `detector`, `poll_frequency`, and `is_secret`,
-which configure how and how often the file should be polled and whether its contents are sensitive or not.
+that configure how and how often the file should be polled and whether its contents are sensitive or not.
 
 ```river
 local.file "targets" {
@@ -80,11 +79,15 @@ prometheus.scrape "default" {
 }
 ```
 
-Every time the file contents change, the `local.file` updates its exports. The new value is provided to the `prometheus.scrape` targets field.
+Every time the file contents change, the `local.file` updates its exports. The new value is given to the `prometheus.scrape` targets field.
 
-Each argument and exported field has an underlying [type]({{< relref "./expressions/types_and_values.md" >}}).
+Each argument and exported field has an underlying [type][].
 River type-checks expressions before assigning a value to an attribute.
-The documentation of each [component]({{< relref "../reference/components/_index.md" >}}) provides more information about the ways that you can wire components together.
+The documentation of each [component][components] provides more information about the ways that you can wire components together.
 
-In the previous example, the contents of the `local.file.targets.content` expression must first be evaluated in a concrete
-value then type-checked and substituted into `prometheus.scrape.default` for it to be configured.
+In the previous example, the contents of the `local.file.targets.content` expression is evaluated to a concrete value.
+The value is type-checked and substituted into `prometheus.scrape.default` where it can be configured.
+
+[components]: {{< relref "../reference/components/_index.md" >}}
+[controller]: {{< relref "../concepts/component_controller.md" >}}
+[type]: {{< relref "./expressions/types_and_values.md" >}}

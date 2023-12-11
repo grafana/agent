@@ -13,46 +13,48 @@ weight: 300
 
 # Modules
 
-_Modules_ are a way to create {{< param "PRODUCT_NAME" >}} configurations which can be loaded as a component.
+You use _Modules_ to create {{< param "PRODUCT_NAME" >}} configurations that you can load as a component.
 Modules are a great way to parameterize a configuration to create reusable pipelines.
 
 Modules are {{< param "PRODUCT_NAME" >}} configurations which have:
 
-* Arguments: Settings that configure a module.
-* Exports: Named values that a module exposes to the consumer of the module.
-* Components: {{< param "PRODUCT_NAME" >}} Components to run when the module is running.
+* _Arguments_: Settings that configure a module.
+* _Exports_: Named values that a module exposes to the consumer of the module.
+* _Components_: {{< param "PRODUCT_NAME" >}} components to run when the module is running.
 
-Modules are loaded into {{< param "PRODUCT_NAME" >}} by using a [Module loader](#module-loaders).
+You use a [Module loader](#module-loaders) to load Modules into {{< param "PRODUCT_NAME" >}}.
 
-Refer to the documentation for the [argument block][] and [export block][] to learn how to define arguments and exports for a module.
+Refer to [argument block][] and [export block][] to learn how to define arguments and exports for a module.
 
 ## Module loaders
 
-A _Module loader_ is a {{< param "PRODUCT_NAME" >}} component that retrieves a module and runs the components defined inside of it.
+A _Module loader_ is a {{< param "PRODUCT_NAME" >}} component that retrieves a module and runs the defined components.
 
-Module loader components are responsible for the following:
+Module loader components are responsible for the following functions:
 
-* Retrieving the module source to run.
-* Creating a [Component controller][] for the module to run in.
+* Retrieving the module source.
+* Creating a [Component controller][] for the module.
 * Passing arguments to the loaded module.
 * Exposing exports from the loaded module.
 
 Module loaders typically are called `module.LOADER_NAME`.
-The list of module loader components can be found in the list of {{< param "PRODUCT_NAME" >}} [Components][].
 
+{{% admonition type="note" %}}
 Some module loaders may not support running modules with arguments or exports.
-Refer to the documentation for the module loader you are using for more information.
+{{% /admonition %}}
+
+Refer to [Components][] for more information about the module loader components.
 
 ## Module sources
 
-Modules are designed to be flexible and can have their configuration retrieved from anywhere, such as:
+Modules are flexible and you can retrieve their configuration anywhere, such as:
 
 * The local filesystem.
 * An S3 bucket.
 * An HTTP endpoint.
 
-Each module loader component supports different ways of retrieving module.sources.
-The most generic module loader component, `module.string`, can load modules from the export of another {{< param "PRODUCT_NAME" >}} component:
+Each module loader component supports different ways of retrieving `module.sources`.
+The most generic module loader component, `module.string`, can load modules from the export of another {{< param "PRODUCT_NAME" >}} component.
 
 ```river
 local.file "my_module" {
@@ -72,7 +74,7 @@ module.string "my_module" {
 
 ## Example module
 
-This example module manages a pipeline that filters out debug- and info-level log lines that are given to it:
+This example module manages a pipeline that filters out debug-level and info-level log lines:
 
 ```river
 // argument.write_to is a required argument that specifies where filtered
@@ -105,7 +107,7 @@ export "filter_input" {
 }
 ```
 
-The module above can be saved to a file and then used as a processing step before writing logs to Loki:
+You can save the module to a file and then use it as a processing step before writing logs to Loki.
 
 ```river
 loki.source.file "self" {

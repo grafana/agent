@@ -35,8 +35,16 @@ In addition to the preceding types, the [component reference][] documentation us
 * `list(T)`: an `array` where the value type is `T`.
   For example, `list(string)` is an array where all the values are strings.
 * `duration`: a `string` denoting a duration of time, such as `"1d"`, `"1h30m"`, `"10s"`.
-  Valid units are `d` (for days), `h` (for hours), `m` (for minutes), `s` (for seconds), `ms` (for milliseconds), `ns` (for nanoseconds).
-  Values of descending units can be combined to add their values together. `"1h30m"` is the same as `"90m"`.
+  Valid units are:
+
+  * `d` for days.
+  * `h` for hours.
+  * `m` for minutes.
+  * `s` for seconds.
+  * `ms` for milliseconds.
+  * `ns` for nanoseconds.
+
+  You can combine values of descending units to add their values together. For example, `"1h30m"` is the same as `"90m"`.
 
 [component reference]: {{< relref "../../reference/components" >}}
 
@@ -89,7 +97,7 @@ Raw strings don't support any escape sequences:
 ```
 
 Within the backticks, any character may appear except a backtick.
-A backtick can be included by concatenating a double-quoted string that contains a backtick using `+`.
+You can include a backtick by concatenating a double-quoted string that contains a backtick using `+`.
 
 A multiline raw string is interpreted exactly as written.
 
@@ -117,8 +125,8 @@ Array values are constructed by a sequence of comma-separated values surrounded 
 [0, 1, 2, 3]
 ```
 
-Values in array elements may be placed on separate lines for readability.
-A comma after the final value must be present if the closing bracket `]` is on a different line than the final value:
+You can place values in array elements on separate lines for readability.
+A comma after the final value must be present if the closing bracket `]` is on a different line than the final value.
 
 ```river
 [
@@ -130,7 +138,7 @@ A comma after the final value must be present if the closing bracket `]` is on a
 
 ## Objects
 
-Object values are constructed by a sequence of comma-separated key-value pairs surrounded by curly braces `{}`:
+You construct object values with a sequence of comma-separated key-value pairs surrounded by curly braces `{}`.
 
 ```river
 {
@@ -139,13 +147,13 @@ Object values are constructed by a sequence of comma-separated key-value pairs s
 }
 ```
 
-A comma after the final key-value pair may be omitted if the closing curly brace `}` is on the same line as the final pair:
+You can omit the comma after the final key-value pair if the closing curly brace `}` is on the same line as the final pair.
 
 ```river
 { name = "John" }
 ```
 
-If the key is not a valid identifier, it must be wrapped in double quotes like a string:
+If the key isn't a valid identifier, you must must wrap it in double quotes like a string.
 
 ```river
 {
@@ -155,24 +163,26 @@ If the key is not a valid identifier, it must be wrapped in double quotes like a
 }
 ```
 
-> **NOTE**: Be careful not to confuse objects with blocks.
->
-> An _object_ is a value assigned to an [Attribute][Attributes], where commas **must** be provided between key-value pairs on separate lines.
->
-> A [Block][Blocks] is a named structural element composed of multiple attributes, where commas **must not** be provided between attributes.
+{{% admonition type="note" %}}
+Don't confuse objects with blocks.
+
+An _object_ is a value assigned to an [Attribute][Attributes]. You **must** use commas between key-value pairs on separate lines.
+
+A [Block][Blocks] is a named structural element composed of multiple attributes. You **must not** use commans between attributes.
 
 [Attributes]: {{< relref "../syntax.md#Attributes" >}}
 [Blocks]: {{< relref "../syntax.md#Blocks" >}}
+{{% /admonition %}}
 
 ## Functions
 
-Function values can't be constructed by users but can be called from the standard library or when it's exported by a component.
+You can't construct function values. You can call functions from the standard library or you can export them from a component.
 
 ## Null
 
 The null value is represented by the symbol `null`.
 
-## Special Types
+## Special types
 
 #### Secrets
 
@@ -182,15 +192,15 @@ It's impossible to convert a secret to a string or assign a secret to an attribu
 
 #### Capsules
 
-River has a special type called a `capsule`, which represents a category of _internal_ types used by {{< param "PRODUCT_NAME" >}}.
-Each capsule type has a unique name and is represented to the user as `capsule("SOME_INTERNAL_NAME")`.
-Capsule values can't be constructed by the user, but can be used in expressions as any other type.
+A `capsule` is a special type that represents a category of _internal_ types used by {{< param "PRODUCT_NAME" >}}.
+Each capsule type has a unique name and is represented to the user as `capsule("<SOME_INTERNAL_NAME>")`.
+You can't construct capsule values. You can use capsules in expressions as any other type.
 Capsules aren't inter-compatible, and an attribute expecting a capsule can only be given a capsule of the same internal type.
-That means, if an attribute expects a `capsule("prometheus.Receiver")`, it can only be assigned a `capsule("prometheus.Receiver")` type.
+That means, if an attribute expects a `capsule("prometheus.Receiver")`, it you can only assign a `capsule("prometheus.Receiver")` type.
 The specific type of capsule expected is explicitly documented for any component that uses or exports them.
 
 In the following example, the `prometheus.remote_write` component exports a `receiver`, which is a `capsule("prometheus.Receiver")` type.
-This can then be used in the `forward_to` attribute of `prometheus.scrape`, which expects an array of `capsule("prometheus.Receiver")`s:
+You can use this capsule in the `forward_to` attribute of `prometheus.scrape`, which expects an array of `capsule("prometheus.Receiver")`s:
 
 ```river
 prometheus.remote_write "default" {

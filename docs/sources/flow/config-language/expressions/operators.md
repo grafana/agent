@@ -13,7 +13,7 @@ weight: 300
 
 # Operators
 
-River uses a set of operators that most should be familiar with.
+River uses a common set of operators.
 All operations follow the standard [PEMDAS][] rule for operator precedence.
 
 ## Arithmetic operators
@@ -44,10 +44,10 @@ Operator | Description
 `>`      | `true` when the left value is greater than the right value.
 `>=`     | `true` when the left value is greater or equal to the right value.
 
-The equality operators `==` and `!=` can be applied to any operands.
+You can apply the equality operators `==` and `!=` to any operands.
 
-On the other hand, for the ordering operators `<` `<=` `>` and `>=`, the two operands must both be _orderable_ and of the same type.
-The results of the comparisons are defined as follows:
+The two operands in ordering operators `<` `<=` `>` and `>=`  must both be _orderable_ and of the same type.
+The results of the comparisons are:
 
 * Boolean values are equal if they're either both true or both false.
 * Numerical (integer and floating-point) values are orderable in the usual way.
@@ -72,11 +72,11 @@ River uses `=` as its assignment operator.
 An assignment statement may only assign a single value.
 Each value must be _assignable_ to the attribute or object key.
 
-* The `null` value can be assigned to any attribute.
-* Numerical, string, boolean, array, function, capsule, and object types are assignable to attributes of the corresponding type.
-* Numbers can be assigned to string attributes with an implicit conversion.
-* Strings can be assigned to numerical attributes, provided that they represent a number.
-* Blocks aren't assignable.
+* You can assign `null` to any attribute.
+* You can assign numerical, string, boolean, array, function, capsule, and object types to attributes of the corresponding type.
+* You can assign numbers to string attributes with an implicit conversion.
+* You can assign strings to numerical attributes if they represent a number.
+* You can't assign blocks.
 
 ## Brackets
 
@@ -86,7 +86,7 @@ Brackets | Description
 `( )`    | Groups and prioritizes expressions.
 `[ ]`    | Defines arrays.
 
-In the following example, you can see the use of curly braces and square brackets to define an object and an array.
+The following example uses curly braces and square brackets to define an object and an array.
 
 ```river
 obj = { app = "agent", namespace = "dev" }
