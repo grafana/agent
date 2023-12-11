@@ -39,6 +39,7 @@ import (
 	blackbox_exporter_v2 "github.com/grafana/agent/pkg/integrations/v2/blackbox_exporter"
 	"github.com/grafana/agent/pkg/integrations/v2/metricsutils"
 	snmp_exporter_v2 "github.com/grafana/agent/pkg/integrations/v2/snmp_exporter"
+	vmware_exporter_v2 "github.com/grafana/agent/pkg/integrations/v2/vmware_exporter"
 	"github.com/grafana/agent/pkg/integrations/windows_exporter"
 	"github.com/grafana/agent/pkg/logs"
 	"github.com/grafana/agent/pkg/metrics"
@@ -171,6 +172,7 @@ func validateIntegrationsV2(integrationsConfig *v2.SubsystemOptions) diag.Diagno
 			diags.AddAll(common.ValidateSupported(common.NotEquals, itg.TracesInstance, "", "app_agent_receiver traces_instance", ""))
 		case *blackbox_exporter_v2.Config:
 		case *snmp_exporter_v2.Config:
+		case *vmware_exporter_v2.Config:
 		case *metricsutils.ConfigShim:
 			switch v1_itg := itg.Orig.(type) {
 			case *azure_exporter.Config:

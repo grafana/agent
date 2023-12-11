@@ -5,7 +5,6 @@ import (
 
 	"github.com/alecthomas/units"
 	"github.com/grafana/agent/component/common/loki"
-	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/faro/receiver"
 	"github.com/grafana/agent/component/otelcol"
 	"github.com/grafana/agent/converter/diag"
@@ -15,7 +14,7 @@ import (
 	"github.com/grafana/river/scanner"
 )
 
-func (b *IntegrationsConfigBuilder) appendAppAgentReceiverV2(config *app_agent_receiver_v2.Config) discovery.Exports {
+func (b *IntegrationsConfigBuilder) appendAppAgentReceiverV2(config *app_agent_receiver_v2.Config) {
 	args := toAppAgentReceiverV2(config)
 
 	compLabel, err := scanner.SanitizeIdentifier(b.formatJobName(config.Name(), nil))
@@ -28,8 +27,6 @@ func (b *IntegrationsConfigBuilder) appendAppAgentReceiverV2(config *app_agent_r
 		compLabel,
 		args,
 	))
-
-	return discovery.Exports{}
 }
 
 func toAppAgentReceiverV2(config *app_agent_receiver_v2.Config) *receiver.Arguments {

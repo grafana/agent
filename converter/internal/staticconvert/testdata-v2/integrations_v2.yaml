@@ -218,3 +218,13 @@ integrations:
   statsd:
     autoscrape:
       metrics_instance: "default"
+  vsphere_configs:
+    - vsphere_url: https://127.0.0.1:8989/sdk
+      vsphere_user: user
+      vsphere_password: pass
+      request_chunk_size: 256
+      collect_concurrency: 8
+      instance: vsphere
+      autoscrape:
+        enable: true
+        metrics_instance: default

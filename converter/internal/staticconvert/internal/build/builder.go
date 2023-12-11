@@ -44,6 +44,7 @@ import (
 	common_v2 "github.com/grafana/agent/pkg/integrations/v2/common"
 	"github.com/grafana/agent/pkg/integrations/v2/metricsutils"
 	snmp_exporter_v2 "github.com/grafana/agent/pkg/integrations/v2/snmp_exporter"
+	vmware_exporter_v2 "github.com/grafana/agent/pkg/integrations/v2/vmware_exporter"
 	"github.com/grafana/agent/pkg/integrations/windows_exporter"
 	"github.com/grafana/river/scanner"
 	"github.com/grafana/river/token/builder"
@@ -219,13 +220,16 @@ func (b *IntegrationsConfigBuilder) appendV2Integrations() {
 			exports = b.appendApacheExporterV2(itg)
 			commonConfig = itg.Common
 		case *app_agent_receiver_v2.Config:
-			exports = b.appendAppAgentReceiverV2(itg)
+			b.appendAppAgentReceiverV2(itg)
 			commonConfig = itg.Common
 		case *blackbox_exporter_v2.Config:
 			exports = b.appendBlackboxExporterV2(itg)
 			commonConfig = itg.Common
 		case *snmp_exporter_v2.Config:
 			exports = b.appendSnmpExporterV2(itg)
+			commonConfig = itg.Common
+		case *vmware_exporter_v2.Config:
+			exports = b.appendVmwareExporterV2(itg)
 			commonConfig = itg.Common
 		case *metricsutils.ConfigShim:
 			commonConfig = itg.Common
