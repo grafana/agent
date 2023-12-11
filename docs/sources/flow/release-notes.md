@@ -29,6 +29,37 @@ Other release notes for the different {{< param "PRODUCT_ROOT_NAME" >}} variants
 [release-notes-operator]: {{< relref "../operator/release-notes.md" >}}
 {{% /admonition %}}
 
+## v0.39
+
+### Breaking change: `prometheus.exporter.blackbox` config format update
+
+The config for `prometheus.exporter.blackbox` has been updated so that the name
+of a `target` block is passed in from argument rather than a label on the block.
+This will allow less restrictive values to be passed to the exporter.
+
+Before:
+```river
+prometheus.exporter.blackbox "example" {
+  config_file = "blackbox_modules.yml"
+
+  target "grafana" {
+    address = "http://grafana.com"
+  }
+}
+```
+
+After:
+```river
+prometheus.exporter.blackbox "example" {
+  config_file = "blackbox_modules.yml"
+
+  target {
+    name    = "grafana"
+    address = "http://grafana.com"
+  }
+}
+```
+
 ## v0.38
 
 ### Breaking change: `otelcol.exporter.jaeger` component removed

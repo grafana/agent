@@ -16,11 +16,13 @@ import (
 func TestUnmarshalRiver(t *testing.T) {
 	riverCfg := `
 		config_file = "modules.yml"
-		target "target_a" {
+		target {
+			name = "target_a"
 			address = "http://example.com"
 			module = "http_2xx"
 		}
-		target "target_b" {
+		target {
+			name = "target_b"
 			address = "http://grafana.com"
 			module = "http_2xx"
 		}
@@ -44,11 +46,13 @@ func TestUnmarshalRiverWithInlineConfig(t *testing.T) {
 	riverCfg := `
 		config = "{ modules: { http_2xx: { prober: http, timeout: 5s } } }"
 
-		target "target_a" {
+		target {
+			name = "target_a"
 			address = "http://example.com"
 			module = "http_2xx"
 		}
-		target "target_b" {
+		target {
+			name = "target_b"
 			address = "http://grafana.com"
 			module = "http_2xx"
 		}
@@ -77,11 +81,13 @@ func TestUnmarshalRiverWithInlineConfigYaml(t *testing.T) {
 	riverCfg := `
 		config = "modules:\n  http_2xx:\n    prober: http\n    timeout: 5s\n"
 
-		target "target_a" {
+		target {
+			name = "target_a"
 			address = "http://example.com"
 			module = "http_2xx"
 		}
-		target "target_b" {
+		target {
+			name = "target_b"
 			address = "http://grafana.com"
 			module = "http_2xx"
 		}
@@ -117,7 +123,8 @@ func TestUnmarshalRiverWithInvalidConfig(t *testing.T) {
 			`
 			config = "{ modules: { http_2xx: { prober: http, timeout: 5s }"
 
-			target "target_a" {
+			target {
+				name = "target_a"
 				address = "http://example.com"
 				module = "http_2xx"
 			}
@@ -129,7 +136,8 @@ func TestUnmarshalRiverWithInvalidConfig(t *testing.T) {
 			`
 			config = "{ module: { http_2xx: { prober: http, timeout: 5s } } }"
 
-			target "target_a" {
+			target {
+				name = "target_a"
 				address = "http://example.com"
 				module = "http_2xx"
 			}
@@ -142,7 +150,8 @@ func TestUnmarshalRiverWithInvalidConfig(t *testing.T) {
 			config_file = "config"
 			config = "{ modules: { http_2xx: { prober: http, timeout: 5s } } }"
 
-			target "target_a" {
+			target {
+				name = "target_a" 
 				address = "http://example.com"
 				module = "http_2xx"
 			}
@@ -152,7 +161,8 @@ func TestUnmarshalRiverWithInvalidConfig(t *testing.T) {
 		{
 			"Define neither config nor config_file",
 			`
-			target "target_a" {
+			target {
+				name = "target_a"
 				address = "http://example.com"
 				module = "http_2xx"
 			}
