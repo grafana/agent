@@ -13,3 +13,5 @@ integrations:
       server:
         host: "localhost"
         port: 55678
+  eventhandler:
+    cache_path: "/etc/eventhandler/eventhandler.cache"
