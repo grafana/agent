@@ -3,6 +3,7 @@ package internal
 import (
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	"github.com/go-kit/log"
@@ -57,10 +58,18 @@ func TestMarkerFileHandler(t *testing.T) {
 		// check folder first
 		stats, err := os.Stat(filepath.Join(dir, MarkerFolderName))
 		require.NoError(t, err)
-		require.Equal(t, MarkerFolderMode, stats.Mode().Perm())
+		if runtime.GOOS == "windows" {
+			require.Equal(t, MarkerWindowsFolderMode, stats.Mode().Perm())
+		} else {
+			require.Equal(t, MarkerFolderMode, stats.Mode().Perm())
+		}
 		// then file
 		stats, err = os.Stat(filepath.Join(dir, MarkerFolderName, MarkerFileName))
 		require.NoError(t, err)
-		require.Equal(t, MarkerFileMode, stats.Mode().Perm())
+		if runtime.GOOS == "windows" {
+			require.Equal(t, MarkerWindowsFileMode, stats.Mode().Perm())
+		} else {
+			require.Equal(t, MarkerFileMode, stats.Mode().Perm())
+		}
 	})
 }

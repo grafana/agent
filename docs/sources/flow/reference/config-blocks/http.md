@@ -12,18 +12,8 @@ title: http block
 
 # http block
 
-`http` is an optional configuration block used to customize how Grafana Agent's
-HTTP server functions. `http` is specified without a label and can only be
-provided once per configuration file.
-
-{{% admonition type="note" %}}
-While the `http` block can reference component exports, some components that
-rely on the HTTP server have a hidden dependency on the `http` block that may
-result in a circular dependency error.
-
-Only references to components named `remote.*` or `local.*` are guaranteed to
-work without any circular dependency errors.
-{{% /admonition %}}
+`http` is an optional configuration block used to customize how the {{< param "PRODUCT_NAME" >}} HTTP server functions.
+`http` is specified without a label and can only be provided once per configuration file.
 
 ## Example
 
@@ -38,19 +28,18 @@ http {
 
 ## Arguments
 
-The `http` block supports no arguments and is configured completely through
-inner blocks.
+The `http` block supports no arguments and is configured completely through inner blocks.
 
 ## Blocks
 
 The following blocks are supported inside the definition of `http`:
 
-Hierarchy | Block                          | Description                                                   | Required
---------- |--------------------------------|---------------------------------------------------------------| --------
-tls | [tls][]                        | Define TLS settings for the HTTP server.                      | no
-tls > windows_certificate_filter | [windows_certificate_filter][] | Configure Windows certificate store for all certificates.     | no
-tls > windows_certificate_filter > server | [server][]                     | Configure server certificates for Windows certificate filter. | no
+Hierarchy                                 | Block                          | Description                                                   | Required
+------------------------------------------|--------------------------------|---------------------------------------------------------------|---------
+tls                                       | [tls][]                        | Define TLS settings for the HTTP server.                      | no
+tls > windows_certificate_filter          | [windows_certificate_filter][] | Configure Windows certificate store for all certificates.     | no
 tls > windows_certificate_filter > client | [client][]                     | Configure client certificates for Windows certificate filter. | no
+tls > windows_certificate_filter > server | [server][]                     | Configure server certificates for Windows certificate filter. | no
 
 [tls]: #tls-block
 [windows_certificate_filter]: #windows-certificate-filter-block
@@ -62,14 +51,10 @@ tls > windows_certificate_filter > client | [client][]                     | Con
 The `tls` block configures TLS settings for the HTTP server.
 
 {{% admonition type="warning" %}}
-If you add the `tls` block and reload the configuration when Grafana
-Agent is running, existing connections will continue communicating over
-plaintext. Similarly, if you remove the `tls` block and reload the configuration
-when Grafana Agent is running, existing connections will continue
-communicating over TLS.
+If you add the `tls` block and reload the configuration when {{< param "PRODUCT_NAME" >}} is running, existing connections will continue communicating over plaintext.
+Similarly, if you remove the `tls` block and reload the configuration when {{< param "PRODUCT_NAME" >}} is running, existing connections will continue communicating over TLS.
 
-To ensure all connections use TLS, configure the `tls` block before you start
-Grafana Agent.
+To ensure all connections use TLS, configure the `tls` block before you start {{< param "PRODUCT_NAME" >}}.
 {{% /admonition %}}
 
 Name | Type | Description | Default | Required
@@ -80,7 +65,7 @@ Name | Type | Description | Default | Required
 `key_file` | `string` | Path to the server TLS key on disk. | `""` | conditionally
 `client_ca_pem` | `string` | PEM data of the client CA to validate requests against. | `""` | no
 `client_ca_file` | `string` | Path to the client CA file on disk to validate requests against. | `""` | no
-`client_auth` | `string` | Client authentication to use. | `"NoClientCert"` | no
+`client_auth_type` | `string` | Client authentication to use. | `"NoClientCert"` | no
 `cipher_suites` | `list(string)` | Set of cipher suites to use. | `[]` | no
 `curve_preferences` | `list(string)` | Set of elliptic curves to use in a handshake. | `[]` | no
 `min_version` | `string` | Oldest TLS version to accept from clients. | `""` | no
@@ -97,12 +82,12 @@ configured at a time:
 * `key_pem` and `key_file`
 * `client_ca_pem` and `client_ca_file`
 
-The `client_auth` argument determines whether to validate client certificates.
+The `client_auth_type` argument determines whether to validate client certificates.
 The default value, `NoClientCert`, indicates that the client certificate is not
 validated. The `client_ca_pem` and `client_ca_file` arguments may only
-be configured when `client_auth` is not `NoClientCert`.
+be configured when `client_auth_type` is not `NoClientCert`.
 
-The following values are accepted for `client_auth`:
+The following values are accepted for `client_auth_type`:
 
 * `NoClientCert`: client certificates are neither requested nor validated.
 * `RequestClientCert`: requests clients to send an optional certificate. Certificates provided by clients are not validated.
@@ -111,7 +96,7 @@ The following values are accepted for `client_auth`:
 * `RequireAndVerifyClientCert`: requires clients to send a valid certificate.
 
 The `client_ca_pem` or `client_ca_file` arguments may be used to perform client
-certificate validation. These arguments may only be provided when `client_auth`
+certificate validation. These arguments may only be provided when `client_auth_type`
 is not set to `NoClientCert`.
 
 The `cipher_suites` argument determines what cipher suites to use. If not
@@ -184,16 +169,16 @@ will serve the found certificate even if it is not compatible with the specified
 
 ### server block
 
-The `server` block is used to find the certificate to check the signer. If multiple certificates are found the 
+The `server` block is used to find the certificate to check the signer. If multiple certificates are found the
 `windows_certificate_filter` will choose the certificate with the expiration farthest in the future.
 
-Name | Type           | Description                                                                               | Default | Required
----- |----------------|-------------------------------------------------------------------------------------------|---------| --------
-`store` | `string`       | Name of the system store to look for the server Certificate, for example, LocalMachine, CurrentUser. | `""`    | yes
-`system_store` | `string`       | Name of the store to look for the server Certificate, for example, My, CA.                           | `""`    | yes
-`issuer_common_names` | `list(string)` | Issuer common names to check against.                                                     |         | no
-`template_id` | `string`       | Server Template ID to match in ASN1 format, for example, "1.2.3".                                    | `""`    | no
-`refresh_interval` | `string`       | How often to check for a new server certificate.                                          | `"5m"`  | no
+Name                  | Type           | Description                                                                                          | Default | Required
+----------------------|----------------|------------------------------------------------------------------------------------------------------|---------|---------
+`store`               | `string`       | Name of the system store to look for the server Certificate, for example, LocalMachine, CurrentUser. | `""`    | yes
+`system_store`        | `string`       | Name of the store to look for the server Certificate, for example, My, CA.                           | `""`    | yes
+`issuer_common_names` | `list(string)` | Issuer common names to check against.                                                                |         | no
+`template_id`         | `string`       | Server Template ID to match in ASN1 format, for example, "1.2.3".                                    | `""`    | no
+`refresh_interval`    | `string`       | How often to check for a new server certificate.                                                     | `"5m"`  | no
 
 
 
@@ -201,9 +186,8 @@ Name | Type           | Description                                             
 
 The `client` block is used to check the certificate presented to the server.
 
-Name | Type           | Description                                            | Default | Required
----- |----------------|--------------------------------------------------------|-----| --------
-`issuer_common_names` | `list(string)` | Issuer common names to check against.                  |     | no
-`subject_regex` | `string`       | Regular expression to match Subject name.              | `""` | no
-`template_id` | `string`       | Client Template ID to match in ASN1 format, for example, "1.2.3".                 |   `""`   | no
-
+Name                  | Type           | Description                                                       | Default | Required
+----------------------|----------------|-------------------------------------------------------------------|---------|---------
+`issuer_common_names` | `list(string)` | Issuer common names to check against.                             |         | no
+`subject_regex`       | `string`       | Regular expression to match Subject name.                         | `""`    | no
+`template_id`         | `string`       | Client Template ID to match in ASN1 format, for example, "1.2.3". | `""`    | no

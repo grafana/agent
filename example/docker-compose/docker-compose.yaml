@@ -162,7 +162,7 @@ services:
 
   consul:
     profiles: [integrations,consul]
-    image: consul
+    image: hashicorp/consul
     ports:
       - "8500:8500"
 

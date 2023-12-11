@@ -67,7 +67,7 @@ rule | [rule][] | Relabeling rules to apply to received log entries. | no
 
 ### rule block
 
-{{< docs/shared lookup="flow/reference/components/rule-block-logs.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/rule-block-logs.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ## Exported fields
 
@@ -112,3 +112,23 @@ loki.relabel "keep_error_only" {
 }
 ```
 
+<!-- START GENERATED COMPATIBLE COMPONENTS -->
+
+## Compatible components
+
+`loki.relabel` can accept arguments from the following components:
+
+- Components that export [Loki `LogsReceiver`]({{< relref "../compatibility/#loki-logsreceiver-exporters" >}})
+
+`loki.relabel` has exports that can be consumed by the following components:
+
+- Components that consume [Loki `LogsReceiver`]({{< relref "../compatibility/#loki-logsreceiver-consumers" >}})
+
+{{% admonition type="note" %}}
+
+Connecting some components may not be sensible or components may require further configuration to make the 
+connection work correctly. Refer to the linked documentation for more details.
+
+{{% /admonition %}}
+
+<!-- END GENERATED COMPATIBLE COMPONENTS -->

@@ -27,7 +27,7 @@ spec:
         - name: local-cred
       containers:
         - name: grafana-agent
-          image: docker.io/grafana/agent:v0.37.4
+          image: docker.io/grafana/agent:v0.38.1
           imagePullPolicy: IfNotPresent
           args:
             - run
@@ -38,6 +38,8 @@ spec:
           env:
             - name: AGENT_MODE
               value: flow
+            - name: AGENT_DEPLOY_MODE
+              value: "helm"
             - name: HOSTNAME
               valueFrom:
                 fieldRef:

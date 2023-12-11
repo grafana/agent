@@ -11,6 +11,18 @@ import (
 )
 
 func TestConfig_validate(t *testing.T) {
+	strConfig := `---
+collector_name: mssql_standard
+
+metrics:
+- metric_name: mssql_local_time_seconds
+  type: gauge
+  help: 'Local time in seconds since epoch (Unix time).'
+	values: [unix_time]
+	query: |
+		SELECT DATEDIFF(second, '19700101', GETUTCDATE()) AS unix_time
+	`
+
 	testCases := []struct {
 		name  string
 		input Config
@@ -84,6 +96,16 @@ func TestConfig_validate(t *testing.T) {
 			},
 			err: "timeout must be positive",
 		},
+		{
+			name: "good query config",
+			input: Config{
+				ConnectionString:   "sqlserver://user:pass@localhost:1433",
+				MaxIdleConnections: 3,
+				MaxOpenConnections: 3,
+				Timeout:            10 * time.Second,
+				QueryConfig:        []byte(strConfig),
+			},
+		},
 	}
 
 	for _, tc := range testCases {
@@ -98,6 +120,7 @@ func TestConfig_validate(t *testing.T) {
 		})
 	}
 }
+
 func TestConfig_UnmarshalYaml(t *testing.T) {
 	t.Run("only required values", func(t *testing.T) {
 		strConfig := `connection_string: "sqlserver://user:pass@localhost:1433"`
@@ -115,12 +138,27 @@ func TestConfig_UnmarshalYaml(t *testing.T) {
 	})
 
 	t.Run("all values", func(t *testing.T) {
-		strConfig := `
-connection_string: "sqlserver://user:pass@localhost:1433"
+		strQueryConfig := `collector_name: mssql_standard
+metrics:
+- metric_name: mssql_local_time_seconds
+  help: Local time in seconds since epoch (Unix time).
+  type: gauge
+  values:
+  - unix_time
+  query: SELECT DATEDIFF(second, '19700101', GETUTCDATE()) AS unix_time
+`
+		strConfig := `connection_string: "sqlserver://user:pass@localhost:1433"
 max_idle_connections: 5
 max_open_connections: 6
 timeout: 1m
-`
+query_config: 
+  collector_name: mssql_standard
+  metrics:
+    - metric_name: mssql_local_time_seconds
+      help: 'Local time in seconds since epoch (Unix time).'
+      type: "gauge"
+      values: [unix_time]
+      query: "SELECT DATEDIFF(second, '19700101', GETUTCDATE()) AS unix_time"`
 
 		var c Config
 
@@ -131,17 +169,29 @@ timeout: 1m
 			MaxIdleConnections: 5,
 			MaxOpenConnections: 6,
 			Timeout:            time.Minute,
+			QueryConfig:        []byte(strQueryConfig),
 		}, c)
 	})
 }
 
 func TestConfig_NewIntegration(t *testing.T) {
 	t.Run("integration with valid config", func(t *testing.T) {
+		strQueryConfig := `---
+collector_name: mssql_standard
+
+metrics:
+- metric_name: mssql_local_time_seconds
+  type: gauge
+  help: 'Local time in seconds since epoch (Unix time).'
+  values: [unix_time]
+  query: SELECT DATEDIFF(second, '19700101', GETUTCDATE()) AS unix_time
+`
 		c := &Config{
 			ConnectionString:   "sqlserver://user:pass@localhost:1433",
 			MaxIdleConnections: 3,
 			MaxOpenConnections: 3,
 			Timeout:            10 * time.Second,
+			QueryConfig:        []byte(strQueryConfig),
 		}
 
 		i, err := c.NewIntegration(log.NewJSONLogger(os.Stdout))
@@ -160,6 +210,28 @@ func TestConfig_NewIntegration(t *testing.T) {
 		i, err := c.NewIntegration(log.NewJSONLogger(os.Stdout))
 		require.Nil(t, i)
 		require.ErrorContains(t, err, "failed to validate config:")
+	})
+
+	t.Run("integration with invalid query config", func(t *testing.T) {
+		strQueryConfig := `collector_name: mssql_standard
+
+metrics:
+- metric_name: mssql_local_time_seconds
+  help: 'Local time in seconds since epoch (Unix time).'
+  values: [unix_time]
+  query: SELECT DATEDIFF(second, '19700101', GETUTCDATE()) AS unix_time
+`
+		c := &Config{
+			ConnectionString:   "sqlserver://user:pass@localhost:1433",
+			MaxIdleConnections: 3,
+			MaxOpenConnections: 3,
+			Timeout:            10 * time.Second,
+			QueryConfig:        []byte(strQueryConfig),
+		}
+
+		i, err := c.NewIntegration(log.NewJSONLogger(os.Stdout))
+		require.Nil(t, i)
+		require.ErrorContains(t, err, "failed to create mssql target: query_config not in correct format: ")
 	})
 }
 

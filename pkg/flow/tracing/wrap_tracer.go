@@ -18,9 +18,9 @@ var (
 // componentID as an attribute to each span.
 func WrapTracer(inner trace.TracerProvider, componentID string) trace.TracerProvider {
 	return &wrappedProvider{
-		inner:    inner,
-		id:       componentID,
-		spanName: componentIDAttributeKey,
+		TracerProvider: inner,
+		id:             componentID,
+		spanName:       componentIDAttributeKey,
 	}
 }
 
@@ -28,14 +28,14 @@ func WrapTracer(inner trace.TracerProvider, componentID string) trace.TracerProv
 // controller id as an attribute to each span.
 func WrapTracerForLoader(inner trace.TracerProvider, componentID string) trace.TracerProvider {
 	return &wrappedProvider{
-		inner:    inner,
-		id:       componentID,
-		spanName: controllerIDAttributeKey,
+		TracerProvider: inner,
+		id:             componentID,
+		spanName:       controllerIDAttributeKey,
 	}
 }
 
 type wrappedProvider struct {
-	inner    trace.TracerProvider
+	trace.TracerProvider
 	id       string
 	spanName string
 }
@@ -49,16 +49,16 @@ func (wp *wrappedProvider) Tracer(name string, options ...trace.TracerOption) tr
 		otelComponentName := strings.TrimSuffix(wp.id, filepath.Ext(wp.id))
 		options = append(options, trace.WithInstrumentationAttributes(attribute.String(wp.spanName, otelComponentName)))
 	}
-	innerTracer := wp.inner.Tracer(name, options...)
+	innerTracer := wp.TracerProvider.Tracer(name, options...)
 	return &wrappedTracer{
-		inner:    innerTracer,
+		Tracer:   innerTracer,
 		id:       wp.id,
 		spanName: wp.spanName,
 	}
 }
 
 type wrappedTracer struct {
-	inner    trace.Tracer
+	trace.Tracer
 	id       string
 	spanName string
 }
@@ -66,7 +66,7 @@ type wrappedTracer struct {
 var _ trace.Tracer = (*wrappedTracer)(nil)
 
 func (tp *wrappedTracer) Start(ctx context.Context, spanName string, opts ...trace.SpanStartOption) (context.Context, trace.Span) {
-	ctx, span := tp.inner.Start(ctx, spanName, opts...)
+	ctx, span := tp.Tracer.Start(ctx, spanName, opts...)
 	if tp.id != "" {
 		span.SetAttributes(
 			attribute.String(tp.spanName, tp.id),

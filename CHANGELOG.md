@@ -10,6 +10,88 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+### Enhancements
+
+- Flow Windows service: Support environment variables. (@jkroepke)
+
+- Allow disabling collection of root Cgroup stats in
+  `prometheus.exporter.cadvisor` (flow mode) and the `cadvisor` integration
+  (static mode). (@hainenber)
+
+- Grafana Agent on Windows now automatically restarts on failure. (@hainenber)
+
+- Added metrics, alerts and dashboard visualisations to help diagnose issues
+  with unhealthy components and components that take too long to evaluate. (@thampiotr)
+
+- The `http` config block may now reference exports from any component.
+  Previously, only `remote.*` and `local.*` components could be referenced
+  without a circular dependency. (@rfratto)
+
+- Add a `resource_to_telemetry_conversion` argument to `otelcol.exporter.prometheus`
+  for converting resource attributes to Prometheus labels. (@hainenber)
+
+- `pyroscope.ebpf` support python on arm64 platforms. (@korniltsev)
+
+- `mimir.rules.kubernetes` may now retry its startup on failure. (@hainenber)
+
+- Added links between compatible components in the documentation to make it
+  easier to discover them. (@thampiotr)
+  
+- Allow defining `HTTPClientConfig` for `discovery.ec2`. (@cmbrad)
+
+- The `remote.http` component can optionally define a request body. (@tpaschalis)
+
+### Bugfixes
+
+- Update `pyroscope.ebpf` to fix a logical bug causing to profile to many kthreads instead of regular processes https://github.com/grafana/pyroscope/pull/2778 (@korniltsev)
+ 
+- Update `pyroscope.ebpf` to produce more optimal pprof profiles for python processes https://github.com/grafana/pyroscope/pull/2788 (@korniltsev)
+
+- In Static mode's `traces` subsystem, `spanmetrics` used to be generated prior to load balancing.
+  This could lead to inaccurate metrics. This issue only affects Agents using both `spanmetrics` and 
+  `load_balancing`, when running in a load balanced cluster with more than one Agent instance. (@ptodev)
+
+- Fixes `loki.source.docker` a behavior that synced an incomplete list of targets to the tailer manager. (@FerdinandvHagen)
+
+### Other changes
+
+- Bump github.com/IBM/sarama from v1.41.2 to v1.42.1
+
+v0.38.1 (2023-11-30)
+--------------------
+
+### Security fixes
+
+- Fix CVE-2023-47108 by updating `otelgrpc` from v0.45.0 to v0.46.0. (@hainenber)
+
+### Features
+
+- Agent Management: Introduce support for templated configuration. (@jcreixell)
+
+### Bugfixes
+
+- Permit `X-Faro-Session-ID` header in CORS requests for the `faro.receiver`
+  component (flow mode) and the `app_agent_receiver` integration (static mode).
+  (@cedricziel)
+
+- Fix issue with windows_exporter defaults not being set correctly. (@mattdurham)
+
+- Fix agent crash when process null OTel's fan out consumers. (@hainenber)
+
+- Fix issue in `prometheus.operator.*` where targets would be dropped if two crds share a common prefix in their names. (@Paul424, @captncraig)
+
+- Fix issue where `convert` command would generate incorrect Flow Mode config
+  when provided `promtail` configuration that uses `docker_sd_configs` (@thampiotr)
+
+- Fix converter issue with `loki.relabel` and `max_cache_size` being set to 0 instead of default (10_000). (@mattdurham)
+
+### Other changes
+
+- Add Agent Deploy Mode to usage report. (@captncraig)
+
+v0.38.0 (2023-11-21)
+--------------------
+
 ### Breaking changes
 
 - Remove `otelcol.exporter.jaeger` component (@hainenber)
@@ -25,11 +107,6 @@ Main (unreleased)
     - metric "transaction_in_queue" was Counter instead of Gauge
     - renamed 3 metrics starting with `mysql_perf_schema_transaction_` to start with `mysql_perf_schema_transactions_` to be consistent with column names.
     - exposing only server's own stats by matching `MEMBER_ID` with `@@server_uuid` resulting "member_id" label to be dropped.
-
-### Other changes
-
-- Bump `mysqld_exporter` version to v0.15.0. (@marctc)
-- Bump `github-exporter` version to 1.0.6. (@marctc)
 
 ### Features
 
@@ -64,6 +141,9 @@ Main (unreleased)
 
   - `otelcol.processor.filter` - filters OTLP telemetry data using OpenTelemetry
     Transformation Language (OTTL). (@hainenber)
+  - `otelcol.receiver.vcenter` - receives metrics telemetry data from vCenter. (@marctc)
+
+- Agent Management: Introduce support for remotely managed external labels for logs. (@jcreixell)
 
 ### Enhancements
 
@@ -92,16 +172,28 @@ Main (unreleased)
 - Make component list sortable in web UI. (@hainenber)
 
 - Adds new metrics (`mssql_server_total_memory_bytes`, `mssql_server_target_memory_bytes`,
-  and `mssql_available_commit_memory_bytes`) for `mssql` integration.
+  and `mssql_available_commit_memory_bytes`) for `mssql` integration (@StefanKurek).
 
 - Grafana Agent Operator: `config-reloader` container no longer runs as root.
   (@rootmout)
 
 - Added support for replaying not sent data for `loki.write` when WAL is enabled. (@thepalbi)
 
+- Make the result of 'discovery.kubelet' support pods that without ports, such as k8s control plane static pods. (@masonmei)
+
 - Added support for unicode strings in `pyroscope.ebpf` python profiles. (@korniltsev)
 
+- Improved resilience of graph evaluation in presence of slow components. (@thampiotr)
+
+- Updated windows exporter to use prometheus-community/windows_exporter commit 1836cd1. (@mattdurham)
+
+- Allow agent to start with `module.git` config if cached before. (@hainenber)
+
+- Adds new optional config parameter `query_config` to `mssql` integration to allow for custom metrics (@StefanKurek)
+
 ### Bugfixes
+
+- Set exit code 1 on grafana-agentctl non-runnable command. (@fgouteroux)
 
 - Fixed an issue where `loki.process` validation for stage `metric.counter` was
   allowing invalid combination of configuration options. (@thampiotr)
@@ -137,6 +229,38 @@ Main (unreleased)
 
 - Updating configuration for `loki.write` no longer drops data. (@thepalbi)
 
+- Fixed a bug in WAL where exemplars were recorded before the first native histogram samples for new series,
+  resulting in remote write sending the exemplar first and Prometheus failing to ingest it due to missing
+  series. (@krajorama)
+
+- Fixed an issue in the static config converter where exporter instance values
+  were not being mapped when translating to flow. (@erikbaranowski)
+
+- Fix a bug which prevented Agent from running `otelcol.exporter.loadbalancing`
+  with a `routing_key` of `traceID`. (@ptodev)
+
+- Added Kubernetes service resolver to static node's loadbalancing exporter
+  and to Flow's `otelcol.exporter.loadbalancing`. (@ptodev)
+
+- Fix default configuration file `grafana-agent-flow.river` used in downstream
+  packages. (@bricewge)
+
+- Fix converter output for prometheus.exporter.windows to not unnecessarily add
+  empty blocks. (@erikbaranowski)
+
+### Other changes
+
+- Bump `mysqld_exporter` version to v0.15.0. (@marctc)
+
+- Bump `github-exporter` version to 1.0.6. (@marctc)
+
+- Use Go 1.21.4 for builds. (@rfratto)
+
+- Change User-Agent header for outbound requests to include agent-mode, goos, and deployment mode. Example `GrafanaAgent/v0.38.0 (flow; linux; docker)` (@captncraig)
+
+- `loki.source.windowsevent` and `loki.source.*` changed to use a more robust positions file to prevent corruption on reboots when writing
+  the positions file. (@mattdurham)
+
 v0.37.4 (2023-11-06)
 -----------------
 
@@ -149,6 +273,9 @@ v0.37.4 (2023-11-06)
 
 - Fix a bug where reloading the configuration of a `loki.write` component lead
   to a panic. (@tpaschalis)
+
+- Added Kubernetes service resolver to static node's loadbalancing exporter
+  and to Flow's `otelcol.exporter.loadbalancing`. (@ptodev)
 
 v0.37.3 (2023-10-26)
 -----------------

@@ -149,9 +149,7 @@ func (l *Loader) Apply(args map[string]any, componentBlocks []*ast.BlockStmt, co
 	defer func() {
 		span.SetStatus(codes.Ok, "")
 
-		duration := time.Since(start)
-		level.Info(logger).Log("msg", "finished complete graph evaluation", "duration", duration)
-		l.cm.componentEvaluationTime.Observe(duration.Seconds())
+		level.Info(logger).Log("msg", "finished complete graph evaluation", "duration", time.Since(start))
 	}()
 
 	l.cache.ClearModuleExports()
@@ -234,7 +232,6 @@ func (l *Loader) Apply(args map[string]any, componentBlocks []*ast.BlockStmt, co
 	l.graph = &newGraph
 	l.cache.SyncIDs(componentIDs)
 	l.blocks = componentBlocks
-	l.cm.componentEvaluationTime.Observe(time.Since(start).Seconds())
 	if l.globals.OnExportsChange != nil && l.cache.ExportChangeIndex() != l.moduleExportIndex {
 		l.moduleExportIndex = l.cache.ExportChangeIndex()
 		l.globals.OnExportsChange(l.cache.CreateModuleExports())
@@ -498,22 +495,6 @@ func (l *Loader) wireGraphEdges(g *dag.Graph) diag.Diagnostics {
 
 				g.AddEdge(dag.Edge{From: n, To: dep})
 			}
-
-		case *ComponentNode: // Component depending on service.
-			for _, depName := range n.Registration().NeedsServices {
-				dep := g.GetByID(depName)
-				if dep == nil {
-					diags.Add(diag.Diagnostic{
-						Severity: diag.SeverityLevelError,
-						Message:  fmt.Sprintf("%s component depends on undefined service %q; please report this issue to project maintainers", n.NodeID(), depName),
-						StartPos: ast.StartPos(n.Block()).Position(),
-						EndPos:   ast.EndPos(n.Block()).Position(),
-					})
-					continue
-				}
-
-				g.AddEdge(dag.Edge{From: n, To: dep})
-			}
 		}
 
 		// Finally, wire component references.
@@ -652,8 +633,8 @@ func (l *Loader) concurrentEvalFn(n dag.Node, spanCtx context.Context, tracer tr
 
 	defer func() {
 		duration := time.Since(start)
+		l.cm.onComponentEvaluationDone(n.NodeID(), duration)
 		level.Info(l.log).Log("msg", "finished node evaluation", "node_id", n.NodeID(), "duration", duration)
-		l.cm.componentEvaluationTime.Observe(duration.Seconds())
 	}()
 
 	var err error
