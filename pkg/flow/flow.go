@@ -240,7 +240,7 @@ func (f *Flow) Run(ctx context.Context) {
 			// throughput - it prevents the situation where two components have the same dependency, and the first time
 			// it's picked up by the worker pool and the second time it's enqueued again, resulting in more evaluations.
 			all := f.updateQueue.DequeueAll()
-			f.loader.EvaluateDependencies(ctx, all)
+			f.loader.EvaluateDependants(ctx, all)
 		case <-f.loadFinished:
 			level.Info(f.log).Log("msg", "scheduling loaded components and services")
 
