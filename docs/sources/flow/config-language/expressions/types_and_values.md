@@ -20,7 +20,7 @@ River uses the following types for its values:
 * `bool`: A boolean value, either `true` or `false`.
 * `array`: A sequence of values, like `[1, 2, 3]`. Elements within the list are indexed by whole numbers, starting with zero.
 * `object`: A group of values identified by named labels, like `{ name = "John" }`.
-* `function`: A value representing a routine that can be executed with arguments to compute another value, like `env("HOME")`.
+* `function`: A value representing a routine that runs with arguments to compute another value, like `env("HOME")`.
   Functions take zero or more arguments as input and always return a single value as output.
 * `null`: A type that has no value.
 
@@ -29,10 +29,10 @@ River uses the following types for its values:
 In addition to the preceding types, the [component reference][] documentation uses the following conventions for referring to types:
 
 * `any`: A value of any type.
-* `map(T)`: an `object` where the value type is `T`.
+* `map(T)`: an `object` with the value type `T`.
   For example, `map(string)` is an object where all the values are strings.
-  The key type of an object is always a string or an identifier that is converted into a string.
-* `list(T)`: an `array` where the value type is `T`.
+  The key type of an object is always a string or an identifier converted into a string.
+* `list(T)`: an `array` with the value type`T`.
   For example, `list(string)` is an array where all the values are strings.
 * `duration`: a `string` denoting a duration of time, such as `"1d"`, `"1h30m"`, `"10s"`.
   Valid units are:
@@ -50,7 +50,7 @@ In addition to the preceding types, the [component reference][] documentation us
 
 ## Numbers
 
-River handles integers, unsigned integers, and floating-point values as a single 'number' type simplifying writing and reading River configuration files.
+River handles integers, unsigned integers, and floating-point values as a single 'number' type, simplifying writing and reading River configuration files.
 
 ```river
 3    == 3.00     // true
@@ -119,7 +119,7 @@ Bools are represented by the symbols `true` and `false`.
 
 ## Arrays
 
-Array values are constructed by a sequence of comma-separated values surrounded by square brackets `[]`:
+You construct arrays with a sequence of comma-separated values surrounded by square brackets `[]`:
 
 ```river
 [0, 1, 2, 3]
@@ -138,7 +138,7 @@ A comma after the final value must be present if the closing bracket `]` is on a
 
 ## Objects
 
-You construct object values with a sequence of comma-separated key-value pairs surrounded by curly braces `{}`.
+You construct objects with a sequence of comma-separated key-value pairs surrounded by curly braces `{}`.
 
 ```river
 {
@@ -153,7 +153,7 @@ You can omit the comma after the final key-value pair if the closing curly brace
 { name = "John" }
 ```
 
-If the key isn't a valid identifier, you must must wrap it in double quotes like a string.
+If the key isn't a valid identifier, you must wrap it in double quotes like a string.
 
 ```river
 {
@@ -168,7 +168,7 @@ Don't confuse objects with blocks.
 
 An _object_ is a value assigned to an [Attribute][Attributes]. You **must** use commas between key-value pairs on separate lines.
 
-A [Block][Blocks] is a named structural element composed of multiple attributes. You **must not** use commans between attributes.
+A [Block][Blocks] is a named structural element composed of multiple attributes. You **must not** use commas between attributes.
 
 [Attributes]: {{< relref "../syntax.md#Attributes" >}}
 [Blocks]: {{< relref "../syntax.md#Blocks" >}}
@@ -176,7 +176,7 @@ A [Block][Blocks] is a named structural element composed of multiple attributes.
 
 ## Functions
 
-You can't construct function values. You can call functions from the standard library or you can export them from a component.
+You can't construct function values. You can call functions from the standard library or export them from a component.
 
 ## Null
 
@@ -187,7 +187,7 @@ The null value is represented by the symbol `null`.
 #### Secrets
 
 A `secret` is a special type of string that's never displayed to the user.
-`string` values may be assigned to an attribute expecting a `secret`, but never the inverse.
+You can assign `string` values to an attribute expecting a `secret`, but never the inverse.
 It's impossible to convert a secret to a string or assign a secret to an attribute expecting a string.
 
 #### Capsules
@@ -196,7 +196,7 @@ A `capsule` is a special type that represents a category of _internal_ types use
 Each capsule type has a unique name and is represented to the user as `capsule("<SOME_INTERNAL_NAME>")`.
 You can't construct capsule values. You can use capsules in expressions as any other type.
 Capsules aren't inter-compatible, and an attribute expecting a capsule can only be given a capsule of the same internal type.
-That means, if an attribute expects a `capsule("prometheus.Receiver")`, it you can only assign a `capsule("prometheus.Receiver")` type.
+If an attribute expects a `capsule("prometheus.Receiver")`, you can only assign a `capsule("prometheus.Receiver")` type.
 The specific type of capsule expected is explicitly documented for any component that uses or exports them.
 
 In the following example, the `prometheus.remote_write` component exports a `receiver`, which is a `capsule("prometheus.Receiver")` type.

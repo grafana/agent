@@ -13,14 +13,14 @@ weight: 400
 
 # Configuration language
 
-{{< param "PRODUCT_NAME" >}} uses a custom configuration language called River to dynamically configure and connect components.
+{{< param "PRODUCT_NAME" >}} dynamically configures and connects components with a custom configuration language called River.
 
 River aims to reduce errors in configuration files by making configurations easier to read and write.
 River configurations use blocks that can be easily copied and pasted from the documentation to help you get started as quickly as possible.
 
 A River configuration file tells {{< param "PRODUCT_NAME" >}} which components to launch and how to bind them together into a pipeline.
 
-The syntax of River is centered around blocks, attributes, and expressions.
+The syntax of River uses blocks, attributes, and expressions.
 
 ```river
 // Create a local.file component labeled my_file.
@@ -43,16 +43,16 @@ BLOCK_NAME {
 ```
 
 [River][RFC] is similar to HCL, the language Terraform and other Hashicorp projects use.
-River was inspired by HCL, but is a distinct language with different syntax and features, such as first-class functions.
+It's a distinct language with custom syntax and features, such as first-class functions.
 
 * Blocks are a group of related settings and usually represent creating a component.
-  Blocks have a name that consist of zero or more identifiers separated by `.`, an optional user label, and a body that contains attributes and nested blocks.
+  Blocks have a name that consists of zero or more identifiers separated by `.`, an optional user label, and a body containing attributes and nested blocks.
 * Attributes appear within blocks and assign a value to a name.
 * Expressions represent a value, either literally or by referencing and combining other values.
-  Expressions are used to compute a value for an attribute.
+  You use expressions to compute a value for an attribute.
 
-River is declarative, so the ordering of components, blocks, and attributes within a block isn't significant.
-The order of operations is determined by the relationship between components.
+River is declarative, so ordering components, blocks, and attributes within a block isn't significant.
+The relationship between components determines the order of operations.
 
 [RFC]: https://github.com/grafana/agent/blob/97a55d0d908b26dbb1126cc08b6dcc18f6e30087/docs/rfcs/0005-river.md
 

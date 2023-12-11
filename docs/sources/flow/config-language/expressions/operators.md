@@ -14,7 +14,7 @@ weight: 300
 # Operators
 
 River uses a common set of operators.
-All operations follow the standard [PEMDAS][] rule for operator precedence.
+All operations follow the standard [PEMDAS][] order of mathematical operations.
 
 ## Arithmetic operators
 
@@ -100,9 +100,9 @@ Operator | Description
 `[ ]`    | Access a member of an array or object.
 `.`      | Access a named member of an object or an exported field of a component.
 
-River's access operators support accessing of arbitrarily nested values.
+You can access arbitrarily nested values with River's access operators.
 You can use square brackets to access zero-indexed array indices and object fields by enclosing the field name in double quotes.
-You can use the dot operator to access both object fields without double quotes, and component exports.
+You can use the dot operator to access object fields without double quotes and component exports.
 
 ```river
 obj["app"]

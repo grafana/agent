@@ -32,14 +32,14 @@ Most user interactions with components center around two basic concepts, _argume
   They can be any number of attributes or nested unlabeled blocks, some required and some optional.
   Any optional arguments that aren't set take on their default values.
 
-* _Exports_ are zero or more output values that other components can refer to, and they can be of any River type.
+* _Exports_ are zero or more output values that other components can refer to and can be of any River type.
 
 The following block defines a `local.file` component labeled "targets".
 The `local.file.targets` component exposes the file `content` as a string in its exports.
 
 The `filename` attribute is a _required_ argument.
 You can also define a number of _optional_ arguments, in this case, `detector`, `poll_frequency`, and `is_secret`,
-that configure how and how often the file should be polled and whether its contents are sensitive or not.
+that configure how and how often the file should be polled and whether its contents are sensitive.
 
 ```river
 local.file "targets" {
@@ -79,14 +79,14 @@ prometheus.scrape "default" {
 }
 ```
 
-Every time the file contents change, the `local.file` updates its exports. The new value is given to the `prometheus.scrape` targets field.
+Each time the file contents change, the `local.file` updates its exports. The new value is sent to the `prometheus.scrape` targets field.
 
 Each argument and exported field has an underlying [type][].
-River type-checks expressions before assigning a value to an attribute.
-The documentation of each [component][components] provides more information about the ways that you can wire components together.
+River checks the expression type before assigning a value to an attribute.
+The documentation of each [component][components] provides more information about how to wire components together.
 
 In the previous example, the contents of the `local.file.targets.content` expression is evaluated to a concrete value.
-The value is type-checked and substituted into `prometheus.scrape.default` where it can be configured.
+The value is type-checked and substituted into `prometheus.scrape.default`, where you can configure it.
 
 [components]: {{< relref "../reference/components/_index.md" >}}
 [controller]: {{< relref "../concepts/component_controller.md" >}}

@@ -47,7 +47,7 @@ Refer to [Components][] for more information about the module loader components.
 
 ## Module sources
 
-Modules are flexible and you can retrieve their configuration anywhere, such as:
+Modules are flexible, and you can retrieve their configuration anywhere, such as:
 
 * The local filesystem.
 * An S3 bucket.
@@ -78,9 +78,9 @@ This example module manages a pipeline that filters out debug-level and info-lev
 
 ```river
 // argument.write_to is a required argument that specifies where filtered
-// log lines should be sent.
+// log lines are sent.
 //
-// The value of the argument can be retrieved in this file with
+// The value of the argument is retrieved in this file with
 // argument.write_to.value.
 argument "write_to" {
   optional = false
@@ -99,7 +99,7 @@ loki.process "filter" {
   forward_to = argument.write_to.value
 }
 
-// export.filter_input exports a value to the consumer of the module.
+// export.filter_input exports a value to the module consumer.
 export "filter_input" {
   // Expose the receiver of loki.process so the module consumer can send
   // logs to our loki.process component.

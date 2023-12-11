@@ -41,7 +41,7 @@ River is designed with the following requirements in mind:
 You use _Attributes_ to configure individual settings.
 Attributes always take the form of `ATTRIBUTE_NAME = ATTRIBUTE_VALUE`.
 
-The following example shows you how to set the `log_level` attribute to `"debug"`.
+The following example shows how to set the `log_level` attribute to `"debug"`.
 
 ```river
 log_level = "debug"
@@ -64,7 +64,7 @@ You can use expressions for any attribute inside a component definition.
 
 The most common expression is to reference the exports of a component, for example, `local.file.password_file.content`.
 You form a reference to a component's exports by merging the component's name (for example, `local.file`),
-label (for example, `password_file`), and export name (for example, `content`), delimited by period.
+label (for example, `password_file`), and export name (for example, `content`), delimited by a period.
 
 ## Blocks
 
@@ -83,8 +83,8 @@ The preceding example has two blocks:
 
 * `prometheus.remote_write "default"`: A labeled block which instantiates a `prometheus.remote_write` component.
   The label is the string `"default"`.
-* `endpoint`: An unlabeled block inside the component which configures an endpoint to send metrics to.
-  This block sets the `url` attribute to specify what the endpoint is.
+* `endpoint`: An unlabeled block inside the component that configures an endpoint to send metrics to.
+  This block sets the `url` attribute to specify the endpoint.
 
 ## More information
 

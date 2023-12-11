@@ -51,7 +51,7 @@ local.file "b" {
 ## Component evaluation
 
 A component is _evaluated_ when its expressions are computed into concrete values.
-The computed values are then used to configure the component's runtime behavior.
+The computed values configure the component's runtime behavior.
 The component controller is finished loading once all components are evaluated, configured, and running.
 
 The component controller only evaluates a given component after evaluating all of that component's dependencies.
@@ -92,13 +92,13 @@ When a component fails to evaluate, it's marked as unhealthy with the reason for
 When an evaluation fails, the component continues operating as normal.
 The component continues using its previous set of evaluated arguments and can continue exporting new values.
 
-This prevents failure propagation.
+This behavior prevents failure propagation.
 If your `local.file` component, which watches API keys, suddenly stops working, other components continue using the last valid API key until the component returns to a healthy state.
 
 ## In-memory traffic
 
 Components that expose HTTP endpoints, such as [prometheus.exporter.unix][], can expose an internal address that completely bypasses the network and communicate in-memory.
-This allows components within the same process to communicate with one another without needing to be aware of any network-level protections such as authentication or mutual TLS.
+Components within the same process can communicate with one another without needing to be aware of any network-level protections such as authentication or mutual TLS.
 
 The internal address defaults to `agent.internal:12345`.
 If this address collides with a real target on your network, change it to something unique using the `--server.http.memory-addr` flag in the [run][] command.
@@ -108,7 +108,7 @@ Refer to the individual documentation for components to learn if in-memory traff
 
 ## Updating the configuration file
 
-Both the `/-/reload` HTTP endpoint and the `SIGHUP` signal can inform the component controller to reload the configuration file.
+The `/-/reload` HTTP endpoint and the `SIGHUP` signal can inform the component controller to reload the configuration file.
 When this happens, the component controller synchronizes the set of running components with the ones in the configuration file,
 removing components no longer defined in the configuration file and creating new components added to the configuration file.
 All components managed by the controller are reevaluated after reloading.
