@@ -135,7 +135,7 @@ The `store` block configures the in-memory store for spans.
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `max_items` | `number` | Maximum number of items to keep in the store. | `1000` | no
-`ttl` | `duration` | The time to live for spans in the store. | `"2ms"` | no
+`ttl` | `duration` | The time to live for spans in the store. | `"2s"` | no
 
 ### output block
 
