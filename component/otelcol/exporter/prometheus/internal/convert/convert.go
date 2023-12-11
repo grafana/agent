@@ -288,7 +288,7 @@ func (conv *Converter) consumeMetric(app storage.Appender, memResource *memorySe
 	case pmetric.MetricTypeSummary:
 		conv.consumeSummary(app, memResource, memScope, m, resAttrs)
 	case pmetric.MetricTypeExponentialHistogram:
-		conv.consumeExponentialHistogram(app, memResource, memScope, m)
+		conv.consumeExponentialHistogram(app, memResource, memScope, m, resAttrs)
 	}
 }
 
@@ -603,7 +603,7 @@ func (conv *Converter) consumeHistogram(app storage.Appender, memResource *memor
 	}
 }
 
-func (conv *Converter) consumeExponentialHistogram(app storage.Appender, memResource *memorySeries, memScope *memorySeries, m pmetric.Metric) {
+func (conv *Converter) consumeExponentialHistogram(app storage.Appender, memResource *memorySeries, memScope *memorySeries, m pmetric.Metric, resAttrs pcommon.Map) {
 	metricName := prometheus.BuildCompliantName(m, "", conv.opts.AddMetricSuffixes)
 
 	if m.ExponentialHistogram().AggregationTemporality() != pmetric.AggregationTemporalityCumulative {
@@ -622,6 +622,10 @@ func (conv *Converter) consumeExponentialHistogram(app storage.Appender, memReso
 
 	for dpcount := 0; dpcount < m.ExponentialHistogram().DataPoints().Len(); dpcount++ {
 		dp := m.ExponentialHistogram().DataPoints().At(dpcount)
+
+		if conv.getOpts().ResourceToTelemetryConversion {
+			joinAttributeMaps(resAttrs, dp.Attributes())
+		}
 
 		memSeries := conv.getOrCreateSeries(memResource, memScope, metricName, dp.Attributes())
 
