@@ -13,13 +13,13 @@ title: pyroscope.ebpf
 
 # pyroscope.ebpf
 
-{{< docs/shared lookup="flow/stability/beta.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/stability/beta.md" source="agent" version="<AGENT_VERSION>" >}}
 
 `pyroscope.ebpf` configures an ebpf profiling job for the current host. The collected performance profiles are forwarded
 to the list of receivers passed in `forward_to`.
 
 {{% admonition type="note" %}}
-To use the  `pyroscope.ebpf` component you must run Grafana Agent as root and inside host pid namespace.
+To use the  `pyroscope.ebpf` component you must run {{< param "PRODUCT_NAME" >}} as root and inside host pid namespace.
 {{% /admonition %}}
 
 You can specify multiple `pyroscope.ebpf` components by giving them different labels, however it is not recommended as
@@ -45,15 +45,15 @@ values.
 | Name                      | Type                     | Description                                                                         | Default | Required |
 |---------------------------|--------------------------|-------------------------------------------------------------------------------------|---------|----------|
 | `targets`                 | `list(map(string))`      | List of targets to group profiles by container id                                   |         | yes      |
-| `forward_to`              | `list(ProfilesReceiver)` | List of receivers to send collected profiles to.                                    |         | yes      |   
-| `collect_interval`        | `duration`               | How frequently to collect profiles                                                  | `15s`   | no       |       
-| `sample_rate`             | `int`                    | How many times per second to collect profile samples                                | 97      | no       |     
-| `pid_cache_size`          | `int`                    | The size of the pid -> proc symbols table LRU cache                                 | 32      | no       |      
-| `build_id_cache_size`     | `int`                    | The size of the elf file build id -> symbols table LRU cache                        | 64      | no       |       
-| `same_file_cache_size`    | `int`                    | The size of the elf file -> symbols table LRU cache                                 | 8       | no       |       
-| `container_id_cache_size` | `int`                    | The size of the pid -> container ID table LRU cache                                 | 1024    | no       |       
-| `collect_user_profile`    | `bool`                   | A flag to enable/disable collection of userspace profiles                           | true    | no       |       
-| `collect_kernel_profile`  | `bool`                   | A flag to enable/disable collection of kernelspace profiles                         | true    | no       |       
+| `forward_to`              | `list(ProfilesReceiver)` | List of receivers to send collected profiles to.                                    |         | yes      |
+| `collect_interval`        | `duration`               | How frequently to collect profiles                                                  | `15s`   | no       |
+| `sample_rate`             | `int`                    | How many times per second to collect profile samples                                | 97      | no       |
+| `pid_cache_size`          | `int`                    | The size of the pid -> proc symbols table LRU cache                                 | 32      | no       |
+| `build_id_cache_size`     | `int`                    | The size of the elf file build id -> symbols table LRU cache                        | 64      | no       |
+| `same_file_cache_size`    | `int`                    | The size of the elf file -> symbols table LRU cache                                 | 8       | no       |
+| `container_id_cache_size` | `int`                    | The size of the pid -> container ID table LRU cache                                 | 1024    | no       |
+| `collect_user_profile`    | `bool`                   | A flag to enable/disable collection of userspace profiles                           | true    | no       |
+| `collect_kernel_profile`  | `bool`                   | A flag to enable/disable collection of kernelspace profiles                         | true    | no       |
 | `demangle`                | `string`                 | C++ demangle mode. Available options are: `none`, `simplified`, `templates`, `full` | `none`  | no       |
 | `python_enabled`          | `bool`                   | A flag to enable/disable python profiling                                           | true    | no       |
 
@@ -192,9 +192,9 @@ Interpreted methods will display the interpreter function’s name rather than t
 ### Kubernetes discovery
 
 In the following example, performance profiles are collected from pods on the same node, discovered using
-`discovery.kubernetes`. Pod selection relies on the `HOSTNAME` environment variable, which is a pod name if the agent is
-used as a Grafana agent helm chart. The `service_name` label is set
-to `{__meta_kubernetes_namespace}/{__meta_kubernetes_pod_container_name}` from kubernetes meta labels.
+`discovery.kubernetes`. Pod selection relies on the `HOSTNAME` environment variable, which is a pod name if {{< param "PRODUCT_ROOT_NAME" >}} is
+used as a {{< param "PRODUCT_ROOT_NAME" >}} Helm chart. The `service_name` label is set
+to `{__meta_kubernetes_namespace}/{__meta_kubernetes_pod_container_name}` from Kubernetes meta labels.
 
 ```river
 discovery.kubernetes "all_pods" {
@@ -288,3 +288,21 @@ pyroscope.ebpf "default" {
   targets      = discovery.relabel.local_containers.output
 }
 ```
+<!-- START GENERATED COMPATIBLE COMPONENTS -->
+
+## Compatible components
+
+`pyroscope.ebpf` can accept arguments from the following components:
+
+- Components that export [Targets]({{< relref "../compatibility/#targets-exporters" >}})
+- Components that export [Pyroscope `ProfilesReceiver`]({{< relref "../compatibility/#pyroscope-profilesreceiver-exporters" >}})
+
+
+{{% admonition type="note" %}}
+
+Connecting some components may not be sensible or components may require further configuration to make the 
+connection work correctly. Refer to the linked documentation for more details.
+
+{{% /admonition %}}
+
+<!-- END GENERATED COMPATIBLE COMPONENTS -->

@@ -51,6 +51,41 @@ Main (unreleased)
 - `otelcol.receiver.prometheus` does not drop histograms without buckets anymore. (@wildum)
 
 - Added exemplars support to `otelcol.receiver.prometheus`. (@wildum)
+- `mimir.rules.kubernetes` may now retry its startup on failure. (@hainenber)
+
+- Added links between compatible components in the documentation to make it
+  easier to discover them. (@thampiotr)
+  
+- Allow defining `HTTPClientConfig` for `discovery.ec2`. (@cmbrad)
+
+- The `remote.http` component can optionally define a request body. (@tpaschalis)
+
+### Bugfixes
+
+- Update `pyroscope.ebpf` to fix a logical bug causing to profile to many kthreads instead of regular processes https://github.com/grafana/pyroscope/pull/2778 (@korniltsev)
+ 
+- Update `pyroscope.ebpf` to produce more optimal pprof profiles for python processes https://github.com/grafana/pyroscope/pull/2788 (@korniltsev)
+
+- In Static mode's `traces` subsystem, `spanmetrics` used to be generated prior to load balancing.
+  This could lead to inaccurate metrics. This issue only affects Agents using both `spanmetrics` and 
+  `load_balancing`, when running in a load balanced cluster with more than one Agent instance. (@ptodev)
+
+- Fixes `loki.source.docker` a behavior that synced an incomplete list of targets to the tailer manager. (@FerdinandvHagen)
+
+### Other changes
+
+- Bump github.com/IBM/sarama from v1.41.2 to v1.42.1
+
+v0.38.1 (2023-11-30)
+--------------------
+
+### Security fixes
+
+- Fix CVE-2023-47108 by updating `otelgrpc` from v0.45.0 to v0.46.0. (@hainenber)
+
+### Features
+
+- Agent Management: Introduce support for templated configuration. (@jcreixell)
 
 ### Bugfixes
 
@@ -61,6 +96,17 @@ Main (unreleased)
 - Fix issue with windows_exporter defaults not being set correctly. (@mattdurham)
 
 - Fix agent crash when process null OTel's fan out consumers. (@hainenber)
+
+- Fix issue in `prometheus.operator.*` where targets would be dropped if two crds share a common prefix in their names. (@Paul424, @captncraig)
+
+- Fix issue where `convert` command would generate incorrect Flow Mode config
+  when provided `promtail` configuration that uses `docker_sd_configs` (@thampiotr)
+
+- Fix converter issue with `loki.relabel` and `max_cache_size` being set to 0 instead of default (10_000). (@mattdurham)
+
+### Other changes
+
+- Add Agent Deploy Mode to usage report. (@captncraig)
 
 v0.38.0 (2023-11-21)
 --------------------
@@ -143,7 +189,7 @@ v0.38.0 (2023-11-21)
 - Make component list sortable in web UI. (@hainenber)
 
 - Adds new metrics (`mssql_server_total_memory_bytes`, `mssql_server_target_memory_bytes`,
-  and `mssql_available_commit_memory_bytes`) for `mssql` integration.
+  and `mssql_available_commit_memory_bytes`) for `mssql` integration (@StefanKurek).
 
 - Grafana Agent Operator: `config-reloader` container no longer runs as root.
   (@rootmout)
@@ -159,6 +205,8 @@ v0.38.0 (2023-11-21)
 - Updated windows exporter to use prometheus-community/windows_exporter commit 1836cd1. (@mattdurham)
 
 - Allow agent to start with `module.git` config if cached before. (@hainenber)
+
+- Adds new optional config parameter `query_config` to `mssql` integration to allow for custom metrics (@StefanKurek)
 
 ### Bugfixes
 

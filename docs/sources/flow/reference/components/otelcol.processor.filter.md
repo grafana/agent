@@ -110,7 +110,7 @@ output    | [output][]  | Configures where to send received telemetry data. | ye
 
 ### traces block
 
-The `traces` block specifies statements that filter trace telemetry signals. 
+The `traces` block specifies statements that filter trace telemetry signals.
 Only one `traces` block can be specified.
 
 Name        | Type           | Description                                         | Default | Required
@@ -118,8 +118,7 @@ Name        | Type           | Description                                      
 `span`      | `list(string)` | List of OTTL statements filtering OTLP spans.       |         | no
 `spanevent` | `list(string)` | List of OTTL statements filtering OTLP span events. |         | no
 
-The syntax of OTTL statements depends on the OTTL context. See the OpenTelemetry 
-documentation for more information:
+The syntax of OTTL statements depends on the OTTL context. See the OpenTelemetry documentation for more information:
 * [OTTL span context][]
 * [OTTL spanevent context][]
 
@@ -174,7 +173,7 @@ Only one of the statements inside the list of statements has to be satisfied.
 
 ### output block
 
-{{< docs/shared lookup="flow/reference/components/output-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/output-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ## Exported fields
 
@@ -238,7 +237,6 @@ otelcol.processor.filter "default" {
   error_mode = "ignore"
 
   metrics {
-    context = "resource"
     metric = [
        "name == \"my.metric\" and resource.attributes[\"my_label\"] == \"abc123\""
        "type == METRIC_DATA_TYPE_HISTOGRAM"
@@ -296,8 +294,33 @@ Some values in the River strings are [escaped][river-strings]:
 
 
 [OTTL]: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/v0.85.0/pkg/ottl/README.md
+[OTTL span context]: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/{{< param "OTEL_VERSION" >}}/pkg/ottl/contexts/ottlspan/README.md
+[OTTL spanevent context]: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/{{< param "OTEL_VERSION" >}}/pkg/ottl/contexts/ottlspanevent/README.md
+[OTTL metric context]: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/{{< param "OTEL_VERSION" >}}/pkg/ottl/contexts/ottlmetric/README.md
+[OTTL datapoint context]: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/{{< param "OTEL_VERSION" >}}/pkg/ottl/contexts/ottldatapoint/README.md
+[OTTL log context]: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/{{< param "OTEL_VERSION" >}}/pkg/ottl/contexts/ottllog/README.md
 [OTTL Converter functions]: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/pkg/ottl/ottlfuncs#converters
 [HasAttrKeyOnDataPoint]: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/processor/filterprocessor/README.md#hasattrkeyondatapoint
 [HasAttrOnDataPoint]: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/processor/filterprocessor/README.md#hasattrondatapoint
 [OTTL booleans]: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/v0.85.0/pkg/ottl#booleans
 [OTTL math expressions]: https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/v0.85.0/pkg/ottl#math-expressions
+<!-- START GENERATED COMPATIBLE COMPONENTS -->
+
+## Compatible components
+
+`otelcol.processor.filter` can accept arguments from the following components:
+
+- Components that export [OpenTelemetry `otelcol.Consumer`]({{< relref "../compatibility/#opentelemetry-otelcolconsumer-exporters" >}})
+
+`otelcol.processor.filter` has exports that can be consumed by the following components:
+
+- Components that consume [OpenTelemetry `otelcol.Consumer`]({{< relref "../compatibility/#opentelemetry-otelcolconsumer-consumers" >}})
+
+{{% admonition type="note" %}}
+
+Connecting some components may not be sensible or components may require further configuration to make the 
+connection work correctly. Refer to the linked documentation for more details.
+
+{{% /admonition %}}
+
+<!-- END GENERATED COMPATIBLE COMPONENTS -->

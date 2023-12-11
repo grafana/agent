@@ -47,11 +47,11 @@ The following blocks are supported inside the definition of
 `prometheus.exporter.windows` to configure collector-specific options:
 
 Hierarchy      | Name               | Description                              | Required
----------------|--------------------|------------------------------------------|----------
-dfsr           | [dfsr][]           | Configures the dfsr collector.           | no       
+---------------|--------------------|------------------------------------------|---------
+dfsr           | [dfsr][]           | Configures the dfsr collector.           | no
 exchange       | [exchange][]       | Configures the exchange collector.       | no
 iis            | [iis][]            | Configures the iis collector.            | no
-logical_disk   | [logical_disk][]   | Configures the logical_disk collector.   | no       
+logical_disk   | [logical_disk][]   | Configures the logical_disk collector.   | no
 msmq           | [msmq][]           | Configures the msmq collector.           | no
 mssql          | [mssql][]          | Configures the mssql collector.          | no
 network        | [network][]        | Configures the network collector.        | no
@@ -188,7 +188,7 @@ When `text_file_directory` is set, only files with the extension `.prom` inside 
 
 ## Exported fields
 
-{{< docs/shared lookup="flow/reference/components/exporter-component-exports.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/exporter-component-exports.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ## Component health
 
@@ -271,6 +271,11 @@ Name     | Description | Enabled by default
 
 See the linked documentation on each collector for more information on reported metrics, configuration settings and usage examples.
 
+{{% admonition type="caution" %}}
+Certain collectors will cause {{< param "PRODUCT_ROOT_NAME" >}} to crash if those collectors are used and the required infrastructure is not installed.
+These include but are not limited to mscluster_*, vmware, nps, dns, msmq, teradici_pcoip, ad, hyperv, and scheduled_task.
+{{% /admonition %}}
+
 ## Example
 
 This example uses a [`prometheus.scrape` component][scrape] to collect metrics
@@ -302,3 +307,20 @@ Replace the following:
   - `PASSWORD`: The password to use for authentication to the remote_write API.
 
 [scrape]: {{< relref "./prometheus.scrape.md" >}}
+
+<!-- START GENERATED COMPATIBLE COMPONENTS -->
+
+## Compatible components
+
+`prometheus.exporter.windows` has exports that can be consumed by the following components:
+
+- Components that consume [Targets]({{< relref "../compatibility/#targets-consumers" >}})
+
+{{% admonition type="note" %}}
+
+Connecting some components may not be sensible or components may require further configuration to make the 
+connection work correctly. Refer to the linked documentation for more details.
+
+{{% /admonition %}}
+
+<!-- END GENERATED COMPATIBLE COMPONENTS -->

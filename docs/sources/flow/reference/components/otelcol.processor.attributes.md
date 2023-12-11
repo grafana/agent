@@ -149,7 +149,7 @@ The supported values for `action` are:
 
 The `include` block provides an option to include data being fed into the [action] blocks based on the properties of a span, log, or metric records.
 
-{{< docs/shared lookup="flow/reference/components/match-properties-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/match-properties-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 One of the following is also required:
 * For spans, one of `services`, `span_names`, `span_kinds`, [attribute][], [resource][], or [library][] must be specified 
@@ -172,7 +172,7 @@ If you would like to not propagate certain signals to downstream components,
 consider a processor such as [otelcol.processor.tail_sampling]({{< relref "./otelcol.processor.tail_sampling.md" >}}).
 {{% /admonition %}}
 
-{{< docs/shared lookup="flow/reference/components/match-properties-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/match-properties-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 One of the following is also required:
 * For spans, one of `services`, `span_names`, `span_kinds`, [attribute][], [resource][], or [library][] must be specified 
@@ -187,27 +187,27 @@ For example, adding a `span_names` filter could cause the component to error if 
 
 ### regexp block
 
-{{< docs/shared lookup="flow/reference/components/otelcol-filter-regexp-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/otelcol-filter-regexp-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### attribute block
 
-{{< docs/shared lookup="flow/reference/components/otelcol-filter-attribute-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/otelcol-filter-attribute-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### resource block
 
-{{< docs/shared lookup="flow/reference/components/otelcol-filter-resource-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/otelcol-filter-resource-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### library block
 
-{{< docs/shared lookup="flow/reference/components/otelcol-filter-library-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/otelcol-filter-library-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### log_severity block
 
-{{< docs/shared lookup="flow/reference/components/otelcol-filter-log-severity-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/otelcol-filter-log-severity-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### output block
 
-{{< docs/shared lookup="flow/reference/components/output-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/output-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ## Exported fields
 
@@ -634,3 +634,23 @@ otelcol.processor.attributes "default" {
     }
 }
 ```
+<!-- START GENERATED COMPATIBLE COMPONENTS -->
+
+## Compatible components
+
+`otelcol.processor.attributes` can accept arguments from the following components:
+
+- Components that export [OpenTelemetry `otelcol.Consumer`]({{< relref "../compatibility/#opentelemetry-otelcolconsumer-exporters" >}})
+
+`otelcol.processor.attributes` has exports that can be consumed by the following components:
+
+- Components that consume [OpenTelemetry `otelcol.Consumer`]({{< relref "../compatibility/#opentelemetry-otelcolconsumer-consumers" >}})
+
+{{% admonition type="note" %}}
+
+Connecting some components may not be sensible or components may require further configuration to make the 
+connection work correctly. Refer to the linked documentation for more details.
+
+{{% /admonition %}}
+
+<!-- END GENERATED COMPATIBLE COMPONENTS -->

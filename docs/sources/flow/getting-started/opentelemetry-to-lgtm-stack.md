@@ -13,13 +13,13 @@ weight: 350
 
 # OpenTelemetry to Grafana stack
 
-You can configure Grafana Agent Flow to collect [OpenTelemetry][]-compatible data and forward it to the Grafana stack
+You can configure {{< param "PRODUCT_NAME" >}} to collect [OpenTelemetry][]-compatible data and forward it to the Grafana stack.
 
 This topic describes how to:
 
-* Configure Grafana Agent to send your data to Loki
-* Configure Grafana Agent to send your data to Tempo
-* Configure Grafana Agent to send your data to Mimir or Prometheus Remote Write
+* Configure {{< param "PRODUCT_NAME" >}} to send your data to Loki.
+* Configure {{< param "PRODUCT_NAME" >}} to send your data to Tempo.
+* Configure {{< param "PRODUCT_NAME" >}} to send your data to Mimir or Prometheus Remote Write.
 
 ## Components used in this topic
 
@@ -34,17 +34,15 @@ This topic describes how to:
 
 ## Before you begin
 
-* Ensure that you have basic familiarity with instrumenting applications with
-  OpenTelemetry.
-* Have a set of OpenTelemetry applications ready to push telemetry data to
-  Grafana Agent Flow.
-* Identify where Grafana Agent Flow will write received telemetry data.
-* Be familiar with the concept of [Components][] in Grafana Agent Flow.
+* Ensure that you have basic familiarity with instrumenting applications with OpenTelemetry.
+* Have a set of OpenTelemetry applications ready to push telemetry data to {{< param "PRODUCT_NAME" >}}.
+* Identify where {{< param "PRODUCT_NAME" >}} will write received telemetry data.
+* Be familiar with the concept of [Components][] in {{< param "PRODUCT_NAME" >}}.
 * Complete the [Collect open telemetry data][] getting started guide. You will pick up from where that guide ended.
 
 ## The pipeline
 
-You can start with the Grafana Agent Flow configuration you created in the previous getting started guide:
+You can start with the {{< param "PRODUCT_NAME" >}} configuration you created in the [Collect open telemetry data][] Getting Started guide.
 
 ```river
 otelcol.receiver.otlp "example" {
@@ -84,7 +82,7 @@ The pipeline currently looks like this:
 Metrics, Logs, Traces: OTLP Receiver → batch processor → OTLP Exporter
 ```
 
-You will implement the following pipelines to send your data to Loki, Tempo, and Mimir or Prometheus:
+You will implement the following pipelines to send your data to Loki, Tempo, and Mimir or Prometheus.
 
 ```
 Metrics: OTel → batch processor → Mimir or Prometheus remote write
@@ -93,7 +91,8 @@ Traces: OTel → batch processor → OTel exporter
 ```
 ## Grafana Loki
 
-[Grafana Loki][] is a horizontally scalable, highly available, multi-tenant log aggregation system inspired by Prometheus. Similar to Prometheus, to send from OTLP to Loki, we will do a passthrough from the [otelcol.exporter.loki] component to [loki.write] component.
+[Grafana Loki][] is a horizontally scalable, highly available, multi-tenant log aggregation system inspired by Prometheus.
+Similar to Prometheus, to send from OTLP to Loki, you can do a passthrough from the [otelcol.exporter.loki] component to [loki.write] component.
 
 ```river
 otelcol.exporter.loki "default" {
@@ -106,7 +105,8 @@ loki.write "default" {
 }
 ```
 
-To use Loki with basic-auth, which is required with Grafana Cloud Loki, you must configure the [loki.write][] component. You can get the Loki configuration from the Loki **Details** page in the [Grafana Cloud Portal][]:
+To use Loki with basic-auth, which is required with Grafana Cloud Loki, you must configure the [loki.write][] component.
+You can get the Loki configuration from the Loki **Details** page in the [Grafana Cloud Portal][]:
 
 ![](../../../assets/getting-started/loki-config.png)
 
@@ -129,7 +129,8 @@ loki.write "grafana_cloud_loki" {
 
 ## Grafana Tempo
 
-[Grafana Tempo][] is an open source, easy-to-use, scalable distributed tracing backend. Tempo can ingest OTLP directly, and you can use the OTLP exporter to send the traces to Tempo.
+[Grafana Tempo][] is an open source, easy-to-use, scalable distributed tracing backend.
+Tempo can ingest OTLP directly, and you can use the OTLP exporter to send the traces to Tempo.
 
 ```river
 otelcol.exporter.otlp "default" {
@@ -139,7 +140,8 @@ otelcol.exporter.otlp "default" {
 }
 ```
 
-To use Tempo with basic-auth, which is required with Grafana Cloud Tempo, you must use the [otelcol.auth.basic][] component. You can get the Tempo configuration from the Tempo **Details** page in the [Grafana Cloud Portal][]:
+To use Tempo with basic-auth, which is required with Grafana Cloud Tempo, you must use the [otelcol.auth.basic][] component.
+You can get the Tempo configuration from the Tempo **Details** page in the [Grafana Cloud Portal][]:
 
 ![](../../../assets/getting-started/tempo-config.png)
 
@@ -159,7 +161,9 @@ otelcol.auth.basic "grafana_cloud_tempo" {
 
 ## Grafana Mimir or Prometheus Remote Write
 
-[Prometheus Remote Write][] is a popular metrics transmission protocol supported by most metrics systems, including [Grafana Mimir][] and Grafana Cloud. To send from OTLP to Prometheus, we do a passthrough from the [otelcol.exporter.prometheus][] to the [prometheus.remote_write][] component. The Prometheus remote write component in Agent is a robust protocol implementation, including a Write Ahead Log for resiliency.
+[Prometheus Remote Write][] is a popular metrics transmission protocol supported by most metrics systems, including [Grafana Mimir][] and Grafana Cloud.
+To send from OTLP to Prometheus, you can do a passthrough from the [otelcol.exporter.prometheus][] to the [prometheus.remote_write][] component.
+The Prometheus remote write component in {{< param "PRODUCT_NAME" >}} is a robust protocol implementation, including a Write Ahead Log (WAL) for resiliency.
 
 ```river
 otelcol.exporter.prometheus "default" {
@@ -173,7 +177,8 @@ prometheus.remote_write "default" {
 }
 ```
 
-To use Prometheus with basic-auth, which is required with Grafana Cloud Prometheus, you must configure the [prometheus.remote_write][] component. You can get the Prometheus configuration from the Prometheus **Details** page in the [Grafana Cloud Portal][]:
+To use Prometheus with basic-auth, which is required with Grafana Cloud Prometheus, you must configure the [prometheus.remote_write][] component.
+You can get the Prometheus configuration from the Prometheus **Details** page in the [Grafana Cloud Portal][]:
 
 ![](../../../assets/getting-started/prometheus-config.png)
 
@@ -196,7 +201,8 @@ prometheus.remote_write "grafana_cloud_prometheus" {
 
 ## Putting it all together
 
-Instead of referencing `otelcol.exporter.otlp.default.input` in the output of `otelcol.processor.batch`, we need to reference the three exporters we set up. The final configuration becomes:
+Instead of referencing `otelcol.exporter.otlp.default.input` in the output of `otelcol.processor.batch`, you need to reference the three exporters you set up.
+The final configuration becomes:
 
 ```river
 otelcol.receiver.otlp "example" {
@@ -266,7 +272,7 @@ loki.write "grafana_cloud_loki" {
 }
 ```
 
-Running the Agent now will give you the following:
+Running {{< param "PRODUCT_NAME" >}} now will give you the following:
 
 ```
 AGENT_MODE=flow ./grafana-agent run agent-config.river

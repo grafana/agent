@@ -47,8 +47,10 @@ func main() {
 	go func() { log.Fatal(server.ListenAndServe()) }()
 
 	labels := map[string]string{
-		"address": address,
-		"port":    port,
+		"address":            address,
+		"port":               port,
+		"otel_scope_name":    "go.opentelemetry.io.contrib.instrumentation.net.http.otelhttp",
+		"otel_scope_version": "v0.24.0",
 	}
 
 	go handleCounter(setupCounter(labels))
@@ -82,8 +84,7 @@ func getAddressAndPort(listenAddress string) (string, string) {
 func setupGauge(labels map[string]string) prometheus.Gauge {
 	gauge := prometheus.NewGauge(
 		prometheus.GaugeOpts{
-			Namespace:   "golang",
-			Name:        "gauge",
+			Name:        "otel_scope_info",
 			ConstLabels: labels,
 		})
 	prometheus.MustRegister(gauge)

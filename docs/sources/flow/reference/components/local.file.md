@@ -41,7 +41,7 @@ Name | Type | Description | Default | Required
 
 [secret]: {{< relref "../../config-language/expressions/types_and_values.md#secrets" >}}
 
-{{< docs/shared lookup="flow/reference/components/local-file-arguments-text.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/local-file-arguments-text.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ## Exported fields
 

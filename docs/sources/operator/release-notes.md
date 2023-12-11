@@ -25,11 +25,11 @@ For a complete list of changes to Grafana Agent, with links to pull requests and
 > - [Flow mode release notes][release-notes-flow]
 
 {{% docs/reference %}}
-[release-notes-static]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/release-notes"
+[release-notes-static]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static/release-notes"
 [release-notes-static]: "/docs/agent/ -> /docs/grafana-cloud/send-data/agent/static/release-notes"
 
-[release-notes-flow]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/flow/release-notes"
-[release-notes-flow]: "/docs/grafana-cloud/ -> /docs/agent/<AGENT VERSION>/flow/release-notes"
+[release-notes-flow]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/release-notes"
+[release-notes-flow]: "/docs/grafana-cloud/ -> /docs/agent/<AGENT_VERSION>/flow/release-notes"
 {{% /docs/reference %}}
 
 ## v0.33

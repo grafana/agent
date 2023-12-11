@@ -42,12 +42,19 @@ const informerSyncTimeout = 10 * time.Second
 // crdManager is all of the fields required to run a crd based component.
 // on update, this entire thing should be recreated and restarted
 type crdManager struct {
-	mut               sync.Mutex
-	discoveryConfigs  map[string]discovery.Configs
-	scrapeConfigs     map[string]*config.ScrapeConfig
-	debugInfo         map[string]*operator.DiscoveredResource
-	discoveryManager  *discovery.Manager
-	scrapeManager     *scrape.Manager
+	mut sync.Mutex
+
+	// these maps are keyed by job name
+	discoveryConfigs map[string]discovery.Configs
+	scrapeConfigs    map[string]*config.ScrapeConfig
+
+	// list of keys to the above maps for a given resource by `ns/name`
+	crdsToMapKeys map[string][]string
+	// debug info by `kind/ns/name`
+	debugInfo map[string]*operator.DiscoveredResource
+
+	discoveryManager  discoveryManager
+	scrapeManager     scrapeManager
 	clusteringUpdated chan struct{}
 	ls                labelstore.LabelStore
 
@@ -80,6 +87,7 @@ func newCrdManager(opts component.Options, cluster cluster.Cluster, logger log.L
 		cluster:           cluster,
 		discoveryConfigs:  map[string]discovery.Configs{},
 		scrapeConfigs:     map[string]*config.ScrapeConfig{},
+		crdsToMapKeys:     map[string][]string{},
 		debugInfo:         map[string]*operator.DiscoveredResource{},
 		kind:              kind,
 		clusteringUpdated: make(chan struct{}, 1),
@@ -392,6 +400,7 @@ func (c *crdManager) addPodMonitor(pm *promopv1.PodMonitor) {
 		AdditionalRelabelConfigs: c.args.RelabelConfigs,
 		ScrapeOptions:            c.args.Scrape,
 	}
+	mapKeys := []string{}
 	for i, ep := range pm.Spec.PodMetricsEndpoints {
 		var scrapeConfig *config.ScrapeConfig
 		scrapeConfig, err = gen.GeneratePodMonitorConfig(pm, ep, i)
@@ -400,6 +409,7 @@ func (c *crdManager) addPodMonitor(pm *promopv1.PodMonitor) {
 			level.Error(c.logger).Log("name", pm.Name, "err", err, "msg", "error generating scrapeconfig from podmonitor")
 			break
 		}
+		mapKeys = append(mapKeys, scrapeConfig.JobName)
 		c.mut.Lock()
 		c.discoveryConfigs[scrapeConfig.JobName] = scrapeConfig.ServiceDiscoveryConfigs
 		c.scrapeConfigs[scrapeConfig.JobName] = scrapeConfig
@@ -409,6 +419,9 @@ func (c *crdManager) addPodMonitor(pm *promopv1.PodMonitor) {
 		c.addDebugInfo(pm.Namespace, pm.Name, err)
 		return
 	}
+	c.mut.Lock()
+	c.crdsToMapKeys[fmt.Sprintf("%s/%s", pm.Namespace, pm.Name)] = mapKeys
+	c.mut.Unlock()
 	if err = c.apply(); err != nil {
 		level.Error(c.logger).Log("name", pm.Name, "err", err, "msg", "error applying scrape configs from "+c.kind)
 	}
@@ -442,6 +455,8 @@ func (c *crdManager) addServiceMonitor(sm *promopv1.ServiceMonitor) {
 		AdditionalRelabelConfigs: c.args.RelabelConfigs,
 		ScrapeOptions:            c.args.Scrape,
 	}
+
+	mapKeys := []string{}
 	for i, ep := range sm.Spec.Endpoints {
 		var scrapeConfig *config.ScrapeConfig
 		scrapeConfig, err = gen.GenerateServiceMonitorConfig(sm, ep, i)
@@ -450,6 +465,7 @@ func (c *crdManager) addServiceMonitor(sm *promopv1.ServiceMonitor) {
 			level.Error(c.logger).Log("name", sm.Name, "err", err, "msg", "error generating scrapeconfig from serviceMonitor")
 			break
 		}
+		mapKeys = append(mapKeys, scrapeConfig.JobName)
 		c.mut.Lock()
 		c.discoveryConfigs[scrapeConfig.JobName] = scrapeConfig.ServiceDiscoveryConfigs
 		c.scrapeConfigs[scrapeConfig.JobName] = scrapeConfig
@@ -459,6 +475,9 @@ func (c *crdManager) addServiceMonitor(sm *promopv1.ServiceMonitor) {
 		c.addDebugInfo(sm.Namespace, sm.Name, err)
 		return
 	}
+	c.mut.Lock()
+	c.crdsToMapKeys[fmt.Sprintf("%s/%s", sm.Namespace, sm.Name)] = mapKeys
+	c.mut.Unlock()
 	if err = c.apply(); err != nil {
 		level.Error(c.logger).Log("name", sm.Name, "err", err, "msg", "error applying scrape configs from "+c.kind)
 	}
@@ -503,6 +522,7 @@ func (c *crdManager) addProbe(p *promopv1.Probe) {
 	c.mut.Lock()
 	c.discoveryConfigs[pmc.JobName] = pmc.ServiceDiscoveryConfigs
 	c.scrapeConfigs[pmc.JobName] = pmc
+	c.crdsToMapKeys[fmt.Sprintf("%s/%s", p.Namespace, p.Name)] = []string{pmc.JobName}
 	c.mut.Unlock()
 
 	if err = c.apply(); err != nil {
@@ -533,12 +553,10 @@ func (c *crdManager) onDeleteProbe(obj interface{}) {
 func (c *crdManager) clearConfigs(ns, name string) {
 	c.mut.Lock()
 	defer c.mut.Unlock()
-	prefix := fmt.Sprintf("%s/%s/%s", c.kind, ns, name)
-	for k := range c.discoveryConfigs {
-		if strings.HasPrefix(k, prefix) {
-			delete(c.discoveryConfigs, k)
-			delete(c.scrapeConfigs, k)
-		}
+
+	for _, k := range c.crdsToMapKeys[fmt.Sprintf("%s/%s", ns, name)] {
+		delete(c.discoveryConfigs, k)
+		delete(c.scrapeConfigs, k)
 	}
-	delete(c.debugInfo, prefix)
+	delete(c.debugInfo, fmt.Sprintf("%s/%s/%s", c.kind, ns, name))
 }
