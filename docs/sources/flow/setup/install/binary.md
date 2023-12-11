@@ -36,14 +36,17 @@ To download {{< param "PRODUCT_NAME" >}} as a standalone binary, perform the fol
 1. If you are installing {{< param "PRODUCT_NAME" >}} on Linux, macOS, or FreeBSD, run the following command in a terminal:
 
    ```shell
-   chmod +x BINARY_PATH
+   chmod +x <BINARY_PATH>
    ```
 
-   Replace `BINARY_PATH` with the path to the extracted binary
+   Replace the following:
+
+   - _`<BINARY_PATH>`_: The path to the extracted binary.
 
 ## Next steps
 
-{{< param "PRODUCT_NAME" >}}
+- [Start {{< param "PRODUCT_NAME" >}}[Start]
+- [Configure {{< param "PRODUCT_NAME" >}}[Configure]
 
 {{% docs/reference %}}
 [Start]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/start-agent.md#standalone-binary"
