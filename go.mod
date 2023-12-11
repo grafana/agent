@@ -7,7 +7,7 @@ require (
 	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.7.0
 	github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.3.0
 	github.com/Azure/go-autorest/autorest v0.11.29
-	github.com/IBM/sarama v1.41.2
+	github.com/IBM/sarama v1.42.1
 	github.com/Lusitaniae/apache_exporter v0.11.1-0.20220518131644-f9522724dab4
 	github.com/Masterminds/sprig/v3 v3.2.3
 	github.com/PuerkitoBio/rehttp v1.1.0
@@ -90,7 +90,6 @@ require (
 	github.com/lib/pq v1.10.7
 	github.com/mackerelio/go-osstat v0.2.3
 	github.com/miekg/dns v1.1.55
-	github.com/minio/pkg v1.5.8
 	github.com/mitchellh/mapstructure v1.5.1-0.20220423185008-bf980b35cac4
 	github.com/mitchellh/reflectwalk v1.0.2
 	github.com/mwitkow/go-conntrack v0.0.0-20190716064945-2f068394615f
@@ -474,8 +473,6 @@ require (
 	github.com/mdlayher/socket v0.4.1 // indirect
 	github.com/mdlayher/wifi v0.1.0 // indirect
 	github.com/microsoft/go-mssqldb v0.19.0 // indirect
-	github.com/minio/asm2plan9s v0.0.0-20200509001527-cdd76441f9d8 // indirect
-	github.com/minio/c2goasm v0.0.0-20190812172519-36a3d3bbc4f3 // indirect
 	github.com/mistifyio/go-zfs v2.1.2-0.20190413222219-f784269be439+incompatible // indirect
 	github.com/mitchellh/copystructure v1.2.0 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
@@ -624,7 +621,7 @@ require (
 	github.com/Shopify/sarama v1.38.1 // indirect
 	github.com/Workiva/go-datastructures v1.1.0 // indirect
 	github.com/drone/envsubst v1.0.3 // indirect
-	github.com/go-jose/go-jose/v3 v3.0.0 // indirect
+	github.com/go-jose/go-jose/v3 v3.0.1 // indirect
 	github.com/google/gnostic-models v0.6.8 // indirect
 	github.com/hetznercloud/hcloud-go/v2 v2.0.0 // indirect
 	github.com/julienschmidt/httprouter v1.3.0 // indirect
@@ -632,6 +629,8 @@ require (
 	github.com/lightstep/go-expohisto v1.0.0 // indirect
 	github.com/matttproud/golang_protobuf_extensions/v2 v2.0.0 // indirect
 	github.com/metalmatze/signal v0.0.0-20210307161603-1c9aa721a97a // indirect
+	github.com/minio/asm2plan9s v0.0.0-20200509001527-cdd76441f9d8 // indirect
+	github.com/minio/c2goasm v0.0.0-20190812172519-36a3d3bbc4f3 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/k8sconfig v0.87.0 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/kafka v0.87.0 // indirect
 	github.com/openshift/api v3.9.0+incompatible // indirect
