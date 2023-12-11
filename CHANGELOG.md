@@ -12,8 +12,8 @@ Main (unreleased)
 
 ### Breaking changes
 
-- `target` block in `prometheus.exporter.blackbox` requires mandatory `name`
-  attribute instead of label block previously. (@hainenber)
+- The `target` block in `prometheus.exporter.blackbox` requires a mandatory `name`
+  argument instead of a block label. (@hainenber)
 
 ### Enhancements
 
