@@ -32,7 +32,7 @@ type Loader struct {
 	componentReg ComponentRegistry
 	workerPool   worker.Pool
 	// backoffConfig is used to backoff when an updated component's dependencies cannot be submitted to worker
-	// pool for evaluation in EvaluateDependencies, because the queue is full. This is an unlikely scenario, but when
+	// pool for evaluation in EvaluateDependants, because the queue is full. This is an unlikely scenario, but when
 	// it happens we should avoid retrying too often to give other goroutines a chance to progress. Having a backoff
 	// also prevents log spamming with errors.
 	backoffConfig backoff.Config
@@ -543,13 +543,13 @@ func (l *Loader) OriginalGraph() *dag.Graph {
 	return l.originalGraph.Clone()
 }
 
-// EvaluateDependencies sends components which depend directly on components in updatedNodes for evaluation to the
+// EvaluateDependants sends components which depend directly on components in updatedNodes for evaluation to the
 // workerPool. It should be called whenever components update their exports.
-// It is beneficial to call EvaluateDependencies with a batch of components, as it will enqueue the entire batch before
+// It is beneficial to call EvaluateDependants with a batch of components, as it will enqueue the entire batch before
 // the worker pool starts to evaluate them, resulting in smaller number of total evaluations when
-// node updates are frequent. If the worker pool's queue is full, EvaluateDependencies will retry with a backoff until
+// node updates are frequent. If the worker pool's queue is full, EvaluateDependants will retry with a backoff until
 // it succeeds or until the ctx is cancelled.
-func (l *Loader) EvaluateDependencies(ctx context.Context, updatedNodes []*ComponentNode) {
+func (l *Loader) EvaluateDependants(ctx context.Context, updatedNodes []*ComponentNode) {
 	if len(updatedNodes) == 0 {
 		return
 	}
@@ -578,7 +578,7 @@ func (l *Loader) EvaluateDependencies(ctx context.Context, updatedNodes []*Compo
 
 	// Submit all dependencies for asynchronous evaluation.
 	// During evaluation, if a node's exports change, Flow will add it to updated nodes queue (controller.Queue) and
-	// the Flow controller will call EvaluateDependencies on it again. This results in a concurrent breadth-first
+	// the Flow controller will call EvaluateDependants on it again. This results in a concurrent breadth-first
 	// traversal of the nodes that need to be evaluated.
 	for n, parent := range dependenciesToParentsMap {
 		dependantCtx, span := tracer.Start(spanCtx, "SubmitForEvaluation", trace.WithSpanKind(trace.SpanKindInternal))
