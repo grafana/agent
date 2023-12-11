@@ -82,7 +82,7 @@ type QueueConfig struct {
 func (q *QueueConfig) SetToDefault() {
 	*q = QueueConfig{
 		Capacity:     10 * units.MiB, // considering the default BatchSize of 1MiB, this gives us a default buffered channel of size 10
-		DrainTimeout: time.Minute,
+		DrainTimeout: 15 * time.Second,
 	}
 }
 
