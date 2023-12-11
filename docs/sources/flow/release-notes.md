@@ -33,8 +33,8 @@ Other release notes for the different Grafana Agent variants are contained on se
 
 ### Breaking change: `otelcol.receiver.prometheus` will drop all `otel_scope_info` metrics when converting them to OTLP
 
-* If the `otel_scope_info` metric has labels `otel_scope_name` and `otel_scope_version`,
-  their values will be used to set OTLP Instrumentation Scope "name" and  "version" respectively. 
+* If the `otel_scope_info` metric has the `otel_scope_name` and `otel_scope_version` labels,
+  their values are used to set the OTLP Instrumentation Scope "name" and  "version", respectively. 
 * Labels of `otel_scope_info` metrics other than `otel_scope_name` and `otel_scope_version` 
   are added as scope attributes with the matching name and version.
 
