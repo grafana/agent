@@ -79,6 +79,7 @@ func TestUnmarshallWalAttrributes(t *testing.T) {
 				MaxSegmentAge:    wal.DefaultMaxSegmentAge,
 				MinReadFrequency: wal.DefaultWatchConfig.MinReadFrequency,
 				MaxReadFrequency: wal.DefaultWatchConfig.MaxReadFrequency,
+				DrainTimeout:     wal.DefaultWatchConfig.DrainTimeout,
 			},
 		},
 		"wal enabled with defaults": {
@@ -90,6 +91,7 @@ func TestUnmarshallWalAttrributes(t *testing.T) {
 				MaxSegmentAge:    wal.DefaultMaxSegmentAge,
 				MinReadFrequency: wal.DefaultWatchConfig.MinReadFrequency,
 				MaxReadFrequency: wal.DefaultWatchConfig.MaxReadFrequency,
+				DrainTimeout:     wal.DefaultWatchConfig.DrainTimeout,
 			},
 		},
 		"wal enabled with some overrides": {
@@ -97,12 +99,14 @@ func TestUnmarshallWalAttrributes(t *testing.T) {
 			enabled = true
 			max_segment_age = "10m"
 			min_read_frequency = "11ms"
+			drain_timeout = "5m"
 			`,
 			expected: WalArguments{
 				Enabled:          true,
 				MaxSegmentAge:    time.Minute * 10,
 				MinReadFrequency: time.Millisecond * 11,
 				MaxReadFrequency: wal.DefaultWatchConfig.MaxReadFrequency,
+				DrainTimeout:     time.Minute * 5,
 			},
 		},
 	} {
