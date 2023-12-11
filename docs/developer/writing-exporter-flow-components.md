@@ -40,7 +40,7 @@ prometheus.exporter.blackbox "example" {
 	config_file = "blackbox_modules.yml"
 	
 	target {
-    name    = "example"
+		name    = "example"
 		address = "http://example.com"
 		module  = "http_2xx"
 	}
