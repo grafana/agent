@@ -54,4 +54,7 @@ After the value is resolved, it must match the [type][] of the attribute it is a
 While you can only configure attributes using the basic River types,
 the exports of components can take on special internal River types, such as Secrets or Capsules, which expose different functionality.
 
-[type]: {{< relref "./types_and_values.md" >}}
+{{% docs/reference %}}
+[type]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/config-language/expressions/types_and_values"
+[type]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/config-language/expressions/types_and_values"
+{{% /docs/reference %}}

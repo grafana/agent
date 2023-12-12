@@ -32,7 +32,7 @@ digits or underscores, but doesn't start with a digit.
 
 ### Attributes
 
-_Attributes_ are used to configure individual settings.
+You use _Attributes_ to configure individual settings.
 They always take the form of `ATTRIBUTE_NAME = ATTRIBUTE_VALUE`.
 They can appear either as top-level elements or nested within blocks.
 
@@ -42,14 +42,14 @@ The following example sets the `log_level` attribute to `"debug"`.
 log_level = "debug"
 ```
 
-The `ATTRIBUTE_NAME` must be a valid River [identifier](#identifiers).
+The `ATTRIBUTE_NAME` must be a valid River [identifier][].
 
-The `ATTRIBUTE_VALUE` can be either a constant value of a valid River [type]({{< relref "./expressions/types_and_values.md" >}})
-(eg. string, boolean, number) or an [_expression_]({{< relref "./expressions/_index.md" >}}) to represent or compute more complex attribute values.
+The `ATTRIBUTE_VALUE` can be either a constant value of a valid River [type][] (for example, a string, boolean, number),
+or an [_expression_][expression] to represent or compute more complex attribute values.
 
 ### Blocks
 
-_Blocks_ are used to configure the {{< param "PRODUCT_ROOT_NAME" >}}'s behavior as well as {{< param "PRODUCT_NAME" >}}
+You use _Blocks_ to configure the {{< param "PRODUCT_ROOT_NAME" >}}'s behavior as well as {{< param "PRODUCT_NAME" >}}
 components by grouping any number of attributes or nested blocks using curly braces.
 Blocks have a _name_, an optional _label_ and a body that contains any number of arguments and nested unlabeled blocks.
 
@@ -85,7 +85,7 @@ BLOCK_NAME "BLOCK_LABEL" {
 #### Block naming rules
 
 The `BLOCK_NAME` has to be recognized by {{< param "PRODUCT_NAME" >}} as either a valid component name or a special block for configuring global settings.
-If the `BLOCK_LABEL` must be set, it must be a valid River [identifier](#identifiers) wrapped in double quotes.
+If the `BLOCK_LABEL` must be set, it must be a valid River [identifier][] wrapped in double quotes.
 In these cases, you use the label to disambiguate between multiple top-level blocks of the same name.
 
 The following snippet defines a block named `local.file` with its label set to "token".
@@ -105,3 +105,13 @@ All block and attribute definitions are followed by a newline, which River calls
 
 A newline is treated as a terminator when it follows any expression, `]`, `)`, or `}`.
 River ignores other newlines and you can can enter as many newlines as you want.
+
+[identifier]: #identifiers
+[identifier]: #identifiers
+
+{{% docs/reference %}}
+[expression]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/config-language/expressions"
+[expression]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/config-language/expressions"
+[type]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/config-language/expressions/types_and_values"
+[type]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/config-language/expressions/types_and_values"
+{{% /docs/reference %}}

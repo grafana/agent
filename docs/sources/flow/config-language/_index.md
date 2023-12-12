@@ -54,8 +54,6 @@ It's a distinct language with custom syntax and features, such as first-class fu
 River is declarative, so ordering components, blocks, and attributes within a block isn't significant.
 The relationship between components determines the order of operations.
 
-[RFC]: https://github.com/grafana/agent/blob/97a55d0d908b26dbb1126cc08b6dcc18f6e30087/docs/rfcs/0005-river.md
-
 ## Tooling
 
 You can use one or all of the following tools to help you write configuration files in River.
@@ -64,7 +62,18 @@ You can use one or all of the following tools to help you write configuration fi
   * [vim](https://github.com/rfratto/vim-river)
   * [VSCode](https://github.com/rfratto/vscode-river)
   * [river-mode](https://github.com/jdbaldry/river-mode) for Emacs
-* Code formatting using the [`agent fmt` command]({{< relref "../reference/cli/fmt" >}})
+* Code formatting using the [`agent fmt` command][fmt]
 
 You can also start developing your own tooling using the {{< param "PRODUCT_ROOT_NAME" >}} repository as a go package or use the
-[tree-sitter grammar](https://github.com/grafana/tree-sitter-river) with other programming languages.
+[tree-sitter grammar][] with other programming languages.
+
+[RFC]: https://github.com/grafana/agent/blob/97a55d0d908b26dbb1126cc08b6dcc18f6e30087/docs/rfcs/0005-river.md
+[vim]: https://github.com/rfratto/vim-river
+[VSCode]: https://github.com/rfratto/vscode-river
+[river-mode]: https://github.com/jdbaldry/river-mode
+[tree-sitter grammar]: https://github.com/grafana/tree-sitter-river
+
+{{% docs/reference %}}
+[fmt]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/cli/fmt"
+[fmt]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/cli/fmt"
+{{% /docs/reference %}}

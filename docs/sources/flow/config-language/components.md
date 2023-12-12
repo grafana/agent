@@ -88,6 +88,11 @@ The documentation of each [component][components] provides more information abou
 In the previous example, the contents of the `local.file.targets.content` expression is evaluated to a concrete value.
 The value is type-checked and substituted into `prometheus.scrape.default`, where you can configure it.
 
-[components]: {{< relref "../reference/components/_index.md" >}}
-[controller]: {{< relref "../concepts/component_controller.md" >}}
-[type]: {{< relref "./expressions/types_and_values.md" >}}
+{{% docs/reference %}}
+[components]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components"
+[components]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/components"
+[controller]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/component_controller"
+[controller]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/concepts/component_controller"
+[type]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/config-language/expressions/types_and_values"
+[type]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/config-language/expressions/types_and_values"
+{{% /docs/reference %}}

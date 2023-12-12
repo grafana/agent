@@ -46,8 +46,6 @@ In addition to the preceding types, the [component reference][] documentation us
 
   You can combine values of descending units to add their values together. For example, `"1h30m"` is the same as `"90m"`.
 
-[component reference]: {{< relref "../../reference/components" >}}
-
 ## Numbers
 
 River handles integers, unsigned integers, and floating-point values as a single 'number' type, simplifying writing and reading River configuration files.
@@ -166,12 +164,12 @@ If the key isn't a valid identifier, you must wrap it in double quotes like a st
 {{% admonition type="note" %}}
 Don't confuse objects with blocks.
 
-An _object_ is a value assigned to an [Attribute][Attributes]. You **must** use commas between key-value pairs on separate lines.
+An _object_ is a value assigned to an [Attribute][]. You **must** use commas between key-value pairs on separate lines.
 
-A [Block][Blocks] is a named structural element composed of multiple attributes. You **must not** use commas between attributes.
+A [Block][] is a named structural element composed of multiple attributes. You **must not** use commas between attributes.
 
-[Attributes]: {{< relref "../syntax.md#Attributes" >}}
-[Blocks]: {{< relref "../syntax.md#Blocks" >}}
+[Attribute]: {{< relref "../syntax.md#Attributes" >}}
+[Block]: {{< relref "../syntax.md#Blocks" >}}
 {{% /admonition %}}
 
 ## Functions
@@ -214,3 +212,8 @@ prometheus.scrape "default" {
   forward_to = [prometheus.remote_write.default.receiver]
 }
 ```
+
+{{% docs/reference %}}
+[type]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components"
+[type]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/components"
+{{% /docs/reference %}}

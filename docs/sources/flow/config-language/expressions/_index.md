@@ -22,7 +22,11 @@ You use expressions when you configure any component.
 All component arguments have an underlying [type][].
 River checks the expression type before assigning the result to an attribute.
 
-[refer to values]: {{< relref "./referencing_exports.md" >}}
-[call functions]: {{< relref "./function_calls.md" >}}
-[type]: {{< relref "./types_and_values.md" >}}
-
+{{% docs/reference %}}
+[refer to values]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/config-language/expressions/referencing_exports"
+[refer to values]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/config-language/expressions/referencing_exports"
+[call functions]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/config-language/expressions/function_calls"
+[call functions]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/config-language/expressions/function_calls"
+[type]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/config-language/expressions/types_and_values"
+[type]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/config-language/expressions/types_and_values"
+{{% /docs/reference %}}

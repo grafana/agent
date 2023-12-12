@@ -22,7 +22,7 @@ Modules are {{< param "PRODUCT_NAME" >}} configurations which have:
 * _Exports_: Named values that a module exposes to the consumer of the module.
 * _Components_: {{< param "PRODUCT_NAME" >}} components to run when the module is running.
 
-You use a [Module loader](#module-loaders) to load Modules into {{< param "PRODUCT_NAME" >}}.
+You use a [Module loader][] to load Modules into {{< param "PRODUCT_NAME" >}}.
 
 Refer to [argument block][] and [export block][] to learn how to define arguments and exports for a module.
 
@@ -37,7 +37,7 @@ Module loader components are responsible for the following functions:
 * Passing arguments to the loaded module.
 * Exposing exports from the loaded module.
 
-Module loaders typically are called `module.LOADER_NAME`.
+Module loaders are typically called `module.LOADER_NAME`.
 
 {{% admonition type="note" %}}
 Some module loaders may not support running modules with arguments or exports.
@@ -132,6 +132,8 @@ loki.write "default" {
   }
 }
 ```
+
+[Module loader]: #module-loaders
 
 {{% docs/reference %}}
 [argument block]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/config-blocks/argument.md"

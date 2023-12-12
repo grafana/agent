@@ -31,4 +31,7 @@ env("HOME")
 json_decode(local.file.cfg.content)["namespace"]
 ```
 
-[standard library]: {{< relref "../../reference/stdlib" >}}
+{{% docs/reference %}}
+[standard library]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/stdlib"
+[standard library]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/stdlib"
+{{% /docs/reference %}}
