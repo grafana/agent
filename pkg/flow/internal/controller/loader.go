@@ -37,11 +37,14 @@ type Loader struct {
 	// also prevents log spamming with errors.
 	backoffConfig backoff.Config
 
-	mut               sync.RWMutex
-	graph             *dag.Graph
-	originalGraph     *dag.Graph
-	componentNodes    []*ComponentNode
-	serviceNodes      []*ServiceNode
+	mut                  sync.RWMutex
+	graph                *dag.Graph
+	originalGraph        *dag.Graph
+	componentNodes       []*ComponentNode
+	serviceNodes         []*ServiceNode
+	importNodes          map[string]*ImportFileConfigNode
+	moduleComponentNodes []*ComponentNode
+
 	cache             *valueCache
 	blocks            []*ast.BlockStmt // Most recently loaded blocks, used for writing
 	cm                *controllerMetrics
@@ -82,6 +85,7 @@ func NewLoader(opts LoaderOptions) *Loader {
 		host:         host,
 		componentReg: reg,
 		workerPool:   opts.WorkerPool,
+		importNodes:  map[string]*ImportFileConfigNode{},
 
 		// This is a reasonable default which should work for most cases. If a component is completely stuck, we would
 		// retry and log an error every 10 seconds, at most.
@@ -129,6 +133,7 @@ func (l *Loader) Apply(args map[string]any, componentBlocks []*ast.BlockStmt, co
 	}
 	l.cache.SyncModuleArgs(args)
 
+	l.moduleComponentNodes = make([]*ComponentNode, 0)
 	newGraph, diags := l.loadNewGraph(args, componentBlocks, configBlocks)
 	if diags.HasErrors() {
 		return diags
@@ -237,6 +242,17 @@ func (l *Loader) Apply(args map[string]any, componentBlocks []*ast.BlockStmt, co
 		l.globals.OnExportsChange(l.cache.CreateModuleExports())
 	}
 	return diags
+}
+
+func (l *Loader) onImportContentChange(importLabel string, content string) {
+	for _, node := range l.moduleComponentNodes {
+		if node.componentName == importLabel {
+			err := node.UpdateModuleContent(content)
+			if err != nil {
+				level.Error(l.log).Log("msg", "could not update the content of the module", "err", err)
+			}
+		}
+	}
 }
 
 // Cleanup unregisters any existing metrics and optionally stops the worker pool.
@@ -374,7 +390,7 @@ func (l *Loader) populateConfigBlockNodes(args map[string]any, g *dag.Graph, con
 	)
 
 	for _, block := range configBlocks {
-		node, newConfigNodeDiags := NewConfigNode(block, l.globals)
+		node, newConfigNodeDiags := NewConfigNode(block, l.globals, l.onImportContentChange)
 		diags = append(diags, newConfigNodeDiags...)
 
 		if g.GetByID(node.NodeID()) != nil {
@@ -413,6 +429,8 @@ func (l *Loader) populateConfigBlockNodes(args map[string]any, g *dag.Graph, con
 		g.Add(c)
 	}
 
+	l.importNodes = nodeMap.importFileMap
+
 	return diags
 }
 
@@ -444,11 +462,10 @@ func (l *Loader) populateComponentNodes(g *dag.Graph, componentBlocks []*ast.Blo
 			c.UpdateBlock(block)
 		} else {
 			componentName := block.GetBlockName()
-			registration, exists := l.componentReg.Get(componentName)
-			if !exists {
+			if componentName == "module_component" {
 				diags.Add(diag.Diagnostic{
 					Severity: diag.SeverityLevelError,
-					Message:  fmt.Sprintf("Unrecognized component name %q", componentName),
+					Message:  fmt.Sprintf("Explicitly creating a %q in a river file is not allowed", componentName),
 					StartPos: block.NamePos.Position(),
 					EndPos:   block.NamePos.Add(len(componentName) - 1).Position(),
 				})
@@ -459,6 +476,30 @@ func (l *Loader) populateComponentNodes(g *dag.Graph, componentBlocks []*ast.Blo
 				diags.Add(diag.Diagnostic{
 					Severity: diag.SeverityLevelError,
 					Message:  fmt.Sprintf("Component %q must have a label", componentName),
+					StartPos: block.NamePos.Position(),
+					EndPos:   block.NamePos.Add(len(componentName) - 1).Position(),
+				})
+				continue
+			}
+
+			if importNode, exists := l.importNodes[componentName]; exists {
+				reg, exists := l.componentReg.Get("module_component")
+				if !exists {
+					level.Error(l.log).Log("msg", "module_component should exist but the registration is not found")
+					continue
+				}
+				c = NewComponentNode(l.globals, reg, block)
+				g.Add(c)
+				g.AddEdge(dag.Edge{From: c, To: importNode})
+				l.moduleComponentNodes = append(l.moduleComponentNodes, c)
+				continue
+			}
+
+			registration, exists := l.componentReg.Get(componentName)
+			if !exists {
+				diags.Add(diag.Diagnostic{
+					Severity: diag.SeverityLevelError,
+					Message:  fmt.Sprintf("Unrecognized component name %q", componentName),
 					StartPos: block.NamePos.Position(),
 					EndPos:   block.NamePos.Add(len(componentName) - 1).Position(),
 				})
@@ -526,6 +567,12 @@ func (l *Loader) Services() []*ServiceNode {
 	l.mut.RLock()
 	defer l.mut.RUnlock()
 	return l.serviceNodes
+}
+
+func (l *Loader) Imports() map[string]*ImportFileConfigNode {
+	l.mut.RLock()
+	defer l.mut.RUnlock()
+	return l.importNodes
 }
 
 // Graph returns a copy of the DAG managed by the Loader.
