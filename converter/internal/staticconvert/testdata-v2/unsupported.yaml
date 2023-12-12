@@ -1,0 +1,17 @@
+
+metrics:
+  global:
+    remote_write:
+      - url: http://localhost:9009/api/prom/push
+  configs:
+    - name: default
+
+integrations:
+  app_agent_receiver_configs:
+    - instance: "default"
+      traces_instance: "not_supported"
+      server:
+        host: "localhost"
+        port: 55678
+  eventhandler:
+    cache_path: "/etc/eventhandler/eventhandler.cache"

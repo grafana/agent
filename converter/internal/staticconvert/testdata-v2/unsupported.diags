@@ -1,0 +1,3 @@
+(Warning) Please review your agent command line flags and ensure they are set in your Flow mode config file where necessary.
+(Error) The converter does not support converting the provided eventhandler integration.
+(Error) The converter does not support converting the provided app_agent_receiver traces_instance config.

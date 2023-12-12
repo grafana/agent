@@ -5,6 +5,13 @@ metrics:
   configs:
     - name: default
 
+logs:
+  positions_directory: /path
+  configs:
+    - name: log_config
+      clients:
+        - url: http://localhost/loki/api/v1/push
+
 integrations:
   agent:
     autoscrape:
@@ -19,6 +26,12 @@ integrations:
       extra_labels:
         test_label: test_label_value
         test_label_2: test_label_value_2
+  app_agent_receiver_configs:
+    - instance: "default"
+      logs_instance: "log_config"
+      server:
+        host: "localhost"
+        port: 55678
   azure_configs:
     - instance: "azure1"
       subscriptions:
@@ -205,3 +218,13 @@ integrations:
   statsd:
     autoscrape:
       metrics_instance: "default"
+  vsphere_configs:
+    - vsphere_url: https://127.0.0.1:8989/sdk
+      vsphere_user: user
+      vsphere_password: pass
+      request_chunk_size: 256
+      collect_concurrency: 8
+      instance: vsphere
+      autoscrape:
+        enable: true
+        metrics_instance: default

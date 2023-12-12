@@ -9,6 +9,13 @@ prometheus.remote_write "metrics_default" {
 	}
 }
 
+loki.write "logs_log_config" {
+	endpoint {
+		url = "http://localhost/loki/api/v1/push"
+	}
+	external_labels = {}
+}
+
 prometheus.exporter.azure "integrations_azure1" {
 	subscriptions = ["subId"]
 	resource_type = "Microsoft.Dashboard/grafana"
@@ -471,6 +478,32 @@ prometheus.scrape "integrations_apache2" {
 	job_name   = "integrations/apache2"
 }
 
+faro.receiver "integrations_app_agent_receiver" {
+	extra_log_labels = {}
+
+	server {
+		listen_address           = "localhost"
+		listen_port              = 55678
+		max_allowed_payload_size = "4MiB786KiB832B"
+
+		rate_limiting {
+			enabled    = true
+			rate       = 100
+			burst_size = 50
+		}
+	}
+
+	sourcemaps {
+		download_from_origins = ["*"]
+		download_timeout      = "1s"
+	}
+
+	output {
+		logs   = [loki.write.logs_log_config.receiver]
+		traces = []
+	}
+}
+
 prometheus.exporter.blackbox "integrations_blackbox" {
 	config = "modules:\n  http_2xx:\n    prober: http\n    timeout: 5s\n    http:\n      method: POST\n      headers:\n        Content-Type: application/json\n      body: '{}'\n      preferred_ip_protocol: ip4\n"
 
@@ -507,4 +540,25 @@ prometheus.scrape "integrations_snmp" {
 	targets    = prometheus.exporter.snmp.integrations_snmp.targets
 	forward_to = [prometheus.remote_write.metrics_default.receiver]
 	job_name   = "integrations/snmp"
+}
+
+prometheus.exporter.vsphere "integrations_vsphere" {
+	vsphere_url      = "https://127.0.0.1:8989/sdk"
+	vsphere_user     = "user"
+	vsphere_password = "pass"
+}
+
+discovery.relabel "integrations_vsphere" {
+	targets = prometheus.exporter.vsphere.integrations_vsphere.targets
+
+	rule {
+		target_label = "instance"
+		replacement  = "vsphere"
+	}
+}
+
+prometheus.scrape "integrations_vsphere" {
+	targets    = discovery.relabel.integrations_vsphere.output
+	forward_to = [prometheus.remote_write.metrics_default.receiver]
+	job_name   = "integrations/vsphere"
 }
