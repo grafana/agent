@@ -39,7 +39,8 @@ The river config would look like this:
 prometheus.exporter.blackbox "example" { 
 	config_file = "blackbox_modules.yml"
 	
-	target "example" {
+	target {
+		name    = "example"
 		address = "http://example.com"
 		module  = "http_2xx"
 	}

@@ -29,6 +29,47 @@ Other release notes for the different {{< param "PRODUCT_ROOT_NAME" >}} variants
 [release-notes-operator]: {{< relref "../operator/release-notes.md" >}}
 {{% /admonition %}}
 
+
+## v0.39
+
+### Breaking change: label for `target` block in `prometheus.exporter.blackbox` is removed
+
+Previously in `prometheus.exporter.blackbox`, the `target` block requires a label which is used in job's name. 
+In this version, user needs to be specify `name` attribute instead, which allow less restrictive naming.
+
+Old configuration example:
+
+```river
+prometheus.exporter.blackbox "example" {
+  config_file = "blackbox_modules.yml"
+
+  target "grafana" {
+    address = "http://grafana.com"
+    module  = "http_2xx"
+    labels = {
+      "env": "dev",
+    }
+  }
+}
+```
+
+New configuration example:
+
+```river
+prometheus.exporter.blackbox "example" {
+  config_file = "blackbox_modules.yml"
+
+  target {
+    name     = "grafana"
+    address = "http://grafana.com"
+    module  = "http_2xx"
+    labels = {
+      "env": "dev",
+    }
+  }
+}
+```
+
 ## v0.38
 
 ### Breaking change: `otelcol.exporter.jaeger` component removed

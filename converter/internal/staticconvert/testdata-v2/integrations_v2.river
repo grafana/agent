@@ -507,7 +507,8 @@ faro.receiver "integrations_app_agent_receiver" {
 prometheus.exporter.blackbox "integrations_blackbox" {
 	config = "modules:\n  http_2xx:\n    prober: http\n    timeout: 5s\n    http:\n      method: POST\n      headers:\n        Content-Type: application/json\n      body: '{}'\n      preferred_ip_protocol: ip4\n"
 
-	target "example" {
+	target {
+		name    = "example"
 		address = "http://example.com"
 		module  = "http_2xx"
 	}

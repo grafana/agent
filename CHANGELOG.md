@@ -10,6 +10,11 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+### Breaking changes
+
+- The `target` block in `prometheus.exporter.blackbox` requires a mandatory `name`
+  argument instead of a block label. (@hainenber)
+
 ### Enhancements
 
 - Added a new `otelcol.exporter.debug` component based on OTel Collector's "debug" exporter`. (@BarunKGP)

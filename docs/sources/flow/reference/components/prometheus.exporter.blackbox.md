@@ -18,7 +18,8 @@ The `prometheus.exporter.blackbox` component embeds
 
 ```river
 prometheus.exporter.blackbox "LABEL" {
-  target "example" {
+  target {
+    name    = "example"
     address = "EXAMPLE_ADDRESS"
   }
 }
@@ -60,10 +61,11 @@ The following blocks are supported inside the definition of
 ### target block
 
 The `target` block defines an individual blackbox target.
-The `target` block may be specified multiple times to define multiple targets. The label of the block is required and will be used in the target's `job` label.
+The `target` block may be specified multiple times to define multiple targets. `name` attribute is required and will be used in the target's `job` label.
 
 | Name      | Type             | Description                         | Default | Required |
 | --------- | ---------------- | ----------------------------------- | ------- | -------- |
+| `name`    | `string`         | The name of the target to probe.    |         | yes      |
 | `address` | `string`         | The address of the target to probe. |         | yes      |
 | `module`  | `string`         | Blackbox module to use to probe.    | `""`    | no       |
 | `labels`  | `map(string)`    | Labels to add to the target.        |         | no       |
@@ -103,12 +105,14 @@ The `config_file` argument is used to define which `blackbox_exporter` modules t
 prometheus.exporter.blackbox "example" {
   config_file = "blackbox_modules.yml"
 
-  target "example" {
+  target {
+    name    = "example"
     address = "http://example.com"
     module  = "http_2xx"
   }
 
-  target "grafana" {
+  target {
+    name    = "grafana" 
     address = "http://grafana.com"
     module  = "http_2xx"
     labels = {
@@ -149,12 +153,14 @@ This example is the same above with using an embedded configuration:
 prometheus.exporter.blackbox "example" {
   config = "{ modules: { http_2xx: { prober: http, timeout: 5s } } }"
 
-  target "example" {
+  target {
+    name    = "example"
     address = "http://example.com"
     module  = "http_2xx"
   }
 
-  target "grafana" {
+  target {
+    name    = "grafana"
     address = "http://grafana.com"
     module  = "http_2xx"
     labels = {

@@ -5,7 +5,6 @@ import (
 
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/prometheus/exporter/blackbox"
-	"github.com/grafana/agent/converter/internal/common"
 	"github.com/grafana/agent/pkg/integrations/blackbox_exporter"
 	blackbox_exporter_v2 "github.com/grafana/agent/pkg/integrations/v2/blackbox_exporter"
 	"github.com/grafana/river/rivertypes"
@@ -57,7 +56,7 @@ func toBlackboxTargets(blackboxTargets []blackbox_exporter.BlackboxTarget) black
 
 func toBlackboxTarget(target blackbox_exporter.BlackboxTarget) blackbox.BlackboxTarget {
 	return blackbox.BlackboxTarget{
-		Name:   common.SanitizeIdentifierPanics(target.Name),
+		Name:   target.Name,
 		Target: target.Target,
 		Module: target.Module,
 	}
