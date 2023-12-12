@@ -19,9 +19,9 @@ the Egress metric for BlobService would be exported as `azure_microsoft_storage_
 
 ## Authentication
 
-Grafana agent must be running in an environment with access to Azure. The exporter uses the Azure SDK for go and supports [authentication](https://learn.microsoft.com/en-us/azure/developer/go/azure-sdk-authentication?tabs=bash#2-authenticate-with-azure).
+{{< param "PRODUCT_NAME" >}} must be running in an environment with access to Azure. The exporter uses the Azure SDK for go and supports [authentication](https://learn.microsoft.com/en-us/azure/developer/go/azure-sdk-authentication?tabs=bash#2-authenticate-with-azure).
 
-The account used by Grafana Agent needs:
+The account used by {{< param "PRODUCT_NAME" >}} needs:
 
 - [Read access to the resources that will be queried by Resource Graph](https://learn.microsoft.com/en-us/azure/governance/resource-graph/overview#permissions-in-azure-resource-graph)
 - Permissions to call the [Microsoft.Insights Metrics API](https://learn.microsoft.com/en-us/rest/api/monitor/metrics/list) which should be the `Microsoft.Insights/Metrics/Read` permission
@@ -84,7 +84,7 @@ Valid values for `azure_cloud_environment` are `azurecloud`, `azurechinacloud`, 
 
 ## Exported fields
 
-{{< docs/shared lookup="flow/reference/components/exporter-component-exports.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/exporter-component-exports.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ## Component health
 
@@ -148,3 +148,20 @@ Replace the following:
 - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
 - `USERNAME`: The username to use for authentication to the remote_write API.
 - `PASSWORD`: The password to use for authentication to the remote_write API.
+
+<!-- START GENERATED COMPATIBLE COMPONENTS -->
+
+## Compatible components
+
+`prometheus.exporter.azure` has exports that can be consumed by the following components:
+
+- Components that consume [Targets]({{< relref "../compatibility/#targets-consumers" >}})
+
+{{% admonition type="note" %}}
+
+Connecting some components may not be sensible or components may require further configuration to make the 
+connection work correctly. Refer to the linked documentation for more details.
+
+{{% /admonition %}}
+
+<!-- END GENERATED COMPATIBLE COMPONENTS -->

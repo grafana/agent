@@ -12,7 +12,7 @@ title: Grafana Agent data collection
 weight: 500
 ---
 
-# Data collection
+# Grafana Agent Data collection
 
 By default, Grafana Agent sends anonymous but uniquely identifiable usage information from
 your Grafana Agent instance to Grafana Labs. These statistics are sent to `stats.grafana.org`.
@@ -30,6 +30,7 @@ The usage information includes the following details:
 * List of enabled feature flags ([Static] mode only).
 * List of enabled integrations ([Static] mode only).
 * List of enabled [components][] ([Flow] mode only).
+* Method used to deploy Grafana Agent, for example Docker, Helm, RPM, or Operator.
 
 This list may change over time. All newly reported data is documented in the CHANGELOG.
 

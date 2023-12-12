@@ -13,7 +13,7 @@ title: prometheus.receive_http
 
 `prometheus.receive_http` listens for HTTP requests containing Prometheus metric samples and forwards them to other components capable of receiving metrics.
 
-The HTTP API exposed is compatible with [Prometheus `remote_write` API][prometheus-remote-write-docs]. This means that other [`prometheus.remote_write`][prometheus.remote_write] components can be used as a client and send requests to `prometheus.receive_http` which enables using the Agent as a proxy for prometheus metrics.
+The HTTP API exposed is compatible with [Prometheus `remote_write` API][prometheus-remote-write-docs]. This means that other [`prometheus.remote_write`][prometheus.remote_write] components can be used as a client and send requests to `prometheus.receive_http` which enables using {{< param "PRODUCT_ROOT_NAME" >}} as a proxy for prometheus metrics.
 
 [prometheus.remote_write]: {{< relref "./prometheus.remote_write.md" >}}
 [prometheus-remote-write-docs]: https://prometheus.io/docs/prometheus/2.45/querying/api/#remote-write-receiver
@@ -24,7 +24,7 @@ The HTTP API exposed is compatible with [Prometheus `remote_write` API][promethe
 prometheus.receive_http "LABEL" {
   http {
     listen_address = "LISTEN_ADDRESS"
-    listen_port = PORT 
+    listen_port = PORT
   }
   forward_to = RECEIVER_LIST
 }
@@ -32,29 +32,29 @@ prometheus.receive_http "LABEL" {
 
 The component will start an HTTP server supporting the following endpoint:
 
-- `POST /api/v1/metrics/write` - send metrics to the component, which in turn will be forwarded to the receivers as configured in `forward_to` argument. The request format must match that of [Prometheus `remote_write` API][prometheus-remote-write-docs]. One way to send valid requests to this component is to use another Grafana Agent with a [`prometheus.remote_write`][prometheus.remote_write] component.
+- `POST /api/v1/metrics/write` - send metrics to the component, which in turn will be forwarded to the receivers as configured in `forward_to` argument. The request format must match that of [Prometheus `remote_write` API][prometheus-remote-write-docs]. One way to send valid requests to this component is to use another {{< param "PRODUCT_ROOT_NAME" >}} with a [`prometheus.remote_write`][prometheus.remote_write] component.
 
 ## Arguments
 
 `prometheus.receive_http` supports the following arguments:
 
- Name         | Type             | Description                           | Default | Required 
---------------|------------------|---------------------------------------|---------|----------
- `forward_to` | `list(receiver)` | List of receivers to send metrics to. |         | yes      
+Name         | Type             | Description                           | Default | Required
+-------------|------------------|---------------------------------------|---------|---------
+`forward_to` | `list(MetricsReceiver)` | List of receivers to send metrics to. |         | yes
 
 ## Blocks
 
 The following blocks are supported inside the definition of `prometheus.receive_http`:
 
- Hierarchy | Name     | Description                                        | Required 
------------|----------|----------------------------------------------------|----------
- `http`    | [http][] | Configures the HTTP server that receives requests. | no       
+Hierarchy | Name     | Description                                        | Required
+----------|----------|----------------------------------------------------|---------
+`http`    | [http][] | Configures the HTTP server that receives requests. | no
 
 [http]: #http
 
 ### http
 
-{{< docs/shared lookup="flow/reference/components/loki-server-http.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/loki-server-http.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ## Exported fields
 
@@ -106,7 +106,7 @@ prometheus.remote_write "local" {
 
 ### Proxying metrics
 
-In order to send metrics to the `prometheus.receive_http` component defined in the previous example, another Grafana Agent can run with the following configuration:
+In order to send metrics to the `prometheus.receive_http` component defined in the previous example, another {{< param "PRODUCT_ROOT_NAME" >}} can run with the following configuration:
 
 ```river
 // Collects metrics of localhost:12345
@@ -117,15 +117,32 @@ prometheus.scrape "agent_self" {
   forward_to = [prometheus.remote_write.local.receiver]
 }
 
-// Writes metrics to localhost:9999/api/v1/metrics/write - e.g. served by 
+// Writes metrics to localhost:9999/api/v1/metrics/write - e.g. served by
 // the prometheus.receive_http component from the example above.
 prometheus.remote_write "local" {
   endpoint {
     url = "http://localhost:9999/api/v1/metrics/write"
-  }  
+  }
 }
 ```
 
 ## Technical details
 
 `prometheus.receive_http` uses [snappy](https://en.wikipedia.org/wiki/Snappy_(compression)) for compression.
+<!-- START GENERATED COMPATIBLE COMPONENTS -->
+
+## Compatible components
+
+`prometheus.receive_http` can accept arguments from the following components:
+
+- Components that export [Prometheus `MetricsReceiver`]({{< relref "../compatibility/#prometheus-metricsreceiver-exporters" >}})
+
+
+{{% admonition type="note" %}}
+
+Connecting some components may not be sensible or components may require further configuration to make the 
+connection work correctly. Refer to the linked documentation for more details.
+
+{{% /admonition %}}
+
+<!-- END GENERATED COMPATIBLE COMPONENTS -->

@@ -10,6 +10,17 @@ internal API changes are not present.
 Unreleased
 ----------
 
+### Enhancements
+
+- Update `rbac` to include necessary rules for the `otelcol.processor.k8sattributes` component. (@rlankfo)
+
+0.29.0 (2023-11-30)
+-------------------
+
+### Enhancements
+
+- Update Grafana Agent version to v0.38.1. (@rfratto)
+
 ### Other changes
 
 - Update `container.securityContext` Helm value reference to renamed `agent.securityContext`. (@hainenber)

@@ -6,19 +6,19 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/setup/install/windows/
 - /docs/grafana-cloud/send-data/agent/flow/setup/install/windows/
 canonical: https://grafana.com/docs/agent/latest/flow/setup/install/windows/
-description: Learn how to install Grafana Agent in flow mode on Windows
+description: Learn how to install Grafana Agent Flow on Windows
 menuTitle: Windows
-title: Install Grafana Agent in flow mode on Windows
+title: Install Grafana Agent Flow on Windows
 weight: 500
 ---
 
-# Install Grafana Agent in flow mode on Windows
+# Install {{< param "PRODUCT_NAME" >}} on Windows
 
-You can install Grafana Agent in flow mode on Windows as a standard graphical install, or as a silent install.
+You can install {{< param "PRODUCT_NAME" >}} on Windows as a standard graphical install, or as a silent install.
 
 ## Standard graphical install
 
-To do a standard graphical install of Grafana Agent on Windows, perform the following steps.
+To do a standard graphical install of {{< param "PRODUCT_NAME" >}} on Windows, perform the following steps.
 
 1. Navigate to the [latest release][latest] on GitHub.
 
@@ -28,13 +28,13 @@ To do a standard graphical install of Grafana Agent on Windows, perform the foll
 
 1. Unzip the downloaded file.
 
-1. Double-click on `grafana-agent-installer.exe` to install Grafana Agent.
+1. Double-click on `grafana-agent-installer.exe` to install {{< param "PRODUCT_NAME" >}}.
 
-Grafana Agent is installed into the default directory `C:\Program Files\Grafana Agent Flow`.
+{{< param "PRODUCT_NAME" >}} is installed into the default directory `C:\Program Files\Grafana Agent Flow`.
 
 ## Silent install
 
-To do a silent install of Grafana Agent on Windows, perform the following steps.
+To do a silent install of {{< param "PRODUCT_NAME" >}} on Windows, perform the following steps.
 
 1. Navigate to the [latest release][latest] on GitHub.
 
@@ -47,10 +47,12 @@ To do a silent install of Grafana Agent on Windows, perform the following steps.
 1. Run the following command in PowerShell or Command Prompt:
 
    ```shell
-   PATH_TO_INSTALLER /S
+   <PATH_TO_INSTALLER> /S
    ```
 
-   Replace `PATH_TO_INSTALLER` with the path where the unzipped installer executable is located.
+   Replace the following:
+
+   - _`<PATH_TO_INSTALLER>`_: The path where the unzipped installer executable is located.
 
 ### Silent install options
 
@@ -61,29 +63,31 @@ To do a silent install of Grafana Agent on Windows, perform the following steps.
 
 ## Service Configuration
 
-Grafana Agent uses the Windows Registry `HKLM\Software\Grafana\Grafana Agent Flow` for service configuration.
+{{< param "PRODUCT_NAME" >}} uses the Windows Registry `HKLM\Software\Grafana\Grafana Agent Flow` for service configuration.
 
 * `Arguments` (Type `REG_MULTI_SZ`) Each value represents a binary argument for grafana-agent-flow binary.
 * `Environment` (Type `REG_MULTI_SZ`) Each value represents a environment value `KEY=VALUE` for grafana-agent-flow binary.
 
 ## Uninstall
 
-You can uninstall Grafana Agent with Windows Remove Programs or `C:\Program Files\Grafana Agent\uninstaller.exe`. Uninstalling Grafana Agent stops the service and removes it from disk. This includes any configuration files in the installation directory.
+You can uninstall {{< param "PRODUCT_NAME" >}} with Windows Remove Programs or `C:\Program Files\Grafana Agent\uninstaller.exe`.
+Uninstalling {{< param "PRODUCT_NAME" >}} stops the service and removes it from disk.
+This includes any configuration files in the installation directory.
 
-Grafana Agent can also be silently uninstalled by running `uninstall.exe /S` as Administrator.
+{{< param "PRODUCT_NAME" >}} can also be silently uninstalled by running `uninstall.exe /S` as Administrator.
 
 ## Next steps
 
-- [Start Grafana Agent][]
-- [Configure Grafana Agent][]
+- [Start {{< param "PRODUCT_NAME" >}}][Start]
+- [Configure {{< param "PRODUCT_NAME" >}}][Configure]
 
 [latest]: https://github.com/grafana/agent/releases/latest
 
 {{% docs/reference %}}
-[Start Grafana Agent]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/start-agent.md#windows"
-[Start Grafana Agent]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/setup/start-agent.md#windows"
-[Configure Grafana Agent]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/configure/configure-windows.md"
-[Configure Grafana Agent]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/setup/configure/configure-windows.md"
+[Start]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/start-agent.md#windows"
+[Start]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/setup/start-agent.md#windows"
+[Configure]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/configure/configure-windows.md"
+[Configure]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/setup/configure/configure-windows.md"
 [data collection]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/data-collection.md"
 [data collection]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/data-collection.md"
 {{% /docs/reference %}}

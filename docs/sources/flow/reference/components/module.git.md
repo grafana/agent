@@ -13,9 +13,9 @@ title: module.git
 
 # module.git
 
-{{< docs/shared lookup="flow/stability/beta.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/stability/beta.md" source="agent" version="<AGENT_VERSION>" >}}
 
-`module.git` is a *module loader* component. A module loader is a Grafana Agent Flow
+`module.git` is a *module loader* component. A module loader is a {{< param "PRODUCT_NAME" >}}
 component which retrieves a [module][] and runs the components defined inside of it.
 
 `module.git` retrieves a module source from a file in a Git repository.
@@ -78,7 +78,7 @@ arguments | [arguments][] | Arguments to pass to the module. | no
 
 ### basic_auth block
 
-{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### ssh_key block
 

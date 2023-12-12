@@ -10,13 +10,10 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
-### Security fixes
+### Breaking changes
 
-- Fix CVE-2023-47108 by updating `otelgrpc` from v0.45.0 to v0.46.0. (@hainenber)
-
-### Features
-
-- Agent Management: Introduce support for templated configuration. (@jcreixell)
+- The `target` block in `prometheus.exporter.blackbox` requires a mandatory `name`
+  argument instead of a block label. (@hainenber)
 
 - Allow adding sidecar containers in the helm chart (@juangom)
 
@@ -42,6 +39,46 @@ Main (unreleased)
 
 - `pyroscope.ebpf` support python on arm64 platforms. (@korniltsev)
 
+- `mimir.rules.kubernetes` may now retry its startup on failure. (@hainenber)
+
+- Added links between compatible components in the documentation to make it
+  easier to discover them. (@thampiotr)
+  
+- Allow defining `HTTPClientConfig` for `discovery.ec2`. (@cmbrad)
+
+- The `remote.http` component can optionally define a request body. (@tpaschalis)
+
+- Added support for `loki.write` to flush WAL on agent shutdown. (@thepalbi)
+
+### Bugfixes
+
+- Update `pyroscope.ebpf` to fix a logical bug causing to profile to many kthreads instead of regular processes https://github.com/grafana/pyroscope/pull/2778 (@korniltsev)
+ 
+- Update `pyroscope.ebpf` to produce more optimal pprof profiles for python processes https://github.com/grafana/pyroscope/pull/2788 (@korniltsev)
+
+- In Static mode's `traces` subsystem, `spanmetrics` used to be generated prior to load balancing.
+  This could lead to inaccurate metrics. This issue only affects Agents using both `spanmetrics` and 
+  `load_balancing`, when running in a load balanced cluster with more than one Agent instance. (@ptodev)
+
+- Fixes `loki.source.docker` a behavior that synced an incomplete list of targets to the tailer manager. (@FerdinandvHagen)
+
+- Fixes `otelcol.connector.servicegraph` store ttl default value from 2ms to 2s. (@rlankfo)
+
+### Other changes
+
+- Bump github.com/IBM/sarama from v1.41.2 to v1.42.1
+
+v0.38.1 (2023-11-30)
+--------------------
+
+### Security fixes
+
+- Fix CVE-2023-47108 by updating `otelgrpc` from v0.45.0 to v0.46.0. (@hainenber)
+
+### Features
+
+- Agent Management: Introduce support for templated configuration. (@jcreixell)
+
 ### Bugfixes
 
 - Permit `X-Faro-Session-ID` header in CORS requests for the `faro.receiver`
@@ -53,6 +90,15 @@ Main (unreleased)
 - Fix agent crash when process null OTel's fan out consumers. (@hainenber)
 
 - Fix issue in `prometheus.operator.*` where targets would be dropped if two crds share a common prefix in their names. (@Paul424, @captncraig)
+
+- Fix issue where `convert` command would generate incorrect Flow Mode config
+  when provided `promtail` configuration that uses `docker_sd_configs` (@thampiotr)
+
+- Fix converter issue with `loki.relabel` and `max_cache_size` being set to 0 instead of default (10_000). (@mattdurham)
+
+### Other changes
+
+- Add Agent Deploy Mode to usage report. (@captncraig)
 
 v0.38.0 (2023-11-21)
 --------------------
@@ -210,8 +256,6 @@ v0.38.0 (2023-11-21)
 
 - Fix converter output for prometheus.exporter.windows to not unnecessarily add
   empty blocks. (@erikbaranowski)
-
-- Fix converter issue with `loki.relabel` and `max_cache_size` being set to 0 instead of default (10_000). (@mattdurham)
 
 ### Other changes
 

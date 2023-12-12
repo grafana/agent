@@ -6,24 +6,24 @@ aliases:
 - /docs/grafana-cloud/send-data/agent/flow/setup/start-agent/
 canonical: https://grafana.com/docs/agent/latest/flow/setup/start-agent/
 description: Learn how to start, restart, and stop Grafana Agent after it is installed
-menuTitle: Start flow mode
-title: Start, restart, and stop Grafana Agent in flow mode
+menuTitle: Start Grafana Agent Flow
+title: Start, restart, and stop Grafana Agent Flow
 weight: 800
 ---
 
-# Start, restart, and stop Grafana Agent in flow mode
+# Start, restart, and stop {{< param "PRODUCT_NAME" >}}
 
-You can start, restart, and stop Grafana Agent after it is installed.
+You can start, restart, and stop {{< param "PRODUCT_NAME" >}} after it is installed.
 
 ## Linux
 
-Grafana Agent is installed as a [systemd][] service on Linux.
+{{< param "PRODUCT_NAME" >}} is installed as a [systemd][] service on Linux.
 
 [systemd]: https://systemd.io/
 
-### Start Grafana Agent
+### Start {{< param "PRODUCT_NAME" >}}
 
-To start Grafana Agent, run the following command in a terminal window:
+To start {{< param "PRODUCT_NAME" >}}, run the following command in a terminal window:
 
 ```shell
 sudo systemctl start grafana-agent-flow
@@ -35,33 +35,33 @@ sudo systemctl start grafana-agent-flow
 sudo systemctl status grafana-agent-flow
 ```
 
-### Configure Grafana Agent to start at boot
+### Configure {{< param "PRODUCT_NAME" >}} to start at boot
 
-To automatically run Grafana Agent when the system starts, run the following command in a terminal window:
+To automatically run {{< param "PRODUCT_NAME" >}} when the system starts, run the following command in a terminal window:
 
 ```shell
 sudo systemctl enable grafana-agent-flow.service
 ```
 
-### Restart Grafana Agent
+### Restart {{< param "PRODUCT_NAME" >}}
 
-To restart Grafana Agent, run the following command in a terminal window:
+To restart {{< param "PRODUCT_NAME" >}}, run the following command in a terminal window:
 
 ```shell
 sudo systemctl restart grafana-agent-flow
 ```
 
-### Stop Grafana Agent
+### Stop {{< param "PRODUCT_NAME" >}}
 
-To stop Grafana Agent, run the following command in a terminal window:
+To stop {{< param "PRODUCT_NAME" >}}, run the following command in a terminal window:
 
 ```shell
 sudo systemctl stop grafana-agent-flow
 ```
 
-### View Grafana Agent logs on Linux
+### View {{< param "PRODUCT_NAME" >}} logs on Linux
 
-To view the Grafana Agent log files, run the following command in a terminal window:
+To view {{< param "PRODUCT_NAME" >}} log files, run the following command in a terminal window:
 
 ```shell
 sudo journalctl -u grafana-agent-flow
@@ -69,17 +69,17 @@ sudo journalctl -u grafana-agent-flow
 
 ## macOS
 
-Grafana Agent is installed as a launchd service on macOS.
+{{< param "PRODUCT_NAME" >}} is installed as a launchd service on macOS.
 
-### Start Grafana Agent
+### Start {{< param "PRODUCT_NAME" >}}
 
-To start Grafana Agent, run the following command in a terminal window:
+To start {{< param "PRODUCT_NAME" >}}, run the following command in a terminal window:
 
 ```shell
 brew services start grafana-agent-flow
 ```
 
-Grafana Agent automatically runs when the system starts.
+{{< param "PRODUCT_NAME" >}} automatically runs when the system starts.
 
 (Optional) To verify that the service is running, run the following command in a terminal window:
 
@@ -87,35 +87,35 @@ Grafana Agent automatically runs when the system starts.
 brew services info grafana-agent-flow
 ```
 
-### Restart Grafana Agent
+### Restart {{< param "PRODUCT_NAME" >}}
 
-To restart Grafana Agent, run the following command in a terminal window:
+To restart {{< param "PRODUCT_NAME" >}}, run the following command in a terminal window:
 
 ```shell
 brew services restart grafana-agent-flow
 ```
 
-### Stop Grafana Agent
+### Stop {{< param "PRODUCT_NAME" >}}
 
-To stop Grafana Agent, run the following command in a terminal window:
+To stop {{< param "PRODUCT_NAME" >}}, run the following command in a terminal window:
 
 ```shell
 brew services stop grafana-agent-flow
 ```
 
-### View Grafana Agent logs on macOS
+### View {{< param "PRODUCT_NAME" >}} logs on macOS
 
 By default, logs are written to `$(brew --prefix)/var/log/grafana-agent-flow.log` and
 `$(brew --prefix)/var/log/grafana-agent-flow.err.log`.
 
-If you followed [Configure the Grafana Agent service][] and changed the path where logs are written,
-refer to your current copy of the Grafana Agent formula to locate your log files.
+If you followed [Configure the {{< param "PRODUCT_NAME" >}} service][Configure] and changed the path where logs are written,
+refer to your current copy of the {{< param "PRODUCT_NAME" >}} formula to locate your log files.
 
 ## Windows
 
-Grafana Agent is installed as a Windows Service. The service is configured to automatically run on startup.
+{{< param "PRODUCT_NAME" >}} is installed as a Windows Service. The service is configured to automatically run on startup.
 
-To verify that Grafana Agent is running as a Windows Service:
+To verify that {{< param "PRODUCT_NAME" >}} is running as a Windows Service:
 
 1. Open the Windows Services manager (services.msc):
 
@@ -123,12 +123,12 @@ To verify that Grafana Agent is running as a Windows Service:
 
    1. Type: `services.msc` and click **OK**.
 
-1. Scroll down to find the **Grafana Agent Flow** service and verify that the **Status** is **Running**.
+1. Scroll down to find the **{{< param "PRODUCT_NAME" >}}** service and verify that the **Status** is **Running**.
 
-### View Grafana Agent logs
+### View {{< param "PRODUCT_NAME" >}} logs
 
-When running on Windows, Grafana Agent writes its logs to Windows Event
-Logs with an event source name of **Grafana Agent Flow**.
+When running on Windows, {{< param "PRODUCT_NAME" >}} writes its logs to Windows Event
+Logs with an event source name of **{{< param "PRODUCT_NAME" >}}**.
 
 To view the logs, perform the following steps:
 
@@ -140,45 +140,45 @@ To view the logs, perform the following steps:
 
 1. In the Event Viewer, click on **Windows Logs > Application**.
 
-1. Search for events with the source **Grafana Agent Flow**.
+1. Search for events with the source **{{< param "PRODUCT_NAME" >}}**.
 
 ## Standalone binary
 
-If you downloaded the standalone binary, you must run the agent from a terminal or command window.
+If you downloaded the standalone binary, you must run {{< param "PRODUCT_NAME" >}} from a terminal or command window.
 
-### Start Grafana Agent on Linux, macOS, or FreeBSD
+### Start {{< param "PRODUCT_NAME" >}} on Linux, macOS, or FreeBSD
 
-To start Grafana Agent on Linux, macOS, or FreeBSD, run the following command in a terminal window:
+To start {{< param "PRODUCT_NAME" >}} on Linux, macOS, or FreeBSD, run the following command in a terminal window:
 
 ```shell
-AGENT_MODE=flow BINARY_PATH run CONFIG_PATH
+AGENT_MODE=flow <BINARY_PATH> run <CONFIG_PATH>
 ```
 
 Replace the following:
 
-* `BINARY_PATH`: The path to the Grafana Agent binary file.
-* `CONFIG_PATH`: The path to the Grafana Agent configuration file.
+* _`<BINARY_PATH>`_: The path to the {{< param "PRODUCT_NAME" >}} binary file.
+* _`<CONFIG_PATH>`_: The path to the {{< param "PRODUCT_NAME" >}} configuration file.
 
-### Start Grafana Agent on Windows
+### Start {{< param "PRODUCT_NAME" >}} on Windows
 
-To start Grafana Agent on Windows, run the following commands in a command prompt:
+To start {{< param "PRODUCT_NAME" >}} on Windows, run the following commands in a command prompt:
 
 ```cmd
 set AGENT_MODE=flow
-BINARY_PATH run CONFIG_PATH
+<BINARY_PATH> run <CONFIG_PATH>
 ```
 
 Replace the following:
 
-* `BINARY_PATH`: The path to the Grafana Agent binary file.
-* `CONFIG_PATH`: The path to the Grafana Agent configuration file.
+* _`<BINARY_PATH>`_: The path to the {{< param "PRODUCT_NAME" >}} binary file.
+* _`<CONFIG_PATH>`_: The path to the {{< param "PRODUCT_NAME" >}} configuration file.
 
-### Set up Grafana Agent as a Linux systemd service
+### Set up {{< param "PRODUCT_NAME" >}} as a Linux systemd service
 
-You can set up and manage the standalone binary for Grafana Agent as a Linux systemd service.
+You can set up and manage the standalone binary for {{< param "PRODUCT_NAME" >}} as a Linux systemd service.
 
 {{% admonition type="note" %}}
-These steps assume you have a default systemd and Grafana Agent configuration.
+These steps assume you have a default systemd and {{< param "PRODUCT_NAME" >}} configuration.
 {{% /admonition %}}
 
 1. To create a new user called `grafana-agent-flow` run the following command in a terminal window:
@@ -201,8 +201,8 @@ These steps assume you have a default systemd and Grafana Agent configuration.
    User=grafana-agent-flow
    Environment=HOSTNAME=%H
    EnvironmentFile=/etc/default/grafana-agent-flow
-   WorkingDirectory=WORKING_DIRECTORY
-   ExecStart=BINARY_PATH run $CUSTOM_ARGS --storage.path=WORKING_PATH $CONFIG_FILE
+   WorkingDirectory=<WORKING_DIRECTORY>
+   ExecStart=<BINARY_PATH> run $CUSTOM_ARGS --storage.path=<WORKING_DIRECTORY> $CONFIG_FILE
    ExecReload=/usr/bin/env kill -HUP $MAINPID
    TimeoutStopSec=20s
    SendSIGKILL=no
@@ -213,8 +213,8 @@ These steps assume you have a default systemd and Grafana Agent configuration.
 
    Replace the following:
 
-   * `BINARY_PATH`: The path to the Grafana Agent binary file.
-   * `WORKING_DIRECTORY`: The path to a working directory, for example `/var/lib/grafana-agent-flow`.
+   * _`<BINARY_PATH>`_: The path to the {{< param "PRODUCT_NAME" >}} binary file.
+   * _`<WORKING_DIRECTORY>`_: The path to a working directory, for example `/var/lib/grafana-agent-flow`.
 
 1. Create an environment file in `/etc/default/` called `grafana-agent-flow` with the following contents:
 
@@ -227,8 +227,8 @@ These steps assume you have a default systemd and Grafana Agent configuration.
    #
    # Command line options for grafana-agent
    #
-   # The configuration file holding the agent config.
-   CONFIG_FILE="CONFIG_PATH"
+   # The configuration file holding the Grafana Agent Flow configuration.
+   CONFIG_FILE="<CONFIG_PATH>"
 
    # User-defined arguments to pass to the run command.
    CUSTOM_ARGS=""
@@ -239,7 +239,7 @@ These steps assume you have a default systemd and Grafana Agent configuration.
 
    Replace the following:
 
-      * `CONFIG_PATH`: The path to the Grafana Agent configuration file.
+      * _`<CONFIG_PATH>`_: The path to the {{< param "PRODUCT_NAME" >}} configuration file.
 
 1. To reload the service files, run the following command in a terminal window:
 
@@ -247,11 +247,11 @@ These steps assume you have a default systemd and Grafana Agent configuration.
    sudo systemctl daemon-reload
    ```
 
-1. Use the [Linux](#linux) systemd commands to manage your standalone Linux installation of Grafana Agent.
+1. Use the [Linux](#linux) systemd commands to manage your standalone Linux installation of {{< param "PRODUCT_NAME" >}}.
 
 [release]: https://github.com/grafana/agent/releases/latest
 
 {{% docs/reference %}}
-[Configure the Grafana Agent service]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/configure/configure-macos.md#configure-the-grafana-agent-service"
-[Configure the Grafana Agent service]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/setup/configure/configure-macos.md#configure-the-grafana-agent-service"
+[Configure]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/configure/configure-macos.md#configure-the-grafana-agent-service"
+[Configure]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/setup/configure/configure-macos.md#configure-the-grafana-agent-service"
 {{% /docs/reference %}}
