@@ -17,7 +17,7 @@ Components are the defining feature of {{< param "PRODUCT_NAME" >}}.
 Components are small, reusable pieces of business logic that perform a single task like retrieving secrets or collecting Prometheus metrics,
 and you can wire them together to form programmable pipelines of telemetry data.
 
-The [_component controller_]controller[] is responsible for scheduling components, reporting their health and debug status, re-evaluating their arguments, and providing their exports.
+The [_component controller_][controller] is responsible for scheduling components, reporting their health and debug status, re-evaluating their arguments, and providing their exports.
 
 ## Configuring components
 

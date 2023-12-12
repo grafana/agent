@@ -59,14 +59,14 @@ River handles integers, unsigned integers, and floating-point values as a single
 
 ## Strings
 
-Strings are represented by sequences of Unicode characters surrounded by double quotes `""`:
+Strings are represented by sequences of Unicode characters surrounded by double quotes `""`.
 
 ```river
 "Hello, world!"
 ```
 
 A `\` in a string starts an escape sequence to represent a special character.
-The supported escape sequences are as follows:
+The following table shows the supported escape sequences.
 
 | Sequence     | Replacement                                                                             |
 |--------------|-----------------------------------------------------------------------------------------|
@@ -88,7 +88,7 @@ The supported escape sequences are as follows:
 ## Raw strings
 
 Raw strings are represented by sequences of Unicode characters surrounded by backticks ``` `` ```.
-Raw strings don't support any escape sequences:
+Raw strings don't support any escape sequences.
 
 ```river
 `Hello, "world"!`
@@ -104,7 +104,7 @@ A multiline raw string is interpreted exactly as written.
 "world"!`
 ```
 
-The preceding multiline raw string is interpreted as a string with the following value:
+The preceding multiline raw string is interpreted as a string with the following value.
 
 ```string
 Hello,
@@ -117,7 +117,7 @@ Bools are represented by the symbols `true` and `false`.
 
 ## Arrays
 
-You construct arrays with a sequence of comma-separated values surrounded by square brackets `[]`:
+You construct arrays with a sequence of comma-separated values surrounded by square brackets `[]`.
 
 ```river
 [0, 1, 2, 3]
@@ -161,12 +161,11 @@ If the key isn't a valid identifier, you must wrap it in double quotes like a st
 }
 ```
 
-{{% admonition type="note" %}}
+{{% admonition type="Note" %}}
 Don't confuse objects with blocks.
 
-An _object_ is a value assigned to an [Attribute][]. You **must** use commas between key-value pairs on separate lines.
-
-A [Block][] is a named structural element composed of multiple attributes. You **must not** use commas between attributes.
+* An _object_ is a value assigned to an [Attribute][]. You **must** use commas between key-value pairs on separate lines.
+* A [Block][] is a named structural element composed of multiple attributes. You **must not** use commas between attributes.
 
 [Attribute]: {{< relref "../syntax.md#Attributes" >}}
 [Block]: {{< relref "../syntax.md#Blocks" >}}
@@ -198,7 +197,7 @@ If an attribute expects a `capsule("prometheus.Receiver")`, you can only assign 
 The specific type of capsule expected is explicitly documented for any component that uses or exports them.
 
 In the following example, the `prometheus.remote_write` component exports a `receiver`, which is a `capsule("prometheus.Receiver")` type.
-You can use this capsule in the `forward_to` attribute of `prometheus.scrape`, which expects an array of `capsule("prometheus.Receiver")`s:
+You can use this capsule in the `forward_to` attribute of `prometheus.scrape`, which expects an array of `capsule("prometheus.Receiver")`.
 
 ```river
 prometheus.remote_write "default" {

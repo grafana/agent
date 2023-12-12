@@ -74,7 +74,7 @@ module.string "my_module" {
 
 ## Example module
 
-This example module manages a pipeline that filters out debug-level and info-level log lines:
+This example module manages a pipeline that filters out debug-level and info-level log lines.
 
 ```river
 // argument.write_to is a required argument that specifies where filtered

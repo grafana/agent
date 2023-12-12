@@ -20,7 +20,7 @@ River configurations use blocks that can be easily copied and pasted from the do
 
 A River configuration file tells {{< param "PRODUCT_NAME" >}} which components to launch and how to bind them together into a pipeline.
 
-The syntax of River uses blocks, attributes, and expressions.
+The River syntax uses blocks, attributes, and expressions.
 
 ```river
 // Create a local.file component labeled my_file.

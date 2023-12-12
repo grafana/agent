@@ -45,7 +45,7 @@ Combining component names with a label means you can define multiple instances o
 
 ## Pipelines
 
-Most arguments for a component in a configuration file are constant values, such as setting a `log_level` attribute to the quoted string `"debug"`:
+Most arguments for a component in a configuration file are constant values, such as setting a `log_level` attribute to the quoted string `"debug"`.
 
 ```river
 log_level = "debug"

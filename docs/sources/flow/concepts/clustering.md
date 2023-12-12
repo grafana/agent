@@ -33,7 +33,7 @@ Target auto-distribution is the most basic use case of clustering.
 It allows scraping components running on all peers to distribute the scrape load between themselves.
 Target auto-distribution requires that all {{< param "PRODUCT_ROOT_NAME" >}} in the same cluster can reach the same service discovery APIs and scrape the same targets.
 
-You must explicitly enable target auto-distribution on components by defining a `clustering` block, such as:
+You must explicitly enable target auto-distribution on components by defining a `clustering` block.
 
 ```river
 prometheus.scrape "default" {

@@ -55,7 +55,9 @@ Blocks have a _name_, an optional _label_ and a body that contains any number of
 
 Some blocks support can be defined more than once.
 
-#### Pattern for creating an unlabeled block
+#### Examples
+
+You can use the following pattern to create an unlabeled block.
 
 ```river
 BLOCK_NAME {
@@ -68,7 +70,7 @@ BLOCK_NAME {
 }
 ```
 
-#### Pattern for creating a labeled block
+You can use the following pattern to create a labeled block
 
 ```river
 // Pattern for creating a labeled block:

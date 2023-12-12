@@ -29,7 +29,7 @@ A relationship between [components][Components] is created when an expression is
 The set of all components and the relationships between them define a [Directed Acyclic Graph][DAG] (DAG),
 which informs the component controller which references are valid and in what order components must be evaluated.
 
-For a configuration file to be valid, components must not reference themselves or contain a cyclic reference:
+For a configuration file to be valid, components must not reference themselves or contain a cyclic reference.
 
 ```river
 // INVALID: local.file.some_file can not reference itself:
