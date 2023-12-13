@@ -55,8 +55,16 @@ func (c *Component) discovery(w httpgo.ResponseWriter, r *httpgo.Request) {
 	for x := range c.instances {
 		instances[x] = createTarget(c.handler.HTTPListenAddr, fmt.Sprintf("%sinstance/%d/metrics", c.path, x))
 	}
-	marshalledBytes, _ := json.Marshal(instances)
-	_, _ = w.Write(marshalledBytes)
+	marshalledBytes, err := json.Marshal(instances)
+	if err != nil {
+		level.Error(c.o.Logger).Log("msg", "error marshalling discovery", "err", err)
+		return
+	}
+	_, err = w.Write(marshalledBytes)
+	if err != nil {
+		level.Error(c.o.Logger).Log("msg", "error writing discovery", "err", err)
+		return
+	}
 }
 
 func (c *Component) serveMetrics(w httpgo.ResponseWriter, r *httpgo.Request) {
@@ -113,9 +121,6 @@ func (c *Component) Run(ctx context.Context) error {
 }
 
 func (c *Component) Update(args component.Arguments) error {
-	c.mut.Lock()
-	defer c.mut.Unlock()
-
 	c.argsUpdate <- args.(Arguments)
 	return nil
 }
@@ -141,6 +146,24 @@ func getDefault() Arguments {
 // SetToDefault implements river.Defaulter.
 func (a *Arguments) SetToDefault() {
 	*a = getDefault()
+}
+
+// Validate returns whether args is valid.
+func (a *Arguments) Validate() error {
+	if a.NumberOfInstances <= 0 {
+		return fmt.Errorf("number_of_instances must be positive and is %d", a.NumberOfInstances)
+	}
+	if a.NumberOfMetrics <= 0 {
+		return fmt.Errorf("number_of_metrics must be positive and is %d", a.NumberOfMetrics)
+	}
+	if a.NumberOfSeries < 0 {
+		return fmt.Errorf("number_of_seires must not be negative and is %d", a.NumberOfSeries)
+	}
+	if a.ChurnPercent < 0 || a.ChurnPercent > 1 {
+		return fmt.Errorf("churn_percent must be between 0 and 1 and is %f", a.ChurnPercent)
+	}
+
+	return nil
 }
 
 type Exports struct {
