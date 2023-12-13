@@ -6,6 +6,7 @@ import (
 	"path"
 	"path/filepath"
 	"reflect"
+	"strings"
 	"sync"
 	"time"
 
@@ -15,36 +16,42 @@ import (
 	"github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/grafana/agent/pkg/flow/tracing"
 	"github.com/grafana/river/ast"
+	"github.com/grafana/river/parser"
 	"github.com/grafana/river/vm"
 	"github.com/prometheus/client_golang/prometheus"
+	"go.uber.org/atomic"
 )
 
 type ImportFileConfigNode struct {
-	label                 string
-	nodeID                string
-	componentName         string
-	globalID              string
-	fileComponent         *file.Component
-	managedOpts           component.Options
-	registry              *prometheus.Registry
-	onImportContentChange func(importID string, newContent string)
+	id                ComponentID
+	label             string
+	nodeID            string
+	componentName     string
+	globalID          string
+	fileComponent     *file.Component
+	managedOpts       component.Options
+	registry          *prometheus.Registry
+	importedContent   map[string]string
+	OnComponentUpdate func(cn NodeWithDependants) // Informs controller that we need to reevaluate
 
-	mut      sync.RWMutex
-	block    *ast.BlockStmt // Current River blocks to derive config from
-	eval     *vm.Evaluator
-	argument component.Arguments
+	mut                sync.RWMutex
+	importedContentMut sync.RWMutex
+	block              *ast.BlockStmt // Current River blocks to derive config from
+	eval               *vm.Evaluator
+	argument           component.Arguments
+	lastUpdateTime     atomic.Time
 
 	healthMut  sync.RWMutex
 	evalHealth component.Health // Health of the last evaluate
 	runHealth  component.Health // Health of running the component
 }
 
-var _ BlockNode = (*ImportFileConfigNode)(nil)
+var _ NodeWithDependants = (*ImportFileConfigNode)(nil)
 var _ RunnableNode = (*ImportFileConfigNode)(nil)
 
 // NewImportFileConfigNode creates a new ImportFileConfigNode from an initial ast.BlockStmt.
 // The underlying config isn't applied until Evaluate is called.
-func NewImportFileConfigNode(block *ast.BlockStmt, globals ComponentGlobals, onImportContentChange func(importLabel string, newContent string)) *ImportFileConfigNode {
+func NewImportFileConfigNode(block *ast.BlockStmt, globals ComponentGlobals) *ImportFileConfigNode {
 	var (
 		id     = BlockComponentID(block)
 		nodeID = id.String()
@@ -60,16 +67,17 @@ func NewImportFileConfigNode(block *ast.BlockStmt, globals ComponentGlobals, onI
 		globalID = path.Join(globals.ControllerID, nodeID)
 	}
 	cn := &ImportFileConfigNode{
-		globalID:              globalID,
-		label:                 block.Label,
-		nodeID:                BlockComponentID(block).String(),
-		componentName:         block.GetBlockName(),
-		onImportContentChange: onImportContentChange,
-
-		block:      block,
-		eval:       vm.New(block.Body),
-		evalHealth: initHealth,
-		runHealth:  initHealth,
+		id:                id,
+		globalID:          globalID,
+		label:             block.Label,
+		nodeID:            BlockComponentID(block).String(),
+		componentName:     block.GetBlockName(),
+		importedContent:   make(map[string]string),
+		OnComponentUpdate: globals.OnComponentUpdate,
+		block:             block,
+		eval:              vm.New(block.Body),
+		evalHealth:        initHealth,
+		runHealth:         initHealth,
 	}
 	cn.managedOpts = getImportManagedOptions(globals, cn)
 	return cn
@@ -87,7 +95,7 @@ func getImportManagedOptions(globals ComponentGlobals, cn *ImportFileConfigNode)
 
 		DataPath: filepath.Join(globals.DataPath, cn.globalID),
 
-		OnStateChange: cn.UpdateModulesContent,
+		OnStateChange: cn.onFileContentUpdate,
 
 		GetServiceData: func(name string) (interface{}, error) {
 			return globals.GetServiceData(name)
@@ -166,6 +174,48 @@ func (cn *ImportFileConfigNode) evaluate(scope *vm.Scope) error {
 	return nil
 }
 
+func (cn *ImportFileConfigNode) onFileContentUpdate(e component.Exports) {
+	cn.importedContentMut.Lock()
+	defer cn.importedContentMut.Unlock()
+	fileContent := e.(file.Exports).Content.Value
+	cn.importedContent = make(map[string]string)
+	node, err := parser.ParseFile(cn.label, []byte(fileContent))
+	logger := cn.managedOpts.Logger
+	if err != nil {
+		level.Error(logger).Log("msg", "failed to parse file on update", "err", err)
+		return
+	}
+	for _, stmt := range node.Body {
+		switch stmt := stmt.(type) {
+		case *ast.BlockStmt:
+			fullName := strings.Join(stmt.Name, ".")
+			switch fullName {
+			case "declare":
+				if _, ok := cn.importedContent[stmt.Label]; ok {
+					level.Error(logger).Log("msg", "declare block redefined", "name", stmt.Label)
+					continue
+				}
+				cn.importedContent[stmt.Label] = string(fileContent[stmt.LCurlyPos.Position().Offset+1 : stmt.RCurlyPos.Position().Offset-1])
+			default:
+				level.Error(logger).Log("msg", "only declare blocks are allowed in a module", "forbidden", fullName)
+			}
+		default:
+			level.Error(logger).Log("msg", "only declare blocks are allowed in a module")
+		}
+	}
+	cn.lastUpdateTime.Store(time.Now())
+	cn.OnComponentUpdate(cn)
+}
+
+func (cn *ImportFileConfigNode) ModuleContent(module string) (string, error) {
+	cn.importedContentMut.Lock()
+	defer cn.importedContentMut.Unlock()
+	if content, ok := cn.importedContent[module]; ok {
+		return content, nil
+	}
+	return "", fmt.Errorf("module %s not found in imported node %s", module, cn.label)
+}
+
 // Run runs the managed component in the calling goroutine until ctx is
 // canceled. Evaluate must have been called at least once without returning an
 // error before calling Run.
@@ -198,10 +248,6 @@ func (cn *ImportFileConfigNode) Run(ctx context.Context) error {
 	return err
 }
 
-func (cn *ImportFileConfigNode) UpdateModulesContent(e component.Exports) {
-	cn.onImportContentChange(cn.label, e.(file.Exports).Content.Value)
-}
-
 func (cn *ImportFileConfigNode) setRunHealth(t component.HealthType, msg string) {
 	cn.healthMut.Lock()
 	defer cn.healthMut.Unlock()
@@ -224,3 +270,14 @@ func (cn *ImportFileConfigNode) Block() *ast.BlockStmt {
 
 // NodeID implements dag.Node and returns the unique ID for the config node.
 func (cn *ImportFileConfigNode) NodeID() string { return cn.nodeID }
+
+// This node has no exports.
+func (cn *ImportFileConfigNode) Exports() component.Exports {
+	return nil
+}
+
+func (cn *ImportFileConfigNode) ID() ComponentID { return cn.id }
+
+func (cn *ImportFileConfigNode) LastUpdateTime() time.Time {
+	return cn.lastUpdateTime.Load()
+}

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 
@@ -37,13 +38,14 @@ type Loader struct {
 	// also prevents log spamming with errors.
 	backoffConfig backoff.Config
 
-	mut                  sync.RWMutex
-	graph                *dag.Graph
-	originalGraph        *dag.Graph
-	componentNodes       []*ComponentNode
-	serviceNodes         []*ServiceNode
-	importNodes          map[string]*ImportFileConfigNode
-	moduleComponentNodes []*ComponentNode
+	mut                   sync.RWMutex
+	graph                 *dag.Graph
+	originalGraph         *dag.Graph
+	componentNodes        []*ComponentNode
+	serviceNodes          []*ServiceNode
+	declareComponentNodes []*DeclareComponentNode
+	importNodes           map[string]*ImportFileConfigNode
+	declareNodes          map[string]*DeclareNode
 
 	cache             *valueCache
 	blocks            []*ast.BlockStmt // Most recently loaded blocks, used for writing
@@ -86,6 +88,7 @@ func NewLoader(opts LoaderOptions) *Loader {
 		componentReg: reg,
 		workerPool:   opts.WorkerPool,
 		importNodes:  map[string]*ImportFileConfigNode{},
+		declareNodes: map[string]*DeclareNode{},
 
 		// This is a reasonable default which should work for most cases. If a component is completely stuck, we would
 		// retry and log an error every 10 seconds, at most.
@@ -121,7 +124,7 @@ func NewLoader(opts LoaderOptions) *Loader {
 // The provided parentContext can be used to provide global variables and
 // functions to components. A child context will be constructed from the parent
 // to expose values of other components.
-func (l *Loader) Apply(args map[string]any, componentBlocks []*ast.BlockStmt, configBlocks []*ast.BlockStmt) diag.Diagnostics {
+func (l *Loader) Apply(args map[string]any, componentBlocks []*ast.BlockStmt, configBlocks []*ast.BlockStmt, declares []Declare) diag.Diagnostics {
 	start := time.Now()
 	l.mut.Lock()
 	defer l.mut.Unlock()
@@ -133,16 +136,16 @@ func (l *Loader) Apply(args map[string]any, componentBlocks []*ast.BlockStmt, co
 	}
 	l.cache.SyncModuleArgs(args)
 
-	l.moduleComponentNodes = make([]*ComponentNode, 0)
-	newGraph, diags := l.loadNewGraph(args, componentBlocks, configBlocks)
+	newGraph, diags := l.loadNewGraph(args, componentBlocks, configBlocks, declares)
 	if diags.HasErrors() {
 		return diags
 	}
 
 	var (
-		components   = make([]*ComponentNode, 0, len(componentBlocks))
-		componentIDs = make([]ComponentID, 0, len(componentBlocks))
-		services     = make([]*ServiceNode, 0, len(l.services))
+		components            = make([]*ComponentNode, 0, len(componentBlocks))
+		componentIDs          = make([]ComponentID, 0, len(componentBlocks))
+		services              = make([]*ServiceNode, 0, len(l.services))
+		declareComponentNodes = make([]*DeclareComponentNode, 0, 0)
 	)
 
 	tracer := l.tracer.Tracer("")
@@ -190,7 +193,6 @@ func (l *Loader) Apply(args map[string]any, componentBlocks []*ast.BlockStmt, co
 					})
 				}
 			}
-
 		case *ServiceNode:
 			services = append(services, n)
 
@@ -207,7 +209,23 @@ func (l *Loader) Apply(args map[string]any, componentBlocks []*ast.BlockStmt, co
 					})
 				}
 			}
-
+		case *DeclareComponentNode:
+			declareComponentNodes = append(declareComponentNodes, n)
+			componentIDs = append(componentIDs, n.ID())
+			if err = l.evaluate(logger, n); err != nil {
+				var evalDiags diag.Diagnostics
+				if errors.As(err, &evalDiags) {
+					diags = append(diags, evalDiags...)
+				} else {
+					diags.Add(diag.Diagnostic{
+						Severity: diag.SeverityLevelError,
+						Message:  fmt.Sprintf("Failed to build declared component: %s", err),
+						StartPos: ast.StartPos(n.Block()).Position(),
+						EndPos:   ast.EndPos(n.Block()).Position(),
+					})
+				}
+			}
+		// TODO: do imports need a specific handling?
 		case BlockNode:
 			if err = l.evaluate(logger, n); err != nil {
 				diags.Add(diag.Diagnostic{
@@ -232,6 +250,7 @@ func (l *Loader) Apply(args map[string]any, componentBlocks []*ast.BlockStmt, co
 		return nil
 	})
 
+	l.declareComponentNodes = declareComponentNodes
 	l.componentNodes = components
 	l.serviceNodes = services
 	l.graph = &newGraph
@@ -242,17 +261,6 @@ func (l *Loader) Apply(args map[string]any, componentBlocks []*ast.BlockStmt, co
 		l.globals.OnExportsChange(l.cache.CreateModuleExports())
 	}
 	return diags
-}
-
-func (l *Loader) onImportContentChange(importLabel string, content string) {
-	for _, node := range l.moduleComponentNodes {
-		if node.componentName == importLabel {
-			err := node.UpdateModuleContent(content)
-			if err != nil {
-				level.Error(l.log).Log("msg", "could not update the content of the module", "err", err)
-			}
-		}
-	}
 }
 
 // Cleanup unregisters any existing metrics and optionally stops the worker pool.
@@ -268,7 +276,7 @@ func (l *Loader) Cleanup(stopWorkerPool bool) {
 }
 
 // loadNewGraph creates a new graph from the provided blocks and validates it.
-func (l *Loader) loadNewGraph(args map[string]any, componentBlocks []*ast.BlockStmt, configBlocks []*ast.BlockStmt) (dag.Graph, diag.Diagnostics) {
+func (l *Loader) loadNewGraph(args map[string]any, componentBlocks []*ast.BlockStmt, configBlocks []*ast.BlockStmt, declares []Declare) (dag.Graph, diag.Diagnostics) {
 	var g dag.Graph
 
 	// Split component blocks into blocks for components and services.
@@ -281,6 +289,10 @@ func (l *Loader) loadNewGraph(args map[string]any, componentBlocks []*ast.BlockS
 	// Fill our graph with config blocks.
 	configBlockDiags := l.populateConfigBlockNodes(args, &g, configBlocks)
 	diags = append(diags, configBlockDiags...)
+
+	// Fill our graph with declare nodes
+	declareDiags := l.populateDeclareNodes(&g, declares)
+	diags = append(diags, declareDiags...)
 
 	// Fill our graph with components.
 	componentNodeDiags := l.populateComponentNodes(&g, componentBlocks)
@@ -324,6 +336,24 @@ func (l *Loader) splitComponentBlocks(blocks []*ast.BlockStmt) (componentBlocks,
 	}
 
 	return componentBlocks, serviceBlocks
+}
+
+func (l *Loader) populateDeclareNodes(g *dag.Graph, declares []Declare) diag.Diagnostics {
+	var diags diag.Diagnostics
+	l.declareNodes = map[string]*DeclareNode{}
+	for _, declare := range declares {
+		node := NewDeclareNode(declare.Block, declare.Content)
+		if g.GetByID(node.NodeID()) != nil {
+			diags.Add(diag.Diagnostic{
+				Severity: diag.SeverityLevelError,
+				Message:  fmt.Sprintf("cannot add declare node %q; node with same ID already exists", node.NodeID()),
+			})
+			continue
+		}
+		g.Add(node)
+		l.declareNodes[node.label] = node
+	}
+	return diags
 }
 
 // populateServiceNodes adds service nodes to the graph.
@@ -390,7 +420,7 @@ func (l *Loader) populateConfigBlockNodes(args map[string]any, g *dag.Graph, con
 	)
 
 	for _, block := range configBlocks {
-		node, newConfigNodeDiags := NewConfigNode(block, l.globals, l.onImportContentChange)
+		node, newConfigNodeDiags := NewConfigNode(block, l.globals)
 		diags = append(diags, newConfigNodeDiags...)
 
 		if g.GetByID(node.NodeID()) != nil {
@@ -441,7 +471,6 @@ func (l *Loader) populateComponentNodes(g *dag.Graph, componentBlocks []*ast.Blo
 		blockMap = make(map[string]*ast.BlockStmt, len(componentBlocks))
 	)
 	for _, block := range componentBlocks {
-		var c *ComponentNode
 		id := BlockComponentID(block).String()
 
 		if orig, redefined := blockMap[id]; redefined {
@@ -456,22 +485,18 @@ func (l *Loader) populateComponentNodes(g *dag.Graph, componentBlocks []*ast.Blo
 		blockMap[id] = block
 
 		// Check the graph from the previous call to Load to see we can copy an
-		// existing instance of ComponentNode.
+		// existing instance of ComponentNode and DeclareComponentNode.
 		if exist := l.graph.GetByID(id); exist != nil {
-			c = exist.(*ComponentNode)
-			c.UpdateBlock(block)
+			switch v := exist.(type) {
+			case *ComponentNode:
+				v.UpdateBlock(block)
+				g.Add(v)
+			case *DeclareComponentNode:
+				v.UpdateBlock(block)
+				g.Add(v)
+			}
 		} else {
 			componentName := block.GetBlockName()
-			if componentName == "module_component" {
-				diags.Add(diag.Diagnostic{
-					Severity: diag.SeverityLevelError,
-					Message:  fmt.Sprintf("Explicitly creating a %q in a river file is not allowed", componentName),
-					StartPos: block.NamePos.Position(),
-					EndPos:   block.NamePos.Add(len(componentName) - 1).Position(),
-				})
-				continue
-			}
-
 			if block.Label == "" {
 				diags.Add(diag.Diagnostic{
 					Severity: diag.SeverityLevelError,
@@ -481,36 +506,31 @@ func (l *Loader) populateComponentNodes(g *dag.Graph, componentBlocks []*ast.Blo
 				})
 				continue
 			}
-
-			if importNode, exists := l.importNodes[componentName]; exists {
-				reg, exists := l.componentReg.Get("module_component")
+			namespace := strings.Split(componentName, ".")[0]
+			if declareNode, exists := l.declareNodes[namespace]; exists {
+				dc := NewDeclareComponentNode(l.globals, block, l.getModuleContent)
+				g.Add(dc)
+				g.AddEdge(dag.Edge{From: dc, To: declareNode})
+			} else if importNode, exists := l.importNodes[namespace]; exists {
+				dc := NewDeclareComponentNode(l.globals, block, l.getModuleContent)
+				g.Add(dc)
+				g.AddEdge(dag.Edge{From: dc, To: importNode})
+			} else {
+				registration, exists := l.componentReg.Get(componentName)
 				if !exists {
-					level.Error(l.log).Log("msg", "module_component should exist but the registration is not found")
+					diags.Add(diag.Diagnostic{
+						Severity: diag.SeverityLevelError,
+						Message:  fmt.Sprintf("Unrecognized component name %q", componentName),
+						StartPos: block.NamePos.Position(),
+						EndPos:   block.NamePos.Add(len(componentName) - 1).Position(),
+					})
 					continue
 				}
-				c = NewComponentNode(l.globals, reg, block)
-				g.Add(c)
-				g.AddEdge(dag.Edge{From: c, To: importNode})
-				l.moduleComponentNodes = append(l.moduleComponentNodes, c)
-				continue
-			}
 
-			registration, exists := l.componentReg.Get(componentName)
-			if !exists {
-				diags.Add(diag.Diagnostic{
-					Severity: diag.SeverityLevelError,
-					Message:  fmt.Sprintf("Unrecognized component name %q", componentName),
-					StartPos: block.NamePos.Position(),
-					EndPos:   block.NamePos.Add(len(componentName) - 1).Position(),
-				})
-				continue
+				// Create a new component
+				g.Add(NewComponentNode(l.globals, registration, block))
 			}
-
-			// Create a new component
-			c = NewComponentNode(l.globals, registration, block)
 		}
-
-		g.Add(c)
 	}
 
 	return diags
@@ -536,6 +556,8 @@ func (l *Loader) wireGraphEdges(g *dag.Graph) diag.Diagnostics {
 
 				g.AddEdge(dag.Edge{From: n, To: dep})
 			}
+		case *DeclareNode: // A declare node has no ref
+			continue
 		}
 
 		// Finally, wire component references.
@@ -560,6 +582,12 @@ func (l *Loader) Components() []*ComponentNode {
 	l.mut.RLock()
 	defer l.mut.RUnlock()
 	return l.componentNodes
+}
+
+func (l *Loader) DeclareComponent() []*DeclareComponentNode {
+	l.mut.RLock()
+	defer l.mut.RUnlock()
+	return l.declareComponentNodes
 }
 
 // Services returns the current set of service nodes.
@@ -596,7 +624,7 @@ func (l *Loader) OriginalGraph() *dag.Graph {
 // the worker pool starts to evaluate them, resulting in smaller number of total evaluations when
 // node updates are frequent. If the worker pool's queue is full, EvaluateDependants will retry with a backoff until
 // it succeeds or until the ctx is cancelled.
-func (l *Loader) EvaluateDependants(ctx context.Context, updatedNodes []*ComponentNode) {
+func (l *Loader) EvaluateDependants(ctx context.Context, updatedNodes []NodeWithDependants) {
 	if len(updatedNodes) == 0 {
 		return
 	}
@@ -612,7 +640,7 @@ func (l *Loader) EvaluateDependants(ctx context.Context, updatedNodes []*Compone
 	l.mut.RLock()
 	defer l.mut.RUnlock()
 
-	dependenciesToParentsMap := make(map[dag.Node]*ComponentNode)
+	dependenciesToParentsMap := make(map[dag.Node]NodeWithDependants)
 	for _, parent := range updatedNodes {
 		// Make sure we're in-sync with the current exports of parent.
 		l.cache.CacheExports(parent.ID(), parent.Exports())
@@ -671,9 +699,9 @@ func (l *Loader) EvaluateDependants(ctx context.Context, updatedNodes []*Compone
 
 // concurrentEvalFn returns a function that evaluates a node and updates the cache. This function can be submitted to
 // a worker pool for asynchronous evaluation.
-func (l *Loader) concurrentEvalFn(n dag.Node, spanCtx context.Context, tracer trace.Tracer, parent *ComponentNode) {
+func (l *Loader) concurrentEvalFn(n dag.Node, spanCtx context.Context, tracer trace.Tracer, parent NodeWithDependants) {
 	start := time.Now()
-	l.cm.dependenciesWaitTime.Observe(time.Since(parent.lastUpdateTime.Load()).Seconds())
+	l.cm.dependenciesWaitTime.Observe(time.Since(parent.LastUpdateTime()).Seconds())
 	_, span := tracer.Start(spanCtx, "EvaluateNode", trace.WithSpanKind(trace.SpanKindInternal))
 	span.SetAttributes(attribute.String("node_id", n.NodeID()))
 	defer span.End()
@@ -739,6 +767,9 @@ func (l *Loader) postEvaluate(logger log.Logger, bn BlockNode, err error) error 
 		// change when a component gets re-evaluated. We also want to cache the arguments and exports in case of an error
 		l.cache.CacheArguments(c.ID(), c.Arguments())
 		l.cache.CacheExports(c.ID(), c.Exports())
+	case *DeclareComponentNode:
+		l.cache.CacheArguments(c.ID(), c.Arguments())
+		l.cache.CacheExports(c.ID(), c.Exports())
 	case *ArgumentConfigNode:
 		if _, found := l.cache.moduleArguments[c.Label()]; !found {
 			if c.Optional() {
@@ -756,6 +787,25 @@ func (l *Loader) postEvaluate(logger log.Logger, bn BlockNode, err error) error 
 		return err
 	}
 	return nil
+}
+
+func (l *Loader) getModuleContent(namespace string, module string) (string, error) {
+	var node dag.Node
+	if namespace == "" {
+		node = l.declareNodes[module]
+	} else {
+		node = l.importNodes[namespace]
+	}
+	if node == nil {
+		return "", fmt.Errorf("node %s is not in the graph", module)
+	}
+	switch node := node.(type) {
+	case *DeclareNode:
+		return node.ModuleContent(), nil
+	case *ImportFileConfigNode:
+		return node.ModuleContent(module)
+	}
+	return "", fmt.Errorf("node (%s/%s) should be of type DeclareComponentNode or ImportFileConfigNode", namespace, module)
 }
 
 func multierrToDiags(errors error) diag.Diagnostics {

@@ -53,7 +53,8 @@ func (f *Flow) ListComponents(moduleID string, opts component.InfoOptions) ([]*c
 
 	var (
 		components = f.loader.Components()
-		graph      = f.loader.OriginalGraph()
+		// TODO: add declare components & imports
+		graph = f.loader.OriginalGraph()
 	)
 
 	detail := make([]*component.Info, len(components))

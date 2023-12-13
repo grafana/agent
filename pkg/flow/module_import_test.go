@@ -19,17 +19,19 @@ import (
 func TestImportModule(t *testing.T) {
 	// We use this module in a Flow config below.
 	module := `
-	argument "input" {
-		optional = false
-	}
-
-	testcomponents.passthrough "pt" {
-		input = argument.input.value
-		lag = "1ms"
-	}
-
-	export "output" {
-		value = testcomponents.passthrough.pt.output
+	declare "test" {
+		argument "input" {
+			optional = false
+		}
+	
+		testcomponents.passthrough "pt" {
+			input = argument.input.value
+			lag = "1ms"
+		}
+	
+		export "output" {
+			value = testcomponents.passthrough.pt.output
+		}
 	}
 `
 	filename := "my_module"
@@ -42,16 +44,16 @@ func TestImportModule(t *testing.T) {
 		max = 10
 	}
 
-	import.file "test" {
+	import.file "testImport" {
 		filename = "my_module"
 	}
 
-	test "myModule" {
+	testImport.test "myModule" {
 		input = testcomponents.count.inc.count
 	}
 
 	testcomponents.summation "sum" {
-		input = test.myModule.exports.output
+		input = testImport.test.myModule.exports.output
 	}
 `
 
@@ -79,7 +81,9 @@ func TestImportModule(t *testing.T) {
 		return export.LastAdded == 10
 	}, 3*time.Second, 10*time.Millisecond)
 
+	// update the file to check if the module is correctly updated without reload
 	newModule := `
+	declare "test" {
 		argument "input" {
 			optional = false
 		}
@@ -92,6 +96,7 @@ func TestImportModule(t *testing.T) {
 		export "output" {
 			value = -10
 		}
+	}
 	`
 	require.NoError(t, os.WriteFile(filename, []byte(newModule), 0664))
 	require.Eventually(t, func() bool {
@@ -104,28 +109,30 @@ func TestImportModule(t *testing.T) {
 func TestImportModuleNoArgs(t *testing.T) {
 	// We use this module in a Flow config below.
 	module := `
-testcomponents.passthrough "pt" {
-	input = 10
-	lag = "1ms"
-}
+	declare "test" {
+		testcomponents.passthrough "pt" {
+			input = 10
+			lag = "1ms"
+		}
 
-export "output" {
-	value = testcomponents.passthrough.pt.output
-}
+		export "output" {
+			value = testcomponents.passthrough.pt.output
+		}
+	}
 `
 	filename := "my_module"
 	require.NoError(t, os.WriteFile(filename, []byte(module), 0664))
 
 	config := `
-import.file "test" {
+import.file "testImport" {
 	filename = "my_module"
 }
 
-test "myModule" {
+testImport.test "myModule" {
 }
 
 testcomponents.summation "sum" {
-	input = test.myModule.exports.output
+	input = testImport.test.myModule.exports.output
 }
 `
 
@@ -154,13 +161,15 @@ testcomponents.summation "sum" {
 	}, 3*time.Second, 10*time.Millisecond)
 
 	newModule := `
-	testcomponents.passthrough "pt" {
-		input = -10
-		lag = "1ms"
-	}
-	
-	export "output" {
-		value = testcomponents.passthrough.pt.output
+	declare "test" {
+		testcomponents.passthrough "pt" {
+			input = -10
+			lag = "1ms"
+		}
+		
+		export "output" {
+			value = testcomponents.passthrough.pt.output
+		}
 	}
 `
 	require.NoError(t, os.WriteFile(filename, []byte(newModule), 0664))

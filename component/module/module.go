@@ -23,6 +23,7 @@ type ModuleComponent struct {
 }
 
 // Exports holds values which are exported from the run module.
+// TODO: We could actually have type Exports = map[string]any to avoid the unnecessary "exports"
 type Exports struct {
 	// Exports exported from the running module.
 	Exports map[string]any `river:"exports,block"`

@@ -185,7 +185,7 @@ func newController(o controllerOptions) *Flow {
 			Logger:        log,
 			TraceProvider: tracer,
 			DataPath:      o.DataPath,
-			OnComponentUpdate: func(cn *controller.ComponentNode) {
+			OnComponentUpdate: func(cn controller.NodeWithDependants) {
 				// Changed components should be queued for reevaluation.
 				f.updateQueue.Enqueue(cn)
 			},
@@ -245,11 +245,12 @@ func (f *Flow) Run(ctx context.Context) {
 			level.Info(f.log).Log("msg", "scheduling loaded components and services")
 
 			var (
-				components = f.loader.Components()
-				services   = f.loader.Services()
-				imports    = f.loader.Imports()
+				components        = f.loader.Components()
+				services          = f.loader.Services()
+				imports           = f.loader.Imports()
+				declareComponents = f.loader.DeclareComponent()
 
-				runnables = make([]controller.RunnableNode, 0, len(components)+len(services))
+				runnables = make([]controller.RunnableNode, 0, len(components)+len(services)+len(imports)+len(declareComponents))
 			)
 			for _, c := range components {
 				runnables = append(runnables, c)
@@ -257,6 +258,10 @@ func (f *Flow) Run(ctx context.Context) {
 
 			for _, i := range imports {
 				runnables = append(runnables, i)
+			}
+
+			for _, d := range declareComponents {
+				runnables = append(runnables, d)
 			}
 
 			// Only the root controller should run services, since modules share the
@@ -285,7 +290,7 @@ func (f *Flow) LoadSource(source *Source, args map[string]any) error {
 	f.loadMut.Lock()
 	defer f.loadMut.Unlock()
 
-	diags := f.loader.Apply(args, source.components, source.configBlocks)
+	diags := f.loader.Apply(args, source.components, source.configBlocks, source.declares)
 	if !f.loadedOnce.Load() && diags.HasErrors() {
 		// The first call to Load should not run any components if there were
 		// errors in the configuration file.

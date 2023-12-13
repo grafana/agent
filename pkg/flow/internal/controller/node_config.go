@@ -17,7 +17,7 @@ const (
 
 // NewConfigNode creates a new ConfigNode from an initial ast.BlockStmt.
 // The underlying config isn't applied until Evaluate is called.
-func NewConfigNode(block *ast.BlockStmt, globals ComponentGlobals, onImportContentChange func(importLabel string, newContent string)) (BlockNode, diag.Diagnostics) {
+func NewConfigNode(block *ast.BlockStmt, globals ComponentGlobals) (BlockNode, diag.Diagnostics) {
 	switch block.GetBlockName() {
 	case argumentBlockID:
 		return NewArgumentConfigNode(block, globals), nil
@@ -28,7 +28,7 @@ func NewConfigNode(block *ast.BlockStmt, globals ComponentGlobals, onImportConte
 	case tracingBlockID:
 		return NewTracingConfigNode(block, globals), nil
 	case importFileBlockID:
-		return NewImportFileConfigNode(block, globals, onImportContentChange), nil
+		return NewImportFileConfigNode(block, globals), nil
 	default:
 		var diags diag.Diagnostics
 		diags.Add(diag.Diagnostic{

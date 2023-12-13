@@ -14,7 +14,6 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/component"
-	"github.com/grafana/agent/component/module"
 	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/grafana/agent/pkg/flow/tracing"
@@ -67,7 +66,7 @@ type ComponentGlobals struct {
 	Logger              *logging.Logger                        // Logger shared between all managed components.
 	TraceProvider       trace.TracerProvider                   // Tracer shared between all managed components.
 	DataPath            string                                 // Shared directory where component data may be stored
-	OnComponentUpdate   func(cn *ComponentNode)                // Informs controller that we need to reevaluate
+	OnComponentUpdate   func(cn NodeWithDependants)            // Informs controller that we need to reevaluate
 	OnExportsChange     func(exports map[string]any)           // Invoked when the managed component updated its exports
 	Registerer          prometheus.Registerer                  // Registerer for serving agent and component metrics
 	ControllerID        string                                 // ID of controller.
@@ -91,7 +90,7 @@ type ComponentNode struct {
 	registry          *prometheus.Registry
 	exportsType       reflect.Type
 	moduleController  ModuleController
-	OnComponentUpdate func(cn *ComponentNode) // Informs controller that we need to reevaluate
+	OnComponentUpdate func(cn NodeWithDependants) // Informs controller that we need to reevaluate
 	lastUpdateTime    atomic.Time
 
 	mut     sync.RWMutex
@@ -112,7 +111,7 @@ type ComponentNode struct {
 	exports    component.Exports // Evaluated exports for the managed component
 }
 
-var _ BlockNode = (*ComponentNode)(nil)
+var _ NodeWithDependants = (*ComponentNode)(nil)
 
 // NewComponentNode creates a new ComponentNode from an initial ast.BlockStmt.
 // The underlying managed component isn't created until Evaluate is called.
@@ -352,6 +351,10 @@ func (cn *ComponentNode) Exports() component.Exports {
 	return cn.exports
 }
 
+func (cn *ComponentNode) LastUpdateTime() time.Time {
+	return cn.lastUpdateTime.Load()
+}
+
 // setExports is called whenever the managed component updates. e must be the
 // same type as the registered exports type of the managed component.
 func (cn *ComponentNode) setExports(e component.Exports) {
@@ -450,31 +453,4 @@ func (cn *ComponentNode) setRunHealth(t component.HealthType, msg string) {
 // managing.
 func (cn *ComponentNode) ModuleIDs() []string {
 	return cn.moduleController.ModuleIDs()
-}
-
-// (@wildum) this function is not very nice, it will panic if the managed component is not a module_component
-// and it builds the component before it is evaluated. But it's a bit of a chicken-egg problem:
-// during the first evaluation cycle :
-//   - if we evaluate the component first, it does not have the content of its module to start its module. That means that it wont
-//     be able to set the expected exports for the components that depend on it.
-//   - if we evaluate the import first, the import node cannot update the module_component with its content because it has not been built yet
-//     (it exists only when its node has been evaluated)
-//
-// the current solution solves the problem by building the component before it is evaluated. It wont start the module yet because the first update
-// has not been called. It will be called during the first eval of the component (the reflect.DeepEqual(cn.args, argsCopyValue) will always return false
-// because we explicitly set the args to nil here)
-func (cn *ComponentNode) UpdateModuleContent(newContent string) error {
-	cn.mut.RLock()
-	defer cn.mut.RUnlock()
-
-	if cn.managed == nil {
-		empty := make(map[string]any, 0)
-		managed, err := cn.reg.Build(cn.managedOpts, empty)
-		if err != nil {
-			return fmt.Errorf("building component: %w", err)
-		}
-		cn.managed = managed
-		cn.args = nil
-	}
-	return cn.managed.(*module.Component).UpdateContent(newContent)
 }
