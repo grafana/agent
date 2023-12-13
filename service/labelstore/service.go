@@ -49,8 +49,8 @@ func New(l log.Logger, r prometheus.Registerer) *service {
 		totalIDs:            prometheus.NewDesc("agent_labelstore_global_ids_count", "Total number of global ids.", nil, nil),
 		idsInRemoteWrapping: prometheus.NewDesc("agent_labelstore_remote_store_ids_count", "Total number of ids per remote write", []string{"remote_name"}, nil),
 		lastStaleCheck: prometheus.NewGauge(prometheus.GaugeOpts{
-			Name: "agent_labelstore_last_stale_check",
-			Help: "Last time stale check was ran",
+			Name: "agent_labelstore_last_stale_check_timestamp",
+			Help: "Last time stale check was ran expressed in unix timestamp.",
 		}),
 	}
 	r.Register(s.lastStaleCheck)
