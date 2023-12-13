@@ -9,19 +9,19 @@ prometheus.remote_write "metrics_default" {
 	}
 }
 
-discovery.relabel "integrations_windows_exporter" {
+prometheus.exporter.windows "integrations_windows_exporter" { }
+
+discovery.relabel "integrations_windows" {
 	targets = prometheus.exporter.windows.integrations_windows_exporter.targets
 
 	rule {
 		target_label = "job"
-		replacement  = "integrations/windows_exporter"
+		replacement  = "integrations/windows"
 	}
 }
 
-prometheus.exporter.windows "integrations_windows_exporter" { }
-
 prometheus.scrape "integrations_windows" {
-	targets    = discovery.relabel.integrations_windows_exporter.targets
+	targets    = discovery.relabel.integrations_windows.output
 	forward_to = [prometheus.remote_write.metrics_default.receiver]
 	job_name   = "integrations/windows"
 }
