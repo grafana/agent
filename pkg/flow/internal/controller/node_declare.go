@@ -14,13 +14,12 @@ type DeclareNode struct {
 	content       string
 
 	mut   sync.RWMutex
-	block *ast.BlockStmt // Current River blocks to derive config from
+	block *ast.BlockStmt
 }
 
 var _ BlockNode = (*DeclareNode)(nil)
 
-// NewDeclareNode creates a new DeclareNode from an initial ast.BlockStmt.
-// The underlying config isn't applied until Evaluate is called.
+// NewDeclareNode creates a new declare node with a content which will be loaded by declare component node.
 func NewDeclareNode(block *ast.BlockStmt, content string) *DeclareNode {
 	return &DeclareNode{
 		label:         block.Label,
@@ -33,15 +32,12 @@ func NewDeclareNode(block *ast.BlockStmt, content string) *DeclareNode {
 }
 
 func (cn *DeclareNode) ModuleContent() string {
+	cn.mut.Lock()
+	defer cn.mut.Unlock()
 	return cn.content
 }
 
-// Evaluate implements BlockNode and updates the arguments for the managed config block
-// by re-evaluating its River block with the provided scope. The managed config block
-// will be built the first time Evaluate is called.
-//
-// Evaluate will return an error if the River block cannot be evaluated or if
-// decoding to arguments fails.
+// Evaluate does nothing for this node.
 func (cn *DeclareNode) Evaluate(scope *vm.Scope) error {
 	return nil
 }

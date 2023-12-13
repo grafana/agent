@@ -21,13 +21,10 @@ import (
 	"go.uber.org/atomic"
 )
 
-// TODO: update comments here
-
-// DeclareComponentNode is a controller node which manages a user-defined component.
+// DeclareComponentNode is a controller node which manages a module.
 //
-// DeclareComponentNode manages the underlying component and caches its current
-// arguments and exports. DeclareComponentNode manages the arguments for the component
-// from a River block.
+// DeclareComponentNode manages the underlying module and caches its current
+// arguments and exports.
 type DeclareComponentNode struct {
 	id                ComponentID
 	globalID          string
@@ -39,8 +36,8 @@ type DeclareComponentNode struct {
 	managedOpts       component.Options
 	registry          *prometheus.Registry
 	moduleController  ModuleController
-	OnComponentUpdate func(cn NodeWithDependants) // Informs controller that we need to reevaluate
-	GetModuleContent  func(namespace string, module string) (string, error)
+	OnComponentUpdate func(cn NodeWithDependants)                           // Informs controller that we need to reevaluate
+	GetModuleContent  func(namespace string, module string) (string, error) // Retrieve the module config.
 	lastUpdateTime    atomic.Time
 
 	mut     sync.RWMutex
@@ -51,20 +48,20 @@ type DeclareComponentNode struct {
 
 	// NOTE(rfratto): health and exports have their own mutex because they may be
 	// set asynchronously while mut is still being held (i.e., when calling Evaluate
-	// and the managed component immediately creates new exports)
+	// and the managed module immediately creates new exports)
 
 	healthMut  sync.RWMutex
 	evalHealth component.Health // Health of the last evaluate
 	runHealth  component.Health // Health of running the component
 
 	exportsMut sync.RWMutex
-	exports    component.Exports // Evaluated exports for the managed component
+	exports    component.Exports // Evaluated exports for the managed module
 }
 
 var _ NodeWithDependants = (*DeclareComponentNode)(nil)
 
 // NewDeclareComponentNode creates a new DeclareComponentNode from an initial ast.BlockStmt.
-// The underlying managed component isn't created until Evaluate is called.
+// The underlying managed module isn't created until Evaluate is called.
 func NewDeclareComponentNode(globals ComponentGlobals, b *ast.BlockStmt, getModuleContent func(string, string) (string, error)) *DeclareComponentNode {
 	var (
 		id     = BlockComponentID(b)
@@ -73,7 +70,7 @@ func NewDeclareComponentNode(globals ComponentGlobals, b *ast.BlockStmt, getModu
 
 	initHealth := component.Health{
 		Health:     component.HealthTypeUnknown,
-		Message:    "component created",
+		Message:    "node declare component created",
 		UpdateTime: time.Now(),
 	}
 
@@ -154,7 +151,7 @@ func (cn *DeclareComponentNode) Label() string { return cn.label }
 func (cn *DeclareComponentNode) NodeID() string { return cn.nodeID }
 
 // UpdateBlock updates the River block used to construct arguments for the
-// managed component. The new block isn't used until the next time Evaluate is
+// managed module. The new block isn't used until the next time Evaluate is
 // invoked.
 //
 // UpdateBlock will panic if the block does not match the component ID of the
@@ -170,12 +167,12 @@ func (cn *DeclareComponentNode) UpdateBlock(b *ast.BlockStmt) {
 	cn.eval = vm.New(b.Body)
 }
 
-// Evaluate implements BlockNode and updates the arguments for the managed component
-// by re-evaluating its River block with the provided scope. The managed component
-// will be built the first time Evaluate is called.
+// Evaluate implements BlockNode and updates the arguments by re-evaluating its River block with the provided scope and the module content by
+// retrieving it from the corresponding import or declare node for the managed module.
+// The managed module will be built the first time Evaluate is called.
 //
-// Evaluate will return an error if the River block cannot be evaluated or if
-// decoding to arguments fails.
+// Evaluate will return an error if the River block cannot be evaluated, if
+// decoding to arguments fails or if the module content cannot be retrieved.
 func (cn *DeclareComponentNode) Evaluate(scope *vm.Scope) error {
 	err := cn.evaluate(scope)
 
@@ -228,7 +225,7 @@ func (cn *DeclareComponentNode) Run(ctx context.Context) error {
 		return ErrUnevaluated
 	}
 
-	cn.setRunHealth(component.HealthTypeHealthy, "started component")
+	cn.setRunHealth(component.HealthTypeHealthy, "started module")
 	cn.managed.RunFlowController(ctx)
 
 	logger := cn.managedOpts.Logger
@@ -237,22 +234,22 @@ func (cn *DeclareComponentNode) Run(ctx context.Context) error {
 	return nil
 }
 
-// Arguments returns the current arguments of the managed component.
+// Arguments returns the current arguments of the managed module.
 func (cn *DeclareComponentNode) Arguments() component.Arguments {
 	cn.mut.RLock()
 	defer cn.mut.RUnlock()
 	return cn.args
 }
 
-// Block implements BlockNode and returns the current block of the managed component.
+// Block implements BlockNode and returns the current block of the managed module.
 func (cn *DeclareComponentNode) Block() *ast.BlockStmt {
 	cn.mut.RLock()
 	defer cn.mut.RUnlock()
 	return cn.block
 }
 
-// Exports returns the current set of exports from the managed component.
-// Exports returns nil if the managed component does not have exports.
+// Exports returns the current set of exports from the managed module.
+// Exports returns nil if the managed module does not have exports.
 func (cn *DeclareComponentNode) Exports() component.Exports {
 	cn.exportsMut.RLock()
 	defer cn.exportsMut.RUnlock()
@@ -263,8 +260,8 @@ func (cn *DeclareComponentNode) LastUpdateTime() time.Time {
 	return cn.lastUpdateTime.Load()
 }
 
-// setExports is called whenever the managed component updates. e must be the
-// same type as the registered exports type of the managed component.
+// setExports is called whenever the managed module updates. e must be the
+// same type as the registered exports type of the managed module.
 func (cn *DeclareComponentNode) setExports(e component.Exports) {
 
 	// Some components may aggressively reexport values even though no exposed
