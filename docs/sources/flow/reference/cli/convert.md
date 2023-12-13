@@ -48,6 +48,8 @@ The following flags are supported:
 
 * `--bypass-errors`, `-b`: Enable bypassing errors when converting.
 
+* `--extra-args`, `e`: Extra arguments from the original format used by the converter.
+
 [prometheus]: #prometheus
 [promtail]: #promtail
 [static]: #static
@@ -100,6 +102,13 @@ Refer to [Migrate from Promtail to {{< param "PRODUCT_NAME" >}}]({{< relref "../
 
 Using the `--source-format=static` will convert the source configuration from a
 [Grafana Agent Static]({{< relref "../../../static" >}}) configuration to a {{< param "PRODUCT_NAME" >}} configuration.
+
+Include `--extra-args` for passing additional command line flags from the original format.
+For example, `--extra-args="-enable-features=integrations-next"` will convert a static
+[integrations-next]({{< relref "../../../static/configuration/integrations/integrations-next/" >}})
+configuration to a {{< param "PRODUCT_NAME" >}} configuration. You can also
+expand env vars by including the `--extra-args="-config.expand-env"`. Multiple command line
+flags can be combined with a space between, such as `--extra-args="-enable-features=integrations-next -config.expand-env"`.
 
 If you have unsupported features in a Static mode source configuration, you will receive [errors][] when you convert to a Flow mode configuration. The converter will
 also raise warnings for configuration options that may require your attention.

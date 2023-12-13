@@ -20,6 +20,7 @@ func convertCommand() *cobra.Command {
 		output:       "",
 		sourceFormat: "",
 		bypassErrors: false,
+		extraArgs:    "",
 	}
 
 	cmd := &cobra.Command{
@@ -41,7 +42,10 @@ The -f flag can be used to specify the format we are converting from.
 
 The -b flag can be used to bypass errors. Errors are defined as 
 non-critical issues identified during the conversion where an
-output can still be generated.`,
+output can still be generated.
+
+The -e flag can be used to pass extra arguments to the converter
+which used by the original format.`,
 		Args:         cobra.RangeArgs(0, 1),
 		SilenceUsage: true,
 
@@ -71,6 +75,7 @@ output can still be generated.`,
 	cmd.Flags().StringVarP(&f.report, "report", "r", f.report, "The filepath and filename where the report is written.")
 	cmd.Flags().StringVarP(&f.sourceFormat, "source-format", "f", f.sourceFormat, fmt.Sprintf("The format of the source file. Supported formats: %s.", supportedFormatsList()))
 	cmd.Flags().BoolVarP(&f.bypassErrors, "bypass-errors", "b", f.bypassErrors, "Enable bypassing errors when converting")
+	cmd.Flags().StringVarP(&f.extraArgs, "extra-args", "e", f.extraArgs, "Extra arguments from the original format used by the converter")
 	return cmd
 }
 
@@ -79,6 +84,7 @@ type flowConvert struct {
 	report       string
 	sourceFormat string
 	bypassErrors bool
+	extraArgs    string
 }
 
 func (fc *flowConvert) Run(configFile string) error {
@@ -112,7 +118,7 @@ func convert(r io.Reader, fc *flowConvert) error {
 		return err
 	}
 
-	riverBytes, diags := converter.Convert(inputBytes, converter.Input(fc.sourceFormat), []string{})
+	riverBytes, diags := converter.Convert(inputBytes, converter.Input(fc.sourceFormat), parseExtraArgs(fc.extraArgs))
 	err = generateConvertReport(diags, fc)
 	if err != nil {
 		return err
@@ -173,4 +179,16 @@ func supportedFormatsList() string {
 		ret[i] = fmt.Sprintf("%q", f)
 	}
 	return strings.Join(ret, ", ")
+}
+
+func parseExtraArgs(extraArgs string) []string {
+	var result []string
+	if extraArgs != "" {
+		arguments := strings.Fields(extraArgs)
+		for _, arg := range arguments {
+			parts := strings.Split(arg, "=")
+			result = append(result, parts...)
+		}
+	}
+	return result
 }

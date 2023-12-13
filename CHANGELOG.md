@@ -48,6 +48,10 @@ Main (unreleased)
 
 - Added support for `loki.write` to flush WAL on agent shutdown. (@thepalbi)
 
+- Add support for `integrations-next` static to flow config conversion. (@erikbaranowski)
+
+- Add support for passing extra arguments to the static converter such as `-config.expand-env`. (@erikbaranowski)
+
 ### Bugfixes
 
 - Update `pyroscope.ebpf` to fix a logical bug causing to profile to many kthreads instead of regular processes https://github.com/grafana/pyroscope/pull/2778 (@korniltsev)

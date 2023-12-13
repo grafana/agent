@@ -297,6 +297,32 @@ loki.write "logs_varlogs" {
 }
 ```
 
+## Integrations Next
+
+[Integrations next][] configs can be converter or run by adding the `extra-args` flag for [convert][] or `config.extra-args` for [run][].
+
+{{< code >}}
+
+```static-binary
+AGENT_MODE=flow grafana-agent convert --source-format=static --extra-args="-enable-features=integrations-next" --output=<OUTPUT_CONFIG_PATH> <INPUT_CONFIG_PATH>
+```
+
+```flow-binary
+grafana-agent-flow convert --source-format=static --extra-args="-enable-features=integrations-next" --output=<OUTPUT_CONFIG_PATH> <INPUT_CONFIG_PATH>
+```
+
+{{< /code >}}
+
+## Environment Vars
+
+You can interpret env variables in your static config using the
+`-config.expand-env` command line flag. This can be passed to [convert][] by
+including `--extra-args="-config.expand-env"` or to [run][]
+by including `--config.extra-args="-config.expand-env"`.
+
+> It is possible to combine `integrations-next` with `expand-env`.
+> For [convert][], `--extra-args="-enable-features=integrations-next -config.expand-env"`
+
 ## Limitations
 
 Configuration conversion is done on a best-effort basis. {{< param "PRODUCT_ROOT_NAME" >}} will issue warnings or errors where the conversion can't be performed.
@@ -305,7 +331,7 @@ After the configuration is converted, review the {{< param "PRODUCT_NAME" >}} co
 
 Review the following checklist:
 
-* The following configuration options are not available for conversion to {{< param "PRODUCT_NAME" >}}: [Integrations next][], [Traces][], and [Agent Management][].
+* The following configuration options are not available for conversion to {{< param "PRODUCT_NAME" >}}: [Traces][] and [Agent Management][].
   Any additional unsupported features are returned as errors during conversion.
 * There is no gRPC server to configure for {{< param "PRODUCT_NAME" >}}, as any non-default configuration will show as unsupported during the conversion.
 * Check if you are using any extra command line arguments with Static that aren't present in your configuration file. For example, `-server.http.address`.
