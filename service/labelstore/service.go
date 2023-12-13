@@ -53,7 +53,7 @@ func New(l log.Logger, r prometheus.Registerer) *service {
 			Help: "Last time stale check was ran expressed in unix timestamp.",
 		}),
 	}
-	r.Register(s.lastStaleCheck)
+	_ = r.Register(s.lastStaleCheck)
 	_ = r.Register(s)
 	return s
 }
