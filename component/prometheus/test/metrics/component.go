@@ -137,7 +137,7 @@ func (c *Component) generateNewSet(forceNewInstances bool) {
 		c.instances = make([]*instance, c.args.NumberOfInstances)
 		for i := 0; i < len(c.instances); i++ {
 			c.instances[i] = &instance{
-				start: 1,
+				start: 0,
 				end:   c.args.NumberOfMetrics,
 				id:    i,
 			}
@@ -150,6 +150,18 @@ func (c *Component) generateNewSet(forceNewInstances bool) {
 	for _, i := range c.instances {
 		i.generateData(c.args.NumberOfSeries)
 	}
+}
+
+func (c *Component) data() [][]byte {
+	c.mut.Lock()
+	defer c.mut.Unlock()
+
+	bb := make([][]byte, len(c.instances))
+	for x, i := range c.instances {
+		bb[x] = make([]byte, len(i.buf))
+		copy(bb[x], i.buf)
+	}
+	return bb
 }
 
 type instance struct {
@@ -199,7 +211,7 @@ func (i *instance) generateData(seriesCount int) {
 		buf.WriteString(lblstring)
 		buf.WriteString("} 1\n")
 	}
-	snappy.Encode(i.buf, buf.Bytes())
+	i.buf = snappy.Encode(nil, buf.Bytes())
 }
 
 func createTarget(host, path string) target {
