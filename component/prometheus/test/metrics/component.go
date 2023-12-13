@@ -11,6 +11,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/grafana/agent/pkg/flow/logging/level"
+
 	"github.com/gorilla/mux"
 
 	"github.com/grafana/agent/component"
@@ -51,7 +53,7 @@ func (c *Component) discovery(w httpgo.ResponseWriter, r *httpgo.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	instances := make([]target, len(c.instances))
 	for x := range c.instances {
-		instances[x] = createTarget(c.handler.HTTPListenAddr, c.path+fmt.Sprintf("instance/%d/metrics", x))
+		instances[x] = createTarget(c.handler.HTTPListenAddr, fmt.Sprintf("%sinstance/%d/metrics", c.path, x))
 	}
 	marshalledBytes, _ := json.Marshal(instances)
 	_, _ = w.Write(marshalledBytes)
@@ -61,6 +63,7 @@ func (c *Component) serveMetrics(w httpgo.ResponseWriter, r *httpgo.Request) {
 	vars := mux.Vars(r)
 	id, err := strconv.Atoi(vars["id"])
 	if err != nil {
+		level.Error(c.o.Logger).Log("msg", "id not found", "id", vars["id"], "err", err)
 		w.WriteHeader(httpgo.StatusNotFound)
 		return
 	}
@@ -115,18 +118,6 @@ func (c *Component) Update(args component.Arguments) error {
 
 	c.argsUpdate <- args.(Arguments)
 	return nil
-}
-
-func (c *Component) generateDiscovery() []byte {
-	c.mut.Lock()
-	defer c.mut.Unlock()
-
-	instances := make([]target, len(c.instances))
-	for x := range c.instances {
-		instances[x] = createTarget(c.handler.HTTPListenAddr, c.path+fmt.Sprintf("instance/%d/metrics", x))
-	}
-	marshalledBytes, _ := json.Marshal(instances)
-	return marshalledBytes
 }
 
 type Arguments struct {
