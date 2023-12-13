@@ -29,7 +29,7 @@ import (
 // StoppableWriteTo is a mixing of the WAL's WriteTo interface, that is Stoppable as well.
 type StoppableWriteTo interface {
 	agentWal.WriteTo
-	Stoppable
+	Stop()
 	StopNow()
 }
 
@@ -38,7 +38,7 @@ type StoppableWriteTo interface {
 type MarkerHandler interface {
 	UpdateReceivedData(segmentId, dataCount int) // Data queued for sending
 	UpdateSentData(segmentId, dataCount int)     // Data which was sent or given up on sending
-	Stoppable
+	Stop()
 }
 
 // queuedBatch is a batch specific to a tenant, that is considered ready to be sent.

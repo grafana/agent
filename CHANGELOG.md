@@ -10,6 +10,11 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+### Breaking changes
+
+- The `target` block in `prometheus.exporter.blackbox` requires a mandatory `name`
+  argument instead of a block label. (@hainenber)
+
 ### Enhancements
 
 - Flow Windows service: Support environment variables. (@jkroepke)
@@ -32,14 +37,34 @@ Main (unreleased)
 
 - `pyroscope.ebpf` support python on arm64 platforms. (@korniltsev)
 
+- `mimir.rules.kubernetes` may now retry its startup on failure. (@hainenber)
+
 - Added links between compatible components in the documentation to make it
   easier to discover them. (@thampiotr)
+  
+- Allow defining `HTTPClientConfig` for `discovery.ec2`. (@cmbrad)
+
+- The `remote.http` component can optionally define a request body. (@tpaschalis)
+
+- Added support for `loki.write` to flush WAL on agent shutdown. (@thepalbi)
 
 ### Bugfixes
 
 - Update `pyroscope.ebpf` to fix a logical bug causing to profile to many kthreads instead of regular processes https://github.com/grafana/pyroscope/pull/2778 (@korniltsev)
  
 - Update `pyroscope.ebpf` to produce more optimal pprof profiles for python processes https://github.com/grafana/pyroscope/pull/2788 (@korniltsev)
+
+- In Static mode's `traces` subsystem, `spanmetrics` used to be generated prior to load balancing.
+  This could lead to inaccurate metrics. This issue only affects Agents using both `spanmetrics` and 
+  `load_balancing`, when running in a load balanced cluster with more than one Agent instance. (@ptodev)
+
+- Fixes `loki.source.docker` a behavior that synced an incomplete list of targets to the tailer manager. (@FerdinandvHagen)
+
+- Fixes `otelcol.connector.servicegraph` store ttl default value from 2ms to 2s. (@rlankfo)
+
+### Other changes
+
+- Bump github.com/IBM/sarama from v1.41.2 to v1.42.1
 
 v0.38.1 (2023-11-30)
 --------------------
