@@ -3,20 +3,20 @@ package metrics
 import (
 	"context"
 	"fmt"
-	"github.com/golang/snappy"
+	"net"
+	"strings"
+	"testing"
+	"time"
+
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/pkg/util"
 	http_service "github.com/grafana/agent/service/http"
 	"github.com/grafana/agent/service/labelstore"
 	prometheus_client "github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/require"
-	"net"
-	"strings"
-	"testing"
-	"time"
 )
 
-func TestMetrcsGeneration(t *testing.T) {
+func TestMetricsGeneration(t *testing.T) {
 	opts := component.Options{
 		Logger:     util.TestFlowLogger(t),
 		Registerer: prometheus_client.NewRegistry(),
@@ -34,6 +34,9 @@ func TestMetrcsGeneration(t *testing.T) {
 			default:
 				return nil, fmt.Errorf("service %q does not exist", name)
 			}
+		},
+		OnStateChange: func(e component.Exports) {
+
 		},
 	}
 
@@ -55,9 +58,7 @@ func TestMetrcsGeneration(t *testing.T) {
 		return len(bb) > 0 && len(bb[0]) > 2
 	}, 10*time.Second, 100*time.Millisecond)
 	require.Len(t, bb, 1)
-	out, err := snappy.Decode(nil, bb[0])
-	require.NoError(t, err)
-	metrics := string(out)
+	metrics := string(bb[0])
 	require.True(t, strings.Contains(metrics, "counter"))
 	require.True(t, strings.Contains(metrics, "agent_metric_test_0"))
 

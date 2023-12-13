@@ -11,7 +11,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/golang/snappy"
 	"github.com/gorilla/mux"
 
 	"github.com/grafana/agent/component"
@@ -23,8 +22,6 @@ func init() {
 		Name:    "prometheus.test.metrics",
 		Args:    Arguments{},
 		Exports: Exports{},
-
-		NeedsServices: []string{http.ServiceName},
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			return NewComponent(opts, args.(Arguments))
 		},
@@ -34,8 +31,9 @@ func init() {
 type Component struct {
 	mut        sync.Mutex
 	args       Arguments
+	o          component.Options
 	instances  []*instance
-	argsUpdate chan struct{}
+	argsUpdate chan Arguments
 	path       string
 	handler    http.Data
 }
@@ -66,7 +64,6 @@ func (c *Component) serveMetrics(w httpgo.ResponseWriter, r *httpgo.Request) {
 		w.WriteHeader(httpgo.StatusNotFound)
 		return
 	}
-	w.Header().Set("Content-Encoding", "snappy")
 	_, _ = w.Write(c.instances[id].buffer())
 }
 
@@ -78,16 +75,18 @@ func NewComponent(o component.Options, c Arguments) (*Component, error) {
 	httpData := data.(http.Data)
 	fullpath := httpData.HTTPPathForComponent(o.ID)
 	return &Component{
+		o:          o,
 		args:       c,
 		path:       fullpath,
-		argsUpdate: make(chan struct{}),
+		argsUpdate: make(chan Arguments),
 		instances:  make([]*instance, 0),
 		handler:    httpData,
 	}, nil
 }
 
 func (c *Component) Run(ctx context.Context) error {
-	c.generateNewSet(true)
+	forceNewSet := true
+	c.generateNewSet(forceNewSet)
 	for {
 		c.mut.Lock()
 		t := time.NewTicker(c.args.MetricsRefresh)
@@ -97,11 +96,14 @@ func (c *Component) Run(ctx context.Context) error {
 			return nil
 		case <-t.C:
 			{
-				c.generateNewSet(false)
+				c.generateNewSet(forceNewSet)
+				forceNewSet = false
 			}
-		case <-c.argsUpdate:
+		case a := <-c.argsUpdate:
 			{
-				// Mainly to update the args.
+				// If instance count changed we need to force a new update
+				forceNewSet = a.NumberOfInstances != c.args.NumberOfInstances
+				c.args = a
 			}
 		}
 	}
@@ -111,9 +113,20 @@ func (c *Component) Update(args component.Arguments) error {
 	c.mut.Lock()
 	defer c.mut.Unlock()
 
-	c.args = args.(Arguments)
-	c.argsUpdate <- struct{}{}
+	c.argsUpdate <- args.(Arguments)
 	return nil
+}
+
+func (c *Component) generateDiscovery() []byte {
+	c.mut.Lock()
+	defer c.mut.Unlock()
+
+	instances := make([]target, len(c.instances))
+	for x := range c.instances {
+		instances[x] = createTarget(c.handler.HTTPListenAddr, c.path+fmt.Sprintf("instance/%d/metrics", x))
+	}
+	marshalledBytes, _ := json.Marshal(instances)
+	return marshalledBytes
 }
 
 type Arguments struct {
@@ -124,11 +137,26 @@ type Arguments struct {
 	ChurnPercent      float32       `river:"churn_percent,attr"`
 }
 
+func getDefault() Arguments {
+	return Arguments{
+		NumberOfInstances: 1,
+		NumberOfMetrics:   1,
+		NumberOfSeries:    1,
+		MetricsRefresh:    1 * time.Minute,
+		ChurnPercent:      0,
+	}
+}
+
+// SetToDefault implements river.Defaulter.
+func (a *Arguments) SetToDefault() {
+	*a = getDefault()
+}
+
 type Exports struct {
 	Targets []map[string]string `river:"targets,attr,optional"`
 }
 
-// generateNewSet  creates the buffers of data. forceNewInstances instatiates all new buffers.
+// generateNewSet  creates the buffers of data. forceNewInstances instantiates all new buffers.
 func (c *Component) generateNewSet(forceNewInstances bool) {
 	c.mut.Lock()
 	defer c.mut.Unlock()
@@ -149,6 +177,15 @@ func (c *Component) generateNewSet(forceNewInstances bool) {
 	}
 	for _, i := range c.instances {
 		i.generateData(c.args.NumberOfSeries)
+	}
+	if forceNewInstances {
+		targets := make([]map[string]string, len(c.instances))
+		for x, _ := range c.instances {
+			targets[x] = make(map[string]string)
+			targets[x]["__address__"] = c.handler.HTTPListenAddr
+			targets[x]["__metrics_path__"] = c.path + fmt.Sprintf("instance/%d/metrics", x)
+		}
+		c.o.OnStateChange(Exports{Targets: targets})
 	}
 }
 
@@ -211,7 +248,7 @@ func (i *instance) generateData(seriesCount int) {
 		buf.WriteString(lblstring)
 		buf.WriteString("} 1\n")
 	}
-	i.buf = snappy.Encode(nil, buf.Bytes())
+	i.buf = buf.Bytes()
 }
 
 func createTarget(host, path string) target {
