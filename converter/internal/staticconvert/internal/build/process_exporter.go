@@ -1,24 +1,14 @@
 package build
 
 import (
-	"fmt"
-
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/prometheus/exporter/process"
-	"github.com/grafana/agent/converter/internal/common"
 	"github.com/grafana/agent/pkg/integrations/process_exporter"
 )
 
-func (b *IntegrationsConfigBuilder) appendProcessExporter(config *process_exporter.Config) discovery.Exports {
+func (b *IntegrationsConfigBuilder) appendProcessExporter(config *process_exporter.Config, instanceKey *string) discovery.Exports {
 	args := toProcessExporter(config)
-	compLabel := common.LabelForParts(b.globalCtx.LabelPrefix, config.Name())
-	b.f.Body().AppendBlock(common.NewBlockWithOverride(
-		[]string{"prometheus", "exporter", "process"},
-		compLabel,
-		args,
-	))
-
-	return common.NewDiscoveryExports(fmt.Sprintf("prometheus.exporter.process.%s.targets", compLabel))
+	return b.appendExporterBlock(args, config.Name(), instanceKey, "process")
 }
 
 func toProcessExporter(config *process_exporter.Config) *process.Arguments {

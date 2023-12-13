@@ -1,9 +1,5 @@
 package stages
 
-// This package is ported over from grafana/loki/clients/pkg/logentry/stages.
-// We aim to port the stages in steps, to avoid introducing huge amounts of
-// new code without being able to slowly review, examine and test them.
-
 import (
 	"bytes"
 	"errors"
@@ -81,7 +77,7 @@ type multilineState struct {
 	currentLines   uint64        // The number of lines of the current multiline block.
 }
 
-// newMulitlineStage creates a MulitlineStage from config
+// newMultilineStage creates a MulitlineStage from config
 func newMultilineStage(logger log.Logger, config MultilineConfig) (Stage, error) {
 	err := validateMultilineConfig(&config)
 	if err != nil {

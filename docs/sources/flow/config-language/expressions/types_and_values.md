@@ -4,9 +4,10 @@ aliases:
 - /docs/grafana-cloud/agent/flow/config-language/expressions/types_and_values/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/config-language/expressions/types_and_values/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/config-language/expressions/types_and_values/
+- /docs/grafana-cloud/send-data/agent/flow/config-language/expressions/types_and_values/
 canonical: https://grafana.com/docs/agent/latest/flow/config-language/expressions/types_and_values/
-title: Types and values
 description: Learn about the River types and values
+title: Types and values
 weight: 100
 ---
 
@@ -90,7 +91,7 @@ The supported escape sequences are as follows:
 
 ## Raw strings
 
-Raw strings are represented by sequences of Unicode characters surrounded by backticks ``` `` ```. 
+Raw strings are represented by sequences of Unicode characters surrounded by backticks ``` `` ```.
 Raw strings do not support any escape sequences:
 
 ```river
@@ -101,7 +102,7 @@ Within the backticks, any character may appear except a backtick. A backtick
 can be included by concatenating a double quoted string that contains a
 backtick using `+`.
 
-A multiline raw string will be interpretted exactly as written:
+A multiline raw string is interpreted exactly as written:
 
 ```river
 `Hello,

@@ -104,6 +104,10 @@ func LoadBlackboxConfig(log log.Logger, configFile string, targets []BlackboxTar
 
 // New creates a new blackbox_exporter integration
 func New(log log.Logger, c *Config) (integrations.Integration, error) {
+	if c.BlackboxConfigFile == "" && c.BlackboxConfig == nil {
+		return nil, fmt.Errorf("failed to load blackbox config; no config file or config block provided")
+	}
+
 	var blackbox_config blackbox_config.Config
 	err := yaml.Unmarshal(c.BlackboxConfig, &blackbox_config)
 	if err != nil {

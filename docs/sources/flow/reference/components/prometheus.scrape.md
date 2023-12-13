@@ -3,9 +3,10 @@ aliases:
 - /docs/grafana-cloud/agent/flow/reference/components/prometheus.scrape/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/prometheus.scrape/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/prometheus.scrape/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/prometheus.scrape/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.scrape/
-title: prometheus.scrape
 description: Learn about prometheus.scrape
+title: prometheus.scrape
 ---
 
 # prometheus.scrape
@@ -45,15 +46,15 @@ Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `targets`                  | `list(map(string))`     | List of targets to scrape. | | yes
 `forward_to`               | `list(MetricsReceiver)` | List of receivers to send scraped metrics to. | | yes
-`job_name`                 | `string`   | The job name to override the job label with. | component name | no
+`job_name`                 | `string`   | The value to use for the job label if not already set. | component name | no
 `extra_metrics`            | `bool`     | Whether extra metrics should be generated for scrape targets. | `false` | no
 `enable_protobuf_negotiation` | `bool`     | Whether to enable protobuf negotiation with the client. | `false` | no
 `honor_labels`             | `bool`     | Indicator whether the scraped metrics should remain unmodified. | `false` | no
 `honor_timestamps`         | `bool`     | Indicator whether the scraped timestamps should be respected. | `true` | no
 `params`                   | `map(list(string))` | A set of query parameters with which the target is scraped. | | no
 `scrape_classic_histograms` | `bool`     | Whether to scrape a classic histogram that is also exposed as a native histogram. | `false` | no
-`scrape_interval`          | `duration` | How frequently to scrape the targets of this scrape config. | `"60s"` | no
-`scrape_timeout`           | `duration` | The timeout for scraping targets of this config. | `"10s"` | no
+`scrape_interval`          | `duration` | How frequently to scrape the targets of this scrape configuration. | `"60s"` | no
+`scrape_timeout`           | `duration` | The timeout for scraping targets of this configuration. | `"10s"` | no
 `metrics_path`             | `string`   | The HTTP resource path on which to fetch metrics from targets. | `/metrics` | no
 `scheme`                   | `string`   | The URL scheme with which to fetch metrics from targets. | | no
 `body_size_limit`          | `int`      | An uncompressed response body larger than this many bytes causes the scrape to fail. 0 means no limit. | | no
@@ -101,19 +102,19 @@ an `oauth2` block.
 
 ### basic_auth block
 
-{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### authorization block
 
-{{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### oauth2 block
 
-{{< docs/shared lookup="flow/reference/components/oauth2-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/oauth2-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### tls_config block
 
-{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### clustering (beta)
 
@@ -121,7 +122,7 @@ Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `enabled` | `bool` | Enables sharing targets with other cluster nodes. | `false` | yes
 
-When the agent is [using clustering][], and `enabled` is set to true,
+When {{< param "PRODUCT_NAME" >}} is [using clustering][], and `enabled` is set to true,
 then this `prometheus.scrape` component instance opts-in to participating in
 the cluster to distribute scrape load between all cluster nodes.
 
@@ -141,7 +142,7 @@ sharding where _all_ nodes have to be re-distributed, as only 1/N of the
 targets ownership is transferred, but is eventually consistent (rather than
 fully consistent like hashmod sharding is).
 
-If the agent is _not_ running in clustered mode, then the block is a no-op and
+If {{< param "PRODUCT_NAME" >}} is _not_ running in clustered mode, then the block is a no-op and
 `prometheus.scrape` scrapes every target it receives in its arguments.
 
 [using clustering]: {{< relref "../../concepts/clustering.md" >}}
@@ -286,3 +287,22 @@ Special labels added after a scrape
 * `__name__` is the label name indicating the metric name of a timeseries.
 * `job` is the label name indicating the job from which a timeseries was scraped.
 * `instance` is the label name used for the instance label.
+
+<!-- START GENERATED COMPATIBLE COMPONENTS -->
+
+## Compatible components
+
+`prometheus.scrape` can accept arguments from the following components:
+
+- Components that export [Targets]({{< relref "../compatibility/#targets-exporters" >}})
+- Components that export [Prometheus `MetricsReceiver`]({{< relref "../compatibility/#prometheus-metricsreceiver-exporters" >}})
+
+
+{{% admonition type="note" %}}
+
+Connecting some components may not be sensible or components may require further configuration to make the 
+connection work correctly. Refer to the linked documentation for more details.
+
+{{% /admonition %}}
+
+<!-- END GENERATED COMPATIBLE COMPONENTS -->

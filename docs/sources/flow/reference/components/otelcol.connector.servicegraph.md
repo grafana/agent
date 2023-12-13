@@ -1,14 +1,17 @@
 ---
+aliases:
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/otelcol.connector.servicegraph/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/otelcol.connector.servicegraph/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.connector.servicegraph/
+description: Learn about otelcol.connector.servicegraph
 labels:
   stage: experimental
 title: otelcol.connector.servicegraph
-description: Learn about otelcol.connector.servicegraph
 ---
 
 # otelcol.connector.servicegraph
 
-{{< docs/shared lookup="flow/stability/experimental.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/stability/experimental.md" source="agent" version="<AGENT_VERSION>" >}}
 
 `otelcol.connector.servicegraph` accepts span data from other `otelcol` components and 
 outputs metrics representing the relationship between various services in a system.
@@ -132,11 +135,11 @@ The `store` block configures the in-memory store for spans.
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `max_items` | `number` | Maximum number of items to keep in the store. | `1000` | no
-`ttl` | `duration` | The time to live for spans in the store. | `"2ms"` | no
+`ttl` | `duration` | The time to live for spans in the store. | `"2s"` | no
 
 ### output block
 
-{{< docs/shared lookup="flow/reference/components/output-block-metrics.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/output-block-metrics.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ## Exported fields
 
@@ -216,4 +219,23 @@ Some of the metrics in Mimir may look like this:
 ```
 traces_service_graph_request_total{client="shop-backend",failed="false",server="article-service",client_http_method="DELETE",server_http_method="DELETE"}
 traces_service_graph_request_failed_total{client="shop-backend",client_http_method="POST",failed="false",server="auth-service",server_http_method="POST"}
-```
+```<!-- START GENERATED COMPATIBLE COMPONENTS -->
+
+## Compatible components
+
+`otelcol.connector.servicegraph` can accept arguments from the following components:
+
+- Components that export [OpenTelemetry `otelcol.Consumer`]({{< relref "../compatibility/#opentelemetry-otelcolconsumer-exporters" >}})
+
+`otelcol.connector.servicegraph` has exports that can be consumed by the following components:
+
+- Components that consume [OpenTelemetry `otelcol.Consumer`]({{< relref "../compatibility/#opentelemetry-otelcolconsumer-consumers" >}})
+
+{{% admonition type="note" %}}
+
+Connecting some components may not be sensible or components may require further configuration to make the 
+connection work correctly. Refer to the linked documentation for more details.
+
+{{% /admonition %}}
+
+<!-- END GENERATED COMPATIBLE COMPONENTS -->

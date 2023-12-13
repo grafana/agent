@@ -190,12 +190,19 @@ func generatePodTemplate(
 		finalLabels         = cfg.Labels.Merge(podLabels)
 	)
 
-	envVars := []core_v1.EnvVar{{
-		Name: "POD_NAME",
-		ValueFrom: &core_v1.EnvVarSource{
-			FieldRef: &core_v1.ObjectFieldSelector{FieldPath: "metadata.name"},
+	envVars := []core_v1.EnvVar{
+		{
+			Name: "POD_NAME",
+			ValueFrom: &core_v1.EnvVarSource{
+				FieldRef: &core_v1.ObjectFieldSelector{FieldPath: "metadata.name"},
+			},
 		},
-	}}
+		// Allows the agent to identify this is an operator-created pod.
+		{
+			Name:  "AGENT_DEPLOY_MODE",
+			Value: "operator",
+		},
+	}
 	envVars = append(envVars, opts.ExtraEnvVars...)
 
 	useConfigReloaderVersion := d.Agent.Spec.ConfigReloaderVersion
@@ -207,6 +214,8 @@ func generatePodTemplate(
 		imagePathConfigReloader = *d.Agent.Spec.ConfigReloaderImage
 	}
 
+	boolFalse := false
+	boolTrue := true
 	operatorContainers := []core_v1.Container{
 		{
 			Name:         "config-reloader",
@@ -214,7 +223,11 @@ func generatePodTemplate(
 			VolumeMounts: volumeMounts,
 			Env:          envVars,
 			SecurityContext: &core_v1.SecurityContext{
-				RunAsUser: pointer.Int64(0),
+				AllowPrivilegeEscalation: &boolFalse,
+				ReadOnlyRootFilesystem:   &boolTrue,
+				Capabilities: &core_v1.Capabilities{
+					Drop: []core_v1.Capability{"ALL"},
+				},
 			},
 			Args: []string{
 				"--config-file=/var/lib/grafana-agent/config-in/agent.yml",

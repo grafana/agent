@@ -10,7 +10,7 @@ Unicode true
 
 !include nsDialogs.nsh
 !include FileFunc.nsh
-!include ./macros.nsis
+!include .\macros.nsis
 
 !define APPNAME     "Grafana Agent Flow"
 !define HELPURL     "https://grafana.com/docs/agent/latest/flow/"
@@ -24,8 +24,18 @@ RequestExecutionLevel admin
 Name        "${APPNAME} ${VERSION}" # Shown in title bar for installer/uninstaller
 Icon        "logo.ico"
 InstallDir  "$PROGRAMFILES64\${APPNAME}"
-LicenseData ../../../LICENSE
+LicenseData ..\..\..\LICENSE
 OutFile     "${OUT}"
+
+# Everything must be global Vars
+Var PassedInParameters
+Var Config
+Var ConfigFlag
+Var Environment
+Var DisableReporting
+Var DisableReportingFlag
+Var DisableProfiling
+Var DisableProfilingFlag
 
 # Pages during the installer.
 Page license
@@ -39,6 +49,12 @@ Function .onInit
 FunctionEnd
 
 Section "install"
+  ${GetParameters} $PassedInParameters
+  ${GetOptions} $PassedInParameters "/DISABLEPROFILING=" $DisableProfiling
+  ${GetOptions} $PassedInParameters "/DISABLEREPORTING=" $DisableReporting
+  ${GetOptions} $PassedInParameters "/ENVIRONMENT=" $Environment
+  ${GetOptions} $PassedInParameters "/CONFIG=" $Config
+
   # Calls to functions like nsExec::ExecToLog below push the exit code to the
   # stack, and must be popped after calling.
 
@@ -48,8 +64,8 @@ Section "install"
 
   # Configure the out path and copy files to it.
   SetOutPath "$INSTDIR"
-  File "../../../dist.temp/grafana-agent-flow-windows-amd64.exe"
-  File "../../../dist.temp/grafana-agent-service-windows-amd64.exe"
+  File "..\..\..\dist.temp\grafana-agent-flow-windows-amd64.exe"
+  File "..\..\..\dist.temp\grafana-agent-service-windows-amd64.exe"
   File "logo.ico"
 
   # Create an uninstaller at the same pathFunctionEnd
@@ -81,6 +97,10 @@ Section "install"
   # Start the service.
   nsExec::ExecToLog 'sc start "Grafana Agent Flow"'
   Pop $0
+
+  # Auto-restart agent on failure. Reset failure counter after 60 seconds without failure
+  nsExec::ExecToLog `sc failure "Grafana Agent Flow" reset= 60 actions= restart/5000 reboot= "Grafana Agent Flow has failed. Restarting in 5 seconds"`
+  Pop $0
 SectionEnd
 
 Function CreateConfig
@@ -105,14 +125,37 @@ Function InitializeRegistry
     Pop $0 # Ignore return result
   ${EndIf}
 
+  ${If} $Config != ""
+    StrCpy $ConfigFlag "$Config"
+  ${Else}
+    StrCpy $ConfigFlag "$INSTDIR\config.river"
+  ${EndIf}
+
+  ${If} $DisableReporting == "yes"
+    StrCpy $DisableReportingFlag "--disable-reporting\0"
+  ${Else}
+    StrCpy $DisableReportingFlag ""
+  ${EndIf}
+
+  ${If} $DisableProfiling == "yes"
+    StrCpy $DisableProfilingFlag "--server.http.enable-pprof=false\0"
+  ${Else}
+    StrCpy $DisableProfilingFlag ""
+  ${EndIf}
+
   # Define the arguments key, which holds arguments to pass to the
   # service.
   nsExec::ExecToLog 'Reg.exe query "${REGKEY}" /reg:64 /v Arguments'
   Pop $0
   ${If} $0 == 1
-    nsExec::ExecToLog 'Reg.exe add "${REGKEY}" /reg:64 /v Arguments /t REG_MULTI_SZ /d "run"\0"$INSTDIR\config.river"\0"--storage.path=$APPDATA\${APPNAME}\data"\0'
+    nsExec::ExecToLog 'Reg.exe add "${REGKEY}" /reg:64 /v Arguments /t REG_MULTI_SZ /d "run"\0"$ConfigFlag"\0"--storage.path=$APPDATA\${APPNAME}\data"\0"$DisableReportingFlag$DisableProfilingFlag"'
     Pop $0 # Ignore return result
   ${EndIf}
+
+  # Define the environment key, which holds environment variables to pass to the
+  # service.
+  nsExec::ExecToLog 'Reg.exe add "${REGKEY}" /reg:64 /v Environment /t REG_MULTI_SZ /d "$Environment"'
+  Pop $0 # Ignore return result
 
   Return
 FunctionEnd

@@ -1,9 +1,11 @@
 ---
 aliases:
 - ../../../configuration/integrations/process-exporter-config/
+- /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/integrations/process-exporter-config/
+- /docs/grafana-cloud/send-data/agent/static/configuration/integrations/process-exporter-config/
 canonical: https://grafana.com/docs/agent/latest/static/configuration/integrations/process-exporter-config/
-title: process_exporter_config
 description: Learn about process_exporter_config
+title: process_exporter_config
 ---
 
 # process_exporter_config

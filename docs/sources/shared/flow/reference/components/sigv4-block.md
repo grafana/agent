@@ -4,18 +4,19 @@ aliases:
 - /docs/grafana-cloud/agent/shared/flow/reference/components/sigv4-block/
 - /docs/grafana-cloud/monitor-infrastructure/agent/shared/flow/reference/components/sigv4-block/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/shared/flow/reference/components/sigv4-block/
+- /docs/grafana-cloud/send-data/agent/shared/flow/reference/components/sigv4-block/
 canonical: https://grafana.com/docs/agent/latest/shared/flow/reference/components/sigv4-block/
 description: Shared content, sigv4 block
 headless: true
 ---
 
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`region` | `string` | AWS region. | | no
-`access_key` | `string` | AWS API access key. | | no
-`secret_key` | `secret` | AWS API secret key.| | no
-`profile` | `string` | Named AWS profile used to authenticate. | | no
-`role_arn` | `string` | AWS Role ARN, an alternative to using AWS API keys. | | no
+Name         | Type     | Description                                         | Default | Required
+-------------|----------|-----------------------------------------------------|---------|---------
+`access_key` | `string` | AWS API access key.                                 |         | no
+`profile`    | `string` | Named AWS profile used to authenticate.             |         | no
+`region`     | `string` | AWS region.                                         |         | no
+`role_arn`   | `string` | AWS Role ARN, an alternative to using AWS API keys. |         | no
+`secret_key` | `secret` | AWS API secret key.                                 |         | no
 
 If `region` is left blank, the region from the default credentials chain is used.
 

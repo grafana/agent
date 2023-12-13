@@ -1,9 +1,11 @@
 ---
 aliases:
 - ../operation-guide/
+- /docs/grafana-cloud/monitor-infrastructure/agent/static/operation-guide/
+- /docs/grafana-cloud/send-data/agent/static/operation-guide/
 canonical: https://grafana.com/docs/agent/latest/static/operation-guide/
-title: Operation guide
 description: Learn how to operate Grafana Agent
+title: Operation guide
 weight: 700
 ---
 
@@ -192,12 +194,12 @@ Users can use the [targets API][api] to see all scraped targets, and the name
 of the shared instance they were assigned to.
 
 {{% docs/reference %}}
-[scrape]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/configuration/scraping-service"
+[scrape]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static/configuration/scraping-service"
 [scrape]: "/docs/grafana-cloud/ -> ../configuration/scraping-service"
-[targets]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/configuration/scraping-service#best-practices"
+[targets]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static/configuration/scraping-service#best-practices"
 [targets]: "/docs/grafana-cloud/ -> ../configuration/scraping-service#best-practices"
-[api]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/api#agent-api"
+[api]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static/api#agent-api"
 [api]: "/docs/grafana-cloud/ -> ../api#agent-api"
-[metrics]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/configuration/metrics-config"
+[metrics]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static/configuration/metrics-config"
 [metrics]: "/docs/grafana-cloud/ -> ../configuration/metrics-config"
 {{% /docs/reference %}}

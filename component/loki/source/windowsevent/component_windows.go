@@ -11,7 +11,6 @@ import (
 	"github.com/grafana/agent/component/common/loki/utils"
 	"github.com/grafana/loki/clients/pkg/promtail/api"
 	"github.com/grafana/loki/clients/pkg/promtail/scrapeconfig"
-	"github.com/grafana/loki/clients/pkg/promtail/targets/windows"
 )
 
 func init() {
@@ -35,7 +34,7 @@ type Component struct {
 
 	mut       sync.RWMutex
 	args      Arguments
-	target    *windows.Target
+	target    *Target
 	handle    *handler
 	receivers []loki.LogsReceiver
 }
@@ -123,7 +122,7 @@ func (c *Component) Update(args component.Arguments) error {
 		_ = f.Close()
 	}
 
-	winTarget, err := windows.New(c.opts.Logger, c.handle, nil, convertConfig(newArgs))
+	winTarget, err := NewTarget(c.opts.Logger, c.handle, nil, convertConfig(newArgs))
 	if err != nil {
 		return err
 	}
@@ -150,7 +149,7 @@ func convertConfig(arg Arguments) *scrapeconfig.WindowsEventsTargetConfig {
 		BookmarkPath:         arg.BookmarkPath,
 		PollInterval:         arg.PollInterval,
 		ExcludeEventData:     arg.ExcludeEventData,
-		ExcludeEventMessage:  false,
+		ExcludeEventMessage:  arg.ExcludeEventMessage,
 		ExcludeUserData:      arg.ExcludeUserdata,
 		Labels:               utils.ToLabelSet(arg.Labels),
 	}

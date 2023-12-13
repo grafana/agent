@@ -19,10 +19,10 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name:          "otelcol.exporter.prometheus",
-		Args:          Arguments{},
-		Exports:       otelcol.ConsumerExports{},
-		NeedsServices: []string{labelstore.ServiceName},
+		Name:    "otelcol.exporter.prometheus",
+		Args:    Arguments{},
+		Exports: otelcol.ConsumerExports{},
+
 		Build: func(o component.Options, a component.Arguments) (component.Component, error) {
 			return New(o, a.(Arguments))
 		},
@@ -31,21 +31,23 @@ func init() {
 
 // Arguments configures the otelcol.exporter.prometheus component.
 type Arguments struct {
-	IncludeTargetInfo  bool                 `river:"include_target_info,attr,optional"`
-	IncludeScopeInfo   bool                 `river:"include_scope_info,attr,optional"`
-	IncludeScopeLabels bool                 `river:"include_scope_labels,attr,optional"`
-	GCFrequency        time.Duration        `river:"gc_frequency,attr,optional"`
-	ForwardTo          []storage.Appendable `river:"forward_to,attr"`
-	AddMetricSuffixes  bool                 `river:"add_metric_suffixes,attr,optional"`
+	IncludeTargetInfo             bool                 `river:"include_target_info,attr,optional"`
+	IncludeScopeInfo              bool                 `river:"include_scope_info,attr,optional"`
+	IncludeScopeLabels            bool                 `river:"include_scope_labels,attr,optional"`
+	GCFrequency                   time.Duration        `river:"gc_frequency,attr,optional"`
+	ForwardTo                     []storage.Appendable `river:"forward_to,attr"`
+	AddMetricSuffixes             bool                 `river:"add_metric_suffixes,attr,optional"`
+	ResourceToTelemetryConversion bool                 `river:"resource_to_telemetry_conversion,attr,optional"`
 }
 
 // DefaultArguments holds defaults values.
 var DefaultArguments = Arguments{
-	IncludeTargetInfo:  true,
-	IncludeScopeInfo:   false,
-	IncludeScopeLabels: true,
-	GCFrequency:        5 * time.Minute,
-	AddMetricSuffixes:  true,
+	IncludeTargetInfo:             true,
+	IncludeScopeInfo:              false,
+	IncludeScopeLabels:            true,
+	GCFrequency:                   5 * time.Minute,
+	AddMetricSuffixes:             true,
+	ResourceToTelemetryConversion: false,
 }
 
 // SetToDefault implements river.Defaulter.
@@ -151,8 +153,9 @@ func (c *Component) Update(newConfig component.Arguments) error {
 
 func convertArgumentsToConvertOptions(args Arguments) convert.Options {
 	return convert.Options{
-		IncludeTargetInfo: args.IncludeTargetInfo,
-		IncludeScopeInfo:  args.IncludeScopeInfo,
-		AddMetricSuffixes: args.AddMetricSuffixes,
+		IncludeTargetInfo:             args.IncludeTargetInfo,
+		IncludeScopeInfo:              args.IncludeScopeInfo,
+		AddMetricSuffixes:             args.AddMetricSuffixes,
+		ResourceToTelemetryConversion: args.ResourceToTelemetryConversion,
 	}
 }

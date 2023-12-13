@@ -3,9 +3,10 @@ aliases:
 - /docs/grafana-cloud/agent/flow/reference/components/discovery.relabel/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/discovery.relabel/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/discovery.relabel/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/discovery.relabel/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.relabel/
-title: discovery.relabel
 description: Learn about discovery.relabel
+title: discovery.relabel
 ---
 
 # discovery.relabel
@@ -71,7 +72,7 @@ rule | [rule][] | Relabeling rules to apply to targets. | no
 
 ### rule block
 
-{{< docs/shared lookup="flow/reference/components/rule-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/rule-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ## Exported fields
 
@@ -122,3 +123,23 @@ discovery.relabel "keep_backend_only" {
 ```
 
 
+<!-- START GENERATED COMPATIBLE COMPONENTS -->
+
+## Compatible components
+
+`discovery.relabel` can accept arguments from the following components:
+
+- Components that export [Targets]({{< relref "../compatibility/#targets-exporters" >}})
+
+`discovery.relabel` has exports that can be consumed by the following components:
+
+- Components that consume [Targets]({{< relref "../compatibility/#targets-consumers" >}})
+
+{{% admonition type="note" %}}
+
+Connecting some components may not be sensible or components may require further configuration to make the 
+connection work correctly. Refer to the linked documentation for more details.
+
+{{% /admonition %}}
+
+<!-- END GENERATED COMPATIBLE COMPONENTS -->

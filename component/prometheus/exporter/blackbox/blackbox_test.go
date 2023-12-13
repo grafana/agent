@@ -16,11 +16,13 @@ import (
 func TestUnmarshalRiver(t *testing.T) {
 	riverCfg := `
 		config_file = "modules.yml"
-		target "target_a" {
+		target {
+			name = "target_a"
 			address = "http://example.com"
 			module = "http_2xx"
 		}
-		target "target_b" {
+		target {
+			name = "target-b"
 			address = "http://grafana.com"
 			module = "http_2xx"
 		}
@@ -35,7 +37,7 @@ func TestUnmarshalRiver(t *testing.T) {
 	require.Contains(t, "target_a", args.Targets[0].Name)
 	require.Contains(t, "http://example.com", args.Targets[0].Target)
 	require.Contains(t, "http_2xx", args.Targets[0].Module)
-	require.Contains(t, "target_b", args.Targets[1].Name)
+	require.Contains(t, "target-b", args.Targets[1].Name)
 	require.Contains(t, "http://grafana.com", args.Targets[1].Target)
 	require.Contains(t, "http_2xx", args.Targets[1].Module)
 }
@@ -44,11 +46,13 @@ func TestUnmarshalRiverWithInlineConfig(t *testing.T) {
 	riverCfg := `
 		config = "{ modules: { http_2xx: { prober: http, timeout: 5s } } }"
 
-		target "target_a" {
+		target {
+			name = "target_a"
 			address = "http://example.com"
 			module = "http_2xx"
 		}
-		target "target_b" {
+		target {
+			name = "target-b"
 			address = "http://grafana.com"
 			module = "http_2xx"
 		}
@@ -68,7 +72,7 @@ func TestUnmarshalRiverWithInlineConfig(t *testing.T) {
 	require.Contains(t, "target_a", args.Targets[0].Name)
 	require.Contains(t, "http://example.com", args.Targets[0].Target)
 	require.Contains(t, "http_2xx", args.Targets[0].Module)
-	require.Contains(t, "target_b", args.Targets[1].Name)
+	require.Contains(t, "target-b", args.Targets[1].Name)
 	require.Contains(t, "http://grafana.com", args.Targets[1].Target)
 	require.Contains(t, "http_2xx", args.Targets[1].Module)
 }
@@ -77,11 +81,13 @@ func TestUnmarshalRiverWithInlineConfigYaml(t *testing.T) {
 	riverCfg := `
 		config = "modules:\n  http_2xx:\n    prober: http\n    timeout: 5s\n"
 
-		target "target_a" {
+		target {
+			name = "target_a" 
 			address = "http://example.com"
 			module = "http_2xx"
 		}
-		target "target_b" {
+		target {
+			name = "target-b"
 			address = "http://grafana.com"
 			module = "http_2xx"
 		}
@@ -101,12 +107,12 @@ func TestUnmarshalRiverWithInlineConfigYaml(t *testing.T) {
 	require.Contains(t, "target_a", args.Targets[0].Name)
 	require.Contains(t, "http://example.com", args.Targets[0].Target)
 	require.Contains(t, "http_2xx", args.Targets[0].Module)
-	require.Contains(t, "target_b", args.Targets[1].Name)
+	require.Contains(t, "target-b", args.Targets[1].Name)
 	require.Contains(t, "http://grafana.com", args.Targets[1].Target)
 	require.Contains(t, "http_2xx", args.Targets[1].Module)
 }
 
-func TestUnmarshalRiverWithInvalidInlineConfig(t *testing.T) {
+func TestUnmarshalRiverWithInvalidConfig(t *testing.T) {
 	var tests = []struct {
 		testname      string
 		cfg           string
@@ -117,24 +123,26 @@ func TestUnmarshalRiverWithInvalidInlineConfig(t *testing.T) {
 			`
 			config = "{ modules: { http_2xx: { prober: http, timeout: 5s }"
 
-			target "target_a" {
+			target {
+				name = "target_a"
 				address = "http://example.com"
 				module = "http_2xx"
 			}
 			`,
-			`invalid backbox_exporter config: yaml: line 1: did not find expected ',' or '}'`,
+			`invalid blackbox_exporter config: yaml: line 1: did not find expected ',' or '}'`,
 		},
 		{
 			"Invalid property",
 			`
 			config = "{ module: { http_2xx: { prober: http, timeout: 5s } } }"
 
-			target "target_a" {
+			target {
+				name = "target_a"
 				address = "http://example.com"
 				module = "http_2xx"
 			}
 			`,
-			"invalid backbox_exporter config: yaml: unmarshal errors:\n  line 1: field module not found in type config.plain",
+			"invalid blackbox_exporter config: yaml: unmarshal errors:\n  line 1: field module not found in type config.plain",
 		},
 		{
 			"Define config and config_file",
@@ -142,12 +150,34 @@ func TestUnmarshalRiverWithInvalidInlineConfig(t *testing.T) {
 			config_file = "config"
 			config = "{ modules: { http_2xx: { prober: http, timeout: 5s } } }"
 
-			target "target_a" {
+			target {
+				name = "target-a"
 				address = "http://example.com"
 				module = "http_2xx"
 			}
 			`,
 			`config and config_file are mutually exclusive`,
+		},
+		{
+			"Define neither config nor config_file",
+			`
+			target {
+				name = "target-a"
+				address = "http://example.com"
+				module = "http_2xx"
+			}
+			`,
+			`config or config_file must be set`,
+		},
+		{
+			"Specify label for target block instead of name attribute",
+			`
+			target "target_a" {
+				address = "http://example.com"
+				module = "http_2xx"
+			}
+			`,
+			`2:4: block "target" does not support specifying labels`,
 		},
 	}
 	for _, tt := range tests {

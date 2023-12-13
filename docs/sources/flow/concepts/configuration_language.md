@@ -4,15 +4,16 @@ aliases:
 - /docs/grafana-cloud/agent/flow/concepts/configuration_language/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/concepts/configuration_language/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/concepts/configuration_language/
+- /docs/grafana-cloud/send-data/agent/flow/concepts/configuration_language/
 canonical: https://grafana.com/docs/agent/latest/flow/concepts/configuration_language/
-title: Configuration language concepts
 description: Learn about configuration language concepts
+title: Configuration language concepts
 weight: 400
 ---
 
 # Configuration language concepts
 
-The Grafana Agent Flow _configuration language_ refers to the language used in
+The {{< param "PRODUCT_NAME" >}} _configuration language_ refers to the language used in
 configuration files which define and configure components to run.
 
 The configuration language is called River, a Terraform/HCL-inspired language:
@@ -98,9 +99,9 @@ This file has two blocks:
 ## More information
 
 River is documented in detail in [Configuration language][config-docs] section
-of the Grafana Agent Flow docs.
+of the {{< param "PRODUCT_NAME" >}} docs.
 
 {{% docs/reference %}}
 [config-docs]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/config-language"
-[config-docs]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/config-language"
+[config-docs]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/config-language"
 {{% /docs/reference %}}

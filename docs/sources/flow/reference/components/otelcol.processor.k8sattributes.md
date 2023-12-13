@@ -3,9 +3,10 @@ aliases:
 - /docs/grafana-cloud/agent/flow/reference/components/otelcol.processor.k8sattributes/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/otelcol.processor.k8sattributes/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/otelcol.processor.k8sattributes/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/otelcol.processor.k8sattributes/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.processor.k8sattributes/
-title: otelcol.processor.k8sattributes
 description: Learn about otelcol.processor.k8sattributes
+title: otelcol.processor.k8sattributes
 ---
 
 # otelcol.processor.k8sattributes
@@ -15,7 +16,7 @@ components and adds Kubernetes metadata to the resource attributes of spans, log
 
 {{% admonition type="note" %}}
 `otelcol.processor.k8sattributes` is a wrapper over the upstream OpenTelemetry
-Collector `k8sattributes` processor.  If necessary, bug reports or feature requests
+Collector `k8sattributes` processor. If necessary, bug reports or feature requests
 will be redirected to the upstream repository.
 {{% /admonition %}}
 
@@ -53,12 +54,12 @@ Setting `passthrough` to `true` enables the "passthrough mode" of `otelcol.proce
 * Only a `k8s.pod.ip` resource attribute will be added.
 * No other metadata will be added.
 * The Kubernetes API will not be accessed.
-* To correctly detect the pod IPs, the Agent must receive spans directly from services.
+* To correctly detect the pod IPs, {{< param "PRODUCT_ROOT_NAME" >}} must receive spans directly from services.
 * The `passthrough` setting is useful when configuring the Agent as a Kubernetes Deployment.
-An Agent running as a Deployment cannot detect the IP addresses of pods generating telemetry 
-data without any of the well-known IP attributes. If the Deployment Agent receives telemetry from 
-Agents deployed as DaemonSet, then some of those attributes might be missing. As a workaround, 
-you can configure the DaemonSet Agents with `passthrough` set to `true`.
+A {{< param "PRODUCT_ROOT_NAME" >}} running as a Deployment cannot detect the IP addresses of pods generating telemetry
+data without any of the well-known IP attributes. If the Deployment {{< param "PRODUCT_ROOT_NAME" >}} receives telemetry from
+{{< param "PRODUCT_ROOT_NAME" >}}s deployed as DaemonSet, then some of those attributes might be missing. As a workaround,
+you can configure the DaemonSet {{< param "PRODUCT_ROOT_NAME" >}}s with `passthrough` set to `true`.
 
 ## Blocks
 
@@ -142,13 +143,13 @@ By default, if `metadata` is not specified, the following fields are extracted a
 
 The `annotation` block configures how to extract Kubernetes annotations.
 
-{{< docs/shared lookup="flow/reference/components/extract-field-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/extract-field-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### label block {#extract-label-block}
 
 The `label` block configures how to extract Kubernetes labels.
 
-{{< docs/shared lookup="flow/reference/components/extract-field-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/extract-field-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### filter block
 
@@ -167,13 +168,13 @@ If `node` is specified, then any pods not running on the specified node will be 
 
 The `field` block allows you to filter pods by generic Kubernetes fields.
 
-{{< docs/shared lookup="flow/reference/components/field-filter-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/field-filter-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### label block {#filter-label-block}
 
 The `label` block allows you to filter pods by generic Kubernetes labels.
 
-{{< docs/shared lookup="flow/reference/components/field-filter-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/field-filter-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### pod_association block
 
@@ -236,7 +237,7 @@ Name | Type     | Description         | Default | Required
 
 ### output block
 
-{{< docs/shared lookup="flow/reference/components/output-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/output-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ## Exported fields
 
@@ -285,11 +286,11 @@ otelcol.receiver.otlp "default" {
 }
 
 otelcol.processor.k8sattributes "default" {
-    output {
-        metrics = [otelcol.exporter.otlp.default.input]
-        logs    = [otelcol.exporter.otlp.default.input]
-        traces  = [otelcol.exporter.otlp.default.input]
-    }
+  output {
+    metrics = [otelcol.exporter.otlp.default.input]
+    logs    = [otelcol.exporter.otlp.default.input]
+    traces  = [otelcol.exporter.otlp.default.input]
+  }
 }
 
 otelcol.exporter.otlp "default" {
@@ -314,32 +315,32 @@ otelcol.receiver.otlp "default" {
 }
 
 otelcol.processor.k8sattributes "default" {
-    extract {
-		label {
-			from      = "pod"
-			key_regex = "(.*)/(.*)"
-			tag_name  = "$1.$2"
-		}
-
-		metadata = [
-			"k8s.namespace.name",
-			"k8s.deployment.name",
-			"k8s.statefulset.name",
-			"k8s.daemonset.name",
-			"k8s.cronjob.name",
-			"k8s.job.name",
-			"k8s.node.name",
-			"k8s.pod.name",
-			"k8s.pod.uid",
-			"k8s.pod.start_time",
-		]
-	}
-
-    output {
-        metrics = [otelcol.exporter.otlp.default.input]
-        logs    = [otelcol.exporter.otlp.default.input]
-        traces  = [otelcol.exporter.otlp.default.input]
+  extract {
+    label {
+      from      = "pod"
+      key_regex = "(.*)/(.*)"
+      tag_name  = "$1.$2"
     }
+
+    metadata = [
+      "k8s.namespace.name",
+      "k8s.deployment.name",
+      "k8s.statefulset.name",
+      "k8s.daemonset.name",
+      "k8s.cronjob.name",
+      "k8s.job.name",
+      "k8s.node.name",
+      "k8s.pod.name",
+      "k8s.pod.uid",
+      "k8s.pod.start_time",
+    ]
+  }
+
+  output {
+    metrics = [otelcol.exporter.otlp.default.input]
+    logs    = [otelcol.exporter.otlp.default.input]
+    traces  = [otelcol.exporter.otlp.default.input]
+  }
 }
 
 otelcol.exporter.otlp "default" {
@@ -348,3 +349,84 @@ otelcol.exporter.otlp "default" {
   }
 }
 ```
+
+### Adding Kubernetes metadata to Prometheus metrics
+
+`otelcol.processor.k8sattributes` adds metadata to metrics signals in the form of resource attributes.
+To display the metadata as labels of Prometheus metrics, the OTLP attributes must be converted from
+resource attributes to datapoint attributes. One way to do this is by using an `otelcol.processor.transform`
+component.
+
+```river
+otelcol.receiver.otlp "default" {
+  http {}
+  grpc {}
+
+  output {
+    metrics = [otelcol.processor.k8sattributes.default.input]
+  }
+}
+
+otelcol.processor.k8sattributes "default" {
+  extract {
+    label {
+      from = "pod"
+    }
+
+    metadata = [
+      "k8s.namespace.name",
+      "k8s.pod.name",
+    ]
+  }
+
+  output {
+    metrics = [otelcol.processor.transform.add_kube_attrs.input]
+  }
+}
+
+otelcol.processor.transform "add_kube_attrs" {
+  error_mode = "ignore"
+
+  metric_statements {
+    context = "datapoint"
+    statements = [
+      "set(attributes[\"k8s.pod.name\"], resource.attributes[\"k8s.pod.name\"])",
+      "set(attributes[\"k8s.namespace.name\"], resource.attributes[\"k8s.namespace.name\"])",
+    ]
+  }
+
+  output {
+    metrics = [otelcol.exporter.prometheus.default.input]
+  }
+}
+
+otelcol.exporter.prometheus "default" {
+  forward_to = [prometheus.remote_write.mimir.receiver]
+}
+
+prometheus.remote_write "mimir" {
+  endpoint {
+    url = "http://mimir:9009/api/v1/push"
+  }
+}
+```
+<!-- START GENERATED COMPATIBLE COMPONENTS -->
+
+## Compatible components
+
+`otelcol.processor.k8sattributes` can accept arguments from the following components:
+
+- Components that export [OpenTelemetry `otelcol.Consumer`]({{< relref "../compatibility/#opentelemetry-otelcolconsumer-exporters" >}})
+
+`otelcol.processor.k8sattributes` has exports that can be consumed by the following components:
+
+- Components that consume [OpenTelemetry `otelcol.Consumer`]({{< relref "../compatibility/#opentelemetry-otelcolconsumer-consumers" >}})
+
+{{% admonition type="note" %}}
+
+Connecting some components may not be sensible or components may require further configuration to make the 
+connection work correctly. Refer to the linked documentation for more details.
+
+{{% /admonition %}}
+
+<!-- END GENERATED COMPATIBLE COMPONENTS -->

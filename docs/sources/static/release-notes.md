@@ -1,11 +1,13 @@
 ---
-canonical: https://grafana.com/docs/agent/latest/static/release-notes/
-description: Release notes for Grafana Agent static mode
-title: Release notes
-menuTitle: Release notes
 aliases:
 - ../upgrade-guide/
 - ./upgrade-guide/
+- /docs/grafana-cloud/monitor-infrastructure/agent/static/release-notes/
+- /docs/grafana-cloud/send-data/agent/static/release-notes/
+canonical: https://grafana.com/docs/agent/latest/static/release-notes/
+description: Release notes for Grafana Agent static mode
+menuTitle: Release notes
+title: Release notes
 weight: 999
 ---
 
@@ -22,14 +24,14 @@ For a complete list of changes to Grafana Agent, with links to pull requests and
 > * [Flow mode release notes][release-notes-flow]
 
 {{% docs/reference %}}
-[release-notes-operator]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/operator/release-notes"
+[release-notes-operator]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/operator/release-notes"
 [release-notes-operator]: "/docs/grafana-cloud/ -> ../operator/release-notes"
 
-[release-notes-flow]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/flow/release-notes"
-[release-notes-flow]: "/docs/grafana-cloud/ -> /docs/agent/<AGENT VERSION>/flow/release-notes"
+[release-notes-flow]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/release-notes"
+[release-notes-flow]: "/docs/grafana-cloud/ -> /docs/agent/<AGENT_VERSION>/flow/release-notes"
 
-[Modules]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/flow/concepts/modules"
-[Modules]: "/docs/grafana-cloud/ -> /docs/agent/<AGENT VERSION>/flow/concepts/modules"
+[Modules]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/modules"
+[Modules]: "/docs/grafana-cloud/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/modules"
 {{% /docs/reference %}}
 
 ## v0.38

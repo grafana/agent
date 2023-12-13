@@ -4,6 +4,7 @@ aliases:
 - /docs/grafana-cloud/agent/shared/flow/reference/components/otelcol-filter-log-severity-block/
 - /docs/grafana-cloud/monitor-infrastructure/agent/shared/flow/reference/components/otelcol-filter-log-severity-block/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/shared/flow/reference/components/otelcol-filter-log-severity-block/
+- /docs/grafana-cloud/send-data/agent/shared/flow/reference/components/otelcol-filter-log-severity-block/
 description: Shared content, otelcol filter log severity block
 headless: true
 ---
@@ -12,14 +13,14 @@ This block defines how to match based on a log record's SeverityNumber field.
 
 The following arguments are supported:
 
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`min` | `string` | The lowest severity that may be matched. | | yes
-`match_undefined` | `bool` | Whether logs with "undefined" severity match. | | yes
+Name              | Type     | Description                                   | Default | Required
+------------------|----------|-----------------------------------------------|---------|---------
+`match_undefined` | `bool`   | Whether logs with "undefined" severity match. |         | yes
+`min`             | `string` | The lowest severity that may be matched.      |         | yes
 
 If `match_undefined` is true, entries with undefined severity will match.
 
-The severities supported by Otel are listed in the table below. 
+The following table lists the severities supported by OTel.
 The value for `min` should be one of the values in the "Log Severity" column.
 
 Log Severity | Severity number
@@ -49,5 +50,4 @@ FATAL2       | 22
 FATAL3       | 23
 FATAL4       | 24
 
-For example, if the `min` attribute in the `log_severity` block is "INFO", then
-INFO, WARN, ERROR, and FATAL logs will match.
+For example, if the `min` attribute in the `log_severity` block is "INFO", then INFO, WARN, ERROR, and FATAL logs will match.

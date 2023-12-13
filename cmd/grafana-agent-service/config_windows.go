@@ -16,6 +16,11 @@ type config struct {
 	// not included.
 	Args []string
 
+	// Environment holds environment variables for the Grafana Agent service.
+	// Each item represents an environment variable in form "key=value".
+	// All environments variables from the current process with be merged into Environment
+	Environment []string
+
 	// WorkingDirectory points to the working directory to run the Grafana Agent
 	// binary from.
 	WorkingDirectory string
@@ -42,9 +47,15 @@ func loadConfig() (*config, error) {
 		return nil, fmt.Errorf("failed to retrieve key Arguments: %w", err)
 	}
 
+	env, _, err := agentKey.GetStringsValue("Environment")
+	if err != nil {
+		return nil, fmt.Errorf("failed to retrieve key Environment: %w", err)
+	}
+
 	return &config{
 		ServicePath:      servicePath,
 		Args:             args,
+		Environment:      env,
 		WorkingDirectory: filepath.Dir(servicePath),
 	}, nil
 }

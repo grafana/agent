@@ -213,6 +213,7 @@ type MeasurementContext map[string]string
 
 // Measurement holds the data for user provided measurements
 type Measurement struct {
+	Type      string             `json:"type,omitempty"`
 	Values    map[string]float64 `json:"values,omitempty"`
 	Timestamp time.Time          `json:"timestamp,omitempty"`
 	Trace     TraceContext       `json:"trace,omitempty"`
@@ -225,6 +226,7 @@ func (m Measurement) KeyVal() *KeyVal {
 
 	KeyValAdd(kv, "timestamp", m.Timestamp.String())
 	KeyValAdd(kv, "kind", "measurement")
+	KeyValAdd(kv, "type", m.Type)
 
 	keys := make([]string, 0, len(m.Values))
 	for k := range m.Values {

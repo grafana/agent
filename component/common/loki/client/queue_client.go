@@ -29,8 +29,16 @@ import (
 // StoppableWriteTo is a mixing of the WAL's WriteTo interface, that is Stoppable as well.
 type StoppableWriteTo interface {
 	agentWal.WriteTo
-	Stoppable
+	Stop()
 	StopNow()
+}
+
+// MarkerHandler re-defines the interface of internal.MarkerHandler that the queue client interacts with, to contribute
+// to the feedback loop of when data from a segment is read from the WAL, or delivered.
+type MarkerHandler interface {
+	UpdateReceivedData(segmentId, dataCount int) // Data queued for sending
+	UpdateSentData(segmentId, dataCount int)     // Data which was sent or given up on sending
+	Stop()
 }
 
 // queuedBatch is a batch specific to a tenant, that is considered ready to be sent.
@@ -62,7 +70,8 @@ func newQueue(client *queueClient, size int, logger log.Logger) *queue {
 	return &q
 }
 
-// enqueue is a blocking operation to add to the send queue a batch ready to be sent.
+// enqueue adds to the send queue a batch ready to be sent. Note that if the backing queue is has no
+// remaining capacity to enqueue the batch, calling enqueue might block.
 func (q *queue) enqueue(qb queuedBatch) {
 	q.q <- qb
 }
@@ -87,8 +96,8 @@ func (q *queue) run() {
 			return
 		case qb := <-q.q:
 			// Since inside the actual send operation a context with time out is used, we should exceed that timeout
-			// instead of cancelling this send operations, since that batch has been taken out of the queue.
-			q.client.sendBatch(context.Background(), qb.TenantID, qb.Batch)
+			// instead of cancelling this send operation, since that batch has been taken out of the queue.
+			q.sendAndReport(context.Background(), qb.TenantID, qb.Batch)
 		}
 	}
 }
@@ -110,7 +119,7 @@ func (q *queue) closeAndDrain(ctx context.Context) {
 		case qb := <-q.q:
 			// drain uses the same timeout, so if a timeout was applied to the parent context, it can cancel the underlying
 			// send operation preemptively.
-			q.client.sendBatch(ctx, qb.TenantID, qb.Batch)
+			q.sendAndReport(ctx, qb.TenantID, qb.Batch)
 		case <-ctx.Done():
 			level.Warn(q.logger).Log("msg", "timeout exceeded while draining send queue")
 			return
@@ -120,6 +129,14 @@ func (q *queue) closeAndDrain(ctx context.Context) {
 			// if default clause is taken, it means there's nothing left in the send queue
 		}
 	}
+}
+
+// sendAndReport attempts to send the batch for the given tenant, and either way that operation succeeds or fails, reports
+// the data as sent.
+func (q *queue) sendAndReport(ctx context.Context, tenantId string, b *batch) {
+	q.client.sendBatch(ctx, tenantId, b)
+	// mark segment data for that batch as sent, even if the send operation failed
+	b.reportAsSentData(q.client.markerHandler)
 }
 
 // closeNow closes the queue, without draining batches that might be buffered to be sent.
@@ -133,10 +150,11 @@ func (q *queue) closeNow() {
 // which allows it to be injected in the wal.Watcher as a destination where to write read series and entries. As the watcher
 // reads from the WAL, batches are created and dispatched onto a send queue when ready to be sent.
 type queueClient struct {
-	metrics *Metrics
-	logger  log.Logger
-	cfg     Config
-	client  *http.Client
+	metrics   *Metrics
+	qcMetrics *QueueClientMetrics
+	logger    log.Logger
+	cfg       Config
+	client    *http.Client
 
 	batches      map[string]*batch
 	batchesMtx   sync.Mutex
@@ -159,17 +177,18 @@ type queueClient struct {
 	maxLineSize         int
 	maxLineSizeTruncate bool
 	quit                chan struct{}
+	markerHandler       MarkerHandler
 }
 
 // NewQueue creates a new queueClient.
-func NewQueue(metrics *Metrics, cfg Config, maxStreams, maxLineSize int, maxLineSizeTruncate bool, logger log.Logger) (StoppableWriteTo, error) {
+func NewQueue(metrics *Metrics, queueClientMetrics *QueueClientMetrics, cfg Config, maxStreams, maxLineSize int, maxLineSizeTruncate bool, logger log.Logger, markerHandler MarkerHandler) (StoppableWriteTo, error) {
 	if cfg.StreamLagLabels.String() != "" {
 		return nil, fmt.Errorf("client config stream_lag_labels is deprecated and the associated metric has been removed, stream_lag_labels: %+v", cfg.StreamLagLabels.String())
 	}
-	return newQueueClient(metrics, cfg, maxStreams, maxLineSize, maxLineSizeTruncate, logger)
+	return newQueueClient(metrics, queueClientMetrics, cfg, maxStreams, maxLineSize, maxLineSizeTruncate, logger, markerHandler)
 }
 
-func newQueueClient(metrics *Metrics, cfg Config, maxStreams, maxLineSize int, maxLineSizeTruncate bool, logger log.Logger) (*queueClient, error) {
+func newQueueClient(metrics *Metrics, qcMetrics *QueueClientMetrics, cfg Config, maxStreams, maxLineSize int, maxLineSizeTruncate bool, logger log.Logger, markerHandler MarkerHandler) (*queueClient, error) {
 	if cfg.URL.URL == nil {
 		return nil, errors.New("client needs target URL")
 	}
@@ -180,10 +199,12 @@ func newQueueClient(metrics *Metrics, cfg Config, maxStreams, maxLineSize int, m
 		logger:       log.With(logger, "component", "client", "host", cfg.URL.Host),
 		cfg:          cfg,
 		metrics:      metrics,
+		qcMetrics:    qcMetrics,
 		drainTimeout: cfg.Queue.DrainTimeout,
 		quit:         make(chan struct{}),
 
-		batches: make(map[string]*batch),
+		batches:       make(map[string]*batch),
+		markerHandler: markerHandler,
 
 		series:        make(map[chunks.HeadSeriesRef]model.LabelSet),
 		seriesSegment: make(map[chunks.HeadSeriesRef]int),
@@ -260,22 +281,33 @@ func (c *queueClient) StoreSeries(series []record.RefSeries, segment int) {
 	}
 }
 
-func (c *queueClient) AppendEntries(entries wal.RefEntries, _ int) error {
+func (c *queueClient) AppendEntries(entries wal.RefEntries, segment int) error {
 	c.seriesLock.RLock()
 	l, ok := c.series[entries.Ref]
 	c.seriesLock.RUnlock()
+	var maxSeenTimestamp int64 = -1
 	if ok {
 		for _, e := range entries.Entries {
-			c.appendSingleEntry(l, e)
+			c.appendSingleEntry(segment, l, e)
+			if e.Timestamp.Unix() > maxSeenTimestamp {
+				maxSeenTimestamp = e.Timestamp.Unix()
+			}
 		}
+		// count all enqueued appended entries as received from WAL
+		c.markerHandler.UpdateReceivedData(segment, len(entries.Entries))
 	} else {
 		// TODO(thepalbi): Add metric here
 		level.Debug(c.logger).Log("msg", "series for entry not found")
 	}
+
+	// It's safe to assume that upon an AppendEntries call, there will always be at least
+	// one entry.
+	c.qcMetrics.lastReadTimestamp.WithLabelValues().Set(float64(maxSeenTimestamp))
+
 	return nil
 }
 
-func (c *queueClient) appendSingleEntry(lbs model.LabelSet, e logproto.Entry) {
+func (c *queueClient) appendSingleEntry(segmentNum int, lbs model.LabelSet, e logproto.Entry) {
 	lbs, tenantID := c.processLabels(lbs)
 
 	// Either drop or mutate the log entry because its length is greater than maxLineSize. maxLineSize == 0 means disabled.
@@ -301,7 +333,7 @@ func (c *queueClient) appendSingleEntry(lbs model.LabelSet, e logproto.Entry) {
 		nb := newBatch(c.maxStreams)
 		// since the batch is new, adding a new entry, and hence a new stream, won't fail since there aren't any stream
 		// registered in the batch.
-		_ = nb.addFromWAL(lbs, e)
+		_ = nb.addFromWAL(lbs, e, segmentNum)
 
 		c.batches[tenantID] = nb
 		c.batchesMtx.Unlock()
@@ -319,7 +351,7 @@ func (c *queueClient) appendSingleEntry(lbs model.LabelSet, e logproto.Entry) {
 		})
 
 		nb := newBatch(c.maxStreams)
-		_ = nb.addFromWAL(lbs, e)
+		_ = nb.addFromWAL(lbs, e, segmentNum)
 		c.batches[tenantID] = nb
 		c.batchesMtx.Unlock()
 
@@ -327,7 +359,7 @@ func (c *queueClient) appendSingleEntry(lbs model.LabelSet, e logproto.Entry) {
 	}
 
 	// The max size of the batch isn't reached, so we can add the entry
-	err := batch.addFromWAL(lbs, e)
+	err := batch.addFromWAL(lbs, e, segmentNum)
 	c.batchesMtx.Unlock()
 
 	if err != nil {
@@ -488,7 +520,7 @@ func (c *queueClient) send(ctx context.Context, tenantID string, buf []byte) (in
 	}
 	req = req.WithContext(ctx)
 	req.Header.Set("Content-Type", contentType)
-	req.Header.Set("User-Agent", UserAgent)
+	req.Header.Set("User-Agent", userAgent)
 
 	// If the tenant ID is not empty promtail is running in multi-tenant mode, so
 	// we should send it to Loki
@@ -559,6 +591,8 @@ func (c *queueClient) Stop() {
 
 	// stop request after drain times out or exits
 	c.cancel()
+
+	c.markerHandler.Stop()
 }
 
 // StopNow stops the client without retries or draining the send queue
@@ -568,6 +602,7 @@ func (c *queueClient) StopNow() {
 	close(c.quit)
 	c.sendQueue.closeNow()
 	c.wg.Wait()
+	c.markerHandler.Stop()
 }
 
 func (c *queueClient) processLabels(lbs model.LabelSet) (model.LabelSet, string) {

@@ -4,6 +4,7 @@ aliases:
 - /docs/grafana-cloud/agent/flow/tutorials/filtering-metrics/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/tutorials/filtering-metrics/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/tutorials/filtering-metrics/
+- /docs/grafana-cloud/send-data/agent/flow/tutorials/filtering-metrics/
 canonical: https://grafana.com/docs/agent/latest/flow/tutorials/filtering-metrics/
 description: Learn how to filter Prometheus metrics
 menuTitle: Filter Prometheus metrics
@@ -31,12 +32,12 @@ curl https://raw.githubusercontent.com/grafana/agent/main/docs/sources/flow/tuto
 
 The `runt.sh` script does:
 
-1. Downloads the configurations necessary for Mimir, Grafana and Grafana Agent.
-1. Downloads the docker image for Grafana Agent explicitly.
+1. Downloads the configurations necessary for Mimir, Grafana and {{< param "PRODUCT_ROOT_NAME" >}}.
+1. Downloads the docker image for {{< param "PRODUCT_ROOT_NAME" >}} explicitly.
 1. Runs the docker-compose up command to bring all the services up.
 
 
-Allow Grafana Agent to run for two minutes, then navigate to [Grafana][] page and the `service` label will be there with the `api_server` value.
+Allow {{< param "PRODUCT_ROOT_NAME" >}} to run for two minutes, then navigate to [Grafana][] page and the `service` label will be there with the `api_server` value.
 
 ![Dashboard showing api_server](/media/docs/agent/screenshot-grafana-agent-filtering-metrics-filter.png)
 
@@ -48,7 +49,7 @@ Allow Grafana Agent to run for two minutes, then navigate to [Grafana][] page an
 
 ## Update the service value
 
-Open the `relabel.river` file that was downloaded and change the name of the service to `api_server_v2`, then run `bash ./runt.sh relabel.river`. Allow Grafana Agent to run for two minutes, then navigate to the [Grafana][] page, and the new label will be updated. The old value `api_server` may still show up in the graph but hovering over the lines will show that that value stopped being scraped and was replaced with `api_server_v2`.
+Open the `relabel.river` file that was downloaded and change the name of the service to `api_server_v2`, then run `bash ./runt.sh relabel.river`. Allow {{< param "PRODUCT_ROOT_NAME" >}} to run for two minutes, then navigate to the [Grafana][] page, and the new label will be updated. The old value `api_server` may still show up in the graph but hovering over the lines will show that that value stopped being scraped and was replaced with `api_server_v2`.
 
 ![Updated dashboard showing api_server_v2](/media/docs/agent/screenshot-grafana-agent-filtering-metrics-transition.png)
 
@@ -59,7 +60,7 @@ Open the `relabel.river` file that was downloaded and change the name of the ser
 
 {{% docs/reference %}}
 [prometheus.relabel]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/prometheus.relabel.md"
-[prometheus.relabel]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/prometheus.relabel.md"
+[prometheus.relabel]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/components/prometheus.relabel.md"
 [Collecting Prometheus metrics]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/tutorials/collecting-prometheus-metrics.md"
-[Collecting Prometheus metrics]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/flow/tutorials/collecting-prometheus-metrics.md"
+[Collecting Prometheus metrics]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/tutorials/collecting-prometheus-metrics.md"
 {{% /docs/reference %}}

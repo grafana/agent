@@ -754,7 +754,7 @@ service:
 `,
 		},
 		{
-			name: "tail sampling config with load balancing",
+			name: "tail sampling config with DNS load balancing",
 			cfg: `
 receivers:
   jaeger:
@@ -815,6 +815,94 @@ exporters:
         port: 8282
         interval: 12m
         timeout: 76s
+processors:
+  tail_sampling:
+    decision_wait: 5s
+    policies:
+      - name: always_sample/0
+        type: always_sample
+      - name: string_attribute/1
+        type: string_attribute
+        string_attribute:
+          key: key
+          values:
+            - value1
+            - value2
+extensions: {}
+service:
+  pipelines:
+    traces/0:
+      exporters: ["loadbalancing"]
+      processors: []
+      receivers: ["jaeger", "push_receiver"]
+    traces/1:
+      exporters: ["otlp/0"]
+      processors: ["tail_sampling"]
+      receivers: ["otlp/lb"]
+`,
+		},
+		{
+			name: "tail sampling config with Kubernetes load balancing",
+			cfg: `
+receivers:
+  jaeger:
+    protocols:
+      grpc:
+remote_write:
+  - endpoint: example.com:12345
+tail_sampling:
+  policies:
+    - type: always_sample
+    - type: string_attribute
+      string_attribute:
+        key: key
+        values:
+          - value1
+          - value2
+load_balancing:
+  receiver_port: 8181
+  routing_key: service
+  exporter:
+    insecure: true
+  resolver:
+    kubernetes:
+      service: lb-svc.lb-ns
+      ports:
+      - 55690
+      - 55691
+`,
+			expectedConfig: `
+receivers:
+  jaeger:
+    protocols:
+      grpc:
+  push_receiver: {}
+  otlp/lb:
+    protocols:
+      grpc:
+        endpoint: "0.0.0.0:8181"
+exporters:
+  otlp/0:
+    endpoint: example.com:12345
+    compression: gzip
+    retry_on_failure:
+      max_elapsed_time: 60s
+  loadbalancing:
+    routing_key: service
+    protocol:
+      otlp:
+        tls:
+          insecure: true
+        endpoint: noop
+        retry_on_failure:
+          max_elapsed_time: 60s
+        compression: none
+    resolver:
+      k8s:
+        service: lb-svc.lb-ns
+        ports:
+        - 55690
+        - 55691
 processors:
   tail_sampling:
     decision_wait: 5s
@@ -1576,9 +1664,9 @@ service_graphs:
 			expectedProcessors: map[component.ID][]component.ID{
 				component.NewIDWithName("traces", "0"): {
 					component.NewID("attributes"),
-					component.NewID("spanmetrics"),
 				},
 				component.NewIDWithName("traces", "1"): {
+					component.NewID("spanmetrics"),
 					component.NewID("service_graphs"),
 					component.NewID("tail_sampling"),
 					component.NewID("automatic_logging"),
@@ -1627,9 +1715,9 @@ load_balancing:
 			expectedProcessors: map[component.ID][]component.ID{
 				component.NewIDWithName("traces", "0"): {
 					component.NewID("attributes"),
-					component.NewID("spanmetrics"),
 				},
 				component.NewIDWithName("traces", "1"): {
+					component.NewID("spanmetrics"),
 					component.NewID("automatic_logging"),
 					component.NewID("batch"),
 				},
@@ -1731,9 +1819,9 @@ func TestOrderProcessors(t *testing.T) {
 			expected: [][]string{
 				{
 					"attributes",
-					"spanmetrics",
 				},
 				{
+					"spanmetrics",
 					"tail_sampling",
 					"automatic_logging",
 					"batch",
@@ -1765,9 +1853,10 @@ func TestOrderProcessors(t *testing.T) {
 			expected: [][]string{
 				{
 					"attributes",
+				},
+				{
 					"spanmetrics",
 				},
-				{},
 			},
 		},
 	}

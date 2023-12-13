@@ -4,6 +4,7 @@ aliases:
 - /docs/grafana-cloud/agent/shared/flow/reference/components/otelcol-filter-library-block/
 - /docs/grafana-cloud/monitor-infrastructure/agent/shared/flow/reference/components/otelcol-filter-library-block/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/shared/flow/reference/components/otelcol-filter-library-block/
+- /docs/grafana-cloud/send-data/agent/shared/flow/reference/components/otelcol-filter-library-block/
 description: Shared content, otelcol filter library block
 headless: true
 ---
@@ -15,10 +16,10 @@ This block specifies properties to match the implementation library against:
 
 The following arguments are supported:
 
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`name` | `string` | The attribute key. | | yes
-`version` | `string` | The version to match against. | null | no
+Name      | Type     | Description                   | Default | Required
+----------|----------|-------------------------------|---------|---------
+`name`    | `string` | The attribute key.            |         | yes
+`version` | `string` | The version to match against. | null    | no
 
-If `version` is unset, any version will match. If `version` is set to an empty string, it will only match 
-a library version which is also an empty string.
+If `version` is unset, any version matches.
+If `version` is set to an empty string, it only matches a library version, which is also an empty string.

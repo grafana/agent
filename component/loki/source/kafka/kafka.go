@@ -12,6 +12,7 @@ import (
 	kt "github.com/grafana/agent/component/loki/source/internal/kafkatarget"
 	"github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/grafana/dskit/flagext"
+	"github.com/grafana/river/rivertypes"
 	"github.com/prometheus/common/model"
 )
 
@@ -53,7 +54,7 @@ type KafkaAuthentication struct {
 type KafkaSASLConfig struct {
 	Mechanism   string            `river:"mechanism,attr,optional"`
 	User        string            `river:"user,attr,optional"`
-	Password    string            `river:"password,attr,optional"`
+	Password    rivertypes.Secret `river:"password,attr,optional"`
 	UseTLS      bool              `river:"use_tls,attr,optional"`
 	TLSConfig   config.TLSConfig  `river:"tls_config,block,optional"`
 	OAuthConfig OAuthConfigConfig `river:"oauth_config,block,optional"`
@@ -192,21 +193,13 @@ func (args *Arguments) Convert() kt.Config {
 }
 
 func (auth KafkaAuthentication) Convert() kt.Authentication {
-	var secret flagext.Secret
-	if auth.SASLConfig.Password != "" {
-		err := secret.Set(auth.SASLConfig.Password)
-		if err != nil {
-			panic("Unable to set kafka SASLConfig password")
-		}
-	}
-
 	return kt.Authentication{
 		Type:      kt.AuthenticationType(auth.Type),
 		TLSConfig: *auth.TLSConfig.Convert(),
 		SASLConfig: kt.SASLConfig{
 			Mechanism: sarama.SASLMechanism(auth.SASLConfig.Mechanism),
 			User:      auth.SASLConfig.User,
-			Password:  secret,
+			Password:  flagext.SecretWithValue(string(auth.SASLConfig.Password)),
 			UseTLS:    auth.SASLConfig.UseTLS,
 			TLSConfig: *auth.SASLConfig.TLSConfig.Convert(),
 			OAuthConfig: kt.OAuthConfig{

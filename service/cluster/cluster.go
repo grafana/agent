@@ -24,6 +24,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
+	"go.opentelemetry.io/otel/trace/noop"
 	"golang.org/x/net/http2"
 )
 
@@ -94,7 +95,7 @@ func New(opts Options) (*Service, error) {
 		l = log.NewNopLogger()
 	}
 	if t == nil {
-		t = trace.NewNoopTracerProvider()
+		t = noop.NewTracerProvider()
 	}
 
 	ckitConfig := ckit.Config{
@@ -216,21 +217,22 @@ func (s *Service) Run(ctx context.Context, host service.Host) error {
 		}
 		level.Info(s.log).Log("msg", "peers changed", "new_peers", strings.Join(names, ","))
 
-		// Notify dependant components about the clustering change.
-		for _, consumer := range host.GetServiceConsumers(ServiceName) {
+		// Notify all components about the clustering change.
+		components := component.GetAllComponents(host, component.InfoOptions{})
+		for _, component := range components {
 			if ctx.Err() != nil {
 				// Stop early if we exited so we don't do unnecessary work notifying
 				// consumers that do not need to be notified.
 				break
 			}
 
-			clusterComponent, ok := consumer.Value.(Component)
+			clusterComponent, ok := component.Component.(Component)
 			if !ok {
 				continue
 			}
 
 			_, span := tracer.Start(spanCtx, "NotifyClusterChange", trace.WithSpanKind(trace.SpanKindInternal))
-			span.SetAttributes(attribute.String("consumer_id", consumer.ID))
+			span.SetAttributes(attribute.String("component_id", component.ID.String()))
 
 			clusterComponent.NotifyClusterChange()
 

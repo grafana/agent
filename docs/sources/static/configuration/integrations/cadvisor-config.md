@@ -1,9 +1,11 @@
 ---
 aliases:
 - ../../../configuration/integrations/cadvisor-config/
+- /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/integrations/cadvisor-config/
+- /docs/grafana-cloud/send-data/agent/static/configuration/integrations/cadvisor-config/
 canonical: https://grafana.com/docs/agent/latest/static/configuration/integrations/cadvisor-config/
-title: cadvisor_config
 description: Learn about cadvisor_config
+title: cadvisor_config
 ---
 
 # cadvisor_config
@@ -113,4 +115,7 @@ Full reference of options:
 
   # Only report docker containers in addition to root stats
   [docker_only: <boolean> | default = false]
+
+  # Disable collecting root Cgroup stats
+  [disable_root_cgroup_stats: <boolean> | default = false]
 ```

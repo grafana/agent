@@ -4,7 +4,10 @@ import (
 	"testing"
 	"time"
 
+	process_exporter "github.com/grafana/agent/pkg/integrations/process_exporter"
 	"github.com/grafana/agent/pkg/metrics/instance"
+	"github.com/prometheus/common/model"
+	"github.com/prometheus/prometheus/model/labels"
 	"github.com/stretchr/testify/require"
 )
 
@@ -178,5 +181,184 @@ integration_configs:
 		require.Equal(t, true, c.Integrations.ConfigV1.UseHostnameLabel)
 		require.Equal(t, true, c.Integrations.ConfigV1.ReplaceInstanceLabel)
 		require.Equal(t, 5*time.Second, c.Integrations.ConfigV1.IntegrationRestartBackoff)
+	})
+
+	t.Run("template variables provided", func(t *testing.T) {
+		baseConfig := `
+server:
+    log_level: {{.log_level}}
+`
+		templateInsideTemplate := "`{{ .template_inside_template }}`"
+		snippet := Snippet{
+			Config: `
+integration_configs:
+  process_exporter:
+    enabled: true
+    process_names:
+      - name: "grafana-agent"
+        cmdline:
+          - 'grafana-agent'
+      - name: "{{.nonexistent.foo.bar.baz.bat}}"
+        cmdline:
+          - "{{ ` + templateInsideTemplate + ` }}"
+      # Custom process monitors
+      {{- range $key, $value := .process_exporter_processes }}
+      - name: "{{ $value.name }}"
+        cmdline:
+          - "{{ $value.cmdline }}"
+        {{if $value.exe}}
+        exe:
+          - "{{ $value.exe }}"
+        {{end}}
+      {{- end }}
+`,
+		}
+
+		rc := RemoteConfig{
+			BaseConfig: BaseConfigContent(baseConfig),
+			Snippets:   []Snippet{snippet},
+			AgentMetadata: AgentMetadata{
+				TemplateVariables: map[string]any{
+					"log_level": "debug",
+					"process_exporter_processes": []map[string]string{
+						{
+							"name":    "java_processes",
+							"cmdline": ".*/java",
+						},
+						{
+							"name":    "{{.ExeFull}}:{{.Matches.Cfgfile}}",
+							"cmdline": `-config.path\\s+(?P<Cfgfile>\\S+)`,
+							"exe":     "/usr/local/bin/process-exporter",
+						},
+					},
+				},
+			},
+		}
+
+		c, err := rc.BuildAgentConfig()
+		require.NoError(t, err)
+		require.Equal(t, 1, len(c.Integrations.ConfigV1.Integrations))
+		processExporterConfig := c.Integrations.ConfigV1.Integrations[0].Config.(*process_exporter.Config)
+
+		require.Equal(t, 4, len(processExporterConfig.ProcessExporter))
+
+		require.Equal(t, "grafana-agent", processExporterConfig.ProcessExporter[0].Name)
+		require.Equal(t, "grafana-agent", processExporterConfig.ProcessExporter[0].CmdlineRules[0])
+		require.Equal(t, 0, len(processExporterConfig.ProcessExporter[0].ExeRules))
+
+		require.Equal(t, "<no value>", processExporterConfig.ProcessExporter[1].Name)
+		require.Equal(t, "{{ .template_inside_template }}", processExporterConfig.ProcessExporter[1].CmdlineRules[0])
+		require.Equal(t, 0, len(processExporterConfig.ProcessExporter[1].ExeRules))
+
+		require.Equal(t, "java_processes", processExporterConfig.ProcessExporter[2].Name)
+		require.Equal(t, ".*/java", processExporterConfig.ProcessExporter[2].CmdlineRules[0])
+		require.Equal(t, 0, len(processExporterConfig.ProcessExporter[2].ExeRules))
+
+		require.Equal(t, "{{.ExeFull}}:{{.Matches.Cfgfile}}", processExporterConfig.ProcessExporter[3].Name)
+		require.Equal(t, `-config.path\s+(?P<Cfgfile>\S+)`, processExporterConfig.ProcessExporter[3].CmdlineRules[0])
+		require.Equal(t, "/usr/local/bin/process-exporter", processExporterConfig.ProcessExporter[3].ExeRules[0])
+	})
+
+	t.Run("no external labels provided", func(t *testing.T) {
+		rc := RemoteConfig{
+			BaseConfig: BaseConfigContent(baseConfig),
+			Snippets:   allSnippets,
+		}
+		c, err := rc.BuildAgentConfig()
+		require.NoError(t, err)
+		require.Equal(t, 1, len(c.Logs.Configs))
+		require.Empty(t, c.Metrics.Global.Prometheus.ExternalLabels)
+	})
+
+	t.Run("no external labels provided in remote config", func(t *testing.T) {
+		baseConfig := `
+server:
+    log_level: debug
+metrics:
+    global:
+        external_labels:
+            foo: bar
+logs:
+    global:
+        clients:
+        - external_labels:
+            foo: bar
+`
+		rc := RemoteConfig{
+			BaseConfig: BaseConfigContent(baseConfig),
+			Snippets:   allSnippets,
+		}
+		c, err := rc.BuildAgentConfig()
+		require.NoError(t, err)
+		require.Equal(t, 1, len(c.Logs.Configs))
+		require.Equal(t, 1, len(c.Logs.Global.ClientConfigs))
+		require.Equal(t, c.Logs.Global.ClientConfigs[0].ExternalLabels.LabelSet, model.LabelSet{"foo": "bar"})
+		require.Equal(t, 1, len(c.Metrics.Global.Prometheus.ExternalLabels))
+		require.Contains(t, c.Metrics.Global.Prometheus.ExternalLabels, labels.Label{Name: "foo", Value: "bar"})
+	})
+
+	t.Run("external labels provided", func(t *testing.T) {
+		baseConfig := `
+server:
+    log_level: debug
+metrics:
+    global:
+        remote_write:
+        - url: http://localhost:9090/api/prom/push
+logs:
+    global:
+        clients:
+        - url: http://localhost:3100/loki/api/v1/push
+`
+
+		rc := RemoteConfig{
+			BaseConfig: BaseConfigContent(baseConfig),
+			Snippets:   allSnippets,
+			AgentMetadata: AgentMetadata{
+				ExternalLabels: map[string]string{
+					"foo": "bar",
+				},
+			},
+		}
+		c, err := rc.BuildAgentConfig()
+		require.NoError(t, err)
+		require.Equal(t, 1, len(c.Logs.Configs))
+		require.Equal(t, 1, len(c.Metrics.Configs))
+		require.Equal(t, 1, len(c.Logs.Global.ClientConfigs))
+		require.Equal(t, c.Logs.Global.ClientConfigs[0].ExternalLabels.LabelSet, model.LabelSet{"foo": "bar"})
+		require.Contains(t, c.Metrics.Global.Prometheus.ExternalLabels, labels.Label{Name: "foo", Value: "bar"})
+	})
+
+	t.Run("external labels don't override base config", func(t *testing.T) {
+		baseConfig := `
+server:
+    log_level: debug
+metrics:
+    global:
+        external_labels:
+            foo: bar
+logs:
+    global:
+        clients:
+        - external_labels:
+            foo: bar
+`
+		rc := RemoteConfig{
+			BaseConfig: BaseConfigContent(baseConfig),
+			Snippets:   allSnippets,
+			AgentMetadata: AgentMetadata{
+				ExternalLabels: map[string]string{
+					"foo": "baz",
+				},
+			},
+		}
+		c, err := rc.BuildAgentConfig()
+		require.NoError(t, err)
+		require.Equal(t, 1, len(c.Logs.Configs))
+		require.Equal(t, 1, len(c.Metrics.Configs))
+		require.Equal(t, 1, len(c.Logs.Global.ClientConfigs))
+		require.Equal(t, c.Logs.Global.ClientConfigs[0].ExternalLabels.LabelSet, model.LabelSet{"foo": "bar"})
+		require.Contains(t, c.Metrics.Global.Prometheus.ExternalLabels, labels.Label{Name: "foo", Value: "bar"})
+		require.NotContains(t, c.Metrics.Global.Prometheus.ExternalLabels, labels.Label{Name: "foo", Value: "baz"})
 	})
 }

@@ -51,8 +51,8 @@ type Host interface {
 	// exist.
 	ListComponents(moduleID string, opts component.InfoOptions) ([]*component.Info, error)
 
-	// GetServiceConsumers gets the list of components and services which depend
-	// on a service by name.
+	// GetServiceConsumers gets the list of services which depend on a service by
+	// name.
 	GetServiceConsumers(serviceName string) []Consumer
 }
 
@@ -73,8 +73,7 @@ const (
 	// ConsumerTypeInvalid is the default value for ConsumerType.
 	ConsumerTypeInvalid ConsumerType = iota
 
-	ConsumerTypeComponent // ConsumerTypeComponent represents a component which uses a service.
-	ConsumerTypeService   // ConsumerTypeService represents a serviec which uses another service.
+	ConsumerTypeService // ConsumerTypeService represents a service which uses another service.
 )
 
 // String returns a string representation of the ConsumerType.
@@ -82,8 +81,6 @@ func (ct ConsumerType) String() string {
 	switch ct {
 	case ConsumerTypeInvalid:
 		return "invalid"
-	case ConsumerTypeComponent:
-		return "component"
 	case ConsumerTypeService:
 		return "service"
 	}
@@ -113,9 +110,12 @@ type Service interface {
 	// while Run is active.
 	Update(newConfig any) error
 
-	// Data returns the Data associated with a Service. Data
-	// must always return the same value across multiple calls,
-	// as callers are expected to be able to cache the result.
+	// Data returns the Data associated with a Service. Data must always return
+	// the same value across multiple calls, as callers are expected to be able
+	// to cache the result.
+	//
+	// The return result of Data must not rely on the runtime config of the
+	// service.
 	//
 	// Data may be invoked before Run.
 	Data() any

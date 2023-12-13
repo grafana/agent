@@ -1,10 +1,12 @@
 ---
 aliases:
-- ../../configuration/prometheus-config/
 - ../../configuration/metrics-config/
+- ../../configuration/prometheus-config/
+- /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/metrics-config/
+- /docs/grafana-cloud/send-data/agent/static/configuration/metrics-config/
 canonical: https://grafana.com/docs/agent/latest/static/configuration/metrics-config/
-title: metrics_config
 description: Learn about metrics_config
+title: metrics_config
 weight: 200
 ---
 
@@ -342,9 +344,9 @@ remote_write:
 
 ## Data retention
 
-{{< docs/shared source="agent" lookup="/wal-data-retention.md" version="<AGENT VERSION>" >}}
+{{< docs/shared source="agent" lookup="/wal-data-retention.md" version="<AGENT_VERSION>" >}}
 
 {{% docs/reference %}}
-[scrape]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/configuration/scraping-service"
+[scrape]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static/configuration/scraping-service"
 [scrape]: "/docs/grafana-cloud/ -> ./scraping-service"
 {{% /docs/reference %}}

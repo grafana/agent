@@ -9,6 +9,7 @@ import (
 	"github.com/alecthomas/units"
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/component/common/loki"
+	"github.com/grafana/agent/component/common/loki/client/internal"
 	"github.com/grafana/agent/component/common/loki/utils"
 	"github.com/grafana/dskit/backoff"
 	"github.com/grafana/dskit/flagext"
@@ -41,6 +42,17 @@ type testCase struct {
 
 	// expects
 	expectedRWReqsCount int64
+}
+
+type nilMarkerHandler struct{}
+
+func (n nilMarkerHandler) UpdateReceivedData(segmentId, dataCount int) {
+}
+
+func (n nilMarkerHandler) UpdateSentData(segmentId, dataCount int) {
+}
+
+func (n nilMarkerHandler) Stop() {
 }
 
 func TestQueueClient(t *testing.T) {
@@ -123,8 +135,7 @@ func TestQueueClient(t *testing.T) {
 
 			logger := log.NewLogfmtLogger(os.Stdout)
 
-			m := NewMetrics(reg)
-			qc, err := NewQueue(m, cfg, 0, 0, false, logger)
+			qc, err := NewQueue(NewMetrics(reg), NewQueueClientMetrics(reg).CurryWithId("test"), cfg, 0, 0, false, logger, nilMarkerHandler{})
 			require.NoError(t, err)
 
 			//labels := model.LabelSet{"app": "test"}
@@ -194,8 +205,24 @@ func BenchmarkClientImplementations(b *testing.B) {
 		},
 	} {
 		b.Run(name, func(b *testing.B) {
-			b.Run("implementation=queue", func(b *testing.B) {
-				runQueueClientBenchCase(b, bc)
+			b.Run("implementation=queue_nil_marker_handler", func(b *testing.B) {
+				runQueueClientBenchCase(b, bc, func(t *testing.B) MarkerHandler {
+					return &nilMarkerHandler{}
+				})
+			})
+
+			b.Run("implementation=queue_marker_handler", func(b *testing.B) {
+				runQueueClientBenchCase(b, bc, func(t *testing.B) MarkerHandler {
+					dir := b.TempDir()
+					nopLogger := log.NewNopLogger()
+
+					markerFileHandler, err := internal.NewMarkerFileHandler(nopLogger, dir)
+					require.NoError(b, err)
+
+					markerHandler := internal.NewMarkerHandler(markerFileHandler, time.Minute, nopLogger, internal.NewMarkerMetrics(nil).WithCurriedId("test"))
+
+					return markerHandler
+				})
 			})
 
 			b.Run("implementation=regular", func(b *testing.B) {
@@ -205,7 +232,7 @@ func BenchmarkClientImplementations(b *testing.B) {
 	}
 }
 
-func runQueueClientBenchCase(b *testing.B, bc testCase) {
+func runQueueClientBenchCase(b *testing.B, bc testCase, mhFactory func(t *testing.B) MarkerHandler) {
 	reg := prometheus.NewRegistry()
 
 	// Create a buffer channel where we do enqueue received requests
@@ -253,8 +280,7 @@ func runQueueClientBenchCase(b *testing.B, bc testCase) {
 
 	logger := log.NewLogfmtLogger(os.Stdout)
 
-	m := NewMetrics(reg)
-	qc, err := NewQueue(m, cfg, 0, 0, false, logger)
+	qc, err := NewQueue(NewMetrics(reg), NewQueueClientMetrics(reg).CurryWithId("test"), cfg, 0, 0, false, logger, mhFactory(b))
 	require.NoError(b, err)
 
 	//labels := model.LabelSet{"app": "test"}

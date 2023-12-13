@@ -3,9 +3,10 @@ aliases:
 - /docs/grafana-cloud/agent/flow/reference/components/loki.source.syslog/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/loki.source.syslog/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/loki.source.syslog/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/loki.source.syslog/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/loki.source.syslog/
-title: loki.source.syslog
 description: Learn about loki.source.syslog
+title: loki.source.syslog
 ---
 
 # loki.source.syslog
@@ -101,7 +102,7 @@ translated to internal labels in the form of
 
 ### tls_config block
 
-{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ## Exported fields
 
@@ -152,3 +153,20 @@ loki.write "local" {
 }
 ```
 
+<!-- START GENERATED COMPATIBLE COMPONENTS -->
+
+## Compatible components
+
+`loki.source.syslog` can accept arguments from the following components:
+
+- Components that export [Loki `LogsReceiver`]({{< relref "../compatibility/#loki-logsreceiver-exporters" >}})
+
+
+{{% admonition type="note" %}}
+
+Connecting some components may not be sensible or components may require further configuration to make the 
+connection work correctly. Refer to the linked documentation for more details.
+
+{{% /admonition %}}
+
+<!-- END GENERATED COMPATIBLE COMPONENTS -->

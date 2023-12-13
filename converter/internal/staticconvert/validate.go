@@ -33,6 +33,13 @@ import (
 	"github.com/grafana/agent/pkg/integrations/squid_exporter"
 	"github.com/grafana/agent/pkg/integrations/statsd_exporter"
 	v2 "github.com/grafana/agent/pkg/integrations/v2"
+	agent_exporter_v2 "github.com/grafana/agent/pkg/integrations/v2/agent"
+	apache_exporter_v2 "github.com/grafana/agent/pkg/integrations/v2/apache_http"
+	app_agent_receiver_v2 "github.com/grafana/agent/pkg/integrations/v2/app_agent_receiver"
+	blackbox_exporter_v2 "github.com/grafana/agent/pkg/integrations/v2/blackbox_exporter"
+	"github.com/grafana/agent/pkg/integrations/v2/metricsutils"
+	snmp_exporter_v2 "github.com/grafana/agent/pkg/integrations/v2/snmp_exporter"
+	vmware_exporter_v2 "github.com/grafana/agent/pkg/integrations/v2/vmware_exporter"
 	"github.com/grafana/agent/pkg/integrations/windows_exporter"
 	"github.com/grafana/agent/pkg/logs"
 	"github.com/grafana/agent/pkg/metrics"
@@ -157,7 +164,46 @@ func validateIntegrationsV1(integrationsConfig *v1.ManagerConfig) diag.Diagnosti
 func validateIntegrationsV2(integrationsConfig *v2.SubsystemOptions) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	// TODO
+	for _, integration := range integrationsConfig.Configs {
+		switch itg := integration.(type) {
+		case *agent_exporter_v2.Config:
+		case *apache_exporter_v2.Config:
+		case *app_agent_receiver_v2.Config:
+			diags.AddAll(common.ValidateSupported(common.NotEquals, itg.TracesInstance, "", "app_agent_receiver traces_instance", ""))
+		case *blackbox_exporter_v2.Config:
+		case *snmp_exporter_v2.Config:
+		case *vmware_exporter_v2.Config:
+		case *metricsutils.ConfigShim:
+			switch v1_itg := itg.Orig.(type) {
+			case *azure_exporter.Config:
+			case *cadvisor.Config:
+			case *cloudwatch_exporter.Config:
+			case *consul_exporter.Config:
+			case *dnsmasq_exporter.Config:
+			case *elasticsearch_exporter.Config:
+			case *gcp_exporter.Config:
+			case *github_exporter.Config:
+			case *kafka_exporter.Config:
+			case *memcached_exporter.Config:
+			case *mongodb_exporter.Config:
+			case *mssql_exporter.Config:
+			case *mysqld_exporter.Config:
+			case *node_exporter.Config:
+			case *oracledb_exporter.Config:
+			case *postgres_exporter.Config:
+			case *process_exporter.Config:
+			case *redis_exporter.Config:
+			case *snowflake_exporter.Config:
+			case *squid_exporter.Config:
+			case *statsd_exporter.Config:
+			case *windows_exporter.Config:
+			default:
+				diags.Add(diag.SeverityLevelError, fmt.Sprintf("The converter does not support converting the provided %s integration.", v1_itg.Name()))
+			}
+		default:
+			diags.Add(diag.SeverityLevelError, fmt.Sprintf("The converter does not support converting the provided %s integration.", itg.Name()))
+		}
+	}
 
 	return diags
 }

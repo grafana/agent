@@ -3,16 +3,17 @@ aliases:
 - /docs/grafana-cloud/agent/flow/reference/components/otelcol.processor.transform/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/otelcol.processor.transform/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/otelcol.processor.transform/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/otelcol.processor.transform/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.processor.transform/
+description: Learn about otelcol.processor.transform
 labels:
   stage: experimental
 title: otelcol.processor.transform
-description: Learn about otelcol.processor.transform
 ---
 
 # otelcol.processor.transform
 
-{{< docs/shared lookup="flow/stability/experimental.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/stability/experimental.md" source="agent" version="<AGENT_VERSION>" >}}
 
 `otelcol.processor.transform` accepts telemetry data from other `otelcol`
 components and modifies it using the [OpenTelemetry Transformation Language (OTTL)][OTTL].
@@ -42,11 +43,20 @@ there is also a set of metrics-only functions:
   * `sum([1, 2, 3, 4]) + (10 / 1) - 1`
 
 {{% admonition type="note" %}}
-Some characters inside River strings [need to be escaped][river-strings] with a `\` character.
-For example, the OTTL statement `set(description, "Sum") where type == "Sum"` 
-is written in River as `"set(description, \"Sum\") where type == \"Sum\""`.
+There are two ways of inputting strings in River configuration files:
+* Using quotation marks ([normal River strings][river-strings]). Characters such as `\` and
+  `"` must be escaped by preceding them with a `\` character.
+* Using backticks ([raw River strings][river-raw-strings]). No characters must be escaped.
+  However, it's not possible to have backticks inside the string.
+
+For example, the OTTL statement `set(description, "Sum") where type == "Sum"` can be written as: 
+* A normal River string: `"set(description, \"Sum\") where type == \"Sum\""`.
+* A raw River string: ``` `set(description, "Sum") where type == "Sum"` ```.
+
+Raw strings are generally more convenient for writing OTTL statements.
 
 [river-strings]: {{< relref "../../config-language/expressions/types_and_values.md/#strings" >}}
+[river-raw-strings]: {{< relref "../../config-language/expressions/types_and_values.md/#raw-strings" >}}
 {{% /admonition %}}
 
 {{% admonition type="note" %}}
@@ -241,7 +251,7 @@ span using the `span` context, it is more efficient to use the `resource` contex
 
 ### output block
 
-{{< docs/shared lookup="flow/reference/components/output-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/output-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ## Exported fields
 
@@ -282,7 +292,7 @@ otelcol.processor.transform "default" {
     context = "span"
     statements = [
       // Accessing a map with a key that does not exist will return nil. 
-      "set(attributes[\"test\"], \"pass\") where attributes[\"test\"] == nil",
+      `set(attributes["test"], "pass") where attributes["test"] == nil`,
     ]
   }
 
@@ -294,7 +304,9 @@ otelcol.processor.transform "default" {
 }
 ```
 
-Each `"` is [escaped][river-strings] with `\"` inside the River string.
+Each statement is enclosed in backticks instead of quotation marks.
+This constitutes a [raw string][river-raw-strings], and lets us avoid the need to escape
+each `"` with a `\"` inside a [normal][river-strings] River string.
 
 ### Rename a resource attribute
 
@@ -308,8 +320,8 @@ otelcol.processor.transform "default" {
   trace_statements {
     context = "resource"
     statements = [
-      "set(attributes[\"namespace\"], attributes[\"k8s.namespace.name\"])",
-      "delete_key(attributes, \"k8s.namespace.name\")",
+      `set(attributes["namespace"], attributes["k8s.namespace.name"])`,
+      `delete_key(attributes, "k8s.namespace.name")`,
     ]
   }
 
@@ -330,7 +342,7 @@ otelcol.processor.transform "default" {
   trace_statements {
     context = "resource"
     statements = [
-     "replace_all_patterns(attributes, \"key\", \"k8s\\\\.namespace\\\\.name\", \"namespace\")",
+     `replace_all_patterns(attributes, "key", "k8s\\.namespace\\.name", "namespace")`,
     ]
   }
 
@@ -342,9 +354,9 @@ otelcol.processor.transform "default" {
 }
 ```
 
-Some values in the River string are [escaped][river-strings]:
-* `\` is escaped with `\\`
-* `"` is escaped with `\"`
+Each statement is enclosed in backticks instead of quotation marks.
+This constitutes a [raw string][river-raw-strings], and lets us avoid the need to escape
+each `"` with a `\"`, and each `\` with a `\\` inside a [normal][river-strings] River string.
 
 ### Create an attribute from the contents of a log body
 
@@ -357,7 +369,7 @@ otelcol.processor.transform "default" {
   log_statements {
     context = "log"
     statements = [
-      "set(attributes[\"body\"], body)",
+      `set(attributes["body"], body)`,
     ]
   }
 
@@ -369,7 +381,9 @@ otelcol.processor.transform "default" {
 }
 ```
 
-Each `"` is [escaped][river-strings] with `\"` inside the River string.
+Each statement is enclosed in backticks instead of quotation marks.
+This constitutes a [raw string][river-raw-strings], and lets us avoid the need to escape
+each `"` with a `\"` inside a [normal][river-strings] River string.
 
 ### Combine two attributes
 
@@ -383,7 +397,7 @@ otelcol.processor.transform "default" {
     context = "resource"
     statements = [
       // The Concat function combines any number of strings, separated by a delimiter.
-      "set(attributes[\"test\"], Concat([attributes[\"service.name\"], attributes[\"service.version\"]], \" \"))",
+      `set(attributes["test"], Concat([attributes["foo"], attributes["bar"]], " "))`,
     ]
   }
 
@@ -395,7 +409,9 @@ otelcol.processor.transform "default" {
 }
 ```
 
-Each `"` is [escaped][river-strings] with `\"` inside the River string.
+Each statement is enclosed in backticks instead of quotation marks.
+This constitutes a [raw string][river-raw-strings], and lets us avoid the need to escape
+each `"` with a `\"` inside a [normal][river-strings] River string.
 
 ### Parsing JSON logs
 
@@ -424,16 +440,16 @@ otelcol.processor.transform "default" {
     statements = [
       // Parse body as JSON and merge the resulting map with the cache map, ignoring non-json bodies.
       // cache is a field exposed by OTTL that is a temporary storage place for complex operations.
-      "merge_maps(cache, ParseJSON(body), \"upsert\") where IsMatch(body, \"^\\\\{\") ",
+      `merge_maps(cache, ParseJSON(body), "upsert") where IsMatch(body, "^\\{")`,
   
       // Set attributes using the values merged into cache.
       // If the attribute doesn't exist in cache then nothing happens.
-      "set(attributes[\"attr1\"], cache[\"attr1\"])",
-      "set(attributes[\"attr2\"], cache[\"attr2\"])",
+      `set(attributes["attr1"], cache["attr1"])`,
+      `set(attributes["attr2"], cache["attr2"])`,
   
       // To access nested maps you can chain index ([]) operations.
       // If nested or attr3 do no exist in cache then nothing happens.
-      "set(attributes[\"nested.attr3\"], cache[\"nested\"][\"attr3\"])",
+      `set(attributes["nested.attr3"], cache["nested"]["attr3"])`,
     ]
   }
 
@@ -445,9 +461,9 @@ otelcol.processor.transform "default" {
 }
 ```
 
-Some values in the River strings are [escaped][river-strings]:
-* `\` is escaped with `\\`
-* `"` is escaped with `\"`
+Each statement is enclosed in backticks instead of quotation marks.
+This constitutes a [raw string][river-raw-strings], and lets us avoid the need to escape
+each `"` with a `\"`, and each `\` with a `\\` inside a [normal][river-strings] River string.
 
 ### Various transformations of attributes and status codes
 
@@ -472,63 +488,63 @@ otelcol.processor.transform "default" {
   trace_statements {
     context = "resource"
     statements = [
-      "keep_keys(attributes, [\"service.name\", \"service.namespace\", \"cloud.region\", \"process.command_line\"])",
-      "replace_pattern(attributes[\"process.command_line\"], \"password\\\\=[^\\\\s]*(\\\\s?)\", \"password=***\")",
-      "limit(attributes, 100, [])",
-      "truncate_all(attributes, 4096)",
+      `keep_keys(attributes, ["service.name", "service.namespace", "cloud.region", "process.command_line"])`,
+      `replace_pattern(attributes["process.command_line"], "password\\=[^\\s]*(\\s?)", "password=***")`,
+      `limit(attributes, 100, [])`,
+      `truncate_all(attributes, 4096)`,
     ]
   }
 
   trace_statements {
     context = "span"
     statements = [
-      "set(status.code, 1) where attributes[\"http.path\"] == \"/health\"",
-      "set(name, attributes[\"http.route\"])",
-      "replace_match(attributes[\"http.target\"], \"/user/*/list/*\", \"/user/{userId}/list/{listId}\")",
-      "limit(attributes, 100, [])",
-      "truncate_all(attributes, 4096)",
+      `set(status.code, 1) where attributes["http.path"] == "/health"`,
+      `set(name, attributes["http.route"])`,
+      `replace_match(attributes["http.target"], "/user/*/list/*", "/user/{userId}/list/{listId}")`,
+      `limit(attributes, 100, [])`,
+      `truncate_all(attributes, 4096)`,
     ]
   }
 
   metric_statements {
     context = "resource"
     statements = [
-      "keep_keys(attributes, [\"host.name\"])",
-      "truncate_all(attributes, 4096)",
+      `keep_keys(attributes, ["host.name"])`,
+      `truncate_all(attributes, 4096)`,
     ]
   }
 
   metric_statements {
     context = "metric"
     statements = [
-      "set(description, \"Sum\") where type == \"Sum\"",
+      `set(description, "Sum") where type == "Sum"`,
     ]
   }
 
   metric_statements {
     context = "datapoint"
     statements = [
-      "limit(attributes, 100, [\"host.name\"])",
-      "truncate_all(attributes, 4096)",
-      "convert_sum_to_gauge() where metric.name == \"system.processes.count\"",
-      "convert_gauge_to_sum(\"cumulative\", false) where metric.name == \"prometheus_metric\"",
+      `limit(attributes, 100, ["host.name"])`,
+      `truncate_all(attributes, 4096)`,
+      `convert_sum_to_gauge() where metric.name == "system.processes.count"`,
+      `convert_gauge_to_sum("cumulative", false) where metric.name == "prometheus_metric"`,
     ]
   }
 
   log_statements {
     context = "resource"
     statements = [
-      "keep_keys(attributes, [\"service.name\", \"service.namespace\", \"cloud.region\"])",
+      `keep_keys(attributes, ["service.name", "service.namespace", "cloud.region"])`,
     ]
   }
 
   log_statements {
     context = "log"
     statements = [
-      "set(severity_text, \"FAIL\") where body == \"request failed\"",
-      "replace_all_matches(attributes, \"/user/*/list/*\", \"/user/{userId}/list/{listId}\")",
-      "replace_all_patterns(attributes, \"value\", \"/account/\\\\d{4}\", \"/account/{accountId}\")",
-      "set(body, attributes[\"http.route\"])",
+      `set(severity_text, "FAIL") where body == "request failed"`,
+      `replace_all_matches(attributes, "/user/*/list/*", "/user/{userId}/list/{listId}")`,
+      `replace_all_patterns(attributes, "value", "/account/\\d{4}", "/account/{accountId}")`,
+      `set(body, attributes["http.route"])`,
     ]
   }
 
@@ -546,11 +562,12 @@ otelcol.exporter.otlp "default" {
 }
 ```
 
-Some values in the River strings are [escaped][river-strings]:
-* `\` is escaped with `\\`
-* `"` is escaped with `\"`
+Each statement is enclosed in backticks instead of quotation marks.
+This constitutes a [raw string][river-raw-strings], and lets us avoid the need to escape
+each `"` with a `\"`, and each `\` with a `\\` inside a [normal][river-strings] River string.
 
 [river-strings]: {{< relref "../../config-language/expressions/types_and_values.md/#strings" >}}
+[river-raw-strings]: {{< relref "../../config-language/expressions/types_and_values.md/#raw-strings" >}}
 
 [traces protobuf]: https://github.com/open-telemetry/opentelemetry-proto/blob/v1.0.0/opentelemetry/proto/trace/v1/trace.proto
 [metrics protobuf]: https://github.com/open-telemetry/opentelemetry-proto/blob/v1.0.0/opentelemetry/proto/metrics/v1/metrics.proto
@@ -573,3 +590,23 @@ Some values in the River strings are [escaped][river-strings]:
 [OTTL metric context]: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/{{< param "OTEL_VERSION" >}}/pkg/ottl/contexts/ottlmetric/README.md
 [OTTL datapoint context]: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/{{< param "OTEL_VERSION" >}}/pkg/ottl/contexts/ottldatapoint/README.md
 [OTTL log context]: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/{{< param "OTEL_VERSION" >}}/pkg/ottl/contexts/ottllog/README.md
+<!-- START GENERATED COMPATIBLE COMPONENTS -->
+
+## Compatible components
+
+`otelcol.processor.transform` can accept arguments from the following components:
+
+- Components that export [OpenTelemetry `otelcol.Consumer`]({{< relref "../compatibility/#opentelemetry-otelcolconsumer-exporters" >}})
+
+`otelcol.processor.transform` has exports that can be consumed by the following components:
+
+- Components that consume [OpenTelemetry `otelcol.Consumer`]({{< relref "../compatibility/#opentelemetry-otelcolconsumer-consumers" >}})
+
+{{% admonition type="note" %}}
+
+Connecting some components may not be sensible or components may require further configuration to make the 
+connection work correctly. Refer to the linked documentation for more details.
+
+{{% /admonition %}}
+
+<!-- END GENERATED COMPATIBLE COMPONENTS -->

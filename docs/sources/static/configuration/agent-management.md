@@ -1,8 +1,11 @@
 ---
+aliases:
+- /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/agent-management/
+- /docs/grafana-cloud/send-data/agent/static/configuration/agent-management/
 canonical: https://grafana.com/docs/agent/latest/static/configuration/agent-management/
+description: Learn about Agent Management
 menuTitle: Agent Management
 title: Agent Management - Experimental
-description: Learn about Agent Management
 weight: 700
 ---
 
@@ -120,7 +123,6 @@ selector:
 
 > **Note:** Snippet selection is currently done in the API server. This behaviour is subject to change in the future.
 
-
 ### Example response body
 
 ```yaml
@@ -160,4 +162,10 @@ snippets:
     selector:
       os: linux
       app: app1
+```
+
+> **Note:** Base configurations and snippets can contain go's [text/template](https://pkg.go.dev/text/template) actions. If you need preserve the literal value of a template action, you can escape it using backticks. For example:
+
+```
+{{ `{{ .template_var }}` }}
 ```

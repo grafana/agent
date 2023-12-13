@@ -4,12 +4,11 @@ aliases:
 - /docs/grafana-cloud/agent/operator/release-notes/
 - /docs/grafana-cloud/monitor-infrastructure/agent/operator/release-notes/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/operator/release-notes/
+- /docs/grafana-cloud/send-data/agent/operator/release-notes/
 canonical: https://grafana.com/docs/agent/latest/operator/release-notes/
-description: Release notes for Grafana Agent static mode Kubernetes operator
+description: Release notes for Grafana Agent Operator
 menuTitle: Release notes
 title: Release notes for Grafana Agent Operator
-description: Release notes for Grafana Agent Operator
-
 weight: 999
 ---
 
@@ -26,11 +25,11 @@ For a complete list of changes to Grafana Agent, with links to pull requests and
 > - [Flow mode release notes][release-notes-flow]
 
 {{% docs/reference %}}
-[release-notes-static]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/release-notes"
-[release-notes-static]: "/docs/agent/ -> /docs/grafana-cloud/monitor-infrastructure/agent/static/release-notes"
+[release-notes-static]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static/release-notes"
+[release-notes-static]: "/docs/agent/ -> /docs/grafana-cloud/send-data/agent/static/release-notes"
 
-[release-notes-flow]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/flow/release-notes"
-[release-notes-flow]: "/docs/grafana-cloud/ -> /docs/agent/<AGENT VERSION>/flow/release-notes"
+[release-notes-flow]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/release-notes"
+[release-notes-flow]: "/docs/grafana-cloud/ -> /docs/agent/<AGENT_VERSION>/flow/release-notes"
 {{% /docs/reference %}}
 
 ## v0.33

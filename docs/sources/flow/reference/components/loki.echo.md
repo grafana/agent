@@ -3,16 +3,17 @@ aliases:
 - /docs/grafana-cloud/agent/flow/reference/components/loki.echo/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/loki.echo/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/loki.echo/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/loki.echo/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/loki.echo/
+description: Learn about loki.echo
 labels:
   stage: beta
 title: loki.echo
-description: Learn about loki.echo
 ---
 
 # loki.echo
 
-{{< docs/shared lookup="flow/stability/beta.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/stability/beta.md" source="agent" version="<AGENT_VERSION>" >}}
 
 `loki.echo` receives log entries from other `loki` components and prints them
 to the process' standard output (stdout).
@@ -66,3 +67,20 @@ loki.source.file "logs" {
 
 loki.echo "example" { }
 ```
+
+<!-- START GENERATED COMPATIBLE COMPONENTS -->
+
+## Compatible components
+
+`loki.echo` has exports that can be consumed by the following components:
+
+- Components that consume [Loki `LogsReceiver`]({{< relref "../compatibility/#loki-logsreceiver-consumers" >}})
+
+{{% admonition type="note" %}}
+
+Connecting some components may not be sensible or components may require further configuration to make the 
+connection work correctly. Refer to the linked documentation for more details.
+
+{{% /admonition %}}
+
+<!-- END GENERATED COMPATIBLE COMPONENTS -->

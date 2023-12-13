@@ -1,7 +1,5 @@
 package stages
 
-// NOTE: This code is copied from Promtail (07cbef92268aecc0f20d1791a6df390c2df5c072) with changes kept to the minimum.
-
 import (
 	"testing"
 	"time"

@@ -3,9 +3,10 @@ aliases:
 - /docs/grafana-cloud/agent/flow/reference/components/local.file/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/local.file/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/local.file/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/local.file/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/local.file/
-title: local.file
 description: Learn about local.file
+title: local.file
 ---
 
 # local.file
@@ -40,7 +41,7 @@ Name | Type | Description | Default | Required
 
 [secret]: {{< relref "../../config-language/expressions/types_and_values.md#secrets" >}}
 
-{{< docs/shared lookup="flow/reference/components/local-file-arguments-text.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/local-file-arguments-text.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ## Exported fields
 

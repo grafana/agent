@@ -2,10 +2,12 @@
 aliases:
 - ../../set-up/install-agent-linux/
 - ../set-up/install-agent-linux/
+- /docs/grafana-cloud/monitor-infrastructure/agent/static/set-up/install/install-agent-linux/
+- /docs/grafana-cloud/send-data/agent/static/set-up/install/install-agent-linux/
 canonical: https://grafana.com/docs/agent/latest/static/set-up/install/install-agent-linux/
+description: Learn how to install Grafana Agent in static mode on Linux
 menuTitle: Linux
 title: Install Grafana Agent in static mode on Linux
-description: Learn how to install Grafana Agent in static mode on Linux
 weight: 400
 ---
 
@@ -216,8 +218,8 @@ Logs of Grafana Agent can be found by running the following command in a termina
 - [Configure Grafana Agent][configure]
 
 {{% docs/reference %}}
-[start]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/set-up/start-agent"
+[start]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static/set-up/start-agent"
 [start]: "/docs/grafana-cloud/ -> ../start-agent"
-[configure]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/configuration/create-config-file"
+[configure]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static/configuration/create-config-file"
 [configure]: "/docs/grafana-cloud/ -> ../../configuration/create-config-file"
 {{% /docs/reference %}}

@@ -4,9 +4,10 @@ aliases:
 - /docs/grafana-cloud/agent/flow/config-language/syntax/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/config-language/syntax/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/config-language/syntax/
+- /docs/grafana-cloud/send-data/agent/flow/config-language/syntax/
 canonical: https://grafana.com/docs/agent/latest/flow/config-language/syntax/
-title: Syntax
 description: Learn about the River syntax
+title: Syntax
 weight: 200
 ---
 
@@ -54,7 +55,7 @@ to represent or compute more complex attribute values.
 
 ### Blocks
 
-_Blocks_ are used to configure the Agent behavior as well as Flow components by
+_Blocks_ are used to configure the {{< param "PRODUCT_ROOT_NAME" >}}'s behavior as well as {{< param "PRODUCT_NAME" >}} components by
 grouping any number of attributes or nested blocks using curly braces.
 Blocks have a _name_, an optional _label_ and a body that contains any number
 of arguments and nested unlabeled blocks.

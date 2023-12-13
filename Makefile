@@ -137,7 +137,7 @@ PROPAGATE_VARS := \
 
 GO_ENV := GOOS=$(GOOS) GOARCH=$(GOARCH) GOARM=$(GOARM) CGO_ENABLED=$(CGO_ENABLED)
 
-VERSION      ?= $(shell ./tools/image-tag)
+VERSION      ?= $(shell bash ./tools/image-tag)
 GIT_REVISION := $(shell git rev-parse --short HEAD)
 GIT_BRANCH   := $(shell git rev-parse --abbrev-ref HEAD)
 VPREFIX      := github.com/grafana/agent/pkg/build
@@ -287,7 +287,7 @@ smoke-image:
 #
 
 .PHONY: generate generate-crds generate-drone generate-helm-docs generate-helm-tests generate-manifests generate-dashboards generate-protos generate-ui generate-versioned-files
-generate: generate-crds generate-drone generate-helm-docs generate-helm-tests generate-manifests generate-dashboards generate-protos generate-ui generate-versioned-files
+generate: generate-crds generate-drone generate-helm-docs generate-helm-tests generate-manifests generate-dashboards generate-protos generate-ui generate-versioned-files generate-docs
 
 generate-crds:
 ifeq ($(USE_CONTAINER),1)
@@ -350,6 +350,12 @@ else
 	sh ./tools/gen-versioned-files/gen-versioned-files.sh
 endif
 
+generate-docs:
+ifeq ($(USE_CONTAINER),1)
+	$(RERUN_IN_CONTAINER)
+else
+	go generate ./docs
+endif
 #
 # Other targets
 #
