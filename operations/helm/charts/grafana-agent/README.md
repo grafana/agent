@@ -94,7 +94,7 @@ use the older mode (called "static mode"), set the `agent.mode` value to
 | controller.volumes.extra | list | `[]` | Extra volumes to add to the Grafana Agent pod. |
 | crds.create | bool | `true` | Whether to install CRDs for monitoring. |
 | fullnameOverride | string | `nil` | Overrides the chart's computed fullname. Used to change the full prefix of resource names. |
-| global.image.pullSecrets | list | `[]` | Optional set of global image pull secrets. |
+| global.imagePullSecrets | list or map | `[]` | Optional set of global image pull secrets. |
 | global.image.registry | string | `""` | Global image registry to use if it needs to be overriden for some specific use cases (e.g local registries, custom images, ...) |
 | global.podSecurityContext | object | `{}` | Security context to apply to the Grafana Agent pod. |
 | image.digest | string | `nil` | Grafana Agent image's SHA256 digest (either in format "sha256:XYZ" or "XYZ"). When set, will override `image.tag`. |

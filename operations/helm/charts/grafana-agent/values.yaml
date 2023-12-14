@@ -12,8 +12,19 @@ global:
     # -- Global image registry to use if it needs to be overriden for some specific use cases (e.g local registries, custom images, ...)
     registry: ""
 
-    # -- Optional set of global image pull secrets.
-    pullSecrets: []
+  # To help compatibility with other charts which use global.imagePullSecrets.
+  # Allow either an array of {name: pullSecret} maps (k8s-style), or an array of strings (more common helm-style).
+  # Can be tempalted.
+  # global:
+  #   imagePullSecrets:
+  #   - name: pullSecret1
+  #   - name: pullSecret2
+  # or
+  # global:
+  #   imagePullSecrets:
+  #   - pullSecret1
+  #   - pullSecret2
+  imagePullSecrets: []
 
   # -- Security context to apply to the Grafana Agent pod.
   podSecurityContext: {}

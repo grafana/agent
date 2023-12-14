@@ -15,13 +15,9 @@ spec:
     {{- toYaml . | nindent 4 }}
   {{- end }}
   serviceAccountName: {{ include "grafana-agent.serviceAccountName" . }}
-  {{- if or .Values.global.image.pullSecrets .Values.image.pullSecrets }}
+  {{- if or .Values.image.pullSecrets .Values.global.imagePullSecrets }}
   imagePullSecrets:
-    {{- if .Values.global.image.pullSecrets }}
-    {{- toYaml .Values.global.image.pullSecrets | nindent 4 }}
-    {{- else }}
-    {{- toYaml .Values.image.pullSecrets | nindent 4 }}
-    {{- end }}
+    {{- include "grafana-agent.imagePullSecrets" (dict "root" $root "imagePullSecrets" .Values.image.pullSecrets) | nindent 2 }}
   {{- end }}
   {{- if .Values.controller.initContainers }}
   initContainers:
