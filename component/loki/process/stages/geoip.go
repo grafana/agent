@@ -27,6 +27,7 @@ type GeoIPFields int
 const (
 	CITYNAME GeoIPFields = iota
 	COUNTRYNAME
+	COUNTRYCODE
 	CONTINENTNAME
 	CONTINENTCODE
 	LOCATION
@@ -34,11 +35,14 @@ const (
 	TIMEZONE
 	SUBDIVISIONNAME
 	SUBDIVISIONCODE
+	ASN
+	ASNORG
 )
 
 var fields = map[GeoIPFields]string{
 	CITYNAME:        "geoip_city_name",
 	COUNTRYNAME:     "geoip_country_name",
+	COUNTRYCODE:     "geoip_country_code",
 	CONTINENTNAME:   "geoip_continent_name",
 	CONTINENTCODE:   "geoip_continent_code",
 	LOCATION:        "geoip_location",
@@ -46,6 +50,8 @@ var fields = map[GeoIPFields]string{
 	TIMEZONE:        "geoip_timezone",
 	SUBDIVISIONNAME: "geoip_subdivision_name",
 	SUBDIVISIONCODE: "geoip_subdivision_code",
+	ASN:             "geoip_autonomous_system_number",
+	ASNORG:          "geoip_autonomous_system_organization",
 }
 
 // GeoIPConfig represents GeoIP stage config
@@ -69,7 +75,7 @@ func validateGeoIPConfig(c GeoIPConfig) (map[string]*jmespath.JMESPath, error) {
 	}
 
 	switch c.DBType {
-	case "", "asn", "city":
+	case "", "asn", "city", "country":
 	default:
 		return nil, ErrEmptyDBTypeGeoIPStageConfig
 	}
@@ -182,6 +188,14 @@ func (g *geoIPStage) process(_ model.LabelSet, extracted map[string]interface{})
 				return
 			}
 			g.populateExtractedWithASNData(extracted, &record)
+		case "country":
+			var record geoip2.Country
+			err := g.mmdb.Lookup(ip, &record)
+			if err != nil {
+				level.Error(g.logger).Log("msg", "unable to get Country record for the ip", "err", err, "ip", ip)
+				return
+			}
+			g.populateExtractedWithCountryData(extracted, &record)
 		default:
 			level.Error(g.logger).Log("msg", "unknown database type")
 		}
@@ -209,6 +223,11 @@ func (g *geoIPStage) populateExtractedWithCityData(extracted map[string]interfac
 			contryName := record.Country.Names["en"]
 			if contryName != "" {
 				extracted[label] = contryName
+			}
+		case COUNTRYCODE:
+			contryCode := record.Country.IsoCode
+			if contryCode != "" {
+				extracted[label] = contryCode
 			}
 		case CONTINENTNAME:
 			continentName := record.Continent.Names["en"]
@@ -252,20 +271,51 @@ func (g *geoIPStage) populateExtractedWithCityData(extracted map[string]interfac
 					extracted[label] = subdivisionCode
 				}
 			}
-		default:
-			level.Error(g.logger).Log("msg", "unknown geoip field")
 		}
 	}
 }
 
 func (g *geoIPStage) populateExtractedWithASNData(extracted map[string]interface{}, record *geoip2.ASN) {
-	autonomousSystemNumber := record.AutonomousSystemNumber
-	autonomousSystemOrganization := record.AutonomousSystemOrganization
-	if autonomousSystemNumber != 0 {
-		extracted["geoip_autonomous_system_number"] = autonomousSystemNumber
+	for field, label := range fields {
+		switch field {
+		case ASN:
+			autonomousSystemNumber := record.AutonomousSystemNumber
+			if autonomousSystemNumber != 0 {
+				extracted[label] = autonomousSystemNumber
+			}
+		case ASNORG:
+			autonomousSystemOrganization := record.AutonomousSystemOrganization
+			if autonomousSystemOrganization != "" {
+				extracted[label] = autonomousSystemOrganization
+			}
+		}
 	}
-	if autonomousSystemOrganization != "" {
-		extracted["geoip_autonomous_system_organization"] = autonomousSystemOrganization
+}
+
+func (g *geoIPStage) populateExtractedWithCountryData(extracted map[string]interface{}, record *geoip2.Country) {
+	for field, label := range fields {
+		switch field {
+		case COUNTRYNAME:
+			contryName := record.Country.Names["en"]
+			if contryName != "" {
+				extracted[label] = contryName
+			}
+		case COUNTRYCODE:
+			contryCode := record.Country.IsoCode
+			if contryCode != "" {
+				extracted[label] = contryCode
+			}
+		case CONTINENTNAME:
+			continentName := record.Continent.Names["en"]
+			if continentName != "" {
+				extracted[label] = continentName
+			}
+		case CONTINENTCODE:
+			continentCode := record.Continent.Code
+			if continentCode != "" {
+				extracted[label] = continentCode
+			}
+		}
 	}
 }
 

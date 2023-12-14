@@ -59,6 +59,8 @@ Main (unreleased)
 
 - Added support for `loki.write` to flush WAL on agent shutdown. (@thepalbi)
 
+- Added 'country' mmdb-type to log pipeline-stage geoip. (@superstes)
+
 ### Bugfixes
 
 - Update `pyroscope.ebpf` to fix a logical bug causing to profile to many kthreads instead of regular processes https://github.com/grafana/pyroscope/pull/2778 (@korniltsev)
