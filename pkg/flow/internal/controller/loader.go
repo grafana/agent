@@ -44,7 +44,7 @@ type Loader struct {
 	componentNodes        []*ComponentNode
 	serviceNodes          []*ServiceNode
 	declareComponentNodes []*DeclareComponentNode
-	importNodes           map[string]*ImportFileConfigNode
+	importNodes           map[string]*ImportConfigNode
 	declareNodes          map[string]*DeclareNode
 
 	cache             *valueCache
@@ -87,7 +87,7 @@ func NewLoader(opts LoaderOptions) *Loader {
 		host:         host,
 		componentReg: reg,
 		workerPool:   opts.WorkerPool,
-		importNodes:  map[string]*ImportFileConfigNode{},
+		importNodes:  map[string]*ImportConfigNode{},
 		declareNodes: map[string]*DeclareNode{},
 
 		// This is a reasonable default which should work for most cases. If a component is completely stuck, we would
@@ -597,7 +597,7 @@ func (l *Loader) Services() []*ServiceNode {
 	return l.serviceNodes
 }
 
-func (l *Loader) Imports() map[string]*ImportFileConfigNode {
+func (l *Loader) Imports() map[string]*ImportConfigNode {
 	l.mut.RLock()
 	defer l.mut.RUnlock()
 	return l.importNodes
@@ -802,10 +802,10 @@ func (l *Loader) getModuleContent(namespace string, module string) (string, erro
 	switch node := node.(type) {
 	case *DeclareNode:
 		return node.ModuleContent(), nil
-	case *ImportFileConfigNode:
+	case *ImportConfigNode:
 		return node.ModuleContent(module)
 	}
-	return "", fmt.Errorf("node (%s/%s) should be of type DeclareComponentNode or ImportFileConfigNode", namespace, module)
+	return "", fmt.Errorf("node (%s/%s) should be of type DeclareComponentNode or ImportConfigNode", namespace, module)
 }
 
 func multierrToDiags(errors error) diag.Diagnostics {

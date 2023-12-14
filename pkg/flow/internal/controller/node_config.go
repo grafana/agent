@@ -3,6 +3,7 @@ package controller
 import (
 	"fmt"
 
+	importsource "github.com/grafana/agent/pkg/flow/internal/import-source"
 	"github.com/grafana/river/ast"
 	"github.com/grafana/river/diag"
 )
@@ -13,6 +14,7 @@ const (
 	loggingBlockID    = "logging"
 	tracingBlockID    = "tracing"
 	importFileBlockID = "import.file"
+	importGitBlockID  = "import.git"
 )
 
 // NewConfigNode creates a new ConfigNode from an initial ast.BlockStmt.
@@ -28,7 +30,9 @@ func NewConfigNode(block *ast.BlockStmt, globals ComponentGlobals) (BlockNode, d
 	case tracingBlockID:
 		return NewTracingConfigNode(block, globals), nil
 	case importFileBlockID:
-		return NewImportFileConfigNode(block, globals), nil
+		return NewImportConfigNode(block, globals, importsource.FILE), nil
+	case importGitBlockID:
+		return NewImportConfigNode(block, globals, importsource.GIT), nil
 	default:
 		var diags diag.Diagnostics
 		diags.Add(diag.Diagnostic{
@@ -49,7 +53,7 @@ type ConfigNodeMap struct {
 	tracing       *TracingConfigNode
 	argumentMap   map[string]*ArgumentConfigNode
 	exportMap     map[string]*ExportConfigNode
-	importFileMap map[string]*ImportFileConfigNode
+	importFileMap map[string]*ImportConfigNode
 }
 
 // NewConfigNodeMap will create an initial ConfigNodeMap. Append must be called
@@ -60,7 +64,7 @@ func NewConfigNodeMap() *ConfigNodeMap {
 		tracing:       nil,
 		argumentMap:   map[string]*ArgumentConfigNode{},
 		exportMap:     map[string]*ExportConfigNode{},
-		importFileMap: map[string]*ImportFileConfigNode{},
+		importFileMap: map[string]*ImportConfigNode{},
 	}
 }
 
@@ -78,7 +82,7 @@ func (nodeMap *ConfigNodeMap) Append(configNode BlockNode) diag.Diagnostics {
 		nodeMap.logging = n
 	case *TracingConfigNode:
 		nodeMap.tracing = n
-	case *ImportFileConfigNode:
+	case *ImportConfigNode:
 		nodeMap.importFileMap[n.Label()] = n
 	default:
 		diags.Add(diag.Diagnostic{

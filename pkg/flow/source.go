@@ -65,7 +65,7 @@ func ParseSource(name string, bb []byte) (*Source, error) {
 			switch fullName {
 			case "declare":
 				declares = append(declares, controller.Declare{Block: stmt, Content: string(bb[stmt.LCurlyPos.Position().Offset+1 : stmt.RCurlyPos.Position().Offset-1])})
-			case "logging", "tracing", "argument", "export", "import.file":
+			case "logging", "tracing", "argument", "export", "import.file", "import.git":
 				configs = append(configs, stmt)
 			default:
 				components = append(components, stmt)
