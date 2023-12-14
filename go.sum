@@ -1601,7 +1601,6 @@ github.com/mitchellh/go-testing-interface v1.14.1/go.mod h1:gfgS7OtZj6MA4U1UrDRp
 github.com/mitchellh/go-wordwrap v1.0.0/go.mod h1:ZXFpozHsX6DPmq2I0TCekCxypsnAUbP2oI0UX1GXzOo=
 github.com/mitchellh/gox v0.4.0/go.mod h1:Sd9lOJ0+aimLBi73mGofS1ycjY8lL3uZM3JPS42BGNg=
 github.com/mitchellh/hashstructure v0.0.0-20170609045927-2bca23e0e452/go.mod h1:QjSHrPWS+BGUVBYkbTZWEnOh3G1DutKwClXU/ABz6AQ=
-github.com/mitchellh/hashstructure v1.1.0 h1:P6P1hdjqAAknpY/M1CGipelZgp+4y9ja9kmUZPXP+H0=
 github.com/mitchellh/hashstructure/v2 v2.0.2 h1:vGKWl0YJqUNxE8d+h8f6NJLcCJrgbhC4NcD46KavDd4=
 github.com/mitchellh/hashstructure/v2 v2.0.2/go.mod h1:MG3aRVU/N29oo/V/IhBX8GR/zz4kQkprJgF2EVszyDE=
 github.com/mitchellh/iochan v1.0.0/go.mod h1:JwYml1nuB7xOzsp52dPpHFffvOCDupsG0QubkSMEySY=
@@ -1731,6 +1730,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/exporter/loadbalancing
 github.com/open-telemetry/opentelemetry-collector-contrib/exporter/loadbalancingexporter v0.87.0/go.mod h1:JXVmcuySy3xyo3JjoU+CrNWy/C12Fw6JB1HWXf26HwQ=
 github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusexporter v0.87.0 h1:5LmBAlLycadwA3AHI2rqPuDjx1HFb/PSn3946Eyp3Jw=
 github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusexporter v0.87.0/go.mod h1:lgOFfu/GLf6LbvZwlumkUv3iBLqRdtBentZKcrrqb3Y=
+github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusremotewriteexporter v0.87.0 h1:52+RVfmzj+JePVJuD07gfppdzF9fsKASIRGzTC05QIg=
+github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusremotewriteexporter v0.87.0/go.mod h1:VQ7QIry+qNpzGr2/1HrS/IzV9JXoWnqLIsgSi3qPvhM=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/basicauthextension v0.87.0 h1:p4pPpRv9zOT/kOQT8GJPhl2drySkTDIpLEhLjXjo5yc=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/basicauthextension v0.87.0/go.mod h1:vbU0PUtyhWa3iwIJn7blygKYVnt2GzEAA66zlPbLz90=
 github.com/open-telemetry/opentelemetry-collector-contrib/extension/bearertokenauthextension v0.87.0 h1:UVFqhd0y7IGSabrHUiDX4efC7qW71tq/FyDFPcBFaJE=
@@ -1775,6 +1776,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/opencen
 github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/opencensus v0.87.0/go.mod h1:hKArXrn+iYk888KKQThhdPEgPf2GMay2CBe7NnTnmTs=
 github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/prometheus v0.87.0 h1:1eceF0bEseOnk7K6U5OdrEcFKvxEdjnqHTzwNAw2pxA=
 github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/prometheus v0.87.0/go.mod h1:shG9MpBWsBTzns2MYKRFiRymJXhdNb3snGyjgTW5mDg=
+github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/prometheusremotewrite v0.87.0 h1:uQDcjWlVodE6nYzsRI5LPxZ0X0Ki3fYLJJ3SFK8+MgM=
+github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/prometheusremotewrite v0.87.0/go.mod h1:xeUhbksYHZ6PkkKidaK95zztJOQcemwxdS+SHracC3Y=
 github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/zipkin v0.87.0 h1:RljU9Xodt7Ptc0enTRuTwUotGi2BuiWBqCUVQwT1otY=
 github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/zipkin v0.87.0/go.mod h1:ybZnD0ldx1tEm6xgJ5wP5tK2x6AY8PNpTonCpOBVI6Y=
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/attributesprocessor v0.87.0 h1:9MVdMcdtc+Gl0DAaeZ+PdJzskIg1K8FKuYql4h6pQC0=
@@ -2185,8 +2188,18 @@ github.com/testcontainers/testcontainers-go/modules/k3s v0.0.0-20230615142642-c1
 github.com/tg123/go-htpasswd v1.2.1 h1:i4wfsX1KvvkyoMiHZzjS0VzbAPWfxzI8INcZAKtutoU=
 github.com/tg123/go-htpasswd v1.2.1/go.mod h1:erHp1B86KXdwQf1X5ZrLb7erXZnWueEQezb2dql4q58=
 github.com/tidwall/gjson v1.6.0/go.mod h1:P256ACg0Mn+j1RXIDXoss50DeIABTYK1PULOJHhxOls=
+github.com/tidwall/gjson v1.10.2 h1:APbLGOM0rrEkd8WBw9C24nllro4ajFuJu0Sc9hRz8Bo=
+github.com/tidwall/gjson v1.10.2/go.mod h1:/wbyibRr2FHMks5tjHJ5F8dMZh3AcwJEMf5vlfC0lxk=
 github.com/tidwall/match v1.0.1/go.mod h1:LujAq0jyVjBy028G1WhWfIzbpQfMO8bBZ6Tyb0+pL9E=
+github.com/tidwall/match v1.1.1 h1:+Ho715JplO36QYgwN9PGYNhgZvoUSc9X2c80KVTi+GA=
+github.com/tidwall/match v1.1.1/go.mod h1:eRSPERbgtNPcGhD8UCthc6PmLEQXEWd3PRB5JTxsfmM=
 github.com/tidwall/pretty v1.0.0/go.mod h1:XNkn88O1ChpSDQmQeStsy+sBenx6DDtFZJxhVysOjyk=
+github.com/tidwall/pretty v1.2.0 h1:RWIZEg2iJ8/g6fDDYzMpobmaoGh5OLl4AXtGUGPcqCs=
+github.com/tidwall/pretty v1.2.0/go.mod h1:ITEVvHYasfjBbM0u2Pg8T2nJnzm8xPwvNhhsoaGGjNU=
+github.com/tidwall/tinylru v1.1.0 h1:XY6IUfzVTU9rpwdhKUF6nQdChgCdGjkMfLzbWyiau6I=
+github.com/tidwall/tinylru v1.1.0/go.mod h1:3+bX+TJ2baOLMWTnlyNWHh4QMnFyARg2TLTQ6OFbzw8=
+github.com/tidwall/wal v1.1.7 h1:emc1TRjIVsdKKSnpwGBAcsAGg0767SvUk8+ygx7Bb+4=
+github.com/tidwall/wal v1.1.7/go.mod h1:r6lR1j27W9EPalgHiB7zLJDYu3mzW5BQP5KrzBpYY/E=
 github.com/tilinna/clock v1.1.0 h1:6IQQQCo6KoBxVudv6gwtY8o4eDfhHo8ojA5dP0MfhSs=
 github.com/tilinna/clock v1.1.0/go.mod h1:ZsP7BcY7sEEz7ktc0IVy8Us6boDrK8VradlKRUGfOao=
 github.com/tinylib/msgp v1.1.5/go.mod h1:eQsjooMTnV42mHu917E26IogZ2930nFyBQdofk10Udg=
