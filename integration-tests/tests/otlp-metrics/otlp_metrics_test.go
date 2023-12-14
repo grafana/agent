@@ -13,11 +13,12 @@ import (
 
 const promURL = "http://localhost:9009/prometheus/api/v1/query?query="
 
-func metricQuery(metricName string) string {
-	return fmt.Sprintf("%s%s{test_name='otlp_metrics'}", promURL, metricName)
+func metricQuery(metricName string, testName string) string {
+	return fmt.Sprintf("%s%s{test_name='%s'}", promURL, metricName, testName)
 }
 
 func TestOTLPMetrics(t *testing.T) {
+	const testName = "otlp_metrics"
 	tests := []struct {
 		metric string
 	}{
@@ -34,7 +35,7 @@ func TestOTLPMetrics(t *testing.T) {
 		tt := tt
 		t.Run(tt.metric, func(t *testing.T) {
 			t.Parallel()
-			assertMetricData(t, metricQuery(tt.metric), tt.metric)
+			assertMetricData(t, metricQuery(tt.metric, testName), tt.metric, testName)
 		})
 	}
 
@@ -47,19 +48,19 @@ func TestOTLPMetrics(t *testing.T) {
 		metric := metric
 		t.Run(metric, func(t *testing.T) {
 			t.Parallel()
-			assertHistogramData(t, metricQuery(metric), metric)
+			assertHistogramData(t, metricQuery(metric, testName), metric, testName)
 		})
 	}
 }
 
-func assertHistogramData(t *testing.T, query string, expectedMetric string) {
+func assertHistogramData(t *testing.T, query string, expectedMetric string, testName string) {
 	var metricResponse common.MetricResponse
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
 		err := common.FetchDataFromURL(query, &metricResponse)
 		assert.NoError(c, err)
 		if assert.NotEmpty(c, metricResponse.Data.Result) {
 			assert.Equal(c, metricResponse.Data.Result[0].Metric.Name, expectedMetric)
-			assert.Equal(c, metricResponse.Data.Result[0].Metric.TestName, "otlp_metrics")
+			assert.Equal(c, metricResponse.Data.Result[0].Metric.TestName, testName)
 			if assert.NotNil(c, metricResponse.Data.Result[0].Histogram) {
 				histogram := metricResponse.Data.Result[0].Histogram
 				if assert.NotEmpty(c, histogram.Data.Count) {
@@ -77,14 +78,14 @@ func assertHistogramData(t *testing.T, query string, expectedMetric string) {
 	}, common.DefaultTimeout, common.DefaultRetryInterval, "Histogram data did not satisfy the conditions within the time limit")
 }
 
-func assertMetricData(t *testing.T, query, expectedMetric string) {
+func assertMetricData(t *testing.T, query, expectedMetric string, testName string) {
 	var metricResponse common.MetricResponse
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
 		err := common.FetchDataFromURL(query, &metricResponse)
 		assert.NoError(c, err)
 		if assert.NotEmpty(c, metricResponse.Data.Result) {
 			assert.Equal(c, metricResponse.Data.Result[0].Metric.Name, expectedMetric)
-			assert.Equal(c, metricResponse.Data.Result[0].Metric.TestName, "otlp_metrics")
+			assert.Equal(c, metricResponse.Data.Result[0].Metric.TestName, testName)
 			assert.NotEmpty(c, metricResponse.Data.Result[0].Value.Value)
 			assert.Nil(c, metricResponse.Data.Result[0].Histogram)
 		}
