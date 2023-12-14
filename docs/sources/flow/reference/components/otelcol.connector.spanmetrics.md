@@ -22,10 +22,25 @@ aggregates Request, Error and Duration (R.E.D) OpenTelemetry metrics from the sp
   including Errors. Multiple metrics can be aggregated if, for instance, a user wishes to
   view call counts just on `service.name` and `span.name`.
 
-- **Error** counts are computed from the Request counts which have an `Error` status code metric dimension.
+  To track requests, a `calls` metric will be created with a `status.code` metric datapoint attribute set to `Ok`:
+  ```
+  calls { service.name="shipping", span.name="get_shipping/{shippingId}", span.kind="SERVER", status.code="Ok" }
+  ```
+
+- **Error** counts are computed from the number of spans with an `Error` status code.
+
+    To track errors, a `calls` metric will be created with a `status.code` metric datapoint attribute set to `Error`:
+    ```
+    calls { service.name="shipping", span.name="get_shipping/{shippingId}, span.kind="SERVER", status.code="Error" }
+    ```
 
 - **Duration** is computed from the difference between the span start and end times and inserted
-  into the relevant duration histogram time bucket for each unique set dimensions.
+    into the relevant duration histogram time bucket for each unique set dimensions.
+
+    To track durations, a `duration` histogram metric will be created:
+    ```
+    duration { service.name="shipping", span.name="get_shipping/{shippingId}", span.kind="SERVER", status.code="Ok" }
+    ```
 
 > **NOTE**: `otelcol.connector.spanmetrics` is a wrapper over the upstream
 > OpenTelemetry Collector `spanmetrics` connector. Bug reports or feature requests
@@ -339,6 +354,7 @@ However, extra steps are required in order to make sure all metric samples are r
    {{< /collapse >}}
 
 1. `otelcol.connector.spanmetrics` will preserve the incoming `service.name` and `k8s.pod.name` resource attributes by attaching them to the output metrics resource.
+   Only one metric resource will be created, because both span resources have identical resource attributes.
    {{< collapse title="Example JSON of one outgoing metric resource." >}}
 
    ```json
@@ -384,8 +400,8 @@ However, extra steps are required in order to make sure all metric samples are r
                            "value": { "stringValue": "STATUS_CODE_UNSET" }
                          }
                        ],
-                       "startTimeUnixNano": "0",
-                       "timeUnixNano": "0",
+                       "startTimeUnixNano": "1702582936761872000",
+                       "timeUnixNano": "1702582936761872012",
                        "asInt": "2"
                      }
                    ],
@@ -526,8 +542,8 @@ However, extra steps are required in order to make sure all metric samples are r
                            "value": { "stringValue": "STATUS_CODE_UNSET" }
                          }
                        ],
-                       "startTimeUnixNano": "0",
-                       "timeUnixNano": "0",
+                       "startTimeUnixNano": "1702582936761872000",
+                       "timeUnixNano": "1702582936761872012",
                        "asInt": "1"
                      }
                    ],
@@ -581,8 +597,8 @@ However, extra steps are required in order to make sure all metric samples are r
                            "value": { "stringValue": "STATUS_CODE_UNSET" }
                          }
                        ],
-                       "startTimeUnixNano": "0",
-                       "timeUnixNano": "0",
+                       "startTimeUnixNano": "1702582936761872000",
+                       "timeUnixNano": "1702582936761872012",
                        "asInt": "1"
                      }
                    ],
@@ -606,9 +622,8 @@ This means that if `otelcol.connector.spanmetrics` outputs metrics with identica
 but different resource attributes, `otelcol.exporter.prometheus` will convert the metrics into the same metric series.
 This problem can be solved by doing **either** of the following:
 
-- Prior to `otelcol.connector.spanmetrics`, remove all resource attributes from the incoming spans which are not needed by `otelcol.connector.spanmetrics`.
-  {{< collapse title="Example removal of unnecessary resource attributes." >}}
-
+- Recommended approach: Prior to `otelcol.connector.spanmetrics`, remove all resource attributes from the incoming spans which are not needed by `otelcol.connector.spanmetrics`.
+  {{< collapse title="Example River configuration to remove unnecessary resource attributes." >}}
   ```river
   otelcol.receiver.otlp "default" {
     http {}
@@ -622,7 +637,7 @@ This problem can be solved by doing **either** of the following:
   // Remove all resource attributes except the ones which
   // the otelcol.connector.spanmetrics needs.
   // If this is not done, otelcol.exporter.prometheus may fail to
-  // write some samples due to a"err-mimir-sample-duplicate-timestamp" error.
+  // write some samples due to an "err-mimir-sample-duplicate-timestamp" error.
   // This is because the spanmetricsconnector will create a new
   // metrics resource scope for each traces resource scope.
   otelcol.processor.transform "default" {
@@ -669,16 +684,79 @@ This problem can be solved by doing **either** of the following:
     }
   }
   ```
-
   {{< /collapse >}}
 
-- Or, after `otelcol.connector.spanmetrics`, copy each of the resource attributes as a metric attribute.
+- Or, after `otelcol.connector.spanmetrics`, copy each of the resource attributes as a metric datapoint attribute.
+This has the advantage that the resource attributes will be visible as metric labels.
+However, the {{< term "cardinality" >}}cardinality{{< /term >}} of the metrics may be much higher, which could increase the cost of storing and querying them.
+The example below uses the [merge_maps][] OTTL function.
 
-In order for a `target_info` metric to be generated, the incoming spans resource scope
+  {{< collapse title="Example River configuration to add all resource attributes as metric datapoint attributes." >}}
+  ```river
+  otelcol.receiver.otlp "default" {
+    http {}
+    grpc {}
+
+    output {
+      traces  = [otelcol.connector.spanmetrics.default.input]
+    }
+  }
+
+  otelcol.connector.spanmetrics "default" {
+    histogram {
+      explicit {}
+    }
+
+    dimension {
+      name = "special.attr"
+    }
+    output {
+      metrics = [otelcol.processor.transform.default.input]
+    }
+  }
+
+  // Insert resource attributes as metric data point attributes.
+  otelcol.processor.transform "default" {
+    error_mode = "ignore"
+
+    metric_statements {
+      context = "datapoint"
+      statements = [
+        // "insert" means that a metric datapoint attribute will be inserted
+        // only if an attribute with the same key does not already exist.
+        `merge_maps(attributes, resource.attributes, "insert")`,
+      ]
+    }
+
+    output {
+      metrics = [otelcol.exporter.prometheus.default.input]
+    }
+  }
+
+  otelcol.exporter.prometheus "default" {
+    forward_to = [prometheus.remote_write.mimir.receiver]
+  }
+
+  prometheus.remote_write "mimir" {
+    endpoint {
+      url = "http://mimir:9009/api/v1/push"
+    }
+  }
+  ```
+  {{< /collapse >}}
+
+If the resource attributes are not treated in either of the ways described above, an error such as this one could be logged by `prometheus.remote_write`:
+`the sample has been rejected because another sample with the same timestamp, but a different value, has already been ingested (err-mimir-sample-duplicate-timestamp)`.
+
+{{% admonition type="note" %}}
+In order for a Prometheus `target_info` metric to be generated, the incoming spans resource scope
 attributes must contain `service.name` and `service.instance.id` attributes.
 
 The `target_info` metric will be generated for each resource scope, while OpenTelemetry
 metric names and attributes will be normalized to be compliant with Prometheus naming rules.
+{{% /admonition %}}
+
+[merge_maps]: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/{{< param "OTEL_VERSION" >}}/pkg/ottl/ottlfuncs/README.md#merge_maps
 
 <!-- START GENERATED COMPATIBLE COMPONENTS -->
 
