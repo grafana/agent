@@ -11,7 +11,7 @@ menuTitle: Monitoring
 weight: 500
 ---
 
-# Monitoring {{< param "PRODUCT_NAME" >}}
+# Monitoring {{% param "PRODUCT_NAME" %}}
 
 This section details various ways to monitor and debug {{< param "PRODUCT_NAME" >}}.
 

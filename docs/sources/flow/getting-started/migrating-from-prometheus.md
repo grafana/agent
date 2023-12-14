@@ -11,7 +11,7 @@ title: Migrate from Prometheus to Grafana Agent Flow
 weight: 320
 ---
 
-# Migrate from Prometheus to {{< param "PRODUCT_NAME" >}}
+# Migrate from Prometheus to {{% param "PRODUCT_NAME" %}}
 
 The built-in {{< param "PRODUCT_ROOT_NAME" >}} convert command can migrate your [Prometheus][] configuration to a {{< param "PRODUCT_NAME" >}} configuration.
 

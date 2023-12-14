@@ -2,6 +2,7 @@ package convert_test
 
 import (
 	"context"
+	"encoding/json"
 	"testing"
 
 	"github.com/grafana/agent/component/otelcol/exporter/prometheus/internal/convert"
@@ -1133,6 +1134,201 @@ func TestConverter(t *testing.T) {
 
 			c := testappender.Comparer{OpenMetrics: tc.enableOpenMetrics}
 			require.NoError(t, c.Compare(families, tc.expect))
+		})
+	}
+}
+
+// Exponential histograms don't have a text format representation.
+// In this test we are comparing the JSON format.
+func TestConverterExponentialHistograms(t *testing.T) {
+	tt := []struct {
+		name   string
+		input  string
+		expect string
+	}{
+		{
+			name: "Exponential Histogram",
+			input: `{
+			"resource_metrics": [{
+				"scope_metrics": [{
+					"metrics": [{
+						"name": "test_exponential_histogram",
+						"exponential_histogram": {
+							"aggregation_temporality": 2,
+							"data_points": [{
+								"start_time_unix_nano": 1000000000,
+								"time_unix_nano": 1000000000,
+								"scale": 0,
+								"count": 11,
+								"sum": 158.63,
+								"positive": {
+									"offset": -1,
+									"bucket_counts": [2, 1, 3, 2, 0, 0, 3]
+								},
+								"exemplars":[
+									{
+										"time_unix_nano": 1000000001,
+										"as_double": 3.0,
+										"span_id": "aaaaaaaaaaaaaaaa",
+										"trace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+									},
+									{
+										"time_unix_nano": 1000000003,
+										"as_double": 1.0,
+										"span_id": "cccccccccccccccc",
+										"trace_id": "cccccccccccccccccccccccccccccccc"
+									},
+									{
+										"time_unix_nano": 1000000002,
+										"as_double": 1.5,
+										"span_id": "bbbbbbbbbbbbbbbb",
+										"trace_id": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+									}
+								]
+							}]
+						}
+					}]
+				}]
+			}]
+		}`,
+			// The tests only allow one exemplar/series because it uses a map[series]exemplar as storage. Therefore only the exemplar "bbbbbbbbbbbbbbbb" is stored.
+			expect: `{
+				"bucket": [
+				  {
+					"exemplar": {
+					  "label": [
+						{
+						  "name": "span_id",
+						  "value": "bbbbbbbbbbbbbbbb"
+						},
+						{
+						  "name": "trace_id",
+						  "value": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+						}
+					  ],
+					  "value": 1.5
+					}
+				  }
+				],
+				"positive_delta": [2, -1, 2, -1, -2, 0, 3],
+				"positive_span": [
+				  {
+					"length": 7,
+					"offset": 0
+				  }
+				],
+				"sample_count": 11,
+				"sample_sum": 158.63,
+				"schema": 0,
+				"zero_count": 0,
+				"zero_threshold": 1e-128
+			  }`,
+		},
+		{
+			name: "Exponential Histogram 2",
+			input: `{
+			"resource_metrics": [{
+				"scope_metrics": [{
+					"metrics": [{
+						"name": "test_exponential_histogram_2",
+						"exponential_histogram": {
+							"aggregation_temporality": 2,
+							"data_points": [{
+								"start_time_unix_nano": 1000000000,
+								"time_unix_nano": 1000000000,
+								"scale": 2,
+								"count": 19,
+								"sum": 200,
+								"zero_count" : 5,
+								"zero_threshold": 0.1,
+								"positive": {
+									"offset": 3,
+									"bucket_counts": [0, 0, 0, 0, 2, 1, 1, 0, 3, 0, 0]
+								},
+								"negative": {
+									"offset": 0,
+									"bucket_counts": [0, 4, 0, 2, 3, 0, 0, 3]
+								},
+								"exemplars":[
+									{
+										"time_unix_nano": 1000000001,
+										"as_double": 3.0,
+										"span_id": "aaaaaaaaaaaaaaaa",
+										"trace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+									}
+								]
+							}]
+						}
+					}]
+				}]
+			}]
+		}`,
+			// zero_threshold is set to 1e-128 because dp.ZeroThreshold() is not yet available.
+			expect: `{
+				"bucket": [
+				  {
+					"exemplar": {
+					  "label": [
+						{
+						  "name": "span_id",
+						  "value": "aaaaaaaaaaaaaaaa"
+						},
+						{
+						  "name": "trace_id",
+						  "value": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+						}
+					  ],
+					  "value": 3
+					}
+				  }
+				],
+				"negative_delta": [0, 4, -4, 2, 1, -3, 0, 3],
+				"negative_span": [
+				  {
+					"length": 8,
+					"offset": 1
+				  }
+				],
+				"positive_delta": [2, -1, 0, -1, 3, -3, 0],
+				"positive_span": [
+				  {
+					"length": 0,
+					"offset": 4
+				  },
+				  {
+					"length": 7,
+					"offset": 4
+				  }
+				],
+				"sample_count": 19,
+				"sample_sum": 200,
+				"schema": 2,
+				"zero_count": 5,
+				"zero_threshold": 1e-128
+			  }`,
+		},
+	}
+	decoder := &pmetric.JSONUnmarshaler{}
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			payload, err := decoder.UnmarshalMetrics([]byte(tc.input))
+			require.NoError(t, err)
+
+			var app testappender.Appender
+			l := util.TestLogger(t)
+			conv := convert.New(l, appenderAppendable{Inner: &app}, convert.Options{})
+			require.NoError(t, conv.ConsumeMetrics(context.Background(), payload))
+
+			families, err := app.MetricFamilies()
+			require.NoError(t, err)
+
+			require.NotEmpty(t, families)
+			require.NotNil(t, families[0])
+			require.NotEmpty(t, families[0].Metric)
+			require.NotNil(t, families[0].Metric[0].Histogram)
+			histJsonRep, err := json.Marshal(families[0].Metric[0].Histogram)
+			require.NoError(t, err)
+			require.JSONEq(t, string(histJsonRep), tc.expect)
 		})
 	}
 }
