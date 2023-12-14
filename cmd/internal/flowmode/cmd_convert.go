@@ -45,7 +45,8 @@ non-critical issues identified during the conversion where an
 output can still be generated.
 
 The -e flag can be used to pass extra arguments to the converter
-which were used by the original format.`,
+which were used by the original format. Multiple arguments can be passed
+by seperating them with a space.`,
 		Args:         cobra.RangeArgs(0, 1),
 		SilenceUsage: true,
 
@@ -75,7 +76,7 @@ which were used by the original format.`,
 	cmd.Flags().StringVarP(&f.report, "report", "r", f.report, "The filepath and filename where the report is written.")
 	cmd.Flags().StringVarP(&f.sourceFormat, "source-format", "f", f.sourceFormat, fmt.Sprintf("The format of the source file. Supported formats: %s.", supportedFormatsList()))
 	cmd.Flags().BoolVarP(&f.bypassErrors, "bypass-errors", "b", f.bypassErrors, "Enable bypassing errors when converting")
-	cmd.Flags().StringVarP(&f.extraArgs, "extra-args", "e", f.extraArgs, "Extra arguments from the original format used by the converter")
+	cmd.Flags().StringVarP(&f.extraArgs, "extra-args", "e", f.extraArgs, "Extra arguments from the original format used by the converter. Multiple arguments can be passed by seperating them with a space.")
 	return cmd
 }
 
