@@ -19,3 +19,4 @@ generate-cloudwatch-integration:
 
 sources/assets/hierarchy.svg: sources/operator/hierarchy.dot
 	cat $< | $(PODMAN) run --rm -i nshine/dot dot -Tsvg > $@
+  
