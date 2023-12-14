@@ -305,14 +305,14 @@ After the configuration is converted, review the {{< param "PRODUCT_NAME" >}} co
 
 Review the following checklist:
 
-* The following configuration options are not available for conversion to {{< param "PRODUCT_NAME" >}}: [Integrations next][], [Traces][], and [Agent Management][].
+* The following configuration options aren't available for conversion to {{< param "PRODUCT_NAME" >}}: [Integrations next][], [Traces][], and [Agent Management][].
   Any additional unsupported features are returned as errors during conversion.
 * There is no gRPC server to configure for {{< param "PRODUCT_NAME" >}}, as any non-default configuration will show as unsupported during the conversion.
 * Check if you are using any extra command line arguments with Static that aren't present in your configuration file. For example, `-server.http.address`.
-* Check if you are using any environment variables in your [Static] configuration.
-  These will be evaluated during conversion and you may want to replace them with the {{< param "PRODUCT_NAME" >}} Standard library [env] function after conversion.
-* Review additional [Prometheus Limitations] for limitations specific to your [Metrics] config.
-* Review additional [Promtail Limitations] for limitations specific to your [Logs] config.
+* Check if you are using any environment variables in your [Static][] configuration.
+  These will be evaluated during conversion and you may want to replace them with the {{< param "PRODUCT_NAME" >}} Standard library [env][] function after conversion.
+* Review additional [Prometheus Limitations][] for limitations specific to your [Metrics][] configuration.
+* Review additional [Promtail Limitations][] for limitations specific to your [Logs][] configuration.
 * The logs produced by {{< param "PRODUCT_NAME" >}} mode will differ from those produced by Static.
 * {{< param "PRODUCT_ROOT_NAME" >}} exposes the {{< param "PRODUCT_NAME" >}} [UI][].
 

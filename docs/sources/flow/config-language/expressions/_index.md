@@ -13,18 +13,20 @@ weight: 400
 
 # Expressions
 
-Expressions represent or compute values that can be assigned to attributes
-within a configuration.
+Expressions represent or compute values you can assign to attributes within a configuration.
 
 Basic expressions are literal values, like `"Hello, world!"` or `true`.
-Expressions may also do things like [refer to values][] exported by components,
-perform arithmetic, or [call functions][].
+Expressions may also do things like [refer to values][] exported by components, perform arithmetic, or [call functions][].
 
-Expressions can be used when configuring any component. As all component
-arguments have an underlying [type][], River will type-check expressions before
-assigning the result to an attribute.
+You use expressions when you configure any component.
+All component arguments have an underlying [type][].
+River checks the expression type before assigning the result to an attribute.
 
-[refer to values]: {{< relref "./referencing_exports.md" >}}
-[call functions]: {{< relref "./function_calls.md" >}}
-[type]: {{< relref "./types_and_values.md" >}}
-
+{{% docs/reference %}}
+[refer to values]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/config-language/expressions/referencing_exports"
+[refer to values]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/config-language/expressions/referencing_exports"
+[call functions]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/config-language/expressions/function_calls"
+[call functions]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/config-language/expressions/function_calls"
+[type]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/config-language/expressions/types_and_values"
+[type]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/config-language/expressions/types_and_values"
+{{% /docs/reference %}}
