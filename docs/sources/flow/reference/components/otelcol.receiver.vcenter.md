@@ -28,7 +28,7 @@ different labels.
 
 The full list of metrics that can be collected can be found in [vcenter receiver documentation][vcenter metrics].
 
-[vcenter metrics]: https://github.com/open-telemetry/opentelemetry-collector/blob/{{< param "OTEL_VERSION" >}}/receiver/vcenterreceiver/documentation.md
+[vcenter metrics]: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/{{< param "OTEL_VERSION" >}}/receiver/vcenterreceiver/documentation.md
 
 ## Prerequisites
 
