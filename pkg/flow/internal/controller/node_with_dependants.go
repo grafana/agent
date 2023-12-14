@@ -6,7 +6,7 @@ import (
 	"github.com/grafana/agent/component"
 )
 
-// TODO: Comments
+// NodeWithDependants must be implemented by nodes which can trigger other nodes to be evaluated.
 type NodeWithDependants interface {
 	BlockNode
 

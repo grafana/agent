@@ -59,6 +59,7 @@ type DeclareComponentNode struct {
 }
 
 var _ NodeWithDependants = (*DeclareComponentNode)(nil)
+var _ UINode = (*ComponentNode)(nil)
 
 // NewDeclareComponentNode creates a new DeclareComponentNode from an initial ast.BlockStmt.
 // The underlying managed module isn't created until Evaluate is called.
@@ -100,7 +101,7 @@ func NewDeclareComponentNode(globals ComponentGlobals, b *ast.BlockStmt, getModu
 		globalID:          globalID,
 		label:             b.Label,
 		nodeID:            nodeID,
-		componentName:     strings.Join(b.Name, "."),
+		componentName:     b.GetBlockName(),
 		namespace:         namespace,
 		moduleName:        moduleName,
 		moduleController:  globals.NewModuleController(globalID),
@@ -337,4 +338,14 @@ func (cn *DeclareComponentNode) setRunHealth(t component.HealthType, msg string)
 // managing.
 func (cn *DeclareComponentNode) ModuleIDs() []string {
 	return cn.moduleController.ModuleIDs()
+}
+
+// BlockName returns the name of the block.
+func (cn *DeclareComponentNode) BlockName() string {
+	return cn.componentName
+}
+
+// This node does not manage any component.
+func (cn *DeclareComponentNode) Component() component.Component {
+	return nil
 }

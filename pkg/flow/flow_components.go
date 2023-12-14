@@ -29,9 +29,9 @@ func (f *Flow) GetComponent(id component.ID, opts component.InfoOptions) (*compo
 		return nil, component.ErrComponentNotFound
 	}
 
-	cn, ok := node.(*controller.ComponentNode)
+	cn, ok := node.(controller.UINode)
 	if !ok {
-		return nil, fmt.Errorf("%q is not a component", id)
+		return nil, fmt.Errorf("%q is not a UINode", id)
 	}
 
 	return f.getComponentDetail(cn, graph, opts), nil
@@ -52,19 +52,30 @@ func (f *Flow) ListComponents(moduleID string, opts component.InfoOptions) ([]*c
 	}
 
 	var (
-		components = f.loader.Components()
-		// TODO: add declare components & imports
-		graph = f.loader.OriginalGraph()
+		components        = f.loader.Components()
+		imports           = f.loader.Imports()
+		declareComponents = f.loader.DeclareComponent()
+		graph             = f.loader.OriginalGraph()
 	)
 
-	detail := make([]*component.Info, len(components))
-	for i, component := range components {
-		detail[i] = f.getComponentDetail(component, graph, opts)
+	detail := make([]*component.Info, len(components)+len(imports)+len(declareComponents))
+	idx := 0
+	for _, component := range components {
+		detail[idx] = f.getComponentDetail(component, graph, opts)
+		idx++
+	}
+	for _, importNode := range imports {
+		detail[idx] = f.getComponentDetail(importNode, graph, opts)
+		idx++
+	}
+	for _, declareComponent := range declareComponents {
+		detail[idx] = f.getComponentDetail(declareComponent, graph, opts)
+		idx++
 	}
 	return detail, nil
 }
 
-func (f *Flow) getComponentDetail(cn *controller.ComponentNode, graph *dag.Graph, opts component.InfoOptions) *component.Info {
+func (f *Flow) getComponentDetail(cn controller.UINode, graph *dag.Graph, opts component.InfoOptions) *component.Info {
 	var references, referencedBy []string
 
 	// Skip over any edge which isn't between two component nodes. This is a
@@ -76,12 +87,12 @@ func (f *Flow) getComponentDetail(cn *controller.ComponentNode, graph *dag.Graph
 	//
 	// TODO(rfratto): add support for config block nodes in the API and UI.
 	for _, dep := range graph.Dependencies(cn) {
-		if _, ok := dep.(*controller.ComponentNode); ok {
+		if _, ok := dep.(controller.UINode); ok {
 			references = append(references, dep.NodeID())
 		}
 	}
 	for _, dep := range graph.Dependants(cn) {
-		if _, ok := dep.(*controller.ComponentNode); ok {
+		if _, ok := dep.(controller.UINode); ok {
 			referencedBy = append(referencedBy, dep.NodeID())
 		}
 	}
@@ -120,8 +131,8 @@ func (f *Flow) getComponentDetail(cn *controller.ComponentNode, graph *dag.Graph
 		References:   references,
 		ReferencedBy: referencedBy,
 
-		Registration: cn.Registration(),
-		Health:       health,
+		BlockName: cn.BlockName(),
+		Health:    health,
 
 		Arguments: arguments,
 		Exports:   exports,

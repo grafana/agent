@@ -48,6 +48,7 @@ type ImportFileConfigNode struct {
 
 var _ NodeWithDependants = (*ImportFileConfigNode)(nil)
 var _ RunnableNode = (*ImportFileConfigNode)(nil)
+var _ UINode = (*ComponentNode)(nil)
 
 // NewImportFileConfigNode creates a new ImportFileConfigNode from an initial ast.BlockStmt.
 // The underlying config isn't applied until Evaluate is called.
@@ -280,4 +281,47 @@ func (cn *ImportFileConfigNode) ID() ComponentID { return cn.id }
 
 func (cn *ImportFileConfigNode) LastUpdateTime() time.Time {
 	return cn.lastUpdateTime.Load()
+}
+
+// Arguments returns the current arguments of the managed component.
+func (cn *ImportFileConfigNode) Arguments() component.Arguments {
+	cn.mut.RLock()
+	defer cn.mut.RUnlock()
+	return cn.argument
+}
+
+// Component returns the instance of the managed component. Component may be
+// nil if the ComponentNode has not been successfully evaluated yet.
+func (cn *ImportFileConfigNode) Component() component.Component {
+	cn.mut.RLock()
+	defer cn.mut.RUnlock()
+	return cn.fileComponent
+}
+
+// CurrentHealth returns the current health of the ComponentNode.
+//
+// The health of a ComponentNode is determined by combining:
+//
+//  1. Health from the call to Run().
+//  2. Health from the last call to Evaluate().
+//  3. Health reported from the component.
+func (cn *ImportFileConfigNode) CurrentHealth() component.Health {
+	cn.healthMut.RLock()
+	defer cn.healthMut.RUnlock()
+	return component.LeastHealthy(cn.runHealth, cn.evalHealth, cn.fileComponent.CurrentHealth())
+}
+
+// FileComponent does not have DebugInfo
+func (cn *ImportFileConfigNode) DebugInfo() interface{} {
+	return nil
+}
+
+// This component does not manage modules.
+func (cn *ImportFileConfigNode) ModuleIDs() []string {
+	return nil
+}
+
+// BlockName returns the name of the block.
+func (cn *ImportFileConfigNode) BlockName() string {
+	return cn.componentName
 }
