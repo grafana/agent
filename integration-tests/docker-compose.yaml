@@ -30,3 +30,10 @@ services:
       context: ..
     ports:
       - "9001:9001"
+  
+  http-module:
+    build:
+      dockerfile: ./integration-tests/configs/http-module/Dockerfile
+      context: ..
+    ports:
+      - "8090:8090"

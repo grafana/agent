@@ -11,7 +11,6 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/component"
-	"github.com/grafana/agent/component/local/file"
 	importsource "github.com/grafana/agent/pkg/flow/internal/import-source"
 	"github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/grafana/agent/pkg/flow/tracing"
@@ -79,7 +78,7 @@ func NewImportConfigNode(block *ast.BlockStmt, globals ComponentGlobals, sourceT
 	}
 	managedOpts := getImportManagedOptions(globals, cn)
 	cn.logger = managedOpts.Logger
-	cn.source = importsource.CreateImportSource(sourceType, managedOpts, vm.New(block.Body))
+	cn.source = importsource.NewImportSource(sourceType, managedOpts, vm.New(block.Body), cn.onContentUpdate)
 	return cn
 }
 
@@ -94,8 +93,6 @@ func getImportManagedOptions(globals ComponentGlobals, cn *ImportConfigNode) com
 		Tracer: tracing.WrapTracer(globals.TraceProvider, cn.globalID),
 
 		DataPath: filepath.Join(globals.DataPath, cn.globalID),
-
-		OnStateChange: cn.onContentUpdate,
 
 		GetServiceData: func(name string) (interface{}, error) {
 			return globals.GetServiceData(name)
@@ -139,12 +136,11 @@ func (cn *ImportConfigNode) evaluate(scope *vm.Scope) error {
 	return cn.source.Evaluate(scope)
 }
 
-func (cn *ImportConfigNode) onContentUpdate(e component.Exports) {
+func (cn *ImportConfigNode) onContentUpdate(content string) {
 	cn.importedContentMut.Lock()
 	defer cn.importedContentMut.Unlock()
-	fileContent := e.(file.Exports).Content.Value
 	cn.importedContent = make(map[string]string)
-	node, err := parser.ParseFile(cn.label, []byte(fileContent))
+	node, err := parser.ParseFile(cn.label, []byte(content))
 	if err != nil {
 		level.Error(cn.logger).Log("msg", "failed to parse file on update", "err", err)
 		return
@@ -159,7 +155,7 @@ func (cn *ImportConfigNode) onContentUpdate(e component.Exports) {
 					level.Error(cn.logger).Log("msg", "declare block redefined", "name", stmt.Label)
 					continue
 				}
-				cn.importedContent[stmt.Label] = fileContent[stmt.LCurlyPos.Position().Offset+1 : stmt.RCurlyPos.Position().Offset-1]
+				cn.importedContent[stmt.Label] = content[stmt.LCurlyPos.Position().Offset+1 : stmt.RCurlyPos.Position().Offset-1]
 			default:
 				level.Error(cn.logger).Log("msg", "only declare blocks are allowed in a module", "forbidden", fullName)
 			}

@@ -12,7 +12,7 @@ import (
 const promURL = "http://localhost:9009/prometheus/api/v1/query?query="
 
 func metricQuery(metricName string) string {
-	return fmt.Sprintf("%s%s{test_name='scrape_prom_metrics_modules'}", promURL, metricName)
+	return fmt.Sprintf("%s%s{test_name='scrape_prom_metrics_module_file'}", promURL, metricName)
 }
 
 func TestScrapePromMetricsModules(t *testing.T) {
@@ -45,7 +45,7 @@ func assertHistogramData(t *testing.T, query string, expectedMetric string) {
 		assert.NoError(c, err)
 		if assert.NotEmpty(c, metricResponse.Data.Result) {
 			assert.Equal(c, metricResponse.Data.Result[0].Metric.Name, expectedMetric)
-			assert.Equal(c, metricResponse.Data.Result[0].Metric.TestName, "scrape_prom_metrics_modules")
+			assert.Equal(c, metricResponse.Data.Result[0].Metric.TestName, "scrape_prom_metrics_module_file")
 			if assert.NotNil(c, metricResponse.Data.Result[0].Histogram) {
 				histogram := metricResponse.Data.Result[0].Histogram
 				if assert.NotEmpty(c, histogram.Data.Count) {
@@ -70,7 +70,7 @@ func assertMetricData(t *testing.T, query, expectedMetric string) {
 		assert.NoError(c, err)
 		if assert.NotEmpty(c, metricResponse.Data.Result) {
 			assert.Equal(c, metricResponse.Data.Result[0].Metric.Name, expectedMetric)
-			assert.Equal(c, metricResponse.Data.Result[0].Metric.TestName, "scrape_prom_metrics_modules")
+			assert.Equal(c, metricResponse.Data.Result[0].Metric.TestName, "scrape_prom_metrics_module_file")
 			assert.NotEmpty(c, metricResponse.Data.Result[0].Value.Value)
 			assert.Nil(c, metricResponse.Data.Result[0].Histogram)
 		}

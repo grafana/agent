@@ -12,6 +12,7 @@ type SourceType int
 
 const (
 	FILE SourceType = iota
+	HTTP
 	GIT
 )
 
@@ -24,11 +25,12 @@ type ImportSource interface {
 	Arguments() component.Arguments
 }
 
-func CreateImportSource(sourceType SourceType, managedOpts component.Options, eval *vm.Evaluator) ImportSource {
+func NewImportSource(sourceType SourceType, managedOpts component.Options, eval *vm.Evaluator, onContentChange func(string)) ImportSource {
 	switch sourceType {
 	case FILE:
-		return NewImportFile(managedOpts, eval)
-		// add other cases
+		return NewImportFile(managedOpts, eval, onContentChange)
+	case HTTP:
+		return NewImportHTTP(managedOpts, eval, onContentChange)
 	}
 	// This is a programming error, not a config error so this is ok to panic.
 	panic(fmt.Errorf("unsupported source type: %v", sourceType))

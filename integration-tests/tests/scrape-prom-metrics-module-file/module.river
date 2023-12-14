@@ -8,7 +8,7 @@ declare "myModule" {
     default  = "1s"
   }
 
-  prometheus.scrape "scrape_prom_metrics_modules" {
+  prometheus.scrape "scrape_prom_metrics_module_file" {
     targets = [
       {"__address__" = argument.scrape_endpoint.value},
     ]
