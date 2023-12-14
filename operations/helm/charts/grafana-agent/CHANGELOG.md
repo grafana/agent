@@ -13,6 +13,7 @@ Unreleased
 ### Enhancements
 
 - Update `rbac` to include necessary rules for the `otelcol.processor.k8sattributes` component. (@rlankfo)
+- Add support for global imagePullSecrets values
 
 0.29.0 (2023-11-30)
 -------------------
