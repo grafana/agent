@@ -329,7 +329,7 @@ Configuration conversion is done on a best-effort basis. {{< param "PRODUCT_ROOT
 
 After the configuration is converted, review the {{< param "PRODUCT_NAME" >}} configuration file and verify that it's correct before starting to use it in a production environment.
 
-Review the following checklist:
+This following list of limitations is specific to the converter tooling and not {{< param "PRODUCT_NAME" >}}:
 
 * The following configuration options are not available for conversion to {{< param "PRODUCT_NAME" >}}: [Traces][] and [Agent Management][].
   Any additional unsupported features are returned as errors during conversion.
