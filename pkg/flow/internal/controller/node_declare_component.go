@@ -264,7 +264,6 @@ func (cn *DeclareComponentNode) LastUpdateTime() time.Time {
 // setExports is called whenever the managed module updates. e must be the
 // same type as the registered exports type of the managed module.
 func (cn *DeclareComponentNode) setExports(e component.Exports) {
-
 	// Some components may aggressively reexport values even though no exposed
 	// state has changed. This may be done for components which always supply
 	// exports whenever their arguments are evaluated without tracking internal

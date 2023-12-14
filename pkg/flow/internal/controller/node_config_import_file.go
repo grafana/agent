@@ -196,7 +196,7 @@ func (cn *ImportFileConfigNode) onFileContentUpdate(e component.Exports) {
 					level.Error(logger).Log("msg", "declare block redefined", "name", stmt.Label)
 					continue
 				}
-				cn.importedContent[stmt.Label] = string(fileContent[stmt.LCurlyPos.Position().Offset+1 : stmt.RCurlyPos.Position().Offset-1])
+				cn.importedContent[stmt.Label] = fileContent[stmt.LCurlyPos.Position().Offset+1 : stmt.RCurlyPos.Position().Offset-1]
 			default:
 				level.Error(logger).Log("msg", "only declare blocks are allowed in a module", "forbidden", fullName)
 			}

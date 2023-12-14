@@ -145,7 +145,7 @@ func (l *Loader) Apply(args map[string]any, componentBlocks []*ast.BlockStmt, co
 		components            = make([]*ComponentNode, 0, len(componentBlocks))
 		componentIDs          = make([]ComponentID, 0, len(componentBlocks))
 		services              = make([]*ServiceNode, 0, len(l.services))
-		declareComponentNodes = make([]*DeclareComponentNode, 0, 0)
+		declareComponentNodes = make([]*DeclareComponentNode, 0, len(l.declareComponentNodes))
 	)
 
 	tracer := l.tracer.Tracer("")
