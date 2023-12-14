@@ -6,6 +6,7 @@ import (
 
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/model/exemplar"
+	"github.com/prometheus/prometheus/model/histogram"
 	"github.com/prometheus/prometheus/model/labels"
 	"github.com/prometheus/prometheus/model/metadata"
 	"github.com/prometheus/prometheus/model/timestamp"
@@ -111,6 +112,17 @@ func (series *memorySeries) WriteExemplarsTo(app storage.Appender, e exemplar.Ex
 	defer series.Unlock()
 
 	if _, err := app.AppendExemplar(series.id, series.labels, e); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (series *memorySeries) WriteNativeHistogramTo(app storage.Appender, ts time.Time, h *histogram.Histogram, fh *histogram.FloatHistogram) error {
+	series.Lock()
+	defer series.Unlock()
+
+	if _, err := app.AppendHistogram(series.id, series.labels, timestamp.FromTime(ts), h, fh); err != nil {
 		return err
 	}
 

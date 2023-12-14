@@ -74,7 +74,6 @@ are forwarded to the `forward_to` argument.
 The following are dropped during the conversion process:
 
 * Metrics that use the delta aggregation temporality
-* ExponentialHistogram data points
 
 ## Component health
 

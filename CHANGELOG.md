@@ -142,6 +142,8 @@ v0.38.0 (2023-11-21)
 
 - Added support for python profiling to `pyroscope.ebpf` component. (@korniltsev)
 
+- Added support for native Prometheus histograms to `otelcol.exporter.prometheus` (@wildum)
+
 - Windows Flow Installer: Add /CONFIG /DISABLEPROFILING and /DISABLEREPORTING flag (@jkroepke)
 
 - Add queueing logs remote write client for `loki.write` when WAL is enabled. (@thepalbi)
