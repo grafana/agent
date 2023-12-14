@@ -11,7 +11,7 @@ title: Migrate from Promtail to Grafana Agent Flow
 weight: 330
 ---
 
-# Migrate from Promtail to {{< param "PRODUCT_NAME" >}}
+# Migrate from Promtail to {{% param "PRODUCT_NAME" %}}
 
 The built-in {{< param "PRODUCT_ROOT_NAME" >}} convert command can migrate your [Promtail][] configuration to a {{< param "PRODUCT_NAME" >}} configuration.
 
