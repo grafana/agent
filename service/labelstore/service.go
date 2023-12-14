@@ -77,9 +77,9 @@ func (s *service) Collect(m chan<- prometheus.Metric) {
 	s.mut.Lock()
 	defer s.mut.Unlock()
 
-	m <- prometheus.MustNewConstMetric(s.totalIDs, prometheus.CounterValue, float64(len(s.labelsHashToGlobal)))
+	m <- prometheus.MustNewConstMetric(s.totalIDs, prometheus.GaugeValue, float64(len(s.labelsHashToGlobal)))
 	for name, rw := range s.mappings {
-		m <- prometheus.MustNewConstMetric(s.idsInRemoteWrapping, prometheus.CounterValue, float64(len(rw.globalToLocal)), name)
+		m <- prometheus.MustNewConstMetric(s.idsInRemoteWrapping, prometheus.GaugeValue, float64(len(rw.globalToLocal)), name)
 	}
 }
 
