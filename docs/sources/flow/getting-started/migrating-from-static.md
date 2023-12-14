@@ -299,7 +299,7 @@ loki.write "logs_varlogs" {
 
 ## Integrations Next
 
-[Integrations next][] configs can be converter or run by adding the `extra-args` flag for [convert][] or `config.extra-args` for [run][].
+You can convert [integrations next][] configurations by adding the `extra-args` flag for [convert][] or `config.extra-args` for [run][].
 
 {{< code >}}
 
