@@ -12,6 +12,12 @@ Main (unreleased)
 
 ### Breaking changes
 
+- `otelcol.receiver.prometheus` will drop all `otel_scope_info` metrics when converting them to OTLP. (@wildum)
+  - If the `otel_scope_info` metric has labels `otel_scope_name` and `otel_scope_version`,
+    their values will be used to set OTLP Instrumentation Scope name and  version respectively. 
+  - Labels of `otel_scope_info` metrics other than `otel_scope_name` and `otel_scope_version` 
+    are added as scope attributes with the matching name and version.
+
 - The `target` block in `prometheus.exporter.blackbox` requires a mandatory `name`
   argument instead of a block label. (@hainenber)
 
@@ -39,6 +45,9 @@ Main (unreleased)
 
 - `pyroscope.ebpf` support python on arm64 platforms. (@korniltsev)
 
+- `otelcol.receiver.prometheus` does not drop histograms without buckets anymore. (@wildum)
+
+- Added exemplars support to `otelcol.receiver.prometheus`. (@wildum)
 - `mimir.rules.kubernetes` may now retry its startup on failure. (@hainenber)
 
 - Added links between compatible components in the documentation to make it
