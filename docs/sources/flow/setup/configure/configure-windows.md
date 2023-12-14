@@ -11,7 +11,7 @@ title: Configure Grafana Agent Flow on Windows
 weight: 500
 ---
 
-# Configure {{< param "PRODUCT_NAME" >}} on Windows
+# Configure {{% param "PRODUCT_NAME" %}} on Windows
 
 To configure {{< param "PRODUCT_NAME" >}} on Windows, perform the following steps:
 

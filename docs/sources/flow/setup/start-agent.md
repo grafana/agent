@@ -11,7 +11,7 @@ title: Start, restart, and stop Grafana Agent Flow
 weight: 800
 ---
 
-# Start, restart, and stop {{< param "PRODUCT_NAME" >}}
+# Start, restart, and stop {{% param "PRODUCT_NAME" %}}
 
 You can start, restart, and stop {{< param "PRODUCT_NAME" >}} after it is installed.
 
@@ -21,7 +21,7 @@ You can start, restart, and stop {{< param "PRODUCT_NAME" >}} after it is instal
 
 [systemd]: https://systemd.io/
 
-### Start {{< param "PRODUCT_NAME" >}}
+### Start {{% param "PRODUCT_NAME" %}}
 
 To start {{< param "PRODUCT_NAME" >}}, run the following command in a terminal window:
 
@@ -35,7 +35,7 @@ sudo systemctl start grafana-agent-flow
 sudo systemctl status grafana-agent-flow
 ```
 
-### Configure {{< param "PRODUCT_NAME" >}} to start at boot
+### Configure {{% param "PRODUCT_NAME" %}} to start at boot
 
 To automatically run {{< param "PRODUCT_NAME" >}} when the system starts, run the following command in a terminal window:
 
@@ -43,7 +43,7 @@ To automatically run {{< param "PRODUCT_NAME" >}} when the system starts, run th
 sudo systemctl enable grafana-agent-flow.service
 ```
 
-### Restart {{< param "PRODUCT_NAME" >}}
+### Restart {{% param "PRODUCT_NAME" %}}
 
 To restart {{< param "PRODUCT_NAME" >}}, run the following command in a terminal window:
 
@@ -51,7 +51,7 @@ To restart {{< param "PRODUCT_NAME" >}}, run the following command in a terminal
 sudo systemctl restart grafana-agent-flow
 ```
 
-### Stop {{< param "PRODUCT_NAME" >}}
+### Stop {{% param "PRODUCT_NAME" %}}
 
 To stop {{< param "PRODUCT_NAME" >}}, run the following command in a terminal window:
 
@@ -59,7 +59,7 @@ To stop {{< param "PRODUCT_NAME" >}}, run the following command in a terminal wi
 sudo systemctl stop grafana-agent-flow
 ```
 
-### View {{< param "PRODUCT_NAME" >}} logs on Linux
+### View {{% param "PRODUCT_NAME" %}} logs on Linux
 
 To view {{< param "PRODUCT_NAME" >}} log files, run the following command in a terminal window:
 
@@ -71,7 +71,7 @@ sudo journalctl -u grafana-agent-flow
 
 {{< param "PRODUCT_NAME" >}} is installed as a launchd service on macOS.
 
-### Start {{< param "PRODUCT_NAME" >}}
+### Start {{% param "PRODUCT_NAME" %}}
 
 To start {{< param "PRODUCT_NAME" >}}, run the following command in a terminal window:
 
@@ -87,7 +87,7 @@ brew services start grafana-agent-flow
 brew services info grafana-agent-flow
 ```
 
-### Restart {{< param "PRODUCT_NAME" >}}
+### Restart {{% param "PRODUCT_NAME" %}}
 
 To restart {{< param "PRODUCT_NAME" >}}, run the following command in a terminal window:
 
@@ -95,7 +95,7 @@ To restart {{< param "PRODUCT_NAME" >}}, run the following command in a terminal
 brew services restart grafana-agent-flow
 ```
 
-### Stop {{< param "PRODUCT_NAME" >}}
+### Stop {{% param "PRODUCT_NAME" %}}
 
 To stop {{< param "PRODUCT_NAME" >}}, run the following command in a terminal window:
 
@@ -103,7 +103,7 @@ To stop {{< param "PRODUCT_NAME" >}}, run the following command in a terminal wi
 brew services stop grafana-agent-flow
 ```
 
-### View {{< param "PRODUCT_NAME" >}} logs on macOS
+### View {{% param "PRODUCT_NAME" %}} logs on macOS
 
 By default, logs are written to `$(brew --prefix)/var/log/grafana-agent-flow.log` and
 `$(brew --prefix)/var/log/grafana-agent-flow.err.log`.
@@ -125,7 +125,7 @@ To verify that {{< param "PRODUCT_NAME" >}} is running as a Windows Service:
 
 1. Scroll down to find the **{{< param "PRODUCT_NAME" >}}** service and verify that the **Status** is **Running**.
 
-### View {{< param "PRODUCT_NAME" >}} logs
+### View {{% param "PRODUCT_NAME" %}} logs
 
 When running on Windows, {{< param "PRODUCT_NAME" >}} writes its logs to Windows Event
 Logs with an event source name of **{{< param "PRODUCT_NAME" >}}**.
@@ -146,7 +146,7 @@ To view the logs, perform the following steps:
 
 If you downloaded the standalone binary, you must run {{< param "PRODUCT_NAME" >}} from a terminal or command window.
 
-### Start {{< param "PRODUCT_NAME" >}} on Linux, macOS, or FreeBSD
+### Start {{% param "PRODUCT_NAME" %}} on Linux, macOS, or FreeBSD
 
 To start {{< param "PRODUCT_NAME" >}} on Linux, macOS, or FreeBSD, run the following command in a terminal window:
 
@@ -159,7 +159,7 @@ Replace the following:
 * _`<BINARY_PATH>`_: The path to the {{< param "PRODUCT_NAME" >}} binary file.
 * _`<CONFIG_PATH>`_: The path to the {{< param "PRODUCT_NAME" >}} configuration file.
 
-### Start {{< param "PRODUCT_NAME" >}} on Windows
+### Start {{% param "PRODUCT_NAME" %}} on Windows
 
 To start {{< param "PRODUCT_NAME" >}} on Windows, run the following commands in a command prompt:
 
@@ -173,7 +173,7 @@ Replace the following:
 * _`<BINARY_PATH>`_: The path to the {{< param "PRODUCT_NAME" >}} binary file.
 * _`<CONFIG_PATH>`_: The path to the {{< param "PRODUCT_NAME" >}} configuration file.
 
-### Set up {{< param "PRODUCT_NAME" >}} as a Linux systemd service
+### Set up {{% param "PRODUCT_NAME" %}} as a Linux systemd service
 
 You can set up and manage the standalone binary for {{< param "PRODUCT_NAME" >}} as a Linux systemd service.
 

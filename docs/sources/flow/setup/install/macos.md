@@ -12,7 +12,7 @@ title: Install Grafana Agent Flow on macOS
 weight: 400
 ---
 
-# Install {{< param "PRODUCT_NAME" >}} on macOS
+# Install {{% param "PRODUCT_NAME" %}} on macOS
 
 You can install {{< param "PRODUCT_NAME" >}} on macOS with Homebrew .
 

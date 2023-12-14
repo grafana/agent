@@ -11,7 +11,7 @@ title: Configure Grafana Agent Flow
 weight: 150
 ---
 
-# Configure {{< param "PRODUCT_NAME" >}}
+# Configure {{% param "PRODUCT_NAME" %}}
 
 You can configure {{< param "PRODUCT_NAME" >}} after it is installed. The default River configuration file for {{< param "PRODUCT_NAME" >}} is located at:
 

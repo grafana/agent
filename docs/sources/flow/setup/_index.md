@@ -11,7 +11,7 @@ title: Set up Grafana Agent Flow
 weight: 50
 ---
 
-# Set up {{< param "PRODUCT_NAME" >}}
+# Set up {{% param "PRODUCT_NAME" %}}
 
 This section includes information that helps you install and configure {{< param "PRODUCT_NAME" >}}.
 

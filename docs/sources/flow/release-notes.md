@@ -12,7 +12,7 @@ title: Release notes for Grafana Agent Flow
 weight: 999
 ---
 
-# Release notes for {{< param "PRODUCT_NAME" >}}
+# Release notes for {{% param "PRODUCT_NAME" %}}
 
 The release notes provide information about deprecations and breaking changes in {{< param "PRODUCT_NAME" >}}.
 
@@ -372,7 +372,7 @@ The change was made in PR [#18070](https://github.com/open-telemetry/opentelemet
 The `remote_sampling` block in `otelcol.receiver.jaeger` has been an undocumented no-op configuration for some time, and has now been removed.
 Customers are advised to use `otelcol.extension.jaeger_remote_sampling` instead.
 
-### Deprecation: `otelcol.exporter.jaeger` has been deprecated and will be removed in {{< param "PRODUCT_NAME" >}} v0.38.0.
+### Deprecation: `otelcol.exporter.jaeger` has been deprecated and will be removed in {{% param "PRODUCT_NAME" %}} v0.38.0.
 
 This is because Jaeger supports OTLP directly and OpenTelemetry Collector is also removing its
 [Jaeger receiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/jaegerexporter).

@@ -12,7 +12,7 @@ title: Get started with Grafana Agent Flow
 weight: 200
 ---
 
-# Get started with {{< param "PRODUCT_NAME" >}}
+# Get started with {{% param "PRODUCT_NAME" %}}
 
 This section details guides for getting started with {{< param "PRODUCT_NAME" >}}.
 

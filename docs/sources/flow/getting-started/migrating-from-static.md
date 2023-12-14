@@ -11,7 +11,7 @@ title: Migrate Grafana Agent Static to Grafana Agent Flow
 weight: 340
 ---
 
-# Migrate from {{< param "PRODUCT_ROOT_NAME" >}} Static to {{< param "PRODUCT_NAME" >}}
+# Migrate from {{% param "PRODUCT_ROOT_NAME" %}} Static to {{% param "PRODUCT_NAME" %}}
 
 The built-in {{< param "PRODUCT_ROOT_NAME" >}} convert command can migrate your [Static][] configuration to a {{< param "PRODUCT_NAME" >}} configuration.
 

@@ -12,7 +12,7 @@ title: Deploy Grafana Agent Flow on Kubernetes
 weight: 200
 ---
 
-# Deploy {{< param "PRODUCT_NAME" >}} on Kubernetes
+# Deploy {{% param "PRODUCT_NAME" %}} on Kubernetes
 
 {{< param "PRODUCT_NAME" >}} can be deployed on Kubernetes by using the Helm chart for {{< param "PRODUCT_ROOT_NAME" >}}.
 
