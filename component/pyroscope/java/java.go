@@ -23,6 +23,10 @@ func init() {
 		Args: Arguments{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
+			err := profiler.Extract()
+			if err != nil {
+				return nil, fmt.Errorf("extract async profiler: %w", err)
+			}
 			a := args.(Arguments)
 			flowAppendable := pyroscope.NewFanout(a.ForwardTo, opts.ID, opts.Registerer)
 			c := &javaComponent{
@@ -47,7 +51,7 @@ type javaComponent struct {
 	forwardTo *pyroscope.Fanout
 
 	mutex       sync.Mutex
-	pid2process map[int]*process
+	pid2process map[int]*profilingLoop
 }
 
 func (j *javaComponent) Run(ctx context.Context) error {
@@ -96,7 +100,7 @@ func (j *javaComponent) updateTargets(targets []discovery.Target) {
 		if _, ok := active[pid]; ok {
 			continue
 		}
-		j.pid2process[pid].stop()
+		j.pid2process[pid].Close()
 		delete(j.pid2process, pid)
 	}
 }
@@ -105,7 +109,7 @@ func (j *javaComponent) stop() {
 	j.mutex.Lock()
 	defer j.mutex.Unlock()
 	for _, proc := range j.pid2process {
-		proc.stop()
+		proc.Close()
 		delete(j.pid2process, proc.pid)
 	}
 }
