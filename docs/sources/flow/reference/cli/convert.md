@@ -104,11 +104,11 @@ Using the `--source-format=static` will convert the source configuration from a
 [Grafana Agent Static]({{< relref "../../../static" >}}) configuration to a {{< param "PRODUCT_NAME" >}} configuration.
 
 Include `--extra-args` for passing additional command line flags from the original format.
-For example, `--extra-args="-enable-features=integrations-next"` will convert a static
+For example, `--extra-args="-enable-features=integrations-next"` will convert a Grafana Agent Static
 [integrations-next]({{< relref "../../../static/configuration/integrations/integrations-next/" >}})
 configuration to a {{< param "PRODUCT_NAME" >}} configuration. You can also
-expand env vars by including the `--extra-args="-config.expand-env"`. Multiple command line
-flags can be combined with a space between, such as `--extra-args="-enable-features=integrations-next -config.expand-env"`.
+expand environment variables with `--extra-args="-config.expand-env"`. You can combine multiple command line
+flags with a space between each flag, for example `--extra-args="-enable-features=integrations-next -config.expand-env"`.
 
 If you have unsupported features in a Static mode source configuration, you will receive [errors][] when you convert to a Flow mode configuration. The converter will
 also raise warnings for configuration options that may require your attention.
