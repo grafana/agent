@@ -12,7 +12,7 @@ title: Run Grafana Agent Flow in a Docker container
 weight: 100
 ---
 
-# Run {{< param "PRODUCT_NAME" >}} in a Docker container
+# Run {{% param "PRODUCT_NAME" %}} in a Docker container
 
 {{< param "PRODUCT_NAME" >}} is available as a Docker container image on the following platforms:
 
