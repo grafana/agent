@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 
 	"github.com/grafana/agent/converter"
 	convert_diag "github.com/grafana/agent/converter/diag"
@@ -119,7 +120,12 @@ func convert(r io.Reader, fc *flowConvert) error {
 		return err
 	}
 
-	riverBytes, diags := converter.Convert(inputBytes, converter.Input(fc.sourceFormat), parseExtraArgs(fc.extraArgs))
+	ea, err := parseExtraArgs(fc.extraArgs)
+	if err != nil {
+		return err
+	}
+
+	riverBytes, diags := converter.Convert(inputBytes, converter.Input(fc.sourceFormat), ea)
 	err = generateConvertReport(diags, fc)
 	if err != nil {
 		return err
@@ -182,14 +188,34 @@ func supportedFormatsList() string {
 	return strings.Join(ret, ", ")
 }
 
-func parseExtraArgs(extraArgs string) []string {
+func parseExtraArgs(extraArgs string) ([]string, error) {
 	var result []string
-	if extraArgs != "" {
-		arguments := strings.Fields(extraArgs)
-		for _, arg := range arguments {
-			parts := strings.Split(arg, "=")
-			result = append(result, parts...)
+	if extraArgs == "" {
+		return result, nil
+	}
+
+	arguments := strings.Fields(extraArgs)
+	fs := pflag.NewFlagSet("extra-args", pflag.ExitOnError)
+	for i, arg := range arguments {
+		var split []string
+		if arg[1] == '-' {
+			split := strings.SplitN(arg, "=", 2)
+			result = append(result, split[0])
+			if len(split) == 2 && split[1] != "" {
+				result = append(result, "")
+				fs.StringVar(&result[len(result)-1], split[i][2:], result[len(result)-1], "")
+			}
+		} else {
+			split = strings.SplitN(arg, "=", 2)
+			result = append(result, split[0])
+			if len(split) == 2 && split[1] != "" {
+				result = append(result, "")
+				fs.StringVarP(&result[len(result)-1], "", split[i][1:], result[len(result)-1], "")
+			}
 		}
 	}
-	return result
+
+	fs.ParseErrorsWhitelist.UnknownFlags = true
+	err := fs.Parse(arguments)
+	return result, err
 }

@@ -405,7 +405,12 @@ func loadFlowSource(path string, converterSourceFormat string, converterBypassEr
 	}
 	if converterSourceFormat != "flow" {
 		var diags convert_diag.Diagnostics
-		bb, diags = converter.Convert(bb, converter.Input(converterSourceFormat), parseExtraArgs(configExtraArgs))
+		ea, err := parseExtraArgs(configExtraArgs)
+		if err != nil {
+			return nil, err
+		}
+
+		bb, diags = converter.Convert(bb, converter.Input(converterSourceFormat), ea)
 		hasError := hasErrorLevel(diags, convert_diag.SeverityLevelError)
 		hasCritical := hasErrorLevel(diags, convert_diag.SeverityLevelCritical)
 		if hasCritical || (!converterBypassErrors && hasError) {
