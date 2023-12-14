@@ -45,7 +45,7 @@ non-critical issues identified during the conversion where an
 output can still be generated.
 
 The -e flag can be used to pass extra arguments to the converter
-which used by the original format.`,
+which were used by the original format.`,
 		Args:         cobra.RangeArgs(0, 1),
 		SilenceUsage: true,
 
