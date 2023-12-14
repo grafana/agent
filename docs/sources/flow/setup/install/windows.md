@@ -12,7 +12,7 @@ title: Install Grafana Agent Flow on Windows
 weight: 500
 ---
 
-# Install {{< param "PRODUCT_NAME" >}} on Windows
+# Install {{% param "PRODUCT_NAME" %}} on Windows
 
 You can install {{< param "PRODUCT_NAME" >}} on Windows as a standard graphical install, or as a silent install.
 

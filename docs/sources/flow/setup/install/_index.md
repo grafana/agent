@@ -12,7 +12,7 @@ title: Install Grafana Agent Flow
 weight: 50
 ---
 
-# Install {{< param "PRODUCT_NAME" >}}
+# Install {{% param "PRODUCT_NAME" %}}
 
 You can install {{< param "PRODUCT_NAME" >}} on Docker, Kubernetes, Linux, macOS, or Windows.
 

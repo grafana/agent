@@ -9,7 +9,7 @@ title: Migrating from Grafana Agent Operator to Grafana Agent Flow
 weight: 320
 ---
 
-# Migrating from Grafana Agent Operator to {{< param "PRODUCT_NAME" >}}
+# Migrating from Grafana Agent Operator to {{% param "PRODUCT_NAME" %}}
 
 With the release of {{< param "PRODUCT_NAME" >}}, Grafana Agent Operator is no longer the recommended way to deploy {{< param "PRODUCT_ROOT_NAME" >}} in Kubernetes.
 Some of the Operator functionality has been moved into {{< param "PRODUCT_NAME" >}} itself, and the remaining functionality has been replaced by our Helm Chart.
@@ -21,7 +21,7 @@ Some of the Operator functionality has been moved into {{< param "PRODUCT_NAME" 
 
 This guide will provide some steps to get started with {{< param "PRODUCT_NAME" >}} for users coming from Grafana Agent Operator.
 
-## Deploy {{< param "PRODUCT_NAME" >}} with Helm
+## Deploy {{% param "PRODUCT_NAME" %}} with Helm
 
 1. You will need to create a `values.yaml` file, which contains options for deploying your {{< param "PRODUCT_ROOT_NAME" >}}.
 You may start with the [default values](https://github.com/grafana/agent/blob/main/operations/helm/charts/grafana-agent/values.yaml) and customize as you see fit, or start with this snippet, which should be a good starting point for what the Operator does:
@@ -63,7 +63,7 @@ You may start with the [default values](https://github.com/grafana/agent/blob/ma
 
     This command uses the `--set-file` flag to pass the configuration file as a Helm value, so that we can continue to edit it as a regular River file.
 
-## Convert `MetricsIntances` to Flow components
+## Convert `MetricsIntances` to {{% param "PRODUCT_NAME" %}} components
 
 A `MetricsInstance` resource primarily defines:
 
