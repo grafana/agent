@@ -6,22 +6,26 @@ import (
 	"time"
 
 	"github.com/go-kit/log"
+	"github.com/grafana/agent/pkg/flow/logging/level"
 	agent_service "github.com/grafana/agent/service"
 	flow_service "github.com/grafana/agent/service"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/prometheus/model/labels"
 )
 
 const ServiceName = "labelstore"
 
 type service struct {
-	log                log.Logger
-	mut                sync.Mutex
-	globalRefID        uint64
-	mappings           map[string]*remoteWriteMapping
-	labelsHashToGlobal map[uint64]uint64
-	staleGlobals       map[uint64]*staleMarker
+	log                 log.Logger
+	mut                 sync.Mutex
+	globalRefID         uint64
+	mappings            map[string]*remoteWriteMapping
+	labelsHashToGlobal  map[uint64]uint64
+	staleGlobals        map[uint64]*staleMarker
+	totalIDs            *prometheus.Desc
+	idsInRemoteWrapping *prometheus.Desc
+	lastStaleCheck      prometheus.Gauge
 }
-
 type staleMarker struct {
 	globalID        uint64
 	lastMarkedStale time.Time
@@ -32,17 +36,26 @@ type Arguments struct{}
 
 var _ flow_service.Service = (*service)(nil)
 
-func New(l log.Logger) *service {
+func New(l log.Logger, r prometheus.Registerer) *service {
 	if l == nil {
 		l = log.NewNopLogger()
 	}
-	return &service{
-		log:                l,
-		globalRefID:        0,
-		mappings:           make(map[string]*remoteWriteMapping),
-		labelsHashToGlobal: make(map[uint64]uint64),
-		staleGlobals:       make(map[uint64]*staleMarker),
+	s := &service{
+		log:                 l,
+		globalRefID:         0,
+		mappings:            make(map[string]*remoteWriteMapping),
+		labelsHashToGlobal:  make(map[uint64]uint64),
+		staleGlobals:        make(map[uint64]*staleMarker),
+		totalIDs:            prometheus.NewDesc("agent_labelstore_global_ids_count", "Total number of global ids.", nil, nil),
+		idsInRemoteWrapping: prometheus.NewDesc("agent_labelstore_remote_store_ids_count", "Total number of ids per remote write", []string{"remote_name"}, nil),
+		lastStaleCheck: prometheus.NewGauge(prometheus.GaugeOpts{
+			Name: "agent_labelstore_last_stale_check_timestamp",
+			Help: "Last time stale check was ran expressed in unix timestamp.",
+		}),
 	}
+	_ = r.Register(s.lastStaleCheck)
+	_ = r.Register(s)
+	return s
 }
 
 // Definition returns the Definition of the Service.
@@ -56,12 +69,33 @@ func (s *service) Definition() agent_service.Definition {
 	}
 }
 
+func (s *service) Describe(m chan<- *prometheus.Desc) {
+	m <- s.totalIDs
+	m <- s.idsInRemoteWrapping
+}
+func (s *service) Collect(m chan<- prometheus.Metric) {
+	s.mut.Lock()
+	defer s.mut.Unlock()
+
+	m <- prometheus.MustNewConstMetric(s.totalIDs, prometheus.GaugeValue, float64(len(s.labelsHashToGlobal)))
+	for name, rw := range s.mappings {
+		m <- prometheus.MustNewConstMetric(s.idsInRemoteWrapping, prometheus.GaugeValue, float64(len(rw.globalToLocal)), name)
+	}
+}
+
 // Run starts a Service. Run must block until the provided
 // context is canceled. Returning an error should be treated
 // as a fatal error for the Service.
 func (s *service) Run(ctx context.Context, host agent_service.Host) error {
-	<-ctx.Done()
-	return nil
+	staleCheck := time.NewTicker(10 * time.Minute)
+	for {
+		select {
+		case <-ctx.Done():
+			return nil
+		case <-staleCheck.C:
+			s.CheckAndRemoveStaleMarkers()
+		}
+	}
 }
 
 // Update updates a Service at runtime. Update is never
@@ -72,7 +106,7 @@ func (s *service) Run(ctx context.Context, host agent_service.Host) error {
 //
 // Update will be called once before Run, and may be called
 // while Run is active.
-func (s *service) Update(newConfig any) error {
+func (s *service) Update(_ any) error {
 	return nil
 }
 
@@ -190,6 +224,8 @@ func (s *service) CheckAndRemoveStaleMarkers() {
 	s.mut.Lock()
 	defer s.mut.Unlock()
 
+	s.lastStaleCheck.Set(float64(time.Now().Unix()))
+	level.Debug(s.log).Log("msg", "labelstore removing stale markers")
 	curr := time.Now()
 	idsToBeGCed := make([]*staleMarker, 0)
 	for _, stale := range s.staleGlobals {
@@ -199,6 +235,9 @@ func (s *service) CheckAndRemoveStaleMarkers() {
 		}
 		idsToBeGCed = append(idsToBeGCed, stale)
 	}
+
+	level.Debug(s.log).Log("msg", "number of ids to remove", "count", len(idsToBeGCed))
+
 	for _, marker := range idsToBeGCed {
 		delete(s.staleGlobals, marker.globalID)
 		delete(s.labelsHashToGlobal, marker.labelHash)

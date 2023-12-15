@@ -8,6 +8,7 @@ import (
 	"github.com/prometheus/prometheus/model/histogram"
 	"github.com/prometheus/prometheus/model/labels"
 	"github.com/prometheus/prometheus/model/metadata"
+	"github.com/prometheus/prometheus/model/value"
 	"github.com/prometheus/prometheus/storage"
 )
 
@@ -100,6 +101,13 @@ var _ storage.Appender = (*interceptappender)(nil)
 func (a *interceptappender) Append(ref storage.SeriesRef, l labels.Labels, t int64, v float64) (storage.SeriesRef, error) {
 	if ref == 0 {
 		ref = storage.SeriesRef(a.ls.GetOrAddGlobalRefID(l))
+	}
+
+	if value.IsStaleNaN(v) {
+		a.ls.AddStaleMarker(uint64(ref), l)
+	} else {
+		// Tested this to ensure it had no cpu impact, since it is called so often.
+		a.ls.RemoveStaleMarker(uint64(ref))
 	}
 
 	if a.interceptor.onAppend != nil {

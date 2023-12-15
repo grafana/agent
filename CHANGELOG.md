@@ -75,6 +75,8 @@ Main (unreleased)
 
 - Fixes `otelcol.connector.servicegraph` store ttl default value from 2ms to 2s. (@rlankfo)
 
+- Add staleness tracking to labelstore to reduce memory usage. (@mattdurham)
+
 ### Other changes
 
 - Bump github.com/IBM/sarama from v1.41.2 to v1.42.1

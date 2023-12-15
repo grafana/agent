@@ -5,12 +5,13 @@ import (
 	"time"
 
 	"github.com/go-kit/log"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/prometheus/model/labels"
 	"github.com/stretchr/testify/require"
 )
 
 func TestAddingMarker(t *testing.T) {
-	mapping := New(log.NewNopLogger())
+	mapping := New(log.NewNopLogger(), prometheus.DefaultRegisterer)
 	l := labels.Labels{}
 	l = append(l, labels.Label{
 		Name:  "__name__",
@@ -23,7 +24,7 @@ func TestAddingMarker(t *testing.T) {
 }
 
 func TestAddingDifferentMarkers(t *testing.T) {
-	mapping := New(log.NewNopLogger())
+	mapping := New(log.NewNopLogger(), prometheus.DefaultRegisterer)
 	l := labels.Labels{}
 	l = append(l, labels.Label{
 		Name:  "__name__",
@@ -41,7 +42,7 @@ func TestAddingDifferentMarkers(t *testing.T) {
 }
 
 func TestAddingLocalMapping(t *testing.T) {
-	mapping := New(log.NewNopLogger())
+	mapping := New(log.NewNopLogger(), prometheus.DefaultRegisterer)
 	l := labels.Labels{}
 	l = append(l, labels.Label{
 		Name:  "__name__",
@@ -59,7 +60,7 @@ func TestAddingLocalMapping(t *testing.T) {
 }
 
 func TestAddingLocalMappings(t *testing.T) {
-	mapping := New(log.NewNopLogger())
+	mapping := New(log.NewNopLogger(), prometheus.DefaultRegisterer)
 	l := labels.Labels{}
 	l = append(l, labels.Label{
 		Name:  "__name__",
@@ -84,7 +85,7 @@ func TestAddingLocalMappings(t *testing.T) {
 }
 
 func TestAddingLocalMappingsWithoutCreatingGlobalUpfront(t *testing.T) {
-	mapping := New(log.NewNopLogger())
+	mapping := New(log.NewNopLogger(), prometheus.DefaultRegisterer)
 	l := labels.Labels{}
 	l = append(l, labels.Label{
 		Name:  "__name__",
@@ -107,7 +108,7 @@ func TestAddingLocalMappingsWithoutCreatingGlobalUpfront(t *testing.T) {
 }
 
 func TestStaleness(t *testing.T) {
-	mapping := New(log.NewNopLogger())
+	mapping := New(log.NewNopLogger(), prometheus.DefaultRegisterer)
 	l := labels.Labels{}
 	l = append(l, labels.Label{
 		Name:  "__name__",
@@ -132,7 +133,7 @@ func TestStaleness(t *testing.T) {
 }
 
 func TestRemovingStaleness(t *testing.T) {
-	mapping := New(log.NewNopLogger())
+	mapping := New(log.NewNopLogger(), prometheus.DefaultRegisterer)
 	l := labels.Labels{}
 	l = append(l, labels.Label{
 		Name:  "__name__",

@@ -162,7 +162,7 @@ func (c *Controller) buildComponent(dataPath string, args component.Arguments) (
 		GetServiceData: func(name string) (interface{}, error) {
 			switch name {
 			case labelstore.ServiceName:
-				return labelstore.New(nil), nil
+				return labelstore.New(nil, prometheus.DefaultRegisterer), nil
 			default:
 				return nil, fmt.Errorf("no service named %s defined", name)
 			}

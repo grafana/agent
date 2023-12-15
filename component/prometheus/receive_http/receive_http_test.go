@@ -348,7 +348,7 @@ func testAppendable(actualSamples chan testSample) []storage.Appendable {
 		return ref, nil
 	}
 
-	ls := labelstore.New(nil)
+	ls := labelstore.New(nil, prometheus.DefaultRegisterer)
 	return []storage.Appendable{agentprom.NewInterceptor(
 		nil,
 		ls,
@@ -385,7 +385,7 @@ func testOptions(t *testing.T) component.Options {
 		Logger:     util.TestFlowLogger(t),
 		Registerer: prometheus.NewRegistry(),
 		GetServiceData: func(name string) (interface{}, error) {
-			return labelstore.New(nil), nil
+			return labelstore.New(nil, prometheus.DefaultRegisterer), nil
 		},
 	}
 }
