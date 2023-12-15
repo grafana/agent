@@ -34,6 +34,11 @@ discovery.relabel "integrations_azure1" {
 		target_label = "instance"
 		replacement  = "azure1"
 	}
+
+	rule {
+		target_label = "job"
+		replacement  = "integrations/azure"
+	}
 }
 
 prometheus.scrape "integrations_azure1" {
@@ -55,6 +60,11 @@ discovery.relabel "integrations_azure2" {
 		target_label = "instance"
 		replacement  = "azure2"
 	}
+
+	rule {
+		target_label = "job"
+		replacement  = "integrations/azure"
+	}
 }
 
 prometheus.scrape "integrations_azure2" {
@@ -67,8 +77,17 @@ prometheus.exporter.cadvisor "integrations_cadvisor" {
 	store_container_labels = false
 }
 
+discovery.relabel "integrations_cadvisor" {
+	targets = prometheus.exporter.cadvisor.integrations_cadvisor.targets
+
+	rule {
+		target_label = "job"
+		replacement  = "integrations/cadvisor"
+	}
+}
+
 prometheus.scrape "integrations_cadvisor" {
-	targets    = prometheus.exporter.cadvisor.integrations_cadvisor.targets
+	targets    = discovery.relabel.integrations_cadvisor.output
 	forward_to = [prometheus.remote_write.metrics_default.receiver]
 	job_name   = "integrations/cadvisor"
 }
@@ -124,16 +143,34 @@ prometheus.exporter.cloudwatch "integrations_cloudwatch_exporter" {
 	decoupled_scraping { }
 }
 
+discovery.relabel "integrations_cloudwatch" {
+	targets = prometheus.exporter.cloudwatch.integrations_cloudwatch_exporter.targets
+
+	rule {
+		target_label = "job"
+		replacement  = "integrations/cloudwatch"
+	}
+}
+
 prometheus.scrape "integrations_cloudwatch" {
-	targets    = prometheus.exporter.cloudwatch.integrations_cloudwatch_exporter.targets
+	targets    = discovery.relabel.integrations_cloudwatch.output
 	forward_to = [prometheus.remote_write.metrics_default.receiver]
 	job_name   = "integrations/cloudwatch"
 }
 
 prometheus.exporter.consul "integrations_consul_exporter" { }
 
+discovery.relabel "integrations_consul" {
+	targets = prometheus.exporter.consul.integrations_consul_exporter.targets
+
+	rule {
+		target_label = "job"
+		replacement  = "integrations/consul"
+	}
+}
+
 prometheus.scrape "integrations_consul" {
-	targets    = prometheus.exporter.consul.integrations_consul_exporter.targets
+	targets    = discovery.relabel.integrations_consul.output
 	forward_to = [prometheus.remote_write.metrics_default.receiver]
 	job_name   = "integrations/consul"
 }
@@ -150,6 +187,11 @@ discovery.relabel "integrations_dnsmasq" {
 		target_label  = "instance"
 		replacement   = "dnsmasq-a"
 	}
+
+	rule {
+		target_label = "job"
+		replacement  = "integrations/dnsmasq"
+	}
 }
 
 prometheus.scrape "integrations_dnsmasq" {
@@ -160,8 +202,17 @@ prometheus.scrape "integrations_dnsmasq" {
 
 prometheus.exporter.elasticsearch "integrations_elasticsearch_exporter" { }
 
+discovery.relabel "integrations_elasticsearch" {
+	targets = prometheus.exporter.elasticsearch.integrations_elasticsearch_exporter.targets
+
+	rule {
+		target_label = "job"
+		replacement  = "integrations/elasticsearch"
+	}
+}
+
 prometheus.scrape "integrations_elasticsearch" {
-	targets    = prometheus.exporter.elasticsearch.integrations_elasticsearch_exporter.targets
+	targets    = discovery.relabel.integrations_elasticsearch.output
 	forward_to = [prometheus.remote_write.metrics_default.receiver]
 	job_name   = "integrations/elasticsearch"
 }
@@ -172,8 +223,17 @@ prometheus.exporter.gcp "integrations_gcp_exporter" {
 	extra_filters    = ["loadbalancing.googleapis.com:resource.labels.backend_target_name=\"sample-value\""]
 }
 
+discovery.relabel "integrations_gcp" {
+	targets = prometheus.exporter.gcp.integrations_gcp_exporter.targets
+
+	rule {
+		target_label = "job"
+		replacement  = "integrations/gcp"
+	}
+}
+
 prometheus.scrape "integrations_gcp" {
-	targets    = prometheus.exporter.gcp.integrations_gcp_exporter.targets
+	targets    = discovery.relabel.integrations_gcp.output
 	forward_to = [prometheus.remote_write.metrics_default.receiver]
 	job_name   = "integrations/gcp"
 }
@@ -183,16 +243,34 @@ prometheus.exporter.github "integrations_github_exporter" {
 	api_token    = "ABCDEFGH-1234-ABCD-1234-ABCDEFGHIJKL"
 }
 
+discovery.relabel "integrations_github" {
+	targets = prometheus.exporter.github.integrations_github_exporter.targets
+
+	rule {
+		target_label = "job"
+		replacement  = "integrations/github"
+	}
+}
+
 prometheus.scrape "integrations_github" {
-	targets    = prometheus.exporter.github.integrations_github_exporter.targets
+	targets    = discovery.relabel.integrations_github.output
 	forward_to = [prometheus.remote_write.metrics_default.receiver]
 	job_name   = "integrations/github"
 }
 
 prometheus.exporter.kafka "integrations_kafka_exporter" { }
 
+discovery.relabel "integrations_kafka" {
+	targets = prometheus.exporter.kafka.integrations_kafka_exporter.targets
+
+	rule {
+		target_label = "job"
+		replacement  = "integrations/kafka"
+	}
+}
+
 prometheus.scrape "integrations_kafka" {
-	targets    = prometheus.exporter.kafka.integrations_kafka_exporter.targets
+	targets    = discovery.relabel.integrations_kafka.output
 	forward_to = [prometheus.remote_write.metrics_default.receiver]
 	job_name   = "integrations/kafka"
 }
@@ -208,6 +286,11 @@ discovery.relabel "integrations_memcached" {
 		source_labels = ["__address__"]
 		target_label  = "instance"
 		replacement   = "memcached-a"
+	}
+
+	rule {
+		target_label = "job"
+		replacement  = "integrations/memcached"
 	}
 }
 
@@ -236,6 +319,11 @@ discovery.relabel "integrations_mongodb" {
 		target_label  = "mongodb_cluster"
 		replacement   = "prod-cluster"
 	}
+
+	rule {
+		target_label = "job"
+		replacement  = "integrations/mongodb"
+	}
 }
 
 prometheus.scrape "integrations_mongodb" {
@@ -248,8 +336,17 @@ prometheus.exporter.mssql "integrations_mssql" {
 	connection_string = "sqlserver://<USERNAME>:<PASSWORD>@<HOST>:<PORT>"
 }
 
+discovery.relabel "integrations_mssql" {
+	targets = prometheus.exporter.mssql.integrations_mssql.targets
+
+	rule {
+		target_label = "job"
+		replacement  = "integrations/mssql"
+	}
+}
+
 prometheus.scrape "integrations_mssql" {
-	targets    = prometheus.exporter.mssql.integrations_mssql.targets
+	targets    = discovery.relabel.integrations_mssql.output
 	forward_to = [prometheus.remote_write.metrics_default.receiver]
 	job_name   = "integrations/mssql"
 }
@@ -265,6 +362,11 @@ discovery.relabel "integrations_mysql" {
 		source_labels = ["__address__"]
 		target_label  = "instance"
 		replacement   = "server-a"
+	}
+
+	rule {
+		target_label = "job"
+		replacement  = "integrations/mysql"
 	}
 }
 
@@ -293,6 +395,11 @@ discovery.relabel "integrations_node_exporter" {
 		target_label = "__address__"
 		replacement  = "localhost:8099"
 	}
+
+	rule {
+		target_label = "job"
+		replacement  = "integrations/node_exporter"
+	}
 }
 
 prometheus.scrape "integrations_node_exporter" {
@@ -319,8 +426,17 @@ prometheus.exporter.oracledb "integrations_oracledb" {
 	connection_string = "oracle://user:password@localhost:1521/orcl.localnet"
 }
 
+discovery.relabel "integrations_oracledb" {
+	targets = prometheus.exporter.oracledb.integrations_oracledb.targets
+
+	rule {
+		target_label = "job"
+		replacement  = "integrations/oracledb"
+	}
+}
+
 prometheus.scrape "integrations_oracledb" {
-	targets    = prometheus.exporter.oracledb.integrations_oracledb.targets
+	targets    = discovery.relabel.integrations_oracledb.output
 	forward_to = [prometheus.remote_write.metrics_default.receiver]
 	job_name   = "integrations/oracledb"
 }
@@ -337,6 +453,11 @@ discovery.relabel "integrations_postgres" {
 		target_label  = "instance"
 		replacement   = "postgres-a"
 	}
+
+	rule {
+		target_label = "job"
+		replacement  = "integrations/postgres"
+	}
 }
 
 prometheus.scrape "integrations_postgres" {
@@ -352,8 +473,17 @@ prometheus.exporter.process "integrations_process_exporter" {
 	}
 }
 
+discovery.relabel "integrations_process" {
+	targets = prometheus.exporter.process.integrations_process_exporter.targets
+
+	rule {
+		target_label = "job"
+		replacement  = "integrations/process"
+	}
+}
+
 prometheus.scrape "integrations_process" {
-	targets    = prometheus.exporter.process.integrations_process_exporter.targets
+	targets    = discovery.relabel.integrations_process.output
 	forward_to = [prometheus.remote_write.metrics_default.receiver]
 	job_name   = "integrations/process"
 }
@@ -371,6 +501,11 @@ discovery.relabel "integrations_redis" {
 		target_label  = "instance"
 		replacement   = "redis-2"
 	}
+
+	rule {
+		target_label = "job"
+		replacement  = "integrations/redis"
+	}
 }
 
 prometheus.scrape "integrations_redis" {
@@ -386,8 +521,17 @@ prometheus.exporter.snowflake "integrations_snowflake" {
 	warehouse    = "SNOWFLAKE_WAREHOUSE"
 }
 
+discovery.relabel "integrations_snowflake" {
+	targets = prometheus.exporter.snowflake.integrations_snowflake.targets
+
+	rule {
+		target_label = "job"
+		replacement  = "integrations/snowflake"
+	}
+}
+
 prometheus.scrape "integrations_snowflake" {
-	targets    = prometheus.exporter.snowflake.integrations_snowflake.targets
+	targets    = discovery.relabel.integrations_snowflake.output
 	forward_to = [prometheus.remote_write.metrics_default.receiver]
 	job_name   = "integrations/snowflake"
 }
@@ -396,8 +540,17 @@ prometheus.exporter.squid "integrations_squid" {
 	address = "localhost:3128"
 }
 
+discovery.relabel "integrations_squid" {
+	targets = prometheus.exporter.squid.integrations_squid.targets
+
+	rule {
+		target_label = "job"
+		replacement  = "integrations/squid"
+	}
+}
+
 prometheus.scrape "integrations_squid" {
-	targets        = prometheus.exporter.squid.integrations_squid.targets
+	targets        = discovery.relabel.integrations_squid.output
 	forward_to     = [prometheus.remote_write.metrics_default.receiver]
 	job_name       = "integrations/squid"
 	scrape_timeout = "1m0s"
@@ -405,8 +558,17 @@ prometheus.scrape "integrations_squid" {
 
 prometheus.exporter.statsd "integrations_statsd_exporter" { }
 
+discovery.relabel "integrations_statsd" {
+	targets = prometheus.exporter.statsd.integrations_statsd_exporter.targets
+
+	rule {
+		target_label = "job"
+		replacement  = "integrations/statsd"
+	}
+}
+
 prometheus.scrape "integrations_statsd" {
-	targets    = prometheus.exporter.statsd.integrations_statsd_exporter.targets
+	targets    = discovery.relabel.integrations_statsd.output
 	forward_to = [prometheus.remote_write.metrics_default.receiver]
 	job_name   = "integrations/statsd"
 }
@@ -427,6 +589,11 @@ discovery.relabel "integrations_agent" {
 		target_label  = "test_label_2"
 		replacement   = "test_label_value_2"
 	}
+
+	rule {
+		target_label = "job"
+		replacement  = "integrations/agent"
+	}
 }
 
 prometheus.scrape "integrations_agent" {
@@ -445,6 +612,11 @@ discovery.relabel "integrations_apache1" {
 	rule {
 		target_label = "instance"
 		replacement  = "apache1"
+	}
+
+	rule {
+		target_label = "job"
+		replacement  = "integrations/apache_http"
 	}
 }
 
@@ -474,6 +646,11 @@ discovery.relabel "integrations_apache2" {
 	rule {
 		target_label = "instance"
 		replacement  = "apache2"
+	}
+
+	rule {
+		target_label = "job"
+		replacement  = "integrations/apache_http"
 	}
 }
 
@@ -520,8 +697,17 @@ prometheus.exporter.blackbox "integrations_blackbox" {
 	probe_timeout_offset = "0s"
 }
 
+discovery.relabel "integrations_blackbox" {
+	targets = prometheus.exporter.blackbox.integrations_blackbox.targets
+
+	rule {
+		target_label = "job"
+		replacement  = "integrations/blackbox"
+	}
+}
+
 prometheus.scrape "integrations_blackbox" {
-	targets    = prometheus.exporter.blackbox.integrations_blackbox.targets
+	targets    = discovery.relabel.integrations_blackbox.output
 	forward_to = [prometheus.remote_write.metrics_default.receiver]
 	job_name   = "integrations/blackbox"
 }
@@ -542,8 +728,17 @@ prometheus.exporter.snmp "integrations_snmp" {
 	}
 }
 
+discovery.relabel "integrations_snmp" {
+	targets = prometheus.exporter.snmp.integrations_snmp.targets
+
+	rule {
+		target_label = "job"
+		replacement  = "integrations/snmp"
+	}
+}
+
 prometheus.scrape "integrations_snmp" {
-	targets    = prometheus.exporter.snmp.integrations_snmp.targets
+	targets    = discovery.relabel.integrations_snmp.output
 	forward_to = [prometheus.remote_write.metrics_default.receiver]
 	job_name   = "integrations/snmp"
 }
@@ -560,6 +755,11 @@ discovery.relabel "integrations_vsphere" {
 	rule {
 		target_label = "instance"
 		replacement  = "vsphere"
+	}
+
+	rule {
+		target_label = "job"
+		replacement  = "integrations/vsphere"
 	}
 }
 
