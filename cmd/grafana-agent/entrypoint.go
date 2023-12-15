@@ -17,6 +17,7 @@ import (
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/gorilla/mux"
+	"github.com/grafana/agent/internal/agentseed"
 	"github.com/grafana/agent/pkg/config"
 	"github.com/grafana/agent/pkg/logs"
 	"github.com/grafana/agent/pkg/metrics"
@@ -98,7 +99,8 @@ func NewEntrypoint(logger *server.Logger, cfg *config.Config, reloader Reloader)
 		return nil, err
 	}
 
-	ep.reporter, err = usagestats.NewReporter(logger, "")
+	agentseed.Logger = logger
+	ep.reporter, err = usagestats.NewReporter(logger)
 	if err != nil {
 		return nil, err
 	}

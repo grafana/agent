@@ -7,6 +7,7 @@ import (
 
 	"github.com/grafana/agent/component/common/loki/client"
 	"github.com/grafana/agent/component/common/loki/utils"
+	"github.com/grafana/agent/internal/agentseed"
 
 	"github.com/alecthomas/units"
 	types "github.com/grafana/agent/component/common/config"
@@ -88,7 +89,17 @@ func (q *QueueConfig) SetToDefault() {
 
 func (args Arguments) convertClientConfigs() []client.Config {
 	var res []client.Config
+	uid := ""
+	if seed, err := agentseed.Get(); err == nil {
+		uid = seed.UID
+	}
 	for _, cfg := range args.Endpoints {
+		if uid != "" {
+			if cfg.Headers == nil {
+				cfg.Headers = map[string]string{}
+			}
+			cfg.Headers["X-Agent-Uid"] = uid
+		}
 		url, _ := url.Parse(cfg.URL)
 		cc := client.Config{
 			Name:      cfg.Name,

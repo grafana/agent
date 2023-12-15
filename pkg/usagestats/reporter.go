@@ -22,15 +22,13 @@ type Reporter struct {
 	logger log.Logger
 
 	agentSeed  *agentseed.AgentSeed
-	dataDir    string
 	lastReport time.Time
 }
 
 // NewReporter creates a Reporter that will send periodically reports to grafana.com
-func NewReporter(logger log.Logger, dataDir string) (*Reporter, error) {
+func NewReporter(logger log.Logger) (*Reporter, error) {
 	r := &Reporter{
-		logger:  logger,
-		dataDir: dataDir,
+		logger: logger,
 	}
 	return r, nil
 }
@@ -38,7 +36,7 @@ func NewReporter(logger log.Logger, dataDir string) (*Reporter, error) {
 // Start inits the reporter seed and start sending report for every interval
 func (rep *Reporter) Start(ctx context.Context, metricsFunc func() map[string]interface{}) error {
 	level.Info(rep.logger).Log("msg", "running usage stats reporter")
-	seed, err := agentseed.Get(rep.dataDir)
+	seed, err := agentseed.Get()
 	if err != nil {
 		level.Info(rep.logger).Log("msg", "failed to init seed", "err", err)
 		return err

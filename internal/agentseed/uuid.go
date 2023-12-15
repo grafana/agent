@@ -8,7 +8,9 @@ import (
 	"runtime"
 	"time"
 
+	"github.com/go-kit/log"
 	"github.com/google/uuid"
+	"github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/prometheus/common/version"
 )
 
@@ -21,13 +23,17 @@ type AgentSeed struct {
 
 const filename = "agent_seed.json"
 
+// DataDir should be set by an app entrypoint to the data dir to store the agent_seed.json
+var DataDir = ""
+var Logger log.Logger
+
 var savedSeed *AgentSeed
 
 // Get will return a unique uuid for this agent.
 // Seed will be saved in agent_seed.json
 // If path is not empty, that will be the "preferred" place to read and save it.
 // If it is empty, we will fall back to $APPDATA on windows or /tmp on *nix systems.
-func Get(path string) (seed *AgentSeed, err error) {
+func Get() (seed *AgentSeed, err error) {
 	if savedSeed != nil {
 		return savedSeed, nil
 	}
@@ -37,8 +43,8 @@ func Get(path string) (seed *AgentSeed, err error) {
 		}
 	}()
 	paths := []string{}
-	if path != "" {
-		paths = append(paths, filepath.Join(path, filename))
+	if DataDir != "" {
+		paths = append(paths, filepath.Join(DataDir, filename))
 	}
 	paths = append(paths, legacyPath())
 	for i, p := range paths {
@@ -65,11 +71,13 @@ func Get(path string) (seed *AgentSeed, err error) {
 func readSeedFile(path string) (*AgentSeed, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
+		level.Error(Logger).Log("msg", "Reading seed file", "err", err)
 		return nil, err
 	}
 	seed := &AgentSeed{}
 	err = json.Unmarshal(data, seed)
 	if err != nil {
+		level.Error(Logger).Log("msg", "Decoding seed file", "err", err)
 		return nil, err
 	}
 	return seed, nil
@@ -93,7 +101,13 @@ func fileExists(path string) bool {
 func writeSeedFile(seed *AgentSeed, path string) error {
 	data, err := json.Marshal(*seed)
 	if err != nil {
+		level.Error(Logger).Log("msg", "Encoding seed file", "err", err)
 		return err
 	}
-	return os.WriteFile(path, data, 0644)
+	err = os.WriteFile(path, data, 0644)
+	if err != nil {
+		level.Error(Logger).Log("msg", "Writing seed file", "err", err)
+		return err
+	}
+	return err
 }

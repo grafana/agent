@@ -18,6 +18,7 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/converter"
 	convert_diag "github.com/grafana/agent/converter/diag"
+	"github.com/grafana/agent/internal/agentseed"
 	"github.com/grafana/agent/pkg/boringcrypto"
 	"github.com/grafana/agent/pkg/config/instrumentation"
 	"github.com/grafana/agent/pkg/flow"
@@ -246,6 +247,8 @@ func (fr *flowRun) Run(configPath string) error {
 	}
 
 	labelService := labelstore.New(l, reg)
+	agentseed.DataDir = fr.storagePath
+	agentseed.Logger = l
 
 	f := flow.New(flow.Options{
 		Logger:   l,
@@ -288,7 +291,7 @@ func (fr *flowRun) Run(configPath string) error {
 
 	// Report usage of enabled components
 	if !fr.disableReporting {
-		reporter, err := usagestats.NewReporter(l, fr.storagePath)
+		reporter, err := usagestats.NewReporter(l)
 		if err != nil {
 			return fmt.Errorf("failed to create reporter: %w", err)
 		}
