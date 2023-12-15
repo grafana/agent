@@ -3,6 +3,7 @@ metadata:
   {{- with .Values.controller.podAnnotations }}
   annotations:
     {{- toYaml . | nindent 4 }}
+    checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
   {{- end }}
   labels:
     {{- include "grafana-agent.selectorLabels" . | nindent 4 }}
