@@ -1084,8 +1084,8 @@ github.com/grafana/pyroscope-go/godeltaprof v0.1.3 h1:eunWpv1B3Z7ZK9o4499EmQGlY+
 github.com/grafana/pyroscope-go/godeltaprof v0.1.3/go.mod h1:1HSPtjU8vLG0jE9JrTdzjgFqdJ/VgN7fvxBNq3luJko=
 github.com/grafana/pyroscope/api v0.2.0 h1:TzOxL0s6SiaLEy944ZAKgHcx/JDRJXu4O8ObwkqR6p4=
 github.com/grafana/pyroscope/api v0.2.0/go.mod h1:nhH+xai9cYFgs6lMy/+L0pKj0d5yCMwji/QAiQFCP+U=
-github.com/grafana/pyroscope/ebpf v0.4.0 h1:7fz+5S6MLSc+5cJfmIe7OCvBdooxEm8xy5OAV0s7GA0=
-github.com/grafana/pyroscope/ebpf v0.4.0/go.mod h1:eF5+k9lAUBYILVzGccr3hrrvuLy5ZvbDRWGQHDe021w=
+github.com/grafana/pyroscope/ebpf v0.4.1 h1:iqQoOsfKen5KpTRe6MfGeBZfgK1s7ROH+Cs/vZs1B3A=
+github.com/grafana/pyroscope/ebpf v0.4.1/go.mod h1:W99Mq+yJGP5nZUQWNv+jVytiWWgWXwHjIRmi9k3xHzA=
 github.com/grafana/regexp v0.0.0-20221123153739-15dc172cd2db h1:7aN5cccjIqCLTzedH7MZzRZt5/lsAHch6Z3L2ZGn5FA=
 github.com/grafana/regexp v0.0.0-20221123153739-15dc172cd2db/go.mod h1:M5qHK+eWfAv8VR/265dIuEpL3fNfeC21tXXp9itM24A=
 github.com/grafana/river v0.3.0 h1:6TsaR/vkkcppUM9I0muGbPIUedCtpPu6OWreE5+CE6g=
