@@ -297,9 +297,9 @@ All spans for a given `service.name` must go to the same spanmetrics Agent.
   * At worst, it could lead to an inaccurate data due to overlapping samples for the metric series.
 
 However, there are ways to scale `otelcol.connector.spanmetrics` without the need for a load balancer:
-1. Each Agent could add an attribute such as `agent.id` in order to make its series unique.
+1. Each Agent could add an attribute such as `collector.id` in order to make its series unique.
   * A `sum by` PromQL query could be used to aggregate the metrics from different Agents.
-  * An extra `agent.id` attribute has a downside that the metrics stored in the database will have higher {{< term "cardinality" >}}cardinality{{< /term >}}.
+  * An extra `collector.id` attribute has a downside that the metrics stored in the database will have higher {{< term "cardinality" >}}cardinality{{< /term >}}.
 2. Spanmetrics could be generated in the backend database instead of the Agent.
   * For example, span metrics can be [generated][tempo-spanmetrics] in Grafana Cloud by the Tempo traces database.
 
@@ -320,10 +320,10 @@ It is challenging to scale `otelcol.connector.servicegraph` over multiple Agent 
     they will generate the same service graph metric series.
   * If the series from two Agents are the same, this will lead to issues 
     when writing them to the backend database.
-  * Users could differentiate the series by adding an attribute such as `"agent.id"`.
+  * Users could differentiate the series by adding an attribute such as `"collector.id"`.
       * Unfortunately, there is currently no method in the Agent to aggregate those series from different Agents and merge them into one series.
     * A PromQL query could be used to aggregate the metrics from different Agents.
-    * If the metrics are stored in Grafana Mimir, cardinality issues due to `"agent.id"` labels can be solved using [Adaptive Metrics][adaptive-metrics].
+    * If the metrics are stored in Grafana Mimir, cardinality issues due to `"collector.id"` labels can be solved using [Adaptive Metrics][adaptive-metrics].
 
 A simpler, more scalable alternative to generating service graph metrics in the Agent is to generate them entirely in the backend database. 
 For example, service graphs can be [generated][tempo-servicegraphs] in Grafana Cloud by the Tempo traces database.
