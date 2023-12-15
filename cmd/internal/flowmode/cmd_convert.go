@@ -195,7 +195,7 @@ func parseExtraArgs(extraArgs string) ([]string, error) {
 	}
 
 	arguments := strings.Fields(extraArgs)
-	for _, arg := range arguments {
+	for i, arg := range arguments {
 		fs := pflag.NewFlagSet("extra-args", pflag.ExitOnError)
 		fs.ParseErrorsWhitelist.UnknownFlags = true
 		keyStartIndex := 0
@@ -226,7 +226,13 @@ func parseExtraArgs(extraArgs string) ([]string, error) {
 			if keyStartIndex == 2 {
 				fs.StringVar(&result[lastIndex], key, result[lastIndex], "")
 			} else {
-				fs.StringVarP(&result[lastIndex], "", key, result[lastIndex], "")
+				// static mode uses keys with a single dash. We need to sanitize them here.
+				if len(key) != 1 {
+					arguments[i] = "-" + arguments[i]
+					fs.StringVar(&result[lastIndex], key, result[lastIndex], "")
+				} else {
+					fs.StringVarP(&result[lastIndex], "", key, result[lastIndex], "")
+				}
 			}
 
 			// We must parse the flag here because the pointer to the array element

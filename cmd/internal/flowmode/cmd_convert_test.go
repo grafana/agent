@@ -16,6 +16,11 @@ func TestParseExtraArgs(t *testing.T) {
 
 	var testCases = []testCase{
 		{
+			name:      "integrations next with env vars",
+			extraArgs: "-enable-features=integrations-next -config.expand-env",
+			expected:  []string{"-enable-features", "integrations-next", "-config.expand-env"},
+		},
+		{
 			name:      "longhand",
 			extraArgs: "--key=value",
 			expected:  []string{"--key", "value"},
