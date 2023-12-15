@@ -245,7 +245,7 @@ func (fr *flowRun) Run(configPath string) error {
 		return fmt.Errorf("failed to create otel service")
 	}
 
-	labelService := labelstore.New(l)
+	labelService := labelstore.New(l, reg)
 
 	f := flow.New(flow.Options{
 		Logger:   l,
