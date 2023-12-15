@@ -195,27 +195,48 @@ func parseExtraArgs(extraArgs string) ([]string, error) {
 	}
 
 	arguments := strings.Fields(extraArgs)
-	fs := pflag.NewFlagSet("extra-args", pflag.ExitOnError)
-	for i, arg := range arguments {
-		var split []string
-		if arg[1] == '-' {
-			split := strings.SplitN(arg, "=", 2)
-			result = append(result, split[0])
-			if len(split) == 2 && split[1] != "" {
-				result = append(result, "")
-				fs.StringVar(&result[len(result)-1], split[i][2:], result[len(result)-1], "")
+	for _, arg := range arguments {
+		fs := pflag.NewFlagSet("extra-args", pflag.ExitOnError)
+		fs.ParseErrorsWhitelist.UnknownFlags = true
+		keyStartIndex := 0
+		doParseFlagValue := false
+
+		// Split the argument into key and value.
+		splitArgs := strings.SplitN(arg, "=", 2)
+
+		// Append the key to the result.
+		result = append(result, splitArgs[0])
+
+		// If the flag has a value, add it to the FlagSet for parsing.
+		if len(splitArgs) == 2 && splitArgs[1] != "" {
+			doParseFlagValue = true
+			if arg[1] == '-' { // longhand flag, ie. --flag=value
+				keyStartIndex = 2
+			} else if arg[0] == '-' { // shorthand flag, ie. -f=value
+				keyStartIndex = 1
+			} else { // invalid flag that was split on '=' but has no dashes in the key
+				return nil, fmt.Errorf("invalid flag found: %s", arg)
 			}
-		} else {
-			split = strings.SplitN(arg, "=", 2)
-			result = append(result, split[0])
-			if len(split) == 2 && split[1] != "" {
-				result = append(result, "")
-				fs.StringVarP(&result[len(result)-1], "", split[i][1:], result[len(result)-1], "")
+		}
+
+		if doParseFlagValue {
+			result = append(result, "")
+			lastIndex := len(result) - 1
+			key := splitArgs[0][keyStartIndex:]
+			if keyStartIndex == 2 {
+				fs.StringVar(&result[lastIndex], key, result[lastIndex], "")
+			} else {
+				fs.StringVarP(&result[lastIndex], "", key, result[lastIndex], "")
 			}
+
+			// We must parse the flag here because the pointer to the array element
+			// &result[lastIndex] is overridden by the next iteration of the loop.
+			// This can be improved if we preallocate the array, however we won't
+			// know the final length without analyzing the arguments so there
+			// is some complexity in doing so.
+			fs.Parse(arguments)
 		}
 	}
 
-	fs.ParseErrorsWhitelist.UnknownFlags = true
-	err := fs.Parse(arguments)
-	return result, err
+	return result, nil
 }
