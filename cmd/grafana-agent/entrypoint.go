@@ -98,7 +98,7 @@ func NewEntrypoint(logger *server.Logger, cfg *config.Config, reloader Reloader)
 		return nil, err
 	}
 
-	ep.reporter, err = usagestats.NewReporter(logger)
+	ep.reporter, err = usagestats.NewReporter(logger, "")
 	if err != nil {
 		return nil, err
 	}
