@@ -63,6 +63,7 @@ The following flags are supported:
 * `--cluster.name`: Name to prevent nodes without this identifier from joining the cluster (default `""`).
 * `--config.format`: The format of the source file. Supported formats: `flow`, `prometheus`, `promtail`, `static` (default `"flow"`).
 * `--config.bypass-conversion-errors`: Enable bypassing errors when converting (default `false`).
+* `--config.extra-args`: Extra arguments from the original format used by the converter.
 
 [in-memory HTTP traffic]: {{< relref "../../concepts/component_controller.md#in-memory-traffic" >}}
 [data collection]: {{< relref "../../../data-collection" >}}
@@ -180,10 +181,13 @@ the source format to River and immediately starts running with the new
 configuration. This conversion uses the converter API described in the
 [grafana-agent-flow convert][] docs.
 
-If you also use the `--config.bypass-conversion-errors` command-line argument,
+If you include the `--config.bypass-conversion-errors` command-line argument,
 {{< param "PRODUCT_NAME" >}} will ignore any errors from the converter. Use this argument
 with caution because the resulting conversion may not be equivalent to the
 original configuration.
+
+Include `--config.extra-args` to pass additional command line flags from the original format to the converter.
+Refer to [grafana-agent-flow convert][] for more details on how `extra-args` work.
 
 [grafana-agent-flow convert]: {{< relref "./convert.md" >}}
 [clustering]:  {{< relref "../../concepts/clustering.md" >}}

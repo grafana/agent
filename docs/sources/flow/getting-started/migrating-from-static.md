@@ -297,15 +297,43 @@ loki.write "logs_varlogs" {
 }
 ```
 
+## Integrations Next
+
+You can convert [integrations next][] configurations by adding the `extra-args` flag for [convert][] or `config.extra-args` for [run][].
+
+{{< code >}}
+
+```static-binary
+AGENT_MODE=flow grafana-agent convert --source-format=static --extra-args="-enable-features=integrations-next" --output=<OUTPUT_CONFIG_PATH> <INPUT_CONFIG_PATH>
+```
+
+```flow-binary
+grafana-agent-flow convert --source-format=static --extra-args="-enable-features=integrations-next" --output=<OUTPUT_CONFIG_PATH> <INPUT_CONFIG_PATH>
+```
+
+{{< /code >}}
+
+ Replace the following:
+   * _`<INPUT_CONFIG_PATH>`_: The full path to the [Static][] configuration.
+   * _`<OUTPUT_CONFIG_PATH>`_: The full path to output the {{< param "PRODUCT_NAME" >}} configuration.
+   
+## Environment Vars
+
+You can use the `-config.expand-env` command line flag to interpret environment variables in your Grafana Agent Static configuration.
+You can pass these flags to [convert][] with `--extra-args="-config.expand-env"` or to [run][] with `--config.extra-args="-config.expand-env"`.
+
+> It's possible to combine `integrations-next` with `expand-env`.
+> For [convert][], you can use `--extra-args="-enable-features=integrations-next -config.expand-env"`
+
 ## Limitations
 
 Configuration conversion is done on a best-effort basis. {{< param "PRODUCT_ROOT_NAME" >}} will issue warnings or errors where the conversion can't be performed.
 
 After the configuration is converted, review the {{< param "PRODUCT_NAME" >}} configuration file and verify that it's correct before starting to use it in a production environment.
 
-Review the following checklist:
+The following list is specific to the convert command and not {{< param "PRODUCT_NAME" >}}:
 
-* The following configuration options aren't available for conversion to {{< param "PRODUCT_NAME" >}}: [Integrations next][], [Traces][], and [Agent Management][].
+* The  [Traces][] and [Agent Management][] configuration options can't be automatically converted to {{< param "PRODUCT_NAME" >}}. However, traces are fully supported in {{< param "PRODUCT_NAME" >}} and you can build your configuration manually.
   Any additional unsupported features are returned as errors during conversion.
 * There is no gRPC server to configure for {{< param "PRODUCT_NAME" >}}, as any non-default configuration will show as unsupported during the conversion.
 * Check if you are using any extra command line arguments with Static that aren't present in your configuration file. For example, `-server.http.address`.

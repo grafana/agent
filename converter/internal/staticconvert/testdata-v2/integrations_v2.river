@@ -16,6 +16,11 @@ loki.write "logs_log_config" {
 	external_labels = {}
 }
 
+logging {
+	level  = "debug"
+	format = "json"
+}
+
 prometheus.exporter.azure "integrations_azure1" {
 	subscriptions = ["subId"]
 	resource_type = "Microsoft.Dashboard/grafana"

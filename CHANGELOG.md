@@ -59,6 +59,10 @@ Main (unreleased)
 
 - Added support for `loki.write` to flush WAL on agent shutdown. (@thepalbi)
 
+- Add support for `integrations-next` static to flow config conversion. (@erikbaranowski)
+
+- Add support for passing extra arguments to the static converter such as `-config.expand-env`. (@erikbaranowski)
+
 - Added 'country' mmdb-type to log pipeline-stage geoip. (@superstes)
 
 ### Bugfixes

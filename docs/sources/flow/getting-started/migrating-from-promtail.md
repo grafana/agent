@@ -204,7 +204,7 @@ Configuration conversion is done on a best-effort basis. {{< param "PRODUCT_ROOT
 
 After the configuration is converted, review the {{< param "PRODUCT_NAME" >}} configuration file created and verify that it's correct before starting to use it in a production environment.
 
-Review the following checklist:
+The following list is specific to the convert command and not {{< param "PRODUCT_NAME" >}}:
 
 * Check if you are using any extra command line arguments with Promtail that aren't present in your configuration file. For example, `-max-line-size`.
 * Check if you are setting any environment variables, whether [expanded in the config file][] itself or consumed directly by Promtail, such as `JAEGER_AGENT_HOST`.
