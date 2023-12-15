@@ -31,6 +31,8 @@ func NewImportSource(sourceType SourceType, managedOpts component.Options, eval 
 		return NewImportFile(managedOpts, eval, onContentChange)
 	case HTTP:
 		return NewImportHTTP(managedOpts, eval, onContentChange)
+	case GIT:
+		return NewImportGit(managedOpts, eval, onContentChange)
 	}
 	// This is a programming error, not a config error so this is ok to panic.
 	panic(fmt.Errorf("unsupported source type: %v", sourceType))
