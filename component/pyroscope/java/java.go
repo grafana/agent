@@ -28,10 +28,11 @@ func init() {
 				return nil, fmt.Errorf("extract async profiler: %w", err)
 			}
 			a := args.(Arguments)
-			flowAppendable := pyroscope.NewFanout(a.ForwardTo, opts.ID, opts.Registerer)
+			forwardTo := pyroscope.NewFanout(a.ForwardTo, opts.ID, opts.Registerer)
 			c := &javaComponent{
 				opts:      opts,
-				forwardTo: flowAppendable,
+				args:      a,
+				forwardTo: forwardTo,
 			}
 			c.updateTargets(a.Targets)
 			return c, nil
@@ -43,11 +44,38 @@ type Arguments struct {
 	Targets   []discovery.Target     `river:"targets,attr"`
 	ForwardTo []pyroscope.Appendable `river:"forward_to,attr"`
 
-	Interval time.Duration `river:"interval,attr,optional"`
+	ProfilingConfig ProfilingConfig `river:"profiling_config,block,optional"`
+}
+
+type ProfilingConfig struct {
+	Interval   time.Duration `river:"interval,attr,optional"`
+	SampleRate int           `river:"sample_rate,attr,optional"`
+	Alloc      string        `river:"alloc,attr,optional"`
+	Lock       string        `river:"lock,attr,optional"`
+	CPU        bool          `river:"cpu,attr,optional"`
+}
+
+func (rc *Arguments) UnmarshalRiver(f func(interface{}) error) error {
+	*rc = defaultArguments()
+	type config Arguments
+	return f((*config)(rc))
+}
+
+func defaultArguments() Arguments {
+	return Arguments{
+		ProfilingConfig: ProfilingConfig{
+			Interval:   15 * time.Second,
+			SampleRate: 100,
+			Alloc:      "",
+			Lock:       "",
+			CPU:        true,
+		},
+	}
 }
 
 type javaComponent struct {
 	opts      component.Options
+	args      Arguments
 	forwardTo *pyroscope.Fanout
 
 	mutex       sync.Mutex
@@ -82,15 +110,17 @@ func (j *javaComponent) updateTargets(targets []discovery.Target) {
 
 	active := make(map[int]struct{})
 	for _, target := range targets {
-		fmt.Printf("target: %v\n", target)
 		pid, err := strconv.Atoi(target[labelProcessID])
+		_ = level.Debug(j.opts.Logger).Log("msg", "active target",
+			"target", fmt.Sprintf("%+v", target),
+			"pid", pid)
 		if err != nil {
 			_ = level.Error(j.opts.Logger).Log("msg", "invalid target", "target", fmt.Sprintf("%v", target), "err", err)
 			continue
 		}
 		proc := j.pid2process[pid]
 		if proc == nil {
-			proc = newProcess(pid, target, j.opts.Logger, j.forwardTo)
+			proc = newProcess(pid, target, j.opts.Logger, j.forwardTo, j.args.ProfilingConfig)
 		} else {
 			proc.update(target)
 		}
@@ -100,6 +130,7 @@ func (j *javaComponent) updateTargets(targets []discovery.Target) {
 		if _, ok := active[pid]; ok {
 			continue
 		}
+		_ = level.Debug(j.opts.Logger).Log("msg", "inactive target", "pid", pid)
 		j.pid2process[pid].Close()
 		delete(j.pid2process, pid)
 	}
