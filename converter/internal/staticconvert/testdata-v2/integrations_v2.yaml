@@ -1,3 +1,7 @@
+server:
+  log_level: ${SOME_ENVIRONMENT_VARIABLE:='debug'}
+  log_format: json
+  
 metrics:
   global:
     remote_write:
