@@ -11,7 +11,7 @@ title: Configure Grafana Agent Flow on Kubernetes
 weight: 200
 ---
 
-# Configure {{< param "PRODUCT_NAME" >}} on Kubernetes
+# Configure {{% param "PRODUCT_NAME" %}} on Kubernetes
 
 To configure {{< param "PRODUCT_NAME" >}} on Kubernetes, perform the following steps:
 
