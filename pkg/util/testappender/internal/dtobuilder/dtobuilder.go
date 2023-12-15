@@ -4,11 +4,13 @@ import (
 	"math"
 	"sort"
 	"strconv"
+	"strings"
 	"time"
 
 	dto "github.com/prometheus/client_model/go"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/model/exemplar"
+	"github.com/prometheus/prometheus/model/histogram"
 	"github.com/prometheus/prometheus/model/labels"
 	"github.com/prometheus/prometheus/model/metadata"
 	"github.com/prometheus/prometheus/model/textparse"
@@ -33,18 +35,25 @@ type SeriesExemplar struct {
 	Exemplar exemplar.Exemplar
 }
 
+type SeriesHistogram struct {
+	Labels    labels.Labels
+	Histogram histogram.Histogram
+}
+
 // Build converts a series of written samples, exemplars, and metadata into a
 // slice of *dto.MetricFamily.
 func Build(
 	samples map[string]Sample,
 	exemplars map[string]SeriesExemplar,
+	histograms map[string]SeriesHistogram,
 	metadata map[string]metadata.Metadata,
 ) []*dto.MetricFamily {
 
 	b := builder{
-		Samples:   samples,
-		Exemplars: exemplars,
-		Metadata:  metadata,
+		Samples:    samples,
+		Exemplars:  exemplars,
+		Metadata:   metadata,
+		Histograms: histograms,
 
 		familyLookup: make(map[string]*dto.MetricFamily),
 	}
@@ -52,9 +61,10 @@ func Build(
 }
 
 type builder struct {
-	Samples   map[string]Sample
-	Exemplars map[string]SeriesExemplar
-	Metadata  map[string]metadata.Metadata
+	Samples    map[string]Sample
+	Exemplars  map[string]SeriesExemplar
+	Metadata   map[string]metadata.Metadata
+	Histograms map[string]SeriesHistogram
 
 	families     []*dto.MetricFamily
 	familyLookup map[string]*dto.MetricFamily
@@ -86,9 +96,11 @@ func (b *builder) Build() []*dto.MetricFamily {
 	// 1. Populate the families from metadata so we know what fields in
 	//    *dto.Metric to set.
 	// 2. Populate *dto.Metric values from provided samples.
-	// 3. Assign exemplars to *dto.Metrics as appropriate.
+	// 3. Build Histograms (used for Native Histograms).
+	// 4. Assign exemplars to *dto.Metrics as appropriate.
 	b.buildFamiliesFromMetadata()
 	b.buildMetricsFromSamples()
+	b.buildHistograms()
 	b.injectExemplars()
 
 	// Sort all the data before returning.
@@ -124,6 +136,12 @@ func (b *builder) buildFamiliesFromMetadata() {
 			b.familyLookup[familyName+"_sum"] = mf
 			b.familyLookup[familyName+"_count"] = mf
 		case dto.MetricType_HISTOGRAM:
+			// Metadata types do not differentiate between histogram and exponential histogram yet.
+			// This is a temporary hacky way which allow us to test exponential histogram by having exponential in the name.
+			if strings.Contains(familyName, "exponential") {
+				b.familyLookup[familyName] = mf
+				break
+			}
 			// Histograms include metrics for _bucket, _sum, and _count suffixes.
 			b.familyLookup[familyName+"_bucket"] = mf
 			b.familyLookup[familyName+"_sum"] = mf
@@ -150,6 +168,49 @@ func textParseToMetricType(tp textparse.MetricType) dto.MetricType {
 		// OpenMetrics-specific and we're only converting into the Prometheus
 		// exposition format.
 		return dto.MetricType_UNTYPED
+	}
+}
+
+func (b *builder) buildHistograms() {
+	for _, histogram := range b.Histograms {
+		metricName := histogram.Labels.Get(model.MetricNameLabel)
+		mf := b.getOrCreateMetricFamily(metricName)
+
+		m := getOrCreateMetric(mf, histogram.Labels)
+		sum := histogram.Histogram.Sum
+		count := histogram.Histogram.Count
+		schema := histogram.Histogram.Schema
+		zeroThreshold := histogram.Histogram.ZeroThreshold
+		zeroCount := histogram.Histogram.ZeroCount
+
+		m.Histogram = &dto.Histogram{
+			PositiveSpan:  convertSpans(histogram.Histogram.PositiveSpans),
+			NegativeSpan:  convertSpans(histogram.Histogram.NegativeSpans),
+			PositiveDelta: histogram.Histogram.PositiveBuckets,
+			NegativeDelta: histogram.Histogram.NegativeBuckets,
+			SampleSum:     &sum,
+			SampleCount:   &count,
+			Schema:        &schema,
+			ZeroThreshold: &zeroThreshold,
+			ZeroCount:     &zeroCount,
+		}
+	}
+}
+
+func convertSpans(spans []histogram.Span) []*dto.BucketSpan {
+	bucketSpan := make([]*dto.BucketSpan, len(spans))
+	for i, span := range spans {
+		bucketSpan[i] = convertSpan(span)
+	}
+	return bucketSpan
+}
+
+func convertSpan(span histogram.Span) *dto.BucketSpan {
+	offset := span.Offset
+	length := span.Length
+	return &dto.BucketSpan{
+		Offset: &offset,
+		Length: &length,
 	}
 }
 
@@ -368,6 +429,12 @@ func (b *builder) injectExemplars() {
 					continue
 				}
 				bucket.Exemplar = convertExemplar(dto.MetricType_HISTOGRAM, e.Exemplar)
+			// Exemplars support for native histograms is not yet available: https://github.com/prometheus/client_golang/issues/1126
+			// We need to add the exemplars in the classic histogram buckets
+			case exemplarName == mf.GetName():
+				m.Histogram.Bucket = append(m.Histogram.Bucket, &dto.Bucket{
+					Exemplar: convertExemplar(dto.MetricType_HISTOGRAM, e.Exemplar),
+				})
 			}
 		}
 	}

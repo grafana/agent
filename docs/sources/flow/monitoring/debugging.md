@@ -17,7 +17,7 @@ Follow these steps to debug issues with {{< param "PRODUCT_NAME" >}}:
 1. Use the {{< param "PRODUCT_NAME" >}} UI to debug issues.
 1. If the {{< param "PRODUCT_NAME" >}} UI doesn't help with debugging an issue, logs can be examined instead.
 
-## {{< param "PRODUCT_NAME" >}} UI
+## {{% param "PRODUCT_NAME" %}} UI
 
 {{< param "PRODUCT_NAME" >}} includes an embedded UI viewable from the {{< param "PRODUCT_ROOT_NAME" >}} HTTP server, which defaults to listening at `http://localhost:12345`.
 
