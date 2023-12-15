@@ -1,0 +1,27 @@
+import.git "scrape_module" {
+  // TODO: change this to use either a docker container hosting a git repo just for the integration tests (not easy)
+  // or put the module.river file in the agent-modules repo (easy)
+  repository = "https://github.com/wildum/module.git"
+  path = "module.river"
+}
+
+scrape_module.myModule "scrape_prom_metrics_module_git" {
+  scrape_endpoint = "localhost:9001"
+  forward_to = [prometheus.remote_write.scrape_prom_metrics_module_git.receiver]
+}
+
+prometheus.remote_write "scrape_prom_metrics_module_git" {
+  endpoint {
+    url = "http://localhost:9009/api/v1/push"
+    send_native_histograms = true
+    metadata_config {
+        send_interval = "1s"
+    }
+    queue_config {
+        max_samples_per_send = 100
+    }
+  }
+  external_labels = {
+    test_name = "scrape_prom_metrics_module_git",
+  }
+}

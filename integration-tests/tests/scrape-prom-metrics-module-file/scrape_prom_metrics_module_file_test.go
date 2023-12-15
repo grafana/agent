@@ -15,7 +15,7 @@ func metricQuery(metricName string) string {
 	return fmt.Sprintf("%s%s{test_name='scrape_prom_metrics_module_file'}", promURL, metricName)
 }
 
-func TestScrapePromMetricsModules(t *testing.T) {
+func TestScrapePromMetricsModuleFile(t *testing.T) {
 	metrics := []string{
 		// TODO: better differentiate these metric types?
 		"golang_counter",

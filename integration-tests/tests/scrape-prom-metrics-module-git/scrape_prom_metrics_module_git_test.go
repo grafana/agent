@@ -12,10 +12,10 @@ import (
 const promURL = "http://localhost:9009/prometheus/api/v1/query?query="
 
 func metricQuery(metricName string) string {
-	return fmt.Sprintf("%s%s{test_name='scrape_prom_metrics_module_http'}", promURL, metricName)
+	return fmt.Sprintf("%s%s{test_name='scrape_prom_metrics_module_git'}", promURL, metricName)
 }
 
-func TestScrapePromMetricsModuleHTTP(t *testing.T) {
+func TestScrapePromMetricsModuleGit(t *testing.T) {
 	metrics := []string{
 		// TODO: better differentiate these metric types?
 		"golang_counter",
@@ -45,7 +45,7 @@ func assertHistogramData(t *testing.T, query string, expectedMetric string) {
 		assert.NoError(c, err)
 		if assert.NotEmpty(c, metricResponse.Data.Result) {
 			assert.Equal(c, metricResponse.Data.Result[0].Metric.Name, expectedMetric)
-			assert.Equal(c, metricResponse.Data.Result[0].Metric.TestName, "scrape_prom_metrics_module_http")
+			assert.Equal(c, metricResponse.Data.Result[0].Metric.TestName, "scrape_prom_metrics_module_git")
 			if assert.NotNil(c, metricResponse.Data.Result[0].Histogram) {
 				histogram := metricResponse.Data.Result[0].Histogram
 				if assert.NotEmpty(c, histogram.Data.Count) {
@@ -70,7 +70,7 @@ func assertMetricData(t *testing.T, query, expectedMetric string) {
 		assert.NoError(c, err)
 		if assert.NotEmpty(c, metricResponse.Data.Result) {
 			assert.Equal(c, metricResponse.Data.Result[0].Metric.Name, expectedMetric)
-			assert.Equal(c, metricResponse.Data.Result[0].Metric.TestName, "scrape_prom_metrics_module_http")
+			assert.Equal(c, metricResponse.Data.Result[0].Metric.TestName, "scrape_prom_metrics_module_git")
 			assert.NotEmpty(c, metricResponse.Data.Result[0].Value.Value)
 			assert.Nil(c, metricResponse.Data.Result[0].Histogram)
 		}
