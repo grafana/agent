@@ -12,6 +12,12 @@ Main (unreleased)
 
 ### Breaking changes
 
+- `otelcol.receiver.prometheus` will drop all `otel_scope_info` metrics when converting them to OTLP. (@wildum)
+  - If the `otel_scope_info` metric has labels `otel_scope_name` and `otel_scope_version`,
+    their values will be used to set OTLP Instrumentation Scope name and  version respectively. 
+  - Labels of `otel_scope_info` metrics other than `otel_scope_name` and `otel_scope_version` 
+    are added as scope attributes with the matching name and version.
+
 - The `target` block in `prometheus.exporter.blackbox` requires a mandatory `name`
   argument instead of a block label. (@hainenber)
 
@@ -37,6 +43,9 @@ Main (unreleased)
 
 - `pyroscope.ebpf` support python on arm64 platforms. (@korniltsev)
 
+- `otelcol.receiver.prometheus` does not drop histograms without buckets anymore. (@wildum)
+
+- Added exemplars support to `otelcol.receiver.prometheus`. (@wildum)
 - `mimir.rules.kubernetes` may now retry its startup on failure. (@hainenber)
 
 - Added links between compatible components in the documentation to make it
@@ -52,6 +61,8 @@ Main (unreleased)
 
 - Add support for passing extra arguments to the static converter such as `-config.expand-env`. (@erikbaranowski)
 
+- Added 'country' mmdb-type to log pipeline-stage geoip. (@superstes)
+
 ### Bugfixes
 
 - Update `pyroscope.ebpf` to fix a logical bug causing to profile to many kthreads instead of regular processes https://github.com/grafana/pyroscope/pull/2778 (@korniltsev)
@@ -65,6 +76,8 @@ Main (unreleased)
 - Fixes `loki.source.docker` a behavior that synced an incomplete list of targets to the tailer manager. (@FerdinandvHagen)
 
 - Fixes `otelcol.connector.servicegraph` store ttl default value from 2ms to 2s. (@rlankfo)
+
+- Add staleness tracking to labelstore to reduce memory usage. (@mattdurham)
 
 ### Other changes
 
@@ -143,6 +156,8 @@ v0.38.0 (2023-11-21)
       == null` is true. (@rfratto)
 
 - Added support for python profiling to `pyroscope.ebpf` component. (@korniltsev)
+
+- Added support for native Prometheus histograms to `otelcol.exporter.prometheus` (@wildum)
 
 - Windows Flow Installer: Add /CONFIG /DISABLEPROFILING and /DISABLEREPORTING flag (@jkroepke)
 

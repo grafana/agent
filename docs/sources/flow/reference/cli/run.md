@@ -186,9 +186,8 @@ If you include the `--config.bypass-conversion-errors` command-line argument,
 with caution because the resulting conversion may not be equivalent to the
 original configuration.
 
-Include `--config.extra-args` for passing additional command line flags from
-the original format to the converter. See [grafana-agent-flow convert][]
-for more details on how `extra-args` work.
+Include `--config.extra-args` to pass additional command line flags from the original format to the converter.
+Refer to [grafana-agent-flow convert][] for more details on how `extra-args` work.
 
 [grafana-agent-flow convert]: {{< relref "./convert.md" >}}
 [clustering]:  {{< relref "../../concepts/clustering.md" >}}

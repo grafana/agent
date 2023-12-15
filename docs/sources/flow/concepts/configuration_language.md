@@ -13,10 +13,7 @@ weight: 400
 
 # Configuration language concepts
 
-The {{< param "PRODUCT_NAME" >}} _configuration language_ refers to the language used in
-configuration files which define and configure components to run.
-
-The configuration language is called River, a Terraform/HCL-inspired language:
+The {{< param "PRODUCT_NAME" >}} _configuration language_, River, refers to the language used in configuration files that define and configure components to run.
 
 ```river
 prometheus.scrape "default" {
@@ -33,51 +30,46 @@ prometheus.remote_write "default" {
 }
 ```
 
-River was designed with the following requirements in mind:
+River is designed with the following requirements in mind:
 
-* _Fast_: The configuration language must be fast so the component controller
-  can evaluate changes as quickly as possible.
-* _Simple_: The configuration language must be easy to read and write to
-  minimize the learning curve.
-* _Debuggable_: The configuration language must give detailed information when
-  there's a mistake in the configuration file.
+* _Fast_: The configuration language must be fast so the component controller can quickly evaluate changes.
+* _Simple_: The configuration language must be easy to read and write to minimize the learning curve.
+* _Debuggable_: The configuration language must give detailed information when there's a mistake in the configuration file.
 
 ## Attributes
 
-_Attributes_ are used to configure individual settings. They always take the
-form of `ATTRIBUTE_NAME = ATTRIBUTE_VALUE`.
+You use _Attributes_ to configure individual settings.
+Attributes always take the form of `ATTRIBUTE_NAME = ATTRIBUTE_VALUE`.
+
+The following example shows how to set the `log_level` attribute to `"debug"`.
 
 ```river
 log_level = "debug"
 ```
 
-This sets the `log_level` attribute to `"debug"`.
-
 ## Expressions
 
-Expressions are used to compute the value of an attribute. The simplest
-expressions are constant values like `"debug"`, `32`, or `[1, 2, 3, 4]`. River
-supports more complex expressions, such as:
+You use expressions to compute the value of an attribute.
+The simplest expressions are constant values like `"debug"`, `32`, or `[1, 2, 3, 4]`.
+River supports complex expressions, for example:
 
 * Referencing the exports of components: `local.file.password_file.content`
 * Mathematical operations: `1 + 2`, `3 * 4`, `(5 * 6) + (7 + 8)`
 * Equality checks: `local.file.file_a.content == local.file.file_b.content`
-* Calling functions from River's standard library: `env("HOME")` (retrieve the
-  value of the `HOME` environment variable)
+* Calling functions from River's standard library: `env("HOME")` retrieves the value of the `HOME` environment variable.
 
-Expressions may be used for any attribute inside a component definition.
+You can use expressions for any attribute inside a component definition.
 
 ### Referencing component exports
 
-The most common expression is to reference the exports of a component like
-`local.file.password_file.content`. A reference to a component's exports is
-formed by merging the component's name (e.g., `local.file`), label (e.g.,
-`password_file`), and export name (e.g., `content`), delimited by period.
+The most common expression is to reference the exports of a component, for example, `local.file.password_file.content`.
+You form a reference to a component's exports by merging the component's name (for example, `local.file`),
+label (for example, `password_file`), and export name (for example, `content`), delimited by a period.
 
 ## Blocks
 
-_Blocks_ are used to configure components and groups of attributes. Each block
-can contain any number of attributes or nested blocks.
+You use _Blocks_ to configure components and groups of attributes.
+Each block can contain any number of attributes or nested blocks.
 
 ```river
 prometheus.remote_write "default" {
@@ -87,19 +79,16 @@ prometheus.remote_write "default" {
 }
 ```
 
-This file has two blocks:
+The preceding example has two blocks:
 
-* `prometheus.remote_write "default"`: A labeled block which instantiates a
-  `prometheus.remote_write` component. The label is the string `"default"`.
-
-* `endpoint`: An unlabeled block inside the component which configures an
-  endpoint to send metrics to. This block sets the `url` attribute to specify
-  what the endpoint is.
+* `prometheus.remote_write "default"`: A labeled block which instantiates a `prometheus.remote_write` component.
+  The label is the string `"default"`.
+* `endpoint`: An unlabeled block inside the component that configures an endpoint to send metrics to.
+  This block sets the `url` attribute to specify the endpoint.
 
 ## More information
 
-River is documented in detail in [Configuration language][config-docs] section
-of the {{< param "PRODUCT_NAME" >}} docs.
+Refer to [Configuration language][config-docs] for more information about River.
 
 {{% docs/reference %}}
 [config-docs]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/config-language"
