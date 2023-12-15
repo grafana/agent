@@ -234,7 +234,10 @@ func parseExtraArgs(extraArgs string) ([]string, error) {
 			// This can be improved if we preallocate the array, however we won't
 			// know the final length without analyzing the arguments so there
 			// is some complexity in doing so.
-			fs.Parse(arguments)
+			err := fs.Parse(arguments)
+			if err != nil {
+				return nil, err
+			}
 		}
 	}
 
