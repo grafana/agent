@@ -106,7 +106,7 @@ func (a *interceptappender) Append(ref storage.SeriesRef, l labels.Labels, t int
 	if value.IsStaleNaN(v) {
 		a.ls.AddStaleMarker(uint64(ref), l)
 	} else {
-		// This feels excessive to call this each time.
+		// Tested this to ensure it had no cpu impact, since it is called so often.
 		a.ls.RemoveStaleMarker(uint64(ref))
 	}
 
