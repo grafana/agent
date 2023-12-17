@@ -11,17 +11,17 @@ labels:
 `loki.rules.kubernetes` discovers `PrometheusRule` Kubernetes resources and
 loads them into a Loki instance.
 
-* Multiple `loki.rules.kubernetes` components can be specified by giving them
-  different labels.
+* You can specify multiple `loki.rules.kubernetes` components by giving them different labels.
 * [Kubernetes label selectors][] can be used to limit the `Namespace` and
   `PrometheusRule` resources considered during reconciliation.
 * Compatible with the Ruler APIs of Grafana Loki, Grafana Cloud, and Grafana Enterprise Metrics.
 * Compatible with the `PrometheusRule` CRD from the [prometheus-operator][].
 * This component accesses the Kubernetes REST API from [within a Pod][].
 
-> **NOTE**: This component requires [Role-based access control (RBAC)][] to be setup
-> in Kubernetes in order for the Agent to access it via the Kubernetes REST API.
-> For an example RBAC configuration please click [here](#example).
+{{% admonition type="note" %}}
+This component requires [Role-based access control (RBAC)][] to be set up
+in Kubernetes for the Agent to access it via the Kubernetes REST API.
+{{% /admonition %}}
 
 [Kubernetes label selectors]: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#label-selectors
 [prometheus-operator]: https://prometheus-operator.dev/
@@ -53,7 +53,7 @@ Name                     | Type       | Description                             
 `follow_redirects`       | `bool`     | Whether redirects returned by the server should be followed. | `true` | no
 `enable_http2`           | `bool`     | Whether HTTP2 is supported for requests.                 | `true`  | no
 
- At most one of the following can be provided:
+ At most, one of the following can be provided:
  - [`bearer_token` argument](#arguments).
  - [`bearer_token_file` argument](#arguments).
  - [`basic_auth` block][basic_auth].
@@ -66,12 +66,12 @@ If no `tenant_id` is provided, the component assumes that the Loki instance at
 `address` is running in single-tenant mode and no `X-Scope-OrgID` header is sent.
 
 The `sync_interval` argument determines how often Loki's ruler API is accessed
-to reload the current state of rules. Interaction with the Kubernetes API works
+to reload the current state. Interaction with the Kubernetes API works
 differently. Updates are processed as events from the Kubernetes API server
 according to the informer pattern.
 
-The `loki_namespace_prefix` argument can be used to separate the rules managed
-by multiple agent deployments across your infrastructure. It should be set to a
+You can use the `loki_namespace_prefix` argument to separate the rules managed
+by multiple agent deployments across your infrastructure. You should set the prefix to a
 unique value for each deployment.
 
 ## Blocks

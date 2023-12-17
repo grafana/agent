@@ -140,6 +140,8 @@ v0.39.0 (2024-01-09)
 
 ### Enhancements
 
+- `loki.rules.kubernetes` discovers `PrometheusRule` Kubernetes resources and loads them into a Loki Ruler instance. (@EStork09)
+
 - Flow Windows service: Support environment variables. (@jkroepke)
 
 - Allow disabling collection of root Cgroup stats in
