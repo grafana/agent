@@ -23,7 +23,7 @@ import (
 	"go.opentelemetry.io/collector/receiver"
 	"go.opentelemetry.io/collector/receiver/otlpreceiver"
 	"go.opentelemetry.io/collector/service"
-	"go.opentelemetry.io/otel/trace"
+	"go.opentelemetry.io/otel/trace/noop"
 	"gopkg.in/yaml.v3"
 )
 
@@ -153,7 +153,7 @@ func newServer(addr string, callback func(ptrace.Traces)) (*server, error) {
 		Connectors:               connector.NewBuilder(otelCfg.Connectors, factories.Connectors),
 		Extensions:               extension.NewBuilder(otelCfg.Extensions, factories.Extensions),
 		UseExternalMetricsServer: false,
-		TracerProvider:           trace.NewNoopTracerProvider(),
+		TracerProvider:           noop.NewTracerProvider(),
 	}, otelCfg.Service)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create Otel service: %w", err)

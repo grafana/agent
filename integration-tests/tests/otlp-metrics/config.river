@@ -2,7 +2,7 @@ otelcol.receiver.otlp "otlp_metrics" {
   http {}
 
   output {
-    metrics = [otelcol.processor.attributes.otlp_metrics.input]
+    metrics = [otelcol.processor.attributes.otlp_metrics.input, otelcol.exporter.prometheus.otlp_to_prom_metrics.input]
   }
 }
 
@@ -25,5 +25,25 @@ otelcol.exporter.otlphttp "otlp_metrics" {
       insecure             = true
       insecure_skip_verify = true
     }
+  }
+}
+
+otelcol.exporter.prometheus "otlp_to_prom_metrics" {
+  forward_to = [prometheus.remote_write.otlp_to_prom_metrics.receiver]
+}
+
+prometheus.remote_write "otlp_to_prom_metrics" {
+  endpoint {
+    url = "http://localhost:9009/api/v1/push"
+    send_native_histograms = true
+    metadata_config {
+        send_interval = "1s"
+    }
+    queue_config {
+        max_samples_per_send = 100
+    }
+  }
+  external_labels = {
+    test_name = "otlp_to_prom_metrics",
   }
 }

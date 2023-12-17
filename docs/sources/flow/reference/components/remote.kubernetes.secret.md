@@ -11,7 +11,7 @@ title: remote.kubernetes.secret
 
 `remote.kubernetes.secret` reads a Secret from the Kubernetes API server and exposes its data for other components to consume.
 
-A common use case for this is loading credentials or other information from secrets that are not already mounted into the agent pod at deployment time.
+A common use case for this is loading credentials or other information from secrets that are not already mounted into the {{< param "PRODUCT_ROOT_NAME" >}} pod at deployment time.
 
 ## Usage
 
@@ -68,8 +68,7 @@ refers to a `basic_auth` block defined inside a `client` block.
 ### client block
 
 The `client` block configures the Kubernetes client used to discover Probes. If the `client` block isn't provided, the default in-cluster
-configuration with the service account of the running Grafana Agent pod is
-used.
+configuration with the service account of the running {{< param "PRODUCT_ROOT_NAME" >}} pod is used.
 
 The following arguments are supported:
 
@@ -91,19 +90,19 @@ Name | Type | Description | Default | Required
 
 ### basic_auth block
 
-{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### authorization block
 
-{{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### oauth2 block
 
-{{< docs/shared lookup="flow/reference/components/oauth2-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/oauth2-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### tls_config block
 
-{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 
 ## Exported fields

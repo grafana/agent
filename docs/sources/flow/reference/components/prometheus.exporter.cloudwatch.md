@@ -24,7 +24,7 @@ two kinds of jobs: [discovery][] and [static][].
 
 ## Authentication
 
-The agent must be running in an environment with access to AWS. The exporter uses
+{{< param "PRODUCT_NAME" >}} must be running in an environment with access to AWS. The exporter uses
 the [AWS SDK for Go](https://aws.github.io/aws-sdk-go-v2/docs/getting-started/) and
 provides authentication
 via [AWS's default credential chain](https://aws.github.io/aws-sdk-go-v2/docs/configuring-sdk/#specifying-credentials).
@@ -137,19 +137,18 @@ Omitted fields take their default values.
 
 You can use the following blocks in`prometheus.exporter.cloudwatch` to configure collector-specific options:
 
-| Hierarchy          | Name                   | Description                                                                                                                             | Required |
-| ------------------ | ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------- | -------- |
-| discovery          | [discovery][]          | Configures a discovery job. Multiple jobs can be configured.                                                                            | no\*     |
-| discovery > role   | [role][]               | Configures the IAM roles the job should assume to scrape metrics. Defaults to the role configured in the environment the agent runs on. | no       |
-| discovery > metric | [metric][]             | Configures the list of metrics the job should scrape. Multiple metrics can be defined inside one job.                                   | yes      |
-| static             | [static][]             | Configures a static job. Multiple jobs can be configured.                                                                               | no\*     |
-| static > role      | [role][]               | Configures the IAM roles the job should assume to scrape metrics. Defaults to the role configured in the environment the agent runs on. | no       |
-| static > metric    | [metric][]             | Configures the list of metrics the job should scrape. Multiple metrics can be defined inside one job.                                   | yes      |
-| decoupled_scraping | [decoupled_scraping][] | Configures the decoupled scraping feature to retrieve metrics on a schedule and return the cached metrics.                              | no       |
+| Hierarchy          | Name                   | Description                                                                                                                                                | Required |
+|--------------------|------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------|----------|
+| discovery          | [discovery][]          | Configures a discovery job. Multiple jobs can be configured.                                                                                               | no\*     |
+| discovery > role   | [role][]               | Configures the IAM roles the job should assume to scrape metrics. Defaults to the role configured in the environment {{< param "PRODUCT_NAME" >}} runs on. | no       |
+| discovery > metric | [metric][]             | Configures the list of metrics the job should scrape. Multiple metrics can be defined inside one job.                                                      | yes      |
+| static             | [static][]             | Configures a static job. Multiple jobs can be configured.                                                                                                  | no\*     |
+| static > role      | [role][]               | Configures the IAM roles the job should assume to scrape metrics. Defaults to the role configured in the environment {{< param "PRODUCT_NAME" >}} runs on. | no       |
+| static > metric    | [metric][]             | Configures the list of metrics the job should scrape. Multiple metrics can be defined inside one job.                                                      | yes      |
+| decoupled_scraping | [decoupled_scraping][] | Configures the decoupled scraping feature to retrieve metrics on a schedule and return the cached metrics.                                                 | no       |
 
 {{% admonition type="note" %}}
-The `static` and `discovery` blocks are marked as not required, but you must configure at least one static or discovery
-job.
+The `static` and `discovery` blocks are marked as not required, but you must configure at least one static or discovery job.
 {{% /admonition %}}
 
 [discovery]: #discovery-block
@@ -162,10 +161,8 @@ job.
 
 The `discovery` block allows the component to scrape CloudWatch metrics with only the AWS service and a list of metrics
 under that service/namespace.
-The agent will find AWS resources in the specified service for which to scrape these metrics, label them appropriately,
-and
-export them to Prometheus. For example, if we wanted to scrape CPU utilization and network traffic metrics from all AWS
-EC2 instances:
+{{< param "PRODUCT_NAME" >}} will find AWS resources in the specified service for which to scrape these metrics, label them appropriately,
+and export them to Prometheus. For example, if we wanted to scrape CPU utilization and network traffic metrics from all AWS EC2 instances:
 
 ```river
 prometheus.exporter.cloudwatch "discover_instances" {
@@ -281,11 +278,9 @@ on how to explore metrics, to easily pick the ones you need.
 
 #### period and length
 
-`period` controls primarily the width of the time bucket used for aggregating metrics collected from
-CloudWatch. `length`
-controls how far back in time CloudWatch metrics are considered during each agent scrape. If both settings are
-configured,
-the time parameters when calling CloudWatch APIs works as follows:
+`period` controls primarily the width of the time bucket used for aggregating metrics collected from CloudWatch. `length`
+controls how far back in time CloudWatch metrics are considered during each {{< param "PRODUCT_ROOT_NAME" >}} scrape.
+If both settings are configured, the time parameters when calling CloudWatch APIs works as follows:
 
 ![](https://grafana.com/media/docs/agent/cloudwatch-period-and-length-time-model-2.png)
 
@@ -318,7 +313,7 @@ that corresponds to the credentials configured in the environment will be used.
 
 Multiple roles can be useful when scraping metrics from different AWS accounts with a single pair of credentials. In
 this case, a different role
-is configured for the agent to assume before calling AWS APIs. Therefore, the credentials configured in the system need
+is configured for {{< param "PRODUCT_ROOT_NAME" >}} to assume before calling AWS APIs. Therefore, the credentials configured in the system need
 permission to assume the target role.
 See [Granting a user permissions to switch roles](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use_permissions-to-switch.html)
 in the AWS IAM documentation for more information about how to configure this.
@@ -346,7 +341,7 @@ This feature also prevents component scrape timeouts when you gather high volume
 
 ## Exported fields
 
-{{< docs/shared lookup="flow/reference/components/exporter-component-exports.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/exporter-component-exports.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ## Component health
 
@@ -457,3 +452,20 @@ discovery job, the `type` field of each `discovery_job` must match either the de
 - Namespace: `/aws/sagemaker/TransformJobs` or Alias: `sagemaker-transform`
 - Namespace: `/aws/sagemaker/InferenceRecommendationsJobs` or Alias: `sagemaker-inf-rec`
 - Namespace: `AWS/Sagemaker/ModelBuildingPipeline` or Alias: `sagemaker-model-building-pipeline`
+
+<!-- START GENERATED COMPATIBLE COMPONENTS -->
+
+## Compatible components
+
+`prometheus.exporter.cloudwatch` has exports that can be consumed by the following components:
+
+- Components that consume [Targets]({{< relref "../compatibility/#targets-consumers" >}})
+
+{{% admonition type="note" %}}
+
+Connecting some components may not be sensible or components may require further configuration to make the 
+connection work correctly. Refer to the linked documentation for more details.
+
+{{% /admonition %}}
+
+<!-- END GENERATED COMPATIBLE COMPONENTS -->

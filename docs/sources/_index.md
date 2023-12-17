@@ -9,7 +9,7 @@ title: Grafana Agent
 description: Grafana Agent is a flexible, performant, vendor-neutral, telemetry collector
 weight: 350
 cascade:
-  AGENT_RELEASE: v0.38.0
+  AGENT_RELEASE: v0.38.1
   OTEL_VERSION: v0.87.0
 ---
 
@@ -103,18 +103,18 @@ one minor release is moved.
 Patch and security releases may be created at any time.
 
 {{% docs/reference %}}
-[variants]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/about"
+[variants]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/about"
 [variants]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/about"
 
-[Static mode]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static"
+[Static mode]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static"
 [Static mode]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/static"
 
-[Static mode Kubernetes operator]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/operator"
+[Static mode Kubernetes operator]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/operator"
 [Static mode Kubernetes operator]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/operator"
 
-[Flow mode]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/flow"
-[Flow mode]: "/docs/grafana-cloud/ -> /docs/agent/<AGENT VERSION>/flow"
+[Flow mode]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow"
+[Flow mode]: "/docs/grafana-cloud/ -> /docs/agent/<AGENT_VERSION>/flow"
 
-[UI]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/flow/monitoring/debugging.md#grafana-agent-flow-ui"
-[UI]: "/docs/grafana-cloud/ -> /docs/agent/<AGENT VERSION>/flow/monitoring/debugging.md#grafana-agent-flow-ui"
+[UI]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/monitoring/debugging.md#grafana-agent-flow-ui"
+[UI]: "/docs/grafana-cloud/ -> /docs/agent/<AGENT_VERSION>/flow/monitoring/debugging.md#grafana-agent-flow-ui"
 {{% /docs/reference %}}

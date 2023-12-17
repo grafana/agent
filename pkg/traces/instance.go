@@ -26,7 +26,7 @@ import (
 	"github.com/grafana/agent/pkg/traces/traceutils"
 	"github.com/grafana/agent/pkg/util"
 	prom_client "github.com/prometheus/client_golang/prometheus"
-	"go.opentelemetry.io/otel/trace"
+	"go.opentelemetry.io/otel/trace/noop"
 )
 
 // Instance wraps the OpenTelemetry collector to enable tracing pipelines
@@ -112,8 +112,13 @@ func (i *Instance) buildAndStartPipeline(ctx context.Context, cfg InstanceConfig
 	}
 
 	if cfg.LoadBalancing == nil && (cfg.TailSampling != nil || cfg.ServiceGraphs != nil) {
-		i.logger.Warn("Configuring tail_sampling and/or service_graphs without load_balance." +
-			"Load balancing is required for those features to properly work in multi agent deployments")
+		i.logger.Warn("Configuring tail_sampling and/or service_graphs without load_balancing." +
+			"Load balancing via trace ID is required for those features to work properly in multi agent deployments")
+	}
+
+	if cfg.LoadBalancing == nil && cfg.SpanMetrics != nil {
+		i.logger.Warn("Configuring spanmetrics without load_balancing." +
+			"Load balancing via service name is required for spanmetrics to work properly in multi agent deployments")
 	}
 
 	if cfg.AutomaticLogging != nil && cfg.AutomaticLogging.Backend != automaticloggingprocessor.BackendStdout {
@@ -153,7 +158,7 @@ func (i *Instance) buildAndStartPipeline(ctx context.Context, cfg InstanceConfig
 		OtelMetricReader:         promExporter,
 		DisableProcessMetrics:    true,
 		UseExternalMetricsServer: true,
-		TracerProvider:           trace.NewNoopTracerProvider(),
+		TracerProvider:           noop.NewTracerProvider(),
 		//TODO: Plug in an AsyncErrorChannel to shut down the Agent in case of a fatal event
 		LoggingOptions: []zap.Option{
 			zap.WrapCore(func(zapcore.Core) zapcore.Core {

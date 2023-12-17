@@ -9,5 +9,5 @@ title: Deploy Grafana Agent in static mode
 weight: 300
 ---
 
-{{< docs/shared source="agent" lookup="/deploy-agent.md" version="<AGENT VERSION>" >}}
+{{< docs/shared source="agent" lookup="/deploy-agent.md" version="<AGENT_VERSION>" >}}
 

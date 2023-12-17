@@ -23,12 +23,13 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 					forward_to = []
 				`,
 			expected: prometheus.Arguments{
-				IncludeTargetInfo:  true,
-				IncludeScopeInfo:   false,
-				IncludeScopeLabels: true,
-				GCFrequency:        5 * time.Minute,
-				AddMetricSuffixes:  true,
-				ForwardTo:          []storage.Appendable{},
+				IncludeTargetInfo:             true,
+				IncludeScopeInfo:              false,
+				IncludeScopeLabels:            true,
+				GCFrequency:                   5 * time.Minute,
+				AddMetricSuffixes:             true,
+				ForwardTo:                     []storage.Appendable{},
+				ResourceToTelemetryConversion: false,
 			},
 		},
 		{
@@ -39,15 +40,17 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 					include_scope_labels = false
 					gc_frequency = "1s"
 					add_metric_suffixes = false
+					resource_to_telemetry_conversion = true
 					forward_to = []
 				`,
 			expected: prometheus.Arguments{
-				IncludeTargetInfo:  false,
-				IncludeScopeInfo:   true,
-				IncludeScopeLabels: false,
-				GCFrequency:        1 * time.Second,
-				AddMetricSuffixes:  false,
-				ForwardTo:          []storage.Appendable{},
+				IncludeTargetInfo:             false,
+				IncludeScopeInfo:              true,
+				IncludeScopeLabels:            false,
+				GCFrequency:                   1 * time.Second,
+				AddMetricSuffixes:             false,
+				ForwardTo:                     []storage.Appendable{},
+				ResourceToTelemetryConversion: true,
 			},
 		},
 		{
