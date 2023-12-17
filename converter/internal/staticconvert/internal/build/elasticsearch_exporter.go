@@ -14,7 +14,7 @@ func (b *IntegrationsConfigBuilder) appendElasticsearchExporter(config *elastics
 }
 
 func toElasticsearchExporter(config *elasticsearch_exporter.Config) *elasticsearch.Arguments {
-	return &elasticsearch.Arguments{
+	arg := &elasticsearch.Arguments{
 		Address:                   config.Address,
 		Timeout:                   config.Timeout,
 		AllNodes:                  config.AllNodes,
@@ -32,10 +32,15 @@ func toElasticsearchExporter(config *elasticsearch_exporter.Config) *elasticsear
 		InsecureSkipVerify:        config.InsecureSkipVerify,
 		ExportDataStreams:         config.ExportDataStreams,
 		ExportSLM:                 config.ExportSLM,
-		BasicAuth: &commonCfg.BasicAuth{
+	}
+
+	if config.BasicAuth != nil {
+		arg.BasicAuth = &commonCfg.BasicAuth{
 			Username:     config.BasicAuth.Username,
 			Password:     rivertypes.Secret(config.BasicAuth.Password),
 			PasswordFile: config.BasicAuth.PasswordFile,
-		},
+		}
 	}
+
+	return arg
 }
