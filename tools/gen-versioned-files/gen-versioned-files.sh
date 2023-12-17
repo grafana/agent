@@ -15,6 +15,7 @@ fi
 
 templates=$(find . -type f -name "*.t" -not -path "./.git/*")
 for template in $templates; do
+    echo $template
     echo "Generating ${template%.t}"
     sed -e "s/\$AGENT_VERSION/$AGENT_VERSION/g" < "$template" > "${template%.t}"
 done
