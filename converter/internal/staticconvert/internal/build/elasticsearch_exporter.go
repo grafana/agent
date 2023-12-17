@@ -1,9 +1,11 @@
 package build
 
 import (
+	commonCfg "github.com/grafana/agent/component/common/config"
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/prometheus/exporter/elasticsearch"
 	"github.com/grafana/agent/pkg/integrations/elasticsearch_exporter"
+	"github.com/grafana/river/rivertypes"
 )
 
 func (b *IntegrationsConfigBuilder) appendElasticsearchExporter(config *elasticsearch_exporter.Config, instanceKey *string) discovery.Exports {
@@ -30,5 +32,10 @@ func toElasticsearchExporter(config *elasticsearch_exporter.Config) *elasticsear
 		InsecureSkipVerify:        config.InsecureSkipVerify,
 		ExportDataStreams:         config.ExportDataStreams,
 		ExportSLM:                 config.ExportSLM,
+		BasicAuth: &commonCfg.BasicAuth{
+			Username:     config.BasicAuth.Username,
+			Password:     rivertypes.Secret(config.BasicAuth.Password),
+			PasswordFile: config.BasicAuth.PasswordFile,
+		},
 	}
 }
