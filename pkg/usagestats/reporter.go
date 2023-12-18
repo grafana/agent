@@ -36,12 +36,7 @@ func NewReporter(logger log.Logger) (*Reporter, error) {
 // Start inits the reporter seed and start sending report for every interval
 func (rep *Reporter) Start(ctx context.Context, metricsFunc func() map[string]interface{}) error {
 	level.Info(rep.logger).Log("msg", "running usage stats reporter")
-	seed, err := agentseed.Get()
-	if err != nil {
-		level.Info(rep.logger).Log("msg", "failed to init seed", "err", err)
-		return err
-	}
-	rep.agentSeed = seed
+	rep.agentSeed = agentseed.Get()
 
 	// check every minute if we should report.
 	ticker := time.NewTicker(reportCheckInterval)
