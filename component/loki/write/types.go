@@ -95,7 +95,6 @@ func (args Arguments) convertClientConfigs() []client.Config {
 			cfg.Headers = map[string]string{}
 		}
 		cfg.Headers["X-Agent-UID"] = uid
-
 		url, _ := url.Parse(cfg.URL)
 		cc := client.Config{
 			Name:      cfg.Name,
