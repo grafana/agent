@@ -143,6 +143,9 @@ func Test_PollSecrets(t *testing.T) {
 }
 
 func getTestVaultServer(t *testing.T) *vaultapi.Client {
+	// TODO: this is broken with go 1.20.6
+	// waiting on https://github.com/testcontainers/testcontainers-go/issues/1359
+	t.Skip()
 	ctx := componenttest.TestContext(t)
 	l := util.TestLogger(t)
 
