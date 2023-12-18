@@ -79,7 +79,7 @@ func TestImportModule(t *testing.T) {
 	require.Eventually(t, func() bool {
 		export := getExport[testcomponents.SummationExports](t, ctrl, "", "testcomponents.summation.sum")
 		return export.LastAdded == 10
-	}, 3*time.Second, 10*time.Millisecond)
+	}, 3*time.Second, 50*time.Millisecond)
 
 	// update the file to check if the module is correctly updated without reload
 	newModule := `
@@ -102,7 +102,7 @@ func TestImportModule(t *testing.T) {
 	require.Eventually(t, func() bool {
 		export := getExport[testcomponents.SummationExports](t, ctrl, "", "testcomponents.summation.sum")
 		return export.LastAdded == -10
-	}, 3*time.Second, 10*time.Millisecond)
+	}, 3*time.Second, 50*time.Millisecond)
 	require.NoError(t, os.Remove(filename))
 }
 
@@ -158,7 +158,7 @@ testcomponents.summation "sum" {
 	require.Eventually(t, func() bool {
 		export := getExport[testcomponents.SummationExports](t, ctrl, "", "testcomponents.summation.sum")
 		return export.LastAdded == 10
-	}, 3*time.Second, 10*time.Millisecond)
+	}, 3*time.Second, 50*time.Millisecond)
 
 	newModule := `
 	declare "test" {
@@ -176,7 +176,7 @@ testcomponents.summation "sum" {
 	require.Eventually(t, func() bool {
 		export := getExport[testcomponents.SummationExports](t, ctrl, "", "testcomponents.summation.sum")
 		return export.LastAdded == -10
-	}, 3*time.Second, 10*time.Millisecond)
+	}, 3*time.Second, 50*time.Millisecond)
 	require.NoError(t, os.Remove(filename))
 }
 
@@ -250,7 +250,7 @@ declare "test" {
 	require.Eventually(t, func() bool {
 		export := getExport[testcomponents.SummationExports](t, ctrl, "", "testcomponents.summation.sum")
 		return export.LastAdded == 10
-	}, 3*time.Second, 10*time.Millisecond)
+	}, 3*time.Second, 50*time.Millisecond)
 
 	// update the file to check if the module is correctly updated without reload
 	newOtherModule := `
@@ -273,7 +273,7 @@ declare "test" {
 	require.Eventually(t, func() bool {
 		export := getExport[testcomponents.SummationExports](t, ctrl, "", "testcomponents.summation.sum")
 		return export.LastAdded == -10
-	}, 3*time.Second, 10*time.Millisecond)
+	}, 3*time.Second, 50*time.Millisecond)
 	require.NoError(t, os.Remove(filename))
 	require.NoError(t, os.Remove(otherFilename))
 }
