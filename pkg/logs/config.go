@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"path/filepath"
 
+	"github.com/grafana/agent/internal/agentseed"
 	"github.com/grafana/loki/clients/pkg/promtail/client"
 	"github.com/grafana/loki/clients/pkg/promtail/limit"
 	"github.com/grafana/loki/clients/pkg/promtail/positions"
@@ -74,6 +75,13 @@ func (c *Config) ApplyDefaults() error {
 
 		if len(ic.ClientConfigs) == 0 {
 			ic.ClientConfigs = c.Global.ClientConfigs
+		}
+		uid := agentseed.Get().UID
+		for _, cfg := range ic.ClientConfigs {
+			if cfg.Headers == nil {
+				cfg.Headers = map[string]string{}
+			}
+			cfg.Headers["X-Agent-UID"] = uid
 		}
 	}
 
