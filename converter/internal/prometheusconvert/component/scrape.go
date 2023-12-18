@@ -30,7 +30,10 @@ func AppendPrometheusScrape(pb *build.PrometheusBlocks, scrapeConfig *prom_confi
 func ValidatePrometheusScrape(scrapeConfig *prom_config.ScrapeConfig) diag.Diagnostics {
 	var diags diag.Diagnostics
 
+	// https://github.com/prometheus/prometheus/commit/40240c9c1cb290fe95f1e61886b23fab860aeacd
 	diags.AddAll(common.ValidateSupported(common.NotEquals, scrapeConfig.NativeHistogramBucketLimit, uint(0), "scrape_configs native_histogram_bucket_limit", ""))
+	// https://github.com/prometheus/prometheus/pull/12647
+	diags.AddAll(common.ValidateSupported(common.NotEquals, scrapeConfig.KeepDroppedTargets, uint(0), "scrape_configs keep_dropped_targets", ""))
 	diags.AddAll(common.ValidateHttpClientConfig(&scrapeConfig.HTTPClientConfig))
 
 	return diags

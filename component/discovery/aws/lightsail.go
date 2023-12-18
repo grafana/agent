@@ -7,6 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/ec2metadata"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/component/common/config"
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/river/rivertypes"
 	promcfg "github.com/prometheus/common/config"
@@ -35,26 +36,30 @@ type LightsailArguments struct {
 	RoleARN         string            `river:"role_arn,attr,optional"`
 	RefreshInterval time.Duration     `river:"refresh_interval,attr,optional"`
 	Port            int               `river:"port,attr,optional"`
+
+	HTTPClientConfig config.HTTPClientConfig `river:",squash"`
 }
 
 func (args LightsailArguments) Convert() *promaws.LightsailSDConfig {
 	cfg := &promaws.LightsailSDConfig{
-		Endpoint:        args.Endpoint,
-		Region:          args.Region,
-		AccessKey:       args.AccessKey,
-		SecretKey:       promcfg.Secret(args.SecretKey),
-		Profile:         args.Profile,
-		RoleARN:         args.RoleARN,
-		RefreshInterval: model.Duration(args.RefreshInterval),
-		Port:            args.Port,
+		Endpoint:         args.Endpoint,
+		Region:           args.Region,
+		AccessKey:        args.AccessKey,
+		SecretKey:        promcfg.Secret(args.SecretKey),
+		Profile:          args.Profile,
+		RoleARN:          args.RoleARN,
+		RefreshInterval:  model.Duration(args.RefreshInterval),
+		Port:             args.Port,
+		HTTPClientConfig: *args.HTTPClientConfig.Convert(),
 	}
 	return cfg
 }
 
 // DefaultLightsailSDConfig is the default Lightsail SD configuration.
 var DefaultLightsailSDConfig = LightsailArguments{
-	Port:            80,
-	RefreshInterval: 60 * time.Second,
+	Port:             80,
+	RefreshInterval:  60 * time.Second,
+	HTTPClientConfig: config.DefaultHTTPClientConfig,
 }
 
 // SetToDefault implements river.Defaulter.
