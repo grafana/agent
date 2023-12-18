@@ -1,15 +1,15 @@
 ---
 aliases:
-- /docs/grafana-cloud/agent/flow/sizing
-- /docs/grafana-cloud/send-data/agent/flow/sizing
-canonical: https://grafana.com/docs/agent/latest/flow/sizing/
-description: Sizing and resource requirements
+- /docs/grafana-cloud/agent/flow/requirements
+- /docs/grafana-cloud/send-data/agent/flow/requirements
+canonical: https://grafana.com/docs/agent/latest/flow/requirements/
+description: Resource requirements
 menuTitle: Sizing
-title: Sizing and resource requirements
+title: Resource requirements
 weight: 100
 ---
 
-# Sizing and resource requirements
+# Resource requirements
 
 Capacity planning for {{< param "PRODUCT_NAME" >}} is a very important step in the deployment process. The sizing and capacity requirements for {{< param "PRODUCT_NAME" >}} depends on your specific environment, and the workload you have. Understanding the minimum hardware requirements for Grafana Agent Flow XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXx
 
