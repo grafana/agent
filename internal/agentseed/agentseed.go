@@ -76,6 +76,7 @@ func Get() (seed *AgentSeed) {
 					// we found it at the preferred path. Just return it
 					return seed
 				} else {
+					// it was at a backup path. write it to the preferred path.
 					writeSeedFile(seed, paths[0])
 					return seed
 				}
@@ -120,16 +121,15 @@ func fileExists(path string) bool {
 }
 
 // writeSeedFile writes the agent seed file
-func writeSeedFile(seed *AgentSeed, path string) error {
+func writeSeedFile(seed *AgentSeed, path string) {
 	data, err := json.Marshal(*seed)
 	if err != nil {
 		level.Error(logger).Log("msg", "Encoding seed file", "err", err)
-		return err
+		return
 	}
 	err = os.WriteFile(path, data, 0644)
 	if err != nil {
 		level.Error(logger).Log("msg", "Writing seed file", "err", err)
-		return err
+		return
 	}
-	return err
 }
