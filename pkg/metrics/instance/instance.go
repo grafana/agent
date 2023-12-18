@@ -17,6 +17,7 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
+	"github.com/grafana/agent/internal/agentseed"
 	"github.com/grafana/agent/internal/useragent"
 	"github.com/grafana/agent/pkg/metrics/wal"
 	"github.com/grafana/agent/pkg/util"
@@ -157,7 +158,7 @@ func (c *Config) ApplyDefaults(global GlobalConfig) error {
 	}
 
 	rwNames := map[string]struct{}{}
-
+	uid := agentseed.Get().UID
 	// If the instance remote write is not filled in, then apply the prometheus write config
 	if len(c.RemoteWrite) == 0 {
 		c.RemoteWrite = c.global.RemoteWrite
@@ -166,6 +167,10 @@ func (c *Config) ApplyDefaults(global GlobalConfig) error {
 		if cfg == nil {
 			return fmt.Errorf("empty or null remote write config section")
 		}
+		if cfg.Headers == nil {
+			cfg.Headers = map[string]string{}
+		}
+		cfg.Headers["X-Agent-UID"] = uid
 
 		// Typically Prometheus ignores empty names here, but we need to assign a
 		// unique name to the config so we can pull metrics from it when running
@@ -183,7 +188,6 @@ func (c *Config) ApplyDefaults(global GlobalConfig) error {
 			cfg.Name = c.Name + "-" + hash[:6]
 			generatedName = true
 		}
-
 		if _, exists := rwNames[cfg.Name]; exists {
 			if generatedName {
 				return fmt.Errorf("found two identical remote_write configs")
