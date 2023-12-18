@@ -150,7 +150,7 @@ func New(logger log.Logger, c *Config) (integrations.Integration, error) {
 			}
 			password = strings.TrimSpace(string(buff))
 		}
-		username := string(c.BasicAuth.Username)
+		username := c.BasicAuth.Username
 		if len(c.BasicAuth.UsernameFile) > 0 {
 			buff, err := os.ReadFile(c.BasicAuth.UsernameFile)
 			if err != nil {
