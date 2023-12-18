@@ -36,7 +36,6 @@ func TestImportModule(t *testing.T) {
 `
 	filename := "my_module"
 	require.NoError(t, os.WriteFile(filename, []byte(module), 0664))
-	defer require.NoError(t, os.Remove(filename))
 
 	// We send the count increments via module and to the summation component and verify that the updates propagate.
 	config := `
@@ -104,6 +103,7 @@ func TestImportModule(t *testing.T) {
 		export := getExport[testcomponents.SummationExports](t, ctrl, "", "testcomponents.summation.sum")
 		return export.LastAdded == -10
 	}, 3*time.Second, 10*time.Millisecond)
+	require.NoError(t, os.Remove(filename))
 }
 
 func TestImportModuleNoArgs(t *testing.T) {
@@ -122,7 +122,6 @@ func TestImportModuleNoArgs(t *testing.T) {
 `
 	filename := "my_module"
 	require.NoError(t, os.WriteFile(filename, []byte(module), 0664))
-	defer require.NoError(t, os.Remove(filename))
 
 	config := `
 import.file "testImport" {
@@ -178,6 +177,7 @@ testcomponents.summation "sum" {
 		export := getExport[testcomponents.SummationExports](t, ctrl, "", "testcomponents.summation.sum")
 		return export.LastAdded == -10
 	}, 3*time.Second, 10*time.Millisecond)
+	require.NoError(t, os.Remove(filename))
 }
 
 func TestNextImportModule(t *testing.T) {
@@ -208,9 +208,6 @@ declare "test" {
 	otherFilename := "other_module"
 	require.NoError(t, os.WriteFile(otherFilename, []byte(otherModule), 0664))
 
-	defer require.NoError(t, os.Remove(filename))
-	defer require.NoError(t, os.Remove(otherFilename))
-
 	// We send the count increments via module and to the summation component and verify that the updates propagate.
 	config := `
 	testcomponents.count "inc" {
@@ -227,7 +224,7 @@ declare "test" {
 	}
 
 	testcomponents.summation "sum" {
-		input = testImport.test.myModule.exports.output
+		input = testImport.otherModule.test.myModule.exports.output
 	}
 `
 
@@ -277,4 +274,6 @@ declare "test" {
 		export := getExport[testcomponents.SummationExports](t, ctrl, "", "testcomponents.summation.sum")
 		return export.LastAdded == -10
 	}, 3*time.Second, 10*time.Millisecond)
+	require.NoError(t, os.Remove(filename))
+	require.NoError(t, os.Remove(otherFilename))
 }

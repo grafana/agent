@@ -196,7 +196,7 @@ func (cn *ImportConfigNode) OnChildrenContentUpdate(child NodeWithDependants) {
 	switch child := child.(type) {
 	case *ImportConfigNode:
 		for importedDeclareLabel, content := range child.importedContent {
-			label := cn.label + "." + importedDeclareLabel
+			label := child.label + "." + importedDeclareLabel
 			cn.importedContent[label] = content
 		}
 	default:
