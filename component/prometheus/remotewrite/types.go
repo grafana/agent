@@ -8,7 +8,6 @@ import (
 
 	types "github.com/grafana/agent/component/common/config"
 	flow_relabel "github.com/grafana/agent/component/common/relabel"
-	"github.com/grafana/agent/internal/agentseed"
 	"github.com/grafana/river/rivertypes"
 
 	"github.com/google/uuid"
@@ -227,17 +226,11 @@ type Exports struct {
 
 func convertConfigs(cfg Arguments) (*config.Config, error) {
 	var rwConfigs []*config.RemoteWriteConfig
-	uid := agentseed.Get().UID
 	for _, rw := range cfg.Endpoints {
 		parsedURL, err := url.Parse(rw.URL)
 		if err != nil {
 			return nil, fmt.Errorf("cannot parse remote_write url %q: %w", rw.URL, err)
 		}
-		if rw.Headers == nil {
-			rw.Headers = map[string]string{}
-		}
-		rw.Headers["X-Agent-UID"] = uid
-
 		rwConfigs = append(rwConfigs, &config.RemoteWriteConfig{
 			URL:                  &common.URL{URL: parsedURL},
 			RemoteTimeout:        model.Duration(rw.RemoteTimeout),
