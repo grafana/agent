@@ -45,7 +45,7 @@ func TestDeclareComponent(t *testing.T) {
 			}
 		
 			testcomponents.summation "sum" {
-				input = test.myModule.exports.output
+				input = test.myModule.output
 			}
 			`,
 			expected: 10,
@@ -77,7 +77,7 @@ func TestDeclareComponent(t *testing.T) {
 				}
 			
 				export "output" {
-					value = nested.default.exports.output
+					value = nested.default.output
 				}
 			}
 			testcomponents.count "inc" {
@@ -90,7 +90,7 @@ func TestDeclareComponent(t *testing.T) {
 			}
 		
 			testcomponents.summation "sum" {
-				input = test.myModule.exports.output
+				input = test.myModule.output
 			}
 			`,
 			expected: 10,

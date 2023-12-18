@@ -53,7 +53,7 @@ func TestImportModule(t *testing.T) {
 	}
 
 	testcomponents.summation "sum" {
-		input = testImport.test.myModule.exports.output
+		input = testImport.test.myModule.output
 	}
 `
 
@@ -132,7 +132,7 @@ testImport.test "myModule" {
 }
 
 testcomponents.summation "sum" {
-	input = testImport.test.myModule.exports.output
+	input = testImport.test.myModule.output
 }
 `
 
@@ -224,7 +224,7 @@ declare "test" {
 	}
 
 	testcomponents.summation "sum" {
-		input = testImport.otherModule.test.myModule.exports.output
+		input = testImport.otherModule.test.myModule.output
 	}
 `
 

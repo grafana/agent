@@ -15,7 +15,7 @@ func init() {
 		Exports: mod.Exports{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
-			m, err := mod.NewModuleComponent(opts)
+			m, err := mod.NewModuleComponentDeprecated(opts)
 			if err != nil {
 				return nil, err
 			}

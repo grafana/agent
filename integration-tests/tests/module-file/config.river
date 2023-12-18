@@ -5,14 +5,14 @@ import.file "all" {
 all.target "getTarget" {}
 
 all.import_prom_scrape.scrape "promScraper" {
-  scrape_endpoint = all.target.getTarget.exports.output
+  scrape_endpoint = all.target.getTarget.output
   forward_to = [prometheus.remote_write.module_file.receiver]
 }
 
 all.import_loki.logTarget.getLogFile "logFile" {}
 
 all.import_loki.loki "loki" {
-  file = all.import_loki.logTarget.getLogFile.logFile.exports.output
+  file = all.import_loki.logTarget.getLogFile.logFile.output
 }
 
 prometheus.remote_write "module_file" {

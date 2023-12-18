@@ -23,7 +23,7 @@ type ModuleComponent struct {
 }
 
 // Exports holds values which are exported from the run module.
-// TODO: We could actually have type Exports = map[string]any to avoid the unnecessary "exports"
+// This export type is deprecated.
 type Exports struct {
 	// Exports exported from the running module.
 	Exports map[string]any `river:"exports,block"`
@@ -31,6 +31,18 @@ type Exports struct {
 
 // NewModuleComponent initializes a new ModuleComponent.
 func NewModuleComponent(o component.Options) (*ModuleComponent, error) {
+	c := &ModuleComponent{
+		opts: o,
+	}
+	var err error
+	c.mod, err = o.ModuleController.NewModule("", func(exports map[string]any) {
+		c.opts.OnStateChange(exports)
+	})
+	return c, err
+}
+
+// TODO: Remove when getting rid of old modules
+func NewModuleComponentDeprecated(o component.Options) (*ModuleComponent, error) {
 	c := &ModuleComponent{
 		opts: o,
 	}

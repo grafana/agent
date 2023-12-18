@@ -42,7 +42,7 @@ var (
 
 // New creates a new module.string component.
 func New(o component.Options, args Arguments) (*Component, error) {
-	m, err := module.NewModuleComponent(o)
+	m, err := module.NewModuleComponentDeprecated(o)
 	if err != nil {
 		return nil, err
 	}
