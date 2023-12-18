@@ -44,30 +44,31 @@ The following arguments are supported:
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`targets`                  | `list(map(string))`     | List of targets to scrape. | | yes
-`forward_to`               | `list(MetricsReceiver)` | List of receivers to send scraped metrics to. | | yes
-`job_name`                 | `string`   | The value to use for the job label if not already set. | component name | no
-`extra_metrics`            | `bool`     | Whether extra metrics should be generated for scrape targets. | `false` | no
+`targets`                     | `list(map(string))`     | List of targets to scrape. | | yes
+`forward_to`                  | `list(MetricsReceiver)` | List of receivers to send scraped metrics to. | | yes
+`job_name`                    | `string`   | The value to use for the job label if not already set. | component name | no
+`extra_metrics`               | `bool`     | Whether extra metrics should be generated for scrape targets. | `false` | no
 `enable_protobuf_negotiation` | `bool`     | Whether to enable protobuf negotiation with the client. | `false` | no
-`honor_labels`             | `bool`     | Indicator whether the scraped metrics should remain unmodified. | `false` | no
-`honor_timestamps`         | `bool`     | Indicator whether the scraped timestamps should be respected. | `true` | no
-`params`                   | `map(list(string))` | A set of query parameters with which the target is scraped. | | no
-`scrape_classic_histograms` | `bool`     | Whether to scrape a classic histogram that is also exposed as a native histogram. | `false` | no
-`scrape_interval`          | `duration` | How frequently to scrape the targets of this scrape configuration. | `"60s"` | no
-`scrape_timeout`           | `duration` | The timeout for scraping targets of this configuration. | `"10s"` | no
-`metrics_path`             | `string`   | The HTTP resource path on which to fetch metrics from targets. | `/metrics` | no
-`scheme`                   | `string`   | The URL scheme with which to fetch metrics from targets. | | no
-`body_size_limit`          | `int`      | An uncompressed response body larger than this many bytes causes the scrape to fail. 0 means no limit. | | no
-`sample_limit`             | `uint`     | More than this many samples post metric-relabeling causes the scrape to fail | | no
-`target_limit`             | `uint`     | More than this many targets after the target relabeling causes the scrapes to fail. | | no
-`label_limit`              | `uint`     | More than this many labels post metric-relabeling causes the scrape to fail. | | no
-`label_name_length_limit`  | `uint`     | More than this label name length post metric-relabeling causes the scrape to fail. | | no
-`label_value_length_limit` | `uint`     | More than this label value length post metric-relabeling causes the scrape to fail. | | no
-`bearer_token` | `secret` | Bearer token to authenticate with. | | no
-`bearer_token_file` | `string` | File containing a bearer token to authenticate with. | | no
-`proxy_url` | `string` | HTTP proxy to proxy requests through. | | no
-`follow_redirects` | `bool` | Whether redirects returned by the server should be followed. | `true` | no
-`enable_http2` | `bool` | Whether HTTP2 is supported for requests. | `true` | no
+`honor_labels`                | `bool`     | Indicator whether the scraped metrics should remain unmodified. | `false` | no
+`honor_timestamps`            | `bool`     | Indicator whether the scraped timestamps should be respected. | `true` | no
+`track_timestamps_staleness`  | `bool`     | Indicator whether to track the staleness of the scraped timestamps. | `false` | no
+`params`                      | `map(list(string))` | A set of query parameters with which the target is scraped. | | no
+`scrape_classic_histograms`   | `bool`     | Whether to scrape a classic histogram that is also exposed as a native histogram. | `false` | no
+`scrape_interval`             | `duration` | How frequently to scrape the targets of this scrape configuration. | `"60s"` | no
+`scrape_timeout`              | `duration` | The timeout for scraping targets of this configuration. | `"10s"` | no
+`metrics_path`                | `string`   | The HTTP resource path on which to fetch metrics from targets. | `/metrics` | no
+`scheme`                      | `string`   | The URL scheme with which to fetch metrics from targets. | | no
+`body_size_limit`             | `int`      | An uncompressed response body larger than this many bytes causes the scrape to fail. 0 means no limit. | | no
+`sample_limit`                | `uint`     | More than this many samples post metric-relabeling causes the scrape to fail | | no
+`target_limit`                | `uint`     | More than this many targets after the target relabeling causes the scrapes to fail. | | no
+`label_limit`                 | `uint`     | More than this many labels post metric-relabeling causes the scrape to fail. | | no
+`label_name_length_limit`     | `uint`     | More than this label name length post metric-relabeling causes the scrape to fail. | | no
+`label_value_length_limit`    | `uint`     | More than this label value length post metric-relabeling causes the scrape to fail. | | no
+`bearer_token`                | `secret`   | Bearer token to authenticate with. | | no
+`bearer_token_file`           | `string`   | File containing a bearer token to authenticate with. | | no
+`proxy_url`                   | `string`   | HTTP proxy to proxy requests through. | | no
+`follow_redirects`            | `bool`     | Whether redirects returned by the server should be followed. | `true` | no
+`enable_http2`                | `bool`     | Whether HTTP2 is supported for requests. | `true` | no
 
  At most one of the following can be provided:
  - [`bearer_token` argument](#arguments).
@@ -75,6 +76,20 @@ Name | Type | Description | Default | Required
  - [`basic_auth` block][basic_auth].
  - [`authorization` block][authorization].
  - [`oauth2` block][oauth2].
+
+`track_timestamps_staleness` controls whether Prometheus tracks [staleness][prom-staleness] of metrics which with an explicit timestamp present in scraped data.
+* An "explicit timestamp" is an optional timestamp in the [Prometheus metrics exposition format][prom-text-exposition-format]. For example, this sample has a timestamp of `1395066363000`:
+  ```
+  http_requests_total{method="post",code="200"} 1027 1395066363000
+  ```
+* If `track_timestamps_staleness` is set to `true`, a staleness marker will be inserted when a metric is no longer present or the target is down.
+* A "staleness marker" is just a {{< term "sample" >}}sample{{< /term >}} with a specific NaN value which is reserved for internal use by Prometheus.
+* It is recommended to set `track_timestamps_staleness` to `true` if the database where metrics are written to has enabled [out of order ingestion][mimir-ooo].
+* If `track_timestamps_staleness` is set to `false`, samples with explicit timestamps will only be labeled as stale after a certain time period, which in Prometheus is 5 minutes by default.
+
+[prom-text-exposition-format]: https://prometheus.io/docs/instrumenting/exposition_formats/#text-based-format
+[prom-staleness]: https://prometheus.io/docs/prometheus/latest/querying/basics/#staleness
+[mimir-ooo]: https://grafana.com/docs/mimir/latest/configure/configure-out-of-order-samples-ingestion/
 
 ## Blocks
 

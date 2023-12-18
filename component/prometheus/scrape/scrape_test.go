@@ -29,6 +29,7 @@ func TestRiverConfig(t *testing.T) {
 	forward_to      = []
 	scrape_interval = "10s"
 	job_name        = "local"
+	track_timestamps_staleness = true
 
 	bearer_token = "token"
 	proxy_url = "http://0.0.0.0:11111"
