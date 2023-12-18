@@ -1,0 +1,32 @@
+import.file "all" {
+  filename = "import.river"
+}
+
+all.target "getTarget" {}
+
+all.import_prom_scrape.scrape "promScraper" {
+  scrape_endpoint = all.target.getTarget.exports.output
+  forward_to = [prometheus.remote_write.module_file.receiver]
+}
+
+all.import_loki.logTarget.getLogFile "logFile" {}
+
+all.import_loki.loki "loki" {
+  file = all.import_loki.logTarget.getLogFile.logFile.exports.output
+}
+
+prometheus.remote_write "module_file" {
+  endpoint {
+    url = "http://localhost:9009/api/v1/push"
+    send_native_histograms = true
+    metadata_config {
+        send_interval = "1s"
+    }
+    queue_config {
+        max_samples_per_send = 100
+    }
+  }
+  external_labels = {
+    test_name = "module_file",
+  }
+}

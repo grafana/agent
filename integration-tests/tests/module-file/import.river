@@ -1,0 +1,13 @@
+declare "target" {
+  export "output" {
+    value = "localhost:9001"
+  }
+}
+
+import.file "import_loki" {
+  filename = "loki.river"
+}
+
+import.file "import_prom_scrape" {
+  filename = "prom-scrape.river"
+}

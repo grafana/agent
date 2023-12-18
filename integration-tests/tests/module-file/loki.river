@@ -1,0 +1,21 @@
+import.file "logTarget" {
+  filename = "logfile.river"
+}
+
+declare "loki" {
+  argument "file" {}
+  loki.source.file "test" {
+    targets    = argument.file.value
+    forward_to = [loki.write.test.receiver]
+  }
+
+  loki.write "test" {
+    endpoint {
+      url = "http://localhost:3100/loki/api/v1/push"
+    }
+    external_labels = {
+      test_name = "module_file",
+    }
+  }
+}
+

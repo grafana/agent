@@ -1,4 +1,4 @@
-declare "myModule" {
+declare "scrape" {
   argument "scrape_endpoint" {}
 
   argument "forward_to" {}
@@ -8,7 +8,7 @@ declare "myModule" {
     default  = "1s"
   }
 
-  prometheus.scrape "scrape_prom_metrics_module_file" {
+  prometheus.scrape "module_file" {
     targets = [
       {"__address__" = argument.scrape_endpoint.value},
     ]

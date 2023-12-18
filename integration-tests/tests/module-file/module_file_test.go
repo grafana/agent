@@ -10,9 +10,10 @@ import (
 )
 
 const promURL = "http://localhost:9009/prometheus/api/v1/query?query="
+const lokiUrl = "http://localhost:3100/loki/api/v1/query?query={test_name=%22module_file%22}"
 
 func metricQuery(metricName string) string {
-	return fmt.Sprintf("%s%s{test_name='scrape_prom_metrics_module_file'}", promURL, metricName)
+	return fmt.Sprintf("%s%s{test_name='module_file'}", promURL, metricName)
 }
 
 func TestScrapePromMetricsModuleFile(t *testing.T) {
@@ -45,7 +46,7 @@ func assertHistogramData(t *testing.T, query string, expectedMetric string) {
 		assert.NoError(c, err)
 		if assert.NotEmpty(c, metricResponse.Data.Result) {
 			assert.Equal(c, metricResponse.Data.Result[0].Metric.Name, expectedMetric)
-			assert.Equal(c, metricResponse.Data.Result[0].Metric.TestName, "scrape_prom_metrics_module_file")
+			assert.Equal(c, metricResponse.Data.Result[0].Metric.TestName, "module_file")
 			if assert.NotNil(c, metricResponse.Data.Result[0].Histogram) {
 				histogram := metricResponse.Data.Result[0].Histogram
 				if assert.NotEmpty(c, histogram.Data.Count) {
@@ -63,6 +64,22 @@ func assertHistogramData(t *testing.T, query string, expectedMetric string) {
 	}, common.DefaultTimeout, common.DefaultRetryInterval, "Histogram data did not satisfy the conditions within the time limit")
 }
 
+func TestReadLogFile(t *testing.T) {
+	var logResponse common.LogResponse
+	assert.EventuallyWithT(t, func(c *assert.CollectT) {
+		err := common.FetchDataFromURL(lokiUrl, &logResponse)
+		assert.NoError(c, err)
+		if assert.NotEmpty(c, logResponse.Data.Result) {
+			assert.Equal(c, logResponse.Data.Result[0].Stream["filename"], "logs.txt")
+			logs := make([]string, len(logResponse.Data.Result[0].Values))
+			for i, valuePair := range logResponse.Data.Result[0].Values {
+				logs[i] = valuePair[1]
+			}
+			assert.Contains(c, logs, "[2023-10-02 14:25:43] INFO: Starting the web application...")
+		}
+	}, common.DefaultTimeout, common.DefaultRetryInterval, "Data did not satisfy the conditions within the time limit")
+}
+
 func assertMetricData(t *testing.T, query, expectedMetric string) {
 	var metricResponse common.MetricResponse
 	assert.EventuallyWithT(t, func(c *assert.CollectT) {
@@ -70,7 +87,7 @@ func assertMetricData(t *testing.T, query, expectedMetric string) {
 		assert.NoError(c, err)
 		if assert.NotEmpty(c, metricResponse.Data.Result) {
 			assert.Equal(c, metricResponse.Data.Result[0].Metric.Name, expectedMetric)
-			assert.Equal(c, metricResponse.Data.Result[0].Metric.TestName, "scrape_prom_metrics_module_file")
+			assert.Equal(c, metricResponse.Data.Result[0].Metric.TestName, "module_file")
 			assert.NotEmpty(c, metricResponse.Data.Result[0].Value.Value)
 			assert.Nil(c, metricResponse.Data.Result[0].Histogram)
 		}
