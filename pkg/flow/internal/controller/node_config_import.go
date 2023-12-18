@@ -22,16 +22,19 @@ import (
 )
 
 type ImportConfigNode struct {
-	id                ComponentID
-	label             string
-	nodeID            string
-	componentName     string
-	globalID          string
-	source            importsource.ImportSource
-	registry          *prometheus.Registry
-	importedContent   map[string]string
-	OnComponentUpdate func(cn NodeWithDependants) // Informs controller that we need to reevaluate
-	logger            log.Logger
+	id                        ComponentID
+	label                     string
+	nodeID                    string
+	componentName             string
+	globalID                  string
+	globals                   ComponentGlobals // Need a copy of the globals to create other import nodes.
+	source                    importsource.ImportSource
+	registry                  *prometheus.Registry
+	importedContent           map[string]string
+	importConfigNodesChildren map[string]*ImportConfigNode
+	OnComponentUpdate         func(cn NodeWithDependants) // Informs controller that we need to reevaluate
+	logger                    log.Logger
+	inContentUpdate           bool
 
 	mut                sync.RWMutex
 	importedContentMut sync.RWMutex
@@ -68,6 +71,7 @@ func NewImportConfigNode(block *ast.BlockStmt, globals ComponentGlobals, sourceT
 		id:                id,
 		globalID:          globalID,
 		label:             block.Label,
+		globals:           globals,
 		nodeID:            BlockComponentID(block).String(),
 		componentName:     block.GetBlockName(),
 		importedContent:   make(map[string]string),
@@ -139,7 +143,10 @@ func (cn *ImportConfigNode) evaluate(scope *vm.Scope) error {
 func (cn *ImportConfigNode) onContentUpdate(content string) {
 	cn.importedContentMut.Lock()
 	defer cn.importedContentMut.Unlock()
+	cn.inContentUpdate = true
 	cn.importedContent = make(map[string]string)
+	// TODO: We recreate the nodes when the content changes. Can we copy instead for optimization?
+	cn.importConfigNodesChildren = make(map[string]*ImportConfigNode)
 	node, err := parser.ParseFile(cn.label, []byte(content))
 	if err != nil {
 		level.Error(cn.logger).Log("msg", "failed to parse file on update", "err", err)
@@ -156,15 +163,49 @@ func (cn *ImportConfigNode) onContentUpdate(content string) {
 					continue
 				}
 				cn.importedContent[stmt.Label] = content[stmt.LCurlyPos.Position().Offset+1 : stmt.RCurlyPos.Position().Offset-1]
+			// TODO: handle all imports
+			case "import.file":
+				if _, ok := cn.importConfigNodesChildren[stmt.Label]; ok {
+					level.Error(cn.logger).Log("msg", "import block redefined", "name", stmt.Label)
+					continue
+				}
+				childGlobals := cn.globals
+				childGlobals.OnComponentUpdate = cn.OnChildrenContentUpdate
+				cn.importConfigNodesChildren[stmt.Label] = NewImportConfigNode(stmt, childGlobals, importsource.FILE)
 			default:
-				level.Error(cn.logger).Log("msg", "only declare blocks are allowed in a module", "forbidden", fullName)
+				level.Error(cn.logger).Log("msg", "only declare and import blocks are allowed in a module", "forbidden", fullName)
 			}
 		default:
-			level.Error(cn.logger).Log("msg", "only declare blocks are allowed in a module")
+			level.Error(cn.logger).Log("msg", "only declare and import blocks are allowed in a module")
 		}
+	}
+	for _, child := range cn.importConfigNodesChildren {
+		child.Evaluate(&vm.Scope{
+			Parent:    nil,
+			Variables: make(map[string]interface{}),
+		})
 	}
 	cn.lastUpdateTime.Store(time.Now())
 	cn.OnComponentUpdate(cn)
+	cn.inContentUpdate = false
+}
+
+// OnChildrenContentUpdate passes their imported content to their parents.
+// To avoid collisions, the content is scoped via namespaces.
+func (cn *ImportConfigNode) OnChildrenContentUpdate(child NodeWithDependants) {
+	switch child := child.(type) {
+	case *ImportConfigNode:
+		for importedDeclareLabel, content := range child.importedContent {
+			label := cn.label + "." + importedDeclareLabel
+			cn.importedContent[label] = content
+		}
+	default:
+		// TODO: something went very wrong in the logic of the code
+	}
+	// This avoids to OnComponentUpdate to be called multiple times in a row when the content changes.
+	if !cn.inContentUpdate {
+		cn.OnComponentUpdate(cn)
+	}
 }
 
 func (cn *ImportConfigNode) ModuleContent(module string) (string, error) {
