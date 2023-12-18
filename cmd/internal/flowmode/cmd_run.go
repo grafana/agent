@@ -247,8 +247,7 @@ func (fr *flowRun) Run(configPath string) error {
 	}
 
 	labelService := labelstore.New(l, reg)
-	agentseed.DataDir = fr.storagePath
-	agentseed.Logger = l
+	agentseed.Init(fr.storagePath, l)
 
 	f := flow.New(flow.Options{
 		Logger:   l,

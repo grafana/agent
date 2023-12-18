@@ -99,7 +99,7 @@ func NewEntrypoint(logger *server.Logger, cfg *config.Config, reloader Reloader)
 		return nil, err
 	}
 
-	agentseed.Logger = logger
+	agentseed.Init("", logger)
 	ep.reporter, err = usagestats.NewReporter(logger)
 	if err != nil {
 		return nil, err

@@ -23,17 +23,26 @@ type AgentSeed struct {
 
 const filename = "agent_seed.json"
 
-// DataDir should be set by an app entrypoint to the data dir to store the agent_seed.json
-var DataDir = ""
-var Logger log.Logger
+var dataDir = ""
+var logger log.Logger
 
 var savedSeed *AgentSeed
+
+// Init should be called by an app entrypoint as soon as it can to configure where the unique seed will be stored.
+// dir is the directory where we will read and store agent_seed.json
+// If left empty it will default to $APPDATA or /tmp
+func Init(dir string, log log.Logger) {
+	dataDir = dir
+	logger = log
+}
 
 // Get will return a unique uuid for this agent.
 // Seed will be saved in agent_seed.json
 // If path is not empty, that will be the "preferred" place to read and save it.
-// If it is empty, we will fall back to $APPDATA on windows or /tmp on *nix systems.
+// If it is empty, we will fall back to $APPDATA on windows or /tmp on *nix systems to read the file.
 func Get() (seed *AgentSeed, err error) {
+	// TODO: should this ever return an error?
+	// it could just log issues, and return a generated uid if file reads fail.
 	if savedSeed != nil {
 		return savedSeed, nil
 	}
@@ -42,9 +51,11 @@ func Get() (seed *AgentSeed, err error) {
 			savedSeed = seed
 		}
 	}()
+	// list of paths in preference order.
+	// we will always write to the first path
 	paths := []string{}
-	if DataDir != "" {
-		paths = append(paths, filepath.Join(DataDir, filename))
+	if dataDir != "" {
+		paths = append(paths, filepath.Join(dataDir, filename))
 	}
 	paths = append(paths, legacyPath())
 	for i, p := range paths {
@@ -71,13 +82,13 @@ func Get() (seed *AgentSeed, err error) {
 func readSeedFile(path string) (*AgentSeed, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
-		level.Error(Logger).Log("msg", "Reading seed file", "err", err)
+		level.Error(logger).Log("msg", "Reading seed file", "err", err)
 		return nil, err
 	}
 	seed := &AgentSeed{}
 	err = json.Unmarshal(data, seed)
 	if err != nil {
-		level.Error(Logger).Log("msg", "Decoding seed file", "err", err)
+		level.Error(logger).Log("msg", "Decoding seed file", "err", err)
 		return nil, err
 	}
 	return seed, nil
@@ -101,12 +112,12 @@ func fileExists(path string) bool {
 func writeSeedFile(seed *AgentSeed, path string) error {
 	data, err := json.Marshal(*seed)
 	if err != nil {
-		level.Error(Logger).Log("msg", "Encoding seed file", "err", err)
+		level.Error(logger).Log("msg", "Encoding seed file", "err", err)
 		return err
 	}
 	err = os.WriteFile(path, data, 0644)
 	if err != nil {
-		level.Error(Logger).Log("msg", "Writing seed file", "err", err)
+		level.Error(logger).Log("msg", "Writing seed file", "err", err)
 		return err
 	}
 	return err
