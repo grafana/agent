@@ -31,7 +31,7 @@ type ImportConfigNode struct {
 	source                    importsource.ImportSource
 	registry                  *prometheus.Registry
 	importedContent           map[string]string
-	importConfigNodesChildren map[string]*ImportConfigNode
+	importConfigNodesChildren map[importsource.SourceType]map[string]*ImportConfigNode
 	OnComponentUpdate         func(cn NodeWithDependants) // Informs controller that we need to reevaluate
 	logger                    log.Logger
 	inContentUpdate           bool
@@ -140,38 +140,17 @@ func (cn *ImportConfigNode) evaluate(scope *vm.Scope) error {
 	return cn.source.Evaluate(scope)
 }
 
-func (cn *ImportConfigNode) onContentUpdate(content string) {
-	cn.importedContentMut.Lock()
-	defer cn.importedContentMut.Unlock()
-	cn.inContentUpdate = true
-	cn.importedContent = make(map[string]string)
-	// TODO: We recreate the nodes when the content changes. Can we copy instead for optimization?
-	cn.importConfigNodesChildren = make(map[string]*ImportConfigNode)
-	node, err := parser.ParseFile(cn.label, []byte(content))
-	if err != nil {
-		level.Error(cn.logger).Log("msg", "failed to parse file on update", "err", err)
-		return
-	}
+// processNodeBody processes the body of a node.
+func (cn *ImportConfigNode) processNodeBody(node *ast.File, content string) {
 	for _, stmt := range node.Body {
 		switch stmt := stmt.(type) {
 		case *ast.BlockStmt:
 			fullName := strings.Join(stmt.Name, ".")
 			switch fullName {
 			case "declare":
-				if _, ok := cn.importedContent[stmt.Label]; ok {
-					level.Error(cn.logger).Log("msg", "declare block redefined", "name", stmt.Label)
-					continue
-				}
-				cn.importedContent[stmt.Label] = content[stmt.LCurlyPos.Position().Offset+1 : stmt.RCurlyPos.Position().Offset-1]
-			// TODO: handle all imports
-			case "import.file":
-				if _, ok := cn.importConfigNodesChildren[stmt.Label]; ok {
-					level.Error(cn.logger).Log("msg", "import block redefined", "name", stmt.Label)
-					continue
-				}
-				childGlobals := cn.globals
-				childGlobals.OnComponentUpdate = cn.OnChildrenContentUpdate
-				cn.importConfigNodesChildren[stmt.Label] = NewImportConfigNode(stmt, childGlobals, importsource.FILE)
+				cn.processDeclareBlock(stmt, content)
+			case importsource.BlockImportFile, importsource.BlockImportGit, importsource.BlockImportHTTP:
+				cn.processImportBlock(stmt, fullName)
 			default:
 				level.Error(cn.logger).Log("msg", "only declare and import blocks are allowed in a module", "forbidden", fullName)
 			}
@@ -179,15 +158,62 @@ func (cn *ImportConfigNode) onContentUpdate(content string) {
 			level.Error(cn.logger).Log("msg", "only declare and import blocks are allowed in a module")
 		}
 	}
-	for _, child := range cn.importConfigNodesChildren {
-		child.Evaluate(&vm.Scope{
-			Parent:    nil,
-			Variables: make(map[string]interface{}),
-		})
+}
+
+// processDeclareBlock processes a declare block.
+func (cn *ImportConfigNode) processDeclareBlock(stmt *ast.BlockStmt, content string) {
+	if _, ok := cn.importedContent[stmt.Label]; ok {
+		level.Error(cn.logger).Log("msg", "declare block redefined", "name", stmt.Label)
+		return
 	}
+	cn.importedContent[stmt.Label] = content[stmt.LCurlyPos.Position().Offset+1 : stmt.RCurlyPos.Position().Offset-1]
+}
+
+// processDeclareBlock processes an import block.
+func (cn *ImportConfigNode) processImportBlock(stmt *ast.BlockStmt, fullName string) {
+	sourceType := importsource.GetSourceType(fullName)
+	if _, ok := cn.importConfigNodesChildren[sourceType][stmt.Label]; ok {
+		level.Error(cn.logger).Log("msg", "import block redefined", "name", stmt.Label)
+		return
+	}
+	childGlobals := cn.globals
+	childGlobals.OnComponentUpdate = cn.OnChildrenContentUpdate
+	if cn.importConfigNodesChildren[sourceType] == nil {
+		cn.importConfigNodesChildren[sourceType] = make(map[string]*ImportConfigNode)
+	}
+	cn.importConfigNodesChildren[sourceType][stmt.Label] = NewImportConfigNode(stmt, childGlobals, sourceType)
+}
+
+// onContentUpdate is triggered every time the managed import component has new content.
+func (cn *ImportConfigNode) onContentUpdate(content string) {
+	cn.importedContentMut.Lock()
+	defer cn.importedContentMut.Unlock()
+	cn.inContentUpdate = true
+	cn.importedContent = make(map[string]string)
+	// TODO: We recreate the nodes when the content changes. Can we copy instead for optimization?
+	cn.importConfigNodesChildren = make(map[importsource.SourceType]map[string]*ImportConfigNode)
+	node, err := parser.ParseFile(cn.label, []byte(content))
+	if err != nil {
+		level.Error(cn.logger).Log("msg", "failed to parse file on update", "err", err)
+		return
+	}
+	cn.processNodeBody(node, content)
+	cn.evaluateChildren()
 	cn.lastUpdateTime.Store(time.Now())
 	cn.OnComponentUpdate(cn)
 	cn.inContentUpdate = false
+}
+
+// evaluateChildren evaluates the import nodes managed by this import node.
+func (cn *ImportConfigNode) evaluateChildren() {
+	for _, sourceTypeChildren := range cn.importConfigNodesChildren {
+		for _, child := range sourceTypeChildren {
+			child.Evaluate(&vm.Scope{
+				Parent:    nil,
+				Variables: make(map[string]interface{}),
+			})
+		}
+	}
 }
 
 // OnChildrenContentUpdate passes their imported content to their parents.

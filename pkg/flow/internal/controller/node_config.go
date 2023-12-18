@@ -9,13 +9,10 @@ import (
 )
 
 const (
-	argumentBlockID   = "argument"
-	exportBlockID     = "export"
-	loggingBlockID    = "logging"
-	tracingBlockID    = "tracing"
-	importFileBlockID = "import.file"
-	importGitBlockID  = "import.git"
-	importHTTPBlockID = "import.http"
+	argumentBlockID = "argument"
+	exportBlockID   = "export"
+	loggingBlockID  = "logging"
+	tracingBlockID  = "tracing"
 )
 
 // NewConfigNode creates a new ConfigNode from an initial ast.BlockStmt.
@@ -30,12 +27,8 @@ func NewConfigNode(block *ast.BlockStmt, globals ComponentGlobals) (BlockNode, d
 		return NewLoggingConfigNode(block, globals), nil
 	case tracingBlockID:
 		return NewTracingConfigNode(block, globals), nil
-	case importFileBlockID:
-		return NewImportConfigNode(block, globals, importsource.FILE), nil
-	case importGitBlockID:
-		return NewImportConfigNode(block, globals, importsource.GIT), nil
-	case importHTTPBlockID:
-		return NewImportConfigNode(block, globals, importsource.HTTP), nil
+	case importsource.BlockImportFile, importsource.BlockImportGit, importsource.BlockImportHTTP:
+		return NewImportConfigNode(block, globals, importsource.GetSourceType(block.GetBlockName())), nil
 	default:
 		var diags diag.Diagnostics
 		diags.Add(diag.Diagnostic{

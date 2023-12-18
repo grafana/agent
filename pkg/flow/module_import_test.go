@@ -180,7 +180,7 @@ testcomponents.summation "sum" {
 	require.NoError(t, os.Remove(filename))
 }
 
-func TestNextImportModule(t *testing.T) {
+func TestNestedImportModule(t *testing.T) {
 	// We use this module in a Flow config below.
 	module := `
 import.file "otherModule" {
