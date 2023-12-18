@@ -89,17 +89,13 @@ func (q *QueueConfig) SetToDefault() {
 
 func (args Arguments) convertClientConfigs() []client.Config {
 	var res []client.Config
-	uid := ""
-	if seed, err := agentseed.Get(); err == nil {
-		uid = seed.UID
-	}
+	uid := agentseed.Get().UID
 	for _, cfg := range args.Endpoints {
-		if uid != "" {
-			if cfg.Headers == nil {
-				cfg.Headers = map[string]string{}
-			}
-			cfg.Headers["X-Agent-Uid"] = uid
+		if cfg.Headers == nil {
+			cfg.Headers = map[string]string{}
 		}
+		cfg.Headers["X-Agent-UID"] = uid
+
 		url, _ := url.Parse(cfg.URL)
 		cc := client.Config{
 			Name:      cfg.Name,

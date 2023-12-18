@@ -227,21 +227,17 @@ type Exports struct {
 
 func convertConfigs(cfg Arguments) (*config.Config, error) {
 	var rwConfigs []*config.RemoteWriteConfig
-	uid := ""
-	if seed, err := agentseed.Get(); err == nil {
-		uid = seed.UID
-	}
+	uid := agentseed.Get().UID
 	for _, rw := range cfg.Endpoints {
 		parsedURL, err := url.Parse(rw.URL)
 		if err != nil {
 			return nil, fmt.Errorf("cannot parse remote_write url %q: %w", rw.URL, err)
 		}
-		if uid != "" {
-			if rw.Headers == nil {
-				rw.Headers = map[string]string{}
-			}
-			rw.Headers["X-Agent-Uid"] = uid
+		if rw.Headers == nil {
+			rw.Headers = map[string]string{}
 		}
+		rw.Headers["X-Agent-UID"] = uid
+
 		rwConfigs = append(rwConfigs, &config.RemoteWriteConfig{
 			URL:                  &common.URL{URL: parsedURL},
 			RemoteTimeout:        model.Duration(rw.RemoteTimeout),

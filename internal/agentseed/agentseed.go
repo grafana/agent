@@ -40,42 +40,50 @@ func Init(dir string, log log.Logger) {
 // Seed will be saved in agent_seed.json
 // If path is not empty, that will be the "preferred" place to read and save it.
 // If it is empty, we will fall back to $APPDATA on windows or /tmp on *nix systems to read the file.
-func Get() (seed *AgentSeed, err error) {
-	// TODO: should this ever return an error?
-	// it could just log issues, and return a generated uid if file reads fail.
+func Get() (seed *AgentSeed) {
+	// TODO: This will just log errors and always return a valid seed.
+	// If we wanted to have it return an error for some reason, we could change this api
+	// worst case, we generate a new seed if we can't read/write files, and it is only good for the lifetime
+	// of this agent.
 	if savedSeed != nil {
-		return savedSeed, nil
+		return savedSeed
 	}
-	defer func() {
-		if err == nil && seed != nil {
-			savedSeed = seed
-		}
-	}()
+	var err error
 	// list of paths in preference order.
 	// we will always write to the first path
 	paths := []string{}
 	if dataDir != "" {
 		paths = append(paths, filepath.Join(dataDir, filename))
 	}
+	defer func() {
+		// as a fallback, gen and save a new uid
+		if seed == nil || seed.UID == "" {
+			seed = &AgentSeed{
+				UID:       uuid.NewString(),
+				Version:   version.Version,
+				CreatedAt: time.Now(),
+			}
+			writeSeedFile(seed, paths[0])
+		}
+		// cache seed for future calls
+		savedSeed = seed
+	}()
 	paths = append(paths, legacyPath())
 	for i, p := range paths {
 		if fileExists(p) {
 			if seed, err = readSeedFile(p); err == nil {
 				if i == 0 {
 					// we found it at the preferred path. Just return it
-					return seed, err
+					return seed
 				} else {
-					return seed, writeSeedFile(seed, paths[0])
+					writeSeedFile(seed, paths[0])
+					return seed
 				}
 			}
 		}
 	}
-	seed = &AgentSeed{
-		UID:       uuid.NewString(),
-		Version:   version.Version,
-		CreatedAt: time.Now(),
-	}
-	return seed, writeSeedFile(seed, paths[0])
+
+	return seed
 }
 
 // readSeedFile reads the agent seed file
@@ -90,6 +98,9 @@ func readSeedFile(path string) (*AgentSeed, error) {
 	if err != nil {
 		level.Error(logger).Log("msg", "Decoding seed file", "err", err)
 		return nil, err
+	}
+	if seed.UID == "" {
+		level.Error(logger).Log("msg", "Seed file has empty uid")
 	}
 	return seed, nil
 }
