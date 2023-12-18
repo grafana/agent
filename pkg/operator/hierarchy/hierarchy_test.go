@@ -21,6 +21,9 @@ import (
 // TestNotifier tests that notifier properly handles events for changed
 // objects.
 func TestNotifier(t *testing.T) {
+	// TODO: this is broken with go 1.20.6
+	// waiting on https://github.com/testcontainers/testcontainers-go/issues/1359
+	t.Skip()
 	l := log.NewNopLogger()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
