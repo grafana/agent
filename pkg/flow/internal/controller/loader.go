@@ -459,7 +459,7 @@ func (l *Loader) populateConfigBlockNodes(args map[string]any, g *dag.Graph, con
 		g.Add(c)
 	}
 
-	l.importNodes = nodeMap.importFileMap
+	l.importNodes = nodeMap.importMap
 
 	return diags
 }

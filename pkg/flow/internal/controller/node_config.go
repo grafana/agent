@@ -52,22 +52,22 @@ func NewConfigNode(block *ast.BlockStmt, globals ComponentGlobals) (BlockNode, d
 // This is helpful when validating node conditions specific to config node
 // types.
 type ConfigNodeMap struct {
-	logging       *LoggingConfigNode
-	tracing       *TracingConfigNode
-	argumentMap   map[string]*ArgumentConfigNode
-	exportMap     map[string]*ExportConfigNode
-	importFileMap map[string]*ImportConfigNode
+	logging     *LoggingConfigNode
+	tracing     *TracingConfigNode
+	argumentMap map[string]*ArgumentConfigNode
+	exportMap   map[string]*ExportConfigNode
+	importMap   map[string]*ImportConfigNode
 }
 
 // NewConfigNodeMap will create an initial ConfigNodeMap. Append must be called
 // to populate NewConfigNodeMap.
 func NewConfigNodeMap() *ConfigNodeMap {
 	return &ConfigNodeMap{
-		logging:       nil,
-		tracing:       nil,
-		argumentMap:   map[string]*ArgumentConfigNode{},
-		exportMap:     map[string]*ExportConfigNode{},
-		importFileMap: map[string]*ImportConfigNode{},
+		logging:     nil,
+		tracing:     nil,
+		argumentMap: map[string]*ArgumentConfigNode{},
+		exportMap:   map[string]*ExportConfigNode{},
+		importMap:   map[string]*ImportConfigNode{},
 	}
 }
 
@@ -86,7 +86,7 @@ func (nodeMap *ConfigNodeMap) Append(configNode BlockNode) diag.Diagnostics {
 	case *TracingConfigNode:
 		nodeMap.tracing = n
 	case *ImportConfigNode:
-		nodeMap.importFileMap[n.Label()] = n
+		nodeMap.importMap[n.Label()] = n
 	default:
 		diags.Add(diag.Diagnostic{
 			Severity: diag.SeverityLevelError,
