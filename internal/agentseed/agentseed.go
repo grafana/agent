@@ -23,11 +23,9 @@ type AgentSeed struct {
 }
 
 const HeaderName = "X-Agent-Id"
-
 const filename = "agent_seed.json"
 
 var savedSeed *AgentSeed
-
 var once sync.Once
 
 // Init should be called by an app entrypoint as soon as it can to configure where the unique seed will be stored.
