@@ -3,6 +3,7 @@ package http_test
 import (
 	"context"
 	"fmt"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"sync"
@@ -27,6 +28,9 @@ func Test(t *testing.T) {
 	defer srv.Close()
 
 	handler.SetHandler(func(w http.ResponseWriter, r *http.Request) {
+		b, err := io.ReadAll(r.Body)
+		require.NoError(t, err)
+		require.Equal(t, string(b), "hello there!")
 		fmt.Fprintln(w, "Hello, world!")
 	})
 
@@ -40,10 +44,11 @@ func Test(t *testing.T) {
             "x-custom" = "value",
 			"User-Agent" = "custom_useragent",
         }
+		body = "%s"
 
 		poll_frequency = "50ms" 
 		poll_timeout   = "25ms" 
-	`, srv.URL, http.MethodPut)
+	`, srv.URL, http.MethodPut, "hello there!")
 	var args http_component.Arguments
 	require.NoError(t, river.Unmarshal([]byte(cfg), &args))
 

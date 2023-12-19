@@ -6,16 +6,14 @@ import (
 	"time"
 
 	"github.com/grafana/agent/service/labelstore"
-	"github.com/prometheus/client_golang/prometheus"
-
 	"github.com/hashicorp/go-multierror"
-
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/prometheus/model/exemplar"
 	"github.com/prometheus/prometheus/model/histogram"
 	"github.com/prometheus/prometheus/model/labels"
 	"github.com/prometheus/prometheus/model/metadata"
+	"github.com/prometheus/prometheus/model/value"
 	"github.com/prometheus/prometheus/scrape"
-
 	"github.com/prometheus/prometheus/storage"
 )
 
@@ -111,6 +109,12 @@ func (a *appender) Append(ref storage.SeriesRef, l labels.Labels, t int64, v flo
 	}
 	if ref == 0 {
 		ref = storage.SeriesRef(a.ls.GetOrAddGlobalRefID(l))
+	}
+	if value.IsStaleNaN(v) {
+		a.ls.AddStaleMarker(uint64(ref), l)
+	} else {
+		// Tested this to ensure it had no cpu impact, since it is called so often.
+		a.ls.RemoveStaleMarker(uint64(ref))
 	}
 	var multiErr error
 	updated := false

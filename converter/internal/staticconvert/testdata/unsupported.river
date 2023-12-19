@@ -24,8 +24,17 @@ logging {
 
 prometheus.exporter.statsd "integrations_statsd_exporter" { }
 
+discovery.relabel "integrations_statsd_exporter" {
+	targets = prometheus.exporter.statsd.integrations_statsd_exporter.targets
+
+	rule {
+		target_label = "job"
+		replacement  = "integrations/statsd_exporter"
+	}
+}
+
 prometheus.scrape "integrations_statsd_exporter" {
-	targets    = prometheus.exporter.statsd.integrations_statsd_exporter.targets
+	targets    = discovery.relabel.integrations_statsd_exporter.output
 	forward_to = [prometheus.remote_write.integrations.receiver]
 	job_name   = "integrations/statsd_exporter"
 }

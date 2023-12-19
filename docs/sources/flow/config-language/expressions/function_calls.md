@@ -12,24 +12,26 @@ weight: 400
 ---
 
 # Function calls
-Function calls is one more River feature that lets users build richer
-expressions.
 
-Functions take zero or more arguments as their input and always return a single
-value as their output. Functions cannot be constructed by users, but can be
-either called from River's standard library, or when exported by a component.
+You can use River function calls to build richer expressions.
 
-In case a function fails, the expression will not be evaluated and an error
-will be reported.
+Functions take zero or more arguments as their input and always return a single value as their output.
+You can't construct functions. You can call functions from River's standard library or export them from a component.
+
+If a function fails, the expression isn't evaluated, and an error is reported.
 
 ## Standard library functions
-River contains a [standard library][] of useful functions. Some enable
-interaction with the host system (e.g. reading from an environment variable), or
-allow for more complex expressions (e.g. concatenating arrays or decoding JSON
-strings into objects).
+
+River contains a [standard library][] of functions.
+Some functions enable interaction with the host system, for example, reading from an environment variable.
+Some functions allow for more complex expressions, for example, concatenating arrays or decoding JSON strings into objects.
+
 ```river
 env("HOME")
 json_decode(local.file.cfg.content)["namespace"]
 ```
 
-[standard library]: {{< relref "../../reference/stdlib" >}}
+{{% docs/reference %}}
+[standard library]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/stdlib"
+[standard library]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/stdlib"
+{{% /docs/reference %}}
