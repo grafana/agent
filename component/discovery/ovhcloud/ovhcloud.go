@@ -48,19 +48,19 @@ func (args *Arguments) SetToDefault() {
 // Validate implements river.Validator.
 func (args *Arguments) Validate() error {
 	if args.Endpoint == "" {
-		return fmt.Errorf("endpoint can not be empty")
+		return fmt.Errorf("endpoint cannot be empty")
 	}
 
 	if args.ApplicationKey == "" {
-		return fmt.Errorf("application_key can not be empty")
+		return fmt.Errorf("application_key cannot be empty")
 	}
 
 	if args.ApplicationSecret == "" {
-		return fmt.Errorf("application_secret can not be empty")
+		return fmt.Errorf("application_secret cannot be empty")
 	}
 
 	if args.ConsumerKey == "" {
-		return fmt.Errorf("consumer_key can not be empty")
+		return fmt.Errorf("consumer_key cannot be empty")
 	}
 
 	switch args.Service {
