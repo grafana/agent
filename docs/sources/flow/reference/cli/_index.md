@@ -11,7 +11,7 @@ title: The Grafana Agent command-line interface
 weight: 100
 ---
 
-# The {{< param "PRODUCT_ROOT_NAME" >}} command-line interface
+# The {{% param "PRODUCT_ROOT_NAME" %}} command-line interface
 
 When in Flow mode, the `grafana-agent` binary exposes a command-line interface with
 subcommands to perform various operations.

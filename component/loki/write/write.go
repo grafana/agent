@@ -41,6 +41,7 @@ type WalArguments struct {
 	MaxSegmentAge    time.Duration `river:"max_segment_age,attr,optional"`
 	MinReadFrequency time.Duration `river:"min_read_frequency,attr,optional"`
 	MaxReadFrequency time.Duration `river:"max_read_frequency,attr,optional"`
+	DrainTimeout     time.Duration `river:"drain_timeout,attr,optional"`
 }
 
 func (wa *WalArguments) Validate() error {
@@ -58,6 +59,7 @@ func (wa *WalArguments) SetToDefault() {
 		MaxSegmentAge:    wal.DefaultMaxSegmentAge,
 		MinReadFrequency: wal.DefaultWatchConfig.MinReadFrequency,
 		MaxReadFrequency: wal.DefaultWatchConfig.MaxReadFrequency,
+		DrainTimeout:     wal.DefaultWatchConfig.DrainTimeout,
 	}
 }
 
@@ -81,7 +83,7 @@ type Component struct {
 	receiver loki.LogsReceiver
 
 	// remote write components
-	clientManger client.Client
+	clientManger *client.Manager
 	walWriter    *wal.Writer
 
 	// sink is the place where log entries received by this component should be written to. If WAL
@@ -111,6 +113,18 @@ func New(o component.Options, args Arguments) (*Component, error) {
 
 // Run implements component.Component.
 func (c *Component) Run(ctx context.Context) error {
+	defer func() {
+		// when exiting Run, proceed to shut down first the writer component, and then
+		// the client manager, with the WAL and remote-write client inside
+		if c.walWriter != nil {
+			c.walWriter.Stop()
+		}
+		if c.clientManger != nil {
+			// drain, since the component is shutting down. That means the agent is shutting down as well
+			c.clientManger.StopWithDrain(true)
+		}
+	}()
+
 	for {
 		select {
 		case <-ctx.Done():
@@ -140,6 +154,7 @@ func (c *Component) Update(args component.Arguments) error {
 		c.walWriter.Stop()
 	}
 	if c.clientManger != nil {
+		// only drain on component shutdown
 		c.clientManger.Stop()
 	}
 
@@ -150,6 +165,7 @@ func (c *Component) Update(args component.Arguments) error {
 		WatchConfig: wal.WatchConfig{
 			MinReadFrequency: newArgs.WAL.MinReadFrequency,
 			MaxReadFrequency: newArgs.WAL.MaxReadFrequency,
+			DrainTimeout:     newArgs.WAL.DrainTimeout,
 		},
 	}
 
