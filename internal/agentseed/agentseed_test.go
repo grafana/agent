@@ -1,6 +1,7 @@
 package agentseed
 
 import (
+	"os"
 	"path/filepath"
 	"sync"
 	"testing"
@@ -9,11 +10,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func setupFile(dir string) {
-
-}
-
 func reset() {
+	os.Remove(legacyPath())
 	savedSeed = nil
 	once = sync.Once{}
 }
@@ -22,8 +20,9 @@ func TestNoExistingFile(t *testing.T) {
 	t.Cleanup(reset)
 	dir := t.TempDir()
 	l := log.NewNopLogger()
-	Init(dir, l)
 	f := filepath.Join(dir, filename)
+	require.NoFileExists(t, f)
+	Init(dir, l)
 	require.FileExists(t, f)
 	loaded, err := readSeedFile(f, l)
 	require.NoError(t, err)
