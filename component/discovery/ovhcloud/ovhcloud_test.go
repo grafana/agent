@@ -64,7 +64,7 @@ func TestUnmarshal(t *testing.T) {
 				consumer_key = "consumerkey"
 				service = "vps"
 			`,
-			errorMsg: "application_key can not be empty",
+			errorMsg: "application_key cannot be empty",
 		},
 		{
 			testName: "empty application secret",
@@ -76,7 +76,7 @@ func TestUnmarshal(t *testing.T) {
 				consumer_key = "consumerkey"
 				service = "vps"
 			`,
-			errorMsg: "application_secret can not be empty",
+			errorMsg: "application_secret cannot be empty",
 		},
 		{
 			testName: "empty consumer key",
@@ -88,7 +88,7 @@ func TestUnmarshal(t *testing.T) {
 				consumer_key = ""
 				service = "vps"
 			`,
-			errorMsg: "consumer_key can not be empty",
+			errorMsg: "consumer_key cannot be empty",
 		},
 		{
 			testName: "empty endpoint",
@@ -100,7 +100,7 @@ func TestUnmarshal(t *testing.T) {
 				consumer_key = "consumerkey"
 				service = "vps"
 			`,
-			errorMsg: "endpoint can not be empty",
+			errorMsg: "endpoint cannot be empty",
 		},
 		{
 			testName: "unknown service",
