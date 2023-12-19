@@ -77,7 +77,7 @@ Name | Type | Description | Default | Required
  - [`authorization` block][authorization].
  - [`oauth2` block][oauth2].
 
-`track_timestamps_staleness` controls whether Prometheus tracks [staleness][prom-staleness] of metrics which with an explicit timestamp present in scraped data.
+`track_timestamps_staleness` controls whether Prometheus tracks [staleness][prom-staleness] of metrics which have an explicit timestamp present in scraped data.
 * An "explicit timestamp" is an optional timestamp in the [Prometheus metrics exposition format][prom-text-exposition-format]. For example, this sample has a timestamp of `1395066363000`:
   ```
   http_requests_total{method="post",code="200"} 1027 1395066363000
