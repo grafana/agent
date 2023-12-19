@@ -273,7 +273,7 @@ declare "test" {
 	require.Eventually(t, func() bool {
 		export := getExport[testcomponents.SummationExports](t, ctrl, "", "testcomponents.summation.sum")
 		return export.LastAdded == -10
-	}, 10*time.Second, 10*time.Millisecond)
+	}, 3*time.Second, 10*time.Millisecond)
 	require.NoError(t, os.Remove(filename))
 	require.NoError(t, os.Remove(otherFilename))
 }
