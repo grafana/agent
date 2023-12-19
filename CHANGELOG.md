@@ -57,6 +57,10 @@ Main (unreleased)
 
 - Added support for `loki.write` to flush WAL on agent shutdown. (@thepalbi)
 
+- Add support for `integrations-next` static to flow config conversion. (@erikbaranowski)
+
+- Add support for passing extra arguments to the static converter such as `-config.expand-env`. (@erikbaranowski)
+
 - Added 'country' mmdb-type to log pipeline-stage geoip. (@superstes)
 
 ### Bugfixes
@@ -72,6 +76,8 @@ Main (unreleased)
 - Fixes `loki.source.docker` a behavior that synced an incomplete list of targets to the tailer manager. (@FerdinandvHagen)
 
 - Fixes `otelcol.connector.servicegraph` store ttl default value from 2ms to 2s. (@rlankfo)
+
+- Add staleness tracking to labelstore to reduce memory usage. (@mattdurham)
 
 ### Other changes
 

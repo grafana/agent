@@ -175,6 +175,10 @@ func (b *IntegrationsConfigBuilder) appendExporter(commonConfig *int_config.Comm
 		relabelConfigs = append(relabelConfigs, relabelConfig)
 	}
 
+	if relabelConfig := b.getJobRelabelConfig(name, commonConfig.RelabelConfigs); relabelConfig != nil {
+		relabelConfigs = append(relabelConfigs, b.getJobRelabelConfig(name, commonConfig.RelabelConfigs))
+	}
+
 	scrapeConfig := prom_config.DefaultScrapeConfig
 	scrapeConfig.JobName = b.formatJobName(name, nil)
 	scrapeConfig.RelabelConfigs = append(commonConfig.RelabelConfigs, relabelConfigs...)
@@ -309,6 +313,10 @@ func (b *IntegrationsConfigBuilder) appendExporterV2(commonConfig *common_v2.Met
 		relabelConfigs = append(relabelConfigs, relabelConfig)
 	}
 
+	if relabelConfig := b.getJobRelabelConfig(name, commonConfig.Autoscrape.RelabelConfigs); relabelConfig != nil {
+		relabelConfigs = append(relabelConfigs, relabelConfig)
+	}
+
 	commonConfig.ApplyDefaults(b.cfg.Integrations.ConfigV2.Metrics.Autoscrape)
 	scrapeConfig := prom_config.DefaultScrapeConfig
 	scrapeConfig.JobName = b.formatJobName(name, commonConfig.InstanceKey)
@@ -393,4 +401,19 @@ func (b *IntegrationsConfigBuilder) appendExporterBlock(args component.Arguments
 	))
 
 	return common.NewDiscoveryExports(fmt.Sprintf("prometheus.exporter.%s.%s.targets", exporterName, compLabel))
+}
+
+func (b *IntegrationsConfigBuilder) getJobRelabelConfig(name string, relabelConfigs []*relabel.Config) *relabel.Config {
+	// Don't add a job relabel if that label is already targeted
+	for _, relabelConfig := range relabelConfigs {
+		if relabelConfig.TargetLabel == "job" {
+			return nil
+		}
+	}
+
+	defaultConfig := relabel.DefaultRelabelConfig
+	relabelConfig := &defaultConfig
+	relabelConfig.TargetLabel = "job"
+	relabelConfig.Replacement = "integrations/" + name
+	return relabelConfig
 }
