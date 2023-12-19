@@ -11,8 +11,9 @@ title: otelcol.receiver.awsfirehose
 
 # otelcol.receiver.awsfirehose
 
-`otelcol.receiver.awsfirehose` accepts cloudwatch json-formatted traces over the network and
-forwards it to other `otelcol.*` components.
+`otelcol.receiver.awsfirehose` recieve metrics from [Cloudwatch Metrics Streams](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-Metric-Streams.html) using AWS Kinesis Data Firehose and forwards it to other `otelcol.*` components.
+
+The output format of the Metrics Stream needs to be set to JSON and the reciever needs to be accessible on the 443 port by AWS, this can be done using a Load Balancer
 
 > **NOTE**: `otelcol.receiver.awsfirehose` is a wrapper over the upstream
 > OpenTelemetry Collector `awsfirehose` receiver. Bug reports or feature requests
@@ -25,6 +26,7 @@ different labels.
 
 ```river
 otelcol.receiver.awsfirehose "LABEL" {
+  endpoint = "0.0.0.0:4433"
   output {
     metrics = [...]
   }
@@ -38,6 +40,7 @@ otelcol.receiver.awsfirehose "LABEL" {
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `record_type` | `string` | The type of record being received from the delivery stream. | `cwmetrics` | no
+`access_key` | `string` | The access key to be checked on each request received. | | no
 `endpoint` | `string` | `host:port` to listen for traffic on. | `"0.0.0.0:4433"` | no
 `max_request_body_size` | `string` | Maximum request body size the HTTP server will allow. No limit when unset. | | no
 `include_metadata` | `boolean` | Propagate incoming connection metadata to downstream consumers. | | no
