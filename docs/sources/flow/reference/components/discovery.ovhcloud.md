@@ -39,10 +39,10 @@ The following arguments are supported:
 
 Name               | Type           | Description                                                    | Default       | Required
 ------------------ | -------------- | -------------------------------------------------------------- | ------------- | --------
-endpoint           | `string`       | [API][] endpoint.                                              | "ovh-eu"      | no
 application_key    | `string`       | [API][] application key.                                       |               | yes
 application_secret | `secret`       | [API][] application secret.                                    |               | yes
 consumer_key       | `secret`       | [API][] consumer key.                                          |               | yes
+endpoint           | `string`       | [API][] endpoint.                                              | "ovh-eu"      | no
 refresh_interval   | `duration`     | Refresh interval to re-read the resources list.                | "60s"         | no
 service            | `string`       | Service of the targets to retrieve.                            |               | yes
 
