@@ -263,7 +263,7 @@ func (c *Component) Update(newConfig component.Arguments) error {
 		if cfg.Headers == nil {
 			cfg.Headers = map[string]string{}
 		}
-		cfg.Headers["X-Agent-UID"] = uid
+		cfg.Headers[agentseed.HeaderName] = uid
 	}
 	err = c.remoteStore.ApplyConfig(convertedConfig)
 	if err != nil {

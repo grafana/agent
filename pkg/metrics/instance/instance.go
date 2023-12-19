@@ -422,7 +422,7 @@ func (i *Instance) initialize(ctx context.Context, reg prometheus.Registerer, cf
 		if rw.Headers == nil {
 			rw.Headers = map[string]string{}
 		}
-		rw.Headers["X-Agent-UID"] = uid
+		rw.Headers[agentseed.HeaderName] = uid
 	}
 	err = i.remoteStore.ApplyConfig(&config.Config{
 		GlobalConfig:       cfg.global.Prometheus,

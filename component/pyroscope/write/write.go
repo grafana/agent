@@ -162,7 +162,7 @@ func NewFanOut(opts component.Options, config Arguments, metrics *metrics) (*fan
 		if endpoint.Headers == nil {
 			endpoint.Headers = map[string]string{}
 		}
-		endpoint.Headers["X-Agent-UID"] = uid
+		endpoint.Headers[agentseed.HeaderName] = uid
 		httpClient, err := commonconfig.NewClientFromConfig(*endpoint.HTTPClientConfig.Convert(), endpoint.Name)
 		if err != nil {
 			return nil, err

@@ -165,7 +165,7 @@ func (c *Component) Update(args component.Arguments) error {
 		if cfg.Headers == nil {
 			cfg.Headers = map[string]string{}
 		}
-		cfg.Headers["X-Agent-UID"] = uid
+		cfg.Headers[agentseed.HeaderName] = uid
 	}
 	walCfg := wal.Config{
 		Enabled:       newArgs.WAL.Enabled,

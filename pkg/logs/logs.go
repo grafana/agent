@@ -189,7 +189,7 @@ func (i *Instance) ApplyConfig(c *InstanceConfig, g GlobalConfig, dryRun bool) e
 		if cfg.Headers == nil {
 			cfg.Headers = map[string]string{}
 		}
-		cfg.Headers["X-Agent-UID"] = uid
+		cfg.Headers[agentseed.HeaderName] = uid
 	}
 
 	clientMetrics := client.NewMetrics(i.reg)

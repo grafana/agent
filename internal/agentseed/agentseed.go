@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"sync"
 	"time"
 
 	"github.com/go-kit/log"
@@ -21,74 +22,88 @@ type AgentSeed struct {
 	Version   string    `json:"version"`
 }
 
+const HeaderName = "X-Agent-Id"
+
 const filename = "agent_seed.json"
 
-var dataDir = ""
-var logger log.Logger
-
 var savedSeed *AgentSeed
+
+var once sync.Once
 
 // Init should be called by an app entrypoint as soon as it can to configure where the unique seed will be stored.
 // dir is the directory where we will read and store agent_seed.json
 // If left empty it will default to $APPDATA or /tmp
-func Init(dir string, log log.Logger) {
-	dataDir = dir
-	logger = log
+// A unique agent seed will be generated when this method is first called, and reused for the lifetime of this agent.
+func Init(dir string, l log.Logger) {
+	if l == nil {
+		l = log.NewNopLogger()
+	}
+	once.Do(func() {
+		loadOrGenerate(dir, l)
+	})
 }
 
-// Get will return a unique uuid for this agent.
-// Seed will be saved in agent_seed.json
-// If path is not empty, that will be the "preferred" place to read and save it.
-// If it is empty, we will fall back to $APPDATA on windows or /tmp on *nix systems to read the file.
-func Get() (seed *AgentSeed) {
-	// TODO: This will just log errors and always return a valid seed.
-	// If we wanted to have it return an error for some reason, we could change this api
-	// worst case, we generate a new seed if we can't read/write files, and it is only good for the lifetime
-	// of this agent.
-	if savedSeed != nil {
-		return savedSeed
-	}
+func loadOrGenerate(dir string, l log.Logger) {
 	var err error
+	var seed *AgentSeed
 	// list of paths in preference order.
 	// we will always write to the first path
 	paths := []string{}
-	if dataDir != "" {
-		paths = append(paths, filepath.Join(dataDir, filename))
+	if dir != "" {
+		paths = append(paths, filepath.Join(dir, filename))
 	}
+	paths = append(paths, legacyPath())
 	defer func() {
 		// as a fallback, gen and save a new uid
 		if seed == nil || seed.UID == "" {
-			seed = &AgentSeed{
-				UID:       uuid.NewString(),
-				Version:   version.Version,
-				CreatedAt: time.Now(),
-			}
-			writeSeedFile(seed, paths[0])
+			seed = generateNew()
+			writeSeedFile(seed, paths[0], l)
 		}
-		// cache seed for future calls
+		// Finally save seed
 		savedSeed = seed
 	}()
-	paths = append(paths, legacyPath())
 	for i, p := range paths {
 		if fileExists(p) {
-			if seed, err = readSeedFile(p); err == nil {
+			if seed, err = readSeedFile(p, l); err == nil {
 				if i == 0 {
 					// we found it at the preferred path. Just return it
-					return seed
+					return
 				} else {
 					// it was at a backup path. write it to the preferred path.
-					writeSeedFile(seed, paths[0])
-					return seed
+					writeSeedFile(seed, paths[0], l)
+					return
 				}
 			}
 		}
 	}
+}
 
-	return seed
+func generateNew() *AgentSeed {
+	return &AgentSeed{
+		UID:       uuid.NewString(),
+		Version:   version.Version,
+		CreatedAt: time.Now(),
+	}
+}
+
+// Get will return a unique agent seed for this agent.
+// It will always return a valid seed, even if previous attempts to
+// load or save the seed file have failed
+func Get() *AgentSeed {
+	// Init should have been called before this. If not, call it now with defaults.
+	once.Do(func() {
+		loadOrGenerate("", log.NewNopLogger())
+	})
+	if savedSeed != nil {
+		return savedSeed
+	}
+	// we should never get here. But if somehow we do,
+	// still return a valid seed for this request only
+	return generateNew()
 }
 
 // readSeedFile reads the agent seed file
-func readSeedFile(path string) (*AgentSeed, error) {
+func readSeedFile(path string, logger log.Logger) (*AgentSeed, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
 		level.Error(logger).Log("msg", "Reading seed file", "err", err)
@@ -100,6 +115,7 @@ func readSeedFile(path string) (*AgentSeed, error) {
 		level.Error(logger).Log("msg", "Decoding seed file", "err", err)
 		return nil, err
 	}
+
 	if seed.UID == "" {
 		level.Error(logger).Log("msg", "Seed file has empty uid")
 	}
@@ -121,7 +137,7 @@ func fileExists(path string) bool {
 }
 
 // writeSeedFile writes the agent seed file
-func writeSeedFile(seed *AgentSeed, path string) {
+func writeSeedFile(seed *AgentSeed, path string, logger log.Logger) {
 	data, err := json.Marshal(*seed)
 	if err != nil {
 		level.Error(logger).Log("msg", "Encoding seed file", "err", err)
