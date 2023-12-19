@@ -1,4 +1,4 @@
-// Package zipkin provides an otelcol.receiver.zipkin component.
+// Package awsfirehose provides an otelcol.receiver.awsfirehose component.
 package awsfirehose
 
 import (
