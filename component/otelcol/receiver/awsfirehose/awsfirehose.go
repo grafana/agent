@@ -44,7 +44,7 @@ type Arguments struct {
 
 var _ receiver.Arguments = Arguments{}
 
-// DefaultArguments holds default settings for otelcol.receiver.zipkin.
+// DefaultArguments holds default settings for otelcol.receiver.awsfirehose.
 var DefaultArguments = Arguments{
 	RecordType: "cwmetrics",
 	HTTPServer: otelcol.HTTPServerArguments{
