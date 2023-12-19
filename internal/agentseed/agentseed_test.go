@@ -10,6 +10,12 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestMain(m *testing.M) {
+	os.Remove(legacyPath())
+	exitVal := m.Run()
+	os.Exit(exitVal)
+}
+
 func reset() {
 	os.Remove(legacyPath())
 	savedSeed = nil
