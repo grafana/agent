@@ -1352,7 +1352,7 @@ github.com/jackc/puddle v0.0.0-20190413234325-e4ced69a3a2b/go.mod h1:m4B5Dj62Y0f
 github.com/jackc/puddle v0.0.0-20190608224051-11cab39313c9/go.mod h1:m4B5Dj62Y0fbyuIc15OsIqK0+JU8nkqQjsgx7dvjSWk=
 github.com/jackc/puddle v1.1.3/go.mod h1:m4B5Dj62Y0fbyuIc15OsIqK0+JU8nkqQjsgx7dvjSWk=
 github.com/jackc/puddle v1.3.0/go.mod h1:m4B5Dj62Y0fbyuIc15OsIqK0+JU8nkqQjsgx7dvjSWk=
-github.com/jaegertracing/jaeger v1.50.0 h1:qsOcPeB3nAc3h8tx+gnZ3JODAZfqbYmQr45jPEwBd2w=
+github.com/jaegertracing/jaeger v1.50.0 h1:fCfMXCJzK0feJrzDDXcgNVtc2pjUFfRSAIpsVCikKCc=
 github.com/jaegertracing/jaeger v1.50.0/go.mod h1:MVGvxf4+Pcn31gz9RnLo0097w3khKFwJIprIZHOt89s=
 github.com/jarcoal/httpmock v0.0.0-20180424175123-9c70cfe4a1da/go.mod h1:ks+b9deReOc7jgqp+e7LuFiCBH6Rm5hL32cLcEAArb4=
 github.com/jarcoal/httpmock v1.3.0 h1:2RJ8GP0IIaWwcC9Fp2BmVi8Kog3v2Hn7VXM3fTd+nuc=
@@ -1795,6 +1795,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/processor/tailsampling
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/tailsamplingprocessor v0.87.0/go.mod h1:iUrecf5kSV8pGF7OaM/brFOJs4OMEhogclBncGT5QtI=
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/transformprocessor v0.87.0 h1:1TK0+QULqgwwvE8JJxpQlugRdUw6knt0vYMkI65Jac0=
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/transformprocessor v0.87.0/go.mod h1:UYmAgkCKmtMyt40ffRherZJcU3zeCJjq4nZ7hVxApT4=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/awsfirehosereceiver v0.87.0 h1:U4vc1LAm8G5cncjL2snVjqE0ryYE7ZkzoXTS2hHEkwQ=
+github.com/open-telemetry/opentelemetry-collector-contrib/receiver/awsfirehosereceiver v0.87.0/go.mod h1:Wn6JfZybv9J46+9ZHwZkayDpR2vJQvKzlM+bMXxgGII=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/jaegerreceiver v0.87.0 h1:8LN1Ky+Q6L6dmzm3k7Bec4fmlYs1OuJ7vaMuVnVIBLo=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/jaegerreceiver v0.87.0/go.mod h1:xb97OESLQFviQ0ikbUmneISHuRG91Uf+97EymDW4yus=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/kafkareceiver v0.87.0 h1:+rsOWSP9SDxbnwmRmQcsdZZJJeHvuKjPFN10jQXgsQI=
