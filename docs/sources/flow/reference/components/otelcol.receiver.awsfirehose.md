@@ -15,9 +15,9 @@ title: otelcol.receiver.awsfirehose
 
 The output format of the Metrics Stream needs to be set to JSON and the reciever needs to be accessible on the 443 port by AWS, this can be done using a Load Balancer
 
-> **NOTE**: `otelcol.receiver.awsfirehose` is a wrapper over the upstream
-> OpenTelemetry Collector `awsfirehose` receiver. Bug reports or feature requests
-> will be redirected to the upstream repository, if necessary.
+{{% admonition type="note" %}}
+`otelcol.receiver.awsfirehose` is a wrapper over the upstream OpenTelemetry Collector `awsfirehose` receiver. If necessary, bug reports or feature requests are redirected to the upstream repository.
+{{% /admonition %}}
 
 Multiple `otelcol.receiver.awsfirehose` components can be specified by giving them
 different labels.
