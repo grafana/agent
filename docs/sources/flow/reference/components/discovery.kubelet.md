@@ -33,13 +33,13 @@ discovery.kubelet "LABEL" {
 
 The following arguments are supported:
 
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`url` | `string` | URL of the Kubelet server. | | no
-`bearer_token` | `secret` | Bearer token to authenticate with. | | no
-`bearer_token_file` | `string` | File containing a bearer token to authenticate with. | | no
-`refresh_interval` | `duration` | How often the Kubelet should be polled for scrape targets | `5s` | no
-`namespaces` | `list(string)` | A list of namespaces to extract target pods from | | no
+Name | Type | Description | Default  | Required
+---- | ---- | ----------- |----------| --------
+`url` | `string` | URL of the Kubelet server. | https://localhost:10250    | no
+`bearer_token` | `secret` | Bearer token to authenticate with. |          | no
+`bearer_token_file` | `string` | File containing a bearer token to authenticate with. |          | no
+`refresh_interval` | `duration` | How often the Kubelet should be polled for scrape targets | `5s`     | no
+`namespaces` | `list(string)` | A list of namespaces to extract target pods from |          | no
 
 One of the following authentication methods must be provided if kubelet authentication is enabled
  - [`bearer_token` argument](#arguments).
