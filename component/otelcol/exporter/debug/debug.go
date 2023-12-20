@@ -73,7 +73,7 @@ func (args Arguments) Convert() (otelcomponent.Config, error) {
 	return &debugexporter.Config{
 		Verbosity:          verbosity,
 		SamplingInitial:    args.SamplingInitial,
-		SamplingThereafter: args.SamplingInitial,
+		SamplingThereafter: args.SamplingThereafter,
 	}, nil
 }
 

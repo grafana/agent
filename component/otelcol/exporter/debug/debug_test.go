@@ -4,30 +4,79 @@ import (
 	"testing"
 
 	"github.com/grafana/agent/component/otelcol/exporter/debug"
+	"github.com/grafana/river"
 	"github.com/stretchr/testify/require"
 	otelcomponent "go.opentelemetry.io/collector/component"
+	"go.opentelemetry.io/collector/config/configtelemetry"
+	debugexporter "go.opentelemetry.io/collector/exporter/debugexporter"
 )
 
 func Test(t *testing.T) {
-	happyArgs := debug.Arguments{
-		Verbosity:          "detailed",
-		SamplingInitial:    5,
-		SamplingThereafter: 20,
-	}
-	// Check no errors on converting to exporter args
-	otelconf, err := happyArgs.Convert()
-	require.NoError(t, err)
+	tests := []struct {
+		testName       string
+		args           string
+		expectedReturn otelcomponent.Config
+		errorMsg       string
+	}{
+		{
+			testName: "defaultConfig",
+			args:     `
+			verbosity = "basic"
+			sampling_initial = 1
+			sampling_thereafter = 500
+			`,
+			expectedReturn: debugexporter.Config{
+				Verbosity:          configtelemetry.LevelBasic,
+				SamplingInitial:    2,
+				SamplingThereafter: 500,
+			},
+		},
 
-	// Check that exporter config is created correctly
-	err = otelcomponent.ValidateConfig(otelconf)
-	require.NoError(t, err, "error on creating debug exporter config")
+		{
+			testName: "validConfig",
+			args:` 
+				verbosity:          "detailed",
+				sampling_initial:    5,
+				sampling_thereafter: 20,
+			`,
+			expectedReturn: debugexporter.Config{
+				Verbosity:          configtelemetry.LevelDetailed,
+				SamplingInitial:    5,
+				SamplingThereafter: 20,
+			},
+		},
 
-	invalidArgs := debug.Arguments{
-		Verbosity:          "test",
-		SamplingInitial:    5,
-		SamplingThereafter: 20,
+		{
+			testName: "invalidConfig",
+			args: `
+				verbosity:          "test",
+				sampling_initial:    5,
+				sampling_thereafter: 20,
+			`,
+			errorMsg: "error in conversion to config arguments",
+		},
 	}
-	// Check error on converting invalid args
-	_, err = invalidArgs.Convert()
-	require.NotNil(t, err, "no error on invalid arguments")
+
+	for _, tc := range tests {
+		t.Run(tc.testName, func(t *testing.T) {
+			var args debug.Arguments
+			err := river.Unmarshal([]byte(tc.args), &args)
+			if tc.errorMsg != "" {
+				require.ErrorContains(t, err, tc.errorMsg)
+				return
+			}
+
+			require.NoError(t, err)
+
+			actualPtr, err := args.Convert()
+			require.NoError(t, err)
+
+			actual := actualPtr.(*otelcomponent.Config)
+
+			require.NoError(t, otelcomponent.ValidateConfig(actual))
+			
+			require.Equal(t, tc.expectedReturn, *actual)
+		})
+	}
+
 }
