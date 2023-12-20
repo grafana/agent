@@ -19,8 +19,7 @@ Set the output format of the Metrics Stream to JSON. Make sure the receiver is a
 `otelcol.receiver.awsfirehose` is a wrapper over the upstream OpenTelemetry Collector `awsfirehose` receiver. If necessary, bug reports or feature requests are redirected to the upstream repository.
 {{% /admonition %}}
 
-Multiple `otelcol.receiver.awsfirehose` components can be specified by giving them
-different labels.
+You can specify multiple `otelcol.receiver.awsfirehose` components by giving them different labels.
 
 ## Usage
 
