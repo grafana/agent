@@ -48,7 +48,7 @@ Name | Type | Description | Default | Required
 
 ### Record Types
 
-- `cwmetrics` : The record type for the CloudWatch metric stream. Expects the format for the records to be JSON. See documentation for details.
+- `cwmetrics`: The record type for the CloudWatch metric stream. Expects the format for the records to be JSON. See documentation for details.
 
 ## Blocks
 
