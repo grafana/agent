@@ -179,6 +179,75 @@ func TestImportModule(t *testing.T) {
 			},
 			updateFile: "other_module",
 		},
+		{
+			name: "TestImportModuleDepth1",
+			module: `
+                import.file "otherModule" {
+                    filename = "other_module"
+                }
+            `,
+			otherModule: `
+                declare "test" {
+                    argument "input" {
+                        optional = false
+                    }
+
+                    testcomponents.passthrough "pt" {
+                        input = argument.input.value
+                        lag = "1ms"
+                    }
+
+                    export "output" {
+                        value = testcomponents.passthrough.pt.output
+                    }
+                }
+            `,
+			config: `
+                testcomponents.count "inc" {
+                    frequency = "10ms"
+                    max = 10
+                }
+
+                import.file "testImport" {
+                    filename = "my_module"
+                }
+
+				declare "anotherModule" {
+					testImport.otherModule.test "myModule" {
+						input = testcomponents.count.inc.count
+					}
+
+                    export "output" {
+                        value = testImport.otherModule.test.myModule.output
+                    }
+                }
+
+				anotherModule "myOtherModule" {}
+
+                testcomponents.summation "sum" {
+                    input = anotherModule.myOtherModule.output
+                }
+            `,
+			updateModule: func(filename string) string {
+				return `
+                    declare "test" {
+                        argument "input" {
+                            optional = false
+                        }
+
+                        testcomponents.passthrough "pt" {
+                            input = argument.input.value
+                            lag = "1ms"
+                        }
+
+                        export "output" {
+                            value = -10
+                        }
+                    }
+                `
+			},
+			updateFile: "other_module",
+		},
 	}
 
 	for _, tc := range testCases {
