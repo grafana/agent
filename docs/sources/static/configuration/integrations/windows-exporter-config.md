@@ -117,7 +117,7 @@ Full reference of options:
   # Configuration for physical disk on Windows 
   physical_disk:
     # Regexp of volumes to include. Disk name must both match include and not match exclude to be included.
-    # Maps to collector.logical_disk.disk-include in windows_exporter
+    # Maps to collector.logical_disk.disk-include in windows_exporter.
     [include: <string> | default=".+"]
 
     # Regexp of volumes to exclude. Disk name must both match include and not match exclude to be included.
