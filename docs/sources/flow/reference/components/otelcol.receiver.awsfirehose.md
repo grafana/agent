@@ -13,7 +13,7 @@ title: otelcol.receiver.awsfirehose
 
 `otelcol.receiver.awsfirehose` receives metrics from [Cloudwatch Metrics Streams](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-Metric-Streams.html) using AWS Kinesis Data Firehose and forwards it to other `otelcol.*` components.
 
-The output format of the Metrics Stream needs to be set to JSON and the reciever needs to be accessible on the 443 port by AWS, this can be done using a Load Balancer
+Set the output format of the Metrics Stream to JSON. Make sure the receiver is accessible by AWS on port 443. You can set the output format with a load balancer.
 
 {{% admonition type="note" %}}
 `otelcol.receiver.awsfirehose` is a wrapper over the upstream OpenTelemetry Collector `awsfirehose` receiver. If necessary, bug reports or feature requests are redirected to the upstream repository.
