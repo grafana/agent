@@ -38,14 +38,16 @@ type Loader struct {
 	// also prevents log spamming with errors.
 	backoffConfig backoff.Config
 
-	mut                   sync.RWMutex
-	graph                 *dag.Graph
-	originalGraph         *dag.Graph
-	componentNodes        []*ComponentNode
-	serviceNodes          []*ServiceNode
-	declareComponentNodes []*DeclareComponentNode
-	importNodes           map[string]*ImportConfigNode
-	declareNodes          map[string]*DeclareNode
+	mut                      sync.RWMutex
+	graph                    *dag.Graph
+	originalGraph            *dag.Graph
+	componentNodes           []*ComponentNode
+	serviceNodes             []*ServiceNode
+	declareComponentNodes    []*DeclareComponentNode
+	importNodes              map[string]*ImportConfigNode
+	declareNodes             map[string]*DeclareNode
+	parentModuleDependencies map[string]string
+	moduleDependencies       map[string][]ModuleReference
 
 	cache             *valueCache
 	blocks            []*ast.BlockStmt // Most recently loaded blocks, used for writing
@@ -80,15 +82,16 @@ func NewLoader(opts LoaderOptions) *Loader {
 	}
 
 	l := &Loader{
-		log:          log.With(globals.Logger, "controller_id", globals.ControllerID),
-		tracer:       tracing.WrapTracerForLoader(globals.TraceProvider, globals.ControllerID),
-		globals:      globals,
-		services:     services,
-		host:         host,
-		componentReg: reg,
-		workerPool:   opts.WorkerPool,
-		importNodes:  map[string]*ImportConfigNode{},
-		declareNodes: map[string]*DeclareNode{},
+		log:                log.With(globals.Logger, "controller_id", globals.ControllerID),
+		tracer:             tracing.WrapTracerForLoader(globals.TraceProvider, globals.ControllerID),
+		globals:            globals,
+		services:           services,
+		host:               host,
+		componentReg:       reg,
+		workerPool:         opts.WorkerPool,
+		importNodes:        map[string]*ImportConfigNode{},
+		declareNodes:       map[string]*DeclareNode{},
+		moduleDependencies: map[string][]ModuleReference{},
 
 		// This is a reasonable default which should work for most cases. If a component is completely stuck, we would
 		// retry and log an error every 10 seconds, at most.
@@ -124,7 +127,7 @@ func NewLoader(opts LoaderOptions) *Loader {
 // The provided parentContext can be used to provide global variables and
 // functions to components. A child context will be constructed from the parent
 // to expose values of other components.
-func (l *Loader) Apply(args map[string]any, componentBlocks []*ast.BlockStmt, configBlocks []*ast.BlockStmt, declares []Declare) diag.Diagnostics {
+func (l *Loader) Apply(args map[string]any, componentBlocks []*ast.BlockStmt, configBlocks []*ast.BlockStmt, declares []Declare, parentModuleDependencies map[string]string) diag.Diagnostics {
 	start := time.Now()
 	l.mut.Lock()
 	defer l.mut.Unlock()
@@ -136,6 +139,7 @@ func (l *Loader) Apply(args map[string]any, componentBlocks []*ast.BlockStmt, co
 	}
 	l.cache.SyncModuleArgs(args)
 
+	l.parentModuleDependencies = parentModuleDependencies
 	newGraph, diags := l.loadNewGraph(args, componentBlocks, configBlocks, declares)
 	if diags.HasErrors() {
 		return diags
@@ -278,6 +282,8 @@ func (l *Loader) Cleanup(stopWorkerPool bool) {
 // loadNewGraph creates a new graph from the provided blocks and validates it.
 func (l *Loader) loadNewGraph(args map[string]any, componentBlocks []*ast.BlockStmt, configBlocks []*ast.BlockStmt, declares []Declare) (dag.Graph, diag.Diagnostics) {
 	var g dag.Graph
+
+	l.moduleDependencies = make(map[string][]ModuleReference)
 
 	// Split component blocks into blocks for components and services.
 	componentBlocks, serviceBlocks := l.splitComponentBlocks(componentBlocks)
@@ -507,14 +513,9 @@ func (l *Loader) populateComponentNodes(g *dag.Graph, componentBlocks []*ast.Blo
 				continue
 			}
 			namespace := strings.Split(componentName, ".")[0]
-			if declareNode, exists := l.declareNodes[namespace]; exists {
-				dc := NewDeclareComponentNode(l.globals, block, l.getModuleContent)
+			if l.shouldAddDeclareComponentNode(namespace, componentName) {
+				dc := NewDeclareComponentNode(l.globals, block, l.getModuleInfo)
 				g.Add(dc)
-				g.AddEdge(dag.Edge{From: dc, To: declareNode})
-			} else if importNode, exists := l.importNodes[namespace]; exists {
-				dc := NewDeclareComponentNode(l.globals, block, l.getModuleContent)
-				g.Add(dc)
-				g.AddEdge(dag.Edge{From: dc, To: importNode})
 			} else {
 				registration, exists := l.componentReg.Get(componentName)
 				if !exists {
@@ -534,6 +535,39 @@ func (l *Loader) populateComponentNodes(g *dag.Graph, componentBlocks []*ast.Blo
 	}
 
 	return diags
+}
+
+func (l *Loader) shouldAddDeclareComponentNode(namespace, componentName string) bool {
+	if _, exists := l.declareNodes[namespace]; exists {
+		return true
+	}
+	if _, exists := l.importNodes[namespace]; exists {
+		return true
+	}
+	if _, exists := l.parentModuleDependencies[componentName]; exists {
+		return true
+	}
+	return false
+}
+
+func (l *Loader) wireModuleDependencies(g *dag.Graph, dc *DeclareComponentNode, declareNode *DeclareNode) error {
+	var references []ModuleReference
+	if deps, ok := l.moduleDependencies[declareNode.label]; ok {
+		references = deps
+	} else {
+		var err error
+		references, err = GetModuleReferences(declareNode, l.importNodes, l.declareNodes, l.parentModuleDependencies)
+		if err != nil {
+			return err
+		}
+		l.moduleDependencies[declareNode.label] = references
+	}
+	for _, ref := range references {
+		if ref.moduleContentProvider != nil {
+			g.AddEdge(dag.Edge{From: dc, To: ref.moduleContentProvider})
+		}
+	}
+	return nil
 }
 
 // Wire up all the related nodes
@@ -556,8 +590,19 @@ func (l *Loader) wireGraphEdges(g *dag.Graph) diag.Diagnostics {
 
 				g.AddEdge(dag.Edge{From: n, To: dep})
 			}
-		case *DeclareNode: // A declare node has no ref
+		case *DeclareNode:
 			continue
+		case *DeclareComponentNode:
+			err := l.wireDeclareComponentNode(g, n)
+			if err != nil {
+				diags.Add(diag.Diagnostic{
+					Severity: diag.SeverityLevelError,
+					Message:  fmt.Sprintf("Error while parsing the declare component %s: %v", n.label, err),
+					StartPos: n.block.NamePos.Position(),
+					EndPos:   n.block.NamePos.Add(len(n.componentName) - 1).Position(),
+				})
+				continue
+			}
 		}
 
 		// Finally, wire component references.
@@ -569,6 +614,20 @@ func (l *Loader) wireGraphEdges(g *dag.Graph) diag.Diagnostics {
 	}
 
 	return diags
+}
+
+func (l *Loader) wireDeclareComponentNode(g *dag.Graph, dc *DeclareComponentNode) error {
+	namespace := strings.Split(dc.componentName, ".")[0]
+	if declareNode, exists := l.declareNodes[namespace]; exists {
+		g.AddEdge(dag.Edge{From: dc, To: declareNode})
+		err := l.wireModuleDependencies(g, dc, declareNode)
+		if err != nil {
+			return err
+		}
+	} else if importNode, exists := l.importNodes[namespace]; exists {
+		g.AddEdge(dag.Edge{From: dc, To: importNode})
+	}
+	return nil
 }
 
 // Variables returns the Variables the Loader exposes for other Flow components
@@ -789,23 +848,50 @@ func (l *Loader) postEvaluate(logger log.Logger, bn BlockNode, err error) error 
 	return nil
 }
 
-func (l *Loader) getModuleContent(namespace string, module string) (string, error) {
-	var node dag.Node
+func (l *Loader) getModuleInfo(fullName string, namespace string, module string) (ModuleInfo, error) {
+	var moduleInfo ModuleInfo
+	var content string
+	var err error
+
+	// If there is no namespace, the declare node component is an instance of a local declare.
 	if namespace == "" {
-		node = l.declareNodes[module]
+		if node, exists := l.declareNodes[module]; exists {
+			moduleInfo.moduleDependencies = make(map[string]string)
+			for _, moduleDependency := range l.moduleDependencies[fullName] {
+				if moduleDependency.moduleContentProvider != nil {
+					content, err = moduleDependency.moduleContentProvider.ModuleContent(moduleDependency.scopedName)
+					if err != nil {
+						return moduleInfo, err
+					}
+				} else {
+					content = l.parentModuleDependencies[moduleDependency.fullName]
+				}
+				moduleInfo.moduleDependencies[moduleDependency.fullName] = content
+			}
+			content, err = node.ModuleContent(module)
+			if err != nil {
+				return moduleInfo, err
+			}
+		} else if c, ok := l.parentModuleDependencies[fullName]; ok {
+			content = c
+		} else {
+			return moduleInfo, fmt.Errorf("could not find the module declaration in declareNodes")
+		}
 	} else {
-		node = l.importNodes[namespace]
+		if node, exists := l.importNodes[namespace]; exists {
+			content, err = node.ModuleContent(module)
+			if err != nil {
+				return moduleInfo, err
+			}
+		} else if c, ok := l.parentModuleDependencies[fullName]; ok {
+			content = c
+		} else {
+			return moduleInfo, fmt.Errorf("could not find the module declaration in importNodes")
+		}
 	}
-	if node == nil {
-		return "", fmt.Errorf("node %s is not in the graph", module)
-	}
-	switch node := node.(type) {
-	case *DeclareNode:
-		return node.ModuleContent(), nil
-	case *ImportConfigNode:
-		return node.ModuleContent(module)
-	}
-	return "", fmt.Errorf("node (%s/%s) should be of type DeclareComponentNode or ImportConfigNode", namespace, module)
+
+	moduleInfo.content = content
+	return moduleInfo, err
 }
 
 func multierrToDiags(errors error) diag.Diagnostics {

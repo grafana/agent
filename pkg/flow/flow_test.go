@@ -42,7 +42,7 @@ func TestController_LoadSource_Evaluation(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, f)
 
-	err = ctrl.LoadSource(f, nil)
+	err = ctrl.LoadSource(f, nil, nil)
 	require.NoError(t, err)
 	require.Len(t, ctrl.loader.Components(), 4)
 

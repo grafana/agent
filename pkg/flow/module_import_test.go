@@ -1,8 +1,5 @@
 package flow_test
 
-// This file contains tests which verify that the Flow controller correctly updates and caches modules' arguments
-// and exports in presence of multiple components.
-
 import (
 	"context"
 	"os"
@@ -17,263 +14,221 @@ import (
 )
 
 func TestImportModule(t *testing.T) {
-	// We use this module in a Flow config below.
-	module := `
-	declare "test" {
-		argument "input" {
-			optional = false
-		}
-	
-		testcomponents.passthrough "pt" {
-			input = argument.input.value
-			lag = "1ms"
-		}
-	
-		export "output" {
-			value = testcomponents.passthrough.pt.output
-		}
-	}
-`
-	filename := "my_module"
-	require.NoError(t, os.WriteFile(filename, []byte(module), 0664))
+	testCases := []struct {
+		name         string
+		module       string
+		otherModule  string
+		config       string
+		updateModule func(filename string) string
+		updateFile   string
+	}{
+		{
+			name: "TestImportModule",
+			module: `
+                declare "test" {
+                    argument "input" {
+                        optional = false
+                    }
 
-	// We send the count increments via module and to the summation component and verify that the updates propagate.
-	config := `
-	testcomponents.count "inc" {
-		frequency = "10ms"
-		max = 10
-	}
+                    testcomponents.passthrough "pt" {
+                        input = argument.input.value
+                        lag = "1ms"
+                    }
 
-	import.file "testImport" {
-		filename = "my_module"
-	}
+                    export "output" {
+                        value = testcomponents.passthrough.pt.output
+                    }
+                }`,
+			config: `
+                testcomponents.count "inc" {
+                    frequency = "10ms"
+                    max = 10
+                }
 
-	testImport.test "myModule" {
-		input = testcomponents.count.inc.count
-	}
+                import.file "testImport" {
+                    filename = "my_module"
+                }
 
-	testcomponents.summation "sum" {
-		input = testImport.test.myModule.output
-	}
-`
+                testImport.test "myModule" {
+                    input = testcomponents.count.inc.count
+                }
 
-	ctrl := flow.New(testOptions(t))
-	f, err := flow.ParseSource(t.Name(), []byte(config))
-	require.NoError(t, err)
-	require.NotNil(t, f)
+                testcomponents.summation "sum" {
+                    input = testImport.test.myModule.output
+                }
+            `,
+			updateModule: func(filename string) string {
+				return `
+                    declare "test" {
+                        argument "input" {
+                            optional = false
+                        }
 
-	err = ctrl.LoadSource(f, nil)
-	require.NoError(t, err)
+                        testcomponents.passthrough "pt" {
+                            input = argument.input.value
+                            lag = "1ms"
+                        }
 
-	ctx, cancel := context.WithCancel(context.Background())
-	done := make(chan struct{})
-	go func() {
-		ctrl.Run(ctx)
-		close(done)
-	}()
-	defer func() {
-		cancel()
-		<-done
-	}()
+                        export "output" {
+                            value = -10
+                        }
+                    }
+                `
+			},
+			updateFile: "my_module",
+		},
+		{
+			name: "TestImportModuleNoArgs",
+			module: `
+                declare "test" {
+                    testcomponents.passthrough "pt" {
+                        input = 10
+                        lag = "1ms"
+                    }
 
-	require.Eventually(t, func() bool {
-		export := getExport[testcomponents.SummationExports](t, ctrl, "", "testcomponents.summation.sum")
-		return export.LastAdded == 10
-	}, 3*time.Second, 10*time.Millisecond)
+                    export "output" {
+                        value = testcomponents.passthrough.pt.output
+                    }
+                }`,
+			config: `
+                import.file "testImport" {
+                    filename = "my_module"
+                }
 
-	// update the file to check if the module is correctly updated without reload
-	newModule := `
-	declare "test" {
-		argument "input" {
-			optional = false
-		}
+                testImport.test "myModule" {
+                }
 
-		testcomponents.passthrough "pt" {
-			input = argument.input.value
-			lag = "1ms"
-		}
+                testcomponents.summation "sum" {
+                    input = testImport.test.myModule.output
+                }
+            `,
+			updateModule: func(filename string) string {
+				return `
+                    declare "test" {
+                        testcomponents.passthrough "pt" {
+                            input = -10
+                            lag = "1ms"
+                        }
 
-		export "output" {
-			value = -10
-		}
-	}
-	`
-	require.NoError(t, os.WriteFile(filename, []byte(newModule), 0664))
-	require.Eventually(t, func() bool {
-		export := getExport[testcomponents.SummationExports](t, ctrl, "", "testcomponents.summation.sum")
-		return export.LastAdded == -10
-	}, 3*time.Second, 10*time.Millisecond)
-	require.NoError(t, os.Remove(filename))
-}
+                        export "output" {
+                            value = testcomponents.passthrough.pt.output
+                        }
+                    }
+                `
+			},
+			updateFile: "my_module",
+		},
+		{
+			name: "TestNestedImportModule",
+			module: `
+                import.file "otherModule" {
+                    filename = "other_module"
+                }
+            `,
+			otherModule: `
+                declare "test" {
+                    argument "input" {
+                        optional = false
+                    }
 
-func TestImportModuleNoArgs(t *testing.T) {
-	// We use this module in a Flow config below.
-	module := `
-	declare "test" {
-		testcomponents.passthrough "pt" {
-			input = 10
-			lag = "1ms"
-		}
+                    testcomponents.passthrough "pt" {
+                        input = argument.input.value
+                        lag = "1ms"
+                    }
 
-		export "output" {
-			value = testcomponents.passthrough.pt.output
-		}
-	}
-`
-	filename := "my_module"
-	require.NoError(t, os.WriteFile(filename, []byte(module), 0664))
+                    export "output" {
+                        value = testcomponents.passthrough.pt.output
+                    }
+                }
+            `,
+			config: `
+                testcomponents.count "inc" {
+                    frequency = "10ms"
+                    max = 10
+                }
 
-	config := `
-import.file "testImport" {
-	filename = "my_module"
-}
+                import.file "testImport" {
+                    filename = "my_module"
+                }
 
-testImport.test "myModule" {
-}
+                testImport.otherModule.test "myModule" {
+                    input = testcomponents.count.inc.count
+                }
 
-testcomponents.summation "sum" {
-	input = testImport.test.myModule.output
-}
-`
+                testcomponents.summation "sum" {
+                    input = testImport.otherModule.test.myModule.output
+                }
+            `,
+			updateModule: func(filename string) string {
+				return `
+                    declare "test" {
+                        argument "input" {
+                            optional = false
+                        }
 
-	ctrl := flow.New(testOptions(t))
-	f, err := flow.ParseSource(t.Name(), []byte(config))
-	require.NoError(t, err)
-	require.NotNil(t, f)
+                        testcomponents.passthrough "pt" {
+                            input = argument.input.value
+                            lag = "1ms"
+                        }
 
-	err = ctrl.LoadSource(f, nil)
-	require.NoError(t, err)
-
-	ctx, cancel := context.WithCancel(context.Background())
-	done := make(chan struct{})
-	go func() {
-		ctrl.Run(ctx)
-		close(done)
-	}()
-	defer func() {
-		cancel()
-		<-done
-	}()
-
-	require.Eventually(t, func() bool {
-		export := getExport[testcomponents.SummationExports](t, ctrl, "", "testcomponents.summation.sum")
-		return export.LastAdded == 10
-	}, 3*time.Second, 50*time.Millisecond)
-
-	newModule := `
-	declare "test" {
-		testcomponents.passthrough "pt" {
-			input = -10
-			lag = "1ms"
-		}
-		
-		export "output" {
-			value = testcomponents.passthrough.pt.output
-		}
-	}
-`
-	require.NoError(t, os.WriteFile(filename, []byte(newModule), 0664))
-	require.Eventually(t, func() bool {
-		export := getExport[testcomponents.SummationExports](t, ctrl, "", "testcomponents.summation.sum")
-		return export.LastAdded == -10
-	}, 3*time.Second, 10*time.Millisecond)
-	require.NoError(t, os.Remove(filename))
-}
-
-func TestNestedImportModule(t *testing.T) {
-	// We use this module in a Flow config below.
-	module := `
-import.file "otherModule" {
-	filename = "other_module"
-}
-`
-	otherModule := `
-declare "test" {
-	argument "input" {
-		optional = false
+                        export "output" {
+                            value = -10
+                        }
+                    }
+                `
+			},
+			updateFile: "other_module",
+		},
 	}
 
-	testcomponents.passthrough "pt" {
-		input = argument.input.value
-		lag = "1ms"
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			filename := "my_module"
+			require.NoError(t, os.WriteFile(filename, []byte(tc.module), 0664))
+			defer os.Remove(filename)
+
+			otherFilename := "other_module"
+			if tc.otherModule != "" {
+				require.NoError(t, os.WriteFile(otherFilename, []byte(tc.otherModule), 0664))
+				defer os.Remove(otherFilename)
+			}
+
+			// Setup and run controller
+			ctrl := flow.New(testOptions(t))
+			f, err := flow.ParseSource(t.Name(), []byte(tc.config))
+			require.NoError(t, err)
+			require.NotNil(t, f)
+
+			err = ctrl.LoadSource(f, nil, nil)
+			require.NoError(t, err)
+
+			ctx, cancel := context.WithCancel(context.Background())
+			done := make(chan struct{})
+			go func() {
+				ctrl.Run(ctx)
+				close(done)
+			}()
+			defer func() {
+				cancel()
+				<-done
+			}()
+
+			// Check for initial condition
+			require.Eventually(t, func() bool {
+				export := getExport[testcomponents.SummationExports](t, ctrl, "", "testcomponents.summation.sum")
+				return export.LastAdded == 10
+			}, 3*time.Second, 10*time.Millisecond)
+
+			// Update module if needed
+			if tc.updateModule != nil {
+				newModule := tc.updateModule(tc.updateFile)
+				require.NoError(t, os.WriteFile(tc.updateFile, []byte(newModule), 0664))
+
+				require.Eventually(t, func() bool {
+					export := getExport[testcomponents.SummationExports](t, ctrl, "", "testcomponents.summation.sum")
+					return export.LastAdded == -10
+				}, 3*time.Second, 10*time.Millisecond)
+			}
+		})
 	}
-
-	export "output" {
-		value = testcomponents.passthrough.pt.output
-	}
-}
-`
-	filename := "my_module"
-	require.NoError(t, os.WriteFile(filename, []byte(module), 0664))
-	otherFilename := "other_module"
-	require.NoError(t, os.WriteFile(otherFilename, []byte(otherModule), 0664))
-
-	// We send the count increments via module and to the summation component and verify that the updates propagate.
-	config := `
-	testcomponents.count "inc" {
-		frequency = "10ms"
-		max = 10
-	}
-
-	import.file "testImport" {
-		filename = "my_module"
-	}
-
-	testImport.otherModule.test "myModule" {
-		input = testcomponents.count.inc.count
-	}
-
-	testcomponents.summation "sum" {
-		input = testImport.otherModule.test.myModule.output
-	}
-`
-
-	ctrl := flow.New(testOptions(t))
-	f, err := flow.ParseSource(t.Name(), []byte(config))
-	require.NoError(t, err)
-	require.NotNil(t, f)
-
-	err = ctrl.LoadSource(f, nil)
-	require.NoError(t, err)
-
-	ctx, cancel := context.WithCancel(context.Background())
-	done := make(chan struct{})
-	go func() {
-		ctrl.Run(ctx)
-		close(done)
-	}()
-	defer func() {
-		cancel()
-		<-done
-	}()
-
-	require.Eventually(t, func() bool {
-		export := getExport[testcomponents.SummationExports](t, ctrl, "", "testcomponents.summation.sum")
-		return export.LastAdded == 10
-	}, 3*time.Second, 10*time.Millisecond)
-
-	// update the file to check if the module is correctly updated without reload
-	newOtherModule := `
-	declare "test" {
-		argument "input" {
-			optional = false
-		}
-
-		testcomponents.passthrough "pt" {
-			input = argument.input.value
-			lag = "1ms"
-		}
-
-		export "output" {
-			value = -10
-		}
-	}
-	`
-	require.NoError(t, os.WriteFile(otherFilename, []byte(newOtherModule), 0664))
-	require.Eventually(t, func() bool {
-		export := getExport[testcomponents.SummationExports](t, ctrl, "", "testcomponents.summation.sum")
-		return export.LastAdded == -10
-	}, 3*time.Second, 10*time.Millisecond)
-	require.NoError(t, os.Remove(filename))
-	require.NoError(t, os.Remove(otherFilename))
 }

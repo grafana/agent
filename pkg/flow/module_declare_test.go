@@ -95,6 +95,106 @@ func TestDeclareComponent(t *testing.T) {
 			`,
 			expected: 10,
 		},
+		{
+			name: "DeclaredInParentDepth1",
+			config: `
+			declare "test" {
+				argument "input" {
+					optional = false
+				}
+			
+				testcomponents.passthrough "pt" {
+					input = argument.input.value
+					lag = "1ms"
+				}
+
+				rootDeclare "default" {
+					input = testcomponents.passthrough.pt.output
+				}
+			
+				export "output" {
+					value = rootDeclare.default.output
+				}
+			}
+			declare "rootDeclare" {
+				argument "input" {
+					optional = false
+				}
+				export "output" {
+					value = argument.input.value
+				}
+			}
+			testcomponents.count "inc" {
+				frequency = "10ms"
+				max = 10
+			}
+		
+			test "myModule" {
+				input = testcomponents.count.inc.count
+			}
+		
+			testcomponents.summation "sum" {
+				input = test.myModule.output
+			}
+			`,
+			expected: 10,
+		},
+		{
+			name: "DeclaredInParentDepth2",
+			config: `
+			declare "test" {
+				argument "input" {
+					optional = false
+				}
+			
+				testcomponents.passthrough "pt" {
+					input = argument.input.value
+					lag = "1ms"
+				}
+
+				declare "anotherDeclare" {
+					argument "input" {
+						optional = false
+					}
+					rootDeclare "default" {
+						input = argument.input.value
+					}
+					export "output" {
+						value = rootDeclare.default.output
+					}
+				}
+
+				anotherDeclare "myOtherDeclare" {
+					input = testcomponents.passthrough.pt.output
+				}
+			
+				export "output" {
+					value = anotherDeclare.myOtherDeclare.output
+				}
+			}
+			declare "rootDeclare" {
+				argument "input" {
+					optional = false
+				}
+				export "output" {
+					value = argument.input.value
+				}
+			}
+			testcomponents.count "inc" {
+				frequency = "10ms"
+				max = 10
+			}
+		
+			test "myModule" {
+				input = testcomponents.count.inc.count
+			}
+		
+			testcomponents.summation "sum" {
+				input = test.myModule.output
+			}
+			`,
+			expected: 10,
+		},
 	}
 
 	for _, tc := range tt {
@@ -104,7 +204,7 @@ func TestDeclareComponent(t *testing.T) {
 			require.NoError(t, err)
 			require.NotNil(t, f)
 
-			err = ctrl.LoadSource(f, nil)
+			err = ctrl.LoadSource(f, nil, nil)
 			require.NoError(t, err)
 
 			ctx, cancel := context.WithCancel(context.Background())

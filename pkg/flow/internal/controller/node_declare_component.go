@@ -21,6 +21,11 @@ import (
 	"go.uber.org/atomic"
 )
 
+type ModuleInfo struct {
+	content            string
+	moduleDependencies map[string]string
+}
+
 // DeclareComponentNode is a controller node which manages a module.
 //
 // DeclareComponentNode manages the underlying module and caches its current
@@ -36,8 +41,8 @@ type DeclareComponentNode struct {
 	managedOpts       component.Options
 	registry          *prometheus.Registry
 	moduleController  ModuleController
-	OnComponentUpdate func(cn NodeWithDependants)                           // Informs controller that we need to reevaluate
-	GetModuleContent  func(namespace string, module string) (string, error) // Retrieve the module config.
+	OnComponentUpdate func(cn NodeWithDependants)                                                // Informs controller that we need to reevaluate
+	GetModuleInfo     func(fullName string, namespace string, module string) (ModuleInfo, error) // Retrieve the module config.
 	lastUpdateTime    atomic.Time
 
 	mut     sync.RWMutex
@@ -63,7 +68,7 @@ var _ UINode = (*ComponentNode)(nil)
 
 // NewDeclareComponentNode creates a new DeclareComponentNode from an initial ast.BlockStmt.
 // The underlying managed module isn't created until Evaluate is called.
-func NewDeclareComponentNode(globals ComponentGlobals, b *ast.BlockStmt, getModuleContent func(string, string) (string, error)) *DeclareComponentNode {
+func NewDeclareComponentNode(globals ComponentGlobals, b *ast.BlockStmt, GetModuleInfo func(string, string, string) (ModuleInfo, error)) *DeclareComponentNode {
 	var (
 		id     = BlockComponentID(b)
 		nodeID = id.String()
@@ -106,7 +111,7 @@ func NewDeclareComponentNode(globals ComponentGlobals, b *ast.BlockStmt, getModu
 		moduleName:        moduleName,
 		moduleController:  globals.NewModuleController(globalID),
 		OnComponentUpdate: globals.OnComponentUpdate,
-		GetModuleContent:  getModuleContent,
+		GetModuleInfo:     GetModuleInfo,
 
 		block: b,
 		eval:  vm.New(b.Body),
@@ -205,13 +210,13 @@ func (cn *DeclareComponentNode) evaluate(scope *vm.Scope) error {
 		cn.managed = managed
 	}
 
-	content, err := cn.GetModuleContent(cn.namespace, cn.moduleName)
+	moduleInfo, err := cn.GetModuleInfo(cn.componentName, cn.namespace, cn.moduleName)
 	if err != nil {
-		return fmt.Errorf("getting content: %w", err)
+		return fmt.Errorf("retrieving module info: %w", err)
 	}
 
 	// Reload the module with new config
-	if err := cn.managed.LoadFlowSource(args, content); err != nil {
+	if err := cn.managed.LoadFlowSource(args, moduleInfo.content, moduleInfo.moduleDependencies); err != nil {
 		return fmt.Errorf("updating component: %w", err)
 	}
 	return nil

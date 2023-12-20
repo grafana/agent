@@ -49,6 +49,7 @@ type ImportConfigNode struct {
 var _ NodeWithDependants = (*ImportConfigNode)(nil)
 var _ RunnableNode = (*ImportConfigNode)(nil)
 var _ UINode = (*ComponentNode)(nil)
+var _ ModuleContentProvider = (*ImportConfigNode)(nil)
 
 // NewImportConfigNode creates a new ImportConfigNode from an initial ast.BlockStmt.
 // The underlying config isn't applied until Evaluate is called.
@@ -226,7 +227,7 @@ func (cn *ImportConfigNode) OnChildrenContentUpdate(child NodeWithDependants) {
 			cn.importedContent[label] = content
 		}
 	default:
-		// TODO: something went very wrong in the logic of the code
+		// TODO: error something went very wrong in the logic of the code
 	}
 	// This avoids to OnComponentUpdate to be called multiple times in a row when the content changes.
 	if !cn.inContentUpdate {

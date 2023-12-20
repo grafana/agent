@@ -66,7 +66,7 @@ func (c *Component) Run(ctx context.Context) error {
 func (c *Component) Update(args component.Arguments) error {
 	newArgs := args.(Arguments)
 
-	return c.mod.LoadFlowSource(newArgs.Arguments, newArgs.Content.Value)
+	return c.mod.LoadFlowSource(newArgs.Arguments, newArgs.Content.Value, nil)
 }
 
 // CurrentHealth implements component.HealthComponent.

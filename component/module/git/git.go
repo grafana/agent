@@ -239,7 +239,7 @@ func (c *Component) pollFile(ctx context.Context, args Arguments) error {
 		return err
 	}
 
-	return c.mod.LoadFlowSource(args.Arguments, string(bb))
+	return c.mod.LoadFlowSource(args.Arguments, string(bb), nil)
 }
 
 // CurrentHealth implements component.HealthComponent.

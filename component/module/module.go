@@ -16,10 +16,11 @@ type ModuleComponent struct {
 	opts component.Options
 	mod  component.Module
 
-	mut           sync.RWMutex
-	health        component.Health
-	latestContent string
-	latestArgs    map[string]any
+	mut                            sync.RWMutex
+	health                         component.Health
+	latestContent                  string
+	latestArgs                     map[string]any
+	latestParentModuleDependencies map[string]string
 }
 
 // Exports holds values which are exported from the run module.
@@ -56,12 +57,12 @@ func NewModuleComponentDeprecated(o component.Options) (*ModuleComponent, error)
 // LoadFlowSource loads the flow controller with the current component source.
 // It will set the component health in addition to return the error so that the consumer can rely on either or both.
 // If the content is the same as the last time it was successfully loaded, it will not be reloaded.
-func (c *ModuleComponent) LoadFlowSource(args map[string]any, contentValue string) error {
-	if reflect.DeepEqual(args, c.getLatestArgs()) && contentValue == c.getLatestContent() {
+func (c *ModuleComponent) LoadFlowSource(args map[string]any, contentValue string, parentModuleDependencies map[string]string) error {
+	if reflect.DeepEqual(args, c.getLatestArgs()) && contentValue == c.getLatestContent() && reflect.DeepEqual(args, c.getLatestParentModuleDependencies()) {
 		return nil
 	}
 
-	err := c.mod.LoadConfig([]byte(contentValue), args)
+	err := c.mod.LoadConfig([]byte(contentValue), args, parentModuleDependencies)
 	if err != nil {
 		c.setHealth(component.Health{
 			Health:     component.HealthTypeUnhealthy,
@@ -74,6 +75,7 @@ func (c *ModuleComponent) LoadFlowSource(args map[string]any, contentValue strin
 
 	c.setLatestArgs(args)
 	c.setLatestContent(contentValue)
+	c.setLatestParentModuleDependencies(parentModuleDependencies)
 	c.setHealth(component.Health{
 		Health:     component.HealthTypeHealthy,
 		Message:    "module content loaded",
@@ -115,6 +117,18 @@ func (c *ModuleComponent) getLatestContent() string {
 	c.mut.RLock()
 	defer c.mut.RUnlock()
 	return c.latestContent
+}
+
+func (c *ModuleComponent) setLatestParentModuleDependencies(parentModuleDependencies map[string]string) {
+	c.mut.Lock()
+	defer c.mut.Unlock()
+	c.latestParentModuleDependencies = parentModuleDependencies
+}
+
+func (c *ModuleComponent) getLatestParentModuleDependencies() map[string]string {
+	c.mut.RLock()
+	defer c.mut.RUnlock()
+	return c.latestParentModuleDependencies
 }
 
 func (c *ModuleComponent) setLatestArgs(args map[string]any) {

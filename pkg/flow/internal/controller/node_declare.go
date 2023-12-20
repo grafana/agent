@@ -18,6 +18,7 @@ type DeclareNode struct {
 }
 
 var _ BlockNode = (*DeclareNode)(nil)
+var _ ModuleContentProvider = (*DeclareNode)(nil)
 
 // NewDeclareNode creates a new declare node with a content which will be loaded by declare component node.
 func NewDeclareNode(block *ast.BlockStmt, content string) *DeclareNode {
@@ -31,10 +32,10 @@ func NewDeclareNode(block *ast.BlockStmt, content string) *DeclareNode {
 	}
 }
 
-func (cn *DeclareNode) ModuleContent() string {
+func (cn *DeclareNode) ModuleContent(_ string) (string, error) {
 	cn.mut.Lock()
 	defer cn.mut.Unlock()
-	return cn.content
+	return cn.content, nil
 }
 
 // Evaluate does nothing for this node.
