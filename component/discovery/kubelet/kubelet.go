@@ -130,10 +130,9 @@ func NewKubeletDiscovery(args Arguments) (*Discovery, error) {
 		Timeout:   30 * time.Second,
 	}
 	// Append the path to the kubelet pods endpoint
-	args.URL.Path = args.URL.Path + "/pods"
 	return &Discovery{
 		client:           client,
-		url:              args.URL.String(),
+		url:              args.URL.String() + "/pods",
 		targetNamespaces: args.Namespaces,
 	}, nil
 }

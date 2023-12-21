@@ -111,7 +111,7 @@ func TestDiscoveryPodWithoutPod(t *testing.T) {
 func TestWithDefaultKubeletHost(t *testing.T) {
 	kubeletDiscovery, err := NewKubeletDiscovery(DefaultConfig)
 	require.NoError(t, err)
-	require.Equal(t, kubeletDiscovery.url, "https://localhost:10250/pods")
+	require.Equal(t, "https://localhost:10250/pods", kubeletDiscovery.url)
 }
 
 func TestWithCustomPath(t *testing.T) {
@@ -122,5 +122,5 @@ func TestWithCustomPath(t *testing.T) {
 		},
 	})
 	require.NoError(t, err)
-	require.Equal(t, kubeletDiscovery.url, "https://kubernetes.default.svc.cluster.local:443/api/v1/nodes/cluster-node-1/proxy/pods")
+	require.Equal(t, "https://kubernetes.default.svc.cluster.local:443/api/v1/nodes/cluster-node-1/proxy/pods", kubeletDiscovery.url)
 }
