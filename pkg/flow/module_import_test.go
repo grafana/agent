@@ -542,6 +542,71 @@ func TestImportModule(t *testing.T) {
                     }
                 `,
 		},
+		{
+			name: "TestDeclaredModuleUsedInImportedFileWithDepth3WithMoreNesting",
+			module: `
+                    import.file "otherModule" {
+                        filename = "other_module"
+                    }
+                `,
+			otherModule: `
+                import.file "default" {
+                    filename = "yet_another_module"
+                }
+                declare "anotherModule" {
+                    testcomponents.count "inc" {
+                        frequency = "10ms"
+                        max = 10
+                    }
+
+                    declare "blabla" {
+                        argument "input" {}
+                        default.test "default" {
+                            input = argument.input.value
+                        }
+    
+                        export "output" {
+                            value = default.test.default.output
+                        }
+                    }
+
+                    blabla "default" {
+                        input = testcomponents.count.inc.count
+                    }
+
+                    export "output" {
+                        value = blabla.default.output
+                    }
+                }
+                `,
+			yetAnotherModule: `
+            declare "test" {
+                argument "input" {
+                    optional = false
+                }
+
+                testcomponents.passthrough "pt" {
+                    input = argument.input.value
+                    lag = "1ms"
+                }
+
+                export "output" {
+                    value = testcomponents.passthrough.pt.output
+                }
+            }
+            `,
+			config: `
+                    import.file "testImport" {
+                        filename = "my_module"
+                    }
+    
+                    testImport.otherModule.anotherModule "myOtherModule" {}
+    
+                    testcomponents.summation "sum" {
+                        input = testImport.otherModule.anotherModule.myOtherModule.output
+                    }
+                `,
+		},
 	}
 
 	for _, tc := range testCases {
