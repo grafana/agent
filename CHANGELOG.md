@@ -21,6 +21,11 @@ Main (unreleased)
 - The `target` block in `prometheus.exporter.blackbox` requires a mandatory `name`
   argument instead of a block label. (@hainenber)
 
+- In the azure exporter, dimension options will no longer be validated by the Azure API. (@kgeckhart)
+  - This change will not break any existing configurations and you can opt in to validation via the `validate_dimensions` configuration option.
+  - Before this change, pulling metrics for azure resources with variable dimensions required one configuration per metric + dimension combination to avoid an error.
+  - After this change, you can include all metrics and dimensions in a single configuration and the Azure APIs will only return dimensions which are valid for the various metrics.
+
 ### Enhancements
 
 - Flow Windows service: Support environment variables. (@jkroepke)
@@ -62,6 +67,10 @@ Main (unreleased)
 - Add support for passing extra arguments to the static converter such as `-config.expand-env`. (@erikbaranowski)
 
 - Added 'country' mmdb-type to log pipeline-stage geoip. (@superstes)
+
+- Azure exporter enhancements for flow and static mode, (@kgeckhart)
+  - Allows for pulling metrics at the Azure subscription level instead of resource by resource 
+  - Disable dimension validation by default to reduce the number of exporter instances needed for full dimension coverage 
 
 ### Bugfixes
 
