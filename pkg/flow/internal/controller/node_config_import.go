@@ -31,7 +31,7 @@ type ImportConfigNode struct {
 	source                    importsource.ImportSource
 	registry                  *prometheus.Registry
 	importedContent           map[string]string
-	importConfigNodesChildren map[importsource.SourceType]map[string]*ImportConfigNode
+	importConfigNodesChildren map[string]*ImportConfigNode
 	OnComponentUpdate         func(cn NodeWithDependants) // Informs controller that we need to reevaluate
 	logger                    log.Logger
 	inContentUpdate           bool
@@ -173,16 +173,13 @@ func (cn *ImportConfigNode) processDeclareBlock(stmt *ast.BlockStmt, content str
 // processDeclareBlock processes an import block.
 func (cn *ImportConfigNode) processImportBlock(stmt *ast.BlockStmt, fullName string) {
 	sourceType := importsource.GetSourceType(fullName)
-	if _, ok := cn.importConfigNodesChildren[sourceType][stmt.Label]; ok {
+	if _, ok := cn.importConfigNodesChildren[stmt.Label]; ok {
 		level.Error(cn.logger).Log("msg", "import block redefined", "name", stmt.Label)
 		return
 	}
 	childGlobals := cn.globals
 	childGlobals.OnComponentUpdate = cn.OnChildrenContentUpdate
-	if cn.importConfigNodesChildren[sourceType] == nil {
-		cn.importConfigNodesChildren[sourceType] = make(map[string]*ImportConfigNode)
-	}
-	cn.importConfigNodesChildren[sourceType][stmt.Label] = NewImportConfigNode(stmt, childGlobals, sourceType)
+	cn.importConfigNodesChildren[stmt.Label] = NewImportConfigNode(stmt, childGlobals, sourceType)
 }
 
 // onContentUpdate is triggered every time the managed import component has new content.
@@ -192,7 +189,7 @@ func (cn *ImportConfigNode) onContentUpdate(content string) {
 	cn.inContentUpdate = true
 	cn.importedContent = make(map[string]string)
 	// TODO: We recreate the nodes when the content changes. Can we copy instead for optimization?
-	cn.importConfigNodesChildren = make(map[importsource.SourceType]map[string]*ImportConfigNode)
+	cn.importConfigNodesChildren = make(map[string]*ImportConfigNode)
 	node, err := parser.ParseFile(cn.label, []byte(content))
 	if err != nil {
 		level.Error(cn.logger).Log("msg", "failed to parse file on update", "err", err)
@@ -207,13 +204,11 @@ func (cn *ImportConfigNode) onContentUpdate(content string) {
 
 // evaluateChildren evaluates the import nodes managed by this import node.
 func (cn *ImportConfigNode) evaluateChildren() {
-	for _, sourceTypeChildren := range cn.importConfigNodesChildren {
-		for _, child := range sourceTypeChildren {
-			child.Evaluate(&vm.Scope{
-				Parent:    nil,
-				Variables: make(map[string]interface{}),
-			})
-		}
+	for _, child := range cn.importConfigNodesChildren {
+		child.Evaluate(&vm.Scope{
+			Parent:    nil,
+			Variables: make(map[string]interface{}),
+		})
 	}
 }
 

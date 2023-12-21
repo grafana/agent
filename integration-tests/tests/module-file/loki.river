@@ -2,20 +2,16 @@ import.file "logTarget" {
   filename = "logfile.river"
 }
 
+import.file "write" {
+  filename = "loki_write.river"
+}
+
 declare "loki" {
   argument "file" {}
   loki.source.file "test" {
     targets    = argument.file.value
-    forward_to = [loki.write.test.receiver]
+    forward_to = [write.loki_write.default.receiver]
   }
-
-  loki.write "test" {
-    endpoint {
-      url = "http://localhost:3100/loki/api/v1/push"
-    }
-    external_labels = {
-      test_name = "module_file",
-    }
-  }
+  write.loki_write "default" {}
 }
 

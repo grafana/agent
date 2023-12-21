@@ -15,12 +15,13 @@ import (
 
 func TestImportModule(t *testing.T) {
 	testCases := []struct {
-		name         string
-		module       string
-		otherModule  string
-		config       string
-		updateModule func(filename string) string
-		updateFile   string
+		name             string
+		module           string
+		otherModule      string
+		yetAnotherModule string
+		config           string
+		updateModule     func(filename string) string
+		updateFile       string
 	}{
 		{
 			name: "TestImportModule",
@@ -212,22 +213,22 @@ func TestImportModule(t *testing.T) {
                     filename = "my_module"
                 }
 
-				declare "anotherModule" {
+                declare "anotherModule" {
                     testcomponents.count "inc" {
                         frequency = "10ms"
                         max = 10
                     }
 
-					testImport.otherModule.test "myModule" {
-						input = testcomponents.count.inc.count
-					}
+                    testImport.otherModule.test "myModule" {
+                        input = testcomponents.count.inc.count
+                    }
 
                     export "output" {
                         value = testImport.otherModule.test.myModule.output
                     }
                 }
 
-				anotherModule "myOtherModule" {}
+                anotherModule "myOtherModule" {}
 
                 testcomponents.summation "sum" {
                     input = anotherModule.myOtherModule.output
@@ -308,7 +309,7 @@ func TestImportModule(t *testing.T) {
                     }
                 }
 
-				yetAgainAnotherModule "default" {}
+                yetAgainAnotherModule "default" {}
 
                 testcomponents.summation "sum" {
                     input = yetAgainAnotherModule.default.output
@@ -334,6 +335,213 @@ func TestImportModule(t *testing.T) {
 			},
 			updateFile: "other_module",
 		},
+		{
+			name: "TestImportedModuleUsedInImportedFileWithDepth1",
+			module: `
+                import.file "otherModule" {
+                    filename = "other_module"
+                }
+                declare "anotherModule" {
+                    testcomponents.count "inc" {
+                        frequency = "10ms"
+                        max = 10
+                    }
+
+                    otherModule.test "default" {
+                        input = testcomponents.count.inc.count
+                    }
+
+                    export "output" {
+                        value = otherModule.test.default.output
+                    }
+                }
+            `,
+			otherModule: `
+                declare "test" {
+                    argument "input" {
+                        optional = false
+                    }
+
+                    testcomponents.passthrough "pt" {
+                        input = argument.input.value
+                        lag = "1ms"
+                    }
+
+                    export "output" {
+                        value = testcomponents.passthrough.pt.output
+                    }
+                }
+            `,
+			config: `
+                import.file "testImport" {
+                    filename = "my_module"
+                }
+
+                testImport.anotherModule "myOtherModule" {}
+
+                testcomponents.summation "sum" {
+                    input = testImport.anotherModule.myOtherModule.output
+                }
+            `,
+			updateModule: func(filename string) string {
+				return `
+                    declare "test" {
+                        argument "input" {
+                            optional = false
+                        }
+
+                        testcomponents.passthrough "pt" {
+                            input = argument.input.value
+                            lag = "1ms"
+                        }
+
+                        export "output" {
+                            value = -10
+                        }
+                    }
+                `
+			},
+			updateFile: "other_module",
+		},
+		{
+			name: "TestDeclaredModuleUsedInImportedFileWithDepth2",
+			module: `
+                import.file "otherModule" {
+                    filename = "other_module"
+                }
+            `,
+			otherModule: `
+                declare "anotherModule" {
+                    testcomponents.count "inc" {
+                        frequency = "10ms"
+                        max = 10
+                    }
+
+                    test "default" {
+                        input = testcomponents.count.inc.count
+                    }
+
+                    export "output" {
+                        value = test.default.output
+                    }
+                }
+                declare "test" {
+                    argument "input" {
+                        optional = false
+                    }
+
+                    testcomponents.passthrough "pt" {
+                        input = argument.input.value
+                        lag = "1ms"
+                    }
+
+                    export "output" {
+                        value = testcomponents.passthrough.pt.output
+                    }
+                }
+            `,
+			config: `
+                import.file "testImport" {
+                    filename = "my_module"
+                }
+
+                testImport.otherModule.anotherModule "myOtherModule" {}
+
+                testcomponents.summation "sum" {
+                    input = testImport.otherModule.anotherModule.myOtherModule.output
+                }
+            `,
+			updateModule: func(filename string) string {
+				return `
+                declare "anotherModule" {
+                    testcomponents.count "inc" {
+                        frequency = "10ms"
+                        max = 10
+                    }
+
+                    test "default" {
+                        input = testcomponents.count.inc.count
+                    }
+
+                    export "output" {
+                        value = test.default.output
+                    }
+                }
+                declare "test" {
+                    argument "input" {
+                        optional = false
+                    }
+
+                    testcomponents.passthrough "pt" {
+                        input = argument.input.value
+                        lag = "1ms"
+                    }
+
+                    export "output" {
+                        value = -10
+                    }
+                }
+                `
+			},
+			updateFile: "other_module",
+		},
+		{
+			name: "TestDeclaredModuleUsedInImportedFileWithDepth3",
+			module: `
+                    import.file "otherModule" {
+                        filename = "other_module"
+                    }
+                    import.file "uselessImportToSeeIfItBreaks" {
+                        filename = "yet_another_module"
+                    }
+                `,
+			otherModule: `
+                import.file "default" {
+                    filename = "yet_another_module"
+                }
+                declare "anotherModule" {
+                    testcomponents.count "inc" {
+                        frequency = "10ms"
+                        max = 10
+                    }
+
+                    default.test "default" {
+                        input = testcomponents.count.inc.count
+                    }
+
+                    export "output" {
+                        value = default.test.default.output
+                    }
+                }
+                `,
+			yetAnotherModule: `
+            declare "test" {
+                argument "input" {
+                    optional = false
+                }
+
+                testcomponents.passthrough "pt" {
+                    input = argument.input.value
+                    lag = "1ms"
+                }
+
+                export "output" {
+                    value = testcomponents.passthrough.pt.output
+                }
+            }
+            `,
+			config: `
+                    import.file "testImport" {
+                        filename = "my_module"
+                    }
+    
+                    testImport.otherModule.anotherModule "myOtherModule" {}
+    
+                    testcomponents.summation "sum" {
+                        input = testImport.otherModule.anotherModule.myOtherModule.output
+                    }
+                `,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -346,6 +554,12 @@ func TestImportModule(t *testing.T) {
 			if tc.otherModule != "" {
 				require.NoError(t, os.WriteFile(otherFilename, []byte(tc.otherModule), 0664))
 				defer os.Remove(otherFilename)
+			}
+
+			yetAnotherModule := "yet_another_module"
+			if tc.yetAnotherModule != "" {
+				require.NoError(t, os.WriteFile(yetAnotherModule, []byte(tc.yetAnotherModule), 0664))
+				defer os.Remove(yetAnotherModule)
 			}
 
 			ctrl := flow.New(testOptions(t))

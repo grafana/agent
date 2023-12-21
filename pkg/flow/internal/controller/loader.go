@@ -556,7 +556,7 @@ func (l *Loader) wireModuleDependencies(g *dag.Graph, dc *DeclareComponentNode, 
 		references = deps
 	} else {
 		var err error
-		references, err = GetModuleReferences(declareNode, l.importNodes, l.declareNodes, l.parentModuleDependencies)
+		references, err = GetModuleReferences(declareNode.content, l.importNodes, l.declareNodes, l.parentModuleDependencies)
 		if err != nil {
 			return err
 		}
@@ -880,6 +880,26 @@ func (l *Loader) getModuleInfo(fullName string, namespace string, module string)
 	} else {
 		if node, exists := l.importNodes[namespace]; exists {
 			content, err = node.ModuleContent(module)
+			if err != nil {
+				return moduleInfo, err
+			}
+
+			// The import node might need its nested imported content.
+			// We need to pass the correct content according to the namespace to respect the scope.
+			lastIndex := strings.LastIndex(module, ".")
+			if lastIndex != -1 {
+				scope := module[:lastIndex]
+				moduleInfo.moduleDependencies = make(map[string]string)
+				for importedMod, importedModContent := range node.importedContent {
+					if strings.HasPrefix(importedMod, scope) {
+						moduleInfo.moduleDependencies[strings.TrimPrefix(importedMod, scope+".")] = importedModContent
+					}
+				}
+			} else {
+				// In this case the declare is only at depth 1 which corresponds to the importedContent, so we can just pass everything.
+				moduleInfo.moduleDependencies = node.importedContent
+			}
+
 			if err != nil {
 				return moduleInfo, err
 			}

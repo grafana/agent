@@ -15,13 +15,13 @@ type ModuleReference struct {
 }
 
 func GetModuleReferences(
-	declareNode *DeclareNode,
+	content string,
 	importNodes map[string]*ImportConfigNode,
 	declareNodes map[string]*DeclareNode,
 	parentModuleDependencies map[string]string,
 ) ([]ModuleReference, error) {
 	uniqueReferences := make(map[string]ModuleReference)
-	err := getModuleReferences(declareNode.content, importNodes, declareNodes, uniqueReferences, parentModuleDependencies)
+	err := getModuleReferences(content, importNodes, declareNodes, uniqueReferences, parentModuleDependencies)
 	if err != nil {
 		return nil, err
 	}
