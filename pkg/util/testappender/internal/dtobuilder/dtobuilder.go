@@ -15,7 +15,7 @@ import (
 	"github.com/prometheus/prometheus/model/metadata"
 	"github.com/prometheus/prometheus/model/textparse"
 	"google.golang.org/protobuf/types/known/timestamppb"
-	"k8s.io/utils/pointer"
+	"k8s.io/utils/ptr"
 )
 
 // Sample represents an individually written sample to a storage.Appender.
@@ -118,11 +118,11 @@ func (b *builder) buildFamiliesFromMetadata() {
 	for familyName, m := range b.Metadata {
 		mt := textParseToMetricType(m.Type)
 		mf := &dto.MetricFamily{
-			Name: pointer.String(familyName),
+			Name: ptr.To(familyName),
 			Type: &mt,
 		}
 		if m.Help != "" {
-			mf.Help = pointer.String(m.Help)
+			mf.Help = ptr.To(m.Help)
 		}
 
 		b.families = append(b.families, mf)
@@ -225,18 +225,18 @@ func (b *builder) buildMetricsFromSamples() {
 		// Retrieve the *dto.Metric based on labels.
 		m := getOrCreateMetric(mf, sample.Labels)
 		if sample.PrintTimestamp {
-			m.TimestampMs = pointer.Int64(sample.Timestamp)
+			m.TimestampMs = ptr.To(sample.Timestamp)
 		}
 
 		switch familyType(mf) {
 		case dto.MetricType_COUNTER:
 			m.Counter = &dto.Counter{
-				Value: pointer.Float64(sample.Value),
+				Value: ptr.To(sample.Value),
 			}
 
 		case dto.MetricType_GAUGE:
 			m.Gauge = &dto.Gauge{
-				Value: pointer.Float64(sample.Value),
+				Value: ptr.To(sample.Value),
 			}
 
 		case dto.MetricType_SUMMARY:
@@ -249,7 +249,7 @@ func (b *builder) buildMetricsFromSamples() {
 				val := uint64(sample.Value)
 				m.Summary.SampleCount = &val
 			case metricName == mf.GetName()+"_sum":
-				m.Summary.SampleSum = pointer.Float64(sample.Value)
+				m.Summary.SampleSum = ptr.To(sample.Value)
 			case metricName == mf.GetName():
 				quantile, err := strconv.ParseFloat(sample.Labels.Get(model.QuantileLabel), 64)
 				if err != nil {
@@ -258,13 +258,13 @@ func (b *builder) buildMetricsFromSamples() {
 
 				m.Summary.Quantile = append(m.Summary.Quantile, &dto.Quantile{
 					Quantile: &quantile,
-					Value:    pointer.Float64(sample.Value),
+					Value:    ptr.To(sample.Value),
 				})
 			}
 
 		case dto.MetricType_UNTYPED:
 			m.Untyped = &dto.Untyped{
-				Value: pointer.Float64(sample.Value),
+				Value: ptr.To(sample.Value),
 			}
 
 		case dto.MetricType_HISTOGRAM:
@@ -277,7 +277,7 @@ func (b *builder) buildMetricsFromSamples() {
 				val := uint64(sample.Value)
 				m.Histogram.SampleCount = &val
 			case metricName == mf.GetName()+"_sum":
-				m.Histogram.SampleSum = pointer.Float64(sample.Value)
+				m.Histogram.SampleSum = ptr.To(sample.Value)
 			case metricName == mf.GetName()+"_bucket":
 				boundary, err := strconv.ParseFloat(sample.Labels.Get(model.BucketLabel), 64)
 				if err != nil {
@@ -345,8 +345,8 @@ func toLabelPairs(mt dto.MetricType, ls labels.Labels) []*dto.LabelPair {
 		}
 
 		res = append(res, &dto.LabelPair{
-			Name:  pointer.String(l.Name),
-			Value: pointer.String(l.Value),
+			Name:  ptr.To(l.Name),
+			Value: ptr.To(l.Value),
 		})
 	}
 

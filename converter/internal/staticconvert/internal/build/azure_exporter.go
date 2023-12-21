@@ -25,5 +25,7 @@ func toAzureExporter(config *azure_exporter.Config) *azure.Arguments {
 		MetricNameTemplate:       config.MetricNameTemplate,
 		MetricHelpTemplate:       config.MetricHelpTemplate,
 		AzureCloudEnvironment:    config.AzureCloudEnvironment,
+		ValidateDimensions:       config.ValidateDimensions,
+		Regions:                  config.Regions,
 	}
 }

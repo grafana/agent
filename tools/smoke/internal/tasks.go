@@ -9,7 +9,7 @@ import (
 	"github.com/go-kit/log/level"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
-	"k8s.io/utils/pointer"
+	"k8s.io/utils/ptr"
 )
 
 // The Task interface represents some unit of work performed concurrently.
@@ -32,7 +32,7 @@ type deletePodTask struct {
 func (t *deletePodTask) Run(ctx context.Context) error {
 	level.Debug(t.logger).Log("msg", "deleting pod")
 	if err := t.clientset.CoreV1().Pods(t.namespace).Delete(ctx, t.pod, metav1.DeleteOptions{
-		GracePeriodSeconds: pointer.Int64(0),
+		GracePeriodSeconds: ptr.To(int64(0)),
 	}); err != nil {
 		level.Error(t.logger).Log("msg", "failed to delete pod", "err", err)
 	}
@@ -91,7 +91,7 @@ func (t *deletePodBySelectorTask) Run(ctx context.Context) error {
 		pod := list.Items[i].Name
 		level.Debug(t.logger).Log("msg", "deleting pod", "pod", pod)
 		if err := t.clientset.CoreV1().Pods(t.namespace).Delete(ctx, pod, metav1.DeleteOptions{
-			GracePeriodSeconds: pointer.Int64(0),
+			GracePeriodSeconds: ptr.To(int64(0)),
 		}); err != nil {
 			level.Error(t.logger).Log("msg", "failed to delete pod", "pod", pod, "err", err)
 		}

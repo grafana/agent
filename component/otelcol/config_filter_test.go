@@ -3,11 +3,13 @@ package otelcol_test
 import (
 	"testing"
 
+	"k8s.io/utils/ptr"
+
 	"github.com/grafana/agent/component/otelcol"
+
 	"github.com/grafana/river"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/pdata/plog"
-	"k8s.io/utils/pointer"
 )
 
 func TestConvertMatchProperties(t *testing.T) {
@@ -49,7 +51,7 @@ func TestConvertMatchProperties(t *testing.T) {
 		Libraries: []otelcol.InstrumentationLibrary{
 			{
 				Name:    "mongo-java-driver",
-				Version: pointer.String("3.8.0"),
+				Version: ptr.To("3.8.0"),
 			},
 		},
 		SpanKinds: []string{"span1"},

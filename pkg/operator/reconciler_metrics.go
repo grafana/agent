@@ -11,16 +11,17 @@ import (
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/google/go-jsonnet"
-	gragent "github.com/grafana/agent/pkg/operator/apis/monitoring/v1alpha1"
-	"github.com/grafana/agent/pkg/operator/clientutil"
-	"github.com/grafana/agent/pkg/operator/config"
 	apps_v1 "k8s.io/api/apps/v1"
 	core_v1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/utils/pointer"
+	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	gragent "github.com/grafana/agent/pkg/operator/apis/monitoring/v1alpha1"
+	"github.com/grafana/agent/pkg/operator/clientutil"
+	"github.com/grafana/agent/pkg/operator/config"
 )
 
 // createMetricsConfigurationSecret creates the Grafana Agent metrics configuration and stores
@@ -99,7 +100,7 @@ func (r *reconciler) createTelemetryConfigurationSecret(
 			Labels:    r.config.Labels.Merge(managedByOperatorLabels),
 			OwnerReferences: []v1.OwnerReference{{
 				APIVersion:         d.Agent.APIVersion,
-				BlockOwnerDeletion: pointer.Bool(true),
+				BlockOwnerDeletion: ptr.To(true),
 				Kind:               d.Agent.Kind,
 				Name:               d.Agent.Name,
 				UID:                d.Agent.UID,

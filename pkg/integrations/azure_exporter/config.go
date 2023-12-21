@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"strconv"
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
@@ -33,11 +34,16 @@ var DefaultConfig = Config{
 	MetricHelpTemplate:    "Azure metric {metric} for {type} with aggregation {aggregation} as {unit}",
 	IncludedResourceTags:  []string{"owner"},
 	AzureCloudEnvironment: "azurecloud",
+	// Dimensions do not always apply to all metrics for a service, which requires you to configure multiple exporters
+	//  to fully monitor a service which is tedious. Turning off validation eliminates this complexity. The underlying
+	//  sdk will only give back the dimensions which are valid for particular metrics.
+	ValidateDimensions: false,
 }
 
 type Config struct {
 	Subscriptions            []string `yaml:"subscriptions"`               // Required
 	ResourceGraphQueryFilter string   `yaml:"resource_graph_query_filter"` // Optional
+	Regions                  []string `yaml:"regions"`                     // Optional
 
 	// Valid values can be derived from https://learn.microsoft.com/en-us/azure/azure-monitor/essentials/metrics-supported
 	// Required: Root level names ex. Microsoft.DataShare/accounts
@@ -68,6 +74,7 @@ type Config struct {
 
 	MetricNameTemplate string `yaml:"metric_name_template"`
 	MetricHelpTemplate string `yaml:"metric_help_template"`
+	ValidateDimensions bool   `yaml:"validate_dimensions"`
 
 	AzureCloudEnvironment string `yaml:"azure_cloud_environment"`
 }
@@ -120,6 +127,10 @@ func (c *Config) Validate() error {
 		configErrors = append(configErrors, "metrics cannot be empty")
 	}
 
+	if len(c.Regions) > 0 && c.ResourceGraphQueryFilter != "" {
+		configErrors = append(configErrors, "regions and resource_graph_query_filter cannot be used together. If you want to target specific resources add a region filter to the resource_graph_query_filter. Otherwise, remove your resource_graph_query_filter to get metrics without further filtering.")
+	}
+
 	validAggregations := []string{"minimum", "maximum", "average", "total", "count"}
 
 	for _, aggregation := range c.MetricAggregations {
@@ -153,14 +164,16 @@ func (c *Config) Name() string {
 
 func (c *Config) ToScrapeSettings() (*metrics.RequestMetricSettings, error) {
 	settings := metrics.RequestMetricSettings{
-		Subscriptions:   c.Subscriptions,
-		Metrics:         c.Metrics,
-		ResourceType:    c.ResourceType,
-		Aggregations:    c.MetricAggregations,
-		Filter:          c.ResourceGraphQueryFilter,
-		MetricNamespace: c.MetricNamespace,
-		MetricTemplate:  c.MetricNameTemplate,
-		HelpTemplate:    c.MetricHelpTemplate,
+		Subscriptions:      c.Subscriptions,
+		Metrics:            c.Metrics,
+		ResourceType:       c.ResourceType,
+		Aggregations:       c.MetricAggregations,
+		Filter:             c.ResourceGraphQueryFilter,
+		MetricNamespace:    c.MetricNamespace,
+		MetricTemplate:     c.MetricNameTemplate,
+		HelpTemplate:       c.MetricHelpTemplate,
+		ValidateDimensions: c.ValidateDimensions,
+		Regions:            c.Regions,
 
 		// Interval controls data aggregation timeframe ie 1 minute or 5 minutes aggregations
 		// Timespan controls query start and end time
@@ -205,7 +218,7 @@ func (c *Config) ToScrapeSettings() (*metrics.RequestMetricSettings, error) {
 
 // MergeConfigWithQueryParams will map values from params which where the key
 // matches a yaml tag of the Config struct
-func MergeConfigWithQueryParams(cfg Config, params url.Values) Config {
+func MergeConfigWithQueryParams(cfg Config, params url.Values) (Config, error) {
 	if subscriptions, exists := params["subscriptions"]; exists {
 		cfg.Subscriptions = subscriptions
 	}
@@ -256,7 +269,20 @@ func MergeConfigWithQueryParams(cfg Config, params url.Values) Config {
 		cfg.MetricHelpTemplate = helpTemplate
 	}
 
-	return cfg
+	if regions, exists := params["regions"]; exists {
+		cfg.Regions = regions
+	}
+
+	validateDimensions := params.Get("validate_dimensions")
+	if len(validateDimensions) != 0 {
+		v, err := strconv.ParseBool(validateDimensions)
+		if err != nil {
+			return Config{}, fmt.Errorf("invalid boolean value %s for validate_dimensions", validateDimensions)
+		}
+		cfg.ValidateDimensions = v
+	}
+
+	return cfg, nil
 }
 
 // getHash calculates the MD5 hash of the yaml representation of the config

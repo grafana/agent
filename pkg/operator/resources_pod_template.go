@@ -4,13 +4,14 @@ import (
 	"fmt"
 	"path"
 
-	"github.com/grafana/agent/pkg/build"
-	gragent "github.com/grafana/agent/pkg/operator/apis/monitoring/v1alpha1"
-	"github.com/grafana/agent/pkg/operator/clientutil"
 	core_v1 "k8s.io/api/core/v1"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
-	"k8s.io/utils/pointer"
+	"k8s.io/utils/ptr"
+
+	"github.com/grafana/agent/pkg/build"
+	gragent "github.com/grafana/agent/pkg/operator/apis/monitoring/v1alpha1"
+	"github.com/grafana/agent/pkg/operator/clientutil"
 )
 
 type podTemplateOptions struct {
@@ -258,7 +259,7 @@ func generatePodTemplate(
 			},
 			Resources: d.Agent.Spec.Resources,
 			SecurityContext: &core_v1.SecurityContext{
-				Privileged: pointer.Bool(opts.Privileged),
+				Privileged: ptr.To(opts.Privileged),
 			},
 			TerminationMessagePolicy: core_v1.TerminationMessageFallbackToLogsOnError,
 		},
@@ -288,7 +289,7 @@ func generatePodTemplate(
 			NodeSelector:                  d.Agent.Spec.NodeSelector,
 			PriorityClassName:             d.Agent.Spec.PriorityClassName,
 			RuntimeClassName:              d.Agent.Spec.RuntimeClassName,
-			TerminationGracePeriodSeconds: pointer.Int64(4800),
+			TerminationGracePeriodSeconds: ptr.To(int64(4800)),
 			Volumes:                       volumes,
 			Tolerations:                   d.Agent.Spec.Tolerations,
 			Affinity:                      d.Agent.Spec.Affinity,

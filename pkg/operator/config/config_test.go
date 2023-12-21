@@ -4,15 +4,16 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/grafana/agent/pkg/operator/assets"
-	"github.com/grafana/agent/pkg/util"
-	"github.com/grafana/agent/pkg/util/subset"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	v1 "k8s.io/api/core/v1"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/utils/pointer"
+	"k8s.io/utils/ptr"
 	k8s_yaml "sigs.k8s.io/yaml"
+
+	"github.com/grafana/agent/pkg/operator/assets"
+	"github.com/grafana/agent/pkg/util"
+	"github.com/grafana/agent/pkg/util/subset"
 
 	gragent "github.com/grafana/agent/pkg/operator/apis/monitoring/v1alpha1"
 )
@@ -231,7 +232,7 @@ func TestAdditionalScrapeConfigsMetrics(t *testing.T) {
 				Name:      "agent",
 			},
 			Spec: gragent.GrafanaAgentSpec{
-				Image:              pointer.String("grafana/agent:latest"),
+				Image:              ptr.To("grafana/agent:latest"),
 				ServiceAccountName: "agent",
 				Metrics: gragent.MetricsSubsystemSpec{
 					InstanceSelector: &meta_v1.LabelSelector{
