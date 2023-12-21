@@ -61,7 +61,13 @@ func getModuleReferences(
 			default:
 				parts := strings.Split(fullName, ".")
 				namespace := parts[0]
-				scopedName := parts[len(parts)-1]
+				var scopedName string
+				if len(parts) > 1 {
+					scopedName = strings.Join(parts[1:], ".")
+				} else {
+					scopedName = parts[len(parts)-1]
+				}
+
 				if declareNode, ok := declareNodes[namespace]; ok {
 					uniqueReferences[fullName] = ModuleReference{fullName: fullName, scopedName: scopedName, moduleContentProvider: declareNode}
 				} else if importNode, ok := importNodes[namespace]; ok {

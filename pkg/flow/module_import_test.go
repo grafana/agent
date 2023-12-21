@@ -213,6 +213,11 @@ func TestImportModule(t *testing.T) {
                 }
 
 				declare "anotherModule" {
+                    testcomponents.count "inc" {
+                        frequency = "10ms"
+                        max = 10
+                    }
+
 					testImport.otherModule.test "myModule" {
 						input = testcomponents.count.inc.count
 					}
@@ -226,6 +231,87 @@ func TestImportModule(t *testing.T) {
 
                 testcomponents.summation "sum" {
                     input = anotherModule.myOtherModule.output
+                }
+            `,
+			updateModule: func(filename string) string {
+				return `
+                    declare "test" {
+                        argument "input" {
+                            optional = false
+                        }
+
+                        testcomponents.passthrough "pt" {
+                            input = argument.input.value
+                            lag = "1ms"
+                        }
+
+                        export "output" {
+                            value = -10
+                        }
+                    }
+                `
+			},
+			updateFile: "other_module",
+		},
+		{
+			name: "TestImportModuleDepth2",
+			module: `
+                import.file "otherModule" {
+                    filename = "other_module"
+                }
+            `,
+			otherModule: `
+                declare "test" {
+                    argument "input" {
+                        optional = false
+                    }
+
+                    testcomponents.passthrough "pt" {
+                        input = argument.input.value
+                        lag = "1ms"
+                    }
+
+                    export "output" {
+                        value = testcomponents.passthrough.pt.output
+                    }
+                }
+            `,
+			config: `
+                testcomponents.count "inc" {
+                    frequency = "10ms"
+                    max = 10
+                }
+
+                import.file "testImport" {
+                    filename = "my_module"
+                }
+
+                declare "yetAgainAnotherModule" {
+                    declare "anotherModule" {
+                        testcomponents.count "inc" {
+                            frequency = "10ms"
+                            max = 10
+                        }
+    
+                        testImport.otherModule.test "myModule" {
+                            input = testcomponents.count.inc.count
+                        }
+    
+                        export "output" {
+                            value = testImport.otherModule.test.myModule.output
+                        }
+                    }
+                    anotherModule "myOtherModule" {}
+
+                    export "output" {
+                        value = anotherModule.myOtherModule.output
+                    }
+                }
+
+				yetAgainAnotherModule "default" {}
+
+                testcomponents.summation "sum" {
+                    input = yetAgainAnotherModule.default.output
                 }
             `,
 			updateModule: func(filename string) string {
@@ -262,7 +348,6 @@ func TestImportModule(t *testing.T) {
 				defer os.Remove(otherFilename)
 			}
 
-			// Setup and run controller
 			ctrl := flow.New(testOptions(t))
 			f, err := flow.ParseSource(t.Name(), []byte(tc.config))
 			require.NoError(t, err)
