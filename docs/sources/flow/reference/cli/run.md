@@ -50,6 +50,7 @@ The following flags are supported:
   (default `agent.internal:12345`).
 * `--server.http.listen-addr`: Address to listen for HTTP traffic on (default `127.0.0.1:12345`).
 * `--server.http.ui-path-prefix`: Base path where the UI is exposed (default `/`).
+* `server.http.basic-auth-filepath`: Absolute path to file containing user and hashed password for Basic Auth (default `""`, signifies disabled).
 * `--storage.path`: Base directory where components can store data (default `data-agent/`).
 * `--disable-reporting`: Disable [data collection][] (default `false`).
 * `--cluster.enabled`: Start {{< param "PRODUCT_NAME" >}} in clustered mode (default `false`).

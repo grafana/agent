@@ -97,6 +97,7 @@ depending on the nature of the reload error.
 	cmd.Flags().
 		StringVar(&r.httpListenAddr, "server.http.listen-addr", r.httpListenAddr, "Address to listen for HTTP traffic on")
 	cmd.Flags().StringVar(&r.inMemoryAddr, "server.http.memory-addr", r.inMemoryAddr, "Address to listen for in-memory HTTP traffic on. Change if it collides with a real address")
+	cmd.Flags().StringVar(&r.basicAuthUserFilepath, "server.http.basic-auth-filepath", r.basicAuthUserFilepath, "Absolute path to file containing user and hashed password for Basic Auth")
 	cmd.Flags().StringVar(&r.storagePath, "storage.path", r.storagePath, "Base directory where components can store data")
 	cmd.Flags().StringVar(&r.uiPrefix, "server.http.ui-path-prefix", r.uiPrefix, "Prefix to serve the HTTP UI at")
 	cmd.Flags().
@@ -130,6 +131,7 @@ depending on the nature of the reload error.
 type flowRun struct {
 	inMemoryAddr                 string
 	httpListenAddr               string
+	basicAuthUserFilepath        string
 	storagePath                  string
 	uiPrefix                     string
 	enablePprof                  bool
@@ -238,8 +240,10 @@ func (fr *flowRun) Run(configPath string) error {
 	})
 
 	uiService := uiservice.New(uiservice.Options{
-		UIPrefix: fr.uiPrefix,
-		Cluster:  clusterService.Data().(cluster.Cluster),
+		BasicAuthUserFilepath: fr.basicAuthUserFilepath,
+		Cluster:               clusterService.Data().(cluster.Cluster),
+		Logger:                log.With(l, "service", "http"),
+		UIPrefix:              fr.uiPrefix,
 	})
 
 	otelService := otel_service.New(l)
