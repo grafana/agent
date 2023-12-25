@@ -79,6 +79,34 @@ Besides that, there's not much to configure. Please refer to the full reference 
   # MongoDB node connection URL, which must be in the [`Standard Connection String Format`](https://docs.mongodb.com/manual/reference/connection-string/#std-label-connections-standard-connection-string-format)
   [mongodb_uri: <string>]
 
+  # By default all the below stats will be
+  # collected by mongo exporter.
+  # EnableDBStats=true
+  # EnableCollStats=true
+  # EnableTopMetrics=true
+  # EnableReplicasetStatus=true
+  # EnableIndexStats=true
+  # EnableCurrentopMetrics=true
+  # EnableProfile=true
+  # EnableDiagnosticData=true
+
+  # To disable unwanted stats and to 
+  # collect only required stats set parameter
+  # with prefix enable to true.  
+
+  # Mongo exporter variable EnableDBStats 
+  [enable_db_stats: <boolean> | default = false]
+  # Mongo exporter variable  EnableDiagnosticData
+  [enable_diagnostic_data: <boolean> | default = false]
+  # Mongo exporter variable EnableReplicasetStatus
+  [enable_replicaset_status: <boolean> | default = false]
+  # Mongo exporter variable EnableTopMetrics
+  [enable_top_metrics: <boolean> | default = false]
+  # Mongo exporter variable EnableIndexStats
+  [enable_index_stats: <boolean> | default = false]
+  # Mongo exporter variable EnableCollStats
+  [enable_coll_stats: <boolean> | default = false]
+
   # Whether or not a direct connect should be made. Direct connections are not valid if multiple hosts are specified or an SRV URI is used
   [direct_connect: <boolean> | default = true]
 

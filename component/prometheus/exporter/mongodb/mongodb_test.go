@@ -36,6 +36,7 @@ func TestConvert(t *testing.T) {
 	direct_connect = true
 	discovering_mode = true
 	tls_basic_auth_config_path = "/etc/path-to-file"
+	enable_replicaset_status = true
 	`
 	var args Arguments
 	err := river.Unmarshal([]byte(riverConfig), &args)
@@ -48,6 +49,7 @@ func TestConvert(t *testing.T) {
 		DirectConnect:          true,
 		DiscoveringMode:        true,
 		TLSBasicAuthConfigPath: "/etc/path-to-file",
+		EnableReplicasetStatus: true,
 	}
 	require.Equal(t, expected, *res)
 }
