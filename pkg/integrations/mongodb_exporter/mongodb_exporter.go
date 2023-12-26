@@ -99,7 +99,7 @@ func New(logger log.Logger, c *Config) (integrations.Integration, error) {
 	}
 
 	if c.EnableIndexStats || c.EnableCollStats {
-       c.DiscoveringMode = true
+        c.DiscoveringMode = true
 	}
 
 	exp := exporter.New(&exporter.Opts{
