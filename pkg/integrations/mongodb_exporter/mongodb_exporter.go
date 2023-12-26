@@ -33,7 +33,7 @@ type Config struct {
 	URI                      config_util.Secret `yaml:"mongodb_uri"`
 	DirectConnect            bool               `yaml:"direct_connect,omitempty"`
 	DiscoveringMode          bool               `yaml:"discovering_mode,omitempty"`
-    EnableDBStats            bool               `yaml:"enable_db_stats,omitempty"`
+	EnableDBStats            bool               `yaml:"enable_db_stats,omitempty"`
 	EnableDiagnosticData     bool               `yaml:"enable_diagnostic_data,omitempty"`
 	EnableReplicasetStatus   bool               `yaml:"enable_replicaset_status,omitempty"`
 	EnableTopMetrics         bool               `yaml:"enable_top_metrics,omitempty"`
@@ -99,7 +99,7 @@ func New(logger log.Logger, c *Config) (integrations.Integration, error) {
 	}
 
 	if c.EnableIndexStats || c.EnableCollStats {
-        c.DiscoveringMode = true
+		c.DiscoveringMode = true
 	}
 
 	exp := exporter.New(&exporter.Opts{
@@ -112,7 +112,7 @@ func New(logger log.Logger, c *Config) (integrations.Integration, error) {
 		// the old names, so we hard-code it to true now. We may wish to make this
 		// configurable in the future.
 		CompatibleMode:           true,
-    	DirectConnect:            c.DirectConnect,
+		DirectConnect:            c.DirectConnect,
 		DiscoveringMode:          c.DiscoveringMode,
 
 		CollectAll:               collectAll,
