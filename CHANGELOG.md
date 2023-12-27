@@ -74,6 +74,8 @@ Main (unreleased)
   - Allows for pulling metrics at the Azure subscription level instead of resource by resource 
   - Disable dimension validation by default to reduce the number of exporter instances needed for full dimension coverage 
 
+- Add `max_cache_size` to `prometheus.relabel` to allow configurability instead of hard coded 100,000. (@mattdurham)
+
 ### Bugfixes
 
 - Update `pyroscope.ebpf` to fix a logical bug causing to profile to many kthreads instead of regular processes https://github.com/grafana/pyroscope/pull/2778 (@korniltsev)
