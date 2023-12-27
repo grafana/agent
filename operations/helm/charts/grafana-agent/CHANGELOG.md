@@ -13,6 +13,7 @@ Unreleased
 ### Enhancements
 
 - Update `rbac` to include necessary rules for the `otelcol.processor.k8sattributes` component. (@rlankfo)
+- Update `service` to set extra serviceLables. (@m4r1u2)
 
 0.29.0 (2023-11-30)
 -------------------
