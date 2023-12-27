@@ -56,6 +56,14 @@ func (arg *Arguments) SetToDefault() {
 	}
 }
 
+// Validate implements river.Validator.
+func (arg *Arguments) Validate() error {
+	if arg.CacheSize <= 0 {
+		return fmt.Errorf("max_cache_size must be greater than 0 and is %d", arg.CacheSize)
+	}
+	return nil
+}
+
 // Exports holds values which are exported by the prometheus.relabel component.
 type Exports struct {
 	Receiver storage.Appendable `river:"receiver,attr"`
