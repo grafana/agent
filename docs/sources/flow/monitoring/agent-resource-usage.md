@@ -45,38 +45,28 @@ For more information on how to deploy {{% param "PRODUCT_NAME" %}}, see
 
 ## Loki logs
 
-When deploying {{% param "PRODUCT_NAME" %}} as a host daemon or a container
-sidecar to collect logs, the resource usage depends mainly on the number of 
-agents running.
 Loki logs resource usage depends mainly on the volume of logs ingested.
 
-As a rule of thumb, **per each 1 million log lines**, you can expect to use approximately:
+As a rule of thumb, **per each 1 MiB/second of logs ingested**, you can expect to use approximately:
+* 1 CPU core
+* 120 MiB of memory
+
+The recommendations above are based on Kubernetes DaemonSet deployments on clusters
+with relatively small number of large nodes and high logs volume. The resource usage
+can be higher per each 1 MiB/second of logs if you have a large number of small nodes due
+to the overhead of running the {{% param "PRODUCT_NAME" %}} on each node.
+
+Additionally, factors such as number of labels, number of files and average log line length
+may all play a role in the resource usage.
 
 
+## Pyroscope profiles
 
-TODO:
-- Metrics resources:
-  - CPU - # of cores per 1m series
-  - Memory - # of GB per 1m series
-  - Disk - # of GB for 1 minute of 1m series / or max disk usage approx 
-  - Network - # MB/s for 1m of series
-- Logs resources:
-  - CPU - # of cores per 1m log lines? or CPU that is sufficient on our busiest node?
-  - Memory - # of GB per 1m log lines? or memory that is sufficient on our busiest node?
-  - Disk - just positions file or WAL - depepnding on logs volume and delay
-  - Network - # MB/s for 1m of log lines?
-- Traces resources
-  - CPU - # of cores per 1m traces?
-  - Memory - # of GB per 1m traces?
-  - Disk - # of GB for 1 minute of 1m traces / or max disk usage approx
-  - Network - # MB/s for 1m of traces
-- Profiles resources
-  - CPU - # of cores per 1m profiles?
-  - Memory - # of GB per 1m profiles?
-  - Disk - # of GB for 1 minute of 1m profiles / or max disk usage approx
-  - Network - # MB/s for 1m of profiles
-- Link to deployment page
-- Choosing the topology
-  - When single node is okay
-  - When we should consider a cluster
-- It's a starting point, your mileage may vary
+Pyroscope profiles resource usage depends mainly on the volume of profiles.
+
+As a rule of thumb, **per each 100 profiles/second**, you can expect to use approximately:
+* 1 CPU core
+* 10 GiB of memory
+
+Factors such as size of each profile and frequency of fetching them also play
+a role in the overall resource usage.
