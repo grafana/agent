@@ -36,12 +36,11 @@ func main() {
 	parsedDuration, _ := time.ParseDuration(duration)
 	fmt.Println(name, allowWalBool, parsedDuration, discovery)
 	startRun(name, allowWalBool, parsedDuration, discovery)
-
 }
 
 func startRun(name string, allowWAL bool, run time.Duration, discovery string) {
-	os.RemoveAll("./data/normal-data")
-	os.RemoveAll("./data/test-data")
+	_ = os.RemoveAll("./data/normal-data")
+	_ = os.RemoveAll("./data/test-data")
 
 	allow = allowWAL
 	_ = os.Setenv("NAME", name)
@@ -50,20 +49,22 @@ func startRun(name string, allowWAL bool, run time.Duration, discovery string) {
 
 	metric := startMetricsAgent()
 	fmt.Println("starting metric agent")
-	defer metric.Process.Kill()
-	defer metric.Process.Release()
-	defer metric.Wait()
-	defer syscall.Kill(-metric.Process.Pid, syscall.SIGKILL)
-	defer os.RemoveAll("./data/test-data")
-
+	defer func() {
+		_ = metric.Process.Kill()
+		_ = metric.Process.Release()
+		_ = metric.Wait()
+		_ = syscall.Kill(-metric.Process.Pid, syscall.SIGKILL)
+		_ = os.RemoveAll("./data/test-data")
+	}()
 	old := startNormalAgent()
 	fmt.Println("starting normal agent")
-	defer old.Process.Kill()
-	defer old.Process.Release()
-	defer old.Wait()
-	defer syscall.Kill(-old.Process.Pid, syscall.SIGKILL)
-	defer os.RemoveAll("./data/normal-data")
-
+	defer func() {
+		_ = old.Process.Kill()
+		_ = old.Process.Release()
+		_ = old.Wait()
+		_ = syscall.Kill(-old.Process.Pid, syscall.SIGKILL)
+		_ = os.RemoveAll("./data/normal-data")
+	}()
 	time.Sleep(run)
 }
 
@@ -123,7 +124,7 @@ func httpServer() {
 	}
 }
 
-func handlePost(w http.ResponseWriter, r *http.Request) {
+func handlePost(w http.ResponseWriter, _ *http.Request) {
 	if allow {
 		return
 	} else {
