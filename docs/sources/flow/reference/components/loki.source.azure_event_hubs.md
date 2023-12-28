@@ -1,5 +1,11 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/loki.source.azure_event_hubs/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/loki.source.azure_event_hubs/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/loki.source.azure_event_hubs/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/loki.source.azure_event_hubs/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/loki.source.azure_event_hubs/
+description: Learn about loki.source.azure_event_hubs
 title: loki.source.azure_event_hubs
 ---
 
@@ -128,4 +134,20 @@ loki.write "example" {
 		url = "loki:3100/api/v1/push"
 	}
 }
-```
+```<!-- START GENERATED COMPATIBLE COMPONENTS -->
+
+## Compatible components
+
+`loki.source.azure_event_hubs` can accept arguments from the following components:
+
+- Components that export [Loki `LogsReceiver`]({{< relref "../compatibility/#loki-logsreceiver-exporters" >}})
+
+
+{{% admonition type="note" %}}
+
+Connecting some components may not be sensible or components may require further configuration to make the 
+connection work correctly. Refer to the linked documentation for more details.
+
+{{% /admonition %}}
+
+<!-- END GENERATED COMPATIBLE COMPONENTS -->

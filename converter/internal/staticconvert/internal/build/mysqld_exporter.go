@@ -1,26 +1,15 @@
 package build
 
 import (
-	"fmt"
-
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/prometheus/exporter/mysql"
-	"github.com/grafana/agent/converter/internal/common"
-	"github.com/grafana/agent/converter/internal/prometheusconvert"
 	"github.com/grafana/agent/pkg/integrations/mysqld_exporter"
 	"github.com/grafana/river/rivertypes"
 )
 
-func (b *IntegrationsV1ConfigBuilder) appendMysqldExporter(config *mysqld_exporter.Config) discovery.Exports {
+func (b *IntegrationsConfigBuilder) appendMysqldExporter(config *mysqld_exporter.Config, instanceKey *string) discovery.Exports {
 	args := toMysqldExporter(config)
-	compLabel := common.LabelForParts(b.globalCtx.LabelPrefix, config.Name())
-	b.f.Body().AppendBlock(common.NewBlockWithOverride(
-		[]string{"prometheus", "exporter", "mysql"},
-		compLabel,
-		args,
-	))
-
-	return prometheusconvert.NewDiscoveryExports(fmt.Sprintf("prometheus.exporter.mysql.%s.targets", compLabel))
+	return b.appendExporterBlock(args, config.Name(), instanceKey, "mysql")
 }
 
 func toMysqldExporter(config *mysqld_exporter.Config) *mysql.Arguments {
@@ -47,6 +36,9 @@ func toMysqldExporter(config *mysqld_exporter.Config) *mysql.Arguments {
 		PerfSchemaFileInstances: mysql.PerfSchemaFileInstances{
 			Filter:       config.PerfSchemaFileInstancesFilter,
 			RemovePrefix: config.PerfSchemaFileInstancesRemovePrefix,
+		},
+		PerfSchemaMemoryEvents: mysql.PerfSchemaMemoryEvents{
+			RemovePrefix: config.PerfSchemaMemoryEventsRemovePrefix,
 		},
 		Heartbeat: mysql.Heartbeat{
 			Database: config.HeartbeatDatabase,

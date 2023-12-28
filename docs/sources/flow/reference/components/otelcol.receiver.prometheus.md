@@ -1,5 +1,11 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/otelcol.receiver.prometheus/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/otelcol.receiver.prometheus/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/otelcol.receiver.prometheus/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/otelcol.receiver.prometheus/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.receiver.prometheus/
+description: Learn about otelcol.receiver.prometheus
 labels:
   stage: beta
 title: otelcol.receiver.prometheus
@@ -7,7 +13,7 @@ title: otelcol.receiver.prometheus
 
 # otelcol.receiver.prometheus
 
-{{< docs/shared lookup="flow/stability/beta.md" source="agent" >}}
+{{< docs/shared lookup="flow/stability/beta.md" source="agent" version="<AGENT_VERSION>" >}}
 
 `otelcol.receiver.prometheus` receives Prometheus metrics, converts them to the
 OpenTelemetry metrics format, and forwards them to other `otelcol.*`
@@ -44,7 +50,7 @@ output | [output][] | Configures where to send received telemetry data. | yes
 
 ### output block
 
-{{< docs/shared lookup="flow/reference/components/output-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/output-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ## Exported fields
 
@@ -52,7 +58,7 @@ The following fields are exported and can be referenced by other components:
 
 Name | Type | Description
 ---- | ---- | -----------
-`receiver` | `receiver` | A value that other components can use to send Prometheus metrics to.
+`receiver` | `MetricsReceiver` | A value that other components can use to send Prometheus metrics to.
 
 ## Component health
 
@@ -75,7 +81,7 @@ endpoint:
 
 ```river
 prometheus.scrape "default" {
-    // Collect metrics from Grafana Agent's default HTTP listen address.
+    // Collect metrics from the default HTTP listen address.
     targets = [{"__address__"   = "127.0.0.1:12345"}]
 
     forward_to = [otelcol.receiver.prometheus.default.receiver]
@@ -93,3 +99,23 @@ otelcol.exporter.otlp "default" {
   }
 }
 ```
+<!-- START GENERATED COMPATIBLE COMPONENTS -->
+
+## Compatible components
+
+`otelcol.receiver.prometheus` can accept arguments from the following components:
+
+- Components that export [OpenTelemetry `otelcol.Consumer`]({{< relref "../compatibility/#opentelemetry-otelcolconsumer-exporters" >}})
+
+`otelcol.receiver.prometheus` has exports that can be consumed by the following components:
+
+- Components that consume [Prometheus `MetricsReceiver`]({{< relref "../compatibility/#prometheus-metricsreceiver-consumers" >}})
+
+{{% admonition type="note" %}}
+
+Connecting some components may not be sensible or components may require further configuration to make the 
+connection work correctly. Refer to the linked documentation for more details.
+
+{{% /admonition %}}
+
+<!-- END GENERATED COMPATIBLE COMPONENTS -->

@@ -19,8 +19,6 @@ import (
 	otelextension "go.opentelemetry.io/collector/extension"
 	sdkprometheus "go.opentelemetry.io/otel/exporters/prometheus"
 	"go.opentelemetry.io/otel/sdk/metric"
-
-	_ "github.com/grafana/agent/component/otelcol/internal/featuregate" // Enable needed feature gates
 )
 
 // Arguments is an extension of component.Arguments which contains necessary
@@ -118,6 +116,10 @@ func (e *Extension) Update(args component.Arguments) error {
 
 			TracerProvider: e.opts.Tracer,
 			MeterProvider:  metric.NewMeterProvider(metric.WithReader(promExporter)),
+
+			ReportComponentStatus: func(*otelcomponent.StatusEvent) error {
+				return nil
+			},
 		},
 
 		BuildInfo: otelcomponent.BuildInfo{

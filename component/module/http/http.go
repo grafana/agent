@@ -9,17 +9,14 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/module"
 	remote_http "github.com/grafana/agent/component/remote/http"
-	"github.com/grafana/agent/service/cluster"
-	http_service "github.com/grafana/agent/service/http"
 	"github.com/grafana/river/rivertypes"
 )
 
 func init() {
 	component.Register(component.Registration{
-		Name:          "module.http",
-		Args:          Arguments{},
-		Exports:       module.Exports{},
-		NeedsServices: []string{http_service.ServiceName, cluster.ServiceName},
+		Name:    "module.http",
+		Args:    Arguments{},
+		Exports: module.Exports{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			return New(opts, args.(Arguments))
@@ -90,7 +87,7 @@ func (c *Component) newManagedLocalComponent(o component.Options) (*remote_http.
 
 		if !c.inUpdate.Load() && c.isCreated.Load() {
 			// Any errors found here are reported via component health
-			_ = c.mod.LoadFlowContent(c.getArgs().Arguments, c.getContent().Value)
+			_ = c.mod.LoadFlowSource(c.getArgs().Arguments, c.getContent().Value)
 		}
 	}
 
@@ -137,7 +134,7 @@ func (c *Component) Update(args component.Arguments) error {
 
 	// Force a content load here and bubble up any error. This will catch problems
 	// on initial load.
-	return c.mod.LoadFlowContent(newArgs.Arguments, c.getContent().Value)
+	return c.mod.LoadFlowSource(newArgs.Arguments, c.getContent().Value)
 }
 
 // CurrentHealth implements component.HealthComponent.

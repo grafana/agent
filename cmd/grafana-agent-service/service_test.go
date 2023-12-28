@@ -30,8 +30,9 @@ func Test_serviceManager(t *testing.T) {
 		listenHost := getListenHost(t)
 
 		mgr := newServiceManager(l, serviceManagerConfig{
-			Path: serviceBinary,
-			Args: []string{"-listen-addr", listenHost},
+			Path:        serviceBinary,
+			Args:        []string{"-listen-addr", listenHost},
+			Environment: []string{"LISTEN=" + listenHost},
 		})
 		go mgr.Run(componenttest.TestContext(t))
 
@@ -39,6 +40,12 @@ func Test_serviceManager(t *testing.T) {
 			resp, err := makeServiceRequest(listenHost, "/echo/response", []byte("Hello, world!"))
 			require.NoError(t, err)
 			require.Equal(t, []byte("Hello, world!"), resp)
+		})
+
+		util.Eventually(t, func(t require.TestingT) {
+			resp, err := makeServiceRequest(listenHost, "/echo/env", nil)
+			require.NoError(t, err)
+			require.Contains(t, string(resp), "LISTEN="+listenHost)
 		})
 	})
 

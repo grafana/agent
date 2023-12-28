@@ -4,7 +4,10 @@ scrape_configs:
   - job_name: example
     pipeline_stages:
       - docker: { }
-      - cri: { }
+      - cri:
+          max_partial_lines: 223
+          max_partial_line_size: 26214
+          max_partial_line_size_truncate: true
       - labeldrop:
           - foo
           - bar
@@ -50,6 +53,16 @@ scrape_configs:
           db: /usr/share/GeoIP/GeoLite2-City.mmdb
           source: internet
           db_type: mmdb
+      - decolorize: { }
+      - sampling:
+          rate: 100
+      - sampling:
+          rate: 0
+          drop_counter_reason: "womp womp!"
+      - eventlogmessage:
+          source: something
+          drop_invalid_labels: true
+          overwrite_existing: true
     kubernetes_sd_configs:
       - role: pod
         kubeconfig_file: /home/toby/.kube/config

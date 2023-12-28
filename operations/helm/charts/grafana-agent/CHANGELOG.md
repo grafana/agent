@@ -10,7 +10,117 @@ internal API changes are not present.
 Unreleased
 ----------
 
-0.20.1 (2023-08-15)
+### Enhancements
+
+- Update `rbac` to include necessary rules for the `otelcol.processor.k8sattributes` component. (@rlankfo)
+
+0.29.0 (2023-11-30)
+-------------------
+
+### Enhancements
+
+- Update Grafana Agent version to v0.38.1. (@rfratto)
+
+### Other changes
+
+- Update `container.securityContext` Helm value reference to renamed `agent.securityContext`. (@hainenber)
+
+0.28.0 (2023-11-21)
+-------------------
+
+### Enhancements
+
+- Ensure that `app.kubernetes.io/version` label accounts for any
+  image tag overrides supplied to the chart Values. (@tristanburgess)
+
+- Update Grafana Agent version to v0.38.0. (@rfratto)
+
+0.27.2 (2023-11-07)
+----------
+
+### Enhancements
+
+- Expose the `ui-path-prefix` flag on the Helm chart. (@mlcdf)
+
+- Expose controller `extraAnnotations` on the Helm chart. (@mcanevet)
+
+- Update Grafana Agent version to v0.37.4. (@tpaschalis)
+
+0.27.1 (2023-10-26)
+----------
+
+### Enhancements
+
+- Update Grafana Agent version to v0.37.3. (@tpaschalis)
+
+### Bugfixes
+
+- Fix issue where CRDs were created with annotations after the `crds.create`
+  setting was introduced (@rfratto).
+
+0.27.0 (2023-10-12)
+----------
+
+### Enhancements
+
+- Add `secrets` and `configmaps` to cluster role for `remote.kubernetes.*` components. (@captncraig)
+
+- Update Grafana Agent version to v0.37.2. (@tpaschalis)
+
+0.26.0 (2023-10-10)
+-------------------
+
+### Breaking changes
+
+- The `initContainers` setting has been moved to `controller.initContainers`
+  for consistency with other Pod-level settings. (@rfratto)
+
+### Enhancements
+
+- Make CRDs optional through the `crds.create` setting. (@bentonam, @rfratto)
+
+- Update Grafana Agent version to v0.37.1. (@tpaschalis)
+
+0.25.0 (2023-09-22)
+-------------------
+
+### Enhancements
+
+- An image's digest can now be used in place of a tag. (@hainenber)
+
+- Add ServiceMonitor support. (@QuentinBisson)
+
+- Update Grafana Agent version to v0.36.2. (@ptodev)
+
+0.24.0 (2023-09-08)
+-------------------
+
+### Enhancements
+
+- StatefulSets will now use `podManagementPolicy: Parallel` by default. To
+  disable this behavior, set `controller.parallelRollout` to `false`.
+  (@rfratto)
+
+0.23.0 (2023-09-06)
+-------------------
+
+### Enhancements
+
+- Update Grafana Agent version to v0.36.1. (@erikbaranowski)
+
+- Enable clustering for deployments and daemonsets. (@tpaschalis)
+
+0.22.0 (2023-08-30)
+-------------------
+
+- Update Grafana Agent version to v0.36.0. (@thampiotr)
+
+0.21.1 (2023-08-30)
+-------------------
+
+- Condition parameter minReadySeconds on StatefulSet, Deployment, and DaemonSet to Kubernetes v1.22 clusters.
+
+0.21.0 (2023-08-15)
 -------------------
 
 - Update Grafana Agent version to v0.35.4. (@mattdurham)

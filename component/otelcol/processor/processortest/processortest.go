@@ -6,11 +6,11 @@ import (
 	"time"
 
 	"github.com/go-kit/log"
-	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/otelcol"
 	"github.com/grafana/agent/component/otelcol/internal/fakeconsumer"
 	"github.com/grafana/agent/pkg/flow/componenttest"
+	"github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/grafana/dskit/backoff"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/pdata/plog"

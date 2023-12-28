@@ -1,25 +1,14 @@
 package build
 
 import (
-	"fmt"
-
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/prometheus/exporter/cloudwatch"
-	"github.com/grafana/agent/converter/internal/common"
-	"github.com/grafana/agent/converter/internal/prometheusconvert"
 	"github.com/grafana/agent/pkg/integrations/cloudwatch_exporter"
 )
 
-func (b *IntegrationsV1ConfigBuilder) appendCloudwatchExporter(config *cloudwatch_exporter.Config) discovery.Exports {
+func (b *IntegrationsConfigBuilder) appendCloudwatchExporter(config *cloudwatch_exporter.Config, instanceKey *string) discovery.Exports {
 	args := toCloudwatchExporter(config)
-	compLabel := common.LabelForParts(b.globalCtx.LabelPrefix, config.Name())
-	b.f.Body().AppendBlock(common.NewBlockWithOverride(
-		[]string{"prometheus", "exporter", "cloudwatch"},
-		compLabel,
-		args,
-	))
-
-	return prometheusconvert.NewDiscoveryExports(fmt.Sprintf("prometheus.exporter.cloudwatch.%s.targets", compLabel))
+	return b.appendExporterBlock(args, config.Name(), instanceKey, "cloudwatch")
 }
 
 func toCloudwatchExporter(config *cloudwatch_exporter.Config) *cloudwatch.Arguments {
@@ -29,7 +18,7 @@ func toCloudwatchExporter(config *cloudwatch_exporter.Config) *cloudwatch.Argume
 		Debug:                 config.Debug,
 		DiscoveryExportedTags: config.Discovery.ExportedTags,
 		Discovery:             toDiscoveryJobs(config.Discovery.Jobs),
-		Static:                []cloudwatch.StaticJob{},
+		Static:                toStaticJobs(config.Static),
 	}
 }
 
@@ -52,6 +41,30 @@ func toDiscoveryJob(job *cloudwatch_exporter.DiscoveryJob) cloudwatch.DiscoveryJ
 		Type:                      job.Type,
 		DimensionNameRequirements: job.DimensionNameRequirements,
 		Metrics:                   toMetrics(job.Metrics),
+		NilToZero:                 job.NilToZero,
+	}
+}
+
+func toStaticJobs(jobs []cloudwatch_exporter.StaticJob) []cloudwatch.StaticJob {
+	var out []cloudwatch.StaticJob
+	for _, job := range jobs {
+		out = append(out, toStaticJob(&job))
+	}
+	return out
+}
+
+func toStaticJob(job *cloudwatch_exporter.StaticJob) cloudwatch.StaticJob {
+	return cloudwatch.StaticJob{
+		Name: job.Name,
+		Auth: cloudwatch.RegionAndRoles{
+			Regions: job.Regions,
+			Roles:   toRoles(job.Roles),
+		},
+		CustomTags: toTags(job.CustomTags),
+		Namespace:  job.Namespace,
+		Dimensions: toDimensions(job.Dimensions),
+		Metrics:    toMetrics(job.Metrics),
+		NilToZero:  job.NilToZero,
 	}
 }
 
@@ -78,6 +91,14 @@ func toTags(tags []cloudwatch_exporter.Tag) cloudwatch.Tags {
 	return out
 }
 
+func toDimensions(dimensions []cloudwatch_exporter.Dimension) cloudwatch.Dimensions {
+	out := make(cloudwatch.Dimensions)
+	for _, dimension := range dimensions {
+		out[dimension.Name] = dimension.Value
+	}
+	return out
+}
+
 func toMetrics(metrics []cloudwatch_exporter.Metric) []cloudwatch.Metric {
 	var out []cloudwatch.Metric
 	for _, metric := range metrics {
@@ -92,5 +113,6 @@ func toMetric(metric cloudwatch_exporter.Metric) cloudwatch.Metric {
 		Statistics: metric.Statistics,
 		Period:     metric.Period,
 		Length:     metric.Length,
+		NilToZero:  metric.NilToZero,
 	}
 }

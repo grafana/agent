@@ -14,7 +14,7 @@ function(
 ) {
   local _config = {
     api: error 'api must be set',
-    image: 'grafana/agentctl:v0.36.0-rc.3',
+    image: 'grafana/agentctl:v0.37.4',
     schedule: '*/5 * * * *',
     configs: [],
   } + config,

@@ -16,6 +16,7 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
+	"github.com/grafana/dskit/user"
 	"github.com/opentracing-contrib/go-stdlib/nethttp"
 	"github.com/prometheus/client_golang/api"
 	promapi "github.com/prometheus/client_golang/api/prometheus/v1"
@@ -23,7 +24,6 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	commonCfg "github.com/prometheus/common/config"
 	"github.com/prometheus/common/model"
-	"github.com/weaveworks/common/user"
 )
 
 // Config for the Crow metrics checker.
@@ -152,7 +152,7 @@ func newCrow(cfg Config) (*Crow, error) {
 		RoundTripper: api.DefaultRoundTripper,
 	}
 	if cfg.UserID != "" && cfg.PasswordFile != "" {
-		apiCfg.RoundTripper = commonCfg.NewBasicAuthRoundTripper(cfg.UserID, "", cfg.PasswordFile, api.DefaultRoundTripper)
+		apiCfg.RoundTripper = commonCfg.NewBasicAuthRoundTripper(cfg.UserID, "", "", cfg.PasswordFile, api.DefaultRoundTripper)
 	}
 	if cfg.OrgID != "" {
 		apiCfg.RoundTripper = &nethttp.Transport{

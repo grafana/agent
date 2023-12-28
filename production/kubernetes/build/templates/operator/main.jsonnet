@@ -23,8 +23,8 @@ local ksm = import 'kube-state-metrics/kube-state-metrics.libsonnet';
   local this = self,
 
   _images:: {
-    agent: 'grafana/agent:v0.36.0-rc.3',
-    agent_operator: 'grafana/agent-operator:v0.36.0-rc.3',
+    agent: 'grafana/agent:v0.37.4',
+    agent_operator: 'grafana/agent-operator:v0.37.4',
     ksm: 'registry.k8s.io/kube-state-metrics/kube-state-metrics:v2.5.0',
   },
 
@@ -101,7 +101,7 @@ local ksm = import 'kube-state-metrics/kube-state-metrics.libsonnet';
       name='kubelet-monitor',
       namespace=this._config.namespace,
       monitorLabels={ instance: 'primary' },
-      targetNamespace=this._config.namespace,
+      targetNamespace='default',
       targetLabels={ 'app.kubernetes.io/name': 'kubelet' },
       jobLabel=this._config.kubelet_job,
       metricsPath='/metrics',
@@ -110,9 +110,9 @@ local ksm = import 'kube-state-metrics/kube-state-metrics.libsonnet';
     ),
     mon_util.newKubernetesMonitor(
       name='cadvisor-monitor',
-      namespace='default',
+      namespace=this._config.namespace,
       monitorLabels={ instance: 'primary' },
-      targetNamespace=this._config.namespace,
+      targetNamespace='default',
       targetLabels={ 'app.kubernetes.io/name': 'kubelet' },
       jobLabel=this._config.cadvisor_job,
       metricsPath='/metrics/cadvisor',

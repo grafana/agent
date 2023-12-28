@@ -5,11 +5,11 @@ import (
 	"reflect"
 	"sync"
 
-	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/common/loki"
 	flow_relabel "github.com/grafana/agent/component/common/relabel"
 	st "github.com/grafana/agent/component/loki/source/syslog/internal/syslogtarget"
+	"github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/prometheus/prometheus/model/relabel"
 )
 

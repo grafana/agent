@@ -1,5 +1,11 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/otelcol.exporter.logging/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/otelcol.exporter.logging/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/otelcol.exporter.logging/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/otelcol.exporter.logging/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.exporter.logging/
+description: Learn about otelcol.exporter.logging
 title: otelcol.exporter.logging
 ---
 
@@ -36,7 +42,25 @@ Name | Type | Description | Default | Required
 `sampling_initial`    | `int`    | Number of messages initially logged each second. | `2` | no
 `sampling_thereafter` | `int`    | Sampling rate after the initial messages are logged. | `500` | no
 
-The `verbosity` argument must be one of `"basic"`, `"normal"`, or `"detailed"`. 
+The `verbosity` argument must be one of `"basic"`, `"normal"`, or `"detailed"`.
+
+## Blocks
+
+The following blocks are supported inside the definition of
+`otelcol.exporter.logging`:
+
+Hierarchy | Block | Description | Required
+--------- | ----- | ----------- | --------
+debug_metrics | [debug_metrics][] | Configures the metrics that this component generates to monitor its state. | no
+
+The `>` symbol indicates deeper levels of nesting. For example, `client > tls`
+refers to a `tls` block defined inside a `client` block.
+
+[debug_metrics]: #debug_metrics-block
+
+### debug_metrics block
+
+{{< docs/shared lookup="flow/reference/components/otelcol-debug-metrics-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ## Exported fields
 
@@ -64,22 +88,38 @@ information.
 This example scrapes prometheus unix metrics and writes them to the console:
 
 ```river
-prometheus.exporter.unix { }
+prometheus.exporter.unix "default" { }
 
 prometheus.scrape "default" {
-	targets    = prometheus.exporter.unix.targets
-	forward_to = [otelcol.receiver.prometheus.default.receiver]
+    targets    = prometheus.exporter.unix.default.targets
+    forward_to = [otelcol.receiver.prometheus.default.receiver]
 }
 
 otelcol.receiver.prometheus "default" {
-	output {
-		metrics = [otelcol.exporter.logging.default.input]
-	}
+    output {
+        metrics = [otelcol.exporter.logging.default.input]
+    }
 }
 
 otelcol.exporter.logging "default" {
-	verbosity           = "detailed"
-	sampling_initial    = 1
-	sampling_thereafter = 1
+    verbosity           = "detailed"
+    sampling_initial    = 1
+    sampling_thereafter = 1
 }
 ```
+<!-- START GENERATED COMPATIBLE COMPONENTS -->
+
+## Compatible components
+
+`otelcol.exporter.logging` has exports that can be consumed by the following components:
+
+- Components that consume [OpenTelemetry `otelcol.Consumer`]({{< relref "../compatibility/#opentelemetry-otelcolconsumer-consumers" >}})
+
+{{% admonition type="note" %}}
+
+Connecting some components may not be sensible or components may require further configuration to make the 
+connection work correctly. Refer to the linked documentation for more details.
+
+{{% /admonition %}}
+
+<!-- END GENERATED COMPATIBLE COMPONENTS -->

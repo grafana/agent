@@ -5,7 +5,6 @@ loki.relabel "logs_log_config_fun" {
 		source_labels = ["__trail__"]
 		target_label  = "__path__"
 	}
-	max_cache_size = 0
 }
 
 loki.source.cloudflare "logs_log_config_fun" {

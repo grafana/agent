@@ -32,8 +32,8 @@ discovery.azure "prometheus1_2" {
 
 discovery.relabel "prometheus1" {
 	targets = concat(
-		discovery.azure.prometheus1_2.targets,
 		discovery.azure.prometheus1.targets,
+		discovery.azure.prometheus1_2.targets,
 		[{
 			__address__ = "localhost:9090",
 		}],
@@ -72,13 +72,10 @@ prometheus.relabel "prometheus1" {
 
 prometheus.remote_write "default" {
 	endpoint {
-		name           = "remote1"
-		url            = "http://remote-write-url1"
-		send_exemplars = false
+		name = "remote1"
+		url  = "http://remote-write-url1"
 
-		queue_config {
-			retry_on_http_429 = false
-		}
+		queue_config { }
 
 		metadata_config { }
 	}

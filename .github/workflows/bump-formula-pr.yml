@@ -6,7 +6,7 @@ on:
 jobs:
   homebrew-core:
     name: homebrew-core
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
     steps:
     - name: Get latest release
       uses: rez0n/actions-github-release@main
@@ -33,7 +33,7 @@ jobs:
 
   homebrew-grafana:
     name: homebrew-grafana
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
     steps:
     - name: Get latest release
       uses: rez0n/actions-github-release@main

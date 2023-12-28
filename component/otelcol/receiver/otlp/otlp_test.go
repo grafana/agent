@@ -8,17 +8,18 @@ import (
 	"testing"
 	"time"
 
-	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component/otelcol"
 	"github.com/grafana/agent/component/otelcol/internal/fakeconsumer"
 	"github.com/grafana/agent/component/otelcol/receiver/otlp"
 	"github.com/grafana/agent/pkg/flow/componenttest"
+	"github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/grafana/dskit/backoff"
 	"github.com/grafana/river"
 	"github.com/phayes/freeport"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/pdata/ptrace"
+	"gotest.tools/assert"
 )
 
 // Test performs a basic integration test which runs the otelcol.receiver.otlp
@@ -41,6 +42,9 @@ func Test(t *testing.T) {
 			// no-op: will be overridden by test code.
 		}
 	`, httpAddr)
+
+	require.NoError(t, err)
+
 	var args otlp.Arguments
 	require.NoError(t, river.Unmarshal([]byte(cfg), &args))
 
@@ -117,4 +121,55 @@ func getFreeAddr(t *testing.T) string {
 	require.NoError(t, err)
 
 	return fmt.Sprintf("localhost:%d", portNumber)
+}
+
+func TestUnmarshalGrpc(t *testing.T) {
+	riverCfg := `
+		grpc {
+			endpoint = "/v1/traces"
+		}
+
+		output {
+		}
+	`
+	var args otlp.Arguments
+	err := river.Unmarshal([]byte(riverCfg), &args)
+	require.NoError(t, err)
+}
+
+func TestUnmarshalHttp(t *testing.T) {
+	riverCfg := `
+		http {
+			endpoint = "/v1/traces"
+		}
+
+		output {
+		}
+	`
+	var args otlp.Arguments
+	err := river.Unmarshal([]byte(riverCfg), &args)
+	require.NoError(t, err)
+	assert.Equal(t, "/v1/logs", args.HTTP.LogsURLPath)
+	assert.Equal(t, "/v1/metrics", args.HTTP.MetricsURLPath)
+	assert.Equal(t, "/v1/traces", args.HTTP.TracesURLPath)
+}
+
+func TestUnmarshalHttpUrls(t *testing.T) {
+	riverCfg := `
+		http {
+			endpoint = "/v1/traces"
+			traces_url_path = "custom/traces"
+			metrics_url_path = "custom/metrics"
+			logs_url_path = "custom/logs"
+		}
+
+		output {
+		}
+	`
+	var args otlp.Arguments
+	err := river.Unmarshal([]byte(riverCfg), &args)
+	require.NoError(t, err)
+	assert.Equal(t, "custom/logs", args.HTTP.LogsURLPath)
+	assert.Equal(t, "custom/metrics", args.HTTP.MetricsURLPath)
+	assert.Equal(t, "custom/traces", args.HTTP.TracesURLPath)
 }

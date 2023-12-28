@@ -4,13 +4,14 @@ import (
 	"fmt"
 	"path"
 
-	"github.com/grafana/agent/pkg/build"
-	gragent "github.com/grafana/agent/pkg/operator/apis/monitoring/v1alpha1"
-	"github.com/grafana/agent/pkg/operator/clientutil"
 	core_v1 "k8s.io/api/core/v1"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
-	"k8s.io/utils/pointer"
+	"k8s.io/utils/ptr"
+
+	"github.com/grafana/agent/pkg/build"
+	gragent "github.com/grafana/agent/pkg/operator/apis/monitoring/v1alpha1"
+	"github.com/grafana/agent/pkg/operator/clientutil"
 )
 
 type podTemplateOptions struct {
@@ -190,12 +191,19 @@ func generatePodTemplate(
 		finalLabels         = cfg.Labels.Merge(podLabels)
 	)
 
-	envVars := []core_v1.EnvVar{{
-		Name: "POD_NAME",
-		ValueFrom: &core_v1.EnvVarSource{
-			FieldRef: &core_v1.ObjectFieldSelector{FieldPath: "metadata.name"},
+	envVars := []core_v1.EnvVar{
+		{
+			Name: "POD_NAME",
+			ValueFrom: &core_v1.EnvVarSource{
+				FieldRef: &core_v1.ObjectFieldSelector{FieldPath: "metadata.name"},
+			},
 		},
-	}}
+		// Allows the agent to identify this is an operator-created pod.
+		{
+			Name:  "AGENT_DEPLOY_MODE",
+			Value: "operator",
+		},
+	}
 	envVars = append(envVars, opts.ExtraEnvVars...)
 
 	useConfigReloaderVersion := d.Agent.Spec.ConfigReloaderVersion
@@ -207,6 +215,8 @@ func generatePodTemplate(
 		imagePathConfigReloader = *d.Agent.Spec.ConfigReloaderImage
 	}
 
+	boolFalse := false
+	boolTrue := true
 	operatorContainers := []core_v1.Container{
 		{
 			Name:         "config-reloader",
@@ -214,7 +224,11 @@ func generatePodTemplate(
 			VolumeMounts: volumeMounts,
 			Env:          envVars,
 			SecurityContext: &core_v1.SecurityContext{
-				RunAsUser: pointer.Int64(0),
+				AllowPrivilegeEscalation: &boolFalse,
+				ReadOnlyRootFilesystem:   &boolTrue,
+				Capabilities: &core_v1.Capabilities{
+					Drop: []core_v1.Capability{"ALL"},
+				},
 			},
 			Args: []string{
 				"--config-file=/var/lib/grafana-agent/config-in/agent.yml",
@@ -245,7 +259,7 @@ func generatePodTemplate(
 			},
 			Resources: d.Agent.Spec.Resources,
 			SecurityContext: &core_v1.SecurityContext{
-				Privileged: pointer.Bool(opts.Privileged),
+				Privileged: ptr.To(opts.Privileged),
 			},
 			TerminationMessagePolicy: core_v1.TerminationMessageFallbackToLogsOnError,
 		},
@@ -275,7 +289,7 @@ func generatePodTemplate(
 			NodeSelector:                  d.Agent.Spec.NodeSelector,
 			PriorityClassName:             d.Agent.Spec.PriorityClassName,
 			RuntimeClassName:              d.Agent.Spec.RuntimeClassName,
-			TerminationGracePeriodSeconds: pointer.Int64(4800),
+			TerminationGracePeriodSeconds: ptr.To(int64(4800)),
 			Volumes:                       volumes,
 			Tolerations:                   d.Agent.Spec.Tolerations,
 			Affinity:                      d.Agent.Spec.Affinity,

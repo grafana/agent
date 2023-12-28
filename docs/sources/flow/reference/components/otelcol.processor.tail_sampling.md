@@ -1,5 +1,11 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/otelcol.processor.tail_sampling/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/otelcol.processor.tail_sampling/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/otelcol.processor.tail_sampling/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/otelcol.processor.tail_sampling/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.processor.tail_sampling/
+description: Learn about otelcol.processor.tail_sampling
 labels:
   stage: beta
 title: otelcol.processor.tail_sampling
@@ -7,7 +13,7 @@ title: otelcol.processor.tail_sampling
 
 # otelcol.processor.tail_sampling
 
-{{< docs/shared lookup="flow/stability/beta.md" source="agent" >}}
+{{< docs/shared lookup="flow/stability/beta.md" source="agent" version="<AGENT_VERSION>" >}}
 
 `otelcol.processor.tail_sampling` samples traces based on a set of defined
 policies. All spans for a given trace *must* be received by the same collector
@@ -302,7 +308,7 @@ Name | Type | Description | Default | Required
 
 ### output block
 
-{{< docs/shared lookup="flow/reference/components/output-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/output-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ## Exported fields
 
@@ -327,7 +333,7 @@ information.
 
 ## Example
 
-This example batches trace data from Grafana Agent before sending it to
+This example batches trace data from {{< param "PRODUCT_NAME" >}} before sending it to
 [otelcol.exporter.otlp][] for further processing. This example shows an impractical number of policies for the purpose of demonstrating how to set up each type.
 
 ```river
@@ -547,3 +553,23 @@ otelcol.exporter.otlp "production" {
   }
 }
 ```
+<!-- START GENERATED COMPATIBLE COMPONENTS -->
+
+## Compatible components
+
+`otelcol.processor.tail_sampling` can accept arguments from the following components:
+
+- Components that export [OpenTelemetry `otelcol.Consumer`]({{< relref "../compatibility/#opentelemetry-otelcolconsumer-exporters" >}})
+
+`otelcol.processor.tail_sampling` has exports that can be consumed by the following components:
+
+- Components that consume [OpenTelemetry `otelcol.Consumer`]({{< relref "../compatibility/#opentelemetry-otelcolconsumer-consumers" >}})
+
+{{% admonition type="note" %}}
+
+Connecting some components may not be sensible or components may require further configuration to make the 
+connection work correctly. Refer to the linked documentation for more details.
+
+{{% /admonition %}}
+
+<!-- END GENERATED COMPATIBLE COMPONENTS -->

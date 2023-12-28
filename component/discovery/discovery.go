@@ -45,8 +45,6 @@ func (t *DistributedTargets) Get() []Target {
 
 	res := make([]Target, 0, (len(t.targets)+1)/len(t.cluster.Peers()))
 
-	// TODO(@tpaschalis): Make sure OpReadWrite is the correct operation;
-	// eg. this determines how clustering behaves when nodes are shutting down.
 	for _, tgt := range t.targets {
 		peers, err := t.cluster.Lookup(shard.StringKey(tgt.NonMetaLabels().String()), 1, shard.OpReadWrite)
 		if err != nil {

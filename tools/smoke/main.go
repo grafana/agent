@@ -9,20 +9,19 @@ import (
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/pkg/server"
 	smoke "github.com/grafana/agent/tools/smoke/internal"
-	"github.com/weaveworks/common/logging"
+	"github.com/grafana/dskit/log"
 )
 
 func main() {
 	var (
 		cfg         smoke.Config
-		logLevel    logging.Level
-		logFormat   logging.Format
+		logLevel    log.Level
+		logFormat   string
 		withTimeout time.Duration
 	)
 
 	cfg.RegisterFlags(flag.CommandLine)
 	logLevel.RegisterFlags(flag.CommandLine)
-	logFormat.RegisterFlags(flag.CommandLine)
 	flag.DurationVar(&withTimeout, "duration", time.Duration(0), "test duration")
 	flag.Parse()
 

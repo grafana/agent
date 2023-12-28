@@ -13,12 +13,10 @@ import (
 	"sync"
 
 	"github.com/go-kit/log"
-	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component/common/loki"
+	"github.com/grafana/agent/pkg/flow/logging/level"
 	loki_translator "github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/loki"
-	prometheus_translator "github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/prometheus"
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/common/model"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/pdata/plog"
 )
@@ -69,27 +67,19 @@ func (conv *Converter) ConsumeLogs(ctx context.Context, ld plog.Logs) error {
 			for k := 0; k < logs.Len(); k++ {
 				conv.metrics.entriesTotal.Inc()
 
-				entry, err := loki_translator.LogToLokiEntry(logs.At(k), rls.At(i).Resource(), scope)
+				// TODO: loki added a parameter `defaultLabelsEnabled` to this function to add the possibility to disable default labels (exporter, job, instance, level)
+				// Is this interesting for us in any ways? (@wildum)
+				// https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/23863/files#diff-ef7831fcba373f6e8aa7f799b5b89f4e113b2064cd7ef1688286ce193d2256a8
+				entry, err := loki_translator.LogToLokiEntry(logs.At(k), rls.At(i).Resource(), scope, nil)
 				if err != nil {
 					level.Error(conv.log).Log("msg", "failed to convert log to loki entry", "err", err)
 					conv.metrics.entriesFailed.Inc()
 					continue
 				}
 
-				// TODO: Remove this code once loki_translator.LogToLokiEntry() has been updated to normalise labels.
-				// We should firstly upgrade to a version of Collector which has this fix:
-				// https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/26093
-				processed := model.LabelSet{}
-				for label := range entry.Labels {
-					// Loki doesn't support dots in label names
-					// labelName is normalized label name to follow Prometheus label names standard
-					labelName := prometheus_translator.NormalizeLabel(string(label))
-					processed[model.LabelName(labelName)] = entry.Labels[label]
-				}
-
 				conv.metrics.entriesProcessed.Inc()
 				entries = append(entries, loki.Entry{
-					Labels: processed,
+					Labels: entry.Labels,
 					Entry:  *entry.Entry,
 				})
 			}

@@ -21,10 +21,8 @@ import (
 // See https://github.com/prometheus-operator/prometheus-operator/blob/aa8222d7e9b66e9293ed11c9291ea70173021029/pkg/prometheus/promcfg.go#L835
 
 func (cg *ConfigGenerator) GenerateProbeConfig(m *promopv1.Probe) (cfg *config.ScrapeConfig, err error) {
-	c := config.DefaultScrapeConfig
-	cfg = &c
-	cfg.ScrapeInterval = config.DefaultGlobalConfig.ScrapeInterval
-	cfg.ScrapeTimeout = config.DefaultGlobalConfig.ScrapeTimeout
+	cfg = cg.generateDefaultScrapeConfig()
+
 	cfg.JobName = fmt.Sprintf("probe/%s/%s", m.Namespace, m.Name)
 	cfg.HonorTimestamps = true
 	cfg.MetricsPath = m.Spec.ProberSpec.Path
@@ -232,5 +230,5 @@ func (cg *ConfigGenerator) GenerateProbeConfig(m *promopv1.Probe) (cfg *config.S
 	}
 	cfg.MetricRelabelConfigs = metricRelabels.configs
 
-	return cfg, nil
+	return cfg, cfg.Validate(cg.ScrapeOptions.GlobalConfig())
 }

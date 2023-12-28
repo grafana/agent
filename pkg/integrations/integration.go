@@ -48,3 +48,14 @@ type Integration interface {
 	// not return the ctx error.
 	Run(ctx context.Context) error
 }
+
+// NewIntegrationWithInstanceKey uses cfg to construct an integration and
+// return it along its instance key.
+func NewIntegrationWithInstanceKey(l log.Logger, cfg Config, key string) (Integration, string, error) {
+	key, err := cfg.InstanceKey(key)
+	if err != nil {
+		return nil, key, err
+	}
+	integration, err := cfg.NewIntegration(l)
+	return integration, key, err
+}

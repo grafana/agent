@@ -25,16 +25,19 @@ spec:
       serviceAccountName: grafana-agent
       containers:
         - name: grafana-agent
-          image: docker.io/grafana/agent:v0.35.4
+          image: docker.io/grafana/agent:v0.38.1
           imagePullPolicy: IfNotPresent
           args:
             - run
             - /etc/agent/my-config.river
             - --storage.path=/tmp/agent
             - --server.http.listen-addr=0.0.0.0:80
+            - --server.http.ui-path-prefix=/
           env:
             - name: AGENT_MODE
               value: flow
+            - name: AGENT_DEPLOY_MODE
+              value: "helm"
             - name: HOSTNAME
               valueFrom:
                 fieldRef:

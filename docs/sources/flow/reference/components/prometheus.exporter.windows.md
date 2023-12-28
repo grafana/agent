@@ -1,5 +1,11 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/prometheus.exporter.windows/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/prometheus.exporter.windows/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/prometheus.exporter.windows/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/prometheus.exporter.windows/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.windows/
+description: Learn about prometheus.exporter.windows
 title: prometheus.exporter.windows
 ---
 
@@ -13,7 +19,7 @@ enabled and disabled at will. For more information on collectors, refer to the
 [`collectors-list`](#collectors-list) section.
 
 **Note** The black and white list config options are available for backwards compatibility but are deprecated. The include
-and exclude config options are preferred going forward. 
+and exclude config options are preferred going forward.
 
 ## Usage
 
@@ -41,11 +47,11 @@ The following blocks are supported inside the definition of
 `prometheus.exporter.windows` to configure collector-specific options:
 
 Hierarchy      | Name               | Description                              | Required
----------------|--------------------|------------------------------------------|----------
-dfsr           | [dfsr][]           | Configures the dfsr collector.           | no       
+---------------|--------------------|------------------------------------------|---------
+dfsr           | [dfsr][]           | Configures the dfsr collector.           | no
 exchange       | [exchange][]       | Configures the exchange collector.       | no
 iis            | [iis][]            | Configures the iis collector.            | no
-logical_disk   | [logical_disk][]   | Configures the logical_disk collector.   | no       
+logical_disk   | [logical_disk][]   | Configures the logical_disk collector.   | no
 msmq           | [msmq][]           | Configures the msmq collector.           | no
 mssql          | [mssql][]          | Configures the mssql collector.          | no
 network        | [network][]        | Configures the network collector.        | no
@@ -175,14 +181,14 @@ For a server name to be included, it must match the regular expression specified
 ### text_file block
 Name | Type     | Description | Default | Required
 ---- |----------| ----------- | ------- | --------
-`text_file_directory` | `string` | The directory containing the files to be ingested. | `C:\Program Files\windows_exporter\textfile_inputs` | no
+`text_file_directory` | `string` | The directory containing the files to be ingested. | `C:\Program Files\Grafana Agent Flow\textfile_inputs` | no
 
 When `text_file_directory` is set, only files with the extension `.prom` inside the specified directory are read. Each `.prom` file found must end with an empty line feed to work properly.
 
 
 ## Exported fields
 
-{{< docs/shared lookup="flow/reference/components/exporter-component-exports.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/exporter-component-exports.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ## Component health
 
@@ -265,6 +271,11 @@ Name     | Description | Enabled by default
 
 See the linked documentation on each collector for more information on reported metrics, configuration settings and usage examples.
 
+{{% admonition type="caution" %}}
+Certain collectors will cause {{< param "PRODUCT_ROOT_NAME" >}} to crash if those collectors are used and the required infrastructure is not installed.
+These include but are not limited to mscluster_*, vmware, nps, dns, msmq, teradici_pcoip, ad, hyperv, and scheduled_task.
+{{% /admonition %}}
+
 ## Example
 
 This example uses a [`prometheus.scrape` component][scrape] to collect metrics
@@ -296,3 +307,20 @@ Replace the following:
   - `PASSWORD`: The password to use for authentication to the remote_write API.
 
 [scrape]: {{< relref "./prometheus.scrape.md" >}}
+
+<!-- START GENERATED COMPATIBLE COMPONENTS -->
+
+## Compatible components
+
+`prometheus.exporter.windows` has exports that can be consumed by the following components:
+
+- Components that consume [Targets]({{< relref "../compatibility/#targets-consumers" >}})
+
+{{% admonition type="note" %}}
+
+Connecting some components may not be sensible or components may require further configuration to make the 
+connection work correctly. Refer to the linked documentation for more details.
+
+{{% /admonition %}}
+
+<!-- END GENERATED COMPATIBLE COMPONENTS -->

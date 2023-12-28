@@ -8,18 +8,18 @@ import (
 	"time"
 
 	"github.com/go-kit/log"
-	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/pkg/flow/internal/dag"
+	"github.com/grafana/agent/pkg/flow/internal/worker"
+	"github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/grafana/agent/pkg/flow/tracing"
 	"github.com/grafana/agent/service"
+	"github.com/grafana/dskit/backoff"
 	"github.com/grafana/river/ast"
 	"github.com/grafana/river/diag"
 	"github.com/hashicorp/go-multierror"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
-
-	_ "github.com/grafana/agent/pkg/flow/internal/testcomponents" // Include test components
 )
 
 // The Loader builds and evaluates ComponentNodes from River blocks.
@@ -30,6 +30,12 @@ type Loader struct {
 	services     []service.Service
 	host         service.Host
 	componentReg ComponentRegistry
+	workerPool   worker.Pool
+	// backoffConfig is used to backoff when an updated component's dependencies cannot be submitted to worker
+	// pool for evaluation in EvaluateDependants, because the queue is full. This is an unlikely scenario, but when
+	// it happens we should avoid retrying too often to give other goroutines a chance to progress. Having a backoff
+	// also prevents log spamming with errors.
+	backoffConfig backoff.Config
 
 	mut               sync.RWMutex
 	graph             *dag.Graph
@@ -51,6 +57,7 @@ type LoaderOptions struct {
 	Services          []service.Service // Services to load into the DAG.
 	Host              service.Host      // Service host (when running services).
 	ComponentRegistry ComponentRegistry // Registry to search for components.
+	WorkerPool        worker.Pool       // Worker pool to use for async tasks.
 }
 
 // NewLoader creates a new Loader. Components built by the Loader will be built
@@ -74,6 +81,14 @@ func NewLoader(opts LoaderOptions) *Loader {
 		services:     services,
 		host:         host,
 		componentReg: reg,
+		workerPool:   opts.WorkerPool,
+
+		// This is a reasonable default which should work for most cases. If a component is completely stuck, we would
+		// retry and log an error every 10 seconds, at most.
+		backoffConfig: backoff.Config{
+			MinBackoff: 1 * time.Millisecond,
+			MaxBackoff: 10 * time.Second,
+		},
 
 		graph:         &dag.Graph{},
 		originalGraph: &dag.Graph{},
@@ -134,9 +149,7 @@ func (l *Loader) Apply(args map[string]any, componentBlocks []*ast.BlockStmt, co
 	defer func() {
 		span.SetStatus(codes.Ok, "")
 
-		duration := time.Since(start)
-		level.Info(logger).Log("msg", "finished complete graph evaluation", "duration", duration)
-		l.cm.componentEvaluationTime.Observe(duration.Seconds())
+		level.Info(logger).Log("msg", "finished complete graph evaluation", "duration", time.Since(start))
 	}()
 
 	l.cache.ClearModuleExports()
@@ -219,7 +232,6 @@ func (l *Loader) Apply(args map[string]any, componentBlocks []*ast.BlockStmt, co
 	l.graph = &newGraph
 	l.cache.SyncIDs(componentIDs)
 	l.blocks = componentBlocks
-	l.cm.componentEvaluationTime.Observe(time.Since(start).Seconds())
 	if l.globals.OnExportsChange != nil && l.cache.ExportChangeIndex() != l.moduleExportIndex {
 		l.moduleExportIndex = l.cache.ExportChangeIndex()
 		l.globals.OnExportsChange(l.cache.CreateModuleExports())
@@ -227,8 +239,11 @@ func (l *Loader) Apply(args map[string]any, componentBlocks []*ast.BlockStmt, co
 	return diags
 }
 
-// Cleanup unregisters any existing metrics.
-func (l *Loader) Cleanup() {
+// Cleanup unregisters any existing metrics and optionally stops the worker pool.
+func (l *Loader) Cleanup(stopWorkerPool bool) {
+	if stopWorkerPool {
+		l.workerPool.Stop()
+	}
 	if l.globals.Registerer == nil {
 		return
 	}
@@ -363,10 +378,11 @@ func (l *Loader) populateConfigBlockNodes(args map[string]any, g *dag.Graph, con
 		diags = append(diags, newConfigNodeDiags...)
 
 		if g.GetByID(node.NodeID()) != nil {
+			configBlockStartPos := ast.StartPos(block).Position()
 			diags.Add(diag.Diagnostic{
 				Severity: diag.SeverityLevelError,
-				Message:  fmt.Sprintf("%q block already declared", node.NodeID()),
-				StartPos: ast.StartPos(block).Position(),
+				Message:  fmt.Sprintf("%q block already declared at %s", node.NodeID(), configBlockStartPos),
+				StartPos: configBlockStartPos,
 				EndPos:   ast.EndPos(block).Position(),
 			})
 
@@ -439,30 +455,10 @@ func (l *Loader) populateComponentNodes(g *dag.Graph, componentBlocks []*ast.Blo
 				continue
 			}
 
-			if registration.Singleton && block.Label != "" {
-				diags.Add(diag.Diagnostic{
-					Severity: diag.SeverityLevelError,
-					Message:  fmt.Sprintf("Component %q does not support labels", componentName),
-					StartPos: block.LabelPos.Position(),
-					EndPos:   block.LabelPos.Add(len(block.Label) + 1).Position(),
-				})
-				continue
-			}
-
-			if !registration.Singleton && block.Label == "" {
+			if block.Label == "" {
 				diags.Add(diag.Diagnostic{
 					Severity: diag.SeverityLevelError,
 					Message:  fmt.Sprintf("Component %q must have a label", componentName),
-					StartPos: block.NamePos.Position(),
-					EndPos:   block.NamePos.Add(len(componentName) - 1).Position(),
-				})
-				continue
-			}
-
-			if registration.Singleton && l.isModule() {
-				diags.Add(diag.Diagnostic{
-					Severity: diag.SeverityLevelError,
-					Message:  fmt.Sprintf("Component %q is a singleton and unsupported inside a module", componentName),
 					StartPos: block.NamePos.Position(),
 					EndPos:   block.NamePos.Add(len(componentName) - 1).Position(),
 				})
@@ -493,22 +489,6 @@ func (l *Loader) wireGraphEdges(g *dag.Graph) diag.Diagnostics {
 					diags.Add(diag.Diagnostic{
 						Severity: diag.SeverityLevelError,
 						Message:  fmt.Sprintf("service %q has invalid reference to service %q", n.NodeID(), depName),
-					})
-					continue
-				}
-
-				g.AddEdge(dag.Edge{From: n, To: dep})
-			}
-
-		case *ComponentNode: // Component depending on service.
-			for _, depName := range n.Registration().NeedsServices {
-				dep := g.GetByID(depName)
-				if dep == nil {
-					diags.Add(diag.Diagnostic{
-						Severity: diag.SeverityLevelError,
-						Message:  fmt.Sprintf("component depends on undefined service %q; please report this issue to project maintainers", depName),
-						StartPos: ast.StartPos(n.Block()).Position(),
-						EndPos:   ast.EndPos(n.Block()).Position(),
 					})
 					continue
 				}
@@ -563,80 +543,135 @@ func (l *Loader) OriginalGraph() *dag.Graph {
 	return l.originalGraph.Clone()
 }
 
-// EvaluateDependencies re-evaluates components which depend directly or
-// indirectly on c. EvaluateDependencies should be called whenever a component
-// updates its exports.
-//
-// The provided parentContext can be used to provide global variables and
-// functions to components. A child context will be constructed from the parent
-// to expose values of other components.
-func (l *Loader) EvaluateDependencies(c *ComponentNode) {
+// EvaluateDependants sends components which depend directly on components in updatedNodes for evaluation to the
+// workerPool. It should be called whenever components update their exports.
+// It is beneficial to call EvaluateDependants with a batch of components, as it will enqueue the entire batch before
+// the worker pool starts to evaluate them, resulting in smaller number of total evaluations when
+// node updates are frequent. If the worker pool's queue is full, EvaluateDependants will retry with a backoff until
+// it succeeds or until the ctx is cancelled.
+func (l *Loader) EvaluateDependants(ctx context.Context, updatedNodes []*ComponentNode) {
+	if len(updatedNodes) == 0 {
+		return
+	}
 	tracer := l.tracer.Tracer("")
+	spanCtx, span := tracer.Start(context.Background(), "SubmitDependantsForEvaluation", trace.WithSpanKind(trace.SpanKindInternal))
+	span.SetAttributes(attribute.Int("originators_count", len(updatedNodes)))
+	span.SetStatus(codes.Ok, "dependencies submitted for evaluation")
+	defer span.End()
+
+	l.cm.controllerEvaluation.Set(1)
+	defer l.cm.controllerEvaluation.Set(0)
 
 	l.mut.RLock()
 	defer l.mut.RUnlock()
 
-	l.cm.controllerEvaluation.Set(1)
-	defer l.cm.controllerEvaluation.Set(0)
-	start := time.Now()
-
-	spanCtx, span := tracer.Start(context.Background(), "GraphEvaluatePartial", trace.WithSpanKind(trace.SpanKindInternal))
-	span.SetAttributes(attribute.String("initiator", c.NodeID()))
-	defer span.End()
-
-	logger := log.With(l.log, "trace_id", span.SpanContext().TraceID())
-	level.Info(logger).Log("msg", "starting partial graph evaluation")
-	defer func() {
-		span.SetStatus(codes.Ok, "")
-
-		duration := time.Since(start)
-		level.Info(logger).Log("msg", "finished partial graph evaluation", "duration", duration)
-		l.cm.componentEvaluationTime.Observe(duration.Seconds())
-	}()
-
-	// Make sure we're in-sync with the current exports of c.
-	l.cache.CacheExports(c.ID(), c.Exports())
-
-	_ = dag.WalkReverse(l.graph, []dag.Node{c}, func(n dag.Node) error {
-		if n == c {
-			// Skip over the starting component; the starting component passed to
-			// EvaluateDependencies had its exports changed and none of its input
-			// arguments will need re-evaluation.
+	dependenciesToParentsMap := make(map[dag.Node]*ComponentNode)
+	for _, parent := range updatedNodes {
+		// Make sure we're in-sync with the current exports of parent.
+		l.cache.CacheExports(parent.ID(), parent.Exports())
+		// We collect all nodes directly incoming to parent.
+		_ = dag.WalkIncomingNodes(l.graph, parent, func(n dag.Node) error {
+			dependenciesToParentsMap[n] = parent
 			return nil
-		}
+		})
+	}
 
-		_, span := tracer.Start(spanCtx, "EvaluateNode", trace.WithSpanKind(trace.SpanKindInternal))
+	// Submit all dependencies for asynchronous evaluation.
+	// During evaluation, if a node's exports change, Flow will add it to updated nodes queue (controller.Queue) and
+	// the Flow controller will call EvaluateDependants on it again. This results in a concurrent breadth-first
+	// traversal of the nodes that need to be evaluated.
+	for n, parent := range dependenciesToParentsMap {
+		dependantCtx, span := tracer.Start(spanCtx, "SubmitForEvaluation", trace.WithSpanKind(trace.SpanKindInternal))
 		span.SetAttributes(attribute.String("node_id", n.NodeID()))
-		defer span.End()
+		span.SetAttributes(attribute.String("originator_id", parent.NodeID()))
 
-		start := time.Now()
-		defer func() {
-			level.Info(logger).Log("msg", "finished node evaluation", "node_id", n.NodeID(), "duration", time.Since(start))
-		}()
-
-		var err error
-
-		switch n := n.(type) {
-		case BlockNode:
-			err = l.evaluate(logger, n)
-			if exp, ok := n.(*ExportConfigNode); ok {
-				l.cache.CacheModuleExportValue(exp.Label(), exp.Value())
+		// Submit for asynchronous evaluation with retries and backoff. Don't use range variables in the closure.
+		var (
+			nodeRef, parentRef = n, parent
+			retryBackoff       = backoff.New(ctx, l.backoffConfig)
+			err                error
+		)
+		for retryBackoff.Ongoing() {
+			err = l.workerPool.SubmitWithKey(nodeRef.NodeID(), func() {
+				l.concurrentEvalFn(nodeRef, dependantCtx, tracer, parentRef)
+			})
+			if err != nil {
+				level.Error(l.log).Log(
+					"msg", "failed to submit node for evaluation - the agent is likely overloaded "+
+						"and cannot keep up with evaluating components - will retry",
+					"err", err,
+					"node_id", n.NodeID(),
+					"originator_id", parent.NodeID(),
+					"retries", retryBackoff.NumRetries(),
+				)
+				retryBackoff.Wait()
+			} else {
+				break
 			}
 		}
-
-		// We only use the error for updating the span status; we don't return the
-		// error because we want to evaluate as many nodes as we can.
+		span.SetAttributes(attribute.Int("retries", retryBackoff.NumRetries()))
 		if err != nil {
 			span.SetStatus(codes.Error, err.Error())
 		} else {
-			span.SetStatus(codes.Ok, "")
+			span.SetStatus(codes.Ok, "node submitted for evaluation")
 		}
-		return nil
-	})
+		span.End()
+	}
 
-	if l.globals.OnExportsChange != nil && l.cache.ExportChangeIndex() != l.moduleExportIndex {
-		l.globals.OnExportsChange(l.cache.CreateModuleExports())
-		l.moduleExportIndex = l.cache.ExportChangeIndex()
+	// Report queue size metric.
+	l.cm.evaluationQueueSize.Set(float64(l.workerPool.QueueSize()))
+}
+
+// concurrentEvalFn returns a function that evaluates a node and updates the cache. This function can be submitted to
+// a worker pool for asynchronous evaluation.
+func (l *Loader) concurrentEvalFn(n dag.Node, spanCtx context.Context, tracer trace.Tracer, parent *ComponentNode) {
+	start := time.Now()
+	l.cm.dependenciesWaitTime.Observe(time.Since(parent.lastUpdateTime.Load()).Seconds())
+	_, span := tracer.Start(spanCtx, "EvaluateNode", trace.WithSpanKind(trace.SpanKindInternal))
+	span.SetAttributes(attribute.String("node_id", n.NodeID()))
+	defer span.End()
+
+	defer func() {
+		duration := time.Since(start)
+		l.cm.onComponentEvaluationDone(n.NodeID(), duration)
+		level.Info(l.log).Log("msg", "finished node evaluation", "node_id", n.NodeID(), "duration", duration)
+	}()
+
+	var err error
+	switch n := n.(type) {
+	case BlockNode:
+		ectx := l.cache.BuildContext()
+		evalErr := n.Evaluate(ectx)
+
+		// Only obtain loader lock after we have evaluated the node, allowing for concurrent evaluation.
+		l.mut.RLock()
+		err = l.postEvaluate(l.log, n, evalErr)
+
+		// Additional post-evaluation steps necessary for module exports.
+		if exp, ok := n.(*ExportConfigNode); ok {
+			l.cache.CacheModuleExportValue(exp.Label(), exp.Value())
+		}
+		if l.globals.OnExportsChange != nil && l.cache.ExportChangeIndex() != l.moduleExportIndex {
+			// Upgrade to write lock to update the module exports.
+			l.mut.RUnlock()
+			l.mut.Lock()
+			defer l.mut.Unlock()
+			// Check if the update still needed after obtaining the write lock and perform it.
+			if l.cache.ExportChangeIndex() != l.moduleExportIndex {
+				l.globals.OnExportsChange(l.cache.CreateModuleExports())
+				l.moduleExportIndex = l.cache.ExportChangeIndex()
+			}
+		} else {
+			// No need to upgrade to write lock, just release the read lock.
+			l.mut.RUnlock()
+		}
+	}
+
+	// We only use the error for updating the span status
+	if err != nil {
+		span.SetStatus(codes.Error, err.Error())
+	} else {
+		span.SetStatus(codes.Ok, "node successfully evaluated")
 	}
 }
 
@@ -645,7 +680,12 @@ func (l *Loader) EvaluateDependencies(c *ComponentNode) {
 func (l *Loader) evaluate(logger log.Logger, bn BlockNode) error {
 	ectx := l.cache.BuildContext()
 	err := bn.Evaluate(ectx)
+	return l.postEvaluate(logger, bn, err)
+}
 
+// postEvaluate is called after a node has been evaluated. It updates the caches and logs any errors.
+// mut must be held when calling postEvaluate.
+func (l *Loader) postEvaluate(logger log.Logger, bn BlockNode, err error) error {
 	switch c := bn.(type) {
 	case *ComponentNode:
 		// Always update the cache both the arguments and exports, since both might
@@ -657,6 +697,8 @@ func (l *Loader) evaluate(logger log.Logger, bn BlockNode) error {
 			if c.Optional() {
 				l.cache.CacheModuleArgument(c.Label(), c.Default())
 			} else {
+				// NOTE: this masks the previous evaluation error, but we treat a missing module arguments as
+				// a more important error to address.
 				err = fmt.Errorf("missing required argument %q to module", c.Label())
 			}
 		}

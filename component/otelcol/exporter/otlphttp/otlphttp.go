@@ -21,7 +21,7 @@ func init() {
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			fact := otlphttpexporter.NewFactory()
-			return exporter.New(opts, fact, args.(Arguments))
+			return exporter.New(opts, fact, args.(Arguments), exporter.TypeAll)
 		},
 	})
 }
@@ -32,6 +32,9 @@ type Arguments struct {
 	Queue  otelcol.QueueArguments `river:"sending_queue,block,optional"`
 	Retry  otelcol.RetryArguments `river:"retry_on_failure,block,optional"`
 
+	// DebugMetrics configures component internal metrics. Optional.
+	DebugMetrics otelcol.DebugMetricsArguments `river:"debug_metrics,block,optional"`
+
 	// The URLs to send metrics/logs/traces to. If omitted the exporter will
 	// use Client.Endpoint by appending "/v1/metrics", "/v1/logs" or
 	// "/v1/traces", respectively. If set, these settings override
@@ -41,9 +44,7 @@ type Arguments struct {
 	LogsEndpoint    string `river:"logs_endpoint,attr,optional"`
 }
 
-var (
-	_ exporter.Arguments = Arguments{}
-)
+var _ exporter.Arguments = Arguments{}
 
 // DefaultArguments holds default values for Arguments.
 var DefaultArguments = Arguments{
@@ -77,6 +78,11 @@ func (args Arguments) Extensions() map[otelcomponent.ID]otelextension.Extension 
 // Exporters implements exporter.Arguments.
 func (args Arguments) Exporters() map[otelcomponent.DataType]map[otelcomponent.ID]otelcomponent.Component {
 	return nil
+}
+
+// DebugMetricsConfig implements receiver.Arguments.
+func (args Arguments) DebugMetricsConfig() otelcol.DebugMetricsArguments {
+	return args.DebugMetrics
 }
 
 // Validate implements river.Validator.

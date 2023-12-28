@@ -1,9 +1,16 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/prometheus.exporter.apache/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/prometheus.exporter.apache/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/prometheus.exporter.apache/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/prometheus.exporter.apache/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.apache/
+description: Learn about prometheus.exporter.apache
 title: prometheus.exporter.apache
 ---
 
 # prometheus.exporter.apache
+
 The `prometheus.exporter.apache` component embeds
 [apache_exporter](https://github.com/Lusitaniae/apache_exporter) for collecting mod_status statistics from an apache server.
 
@@ -15,18 +22,19 @@ prometheus.exporter.apache "LABEL" {
 ```
 
 ## Arguments
+
 The following arguments can be used to configure the exporter's behavior.
 All arguments are optional. Omitted fields take their default values.
 
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`scrape_uri`    | `string` | URI to Apache stub status page. | `http://localhost/server-status?auto` | no
-`host_override` | `string` | Override for HTTP Host header.  | | no
-`insecure`      | `bool`   | Ignore server certificate if using https. | false | no
+| Name            | Type     | Description                               | Default                               | Required |
+| --------------- | -------- | ----------------------------------------- | ------------------------------------- | -------- |
+| `scrape_uri`    | `string` | URI to Apache stub status page.           | `http://localhost/server-status?auto` | no       |
+| `host_override` | `string` | Override for HTTP Host header.            |                                       | no       |
+| `insecure`      | `bool`   | Ignore server certificate if using https. | false                                 | no       |
 
 ## Exported fields
 
-{{< docs/shared lookup="flow/reference/components/exporter-component-exports.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/exporter-component-exports.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ## Component health
 
@@ -71,9 +79,28 @@ prometheus.remote_write "demo" {
   }
 }
 ```
+
 Replace the following:
-  - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
-  - `USERNAME`: The username to use for authentication to the remote_write API.
-  - `PASSWORD`: The password to use for authentication to the remote_write API.
+
+- `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
+- `USERNAME`: The username to use for authentication to the remote_write API.
+- `PASSWORD`: The password to use for authentication to the remote_write API.
 
 [scrape]: {{< relref "./prometheus.scrape.md" >}}
+
+<!-- START GENERATED COMPATIBLE COMPONENTS -->
+
+## Compatible components
+
+`prometheus.exporter.apache` has exports that can be consumed by the following components:
+
+- Components that consume [Targets]({{< relref "../compatibility/#targets-consumers" >}})
+
+{{% admonition type="note" %}}
+
+Connecting some components may not be sensible or components may require further configuration to make the 
+connection work correctly. Refer to the linked documentation for more details.
+
+{{% /admonition %}}
+
+<!-- END GENERATED COMPATIBLE COMPONENTS -->

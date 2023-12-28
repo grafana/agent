@@ -18,6 +18,8 @@ import (
 	"go.opentelemetry.io/collector/client"
 )
 
+const backtick = "`"
+
 // These are tests for SeverityLevel and not for the attributes processor as a whole.
 // However, because Otel's LogSeverityNumberMatchProperties structure is internal
 // we are not able ot test it directly.
@@ -211,7 +213,7 @@ func Test_RegexExtract(t *testing.T) {
 	cfg := `
 		action {
 			key = "user_key"
-			pattern = "\\/api\\/v1\\/document\\/(?P<new_user_key>.*)\\/update\\/(?P<version>.*)$"
+			pattern = ` + backtick + `\/api\/v1\/document\/(?P<new_user_key>.*)\/update\/(?P<version>.*)$` + backtick + `
 			action = "extract"
 		}
 

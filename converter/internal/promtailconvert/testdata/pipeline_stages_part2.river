@@ -12,7 +12,11 @@ loki.process "example" {
 
 	stage.docker { }
 
-	stage.cri { }
+	stage.cri {
+		max_partial_lines              = 223
+		max_partial_line_size          = 26214
+		max_partial_line_size_truncate = true
+	}
 
 	stage.label_drop {
 		values = ["foo", "bar", "baz"]
@@ -74,6 +78,23 @@ loki.process "example" {
 		db      = "/usr/share/GeoIP/GeoLite2-City.mmdb"
 		source  = "internet"
 		db_type = "mmdb"
+	}
+
+	stage.decolorize { }
+
+	stage.sampling {
+		rate = 100
+	}
+
+	stage.sampling {
+		drop_counter_reason = "womp womp!"
+		rate                = 0
+	}
+
+	stage.eventlogmessage {
+		source              = "something"
+		drop_invalid_labels = true
+		overwrite_existing  = true
 	}
 }
 

@@ -3,32 +3,17 @@ package promtailconvert
 import (
 	"github.com/grafana/agent/converter/diag"
 	promtailcfg "github.com/grafana/loki/clients/pkg/promtail/config"
-	"github.com/grafana/loki/clients/pkg/promtail/targets/file"
 )
 
 // validateTopLevelConfig validates the top-level config for any unsupported features. There may still be some
 // other unsupported features in scope of each config block, which are raised by their respective conversion code.
 func validateTopLevelConfig(cfg *promtailcfg.Config, diags *diag.Diagnostics) {
-	// We currently do not support the new global file watch config. It's an error, since setting it indicates
-	// some advanced tuning which the user likely needs.
-	if cfg.Global.FileWatch != file.DefaultWatchConig {
-		diags.Add(diag.SeverityLevelError, "global/file_watch_config is not supported")
-	}
-
 	// The positions global config is not supported in Flow Mode.
 	if cfg.PositionsConfig != DefaultPositionsConfig() {
 		diags.Add(
-			diag.SeverityLevelError,
+			diag.SeverityLevelInfo,
 			"global positions configuration is not supported - each Flow Mode's loki.source.file component "+
 				"has its own positions file in the component's data directory",
-		)
-	}
-
-	// The global and per-client stream lag labels is deprecated and has no effect.
-	if len(cfg.Options.StreamLagLabels) > 0 {
-		diags.Add(
-			diag.SeverityLevelWarn,
-			"stream_lag_labels is deprecated and the associated metric has been removed",
 		)
 	}
 
@@ -82,8 +67,8 @@ func validateTopLevelConfig(cfg *promtailcfg.Config, diags *diag.Diagnostics) {
 	}
 
 	if cfg.ServerConfig.LogLevel.String() != "info" {
-		diags.Add(diag.SeverityLevelWarn, "server.log_level is not supported - Flow mode "+
-			"components may produce different logs")
+		diags.Add(diag.SeverityLevelWarn, "The converter does not support converting the provided server.log_level config: "+
+			"The equivalent feature in Flow mode is to use the logging config block to set the level argument.")
 	}
 
 	if cfg.ServerConfig.PathPrefix != "" {

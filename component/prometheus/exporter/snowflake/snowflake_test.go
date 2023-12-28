@@ -3,7 +3,6 @@ package snowflake
 import (
 	"testing"
 
-	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/pkg/integrations/snowflake_exporter"
 	"github.com/grafana/river"
 	"github.com/grafana/river/rivertypes"
@@ -56,15 +55,4 @@ func TestConvert(t *testing.T) {
 		Warehouse:   "some_warehouse",
 	}
 	require.Equal(t, expected, *res)
-}
-
-func TestCustomizeTarget(t *testing.T) {
-	args := Arguments{
-		AccountName: "some_account",
-	}
-
-	baseTarget := discovery.Target{}
-	newTargets := customizeTarget(baseTarget, args)
-	require.Equal(t, 1, len(newTargets))
-	require.Equal(t, "some_account", newTargets[0]["instance"])
 }

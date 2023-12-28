@@ -10,7 +10,7 @@ const ComponentDetailPage: FC = () => {
   const { '*': id } = useParams();
 
   const { moduleID } = parseID(id || '');
-  const components = useComponentInfo(moduleID);
+  const [components] = useComponentInfo(moduleID);
   const infoByID = componentInfoByID(components);
 
   const [component, setComponent] = useState<ComponentDetail | undefined>(undefined);

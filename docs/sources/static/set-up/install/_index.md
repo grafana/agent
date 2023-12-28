@@ -1,8 +1,11 @@
 ---
 aliases:
-- ../set-up/
 - ../
+- ../set-up/
+- /docs/grafana-cloud/monitor-infrastructure/agent/static/set-up/install/
+- /docs/grafana-cloud/send-data/agent/static/set-up/install/
 canonical: https://grafana.com/docs/agent/latest/static/set-up/install/
+description: Learn how to install GRafana Agent in static mode
 menuTitle: Install static mode
 title: Install Grafana Agent in static mode
 weight: 100
@@ -14,7 +17,7 @@ You can install Grafana Agent in static mode on Docker, Kubernetes, Linux, macOS
 
 The following architectures are supported:
 
-- Linux: AMD64, ARM64, ARMv6, ARMv7
+- Linux: AMD64, ARM64
 - Windows: AMD64
 - macOS: AMD64 (Intel), ARM64 (Apple Silicon)
 - FreeBSD: AMD64
@@ -36,3 +39,13 @@ Use the Grafana Agent [Kubernetes configuration](/docs/grafana-cloud/monitor-inf
 ## Tanka
 
 For more information, refer to the [Tanka](https://tanka.dev) configurations in the Grafana Agent [production](https://github.com/grafana/agent/tree/main/production/tanka/grafana-agent) directory on GitHub.
+
+## Data collection
+
+By default, Grafana Agent sends anonymous usage information to Grafana Labs. Refer to [data collection][] for more information
+about what data is collected and how you can opt-out.
+
+{{% docs/reference %}}
+[data collection]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/data-collection.md"
+[data collection]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/data-collection.md"
+{{% /docs/reference %}}

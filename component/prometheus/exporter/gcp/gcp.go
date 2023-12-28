@@ -11,17 +11,17 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name:          "prometheus.exporter.gcp",
-		Args:          Arguments{},
-		Exports:       exporter.Exports{},
-		NeedsServices: exporter.RequiredServices(),
-		Build:         exporter.New(createExporter, "gcp"),
+		Name:    "prometheus.exporter.gcp",
+		Args:    Arguments{},
+		Exports: exporter.Exports{},
+
+		Build: exporter.New(createExporter, "gcp"),
 	})
 }
 
-func createExporter(opts component.Options, args component.Arguments) (integrations.Integration, error) {
+func createExporter(opts component.Options, args component.Arguments, defaultInstanceKey string) (integrations.Integration, string, error) {
 	a := args.(Arguments)
-	return a.Convert().NewIntegration(opts.Logger)
+	return integrations.NewIntegrationWithInstanceKey(opts.Logger, a.Convert(), defaultInstanceKey)
 }
 
 type Arguments struct {

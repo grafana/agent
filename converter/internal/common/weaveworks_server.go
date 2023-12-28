@@ -1,7 +1,7 @@
 package common
 
 import (
-	"github.com/weaveworks/common/server"
+	"github.com/grafana/dskit/server"
 
 	fnet "github.com/grafana/agent/component/common/net"
 	"github.com/grafana/agent/converter/diag"

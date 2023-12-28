@@ -3,7 +3,6 @@ Unicode true
 # adds uninstall information to the registry for Add/Remove Programs
 
 !define APPNAME "Grafana Agent"
-!define DESCRIPTION "The Grafana Agent collects observability data and sends it to a compatible remote write endpoint"
 # These will be displayed by the "Click here for support information" link in "Add/Remove Programs"
 !define HELPURL "https://github.com/grafana/agent/discussions" # "Support Information" link
 !define UPDATEURL "https://github.com/grafana/agent/releases" # "Product Updates" link
@@ -109,7 +108,7 @@ Function Install
     writeUninstaller "$INSTDIR\uninstall.exe"
 
     # Registry information for add/remove programs
-    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}" "DisplayName" "${APPNAME} ${VERSION} - ${DESCRIPTION}"
+    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}" "DisplayName" "${APPNAME} ${VERSION}"
     WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}" "UninstallString" "$\"$INSTDIR\uninstall.exe$\""
     WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}" "QuietUninstallString" "$\"$INSTDIR\uninstall.exe$\" /S"
     WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}" "InstallLocation" "$\"$INSTDIR$\""
@@ -132,6 +131,9 @@ Function Install
     nsExec::ExecToLog 'sc config "Grafana Agent" start= auto binpath= "\"$INSTDIR\grafana-agent-windows-amd64.exe\" -config.file=\"$INSTDIR\agent-config.yaml\""'
     Pop $0
     nsExec::ExecToLog `sc start "Grafana Agent"`
+    Pop $0
+    # Auto-restart agent on failure. Reset failure counter after 60 seconds without failure
+    nsExec::ExecToLog `sc failure "Grafana Agent" reset= 60 actions= restart/5000 reboot= "Grafana Agent has failed. Restarting in 5 seconds"`
     Pop $0
 FunctionEnd
 

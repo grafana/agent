@@ -6,6 +6,7 @@ loki.source.windowsevent "fun" {
 	poll_interval          = "10s"
 	exclude_event_data     = true
 	exclude_user_data      = true
+	exclude_event_message  = true
 	use_incoming_timestamp = true
 	forward_to             = [loki.write.default.receiver]
 	labels                 = {

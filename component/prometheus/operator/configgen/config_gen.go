@@ -7,9 +7,11 @@ import (
 
 	k8sConfig "github.com/grafana/agent/component/common/kubernetes"
 	flow_relabel "github.com/grafana/agent/component/common/relabel"
+	"github.com/grafana/agent/component/prometheus/operator"
 	promopv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	commonConfig "github.com/prometheus/common/config"
 	"github.com/prometheus/common/model"
+	"github.com/prometheus/prometheus/config"
 	promk8s "github.com/prometheus/prometheus/discovery/kubernetes"
 	"github.com/prometheus/prometheus/model/relabel"
 )
@@ -18,6 +20,7 @@ type ConfigGenerator struct {
 	Client                   *k8sConfig.ClientArguments
 	Secrets                  SecretFetcher
 	AdditionalRelabelConfigs []*flow_relabel.Config
+	ScrapeOptions            operator.ScrapeOptions
 }
 
 var (
@@ -162,6 +165,24 @@ func (cg *ConfigGenerator) generateAuthorization(a promopv1.SafeAuthorization, n
 		auth.Credentials = commonConfig.Secret(creds)
 	}
 	return auth, nil
+}
+
+func (cg *ConfigGenerator) generateDefaultScrapeConfig() *config.ScrapeConfig {
+	opt := cg.ScrapeOptions
+
+	c := config.DefaultScrapeConfig
+	c.ScrapeInterval = config.DefaultGlobalConfig.ScrapeInterval
+	c.ScrapeTimeout = config.DefaultGlobalConfig.ScrapeTimeout
+
+	if opt.DefaultScrapeInterval != 0 {
+		c.ScrapeInterval = model.Duration(opt.DefaultScrapeInterval)
+	}
+
+	if opt.DefaultScrapeTimeout != 0 {
+		c.ScrapeTimeout = model.Duration(opt.DefaultScrapeTimeout)
+	}
+
+	return &c
 }
 
 type relabeler struct {

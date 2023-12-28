@@ -1,11 +1,19 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/otelcol.processor.span/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/otelcol.processor.span/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/otelcol.processor.span/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/otelcol.processor.span/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.processor.span/
+description: Learn about otelcol.processor.span
 labels:
-  stage: alpha
+  stage: experimental
 title: otelcol.processor.span
 ---
 
 # otelcol.processor.span
+
+{{< docs/shared lookup="flow/stability/experimental.md" source="agent" version="<AGENT_VERSION>" >}}
 
 `otelcol.processor.span` accepts traces telemetry data from other `otelcol`
 components and modifies the names and attributes of the spans.
@@ -183,23 +191,23 @@ with a non-empty value for a valid configuration.
 
 ### regexp block
 
-{{< docs/shared lookup="flow/reference/components/otelcol-filter-regexp-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/otelcol-filter-regexp-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### attribute block
 
-{{< docs/shared lookup="flow/reference/components/otelcol-filter-attribute-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/otelcol-filter-attribute-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### resource block
 
-{{< docs/shared lookup="flow/reference/components/otelcol-filter-resource-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/otelcol-filter-resource-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### library block
 
-{{< docs/shared lookup="flow/reference/components/otelcol-filter-library-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/otelcol-filter-library-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### output block
 
-{{< docs/shared lookup="flow/reference/components/output-block-traces.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/output-block-traces.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ## Exported fields
 
@@ -230,7 +238,7 @@ This example creates a new span name from the values of attributes `db.svc`,
 `operation`, and `id`, in that order, separated by the value `::`. 
 All attribute keys need to be specified in the span for the processor to rename it.
 
-```
+```river
 otelcol.processor.span "default" {
   name {
     separator        = "::"
@@ -243,9 +251,9 @@ otelcol.processor.span "default" {
 }
 ```
 
-For a span with the following attributes key/value pairs, the example
+For a span with the following attributes key/value pairs, the above
 Flow configuration will change the span name to `"location::get::1234"`:
-```
+```json
 { 
   "db.svc": "location", 
   "operation": "get", 
@@ -253,10 +261,10 @@ Flow configuration will change the span name to `"location::get::1234"`:
 }
 ```
 
-For a span with the following attributes key/value pairs, the example 
+For a span with the following attributes key/value pairs, the above 
 Flow configuration will not change the span name. 
 This is because the attribute key `operation` isn't set:
-```
+```json
 { 
   "db.svc": "location", 
   "id": "1234"
@@ -265,7 +273,7 @@ This is because the attribute key `operation` isn't set:
 
 ### Creating a new span name from attribute values (no separator)
 
-```
+```river
 otelcol.processor.span "default" {
   name {
     from_attributes = ["db.svc", "operation", "id"]
@@ -277,9 +285,9 @@ otelcol.processor.span "default" {
 }
 ```
 
-For a span with the following attributes key/value pairs, the example
+For a span with the following attributes key/value pairs, the above
 Flow configuration will change the span name to `"locationget1234"`:
-```
+```json
 { 
   "db.svc": "location", 
   "operation": "get", 
@@ -294,7 +302,7 @@ Example input and output using the Flow configuration below:
 2. The span name will be changed to `/api/v1/document/{documentId}/update`
 3. A new attribute `"documentId"="12345678"` will be added to the span.
 
-```
+```river
 otelcol.processor.span "default" {
   name {
     to_attributes {
@@ -317,7 +325,7 @@ if the span has the following properties:
 - The span name contains `/` anywhere in the string.
 - The span name is not `donot/change`.
 
-```
+```river
 otelcol.processor.span "default" {
   include {
     match_type = "regexp"
@@ -344,7 +352,7 @@ otelcol.processor.span "default" {
 
 This example changes the status of a span to "Error" and sets an error description.
 
-```
+```river
 otelcol.processor.span "default" {
   status {
     code        = "Error"
@@ -362,7 +370,7 @@ otelcol.processor.span "default" {
 This example sets the status to success only when attribute `http.status_code` 
 is equal to `400`.
 
-```
+```river
 otelcol.processor.span "default" {
   include {
     match_type = "strict"
@@ -380,3 +388,23 @@ otelcol.processor.span "default" {
   }
 }
 ```
+<!-- START GENERATED COMPATIBLE COMPONENTS -->
+
+## Compatible components
+
+`otelcol.processor.span` can accept arguments from the following components:
+
+- Components that export [OpenTelemetry `otelcol.Consumer`]({{< relref "../compatibility/#opentelemetry-otelcolconsumer-exporters" >}})
+
+`otelcol.processor.span` has exports that can be consumed by the following components:
+
+- Components that consume [OpenTelemetry `otelcol.Consumer`]({{< relref "../compatibility/#opentelemetry-otelcolconsumer-consumers" >}})
+
+{{% admonition type="note" %}}
+
+Connecting some components may not be sensible or components may require further configuration to make the 
+connection work correctly. Refer to the linked documentation for more details.
+
+{{% /admonition %}}
+
+<!-- END GENERATED COMPATIBLE COMPONENTS -->

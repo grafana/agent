@@ -13,6 +13,7 @@ import (
 	"github.com/grafana/agent/component/prometheus"
 	"github.com/grafana/agent/pkg/flow/componenttest"
 	"github.com/grafana/agent/pkg/util"
+	"github.com/grafana/agent/service/labelstore"
 	"github.com/grafana/river"
 	prom "github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/prometheus/model/labels"
@@ -23,16 +24,17 @@ import (
 )
 
 func TestCache(t *testing.T) {
+	lc := labelstore.New(nil, prom.DefaultRegisterer)
 	relabeller := generateRelabel(t)
 	lbls := labels.FromStrings("__address__", "localhost")
 	relabeller.relabel(0, lbls)
 	require.True(t, relabeller.cache.Len() == 1)
-	entry, found := relabeller.getFromCache(prometheus.GlobalRefMapping.GetOrAddGlobalRefID(lbls))
+	entry, found := relabeller.getFromCache(lc.GetOrAddGlobalRefID(lbls))
 	require.True(t, found)
 	require.NotNil(t, entry)
 	require.True(
 		t,
-		prometheus.GlobalRefMapping.GetOrAddGlobalRefID(entry.labels) != prometheus.GlobalRefMapping.GetOrAddGlobalRefID(lbls),
+		lc.GetOrAddGlobalRefID(entry.labels) != lc.GetOrAddGlobalRefID(lbls),
 	)
 }
 
@@ -42,13 +44,25 @@ func TestUpdateReset(t *testing.T) {
 	relabeller.relabel(0, lbls)
 	require.True(t, relabeller.cache.Len() == 1)
 	_ = relabeller.Update(Arguments{
+		CacheSize:            100000,
 		MetricRelabelConfigs: []*flow_relabel.Config{},
 	})
 	require.True(t, relabeller.cache.Len() == 0)
 }
 
+func TestValidator(t *testing.T) {
+	args := Arguments{CacheSize: 0}
+	err := args.Validate()
+	require.Error(t, err)
+
+	args.CacheSize = 1
+	err = args.Validate()
+	require.NoError(t, err)
+}
+
 func TestNil(t *testing.T) {
-	fanout := prometheus.NewInterceptor(nil, prometheus.WithAppendHook(func(ref storage.SeriesRef, _ labels.Labels, _ int64, _ float64, _ storage.Appender) (storage.SeriesRef, error) {
+	ls := labelstore.New(nil, prom.DefaultRegisterer)
+	fanout := prometheus.NewInterceptor(nil, ls, prometheus.WithAppendHook(func(ref storage.SeriesRef, _ labels.Labels, _ int64, _ float64, _ storage.Appender) (storage.SeriesRef, error) {
 		require.True(t, false)
 		return ref, nil
 	}))
@@ -57,6 +71,9 @@ func TestNil(t *testing.T) {
 		Logger:        util.TestFlowLogger(t),
 		OnStateChange: func(e component.Exports) {},
 		Registerer:    prom.NewRegistry(),
+		GetServiceData: func(name string) (interface{}, error) {
+			return labelstore.New(nil, prom.DefaultRegisterer), nil
+		},
 	}, Arguments{
 		ForwardTo: []storage.Appendable{fanout},
 		MetricRelabelConfigs: []*flow_relabel.Config{
@@ -66,6 +83,7 @@ func TestNil(t *testing.T) {
 				Action:       "drop",
 			},
 		},
+		CacheSize: 100000,
 	})
 	require.NotNil(t, relabeller)
 	require.NoError(t, err)
@@ -94,7 +112,8 @@ func TestLRUNaN(t *testing.T) {
 }
 
 func BenchmarkCache(b *testing.B) {
-	fanout := prometheus.NewInterceptor(nil, prometheus.WithAppendHook(func(ref storage.SeriesRef, l labels.Labels, _ int64, _ float64, _ storage.Appender) (storage.SeriesRef, error) {
+	ls := labelstore.New(nil, prom.DefaultRegisterer)
+	fanout := prometheus.NewInterceptor(nil, ls, prometheus.WithAppendHook(func(ref storage.SeriesRef, l labels.Labels, _ int64, _ float64, _ storage.Appender) (storage.SeriesRef, error) {
 		require.True(b, l.Has("new_label"))
 		return ref, nil
 	}))
@@ -122,7 +141,6 @@ func BenchmarkCache(b *testing.B) {
 
 	lbls := labels.FromStrings("__address__", "localhost")
 	app := entry.Appender(context.Background())
-
 	for i := 0; i < b.N; i++ {
 		app.Append(0, lbls, time.Now().UnixMilli(), 0)
 	}
@@ -130,7 +148,8 @@ func BenchmarkCache(b *testing.B) {
 }
 
 func generateRelabel(t *testing.T) *Component {
-	fanout := prometheus.NewInterceptor(nil, prometheus.WithAppendHook(func(ref storage.SeriesRef, l labels.Labels, _ int64, _ float64, _ storage.Appender) (storage.SeriesRef, error) {
+	ls := labelstore.New(nil, prom.DefaultRegisterer)
+	fanout := prometheus.NewInterceptor(nil, ls, prometheus.WithAppendHook(func(ref storage.SeriesRef, l labels.Labels, _ int64, _ float64, _ storage.Appender) (storage.SeriesRef, error) {
 		require.True(t, l.Has("new_label"))
 		return ref, nil
 	}))
@@ -139,6 +158,9 @@ func generateRelabel(t *testing.T) *Component {
 		Logger:        util.TestFlowLogger(t),
 		OnStateChange: func(e component.Exports) {},
 		Registerer:    prom.NewRegistry(),
+		GetServiceData: func(name string) (interface{}, error) {
+			return labelstore.New(nil, prom.DefaultRegisterer), nil
+		},
 	}, Arguments{
 		ForwardTo: []storage.Appendable{fanout},
 		MetricRelabelConfigs: []*flow_relabel.Config{
@@ -150,6 +172,7 @@ func generateRelabel(t *testing.T) *Component {
 				Action:       "replace",
 			},
 		},
+		CacheSize: 100_000,
 	})
 	require.NotNil(t, relabeller)
 	require.NoError(t, err)

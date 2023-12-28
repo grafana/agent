@@ -6,6 +6,7 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	"math/rand"
 	"net"
 	"net/http"
 	"strings"
@@ -13,8 +14,8 @@ import (
 	"time"
 
 	"github.com/go-kit/log"
-	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/grafana/agent/service"
 	http_service "github.com/grafana/agent/service/http"
 	"github.com/grafana/ckit"
@@ -23,6 +24,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
+	"go.opentelemetry.io/otel/trace/noop"
 	"golang.org/x/net/http2"
 )
 
@@ -56,9 +58,11 @@ type Options struct {
 	// possible for other nodes to join the cluster.
 	EnableClustering bool
 
-	NodeName         string        // Name to use for this node in the cluster.
-	AdvertiseAddress string        // Address to advertise to other nodes in the cluster.
-	RejoinInterval   time.Duration // How frequently to rejoin the cluster to address split brain issues.
+	NodeName            string        // Name to use for this node in the cluster.
+	AdvertiseAddress    string        // Address to advertise to other nodes in the cluster.
+	RejoinInterval      time.Duration // How frequently to rejoin the cluster to address split brain issues.
+	ClusterMaxJoinPeers int           // Number of initial peers to join from the discovered set.
+	ClusterName         string        // Name to prevent nodes without this identifier from joining the cluster.
 
 	// Function to discover peers to join. If this function is nil or returns an
 	// empty slice, no peers will be joined.
@@ -73,6 +77,7 @@ type Service struct {
 
 	sharder shard.Sharder
 	node    *ckit.Node
+	randGen *rand.Rand
 }
 
 var (
@@ -90,7 +95,7 @@ func New(opts Options) (*Service, error) {
 		l = log.NewNopLogger()
 	}
 	if t == nil {
-		t = trace.NewNoopTracerProvider()
+		t = noop.NewTracerProvider()
 	}
 
 	ckitConfig := ckit.Config{
@@ -98,6 +103,7 @@ func New(opts Options) (*Service, error) {
 		AdvertiseAddr: opts.AdvertiseAddress,
 		Log:           l,
 		Sharder:       shard.Ring(tokensPerNode),
+		Label:         opts.ClusterName,
 	}
 
 	httpClient := &http.Client{
@@ -136,6 +142,7 @@ func New(opts Options) (*Service, error) {
 
 		sharder: ckitConfig.Sharder,
 		node:    node,
+		randGen: rand.New(rand.NewSource(time.Now().UnixNano())),
 	}, nil
 }
 
@@ -210,21 +217,22 @@ func (s *Service) Run(ctx context.Context, host service.Host) error {
 		}
 		level.Info(s.log).Log("msg", "peers changed", "new_peers", strings.Join(names, ","))
 
-		// Notify dependant components about the clustering change.
-		for _, consumer := range host.GetServiceConsumers(ServiceName) {
+		// Notify all components about the clustering change.
+		components := component.GetAllComponents(host, component.InfoOptions{})
+		for _, component := range components {
 			if ctx.Err() != nil {
 				// Stop early if we exited so we don't do unnecessary work notifying
 				// consumers that do not need to be notified.
 				break
 			}
 
-			clusterComponent, ok := consumer.Value.(Component)
+			clusterComponent, ok := component.Component.(Component)
 			if !ok {
 				continue
 			}
 
 			_, span := tracer.Start(spanCtx, "NotifyClusterChange", trace.WithSpanKind(trace.SpanKindInternal))
-			span.SetAttributes(attribute.String("consumer_id", consumer.ID))
+			span.SetAttributes(attribute.String("component_id", component.ID.String()))
 
 			clusterComponent.NotifyClusterChange()
 
@@ -290,7 +298,22 @@ func (s *Service) getPeers() ([]string, error) {
 	if !s.opts.EnableClustering || s.opts.DiscoverPeers == nil {
 		return nil, nil
 	}
-	return s.opts.DiscoverPeers()
+
+	peers, err := s.opts.DiscoverPeers()
+	if err != nil {
+		return nil, err
+	}
+
+	// Here we return the entire list because we can't take a subset.
+	if s.opts.ClusterMaxJoinPeers == 0 || len(peers) < s.opts.ClusterMaxJoinPeers {
+		return peers, nil
+	}
+
+	// We shuffle the list and return only a subset of the peers.
+	s.randGen.Shuffle(len(peers), func(i, j int) {
+		peers[i], peers[j] = peers[j], peers[i]
+	})
+	return peers[:s.opts.ClusterMaxJoinPeers], nil
 }
 
 func (s *Service) stop() {
@@ -334,6 +357,13 @@ type Component interface {
 	NotifyClusterChange()
 }
 
+// ComponentBlock holds common arguments for clustering settings within a
+// component. ComponentBlock is intended to be exposed as a block called
+// "clustering".
+type ComponentBlock struct {
+	Enabled bool `river:"enabled,attr"`
+}
+
 // Cluster is a read-only view of a cluster.
 type Cluster interface {
 	// Lookup determines the set of replicationFactor owners for a given key.
@@ -349,7 +379,7 @@ type Cluster interface {
 	Peers() []peer.Peer
 }
 
-// sharderCluster shims an implmentation of [shard.Sharder] to [Cluster] which
+// sharderCluster shims an implementation of [shard.Sharder] to [Cluster] which
 // removes the ability to change peers.
 type sharderCluster struct{ sharder shard.Sharder }
 

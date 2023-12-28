@@ -1,11 +1,8 @@
 package mysql
 
 import (
-	"fmt"
-
 	"github.com/go-sql-driver/mysql"
 	"github.com/grafana/agent/component"
-	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/prometheus/exporter"
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/integrations/mysqld_exporter"
@@ -15,37 +12,17 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name:          "prometheus.exporter.mysql",
-		Args:          Arguments{},
-		Exports:       exporter.Exports{},
-		NeedsServices: exporter.RequiredServices(),
-		Build:         exporter.NewWithTargetBuilder(createExporter, "mysql", customizeTarget),
+		Name:    "prometheus.exporter.mysql",
+		Args:    Arguments{},
+		Exports: exporter.Exports{},
+
+		Build: exporter.New(createExporter, "mysql"),
 	})
 }
 
-func createExporter(opts component.Options, args component.Arguments) (integrations.Integration, error) {
+func createExporter(opts component.Options, args component.Arguments, defaultInstanceKey string) (integrations.Integration, string, error) {
 	a := args.(Arguments)
-	return a.Convert().NewIntegration(opts.Logger)
-}
-
-func customizeTarget(baseTarget discovery.Target, args component.Arguments) []discovery.Target {
-	a := args.(Arguments)
-	target := baseTarget
-
-	m, err := mysql.ParseDSN(string(a.DataSourceName))
-	if err != nil {
-		return []discovery.Target{target}
-	}
-
-	if m.Addr == "" {
-		m.Addr = "localhost:3306"
-	}
-	if m.Net == "" {
-		m.Net = "tcp"
-	}
-
-	target["instance"] = fmt.Sprintf("%s(%s)/%s", m.Net, m.Addr, m.DBName)
-	return []discovery.Target{target}
+	return integrations.NewIntegrationWithInstanceKey(opts.Logger, a.Convert(), defaultInstanceKey)
 }
 
 // DefaultArguments holds the default settings for the mysqld_exporter integration.
@@ -66,6 +43,9 @@ var DefaultArguments = Arguments{
 	PerfSchemaFileInstances: PerfSchemaFileInstances{
 		Filter:       ".*",
 		RemovePrefix: "/var/lib/mysql",
+	},
+	PerfSchemaMemoryEvents: PerfSchemaMemoryEvents{
+		RemovePrefix: "memory/",
 	},
 	Heartbeat: Heartbeat{
 		Database: "heartbeat",
@@ -95,8 +75,10 @@ type Arguments struct {
 	InfoSchemaTables           InfoSchemaTables           `river:"info_schema.tables,block,optional"`
 	PerfSchemaEventsStatements PerfSchemaEventsStatements `river:"perf_schema.eventsstatements,block,optional"`
 	PerfSchemaFileInstances    PerfSchemaFileInstances    `river:"perf_schema.file_instances,block,optional"`
-	Heartbeat                  Heartbeat                  `river:"heartbeat,block,optional"`
-	MySQLUser                  MySQLUser                  `river:"mysql.user,block,optional"`
+	PerfSchemaMemoryEvents     PerfSchemaMemoryEvents     `river:"perf_schema.memory_events,block,optional"`
+
+	Heartbeat Heartbeat `river:"heartbeat,block,optional"`
+	MySQLUser MySQLUser `river:"mysql.user,block,optional"`
 }
 
 // InfoSchemaProcessList configures the info_schema.processlist collector
@@ -121,6 +103,11 @@ type PerfSchemaEventsStatements struct {
 // PerfSchemaFileInstances configures the perf_schema.file_instances collector
 type PerfSchemaFileInstances struct {
 	Filter       string `river:"filter,attr,optional"`
+	RemovePrefix string `river:"remove_prefix,attr,optional"`
+}
+
+// PerfSchemaMemoryEvents configures the perf_schema.memory_events collector
+type PerfSchemaMemoryEvents struct {
 	RemovePrefix string `river:"remove_prefix,attr,optional"`
 }
 
@@ -167,6 +154,7 @@ func (a *Arguments) Convert() *mysqld_exporter.Config {
 		PerfSchemaEventsStatementsTextLimit:  a.PerfSchemaEventsStatements.TextLimit,
 		PerfSchemaFileInstancesFilter:        a.PerfSchemaFileInstances.Filter,
 		PerfSchemaFileInstancesRemovePrefix:  a.PerfSchemaFileInstances.RemovePrefix,
+		PerfSchemaMemoryEventsRemovePrefix:   a.PerfSchemaMemoryEvents.RemovePrefix,
 		HeartbeatDatabase:                    a.Heartbeat.Database,
 		HeartbeatTable:                       a.Heartbeat.Table,
 		HeartbeatUTC:                         a.Heartbeat.UTC,

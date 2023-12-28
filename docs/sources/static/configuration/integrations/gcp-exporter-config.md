@@ -1,7 +1,10 @@
 ---
 aliases:
 - ../../../configuration/integrations/gcp-exporter-config/
+- /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/integrations/gcp-exporter-config/
+- /docs/grafana-cloud/send-data/agent/static/configuration/integrations/gcp-exporter-config/
 canonical: https://grafana.com/docs/agent/latest/static/configuration/integrations/gcp-exporter-config/
+description: Learn about gcp_exporter_config
 title: gcp_exporter_config
 ---
 
@@ -140,7 +143,7 @@ Since the exporter gathers all of its data from [GCP monitoring APIs](https://cl
 
 ## Configuration Examples
 
-The following examples show working configurations. See the [Configuration Reference](#config-reference) for a full
+The following examples show working configurations. See the [Configuration Reference](#configuration-reference) for a full
 overview of the configuration options and what they do.
 
 ### Multiple prefixes

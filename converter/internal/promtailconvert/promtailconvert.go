@@ -14,6 +14,7 @@ import (
 	"github.com/grafana/loki/clients/pkg/promtail/limit"
 	"github.com/grafana/loki/clients/pkg/promtail/positions"
 	"github.com/grafana/loki/clients/pkg/promtail/scrapeconfig"
+	"github.com/grafana/loki/clients/pkg/promtail/targets/file"
 	lokicfgutil "github.com/grafana/loki/pkg/util/cfg"
 	"github.com/grafana/river/token/builder"
 	"gopkg.in/yaml.v2"
@@ -32,11 +33,19 @@ func (c *Config) Clone() flagext.Registerer {
 }
 
 // Convert implements a Promtail config converter.
-func Convert(in []byte) ([]byte, diag.Diagnostics) {
+//
+// extraArgs are supported to mirror the other converter params due to shared
+// testing code but they should be passed empty to this converter.
+func Convert(in []byte, extraArgs []string) ([]byte, diag.Diagnostics) {
 	var (
 		diags diag.Diagnostics
 		cfg   Config
 	)
+
+	if len(extraArgs) > 0 {
+		diags.Add(diag.SeverityLevelCritical, fmt.Sprintf("extra arguments are not supported for the promtail converter: %s", extraArgs))
+		return nil, diags
+	}
 
 	// Set default values first.
 	flagSet := flag.NewFlagSet("", flag.PanicOnError)
@@ -99,7 +108,7 @@ func AppendAll(f *builder.File, cfg *promtailcfg.Config, labelPrefix string, dia
 	}
 
 	for _, sc := range cfg.ScrapeConfig {
-		appendScrapeConfig(f, &sc, &diags, gc)
+		appendScrapeConfig(f, &sc, &diags, gc, &cfg.Global.FileWatch)
 	}
 
 	for _, write := range writeBlocks {
@@ -127,29 +136,22 @@ func appendScrapeConfig(
 	cfg *scrapeconfig.Config,
 	diags *diag.Diagnostics,
 	gctx *build.GlobalContext,
+	watchConfig *file.WatchConfig,
 ) {
 
 	b := build.NewScrapeConfigBuilder(f, diags, cfg, gctx)
-	b.Validate()
 	b.Sanitize()
 
 	// Append all the SD components
-	b.AppendKubernetesSDs()
-	b.AppendDockerSDs()
-	b.AppendStaticSDs()
-	b.AppendFileSDs()
-	b.AppendConsulSDs()
+	b.AppendSDs()
+	// ConsulAgent does not come from Prometheus but only from Promtail.
 	b.AppendConsulAgentSDs()
-	b.AppendDigitalOceanSDs()
-	b.AppendGCESDs()
-	b.AppendEC2SDs()
-	b.AppendAzureSDs()
 
 	// Append loki.source.file to process all SD components' targets.
 	// If any relabelling is required, it will be done via a discovery.relabel component.
 	// The files will be watched and the globs in file paths will be expanded using discovery.file component.
 	// The log entries are sent to loki.process if processing is needed, or directly to loki.write components.
-	b.AppendLokiSourceFile()
+	b.AppendLokiSourceFile(watchConfig)
 
 	// Append all the components that produce logs directly.
 	// If any relabelling is required, it will be done via a loki.relabel component.
@@ -164,4 +166,7 @@ func appendScrapeConfig(
 	b.AppendAzureEventHubs()
 	b.AppendGelfConfig()
 	b.AppendHerokuDrainConfig()
+
+	// Docker has a special treatment in Promtail, we replicate it here.
+	b.AppendDockerPipeline()
 }

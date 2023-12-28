@@ -38,7 +38,7 @@ func TestConfig_ToScrapeSettings(t *testing.T) {
 		MetricTemplate:  "name_template_me",
 		HelpTemplate:    "help_template_me",
 
-		//Should not be set
+		// Should not be set
 		Name:          "",
 		MetricTop:     nil,
 		MetricFilter:  "",
@@ -177,6 +177,14 @@ func TestConfig_Validate(t *testing.T) {
 				return config
 			},
 		},
+		{
+			name: "includes Regions and ResourceGraphQueryFilter",
+			toInvalidConfig: func(config azure_exporter.Config) azure_exporter.Config {
+				config.ResourceGraphQueryFilter = "filter the resources"
+				config.Regions = []string{"uswest", "useast"}
+				return config
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -193,7 +201,7 @@ func TestMergeConfigWithQueryParams_MapsAllExpectedFieldsByYamlNameFromConfig(t 
 	var mappableFields []reflect.StructField
 	for i := 0; i < thing.NumField(); i++ {
 		field := thing.Field(i)
-		//Not available to be mapped via query param
+		// Not available to be mapped via query param
 		if field.Name == "AzureCloudEnvironment" {
 			continue
 		}
@@ -216,6 +224,9 @@ func TestMergeConfigWithQueryParams_MapsAllExpectedFieldsByYamlNameFromConfig(t 
 				value := []string{"fake string 1", "fake string 2"}
 				fieldValue = value
 				urlParams[yamlFieldName] = value
+			case "bool":
+				urlParams[yamlFieldName] = []string{"false"}
+				fieldValue = false
 			default:
 				t.Fatalf("Attempting to map %s, discovered unexpected type %s", mappableField.Name, mappableField.Type.String())
 			}
@@ -223,7 +234,8 @@ func TestMergeConfigWithQueryParams_MapsAllExpectedFieldsByYamlNameFromConfig(t 
 			expectedConfig := &azure_exporter.Config{}
 			reflect.ValueOf(expectedConfig).Elem().FieldByName(mappableField.Name).Set(reflect.ValueOf(fieldValue))
 
-			actualConfig := azure_exporter.MergeConfigWithQueryParams(azure_exporter.Config{}, urlParams)
+			actualConfig, err := azure_exporter.MergeConfigWithQueryParams(azure_exporter.Config{}, urlParams)
+			require.NoError(t, err)
 			require.Equal(t, *expectedConfig, actualConfig)
 		})
 	}

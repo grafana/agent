@@ -1,11 +1,13 @@
 ---
-canonical: https://grafana.com/docs/agent/latest/static/release-notes/
-description: Release notes for Grafana Agent static mode
-title: Release notes for Grafana Agent static mode
-menuTitle: Release notes
 aliases:
 - ../upgrade-guide/
 - ./upgrade-guide/
+- /docs/grafana-cloud/monitor-infrastructure/agent/static/release-notes/
+- /docs/grafana-cloud/send-data/agent/static/release-notes/
+canonical: https://grafana.com/docs/agent/latest/static/release-notes/
+description: Release notes for Grafana Agent static mode
+menuTitle: Release notes
+title: Release notes
 weight: 999
 ---
 
@@ -15,26 +17,79 @@ The release notes provide information about deprecations and breaking changes in
 
 For a complete list of changes to Grafana Agent, with links to pull requests and related issues when available, refer to the [Changelog](https://github.com/grafana/agent/blob/main/CHANGELOG.md).
 
-> **Note:** These release notes are specific to Grafana Agent static mode. 
+> **Note:** These release notes are specific to Grafana Agent static mode.
 > Other release notes for the different Grafana Agent variants are contained on separate pages:
 >
 > * [Static mode Kubernetes operator release notes][release-notes-operator]
 > * [Flow mode release notes][release-notes-flow]
 
 {{% docs/reference %}}
-[release-notes-operator]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/operator/release-notes"
+[release-notes-operator]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/operator/release-notes"
 [release-notes-operator]: "/docs/grafana-cloud/ -> ../operator/release-notes"
-[release-notes-flow]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/flow/release-notes"
-[release-notes-flow]: "/docs/grafana-cloud/ -> ../flow/release-notes"
+
+[release-notes-flow]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/release-notes"
+[release-notes-flow]: "/docs/grafana-cloud/ -> /docs/agent/<AGENT_VERSION>/flow/release-notes"
+
+[Modules]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/modules"
+[Modules]: "/docs/grafana-cloud/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/modules"
 {{% /docs/reference %}}
+
+## v0.38
+
+### Breaking change: support for exporting Jaeger traces removed
+
+The deprecated support for exporting Jaeger-formatted traces has been removed.
+To send traces to Jaeger, export OTLP-formatted data to a version of Jaeger
+that supports OTLP.
+
+## v0.37
+
+### Breaking change: The default value of `retry_on_http_429` is overriden to `true` for the `queue_config` in `remote_write` in `metrics` config.
+
+{{% admonition type="note" %}}
+The default set by Grafana Agent Static Mode is different than the default set by Prometheus.
+{{% /admonition %}}
+
+The Prometheus default value for `retry_on_http_429` is set to `true` for the `queue_config` in `remote_write`.
+This changed default setting allows the agent to retry sending data when it receives an HTTP 429 error and helps avoid losing data in metric pipelines.
+
+* If you explicitly set the `retry_on_http_429`, no action is required.
+* If you do not explicitly set `retry_on_http_429` and you do *not* want to retry on HTTP 429, make sure you set it to `false` when you upgrade to this new version.
+
+### Breaking change: Renamed `non_indexed_labels` Loki processing stage to `structured_metadata`.
+
+If you use the Loki processing stage in your Agent configuration, you must rename the `non_indexed_labels` pipeline stage definition to `structured_metadata`.
+
+
+Old configuration example:
+
+```yaml
+  pipeline_stages:
+    - logfmt:
+        mapping:
+          app:
+    - non_indexed_labels:
+        app:
+```
+
+New configuration example:
+
+```yaml
+  pipeline_stages:
+    - logfmt:
+        mapping:
+          app:
+    - structured_metadata:
+        app:
+```
 
 ## v0.35
 
 ### Breaking change: Jaeger remote sampling no longer configurable using the Jaeger receiver
 
-Jaeger remote sampling used to be configured using the Jaeger receiver configuration. This receiver was updated to a new version, where support for remote sampling in the receiver was removed. 
+Jaeger remote sampling used to be configured using the Jaeger receiver configuration. This receiver was updated to a new version, where support for remote sampling in the receiver was removed.
 
-Jaeger remote sampling is available as a separate configuration field starting in v0.35.3.  
+Jaeger remote sampling is available as a separate configuration field starting in v0.35.3.
 
 Old configuration example:
 
@@ -59,7 +114,7 @@ jaeger_remote_sampling:
 
 ### Breaking change: `auth` and `version` attributes from `walk_params` block of SNMP integration have been removed
 
-The SNMP integrations (both v1 and v2) wrap a new version of SNMP exporter which introduces a new configuration file format. 
+The SNMP integrations (both v1 and v2) wrap a new version of SNMP exporter which introduces a new configuration file format.
 This new format separates the walk and metric mappings from the connection and authentication settings. This allows for easier configuration of different
 auth params without having to duplicate the full walk and metric mapping.
 
@@ -99,7 +154,7 @@ See [Module and Auth Split Migration](https://github.com/prometheus/snmp_exporte
 ### Removal of Dynamic Configuration
 
 The experimental feature Dynamic Configuration has been removed. The use case of dynamic configuration will be replaced
-with [Modules](../../concepts/modules/) in Grafana Agent Flow.
+with [Modules][] in Grafana Agent Flow.
 
 ### Breaking change: Removed and renamed tracing metrics
 
@@ -140,7 +195,7 @@ use the new binaries that are prefixed with `/bin/grafana*`.
 
 ### Deprecation of Dynamic Configuration
 
-[Dynamic Configuration](https://grafana.com/docs/agent/v0.33/cookbook/dynamic-configuration/) will be removed in v0.34.
+[Dynamic Configuration](/docs/agent/v0.33/cookbook/dynamic-configuration/) will be removed in v0.34.
 The use case of dynamic configuration will be replaced with Modules in Grafana Agent Flow.
 
 ## v0.32

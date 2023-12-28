@@ -1,6 +1,6 @@
 package kafkatarget
 
-// This code is copied from Promtail. The kafkatarget package is used to
+// This code is copied from Promtail (https://github.com/grafana/loki/commit/065bee7e72b00d800431f4b70f0d673d6e0e7a2b). The kafkatarget package is used to
 // configure and run the targets that can read kafka entries and forward them
 // to other loki components.
 
@@ -8,10 +8,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Shopify/sarama"
+	"github.com/IBM/sarama"
 	"github.com/go-kit/log"
-	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component/common/loki"
+	"github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/grafana/loki/clients/pkg/promtail/targets/target"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/model/labels"
@@ -68,6 +68,7 @@ func NewKafkaTarget(
 const (
 	defaultKafkaMessageKey  = "none"
 	labelKeyKafkaMessageKey = "__meta_kafka_message_key"
+	labelKeyKafkaOffset     = "__meta_kafka_message_offset"
 )
 
 func (t *KafkaTarget) run() {
@@ -80,10 +81,10 @@ func (t *KafkaTarget) run() {
 
 		// TODO: Possibly need to format after merging with discovered labels because we can specify multiple labels in source labels
 		// https://github.com/grafana/loki/pull/4745#discussion_r750022234
-		lbs := format([]labels.Label{{
-			Name:  labelKeyKafkaMessageKey,
-			Value: mk,
-		}}, t.relabelConfig)
+		lbs := format([]labels.Label{
+			{Name: labelKeyKafkaMessageKey, Value: mk},
+			{Name: labelKeyKafkaOffset, Value: fmt.Sprintf("%v", message.Offset)},
+		}, t.relabelConfig)
 
 		out := t.lbs.Clone()
 		if len(lbs) > 0 {

@@ -121,6 +121,12 @@ metrics:
     values: [virtual_memory_bytes]
     query_ref: mssql_process_memory
 
+  - metric_name: mssql_available_commit_memory_bytes
+    type: gauge
+    help: 'SQL Server available to be committed memory size.'
+    values: [available_commit_limit_bytes]
+    query_ref: mssql_process_memory
+
   - metric_name: mssql_memory_utilization_percentage
     type: gauge
     help: 'The percentage of committed memory that is in the working set.'
@@ -132,6 +138,21 @@ metrics:
     help: 'The number of page faults that were incurred by the SQL Server process.'
     values: [page_fault_count]
     query_ref: mssql_process_memory
+
+  #
+  # Collected from sys.dm_os_sys_info
+  #
+  - metric_name: mssql_server_total_memory_bytes
+    type: gauge
+    help: 'SQL Server committed memory in the memory manager.'
+    values: [committed_memory_bytes]
+    query_ref: mssql_os_sys_info
+
+  - metric_name: mssql_server_target_memory_bytes
+    type: gauge
+    help: 'SQL Server target committed memory set for the memory manager.'
+    values: [committed_memory_target_bytes]
+    query_ref: mssql_os_sys_info
 
   #
   # Collected from sys.dm_os_sys_memory
@@ -168,13 +189,21 @@ queries:
         sys.dm_io_virtual_file_stats(null, null) a
       INNER JOIN sys.master_files b ON a.database_id = b.database_id AND a.file_id = b.file_id
       GROUP BY a.database_id
-  # Populates `mssql_resident_memory_bytes`, `mssql_virtual_memory_bytes`, `mssql_memory_utilization_percentage` and
-  # `mssql_page_fault_count`.
+  # Populates `mssql_resident_memory_bytes`, `mssql_virtual_memory_bytes`, mssql_available_commit_memory_bytes,
+  # and `mssql_memory_utilization_percentage`, and `mssql_page_fault_count_total`
   - query_name: mssql_process_memory
     query: |
       SELECT
         physical_memory_in_use_kb * 1024 AS resident_memory_bytes,
         virtual_address_space_committed_kb * 1024 AS virtual_memory_bytes,
+        available_commit_limit_kb * 1024 AS available_commit_limit_bytes,
         memory_utilization_percentage,
         page_fault_count
       FROM sys.dm_os_process_memory
+  # Populates `mssql_server_total_memory_bytes` and `mssql_server_target_memory_bytes`.
+  - query_name: mssql_os_sys_info
+    query: |
+      SELECT
+        committed_kb * 1024 AS committed_memory_bytes,
+        committed_target_kb * 1024 AS committed_memory_target_bytes
+      FROM sys.dm_os_sys_info

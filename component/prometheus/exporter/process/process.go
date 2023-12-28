@@ -10,17 +10,17 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name:          "prometheus.exporter.process",
-		Args:          Arguments{},
-		Exports:       exporter.Exports{},
-		NeedsServices: exporter.RequiredServices(),
-		Build:         exporter.New(createIntegration, "process"),
+		Name:    "prometheus.exporter.process",
+		Args:    Arguments{},
+		Exports: exporter.Exports{},
+
+		Build: exporter.New(createIntegration, "process"),
 	})
 }
 
-func createIntegration(opts component.Options, args component.Arguments) (integrations.Integration, error) {
+func createIntegration(opts component.Options, args component.Arguments, defaultInstanceKey string) (integrations.Integration, string, error) {
 	a := args.(Arguments)
-	return a.Convert().NewIntegration(opts.Logger)
+	return integrations.NewIntegrationWithInstanceKey(opts.Logger, a.Convert(), defaultInstanceKey)
 }
 
 // DefaultArguments holds the default arguments for the prometheus.exporter.process

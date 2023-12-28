@@ -13,6 +13,7 @@ import (
 	"github.com/grafana/agent/pkg/util"
 	"github.com/grafana/agent/service/cluster"
 	http_service "github.com/grafana/agent/service/http"
+	"github.com/grafana/agent/service/labelstore"
 	"github.com/grafana/ckit/memconn"
 	"github.com/grafana/river"
 	prometheus_client "github.com/prometheus/client_golang/prometheus"
@@ -85,7 +86,8 @@ func TestForwardingToAppendable(t *testing.T) {
 
 			case cluster.ServiceName:
 				return cluster.Mock(), nil
-
+			case labelstore.ServiceName:
+				return labelstore.New(nil, prometheus_client.DefaultRegisterer), nil
 			default:
 				return nil, fmt.Errorf("service %q does not exist", name)
 			}
@@ -112,7 +114,8 @@ func TestForwardingToAppendable(t *testing.T) {
 	// Update the component with a mock receiver; it should be passed along to the Appendable.
 	var receivedTs int64
 	var receivedSamples labels.Labels
-	fanout := prometheus.NewInterceptor(nil, prometheus.WithAppendHook(func(ref storage.SeriesRef, l labels.Labels, t int64, _ float64, _ storage.Appender) (storage.SeriesRef, error) {
+	ls := labelstore.New(nil, prometheus_client.DefaultRegisterer)
+	fanout := prometheus.NewInterceptor(nil, ls, prometheus.WithAppendHook(func(ref storage.SeriesRef, l labels.Labels, t int64, _ float64, _ storage.Appender) (storage.SeriesRef, error) {
 		receivedTs = t
 		receivedSamples = l
 		return ref, nil
@@ -189,6 +192,8 @@ func TestCustomDialer(t *testing.T) {
 
 			case cluster.ServiceName:
 				return cluster.Mock(), nil
+			case labelstore.ServiceName:
+				return labelstore.New(nil, prometheus_client.DefaultRegisterer), nil
 
 			default:
 				return nil, fmt.Errorf("service %q does not exist", name)
@@ -203,4 +208,17 @@ func TestCustomDialer(t *testing.T) {
 	// Wait for our scrape to be invoked.
 	err = scrapeTrigger.Wait(1 * time.Minute)
 	require.NoError(t, err, "custom dialer was not used")
+}
+
+func TestValidateScrapeConfig(t *testing.T) {
+	var exampleRiverConfig = `
+	targets         = [{ "target1" = "target1" }]
+	forward_to      = []
+	scrape_interval = "10s"
+	scrape_timeout  = "20s"
+	job_name        = "local"
+`
+	var args Arguments
+	err := river.Unmarshal([]byte(exampleRiverConfig), &args)
+	require.ErrorContains(t, err, "scrape_timeout (20s) greater than scrape_interval (10s) for scrape config with job name \"local\"")
 }

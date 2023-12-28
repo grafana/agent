@@ -14,7 +14,7 @@ import (
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
 	"go.opentelemetry.io/otel/sdk/resource"
 	tracesdk "go.opentelemetry.io/otel/sdk/trace"
-	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
+	semconv "go.opentelemetry.io/otel/semconv/v1.21.0"
 	"go.opentelemetry.io/otel/trace"
 )
 
@@ -76,6 +76,7 @@ func (opts *JaegerRemoteSamplerOptions) SetToDefault() {
 // [trace.TracerProvider] and can be used to forward internally generated
 // traces to a OpenTelemetry Collector-compatible Flow component.
 type Tracer struct {
+	trace.TracerProvider
 	sampler *lazySampler
 	client  *client
 	exp     *otlptrace.Exporter

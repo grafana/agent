@@ -207,11 +207,17 @@ func (l Log) KeyVal() *KeyVal {
 	return kv
 }
 
+// MeasurementContext is a string to string map structure that
+// represents the context of a log message
+type MeasurementContext map[string]string
+
 // Measurement holds the data for user provided measurements
 type Measurement struct {
+	Type      string             `json:"type,omitempty"`
 	Values    map[string]float64 `json:"values,omitempty"`
 	Timestamp time.Time          `json:"timestamp,omitempty"`
 	Trace     TraceContext       `json:"trace,omitempty"`
+	Context   MeasurementContext `json:"context,omitempty"`
 }
 
 // KeyVal representation of the exception object
@@ -230,6 +236,7 @@ func (m Measurement) KeyVal() *KeyVal {
 		KeyValAdd(kv, k, fmt.Sprintf("%f", m.Values[k]))
 	}
 	MergeKeyVal(kv, m.Trace.KeyVal())
+	MergeKeyValWithPrefix(kv, KeyValFromMap(m.Context), "context_")
 	return kv
 }
 

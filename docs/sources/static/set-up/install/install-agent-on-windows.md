@@ -2,7 +2,10 @@
 aliases:
 - ../../set-up/install-agent-on-windows/
 - ../set-up/install-agent-on-windows/
+- /docs/grafana-cloud/monitor-infrastructure/agent/static/set-up/install/install-agent-on-windows/
+- /docs/grafana-cloud/send-data/agent/static/set-up/install/install-agent-on-windows/
 canonical: https://grafana.com/docs/agent/latest/static/set-up/install/install-agent-on-windows/
+description: Learn how to install Grafana Agent in static mode on Windows
 menuTitle: Windows
 title: Install Grafana Agent in static mode on Windows
 weight: 600
@@ -27,7 +30,7 @@ To do a standard graphical install of Grafana Agent on Windows, perform the foll
 1. Double-click on `grafana-agent-installer.exe` to install Grafana Agent.
 
    Grafana Agent is installed into the default directory `C:\Program Files\Grafana Agent`.
-   The [windows_exporter integration](https://grafana.com/docs/agent/latest/static/configuration/integrations/windows-exporter-config) can be enabled with all default windows_exporter options.
+   The [windows_exporter integration](/docs/agent/latest/static/configuration/integrations/windows-exporter-config) can be enabled with all default windows_exporter options.
 
 ## Silent install
 
@@ -108,7 +111,7 @@ Grafana Agent can also be silently uninstalled by running `uninstall.exe /S` as 
 
 ## Push Windows logs to Grafana Loki
 
-Grafana Agent can use the embedded [promtail](https://grafana.com/docs/loki/latest/clients/promtail/) to push Windows Event Logs to [Grafana Loki](https://github.com/grafana/loki). Example configuration below:
+Grafana Agent can use the embedded [promtail](/docs/loki/latest/clients/promtail/) to push Windows Event Logs to [Grafana Loki](https://github.com/grafana/loki). Example configuration below:
 
 ```yaml
 server:
@@ -135,16 +138,16 @@ logs:
             job: windows
 ```
 
-Refer to [windows_events](https://grafana.com/docs/loki/latest/clients/promtail/configuration/#windows_events) for additional configuration details.
+Refer to [windows_events](/docs/loki/latest/clients/promtail/configuration/#windows_events) for additional configuration details.
 
 ## Next steps
 
 - [Start Grafana Agent][start]
-- [Configure Grafana Agent][[configure]]
+- [Configure Grafana Agent][configure]
 
 {{% docs/reference %}}
-[start]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/set-up/start-agent"
+[start]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static/set-up/start-agent"
 [start]: "/docs/grafana-cloud/ -> ../start-agent"
-[configure]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/configuration/create-config-file"
+[configure]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static/configuration/create-config-file"
 [configure]: "/docs/grafana-cloud/ -> ../../configuration/create-config-file"
 {{% /docs/reference %}}

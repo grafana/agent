@@ -3,26 +3,24 @@ package git
 
 import (
 	"context"
+	"errors"
 	"path/filepath"
 	"reflect"
 	"sync"
 	"time"
 
 	"github.com/go-kit/log"
-	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/module"
 	"github.com/grafana/agent/component/module/git/internal/vcs"
-	"github.com/grafana/agent/service/cluster"
-	"github.com/grafana/agent/service/http"
+	"github.com/grafana/agent/pkg/flow/logging/level"
 )
 
 func init() {
 	component.Register(component.Registration{
-		Name:          "module.git",
-		Args:          Arguments{},
-		Exports:       module.Exports{},
-		NeedsServices: []string{http.ServiceName, cluster.ServiceName},
+		Name:    "module.git",
+		Args:    Arguments{},
+		Exports: module.Exports{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			return New(opts, args.(Arguments))
@@ -89,8 +87,15 @@ func New(o component.Options, args Arguments) (*Component, error) {
 		argsChanged: make(chan struct{}, 1),
 	}
 
+	// Only acknowledge the error from Update if it's not a
+	// vcs.UpdateFailedError; vcs.UpdateFailedError means that the Git repo
+	// exists but we were just unable to update it.
 	if err := c.Update(args); err != nil {
-		return nil, err
+		if errors.As(err, &vcs.UpdateFailedError{}) {
+			level.Error(c.log).Log("msg", "failed to update repository", "err", err)
+		} else {
+			return nil, err
+		}
 	}
 	return c, nil
 }
@@ -191,10 +196,16 @@ func (c *Component) Update(args component.Arguments) (err error) {
 	}
 
 	// Create or update the repo field.
+	// Failure to update repository makes the module loader temporarily use cached contents on disk
 	if c.repo == nil || !reflect.DeepEqual(repoOpts, c.repoOpts) {
 		r, err := vcs.NewGitRepo(context.Background(), repoPath, repoOpts)
 		if err != nil {
-			return err
+			if errors.As(err, &vcs.UpdateFailedError{}) {
+				level.Error(c.log).Log("msg", "failed to update repository", "err", err)
+				c.updateHealth(err)
+			} else {
+				return err
+			}
 		}
 		c.repo = r
 		c.repoOpts = repoOpts
@@ -228,7 +239,7 @@ func (c *Component) pollFile(ctx context.Context, args Arguments) error {
 		return err
 	}
 
-	return c.mod.LoadFlowContent(args.Arguments, string(bb))
+	return c.mod.LoadFlowSource(args.Arguments, string(bb))
 }
 
 // CurrentHealth implements component.HealthComponent.

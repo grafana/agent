@@ -5,6 +5,7 @@ package syslogtarget
 // to other loki components.
 
 import (
+	"bytes"
 	"context"
 	"crypto/tls"
 	"crypto/x509"
@@ -20,7 +21,7 @@ import (
 	"github.com/mwitkow/go-conntrack"
 
 	"github.com/go-kit/log"
-	"github.com/go-kit/log/level"
+	"github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/influxdata/go-syslog/v3"
 	"github.com/prometheus/common/config"
 	"github.com/prometheus/prometheus/model/labels"
@@ -155,10 +156,7 @@ func NewConnPipe(addr net.Addr) *ConnPipe {
 }
 
 func (pipe *ConnPipe) Close() error {
-	if err := pipe.PipeWriter.Close(); err != nil {
-		return err
-	}
-	return nil
+	return pipe.PipeWriter.Close()
 }
 
 type TCPTransport struct {
@@ -433,16 +431,32 @@ func (t *UDPTransport) handleRcv(c *ConnPipe) {
 	defer t.openConnections.Done()
 
 	lbs := t.connectionLabels(c.addr.String())
-	err := syslogparser.ParseStream(c, func(result *syslog.Result) {
-		if err := result.Error; err != nil {
-			t.handleMessageError(err)
-		} else {
-			t.handleMessage(lbs.Copy(), result.Message)
-		}
-	}, t.maxMessageLength())
 
-	if err != nil {
-		level.Warn(t.logger).Log("msg", "error parsing syslog stream", "err", err)
+	for {
+		datagram := make([]byte, t.maxMessageLength())
+		n, err := c.Read(datagram)
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+
+			level.Warn(t.logger).Log("msg", "error reading from pipe", "err", err)
+			continue
+		}
+
+		r := bytes.NewReader(datagram[:n])
+
+		err = syslogparser.ParseStream(r, func(result *syslog.Result) {
+			if err := result.Error; err != nil {
+				t.handleMessageError(err)
+			} else {
+				t.handleMessage(lbs.Copy(), result.Message)
+			}
+		}, t.maxMessageLength())
+
+		if err != nil {
+			level.Warn(t.logger).Log("msg", "error parsing syslog stream", "err", err)
+		}
 	}
 }
 

@@ -1,9 +1,16 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/prometheus.exporter.process/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/prometheus.exporter.process/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/prometheus.exporter.process/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/prometheus.exporter.process/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.process/
+description: Learn about prometheus.exporter.process
 title: prometheus.exporter.process
 ---
 
 # prometheus.exporter.process
+
 The `prometheus.exporter.process` component embeds
 [process_exporter](https://github.com/ncabatoff/process-exporter) for collecting process stats from `/proc`.
 
@@ -15,43 +22,47 @@ prometheus.exporter.process "LABEL" {
 ```
 
 ## Arguments
+
 The following arguments can be used to configure the exporter's behavior.
 All arguments are optional. Omitted fields take their default values.
 
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`procfs_path`       | `string`                 | procfs mountpoint. | `/proc` | no
-`track_children`    | `bool`                   | Whether to track a process' children. | `true` | no
-`track_threads`     | `bool`                   | Report metrics for a process' individual threads.  | `true` | no
-`gather_smaps`      | `bool`                   | Gather metrics from the smaps file for a process. | `true` | no
-`recheck_on_scrape` | `bool`                   | Recheck process names on each scrape. | `true` | no
+| Name                | Type     | Description                                       | Default | Required |
+| ------------------- | -------- | ------------------------------------------------- | ------- | -------- |
+| `procfs_path`       | `string` | procfs mountpoint.                                | `/proc` | no       |
+| `track_children`    | `bool`   | Whether to track a process' children.             | `true`  | no       |
+| `track_threads`     | `bool`   | Report metrics for a process' individual threads. | `true`  | no       |
+| `gather_smaps`      | `bool`   | Gather metrics from the smaps file for a process. | `true`  | no       |
+| `recheck_on_scrape` | `bool`   | Recheck process names on each scrape.             | `true`  | no       |
 
 ## Blocks
+
 The following blocks are supported inside the definition of `prometheus.exporter.process`:
 
-Hierarchy        | Block      | Description | Required
----------------- | ---------- | ----------- | --------
-matcher          | [matcher][]  | A collection of matching rules to use for deciding which processes to monitor. | no
+| Hierarchy | Block       | Description                                                                    | Required |
+| --------- | ----------- | ------------------------------------------------------------------------------ | -------- |
+| matcher   | [matcher][] | A collection of matching rules to use for deciding which processes to monitor. | no       |
 
 [matcher]: #matcher-block
 
 ### matcher block
+
 Each `matcher` block config can match multiple processes, which will be tracked as a single process "group."
 
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`name`       | `string`        | The name to use for identifying the process group name in the metric. | `"{{.ExeBase}}"` | no
-`comm`       | `list(string)`  | A list of strings that match the base executable name for a process, truncated to 15 characters.  | | no
-`exe`        | `list(string)`  | A list of strings that match `argv[0]` for a process. | | no
-`cmdline`    | `list(string)`  | A list of regular expressions applied to the `argv` of the process. | | no
+| Name      | Type           | Description                                                                                      | Default          | Required |
+| --------- | -------------- | ------------------------------------------------------------------------------------------------ | ---------------- | -------- |
+| `name`    | `string`       | The name to use for identifying the process group name in the metric.                            | `"{{.ExeBase}}"` | no       |
+| `comm`    | `list(string)` | A list of strings that match the base executable name for a process, truncated to 15 characters. |                  | no       |
+| `exe`     | `list(string)` | A list of strings that match `argv[0]` for a process.                                            |                  | no       |
+| `cmdline` | `list(string)` | A list of regular expressions applied to the `argv` of the process.                              |                  | no       |
 
 The `name` argument can use the following template variables. By default it uses the base path of the executable:
-- `{{.Comm}}`:      Basename of the original executable from /proc/\<pid\>/stat.
-- `{{.ExeBase}}`:   Basename of the executable from argv[0].
-- `{{.ExeFull}}`:   Fully qualified path of the executable.
-- `{{.Username}}`:  Username of the effective user.
-- `{{.Matches}}`:   Map containing all regex capture groups resulting from matching a process with the cmdline rule group.
-- `{{.PID}}`:       PID of the process. Note that the PID is copied from the first executable found.
+
+- `{{.Comm}}`: Basename of the original executable from /proc/\<pid\>/stat.
+- `{{.ExeBase}}`: Basename of the executable from argv[0].
+- `{{.ExeFull}}`: Fully qualified path of the executable.
+- `{{.Username}}`: Username of the effective user.
+- `{{.Matches}}`: Map containing all regex capture groups resulting from matching a process with the cmdline rule group.
+- `{{.PID}}`: PID of the process. Note that the PID is copied from the first executable found.
 - `{{.StartTime}}`: The start time of the process. This is useful when combined with PID as PIDS get reused over time.
 - `{{.Cgroups}}`: The cgroups, if supported, of the process (`/proc/self/cgroup`). This is particularly useful for identifying to which container a process belongs.
 
@@ -65,7 +76,7 @@ Each regex in `cmdline` must match the corresponding argv for the process to be 
 
 ## Exported fields
 
-{{< docs/shared lookup="flow/reference/components/exporter-component-exports.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/exporter-component-exports.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ## Component health
 
@@ -114,9 +125,28 @@ prometheus.remote_write "demo" {
   }
 }
 ```
+
 Replace the following:
-  - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
-  - `USERNAME`: The username to use for authentication to the remote_write API.
-  - `PASSWORD`: The password to use for authentication to the remote_write API.
+
+- `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
+- `USERNAME`: The username to use for authentication to the remote_write API.
+- `PASSWORD`: The password to use for authentication to the remote_write API.
 
 [scrape]: {{< relref "./prometheus.scrape.md" >}}
+
+<!-- START GENERATED COMPATIBLE COMPONENTS -->
+
+## Compatible components
+
+`prometheus.exporter.process` has exports that can be consumed by the following components:
+
+- Components that consume [Targets]({{< relref "../compatibility/#targets-consumers" >}})
+
+{{% admonition type="note" %}}
+
+Connecting some components may not be sensible or components may require further configuration to make the 
+connection work correctly. Refer to the linked documentation for more details.
+
+{{% /admonition %}}
+
+<!-- END GENERATED COMPATIBLE COMPONENTS -->

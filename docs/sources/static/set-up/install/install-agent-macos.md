@@ -2,7 +2,10 @@
 aliases:
 - ../../set-up/install-agent-macos/
 - ../set-up/install-agent-macos/
+- /docs/grafana-cloud/monitor-infrastructure/agent/static/set-up/install/install-agent-macos/
+- /docs/grafana-cloud/send-data/agent/static/set-up/install/install-agent-macos/
 canonical: https://grafana.com/docs/agent/latest/static/set-up/install/install-agent-macos/
+description: Learn how to install Grafana Agent in static mode on macOS
 menuTitle: macOS
 title: Install Grafana Agent in static mode on macOS
 weight: 500
@@ -83,8 +86,8 @@ To send your data to Grafana Cloud, set up Grafana Agent using the Grafana Cloud
 - [Configure Grafana Agent][configure]
 
 {{% docs/reference %}}
-[start]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/set-up/start-agent"
+[start]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static/set-up/start-agent"
 [start]: "/docs/grafana-cloud/ -> ../start-agent"
-[configure]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/configuration/create-config-file"
+[configure]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static/configuration/create-config-file"
 [configure]: "/docs/grafana-cloud/ -> ../../configuration/create-config-file"
 {{% /docs/reference %}}

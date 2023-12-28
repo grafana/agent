@@ -2,13 +2,16 @@
 aliases:
 - ../../set-up/install-agent-linux/
 - ../set-up/install-agent-linux/
+- /docs/grafana-cloud/monitor-infrastructure/agent/static/set-up/install/install-agent-linux/
+- /docs/grafana-cloud/send-data/agent/static/set-up/install/install-agent-linux/
 canonical: https://grafana.com/docs/agent/latest/static/set-up/install/install-agent-linux/
+description: Learn how to install Grafana Agent in static mode on Linux
 menuTitle: Linux
 title: Install Grafana Agent in static mode on Linux
 weight: 400
 ---
 
-# Install static mode on Linux
+# Install Grafana Agent in static mode on Linux
 
 You can install Grafana Agent in static mode on Linux.
 
@@ -72,7 +75,6 @@ To install Grafana Agent in static mode on RHEL or Fedora, run the following com
 1. Create `/etc/yum.repos.d/grafana.repo` with the following content:
 
    ```shell
-   sudo nano /etc/yum.repos.d/grafana.repo
    [grafana]
    name=grafana
    baseurl=https://rpm.grafana.com
@@ -216,8 +218,8 @@ Logs of Grafana Agent can be found by running the following command in a termina
 - [Configure Grafana Agent][configure]
 
 {{% docs/reference %}}
-[start]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/set-up/start-agent"
+[start]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static/set-up/start-agent"
 [start]: "/docs/grafana-cloud/ -> ../start-agent"
-[configure]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/configuration/create-config-file"
+[configure]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static/configuration/create-config-file"
 [configure]: "/docs/grafana-cloud/ -> ../../configuration/create-config-file"
 {{% /docs/reference %}}

@@ -29,6 +29,7 @@ type EndpointOptions struct {
 	TenantID          string                  `river:"tenant_id,attr,optional"`
 	RetryOnHTTP429    bool                    `river:"retry_on_http_429,attr,optional"`
 	HTTPClientConfig  *types.HTTPClientConfig `river:",squash"`
+	QueueConfig       QueueConfig             `river:"queue_config,block,optional"`
 }
 
 // GetDefaultEndpointOptions defines the default settings for sending logs to a
@@ -70,6 +71,21 @@ func (r *EndpointOptions) Validate() error {
 	return nil
 }
 
+// QueueConfig controls how the queue logs remote write client is configured. Note that this client is only used when the
+// loki.write component has WAL support enabled.
+type QueueConfig struct {
+	Capacity     units.Base2Bytes `river:"capacity,attr,optional"`
+	DrainTimeout time.Duration    `river:"drain_timeout,attr,optional"`
+}
+
+// SetToDefault implements river.Defaulter.
+func (q *QueueConfig) SetToDefault() {
+	*q = QueueConfig{
+		Capacity:     10 * units.MiB, // considering the default BatchSize of 1MiB, this gives us a default buffered channel of size 10
+		DrainTimeout: 15 * time.Second,
+	}
+}
+
 func (args Arguments) convertClientConfigs() []client.Config {
 	var res []client.Config
 	for _, cfg := range args.Endpoints {
@@ -90,6 +106,10 @@ func (args Arguments) convertClientConfigs() []client.Config {
 			Timeout:                cfg.RemoteTimeout,
 			TenantID:               cfg.TenantID,
 			DropRateLimitedBatches: !cfg.RetryOnHTTP429,
+			Queue: client.QueueConfig{
+				Capacity:     int(cfg.QueueConfig.Capacity),
+				DrainTimeout: cfg.QueueConfig.DrainTimeout,
+			},
 		}
 		res = append(res, cc)
 	}

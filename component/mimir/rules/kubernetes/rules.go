@@ -7,12 +7,13 @@ import (
 	"time"
 
 	"github.com/go-kit/log"
-	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/pkg/flow/logging/level"
 	mimirClient "github.com/grafana/agent/pkg/mimir/client"
+	"github.com/grafana/dskit/backoff"
+	"github.com/grafana/dskit/instrument"
 	promListers "github.com/prometheus-operator/prometheus-operator/pkg/client/listers/monitoring/v1"
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/weaveworks/common/instrument"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/client-go/informers"
@@ -153,10 +154,22 @@ func New(o component.Options, args Arguments) (*Component, error) {
 }
 
 func (c *Component) Run(ctx context.Context) error {
-	err := c.startup(ctx)
-	if err != nil {
-		level.Error(c.log).Log("msg", "starting up component failed", "err", err)
-		c.reportUnhealthy(err)
+	startupBackoff := backoff.New(
+		ctx,
+		backoff.Config{
+			MinBackoff: 1 * time.Second,
+			MaxBackoff: 10 * time.Second,
+			MaxRetries: 0, // infinite retries
+		},
+	)
+	for {
+		if err := c.startup(ctx); err != nil {
+			level.Error(c.log).Log("msg", "starting up component failed", "err", err)
+			c.reportUnhealthy(err)
+		} else {
+			break
+		}
+		startupBackoff.Wait()
 	}
 
 	for {
@@ -205,8 +218,7 @@ func (c *Component) startup(ctx context.Context) error {
 	if err := c.startRuleInformer(); err != nil {
 		return err
 	}
-	err := c.syncMimir(ctx)
-	if err != nil {
+	if err := c.syncMimir(ctx); err != nil {
 		return err
 	}
 	go c.eventLoop(ctx)

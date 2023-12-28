@@ -17,17 +17,17 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name:          "prometheus.exporter.snmp",
-		Args:          Arguments{},
-		Exports:       exporter.Exports{},
-		NeedsServices: exporter.RequiredServices(),
-		Build:         exporter.NewWithTargetBuilder(createExporter, "snmp", buildSNMPTargets),
+		Name:    "prometheus.exporter.snmp",
+		Args:    Arguments{},
+		Exports: exporter.Exports{},
+
+		Build: exporter.NewWithTargetBuilder(createExporter, "snmp", buildSNMPTargets),
 	})
 }
 
-func createExporter(opts component.Options, args component.Arguments) (integrations.Integration, error) {
+func createExporter(opts component.Options, args component.Arguments, defaultInstanceKey string) (integrations.Integration, string, error) {
 	a := args.(Arguments)
-	return a.Convert().NewIntegration(opts.Logger)
+	return integrations.NewIntegrationWithInstanceKey(opts.Logger, a.Convert(), defaultInstanceKey)
 }
 
 // buildSNMPTargets creates the exporter's discovery targets based on the defined SNMP targets.
