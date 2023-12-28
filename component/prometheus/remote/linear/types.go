@@ -14,6 +14,9 @@ import (
 // Defaults for config blocks.
 var (
 	DefaultQueueOptions = QueueOptions{
+		Capacity:          10000,
+		MaxShards:         50,
+		MinShards:         1,
 		MaxSamplesPerSend: 2000,
 		BatchSendDeadline: 5 * time.Second,
 		MinBackoff:        30 * time.Millisecond,
@@ -94,9 +97,9 @@ func (r *EndpointOptions) Validate() error {
 
 // QueueOptions handles the low level queue config options for a remote_write
 type QueueOptions struct {
-	// Capacity          int           `river:"capacity,attr,optional"`
-	// MaxShards         int           `river:"max_shards,attr,optional"`
-	// MinShards         int           `river:"min_shards,attr,optional"`
+	Capacity          int           `river:"capacity,attr,optional"`
+	MaxShards         int           `river:"max_shards,attr,optional"`
+	MinShards         int           `river:"min_shards,attr,optional"`
 	MaxSamplesPerSend int           `river:"max_samples_per_send,attr,optional"`
 	BatchSendDeadline time.Duration `river:"batch_send_deadline,attr,optional"`
 	MinBackoff        time.Duration `river:"min_backoff,attr,optional"`

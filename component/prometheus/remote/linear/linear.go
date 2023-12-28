@@ -28,6 +28,7 @@ type linear struct {
 	timestamps          map[int64][]*prepocessedmetric
 	preprocessedMetrics map[string][]*prepocessedmetric
 	// I found this created less allocations than a map.
+	// This associations metric name to a set of label ids.
 	metricNameLabels *btree.Map[string, *btree.Set[int]]
 }
 
@@ -63,10 +64,9 @@ var metricPool = sync.Pool{
 
 var deserializeMetrics = sync.Pool{
 	New: func() any {
-		return &deserializedMetric{
-			ts:   0,
-			val:  0,
-			lbls: labels.EmptyLabels(),
+		return &TimeSeries{
+			SeriesLabels:   make(labels.Labels, 0),
+			ExemplarLabels: make(labels.Labels, 0),
 		}
 	},
 }
@@ -206,6 +206,7 @@ func (l *linear) Serialize(bb *bytes.Buffer) {
 		}
 		// Add metrics.
 		for _, series := range metrics {
+			l.addInt(bb, int64(tSample))
 			values = l.alignAndEncodeLabel(metricFamilyLabels, series.keys, series.values, values)
 			for _, b := range values {
 				// Add each value, none values will be inserted with a 0.
@@ -221,7 +222,7 @@ func (l *linear) Serialize(bb *bytes.Buffer) {
 
 // Deserialize takes an input buffer and converts to an array of deserializemetrics. These metrics
 // should be ReleaseDeserializeMetrics and returned to the pool for resue.
-func (l *linear) Deserialize(bb *bytes.Buffer, maxAgeSeconds int) ([]*deserializedMetric, error) {
+func (l *linear) Deserialize(bb *bytes.Buffer, maxAgeSeconds int) ([]*TimeSeries, error) {
 	version := l.readUint(bb)
 	if version != 1 {
 		return nil, fmt.Errorf("unexpected version found %d while deserializing", version)
@@ -239,7 +240,7 @@ func (l *linear) Deserialize(bb *bytes.Buffer, maxAgeSeconds int) ([]*deserializ
 		dict[i] = l.readString(bb)
 	}
 	timestampLength := l.readUint(bb)
-	metrics := make([]*deserializedMetric, 0)
+	metrics := make([]*TimeSeries, 0)
 	for i := 0; i < int(timestampLength); i++ {
 		ts := l.readInt(bb)
 		metricCount := l.readUint(bb)
@@ -259,17 +260,27 @@ func (l *linear) Deserialize(bb *bytes.Buffer, maxAgeSeconds int) ([]*deserializ
 }
 
 // ReleaseDeserializeMetrics is used to return any deserialized metrics to the pool.
-func ReleaseDeserializeMetrics(m []*deserializedMetric) {
+func ReleaseDeserializeMetrics(m []*TimeSeries) {
 	for _, x := range m {
-		x.lbls = x.lbls[:0]
-		x.ts = 0
-		x.val = 0
+		x.SeriesLabels = x.SeriesLabels[:0]
+		x.ExemplarLabels = x.ExemplarLabels[:0]
+		x.Timestamp = 0
+		x.Value = 0
+		x.Histogram = nil
+		x.FloatHistogram = nil
 		deserializeMetrics.Put(x)
 	}
 }
 
-func (l *linear) deserializeMetric(ts int64, bb *bytes.Buffer, names []string, lblCount uint32, dict []string) *deserializedMetric {
-	dm := deserializeMetrics.Get().(*deserializedMetric)
+func (l *linear) deserializeMetric(ts int64, bb *bytes.Buffer, names []string, lblCount uint32, dict []string) *TimeSeries {
+	dm := deserializeMetrics.Get().(*TimeSeries)
+	if cap(dm.SeriesLabels) < int(lblCount) {
+		dm.SeriesLabels = make(labels.Labels, int(lblCount))
+	} else {
+		dm.SeriesLabels = dm.SeriesLabels[:int(lblCount)]
+	}
+	sType := l.readInt(bb)
+	index := 0
 	for i := 0; i < int(lblCount); i++ {
 		id := l.readUint(bb)
 		// Label is none value.
@@ -277,13 +288,15 @@ func (l *linear) deserializeMetric(ts int64, bb *bytes.Buffer, names []string, l
 			continue
 		}
 		val := dict[id]
-		dm.lbls = append(dm.lbls, labels.Label{
-			Name:  names[i],
-			Value: val,
-		})
+		dm.SeriesLabels[index].Name = names[i]
+		dm.SeriesLabels[index].Value = val
+		// Since some values are NONE we only want set values
+		index++
 	}
-	dm.ts = ts
-	dm.val = math.Float64frombits(l.readUint64(bb))
+	dm.SeriesLabels = dm.SeriesLabels[:index]
+	dm.Timestamp = ts
+	dm.SeriesType = seriesType(sType)
+	dm.Value = math.Float64frombits(l.readUint64(bb))
 	return dm
 }
 

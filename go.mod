@@ -623,7 +623,10 @@ require (
 	sigs.k8s.io/structured-merge-diff/v4 v4.2.3 // indirect
 )
 
-require github.com/kelindar/binary v1.0.17
+require (
+	github.com/kelindar/binary v1.0.17
+	github.com/tidwall/btree v1.7.0
+)
 
 require (
 	github.com/DataDog/zstd v1.4.5 // indirect

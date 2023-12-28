@@ -23,10 +23,10 @@ func TestLinear(t *testing.T) {
 	metrics, err := l.Deserialize(out, 100)
 	require.NoError(t, err)
 	require.Len(t, metrics, 1)
-	require.Len(t, metrics[0].lbls, 1)
+	require.Len(t, metrics[0].SeriesLabels, 1)
 
-	require.True(t, metrics[0].lbls[0].Name == "__name__")
-	require.True(t, metrics[0].lbls[0].Value == "test")
+	require.True(t, metrics[0].SeriesLabels[0].Name == "__name__")
+	require.True(t, metrics[0].SeriesLabels[0].Value == "test")
 }
 
 func TestLinearMultiple(t *testing.T) {
@@ -94,10 +94,10 @@ func TestLinearReuse(t *testing.T) {
 	require.True(t, hasLabel(lbls, metrics, ts, 10))
 }
 
-func hasLabel(lbls labels.Labels, metrics []*deserializedMetric, ts int64, val float64) bool {
+func hasLabel(lbls labels.Labels, metrics []*TimeSeries, ts int64, val float64) bool {
 	for _, m := range metrics {
-		if labels.Compare(m.lbls, lbls) == 0 {
-			return ts == m.ts && val == m.val
+		if labels.Compare(m.SeriesLabels, lbls) == 0 {
+			return ts == m.Timestamp && val == m.Value
 		}
 	}
 	return false

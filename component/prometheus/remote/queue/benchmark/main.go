@@ -22,6 +22,14 @@ func main() {
 	if password == "" {
 		panic("PROM_PASSWORD env must be set")
 	}
+	pusername := os.Getenv("PYRO_USERNAME")
+	if pusername == "" {
+		panic("PYRO_USERNAME env must be set")
+	}
+	ppassword := os.Getenv("PYRO_PASSWORD")
+	if ppassword == "" {
+		panic("PYRO_PASSWORD env must be set")
+	}
 
 	// Start the HTTP server, that can swallow requests.
 	go httpServer()
@@ -40,10 +48,9 @@ func main() {
 }
 
 func startRun(name string, allowWAL bool, run time.Duration, discovery string) {
-	os.RemoveAll("~/bench/queue-data")
 	os.RemoveAll("~/bench/old-data")
 	os.RemoveAll("~/bench/test-data")
-	os.RemoveAll("~/bench/qcache-data")
+	os.RemoveAll("~/bench/linear-data")
 
 	allow = allowWAL
 	_ = os.Setenv("NAME", name)
@@ -58,6 +65,14 @@ func startRun(name string, allowWAL bool, run time.Duration, discovery string) {
 	defer syscall.Kill(-metric.Process.Pid, syscall.SIGKILL)
 	defer os.RemoveAll("~/bench/metric-data")
 
+	linear := startLinearAgent()
+	fmt.Println("start linear agent")
+	defer linear.Process.Kill()
+	defer linear.Process.Release()
+	defer linear.Wait()
+	defer syscall.Kill(-linear.Process.Pid, syscall.SIGKILL)
+	defer os.RemoveAll("~/bench/linear-data")
+
 	old := startOldAgent()
 	fmt.Println("starting old agent")
 	defer old.Process.Kill()
@@ -66,22 +81,6 @@ func startRun(name string, allowWAL bool, run time.Duration, discovery string) {
 	defer syscall.Kill(-old.Process.Pid, syscall.SIGKILL)
 	defer os.RemoveAll("~/bench/old-data")
 
-	queue := startQueueAgent()
-	fmt.Println("start queue agent")
-	defer queue.Process.Kill()
-	defer queue.Process.Release()
-	defer queue.Wait()
-	defer syscall.Kill(-queue.Process.Pid, syscall.SIGKILL)
-	defer os.RemoveAll("~/bench/queue-data")
-	/*
-		cache := startQCacheAgent()
-		fmt.Println("start cache agent")
-		defer cache.Process.Kill()
-		defer cache.Process.Release()
-		defer cache.Wait()
-		defer syscall.Kill(-cache.Process.Pid, syscall.SIGKILL)
-		defer os.RemoveAll("~/bench/qcache-data")
-	*/
 	time.Sleep(run)
 }
 
@@ -96,21 +95,8 @@ func buildAgent() {
 	}
 }
 
-func startQueueAgent() *exec.Cmd {
-	cmd := exec.Command("./grafana-agent-flow", "run", "./queue.river", "--storage.path=~/bench/queue-data", "--server.http.listen-addr=127.0.0.1:12347")
-	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	err := cmd.Start()
-
-	if err != nil {
-		panic(err.Error())
-	}
-	return cmd
-}
-
-func startQCacheAgent() *exec.Cmd {
-	cmd := exec.Command("./grafana-agent-flow", "run", "./qcache.river", "--storage.path=~/bench/qcache-data", "--server.http.listen-addr=127.0.0.1:12348")
+func startLinearAgent() *exec.Cmd {
+	cmd := exec.Command("./grafana-agent-flow", "run", "./linear.river", "--storage.path=~/bench/linear-data", "--server.http.listen-addr=127.0.0.1:12349")
 	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr

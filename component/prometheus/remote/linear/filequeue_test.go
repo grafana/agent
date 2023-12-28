@@ -9,7 +9,7 @@ import (
 
 func TestFileQueue(t *testing.T) {
 	dir := t.TempDir()
-	q, err := newQueue(dir)
+	q, err := newFileQueue(dir)
 	require.NoError(t, err)
 	handle, err := q.AddCommited([]byte("test"))
 	require.NoError(t, err)
@@ -32,7 +32,7 @@ func TestFileQueue(t *testing.T) {
 
 func TestFileQueueMultiple(t *testing.T) {
 	dir := t.TempDir()
-	q, err := newQueue(dir)
+	q, err := newFileQueue(dir)
 	require.NoError(t, err)
 	for i := 0; i < 3; i++ {
 		handle, err := q.AddCommited([]byte(fmt.Sprintf("%d test", i)))

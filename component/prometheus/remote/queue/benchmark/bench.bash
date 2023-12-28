@@ -1,8 +1,8 @@
 go build ./main.go
 
 
-./main single true 1h "http://127.0.0.1:9001/api/v0/component/prometheus.test.metrics.churn/discovery"
-./main single false 1h "http://127.0.0.1:9001/api/v0/component/prometheus.test.metrics.churn/discovery"
+./main churn true 1h "http://127.0.0.1:9001/api/v0/component/prometheus.test.metrics.churn/discovery"
+./main churn false 1h "http://127.0.0.1:9001/api/v0/component/prometheus.test.metrics.churn/discovery"
 
 ./main single true 1h "http://127.0.0.1:9001/api/v0/component/prometheus.test.metrics.single/discovery" 
 ./main single false 1h "http://127.0.0.1:9001/api/v0/component/prometheus.test.metrics.single/discovery"

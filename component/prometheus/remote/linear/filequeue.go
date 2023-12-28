@@ -13,17 +13,17 @@ import (
 )
 
 var bufPool = sync.Pool{New: func() any {
-	s := make([]byte, 16*1024*1024)
+	s := make([]byte, 0)
 	return &s
 }}
 
-type queue struct {
+type filequeue struct {
 	mut       sync.RWMutex
 	directory string
 	maxindex  int
 }
 
-func newQueue(directory string) (*queue, error) {
+func newFileQueue(directory string) (*filequeue, error) {
 	err := os.MkdirAll(directory, 0777)
 	if err != nil {
 		return nil, err
@@ -44,7 +44,7 @@ func newQueue(directory string) (*queue, error) {
 	if len(ids) > 0 {
 		currentindex = ids[len(ids)-1]
 	}
-	q := &queue{
+	q := &filequeue{
 		directory: directory,
 		maxindex:  currentindex,
 	}
@@ -52,7 +52,7 @@ func newQueue(directory string) (*queue, error) {
 }
 
 // AddCommited an committed file to the queue.
-func (q *queue) AddCommited(data []byte) (string, error) {
+func (q *filequeue) AddCommited(data []byte) (string, error) {
 	q.mut.Lock()
 	defer q.mut.Unlock()
 
@@ -63,7 +63,7 @@ func (q *queue) AddCommited(data []byte) (string, error) {
 }
 
 // AddUncommited an uncommitted file to the queue.
-func (q *queue) AddUncommited(data []byte) (string, error) {
+func (q *filequeue) AddUncommited(data []byte) (string, error) {
 	q.mut.Lock()
 	defer q.mut.Unlock()
 
@@ -73,7 +73,7 @@ func (q *queue) AddUncommited(data []byte) (string, error) {
 	return name, err
 }
 
-func (q *queue) Commit(handles []string) error {
+func (q *filequeue) Commit(handles []string) error {
 	q.mut.Lock()
 	defer q.mut.Unlock()
 
@@ -89,7 +89,7 @@ func (q *queue) Commit(handles []string) error {
 }
 
 // Next retrieves the next file. If there are no files it will return false.
-func (q *queue) Next(enc []byte) ([]byte, string, bool, bool) {
+func (q *filequeue) Next(enc []byte) ([]byte, string, bool, bool) {
 	q.mut.Lock()
 	defer q.mut.Unlock()
 
@@ -118,7 +118,7 @@ func (q *queue) Next(enc []byte) ([]byte, string, bool, bool) {
 	return enc, name, true, len(ids) > 1
 }
 
-func (q *queue) Delete(name string) {
+func (q *filequeue) Delete(name string) {
 	q.mut.Lock()
 	defer q.mut.Unlock()
 
@@ -134,15 +134,15 @@ func clearUncommitted(directory string) {
 		_ = os.Remove(x)
 	}
 }
-func (q *queue) writeFile(name string, data []byte) error {
+func (q *filequeue) writeFile(name string, data []byte) error {
 	pntBuf := bufPool.Get().(*[]byte)
 	buffer := *pntBuf
 	defer bufPool.Put(&buffer)
-	enc := snappy.Encode(buffer[:cap(buffer)], data)
-	return os.WriteFile(name, enc, 0644)
+	buffer = snappy.Encode(buffer, data)
+	return os.WriteFile(name, buffer, 0644)
 }
 
-func (q *queue) readFile(name string, enc []byte) ([]byte, error) {
+func (q *filequeue) readFile(name string, enc []byte) ([]byte, error) {
 	bb, err := os.ReadFile(name)
 	if err != nil {
 		return enc, err

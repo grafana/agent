@@ -18,13 +18,13 @@ type writer struct {
 	mut      sync.RWMutex
 	parentId string
 	to       *QueueManager
-	store    *queue
+	store    *filequeue
 	ctx      context.Context
 	l        log.Logger
 }
 
-func newWriter(parent string, to *QueueManager, store *queue, l log.Logger) *writer {
-	name := fmt.Sprintf("metrics_write_to_%s_parent_%s", to.Name(), parent)
+func newWriter(parent string, to *QueueManager, store *filequeue, l log.Logger) *writer {
+	name := fmt.Sprintf("metrics_write_to_%s_parent_%s", to.storeClient.Name(), parent)
 	w := &writer{
 		parentId: parent,
 		to:       to,
@@ -90,12 +90,10 @@ func (w *writer) send(val []byte, ctx context.Context) (success bool, recoverabl
 
 	// TODO add setting to handle wal age.
 	d, err := l.Deserialize(bytes.NewBuffer(val), math.MaxInt64)
-	defer ReleaseDeserializeMetrics(d)
 	if err != nil {
 		return false, false
 	}
-	makeWriteRequestDeserialized(d, wr)
-	success, err = w.to.Append(ctx, wr.Timeseries)
+	success = w.to.Append(d)
 	if err != nil {
 		// Let's check if it's an `out of order sample`. Yes this is some hand waving going on here.
 		// TODO add metric for unrecoverable error

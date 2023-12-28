@@ -35,7 +35,7 @@ func init() {
 }
 
 func NewComponent(opts component.Options, args Arguments) (*Queue, error) {
-	q, err := newQueue(filepath.Join(opts.DataPath, "wal"))
+	q, err := newFileQueue(filepath.Join(opts.DataPath, "wal"))
 	if err != nil {
 		return nil, err
 	}
@@ -51,7 +51,7 @@ func NewComponent(opts component.Options, args Arguments) (*Queue, error) {
 // sending and TTLs.
 type Queue struct {
 	mut        sync.RWMutex
-	database   *queue
+	database   *filequeue
 	args       Arguments
 	opts       component.Options
 	wr         *writer
@@ -68,8 +68,10 @@ func (s *Queue) Run(ctx context.Context) error {
 	}
 	wr := newWriter(s.opts.ID, qm, s.database, s.opts.Logger)
 	s.wr = wr
+	started := make(chan struct{})
+	go qm.Start(started)
+	<-started
 	go wr.Start(ctx)
-	go qm.Start()
 	<-ctx.Done()
 	return nil
 }
@@ -79,10 +81,9 @@ func (s *Queue) newQueueManager() (*QueueManager, error) {
 	if err != nil {
 		return nil, err
 	}
-	met := newQueueManagerMetrics(s.opts.Registerer, "", wr.Endpoint())
 
 	qm := NewQueueManager(
-		met,
+		s.opts.Registerer,
 		s.opts.Logger,
 		s.args.Endpoint.QueueOptions,
 		s.args.Endpoint.MetadataOptions,
