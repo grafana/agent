@@ -7,7 +7,9 @@
 /.eventcache
 vendor
 data-agent
-
+/cmd/benchmark/data/
+/cmd/benchmark/main
+/cmd/benchmark/grafana-agent-flow
 /cmd/agent/agent
 /cmd/agentctl/agentctl
 /cmd/agent-operator/agent-operator
