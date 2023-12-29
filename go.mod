@@ -609,6 +609,7 @@ require (
 require github.com/ianlancetaylor/demangle v0.0.0-20230524184225-eabc099b10ab
 
 require (
+	github.com/brianvoe/gofakeit/v6 v6.26.3
 	github.com/githubexporter/github-exporter v0.0.0-20231025122338-656e7dc33fe7
 	github.com/natefinch/atomic v1.0.1
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/filterprocessor v0.87.0
