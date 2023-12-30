@@ -1,0 +1,6 @@
+loki.test.logs "logs" {
+    number_of_files = 100
+    file_churn_percent = .25
+    file_refresh = "1m"
+    writes_per_cadence = 1000
+}

@@ -28,17 +28,27 @@ func main() {
 	// Build the agent
 	buildAgent()
 
-	name := os.Args[1]
-	allowWal := os.Args[2]
-	duration := os.Args[3]
-	discovery := os.Args[4]
-	allowWalBool, _ := strconv.ParseBool(allowWal)
-	parsedDuration, _ := time.ParseDuration(duration)
-	fmt.Println(name, allowWalBool, parsedDuration, discovery)
-	startRun(name, allowWalBool, parsedDuration, discovery)
+	benchType := os.Args[1]
+	if benchType == "metrics" {
+		name := os.Args[2]
+		allowWal := os.Args[3]
+		duration := os.Args[4]
+		discovery := os.Args[5]
+		allowWalBool, _ := strconv.ParseBool(allowWal)
+		parsedDuration, _ := time.ParseDuration(duration)
+		fmt.Println(name, allowWalBool, parsedDuration, discovery)
+
+		startMetricsRun(name, allowWalBool, parsedDuration, discovery)
+	} else if benchType == "logs" {
+		duration := os.Args[2]
+		parsedDuration, _ := time.ParseDuration(duration)
+		startLogsRun(parsedDuration)
+	} else {
+		panic("unknown benchmark type")
+	}
 }
 
-func startRun(name string, allowWAL bool, run time.Duration, discovery string) {
+func startMetricsRun(name string, allowWAL bool, run time.Duration, discovery string) {
 	_ = os.RemoveAll("./data/normal-data")
 	_ = os.RemoveAll("./data/test-data")
 
@@ -58,6 +68,7 @@ func startRun(name string, allowWAL bool, run time.Duration, discovery string) {
 	}()
 	old := startNormalAgent()
 	fmt.Println("starting normal agent")
+
 	defer func() {
 		_ = old.Process.Kill()
 		_ = old.Process.Release()

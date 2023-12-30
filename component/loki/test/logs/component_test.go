@@ -16,9 +16,10 @@ import (
 func TestLogs(t *testing.T) {
 	dir := t.TempDir()
 	c, err := NewComponent(
-		component.Options{},
+		component.Options{
+			DataPath: dir,
+		},
 		Arguments{
-			Directory:        dir,
 			WriteCadence:     1 * time.Second,
 			NumberOfFiles:    1,
 			MessageMaxLength: 10,
