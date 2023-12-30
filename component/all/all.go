@@ -52,6 +52,7 @@ import (
 	_ "github.com/grafana/agent/component/loki/source/podlogs"                      // Import loki.source.podlogs
 	_ "github.com/grafana/agent/component/loki/source/syslog"                       // Import loki.source.syslog
 	_ "github.com/grafana/agent/component/loki/source/windowsevent"                 // Import loki.source.windowsevent
+	_ "github.com/grafana/agent/component/loki/test/logs"                           // Import loki.test.logs
 	_ "github.com/grafana/agent/component/loki/write"                               // Import loki.write
 	_ "github.com/grafana/agent/component/mimir/rules/kubernetes"                   // Import mimir.rules.kubernetes
 	_ "github.com/grafana/agent/component/module/file"                              // Import module.file
