@@ -200,6 +200,8 @@ controller:
     targetCPUUtilizationPercentage: 0
     # -- Average Memory utilization across all relevant pods, a percentage of the requested value of the resource for the pods. Setting `targetMemoryUtilizationPercentage` to 0 will disable Memory scaling.
     targetMemoryUtilizationPercentage: 80
+    # -- Behavior section of the HPA spec. Used if you want to customize scale up or down behavior from the defaults.
+    behavior: {}
 
   # -- Affinity configuration for pods.
   affinity: {}

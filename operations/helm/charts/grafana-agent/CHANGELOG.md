@@ -14,6 +14,8 @@ Unreleased
 
 - Update `rbac` to include necessary rules for the `otelcol.processor.k8sattributes` component. (@rlankfo)
 
+- Allow setting behavior for horizontal pod autoscaler. (@captncraig)
+
 0.29.0 (2023-11-30)
 -------------------
 

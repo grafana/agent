@@ -70,6 +70,7 @@ use the older mode (called "static mode"), set the `agent.mode` value to
 | configReloader.resources | object | `{"requests":{"cpu":"1m","memory":"5Mi"}}` | Resource requests and limits to apply to the config reloader container. |
 | configReloader.securityContext | object | `{}` | Security context to apply to the Grafana configReloader container. |
 | controller.affinity | object | `{}` | Affinity configuration for pods. |
+| controller.autoscaling.behavior | object | `{}` | Behavior section of the HPA spec. Used if you want to customize scale up or down behavior from the defaults. |
 | controller.autoscaling.enabled | bool | `false` | Creates a HorizontalPodAutoscaler for controller type deployment. |
 | controller.autoscaling.maxReplicas | int | `5` | The upper limit for the number of replicas to which the autoscaler can scale up. |
 | controller.autoscaling.minReplicas | int | `1` | The lower limit for the number of replicas to which the autoscaler can scale down. |

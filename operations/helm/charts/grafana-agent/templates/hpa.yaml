@@ -22,6 +22,10 @@ spec:
     apiVersion: apps/v1
     kind: {{ .Values.controller.type  }}
     name: {{ include "grafana-agent.fullname" . }}
+  {{- with .Values.controller.autoscaling.behavior }}
+  behavior:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
   {{- with .Values.controller.autoscaling }}
   minReplicas: {{ .minReplicas }}
   maxReplicas: {{ .maxReplicas }}

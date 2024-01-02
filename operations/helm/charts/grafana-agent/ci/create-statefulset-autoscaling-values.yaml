@@ -3,6 +3,9 @@ controller:
   type: statefulset
   autoscaling:
     enabled: true
+    behavior: 
+      scaleDown:
+        selectPolicy: Disabled
 agent:
   resources:
     requests:

@@ -15,6 +15,9 @@ spec:
     apiVersion: apps/v1
     kind: statefulset
     name: grafana-agent
+  behavior:
+    scaleDown:
+      selectPolicy: Disabled
   minReplicas: 1
   maxReplicas: 5
   metrics:
