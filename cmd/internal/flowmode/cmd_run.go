@@ -18,6 +18,7 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/converter"
 	convert_diag "github.com/grafana/agent/converter/diag"
+	"github.com/grafana/agent/internal/agentseed"
 	"github.com/grafana/agent/pkg/boringcrypto"
 	"github.com/grafana/agent/pkg/config/instrumentation"
 	"github.com/grafana/agent/pkg/flow"
@@ -248,6 +249,7 @@ func (fr *flowRun) Run(configPath string) error {
 	}
 
 	labelService := labelstore.New(l, reg)
+	agentseed.Init(fr.storagePath, l)
 
 	f := flow.New(flow.Options{
 		Logger:   l,

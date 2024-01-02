@@ -8,6 +8,7 @@ import (
 
 	"github.com/bufbuild/connect-go"
 	"github.com/grafana/agent/component/pyroscope"
+	"github.com/grafana/agent/internal/agentseed"
 	"github.com/grafana/agent/internal/useragent"
 	"github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/oklog/run"
@@ -156,7 +157,12 @@ type fanOutClient struct {
 // NewFanOut creates a new fan out client that will fan out to all endpoints.
 func NewFanOut(opts component.Options, config Arguments, metrics *metrics) (*fanOutClient, error) {
 	clients := make([]pushv1connect.PusherServiceClient, 0, len(config.Endpoints))
+	uid := agentseed.Get().UID
 	for _, endpoint := range config.Endpoints {
+		if endpoint.Headers == nil {
+			endpoint.Headers = map[string]string{}
+		}
+		endpoint.Headers[agentseed.HeaderName] = uid
 		httpClient, err := commonconfig.NewClientFromConfig(*endpoint.HTTPClientConfig.Convert(), endpoint.Name)
 		if err != nil {
 			return nil, err

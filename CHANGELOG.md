@@ -100,6 +100,8 @@ Main (unreleased)
 
 - Bump github.com/IBM/sarama from v1.41.2 to v1.42.1
 
+- Attatch unique Agent ID header to remote-write requests. (@captncraig)
+
 v0.38.1 (2023-11-30)
 --------------------
 
