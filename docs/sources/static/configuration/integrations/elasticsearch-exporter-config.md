@@ -116,4 +116,12 @@ Full reference of options:
 
   # Export stats for SLM (Snapshot Lifecycle Management).
   [ slm: <boolean> ]
+
+  # Sets the `Authorization` header on every ES probe with the
+  # configured username and password.
+  # password and password_file are mutually exclusive.
+  basic_auth:
+    [ username: <string> ]
+    [ password: <secret> ]
+    [ password_file: <string> ]
 ```

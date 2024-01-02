@@ -36,6 +36,7 @@ func toRelabelArguments(relabelConfigs []*prom_relabel.Config, forwardTo []stora
 	return &relabel.Arguments{
 		ForwardTo:            forwardTo,
 		MetricRelabelConfigs: ToFlowRelabelConfigs(relabelConfigs),
+		CacheSize:            100_000,
 	}
 }
 

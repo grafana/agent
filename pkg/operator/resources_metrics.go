@@ -5,15 +5,16 @@ import (
 	"fmt"
 	"strings"
 
-	gragent "github.com/grafana/agent/pkg/operator/apis/monitoring/v1alpha1"
 	prom_operator "github.com/prometheus-operator/prometheus-operator/pkg/operator"
 	apps_v1 "k8s.io/api/apps/v1"
 	core_v1 "k8s.io/api/core/v1"
 	k8s_errors "k8s.io/apimachinery/pkg/api/errors"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
-	"k8s.io/utils/pointer"
+	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	gragent "github.com/grafana/agent/pkg/operator/apis/monitoring/v1alpha1"
 )
 
 const (
@@ -77,8 +78,8 @@ func generateMetricsStatefulSetService(cfg *Config, d gragent.Deployment) *core_
 				APIVersion:         d.Agent.APIVersion,
 				Kind:               d.Agent.Kind,
 				Name:               d.Agent.Name,
-				BlockOwnerDeletion: pointer.Bool(true),
-				Controller:         pointer.Bool(true),
+				BlockOwnerDeletion: ptr.To(true),
+				Controller:         ptr.To(true),
 				UID:                d.Agent.UID,
 			}},
 			Labels: cfg.Labels.Merge(map[string]string{
@@ -230,8 +231,8 @@ func metadataFromPodTemplate(name string, d gragent.Deployment, tmpl core_v1.Pod
 		OwnerReferences: []meta_v1.OwnerReference{{
 			APIVersion:         d.Agent.APIVersion,
 			Kind:               d.Agent.Kind,
-			BlockOwnerDeletion: pointer.Bool(true),
-			Controller:         pointer.Bool(true),
+			BlockOwnerDeletion: ptr.To(true),
+			Controller:         ptr.To(true),
 			Name:               d.Agent.Name,
 			UID:                d.Agent.UID,
 		}},
