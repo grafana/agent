@@ -9,6 +9,7 @@ import (
 	"github.com/grafana/agent/converter/internal/prometheusconvert/build"
 
 	prom_discover "github.com/prometheus/prometheus/discovery"
+	prom_http "github.com/prometheus/prometheus/discovery/http"
 	_ "github.com/prometheus/prometheus/discovery/install" // Register Prometheus SDs
 
 	prom_aws "github.com/prometheus/prometheus/discovery/aws"
@@ -60,6 +61,9 @@ func AppendServiceDiscoveryConfig(pb *build.PrometheusBlocks, serviceDiscoveryCo
 	case *prom_gce.SDConfig:
 		labelCounts["gce"]++
 		return appendDiscoveryGCE(pb, common.LabelWithIndex(labelCounts["gce"]-1, label), sdc)
+	case *prom_http.SDConfig:
+		labelCounts["http"]++
+		return appendDiscoveryHttp(pb, common.LabelWithIndex(labelCounts["http"]-1, label), sdc)
 	case *prom_kubernetes.SDConfig:
 		labelCounts["kubernetes"]++
 		return appendDiscoveryKubernetes(pb, common.LabelWithIndex(labelCounts["kubernetes"]-1, label), sdc)
@@ -121,6 +125,8 @@ func ValidateServiceDiscoveryConfig(serviceDiscoveryConfig prom_discover.Config)
 		return ValidateDiscoveryFile(sdc)
 	case *prom_gce.SDConfig:
 		return ValidateDiscoveryGCE(sdc)
+	case *prom_http.SDConfig:
+		return ValidateDiscoveryHttp(sdc)
 	case *prom_kubernetes.SDConfig:
 		return ValidateDiscoveryKubernetes(sdc)
 	case *prom_aws.LightsailSDConfig:
