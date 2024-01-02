@@ -21,6 +21,10 @@ logging {
 	format = "json"
 }
 
+loki.source.kubernetes_events "integrations_eventhandler" {
+	forward_to = [loki.write.logs_log_config.receiver]
+}
+
 prometheus.exporter.azure "integrations_azure1" {
 	subscriptions = ["subId"]
 	resource_type = "Microsoft.Dashboard/grafana"

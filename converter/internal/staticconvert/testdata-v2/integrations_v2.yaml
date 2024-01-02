@@ -117,6 +117,9 @@ integrations:
   elasticsearch_configs:
     - autoscrape:
         metrics_instance: "default"
+  eventhandler:
+    cache_path: "./.eventcache/eventhandler.cache"
+    logs_instance: "log_config"
   gcp_configs:
     - project_ids:
         - <project_id>
