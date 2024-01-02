@@ -59,23 +59,12 @@ func startMetricsRun(name string, allowWAL bool, run time.Duration, discovery st
 
 	metric := startMetricsAgent()
 	fmt.Println("starting metric agent")
-	defer func() {
-		_ = metric.Process.Kill()
-		_ = metric.Process.Release()
-		_ = metric.Wait()
-		_ = syscall.Kill(-metric.Process.Pid, syscall.SIGKILL)
-		_ = os.RemoveAll("./data/test-data")
-	}()
+	defer cleanupPid(metric, "./data/test-data")
+
 	old := startNormalAgent()
 	fmt.Println("starting normal agent")
+	defer cleanupPid(old, "./data/normal-data")
 
-	defer func() {
-		_ = old.Process.Kill()
-		_ = old.Process.Release()
-		_ = old.Wait()
-		_ = syscall.Kill(-old.Process.Pid, syscall.SIGKILL)
-		_ = os.RemoveAll("./data/normal-data")
-	}()
 	time.Sleep(run)
 }
 
@@ -91,7 +80,7 @@ func buildAgent() {
 }
 
 func startNormalAgent() *exec.Cmd {
-	cmd := exec.Command("./grafana-agent-flow", "run", "./normal.river", "--storage.path=./data/normal-data", "--server.http.listen-addr=127.0.0.1:12346")
+	cmd := exec.Command("./grafana-agent-flow", "run", "./configs/normal.river", "--storage.path=./data/normal-data", "--server.http.listen-addr=127.0.0.1:12346")
 	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
 	//cmd.Stdout = os.Stdout
 	//cmd.Stderr = os.Stderr
@@ -103,13 +92,21 @@ func startNormalAgent() *exec.Cmd {
 }
 
 func startMetricsAgent() *exec.Cmd {
-	cmd := exec.Command("./grafana-agent-flow", "run", "./test.river", "--storage.path=./data/test-data", "--server.http.listen-addr=127.0.0.1:9001")
+	cmd := exec.Command("./grafana-agent-flow", "run", "./configs/test.river", "--storage.path=./data/test-data", "--server.http.listen-addr=127.0.0.1:9001")
 	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
 	err := cmd.Start()
 	if err != nil {
 		panic(err.Error())
 	}
 	return cmd
+}
+
+func cleanupPid(pid *exec.Cmd, dir string) {
+	_ = pid.Process.Kill()
+	_ = pid.Process.Release()
+	_ = pid.Wait()
+	_ = syscall.Kill(-pid.Process.Pid, syscall.SIGKILL)
+	_ = os.RemoveAll("./data/normal-data")
 }
 
 var allow = false
