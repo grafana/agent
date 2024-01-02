@@ -1,10 +1,10 @@
 ---
 aliases:
-- /docs/grafana-cloud/agent/flow/getting-started/collect-prometheus-metrics/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/getting-started/collect-prometheus-metrics/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/getting-started/collect-prometheus-metrics/
-- /docs/grafana-cloud/send-data/agent/flow/getting-started/collect-prometheus-metrics/
-canonical: https://grafana.com/docs/agent/latest/flow/getting-started/collect-prometheus-metrics/
+- /docs/grafana-cloud/agent/flow/tasks/collect-prometheus-metrics/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/tasks/collect-prometheus-metrics/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/tasks/collect-prometheus-metrics/
+- /docs/grafana-cloud/send-data/agent/flow/tasks/collect-prometheus-metrics/
+canonical: https://grafana.com/docs/agent/latest/flow/tasks/collect-prometheus-metrics/
 description: Learn how to collect and forward Prometheus metrics
 title: Collect and forward Prometheus metrics
 weight: 200
