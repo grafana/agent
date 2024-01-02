@@ -1,11 +1,12 @@
 ---
 aliases:
-- ../../../configuration-language/expressions/types-and-values/
+- ../../configuration-language/expressions/types-and-values/ # /docs/agent/latest/flow/concepts/configuration-language/expressions/types-and-values/
 - /docs/grafana-cloud/agent/flow/concepts/config-language/expressions/types_and_values/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/concepts/config-language/expressions/types_and_values/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/concepts/config-language/expressions/types_and_values/
 - /docs/grafana-cloud/send-data/agent/flow/concepts/config-language/expressions/types_and_values/
 # Previous page aliases for backwards compatibility:
+- ../../../configuration-language/expressions/types-and-values/ # /docs/agent/latest/flow/configuration-language/expressions/types-and-values/
 - /docs/grafana-cloud/agent/flow/config-language/expressions/types_and_values/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/config-language/expressions/types_and_values/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/config-language/expressions/types_and_values/

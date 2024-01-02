@@ -4,13 +4,13 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/concepts/config-language/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/concepts/config-language/
 - /docs/grafana-cloud/send-data/agent/flow/concepts/config-language/
-- concepts/configuration-language/
+- configuration-language/ # /docs/agent/latest/flow/concepts/configuration-language/
 # Previous page aliases for backwards compatibility:
 - /docs/grafana-cloud/agent/flow/config-language/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/config-language/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/config-language/
 - /docs/grafana-cloud/send-data/agent/flow/config-language/
-- configuration-language/
+- ../configuration-language/ # /docs/agent/latest/flow/configuration-language/
 canonical: https://grafana.com/docs/agent/latest/flow/concepts/config-language/
 description: Learn about the configuration language
 title: Configuration language

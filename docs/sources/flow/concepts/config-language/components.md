@@ -1,11 +1,12 @@
 ---
 aliases:
-- ../../configuration-language/components/
+- ../configuration-language/components/ # /docs/agent/latest/flow/concepts/configuration-language/components/
 - /docs/grafana-cloud/agent/flow/concepts/config-language/components/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/concepts/config-language/components/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/concepts/config-language/components/
 - /docs/grafana-cloud/send-data/agent/flow/concepts/config-language/components/
 # Previous page aliases for backwards compatibility:
+- ../../configuration-language/components/ # /docs/agent/latest/flow/configuration-language/components/
 - /docs/grafana-cloud/agent/flow/config-language/components/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/config-language/components/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/config-language/components/

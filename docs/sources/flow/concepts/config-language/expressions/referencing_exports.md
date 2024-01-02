@@ -1,11 +1,12 @@
 ---
 aliases:
-- ../../../configuration-language/expressions/referencing-exports/
+- ../../configuration-language/expressions/referencing-exports/ # /docs/agent/latest/flow/concepts/configuration-language/expressions/referencing-exports/
 - /docs/grafana-cloud/agent/flow/concepts/config-language/expressions/referencing_exports/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/concepts/config-language/expressions/referencing_exports/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/concepts/config-language/expressions/referencing_exports/
 - /docs/grafana-cloud/send-data/agent/flow/concepts/config-language/expressions/referencing_exports/
 # Previous page aliases for backwards compatibility:
+- ../../../configuration-language/expressions/referencing-exports/ # /docs/agent/latest/flow/configuration-language/expressions/referencing-exports/
 - /docs/grafana-cloud/agent/flow/config-language/expressions/referencing_exports/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/config-language/expressions/referencing_exports/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/config-language/expressions/referencing_exports/
