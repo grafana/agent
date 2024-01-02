@@ -32,9 +32,10 @@ type tailer struct {
 	handler   loki.EntryHandler
 	positions positions.Positions
 
-	path   string
-	labels string
-	tail   *tail.Tail
+	path        string
+	labels      string
+	tail        *tail.Tail
+	previousPos int64
 
 	posAndSizeMtx sync.Mutex
 	stopOnce      sync.Once
@@ -293,6 +294,9 @@ func (t *tailer) MarkPositionAndSize() error {
 	// Update metrics and positions file all together to avoid race conditions when `t.tail` is stopped.
 	t.metrics.totalBytes.WithLabelValues(t.path).Set(float64(size))
 	t.metrics.readBytes.WithLabelValues(t.path).Set(float64(pos))
+
+	t.metrics.totalReadBytes.Add(float64(pos - t.previousPos))
+	t.previousPos = pos
 	t.positions.Put(t.path, t.labels, pos)
 
 	return nil

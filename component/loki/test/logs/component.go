@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/brianvoe/gofakeit/v6"
+	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
 )
 
@@ -67,7 +68,7 @@ func (c *Component) Run(ctx context.Context) error {
 	defer c.writeTicker.Stop()
 	defer c.churnTicker.Stop()
 	// Create the initial set of files.
-	c.churnFiles()
+	c.createFiles()
 	for {
 		select {
 		case <-ctx.Done():
@@ -104,7 +105,6 @@ func (c *Component) writeFiles() {
 				msgLen = c.args.MessageMinLength
 			} else {
 				msgLen = rand.Intn(c.args.MessageMaxLength-c.args.MessageMinLength) + c.args.MessageMinLength
-
 			}
 			attributes["msg"] = gofakeit.LetterN(uint(msgLen))
 			for k, v := range c.args.Labels {
@@ -117,12 +117,27 @@ func (c *Component) writeFiles() {
 			bb.Write(data)
 			bb.WriteString("\n")
 		}
-		fh, err := os.OpenFile(f, os.O_APPEND|os.O_WRONLY, 0644)
+		fh, err := os.OpenFile(f, os.O_APPEND|os.O_WRONLY|os.O_CREATE|os.O_SYNC, 0644)
 		if err != nil {
+			level.Error(c.o.Logger).Log("msg", "error opening file", "file", f, "err", err)
+			_ = fh.Close()
 			continue
 		}
-		_, _ = fh.Write(bb.Bytes())
+		_, err = fh.Write(bb.Bytes())
+		if err != nil {
+			level.Error(c.o.Logger).Log("msg", "error writing file", "file", f, "err", err)
+		}
 		_ = fh.Close()
+	}
+}
+
+func (c *Component) createFiles() {
+	if c.args.NumberOfFiles > len(c.files) {
+		fullpath := filepath.Join(c.o.DataPath, strconv.Itoa(c.index)+".log")
+		c.files = append(c.files, fullpath)
+		c.index++
+	} else if c.args.NumberOfFiles < len(c.files) {
+		c.files = c.files[:c.args.NumberOfFiles]
 	}
 }
 
@@ -130,21 +145,13 @@ func (c *Component) churnFiles() {
 	c.mut.Lock()
 	defer c.mut.Unlock()
 
-	if c.args.NumberOfFiles > len(c.files) {
-		fullpath := filepath.Join(c.o.DataPath, strconv.Itoa(c.index)+".log")
-		c.files = append(c.files, fullpath)
-		_ = os.WriteFile(fullpath, []byte(""), 0644)
-		c.index++
-	} else if c.args.NumberOfFiles < len(c.files) {
-		c.files = c.files[:c.args.NumberOfFiles]
-	}
+	c.createFiles()
 
 	churn := int(float64(c.args.NumberOfFiles) * c.args.FileChurnPercent)
 	for i := 0; i < churn; i++ {
 		candidate := rand.Intn(len(c.files))
 		fullpath := filepath.Join(c.o.DataPath, strconv.Itoa(c.index)+".log")
 		c.files = append(c.files, fullpath)
-		_ = os.WriteFile(fullpath, []byte(""), 0644)
 		c.index++
 		c.files[candidate] = fullpath
 	}

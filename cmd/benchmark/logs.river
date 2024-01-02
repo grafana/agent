@@ -26,7 +26,7 @@ prometheus.relabel "mutator" {
 	rule {
 		source_labels = ["__name__"]
 		action        = "keep"
-		regex         = "(agent_wal_storage_active_series|agent_resources_process_cpu_seconds_total|go_memstats_alloc_bytes|go_gc_duration_seconds_sum|go_gc_duration_seconds_count|loki_source_file_files_active_total|loki_write_encoded_bytes_total|loki_write_sent_bytes_total|loki_source_file_file_bytes_total)"
+		regex         = "(agent_wal_storage_active_series|agent_resources_process_cpu_seconds_total|go_memstats_alloc_bytes|go_gc_duration_seconds_sum|go_gc_duration_seconds_count|loki_source_file_files_active_total|loki_write_encoded_bytes_total|loki_write_sent_bytes_total|loki_sum_source_file_read_bytes_total)"
 	}
 
 	forward_to = [prometheus.remote_write.agent_stats.receiver]
@@ -42,7 +42,6 @@ prometheus.remote_write "agent_stats" {
 		}
 	}
 }
-
 
 local.file_match "logs" {
 	path_targets = [

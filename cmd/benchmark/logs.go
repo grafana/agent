@@ -34,8 +34,8 @@ func startLogsRun(run time.Duration) {
 func startLogsAgent() *exec.Cmd {
 	cmd := exec.Command("./grafana-agent-flow", "run", "./logs.river", "--storage.path=./data/logs", "--server.http.listen-addr=127.0.0.1:12346")
 	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
+	//cmd.Stdout = os.Stdout
+	//cmd.Stderr = os.Stderr
 
 	err := cmd.Start()
 	if err != nil {

@@ -58,9 +58,10 @@ type decompressor struct {
 
 	decoder *encoding.Decoder
 
-	position int64
-	size     int64
-	cfg      DecompressionConfig
+	position         int64
+	previousPosition int64
+	size             int64
+	cfg              DecompressionConfig
 }
 
 func newDecompressor(
@@ -267,6 +268,9 @@ func (d *decompressor) MarkPositionAndSize() error {
 
 	d.metrics.totalBytes.WithLabelValues(d.path).Set(float64(d.size))
 	d.metrics.readBytes.WithLabelValues(d.path).Set(float64(d.position))
+	d.metrics.totalReadBytes.Add(float64(d.position - d.previousPosition))
+
+	d.previousPosition = d.position
 	d.positions.Put(d.path, d.labels, d.position)
 
 	return nil
