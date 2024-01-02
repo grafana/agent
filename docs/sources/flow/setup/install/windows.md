@@ -12,7 +12,7 @@ title: Install Grafana Agent Flow on Windows
 weight: 500
 ---
 
-# Install {{< param "PRODUCT_NAME" >}} on Windows
+# Install {{% param "PRODUCT_NAME" %}} on Windows
 
 You can install {{< param "PRODUCT_NAME" >}} on Windows as a standard graphical install, or as a silent install.
 
@@ -47,10 +47,12 @@ To do a silent install of {{< param "PRODUCT_NAME" >}} on Windows, perform the f
 1. Run the following command in PowerShell or Command Prompt:
 
    ```shell
-   PATH_TO_INSTALLER /S
+   <PATH_TO_INSTALLER> /S
    ```
 
-   Replace `PATH_TO_INSTALLER` with the path where the unzipped installer executable is located.
+   Replace the following:
+
+   - _`<PATH_TO_INSTALLER>`_: The path where the unzipped installer executable is located.
 
 ### Silent install options
 

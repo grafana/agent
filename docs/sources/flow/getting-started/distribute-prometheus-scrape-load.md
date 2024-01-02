@@ -13,10 +13,8 @@ weight: 500
 
 # Distribute Prometheus metrics scrape load
 
-A good predictor for the size of an {{< param "PRODUCT_NAME" >}} deployment is the number of
-Prometheus targets each {{< param "PRODUCT_ROOT_NAME" >}} scrapes. [Clustering][] with target
-auto-distribution allows a fleet of {{< param "PRODUCT_ROOT_NAME" >}}s to work together to dynamically
-distribute their scrape load, providing high-availability.
+A good predictor for the size of an {{< param "PRODUCT_NAME" >}} deployment is the number of Prometheus targets each {{< param "PRODUCT_ROOT_NAME" >}} scrapes.
+[Clustering][] with target auto-distribution allows a fleet of {{< param "PRODUCT_ROOT_NAME" >}}s to work together to dynamically distribute their scrape load, providing high-availability.
 
 > **Note:** Clustering is a [beta][] feature. Beta features are subject to breaking
 > changes and may be replaced with equivalent functionality that covers the same use case.
@@ -32,8 +30,7 @@ distribute their scrape load, providing high-availability.
 
 To distribute Prometheus metrics scrape load with clustering:
 
-1. Add the following block to all `prometheus.scrape` components which
-   should use auto-distribution:
+1. Add the following block to all `prometheus.scrape` components, which should use auto-distribution:
 
    ```river
    clustering {
@@ -45,8 +42,7 @@ To distribute Prometheus metrics scrape load with clustering:
 
 1. Validate that auto-distribution is functioning:
 
-   1. Using the {{< param "PRODUCT_ROOT_NAME" >}} [UI][] on each {{< param "PRODUCT_ROOT_NAME" >}}, navigate to the details page for one of
-      the `prometheus.scrape` components you modified.
+   1. Using the {{< param "PRODUCT_ROOT_NAME" >}} [UI][] on each {{< param "PRODUCT_ROOT_NAME" >}}, navigate to the details page for one of the `prometheus.scrape` components you modified.
 
    1. Compare the Debug Info sections between two different {{< param "PRODUCT_ROOT_NAME" >}} to ensure that they're not scraping the same sets of targets.
 

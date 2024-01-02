@@ -1664,9 +1664,9 @@ service_graphs:
 			expectedProcessors: map[component.ID][]component.ID{
 				component.NewIDWithName("traces", "0"): {
 					component.NewID("attributes"),
-					component.NewID("spanmetrics"),
 				},
 				component.NewIDWithName("traces", "1"): {
+					component.NewID("spanmetrics"),
 					component.NewID("service_graphs"),
 					component.NewID("tail_sampling"),
 					component.NewID("automatic_logging"),
@@ -1715,9 +1715,9 @@ load_balancing:
 			expectedProcessors: map[component.ID][]component.ID{
 				component.NewIDWithName("traces", "0"): {
 					component.NewID("attributes"),
-					component.NewID("spanmetrics"),
 				},
 				component.NewIDWithName("traces", "1"): {
+					component.NewID("spanmetrics"),
 					component.NewID("automatic_logging"),
 					component.NewID("batch"),
 				},
@@ -1819,9 +1819,9 @@ func TestOrderProcessors(t *testing.T) {
 			expected: [][]string{
 				{
 					"attributes",
-					"spanmetrics",
 				},
 				{
+					"spanmetrics",
 					"tail_sampling",
 					"automatic_logging",
 					"batch",
@@ -1853,9 +1853,10 @@ func TestOrderProcessors(t *testing.T) {
 			expected: [][]string{
 				{
 					"attributes",
+				},
+				{
 					"spanmetrics",
 				},
-				{},
 			},
 		},
 	}

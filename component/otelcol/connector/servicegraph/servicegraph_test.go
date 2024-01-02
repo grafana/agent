@@ -44,7 +44,7 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 				Dimensions: []string{},
 				Store: servicegraphprocessor.StoreConfig{
 					MaxItems: 1000,
-					TTL:      2 * time.Millisecond,
+					TTL:      2 * time.Second,
 				},
 				CacheLoop:           1 * time.Minute,
 				StoreExpirationLoop: 2 * time.Second,

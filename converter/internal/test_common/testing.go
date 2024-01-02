@@ -18,6 +18,7 @@ import (
 	cluster_service "github.com/grafana/agent/service/cluster"
 	http_service "github.com/grafana/agent/service/http"
 	"github.com/grafana/agent/service/labelstore"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/require"
 )
 
@@ -194,7 +195,7 @@ func attemptLoadingFlowConfig(t *testing.T, river []byte) {
 			// properly.
 			http_service.New(http_service.Options{}),
 			clusterService,
-			labelstore.New(nil),
+			labelstore.New(nil, prometheus.DefaultRegisterer),
 		},
 	})
 	err = f.LoadSource(cfg, nil)
