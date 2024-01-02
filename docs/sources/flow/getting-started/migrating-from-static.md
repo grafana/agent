@@ -372,8 +372,8 @@ The following list is specific to the convert command and not {{< param "PRODUCT
 [Start]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/setup/start-agent.md"
 [DebuggingUI]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/monitoring/debugging.md"
 [DebuggingUI]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/monitoring/debugging.md"
-[River]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/config-language/"
-[River]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/config-language/"
+[River]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/config-language/"
+[River]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/concepts/config-language/"
 [Integrations next]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static/configuration/integrations/integrations-next/_index.md"
 [Integrations next]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/static/configuration/traces-config.md
 [Traces]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static/configuration/traces-config.md"

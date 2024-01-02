@@ -1,11 +1,16 @@
 ---
 aliases:
 - ../configuration-language/syntax/
+- /docs/grafana-cloud/agent/flow/concepts/config-language/syntax/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/concepts/config-language/syntax/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/concepts/config-language/syntax/
+- /docs/grafana-cloud/send-data/agent/flow/concepts/config-language/syntax/
+# Previous page aliases for backwards compatibility:
 - /docs/grafana-cloud/agent/flow/config-language/syntax/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/config-language/syntax/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/config-language/syntax/
 - /docs/grafana-cloud/send-data/agent/flow/config-language/syntax/
-canonical: https://grafana.com/docs/agent/latest/flow/config-language/syntax/
+canonical: https://grafana.com/docs/agent/latest/flow/concepts/config-language/syntax/
 description: Learn about the River syntax
 title: Syntax
 weight: 200
@@ -112,8 +117,8 @@ River ignores other newlines and you can can enter as many newlines as you want.
 [identifier]: #identifiers
 
 {{% docs/reference %}}
-[expression]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/config-language/expressions"
-[expression]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/config-language/expressions"
-[type]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/config-language/expressions/types_and_values"
-[type]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/config-language/expressions/types_and_values"
+[expression]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/config-language/expressions"
+[expression]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/concepts/config-language/expressions"
+[type]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/config-language/expressions/types_and_values"
+[type]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/concepts/config-language/expressions/types_and_values"
 {{% /docs/reference %}}

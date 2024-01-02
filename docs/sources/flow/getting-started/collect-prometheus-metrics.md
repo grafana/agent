@@ -440,6 +440,6 @@ prometheus.remote_write "default" {
 [prometheus.scrape]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/components/prometheus.scrape.md"
 [Components]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/components.md"
 [Components]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/concepts/components.md"
-[Objects]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/config-language/expressions/types_and_values.md#objects"
-[Objects]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/config-language/expressions/types_and_values.md#objects"
+[Objects]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/config-language/expressions/types_and_values.md#objects"
+[Objects]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/concepts/config-language/expressions/types_and_values.md#objects"
 {{% /docs/reference %}}
