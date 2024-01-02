@@ -1,14 +1,15 @@
 # Grafana Agent Documentation
 
-This directory contains documentation for Grafana Agent. It is split into two
-parts:
+This directory contains documentation for Grafana Agent. It is split into the
+following parts:
 
-* `user/`: Documentation for users. This directory is hosted on
-  [grafana.com/docs/agent](https://grafana.com/docs/agent/latest/) and we
-  recommend interacting with it there instead of viewing the markdown on
+* `sources/`: Source of user-facing documentation. This directory is hosted on
+  [grafana.com/docs/agent](https://grafana.com/docs/agent/latest/), and we
+  recommend viewing it there instead of the markdown on
   GitHub.
 * `developer/`: Documentation for contributors and maintainers.
 * `rfcs/`: RFCs for proposals relating to Grafana Agent.
+* `generator/`: Code for generating some parts of the documentation.
 
 ## Preview the website
 
