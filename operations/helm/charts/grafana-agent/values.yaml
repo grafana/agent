@@ -189,6 +189,9 @@ controller:
   # -- Whether to enable automatic deletion of stale PVCs due to a scale down operation, when controller.type is 'statefulset'.
   enableStatefulSetAutoDeletePVC: false
 
+  # -- The StatefulSetAutoDeletePVC feature gate went into alpha status with k8s 1.27. If you have it enabled on an earlier version, you can lower this value as far as 1.23.
+  minK8sVersionForAutoDelete: ">= 1.27"
+
   autoscaling:
     # -- Creates a HorizontalPodAutoscaler for controller type deployment.
     enabled: false

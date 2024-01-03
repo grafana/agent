@@ -10,9 +10,14 @@ internal API changes are not present.
 Unreleased
 ----------
 
+### Bugfixes
+
+- Statefulset should use value `.controller.enableStatefulSetAutoDeletePVC` instead of just `.enableStatefulSetAutoDeletePVC`. (@captncraig)
+
 ### Enhancements
 
 - Update `rbac` to include necessary rules for the `otelcol.processor.k8sattributes` component. (@rlankfo)
+- Add value `.controller.minK8sVersionForAutoDelete` to support earlier k8s versions with beta feature gates enabled. (@captncraig)
 
 0.29.0 (2023-11-30)
 -------------------

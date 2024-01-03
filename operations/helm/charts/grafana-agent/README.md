@@ -81,6 +81,7 @@ use the older mode (called "static mode"), set the `agent.mode` value to
 | controller.hostNetwork | bool | `false` | Configures Pods to use the host network. When set to true, the ports that will be used must be specified. |
 | controller.hostPID | bool | `false` | Configures Pods to use the host PID namespace. |
 | controller.initContainers | list | `[]` |  |
+| controller.minK8sVersionForAutoDelete | string | `">= 1.27"` | The StatefulSetAutoDeletePVC feature gate went into alpha status with k8s 1.27. If you have it enabled on an earlier version, you can lower this value as far as 1.23. |
 | controller.nodeSelector | object | `{}` | nodeSelector to apply to Grafana Agent pods. |
 | controller.parallelRollout | bool | `true` | Whether to deploy pods in parallel. Only used when controller.type is 'statefulset'. |
 | controller.podAnnotations | object | `{}` | Extra pod annotations to add. |
