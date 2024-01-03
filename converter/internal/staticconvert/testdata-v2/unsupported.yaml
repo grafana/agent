@@ -24,3 +24,5 @@ integrations:
     cache_path: "/etc/eventhandler/not_default.cache"
     logs_instance: "log_config"
     send_timeout: 30
+    informer_resync: 30
+    flush_interval: 30

@@ -4,6 +4,8 @@ import (
 	"fmt"
 
 	"github.com/grafana/agent/component/common/loki"
+	flow_relabel "github.com/grafana/agent/component/common/relabel"
+	"github.com/grafana/agent/component/loki/relabel"
 	"github.com/grafana/agent/component/loki/source/kubernetes_events"
 	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/converter/internal/common"
@@ -12,8 +14,6 @@ import (
 )
 
 func (b *IntegrationsConfigBuilder) appendEventHandlerV2(config *eventhandler_v2.Config) {
-	args := toEventHandlerV2(config)
-
 	compLabel, err := scanner.SanitizeIdentifier(b.formatJobName(config.Name(), nil))
 	if err != nil {
 		b.diags.Add(diag.SeverityLevelCritical, fmt.Sprintf("failed to sanitize job name: %s", err))
@@ -23,7 +23,13 @@ func (b *IntegrationsConfigBuilder) appendEventHandlerV2(config *eventhandler_v2
 	b.diags.AddAll(common.ValidateSupported(common.NotDeepEquals, config.CachePath, eventhandler_v2.DefaultConfig.CachePath, "eventhandler cache_path", "this field is not configurable in flow mode"))
 	b.diags.AddAll(common.ValidateSupported(common.NotDeepEquals, config.InformerResync, eventhandler_v2.DefaultConfig.InformerResync, "eventhandler informer_resync", "this field is not configurable in flow mode"))
 	b.diags.AddAll(common.ValidateSupported(common.NotDeepEquals, config.FlushInterval, eventhandler_v2.DefaultConfig.FlushInterval, "eventhandler flush_interval", "this field is not configurable in flow mode"))
-	b.diags.AddAll(common.ValidateSupported(common.NotDeepEquals, len(config.ExtraLabels), 0, "eventhandler extra_labels", "extra_labels for logs can be configured in flow mode using a loki.process component"))
+
+	receiver := getLogsReceiver(config)
+	if len(config.ExtraLabels) > 0 {
+		receiver = b.injectExtraLabels(config, receiver, compLabel)
+	}
+
+	args := toEventHandlerV2(config, receiver)
 
 	b.f.Body().AppendBlock(common.NewBlockWithOverride(
 		[]string{"loki", "source", "kubernetes_events"},
@@ -32,7 +38,36 @@ func (b *IntegrationsConfigBuilder) appendEventHandlerV2(config *eventhandler_v2
 	))
 }
 
-func toEventHandlerV2(config *eventhandler_v2.Config) *kubernetes_events.Arguments {
+func (b *IntegrationsConfigBuilder) injectExtraLabels(config *eventhandler_v2.Config, receiver common.ConvertLogsReceiver, compLabel string) common.ConvertLogsReceiver {
+	var relabelConfigs []*flow_relabel.Config
+	for _, extraLabel := range config.ExtraLabels {
+		defaultConfig := flow_relabel.DefaultRelabelConfig
+		relabelConfig := &defaultConfig
+		relabelConfig.SourceLabels = []string{"__address__"}
+		relabelConfig.TargetLabel = extraLabel.Name
+		relabelConfig.Replacement = extraLabel.Value
+
+		relabelConfigs = append(relabelConfigs, relabelConfig)
+	}
+
+	relabelArgs := relabel.Arguments{
+		ForwardTo:      []loki.LogsReceiver{receiver},
+		RelabelConfigs: relabelConfigs,
+		MaxCacheSize:   relabel.DefaultArguments.MaxCacheSize,
+	}
+
+	b.f.Body().AppendBlock(common.NewBlockWithOverride(
+		[]string{"loki", "relabel"},
+		compLabel,
+		relabelArgs,
+	))
+
+	return common.ConvertLogsReceiver{
+		Expr: fmt.Sprintf("loki.relabel.%s.receiver", compLabel),
+	}
+}
+
+func getLogsReceiver(config *eventhandler_v2.Config) common.ConvertLogsReceiver {
 	logsReceiver := common.ConvertLogsReceiver{}
 	if config.LogsInstance != "" {
 		compLabel, err := scanner.SanitizeIdentifier("logs_" + config.LogsInstance)
@@ -43,6 +78,10 @@ func toEventHandlerV2(config *eventhandler_v2.Config) *kubernetes_events.Argumen
 		logsReceiver.Expr = fmt.Sprintf("loki.write.%s.receiver", compLabel)
 	}
 
+	return logsReceiver
+}
+
+func toEventHandlerV2(config *eventhandler_v2.Config, receiver common.ConvertLogsReceiver) *kubernetes_events.Arguments {
 	defaultOverrides := kubernetes_events.DefaultArguments
 	defaultOverrides.Client.KubeConfig = config.KubeconfigPath
 	if config.Namespace != "" {
@@ -50,7 +89,7 @@ func toEventHandlerV2(config *eventhandler_v2.Config) *kubernetes_events.Argumen
 	}
 
 	return &kubernetes_events.Arguments{
-		ForwardTo:  []loki.LogsReceiver{logsReceiver},
+		ForwardTo:  []loki.LogsReceiver{receiver},
 		JobName:    kubernetes_events.DefaultArguments.JobName,
 		Namespaces: defaultOverrides.Namespaces,
 		LogFormat:  config.LogFormat,
