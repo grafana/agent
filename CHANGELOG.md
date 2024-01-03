@@ -21,6 +21,11 @@ Main (unreleased)
 - The `target` block in `prometheus.exporter.blackbox` requires a mandatory `name`
   argument instead of a block label. (@hainenber)
 
+- In the azure exporter, dimension options will no longer be validated by the Azure API. (@kgeckhart)
+  - This change will not break any existing configurations and you can opt in to validation via the `validate_dimensions` configuration option.
+  - Before this change, pulling metrics for azure resources with variable dimensions required one configuration per metric + dimension combination to avoid an error.
+  - After this change, you can include all metrics and dimensions in a single configuration and the Azure APIs will only return dimensions which are valid for the various metrics.
+
 ### Enhancements
 
 - Flow Windows service: Support environment variables. (@jkroepke)
@@ -37,6 +42,8 @@ Main (unreleased)
 - The `http` config block may now reference exports from any component.
   Previously, only `remote.*` and `local.*` components could be referenced
   without a circular dependency. (@rfratto)
+
+- Add support for Basic Auth-secured connection with Elasticsearch cluster using `prometheus.exporter.elasticsearch`. (@hainenber)
 
 - Add a `resource_to_telemetry_conversion` argument to `otelcol.exporter.prometheus`
   for converting resource attributes to Prometheus labels. (@hainenber)
@@ -63,6 +70,14 @@ Main (unreleased)
 
 - Added 'country' mmdb-type to log pipeline-stage geoip. (@superstes)
 
+- Azure exporter enhancements for flow and static mode, (@kgeckhart)
+  - Allows for pulling metrics at the Azure subscription level instead of resource by resource 
+  - Disable dimension validation by default to reduce the number of exporter instances needed for full dimension coverage 
+
+- Add `max_cache_size` to `prometheus.relabel` to allow configurability instead of hard coded 100,000. (@mattdurham)
+
+- Add support for `http_sd_config` within a `scrape_config` for prometheus to flow config conversion. (@erikbaranowski)
+
 ### Bugfixes
 
 - Update `pyroscope.ebpf` to fix a logical bug causing to profile to many kthreads instead of regular processes https://github.com/grafana/pyroscope/pull/2778 (@korniltsev)
@@ -82,6 +97,8 @@ Main (unreleased)
 ### Other changes
 
 - Bump github.com/IBM/sarama from v1.41.2 to v1.42.1
+
+- Attatch unique Agent ID header to remote-write requests. (@captncraig)
 
 v0.38.1 (2023-11-30)
 --------------------
