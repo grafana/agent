@@ -21,27 +21,10 @@ func init() {
 	})
 }
 
-type Arguments struct {
-	Join            []discovery.Target `river:"join,attr,optional"`
-	RefreshInterval time.Duration      `river:"refresh_interval,attr,optional"`
-	ProcFS          string             `river:"proc_fs,attr,optional"`
-}
-
-var DefaultConfig = Arguments{
-	Join:            nil,
-	RefreshInterval: 14 * time.Second,
-	ProcFS:          "/proc",
-}
-
-func (args *Arguments) SetToDefault() {
-	*args = DefaultConfig
-}
-
 func New(opts component.Options, args Arguments) (*Component, error) {
 	c := &Component{
 		l:               opts.Logger,
 		onStateChange:   opts.OnStateChange,
-		procFS:          args.ProcFS,
 		refreshInterval: args.RefreshInterval,
 		joinUpdates:     make(chan []discovery.Target),
 	}
@@ -52,7 +35,6 @@ type Component struct {
 	l             log.Logger
 	onStateChange func(e component.Exports)
 
-	procFS          string
 	refreshInterval time.Duration
 
 	processes   []discovery.Target
@@ -61,7 +43,7 @@ type Component struct {
 }
 
 func (c *Component) Run(ctx context.Context) error {
-	processes, err := discover(c.l, c.procFS)
+	processes, err := discover(c.l)
 	if err != nil {
 		return err
 	}
@@ -74,7 +56,7 @@ func (c *Component) Run(ctx context.Context) error {
 		case <-ctx.Done():
 			return nil
 		case <-t.C:
-			processes, err = discover(c.l, c.procFS)
+			processes, err = discover(c.l)
 			if err != nil {
 				return err
 			}

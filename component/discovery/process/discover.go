@@ -5,11 +5,13 @@ import (
 	"fmt"
 	"os"
 	"path"
-	"strconv"
+	"runtime"
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component/discovery"
+	gopsutil "github.com/shirou/gopsutil/v3/process"
+	"golang.org/x/sys/unix"
 )
 
 const (
@@ -24,63 +26,6 @@ type process struct {
 	exe         string
 	cwd         string
 	containerID string
-}
-
-func discover(l log.Logger, procFS string) ([]process, error) {
-	var (
-		err error
-		ps  []process
-	)
-	pids, err := os.ReadDir(procFS)
-	if err != nil {
-		return nil, fmt.Errorf("discovery.process: failed to read /proc: %w", err)
-	}
-	for _, entry := range pids {
-		var (
-			exe    string
-			cwd    string
-			cgroup *os.File
-		)
-		if !entry.IsDir() {
-			continue
-		}
-		pidDir := entry
-		pid := pidDir.Name()
-		_, err = strconv.Atoi(pid)
-		if err != nil {
-			continue
-		}
-		exe, err = os.Readlink(path.Join(procFS, pid, "exe"))
-		if err != nil {
-			if !errors.Is(err, os.ErrNotExist) {
-				_ = level.Error(l).Log("msg", "failed to read /proc/{pid}/exe", "err", err)
-			}
-			continue
-		}
-		cwd, err = os.Readlink(path.Join(procFS, pid, "cwd"))
-		if err != nil {
-			if !errors.Is(err, os.ErrNotExist) {
-				_ = level.Error(l).Log("msg", "failed to read /proc/{pid}/cwd", "err", err)
-			}
-			continue
-		}
-		cgroup, err = os.Open(path.Join(procFS, pid, "cgroup"))
-		if err != nil {
-			if !errors.Is(err, os.ErrNotExist) {
-				_ = level.Error(l).Log("msg", "failed to read /proc/{pid}/cgroup", "err", err)
-			}
-			continue
-		}
-		cid := getContainerIDFromCGroup(cgroup)
-		ps = append(ps, process{
-			pid:         pid,
-			exe:         exe,
-			cwd:         cwd,
-			containerID: cid,
-		})
-		_ = cgroup.Close()
-	}
-	return ps, nil
 }
 
 func convertProcesses(ps []process) []discovery.Target {
@@ -102,4 +47,64 @@ func convertProcess(p process) discovery.Target {
 		t[labelProcessContainerID] = p.containerID
 	}
 	return t
+}
+
+func discover(l log.Logger) ([]process, error) {
+	processes, err := gopsutil.Processes()
+	if err != nil {
+		return nil, fmt.Errorf("failed to list processes: %w", err)
+	}
+	res := make([]process, 0, len(processes))
+	loge := func(pid int, e error) {
+		if errors.Is(e, unix.ESRCH) {
+			return
+		}
+		if errors.Is(e, os.ErrNotExist) {
+			return
+		}
+		_ = level.Error(l).Log("msg", "failed to get process info", "err", e, "pid", pid)
+	}
+	for _, p := range processes {
+		spid := fmt.Sprintf("%d", p.Pid)
+		exe, err := p.Exe()
+		if err != nil {
+			loge(int(p.Pid), err)
+			continue
+		}
+		cwd, err := p.Cwd()
+		if err != nil {
+			loge(int(p.Pid), err)
+			continue
+		}
+
+		containerID, err := getLinuxProcessContainerID(l, spid)
+		if err != nil {
+			loge(int(p.Pid), err)
+			continue
+		}
+		res = append(res, process{
+			pid:         spid,
+			exe:         exe,
+			cwd:         cwd,
+			containerID: containerID,
+		})
+		_ = level.Debug(l).Log("msg", "found process", "pid", p.Pid, "exe", exe, "cwd", cwd, "container_id", containerID)
+	}
+
+	return res, nil
+}
+
+func getLinuxProcessContainerID(l log.Logger, pid string) (string, error) {
+	if runtime.GOOS == "linux" {
+		cgroup, err := os.Open(path.Join("/proc", pid, "cgroup"))
+		if err != nil {
+			return "", err
+		}
+		defer cgroup.Close()
+		cid := getContainerIDFromCGroup(cgroup)
+		if cid != "" {
+			return cid, nil
+		}
+	}
+	return "", nil
 }
