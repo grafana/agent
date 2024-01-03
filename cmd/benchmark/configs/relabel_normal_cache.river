@@ -40,7 +40,7 @@ prometheus.relabel "mutator" {
 	rule {
 		source_labels = ["__name__"]
 		action        = "keep"
-		regex         = "(agent_wal_storage_active_series|agent_resources_process_cpu_seconds_total|go_memstats_alloc_bytes|go_gc_duration_seconds_sum|go_gc_duration_seconds_count)"
+		regex         = "(agent_wal_storage_active_series|agent_resources_process_cpu_seconds_total|go_memstats_heap_inuse_bytes|go_memstats_alloc_bytes|go_gc_duration_seconds_sum|go_gc_duration_seconds_count)"
 	}
 
 	forward_to = [prometheus.remote_write.agent_stats.receiver]
