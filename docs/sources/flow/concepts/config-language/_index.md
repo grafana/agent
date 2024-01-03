@@ -11,6 +11,7 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/config-language/
 - /docs/grafana-cloud/send-data/agent/flow/config-language/
 - ../configuration-language/ # /docs/agent/latest/flow/configuration-language/
+- ../concepts/configuration_language/ # /docs/agent/latest/flow/concepts/configuration_language/
 - /docs/grafana-cloud/agent/flow/concepts/configuration_language/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/concepts/configuration_language/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/concepts/configuration_language/
