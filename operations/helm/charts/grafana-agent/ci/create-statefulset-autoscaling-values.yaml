@@ -4,7 +4,6 @@ controller:
   autoscaling:
     enabled: true
   enableStatefulSetAutoDeletePVC: true
-  minK8sVersionForAutoDelete: ">= 1.26"
 agent:
   resources:
     requests:
