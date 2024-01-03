@@ -212,7 +212,7 @@ otelcol.processor.filter "default" {
 
   traces {
     span = [
-      "attributes[\"container.name\"] == \"app_container_1\",
+      "attributes[\"container.name\"] == \"app_container_1\"",
     ]
   }
 
