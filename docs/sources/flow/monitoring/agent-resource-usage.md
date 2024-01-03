@@ -13,9 +13,9 @@ title: Resource usage
 
 # {{% param "PRODUCT_NAME" %}} resource usage
 
-This page provides guidance for expected resource usage of {{% param "
-PRODUCT_NAME" %}} for each telemetry type, based on operational experience of
-some of the {{% param "PRODUCT_NAME" %}} maintainers.
+This page provides guidance for expected resource usage of 
+{{% param "PRODUCT_NAME" %}} for each telemetry type, based on operational 
+experience of some of the {{% param "PRODUCT_NAME" %}} maintainers.
 
 {{% admonition type="note" %}}
 
@@ -30,12 +30,12 @@ actual usage may be different.
 The Prometheus metrics resource usage depends mainly on the number of active
 series that need to be scraped.
 
-As a rule of thumb, **per each 1 million active series** with 15s scrape
-interval, you can expect to use approximately:
+As a rule of thumb, **per each 1 million active series** 
+you can expect to use approximately:
 
-* 1 CPU cores
+* 1.5 CPU cores
 * 11 GiB of memory
-* 4.5 MiB/s of total network bandwidth, send and receive
+* 1.5 MiB/s of total network bandwidth, send and receive
 
 These recommendations are based on deployments that use [clustering][], but they
 will broadly apply to other deployment modes. For more information on how to
