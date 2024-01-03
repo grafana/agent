@@ -1,7 +1,3 @@
-logging {
-	level = "debug"
-}
-
 discovery.http "disco" {
 	url = env("DISCOVERY")
 }
@@ -63,8 +59,17 @@ prometheus.remote_write "agent_stats" {
 
 prometheus.scrape "data" {
 	targets         = discovery.http.disco.targets
-	forward_to      = [prometheus.remote_write.empty.receiver]
+	forward_to      = [prometheus.relabel.default.receiver]
 	scrape_interval = "60s"
+}
+
+prometheus.relabel "default" {
+	rule {
+		source_labels = ["__name__"]
+		regex         = "(agent_metric.+)"
+		action        = "keep"
+	}
+	forward_to = [prometheus.remote_write.empty.receiver]
 }
 
 prometheus.remote_write "empty" {

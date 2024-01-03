@@ -9,7 +9,7 @@ import (
 )
 
 func startLogsRun(run time.Duration) {
-	allow = true
+	networkdown = true
 	_ = os.MkdirAll("./data/", 0777)
 	_ = os.RemoveAll("./data/")
 	_ = os.Setenv("NAME", "logs")

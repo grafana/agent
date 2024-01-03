@@ -13,4 +13,4 @@ go build -o main
 
 ./main metrics large true 1h "http://127.0.0.1:9001/api/v0/component/prometheus.test.metrics.large/discovery" 
 ./main metrics large false 1h "http://127.0.0.1:9001/api/v0/component/prometheus.test.metrics.large/discovery"
-
+ 

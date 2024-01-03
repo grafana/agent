@@ -1,13 +1,9 @@
-logging {
-	level = "debug"
-}
-
 discovery.http "disco" {
 	url = env("DISCOVERY")
 }
 
 prometheus.scrape "scraper" {
-	targets         = concat([{"__address__" = env("HOST")}])
+	targets         = concat([{"__address__" =  env("HOST")}])
 	forward_to      = [prometheus.relabel.mutator.receiver]
 	scrape_interval = "60s"
 }
@@ -63,8 +59,19 @@ prometheus.remote_write "agent_stats" {
 
 prometheus.scrape "data" {
 	targets         = discovery.http.disco.targets
-	forward_to      = [prometheus.remote_write.empty.receiver]
+	forward_to      = [prometheus.relabel.default.receiver]
 	scrape_interval = "60s"
+}
+
+prometheus.relabel "default" {
+	max_cache_size = 1000000
+
+	rule {
+		source_labels = ["__name__"]
+		regex         = "(agent_metric.+)"
+		action        = "keep"
+	}
+	forward_to = [prometheus.remote_write.empty.receiver]
 }
 
 prometheus.remote_write "empty" {
