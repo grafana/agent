@@ -4,6 +4,12 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/tasks/opentelemetry-to-lgtm-stack/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/tasks/opentelemetry-to-lgtm-stack/
 - /docs/grafana-cloud/send-data/agent/flow/tasks/opentelemetry-to-lgtm-stack/
+# Previous page aliases for backwards compatibility:
+- /docs/grafana-cloud/agent/flow/getting-started/opentelemetry-to-lgtm-stack/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/getting-started/opentelemetry-to-lgtm-stack/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/getting-started/opentelemetry-to-lgtm-stack/
+- /docs/grafana-cloud/send-data/agent/flow/getting-started/opentelemetry-to-lgtm-stack/
+- ../getting-started/opentelemetry-to-lgtm-stack/ # /docs/agent/latest/flow/getting-started/opentelemetry-to-lgtm-stack/
 canonical: https://grafana.com/docs/agent/latest/flow/tasks/opentelemetry-to-lgtm-stack/
 description: Learn how to collect OpenTelemetry data and forward it to the Grafana
   stack

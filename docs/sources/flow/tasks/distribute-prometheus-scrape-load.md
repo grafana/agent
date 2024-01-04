@@ -4,6 +4,12 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/tasks/distribute-prometheus-scrape-load/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/tasks/distribute-prometheus-scrape-load/
 - /docs/grafana-cloud/send-data/agent/flow/tasks/distribute-prometheus-scrape-load/
+# Previous page aliases for backwards compatibility:
+- /docs/grafana-cloud/agent/flow/getting-started/distribute-prometheus-scrape-load/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/getting-started/distribute-prometheus-scrape-load/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/getting-started/distribute-prometheus-scrape-load/
+- /docs/grafana-cloud/send-data/agent/flow/getting-started/distribute-prometheus-scrape-load/
+- ../getting-started/distribute-prometheus-scrape-load/ # /docs/agent/latest/flow/getting-started/distribute-prometheus-scrape-load/
 canonical: https://grafana.com/docs/agent/latest/flow/tasks/distribute-prometheus-scrape-load/
 description: Learn how to distribute your Prometheus metrics scrape load
 menuTitle: Distribute Prometheus metrics scrape load

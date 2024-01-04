@@ -4,6 +4,12 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/tasks/migrating-from-static/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/tasks/migrating-from-static/
 - /docs/grafana-cloud/send-data/agent/flow/tasks/migrating-from-static/
+# Previous page aliases for backwards compatibility:
+- /docs/grafana-cloud/agent/flow/getting-started/migrating-from-static/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/getting-started/migrating-from-static/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/getting-started/migrating-from-static/
+- /docs/grafana-cloud/send-data/agent/flow/getting-started/migrating-from-static/
+- ../getting-started/migrating-from-static/ # /docs/agent/latest/flow/getting-started/migrating-from-static/
 canonical: https://grafana.com/docs/agent/latest/flow/tasks/migrating-from-static/
 description: Learn how to migrate your configuration from Grafana Agent Static to Grafana Agent Flow
 menuTitle: Migrate from Static to Flow

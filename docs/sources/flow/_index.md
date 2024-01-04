@@ -80,8 +80,8 @@ This feature is experimental, and it doesn't support all River components.
 
 * [Install][] {{< param "PRODUCT_NAME" >}}.
 * Learn about the core [Concepts][] of {{< param "PRODUCT_NAME" >}}.
-* Follow our [Tutorials][] to get started with {{< param "PRODUCT_NAME" >}}.
-* Follow our [Tasks][] instructions to accomplish common objectives with {{< param "PRODUCT_NAME" >}}.
+* Follow our [Tutorials][] for hands-on learning of {{< param "PRODUCT_NAME" >}}.
+* Consult our [Tasks][] instructions to accomplish common objectives with {{< param "PRODUCT_NAME" >}}.
 * Check out our [Reference][] documentation to find specific information you
   might be looking for.
 
