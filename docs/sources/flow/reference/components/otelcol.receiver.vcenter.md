@@ -28,7 +28,7 @@ different labels.
 
 The full list of metrics that can be collected can be found in [vcenter receiver documentation][vcenter metrics].
 
-[vcenter metrics]: https://github.com/open-telemetry/opentelemetry-collector/blob/{{< param "OTEL_VERSION" >}}/receiver/vcenterreceiver/documentation.md
+[vcenter metrics]: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/{{< param "OTEL_VERSION" >}}/receiver/vcenterreceiver/documentation.md
 
 ## Prerequisites
 
@@ -219,3 +219,22 @@ otelcol.exporter.otlp "default" {
     endpoint = env("OTLP_ENDPOINT")
   }
 }
+```
+
+<!-- START GENERATED COMPATIBLE COMPONENTS -->
+
+## Compatible components
+
+`otelcol.receiver.vcenter` can accept arguments from the following components:
+
+- Components that export [OpenTelemetry `otelcol.Consumer`]({{< relref "../compatibility/#opentelemetry-otelcolconsumer-exporters" >}})
+
+
+{{% admonition type="note" %}}
+
+Connecting some components may not be sensible or components may require further configuration to make the 
+connection work correctly. Refer to the linked documentation for more details.
+
+{{% /admonition %}}
+
+<!-- END GENERATED COMPATIBLE COMPONENTS -->

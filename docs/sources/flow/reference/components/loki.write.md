@@ -162,10 +162,11 @@ The following arguments are supported:
 
 Name                  | Type       | Description                                                                                                        | Default   | Required
 --------------------- |------------|--------------------------------------------------------------------------------------------------------------------|-----------| --------
-`enabled`                 | `bool`     | Whether to enable the WAL.                                                                                   | false     | no
+`enabled`                 | `bool`     | Whether to enable the WAL.                                                                                         | false     | no
 `max_segment_age`             | `duration` | Maximum time a WAL segment should be allowed to live. Segments older than this setting will be eventually deleted. | `"1h"`    | no
 `min_read_frequency`          | `duration` | Minimum backoff time in the backup read mechanism.                                                                 | `"250ms"` | no
 `max_read_frequency`          | `duration` | Maximum backoff time in the backup read mechanism.                                                                 | `"1s"`    | no
+`drain_timeout`          | `duration` | Maximum time the WAL drain procedure can take, before being forcefully stopped.                                    | `"30s"`   | no
 
 [run]: {{< relref "../cli/run.md" >}}
 
@@ -233,3 +234,20 @@ loki.write "default" {
 `loki.write` uses [snappy](https://en.wikipedia.org/wiki/Snappy_(compression)) for compression.
 
 Any labels that start with `__` will be removed before sending to the endpoint.
+
+<!-- START GENERATED COMPATIBLE COMPONENTS -->
+
+## Compatible components
+
+`loki.write` has exports that can be consumed by the following components:
+
+- Components that consume [Loki `LogsReceiver`]({{< relref "../compatibility/#loki-logsreceiver-consumers" >}})
+
+{{% admonition type="note" %}}
+
+Connecting some components may not be sensible or components may require further configuration to make the 
+connection work correctly. Refer to the linked documentation for more details.
+
+{{% /admonition %}}
+
+<!-- END GENERATED COMPATIBLE COMPONENTS -->

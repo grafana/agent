@@ -281,9 +281,28 @@ The following special labels can change the behavior of prometheus.scrape:
 * `__scheme__` is the name of the label that holds the scheme (http,https) on which to  scrape a target.
 * `__scrape_interval__` is the name of the label that holds the scrape interval used to scrape a target.
 * `__scrape_timeout__` is the name of the label that holds the scrape timeout used to scrape a target.
-* `__param__` is a prefix for labels that provide URL parameters used to scrape a target.
+* `__param_<name>` is a prefix for labels that provide URL parameters `<name>` used to scrape a target.
 
 Special labels added after a scrape
 * `__name__` is the label name indicating the metric name of a timeseries.
 * `job` is the label name indicating the job from which a timeseries was scraped.
 * `instance` is the label name used for the instance label.
+
+<!-- START GENERATED COMPATIBLE COMPONENTS -->
+
+## Compatible components
+
+`prometheus.scrape` can accept arguments from the following components:
+
+- Components that export [Targets]({{< relref "../compatibility/#targets-exporters" >}})
+- Components that export [Prometheus `MetricsReceiver`]({{< relref "../compatibility/#prometheus-metricsreceiver-exporters" >}})
+
+
+{{% admonition type="note" %}}
+
+Connecting some components may not be sensible or components may require further configuration to make the 
+connection work correctly. Refer to the linked documentation for more details.
+
+{{% /admonition %}}
+
+<!-- END GENERATED COMPATIBLE COMPONENTS -->

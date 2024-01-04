@@ -37,6 +37,7 @@ Name | Type | Description | Default | Required
 `url` | `string` | URL to poll. | | yes
 `method` | `string` | Define HTTP method for the request | `"GET"` | no
 `headers` | `map(string)` | Custom headers for the request. | `{}` | no
+`body`    | `string`      | The request body. | `""` | no
 `poll_frequency` | `duration` | Frequency to poll the URL. | `"1m"` | no
 `poll_timeout` | `duration` | Timeout when polling the URL. | `"10s"` | no
 `is_secret` | `bool` | Whether the response body should be treated as a secret. | false | no
@@ -53,7 +54,7 @@ The poll is successful if the URL returns a `200 OK` response code. All other
 response codes are treated as errors and mark the component as unhealthy. After
 a successful poll, the response body from the URL is exported.
 
-[secret]: {{< relref "../../config-language/expressions/types_and_values.md#secrets" >}}
+[secret]: {{< relref "../../concepts/config-language/expressions/types_and_values.md#secrets" >}}
 
 ## Blocks
 

@@ -8,10 +8,11 @@ package windowsevent
 import (
 	"bytes"
 	"errors"
-	"github.com/natefinch/atomic"
 	"io"
 	"io/fs"
 	"os"
+
+	"github.com/natefinch/atomic"
 
 	"github.com/grafana/loki/clients/pkg/promtail/targets/windows/win_eventlog"
 )
@@ -55,6 +56,7 @@ func newBookMark(path string) (*bookMark, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer file.Close()
 	fileContent, err := io.ReadAll(file)
 	if err != nil {
 		return nil, err

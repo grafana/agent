@@ -12,7 +12,7 @@ title: Deploy Grafana Agent Flow on Kubernetes
 weight: 200
 ---
 
-# Deploy {{< param "PRODUCT_NAME" >}} on Kubernetes
+# Deploy {{% param "PRODUCT_NAME" %}} on Kubernetes
 
 {{< param "PRODUCT_NAME" >}} can be deployed on Kubernetes by using the Helm chart for {{< param "PRODUCT_ROOT_NAME" >}}.
 
@@ -46,11 +46,12 @@ To deploy {{< param "PRODUCT_ROOT_NAME" >}} on Kubernetes using Helm, run the fo
 1. Install {{< param "PRODUCT_ROOT_NAME" >}}:
 
    ```shell
-   helm install RELEASE_NAME grafana/grafana-agent
+   helm install <RELEASE_NAME> grafana/grafana-agent
    ```
 
-   Replace `RELEASE_NAME` with a name to use for your {{< param "PRODUCT_ROOT_NAME" >}}
-   installation, such as `grafana-agent-flow`.
+   Replace the following:
+
+   -  _`<RELEASE_NAME>`_: The name to use for your {{< param "PRODUCT_ROOT_NAME" >}} installation, such as `grafana-agent-flow`.
 
 For more information on the {{< param "PRODUCT_ROOT_NAME" >}} Helm chart, refer to the Helm chart documentation on [Artifact Hub][].
 

@@ -106,9 +106,20 @@ func (c *Component) Update(newConfig component.Arguments) error {
 		useStartTimeMetric   = false
 		startTimeMetricRegex *regexp.Regexp
 
+		// Start time for Summary, Histogram and Sum metrics can be retrieved from `_created` metrics.
+		useCreatedMetric = false
+
+		// Trimming the metric suffixes is used to remove the metric type and the unit and the end of the metric name.
+		// To trim the unit, the opentelemetry code uses the MetricMetadataStore which is currently not supported by the agent.
+		// When supported, this could be added as an arg.
+		trimMetricSuffixes = false
+
 		gcInterval = 5 * time.Minute
 	)
 	settings := otelreceiver.CreateSettings{
+
+		ID: otelcomponent.NewID(otelcomponent.Type(c.opts.ID)),
+
 		TelemetrySettings: otelcomponent.TelemetrySettings{
 			Logger: zapadapter.New(c.opts.Logger),
 
@@ -135,8 +146,9 @@ func (c *Component) Update(newConfig component.Arguments) error {
 		gcInterval,
 		useStartTimeMetric,
 		startTimeMetricRegex,
-		otelcomponent.NewID(otelcomponent.Type(c.opts.ID)),
+		useCreatedMetric,
 		labels.Labels{},
+		trimMetricSuffixes,
 	)
 	if err != nil {
 		return err
