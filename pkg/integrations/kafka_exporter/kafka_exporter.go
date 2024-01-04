@@ -133,8 +133,8 @@ func New(logger log.Logger, c *Config) (integrations.Integration, error) {
 		return nil, fmt.Errorf("empty kafka_uris provided")
 	}
 	if c.UseTLS {
-		if c.CAFile != "" && (c.CertFile == "" || c.KeyFile == "") {
-			return nil, fmt.Errorf("tls is enabled but key pair was not provided")
+		if c.CAFile == "" && (c.CertFile == "" || c.KeyFile == "") {
+			return nil, fmt.Errorf("tls is enabled but key pair or ca certificate was not provided")
 		}
 	}
 	if c.UseSASL && (c.SASLPassword == "" || c.SASLUsername == "") {
