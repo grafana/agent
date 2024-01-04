@@ -82,7 +82,6 @@ This feature is experimental, and it doesn't support all River components.
 * Learn about the core [Concepts][] of {{< param "PRODUCT_NAME" >}}.
 * Follow our [Getting started][] guides for {{< param "PRODUCT_NAME" >}}.
 * Follow our [Tutorials][] to get started with {{< param "PRODUCT_NAME" >}}.
-* Learn how to use the [Configuration language][].
 * Check out our [Reference][] documentation to find specific information you
   might be looking for.
 
@@ -90,6 +89,5 @@ This feature is experimental, and it doesn't support all River components.
 [Concepts]: {{< relref "./concepts/" >}}
 [Getting started]: {{< relref "./getting-started/" >}}
 [Tutorials]: {{< relref "./tutorials/ ">}}
-[Configuration language]: {{< relref "./config-language/" >}}
 [Reference]: {{< relref "./reference" >}}
 

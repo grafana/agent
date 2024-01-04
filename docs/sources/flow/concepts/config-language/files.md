@@ -1,11 +1,17 @@
 ---
 aliases:
-- ../configuration-language/files/
+- ../configuration-language/files/ # /docs/agent/latest/flow/concepts/configuration-language/files/
+- /docs/grafana-cloud/agent/flow/concepts/config-language/files/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/concepts/config-language/files/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/concepts/config-language/files/
+- /docs/grafana-cloud/send-data/agent/flow/concepts/config-language/files/
+# Previous page aliases for backwards compatibility:
+- ../../configuration-language/files/ # /docs/agent/latest/flow/configuration-language/files/
 - /docs/grafana-cloud/agent/flow/config-language/files/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/config-language/files/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/config-language/files/
 - /docs/grafana-cloud/send-data/agent/flow/config-language/files/
-canonical: https://grafana.com/docs/agent/latest/flow/config-language/files/
+canonical: https://grafana.com/docs/agent/latest/flow/concepts/config-language/files/
 description: Learn about River files
 title: Files
 weight: 100

@@ -39,7 +39,7 @@ Name | Type | Description | Default | Required
 `poll_frequency` | `duration` | How often to poll for file changes | `"1m"` | no
 `is_secret` | `bool` | Marks the file as containing a [secret][] | `false` | no
 
-[secret]: {{< relref "../../config-language/expressions/types_and_values.md#secrets" >}}
+[secret]: {{< relref "../../concepts/config-language/expressions/types_and_values.md#secrets" >}}
 
 {{< docs/shared lookup="flow/reference/components/local-file-arguments-text.md" source="agent" version="<AGENT_VERSION>" >}}
 

@@ -20,7 +20,7 @@ title: nonsensitive
 > Strings resulting from calls to `nonsensitive` will be displayed in plaintext
 > in the UI and internal API calls.
 
-[secret]: {{< relref "../../config-language/expressions/types_and_values.md#secrets" >}}
+[secret]: {{< relref "../../concepts/config-language/expressions/types_and_values.md#secrets" >}}
 
 ## Examples
 
