@@ -1,11 +1,17 @@
 ---
 aliases:
-- ../configuration-language/components/
+- ../configuration-language/components/ # /docs/agent/latest/flow/concepts/configuration-language/components/
+- /docs/grafana-cloud/agent/flow/concepts/config-language/components/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/concepts/config-language/components/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/concepts/config-language/components/
+- /docs/grafana-cloud/send-data/agent/flow/concepts/config-language/components/
+# Previous page aliases for backwards compatibility:
+- ../../configuration-language/components/ # /docs/agent/latest/flow/configuration-language/components/
 - /docs/grafana-cloud/agent/flow/config-language/components/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/config-language/components/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/config-language/components/
 - /docs/grafana-cloud/send-data/agent/flow/config-language/components/
-canonical: https://grafana.com/docs/agent/latest/flow/config-language/components/
+canonical: https://grafana.com/docs/agent/latest/flow/concepts/config-language/components/
 description: Learn about the components configuration language
 title: Components configuration language
 weight: 300
@@ -93,6 +99,6 @@ The value is type-checked and substituted into `prometheus.scrape.default`, wher
 [components]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/components"
 [controller]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/component_controller"
 [controller]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/concepts/component_controller"
-[type]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/config-language/expressions/types_and_values"
-[type]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/config-language/expressions/types_and_values"
+[type]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/config-language/expressions/types_and_values"
+[type]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/concepts/config-language/expressions/types_and_values"
 {{% /docs/reference %}}

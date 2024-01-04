@@ -1,11 +1,17 @@
 ---
 aliases:
-- ../../configuration-language/expressions/types-and-values/
+- ../../configuration-language/expressions/types-and-values/ # /docs/agent/latest/flow/concepts/configuration-language/expressions/types-and-values/
+- /docs/grafana-cloud/agent/flow/concepts/config-language/expressions/types_and_values/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/concepts/config-language/expressions/types_and_values/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/concepts/config-language/expressions/types_and_values/
+- /docs/grafana-cloud/send-data/agent/flow/concepts/config-language/expressions/types_and_values/
+# Previous page aliases for backwards compatibility:
+- ../../../configuration-language/expressions/types-and-values/ # /docs/agent/latest/flow/configuration-language/expressions/types-and-values/
 - /docs/grafana-cloud/agent/flow/config-language/expressions/types_and_values/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/config-language/expressions/types_and_values/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/config-language/expressions/types_and_values/
 - /docs/grafana-cloud/send-data/agent/flow/config-language/expressions/types_and_values/
-canonical: https://grafana.com/docs/agent/latest/flow/config-language/expressions/types_and_values/
+canonical: https://grafana.com/docs/agent/latest/flow/concepts/config-language/expressions/types_and_values/
 description: Learn about the River types and values
 title: Types and values
 weight: 100
@@ -161,7 +167,7 @@ If the key isn't a valid identifier, you must wrap it in double quotes like a st
 }
 ```
 
-{{% admonition type="Note" %}}
+{{% admonition type="note" %}}
 Don't confuse objects with blocks.
 
 * An _object_ is a value assigned to an [Attribute][]. You **must** use commas between key-value pairs on separate lines.
