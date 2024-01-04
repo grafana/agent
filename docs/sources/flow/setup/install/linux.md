@@ -12,7 +12,7 @@ title: Install Grafana Agent Flow on Linux
 weight: 300
 ---
 
-# Install or uninstall {{< param "PRODUCT_NAME" >}} on Linux
+# Install or uninstall {{% param "PRODUCT_NAME" %}} on Linux
 
 You can install {{< param "PRODUCT_NAME" >}} as a systemd service on Linux.
 

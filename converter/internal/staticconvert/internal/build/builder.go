@@ -39,10 +39,13 @@ import (
 	"github.com/grafana/agent/pkg/integrations/statsd_exporter"
 	agent_exporter_v2 "github.com/grafana/agent/pkg/integrations/v2/agent"
 	apache_exporter_v2 "github.com/grafana/agent/pkg/integrations/v2/apache_http"
+	app_agent_receiver_v2 "github.com/grafana/agent/pkg/integrations/v2/app_agent_receiver"
 	blackbox_exporter_v2 "github.com/grafana/agent/pkg/integrations/v2/blackbox_exporter"
 	common_v2 "github.com/grafana/agent/pkg/integrations/v2/common"
-	"github.com/grafana/agent/pkg/integrations/v2/metricsutils"
+	eventhandler_v2 "github.com/grafana/agent/pkg/integrations/v2/eventhandler"
+	metricsutils_v2 "github.com/grafana/agent/pkg/integrations/v2/metricsutils"
 	snmp_exporter_v2 "github.com/grafana/agent/pkg/integrations/v2/snmp_exporter"
+	vmware_exporter_v2 "github.com/grafana/agent/pkg/integrations/v2/vmware_exporter"
 	"github.com/grafana/agent/pkg/integrations/windows_exporter"
 	"github.com/grafana/river/scanner"
 	"github.com/grafana/river/token/builder"
@@ -173,6 +176,10 @@ func (b *IntegrationsConfigBuilder) appendExporter(commonConfig *int_config.Comm
 		relabelConfigs = append(relabelConfigs, relabelConfig)
 	}
 
+	if relabelConfig := b.getJobRelabelConfig(name, commonConfig.RelabelConfigs); relabelConfig != nil {
+		relabelConfigs = append(relabelConfigs, b.getJobRelabelConfig(name, commonConfig.RelabelConfigs))
+	}
+
 	scrapeConfig := prom_config.DefaultScrapeConfig
 	scrapeConfig.JobName = b.formatJobName(name, nil)
 	scrapeConfig.RelabelConfigs = append(commonConfig.RelabelConfigs, relabelConfigs...)
@@ -217,13 +224,21 @@ func (b *IntegrationsConfigBuilder) appendV2Integrations() {
 		case *apache_exporter_v2.Config:
 			exports = b.appendApacheExporterV2(itg)
 			commonConfig = itg.Common
+		case *app_agent_receiver_v2.Config:
+			b.appendAppAgentReceiverV2(itg)
+			commonConfig = itg.Common
 		case *blackbox_exporter_v2.Config:
 			exports = b.appendBlackboxExporterV2(itg)
 			commonConfig = itg.Common
+		case *eventhandler_v2.Config:
+			b.appendEventHandlerV2(itg)
 		case *snmp_exporter_v2.Config:
 			exports = b.appendSnmpExporterV2(itg)
 			commonConfig = itg.Common
-		case *metricsutils.ConfigShim:
+		case *vmware_exporter_v2.Config:
+			exports = b.appendVmwareExporterV2(itg)
+			commonConfig = itg.Common
+		case *metricsutils_v2.ConfigShim:
 			commonConfig = itg.Common
 			switch v1_itg := itg.Orig.(type) {
 			case *azure_exporter.Config:
@@ -298,6 +313,10 @@ func (b *IntegrationsConfigBuilder) appendExporterV2(commonConfig *common_v2.Met
 		relabelConfig.TargetLabel = "instance"
 		relabelConfig.Replacement = *commonConfig.InstanceKey
 
+		relabelConfigs = append(relabelConfigs, relabelConfig)
+	}
+
+	if relabelConfig := b.getJobRelabelConfig(name, commonConfig.Autoscrape.RelabelConfigs); relabelConfig != nil {
 		relabelConfigs = append(relabelConfigs, relabelConfig)
 	}
 
@@ -385,4 +404,19 @@ func (b *IntegrationsConfigBuilder) appendExporterBlock(args component.Arguments
 	))
 
 	return common.NewDiscoveryExports(fmt.Sprintf("prometheus.exporter.%s.%s.targets", exporterName, compLabel))
+}
+
+func (b *IntegrationsConfigBuilder) getJobRelabelConfig(name string, relabelConfigs []*relabel.Config) *relabel.Config {
+	// Don't add a job relabel if that label is already targeted
+	for _, relabelConfig := range relabelConfigs {
+		if relabelConfig.TargetLabel == "job" {
+			return nil
+		}
+	}
+
+	defaultConfig := relabel.DefaultRelabelConfig
+	relabelConfig := &defaultConfig
+	relabelConfig.TargetLabel = "job"
+	relabelConfig.Replacement = "integrations/" + name
+	return relabelConfig
 }

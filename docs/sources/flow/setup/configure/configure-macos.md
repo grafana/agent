@@ -11,7 +11,7 @@ title: Configure Grafana Agent Flow on macOS
 weight: 400
 ---
 
-# Configure {{< param "PRODUCT_NAME" >}} on macOS
+# Configure {{% param "PRODUCT_NAME" %}} on macOS
 
 To configure {{< param "PRODUCT_NAME" >}} on macOS, perform the following steps:
 
@@ -23,7 +23,7 @@ To configure {{< param "PRODUCT_NAME" >}} on macOS, perform the following steps:
    brew services restart grafana-agent-flow
    ```
 
-## Configure the {{< param "PRODUCT_NAME" >}} service
+## Configure the {{% param "PRODUCT_NAME" %}} service
 
 {{% admonition type="note" %}}
 Due to limitations in Homebrew, customizing the service used by

@@ -11,7 +11,7 @@ title: Migrate from Promtail to Grafana Agent Flow
 weight: 330
 ---
 
-# Migrate from Promtail to {{< param "PRODUCT_NAME" >}}
+# Migrate from Promtail to {{% param "PRODUCT_NAME" %}}
 
 The built-in {{< param "PRODUCT_ROOT_NAME" >}} convert command can migrate your [Promtail][] configuration to a {{< param "PRODUCT_NAME" >}} configuration.
 
@@ -204,7 +204,7 @@ Configuration conversion is done on a best-effort basis. {{< param "PRODUCT_ROOT
 
 After the configuration is converted, review the {{< param "PRODUCT_NAME" >}} configuration file created and verify that it's correct before starting to use it in a production environment.
 
-Review the following checklist:
+The following list is specific to the convert command and not {{< param "PRODUCT_NAME" >}}:
 
 * Check if you are using any extra command line arguments with Promtail that aren't present in your configuration file. For example, `-max-line-size`.
 * Check if you are setting any environment variables, whether [expanded in the config file][] itself or consumed directly by Promtail, such as `JAEGER_AGENT_HOST`.
@@ -237,8 +237,8 @@ Review the following checklist:
 [Start]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/setup/start-agent.md"
 [DebuggingUI]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/monitoring/debugging.md"
 [DebuggingUI]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/monitoring/debugging.md"
-[River]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/config-language/_index.md"
-[River]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/config-language/_index.md"
+[River]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/config-language/_index.md"
+[River]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/concepts/config-language/_index.md"
 [UI]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/monitoring/debugging#grafana-agent-flow-ui"
 [UI]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/monitoring/debugging#grafana-agent-flow-ui"
 {{% /docs/reference %}}
