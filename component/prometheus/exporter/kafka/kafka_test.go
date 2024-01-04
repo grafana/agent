@@ -107,3 +107,15 @@ func TestCustomizeTarget(t *testing.T) {
 	require.Equal(t, 1, len(newTargets))
 	require.Equal(t, "example", newTargets[0]["instance"])
 }
+
+func TestSASLPassword(t *testing.T) { // #6044
+	var exampleRiverConfig = `
+		kafka_uris    = ["broker1"]
+		use_sasl      = true 
+		sasl_password = "foobar"
+	`
+
+	var args Arguments
+	err := river.Unmarshal([]byte(exampleRiverConfig), &args)
+	require.NoError(t, err)
+}
