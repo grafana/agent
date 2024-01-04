@@ -84,10 +84,10 @@ Function enableWindowsExporter
     ${NSD_CreateCheckBox} 0 13u 100% 12u ""
     Pop $EnableExporterCheck
 
-    ${NSD_CreateLabel} 0 0 100% 12u "Expand Environment Variables"
+    ${NSD_CreateLabel} 0 26u 100% 12u "Expand Environment Variables"
     Pop $0
 
-    ${NSD_CreateCheckBox} 0 13u 100% 12u ""
+    ${NSD_CreateCheckBox} 0 39u 100% 12u ""
     Pop $ExpandEnvCheck
 
     nsDialogs::Show
