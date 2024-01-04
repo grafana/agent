@@ -28,10 +28,10 @@ actual usage may be different.
 ## Prometheus metrics
 
 The Prometheus metrics resource usage depends mainly on the number of active
-series that need to be scraped.
+series that need to be scraped and the scrape interval.
 
-As a rule of thumb, **per each 1 million active series** 
-you can expect to use approximately:
+As a rule of thumb, **per each 1 million active series** and with the default 
+scrape interval, you can expect to use approximately:
 
 * 1.5 CPU cores
 * 11 GiB of memory
