@@ -1,4 +1,7 @@
 {{- if eq .Values.controller.type "statefulset" }}
+{{- if .Values.enableStatefulSetAutoDeletePVC }}
+{{- fail "Value 'enableStatefulSetAutoDeletePVC' should be nested inside 'controller' options." }}
+{{- end }}
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -35,8 +38,8 @@ spec:
     - {{ toYaml . | nindent 6 }}
     {{- end }}
   {{- end }}
-  {{- if and (semverCompare ">= 1.23-0" .Capabilities.KubeVersion.Version) (.Values.enableStatefulSetAutoDeletePVC)  }}
-  {{/*
+  {{- if and (semverCompare ">= 1.23-0" .Capabilities.KubeVersion.Version) (.Values.controller.enableStatefulSetAutoDeletePVC) }}
+  {{- /*
     Data on the read nodes is easy to replace, so we want to always delete PVCs to make
     operation easier, and will rely on re-fetching data when needed.
   */}}

@@ -76,3 +76,6 @@ spec:
         - name: config
           configMap:
             name: grafana-agent
+  persistentVolumeClaimRetentionPolicy:
+    whenDeleted: Delete
+    whenScaled: Delete
