@@ -83,9 +83,6 @@ Main (unreleased)
 - Add support for `http_sd_config` within a `scrape_config` for prometheus to flow config conversion. (@erikbaranowski)
 - `discovery.lightsail` now supports additional parameters for configuring HTTP client settings. (@ptodev)
 
-- `prometheus.scrape` has a new `track_timestamps_staleness` configuration switch for tracking
-  staleness of metrics with explicit timestamps. (@ptodev)
-
 ### Bugfixes
 
 - Update `pyroscope.ebpf` to fix a logical bug causing to profile to many kthreads instead of regular processes https://github.com/grafana/pyroscope/pull/2778 (@korniltsev)
