@@ -33,7 +33,7 @@ series that need to be scraped and the scrape interval.
 As a rule of thumb, **per each 1 million active series** and with the default 
 scrape interval, you can expect to use approximately:
 
-* 1.5 CPU cores
+* 0.4 CPU cores
 * 11 GiB of memory
 * 1.5 MiB/s of total network bandwidth, send and receive
 
