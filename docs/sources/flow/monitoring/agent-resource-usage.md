@@ -58,8 +58,7 @@ to use approximately:
 These recommendations are based on Kubernetes DaemonSet deployments on clusters
 with relatively small number of nodes and high logs volume on each. The resource
 usage can be higher per each 1 MiB/second of logs if you have a large number of
-small nodes due to the constant overhead of running the {{% param "
-PRODUCT_NAME" %}} on each node.
+small nodes due to the constant overhead of running the {{% param "PRODUCT_NAME" %}} on each node.
 
 Additionally, factors such as number of labels, number of files and average log
 line length may all play a role in the resource usage.
