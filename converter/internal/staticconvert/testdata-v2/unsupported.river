@@ -9,6 +9,17 @@ prometheus.remote_write "metrics_default" {
 	}
 }
 
+loki.write "logs_log_config" {
+	endpoint {
+		url = "http://localhost/loki/api/v1/push"
+	}
+	external_labels = {}
+}
+
+loki.source.kubernetes_events "integrations_eventhandler" {
+	forward_to = [loki.write.logs_log_config.receiver]
+}
+
 faro.receiver "integrations_app_agent_receiver" {
 	extra_log_labels = {}
 
