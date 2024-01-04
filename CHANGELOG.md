@@ -14,8 +14,8 @@ Main (unreleased)
 
 - `otelcol.receiver.prometheus` will drop all `otel_scope_info` metrics when converting them to OTLP. (@wildum)
   - If the `otel_scope_info` metric has labels `otel_scope_name` and `otel_scope_version`,
-    their values will be used to set OTLP Instrumentation Scope name and  version respectively. 
-  - Labels of `otel_scope_info` metrics other than `otel_scope_name` and `otel_scope_version` 
+    their values will be used to set OTLP Instrumentation Scope name and  version respectively.
+  - Labels of `otel_scope_info` metrics other than `otel_scope_name` and `otel_scope_version`
     are added as scope attributes with the matching name and version.
 
 - The `target` block in `prometheus.exporter.blackbox` requires a mandatory `name`
@@ -59,7 +59,7 @@ Main (unreleased)
 
 - Added links between compatible components in the documentation to make it
   easier to discover them. (@thampiotr)
-  
+
 - Allow defining `HTTPClientConfig` for `discovery.ec2`. (@cmbrad)
 
 - The `remote.http` component can optionally define a request body. (@tpaschalis)
@@ -73,8 +73,8 @@ Main (unreleased)
 - Added 'country' mmdb-type to log pipeline-stage geoip. (@superstes)
 
 - Azure exporter enhancements for flow and static mode, (@kgeckhart)
-  - Allows for pulling metrics at the Azure subscription level instead of resource by resource 
-  - Disable dimension validation by default to reduce the number of exporter instances needed for full dimension coverage 
+  - Allows for pulling metrics at the Azure subscription level instead of resource by resource
+  - Disable dimension validation by default to reduce the number of exporter instances needed for full dimension coverage
 
 - Add `max_cache_size` to `prometheus.relabel` to allow configurability instead of hard coded 100,000. (@mattdurham)
 
@@ -83,11 +83,11 @@ Main (unreleased)
 ### Bugfixes
 
 - Update `pyroscope.ebpf` to fix a logical bug causing to profile to many kthreads instead of regular processes https://github.com/grafana/pyroscope/pull/2778 (@korniltsev)
- 
+
 - Update `pyroscope.ebpf` to produce more optimal pprof profiles for python processes https://github.com/grafana/pyroscope/pull/2788 (@korniltsev)
 
 - In Static mode's `traces` subsystem, `spanmetrics` used to be generated prior to load balancing.
-  This could lead to inaccurate metrics. This issue only affects Agents using both `spanmetrics` and 
+  This could lead to inaccurate metrics. This issue only affects Agents using both `spanmetrics` and
   `load_balancing`, when running in a load balanced cluster with more than one Agent instance. (@ptodev)
 
 - Fixes `loki.source.docker` a behavior that synced an incomplete list of targets to the tailer manager. (@FerdinandvHagen)
@@ -95,6 +95,8 @@ Main (unreleased)
 - Fixes `otelcol.connector.servicegraph` store ttl default value from 2ms to 2s. (@rlankfo)
 
 - Add staleness tracking to labelstore to reduce memory usage. (@mattdurham)
+
+- Fix issue where `prometheus.exporter.kafka` would crash when configuring `sasl_password`. (@rfratto)
 
 ### Other changes
 

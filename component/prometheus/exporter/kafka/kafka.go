@@ -9,7 +9,8 @@ import (
 	"github.com/grafana/agent/component/prometheus/exporter"
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/integrations/kafka_exporter"
-	config_util "github.com/prometheus/common/config"
+	"github.com/grafana/river/rivertypes"
+	"github.com/prometheus/common/config"
 )
 
 var DefaultArguments = Arguments{
@@ -24,28 +25,28 @@ var DefaultArguments = Arguments{
 }
 
 type Arguments struct {
-	Instance                string             `river:"instance,attr,optional"`
-	KafkaURIs               []string           `river:"kafka_uris,attr,optional"`
-	UseSASL                 bool               `river:"use_sasl,attr,optional"`
-	UseSASLHandshake        bool               `river:"use_sasl_handshake,attr,optional"`
-	SASLUsername            string             `river:"sasl_username,attr,optional"`
-	SASLPassword            config_util.Secret `river:"sasl_password,attr,optional"`
-	SASLMechanism           string             `river:"sasl_mechanism,attr,optional"`
-	UseTLS                  bool               `river:"use_tls,attr,optional"`
-	CAFile                  string             `river:"ca_file,attr,optional"`
-	CertFile                string             `river:"cert_file,attr,optional"`
-	KeyFile                 string             `river:"key_file,attr,optional"`
-	InsecureSkipVerify      bool               `river:"insecure_skip_verify,attr,optional"`
-	KafkaVersion            string             `river:"kafka_version,attr,optional"`
-	UseZooKeeperLag         bool               `river:"use_zookeeper_lag,attr,optional"`
-	ZookeeperURIs           []string           `river:"zookeeper_uris,attr,optional"`
-	ClusterName             string             `river:"kafka_cluster_name,attr,optional"`
-	MetadataRefreshInterval string             `river:"metadata_refresh_interval,attr,optional"`
-	AllowConcurrent         bool               `river:"allow_concurrency,attr,optional"`
-	MaxOffsets              int                `river:"max_offsets,attr,optional"`
-	PruneIntervalSeconds    int                `river:"prune_interval_seconds,attr,optional"`
-	TopicsFilter            string             `river:"topics_filter_regex,attr,optional"`
-	GroupFilter             string             `river:"groups_filter_regex,attr,optional"`
+	Instance                string            `river:"instance,attr,optional"`
+	KafkaURIs               []string          `river:"kafka_uris,attr,optional"`
+	UseSASL                 bool              `river:"use_sasl,attr,optional"`
+	UseSASLHandshake        bool              `river:"use_sasl_handshake,attr,optional"`
+	SASLUsername            string            `river:"sasl_username,attr,optional"`
+	SASLPassword            rivertypes.Secret `river:"sasl_password,attr,optional"`
+	SASLMechanism           string            `river:"sasl_mechanism,attr,optional"`
+	UseTLS                  bool              `river:"use_tls,attr,optional"`
+	CAFile                  string            `river:"ca_file,attr,optional"`
+	CertFile                string            `river:"cert_file,attr,optional"`
+	KeyFile                 string            `river:"key_file,attr,optional"`
+	InsecureSkipVerify      bool              `river:"insecure_skip_verify,attr,optional"`
+	KafkaVersion            string            `river:"kafka_version,attr,optional"`
+	UseZooKeeperLag         bool              `river:"use_zookeeper_lag,attr,optional"`
+	ZookeeperURIs           []string          `river:"zookeeper_uris,attr,optional"`
+	ClusterName             string            `river:"kafka_cluster_name,attr,optional"`
+	MetadataRefreshInterval string            `river:"metadata_refresh_interval,attr,optional"`
+	AllowConcurrent         bool              `river:"allow_concurrency,attr,optional"`
+	MaxOffsets              int               `river:"max_offsets,attr,optional"`
+	PruneIntervalSeconds    int               `river:"prune_interval_seconds,attr,optional"`
+	TopicsFilter            string            `river:"topics_filter_regex,attr,optional"`
+	GroupFilter             string            `river:"groups_filter_regex,attr,optional"`
 }
 
 func init() {
@@ -93,7 +94,7 @@ func (a *Arguments) Convert() *kafka_exporter.Config {
 		UseSASL:                 a.UseSASL,
 		UseSASLHandshake:        a.UseSASLHandshake,
 		SASLUsername:            a.SASLUsername,
-		SASLPassword:            a.SASLPassword,
+		SASLPassword:            config.Secret(a.SASLPassword),
 		SASLMechanism:           a.SASLMechanism,
 		UseTLS:                  a.UseTLS,
 		CAFile:                  a.CAFile,
