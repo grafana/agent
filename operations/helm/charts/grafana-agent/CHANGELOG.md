@@ -14,6 +14,10 @@ Unreleased
 
 - Update `rbac` to include necessary rules for the `otelcol.processor.k8sattributes` component. (@rlankfo)
 
+### Bugfixes
+
+- Statefulset should use value `.controller.enableStatefulSetAutoDeletePVC` instead of just `.enableStatefulSetAutoDeletePVC`. (@captncraig)
+
 0.29.0 (2023-11-30)
 -------------------
 
