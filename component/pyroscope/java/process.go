@@ -30,25 +30,22 @@ type profilingLoop struct {
 	target    discovery.Target
 	cancel    context.CancelFunc
 	error     error
-	dist      asprof.Distribution
-	jfrFile   asprof.File
+	dist      *asprof.Distribution
+	jfrFile   string
 	startTime time.Time
 }
 
 func newProcess(pid int, target discovery.Target, logger log.Logger, output *pyroscope.Fanout, cfg ProfilingConfig) *profilingLoop {
 	ctx, cancel := context.WithCancel(context.Background())
 	p := &profilingLoop{
-		logger: log.With(logger, "pid", pid),
-		output: output,
-		pid:    pid,
-		target: target,
-		cancel: cancel,
-		dist:   asprof.Glibc, //todo
-		jfrFile: asprof.File{
-			Path: fmt.Sprintf("/tmp/asprof-%d-%d.jfr", os.Getpid(), pid),
-			PID:  pid,
-		},
-		cfg: cfg,
+		logger:  log.With(logger, "pid", pid),
+		output:  output,
+		pid:     pid,
+		target:  target,
+		cancel:  cancel,
+		dist:    asprof.DistributionForProcess(pid),
+		jfrFile: fmt.Sprintf("/tmp/asprof-%d-%d.jfr", os.Getpid(), pid),
+		cfg:     cfg,
 	}
 	_ = level.Debug(p.logger).Log("msg", "new process", "target", fmt.Sprintf("%+v", target))
 
@@ -61,7 +58,7 @@ func newProcess(pid int, target discovery.Target, logger log.Logger, output *pyr
 }
 
 func (p *profilingLoop) loop(ctx context.Context) {
-	if err := profiler.CopyLib(asprof.Glibc, p.pid); err != nil {
+	if err := profiler.CopyLib(p.dist, p.pid); err != nil {
 		p.onError(fmt.Errorf("failed to copy libasyncProfiler.so: %w", err))
 		return
 	}
@@ -98,11 +95,12 @@ func (p *profilingLoop) reset() error {
 	if err != nil {
 		return fmt.Errorf("failed to stop asprof: %w", err)
 	}
-	jfrBytes, err := p.jfrFile.Read()
+	jfrFile := asprof.ProcessPath(p.jfrFile, p.pid)
+	jfrBytes, err := os.ReadFile(jfrFile)
 	if err != nil {
 		return fmt.Errorf("failed to read jfr file: %w", err)
 	}
-	err = p.jfrFile.Delete()
+	err = os.Remove(jfrFile)
 	if err != nil {
 		return fmt.Errorf("failed to delete jfr file: %w", err)
 	}
@@ -143,7 +141,7 @@ func (p *profilingLoop) start() error {
 	p.startTime = time.Now()
 	argv := make([]string, 0, 14)
 	argv = append(argv,
-		"-f", p.jfrFile.Path,
+		"-f", p.jfrFile,
 		"-o", "jfr",
 	)
 	if p.cfg.CPU {

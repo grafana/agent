@@ -2,7 +2,6 @@ package asprof
 
 import (
 	"archive/tar"
-	"bufio"
 	"bytes"
 	"io"
 	"os"
@@ -33,10 +32,6 @@ func extractTarGZ(buf []byte, dst string) error {
 		dir := filepath.Join(dst, filepath.Dir(header.Name))
 		filename := filepath.Join(dir, fileInfo.Name())
 		if fileInfo.IsDir() {
-			err = os.MkdirAll(filename, 0755)
-			if err != nil {
-				return err
-			}
 			continue
 		}
 		err = os.MkdirAll(dir, 0755)
@@ -44,30 +39,19 @@ func extractTarGZ(buf []byte, dst string) error {
 			return err
 		}
 
+		buffer, err := io.ReadAll(tarReader)
+		if err != nil {
+			return err
+		}
+		//tyodo make sure dst is not a symlink
+
 		file, err := os.Create(filename)
 		if err != nil {
 			return err
 		}
+		defer file.Close()
 
-		writer := bufio.NewWriter(file)
-
-		buffer := make([]byte, 4096)
-		for {
-			n, err := tarReader.Read(buffer)
-			if err != nil && err != io.EOF {
-				panic(err)
-			}
-			if n == 0 {
-				break
-			}
-
-			_, err = writer.Write(buffer[:n])
-			if err != nil {
-				return err
-			}
-		}
-
-		err = writer.Flush()
+		_, err = file.Write(buffer)
 		if err != nil {
 			return err
 		}

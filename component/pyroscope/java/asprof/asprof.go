@@ -10,6 +10,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"sync"
 
 	"k8s.io/utils/path"
@@ -19,69 +20,64 @@ import (
 // option2: distribute the tar.gz file with the agent docker image
 
 type Profiler struct {
-	tmpDir      string
-	unpackOnce  sync.Once
+	tmpDir     string
+	unpackOnce sync.Once
+
+	mutex       sync.Mutex
 	unpackError error
-
-	glibcDir string
-	muslDir  string
-
-	mutex sync.Mutex
 }
 
 func NewProfiler(tmpDir string) *Profiler {
 	return &Profiler{tmpDir: tmpDir}
 }
 
-type Distribution bool
+type Distribution struct {
+	targz        []byte
+	fname        string
+	version      int
+	extractedDir string
+}
 
-var Glibc Distribution = true
-var Musl Distribution = false
+func (d *Distribution) Extract(tmpDir string) error {
+	sum := sha1.Sum(d.targz)
+	basename := strings.TrimSuffix(d.fname, ".tar.gz")
+	d.extractedDir = filepath.Join(tmpDir,
+		fmt.Sprintf("asprof-%s-%s", basename, hex.EncodeToString(sum[:])))
+	if err := extractTarGZ(d.targz, d.extractedDir); err != nil {
+		return err
+	}
+	d.extractedDir = filepath.Join(d.extractedDir, basename)
+	if err := os.Chmod(d.AsprofPath(), 0700); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (d *Distribution) AsprofPath() string {
+	if d.version < 300 {
+		return filepath.Join(d.extractedDir, "bin/profiler.sh")
+	}
+	return filepath.Join(d.extractedDir, "bin/asprof")
+}
 
 func (p *Profiler) Extract() error {
 	p.unpackOnce.Do(func() {
-		sum := sha1.Sum(glibcDistribution)
-		p.glibcDir = filepath.Join(p.tmpDir, "asprof-glibc-"+hex.EncodeToString(sum[:]))
-		if p.unpackError = extractTarGZ(glibcDistribution, p.glibcDir); p.unpackError != nil {
-			return
+		for _, d := range AllDistributions() {
+			err := d.Extract(p.tmpDir)
+			if err != nil {
+				p.unpackError = err
+				break
+			}
 		}
-		if err := os.Chmod(filepath.Join(p.glibcDir, glibcDistributionName, "bin", "asprof"), 0700); err != nil {
-			p.unpackError = err
-			return
-		}
-		//sum = sha1.Sum(muslDistribution)
-		//p.muslDir = filepath.Join(p.tmpDir, "asprof-musl-"+hex.EncodeToString(sum[:]))
-		//if p.unpackError = extractTarGZ(muslDistribution, p.muslDir); p.unpackError != nil {
-		//	return
-		//}
 	})
 	return p.unpackError
 }
 
-func (p *Profiler) LibPath(dist Distribution) string {
-	if dist == Glibc {
-		return filepath.Join(p.glibcDir, glibcDistributionName, "lib/libasyncProfiler.so")
-	}
-	return "TODO"
-}
-
-func (p *Profiler) TargetLibPath(dist Distribution, pid int) string {
-	if dist == Glibc {
-		f := File{Path: p.LibPath(dist), PID: pid}
-		return f.ProcRootPath()
-	}
-	return "TODO"
-}
-
-func (p *Profiler) AsprofPath() string {
-	return filepath.Join(p.glibcDir, glibcDistributionName, "bin", "asprof")
-}
-
-func (p *Profiler) Execute(dist Distribution, argv []string) (string, string, error) {
+func (p *Profiler) Execute(dist *Distribution, argv []string) (string, string, error) {
 	stdout := bytes.NewBuffer(nil)
 	stderr := bytes.NewBuffer(nil)
 
-	exe := p.AsprofPath()
+	exe := dist.AsprofPath()
 	cmd := exec.Command(exe, argv...)
 	cmd.Stdout = stdout
 	cmd.Stderr = stderr
@@ -95,17 +91,18 @@ func (p *Profiler) Execute(dist Distribution, argv []string) (string, string, er
 	}
 	return stdout.String(), stderr.String(), nil
 }
-func (p *Profiler) CopyLib(dist Distribution, pid int) error {
+
+func (p *Profiler) CopyLib(dist *Distribution, pid int) error {
 	p.mutex.Lock()
 	defer p.mutex.Unlock()
-	src := p.LibPath(dist)
+	src := dist.LibPath()
 
 	libBytes, err := os.ReadFile(src)
 	if err != nil {
 		return err
 	}
 
-	dst := p.TargetLibPath(dist, pid)
+	dst := ProcessPath(dist.LibPath(), pid)
 	targetExists, err := path.Exists(path.CheckSymlinkOnly, dst)
 	if err != nil {
 		return err
@@ -139,19 +136,19 @@ func (p *Profiler) CopyLib(dist Distribution, pid int) error {
 
 // todo use timeout argument
 
-type File struct {
+type ProcFile struct {
 	Path string
 	PID  int
 }
 
-func (f *File) ProcRootPath() string {
+func (f *ProcFile) ProcRootPath() string {
 	return filepath.Join("/proc", strconv.Itoa(f.PID), "root", f.Path)
 }
 
-func (f *File) Read() ([]byte, error) {
-	return os.ReadFile(f.ProcRootPath())
-}
-
-func (f *File) Delete() error {
-	return os.Remove(f.ProcRootPath())
-}
+//func (f *ProcFile) Read() ([]byte, error) {
+//	return os.ReadFile(f.ProcRootPath())
+//}
+//
+//func (f *ProcFile) Delete() error {
+//	return os.Remove(f.ProcRootPath())
+//}

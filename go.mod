@@ -613,7 +613,7 @@ require github.com/ianlancetaylor/demangle v0.0.0-20230524184225-eabc099b10ab
 
 require (
 	github.com/githubexporter/github-exporter v0.0.0-20231025122338-656e7dc33fe7
-	github.com/go-darwin/libproc v0.0.0-20211011132324-7896a7429154
+	github.com/grafana/jfr-parser v0.7.2-0.20230831140626-08fa3a941bf8
 	github.com/natefinch/atomic v1.0.1
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/filterprocessor v0.87.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/vcenterreceiver v0.87.0
@@ -625,10 +625,8 @@ require (
 	github.com/Shopify/sarama v1.38.1 // indirect
 	github.com/Workiva/go-datastructures v1.1.0 // indirect
 	github.com/drone/envsubst v1.0.3 // indirect
-	github.com/go-darwin/sys v0.0.0-20211011132137-c7d03cd1cd29 // indirect
 	github.com/go-jose/go-jose/v3 v3.0.0 // indirect
 	github.com/google/gnostic-models v0.6.8 // indirect
-	github.com/grafana/jfr-parser v0.7.2-0.20230831140626-08fa3a941bf8 // indirect
 	github.com/hetznercloud/hcloud-go/v2 v2.0.0 // indirect
 	github.com/julienschmidt/httprouter v1.3.0 // indirect
 	github.com/knadh/koanf/v2 v2.0.1 // indirect

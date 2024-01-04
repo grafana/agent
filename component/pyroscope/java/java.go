@@ -141,6 +141,7 @@ func (j *javaComponent) stop() {
 	defer j.mutex.Unlock()
 	for _, proc := range j.pid2process {
 		proc.Close()
+		_ = level.Debug(j.opts.Logger).Log("msg", "stopped", "pid", proc.pid)
 		delete(j.pid2process, proc.pid)
 	}
 }
