@@ -17,6 +17,7 @@ import (
 	"github.com/grafana/agent/pkg/flow/logging/level"
 )
 
+// we extract to /tmp so all users can read it, but only root write, see asprof.extractPerm
 var profiler = asprof.NewProfiler("/tmp")
 
 type profilingLoop struct {
@@ -67,10 +68,14 @@ func (p *profilingLoop) loop(ctx context.Context) {
 	timer := time.NewTimer(p.interval())
 	err := p.start()
 	if err != nil {
+
 		p.onError(fmt.Errorf("failed to start asprof: %w", err))
 		return
 	}
+	// todo error could happen when agent restarted
+	//[ERROR] Profiler already started\n
 	for {
+
 		select {
 		case <-timer.C:
 			if err := p.reset(); err != nil {

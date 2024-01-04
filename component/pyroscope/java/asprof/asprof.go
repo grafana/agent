@@ -2,15 +2,12 @@ package asprof
 
 import (
 	"bytes"
-	"crypto/sha1"
 	_ "embed"
-	"encoding/hex"
 	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strconv"
-	"strings"
 	"sync"
 
 	"k8s.io/utils/path"
@@ -38,20 +35,7 @@ type Distribution struct {
 	extractedDir string
 }
 
-func (d *Distribution) Extract(tmpDir string) error {
-	sum := sha1.Sum(d.targz)
-	basename := strings.TrimSuffix(d.fname, ".tar.gz")
-	d.extractedDir = filepath.Join(tmpDir,
-		fmt.Sprintf("asprof-%s-%s", basename, hex.EncodeToString(sum[:])))
-	if err := extractTarGZ(d.targz, d.extractedDir); err != nil {
-		return err
-	}
-	d.extractedDir = filepath.Join(d.extractedDir, basename)
-	if err := os.Chmod(d.AsprofPath(), 0700); err != nil {
-		return err
-	}
-	return nil
-}
+const tmpDirMarker = "grafana-agent-asprof"
 
 func (d *Distribution) AsprofPath() string {
 	if d.version < 300 {
@@ -63,7 +47,7 @@ func (d *Distribution) AsprofPath() string {
 func (p *Profiler) Extract() error {
 	p.unpackOnce.Do(func() {
 		for _, d := range AllDistributions() {
-			err := d.Extract(p.tmpDir)
+			err := d.Extract(p.tmpDir, tmpDirMarker)
 			if err != nil {
 				p.unpackError = err
 				break
@@ -83,11 +67,11 @@ func (p *Profiler) Execute(dist *Distribution, argv []string) (string, string, e
 	cmd.Stderr = stderr
 	err := cmd.Start()
 	if err != nil {
-		return "", "", fmt.Errorf("asprof failed to start %s: %w", exe, err)
+		return stdout.String(), stderr.String(), fmt.Errorf("asprof failed to start %s: %w", exe, err)
 	}
 	err = cmd.Wait()
 	if err != nil {
-		return "", "", fmt.Errorf("asprof failed to run %s: %w", exe, err)
+		return stdout.String(), stderr.String(), fmt.Errorf("asprof failed to run %s: %w", exe, err)
 	}
 	return stdout.String(), stderr.String(), nil
 }
@@ -134,8 +118,6 @@ func (p *Profiler) CopyLib(dist *Distribution, pid int) error {
 	}
 }
 
-// todo use timeout argument
-
 type ProcFile struct {
 	Path string
 	PID  int
@@ -144,11 +126,3 @@ type ProcFile struct {
 func (f *ProcFile) ProcRootPath() string {
 	return filepath.Join("/proc", strconv.Itoa(f.PID), "root", f.Path)
 }
-
-//func (f *ProcFile) Read() ([]byte, error) {
-//	return os.ReadFile(f.ProcRootPath())
-//}
-//
-//func (f *ProcFile) Delete() error {
-//	return os.Remove(f.ProcRootPath())
-//}

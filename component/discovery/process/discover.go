@@ -18,6 +18,7 @@ const (
 	labelProcessID          = "__process_pid__"
 	labelProcessExe         = "__meta_process_exe"
 	labelProcessCwd         = "__meta_process_cwd"
+	labelProcessCommandline = "__meta_process_commandline"
 	labelProcessContainerID = "__container_id__"
 )
 
@@ -25,6 +26,7 @@ type process struct {
 	pid         string
 	exe         string
 	cwd         string
+	commandline string
 	containerID string
 }
 
@@ -76,6 +78,11 @@ func discover(l log.Logger) ([]process, error) {
 			loge(int(p.Pid), err)
 			continue
 		}
+		commandline, err := p.Cmdline()
+		if err != nil {
+			loge(int(p.Pid), err)
+			continue
+		}
 
 		containerID, err := getLinuxProcessContainerID(l, spid)
 		if err != nil {
@@ -86,9 +93,10 @@ func discover(l log.Logger) ([]process, error) {
 			pid:         spid,
 			exe:         exe,
 			cwd:         cwd,
+			commandline: commandline,
 			containerID: containerID,
 		})
-		_ = level.Debug(l).Log("msg", "found process", "pid", p.Pid, "exe", exe, "cwd", cwd, "container_id", containerID)
+		//_ = level.Debug(l).Log("msg", "found process", "pid", p.Pid, "exe", exe, "cwd", cwd, "container_id", containerID)
 	}
 
 	return res, nil
