@@ -8,6 +8,7 @@ import (
 	"github.com/IBM/sarama"
 	kafka_exporter "github.com/davidmparrott/kafka_exporter/v2/exporter"
 	"github.com/go-kit/log"
+
 	"github.com/grafana/agent/pkg/integrations"
 	integrations_v2 "github.com/grafana/agent/pkg/integrations/v2"
 	"github.com/grafana/agent/pkg/integrations/v2/metricsutils"
@@ -131,8 +132,8 @@ func New(logger log.Logger, c *Config) (integrations.Integration, error) {
 	if len(c.KafkaURIs) == 0 || c.KafkaURIs[0] == "" {
 		return nil, fmt.Errorf("empty kafka_uris provided")
 	}
-	if c.UseTLS && (c.CertFile == "" || c.KeyFile == "") {
-		return nil, fmt.Errorf("tls is enabled but key pair was not provided")
+	if c.UseTLS && (c.CertFile == "" || c.KeyFile == "" || c.CAFile == "") {
+		return nil, fmt.Errorf("tls is enabled but key pair or ca certificate was not provided")
 	}
 	if c.UseSASL && (c.SASLPassword == "" || c.SASLUsername == "") {
 		return nil, fmt.Errorf("SASL is enabled but username or password was not provided")
