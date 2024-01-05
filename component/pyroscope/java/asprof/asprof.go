@@ -7,7 +7,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strconv"
 	"sync"
 
 	"k8s.io/utils/path"
@@ -63,6 +62,7 @@ func (p *Profiler) Execute(dist *Distribution, argv []string) (string, string, e
 
 	exe := dist.AsprofPath()
 	cmd := exec.Command(exe, argv...)
+
 	cmd.Stdout = stdout
 	cmd.Stderr = stderr
 	err := cmd.Start()
@@ -101,11 +101,17 @@ func (p *Profiler) CopyLib(dist *Distribution, pid int) error {
 		}
 		return nil
 	} else {
-		fd, err := os.OpenFile(dst, os.O_CREATE|os.O_EXCL, 0644)
+		fd, err := os.OpenFile(dst, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0644)
+
 		if err != nil {
 			return fmt.Errorf("failed to create file %s: %w", dst, err)
 		}
 		defer fd.Close()
+		path, err := readLinkFD(fd)
+		if err != nil {
+			return fmt.Errorf("failed to check file %s: %w", dst, err)
+		}
+		fmt.Println(path)
 		//todo check fd was not manipulated with symlinks
 		n, err := fd.Write(libBytes)
 		if err != nil {
@@ -116,13 +122,4 @@ func (p *Profiler) CopyLib(dist *Distribution, pid int) error {
 		}
 		return nil
 	}
-}
-
-type ProcFile struct {
-	Path string
-	PID  int
-}
-
-func (f *ProcFile) ProcRootPath() string {
-	return filepath.Join("/proc", strconv.Itoa(f.PID), "root", f.Path)
 }

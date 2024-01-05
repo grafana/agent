@@ -10,10 +10,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
-	"runtime"
 	"strings"
-	"unsafe"
-
 	//"path/filepath"
 
 	"github.com/klauspost/compress/gzip"
@@ -72,34 +69,6 @@ func getLibAndLauncher(targz []byte) (lib []byte, libName string, launcher []byt
 		return nil, "", nil, "", fmt.Errorf("failed to find libasyncProfiler in tar.gz")
 	}
 	return lib, libName, launcher, launcherName, err
-}
-
-func readLinkFD(f *os.File) (string, error) {
-	fd := f.Fd()
-	if runtime.GOOS == "linux" {
-		path := fmt.Sprintf("/proc/self/fd/%d", fd)
-		realPath, err := os.Readlink(path)
-		if err != nil {
-			return "", fmt.Errorf("failed to check file %s %d", path, fd)
-		}
-		return realPath, nil
-	} else if runtime.GOOS == "darwin" {
-		buf := make([]byte, 4096)
-		res, err := unix.FcntlInt(fd, unix.F_GETPATH, int(uintptr(unsafe.Pointer(&buf[0]))))
-		if err != nil || res != 0 {
-			return "", fmt.Errorf("failed to check fd %d ", fd)
-		}
-		for i, b := range buf {
-			if b == 0 {
-				buf = buf[:i]
-				break
-			}
-		}
-
-		return string(buf), nil
-	} else {
-		return "", fmt.Errorf("unsupported os %s", runtime.GOOS)
-	}
 }
 
 var race = func(stage, extra string) {}

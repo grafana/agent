@@ -120,7 +120,7 @@ func (j *javaComponent) updateTargets(targets []discovery.Target) {
 		}
 		proc := j.pid2process[pid]
 		if proc == nil {
-			proc = newProcess(pid, target, j.opts.Logger, j.forwardTo, j.args.ProfilingConfig)
+			proc = newProfilingLoop(pid, target, j.opts.Logger, j.forwardTo, j.args.ProfilingConfig)
 		} else {
 			proc.update(target)
 		}

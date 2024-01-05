@@ -35,7 +35,7 @@ type PushRequest struct {
 	Samples []*pyroscope.RawSample
 }
 
-func ParseJFR(body []byte, metadata Metadata) (requests []PushRequest, err error) {
+func ParseJFR(body []byte, metadata Metadata) (requests []PushRequest, metrics []string, err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			err = fmt.Errorf("jfr parser panic: %v", r)
@@ -57,7 +57,7 @@ func ParseJFR(body []byte, metadata Metadata) (requests []PushRequest, err error
 			if err == io.EOF {
 				break
 			}
-			return nil, fmt.Errorf("jfr parser ParseEvent error: %w", err)
+			return nil, nil, fmt.Errorf("jfr parser ParseEvent error: %w", err)
 		}
 
 		switch typ {
@@ -91,9 +91,9 @@ func ParseJFR(body []byte, metadata Metadata) (requests []PushRequest, err error
 		}
 	}
 
-	requests, err = builders.build(event)
+	requests, metrics, err = builders.build(event)
 
-	return requests, err
+	return requests, metrics, err
 }
 
 type Metadata struct {
@@ -189,7 +189,7 @@ func (b *jfrPprofBuilders) addStacktrace(sampleType int64, ref types.StackTraceR
 	e.AddExternalSample(locations, vs, uint32(ref))
 }
 
-func (b *jfrPprofBuilders) build(event string) ([]PushRequest, error) {
+func (b *jfrPprofBuilders) build(event string) ([]PushRequest, []string, error) {
 	defer func() {
 		for _, builder := range b.sampleType2Builder {
 			builder.Profile.ReturnToVTPool()
@@ -197,6 +197,7 @@ func (b *jfrPprofBuilders) build(event string) ([]PushRequest, error) {
 		b.sampleType2Builder = nil
 	}()
 	profiles := make([]PushRequest, 0, len(b.sampleType2Builder))
+	metrics := make([]string, 0, len(b.sampleType2Builder))
 
 	for sampleType, e := range b.sampleType2Builder {
 		//for _, e := range entries {
@@ -247,7 +248,7 @@ func (b *jfrPprofBuilders) build(event string) ([]PushRequest, error) {
 		}
 		prof, err := e.Profile.MarshalVT()
 		if err != nil {
-			return nil, fmt.Errorf("marshal profile error: %w", err)
+			return nil, nil, fmt.Errorf("marshal profile error: %w", err)
 		}
 		profiles = append(profiles, PushRequest{
 			Labels: ls.Labels(),
@@ -257,7 +258,7 @@ func (b *jfrPprofBuilders) build(event string) ([]PushRequest, error) {
 				},
 			},
 		})
-		//}
+		metrics = append(metrics, metric)
 	}
-	return profiles, nil
+	return profiles, metrics, nil
 }

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -15,6 +16,7 @@ import (
 	"github.com/grafana/agent/component/pyroscope/java/asprof"
 	"github.com/grafana/agent/component/pyroscope/java/jfr"
 	"github.com/grafana/agent/pkg/flow/logging/level"
+	gopsutil "github.com/shirou/gopsutil/v3/process"
 )
 
 // we extract to /tmp so all users can read it, but only root write, see asprof.extractPerm
@@ -36,19 +38,25 @@ type profilingLoop struct {
 	startTime time.Time
 }
 
-func newProcess(pid int, target discovery.Target, logger log.Logger, output *pyroscope.Fanout, cfg ProfilingConfig) *profilingLoop {
+func newProfilingLoop(pid int, target discovery.Target, logger log.Logger, output *pyroscope.Fanout, cfg ProfilingConfig) *profilingLoop {
 	ctx, cancel := context.WithCancel(context.Background())
+	dist, err := asprof.DistributionForProcess(pid)
 	p := &profilingLoop{
 		logger:  log.With(logger, "pid", pid),
 		output:  output,
 		pid:     pid,
 		target:  target,
 		cancel:  cancel,
-		dist:    asprof.DistributionForProcess(pid),
+		dist:    dist,
 		jfrFile: fmt.Sprintf("/tmp/asprof-%d-%d.jfr", os.Getpid(), pid),
 		cfg:     cfg,
 	}
 	_ = level.Debug(p.logger).Log("msg", "new process", "target", fmt.Sprintf("%+v", target))
+
+	if err != nil {
+		p.onError(fmt.Errorf("failed to select dist for pid %d: %w", pid, err))
+		return p
+	}
 
 	p.wg.Add(1)
 	go func() {
@@ -64,62 +72,64 @@ func (p *profilingLoop) loop(ctx context.Context) {
 		return
 	}
 	defer p.stop()
-
-	timer := time.NewTimer(p.interval())
-	err := p.start()
-	if err != nil {
-
-		p.onError(fmt.Errorf("failed to start asprof: %w", err))
-		return
-	}
-	// todo error could happen when agent restarted
-	//[ERROR] Profiler already started\n
-	for {
-
+	sleep := func() bool {
+		timer := time.NewTimer(p.interval())
 		select {
 		case <-timer.C:
-			if err := p.reset(); err != nil {
-				p.onError(fmt.Errorf("failed to reset asprof: %w", err))
+			return false
+		case <-ctx.Done():
+			return true
+		}
+	}
+	for {
+		err := p.start()
+		if err != nil {
+			//  could happen when agent restarted - [ERROR] Profiler already started\n
+			p.onError(fmt.Errorf("failed to start: %w", err))
+			if !p.alive() {
+				_ = level.Error(p.logger).Log("msg", "process is not alive")
 				return
 			}
-			timer.Reset(p.interval())
-		case <-ctx.Done():
+		}
+		done := sleep()
+		if done {
 			return
+		}
+		err = p.reset()
+		if err != nil {
+			p.onError(fmt.Errorf("failed to reset: %w", err))
+			if !p.alive() {
+				_ = level.Error(p.logger).Log("msg", "process is not alive")
+				return
+			}
 		}
 	}
 }
 
-//var counter atomic.Int32
-
 func (p *profilingLoop) reset() error {
-	_ = level.Debug(p.logger).Log("msg", "timer tick")
+	jfrFile := asprof.ProcessPath(p.jfrFile, p.pid)
 	startTime := p.startTime
 	endTime := time.Now()
 	p.startTime = endTime
+	defer func() {
+		os.Remove(jfrFile)
+	}()
+
 	err := p.stop()
 	if err != nil {
-		return fmt.Errorf("failed to stop asprof: %w", err)
+		return fmt.Errorf("failed to stop : %w", err)
 	}
-	jfrFile := asprof.ProcessPath(p.jfrFile, p.pid)
 	jfrBytes, err := os.ReadFile(jfrFile)
 	if err != nil {
 		return fmt.Errorf("failed to read jfr file: %w", err)
 	}
-	err = os.Remove(jfrFile)
-	if err != nil {
-		return fmt.Errorf("failed to delete jfr file: %w", err)
-	}
-	err = p.start()
-	if err != nil {
-		return fmt.Errorf("failed to start asprof: %w", err)
-	}
 	_ = level.Debug(p.logger).Log("msg", "jfr file read", "len", len(jfrBytes))
 
-	//no := counter.Inc()
-	//fname := fmt.Sprintf("jfr-%d.jfr", no)
-	//os.WriteFile(fname, jfrBytes, 0644)
+	return p.push(jfrBytes, startTime, endTime)
+}
 
-	reqs, err := jfr.ParseJFR(jfrBytes, jfr.Metadata{
+func (p *profilingLoop) push(jfrBytes []byte, startTime time.Time, endTime time.Time) error {
+	reqs, metrics, err := jfr.ParseJFR(jfrBytes, jfr.Metadata{
 		StartTime:  startTime,
 		EndTime:    endTime,
 		SampleRate: p.cfg.SampleRate,
@@ -128,16 +138,20 @@ func (p *profilingLoop) reset() error {
 	if err != nil {
 		return fmt.Errorf("failed to parse jfr: %w", err)
 	}
-	for _, req := range reqs {
-		go func(req jfr.PushRequest) {
-			appender := p.output.Appender()
-			err := appender.Append(context.Background(), req.Labels, req.Samples)
-			if err != nil {
-				_ = level.Error(p.logger).Log("msg", "failed to push jfr", "err", err)
-				return
-			}
-			_ = level.Debug(p.logger).Log("msg", "pushed jfr")
-		}(req)
+	for i, req := range reqs {
+		metric := metrics[i]
+		sz := 0
+		for _, s := range req.Samples {
+			sz += len(s.RawProfile)
+		}
+		l := log.With(p.logger, "metric", metric, "sz", sz)
+		appender := p.output.Appender()
+		err := appender.Append(context.Background(), req.Labels, req.Samples)
+		if err != nil {
+			_ = l.Log("msg", "failed to push jfr", "err", err)
+			continue
+		}
+		_ = l.Log("msg", "pushed jfr-pprof")
 	}
 	return nil
 }
@@ -164,11 +178,10 @@ func (p *profilingLoop) start() error {
 		strconv.Itoa(p.pid),
 	)
 
-	_ = level.Debug(p.logger).Log("msg", "asprof", "argv", fmt.Sprintf("%+v", argv))
+	_ = level.Debug(p.logger).Log("cmd", fmt.Sprintf("%s %s", p.dist.AsprofPath(), strings.Join(argv, " ")))
 	stdout, stderr, err := profiler.Execute(p.dist, argv)
 	if err != nil {
-		_ = level.Error(p.logger).Log("msg", "asprof failed to run", "err", err, "stdout", stdout, "stderr", stderr)
-		return fmt.Errorf("asprof failed to run: %w", err)
+		return fmt.Errorf("asprof failed to run: %w %s %s", err, stdout, stderr)
 	}
 	return nil
 }
@@ -176,14 +189,16 @@ func (p *profilingLoop) start() error {
 func (p *profilingLoop) stop() error {
 	argv := []string{
 		"stop",
+		"-o", "jfr",
 		strconv.Itoa(p.pid),
 	}
-	_ = level.Debug(p.logger).Log("msg", "asprof", "argv", fmt.Sprintf("%+v", argv))
+	_ = level.Debug(p.logger).Log("msg", "asprof", "cmd", fmt.Sprintf("%s %s", p.dist.AsprofPath(), strings.Join(argv, " ")))
 	stdout, stderr, err := profiler.Execute(p.dist, argv)
 	if err != nil {
 		_ = level.Error(p.logger).Log("msg", "asprof failed to run", "err", err, "stdout", stdout, "stderr", stderr)
 		return fmt.Errorf("asprof failed to run: %w", err)
 	}
+	_ = level.Debug(p.logger).Log("msg", "asprof stopped", "stdout", stdout, "stderr", stderr) //todo this should be empty
 	return nil
 }
 
@@ -215,4 +230,9 @@ func (p *profilingLoop) getTarget() discovery.Target {
 	p.mutex.Lock()
 	defer p.mutex.Unlock()
 	return p.target
+}
+
+func (p *profilingLoop) alive() bool {
+	exists, err := gopsutil.PidExists(int32(p.pid))
+	return err != nil && exists
 }

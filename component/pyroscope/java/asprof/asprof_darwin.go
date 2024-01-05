@@ -20,8 +20,8 @@ func AllDistributions() []*Distribution {
 	return []*Distribution{macDist}
 }
 
-func DistributionForProcess(pid int) *Distribution {
-	return macDist
+func DistributionForProcess(pid int) (*Distribution, error) {
+	return macDist, nil
 }
 
 func (d *Distribution) LibPath() string {
