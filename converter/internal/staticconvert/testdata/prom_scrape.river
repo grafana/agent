@@ -103,6 +103,7 @@ prometheus.remote_write "metrics_agent" {
 			max_shards          = 10
 			batch_send_deadline = "3m0s"
 			max_backoff         = "10s"
+			sample_age_limit    = "50s"
 		}
 
 		metadata_config { }
