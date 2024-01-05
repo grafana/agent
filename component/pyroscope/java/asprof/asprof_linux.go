@@ -32,6 +32,9 @@ func DistributionForProcess(pid int) (*Distribution, error) {
 		if strings.HasSuffix(m.Pathname, "/libc.so.6") {
 			glibc = true
 		}
+		if strings.Contains(m.Pathname, "x86_64-linux-gnu/libc-") {
+			glibc = true
+		}
 	}
 	if musl && glibc {
 		return nil, fmt.Errorf("failed to select dist for pid %d: both musl and glibc found", pid)
