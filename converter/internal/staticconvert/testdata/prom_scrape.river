@@ -10,9 +10,7 @@ discovery.azure "metrics_agent_promobee" {
 	managed_identity {
 		client_id = "client"
 	}
-	proxy_url        = "proxy"
-	follow_redirects = true
-	enable_http2     = true
+	proxy_url = "proxy"
 }
 
 discovery.azure "metrics_agent_promobee_2" {
@@ -27,9 +25,7 @@ discovery.azure "metrics_agent_promobee_2" {
 	managed_identity {
 		client_id = "client"
 	}
-	proxy_url        = "proxy"
-	follow_redirects = true
-	enable_http2     = true
+	proxy_url = "proxy"
 }
 
 discovery.relabel "metrics_agent_promobee" {

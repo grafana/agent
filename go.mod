@@ -13,7 +13,7 @@ require (
 	github.com/PuerkitoBio/rehttp v1.1.0
 	github.com/alecthomas/kingpin/v2 v2.4.0
 	github.com/alecthomas/units v0.0.0-20211218093645-b94a6e3cc137
-	github.com/aws/aws-sdk-go v1.45.24
+	github.com/aws/aws-sdk-go v1.45.25
 	github.com/aws/aws-sdk-go-v2 v1.21.1
 	github.com/aws/aws-sdk-go-v2/config v1.18.44
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.34.1
@@ -59,7 +59,7 @@ require (
 	github.com/grafana/loki v1.6.2-0.20231004111112-07cbef92268a
 	github.com/grafana/pyroscope-go/godeltaprof v0.1.3
 	github.com/grafana/pyroscope/api v0.2.0
-	github.com/grafana/pyroscope/ebpf v0.4.0
+	github.com/grafana/pyroscope/ebpf v0.4.1
 	github.com/grafana/regexp v0.0.0-20221123153739-15dc172cd2db
 	github.com/grafana/river v0.3.0
 	github.com/grafana/snowflake-prometheus-exporter v0.0.0-20221213150626-862cad8e9538
@@ -89,12 +89,12 @@ require (
 	github.com/klauspost/compress v1.17.3
 	github.com/lib/pq v1.10.7
 	github.com/mackerelio/go-osstat v0.2.3
-	github.com/miekg/dns v1.1.55
+	github.com/miekg/dns v1.1.56
 	github.com/mitchellh/mapstructure v1.5.1-0.20220423185008-bf980b35cac4
 	github.com/mitchellh/reflectwalk v1.0.2
 	github.com/mwitkow/go-conntrack v0.0.0-20190716064945-2f068394615f
 	github.com/ncabatoff/process-exporter v0.7.10
-	github.com/nerdswords/yet-another-cloudwatch-exporter v0.54.0
+	github.com/nerdswords/yet-another-cloudwatch-exporter v0.55.0
 	github.com/ohler55/ojg v1.20.0 // indirect
 	github.com/oklog/run v1.1.0
 	github.com/olekukonko/tablewriter v0.0.5
@@ -150,7 +150,7 @@ require (
 	github.com/prometheus/mysqld_exporter v0.14.0
 	github.com/prometheus/node_exporter v1.6.0
 	github.com/prometheus/procfs v0.12.0
-	github.com/prometheus/prometheus v1.99.0
+	github.com/prometheus/prometheus v0.48.1
 	github.com/prometheus/snmp_exporter v0.24.1
 	github.com/prometheus/statsd_exporter v0.22.8
 	github.com/richardartoul/molecule v1.0.1-0.20221107223329-32cfee06a052
@@ -219,7 +219,7 @@ require (
 	golang.org/x/sys v0.14.1-0.20231108175955-e4099bfacb8c
 	golang.org/x/text v0.14.0
 	golang.org/x/time v0.3.0
-	google.golang.org/api v0.146.0
+	google.golang.org/api v0.147.0
 	google.golang.org/grpc v1.59.0
 	google.golang.org/protobuf v1.31.0
 	gopkg.in/yaml.v2 v2.4.0
@@ -326,7 +326,7 @@ require (
 	github.com/dennwc/varint v1.0.0 // indirect
 	github.com/denverdino/aliyungo v0.0.0-20190125010748-a747050bb1ba // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
-	github.com/digitalocean/godo v1.99.0 // indirect
+	github.com/digitalocean/godo v1.104.1 // indirect
 	github.com/dimchansky/utfbom v1.1.1
 	github.com/docker/cli v23.0.3+incompatible // indirect
 	github.com/docker/distribution v2.8.2+incompatible // indirect
@@ -391,11 +391,11 @@ require (
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.3.1 // indirect
 	github.com/googleapis/gax-go/v2 v2.12.0 // indirect
-	github.com/gophercloud/gophercloud v1.5.0 // indirect
+	github.com/gophercloud/gophercloud v1.7.0 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/gosnmp/gosnmp v1.36.0 // indirect
 	github.com/grafana/gomemcache v0.0.0-20230316202710-a081dae0aba9 // indirect
-	github.com/grafana/loki/pkg/push v0.0.0-20230904153656-e4cc2a4f5ec8 // k166 branch
+	github.com/grafana/loki/pkg/push v0.0.0-20231212100434-384e5c2dc872 // k180 branch
 	github.com/grobie/gomemcache v0.0.0-20230213081705-239240bbc445 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.18.0 // indirect
 	github.com/gsterjov/go-libsecret v0.0.0-20161001094733-a6f4afe4910c // indirect
@@ -415,7 +415,7 @@ require (
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/hashicorp/mdns v1.0.4 // indirect
 	github.com/hashicorp/memberlist v0.5.0 // indirect
-	github.com/hashicorp/nomad/api v0.0.0-20230718173136-3a687930bd3e // indirect
+	github.com/hashicorp/nomad/api v0.0.0-20230721134942-515895c7690c // indirect
 	github.com/hashicorp/serf v0.10.1 // indirect
 	github.com/hashicorp/vic v1.5.1-0.20190403131502-bbfe86ec9443 // indirect
 	github.com/hodgesds/perf-utils v0.7.0 // indirect
@@ -426,7 +426,7 @@ require (
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/infinityworks/go-common v0.0.0-20170820165359-7f20a140fd37 // indirect
 	github.com/influxdata/telegraf v1.16.3 // indirect
-	github.com/ionos-cloud/sdk-go/v6 v6.1.8 // indirect
+	github.com/ionos-cloud/sdk-go/v6 v6.1.9 // indirect
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
 	github.com/jackc/pgconn v1.13.0 // indirect
 	github.com/jackc/pgio v1.0.0 // indirect
@@ -456,7 +456,7 @@ require (
 	github.com/krallistic/kazoo-go v0.0.0-20170526135507-a15279744f4e // indirect
 	github.com/kylelemons/godebug v1.1.0 // indirect
 	github.com/leodido/ragel-machinery v0.0.0-20181214104525-299bdde78165 // indirect
-	github.com/linode/linodego v1.19.0 // indirect
+	github.com/linode/linodego v1.23.0 // indirect
 	github.com/lufia/iostat v1.2.1 // indirect
 	github.com/lufia/plan9stats v0.0.0-20220913051719-115f729f3c8c // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
@@ -506,7 +506,7 @@ require (
 	github.com/opencontainers/selinux v1.11.0 // indirect
 	github.com/openzipkin/zipkin-go v0.4.2 // indirect
 	github.com/oschwald/maxminddb-golang v1.11.0
-	github.com/ovh/go-ovh v1.4.1 // indirect
+	github.com/ovh/go-ovh v1.4.3 // indirect
 	github.com/packethost/packngo v0.1.1-0.20180711074735-b9cb5096f54c // indirect
 	github.com/patrickmn/go-cache v2.1.0+incompatible // indirect
 	github.com/pelletier/go-toml/v2 v2.0.8 // indirect
@@ -525,7 +525,7 @@ require (
 	github.com/safchain/ethtool v0.3.0 // indirect
 	github.com/samber/lo v1.38.1 // indirect
 	github.com/samuel/go-zookeeper v0.0.0-20190923202752-2cc03de413da // indirect
-	github.com/scaleway/scaleway-sdk-go v1.0.0-beta.20
+	github.com/scaleway/scaleway-sdk-go v1.0.0-beta.21
 	github.com/sean-/seed v0.0.0-20170313163322-e2103e2c3529 // indirect
 	github.com/seccomp/libseccomp-golang v0.9.2-0.20220502022130-f33da4d89646 // indirect
 	github.com/sergi/go-diff v1.2.0 // indirect
@@ -590,7 +590,7 @@ require (
 	gonum.org/v1/gonum v0.14.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
 	google.golang.org/genproto v0.0.0-20231012201019-e917dd12ba7a // indirect
-	google.golang.org/genproto/googleapis/api v0.0.0-20231002182017-d307bd883b97 // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20231012201019-e917dd12ba7a // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20231016165738-49dd2c1f3d0b // indirect
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6 // indirect
 	gopkg.in/fsnotify/fsnotify.v1 v1.4.7 // indirect
@@ -613,21 +613,22 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/filterprocessor v0.87.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusreceiver v0.87.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/vcenterreceiver v0.87.0
-	github.com/prometheus/tsdb v0.10.0
 	go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp v0.42.0
 	k8s.io/apimachinery v0.28.3
 )
 
 require (
 	dario.cat/mergo v1.0.0 // indirect
+	github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/compute/armcompute/v4 v4.2.1 // indirect
+	github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/network/armnetwork/v2 v2.2.1 // indirect
 	github.com/Shopify/sarama v1.38.1 // indirect
 	github.com/Workiva/go-datastructures v1.1.0 // indirect
 	github.com/channelmeter/iso8601duration v0.0.0-20150204201828-8da3af7a2a61 // indirect
 	github.com/drone/envsubst v1.0.3 // indirect
-	github.com/go-jose/go-jose/v3 v3.0.0 // indirect
+	github.com/go-jose/go-jose/v3 v3.0.1 // indirect
 	github.com/golang-jwt/jwt/v5 v5.0.0 // indirect
 	github.com/google/gnostic-models v0.6.8 // indirect
-	github.com/hetznercloud/hcloud-go/v2 v2.0.0 // indirect
+	github.com/hetznercloud/hcloud-go/v2 v2.4.0 // indirect
 	github.com/julienschmidt/httprouter v1.3.0 // indirect
 	github.com/knadh/koanf/v2 v2.0.1 // indirect
 	github.com/lightstep/go-expohisto v1.0.0 // indirect
@@ -675,14 +676,6 @@ replace (
 	k8s.io/klog => github.com/simonpasquier/klog-gokit v0.3.0
 	k8s.io/klog/v2 => github.com/simonpasquier/klog-gokit/v3 v3.3.0
 )
-
-// TODO(tpaschalis): remove replace directive once:
-//
-// * There is a release of Prometheus which contains
-// prometheus/prometheus#12677 and prometheus/prometheus#12729.
-// We use the last v1-related tag as the replace statement does not work for v2
-// tags without the v2 suffix to the module root.
-replace github.com/prometheus/prometheus => github.com/grafana/prometheus v1.8.2-0.20231016083943-46550094220d // grafana:prometheus:v0.47.2-retry-improvements
 
 replace gopkg.in/yaml.v2 => github.com/rfratto/go-yaml v0.0.0-20211119180816-77389c3526dc
 
@@ -745,7 +738,3 @@ exclude (
 )
 
 replace github.com/github/smimesign => github.com/grafana/smimesign v0.2.1-0.20220408144937-2a5adf3481d3
-
-// This is the last version that used slices.Func with a bool return
-// If we upgrade to a newer one then since the signature changed loki will complain.
-replace golang.org/x/exp => golang.org/x/exp v0.0.0-20230713183714-613f0c0eb8a1
