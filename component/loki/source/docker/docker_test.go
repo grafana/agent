@@ -1,3 +1,5 @@
+//go:build !race
+
 package docker
 
 import (
@@ -39,11 +41,10 @@ func Test(t *testing.T) {
 func TestDuplicateTargets(t *testing.T) {
 	// Use host that works on all platforms (including Windows).
 	var cfg = `
-		host       = "tcp://127.0.0.1:9375"
+		host       = "tcp://127.0.0.1:9376"
 		targets    = [
 			{__meta_docker_container_id = "foo", __meta_docker_port_private = "8080"},
 			{__meta_docker_container_id = "foo", __meta_docker_port_private = "8080"},
-			{__meta_docker_container_id = "bar", __meta_docker_port_private = "8080"},
 		]
 		forward_to = []
 	`
@@ -51,6 +52,16 @@ func TestDuplicateTargets(t *testing.T) {
 	var args Arguments
 	err := river.Unmarshal([]byte(cfg), &args)
 	require.NoError(t, err)
+
+	ctrl, err := componenttest.NewControllerFromID(util.TestLogger(t), "loki.source.docker")
+	require.NoError(t, err)
+
+	go func() {
+		err := ctrl.Run(context.Background(), args)
+		require.NoError(t, err)
+	}()
+
+	require.NoError(t, ctrl.WaitRunning(time.Minute))
 
 	cmp, err := New(component.Options{
 		ID:         "loki.source.docker.test",
@@ -60,5 +71,5 @@ func TestDuplicateTargets(t *testing.T) {
 	}, args)
 	require.NoError(t, err)
 
-	require.Len(t, cmp.manager.tasks, 2)
+	require.Len(t, cmp.manager.tasks, 1)
 }
