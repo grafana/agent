@@ -69,8 +69,9 @@ func (args EC2Arguments) Convert() *promaws.EC2SDConfig {
 }
 
 var DefaultEC2SDConfig = EC2Arguments{
-	Port:            80,
-	RefreshInterval: 60 * time.Second,
+	Port:             80,
+	RefreshInterval:  60 * time.Second,
+	HTTPClientConfig: config.DefaultHTTPClientConfig,
 }
 
 // SetToDefault implements river.Defaulter.

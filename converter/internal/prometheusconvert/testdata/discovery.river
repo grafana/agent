@@ -10,8 +10,6 @@ discovery.azure "prometheus1" {
 	managed_identity {
 		client_id = "client1"
 	}
-	follow_redirects = true
-	enable_http2     = true
 }
 
 discovery.azure "prometheus1_2" {
@@ -26,8 +24,6 @@ discovery.azure "prometheus1_2" {
 	managed_identity {
 		client_id = "client2"
 	}
-	follow_redirects = true
-	enable_http2     = true
 }
 
 discovery.relabel "prometheus1" {

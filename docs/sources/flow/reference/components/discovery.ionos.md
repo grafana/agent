@@ -31,10 +31,21 @@ The following arguments are supported:
 | ------------------ | ---------- | ------------------------------------------------------------ | ------- | -------- |
 | `datacenter_id`    | `string`   | The unique ID of the data center.                            |         | yes      |
 | `refresh_interval` | `duration` | The time after which the servers are refreshed.              | `60s`   | no       |
-| `port`             | `int`      | The port to scrap metrics from.                              | 80      | no       |
+| `port`             | `int`      | The port to scrape metrics from.                              | 80      | no       |
+| `bearer_token`     | `secret`   | Bearer token to authenticate with.                            |         | no       |
+| `bearer_token_file`| `string`   | File containing a bearer token to authenticate with.          |         | no       |
 | `proxy_url`        | `string`   | HTTP proxy to proxy requests through.                        |         | no       |
 | `enable_http2`     | `bool`     | Whether HTTP2 is supported for requests.                     | `true`  | no       |
 | `follow_redirects` | `bool`     | Whether redirects returned by the server should be followed. | `true`  | no       |
+
+ At most one of the following can be provided:
+ - [`bearer_token` argument](#arguments).
+ - [`bearer_token_file` argument](#arguments).
+ - [`basic_auth` block][basic_auth].
+ - [`authorization` block][authorization].
+ - [`oauth2` block][oauth2].
+
+[arguments]: #arguments
 
 ## Blocks
 
@@ -47,6 +58,7 @@ The following blocks are supported inside the definition of
 | authorization       | [authorization][] | Configure generic authorization to the endpoint.         | no       |
 | oauth2              | [oauth2][]        | Configure OAuth2 for authenticating to the endpoint.     | no       |
 | oauth2 > tls_config | [tls_config][]    | Configure TLS settings for connecting to the endpoint.   | no       |
+| tls_config          | [tls_config][]    | Configure TLS settings for connecting to the endpoint.   | no       |
 
 The `>` symbol indicates deeper levels of nesting. For example,
 `oauth2 > tls_config` refers to a `tls_config` block defined inside

@@ -25,6 +25,10 @@ Main (unreleased)
   - This change will not break any existing configurations and you can opt in to validation via the `validate_dimensions` configuration option.
   - Before this change, pulling metrics for azure resources with variable dimensions required one configuration per metric + dimension combination to avoid an error.
   - After this change, you can include all metrics and dimensions in a single configuration and the Azure APIs will only return dimensions which are valid for the various metrics.
+  
+### Features
+
+- A new `discovery.ovhcloud` component for discovering scrape targets on OVHcloud. (@ptodev)
 
 ### Enhancements
 
@@ -79,6 +83,7 @@ Main (unreleased)
 - Add `max_cache_size` to `prometheus.relabel` to allow configurability instead of hard coded 100,000. (@mattdurham)
 
 - Add support for `http_sd_config` within a `scrape_config` for prometheus to flow config conversion. (@erikbaranowski)
+- `discovery.lightsail` now supports additional parameters for configuring HTTP client settings. (@ptodev)
 
 ### Bugfixes
 
@@ -102,7 +107,11 @@ Main (unreleased)
 
 - Bump github.com/IBM/sarama from v1.41.2 to v1.42.1
 
-- Attatch unique Agent ID header to remote-write requests. (@captncraig)
+- Attach unique Agent ID header to remote-write requests. (@captncraig)
+
+- Update to v2.48.1 of `github.com/prometheus/prometheus`.
+  Previously, a custom fork of v2.47.2 was used. 
+  The custom fork of v2.47.2 also contained prometheus#12729 and prometheus#12677.
 
 v0.38.1 (2023-11-30)
 --------------------

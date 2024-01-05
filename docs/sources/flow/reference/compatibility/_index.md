@@ -68,6 +68,7 @@ The following components, grouped by namespace, _export_ Targets.
 - [discovery.nerve]({{< relref "../components/discovery.nerve.md" >}})
 - [discovery.nomad]({{< relref "../components/discovery.nomad.md" >}})
 - [discovery.openstack]({{< relref "../components/discovery.openstack.md" >}})
+- [discovery.ovhcloud]({{< relref "../components/discovery.ovhcloud.md" >}})
 - [discovery.puppetdb]({{< relref "../components/discovery.puppetdb.md" >}})
 - [discovery.relabel]({{< relref "../components/discovery.relabel.md" >}})
 - [discovery.scaleway]({{< relref "../components/discovery.scaleway.md" >}})

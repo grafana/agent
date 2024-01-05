@@ -5,6 +5,7 @@
 (Error) The converter does not support converting the provided HTTP Client no_proxy config.
 (Error) The converter does not support converting the provided nomad service discovery.
 (Error) The converter does not support converting the provided scrape_configs native_histogram_bucket_limit config.
+(Error) The converter does not support converting the provided scrape_configs keep_dropped_targets config.
 (Error) The converter does not support converting the provided storage config.
 (Error) The converter does not support converting the provided tracing config.
 (Error) The converter does not support converting the provided HTTP Client proxy_from_environment config.

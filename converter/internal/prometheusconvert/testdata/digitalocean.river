@@ -1,12 +1,6 @@
-discovery.digitalocean "prometheus1" {
-	follow_redirects = true
-	enable_http2     = true
-}
+discovery.digitalocean "prometheus1" { }
 
-discovery.digitalocean "prometheus2" {
-	follow_redirects = true
-	enable_http2     = true
-}
+discovery.digitalocean "prometheus2" { }
 
 prometheus.scrape "prometheus1" {
 	targets = concat(
