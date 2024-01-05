@@ -19,6 +19,7 @@ metrics:
         batch_send_deadline: 3m
         max_shards: 10
         max_backoff: 10s
+        sample_age_limit: 50s
       basic_auth:
         username: 11111
         password: my-secret-password-here
