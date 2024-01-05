@@ -126,9 +126,7 @@ func New(o component.Options, c Arguments) (*Component, error) {
 				ls.GetOrAddLink(res.opts.ID, uint64(newRef), l)
 			}
 			if ds := xray.GetDebugStream(o.ID); ds != nil {
-				ds(func() string {
-					return fmt.Sprintf("ts=%d, labels=%s, value=%f", t, l, v)
-				})
+				ds(fmt.Sprintf("ts=%d, labels=%s, value=%f", t, l, v))
 			}
 
 			return globalRef, nextErr
@@ -144,14 +142,13 @@ func New(o component.Options, c Arguments) (*Component, error) {
 				ls.GetOrAddLink(res.opts.ID, uint64(newRef), l)
 			}
 			if ds := xray.GetDebugStream(o.ID); ds != nil {
-				ds(func() string {
-					if h != nil {
-						return fmt.Sprintf("ts=%d, labels=%s, histogram=%s", t, l, h.String())
-					} else if fh != nil {
-						return fmt.Sprintf("ts=%d, labels=%s, float_histogram=%s", t, l, fh.String())
-					}
-					return fmt.Sprintf("ts=%d, labels=%s, no_value", t, l)
-				})
+				if h != nil {
+					ds(fmt.Sprintf("ts=%d, labels=%s, histogram=%s", t, l, h.String()))
+				} else if fh != nil {
+					ds(fmt.Sprintf("ts=%d, labels=%s, float_histogram=%s", t, l, fh.String()))
+				} else {
+					ds(fmt.Sprintf("ts=%d, labels=%s, no_value", t, l))
+				}
 			}
 			return globalRef, nextErr
 		}),
@@ -166,9 +163,7 @@ func New(o component.Options, c Arguments) (*Component, error) {
 				ls.GetOrAddLink(res.opts.ID, uint64(newRef), l)
 			}
 			if ds := xray.GetDebugStream(o.ID); ds != nil {
-				ds(func() string {
-					return fmt.Sprintf("labels=%s, type=%s, unit=%s, help=%s", l, m.Type, m.Unit, m.Help)
-				})
+				ds(fmt.Sprintf("labels=%s, type=%s, unit=%s, help=%s", l, m.Type, m.Unit, m.Help))
 			}
 			return globalRef, nextErr
 		}),
@@ -183,9 +178,7 @@ func New(o component.Options, c Arguments) (*Component, error) {
 				ls.GetOrAddLink(res.opts.ID, uint64(newRef), l)
 			}
 			if ds := xray.GetDebugStream(o.ID); ds != nil {
-				ds(func() string {
-					return fmt.Sprintf("ts=%d, labels=%s, exemplar_labels=%s, value=%f", e.Ts, l, e.Labels, e.Value)
-				})
+				ds(fmt.Sprintf("ts=%d, labels=%s, exemplar_labels=%s, value=%f", e.Ts, l, e.Labels, e.Value))
 			}
 			return globalRef, nextErr
 		}),

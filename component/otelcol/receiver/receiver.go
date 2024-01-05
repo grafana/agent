@@ -65,7 +65,6 @@ type Receiver struct {
 var (
 	_ component.Component       = (*Receiver)(nil)
 	_ component.HealthComponent = (*Receiver)(nil)
-	_ component.DebugStream     = (*Receiver)(nil)
 )
 
 // New creates a new Flow component which encapsulates an OpenTelemetry

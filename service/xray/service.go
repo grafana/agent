@@ -16,7 +16,7 @@ const ServiceName = "xray"
 
 type Service struct {
 	loadMut      sync.RWMutex
-	debugStreams map[string]func(computeDataFunc func() string)
+	debugStreams map[string]func(string)
 }
 
 var _ service.Service = (*Service)(nil)
@@ -28,7 +28,7 @@ type Data struct {
 
 func New(logger log.Logger) *Service {
 	return &Service{
-		debugStreams: make(map[string]func(computeDataFunc func() string)),
+		debugStreams: make(map[string]func(string)),
 	}
 }
 
@@ -58,13 +58,13 @@ func (*Service) Update(newConfig any) error {
 	return fmt.Errorf("xray service does not support configuration")
 }
 
-func (s *Service) GetDebugStream(id string) func(computeDataFunc func() string) {
+func (s *Service) GetDebugStream(id string) func(string) {
 	s.loadMut.RLock()
 	defer s.loadMut.RUnlock()
 	return s.debugStreams[id]
 }
 
-func (s *Service) SetDebugStream(id string, callback func(computeDataFunc func() string)) {
+func (s *Service) SetDebugStream(id string, callback func(string)) {
 	s.loadMut.Lock()
 	defer s.loadMut.Unlock()
 

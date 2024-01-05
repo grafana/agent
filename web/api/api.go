@@ -127,7 +127,7 @@ func (f *FlowAPI) startDebugStream() http.HandlerFunc {
 			}
 		}
 
-		f.xray.SetDebugStream(componentID, func(computeDataFunc func() string) {
+		f.xray.SetDebugStream(componentID, func(data string) {
 			select {
 			case <-ctx.Done():
 				return
@@ -137,7 +137,7 @@ func (f *FlowAPI) startDebugStream() http.HandlerFunc {
 				}
 				// Avoid blocking the channel when the channel is full
 				select {
-				case dataCh <- computeDataFunc():
+				case dataCh <- data:
 				default:
 				}
 			}

@@ -204,9 +204,7 @@ func (c *Component) runDiscovery(ctx context.Context, d Discoverer) {
 		}
 
 		if ds := c.xray.GetDebugStream(c.opts.ID); ds != nil {
-			ds(func() string {
-				return fmt.Sprintf("%s", allTargets)
-			})
+			ds(fmt.Sprintf("%s", allTargets))
 		}
 		c.opts.OnStateChange(Exports{Targets: allTargets})
 	}

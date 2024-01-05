@@ -41,8 +41,7 @@ type Component struct {
 }
 
 var (
-	_ component.Component   = (*Component)(nil)
-	_ component.DebugStream = (*Component)(nil)
+	_ component.Component = (*Component)(nil)
 )
 
 // New creates a new otelcol.exporter.loki component.

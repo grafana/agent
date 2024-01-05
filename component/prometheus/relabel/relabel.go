@@ -272,9 +272,7 @@ func (c *Component) relabel(val float64, lbls labels.Labels) labels.Labels {
 	c.cacheSize.Set(float64(c.cache.Len()))
 
 	if ds := c.xray.GetDebugStream(c.opts.ID); ds != nil {
-		ds(func() string {
-			return fmt.Sprintf("%s => %s", lbls.String(), relabelled.String())
-		})
+		ds(fmt.Sprintf("%s => %s", lbls.String(), relabelled.String()))
 	}
 
 	return relabelled
