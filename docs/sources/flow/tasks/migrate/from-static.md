@@ -1,16 +1,16 @@
 ---
 aliases:
-- /docs/grafana-cloud/agent/flow/tasks/migrating-from-static/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/tasks/migrating-from-static/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/tasks/migrating-from-static/
-- /docs/grafana-cloud/send-data/agent/flow/tasks/migrating-from-static/
+- /docs/grafana-cloud/agent/flow/tasks/migrate/from-static/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/tasks/migrate/from-static/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/tasks/migrate/from-static/
+- /docs/grafana-cloud/send-data/agent/flow/tasks/migrate/from-static/
 # Previous page aliases for backwards compatibility:
 - /docs/grafana-cloud/agent/flow/getting-started/migrating-from-static/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/getting-started/migrating-from-static/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/getting-started/migrating-from-static/
 - /docs/grafana-cloud/send-data/agent/flow/getting-started/migrating-from-static/
 - ../getting-started/migrating-from-static/ # /docs/agent/latest/flow/getting-started/migrating-from-static/
-canonical: https://grafana.com/docs/agent/latest/flow/tasks/migrating-from-static/
+canonical: https://grafana.com/docs/agent/latest/flow/tasks/migrate/from-static/
 description: Learn how to migrate your configuration from Grafana Agent Static to Grafana Agent Flow
 menuTitle: Migrate from Static to Flow
 title: Migrate Grafana Agent Static to Grafana Agent Flow
@@ -388,10 +388,10 @@ The following list is specific to the convert command and not {{< param "PRODUCT
 [Agent Management]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/static/configuration/agent-management.md"
 [env]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/stdlib/env.md"
 [env]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/stdlib/env.md"
-[Prometheus Limitations]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/tasks/migrating-from-prometheus.md#limitations"
-[Prometheus Limitations]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/tasks/migrating-from-prometheus.md#limitations"
-[Promtail Limitations]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/tasks/migrating-from-promtail.md#limitations"
-[Promtail Limitations]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/tasks/migrating-from-promtail.md#limitations"
+[Prometheus Limitations]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/tasks/migrate/from-prometheus.md#limitations"
+[Prometheus Limitations]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/tasks/migrate/from-prometheus.md#limitations"
+[Promtail Limitations]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/tasks/migrate/from-promtail.md#limitations"
+[Promtail Limitations]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/tasks/migrate/from-promtail.md#limitations"
 [Metrics]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static/configuration/metrics-config.md"
 [Metrics]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/static/configuration/metrics-config.md"
 [Logs]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static/configuration/logs-config.md"
