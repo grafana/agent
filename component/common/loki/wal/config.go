@@ -10,8 +10,9 @@ const (
 
 // DefaultWatchConfig is the opinionated defaults for operating the Watcher.
 var DefaultWatchConfig = WatchConfig{
-	MinReadFrequency: time.Millisecond * 250,
+	MinReadFrequency: 250 * time.Millisecond,
 	MaxReadFrequency: time.Second,
+	DrainTimeout:     15 * time.Second,
 }
 
 // Config contains all WAL-related settings.
@@ -49,6 +50,10 @@ type WatchConfig struct {
 	// MaxReadFrequency controls the maximum read frequency the Watcher polls the WAL for new records. As mentioned above
 	// it caps the polling frequency to a maximum, to prevent to exponential backoff from making it too high.
 	MaxReadFrequency time.Duration
+
+	// DrainTimeout is the maximum amount of time that the Watcher can spend draining the remaining segments in the WAL.
+	// After that time, the Watcher is stopped immediately, dropping all the work in process.
+	DrainTimeout time.Duration
 }
 
 // UnmarshalYAML implement YAML Unmarshaler

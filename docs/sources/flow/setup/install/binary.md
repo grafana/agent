@@ -12,7 +12,7 @@ title: Install Grafana Agent  Flow as a standalone binary
 weight: 600
 ---
 
-# Install {{< param "PRODUCT_NAME" >}} as a standalone binary
+# Install {{% param "PRODUCT_NAME" %}} as a standalone binary
 
 {{< param "PRODUCT_NAME" >}} is distributed as a standalone binary for the following operating systems and architectures:
 
@@ -21,7 +21,7 @@ weight: 600
 * macOS: AMD64 (Intel), ARM64 (Apple Silicon)
 * FreeBSD: AMD64
 
-## Download {{< param "PRODUCT_ROOT_NAME" >}}
+## Download {{% param "PRODUCT_ROOT_NAME" %}}
 
 To download {{< param "PRODUCT_NAME" >}} as a standalone binary, perform the following steps.
 

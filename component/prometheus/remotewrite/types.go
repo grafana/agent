@@ -231,7 +231,6 @@ func convertConfigs(cfg Arguments) (*config.Config, error) {
 		if err != nil {
 			return nil, fmt.Errorf("cannot parse remote_write url %q: %w", rw.URL, err)
 		}
-
 		rwConfigs = append(rwConfigs, &config.RemoteWriteConfig{
 			URL:                  &common.URL{URL: parsedURL},
 			RemoteTimeout:        model.Duration(rw.RemoteTimeout),

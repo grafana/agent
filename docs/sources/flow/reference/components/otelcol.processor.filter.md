@@ -212,7 +212,7 @@ otelcol.processor.filter "default" {
 
   traces {
     span = [
-      "attributes[\"container.name\"] == \"app_container_1\",
+      "attributes[\"container.name\"] == \"app_container_1\"",
     ]
   }
 
@@ -290,7 +290,7 @@ Some values in the River strings are [escaped][river-strings]:
 * `\` is escaped with `\\`
 * `"` is escaped with `\"`
 
-[river-strings]: {{< relref "../../config-language/expressions/types_and_values.md/#strings" >}}
+[river-strings]: {{< relref "../../concepts/config-language/expressions/types_and_values.md/#strings" >}}
 
 
 [OTTL]: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/v0.85.0/pkg/ottl/README.md
