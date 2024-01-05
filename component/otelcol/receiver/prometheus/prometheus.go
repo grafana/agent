@@ -3,6 +3,7 @@ package prometheus
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"regexp"
 	"sync"
@@ -16,6 +17,7 @@ import (
 	"github.com/grafana/agent/component/otelcol/receiver/prometheus/internal"
 	"github.com/grafana/agent/pkg/build"
 	"github.com/grafana/agent/pkg/util/zapadapter"
+	"github.com/grafana/agent/service/xray"
 	"github.com/prometheus/prometheus/model/labels"
 	"github.com/prometheus/prometheus/storage"
 	otelcomponent "go.opentelemetry.io/collector/component"
@@ -65,10 +67,19 @@ var (
 
 // New creates a new otelcol.receiver.prometheus component.
 func New(o component.Options, c Arguments) (*Component, error) {
+	data, err := o.GetServiceData(xray.ServiceName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get information about X-Ray service: %w", err)
+	}
+	xray := data.(*xray.Service)
+	debugStreamCallback := func() func(string) {
+		return xray.GetDebugStream(o.ID)
+	}
+
 	res := &Component{
 		log:                 o.Logger,
 		opts:                o,
-		debugStreamConsumer: debugstreamconsumer.New(),
+		debugStreamConsumer: debugstreamconsumer.New(debugStreamCallback),
 	}
 
 	if err := res.Update(c); err != nil {
@@ -158,8 +169,4 @@ func (c *Component) Update(newConfig component.Arguments) error {
 	c.opts.OnStateChange(Exports{Receiver: c.appendable})
 
 	return nil
-}
-
-func (c *Component) HookDebugStream(active bool, debugStreamCallback func(computeDataFunc func() string)) {
-	c.debugStreamConsumer.HookDebugStream(active, debugStreamCallback)
 }

@@ -5,6 +5,7 @@ package exporter
 import (
 	"context"
 	"errors"
+	"fmt"
 	"os"
 
 	"github.com/grafana/agent/component"
@@ -15,6 +16,7 @@ import (
 	"github.com/grafana/agent/component/otelcol/internal/views"
 	"github.com/grafana/agent/pkg/build"
 	"github.com/grafana/agent/pkg/util/zapadapter"
+	"github.com/grafana/agent/service/xray"
 	"github.com/prometheus/client_golang/prometheus"
 	otelcomponent "go.opentelemetry.io/collector/component"
 	otelexporter "go.opentelemetry.io/collector/exporter"
@@ -101,9 +103,18 @@ var (
 // The registered component must be registered to export the
 // otelcol.ConsumerExports type, otherwise New will panic.
 func New(opts component.Options, f otelexporter.Factory, args Arguments, supportedSignals TypeSignal) (*Exporter, error) {
+	data, err := opts.GetServiceData(xray.ServiceName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get information about X-Ray service: %w", err)
+	}
+	xray := data.(*xray.Service)
+	debugStreamCallback := func() func(string) {
+		return xray.GetDebugStream(opts.ID)
+	}
+
 	ctx, cancel := context.WithCancel(context.Background())
 
-	consumer := lazyexporterconsumer.New(ctx)
+	consumer := lazyexporterconsumer.New(ctx, debugStreamCallback)
 
 	// Create a lazy collector where metrics from the upstream component will be
 	// forwarded.
@@ -234,8 +245,4 @@ func (e *Exporter) Update(args component.Arguments) error {
 // CurrentHealth implements component.HealthComponent.
 func (e *Exporter) CurrentHealth() component.Health {
 	return e.sched.CurrentHealth()
-}
-
-func (e *Exporter) HookDebugStream(active bool, debugStreamCallback func(computeDataFunc func() string)) {
-	e.consumer.HookDebugStream(active, debugStreamCallback)
 }

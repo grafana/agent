@@ -12,6 +12,7 @@ import (
 	"github.com/grafana/agent/component/otelcol"
 	"github.com/grafana/agent/component/otelcol/exporter/loki/internal/convert"
 	"github.com/grafana/agent/component/otelcol/internal/lazyconsumer"
+	"github.com/grafana/agent/service/xray"
 )
 
 func init() {
@@ -38,6 +39,7 @@ type Component struct {
 
 	converter               *convert.Converter
 	logsReceiverStreamDebug *logsReceiverStreamDebug
+	xray                    *xray.Service
 }
 
 var (
@@ -48,15 +50,21 @@ var (
 func New(o component.Options, c Arguments) (*Component, error) {
 	converter := convert.New(o.Logger, o.Registerer, c.ForwardTo)
 
+	data, err := o.GetServiceData(xray.ServiceName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get information about X-Ray service: %w", err)
+	}
+	xray := data.(*xray.Service)
+
 	res := &Component{
 		log:  o.Logger,
 		opts: o,
 
 		converter: converter,
 		logsReceiverStreamDebug: &logsReceiverStreamDebug{
-			entries:             make(chan loki.Entry),
-			debugStreamCallback: func(func() string) {},
+			entries: make(chan loki.Entry),
 		},
+		xray: xray,
 	}
 	if err := res.Update(c); err != nil {
 		return nil, err
@@ -79,9 +87,9 @@ func (c *Component) Run(ctx context.Context) error {
 		case <-ctx.Done():
 			return nil
 		case entry := <-c.logsReceiverStreamDebug.Chan():
-			c.logsReceiverStreamDebug.debugStreamCallback(func() string {
-				return fmt.Sprintf("ts=%s, labels=%s, entry=%s", entry.Timestamp.Format(time.RFC3339Nano), entry.Labels.String(), entry.Line)
-			})
+			if ds := c.xray.GetDebugStream(c.opts.ID); ds != nil {
+				ds(fmt.Sprintf("ts=%s, labels=%s, entry=%s", entry.Timestamp.Format(time.RFC3339Nano), entry.Labels.String(), entry.Line))
+			}
 		}
 	}
 }
@@ -94,14 +102,9 @@ func (c *Component) Update(newConfig component.Arguments) error {
 }
 
 type logsReceiverStreamDebug struct {
-	entries             chan loki.Entry
-	debugStreamCallback func(computeDataFunc func() string)
+	entries chan loki.Entry
 }
 
 func (l *logsReceiverStreamDebug) Chan() chan loki.Entry {
 	return l.entries
-}
-
-func (c *Component) HookDebugStream(active bool, debugStreamCallback func(computeDataFunc func() string)) {
-	c.logsReceiverStreamDebug.debugStreamCallback = debugStreamCallback
 }

@@ -14,6 +14,7 @@ import (
 	"github.com/grafana/agent/component/otelcol/internal/lazyconsumer"
 	"github.com/grafana/agent/pkg/flow/logging/level"
 	promsdconsumer "github.com/grafana/agent/pkg/traces/promsdprocessor/consumer"
+	"github.com/grafana/agent/service/xray"
 	"github.com/grafana/river"
 )
 
@@ -91,7 +92,15 @@ func New(o component.Options, c Arguments) (*Component, error) {
 		level.Warn(o.Logger).Log("msg", "non-trace output detected; this component only works for traces")
 	}
 
-	debugStreamConsumer := debugstreamconsumer.New()
+	data, err := o.GetServiceData(xray.ServiceName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get information about X-Ray service: %w", err)
+	}
+	xray := data.(*xray.Service)
+	debugStreamCallback := func() func(string) {
+		return xray.GetDebugStream(o.ID)
+	}
+	debugStreamConsumer := debugstreamconsumer.New(debugStreamCallback)
 
 	nextTraces := fanoutconsumer.Traces(append(c.Output.Traces, debugStreamConsumer))
 
@@ -162,8 +171,4 @@ func (c *Component) Update(newConfig component.Arguments) error {
 	}
 
 	return nil
-}
-
-func (c *Component) HookDebugStream(active bool, debugStreamCallback func(computeDataFunc func() string)) {
-	c.debugStreamConsumer.HookDebugStream(active, debugStreamCallback)
 }

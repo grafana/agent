@@ -34,8 +34,8 @@ var (
 // New creates a new Consumer. The provided ctx is used to determine when the
 // Consumer should stop accepting data; if the ctx is closed, no further data
 // will be accepted.
-func New(ctx context.Context) *Consumer {
-	return &Consumer{ctx: ctx, debugStreamConsumer: debugstreamconsumer.New()}
+func New(ctx context.Context, debugStreamCallback func() func(string)) *Consumer {
+	return &Consumer{ctx: ctx, debugStreamConsumer: debugstreamconsumer.New(debugStreamCallback)}
 }
 
 // Capabilities implements otelconsumer.baseConsumer.
@@ -126,8 +126,4 @@ func (c *Consumer) SetConsumers(t otelconsumer.Traces, m otelconsumer.Metrics, l
 	c.metricsConsumer = m
 	c.logsConsumer = l
 	c.tracesConsumer = t
-}
-
-func (c *Consumer) HookDebugStream(active bool, debugStreamCallback func(computeDataFunc func() string)) {
-	c.debugStreamConsumer.HookDebugStream(active, debugStreamCallback)
 }

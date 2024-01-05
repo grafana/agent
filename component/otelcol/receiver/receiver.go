@@ -5,6 +5,7 @@ package receiver
 import (
 	"context"
 	"errors"
+	"fmt"
 	"os"
 
 	"github.com/grafana/agent/component"
@@ -16,6 +17,7 @@ import (
 	"github.com/grafana/agent/component/otelcol/internal/views"
 	"github.com/grafana/agent/pkg/build"
 	"github.com/grafana/agent/pkg/util/zapadapter"
+	"github.com/grafana/agent/service/xray"
 	"github.com/prometheus/client_golang/prometheus"
 	otelcomponent "go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/extension"
@@ -75,6 +77,15 @@ var (
 // responsibility of the caller to export values when needed; the Receiver
 // component never exports any values.
 func New(opts component.Options, f otelreceiver.Factory, args Arguments) (*Receiver, error) {
+	data, err := opts.GetServiceData(xray.ServiceName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get information about X-Ray service: %w", err)
+	}
+	xray := data.(*xray.Service)
+	debugStreamCallback := func() func(string) {
+		return xray.GetDebugStream(opts.ID)
+	}
+
 	ctx, cancel := context.WithCancel(context.Background())
 
 	// Create a lazy collector where metrics from the upstream component will be
@@ -91,7 +102,7 @@ func New(opts component.Options, f otelreceiver.Factory, args Arguments) (*Recei
 
 		sched:               scheduler.New(opts.Logger),
 		collector:           collector,
-		debugStreamConsumer: debugstreamconsumer.New(),
+		debugStreamConsumer: debugstreamconsumer.New(debugStreamCallback),
 	}
 	if err := r.Update(args); err != nil {
 		return nil, err
@@ -194,8 +205,4 @@ func (r *Receiver) Update(args component.Arguments) error {
 // CurrentHealth implements component.HealthComponent.
 func (r *Receiver) CurrentHealth() component.Health {
 	return r.sched.CurrentHealth()
-}
-
-func (r *Receiver) HookDebugStream(active bool, debugStreamCallback func(computeDataFunc func() string)) {
-	r.debugStreamConsumer.HookDebugStream(active, debugStreamCallback)
 }

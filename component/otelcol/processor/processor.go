@@ -5,6 +5,7 @@ package processor
 import (
 	"context"
 	"errors"
+	"fmt"
 	"os"
 
 	"github.com/grafana/agent/component"
@@ -16,6 +17,7 @@ import (
 	"github.com/grafana/agent/component/otelcol/internal/scheduler"
 	"github.com/grafana/agent/pkg/build"
 	"github.com/grafana/agent/pkg/util/zapadapter"
+	"github.com/grafana/agent/service/xray"
 	"github.com/prometheus/client_golang/prometheus"
 	otelcomponent "go.opentelemetry.io/collector/component"
 	otelextension "go.opentelemetry.io/collector/extension"
@@ -73,6 +75,15 @@ var (
 // The registered component must be registered to export the
 // otelcol.ConsumerExports type, otherwise New will panic.
 func New(opts component.Options, f otelprocessor.Factory, args Arguments) (*Processor, error) {
+	data, err := opts.GetServiceData(xray.ServiceName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get information about X-Ray service: %w", err)
+	}
+	xray := data.(*xray.Service)
+	debugStreamCallback := func() func(string) {
+		return xray.GetDebugStream(opts.ID)
+	}
+
 	ctx, cancel := context.WithCancel(context.Background())
 
 	consumer := lazyconsumer.New(ctx)
@@ -99,7 +110,7 @@ func New(opts component.Options, f otelprocessor.Factory, args Arguments) (*Proc
 
 		sched:               scheduler.New(opts.Logger),
 		collector:           collector,
-		debugStreamConsumer: debugstreamconsumer.New(),
+		debugStreamConsumer: debugstreamconsumer.New(debugStreamCallback),
 	}
 	if err := p.Update(args); err != nil {
 		return nil, err
@@ -207,8 +218,4 @@ func (p *Processor) Update(args component.Arguments) error {
 // CurrentHealth implements component.HealthComponent.
 func (p *Processor) CurrentHealth() component.Health {
 	return p.sched.CurrentHealth()
-}
-
-func (p *Processor) HookDebugStream(active bool, debugStreamCallback func(computeDataFunc func() string)) {
-	p.debugStreamConsumer.HookDebugStream(active, debugStreamCallback)
 }
