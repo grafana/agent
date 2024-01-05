@@ -1,19 +1,19 @@
 ---
 aliases:
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/tasks/migrating-from-operator/
-- /docs/grafana-cloud/send-data/agent/flow/tasks/migrating-from-operator/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/tasks/migrate/from-operator/
+- /docs/grafana-cloud/send-data/agent/flow/tasks/migrate/from-operator/
 # Previous page aliases for backwards compatibility:
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/getting-started/migrating-from-operator/
 - /docs/grafana-cloud/send-data/agent/flow/getting-started/migrating-from-operator/
 - ../getting-started/migrating-from-operator/ # /docs/agent/latest/flow/getting-started/migrating-from-operator/
-canonical: https://grafana.com/docs/agent/latest/flow/tasks/migrating-from-operator/
-description: Migrating from Grafana Agent Operator to Grafana Agent Flow
+canonical: https://grafana.com/docs/agent/latest/flow/tasks/migrate/from-operator/
+description: Migrate from Grafana Agent Operator to Grafana Agent Flow
 menuTitle: Migrate from Operator
-title: Migrating from Grafana Agent Operator to Grafana Agent Flow
+title: Migrate from Grafana Agent Operator to Grafana Agent Flow
 weight: 320
 ---
 
-# Migrating from Grafana Agent Operator to {{% param "PRODUCT_NAME" %}}
+# Migrate from Grafana Agent Operator to {{% param "PRODUCT_NAME" %}}
 
 With the release of {{< param "PRODUCT_NAME" >}}, Grafana Agent Operator is no longer the recommended way to deploy {{< param "PRODUCT_ROOT_NAME" >}} in Kubernetes.
 Some of the Operator functionality has moved into {{< param "PRODUCT_NAME" >}} itself, and the Helm Chart has replaced the remaining functionality.

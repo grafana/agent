@@ -1,16 +1,16 @@
 ---
 aliases:
-- /docs/grafana-cloud/agent/flow/tasks/migrating-from-prometheus/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/tasks/migrating-from-prometheus/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/tasks/migrating-from-prometheus/
-- /docs/grafana-cloud/send-data/agent/flow/tasks/migrating-from-prometheus/
+- /docs/grafana-cloud/agent/flow/tasks/migrate/from-prometheus/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/tasks/migrate/from-prometheus/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/tasks/migrate/from-prometheus/
+- /docs/grafana-cloud/send-data/agent/flow/tasks/migrate/from-prometheus/
 # Previous page aliases for backwards compatibility:
 - /docs/grafana-cloud/agent/flow/getting-started/migrating-from-prometheus/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/getting-started/migrating-from-prometheus/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/getting-started/migrating-from-prometheus/
 - /docs/grafana-cloud/send-data/agent/flow/getting-started/migrating-from-prometheus/
 - ../getting-started/migrating-from-prometheus/ # /docs/agent/latest/flow/getting-started/migrating-from-prometheus/
-canonical: https://grafana.com/docs/agent/latest/flow/tasks/migrating-from-prometheus/
+canonical: https://grafana.com/docs/agent/latest/flow/tasks/migrate/from-prometheus/
 description: Learn how to migrate from Prometheus to Grafana Agent Flow
 menuTitle: Migrate from Prometheus
 title: Migrate from Prometheus to Grafana Agent Flow
