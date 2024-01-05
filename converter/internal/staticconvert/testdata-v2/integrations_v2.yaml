@@ -117,6 +117,12 @@ integrations:
   elasticsearch_configs:
     - autoscrape:
         metrics_instance: "default"
+  eventhandler:
+    cache_path: "./.eventcache/eventhandler.cache"
+    logs_instance: "log_config"
+    extra_labels:
+      test_label: test_label_value
+      test_label_2: test_label_value_2
   gcp_configs:
     - project_ids:
         - <project_id>
