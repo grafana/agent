@@ -194,7 +194,7 @@ enabled, `Retry-After` response headers from the servers are honored.
 
 The `sample_age_limit` argument specifies the maximum age of samples to send. Any
 samples older than the limit are dropped and won't be sent to the remote storage.
-
+The default value is `0s`, which means that all samples are sent (feature is disabled).
 
 ### metadata_config block
 
