@@ -13,6 +13,7 @@ import (
 	flow_relabel "github.com/grafana/agent/component/common/relabel"
 	"github.com/grafana/agent/component/prometheus"
 	"github.com/grafana/agent/service/labelstore"
+	"github.com/grafana/agent/service/xray"
 	lru "github.com/hashicorp/golang-lru/v2"
 	prometheus_client "github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/prometheus/model/exemplar"
@@ -85,15 +86,14 @@ type Component struct {
 	fanout           *prometheus.Fanout
 	exited           atomic.Bool
 	ls               labelstore.LabelStore
+	xray             *xray.Service
 
-	cacheMut            sync.RWMutex
-	cache               *lru.Cache[uint64, *labelAndID]
-	debugStreamCallback func(computeDataFunc func() string)
+	cacheMut sync.RWMutex
+	cache    *lru.Cache[uint64, *labelAndID]
 }
 
 var (
-	_ component.Component   = (*Component)(nil)
-	_ component.DebugStream = (*Component)(nil)
+	_ component.Component = (*Component)(nil)
 )
 
 // New creates a new prometheus.relabel component.
@@ -102,15 +102,22 @@ func New(o component.Options, args Arguments) (*Component, error) {
 	if err != nil {
 		return nil, err
 	}
-	data, err := o.GetServiceData(labelstore.ServiceName)
+
+	data, err := o.GetServiceData(xray.ServiceName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get information about X-Ray service: %w", err)
+	}
+	xray := data.(*xray.Service)
+
+	data, err = o.GetServiceData(labelstore.ServiceName)
 	if err != nil {
 		return nil, err
 	}
 	c := &Component{
-		opts:                o,
-		cache:               cache,
-		ls:                  data.(labelstore.LabelStore),
-		debugStreamCallback: func(computeDataFunc func() string) {},
+		opts:  o,
+		cache: cache,
+		ls:    data.(labelstore.LabelStore),
+		xray:  xray,
 	}
 	c.metricsProcessed = prometheus_client.NewCounter(prometheus_client.CounterOpts{
 		Name: "agent_prometheus_relabel_metrics_processed",
@@ -264,7 +271,12 @@ func (c *Component) relabel(val float64, lbls labels.Labels) labels.Labels {
 	// TODO(@mattdurham): Instead of setting this each time could collect on demand for better performance.
 	c.cacheSize.Set(float64(c.cache.Len()))
 
-	c.debugStreamCallback(func() string { return fmt.Sprintf("%s => %s", lbls.String(), relabelled.String()) })
+	if ds := c.xray.GetDebugStream(c.opts.ID); ds != nil {
+		ds(func() string {
+			return fmt.Sprintf("%s => %s", lbls.String(), relabelled.String())
+		})
+	}
+
 	return relabelled
 }
 
@@ -310,8 +322,4 @@ func (c *Component) addToCache(originalID uint64, lbls labels.Labels, keep bool)
 type labelAndID struct {
 	labels labels.Labels
 	id     uint64
-}
-
-func (c *Component) HookDebugStream(active bool, debugStreamCallback func(computeDataFunc func() string)) {
-	c.debugStreamCallback = debugStreamCallback
 }

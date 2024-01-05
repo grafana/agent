@@ -17,6 +17,7 @@ import (
 	"github.com/grafana/agent/service/cluster"
 	"github.com/grafana/agent/service/http"
 	"github.com/grafana/agent/service/labelstore"
+	"github.com/grafana/agent/service/xray"
 	client_prometheus "github.com/prometheus/client_golang/prometheus"
 	config_util "github.com/prometheus/common/config"
 	"github.com/prometheus/common/model"
@@ -125,12 +126,11 @@ type Component struct {
 
 	reloadTargets chan struct{}
 
-	mut                 sync.RWMutex
-	args                Arguments
-	scraper             *scrape.Manager
-	appendable          *prometheus.Fanout
-	targetsGauge        client_prometheus.Gauge
-	debugStreamCallback func(func() string)
+	mut          sync.RWMutex
+	args         Arguments
+	scraper      *scrape.Manager
+	appendable   *prometheus.Fanout
+	targetsGauge client_prometheus.Gauge
 }
 
 var (
@@ -157,6 +157,12 @@ func New(o component.Options, args Arguments) (*Component, error) {
 	}
 	ls := service.(labelstore.LabelStore)
 
+	data, err = o.GetServiceData(xray.ServiceName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get information about X-Ray service: %w", err)
+	}
+	xray := data.(*xray.Service)
+
 	flowAppendable := prometheus.NewFanout(args.ForwardTo, o.ID, o.Registerer, ls)
 	scrapeOptions := &scrape.Options{
 		ExtraMetrics: args.ExtraMetrics,
@@ -175,48 +181,58 @@ func New(o component.Options, args Arguments) (*Component, error) {
 	}
 
 	c := &Component{
-		opts:                o,
-		cluster:             clusterData,
-		reloadTargets:       make(chan struct{}, 1),
-		appendable:          flowAppendable,
-		targetsGauge:        targetsGauge,
-		debugStreamCallback: func(func() string) {},
+		opts:          o,
+		cluster:       clusterData,
+		reloadTargets: make(chan struct{}, 1),
+		appendable:    flowAppendable,
+		targetsGauge:  targetsGauge,
 	}
 
 	interceptor := prometheus.NewInterceptor(flowAppendable, ls,
 		prometheus.WithAppendHook(func(globalRef storage.SeriesRef, l labels.Labels, t int64, v float64, next storage.Appender) (storage.SeriesRef, error) {
 			localID := ls.GetLocalRefID(c.opts.ID, uint64(globalRef))
 			_, nextErr := next.Append(storage.SeriesRef(localID), l, t, v)
-			c.debugStreamCallback(func() string { return fmt.Sprintf("ts=%d, labels=%s, value=%f", t, l, v) })
+			if ds := xray.GetDebugStream(o.ID); ds != nil {
+				ds(func() string {
+					return fmt.Sprintf("ts=%d, labels=%s, value=%f", t, l, v)
+				})
+			}
 			return globalRef, nextErr
 		}),
 		prometheus.WithHistogramHook(func(globalRef storage.SeriesRef, l labels.Labels, t int64, h *histogram.Histogram, fh *histogram.FloatHistogram, next storage.Appender) (storage.SeriesRef, error) {
 			localID := ls.GetLocalRefID(c.opts.ID, uint64(globalRef))
 			_, nextErr := next.AppendHistogram(storage.SeriesRef(localID), l, t, h, fh)
-			c.debugStreamCallback(func() string {
-				if h != nil {
-					return fmt.Sprintf("ts=%d, labels=%s, histogram=%s", t, l, h.String())
-				} else if fh != nil {
-					return fmt.Sprintf("ts=%d, labels=%s, float_histogram=%s", t, l, fh.String())
-				}
-				return fmt.Sprintf("ts=%d, labels=%s, no_value", t, l)
-			})
+			if ds := xray.GetDebugStream(o.ID); ds != nil {
+				ds(func() string {
+					if h != nil {
+						return fmt.Sprintf("ts=%d, labels=%s, histogram=%s", t, l, h.String())
+					} else if fh != nil {
+						return fmt.Sprintf("ts=%d, labels=%s, float_histogram=%s", t, l, fh.String())
+					}
+					return fmt.Sprintf("ts=%d, labels=%s, no_value", t, l)
+				})
+			}
+
 			return globalRef, nextErr
 		}),
 		prometheus.WithMetadataHook(func(globalRef storage.SeriesRef, l labels.Labels, m metadata.Metadata, next storage.Appender) (storage.SeriesRef, error) {
 			localID := ls.GetLocalRefID(c.opts.ID, uint64(globalRef))
 			_, nextErr := next.UpdateMetadata(storage.SeriesRef(localID), l, m)
-			c.debugStreamCallback(func() string {
-				return fmt.Sprintf("labels=%s, type=%s, unit=%s, help=%s", l, m.Type, m.Unit, m.Help)
-			})
+			if ds := xray.GetDebugStream(o.ID); ds != nil {
+				ds(func() string {
+					return fmt.Sprintf("labels=%s, type=%s, unit=%s, help=%s", l, m.Type, m.Unit, m.Help)
+				})
+			}
 			return globalRef, nextErr
 		}),
 		prometheus.WithExemplarHook(func(globalRef storage.SeriesRef, l labels.Labels, e exemplar.Exemplar, next storage.Appender) (storage.SeriesRef, error) {
 			localID := ls.GetLocalRefID(c.opts.ID, uint64(globalRef))
 			_, nextErr := next.AppendExemplar(storage.SeriesRef(localID), l, e)
-			c.debugStreamCallback(func() string {
-				return fmt.Sprintf("ts=%d, labels=%s, exemplar_labels=%s, value=%f", e.Ts, l, e.Labels, e.Value)
-			})
+			if ds := xray.GetDebugStream(o.ID); ds != nil {
+				ds(func() string {
+					return fmt.Sprintf("ts=%d, labels=%s, exemplar_labels=%s, value=%f", e.Ts, l, e.Labels, e.Value)
+				})
+			}
 			return globalRef, nextErr
 		}),
 	)
@@ -427,8 +443,4 @@ func convertLabelSet(tg discovery.Target) model.LabelSet {
 		lset[model.LabelName(k)] = model.LabelValue(v)
 	}
 	return lset
-}
-
-func (c *Component) HookDebugStream(active bool, debugStreamCallback func(computeDataFunc func() string)) {
-	c.debugStreamCallback = debugStreamCallback
 }

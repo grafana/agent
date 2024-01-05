@@ -10,6 +10,7 @@ import (
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/service/cluster"
+	"github.com/grafana/agent/service/xray"
 	"github.com/grafana/ckit/shard"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/discovery"
@@ -100,22 +101,28 @@ type Creator func(component.Arguments) (Discoverer, error)
 type Component struct {
 	opts component.Options
 
-	discMut             sync.Mutex
-	latestDisc          discovery.Discoverer
-	newDiscoverer       chan struct{}
-	debugStreamCallback func(func() string)
+	discMut       sync.Mutex
+	latestDisc    discovery.Discoverer
+	newDiscoverer chan struct{}
+	xray          *xray.Service
 
 	creator Creator
 }
 
 // New creates a discovery component given arguments and a concrete Discovery implementation function.
 func New(o component.Options, args component.Arguments, creator Creator) (*Component, error) {
+	data, err := o.GetServiceData(xray.ServiceName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get information about X-Ray service: %w", err)
+	}
+	xray := data.(*xray.Service)
+
 	c := &Component{
 		opts:    o,
 		creator: creator,
 		// buffered to avoid deadlock from the first immediate update
-		newDiscoverer:       make(chan struct{}, 1),
-		debugStreamCallback: func(func() string) {},
+		newDiscoverer: make(chan struct{}, 1),
+		xray:          xray,
 	}
 	return c, c.Update(args)
 }
@@ -195,9 +202,12 @@ func (c *Component) runDiscovery(ctx context.Context, d Discoverer) {
 				allTargets = append(allTargets, labels)
 			}
 		}
-		c.debugStreamCallback(func() string {
-			return fmt.Sprintf("%s", allTargets)
-		})
+
+		if ds := c.xray.GetDebugStream(c.opts.ID); ds != nil {
+			ds(func() string {
+				return fmt.Sprintf("%s", allTargets)
+			})
+		}
 		c.opts.OnStateChange(Exports{Targets: allTargets})
 	}
 
@@ -227,8 +237,4 @@ func (c *Component) runDiscovery(ctx context.Context, d Discoverer) {
 			haveUpdates = true
 		}
 	}
-}
-
-func (c *Component) HookDebugStream(active bool, debugStreamCallback func(computeDataFunc func() string)) {
-	c.debugStreamCallback = debugStreamCallback
 }

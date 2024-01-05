@@ -18,6 +18,7 @@ import (
 
 	"github.com/grafana/agent/component/prometheus"
 	"github.com/grafana/agent/service/labelstore"
+	"github.com/grafana/agent/service/xray"
 
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/component"
@@ -54,11 +55,10 @@ type Component struct {
 	log  log.Logger
 	opts component.Options
 
-	walStore            *wal.Storage
-	remoteStore         *remote.Storage
-	storage             storage.Storage
-	exited              atomic.Bool
-	debugStreamCallback func(func() string)
+	walStore    *wal.Storage
+	remoteStore *remote.Storage
+	storage     storage.Storage
+	exited      atomic.Bool
 
 	mut sync.RWMutex
 	cfg Arguments
@@ -92,13 +92,18 @@ func New(o component.Options, c Arguments) (*Component, error) {
 	}
 	ls := service.(labelstore.LabelStore)
 
+	data, err := o.GetServiceData(xray.ServiceName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get information about X-Ray service: %w", err)
+	}
+	xray := data.(*xray.Service)
+
 	res := &Component{
-		log:                 o.Logger,
-		opts:                o,
-		walStore:            walStorage,
-		remoteStore:         remoteStore,
-		storage:             storage.NewFanout(o.Logger, walStorage, remoteStore),
-		debugStreamCallback: func(func() string) {},
+		log:         o.Logger,
+		opts:        o,
+		walStore:    walStorage,
+		remoteStore: remoteStore,
+		storage:     storage.NewFanout(o.Logger, walStorage, remoteStore),
 	}
 	res.receiver = prometheus.NewInterceptor(
 		res.storage,
@@ -120,7 +125,12 @@ func New(o component.Options, c Arguments) (*Component, error) {
 			if localID == 0 {
 				ls.GetOrAddLink(res.opts.ID, uint64(newRef), l)
 			}
-			res.debugStreamCallback(func() string { return fmt.Sprintf("ts=%d, labels=%s, value=%f", t, l, v) })
+			if ds := xray.GetDebugStream(o.ID); ds != nil {
+				ds(func() string {
+					return fmt.Sprintf("ts=%d, labels=%s, value=%f", t, l, v)
+				})
+			}
+
 			return globalRef, nextErr
 		}),
 		prometheus.WithHistogramHook(func(globalRef storage.SeriesRef, l labels.Labels, t int64, h *histogram.Histogram, fh *histogram.FloatHistogram, next storage.Appender) (storage.SeriesRef, error) {
@@ -133,14 +143,16 @@ func New(o component.Options, c Arguments) (*Component, error) {
 			if localID == 0 {
 				ls.GetOrAddLink(res.opts.ID, uint64(newRef), l)
 			}
-			res.debugStreamCallback(func() string {
-				if h != nil {
-					return fmt.Sprintf("ts=%d, labels=%s, histogram=%s", t, l, h.String())
-				} else if fh != nil {
-					return fmt.Sprintf("ts=%d, labels=%s, float_histogram=%s", t, l, fh.String())
-				}
-				return fmt.Sprintf("ts=%d, labels=%s, no_value", t, l)
-			})
+			if ds := xray.GetDebugStream(o.ID); ds != nil {
+				ds(func() string {
+					if h != nil {
+						return fmt.Sprintf("ts=%d, labels=%s, histogram=%s", t, l, h.String())
+					} else if fh != nil {
+						return fmt.Sprintf("ts=%d, labels=%s, float_histogram=%s", t, l, fh.String())
+					}
+					return fmt.Sprintf("ts=%d, labels=%s, no_value", t, l)
+				})
+			}
 			return globalRef, nextErr
 		}),
 		prometheus.WithMetadataHook(func(globalRef storage.SeriesRef, l labels.Labels, m metadata.Metadata, next storage.Appender) (storage.SeriesRef, error) {
@@ -153,9 +165,11 @@ func New(o component.Options, c Arguments) (*Component, error) {
 			if localID == 0 {
 				ls.GetOrAddLink(res.opts.ID, uint64(newRef), l)
 			}
-			res.debugStreamCallback(func() string {
-				return fmt.Sprintf("labels=%s, type=%s, unit=%s, help=%s", l, m.Type, m.Unit, m.Help)
-			})
+			if ds := xray.GetDebugStream(o.ID); ds != nil {
+				ds(func() string {
+					return fmt.Sprintf("labels=%s, type=%s, unit=%s, help=%s", l, m.Type, m.Unit, m.Help)
+				})
+			}
 			return globalRef, nextErr
 		}),
 		prometheus.WithExemplarHook(func(globalRef storage.SeriesRef, l labels.Labels, e exemplar.Exemplar, next storage.Appender) (storage.SeriesRef, error) {
@@ -168,9 +182,11 @@ func New(o component.Options, c Arguments) (*Component, error) {
 			if localID == 0 {
 				ls.GetOrAddLink(res.opts.ID, uint64(newRef), l)
 			}
-			res.debugStreamCallback(func() string {
-				return fmt.Sprintf("ts=%d, labels=%s, exemplar_labels=%s, value=%f", e.Ts, l, e.Labels, e.Value)
-			})
+			if ds := xray.GetDebugStream(o.ID); ds != nil {
+				ds(func() string {
+					return fmt.Sprintf("ts=%d, labels=%s, exemplar_labels=%s, value=%f", e.Ts, l, e.Labels, e.Value)
+				})
+			}
 			return globalRef, nextErr
 		}),
 	)
@@ -289,8 +305,4 @@ func (c *Component) Update(newConfig component.Arguments) error {
 
 	c.cfg = cfg
 	return nil
-}
-
-func (c *Component) HookDebugStream(active bool, debugStreamCallback func(computeDataFunc func() string)) {
-	c.debugStreamCallback = debugStreamCallback
 }

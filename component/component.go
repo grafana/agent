@@ -113,8 +113,3 @@ type DebugComponent interface {
 	// DebugInfo must be safe for calling concurrently.
 	DebugInfo() interface{}
 }
-
-type DebugStream interface {
-	// TODO: return error
-	HookDebugStream(active bool, callback func(computeDataFunc func() string))
-}

@@ -6,7 +6,6 @@ package api
 
 import (
 	"encoding/json"
-	"fmt"
 	"math/rand"
 	"net/http"
 	"path"
@@ -15,6 +14,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/service/cluster"
+	"github.com/grafana/agent/service/xray"
 	"github.com/prometheus/prometheus/util/httputil"
 )
 
@@ -22,11 +22,12 @@ import (
 type FlowAPI struct {
 	flow    component.Provider
 	cluster cluster.Cluster
+	xray    *xray.Service
 }
 
 // NewFlowAPI instantiates a new Flow API.
-func NewFlowAPI(flow component.Provider, cluster cluster.Cluster) *FlowAPI {
-	return &FlowAPI{flow: flow, cluster: cluster}
+func NewFlowAPI(flow component.Provider, cluster cluster.Cluster, xray *xray.Service) *FlowAPI {
+	return &FlowAPI{flow: flow, cluster: cluster, xray: xray}
 }
 
 // RegisterRoutes registers all the API's routes.
@@ -110,7 +111,8 @@ func (f *FlowAPI) getClusteringPeersHandler() http.HandlerFunc {
 func (f *FlowAPI) startDebugStream() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
-		requestedComponent := component.ParseID(vars["id"])
+		componentID := vars["id"]
+
 		dataCh := make(chan string, 1000) // Define the size of the channel, is 1000 ok?
 		ctx := r.Context()
 
@@ -125,7 +127,7 @@ func (f *FlowAPI) startDebugStream() http.HandlerFunc {
 			}
 		}
 
-		err := f.flow.SetDebugStream(requestedComponent, true, func(computeDataFunc func() string) {
+		f.xray.SetDebugStream(componentID, func(computeDataFunc func() string) {
 			select {
 			case <-ctx.Done():
 				return
@@ -140,15 +142,9 @@ func (f *FlowAPI) startDebugStream() http.HandlerFunc {
 				}
 			}
 		})
-		if err != nil {
-			fmt.Println(err)
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
 		stopStreaming := func() {
 			close(dataCh)
-			_ = f.flow.SetDebugStream(requestedComponent, false, func(func() string) {})
+			f.xray.DeleteDebugStream(componentID)
 		}
 
 		for {

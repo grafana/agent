@@ -32,6 +32,7 @@ import (
 	"github.com/grafana/agent/service/labelstore"
 	otel_service "github.com/grafana/agent/service/otel"
 	uiservice "github.com/grafana/agent/service/ui"
+	"github.com/grafana/agent/service/xray"
 	"github.com/grafana/ckit/advertise"
 	"github.com/grafana/ckit/peer"
 	"github.com/grafana/river/diag"
@@ -238,9 +239,12 @@ func (fr *flowRun) Run(configPath string) error {
 		EnablePProf:      fr.enablePprof,
 	})
 
+	xrayService := xray.New(l)
+
 	uiService := uiservice.New(uiservice.Options{
 		UIPrefix: fr.uiPrefix,
 		Cluster:  clusterService.Data().(cluster.Cluster),
+		Xray:     xrayService,
 	})
 
 	otelService := otel_service.New(l)
@@ -258,6 +262,7 @@ func (fr *flowRun) Run(configPath string) error {
 		Reg:      reg,
 		Services: []service.Service{
 			httpService,
+			xrayService,
 			uiService,
 			clusterService,
 			otelService,
