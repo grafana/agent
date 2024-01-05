@@ -24,19 +24,19 @@ outFile "${OUT}"
 LicenseData LICENSE
 
 # Everything must be global Vars
+Var EnableOptionsDialog
+Var PassedInParameters
 Var EnableExporterCheck
 Var EnableExporterValue
-Var EnableExporterDialog
-Var ExpandEnvCheck
-Var ExpandEnvValue
-Var PassedInParameters
 Var Url
 Var Username
 Var Password
+Var ExpandEnvCheck
+Var ExpandEnvValue
 
 Page license
 Page directory
-Page custom enableWindowsExporter enableWindowsExporterLeave
+Page custom enableOptions enableOptionsLeave
 Page instfiles
 
 # Annoyingly macros need to be defined before use
@@ -60,21 +60,21 @@ Section "install"
     ThisIsSilent:
         ${GetParameters} $PassedInParameters
         ${GetOptions} $PassedInParameters "/EnableExporter" $EnableExporterValue
-        ${GetOptions} $PassedInParameters "/ExpandEnv" $ExpandEnvValue
         ${GetOptions} $PassedInParameters "/Url" $Url
         ${GetOptions} $PassedInParameters "/Username" $Username
         ${GetOptions} $PassedInParameters "/Password" $Password
+        ${GetOptions} $PassedInParameters "/ExpandEnv" $ExpandEnvValue
         Call Install
         Return
     RunInstaller:
         Call Install
 SectionEnd
 
-Function enableWindowsExporter
+Function enableOptions
     nsDialogs::Create 1018
-    Pop $EnableExporterDialog
+    Pop $EnableOptionsDialog
 
-    ${If} $EnableExporterDialog == error
+    ${If} $EnableOptionsDialog == error
         Abort
     ${EndIf}
 
@@ -93,7 +93,7 @@ Function enableWindowsExporter
     nsDialogs::Show
 FunctionEnd
 
-Function enableWindowsExporterLeave
+Function enableOptionsLeave
     ${NSD_GetState} $EnableExporterCheck $EnableExporterValue
     ${If} $EnableExporterValue == ${BST_CHECKED}
         StrCpy $EnableExporterValue "true"
