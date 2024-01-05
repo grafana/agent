@@ -16,8 +16,21 @@ var macDist = &Distribution{
 	version: 300,
 }
 
-func AllDistributions() []*Distribution {
-	return []*Distribution{macDist}
+func (p *Profiler) Extract() error {
+	p.unpackOnce.Do(func() {
+		lib, launcher, err := getLibAndLauncher(distribution)
+		if err != nil {
+			p.unpackError = err
+			return
+		}
+		err := d.Extract(p.tmpDir, lib, launcher)
+		if err != nil {
+			p.unpackError = err
+			break
+		}
+
+	})
+	return p.unpackError
 }
 
 func DistributionForProcess(pid int) (*Distribution, error) {

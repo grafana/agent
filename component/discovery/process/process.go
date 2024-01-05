@@ -43,12 +43,18 @@ type Component struct {
 }
 
 func (c *Component) Run(ctx context.Context) error {
-	processes, err := discover(c.l)
-	if err != nil {
+	doDiscover := func() error {
+		processes, err := discover(c.l)
+		if err != nil {
+			return err
+		}
+		c.processes = convertProcesses(processes)
+		c.changed()
+		return nil
+	}
+	if err := doDiscover(); err != nil {
 		return err
 	}
-	c.processes = convertProcesses(processes)
-	c.changed()
 
 	t := time.NewTicker(c.refreshInterval)
 	for {
@@ -56,12 +62,10 @@ func (c *Component) Run(ctx context.Context) error {
 		case <-ctx.Done():
 			return nil
 		case <-t.C:
-			processes, err = discover(c.l)
-			if err != nil {
+			if err := doDiscover(); err != nil {
 				return err
 			}
-			c.processes = convertProcesses(processes)
-			c.changed()
+
 		case jt := <-c.joinUpdates:
 			c.join = jt
 			c.changed()

@@ -52,43 +52,42 @@ func readTarGZ(buf []byte, cb func(fi fs.FileInfo, data []byte) error) error {
 	return nil
 }
 
-func getLibAndLauncher(targz []byte) (lib []byte, libName string, launcher []byte, launcherName string, err error) {
+func getLibAndLauncher(targz []byte) (lib []byte, launcher []byte, err error) {
 	err = readTarGZ(targz, func(fi fs.FileInfo, data []byte) error {
 		if fi.Name() == "libasyncProfiler.dylib" || fi.Name() == "libasyncProfiler.so" {
 			lib = data
-			libName = fi.Name()
 			return nil
 		}
 		if fi.Name() == "profiler.sh" || fi.Name() == "asprof" {
 			launcher = data
-			launcherName = fi.Name()
 		}
 		return nil
 	})
 	if lib == nil || launcher == nil {
-		return nil, "", nil, "", fmt.Errorf("failed to find libasyncProfiler in tar.gz")
+		return nil, nil, fmt.Errorf("failed to find libasyncProfiler in tar.gz")
 	}
-	return lib, libName, launcher, launcherName, err
+	return lib, launcher, err
 }
 
 var race = func(stage, extra string) {}
 
 const extractPerm = 0755
+const tmpDirMarker = "grafana-agent-asprof"
 
-func (d *Distribution) Extract(dstPath string, prefix string) error {
+func (d *Distribution) write(dstPath string, lib, launcher []byte) error {
 	dstFile, err := os.Open(dstPath)
 	if err != nil {
 		return err
 	}
 	defer dstFile.Close()
 	sum := sha1.Sum(d.targz)
-	distName := fmt.Sprintf("%s-%s-%s", prefix,
+	distName := fmt.Sprintf("%s-%s-%s", tmpDirMarker,
 		strings.TrimSuffix(d.fname, ".tar.gz"),
 		hex.EncodeToString(sum[:]))
 	distDirPath := filepath.Join(dstPath, distName)
 	distDir, err := os.Open(distDirPath)
 	if err == nil {
-		return d.verifyExtracted(distDir)
+		return d.verifyExtracted(distDir, lib, launcher)
 	}
 
 	race("mkdir dist", distName)
@@ -115,27 +114,21 @@ func (d *Distribution) Extract(dstPath string, prefix string) error {
 	if stat.Mode().Perm() != extractPerm {
 		return fmt.Errorf("directory %s has wrong permissions %s", distDirPath, stat.Mode().Perm())
 	}
-	binDir := filepath.Join(distDirPath, "bin")
-	libDir := filepath.Join(distDirPath, "lib")
-	err = os.MkdirAll(binDir, extractPerm)
+	err = os.MkdirAll(filepath.Join(distDirPath, "bin"), extractPerm)
 	if err != nil {
 		return fmt.Errorf("failed to create bin directory %s: %w", distDirPath, err)
 	}
-	err = os.MkdirAll(libDir, extractPerm)
+	err = os.MkdirAll(filepath.Join(distDirPath, "lib"), extractPerm)
 	if err != nil {
 		return fmt.Errorf("failed to create lib directory %s: %w", distDirPath, err)
 	}
-	lib, libName, launcher, launcherName, err := getLibAndLauncher(d.targz)
+	err = WriteNonExistingFile(filepath.Join(distDirPath, d.LibPath()), lib, extractPerm)
 	if err != nil {
-		return fmt.Errorf("failed to read tar.gz %s : %w", d.fname, err)
+		return fmt.Errorf("failed to write file %s : %w", d.LibPath(), err)
 	}
-	err = WriteNonExistingFile(filepath.Join(libDir, libName), lib, extractPerm)
+	err = WriteNonExistingFile(filepath.Join(distDirPath, d.AsprofPath()), launcher, extractPerm)
 	if err != nil {
-		return fmt.Errorf("failed to write file %s : %w", libName, err)
-	}
-	err = WriteNonExistingFile(filepath.Join(binDir, launcherName), launcher, extractPerm)
-	if err != nil {
-		return fmt.Errorf("failed to write file %s : %w", launcherName, err)
+		return fmt.Errorf("failed to write file %s : %w", d.AsprofPath(), err)
 	}
 	d.extractedDir = distDirPath
 	return nil
@@ -156,27 +149,22 @@ func validateParent(parent, child *os.File) error {
 	return nil
 }
 
-func (d *Distribution) verifyExtracted(distDir *os.File) error {
+func (d *Distribution) verifyExtracted(distDir *os.File, lib, launcher []byte) error {
 	distDirPath := distDir.Name()
 
-	lib, libName, launcher, launcherName, err := getLibAndLauncher(d.targz)
+	prevLib, err := os.ReadFile(filepath.Join(distDirPath, d.LibPath()))
 	if err != nil {
-		return fmt.Errorf("failed to read tar.gz %s : %w", d.fname, err)
+		return fmt.Errorf("failed to read file %s : %w", d.LibPath(), err)
 	}
-
-	prevLib, err := os.ReadFile(filepath.Join(distDirPath, "lib", libName))
+	prevLauncher, err := os.ReadFile(filepath.Join(distDirPath, d.AsprofPath()))
 	if err != nil {
-		return fmt.Errorf("failed to read file %s : %w", libName, err)
-	}
-	prevLauncher, err := os.ReadFile(filepath.Join(distDirPath, "bin", launcherName))
-	if err != nil {
-		return fmt.Errorf("failed to read file %s : %w", launcherName, err)
+		return fmt.Errorf("failed to read file %s : %w", d.AsprofPath(), err)
 	}
 	if !bytes.Equal(lib, prevLib) {
-		return fmt.Errorf("file %s %s already exists and is different", libName, distDirPath)
+		return fmt.Errorf("file %s %s already exists and is different", d.LibPath(), distDirPath)
 	}
 	if !bytes.Equal(launcher, prevLauncher) {
-		return fmt.Errorf("file %s %s already exists and is different", launcherName, distDirPath)
+		return fmt.Errorf("file %s %s already exists and is different", d.AsprofPath(), distDirPath)
 	}
 
 	d.extractedDir = distDirPath

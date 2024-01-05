@@ -30,6 +30,10 @@ type process struct {
 	containerID string
 }
 
+func (p process) String() string {
+	return fmt.Sprintf("pid=%s exe=%s cwd=%s commandline=%s containerID=%s", p.pid, p.exe, p.cwd, p.commandline, p.containerID)
+}
+
 func convertProcesses(ps []process) []discovery.Target {
 	var res []discovery.Target
 	for _, p := range ps {
@@ -41,9 +45,10 @@ func convertProcesses(ps []process) []discovery.Target {
 
 func convertProcess(p process) discovery.Target {
 	t := discovery.Target{
-		labelProcessID:  p.pid,
-		labelProcessExe: p.exe,
-		labelProcessCwd: p.cwd,
+		labelProcessID:          p.pid,
+		labelProcessExe:         p.exe,
+		labelProcessCwd:         p.cwd,
+		labelProcessCommandline: p.commandline,
 	}
 	if p.containerID != "" {
 		t[labelProcessContainerID] = p.containerID
@@ -96,7 +101,7 @@ func discover(l log.Logger) ([]process, error) {
 			commandline: commandline,
 			containerID: containerID,
 		})
-		//_ = level.Debug(l).Log("msg", "found process", "pid", p.Pid, "exe", exe, "cwd", cwd, "container_id", containerID)
+		_ = level.Debug(l).Log("msg", "found process", "pid", p.Pid, "exe", exe, "cwd", cwd, "container_id", containerID, "commandline", commandline)
 	}
 
 	return res, nil

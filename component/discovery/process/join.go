@@ -22,6 +22,7 @@ func join(processes, containers []discovery.Target) []discovery.Target {
 		}
 		container, ok := cid2container[cid]
 		if !ok {
+			res = append(res, p)
 			continue
 		}
 		mergedTarget := make(discovery.Target, len(p)+len(container))

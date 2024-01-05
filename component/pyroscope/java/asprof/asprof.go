@@ -34,26 +34,11 @@ type Distribution struct {
 	extractedDir string
 }
 
-const tmpDirMarker = "grafana-agent-asprof"
-
 func (d *Distribution) AsprofPath() string {
 	if d.version < 300 {
 		return filepath.Join(d.extractedDir, "bin/profiler.sh")
 	}
 	return filepath.Join(d.extractedDir, "bin/asprof")
-}
-
-func (p *Profiler) Extract() error {
-	p.unpackOnce.Do(func() {
-		for _, d := range AllDistributions() {
-			err := d.Extract(p.tmpDir, tmpDirMarker)
-			if err != nil {
-				p.unpackError = err
-				break
-			}
-		}
-	})
-	return p.unpackError
 }
 
 func (p *Profiler) Execute(dist *Distribution, argv []string) (string, string, error) {
@@ -101,18 +86,21 @@ func (p *Profiler) CopyLib(dist *Distribution, pid int) error {
 		}
 		return nil
 	} else {
+		libDir := filepath.Dir(dst)
+		err = os.MkdirAll(libDir, 0755)
+		if err != nil {
+			return fmt.Errorf("failed to create directory %s: %w", libDir, err)
+		}
+		binDir := filepath.Join(filepath.Dir(libDir), "bin")
+		err = os.MkdirAll(binDir, 0755) // asprof tries to load as bin/../lib/libasyncProfiler.so
+		if err != nil {
+			return fmt.Errorf("failed to create directory %s: %w", binDir, err)
+		}
 		fd, err := os.OpenFile(dst, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0644)
-
 		if err != nil {
 			return fmt.Errorf("failed to create file %s: %w", dst, err)
 		}
 		defer fd.Close()
-		path, err := readLinkFD(fd)
-		if err != nil {
-			return fmt.Errorf("failed to check file %s: %w", dst, err)
-		}
-		fmt.Println(path)
-		//todo check fd was not manipulated with symlinks
 		n, err := fd.Write(libBytes)
 		if err != nil {
 			return fmt.Errorf("failed to write to file %s: %w", dst, err)

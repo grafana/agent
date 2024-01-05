@@ -23,7 +23,7 @@ func init() {
 		Args: Arguments{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
-			err := profiler.Extract()
+			err := profiler.ExtractDistributions()
 			if err != nil {
 				return nil, fmt.Errorf("extract async profiler: %w", err)
 			}

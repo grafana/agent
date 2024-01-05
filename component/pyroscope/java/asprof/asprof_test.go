@@ -16,7 +16,7 @@ func TestDistributionExtract(t *testing.T) {
 	tmpDir := t.TempDir()
 	t.Log(tmpDir)
 
-	err := d.Extract(tmpDir, tmpDirMarker)
+	err := d.write(tmpDir, tmpDirMarker)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, d.extractedDir)
 	assert.FileExists(t, d.AsprofPath())
@@ -25,7 +25,7 @@ func TestDistributionExtract(t *testing.T) {
 	assert.NoError(t, err)
 
 	d = *DistributionForProcess(os.Getpid()) // extracting second time should just verify
-	err = d.Extract(tmpDir, tmpDirMarker)
+	err = d.write(tmpDir, tmpDirMarker)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, d.extractedDir)
 	assert.FileExists(t, filepath.Join(d.AsprofPath()))
@@ -41,7 +41,7 @@ func TestDistributionExtract(t *testing.T) {
 	file.Close()
 
 	d = *DistributionForProcess(os.Getpid()) // extracting second time should just verify
-	err = d.Extract(tmpDir, tmpDirMarker)
+	err = d.write(tmpDir, tmpDirMarker)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "already exists and is different")
 	assert.Empty(t, d.extractedDir)
@@ -66,7 +66,7 @@ func TestDistributionExtractRace(t *testing.T) {
 	}()
 	d := *DistributionForProcess(os.Getpid())
 	t.Log(tmpDir)
-	err := d.Extract(tmpDir, tmpDirMarker)
+	err := d.write(tmpDir, tmpDirMarker)
 	assert.Error(t, err)
 	assert.Empty(t, d.extractedDir)
 	assert.NoFileExists(t, filepath.Join(d.AsprofPath()))

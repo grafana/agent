@@ -5,16 +5,13 @@ package asprof
 import (
 	_ "embed"
 	"fmt"
+	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
 
 	"github.com/prometheus/procfs"
 )
-
-func AllDistributions() []*Distribution {
-	return []*Distribution{glibcDist}
-}
 
 func DistributionForProcess(pid int) (*Distribution, error) {
 	proc, err := procfs.NewProc(pid)
@@ -40,7 +37,7 @@ func DistributionForProcess(pid int) (*Distribution, error) {
 		return nil, fmt.Errorf("failed to select dist for pid %d: both musl and glibc found", pid)
 	}
 	if musl {
-		return nil, fmt.Errorf("TODO implement before merge")
+		return muslDist, nil
 	}
 	if glibc {
 		return glibcDist, nil
@@ -50,6 +47,42 @@ func DistributionForProcess(pid int) (*Distribution, error) {
 
 func (d *Distribution) LibPath() string {
 	return filepath.Join(d.extractedDir, "lib/libasyncProfiler.so")
+}
+
+func (p *Profiler) ExtractDistributions() error {
+	p.unpackOnce.Do(func() {
+		glibcLib, glibcLauncher, err := getLibAndLauncher(glibcDist.targz)
+		if err != nil {
+			p.unpackError = err
+			return
+		}
+		muslLib, muslLauncher, err := getLibAndLauncher(muslDist.targz)
+		if err != nil {
+			p.unpackError = err
+			return
+		}
+		currentProcessDist, err := DistributionForProcess(os.Getpid())
+		if err != nil {
+			p.unpackError = err
+			return
+		}
+		if currentProcessDist == muslDist {
+			glibcLauncher = muslLauncher
+		} else {
+			muslLauncher = glibcLauncher
+		}
+		err = glibcDist.write(p.tmpDir, glibcLib, glibcLauncher)
+		if err != nil {
+			p.unpackError = err
+			return
+		}
+		err = muslDist.write(p.tmpDir, muslLib, muslLauncher)
+		if err != nil {
+			p.unpackError = err
+			return
+		}
+	})
+	return p.unpackError
 }
 
 func ProcessPath(path string, pid int) string {
