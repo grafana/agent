@@ -14,6 +14,8 @@ Unreleased
 
 - Update `rbac` to include necessary rules for the `otelcol.processor.k8sattributes` component. (@rlankfo)
 
+- Add `serviceAccount.additionalLabels` to values.yaml to enable setting additional labels on the created service account. (@zopanix)
+
 ### Bugfixes
 
 - Statefulset should use value `.controller.enableStatefulSetAutoDeletePVC` instead of just `.enableStatefulSetAutoDeletePVC`. (@captncraig)

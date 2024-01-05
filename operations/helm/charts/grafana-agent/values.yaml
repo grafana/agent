@@ -115,6 +115,8 @@ rbac:
 serviceAccount:
   # -- Whether to create a service account for the Grafana Agent deployment.
   create: true
+  # -- Additional labels to add to the created service account.
+  additionalLabels: {}
   # -- Annotations to add to the created service account.
   annotations: {}
   # -- The name of the existing service account to use when
