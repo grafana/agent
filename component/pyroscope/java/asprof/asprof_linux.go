@@ -42,6 +42,15 @@ func DistributionForProcess(pid int) (*Distribution, error) {
 	if glibc {
 		return glibcDist, nil
 	}
+	if _, err := os.Stat(ProcessPath("/lib/ld-musl-x86_64.so.1", pid)); err == nil {
+		return muslDist, nil
+	}
+	if _, err := os.Stat(ProcessPath("/lib/ld-musl-aarch64.so.1", pid)); err == nil {
+		return muslDist, nil
+	}
+	if _, err := os.Stat(ProcessPath("/lib64/ld-linux-x86-64.so.2", pid)); err == nil {
+		return glibcDist, nil
+	}
 	return nil, fmt.Errorf("failed to select dist for pid %d: neither musl nor glibc found", pid)
 }
 
