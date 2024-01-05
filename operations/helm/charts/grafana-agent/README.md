@@ -118,6 +118,7 @@ use the older mode (called "static mode"), set the `agent.mode` value to
 | service.clusterIP | string | `""` | Cluster IP, can be set to None, empty "" or an IP address |
 | service.enabled | bool | `true` | Creates a Service for the controller's pods. |
 | service.type | string | `"ClusterIP"` | Service type |
+| serviceAccount.additionalLabels | object | `{}` | Additional labels to add to the created service account. |
 | serviceAccount.annotations | object | `{}` | Annotations to add to the created service account. |
 | serviceAccount.create | bool | `true` | Whether to create a service account for the Grafana Agent deployment. |
 | serviceAccount.name | string | `nil` | The name of the existing service account to use when serviceAccount.create is false. |
