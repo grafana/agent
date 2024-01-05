@@ -1,10 +1,16 @@
 ---
 aliases:
+- /docs/grafana-cloud/agent/flow/tasks/collect-opentelemetry-data/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/tasks/collect-opentelemetry-data/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/tasks/collect-opentelemetry-data/
+- /docs/grafana-cloud/send-data/agent/flow/tasks/collect-opentelemetry-data/
+# Previous page aliases for backwards compatibility:
 - /docs/grafana-cloud/agent/flow/getting-started/collect-opentelemetry-data/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/getting-started/collect-opentelemetry-data/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/getting-started/collect-opentelemetry-data/
 - /docs/grafana-cloud/send-data/agent/flow/getting-started/collect-opentelemetry-data/
-canonical: https://grafana.com/docs/agent/latest/flow/getting-started/collect-opentelemetry-data/
+- ../getting-started/collect-opentelemetry-data/ # /docs/agent/latest/flow/getting-started/collect-opentelemetry-data/
+canonical: https://grafana.com/docs/agent/latest/flow/tasks/collect-opentelemetry-data/
 description: Learn how to collect OpenTelemetry data
 title: Collect OpenTelemetry data
 weight: 300

@@ -80,14 +80,14 @@ This feature is experimental, and it doesn't support all River components.
 
 * [Install][] {{< param "PRODUCT_NAME" >}}.
 * Learn about the core [Concepts][] of {{< param "PRODUCT_NAME" >}}.
-* Follow our [Getting started][] guides for {{< param "PRODUCT_NAME" >}}.
-* Follow our [Tutorials][] to get started with {{< param "PRODUCT_NAME" >}}.
+* Follow our [Tutorials][] for hands-on learning of {{< param "PRODUCT_NAME" >}}.
+* Consult our [Tasks][] instructions to accomplish common objectives with {{< param "PRODUCT_NAME" >}}.
 * Check out our [Reference][] documentation to find specific information you
   might be looking for.
 
 [Install]: {{< relref "./setup/install/" >}}
 [Concepts]: {{< relref "./concepts/" >}}
-[Getting started]: {{< relref "./getting-started/" >}}
+[Tasks]: {{< relref "./tasks/" >}}
 [Tutorials]: {{< relref "./tutorials/ ">}}
 [Reference]: {{< relref "./reference" >}}
 
