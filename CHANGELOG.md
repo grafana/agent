@@ -84,6 +84,7 @@ Main (unreleased)
 
 - Add support for `http_sd_config` within a `scrape_config` for prometheus to flow config conversion. (@erikbaranowski)
 - `discovery.lightsail` now supports additional parameters for configuring HTTP client settings. (@ptodev)
+- Add `sample_age_limit` to remote_write config to drop samples older than a specified duration. (@marctc)
 
 ### Bugfixes
 

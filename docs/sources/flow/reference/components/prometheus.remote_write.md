@@ -165,6 +165,7 @@ Name | Type | Description | Default | Required
 `min_backoff` | `duration` | Initial retry delay. The backoff time gets doubled for each retry. | `"30ms"` | no
 `max_backoff` | `duration` | Maximum retry delay. | `"5s"` | no
 `retry_on_http_429` | `bool` | Retry when an HTTP 429 status code is received. | `true` | no
+`sample_age_limit` | `duration` | Maximum age of samples to send. | `"0s"` | no
 
 Each queue then manages a number of concurrent _shards_ which is responsible
 for sending a fraction of data to their respective endpoints. The number of
@@ -190,6 +191,10 @@ The `retry_on_http_429` argument specifies whether `HTTP 429` status code
 responses should be treated as recoverable errors; other `HTTP 4xx` status code
 responses are never considered recoverable errors. When `retry_on_http_429` is
 enabled, `Retry-After` response headers from the servers are honored.
+
+The `sample_age_limit` argument specifies the maximum age of samples to send. Any
+samples older than the limit are dropped and won't be sent to the remote storage.
+The default value is `0s`, which means that all samples are sent (feature is disabled).
 
 ### metadata_config block
 

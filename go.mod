@@ -142,7 +142,7 @@ require (
 	github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring v0.66.0
 	github.com/prometheus-operator/prometheus-operator/pkg/client v0.66.0
 	github.com/prometheus/blackbox_exporter v0.24.1-0.20230623125439-bd22efa1c900
-	github.com/prometheus/client_golang v1.17.0
+	github.com/prometheus/client_golang v1.18.0
 	github.com/prometheus/client_model v0.5.0
 	github.com/prometheus/common v0.45.0
 	github.com/prometheus/consul_exporter v0.8.0
@@ -216,7 +216,7 @@ require (
 	golang.org/x/exp v0.0.0-20231110203233-9a3e6036ecaa
 	golang.org/x/net v0.18.0
 	golang.org/x/oauth2 v0.13.0
-	golang.org/x/sys v0.14.1-0.20231108175955-e4099bfacb8c
+	golang.org/x/sys v0.15.0
 	golang.org/x/text v0.14.0
 	golang.org/x/time v0.3.0
 	google.golang.org/api v0.147.0
@@ -676,6 +676,14 @@ replace (
 	k8s.io/klog => github.com/simonpasquier/klog-gokit v0.3.0
 	k8s.io/klog/v2 => github.com/simonpasquier/klog-gokit/v3 v3.3.0
 )
+
+// TODO(marctc): remove replace directive once:
+//
+// * There is a release of Prometheus which contains
+// prometheus/prometheus#13002
+// We use the last v1-related tag as the replace statement does not work for v2
+// tags without the v2 suffix to the module root.
+replace github.com/prometheus/prometheus => github.com/grafana/prometheus v1.8.2-0.20240105105355-3e2c486167d2 // grafana/prometheus@drop-old-inmemory-samples-squashed-2
 
 replace gopkg.in/yaml.v2 => github.com/rfratto/go-yaml v0.0.0-20211119180816-77389c3526dc
 
