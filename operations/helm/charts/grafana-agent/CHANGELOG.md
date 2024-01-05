@@ -10,6 +10,9 @@ internal API changes are not present.
 Unreleased
 ----------
 
+0.30.0 (2024-01-05)
+-------------------
+
 ### Enhancements
 
 - Update `rbac` to include necessary rules for the `otelcol.processor.k8sattributes` component. (@rlankfo)
