@@ -10,6 +10,7 @@ data-agent
 /cmd/benchmark/data/
 /cmd/benchmark/main
 /cmd/benchmark/grafana-agent-flow
+/cmd/benchmark/benchmark
 /cmd/agent/agent
 /cmd/agentctl/agentctl
 /cmd/agent-operator/agent-operator

@@ -96,11 +96,11 @@ func metricsCommand() *cobra.Command {
 			select {
 			case <-t.C:
 			case <-signalChannel:
-				for k, p := range running {
-					cleanupPid(p, fmt.Sprintf("./data/%s", k))
-				}
-
 			}
+			for k, p := range running {
+				cleanupPid(p, fmt.Sprintf("./data/%s", k))
+			}
+
 			return nil
 		},
 	}
