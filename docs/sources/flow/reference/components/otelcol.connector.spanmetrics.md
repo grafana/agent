@@ -1,9 +1,9 @@
 ---
 aliases:
-  - /docs/grafana-cloud/agent/flow/reference/components/otelcol.connector.spanmetrics/
-  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/otelcol.connector.spanmetrics/
-  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/otelcol.connector.spanmetrics/
-  - /docs/grafana-cloud/send-data/agent/flow/reference/components/otelcol.connector.spanmetrics/
+- /docs/grafana-cloud/agent/flow/reference/components/otelcol.connector.spanmetrics/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/otelcol.connector.spanmetrics/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/otelcol.connector.spanmetrics/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/otelcol.connector.spanmetrics/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.connector.spanmetrics/
 description: Learn about otelcol.connector.spanmetrics
 labels:
@@ -772,7 +772,7 @@ metric names and attributes will be normalized to be compliant with Prometheus n
 
 {{% admonition type="note" %}}
 
-Connecting some components may not be sensible or components may require further configuration to make the
+Connecting some components may not be sensible or components may require further configuration to make the 
 connection work correctly. Refer to the linked documentation for more details.
 
 {{% /admonition %}}
