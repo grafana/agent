@@ -99,13 +99,12 @@ func (s *Service) ServiceHandler(host service.Host) (base string, handler http.H
 						return
 					}
 					username, password, authOk := r.BasicAuth()
-					if !authOk {
+					ok := htpassFile.Match(username, password)
+					if !authOk || !ok {
 						http.Error(w, "Unauthorized", http.StatusUnauthorized)
 						return
 					}
-					if ok := htpassFile.Match(username, password); ok {
-						h.ServeHTTP(w, r)
-					}
+					h.ServeHTTP(w, r)
 				})
 			})
 		}
