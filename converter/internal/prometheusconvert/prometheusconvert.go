@@ -9,26 +9,27 @@ import (
 	"github.com/grafana/agent/component/prometheus/remotewrite"
 	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/converter/internal/common"
-	"github.com/grafana/river/token/builder"
+	"github.com/grafana/agent/converter/internal/prometheusconvert/build"
+	"github.com/grafana/agent/converter/internal/prometheusconvert/component"
 	prom_config "github.com/prometheus/prometheus/config"
 	prom_discover "github.com/prometheus/prometheus/discovery"
-	prom_aws "github.com/prometheus/prometheus/discovery/aws"
-	prom_azure "github.com/prometheus/prometheus/discovery/azure"
-	prom_consul "github.com/prometheus/prometheus/discovery/consul"
-	prom_digitalocean "github.com/prometheus/prometheus/discovery/digitalocean"
-	prom_dns "github.com/prometheus/prometheus/discovery/dns"
-	prom_file "github.com/prometheus/prometheus/discovery/file"
-	prom_gce "github.com/prometheus/prometheus/discovery/gce"
-	prom_kubernetes "github.com/prometheus/prometheus/discovery/kubernetes"
-	prom_docker "github.com/prometheus/prometheus/discovery/moby"
 	"github.com/prometheus/prometheus/storage"
 
+	"github.com/grafana/river/token/builder"
 	_ "github.com/prometheus/prometheus/discovery/install" // Register Prometheus SDs
 )
 
 // Convert implements a Prometheus config converter.
-func Convert(in []byte) ([]byte, diag.Diagnostics) {
+//
+// extraArgs are supported to mirror the other converter params due to shared
+// testing code but they should be passed empty to this converter.
+func Convert(in []byte, extraArgs []string) ([]byte, diag.Diagnostics) {
 	var diags diag.Diagnostics
+
+	if len(extraArgs) > 0 {
+		diags.Add(diag.SeverityLevelCritical, fmt.Sprintf("extra arguments are not supported for the prometheus converter: %s", extraArgs))
+		return nil, diags
+	}
 
 	promConfig, err := prom_config.Load(string(in), false, log.NewNopLogger())
 	if err != nil {
@@ -69,14 +70,17 @@ func AppendAll(f *builder.File, promConfig *prom_config.Config) diag.Diagnostics
 // pipeline. Additional options can be provided overriding the job name, extra
 // scrape targets, and predefined remote write exports.
 func AppendAllNested(f *builder.File, promConfig *prom_config.Config, jobNameToCompLabelsFunc func(string) string, extraScrapeTargets []discovery.Target, remoteWriteExports *remotewrite.Exports) diag.Diagnostics {
-	pb := newPrometheusBlocks()
+	pb := build.NewPrometheusBlocks()
 
 	if remoteWriteExports == nil {
 		labelPrefix := ""
 		if jobNameToCompLabelsFunc != nil {
 			labelPrefix = jobNameToCompLabelsFunc("")
+			if labelPrefix != "" {
+				labelPrefix = common.SanitizeIdentifierPanics(labelPrefix)
+			}
 		}
-		remoteWriteExports = appendPrometheusRemoteWrite(pb, promConfig.GlobalConfig, promConfig.RemoteWriteConfigs, labelPrefix)
+		remoteWriteExports = component.AppendPrometheusRemoteWrite(pb, promConfig.GlobalConfig, promConfig.RemoteWriteConfigs, labelPrefix)
 	}
 	remoteWriteForwardTo := []storage.Appendable{remoteWriteExports.Receiver}
 
@@ -86,75 +90,41 @@ func AppendAllNested(f *builder.File, promConfig *prom_config.Config, jobNameToC
 		if jobNameToCompLabelsFunc != nil {
 			label = jobNameToCompLabelsFunc(scrapeConfig.JobName)
 		}
+		label = common.SanitizeIdentifierPanics(label)
 
-		promMetricsRelabelExports := appendPrometheusRelabel(pb, scrapeConfig.MetricRelabelConfigs, remoteWriteForwardTo, label)
+		promMetricsRelabelExports := component.AppendPrometheusRelabel(pb, scrapeConfig.MetricRelabelConfigs, remoteWriteForwardTo, label)
 		if promMetricsRelabelExports != nil {
 			scrapeForwardTo = []storage.Appendable{promMetricsRelabelExports.Receiver}
 		}
 
-		scrapeTargets := appendServiceDiscoveryConfigs(pb, scrapeConfig.ServiceDiscoveryConfigs, label)
+		scrapeTargets := AppendServiceDiscoveryConfigs(pb, scrapeConfig.ServiceDiscoveryConfigs, label)
 		scrapeTargets = append(scrapeTargets, extraScrapeTargets...)
 
-		promDiscoveryRelabelExports := appendDiscoveryRelabel(pb, scrapeConfig.RelabelConfigs, scrapeTargets, label)
+		promDiscoveryRelabelExports := component.AppendDiscoveryRelabel(pb, scrapeConfig.RelabelConfigs, scrapeTargets, label)
 		if promDiscoveryRelabelExports != nil {
 			scrapeTargets = promDiscoveryRelabelExports.Output
 		}
 
-		appendPrometheusScrape(pb, scrapeConfig, scrapeForwardTo, scrapeTargets, label)
+		component.AppendPrometheusScrape(pb, scrapeConfig, scrapeForwardTo, scrapeTargets, label)
 	}
 
 	diags := validate(promConfig)
-	diags.AddAll(pb.getScrapeInfo())
+	diags.AddAll(pb.GetScrapeInfo())
 
-	pb.appendToFile(f)
+	pb.AppendToFile(f)
 
 	return diags
 }
 
-// appendServiceDiscoveryConfigs will loop through the service discovery
+// AppendServiceDiscoveryConfigs will loop through the service discovery
 // configs and append them to the file. This returns the scrape targets
 // and discovery targets as a result.
-func appendServiceDiscoveryConfigs(pb *prometheusBlocks, serviceDiscoveryConfig prom_discover.Configs, label string) []discovery.Target {
+func AppendServiceDiscoveryConfigs(pb *build.PrometheusBlocks, serviceDiscoveryConfig prom_discover.Configs, label string) []discovery.Target {
 	var targets []discovery.Target
 	labelCounts := make(map[string]int)
 	for _, serviceDiscoveryConfig := range serviceDiscoveryConfig {
-		var exports discovery.Exports
-		switch sdc := serviceDiscoveryConfig.(type) {
-		case prom_discover.StaticConfig:
-			targets = append(targets, getScrapeTargets(sdc)...)
-		case *prom_azure.SDConfig:
-			labelCounts["azure"]++
-			exports = appendDiscoveryAzure(pb, common.LabelWithIndex(labelCounts["azure"]-1, label), sdc)
-		case *prom_consul.SDConfig:
-			labelCounts["consul"]++
-			exports = appendDiscoveryConsul(pb, common.LabelWithIndex(labelCounts["consul"]-1, label), sdc)
-		case *prom_digitalocean.SDConfig:
-			labelCounts["digitalocean"]++
-			exports = appendDiscoveryDigitalOcean(pb, common.LabelWithIndex(labelCounts["digitalocean"]-1, label), sdc)
-		case *prom_dns.SDConfig:
-			labelCounts["dns"]++
-			exports = appendDiscoveryDns(pb, common.LabelWithIndex(labelCounts["dns"]-1, label), sdc)
-		case *prom_docker.DockerSDConfig:
-			labelCounts["docker"]++
-			exports = appendDiscoveryDocker(pb, common.LabelWithIndex(labelCounts["docker"]-1, label), sdc)
-		case *prom_aws.EC2SDConfig:
-			labelCounts["ec2"]++
-			exports = appendDiscoveryEC2(pb, common.LabelWithIndex(labelCounts["ec2"]-1, label), sdc)
-		case *prom_file.SDConfig:
-			labelCounts["file"]++
-			exports = appendDiscoveryFile(pb, common.LabelWithIndex(labelCounts["file"]-1, label), sdc)
-		case *prom_gce.SDConfig:
-			labelCounts["gce"]++
-			exports = appendDiscoveryGCE(pb, common.LabelWithIndex(labelCounts["gce"]-1, label), sdc)
-		case *prom_kubernetes.SDConfig:
-			labelCounts["kubernetes"]++
-			exports = appendDiscoveryKubernetes(pb, common.LabelWithIndex(labelCounts["kubernetes"]-1, label), sdc)
-		case *prom_aws.LightsailSDConfig:
-			labelCounts["lightsail"]++
-			exports = appendDiscoveryLightsail(pb, common.LabelWithIndex(labelCounts["lightsail"]-1, label), sdc)
-		}
-
-		targets = append(exports.Targets, targets...)
+		exports := component.AppendServiceDiscoveryConfig(pb, serviceDiscoveryConfig, label, labelCounts)
+		targets = append(targets, exports.Targets...)
 	}
 
 	return targets

@@ -1,5 +1,11 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/prometheus.operator.probes/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/prometheus.operator.probes/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/prometheus.operator.probes/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/prometheus.operator.probes/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.operator.probes/
+description: Learn about prometheus.operator.probes
 labels:
   stage: beta
 title: prometheus.operator.probes
@@ -7,17 +13,20 @@ title: prometheus.operator.probes
 
 # prometheus.operator.probes
 
-{{< docs/shared lookup="flow/stability/beta.md" source="agent" >}}
+{{< docs/shared lookup="flow/stability/beta.md" source="agent" version="<AGENT_VERSION>" >}}
 
-`prometheus.operator.probes` discovers [Probe](https://prometheus-operator.dev/docs/operator/api/#monitoring.coreos.com/v1.Probe) resources in your kubernetes cluster and scrapes the targets they reference. This component performs three main functions:
+`prometheus.operator.probes` discovers [Probe](https://prometheus-operator.dev/docs/operator/api/#monitoring.coreos.com/v1.Probe) resources in your Kubernetes cluster and scrapes the targets they reference.
+ This component performs three main functions:
 
 1. Discover Probe resources from your Kubernetes cluster.
-2. Discover targets or ingresses that match those Probes.
-3. Scrape metrics from those endpoints, and forward them to a receiver.
+1. Discover targets or ingresses that match those Probes.
+1. Scrape metrics from those endpoints, and forward them to a receiver.
 
-The default configuration assumes the agent is running inside a Kubernetes cluster, and uses the in-cluster config to access the Kubernetes API. It can be run from outside the cluster by supplying connection info in the `client` block, but network level access to pods is required to scrape metrics from them.
+The default configuration assumes {{< param "PRODUCT_NAME" >}} is running inside a Kubernetes cluster, and uses the in-cluster config to access the Kubernetes API.
+It can be run from outside the cluster by supplying connection info in the `client` block, but network level access to pods is required to scrape metrics from them.
 
-Probes may reference secrets for authenticating to targets to scrape them. In these cases, the secrets are loaded and refreshed only when the Probe is updated or when this component refreshes its' internal state, which happens on a 5-minute refresh cycle.
+Probes may reference secrets for authenticating to targets to scrape them.
+In these cases, the secrets are loaded and refreshed only when the Probe is updated or when this component refreshes its' internal state, which happens on a 5-minute refresh cycle.
 
 ## Usage
 
@@ -49,6 +58,7 @@ client > oauth2 | [oauth2][] | Configure OAuth2 for authenticating to the Kubern
 client > oauth2 > tls_config | [tls_config][] | Configure TLS settings for connecting to the Kubernetes API. | no
 client > tls_config | [tls_config][] | Configure TLS settings for connecting to the Kubernetes API. | no
 rule | [rule][] | Relabeling rules to apply to discovered targets. | no
+scrape | [scrape][] | Default scrape configuration to apply to discovered targets. | no
 selector | [selector][] | Label selector for which Probes to discover. | no
 selector > match_expression | [match_expression][] | Label selector expression for which Probes to discover. | no
 clustering | [clustering][] | Configure the component for when the Agent is running in clustered mode. | no
@@ -65,13 +75,13 @@ inside a `client` block.
 [selector]: #selector-block
 [match_expression]: #match_expression-block
 [rule]: #rule-block
+[scrape]: #scrape-block
 [clustering]: #clustering-experimental
 
 ### client block
 
 The `client` block configures the Kubernetes client used to discover Probes. If the `client` block isn't provided, the default in-cluster
-configuration with the service account of the running Grafana Agent pod is
-used.
+configuration with the service account of the running {{< param "PRODUCT_ROOT_NAME" >}} pod is used.
 
 The following arguments are supported:
 
@@ -93,23 +103,27 @@ Name | Type | Description | Default | Required
 
 ### basic_auth block
 
-{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### authorization block
 
-{{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### oauth2 block
 
-{{< docs/shared lookup="flow/reference/components/oauth2-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/oauth2-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### tls_config block
 
-{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### rule block
 
-{{< docs/shared lookup="flow/reference/components/rule-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/rule-block.md" source="agent" version="<AGENT_VERSION>" >}}
+
+### scrape block
+
+{{< docs/shared lookup="flow/reference/components/prom-operator-scrape.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### selector block
 
@@ -143,7 +157,7 @@ The `operator` argument must be one of the following strings:
 * `"Exists"`
 * `"DoesNotExist"`
 
-If there are multiple `match_expressions` blocks inside of a `selector` block, they are combined together with AND clauses. 
+If there are multiple `match_expressions` blocks inside of a `selector` block, they are combined together with AND clauses.
 
 ### clustering (experimental)
 
@@ -151,7 +165,7 @@ Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `enabled` | `bool` | Enables sharing targets with other cluster nodes. | `false` | yes
 
-When the agent is running in [clustered mode][], and `enabled` is set to true,
+When {{< param "PRODUCT_NAME" >}} is running in [clustered mode][], and `enabled` is set to true,
 then this component instance opts-in to participating in
 the cluster to distribute scrape load between all cluster nodes.
 
@@ -170,14 +184,14 @@ sharding where _all_ nodes have to be re-distributed, as only 1/N of the
 target's ownership is transferred, but is eventually consistent (rather than
 fully consistent like hashmod sharding is).
 
-If the agent is _not_ running in clustered mode, then the block is a no-op, and
+If {{< param "PRODUCT_NAME" >}} is _not_ running in clustered mode, then the block is a no-op, and
 `prometheus.operator.probes` scrapes every target it receives in its arguments.
 
-[clustered mode]: {{< relref "../cli/run.md#clustered-mode-experimental" >}}
+[clustered mode]: {{< relref "../cli/run.md#clustering-beta" >}}
 
 ## Exported fields
 
-`prometheus.operator.probes` does not export any fields. It forwards all metrics it scrapes to the receiver configures with the `forward_to` argument.
+`prometheus.operator.probes` does not export any fields. It forwards all metrics it scrapes to the receivers configured with the `forward_to` argument.
 
 ## Component health
 
@@ -190,8 +204,9 @@ scrape job on the component's debug endpoint, including discovered labels, and t
 
 It also exposes some debug information for each Probe it has discovered, including any errors found while reconciling the scrape configuration from the Probe.
 
-### Debug metrics
+## Debug metrics
 
+`prometheus.operator.probes` does not expose any component-specific debug metrics.
 
 ## Example
 
@@ -231,7 +246,7 @@ prometheus.operator.probes "pods" {
 }
 ```
 
-This example will apply additional relabel rules to discovered targets to filter by hostname. This may be useful if running the agent as a DaemonSet.
+This example will apply additional relabel rules to discovered targets to filter by hostname. This may be useful if running {{< param "PRODUCT_NAME" >}} as a DaemonSet.
 
 ```river
 prometheus.operator.probes "probes" {
@@ -243,3 +258,20 @@ prometheus.operator.probes "probes" {
     }
 }
 ```
+<!-- START GENERATED COMPATIBLE COMPONENTS -->
+
+## Compatible components
+
+`prometheus.operator.probes` can accept arguments from the following components:
+
+- Components that export [Prometheus `MetricsReceiver`]({{< relref "../compatibility/#prometheus-metricsreceiver-exporters" >}})
+
+
+{{% admonition type="note" %}}
+
+Connecting some components may not be sensible or components may require further configuration to make the 
+connection work correctly. Refer to the linked documentation for more details.
+
+{{% /admonition %}}
+
+<!-- END GENERATED COMPATIBLE COMPONENTS -->

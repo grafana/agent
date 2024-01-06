@@ -1,7 +1,10 @@
 ---
 aliases:
 - ../../../configuration/integrations/windows-exporter-config/
+- /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/integrations/windows-exporter-config/
+- /docs/grafana-cloud/send-data/agent/static/configuration/integrations/windows-exporter-config/
 canonical: https://grafana.com/docs/agent/latest/static/configuration/integrations/windows-exporter-config/
+description: Learn about windows_exporter_config
 title: windows_exporter_config
 ---
 
@@ -152,4 +155,11 @@ Full reference of options:
     # Regexp of volumes to blacklist. Volume name must both match whitelist and not match blacklist to be included.
     # Maps to collector.logical_disk.volume-blacklist in windows_exporter
     [blacklist: <string> | default=".+"]
+
+  # Configuration for Windows Task Scheduler
+  scheduled_task:
+    # Regexp of tasks to include.
+    [include: <string> | default ".+"]
+    #Regexp of tasks to exclude.
+    [exclude: <string> | default ""]
 ```

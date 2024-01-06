@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
-	"strings"
 
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/converter/diag"
@@ -17,6 +16,7 @@ import (
 	promtail_config "github.com/grafana/loki/clients/pkg/promtail/config"
 	"github.com/grafana/loki/clients/pkg/promtail/limit"
 	"github.com/grafana/loki/clients/pkg/promtail/targets/file"
+	"github.com/grafana/river/scanner"
 	"github.com/grafana/river/token/builder"
 	prom_config "github.com/prometheus/prometheus/config"
 
@@ -24,12 +24,17 @@ import (
 )
 
 // Convert implements a Static config converter.
-func Convert(in []byte) ([]byte, diag.Diagnostics) {
+//
+// extraArgs are supported to be passed along to the Static config parser such
+// as enabling integrations-next.
+func Convert(in []byte, extraArgs []string) ([]byte, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
-	fs := flag.NewFlagSet("convert", flag.ExitOnError)
-	staticConfig, err := config.LoadFromFunc(fs, []string{"-config.file", "convert"}, func(_, _ string, _ bool, c *config.Config) error {
-		return config.LoadBytes(in, false, c)
+	fs := flag.NewFlagSet("convert", flag.ContinueOnError)
+	args := []string{"-config.file", "convert"}
+	args = append(args, extraArgs...)
+	staticConfig, err := config.LoadFromFunc(fs, args, func(_, _ string, expandEnvVars bool, c *config.Config) error {
+		return config.LoadBytes(in, expandEnvVars, c)
 	})
 
 	if err != nil {
@@ -65,9 +70,8 @@ func AppendAll(f *builder.File, staticConfig *config.Config) diag.Diagnostics {
 
 	diags.AddAll(appendStaticPrometheus(f, staticConfig))
 	diags.AddAll(appendStaticPromtail(f, staticConfig))
-	diags.AddAll(appendStaticIntegrationsV1(f, staticConfig))
+	diags.AddAll(appendStaticIntegrations(f, staticConfig))
 	// TODO otel
-	// TODO other
 
 	diags.AddAll(validate(staticConfig))
 
@@ -84,13 +88,16 @@ func appendStaticPrometheus(f *builder.File, staticConfig *config.Config) diag.D
 		}
 
 		jobNameToCompLabelsFunc := func(jobName string) string {
-			if jobName == "" {
-				return fmt.Sprintf("metrics_%s", instance.Name)
+			name := fmt.Sprintf("metrics_%s", instance.Name)
+			if jobName != "" {
+				name += fmt.Sprintf("_%s", jobName)
 			}
 
-			name := fmt.Sprintf("metrics_%s_%s", instance.Name, jobName)
-			name = strings.ReplaceAll(name, "-", "_")
-			name = strings.ReplaceAll(name, "/", "_")
+			name, err := scanner.SanitizeIdentifier(name)
+			if err != nil {
+				diags.Add(diag.SeverityLevelCritical, fmt.Sprintf("failed to sanitize job name: %s", err))
+			}
+
 			return name
 		}
 
@@ -126,6 +133,12 @@ func appendStaticPromtail(f *builder.File, staticConfig *config.Config) diag.Dia
 		promtailConfig.TargetConfig = logConfig.TargetConfig
 		promtailConfig.LimitsConfig = logConfig.LimitsConfig
 
+		// We are using the
+		err := promtailConfig.ServerConfig.Config.LogLevel.Set("info")
+		if err != nil {
+			panic("unable to set default promtail log level from the static converter.")
+		}
+
 		// We need to set this when empty so the promtail converter doesn't think it has been overridden
 		if promtailConfig.Global == (promtail_config.GlobalConfig{}) {
 			promtailConfig.Global.FileWatch = file.DefaultWatchConig
@@ -151,15 +164,11 @@ func appendStaticPromtail(f *builder.File, staticConfig *config.Config) diag.Dia
 	return diags
 }
 
-func appendStaticIntegrationsV1(f *builder.File, staticConfig *config.Config) diag.Diagnostics {
+func appendStaticIntegrations(f *builder.File, staticConfig *config.Config) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	if len(staticConfig.Integrations.EnabledIntegrations()) == 0 {
-		return diags
-	}
-
-	b := build.NewIntegrationsV1ConfigBuilder(f, &diags, staticConfig, &build.GlobalContext{LabelPrefix: "integrations"})
-	b.AppendIntegrations()
+	b := build.NewIntegrationsConfigBuilder(f, &diags, staticConfig, &build.GlobalContext{LabelPrefix: "integrations"})
+	b.Build()
 
 	return diags
 }

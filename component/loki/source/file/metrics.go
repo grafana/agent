@@ -1,8 +1,8 @@
 package file
 
-// This code is copied from Promtail. The metrics struct provides a common set
-// of metrics that are reused between all implementations of the reader
-// interface.
+// This code is copied from loki/promtail@a8d5815510bd959a6dd8c176a5d9fd9bbfc8f8b5.
+// The metrics struct provides a common set of metrics that are reused between all
+// implementations of the reader interface.
 
 import "github.com/prometheus/client_golang/prometheus"
 
@@ -13,6 +13,7 @@ type metrics struct {
 
 	// File-specific metrics
 	readBytes        *prometheus.GaugeVec
+	totalReadBytes   prometheus.Gauge
 	totalBytes       *prometheus.GaugeVec
 	readLines        *prometheus.CounterVec
 	encodingFailures *prometheus.CounterVec
@@ -29,6 +30,12 @@ func newMetrics(reg prometheus.Registerer) *metrics {
 		Name: "loki_source_file_read_bytes_total",
 		Help: "Number of bytes read.",
 	}, []string{"path"})
+	g := prometheus.NewGauge(prometheus.GaugeOpts{
+		Name: "loki_sum_source_file_read_bytes_total",
+		Help: "Number of bytes read across all files.",
+	})
+	m.totalReadBytes = g
+
 	m.totalBytes = prometheus.NewGaugeVec(prometheus.GaugeOpts{
 		Name: "loki_source_file_file_bytes_total",
 		Help: "Number of bytes total.",
@@ -49,6 +56,7 @@ func newMetrics(reg prometheus.Registerer) *metrics {
 	if reg != nil {
 		reg.MustRegister(
 			m.readBytes,
+			m.totalReadBytes,
 			m.totalBytes,
 			m.readLines,
 			m.encodingFailures,

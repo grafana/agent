@@ -1,12 +1,12 @@
-//go:build !linux
+//go:build !(linux && (arm64 || amd64))
 
 package ebpf
 
 import (
 	"context"
 
-	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/pkg/flow/logging/level"
 )
 
 func init() {
@@ -26,7 +26,7 @@ type Component struct {
 }
 
 func New(opts component.Options, args Arguments) (component.Component, error) {
-	level.Warn(opts.Logger).Log("msg", "the pyroscope.ebpf component only works on linux; enabling it otherwise will do nothing")
+	level.Warn(opts.Logger).Log("msg", "the pyroscope.ebpf component only works on ARM64 and AMD64 Linux platforms; enabling it otherwise will do nothing")
 	return &Component{}, nil
 }
 

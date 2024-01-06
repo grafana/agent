@@ -4,9 +4,8 @@ import (
 	"sync"
 
 	"github.com/go-kit/log"
-	"github.com/weaveworks/common/logging"
-
-	cortex_log "github.com/cortexproject/cortex/pkg/util/log"
+	util_log "github.com/grafana/agent/pkg/util/log"
+	dskit "github.com/grafana/dskit/log"
 )
 
 // Logger implements Go Kit's log.Logger interface. It supports being
@@ -39,7 +38,7 @@ func NewLogger(cfg *Config) *Logger {
 }
 
 // NewLoggerFromLevel creates a new logger from logging.Level and logging.Format.
-func NewLoggerFromLevel(lvl logging.Level, fmt logging.Format) *Logger {
+func NewLoggerFromLevel(lvl dskit.Level, fmt string) *Logger {
 	logger, err := makeDefaultLogger(lvl, fmt)
 	if err != nil {
 		panic(err)
@@ -75,10 +74,10 @@ func defaultLogger(cfg *Config) (log.Logger, error) {
 	return makeDefaultLogger(cfg.LogLevel.Level, cfg.LogFormat)
 }
 
-func makeDefaultLogger(lvl logging.Level, fmt logging.Format) (log.Logger, error) {
+func makeDefaultLogger(lvl dskit.Level, fmt string) (log.Logger, error) {
 	var l log.Logger
 
-	l, err := cortex_log.NewPrometheusLogger(lvl, fmt)
+	l, err := util_log.NewPrometheusLogger(lvl, fmt)
 	if err != nil {
 		return nil, err
 	}
@@ -116,9 +115,4 @@ func (hl *HookLogger) Set(l log.Logger) {
 
 	hl.enabled = l != nil
 	hl.logger = l
-}
-
-// GoKitLogger creates a logging.Interface from a log.Logger.
-func GoKitLogger(l log.Logger) logging.Interface {
-	return logging.GoKit(l)
 }

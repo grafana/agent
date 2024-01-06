@@ -10,6 +10,8 @@ import (
 	"runtime"
 	"time"
 
+	"github.com/grafana/agent/internal/agentseed"
+	"github.com/grafana/agent/internal/useragent"
 	"github.com/prometheus/common/version"
 )
 
@@ -27,9 +29,10 @@ type Report struct {
 	Metrics      map[string]interface{} `json:"metrics"`
 	Os           string                 `json:"os"`
 	Arch         string                 `json:"arch"`
+	DeployMode   string                 `json:"deployMode"`
 }
 
-func sendReport(ctx context.Context, seed *AgentSeed, interval time.Time, metrics map[string]interface{}) error {
+func sendReport(ctx context.Context, seed *agentseed.AgentSeed, interval time.Time, metrics map[string]interface{}) error {
 	report := Report{
 		UsageStatsID: seed.UID,
 		CreatedAt:    seed.CreatedAt,
@@ -38,6 +41,7 @@ func sendReport(ctx context.Context, seed *AgentSeed, interval time.Time, metric
 		Arch:         runtime.GOARCH,
 		Interval:     interval,
 		Metrics:      metrics,
+		DeployMode:   useragent.GetDeployMode(),
 	}
 	out, err := json.MarshalIndent(report, "", " ")
 	if err != nil {

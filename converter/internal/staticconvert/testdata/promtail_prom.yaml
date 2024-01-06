@@ -14,6 +14,10 @@ metrics:
             services: ['myapp']
     
 logs:
+  global:
+    file_watch_config:
+      min_poll_frequency: 1s
+      max_poll_frequency: 5s
   positions_directory: /path
   configs:
     - name: name

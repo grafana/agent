@@ -1,23 +1,26 @@
 ---
 aliases:
 - ../operation-guide/
+- /docs/grafana-cloud/monitor-infrastructure/agent/static/operation-guide/
+- /docs/grafana-cloud/send-data/agent/static/operation-guide/
 canonical: https://grafana.com/docs/agent/latest/static/operation-guide/
+description: Learn how to operate Grafana Agent
 title: Operation guide
 weight: 700
 ---
 
 # Operation guide
 
-This guide helps you operate the Grafana Agent.
+This guide helps you operate Grafana Agent.
 
 ## Horizontal Scaling
 
 There are three options to horizontally scale your deployment of Grafana Agents:
 
-- [Host filtering](#host-filtering) requires you to run one Agent on every
+- [Host filtering](#host-filtering-beta) requires you to run one Agent on every
   machine you wish to collect metrics from. Agents will only collect metrics
   from the machines they run on.
-- [Hashmod sharding](#hashmod-sharding) allows you to roughly shard the
+- [Hashmod sharding](#hashmod-sharding-stable) allows you to roughly shard the
   discovered set of targets by using hashmod/keep relabel rules.
 - The [scraping service][scrape] allows you to cluster Grafana
   Agents and have them distribute per-tenant configs throughout the cluster.
@@ -191,12 +194,12 @@ Users can use the [targets API][api] to see all scraped targets, and the name
 of the shared instance they were assigned to.
 
 {{% docs/reference %}}
-[scrape]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/configuration/scraping-service"
+[scrape]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static/configuration/scraping-service"
 [scrape]: "/docs/grafana-cloud/ -> ../configuration/scraping-service"
-[targets]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/configuration/scraping-service#best-practices"
+[targets]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static/configuration/scraping-service#best-practices"
 [targets]: "/docs/grafana-cloud/ -> ../configuration/scraping-service#best-practices"
-[api]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/api#agent-api"
+[api]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static/api#agent-api"
 [api]: "/docs/grafana-cloud/ -> ../api#agent-api"
-[metrics]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/configuration/metrics-config"
+[metrics]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static/configuration/metrics-config"
 [metrics]: "/docs/grafana-cloud/ -> ../configuration/metrics-config"
 {{% /docs/reference %}}

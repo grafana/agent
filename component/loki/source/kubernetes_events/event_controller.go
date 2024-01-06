@@ -10,9 +10,9 @@ import (
 
 	"github.com/cespare/xxhash/v2"
 	"github.com/go-kit/log"
-	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component/common/loki"
 	"github.com/grafana/agent/component/common/loki/positions"
+	"github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/grafana/agent/pkg/runner"
 	"github.com/grafana/loki/pkg/logproto"
 	"github.com/prometheus/common/model"
@@ -96,9 +96,13 @@ func (ctrl *eventController) runError(ctx context.Context) error {
 		return fmt.Errorf("adding core to scheme: %w", err)
 	}
 
+	defaultNamespaces := map[string]cache.Config{}
+	if ctrl.task.Namespace != "" {
+		defaultNamespaces[ctrl.task.Namespace] = cache.Config{}
+	}
 	opts := cache.Options{
-		Scheme:     scheme,
-		Namespaces: []string{ctrl.task.Namespace},
+		Scheme:            scheme,
+		DefaultNamespaces: defaultNamespaces,
 	}
 	informers, err := cache.New(ctrl.task.Config, opts)
 	if err != nil {

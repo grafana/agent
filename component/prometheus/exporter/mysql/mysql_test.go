@@ -3,7 +3,6 @@ package mysql
 import (
 	"testing"
 
-	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/pkg/integrations/mysqld_exporter"
 	"github.com/grafana/river"
 	"github.com/grafana/river/rivertypes"
@@ -40,6 +39,10 @@ func TestRiverConfigUnmarshal(t *testing.T) {
 		remove_prefix = "instances_remove"
 	}
 
+	perf_schema.memory_events {
+		remove_prefix = "innodb/"
+	}
+
 	heartbeat {
 		database = "heartbeat_database"
 		table = "heartbeat_table"
@@ -70,6 +73,7 @@ func TestRiverConfigUnmarshal(t *testing.T) {
 	require.Equal(t, 5, args.PerfSchemaEventsStatements.TextLimit)
 	require.Equal(t, "instances_filter", args.PerfSchemaFileInstances.Filter)
 	require.Equal(t, "instances_remove", args.PerfSchemaFileInstances.RemovePrefix)
+	require.Equal(t, "innodb/", args.PerfSchemaMemoryEvents.RemovePrefix)
 	require.Equal(t, "heartbeat_database", args.Heartbeat.Database)
 	require.Equal(t, "heartbeat_table", args.Heartbeat.Table)
 	require.True(t, args.Heartbeat.UTC)
@@ -106,6 +110,10 @@ func TestRiverConfigConvert(t *testing.T) {
 		remove_prefix = "instances_remove"
 	}
 
+	perf_schema.memory_events {
+		remove_prefix = "innodb/"
+	}
+
 	heartbeat {
 		database = "heartbeat_database"
 		table = "heartbeat_table"
@@ -137,6 +145,7 @@ func TestRiverConfigConvert(t *testing.T) {
 	require.Equal(t, 5, c.PerfSchemaEventsStatementsTextLimit)
 	require.Equal(t, "instances_filter", c.PerfSchemaFileInstancesFilter)
 	require.Equal(t, "instances_remove", c.PerfSchemaFileInstancesRemovePrefix)
+	require.Equal(t, "innodb/", c.PerfSchemaMemoryEventsRemovePrefix)
 	require.Equal(t, "heartbeat_database", c.HeartbeatDatabase)
 	require.Equal(t, "heartbeat_table", c.HeartbeatTable)
 	require.True(t, c.HeartbeatUTC)
@@ -161,28 +170,4 @@ func TestValidate_InvalidDataSource(t *testing.T) {
 		DataSourceName: rivertypes.Secret("root:secret_password@invalid/mydb"),
 	}
 	require.Error(t, args.Validate())
-}
-
-func TestCustomizeTarget_Valid(t *testing.T) {
-	args := Arguments{
-		DataSourceName: rivertypes.Secret("root:secret_password@tcp(localhost:3306)/mydb"),
-	}
-
-	baseTarget := discovery.Target{}
-	newTargets := customizeTarget(baseTarget, args)
-	require.Equal(t, 1, len(newTargets))
-	require.Equal(t, "tcp(localhost:3306)/mydb", newTargets[0]["instance"])
-}
-
-func TestCustomizeTarget_Invalid(t *testing.T) {
-	args := Arguments{
-		DataSourceName: rivertypes.Secret("root:secret_password@invalid/mydb"),
-	}
-
-	baseTarget := discovery.Target{
-		"instance": "default value",
-	}
-	newTargets := customizeTarget(baseTarget, args)
-	require.Equal(t, 1, len(newTargets))
-	require.Equal(t, "default value", newTargets[0]["instance"])
 }

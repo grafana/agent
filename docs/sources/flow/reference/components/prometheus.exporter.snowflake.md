@@ -1,9 +1,16 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/prometheus.exporter.snowflake/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/prometheus.exporter.snowflake/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/prometheus.exporter.snowflake/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/prometheus.exporter.snowflake/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.snowflake/
+description: Learn about prometheus.exporter.snowflake
 title: prometheus.exporter.snowflake
 ---
 
 # prometheus.exporter.snowflake
+
 The `prometheus.exporter.snowflake` component embeds
 [snowflake_exporter](https://github.com/grafana/snowflake-prometheus-exporter) for collecting warehouse, database, table, and replication statistics from a Snowflake account via HTTP for Prometheus consumption.
 
@@ -24,7 +31,7 @@ The following arguments can be used to configure the exporter's behavior.
 Omitted fields take their default values.
 
 | Name           | Type     | Description                                           | Default          | Required |
-|----------------|----------|-------------------------------------------------------|------------------|----------|
+| -------------- | -------- | ----------------------------------------------------- | ---------------- | -------- |
 | `account_name` | `string` | The account to collect metrics for.                   |                  | yes      |
 | `username`     | `string` | The username for the user used when querying metrics. |                  | yes      |
 | `password`     | `secret` | The password for the user used when querying metrics. |                  | yes      |
@@ -38,7 +45,7 @@ fully through arguments.
 
 ## Exported fields
 
-{{< docs/shared lookup="flow/reference/components/exporter-component-exports.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/exporter-component-exports.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ## Component health
 
@@ -86,9 +93,28 @@ prometheus.remote_write "demo" {
   }
 }
 ```
+
 Replace the following:
-  - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
-  - `USERNAME`: The username to use for authentication to the remote_write API.
-  - `PASSWORD`: The password to use for authentication to the remote_write API.
+
+- `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
+- `USERNAME`: The username to use for authentication to the remote_write API.
+- `PASSWORD`: The password to use for authentication to the remote_write API.
 
 [scrape]: {{< relref "./prometheus.scrape.md" >}}
+
+<!-- START GENERATED COMPATIBLE COMPONENTS -->
+
+## Compatible components
+
+`prometheus.exporter.snowflake` has exports that can be consumed by the following components:
+
+- Components that consume [Targets]({{< relref "../compatibility/#targets-consumers" >}})
+
+{{% admonition type="note" %}}
+
+Connecting some components may not be sensible or components may require further configuration to make the 
+connection work correctly. Refer to the linked documentation for more details.
+
+{{% /admonition %}}
+
+<!-- END GENERATED COMPATIBLE COMPONENTS -->

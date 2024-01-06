@@ -10,6 +10,8 @@ import (
 	"github.com/grafana/regexp"
 	"github.com/prometheus/client_golang/prometheus"
 	"go.opentelemetry.io/otel/trace"
+	"golang.org/x/exp/maps"
+	"golang.org/x/exp/slices"
 )
 
 // The parsedName of a component is the parts of its name ("remote.http") split
@@ -49,7 +51,7 @@ type Module interface {
 	//
 	// Run blocks until the provided context is canceled. The ID of a module as defined in
 	// ModuleController.NewModule will not be released until Run returns.
-	Run(context.Context)
+	Run(context.Context) error
 }
 
 // ExportFunc is used for onExport of the Module
@@ -97,8 +99,7 @@ type Options struct {
 	// GetServiceData retrieves data for a service by calling
 	// [service.Service.Data] for the specified service.
 	//
-	// GetServiceData will return an error if the service does not exist or was
-	// not listed as a dependency with the registration of the component.
+	// GetServiceData will return an error if the service does not exist.
 	//
 	// The result of GetServiceData may be cached as the value will not change at
 	// runtime.
@@ -118,29 +119,6 @@ type Registration struct {
 	// any number of underscores or alphanumeric ASCII characters.
 	Name string
 
-	// A singleton component only supports one instance of itself across the
-	// whole process. Normally, multiple components of the same type may be
-	// created.
-	//
-	// The fully-qualified name of a component is the combination of River block
-	// name and all of its labels. Fully-qualified names must be unique across
-	// the process. Components which are *NOT* singletons automatically support
-	// user-supplied identifiers:
-	//
-	//     // Fully-qualified names: remote.s3.object-a, remote.s3.object-b
-	//     remote.s3 "object-a" { ... }
-	//     remote.s3 "object-b" { ... }
-	//
-	// This allows for multiple instances of the same component to be defined.
-	// However, components registered as a singleton do not support user-supplied
-	// identifiers:
-	//
-	//     node_exporter { ... }
-	//
-	// This prevents the user from defining multiple instances of node_exporter
-	// with different fully-qualified names.
-	Singleton bool
-
 	// An example Arguments value that the registered component expects to
 	// receive as input. Components should provide the zero value of their
 	// Arguments type here.
@@ -149,15 +127,6 @@ type Registration struct {
 	// An example Exports value that the registered component may emit as output.
 	// A component which does not expose exports must leave this set to nil.
 	Exports Exports
-
-	// NeedsServices holds the set of service names which this component depends
-	// on to run. If NeedsServices includes an invalid service name (either
-	// because of a cyclic dependency or the named service doesn't exist),
-	// components will fail to evaluate.
-	//
-	// Modules which are loaded by the registered component will only be able to
-	// access services in this list.
-	NeedsServices []string
 
 	// Build should construct a new component from an initial Arguments and set
 	// of options.
@@ -234,4 +203,10 @@ func validatePrefixMatch(check parsedName, against map[string]parsedName) error 
 func Get(name string) (Registration, bool) {
 	r, ok := registered[name]
 	return r, ok
+}
+
+func AllNames() []string {
+	keys := maps.Keys(registered)
+	slices.Sort(keys)
+	return keys
 }

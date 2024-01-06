@@ -2,7 +2,10 @@
 aliases:
 - ../../set-up/install-agent-docker/
 - ../set-up/install-agent-docker/
+- /docs/grafana-cloud/monitor-infrastructure/agent/static/set-up/install/install-agent-docker/
+- /docs/grafana-cloud/send-data/agent/static/set-up/install/install-agent-docker/
 canonical: https://grafana.com/docs/agent/latest/static/set-up/install/install-agent-docker/
+description: Learn how to run Grafana Agent in static mode in a Docker container
 menuTitle: Docker
 title: Run Grafana Agent in static mode in a Docker container
 weight: 200
@@ -33,7 +36,7 @@ To run a Grafana Agent Docker container on Linux, run the following command in a
 docker run \
   -v WAL_DATA_DIRECTORY:/etc/agent/data \
   -v CONFIG_FILE_PATH:/etc/agent/agent.yaml \
-  grafana/agent:v0.36.0-rc.1
+  grafana/agent:{{< param "AGENT_RELEASE" >}}
 ```
 
 Replace `CONFIG_FILE_PATH` with the configuration file path on your Linux host system.
@@ -50,7 +53,7 @@ To run a Grafana Agent Docker container on Windows, run the following command in
 docker run ^
   -v WAL_DATA_DIRECTORY:C:\etc\grafana-agent\data ^
   -v CONFIG_FILE_PATH:C:\etc\grafana-agent ^
-  grafana/agent:v0.36.0-rc.1-windows
+  grafana/agent:{{< param "AGENT_RELEASE" >}}-windows
 ```
 
 Replace the following:
@@ -68,8 +71,8 @@ For the flags to work correctly, you must expose the paths on your Windows host 
 - [Configure Grafana Agent][configure]
 
 {{% docs/reference %}}
-[start]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/set-up/start-agent"
+[start]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static/set-up/start-agent"
 [start]: "/docs/grafana-cloud/ -> ../start-agent"
-[configure]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/configuration/create-config-file"
+[configure]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static/configuration/create-config-file"
 [configure]: "/docs/grafana-cloud/ -> ../../configuration/create-config-file"
 {{% /docs/reference %}}

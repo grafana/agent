@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 
 	"github.com/grafana/agent/converter"
 	convert_diag "github.com/grafana/agent/converter/diag"
@@ -20,6 +21,7 @@ func convertCommand() *cobra.Command {
 		output:       "",
 		sourceFormat: "",
 		bypassErrors: false,
+		extraArgs:    "",
 	}
 
 	cmd := &cobra.Command{
@@ -41,7 +43,11 @@ The -f flag can be used to specify the format we are converting from.
 
 The -b flag can be used to bypass errors. Errors are defined as 
 non-critical issues identified during the conversion where an
-output can still be generated.`,
+output can still be generated.
+
+The -e flag can be used to pass extra arguments to the converter
+which were used by the original format. Multiple arguments can be passed
+by separating them with a space.`,
 		Args:         cobra.RangeArgs(0, 1),
 		SilenceUsage: true,
 
@@ -71,6 +77,7 @@ output can still be generated.`,
 	cmd.Flags().StringVarP(&f.report, "report", "r", f.report, "The filepath and filename where the report is written.")
 	cmd.Flags().StringVarP(&f.sourceFormat, "source-format", "f", f.sourceFormat, fmt.Sprintf("The format of the source file. Supported formats: %s.", supportedFormatsList()))
 	cmd.Flags().BoolVarP(&f.bypassErrors, "bypass-errors", "b", f.bypassErrors, "Enable bypassing errors when converting")
+	cmd.Flags().StringVarP(&f.extraArgs, "extra-args", "e", f.extraArgs, "Extra arguments from the original format used by the converter. Multiple arguments can be passed by separating them with a space.")
 	return cmd
 }
 
@@ -79,6 +86,7 @@ type flowConvert struct {
 	report       string
 	sourceFormat string
 	bypassErrors bool
+	extraArgs    string
 }
 
 func (fc *flowConvert) Run(configFile string) error {
@@ -112,7 +120,12 @@ func convert(r io.Reader, fc *flowConvert) error {
 		return err
 	}
 
-	riverBytes, diags := converter.Convert(inputBytes, converter.Input(fc.sourceFormat))
+	ea, err := parseExtraArgs(fc.extraArgs)
+	if err != nil {
+		return err
+	}
+
+	riverBytes, diags := converter.Convert(inputBytes, converter.Input(fc.sourceFormat), ea)
 	err = generateConvertReport(diags, fc)
 	if err != nil {
 		return err
@@ -173,4 +186,66 @@ func supportedFormatsList() string {
 		ret[i] = fmt.Sprintf("%q", f)
 	}
 	return strings.Join(ret, ", ")
+}
+
+func parseExtraArgs(extraArgs string) ([]string, error) {
+	var result []string
+	if extraArgs == "" {
+		return result, nil
+	}
+
+	arguments := strings.Fields(extraArgs)
+	for i, arg := range arguments {
+		fs := pflag.NewFlagSet("extra-args", pflag.ExitOnError)
+		fs.ParseErrorsWhitelist.UnknownFlags = true
+		keyStartIndex := 0
+		doParseFlagValue := false
+
+		// Split the argument into key and value.
+		splitArgs := strings.SplitN(arg, "=", 2)
+
+		// Append the key to the result.
+		result = append(result, splitArgs[0])
+
+		// If the flag has a value, add it to the FlagSet for parsing.
+		if len(splitArgs) == 2 && splitArgs[1] != "" {
+			doParseFlagValue = true
+			if arg[1] == '-' { // longhand flag, ie. --flag=value
+				keyStartIndex = 2
+			} else if arg[0] == '-' { // shorthand flag, ie. -f=value
+				keyStartIndex = 1
+			} else { // invalid flag that was split on '=' but has no dashes in the key
+				return nil, fmt.Errorf("invalid flag found: %s", arg)
+			}
+		}
+
+		if doParseFlagValue {
+			result = append(result, "")
+			lastIndex := len(result) - 1
+			key := splitArgs[0][keyStartIndex:]
+			if keyStartIndex == 2 {
+				fs.StringVar(&result[lastIndex], key, result[lastIndex], "")
+			} else {
+				// static mode uses keys with a single dash. We need to sanitize them here.
+				if len(key) != 1 {
+					arguments[i] = "-" + arguments[i]
+					fs.StringVar(&result[lastIndex], key, result[lastIndex], "")
+				} else {
+					fs.StringVarP(&result[lastIndex], "", key, result[lastIndex], "")
+				}
+			}
+
+			// We must parse the flag here because the pointer to the array element
+			// &result[lastIndex] is overridden by the next iteration of the loop.
+			// This can be improved if we preallocate the array, however we won't
+			// know the final length without analyzing the arguments so there
+			// is some complexity in doing so.
+			err := fs.Parse(arguments)
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	return result, nil
 }

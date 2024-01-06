@@ -1,7 +1,10 @@
 ---
 aliases:
 - ../../../configuration/integrations/memcached-exporter-config/
+- /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/integrations/memcached-exporter-config/
+- /docs/grafana-cloud/send-data/agent/static/configuration/integrations/memcached-exporter-config/
 canonical: https://grafana.com/docs/agent/latest/static/configuration/integrations/memcached-exporter-config/
+description: Learn about memcached_exporter_config
 title: memcached_exporter_config
 ---
 

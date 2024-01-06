@@ -4,7 +4,6 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/pkg/integrations/squid_exporter"
 	"github.com/grafana/river"
 	"github.com/grafana/river/rivertypes"
@@ -50,17 +49,6 @@ func TestConvert(t *testing.T) {
 		Password: config.Secret("some_password"),
 	}
 	require.Equal(t, expected, *res)
-}
-
-func TestCustomizeTarget(t *testing.T) {
-	args := Arguments{
-		SquidAddr: "some_address",
-	}
-
-	baseTarget := discovery.Target{}
-	newTargets := customizeTarget(baseTarget, args)
-	require.Equal(t, 1, len(newTargets))
-	require.Equal(t, "some_address", newTargets[0]["instance"])
 }
 
 func TestConfigValidate(t *testing.T) {

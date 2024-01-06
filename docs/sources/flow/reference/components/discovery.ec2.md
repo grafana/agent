@@ -1,5 +1,11 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/discovery.ec2/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/discovery.ec2/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/discovery.ec2/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/discovery.ec2/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.ec2/
+description: Learn about discovery.ec2
 title: discovery.ec2
 ---
 
@@ -30,6 +36,9 @@ Name | Type | Description | Default | Required
 `role_arn` | `string` | AWS Role Amazon Resource Name (ARN), an alternative to using AWS API keys. | | no
 `refresh_interval` | `string` | Refresh interval to re-read the instance list. | 60s | no
 `port` | `int` | The port to scrape metrics from. If using the public IP address, this must instead be specified in the relabeling rule. | 80 | no
+`proxy_url` | `string` | HTTP proxy to proxy requests through. | | no
+`follow_redirects` | `bool` | Whether redirects returned by the server should be followed. | `true` | no
+`enable_http2` | `bool` | Whether HTTP2 is supported for requests. | `true` | no
 
 ## Blocks
 
@@ -97,7 +106,7 @@ values.
 
 `discovery.ec2` does not expose any component-specific debug information.
 
-### Debug metrics
+## Debug metrics
 
 `discovery.ec2` does not expose any component-specific debug metrics.
 
@@ -128,3 +137,20 @@ Replace the following:
   - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
   - `USERNAME`: The username to use for authentication to the remote_write API.
   - `PASSWORD`: The password to use for authentication to the remote_write API.
+
+<!-- START GENERATED COMPATIBLE COMPONENTS -->
+
+## Compatible components
+
+`discovery.ec2` has exports that can be consumed by the following components:
+
+- Components that consume [Targets]({{< relref "../compatibility/#targets-consumers" >}})
+
+{{% admonition type="note" %}}
+
+Connecting some components may not be sensible or components may require further configuration to make the 
+connection work correctly. Refer to the linked documentation for more details.
+
+{{% /admonition %}}
+
+<!-- END GENERATED COMPATIBLE COMPONENTS -->

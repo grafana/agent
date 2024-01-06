@@ -1,8 +1,11 @@
 ---
 aliases:
-- ../../configuration/prometheus-config/
 - ../../configuration/metrics-config/
+- ../../configuration/prometheus-config/
+- /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/metrics-config/
+- /docs/grafana-cloud/send-data/agent/static/configuration/metrics-config/
 canonical: https://grafana.com/docs/agent/latest/static/configuration/metrics-config/
+description: Learn about metrics_config
 title: metrics_config
 weight: 200
 ---
@@ -30,7 +33,7 @@ define one instance.
 # The Grafana Agent assumes that all folders within wal_directory are managed by
 # the agent itself. This means if you are using a PVC, you must point
 # wal_directory to a subdirectory of the PVC mount.
-[wal_directory: <string> | default = ""]
+[wal_directory: <string> | default = "data-agent/"]
 
 # Configures how long ago an abandoned (not associated with an instance) WAL
 # may be written to before being eligible to be deleted
@@ -259,7 +262,11 @@ remote_write:
   - [<remote_write>]
 ```
 
-> **Note:** For more information on remote_write, refer to the [Prometheus documentation](https://prometheus.io/docs/prometheus/2.45/configuration/configuration/#remote_write)
+> **Note:** For more information on remote_write, refer to the [Prometheus documentation](https://prometheus.io/docs/prometheus/2.45/configuration/configuration/#remote_write).
+>
+> The following default values set by Grafana Agent Static Mode are different than the default set by Prometheus:
+> - `remote_write`: `send_exemplars` default value is `true`
+> - `remote_write`: `queue_config`: `retry_on_http_429` default value is `true`
 
 ## metrics_instance_config
 
@@ -335,7 +342,11 @@ remote_write:
 > * [`scrape_config`](https://prometheus.io/docs/prometheus/2.45/configuration/configuration/#scrape_config)
 > * [`remote_write`](https://prometheus.io/docs/prometheus/2.45/configuration/configuration/#remote_write)
 
+## Data retention
+
+{{< docs/shared source="agent" lookup="/wal-data-retention.md" version="<AGENT_VERSION>" >}}
+
 {{% docs/reference %}}
-[scrape]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/configuration/scraping-service"
+[scrape]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static/configuration/scraping-service"
 [scrape]: "/docs/grafana-cloud/ -> ./scraping-service"
 {{% /docs/reference %}}

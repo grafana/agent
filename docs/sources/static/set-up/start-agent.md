@@ -1,12 +1,15 @@
 ---
+aliases:
+- /docs/grafana-cloud/monitor-infrastructure/agent/static/set-up/start-agent/
+- /docs/grafana-cloud/send-data/agent/static/set-up/start-agent/
 canonical: https://grafana.com/docs/agent/latest/static/set-up/start-agent/
-description: Learn how to start, restart, and stop Grafana Agent after it is installed
+description: Learn how to start, restart, and stop Grafana Agent in static mode
 menuTitle: Start static mode
 title: Start, restart, and stop Grafana Agent in static mode
 weight: 200
 ---
 
-# Start Grafana Agent in static mode
+# Start, restart, and stop Grafana Agent in static mode
 
 You can start, restart, and stop Grafana Agent after it is installed.
 
@@ -154,6 +157,6 @@ Replace the following:
 * `CONFIG_FILE`: The path to the Grafana Agent configuration file.
 
 {{% docs/reference %}}
-[configure]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/set-up/install/install-agent-macos#configure"
+[configure]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static/set-up/install/install-agent-macos#configure"
 [configure]: "/docs/grafana-cloud/ -> ./install/install-agent-macos/#configure"
 {{% /docs/reference %}}

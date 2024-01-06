@@ -11,7 +11,7 @@ func TestGlobalID(t *testing.T) {
 	mo := getManagedOptions(ComponentGlobals{
 		DataPath:     "/data/",
 		ControllerID: "module.file",
-		NewModuleController: func(id string, availableServices []string) ModuleController {
+		NewModuleController: func(id string) ModuleController {
 			return nil
 		},
 	}, &ComponentNode{
@@ -25,7 +25,7 @@ func TestLocalID(t *testing.T) {
 	mo := getManagedOptions(ComponentGlobals{
 		DataPath:     "/data/",
 		ControllerID: "",
-		NewModuleController: func(id string, availableServices []string) ModuleController {
+		NewModuleController: func(id string) ModuleController {
 			return nil
 		},
 	}, &ComponentNode{

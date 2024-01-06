@@ -1,7 +1,10 @@
 ---
 aliases:
 - ../../../../configuration/integrations/integrations-next/eventhandler-config/
+- /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/integrations/integrations-next/eventhandler-config/
+- /docs/grafana-cloud/send-data/agent/static/configuration/integrations/integrations-next/eventhandler-config/
 canonical: https://grafana.com/docs/agent/latest/static/configuration/integrations/integrations-next/eventhandler-config/
+description: Learn about eventhandler_config next
 title: eventhandler_config next
 ---
 
@@ -34,7 +37,7 @@ This integration uses Grafana Agent's embedded Loki-compatible `logs` subsystem
 to ship entries, and a logs client and sink must be configured to use the
 integration. Please see the sample Agent config below for an example
 configuration.
-[Pipelines](https://grafana.com/docs/loki/latest/clients/promtail/pipelines/)
+[Pipelines](/docs/loki/latest/clients/promtail/pipelines/)
 and relabel configuration are not yet supported, but these features will be
 added soon. You should use the `job=eventhandler cluster=...` labels to query
 your events (you can then use LogQL on top of the result set).

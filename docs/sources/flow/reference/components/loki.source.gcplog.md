@@ -1,5 +1,11 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/loki.source.gcplog/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/loki.source.gcplog/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/loki.source.gcplog/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/loki.source.gcplog/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/loki.source.gcplog/
+description: Learn about loki.source.gcplog
 title: loki.source.gcplog
 ---
 
@@ -75,7 +81,7 @@ fields take their default values.
 | `use_full_line`          | `bool`        | Send the full line from Cloud Logging even if `textPayload` is available. | `false` | no       |
 
 To make use of the `pull` strategy, the GCP project must have been
-[configured](https://grafana.com/docs/loki/next/clients/promtail/gcplog-cloud/)
+[configured](/docs/loki/next/clients/promtail/gcplog-cloud/)
 to forward its cloud resource logs onto a Pub/Sub topic for
 `loki.source.gcplog` to consume.
 
@@ -112,11 +118,11 @@ The `labels` map is applied to every entry that passes through the component.
 
 ### http
 
-{{< docs/shared lookup="flow/reference/components/loki-server-http.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/loki-server-http.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### grpc
 
-{{< docs/shared lookup="flow/reference/components/loki-server-grpc.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/loki-server-grpc.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ## Exported fields
 
@@ -187,3 +193,20 @@ loki.write "local" {
   }
 }
 ```
+<!-- START GENERATED COMPATIBLE COMPONENTS -->
+
+## Compatible components
+
+`loki.source.gcplog` can accept arguments from the following components:
+
+- Components that export [Loki `LogsReceiver`]({{< relref "../compatibility/#loki-logsreceiver-exporters" >}})
+
+
+{{% admonition type="note" %}}
+
+Connecting some components may not be sensible or components may require further configuration to make the 
+connection work correctly. Refer to the linked documentation for more details.
+
+{{% /admonition %}}
+
+<!-- END GENERATED COMPATIBLE COMPONENTS -->

@@ -10,7 +10,6 @@ import (
 	"go.opentelemetry.io/collector/connector"
 	otelexporter "go.opentelemetry.io/collector/exporter"
 	"go.opentelemetry.io/collector/extension"
-	"go.opentelemetry.io/collector/featuregate"
 	"go.opentelemetry.io/collector/otelcol"
 	"go.opentelemetry.io/collector/processor"
 	"go.opentelemetry.io/collector/receiver"
@@ -27,7 +26,7 @@ import (
 	"github.com/grafana/agent/pkg/traces/traceutils"
 	"github.com/grafana/agent/pkg/util"
 	prom_client "github.com/prometheus/client_golang/prometheus"
-	"go.opentelemetry.io/otel/trace"
+	"go.opentelemetry.io/otel/trace/noop"
 )
 
 // Instance wraps the OpenTelemetry collector to enable tracing pipelines
@@ -113,8 +112,13 @@ func (i *Instance) buildAndStartPipeline(ctx context.Context, cfg InstanceConfig
 	}
 
 	if cfg.LoadBalancing == nil && (cfg.TailSampling != nil || cfg.ServiceGraphs != nil) {
-		i.logger.Warn("Configuring tail_sampling and/or service_graphs without load_balance." +
-			"Load balancing is required for those features to properly work in multi agent deployments")
+		i.logger.Warn("Configuring tail_sampling and/or service_graphs without load_balancing." +
+			"Load balancing via trace ID is required for those features to work properly in multi agent deployments")
+	}
+
+	if cfg.LoadBalancing == nil && cfg.SpanMetrics != nil {
+		i.logger.Warn("Configuring spanmetrics without load_balancing." +
+			"Load balancing via service name is required for spanmetrics to work properly in multi agent deployments")
 	}
 
 	if cfg.AutomaticLogging != nil && cfg.AutomaticLogging.Backend != automaticloggingprocessor.BackendStdout {
@@ -133,23 +137,7 @@ func (i *Instance) buildAndStartPipeline(ctx context.Context, cfg InstanceConfig
 		Version:     build.Version,
 	}
 
-	// useOtelForInternalMetrics is required so that the Collector service configures Collector components using the Otel SDK
-	// instead of OpenCensus. If this is not specified, then the OtelMetricViews and OtelMetricReader parameters which we
-	// pass to service.New() below will not be taken into account. This would mean that metrics from custom components such as
-	// the one in pkg/traces/servicegraphprocessor would not work.
-	//
-	// disableHighCardinalityMetrics is required so that we don't include labels containing ports and IP addresses in gRPC metrics.
-	// Example metric with high cardinality...
-	// rpc_server_duration_bucket{net_sock_peer_addr="127.0.0.1",net_sock_peer_port="59947",rpc_grpc_status_code="0",rpc_method="Export",rpc_service="opentelemetry.proto.collector.trace.v1.TraceService",rpc_system="grpc",traces_config="default",le="7500"} 294
-	// ... the same metric when disableHighCardinalityMetrics is switched on looks like this:
-	// rpc_server_duration_bucket{rpc_grpc_status_code="0",rpc_method="Export",rpc_service="opentelemetry.proto.collector.trace.v1.TraceService",rpc_system="grpc",traces_config="default",le="7500"} 32
-	// For more context:
-	// https://opentelemetry.io/docs/specs/otel/metrics/semantic_conventions/rpc-metrics/
-	// https://github.com/open-telemetry/opentelemetry-go-contrib/pull/2700
-	// https://github.com/open-telemetry/opentelemetry-collector/pull/6788/files
-	err = enableOtelFeatureGates(
-		"telemetry.useOtelForInternalMetrics",
-		"telemetry.disableHighCardinalityMetrics")
+	err = util.SetupStaticModeOtelFeatureGates()
 	if err != nil {
 		return err
 	}
@@ -170,7 +158,7 @@ func (i *Instance) buildAndStartPipeline(ctx context.Context, cfg InstanceConfig
 		OtelMetricReader:         promExporter,
 		DisableProcessMetrics:    true,
 		UseExternalMetricsServer: true,
-		TracerProvider:           trace.NewNoopTracerProvider(),
+		TracerProvider:           noop.NewTracerProvider(),
 		//TODO: Plug in an AsyncErrorChannel to shut down the Agent in case of a fatal event
 		LoggingOptions: []zap.Option{
 			zap.WrapCore(func(zapcore.Core) zapcore.Core {
@@ -188,19 +176,6 @@ func (i *Instance) buildAndStartPipeline(ctx context.Context, cfg InstanceConfig
 	}
 
 	return err
-}
-
-func enableOtelFeatureGates(fgNames ...string) error {
-	fgReg := featuregate.GlobalRegistry()
-
-	for _, fg := range fgNames {
-		err := fgReg.Set(fg, true)
-		if err != nil {
-			return fmt.Errorf("error setting Otel feature gate: %w", err)
-		}
-	}
-
-	return nil
 }
 
 // ReportFatalError implements component.Host

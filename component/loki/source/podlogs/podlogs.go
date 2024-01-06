@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/go-kit/log"
-	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/common/config"
 	commonk8s "github.com/grafana/agent/component/common/kubernetes"
@@ -18,6 +17,8 @@ import (
 	"github.com/grafana/agent/component/common/loki/positions"
 	"github.com/grafana/agent/component/loki/source/kubernetes"
 	"github.com/grafana/agent/component/loki/source/kubernetes/kubetail"
+	"github.com/grafana/agent/pkg/flow/logging/level"
+	"github.com/grafana/agent/service/cluster"
 	"github.com/oklog/run"
 	kubeclient "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
@@ -44,6 +45,8 @@ type Arguments struct {
 
 	Selector          config.LabelSelector `river:"selector,block,optional"`
 	NamespaceSelector config.LabelSelector `river:"namespace_selector,block,optional"`
+
+	Clustering cluster.ComponentBlock `river:"clustering,block,optional"`
 }
 
 // DefaultArguments holds default settings for loki.source.kubernetes.
@@ -80,6 +83,7 @@ type Component struct {
 var (
 	_ component.Component      = (*Component)(nil)
 	_ component.DebugComponent = (*Component)(nil)
+	_ cluster.Component        = (*Component)(nil)
 )
 
 // New creates a new loki.source.podlogs component.
@@ -96,9 +100,14 @@ func New(o component.Options, args Arguments) (*Component, error) {
 		return nil, err
 	}
 
+	data, err := o.GetServiceData(cluster.ServiceName)
+	if err != nil {
+		return nil, err
+	}
+
 	var (
 		tailer     = kubetail.NewManager(o.Logger, nil)
-		reconciler = newReconciler(o.Logger, tailer)
+		reconciler = newReconciler(o.Logger, tailer, data.(cluster.Cluster))
 		controller = newController(o.Logger, reconciler)
 	)
 
@@ -202,6 +211,17 @@ func (c *Component) Update(args component.Arguments) error {
 	return nil
 }
 
+// NotifyClusterChange implements cluster.Component.
+func (c *Component) NotifyClusterChange() {
+	c.mut.Lock()
+	defer c.mut.Unlock()
+
+	if !c.args.Clustering.Enabled {
+		return
+	}
+	c.controller.RequestReconcile()
+}
+
 // updateTailer updates the state of the tailer. mut must be held when calling.
 func (c *Component) updateTailer(args Arguments) error {
 	if reflect.DeepEqual(c.args.Client, args.Client) && c.lastOptions != nil {
@@ -254,6 +274,7 @@ func (c *Component) updateReconciler(args Arguments) error {
 	}
 
 	c.reconciler.UpdateSelectors(sel, nsSel)
+	c.reconciler.SetDistribute(args.Clustering.Enabled)
 
 	// Request a reconcile so the new selectors get applied.
 	c.controller.RequestReconcile()

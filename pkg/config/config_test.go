@@ -2,22 +2,24 @@ package config
 
 import (
 	"flag"
+
 	"net/url"
+	"os"
+	"path"
 	"strings"
 	"testing"
 	"time"
 
-	commonCfg "github.com/prometheus/common/config"
-
-	"github.com/stretchr/testify/assert"
-
+	"github.com/grafana/agent/pkg/config/encoder"
 	"github.com/grafana/agent/pkg/metrics"
 	"github.com/grafana/agent/pkg/metrics/instance"
 	"github.com/grafana/agent/pkg/server"
 	"github.com/grafana/agent/pkg/util"
+	commonCfg "github.com/prometheus/common/config"
 	"github.com/prometheus/common/model"
 	promCfg "github.com/prometheus/prometheus/config"
 	"github.com/prometheus/prometheus/model/labels"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v2"
 )
@@ -520,5 +522,68 @@ func TestConfig_EmptyServerConfigFails(t *testing.T) {
 	logger := server.NewLogger(&defaultServerCfg)
 	fs := flag.NewFlagSet("", flag.ExitOnError)
 	_, err := Load(fs, []string{"--config.file", "./testdata/server_empty.yml"}, logger)
+	require.Error(t, err)
+}
+
+func TestConfig_ValidateConfigWithIntegrationV1(t *testing.T) {
+	input := util.Untab(`
+integrations:
+	agent:
+		enabled: true
+`)
+	var cfg Config
+	require.NoError(t, LoadBytes([]byte(input), false, &cfg))
+	require.NoError(t, cfg.Validate(nil))
+}
+
+func TestConfig_ValidateConfigWithIntegrationV2(t *testing.T) {
+	input := util.Untab(`
+integrations:
+	agent:
+		autoscrape:
+			enabled: true
+`)
+	var cfg Config
+	require.NoError(t, LoadBytes([]byte(input), false, &cfg))
+	require.NoError(t, cfg.Validate(nil))
+}
+
+func TestConfigEncoding(t *testing.T) {
+	type testCase struct {
+		filename string
+		success  bool
+	}
+	cases := []testCase{
+		{filename: "test_encoding_unknown.txt", success: false},
+		{filename: "test_encoding_utf8.txt", success: true},
+		{filename: "test_encoding_utf8bom.txt", success: true},
+		{filename: "test_encoding_utf16le.txt", success: true},
+		{filename: "test_encoding_utf16be.txt", success: true},
+		{filename: "test_encoding_utf32be.txt", success: true},
+		{filename: "test_encoding_utf32le.txt", success: true},
+	}
+	for _, tt := range cases {
+		t.Run(tt.filename, func(t *testing.T) {
+			buf, err := os.ReadFile(path.Join("encoder", tt.filename))
+			t.Setenv("TEST", "debug")
+			require.NoError(t, err)
+			c := &Config{}
+			err = LoadBytes(buf, true, c)
+			if tt.success {
+				require.NoError(t, err)
+				require.True(t, c.Server.LogLevel.String() == "debug")
+			} else {
+				require.Error(t, err)
+			}
+		})
+	}
+}
+
+func TestConfigEncodingStrict(t *testing.T) {
+	buf, err := os.ReadFile(path.Join("encoder", "test_encoding_utf16le.txt"))
+	require.NoError(t, err)
+	_, err = encoder.EnsureUTF8(buf, false)
+	require.NoError(t, err)
+	_, err = encoder.EnsureUTF8(buf, true)
 	require.Error(t, err)
 }

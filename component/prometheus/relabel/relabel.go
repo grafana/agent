@@ -12,6 +12,7 @@ import (
 	"github.com/grafana/agent/component"
 	flow_relabel "github.com/grafana/agent/component/common/relabel"
 	"github.com/grafana/agent/component/prometheus"
+	"github.com/grafana/agent/service/labelstore"
 	lru "github.com/hashicorp/golang-lru/v2"
 	prometheus_client "github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/prometheus/model/exemplar"
@@ -28,6 +29,7 @@ func init() {
 		Name:    "prometheus.relabel",
 		Args:    Arguments{},
 		Exports: Exports{},
+
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			return New(opts, args.(Arguments))
 		},
@@ -44,15 +46,23 @@ type Arguments struct {
 	MetricRelabelConfigs []*flow_relabel.Config `river:"rule,block,optional"`
 
 	// Cache size to use for LRU cache.
-	//CacheSize int `river:"cache_size,attr,optional"`
+	CacheSize int `river:"max_cache_size,attr,optional"`
 }
 
 // SetToDefault implements river.Defaulter.
-/*func (arg *Arguments) SetToDefault() {
+func (arg *Arguments) SetToDefault() {
 	*arg = Arguments{
-		CacheSize: 500_000,
+		CacheSize: 100_000,
 	}
-}*/
+}
+
+// Validate implements river.Validator.
+func (arg *Arguments) Validate() error {
+	if arg.CacheSize <= 0 {
+		return fmt.Errorf("max_cache_size must be greater than 0 and is %d", arg.CacheSize)
+	}
+	return nil
+}
 
 // Exports holds values which are exported by the prometheus.relabel component.
 type Exports struct {
@@ -74,6 +84,7 @@ type Component struct {
 	cacheDeletes     prometheus_client.Counter
 	fanout           *prometheus.Fanout
 	exited           atomic.Bool
+	ls               labelstore.LabelStore
 
 	cacheMut sync.RWMutex
 	cache    *lru.Cache[uint64, *labelAndID]
@@ -85,13 +96,18 @@ var (
 
 // New creates a new prometheus.relabel component.
 func New(o component.Options, args Arguments) (*Component, error) {
-	cache, err := lru.New[uint64, *labelAndID](100_000)
+	cache, err := lru.New[uint64, *labelAndID](args.CacheSize)
+	if err != nil {
+		return nil, err
+	}
+	data, err := o.GetServiceData(labelstore.ServiceName)
 	if err != nil {
 		return nil, err
 	}
 	c := &Component{
 		opts:  o,
 		cache: cache,
+		ls:    data.(labelstore.LabelStore),
 	}
 	c.metricsProcessed = prometheus_client.NewCounter(prometheus_client.CounterOpts{
 		Name: "agent_prometheus_relabel_metrics_processed",
@@ -125,9 +141,10 @@ func New(o component.Options, args Arguments) (*Component, error) {
 		}
 	}
 
-	c.fanout = prometheus.NewFanout(args.ForwardTo, o.ID, o.Registerer)
+	c.fanout = prometheus.NewFanout(args.ForwardTo, o.ID, o.Registerer, c.ls)
 	c.receiver = prometheus.NewInterceptor(
 		c.fanout,
+		c.ls,
 		prometheus.WithAppendHook(func(_ storage.SeriesRef, l labels.Labels, t int64, v float64, next storage.Appender) (storage.SeriesRef, error) {
 			if c.exited.Load() {
 				return 0, fmt.Errorf("%s has exited", o.ID)
@@ -201,7 +218,7 @@ func (c *Component) Update(args component.Arguments) error {
 	defer c.mut.Unlock()
 
 	newArgs := args.(Arguments)
-	c.clearCache(100_000)
+	c.clearCache(newArgs.CacheSize)
 	c.mrc = flow_relabel.ComponentToPromRelabelConfigs(newArgs.MetricRelabelConfigs)
 	c.fanout.UpdateChildren(newArgs.ForwardTo)
 
@@ -214,7 +231,7 @@ func (c *Component) relabel(val float64, lbls labels.Labels) labels.Labels {
 	c.mut.RLock()
 	defer c.mut.RUnlock()
 
-	globalRef := prometheus.GlobalRefMapping.GetOrAddGlobalRefID(lbls)
+	globalRef := c.ls.GetOrAddGlobalRefID(lbls)
 	var (
 		relabelled labels.Labels
 		keep       bool
@@ -276,7 +293,7 @@ func (c *Component) addToCache(originalID uint64, lbls labels.Labels, keep bool)
 		c.cache.Add(originalID, nil)
 		return
 	}
-	newGlobal := prometheus.GlobalRefMapping.GetOrAddGlobalRefID(lbls)
+	newGlobal := c.ls.GetOrAddGlobalRefID(lbls)
 	c.cache.Add(originalID, &labelAndID{
 		labels: lbls,
 		id:     newGlobal,

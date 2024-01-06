@@ -1,5 +1,9 @@
 ---
+aliases:
+- /docs/grafana-cloud/monitor-infrastructure/agent/static/
+- /docs/grafana-cloud/send-data/agent/static/
 canonical: https://grafana.com/docs/agent/latest/static/
+description: Learn about Grafana Agent in static mode
 title: Static mode
 weight: 200
 ---
@@ -66,7 +70,7 @@ Grafana Cloud integration workflows and the Kubernetes Monitoring solution are t
 | [Install or uninstall Grafana Agent][install] | Install or uninstall Grafana Agent. |
 | [Troubleshoot Cloud Integrations installation on Linux](/docs/grafana-cloud/monitor-infrastructure/integrations/install-troubleshoot-linux/) | Troubleshoot common errors when executing the Grafana Agent installation script on Linux.  |
 | [Troubleshoot Cloud Integrations installation on Mac](/docs/grafana-cloud/monitor-infrastructure/integrations/install-troubleshoot-mac/) | Troubleshoot common errors when executing the Grafana Agent installation script on Mac.  |
-| [Troubleshoot Cloud Integrations installation on Windows](/docs/grafana-cloud/monitor-infrastructure/integrations/install-troubleshoot-windows/) | Troubleshoot common errors when executing the Grafana Agent installation script on Windows.  |
+| [Troubleshoot Cloud Integrations installation on Windows](/docs/grafana-cloud/monitor-infrastructure/integrations/install-troubleshooting-windows/) | Troubleshoot common errors when executing the Grafana Agent installation script on Windows.  |
 
 ### Use Grafana Agent to send logs to Grafana Loki
 
@@ -84,10 +88,10 @@ Logs are included when you [set up a Cloud integration](/docs/grafana-cloud/data
 | [Use Grafana Agent as a tracing pipeline](/docs/tempo/latest/configuration/grafana-agent/) | Grafana Agent can be configured to run a set of tracing pipelines to collect data from your applications and write it to Grafana Tempo. Pipelines are built using OpenTelemetry, and consist of receivers, processors, and exporters. |
 
 {{% docs/reference %}}
-[set up]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/set-up"
+[set up]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static/set-up"
 [set up]: "/docs/grafana-cloud/ -> ./set-up"
-[configure]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/configuration"
+[configure]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static/configuration"
 [configure]: "/docs/grafana-cloud/ -> ./configuration"
-[install]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/set-up/install"
+[install]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static/set-up/install"
 [install]: "/docs/grafana-cloud/ -> ./set-up/install"
 {{% /docs/reference %}}

@@ -1,8 +1,12 @@
 ---
 aliases:
 - ../api/
+- /docs/grafana-cloud/monitor-infrastructure/agent/static/api/
+- /docs/grafana-cloud/send-data/agent/static/api/
 canonical: https://grafana.com/docs/agent/latest/static/api/
-title: Static mode API
+description: Learn about the Grafana Agent static mode API
+menuTitle: Static mode API
+title: Static mode APIs (Stable)
 weight: 400
 ---
 
@@ -10,7 +14,7 @@ weight: 400
 
 The API for static mode is divided into several parts:
 
-- [Config Management API](#config-management-api)
+- [Config Management API](#config-management-api-beta)
 - [Agent API](#agent-api)
 - [Integrations API](#integrations-api-experimental)
 - [Ready/Healthy API](#ready--health-api)
@@ -458,7 +462,7 @@ GET /agent/api/v1/metrics/integrations/targets
 ```
 
 This endpoint returns all integrations for which autoscrape is enabled. The
-response is identical to [`/agent/api/v1/metrics/targets`](#list-current-scrape-targets).
+response is identical to [`/agent/api/v1/metrics/targets`](#list-current-scrape-targets-of-logs-subsystem).
 
 Status code: 200 on success.
 Response on success:
@@ -518,10 +522,10 @@ Agent is Healthy.
 ```
 
 {{% docs/reference %}}
-[scrape]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/configuration/scraping-service"
+[scrape]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static/configuration/scraping-service"
 [scrape]: "/docs/grafana-cloud/ -> ../configuration/scraping-service
-[metrics]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/configuration/metrics-config"
+[metrics]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static/configuration/metrics-config"
 [metrics]: "/docs/grafana-cloud/ -> ../configuration/metrics-config"
-[integrations]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/configuration/integrations/integrations-next"
+[integrations]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static/configuration/integrations/integrations-next"
 [integrations]: "/docs/grafana-cloud/ -> ../configuration/integrations/integrations-next"
 {{% /docs/reference %}}

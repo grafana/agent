@@ -9,13 +9,14 @@ import (
 	"sync"
 	"time"
 
+	"github.com/grafana/agent/service/labelstore"
 	"github.com/prometheus/client_golang/prometheus"
-	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/atomic"
 
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/pkg/flow/logging"
+	"go.opentelemetry.io/otel/trace/noop"
 )
 
 // A Controller is a testing controller which controls a single component.
@@ -154,10 +155,18 @@ func (c *Controller) buildComponent(dataPath string, args component.Arguments) (
 	opts := component.Options{
 		ID:            c.reg.Name + ".test",
 		Logger:        l,
-		Tracer:        trace.NewNoopTracerProvider(),
+		Tracer:        noop.NewTracerProvider(),
 		DataPath:      dataPath,
 		OnStateChange: c.onStateChange,
 		Registerer:    prometheus.NewRegistry(),
+		GetServiceData: func(name string) (interface{}, error) {
+			switch name {
+			case labelstore.ServiceName:
+				return labelstore.New(nil, prometheus.DefaultRegisterer), nil
+			default:
+				return nil, fmt.Errorf("no service named %s defined", name)
+			}
+		},
 	}
 
 	inner, err := c.reg.Build(opts, args)

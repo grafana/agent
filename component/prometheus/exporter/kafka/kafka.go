@@ -3,7 +3,7 @@ package kafka
 import (
 	"fmt"
 
-	"github.com/Shopify/sarama"
+	"github.com/IBM/sarama"
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/prometheus/exporter"
@@ -50,11 +50,11 @@ type Arguments struct {
 
 func init() {
 	component.Register(component.Registration{
-		Name:          "prometheus.exporter.kafka",
-		Args:          Arguments{},
-		Exports:       exporter.Exports{},
-		NeedsServices: exporter.RequiredServices(),
-		Build:         exporter.NewWithTargetBuilder(createIntegration, "kafka", customizeTarget),
+		Name:    "prometheus.exporter.kafka",
+		Args:    Arguments{},
+		Exports: exporter.Exports{},
+
+		Build: exporter.NewWithTargetBuilder(createExporter, "kafka", customizeTarget),
 	})
 }
 
@@ -82,9 +82,9 @@ func customizeTarget(baseTarget discovery.Target, args component.Arguments) []di
 	return []discovery.Target{target}
 }
 
-func createIntegration(opts component.Options, args component.Arguments) (integrations.Integration, error) {
+func createExporter(opts component.Options, args component.Arguments, defaultInstanceKey string) (integrations.Integration, string, error) {
 	a := args.(Arguments)
-	return a.Convert().NewIntegration(opts.Logger)
+	return integrations.NewIntegrationWithInstanceKey(opts.Logger, a.Convert(), defaultInstanceKey)
 }
 
 func (a *Arguments) Convert() *kafka_exporter.Config {

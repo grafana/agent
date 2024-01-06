@@ -17,6 +17,7 @@ import (
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/gorilla/mux"
+	"github.com/grafana/agent/internal/agentseed"
 	"github.com/grafana/agent/pkg/config"
 	"github.com/grafana/agent/pkg/logs"
 	"github.com/grafana/agent/pkg/metrics"
@@ -25,9 +26,9 @@ import (
 	"github.com/grafana/agent/pkg/supportbundle"
 	"github.com/grafana/agent/pkg/traces"
 	"github.com/grafana/agent/pkg/usagestats"
+	"github.com/grafana/dskit/signals"
 	"github.com/oklog/run"
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/weaveworks/common/signals"
 	"google.golang.org/grpc"
 	"gopkg.in/yaml.v2"
 )
@@ -98,6 +99,7 @@ func NewEntrypoint(logger *server.Logger, cfg *config.Config, reloader Reloader)
 		return nil, err
 	}
 
+	agentseed.Init("", logger)
 	ep.reporter, err = usagestats.NewReporter(logger)
 	if err != nil {
 		return nil, err
@@ -395,7 +397,7 @@ func (ep *Entrypoint) Start() error {
 
 	// Create a signal handler that will stop the Entrypoint once a termination
 	// signal is received.
-	signalHandler := signals.NewHandler(server.GoKitLogger(ep.log))
+	signalHandler := signals.NewHandler(ep.log)
 
 	notifier := make(chan os.Signal, 1)
 	signal.Notify(notifier, syscall.SIGHUP)

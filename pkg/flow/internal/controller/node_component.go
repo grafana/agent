@@ -13,9 +13,9 @@ import (
 	"time"
 
 	"github.com/go-kit/log"
-	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/pkg/flow/logging"
+	"github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/grafana/agent/pkg/flow/tracing"
 	"github.com/grafana/river/ast"
 	"github.com/grafana/river/vm"
@@ -63,15 +63,15 @@ type DialFunc func(ctx context.Context, network, address string) (net.Conn, erro
 // ComponentGlobals are used by ComponentNodes to build managed components. All
 // ComponentNodes should use the same ComponentGlobals.
 type ComponentGlobals struct {
-	Logger              *logging.Logger                                              // Logger shared between all managed components.
-	TraceProvider       trace.TracerProvider                                         // Tracer shared between all managed components.
-	DataPath            string                                                       // Shared directory where component data may be stored
-	OnComponentUpdate   func(cn *ComponentNode)                                      // Informs controller that we need to reevaluate
-	OnExportsChange     func(exports map[string]any)                                 // Invoked when the managed component updated its exports
-	Registerer          prometheus.Registerer                                        // Registerer for serving agent and component metrics
-	ControllerID        string                                                       // ID of controller.
-	NewModuleController func(id string, availableServices []string) ModuleController // Func to generate a module controller.
-	GetServiceData      func(name string) (interface{}, error)                       // Get data for a service.
+	Logger              *logging.Logger                        // Logger shared between all managed components.
+	TraceProvider       trace.TracerProvider                   // Tracer shared between all managed components.
+	DataPath            string                                 // Shared directory where component data may be stored
+	OnComponentUpdate   func(cn *ComponentNode)                // Informs controller that we need to reevaluate
+	OnExportsChange     func(exports map[string]any)           // Invoked when the managed component updated its exports
+	Registerer          prometheus.Registerer                  // Registerer for serving agent and component metrics
+	ControllerID        string                                 // ID of controller.
+	NewModuleController func(id string) ModuleController       // Func to generate a module controller.
+	GetServiceData      func(name string) (interface{}, error) // Get data for a service.
 }
 
 // ComponentNode is a controller node which manages a user-defined component.
@@ -91,14 +91,13 @@ type ComponentNode struct {
 	exportsType       reflect.Type
 	moduleController  ModuleController
 	OnComponentUpdate func(cn *ComponentNode) // Informs controller that we need to reevaluate
+	lastUpdateTime    atomic.Time
 
 	mut     sync.RWMutex
 	block   *ast.BlockStmt // Current River block to derive args from
 	eval    *vm.Evaluator
 	managed component.Component // Inner managed component
 	args    component.Arguments // Evaluated arguments for the managed component
-
-	doingEval atomic.Bool
 
 	// NOTE(rfratto): health and exports have their own mutex because they may be
 	// set asynchronously while mut is still being held (i.e., when calling Evaluate
@@ -146,7 +145,7 @@ func NewComponentNode(globals ComponentGlobals, reg component.Registration, b *a
 		componentName:     strings.Join(b.Name, "."),
 		reg:               reg,
 		exportsType:       getExportsType(reg),
-		moduleController:  globals.NewModuleController(globalID, reg.NeedsServices),
+		moduleController:  globals.NewModuleController(globalID),
 		OnComponentUpdate: globals.OnComponentUpdate,
 
 		block: b,
@@ -165,11 +164,6 @@ func NewComponentNode(globals ComponentGlobals, reg component.Registration, b *a
 }
 
 func getManagedOptions(globals ComponentGlobals, cn *ComponentNode) component.Options {
-	allowedServices := make(map[string]struct{}, len(cn.Registration().NeedsServices))
-	for _, svc := range cn.Registration().NeedsServices {
-		allowedServices[svc] = struct{}{}
-	}
-
 	cn.registry = prometheus.NewRegistry()
 	return component.Options{
 		ID:     cn.globalID,
@@ -185,9 +179,6 @@ func getManagedOptions(globals ComponentGlobals, cn *ComponentNode) component.Op
 		ModuleController: cn.moduleController,
 
 		GetServiceData: func(name string) (interface{}, error) {
-			if _, allowed := allowedServices[name]; !allowed {
-				return nil, fmt.Errorf("cannot access service data for service %q because it was not listed as a dependency", name)
-			}
 			return globals.GetServiceData(name)
 		},
 	}
@@ -258,16 +249,12 @@ func (cn *ComponentNode) Evaluate(scope *vm.Scope) error {
 		msg := fmt.Sprintf("component evaluation failed: %s", err)
 		cn.setEvalHealth(component.HealthTypeUnhealthy, msg)
 	}
-
 	return err
 }
 
 func (cn *ComponentNode) evaluate(scope *vm.Scope) error {
 	cn.mut.Lock()
 	defer cn.mut.Unlock()
-
-	cn.doingEval.Store(true)
-	defer cn.doingEval.Store(false)
 
 	argsPointer := cn.reg.CloneArguments()
 	if err := cn.eval.Evaluate(scope, argsPointer); err != nil {
@@ -307,7 +294,7 @@ func (cn *ComponentNode) evaluate(scope *vm.Scope) error {
 }
 
 // Run runs the managed component in the calling goroutine until ctx is
-// canceled. Evaluate must have been called at least once without retuning an
+// canceled. Evaluate must have been called at least once without returning an
 // error before calling Run.
 //
 // Run will immediately return ErrUnevaluated if Evaluate has never been called
@@ -390,18 +377,9 @@ func (cn *ComponentNode) setExports(e component.Exports) {
 	}
 	cn.exportsMut.Unlock()
 
-	if cn.doingEval.Load() {
-		// Optimization edge case: some components supply exports when they're
-		// being evaluated.
-		//
-		// Since components that are being evaluated will always cause their
-		// dependencies to also be evaluated, there's no reason to call
-		// onExportsChange here.
-		return
-	}
-
 	if changed {
 		// Inform the controller that we have new exports.
+		cn.lastUpdateTime.Store(time.Now())
 		cn.OnComponentUpdate(cn)
 	}
 }

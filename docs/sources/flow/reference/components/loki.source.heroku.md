@@ -1,5 +1,11 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/loki.source.heroku/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/loki.source.heroku/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/loki.source.heroku/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/loki.source.heroku/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/loki.source.heroku/
+description: Learn about loki.source.heroku
 title: loki.source.heroku
 ---
 
@@ -62,11 +68,11 @@ The following blocks are supported inside the definition of `loki.source.heroku`
 
 ### http
 
-{{< docs/shared lookup="flow/reference/components/loki-server-http.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/loki-server-http.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### grpc
 
-{{< docs/shared lookup="flow/reference/components/loki-server-grpc.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/loki-server-grpc.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ## Labels
 
@@ -138,3 +144,20 @@ loki.write "local" {
     }
 }
 ```
+<!-- START GENERATED COMPATIBLE COMPONENTS -->
+
+## Compatible components
+
+`loki.source.heroku` can accept arguments from the following components:
+
+- Components that export [Loki `LogsReceiver`]({{< relref "../compatibility/#loki-logsreceiver-exporters" >}})
+
+
+{{% admonition type="note" %}}
+
+Connecting some components may not be sensible or components may require further configuration to make the 
+connection work correctly. Refer to the linked documentation for more details.
+
+{{% /admonition %}}
+
+<!-- END GENERATED COMPATIBLE COMPONENTS -->

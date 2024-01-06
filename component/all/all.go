@@ -5,21 +5,32 @@ import (
 	_ "github.com/grafana/agent/component/discovery/aws"                            // Import discovery.aws.ec2 and discovery.aws.lightsail
 	_ "github.com/grafana/agent/component/discovery/azure"                          // Import discovery.azure
 	_ "github.com/grafana/agent/component/discovery/consul"                         // Import discovery.consul
+	_ "github.com/grafana/agent/component/discovery/consulagent"                    // Import discovery.consulagent
 	_ "github.com/grafana/agent/component/discovery/digitalocean"                   // Import discovery.digitalocean
 	_ "github.com/grafana/agent/component/discovery/dns"                            // Import discovery.dns
 	_ "github.com/grafana/agent/component/discovery/docker"                         // Import discovery.docker
+	_ "github.com/grafana/agent/component/discovery/dockerswarm"                    // Import discovery.dockerswarm
 	_ "github.com/grafana/agent/component/discovery/eureka"                         // Import discovery.eureka
 	_ "github.com/grafana/agent/component/discovery/file"                           // Import discovery.file
 	_ "github.com/grafana/agent/component/discovery/gce"                            // Import discovery.gce
 	_ "github.com/grafana/agent/component/discovery/hetzner"                        // Import discovery.hetzner
 	_ "github.com/grafana/agent/component/discovery/http"                           // Import discovery.http
+	_ "github.com/grafana/agent/component/discovery/ionos"                          // Import discovery.ionos
 	_ "github.com/grafana/agent/component/discovery/kubelet"                        // Import discovery.kubelet
 	_ "github.com/grafana/agent/component/discovery/kubernetes"                     // Import discovery.kubernetes
+	_ "github.com/grafana/agent/component/discovery/kuma"                           // Import discovery.kuma
+	_ "github.com/grafana/agent/component/discovery/linode"                         // Import discovery.linode
+	_ "github.com/grafana/agent/component/discovery/marathon"                       // Import discovery.marathon
+	_ "github.com/grafana/agent/component/discovery/nerve"                          // Import discovery.nerve
 	_ "github.com/grafana/agent/component/discovery/nomad"                          // Import discovery.nomad
 	_ "github.com/grafana/agent/component/discovery/openstack"                      // Import discovery.openstack
 	_ "github.com/grafana/agent/component/discovery/puppetdb"                       // Import discovery.puppetdb
 	_ "github.com/grafana/agent/component/discovery/relabel"                        // Import discovery.relabel
+	_ "github.com/grafana/agent/component/discovery/scaleway"                       // Import discovery.scaleway
+	_ "github.com/grafana/agent/component/discovery/serverset"                      // Import discovery.serverset
+	_ "github.com/grafana/agent/component/discovery/triton"                         // Import discovery.triton
 	_ "github.com/grafana/agent/component/discovery/uyuni"                          // Import discovery.uyuni
+	_ "github.com/grafana/agent/component/faro/receiver"                            // Import faro.receiver
 	_ "github.com/grafana/agent/component/local/file"                               // Import local.file
 	_ "github.com/grafana/agent/component/local/file_match"                         // Import local.file_match
 	_ "github.com/grafana/agent/component/loki/echo"                                // Import loki.echo
@@ -41,6 +52,7 @@ import (
 	_ "github.com/grafana/agent/component/loki/source/podlogs"                      // Import loki.source.podlogs
 	_ "github.com/grafana/agent/component/loki/source/syslog"                       // Import loki.source.syslog
 	_ "github.com/grafana/agent/component/loki/source/windowsevent"                 // Import loki.source.windowsevent
+	_ "github.com/grafana/agent/component/loki/test/logs"                           // Import loki.test.logs
 	_ "github.com/grafana/agent/component/loki/write"                               // Import loki.write
 	_ "github.com/grafana/agent/component/mimir/rules/kubernetes"                   // Import mimir.rules.kubernetes
 	_ "github.com/grafana/agent/component/module/file"                              // Import module.file
@@ -52,9 +64,9 @@ import (
 	_ "github.com/grafana/agent/component/otelcol/auth/headers"                     // Import otelcol.auth.headers
 	_ "github.com/grafana/agent/component/otelcol/auth/oauth2"                      // Import otelcol.auth.oauth2
 	_ "github.com/grafana/agent/component/otelcol/auth/sigv4"                       // Import otelcol.auth.sigv4
+	_ "github.com/grafana/agent/component/otelcol/connector/servicegraph"           // Import otelcol.connector.servicegraph
 	_ "github.com/grafana/agent/component/otelcol/connector/spanlogs"               // Import otelcol.connector.spanlogs
 	_ "github.com/grafana/agent/component/otelcol/connector/spanmetrics"            // Import otelcol.connector.spanmetrics
-	_ "github.com/grafana/agent/component/otelcol/exporter/jaeger"                  // Import otelcol.exporter.jaeger
 	_ "github.com/grafana/agent/component/otelcol/exporter/loadbalancing"           // Import otelcol.exporter.loadbalancing
 	_ "github.com/grafana/agent/component/otelcol/exporter/logging"                 // Import otelcol.exporter.logging
 	_ "github.com/grafana/agent/component/otelcol/exporter/loki"                    // Import otelcol.exporter.loki
@@ -65,18 +77,26 @@ import (
 	_ "github.com/grafana/agent/component/otelcol/processor/attributes"             // Import otelcol.processor.attributes
 	_ "github.com/grafana/agent/component/otelcol/processor/batch"                  // Import otelcol.processor.batch
 	_ "github.com/grafana/agent/component/otelcol/processor/discovery"              // Import otelcol.processor.discovery
+	_ "github.com/grafana/agent/component/otelcol/processor/filter"                 // Import otelcol.processor.filter
+	_ "github.com/grafana/agent/component/otelcol/processor/k8sattributes"          // Import otelcol.processor.k8sattributes
 	_ "github.com/grafana/agent/component/otelcol/processor/memorylimiter"          // Import otelcol.processor.memory_limiter
+	_ "github.com/grafana/agent/component/otelcol/processor/probabilistic_sampler"  // Import otelcol.processor.probabilistic_sampler
 	_ "github.com/grafana/agent/component/otelcol/processor/span"                   // Import otelcol.processor.span
 	_ "github.com/grafana/agent/component/otelcol/processor/tail_sampling"          // Import otelcol.processor.tail_sampling
+	_ "github.com/grafana/agent/component/otelcol/processor/transform"              // Import otelcol.processor.transform
 	_ "github.com/grafana/agent/component/otelcol/receiver/jaeger"                  // Import otelcol.receiver.jaeger
 	_ "github.com/grafana/agent/component/otelcol/receiver/kafka"                   // Import otelcol.receiver.kafka
 	_ "github.com/grafana/agent/component/otelcol/receiver/loki"                    // Import otelcol.receiver.loki
 	_ "github.com/grafana/agent/component/otelcol/receiver/opencensus"              // Import otelcol.receiver.opencensus
 	_ "github.com/grafana/agent/component/otelcol/receiver/otlp"                    // Import otelcol.receiver.otlp
 	_ "github.com/grafana/agent/component/otelcol/receiver/prometheus"              // Import otelcol.receiver.prometheus
+	_ "github.com/grafana/agent/component/otelcol/receiver/vcenter"                 // Import otelcol.receiver.vcenter
 	_ "github.com/grafana/agent/component/otelcol/receiver/zipkin"                  // Import otelcol.receiver.zipkin
+	_ "github.com/grafana/agent/component/prometheus/exporter/agent"                // Import prometheus.exporter.agent
 	_ "github.com/grafana/agent/component/prometheus/exporter/apache"               // Import prometheus.exporter.apache
+	_ "github.com/grafana/agent/component/prometheus/exporter/azure"                // Import prometheus.exporter.azure
 	_ "github.com/grafana/agent/component/prometheus/exporter/blackbox"             // Import prometheus.exporter.blackbox
+	_ "github.com/grafana/agent/component/prometheus/exporter/cadvisor"             // Import prometheus.exporter.cadvisor
 	_ "github.com/grafana/agent/component/prometheus/exporter/cloudwatch"           // Import prometheus.exporter.cloudwatch
 	_ "github.com/grafana/agent/component/prometheus/exporter/consul"               // Import prometheus.exporter.consul
 	_ "github.com/grafana/agent/component/prometheus/exporter/dnsmasq"              // Import prometheus.exporter.dnsmasq
@@ -97,6 +117,7 @@ import (
 	_ "github.com/grafana/agent/component/prometheus/exporter/squid"                // Import prometheus.exporter.squid
 	_ "github.com/grafana/agent/component/prometheus/exporter/statsd"               // Import prometheus.exporter.statsd
 	_ "github.com/grafana/agent/component/prometheus/exporter/unix"                 // Import prometheus.exporter.unix
+	_ "github.com/grafana/agent/component/prometheus/exporter/vsphere"              // Import prometheus.exporter.vsphere
 	_ "github.com/grafana/agent/component/prometheus/exporter/windows"              // Import prometheus.exporter.windows
 	_ "github.com/grafana/agent/component/prometheus/operator/podmonitors"          // Import prometheus.operator.podmonitors
 	_ "github.com/grafana/agent/component/prometheus/operator/probes"               // Import prometheus.operator.probes
@@ -111,6 +132,8 @@ import (
 	_ "github.com/grafana/agent/component/pyroscope/scrape"                         // Import pyroscope.scrape
 	_ "github.com/grafana/agent/component/pyroscope/write"                          // Import pyroscope.write
 	_ "github.com/grafana/agent/component/remote/http"                              // Import remote.http
+	_ "github.com/grafana/agent/component/remote/kubernetes/configmap"              // Import remote.kubernetes.configmap
+	_ "github.com/grafana/agent/component/remote/kubernetes/secret"                 // Import remote.kubernetes.secret
 	_ "github.com/grafana/agent/component/remote/s3"                                // Import remote.s3
 	_ "github.com/grafana/agent/component/remote/vault"                             // Import remote.vault
 )

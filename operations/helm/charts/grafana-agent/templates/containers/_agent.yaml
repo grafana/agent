@@ -1,6 +1,6 @@
 {{- define "grafana-agent.container" -}}
 - name: grafana-agent
-  image: {{ .Values.global.image.registry | default .Values.image.registry }}/{{ .Values.image.repository }}:{{ include "grafana-agent.imageTag" . }}
+  image: {{ .Values.global.image.registry | default .Values.image.registry }}/{{ .Values.image.repository }}{{ include "grafana-agent.imageId" . }}
   imagePullPolicy: {{ .Values.image.pullPolicy }}
   args:
     {{- if eq .Values.agent.mode "flow"}}
@@ -8,6 +8,7 @@
     - /etc/agent/{{ include "grafana-agent.config-map.key" . }}
     - --storage.path={{ .Values.agent.storagePath }}
     - --server.http.listen-addr={{ .Values.agent.listenAddr }}:{{ .Values.agent.listenPort }}
+    - --server.http.ui-path-prefix={{ .Values.agent.uiPathPrefix }}
     {{- if not .Values.agent.enableReporting }}
     - --disable-reporting
     {{- end}}
@@ -26,6 +27,8 @@
   env:
     - name: AGENT_MODE
       value: {{ .Values.agent.mode }}
+    - name: AGENT_DEPLOY_MODE
+      value: "helm"
     - name: HOSTNAME
       valueFrom:
         fieldRef:

@@ -1,5 +1,9 @@
 ---
+aliases:
+- /docs/grafana-cloud/monitor-infrastructure/agent/static/set-up/install/install-agent-kubernetes/
+- /docs/grafana-cloud/send-data/agent/static/set-up/install/install-agent-kubernetes/
 canonical: https://grafana.com/docs/agent/latest/static/set-up/install/install-agent-kubernetes/
+description: Learn how to deploy Grafana Agent in static mode on Kubernetes
 menuTitle: Kubernetes
 title: Deploy Grafana Agent in static mode on Kubernetes
 weight: 300
@@ -31,11 +35,8 @@ To deploy Grafana Agent in static mode on Kubernetes, perform the following step
 The manifests do not include the `ConfigMaps` which are necessary to run Grafana Agent.
 {{% /admonition %}}
 
-For sample configuration files and detailed instructions, refer to the Grafana Cloud Kubernetes quick start guides:
+For sample configuration files and detailed instructions, refer to [Configure Kubernetes Monitoring](/docs/grafana-cloud/monitor-infrastructure/kubernetes-monitoring/configuration/) in the Grafana Cloud documentation.
 
-- [Grafana Agent Metrics Kubernetes Quickstart](https://grafana.com/docs/grafana-cloud/quickstart/agent-k8s/k8s_agent_metrics/)
-- [Grafana Agent Logs Kubernetes Quickstart](https://grafana.com/docs/grafana-cloud/quickstart/agent-k8s/k8s_agent_logs/)
-- [Grafana Agent Traces Kubernetes Quickstart](https://grafana.com/docs/grafana-cloud/quickstart/agent-k8s/k8s_agent_traces/)
 
 ## Rebuild the Kubernetes manifests
 

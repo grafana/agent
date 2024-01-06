@@ -2,13 +2,14 @@
 
 package target
 
-// This code is copied from Promtail with minor edits. The target package is used to
+// This code is copied from Promtail (https://github.com/grafana/loki/commit/954df433e98f659d006ced52b23151cb5eb2fdfa) with minor edits. The target package is used to
 // configure and run the targets that can read journal entries and forward them
 // to other loki components.
 
 import (
 	"io"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -74,7 +75,7 @@ func TestJournalTarget(t *testing.T) {
 	logger := log.NewLogfmtLogger(w)
 
 	testutils.InitRandom()
-	dirName := "/tmp/" + testutils.RandName()
+	dirName := filepath.Join(os.TempDir(), testutils.RandName())
 	positionsFileName := dirName + "/positions.yml"
 
 	// Set the sync period to a really long value, to guarantee the sync timer
@@ -136,7 +137,7 @@ func TestJournalTargetParsingErrors(t *testing.T) {
 	logger := log.NewLogfmtLogger(w)
 
 	testutils.InitRandom()
-	dirName := "/tmp/" + testutils.RandName()
+	dirName := filepath.Join(os.TempDir(), testutils.RandName())
 	positionsFileName := dirName + "/positions.yml"
 
 	// Set the sync period to a really long value, to guarantee the sync timer
@@ -204,7 +205,7 @@ func TestJournalTarget_JSON(t *testing.T) {
 	logger := log.NewLogfmtLogger(w)
 
 	testutils.InitRandom()
-	dirName := "/tmp/" + testutils.RandName()
+	dirName := filepath.Join(os.TempDir(), testutils.RandName())
 	positionsFileName := dirName + "/positions.yml"
 
 	// Set the sync period to a really long value, to guarantee the sync timer
@@ -264,7 +265,7 @@ func TestJournalTarget_Since(t *testing.T) {
 	logger := log.NewLogfmtLogger(w)
 
 	testutils.InitRandom()
-	dirName := "/tmp/" + testutils.RandName()
+	dirName := filepath.Join(os.TempDir(), testutils.RandName())
 	positionsFileName := dirName + "/positions.yml"
 
 	// Set the sync period to a really long value, to guarantee the sync timer
@@ -298,7 +299,7 @@ func TestJournalTarget_Cursor_TooOld(t *testing.T) {
 	logger := log.NewLogfmtLogger(w)
 
 	testutils.InitRandom()
-	dirName := "/tmp/" + testutils.RandName()
+	dirName := filepath.Join(os.TempDir(), testutils.RandName())
 	positionsFileName := dirName + "/positions.yml"
 
 	// Set the sync period to a really long value, to guarantee the sync timer
@@ -338,7 +339,7 @@ func TestJournalTarget_Cursor_NotTooOld(t *testing.T) {
 	logger := log.NewLogfmtLogger(w)
 
 	testutils.InitRandom()
-	dirName := "/tmp/" + testutils.RandName()
+	dirName := filepath.Join(os.TempDir(), testutils.RandName())
 	positionsFileName := dirName + "/positions.yml"
 
 	// Set the sync period to a really long value, to guarantee the sync timer
@@ -395,7 +396,7 @@ func TestJournalTarget_Matches(t *testing.T) {
 	logger := log.NewLogfmtLogger(w)
 
 	testutils.InitRandom()
-	dirName := "/tmp/" + testutils.RandName()
+	dirName := filepath.Join(os.TempDir(), testutils.RandName())
 	positionsFileName := dirName + "/positions.yml"
 
 	// Set the sync period to a really long value, to guarantee the sync timer

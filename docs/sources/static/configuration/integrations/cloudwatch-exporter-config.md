@@ -1,7 +1,10 @@
 ---
 aliases:
 - ../../../configuration/integrations/cloudwatch-exporter-config/
+- /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/integrations/cloudwatch-exporter-config/
+- /docs/grafana-cloud/send-data/agent/static/configuration/integrations/cloudwatch-exporter-config/
 canonical: https://grafana.com/docs/agent/latest/static/configuration/integrations/cloudwatch-exporter-config/
+description: Learn about cloudwatch_exporter_config
 title: cloudwatch_exporter_config
 ---
 
@@ -177,15 +180,18 @@ discovery:
     - type: AWS/EC2
       regions:
         - us-east-2
+      nil_to_zero: true
       metrics:
         - name: CPUUtilization
           period: 5m
           statistics:
             - Average
+          nil_to_zero: true
         - name: NetworkPacketsIn
           period: 5m
           statistics:
             - Average
+          nil_to_zero: true
 ```
 
 Configuration reference:
@@ -211,6 +217,9 @@ Configuration reference:
   # Optional: List of metric dimensions to query. Before querying metric values, the total list of metrics will be filtered to only those that contain exactly this list of dimensions. An empty or undefined list results in all dimension combinations being included.
   dimension_name_requirements: [ <string> ]
 
+  # Optional: Flag that controls if `NaN` metric values are converted to 0. Default `true`. This can be overridden in the config of each metric.
+  nil_to_zero: <bool>
+
   # Required: List of metric definitions to scrape.
   metrics: [ <metric> ]
 ```
@@ -234,15 +243,18 @@ static:
     dimensions:
       - name: InstanceId
         value: i-0e43cee369aa44b52
+    nil_to_zero: true
     metrics:
       - name: CPUUtilization
         period: 5m
         statistics:
           - Average
+        nil_to_zero: true
       - name: NetworkPacketsIn
         period: 5m
         statistics:
           - Average
+        nil_to_zero: true
 ```
 
 All dimensions need to be specified when scraping single metrics like the example above. For example `AWS/Logs` metrics
@@ -270,6 +282,9 @@ Configuration reference:
   # Optional: Custom tags to be added as a list of Key/Value pairs. When exported, the label name follows the following format:
   # `custom_tag_{Key}`.
   custom_tags: [ <aws_tag> ]
+
+  # Optional: Flag that controls if `NaN` metric values are converted to 0. Default `true`. This can be overridden in the config of each metric.
+  nil_to_zero: <bool>
 
   # Required: List of metric definitions to scrape.
   metrics: [ <metric> ]
@@ -328,6 +343,10 @@ pick the ones you need.
 
   # Optional: See the `period and length` section below.
   length: [ <duration> | default = calculated based on `period` ]
+
+  # Optional: Flag that controls if `NaN` metric values are converted to 0.
+  # When not set, the value defaults to the setting in the parent static or discovery block (`true` if not set in the parent block).
+  nil_to_zero: <bool>
 ```
 
 ### Period and length

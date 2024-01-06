@@ -1,22 +1,26 @@
 ---
-canonical: https://grafana.com/docs/agent/latest/flow/release-notes/
-description: Release notes for Grafana Agent flow mode
-title: Release notes for Grafana Agentflow mode
-menuTitle: Release notes
 aliases:
 - ./upgrade-guide/
+- /docs/grafana-cloud/agent/flow/release-notes/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/release-notes/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/release-notes/
+- /docs/grafana-cloud/send-data/agent/flow/release-notes/
+canonical: https://grafana.com/docs/agent/latest/flow/release-notes/
+description: Release notes for Grafana Agent Flow
+menuTitle: Release notes
+title: Release notes for Grafana Agent Flow
 weight: 999
 ---
 
-# Release notes
+# Release notes for {{% param "PRODUCT_NAME" %}}
 
-The release notes provide information about deprecations and breaking changes in Grafana Agent flow mode.
+The release notes provide information about deprecations and breaking changes in {{< param "PRODUCT_NAME" >}}.
 
-For a complete list of changes to Grafana Agent, with links to pull requests and related issues when available, refer to the [Changelog](https://github.com/grafana/agent/blob/main/CHANGELOG.md).
+For a complete list of changes to {{< param "PRODUCT_ROOT_NAME" >}}, with links to pull requests and related issues when available, refer to the [Changelog](https://github.com/grafana/agent/blob/main/CHANGELOG.md).
 
 {{% admonition type="note" %}}
-These release notes are specific to Grafana Agent flow mode.
-Other release notes for the different Grafana Agent variants are contained on separate pages:
+These release notes are specific to {{< param "PRODUCT_NAME" >}}.
+Other release notes for the different {{< param "PRODUCT_ROOT_NAME" >}} variants are contained on separate pages:
 
 * [Static mode release notes][release-notes-static]
 * [Static mode Kubernetes operator release notes][release-notes-operator]
@@ -25,17 +29,122 @@ Other release notes for the different Grafana Agent variants are contained on se
 [release-notes-operator]: {{< relref "../operator/release-notes.md" >}}
 {{% /admonition %}}
 
+## v0.39
+
+### Breaking change: `otelcol.receiver.prometheus` will drop all `otel_scope_info` metrics when converting them to OTLP
+
+* If the `otel_scope_info` metric has the `otel_scope_name` and `otel_scope_version` labels,
+  their values are used to set the OTLP Instrumentation Scope name and  version, respectively. 
+* Labels for `otel_scope_info` metrics other than `otel_scope_name` and `otel_scope_version` 
+  are added as scope attributes with the matching name and version.
+
+### Breaking change: label for `target` block in `prometheus.exporter.blackbox` is removed
+
+Previously in `prometheus.exporter.blackbox`, the `target` block requires a label which is used in job's name. 
+In this version, user needs to be specify `name` attribute instead, which allow less restrictive naming.
+
+Old configuration example:
+
+```river
+prometheus.exporter.blackbox "example" {
+  config_file = "blackbox_modules.yml"
+
+  target "grafana" {
+    address = "http://grafana.com"
+    module  = "http_2xx"
+    labels = {
+      "env": "dev",
+    }
+  }
+}
+```
+
+New configuration example:
+
+```river
+prometheus.exporter.blackbox "example" {
+  config_file = "blackbox_modules.yml"
+
+  target {
+    name     = "grafana"
+    address = "http://grafana.com"
+    module  = "http_2xx"
+    labels = {
+      "env": "dev",
+    }
+  }
+}
+```
+
+## v0.38
+
+### Breaking change: `otelcol.exporter.jaeger` component removed
+
+The deprecated `otelcol.exporter.jaeger` component has been removed. To send
+traces to Jaeger, use `otelcol.exporter.otlp` and a version of Jaeger that
+supports OTLP.
+
+## v0.37
+
+### Breaking change: Renamed `non_indexed_labels` Loki processing stage to `structured_metadata`.
+
+If you use the Loki processing stage in your {{< param "PRODUCT_NAME" >}} configuration, you must rename the `non_indexed_labels` pipeline stage definition to `structured_metadata`.
+
+Old configuration example:
+
+```river
+stage.non_indexed_labels {
+    values = {"app" = ""}
+}
+```
+
+New configuration example:
+```river
+stage.structured_metadata {
+    values = {"app" = ""}
+}
+```
+
+### Breaking change: `otelcol.exporter.prometheus` scope labels updated
+
+There are 2 changes to the way scope labels work for this component.
+
+* Previously, the `include_scope_info` argument would trigger including
+`otel_scope_name` and `otel_scope_version` in metrics. This is now defaulted
+to `true` and controlled via the `include_scope_labels` argument.
+
+* A bugfix was made to rename `otel_scope_info` metric labels from
+`name` to `otel_scope_name` and `version` to `otel_scope_version`. This is
+now correct with the OTLP Instrumentation Scope specification.
+
+### Breaking change: `prometheus.exporter.unix` now requires a label.
+
+Previously the exporter was a singleton and did not require a label. The exporter now can be used multiple times and
+needs a label.
+
+Old configuration example:
+
+```river
+prometheus.exporter.unix { /* ... */ }
+```
+
+New configuration example:
+
+```river
+prometheus.exporter.unix "example" { /* ... */ }
+```
+
 ## v0.36
 
-## Breaking change: The default value of `retry_on_http_429` is changed to `true` for the `queue_config` in `prometheus.remote_write`
+### Breaking change: The default value of `retry_on_http_429` is changed to `true` for the `queue_config` in `prometheus.remote_write`
 
 The default value of `retry_on_http_429` is changed from `false` to `true` for the `queue_config` block in `prometheus.remote_write`
-so that the agent can retry sending and avoid data being lost for metric pipelines by default.
+so that {{< param "PRODUCT_ROOT_NAME" >}} can retry sending and avoid data being lost for metric pipelines by default.
 
 * If you set the `retry_on_http_429` explicitly - no action is required.
 * If you do not set `retry_on_http_429` explicitly and you do *not* want to retry on HTTP 429, make sure you set it to `false` as you upgrade to this new version.
 
-## Breaking change: `loki.source.file` no longer automatically extracts logs from compressed files
+### Breaking change: `loki.source.file` no longer automatically extracts logs from compressed files
 
 `loki.source.file` component will no longer automatically detect and decompress
 logs from compressed files (this was an undocumented behaviour).
@@ -46,12 +155,12 @@ format. By default, the decompression of files is entirely disabled.
 
 How to migrate:
 
-* If your agent never reads logs from files with
+* If {{< param "PRODUCT_NAME" >}} never reads logs from files with
   extensions `.gz`, `.tar.gz`, `.z` or `.bz2` then no action is required.
-  > You can check what are the file extensions your agent reads from by looking
+  > You can check what are the file extensions {{< param "PRODUCT_NAME" >}} reads from by looking
   at the `path` label on `loki_source_file_file_bytes_total` metric.
 
-* If your agent extracts data from compressed files, please add the following
+* If {{< param "PRODUCT_NAME" >}} extracts data from compressed files, please add the following
   configuration block to your `loki.source.file` component:
 
     ```river
@@ -62,11 +171,11 @@ How to migrate:
         format        = "<compression format>"
       }
     }
-    ``` 
+    ```
 
     where the `<compression format>` is the appropriate compression format -
     see [`loki.source.file` documentation][loki-source-file-docs] for details.
-    
+
     [loki-source-file-docs]: {{< relref "./reference/components/loki.source.file.md" >}}
 
 ## v0.35
@@ -234,7 +343,7 @@ prometehus.scrape "example" {
 
 ### Breaking change: The algorithm for the "hash" action of `otelcol.processor.attributes` has changed
 The hash produced when using `action = "hash"` in the `otelcol.processor.attributes` flow component is now using the more secure SHA-256 algorithm.
-The change was made in PR [#22831](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/22831) of opentelemetry-collector-contrib. 
+The change was made in PR [#22831](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/22831) of opentelemetry-collector-contrib.
 
 ### Breaking change: `otelcol.exporter.loki` now includes instrumentation scope in its output
 
@@ -262,16 +371,16 @@ Additional `instrumentation_scope` information will be added to the OTLP log sig
 ### Breaking change: `otelcol.extension.jaeger_remote_sampling` removes the `/` HTTP endpoint
 
 The `/` HTTP endpoint was the same as the `/sampling` endpoint. The `/sampling` endpoint is still functional.
-The change was made in PR [#18070](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/18070) of opentelemetry-collector-contrib. 
+The change was made in PR [#18070](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/18070) of opentelemetry-collector-contrib.
 
 ### Breaking change: The `remote_sampling` block has been removed from `otelcol.receiver.jaeger`
 
-The `remote_sampling` block in `otelcol.receiver.jaeger` has been an undocumented no-op configuration for some time, and has now been removed. 
+The `remote_sampling` block in `otelcol.receiver.jaeger` has been an undocumented no-op configuration for some time, and has now been removed.
 Customers are advised to use `otelcol.extension.jaeger_remote_sampling` instead.
 
-### Deprecation: `otelcol.exporter.jaeger` has been deprecated and will be removed in Agent v0.38.0.
+### Deprecation: `otelcol.exporter.jaeger` has been deprecated and will be removed in {{% param "PRODUCT_NAME" %}} v0.38.0.
 
-This is because Jaeger supports OTLP directly and OpenTelemetry Collector is also removing its 
+This is because Jaeger supports OTLP directly and OpenTelemetry Collector is also removing its
 [Jaeger receiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/jaegerexporter).
 
 ## v0.34
@@ -465,7 +574,7 @@ prometheus.exporter.unix { }
 As first announced in v0.30.0, support for using the `EXPERIMENTAL_ENABLE_FLOW`
 environment variable to enable Flow mode has been removed.
 
-To enable Flow mode, set the `AGENT_MODE` environment variable to `flow`.
+To enable {{< param "PRODUCT_NAME" >}}, set the `AGENT_MODE` environment variable to `flow`.
 
 ## v0.31
 
@@ -488,7 +597,7 @@ removed.
 
 ### Deprecation: `EXPERIMENTAL_ENABLE_FLOW` environment variable changed
 
-As part of graduating Grafana Agent Flow to beta, the
+As part of graduating {{< param "PRODUCT_NAME" >}} to beta, the
 `EXPERIMENTAL_ENABLE_FLOW` environment variable is replaced by setting
 `AGENT_MODE` to `flow`.
 

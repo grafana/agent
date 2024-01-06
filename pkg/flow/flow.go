@@ -1,5 +1,5 @@
 // Package flow implements the Flow component graph system. Flow configuration
-// files are parsed from River, which contain a listing of components to run.
+// sources are parsed from River, which contain a listing of components to run.
 //
 // # Components
 //
@@ -50,9 +50,10 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/pkg/flow/internal/controller"
+	"github.com/grafana/agent/pkg/flow/internal/worker"
 	"github.com/grafana/agent/pkg/flow/logging"
+	"github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/grafana/agent/pkg/flow/tracing"
 	"github.com/grafana/agent/service"
 	"github.com/prometheus/client_golang/prometheus"
@@ -91,7 +92,7 @@ type Options struct {
 	// OnExportsChange is called when the exports of the controller change.
 	// Exports are controlled by "export" configuration blocks. If
 	// OnExportsChange is nil, export configuration blocks are not allowed in the
-	// loaded config file.
+	// loaded config source.
 	OnExportsChange func(exports map[string]any)
 
 	// List of Services to run with the Flow controller.
@@ -124,6 +125,7 @@ func New(o Options) *Flow {
 		Options:        o,
 		ModuleRegistry: newModuleRegistry(),
 		IsModule:       false, // We are creating a new root controller.
+		WorkerPool:     worker.NewDefaultWorkerPool(),
 	})
 }
 
@@ -135,6 +137,8 @@ type controllerOptions struct {
 	ComponentRegistry controller.ComponentRegistry // Custom component registry used in tests.
 	ModuleRegistry    *moduleRegistry              // Where to register created modules.
 	IsModule          bool                         // Whether this controller is for a module.
+	// A worker pool to evaluate components asynchronously. A default one will be created if this is nil.
+	WorkerPool worker.Pool
 }
 
 // newController creates a new, unstarted Flow controller with a specific
@@ -142,8 +146,9 @@ type controllerOptions struct {
 // given modReg.
 func newController(o controllerOptions) *Flow {
 	var (
-		log    = o.Logger
-		tracer = o.Tracer
+		log        = o.Logger
+		tracer     = o.Tracer
+		workerPool = o.WorkerPool
 	)
 
 	if tracer == nil {
@@ -153,6 +158,11 @@ func newController(o controllerOptions) *Flow {
 			// This shouldn't happen unless there's a bug
 			panic(err)
 		}
+	}
+
+	if workerPool == nil {
+		level.Info(log).Log("msg", "no worker pool provided, creating a default pool", "controller", o.ControllerID)
+		workerPool = worker.NewDefaultWorkerPool()
 	}
 
 	f := &Flow{
@@ -182,7 +192,7 @@ func newController(o controllerOptions) *Flow {
 			OnExportsChange: o.OnExportsChange,
 			Registerer:      o.Reg,
 			ControllerID:    o.ControllerID,
-			NewModuleController: func(id string, availableServices []string) controller.ModuleController {
+			NewModuleController: func(id string) controller.ModuleController {
 				return newModuleController(&moduleControllerOptions{
 					ComponentRegistry: o.ComponentRegistry,
 					ModuleRegistry:    o.ModuleRegistry,
@@ -191,7 +201,8 @@ func newController(o controllerOptions) *Flow {
 					Reg:               o.Reg,
 					DataPath:          o.DataPath,
 					ID:                id,
-					ServiceMap:        serviceMap.FilterByName(availableServices),
+					ServiceMap:        serviceMap,
+					WorkerPool:        workerPool,
 				})
 			},
 			GetServiceData: func(name string) (interface{}, error) {
@@ -206,6 +217,7 @@ func newController(o controllerOptions) *Flow {
 		Services:          o.Services,
 		Host:              f,
 		ComponentRegistry: o.ComponentRegistry,
+		WorkerPool:        workerPool,
 	})
 
 	return f
@@ -214,8 +226,8 @@ func newController(o controllerOptions) *Flow {
 // Run starts the Flow controller, blocking until the provided context is
 // canceled. Run must only be called once.
 func (f *Flow) Run(ctx context.Context) {
-	defer f.sched.Close()
-	defer f.loader.Cleanup()
+	defer func() { _ = f.sched.Close() }()
+	defer f.loader.Cleanup(!f.opts.IsModule)
 	defer level.Debug(f.log).Log("msg", "flow controller exiting")
 
 	for {
@@ -224,19 +236,11 @@ func (f *Flow) Run(ctx context.Context) {
 			return
 
 		case <-f.updateQueue.Chan():
-			// We need to pop _everything_ from the queue and evaluate each of them.
-			// If we only pop a single element, other components may sit waiting for
-			// evaluation forever.
-			for {
-				updated := f.updateQueue.TryDequeue()
-				if updated == nil {
-					break
-				}
-
-				level.Debug(f.log).Log("msg", "handling component with updated state", "node_id", updated.NodeID())
-				f.loader.EvaluateDependencies(updated)
-			}
-
+			// Evaluate all components that have been updated. Sending the entire batch together will improve
+			// throughput - it prevents the situation where two components have the same dependency, and the first time
+			// it's picked up by the worker pool and the second time it's enqueued again, resulting in more evaluations.
+			all := f.updateQueue.DequeueAll()
+			f.loader.EvaluateDependants(ctx, all)
 		case <-f.loadFinished:
 			level.Info(f.log).Log("msg", "scheduling loaded components and services")
 
@@ -266,17 +270,17 @@ func (f *Flow) Run(ctx context.Context) {
 	}
 }
 
-// LoadFile synchronizes the state of the controller with the current config
-// file. Components in the graph will be marked as unhealthy if there was an
+// LoadSource synchronizes the state of the controller with the current config
+// source. Components in the graph will be marked as unhealthy if there was an
 // error encountered during Load.
 //
 // The controller will only start running components after Load is called once
 // without any configuration errors.
-func (f *Flow) LoadFile(file *File, args map[string]any) error {
+func (f *Flow) LoadSource(source *Source, args map[string]any) error {
 	f.loadMut.Lock()
 	defer f.loadMut.Unlock()
 
-	diags := f.loader.Apply(args, file.Components, file.ConfigBlocks)
+	diags := f.loader.Apply(args, source.components, source.configBlocks)
 	if !f.loadedOnce.Load() && diags.HasErrors() {
 		// The first call to Load should not run any components if there were
 		// errors in the configuration file.

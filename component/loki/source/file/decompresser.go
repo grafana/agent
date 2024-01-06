@@ -1,8 +1,8 @@
 package file
 
-// This code is copied from Promtail. decompressor implements the reader
-// interface and is used to read compressed log files. It uses the Go stdlib's
-// compress/* packages for decoding.
+// This code is copied from loki/promtail@a8d5815510bd959a6dd8c176a5d9fd9bbfc8f8b5.
+// Decompressor implements the reader interface and is used to read compressed log files.
+// It uses the Go stdlib's compress/* packages for decoding.
 
 import (
 	"bufio"
@@ -19,9 +19,9 @@ import (
 	"unsafe"
 
 	"github.com/go-kit/log"
-	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component/common/loki"
 	"github.com/grafana/agent/component/common/loki/positions"
+	"github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/grafana/loki/pkg/logproto"
 	"github.com/prometheus/common/model"
 	"go.uber.org/atomic"
@@ -58,9 +58,10 @@ type decompressor struct {
 
 	decoder *encoding.Decoder
 
-	position int64
-	size     int64
-	cfg      DecompressionConfig
+	position         int64
+	previousPosition int64
+	size             int64
+	cfg              DecompressionConfig
 }
 
 func newDecompressor(
@@ -267,6 +268,9 @@ func (d *decompressor) MarkPositionAndSize() error {
 
 	d.metrics.totalBytes.WithLabelValues(d.path).Set(float64(d.size))
 	d.metrics.readBytes.WithLabelValues(d.path).Set(float64(d.position))
+	d.metrics.totalReadBytes.Add(float64(d.position - d.previousPosition))
+
+	d.previousPosition = d.position
 	d.positions.Put(d.path, d.labels, d.position)
 
 	return nil

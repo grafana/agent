@@ -1,5 +1,11 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/pyroscope.write/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/pyroscope.write/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/pyroscope.write/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/pyroscope.write/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/pyroscope.write/
+description: Learn about pyroscope.write
 labels:
   stage: beta
 title: pyroscope.write
@@ -7,10 +13,10 @@ title: pyroscope.write
 
 # pyroscope.write
 
-{{< docs/shared lookup="flow/stability/beta.md" source="agent" >}}
+{{< docs/shared lookup="flow/stability/beta.md" source="agent" version="<AGENT_VERSION>" >}}
 
 `pyroscope.write` receives performance profiles from other components and forwards them
-to a series of user-supplied endpoints using [Pyroscope' Push API](https://grafana.com/oss/phlare/).
+to a series of user-supplied endpoints using [Pyroscope' Push API](/oss/pyroscope/).
 
 Multiple `pyroscope.write` components can be specified by giving them
 different labels.
@@ -96,19 +102,19 @@ configured locations.
 
 ### basic_auth block
 
-{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### authorization block
 
-{{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### oauth2 block
 
-{{< docs/shared lookup="flow/reference/components/oauth2-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/oauth2-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### tls_config block
 
-{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ## Exported fields
 
@@ -137,7 +143,7 @@ pyroscope.write "staging" {
   endpoint {
     url = "http://pyroscope:4100"
     headers = {
-      "X-Scope-Org-ID" = "squad-1",
+      "X-Scope-OrgID" = "squad-1",
     }
   }
   external_labels = {
@@ -154,3 +160,19 @@ pyroscope.scrape "default" {
   forward_to = [pyroscope.write.staging.receiver]
 }
 ```
+<!-- START GENERATED COMPATIBLE COMPONENTS -->
+
+## Compatible components
+
+`pyroscope.write` has exports that can be consumed by the following components:
+
+- Components that consume [Pyroscope `ProfilesReceiver`]({{< relref "../compatibility/#pyroscope-profilesreceiver-consumers" >}})
+
+{{% admonition type="note" %}}
+
+Connecting some components may not be sensible or components may require further configuration to make the 
+connection work correctly. Refer to the linked documentation for more details.
+
+{{% /admonition %}}
+
+<!-- END GENERATED COMPATIBLE COMPONENTS -->

@@ -12,7 +12,7 @@
 
 # Dependency: golangci-lint (for linting)
 FROM alpine as golangci
-RUN wget -O- -nv https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s v1.51.2
+RUN wget -O- -nv https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s v1.54.2
 
 # Dependency: docker (for building images)
 FROM alpine:3.17 as docker
@@ -23,7 +23,7 @@ FROM alpine:3.17 as helm
 RUN apk add --no-cache helm
 
 # Dependency: Go and Go dependencies
-FROM golang:1.21.0-bullseye as golang
+FROM golang:1.21.4-bullseye as golang
 
 # Keep in sync with cmd/grafana-agent-operator/DEVELOPERS.md
 ENV CONTROLLER_GEN_VERSION v0.9.2
@@ -54,9 +54,11 @@ FROM rfratto/viceroy:v0.4.0
 # This must be done before installing other dependencies, otherwise nodesource
 # will fail on installing NodeJS for all platforms instead of just our host
 # platform.
+# Source: https://github.com/nodesource/distributions#installation-instructions
 RUN <<EOF
-  apt-get update && apt-get install -qy curl
-  curl -fsSL https://deb.nodesource.com/setup_16.x | bash -
+  apt-get update && apt-get install -qy ca-certificates curl gnupg && mkdir -p /etc/apt/keyrings
+  curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
+  echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_16.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list
 
   apt-get update && apt-get install -qy nodejs
   rm -rf /var/lib/apt/lists/*

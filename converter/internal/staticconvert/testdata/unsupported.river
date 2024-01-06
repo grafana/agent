@@ -8,33 +8,43 @@ prometheus.scrape "metrics_agent_prometheus" {
 
 prometheus.remote_write "metrics_agent" {
 	endpoint {
-		name = "agent-72cf3f"
+		name = "agent-d885f6"
 		url  = "https://prometheus-us-central1.grafana.net/api/prom/push"
 
-		queue_config {
-			retry_on_http_429 = false
-		}
+		queue_config { }
 
 		metadata_config { }
 	}
 }
 
+logging {
+	level  = "debug"
+	format = "json"
+}
+
 prometheus.exporter.statsd "integrations_statsd_exporter" { }
 
+discovery.relabel "integrations_statsd_exporter" {
+	targets = prometheus.exporter.statsd.integrations_statsd_exporter.targets
+
+	rule {
+		target_label = "job"
+		replacement  = "integrations/statsd_exporter"
+	}
+}
+
 prometheus.scrape "integrations_statsd_exporter" {
-	targets    = prometheus.exporter.statsd.integrations_statsd_exporter.targets
+	targets    = discovery.relabel.integrations_statsd_exporter.output
 	forward_to = [prometheus.remote_write.integrations.receiver]
 	job_name   = "integrations/statsd_exporter"
 }
 
 prometheus.remote_write "integrations" {
 	endpoint {
-		name = "agent-72cf3f"
+		name = "agent-d885f6"
 		url  = "https://prometheus-us-central1.grafana.net/api/prom/push"
 
-		queue_config {
-			retry_on_http_429 = false
-		}
+		queue_config { }
 
 		metadata_config { }
 	}

@@ -7,8 +7,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component/pyroscope"
+	"github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/grafana/agent/service/cluster"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/discovery/targetgroup"
@@ -33,9 +33,8 @@ const (
 
 func init() {
 	component.Register(component.Registration{
-		Name:          "pyroscope.scrape",
-		Args:          Arguments{},
-		NeedsServices: []string{cluster.ServiceName},
+		Name: "pyroscope.scrape",
+		Args: Arguments{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			return New(opts, args.(Arguments))
@@ -81,7 +80,7 @@ type Arguments struct {
 
 	ProfilingConfig ProfilingConfig `river:"profiling_config,block,optional"`
 
-	Clustering scrape.Clustering `river:"clustering,block,optional"`
+	Clustering cluster.ComponentBlock `river:"clustering,block,optional"`
 }
 
 type ProfilingConfig struct {
@@ -102,7 +101,7 @@ type ProfilingConfig struct {
 // AllTargets returns the set of all standard and custom profiling targets,
 // regardless of whether they're enabled. The key in the map indicates the name
 // of the target.
-func (cfg ProfilingConfig) AllTargets() map[string]ProfilingTarget {
+func (cfg *ProfilingConfig) AllTargets() map[string]ProfilingTarget {
 	targets := map[string]ProfilingTarget{
 		pprofMemory:            cfg.Memory,
 		pprofBlock:             cfg.Block,
@@ -376,7 +375,7 @@ func (c *Component) DebugInfo() interface{} {
 			if st != nil {
 				res = append(res, scrape.TargetStatus{
 					JobName:            job,
-					URL:                st.URL().String(),
+					URL:                st.URL(),
 					Health:             string(st.Health()),
 					Labels:             st.discoveredLabels.Map(),
 					LastError:          lastError,

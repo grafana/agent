@@ -1,29 +1,36 @@
 ---
-canonical: https://grafana.com/docs/agent/latest/operator/release-notes/
-description: Release notes for Grafana Agent static mode Kubernetes operator
-title: Release notes for Grafana Agent
-menuTitle: Release notes
 aliases:
 - ./upgrade-guide/
+- /docs/grafana-cloud/agent/operator/release-notes/
+- /docs/grafana-cloud/monitor-infrastructure/agent/operator/release-notes/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/operator/release-notes/
+- /docs/grafana-cloud/send-data/agent/operator/release-notes/
+canonical: https://grafana.com/docs/agent/latest/operator/release-notes/
+description: Release notes for Grafana Agent Operator
+menuTitle: Release notes
+title: Release notes for Grafana Agent Operator
 weight: 999
 ---
 
-# Release notes
+# Release notes for Grafana Agent Operator
 
 The release notes provide information about deprecations and breaking changes in Grafana Agent static mode Kubernetes operator.
 
 For a complete list of changes to Grafana Agent, with links to pull requests and related issues when available, refer to the [Changelog](https://github.com/grafana/agent/blob/main/CHANGELOG.md).
 
-{{% admonition type="note" %}}
-These release notes are specific to the Static mode Kubernetes Operator.
-Other release notes for the different Grafana Agent variants are contained on separate pages:
+> **Note:** These release notes are specific to the Static mode Kubernetes Operator.
+> Other release notes for the different Grafana Agent variants are contained on separate pages:
+>
+> - [Static mode release notes][release-notes-static]
+> - [Flow mode release notes][release-notes-flow]
 
-* [Static mode release notes][release-notes-static]
-* [Flow mode release notes][release-notes-flow]
+{{% docs/reference %}}
+[release-notes-static]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static/release-notes"
+[release-notes-static]: "/docs/agent/ -> /docs/grafana-cloud/send-data/agent/static/release-notes"
 
-[release-notes-static]: {{< relref "../static/release-notes.md" >}}
-[release-notes-flow]: {{< relref "../flow/release-notes.md" >}}
-{{% /admonition %}}
+[release-notes-flow]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/release-notes"
+[release-notes-flow]: "/docs/grafana-cloud/ -> /docs/agent/<AGENT_VERSION>/flow/release-notes"
+{{% /docs/reference %}}
 
 ## v0.33
 

@@ -163,12 +163,16 @@ func TestStorage_DuplicateExemplarsIgnored(t *testing.T) {
 	_, _ = app.AppendExemplar(sRef, nil, e)
 	_, _ = app.AppendExemplar(sRef, nil, e)
 
+	e.Ts = 24
+	_, _ = app.AppendExemplar(sRef, nil, e)
+	_, _ = app.AppendExemplar(sRef, nil, e)
+
 	require.NoError(t, app.Commit())
 	collector := walDataCollector{}
 	replayer := walReplayer{w: &collector}
 	require.NoError(t, replayer.Replay(s.wal.Dir()))
 
-	// We had 9 calls to AppendExemplar but only 4 of those should have gotten through
+	// We had 11 calls to AppendExemplar but only 4 of those should have gotten through.
 	require.Equal(t, 4, len(collector.exemplars))
 }
 
@@ -434,6 +438,32 @@ func TestGlobalReferenceID_Normal(t *testing.T) {
 	require.True(t, ref3 == 2)
 }
 
+func TestDBAllowOOOSamples(t *testing.T) {
+	walDir := t.TempDir()
+
+	s, err := NewStorage(log.NewNopLogger(), nil, walDir)
+	require.NoError(t, err)
+	defer func() {
+		require.NoError(t, s.Close())
+	}()
+
+	app := s.Appender(context.Background())
+
+	// Write some samples
+	payload := buildSeries([]string{"foo", "bar", "baz"})
+	for _, metric := range payload {
+		metric.Write(t, app)
+	}
+
+	require.NoError(t, app.Commit())
+
+	for _, metric := range payload {
+		// We want to set the timestamp to before using this offset.
+		// This should no longer trigger an out of order.
+		metric.WriteOOO(t, app, 10_000)
+	}
+}
+
 func BenchmarkAppendExemplar(b *testing.B) {
 	walDir := b.TempDir()
 
@@ -492,6 +522,28 @@ func (s *series) Write(t *testing.T, app storage.Appender) {
 	for _, exemplar := range s.exemplars {
 		var err error
 		sRef, err = app.AppendExemplar(sRef, nil, exemplar)
+		require.NoError(t, err)
+	}
+}
+
+func (s *series) WriteOOO(t *testing.T, app storage.Appender, tsOffset int64) {
+	t.Helper()
+
+	lbls := labels.FromMap(map[string]string{"__name__": s.name})
+
+	offset := 0
+	if s.ref == nil {
+		// Write first sample to get ref ID
+		ref, err := app.Append(0, lbls, s.samples[0].ts-tsOffset, s.samples[0].val)
+		require.NoError(t, err)
+
+		s.ref = &ref
+		offset = 1
+	}
+
+	// Write other data points with AddFast
+	for _, sample := range s.samples[offset:] {
+		_, err := app.Append(*s.ref, lbls, sample.ts-tsOffset, sample.val)
 		require.NoError(t, err)
 	}
 }

@@ -1,21 +1,53 @@
 ---
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/components/otelcol.processor.discovery/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/otelcol.processor.discovery/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/otelcol.processor.discovery/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/otelcol.processor.discovery/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.processor.discovery/
+description: Learn about otelcol.processor.discovery
 title: otelcol.processor.discovery
 ---
 
 # otelcol.processor.discovery
 
 `otelcol.processor.discovery` accepts traces telemetry data from other `otelcol`
-components. It can be paired with `discovery.*` components, which supply a list 
+components. It can be paired with `discovery.*` components, which supply a list
 of labels for each discovered target.
-`otelcol.processor.discovery` adds resource attributes to spans which have a hostname 
+`otelcol.processor.discovery` adds resource attributes to spans which have a hostname
 matching the one in the `__address__` label provided by the `discovery.*` component.
 
-> **NOTE**: `otelcol.processor.discovery` is a custom component unrelated to any
-> processors from the OpenTelemetry Collector.
+{{% admonition type="note" %}}
+`otelcol.processor.discovery` is a custom component unrelated to any
+processors from the OpenTelemetry Collector.
+{{% /admonition %}}
 
 Multiple `otelcol.processor.discovery` components can be specified by giving them
 different labels.
+
+{{% admonition type="note" %}}
+It can be difficult to follow [OpenTelemetry semantic conventions][OTEL sem conv] when
+adding resource attributes via `otelcol.processor.discovery`:
+* `discovery.relabel` and most `discovery.*` processes such as `discovery.kubernetes`
+  can only emit [Prometheus-compatible labels][Prometheus data model].
+* Prometheus labels use underscores (`_`) in labels names, whereas
+  [OpenTelemetry semantic conventions][OTEL sem conv] use dots (`.`).
+* Although `otelcol.processor.discovery` is able to work with non-Prometheus labels
+  such as ones containing dots, the fact that `discovery.*` components are generally
+  only compatible with Prometheus naming conventions makes it hard to follow OpenTelemetry
+  semantic conventions in `otelcol.processor.discovery`.
+
+If your use case is to add resource attributes which contain Kubernetes metadata,
+consider using `otelcol.processor.k8sattributes` instead.
+
+------
+The main use case for `otelcol.processor.discovery` is for users who migrate to {{< param "PRODUCT_NAME" >}}
+from Static mode's `prom_sd_operation_type`/`prom_sd_pod_associations` [configuration options][Traces].
+
+[Prometheus data model]: https://prometheus.io/docs/concepts/data_model/#metric-names-and-labels
+[OTEL sem conv]: https://github.com/open-telemetry/semantic-conventions/blob/main/docs/README.md
+[Traces]: {{< relref "../../../static/configuration/traces-config.md" >}}
+{{% /admonition %}}
 
 ## Usage
 
@@ -74,7 +106,7 @@ output | [output][] | Configures where to send received telemetry data. | yes
 
 ### output block
 
-{{< docs/shared lookup="flow/reference/components/output-block-traces.md" source="agent" >}}
+{{< docs/shared lookup="flow/reference/components/output-block-traces.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ## Exported fields
 
@@ -100,7 +132,7 @@ information.
 ## Examples
 
 ### Basic usage
-```
+```river
 discovery.http "dynamic_targets" {
     url              = "https://example.com/scrape_targets"
     refresh_interval = "15s"
@@ -119,7 +151,7 @@ otelcol.processor.discovery "default" {
 
 Outputs from more than one discovery process can be combined via the `concat` function.
 
-```
+```river
 discovery.http "dynamic_targets" {
     url              = "https://example.com/scrape_targets"
     refresh_interval = "15s"
@@ -141,19 +173,43 @@ otelcol.processor.discovery "default" {
 
 ### Using a preconfigured list of attributes
 
-It is not necessary to use a discovery component. In the example below, a `test_label` resource 
-attribute will be added to a span if its IP address is "1.2.2.2". The `__internal_label__` will
-be not be added to the span, because it begins with a double underscore (`__`).
+It is not necessary to use a discovery component. In the example below, both a `test_label` and 
+a `test.label.with.dots` resource attributes will be added to a span if its IP address is 
+"1.2.2.2". The `__internal_label__` will be not be added to the span, because it begins with 
+a double underscore (`__`).
 
-```
+```river
 otelcol.processor.discovery "default" {
     targets = [{
-        "__address__"        = "1.2.2.2", 
-        "__internal_label__" = "test_val",
-        "test_label"         = "test_val2"}]
+        "__address__"          = "1.2.2.2", 
+        "__internal_label__"   = "test_val",
+        "test_label"           = "test_val2",
+        "test.label.with.dots" = "test.val2.with.dots"}]
 
     output {
         traces = [otelcol.exporter.otlp.default.input]
     }
 }
 ```
+
+<!-- START GENERATED COMPATIBLE COMPONENTS -->
+
+## Compatible components
+
+`otelcol.processor.discovery` can accept arguments from the following components:
+
+- Components that export [Targets]({{< relref "../compatibility/#targets-exporters" >}})
+- Components that export [OpenTelemetry `otelcol.Consumer`]({{< relref "../compatibility/#opentelemetry-otelcolconsumer-exporters" >}})
+
+`otelcol.processor.discovery` has exports that can be consumed by the following components:
+
+- Components that consume [OpenTelemetry `otelcol.Consumer`]({{< relref "../compatibility/#opentelemetry-otelcolconsumer-consumers" >}})
+
+{{% admonition type="note" %}}
+
+Connecting some components may not be sensible or components may require further configuration to make the 
+connection work correctly. Refer to the linked documentation for more details.
+
+{{% /admonition %}}
+
+<!-- END GENERATED COMPATIBLE COMPONENTS -->

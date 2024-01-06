@@ -103,7 +103,7 @@ func newTestEnvironment(t *testing.T, fe *fakeExporter) *testEnvironment {
 				}, otelcomponent.StabilityLevelUndefined),
 			)
 
-			return exporter.New(opts, factory, args.(exporter.Arguments))
+			return exporter.New(opts, factory, args.(exporter.Arguments), exporter.TypeAll)
 		},
 	}
 
@@ -121,8 +121,7 @@ func (te *testEnvironment) Start() {
 	}()
 }
 
-type fakeExporterArgs struct {
-}
+type fakeExporterArgs struct{}
 
 var _ exporter.Arguments = fakeExporterArgs{}
 
@@ -136,6 +135,10 @@ func (fa fakeExporterArgs) Extensions() map[otelcomponent.ID]otelextension.Exten
 
 func (fa fakeExporterArgs) Exporters() map[otelcomponent.DataType]map[otelcomponent.ID]otelcomponent.Component {
 	return nil
+}
+
+func (fe fakeExporterArgs) DebugMetricsConfig() otelcol.DebugMetricsArguments {
+	return otelcol.DefaultDebugMetricsArguments
 }
 
 type fakeExporter struct {
@@ -178,7 +181,7 @@ func (fe *fakeExporter) ConsumeTraces(ctx context.Context, td ptrace.Traces) err
 func createTestTraces() ptrace.Traces {
 	// Matches format from the protobuf definition:
 	// https://github.com/open-telemetry/opentelemetry-proto/blob/main/opentelemetry/proto/trace/v1/trace.proto
-	var bb = `{
+	bb := `{
 		"resource_spans": [{
 			"scope_spans": [{
 				"spans": [{
@@ -194,4 +197,38 @@ func createTestTraces() ptrace.Traces {
 		panic(err)
 	}
 	return data
+}
+
+func TestExporterSignalType(t *testing.T) {
+	//
+	// Check if ExporterAll supports all signals
+	//
+	require.True(t, exporter.TypeAll.SupportsLogs())
+	require.True(t, exporter.TypeAll.SupportsMetrics())
+	require.True(t, exporter.TypeAll.SupportsTraces())
+
+	//
+	// Make sure each of the 3 signals supports itself
+	//
+	require.True(t, exporter.TypeLogs.SupportsLogs())
+	require.True(t, exporter.TypeMetrics.SupportsMetrics())
+	require.True(t, exporter.TypeTraces.SupportsTraces())
+
+	//
+	// Make sure Logs does not support Metrics and Traces.
+	//
+	require.False(t, exporter.TypeLogs.SupportsMetrics())
+	require.False(t, exporter.TypeLogs.SupportsTraces())
+
+	//
+	// Make sure Metrics does not support Logs and Traces.
+	//
+	require.False(t, exporter.TypeMetrics.SupportsLogs())
+	require.False(t, exporter.TypeMetrics.SupportsTraces())
+
+	//
+	// Make sure Traces does not support Logs and Metrics.
+	//
+	require.False(t, exporter.TypeTraces.SupportsLogs())
+	require.False(t, exporter.TypeTraces.SupportsMetrics())
 }

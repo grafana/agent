@@ -5,7 +5,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Regenerate docs
         run: |
@@ -22,7 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Install Helm
         uses: azure/setup-helm@v3
@@ -41,7 +41,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -57,7 +57,7 @@ jobs:
           check-latest: true
 
       - name: Install chart-testing
-        uses: helm/chart-testing-action@v2.3.1
+        uses: helm/chart-testing-action@v2.6.1
 
       - name: Determine changed charts
         id: list-changed
@@ -73,6 +73,16 @@ jobs:
       - name: Create kind cluster
         uses: helm/kind-action@v1.8.0
         if: steps.list-changed.outputs.changed == 'true'
+
+      - name: Add dependency chart repos
+        if: steps.list-changed.outputs.changed == 'true'
+        run: |
+          helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+
+      - name: Install Prometheus Operator CRDs
+        if: steps.list-changed.outputs.changed == 'true'
+        run: |
+          helm install my-prometheus-operator-crds prometheus-community/prometheus-operator-crds --version 6.0.0
 
       - name: Test charts
         run: ct install --config ./operations/helm/ct.yaml

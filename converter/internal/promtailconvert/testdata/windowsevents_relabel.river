@@ -5,7 +5,6 @@ loki.relabel "fun" {
 		source_labels = ["__trail__"]
 		target_label  = "__path__"
 	}
-	max_cache_size = 0
 }
 
 loki.source.windowsevent "fun" {
@@ -16,6 +15,7 @@ loki.source.windowsevent "fun" {
 	poll_interval          = "10s"
 	exclude_event_data     = true
 	exclude_user_data      = true
+	exclude_event_message  = true
 	use_incoming_timestamp = true
 	forward_to             = [loki.relabel.fun.receiver]
 	labels                 = {}

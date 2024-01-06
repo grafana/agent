@@ -1,9 +1,5 @@
 package stages
 
-// This package is ported over from grafana/loki/clients/pkg/logentry/stages.
-// We aim to port the stages in steps, to avoid introducing huge amounts of
-// new code without being able to slowly review, examine and test them.
-
 import (
 	"fmt"
 	"testing"
@@ -137,6 +133,7 @@ func TestMatcher(t *testing.T) {
 		{`{foo="bar",bar!~"te.*"}`, map[string]string{"foo": "bar", "bar": "test"}, MatchActionDrop, false, false, false},
 
 		{`{foo=""}`, map[string]string{}, MatchActionKeep, false, true, false},
+		{`{foo="bar"} |= "foo" | status >= 200`, map[string]string{"foo": "bar"}, MatchActionKeep, false, false, true},
 	}
 
 	for _, tt := range tests {

@@ -41,40 +41,13 @@ func Walk(g *Graph, start []Node, fn WalkFunc) error {
 	return nil
 }
 
-// WalkReverse performs a depth-first walk of incoming edges for all nodes in
-// start, invoking the provided fn for each node. Walk returns the error
-// returned by fn.
-//
-// Nodes unreachable from start will not be passed to fn.
-func WalkReverse(g *Graph, start []Node, fn WalkFunc) error {
-	var (
-		visited   = make(nodeSet)
-		unchecked = make([]Node, 0, len(start))
-	)
-
-	// Prefill the set of unchecked nodes with our start set.
-	unchecked = append(unchecked, start...)
-
-	// Iterate through unchecked nodes, visiting each in turn and adding incoming
-	// edges to the unchecked list until all reachable nodes have been processed.
-	for len(unchecked) > 0 {
-		check := unchecked[len(unchecked)-1]
-		unchecked = unchecked[:len(unchecked)-1]
-
-		if visited.Has(check) {
-			continue
-		}
-		visited.Add(check)
-
-		if err := fn(check); err != nil {
+// WalkIncomingNodes walks all the nodes that have a direct, incoming edge to start.
+func WalkIncomingNodes(g *Graph, start Node, fn WalkFunc) error {
+	for n := range g.inEdges[start] {
+		if err := fn(n); err != nil {
 			return err
 		}
-
-		for n := range g.inEdges[check] {
-			unchecked = append(unchecked, n)
-		}
 	}
-
 	return nil
 }
 

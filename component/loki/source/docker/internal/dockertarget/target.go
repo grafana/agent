@@ -1,8 +1,8 @@
 package dockertarget
 
-// This code is copied from Promtail. The dockertarget package is used to
-// configure and run the targets that can read logs from Docker containers and
-// forward them to other loki components.
+// NOTE: This code is adapted from Promtail (90a1d4593e2d690b37333386383870865fe177bf).
+// The dockertarget package is used to configure and run the targets that can
+// read logs from Docker containers and forward them to other loki components.
 
 import (
 	"bufio"
@@ -18,9 +18,9 @@ import (
 	"github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/stdcopy"
 	"github.com/go-kit/log"
-	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component/common/loki"
 	"github.com/grafana/agent/component/common/loki/positions"
+	"github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/grafana/loki/pkg/logproto"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/model/labels"
@@ -261,12 +261,13 @@ func (t *Target) Hash() uint64 {
 	return uint64(t.labels.Fingerprint())
 }
 
+// Path returns the target's container name.
 func (t *Target) Path() string {
 	return t.containerName
 }
 
 // Details returns target-specific details.
-func (t *Target) Details() interface{} {
+func (t *Target) Details() map[string]string {
 	var errMsg string
 	if t.err != nil {
 		errMsg = t.err.Error()

@@ -6,12 +6,12 @@ import (
 	"fmt"
 
 	"github.com/go-kit/log"
-	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/otelcol"
 	"github.com/grafana/agent/component/otelcol/internal/fanoutconsumer"
 	"github.com/grafana/agent/component/otelcol/internal/lazyconsumer"
+	"github.com/grafana/agent/pkg/flow/logging/level"
 	promsdconsumer "github.com/grafana/agent/pkg/traces/promsdprocessor/consumer"
 	"github.com/grafana/river"
 )
@@ -77,7 +77,6 @@ func (args *Arguments) Validate() error {
 
 // Component is the otelcol.exporter.discovery component.
 type Component struct {
-	cfg      Arguments
 	consumer *promsdconsumer.Consumer
 	logger   log.Logger
 }
@@ -134,18 +133,17 @@ func (c *Component) Run(ctx context.Context) error {
 // Update implements Component.
 func (c *Component) Update(newConfig component.Arguments) error {
 	cfg := newConfig.(Arguments)
-	c.cfg = cfg
 
 	hostLabels := make(map[string]discovery.Target)
 
-	for _, labels := range c.cfg.Targets {
+	for _, labels := range cfg.Targets {
 		host, err := promsdconsumer.GetHostFromLabels(labels)
 		if err != nil {
 			level.Warn(c.logger).Log("msg", "ignoring target, unable to find address", "err", err)
 			continue
 		}
-		promsdconsumer.CleanupLabels(labels)
-		hostLabels[host] = labels
+
+		hostLabels[host] = promsdconsumer.NewTargetsWithNonInternalLabels(labels)
 	}
 
 	err := c.consumer.UpdateOptions(promsdconsumer.Options{
