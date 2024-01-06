@@ -10,6 +10,10 @@ internal API changes are not present.
 Unreleased
 ----------
 
+### Bugfixes
+
+- Configure namespace for service account when RBAC resources is created. (@hainenber)
+
 0.30.0 (2024-01-05)
 -------------------
 
