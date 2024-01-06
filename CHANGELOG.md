@@ -10,6 +10,10 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+### Enhancements
+
+- Add support for Basic Auth for agent's web UI, including the APIs. (@hainenber)
+
 v0.39.0-rc.0 (2024-01-05)
 -------------------------
 
@@ -87,7 +91,6 @@ v0.39.0-rc.0 (2024-01-05)
 - `discovery.lightsail` now supports additional parameters for configuring HTTP client settings. (@ptodev)
 - Add `sample_age_limit` to remote_write config to drop samples older than a specified duration. (@marctc)
 
-- Add support for Basic Auth for agent's web UI, including the APIs. (@hainenber)
 
 ### Bugfixes
 
