@@ -42,7 +42,8 @@ import (
 	app_agent_receiver_v2 "github.com/grafana/agent/pkg/integrations/v2/app_agent_receiver"
 	blackbox_exporter_v2 "github.com/grafana/agent/pkg/integrations/v2/blackbox_exporter"
 	common_v2 "github.com/grafana/agent/pkg/integrations/v2/common"
-	"github.com/grafana/agent/pkg/integrations/v2/metricsutils"
+	eventhandler_v2 "github.com/grafana/agent/pkg/integrations/v2/eventhandler"
+	metricsutils_v2 "github.com/grafana/agent/pkg/integrations/v2/metricsutils"
 	snmp_exporter_v2 "github.com/grafana/agent/pkg/integrations/v2/snmp_exporter"
 	vmware_exporter_v2 "github.com/grafana/agent/pkg/integrations/v2/vmware_exporter"
 	"github.com/grafana/agent/pkg/integrations/windows_exporter"
@@ -229,13 +230,15 @@ func (b *IntegrationsConfigBuilder) appendV2Integrations() {
 		case *blackbox_exporter_v2.Config:
 			exports = b.appendBlackboxExporterV2(itg)
 			commonConfig = itg.Common
+		case *eventhandler_v2.Config:
+			b.appendEventHandlerV2(itg)
 		case *snmp_exporter_v2.Config:
 			exports = b.appendSnmpExporterV2(itg)
 			commonConfig = itg.Common
 		case *vmware_exporter_v2.Config:
 			exports = b.appendVmwareExporterV2(itg)
 			commonConfig = itg.Common
-		case *metricsutils.ConfigShim:
+		case *metricsutils_v2.ConfigShim:
 			commonConfig = itg.Common
 			switch v1_itg := itg.Orig.(type) {
 			case *azure_exporter.Config:
