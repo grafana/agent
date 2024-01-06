@@ -103,7 +103,7 @@ Calculate name of image ID to use for "config-reloader".
 */}}
 {{- define "config-reloader.imageId" -}}
 {{- if .Values.configReloader.image.digest }}
-{{- $digest := .Values.configReloader.digest }}
+{{- $digest := .Values.configReloader.image.digest }}
 {{- if not (hasPrefix "sha256:" $digest) }}
 {{- $digest = printf "sha256:%s" $digest }}
 {{- end }}

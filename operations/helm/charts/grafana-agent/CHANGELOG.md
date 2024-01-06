@@ -10,6 +10,10 @@ internal API changes are not present.
 Unreleased
 ----------
 
+### Bugfixes
+
+- Fix a bug preventing the `.Values.configReloader.image.digest` Helm value to be correctly retrieved. (@claudioscalzo)
+
 0.30.0 (2024-01-05)
 -------------------
 
