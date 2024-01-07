@@ -39,6 +39,12 @@ var metricsList = map[string]metric{
 		port:        12348,
 		description: "This configuration has the default label cache. It is used to test the performance of relabeling.",
 	},
+	"batch": {
+		name:        "batch",
+		config:      "./configs/batch.river",
+		port:        12349,
+		description: "Using batch instead of prometheus.",
+	},
 }
 
 type metrics struct {
