@@ -22,14 +22,14 @@ aggregates Request, Error and Duration (R.E.D) OpenTelemetry metrics from the sp
   including Errors. Multiple metrics can be aggregated if, for instance, a user wishes to
   view call counts just on `service.name` and `span.name`.
 
-  To track requests, a `calls` metric is created with a `status.code` metric datapoint attribute set to `Ok`:
+  Requests are tracked using a `calls` metric with a `status.code` datapoint attribute set to `Ok`:
   ```
   calls { service.name="shipping", span.name="get_shipping/{shippingId}", span.kind="SERVER", status.code="Ok" }
   ```
 
 - **Error** counts are computed from the number of spans with an `Error` status code.
 
-    To track errors, a `calls` metric will be created with a `status.code` metric datapoint attribute set to `Error`:
+    Errors are tracked using a `calls` metric with a `status.code` datapoint attribute set to `Error`:
     ```
     calls { service.name="shipping", span.name="get_shipping/{shippingId}, span.kind="SERVER", status.code="Error" }
     ```
@@ -37,7 +37,7 @@ aggregates Request, Error and Duration (R.E.D) OpenTelemetry metrics from the sp
 - **Duration** is computed from the difference between the span start and end times and inserted
     into the relevant duration histogram time bucket for each unique set dimensions.
 
-    To track durations, a `duration` histogram metric will be created:
+    Span durations are tracked using a `duration` histogram metric:
     ```
     duration { service.name="shipping", span.name="get_shipping/{shippingId}", span.kind="SERVER", status.code="Ok" }
     ```
