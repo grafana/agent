@@ -13,12 +13,12 @@ aliases:
 - ../../monitoring/component-metrics/ # /docs/agent/latest/flow/monitoring/component-metrics/
 - ../../monitoring/component_metrics/ # /docs/agent/latest/flow/monitoring/component_metrics/
 canonical: https://grafana.com/docs/agent/latest/flow/monitoring/component_metrics/
-description: Learn about component metrics
-title: Component metrics
+description: Learn how to monitor component metrics
+title: Monitor components
 weight: 200
 ---
 
-# Component metrics
+# How to monitor components
 
 {{< param "PRODUCT_NAME" >}} [components][] may optionally expose Prometheus metrics which can be used to investigate the behavior of that component.
 These component-specific metrics are only generated when an instance of that component is running.
