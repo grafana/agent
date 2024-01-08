@@ -144,8 +144,8 @@ Name | Type | Description | Default | Required
 ### kubernetes block
 
 You can use the `kubernetes` block to load balance across the pods of a Kubernetes service. 
-The Agent will be notified by the Kubernetes API whenever a new pod is added or removed from the service. 
-The `kubernetes` resolver has a much faster response time than the `dns` resolver, because it doesn't require polling.
+The Kubernetes API notifies {{< param "PRODUCT_NAME" >}} whenever a new pod is added or removed from the service. 
+The `kubernetes` resolver has a much faster response time than the `dns` resolver because it doesn't require polling.
 
 The following arguments are supported:
 
@@ -267,17 +267,17 @@ Name | Type | Description
 * logs
 * traces
 
-## Choosing a load balancing strategy
+## Choose a load balancing strategy
 
 <!-- TODO: Mention gropubytrace processor when Flow supports it -->
 <!-- TODO: Should we run more than 1 LB instance for better resiliency and spreading out the load? -->
 
-There are various stateful Flow components which require specific load balancing strategies.
+Various stateful {{< param "PRODUCT_NAME" >}} components require specific load-balancing strategies.
 <!-- TODO: "stateful" should be a link to the other doc which defines it -->
 
 ### otelcol.processor.tail_sampling
 <!-- TODO: Add a picture of the architecture?  -->
-All spans for a given trace ID must go to the same tail sampling Agent.
+All spans for a given trace ID must go to the same tail sampling {{< param "PRODUCT_ROOT_NAME" >}}.
 * This can be done by configuring `otelcol.exporter.loadbalancing` with `routing_key = "traceID"`.
 * If this is not done, the sampling decision may be incorrect. This is because the tail sampler must
   have a full view of the trace when making a sampling decision.
@@ -287,7 +287,7 @@ All spans for a given trace ID must go to the same tail sampling Agent.
 <!-- Make "rate limiting" a URL to the tail sampler doc -->
 
 ### otelcol.connector.spanmetrics
-All spans for a given `service.name` must go to the same spanmetrics Agent.
+All spans for a given `service.name` must go to the same spanmetrics {{< param "PRODUCT_ROOT_NAME" >}}.
 * This can be done by configuring `otelcol.exporter.loadbalancing` with `routing_key = "service"`.
 * If this is not done, metrics generated from spans might be incorrect.
   * For example, if similar spans for the same `service.name` end up on different Agent instances,
@@ -300,17 +300,15 @@ However, there are ways to scale `otelcol.connector.spanmetrics` without the nee
 1. Each Agent could add an attribute such as `collector.id` in order to make its series unique.
   * A `sum by` PromQL query could be used to aggregate the metrics from different Agents.
   * An extra `collector.id` attribute has a downside that the metrics stored in the database will have higher {{< term "cardinality" >}}cardinality{{< /term >}}.
-2. Spanmetrics could be generated in the backend database instead of the Agent.
-  * For example, span metrics can be [generated][tempo-spanmetrics] in Grafana Cloud by the Tempo traces database.
+2. Spanmetrics could be generated in the backend database instead of in {{< param "PRODUCT_ROOT_NAME" >}}.
+    For example, span metrics can be [generated][tempo-spanmetrics] in Grafana Cloud by the Tempo traces database.
 
 [tempo-spanmetrics]: https://grafana.com/docs/tempo/latest/metrics-generator/span_metrics/
 
 ### otelcol.connector.servicegraph
-It is challenging to scale `otelcol.connector.servicegraph` over multiple Agent instances.
-* For `otelcol.connector.servicegraph` to work correctly, each "client" span must be paired 
-  with a "server" span in order to calculate metrics such as span duration.
-* If a "client" span goes to one Agent, but a "server" span goes to another Agent, 
-  then no single Agent will be able to pair the spans and a metric won't be generated.
+It is challenging to scale `otelcol.connector.servicegraph` over multiple {{< param "PRODUCT_ROOT_NAME" >}} instances.
+For `otelcol.connector.servicegraph` to work correctly, each "client" span must be paired with a "server" span to calculate metrics such as span duration.
+If a "client" span goes to one {{< param "PRODUCT_ROOT_NAME" >}}, but a "server" span goes to another {{< param "PRODUCT_ROOT_NAME" >}},  then no single {{< param "PRODUCT_ROOT_NAME" >}} will be able to pair the spans and a metric won't be generated.
 
 `otelcol.exporter.loadbalancing` can solve this problem partially if it is configured with `routing_key = "traceID"`.
   * Each Agent will then be able to calculate service graph for each "client"/"server" pair in a trace.
@@ -325,7 +323,7 @@ It is challenging to scale `otelcol.connector.servicegraph` over multiple Agent 
     * A PromQL query could be used to aggregate the metrics from different Agents.
     * If the metrics are stored in Grafana Mimir, cardinality issues due to `"collector.id"` labels can be solved using [Adaptive Metrics][adaptive-metrics].
 
-A simpler, more scalable alternative to generating service graph metrics in the Agent is to generate them entirely in the backend database. 
+A simpler, more scalable alternative to generating service graph metrics in {{< param "PRODUCT_ROOT_NAME" >}} is to generate them entirely in the backend database. 
 For example, service graphs can be [generated][tempo-servicegraphs] in Grafana Cloud by the Tempo traces database.
 
 [tempo-servicegraphs]: https://grafana.com/docs/tempo/latest/metrics-generator/service_graphs/
@@ -333,16 +331,17 @@ For example, service graphs can be [generated][tempo-servicegraphs] in Grafana C
 
 ### Mixing stateful components
 <!-- TODO: Add a picture of the architecture?  -->
-Different Flow components may require a different `routing_key` for `otelcol.exporter.loadbalancing`.
-* For example, `otelcol.processor.tail_sampling` requires `routing_key = "traceID"` 
-  whereas `otelcol.connector.spanmetrics` requires `routing_key = "service"`.
-* Therefore, it is not possible to use the same load balancer for both tail sampling and span metrics.
-* Two different sets of load balancers have to be set up:
-  * One set of `otelcol.exporter.loadbalancing` with `routing_key = "traceID"`, sending spans to Agents which doing tail sampling and no span metrics.
-  * Another set of `otelcol.exporter.loadbalancing` with `routing_key = "service"`, sending spans to Agents doing span metrics and no service graphs.
-* Unfortunately, this can also lead to side effects. For example, if `otelcol.connector.spanmetrics` is configured to generate exemplars,
-  the tail sampling Agents might drop the trace which the exemplar points to. There is no coordination between the tail sampling Agents and
-  the span metrics Agents to make sure trace IDs for exemplars are kept.
+Different {{< param "PRODUCT_NAME" >}} components may require a different `routing_key` for `otelcol.exporter.loadbalancing`.
+For example, `otelcol.processor.tail_sampling` requires `routing_key = "traceID"` whereas `otelcol.connector.spanmetrics` requires `routing_key = "service"`.
+Therefore. using the same load balancer for both tail sampling and span metrics is impossible.
+Two different sets of load balancers have to be set up:
+
+* One set of `otelcol.exporter.loadbalancing` with `routing_key = "traceID"`, sending spans to {{< param "PRODUCT_ROOT_NAME" >}}s doing tail sampling and no span metrics.
+* Another set of `otelcol.exporter.loadbalancing` with `routing_key = "service"`, sending spans to {{< param "PRODUCT_ROOT_NAME" >}}s doing span metrics and no service graphs.
+
+Unfortunately, this can also lead to side effects.
+For example, if `otelcol.connector.spanmetrics` is configured to generate exemplars, the tail sampling {{< param "PRODUCT_ROOT_NAME" >}}s might drop the trace that the exemplar points to.
+There is no coordination between the tail sampling {{< param "PRODUCT_ROOT_NAME" >}}s and the span metrics {{< param "PRODUCT_ROOT_NAME" >}}s to make sure trace IDs for exemplars are kept.
 
 <!-- 
 TODO: Add a troubleshooting section?
@@ -394,7 +393,7 @@ otelcol.exporter.loadbalancing "default" {
 ### DNS resolver
 
 When configured with a `dns` resolver, `otelcol.exporter.loadbalancing` will do a DNS lookup 
-on regular intervals. Spans will then be exported to the addresses which the DNS lookup had returned.
+on regular intervals. Spans are exported to the addresses the DNS lookup returned.
 
 ```river
 otelcol.exporter.loadbalancing "default" {
@@ -414,15 +413,15 @@ otelcol.exporter.loadbalancing "default" {
 }
 ```
 
-Below is an example Kubernetes configuration which configures two sets of Agents:
-* A pool of load-balancer Agents:
+The following example shows a Kubernetes configuration that configures two sets of {{< param "PRODUCT_ROOT_NAME" >}}s:
+* A pool of load-balancer {{< param "PRODUCT_ROOT_NAME" >}}s:
   * Spans are received from instrumented applications via `otelcol.receiver.otlp`
-  * Spans are then exported via `otelcol.exporter.loadbalancing`.
-* A pool of sampling Agents:
-  * The sampling Agents run behind a headless service to enable the load-balancer Agents to discover them.
+  * Spans are exported via `otelcol.exporter.loadbalancing`.
+* A pool of sampling {{< param "PRODUCT_ROOT_NAME" >}}s:
+  * The sampling Agents run behind a headless service to enable the load-balancer {{< param "PRODUCT_ROOT_NAME" >}}s to discover them.
   * Spans are received from the load-balancer Agents via `otelcol.receiver.otlp`
-  * Traces are then sampled via `otelcol.processor.tail_sampling`.
-  * The traces are exported via `otelcol.exporter.otlp` to a an OTLP-compatible database such as Tempo.
+  * Traces are sampled via `otelcol.processor.tail_sampling`.
+  * The traces are exported via `otelcol.exporter.otlp` to an OTLP-compatible database such as Tempo.
 
 {{< collapse title="Example Kubernetes configuration" >}}
 
@@ -643,8 +642,9 @@ data:
 ```
 {{< /collapse >}}
 
-You need to fill in correct OTLP credentials prior to running the above example.
-The example above can be started by using [k3d][]:
+You must fill in the correct OTLP credentials prior to running the example.
+You can use [k3d][] to start the example:
+
 <!-- TODO: Link to the k3d page -->
 ```bash
 k3d cluster create grafana-agent-lb-test
@@ -652,6 +652,7 @@ kubectl apply -f kubernetes_config.yaml
 ```
 
 To delete the cluster, run:
+
 ```bash
 k3d cluster delete grafana-agent-lb-test
 ```
@@ -660,9 +661,8 @@ k3d cluster delete grafana-agent-lb-test
 
 ### Kubernetes resolver
 
-When configured with a `kubernetes` resolver, `otelcol.exporter.loadbalancing` will be notified by 
-the Kubernetes API any time a pod has left or joined the `service`. 
-Spans will then be exported to the addresses from the Kubernetes API, combined with all the possible `ports`.
+When you configure `otelcol.exporter.loadbalancing`  with a `kubernetes` resolver, the Kubernetes API notifies {{< param "PRODUCT_NAME" >}} whenever a new pod is added or removed from the service. 
+Spans are exported to the addresses from the Kubernetes API, combined with all the possible `ports`.
 
 ```river
 otelcol.exporter.loadbalancing "default" {
@@ -680,16 +680,16 @@ otelcol.exporter.loadbalancing "default" {
 }
 ```
 
-Below is an example Kubernetes configuration which sets up two sets of Agents:
-* A pool of load-balancer Agents:
+The following example shows a Kubernetes configuration that sets up two sets of {{< param "PRODUCT_ROOT_NAME" >}}s:
+* A pool of load-balancer {{< param "PRODUCT_ROOT_NAME" >}}s:
   * Spans are received from instrumented applications via `otelcol.receiver.otlp`
-  * Spans are then exported via `otelcol.exporter.loadbalancing`.
-  * The load-balancer Agents will get notified by the Kubernetes API any time a pod 
-    is added or removed from the pool of sampling Agents.
-* A pool of sampling Agents:
-  * The sampling Agents do not need to run behind a headless service.
-  * Spans are received from the load-balancer Agents via `otelcol.receiver.otlp`
-  * Traces are then sampled via `otelcol.processor.tail_sampling`.
+  * Spans are exported via `otelcol.exporter.loadbalancing`.
+  * The load-balancer {{< param "PRODUCT_ROOT_NAME" >}}s will get notified by the Kubernetes API any time a pod 
+    is added or removed from the pool of sampling {{< param "PRODUCT_ROOT_NAME" >}}s.
+* A pool of sampling {{< param "PRODUCT_ROOT_NAME" >}}s:
+  * The sampling {{< param "PRODUCT_ROOT_NAME" >}}s do not need to run behind a headless service.
+  * Spans are received from the load-balancer {{< param "PRODUCT_ROOT_NAME" >}}s via `otelcol.receiver.otlp`
+  * Traces are sampled via `otelcol.processor.tail_sampling`.
   * The traces are exported via `otelcol.exporter.otlp` to a an OTLP-compatible database such as Tempo.
 
 <!-- TODO: In the k8s config, why does the LB service has to be headless? -->
@@ -942,14 +942,16 @@ data:
 
 {{< /collapse >}}
 
-You need to fill in correct OTLP credentials prior to running the above example.
-The example above can be started by using [k3d][]s:
+You must fill in the correct OTLP credentials prior to running the example.
+You can use [k3d][] to start the example:
+
 ```bash
 k3d cluster create grafana-agent-lb-test
 kubectl apply -f kubernetes_config.yaml
 ```
 
 To delete the cluster, run:
+
 ```bash
 k3d cluster delete grafana-agent-lb-test
 ```
