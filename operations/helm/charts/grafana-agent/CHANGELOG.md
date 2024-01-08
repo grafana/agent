@@ -23,6 +23,11 @@ Unreleased
 
 - Statefulset should use value `.controller.enableStatefulSetAutoDeletePVC` instead of just `.enableStatefulSetAutoDeletePVC`. (@captncraig)
 
+### Other changes
+
+- Change config reloader image to `ghcr.io/jimmidyson/configmap-reload:v0.12.0` to reflect change in repository and version. (@berendiwema)
+
+
 0.29.0 (2023-11-30)
 -------------------
 
