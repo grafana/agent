@@ -44,7 +44,7 @@ func TestDuplicateTargets(t *testing.T) {
 		host       = "tcp://127.0.0.1:9376"
 		targets    = [
 			{__meta_docker_container_id = "foo", __meta_docker_port_private = "8080"},
-			{__meta_docker_container_id = "foo", __meta_docker_port_private = "8080"},
+			{__meta_docker_container_id = "foo", __meta_docker_port_private = "8081},
 		]
 		forward_to = []
 	`
