@@ -1,16 +1,16 @@
 ---
 aliases:
-- /docs/grafana-cloud/agent/flow/tasks/migrating-from-prometheus/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/tasks/migrating-from-prometheus/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/tasks/migrating-from-prometheus/
-- /docs/grafana-cloud/send-data/agent/flow/tasks/migrating-from-prometheus/
+- /docs/grafana-cloud/agent/flow/tasks/migrate/from-prometheus/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/tasks/migrate/from-prometheus/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/tasks/migrate/from-prometheus/
+- /docs/grafana-cloud/send-data/agent/flow/tasks/migrate/from-prometheus/
 # Previous page aliases for backwards compatibility:
 - /docs/grafana-cloud/agent/flow/getting-started/migrating-from-prometheus/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/getting-started/migrating-from-prometheus/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/getting-started/migrating-from-prometheus/
 - /docs/grafana-cloud/send-data/agent/flow/getting-started/migrating-from-prometheus/
 - ../getting-started/migrating-from-prometheus/ # /docs/agent/latest/flow/getting-started/migrating-from-prometheus/
-canonical: https://grafana.com/docs/agent/latest/flow/tasks/migrating-from-prometheus/
+canonical: https://grafana.com/docs/agent/latest/flow/tasks/migrate/from-prometheus/
 description: Learn how to migrate from Prometheus to Grafana Agent Flow
 menuTitle: Migrate from Prometheus
 title: Migrate from Prometheus to Grafana Agent Flow
@@ -258,10 +258,10 @@ The following list is specific to the convert command and not {{< param "PRODUCT
 [run]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/cli/run.md"
 [Start]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/start-agent.md"
 [Start]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/setup/start-agent.md"
-[DebuggingUI]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/monitoring/debugging.md"
-[DebuggingUI]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/monitoring/debugging.md"
+[DebuggingUI]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/tasks/debug.md"
+[DebuggingUI]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/tasks/debug.md"
 [River]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/config-language/_index.md"
 [River]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/concepts/config-language/_index.md"
-[UI]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/monitoring/debugging#grafana-agent-flow-ui"
-[UI]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/monitoring/debugging#grafana-agent-flow-ui"
+[UI]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/tasks/debug#grafana-agent-flow-ui"
+[UI]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/tasks/debug#grafana-agent-flow-ui"
 {{% /docs/reference %}}

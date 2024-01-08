@@ -10,6 +10,19 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+### Security fixes
+- Fixes following vulnerabilities (@hainenber)
+  - [GO-2023-2409](https://github.com/advisories/GHSA-mhpq-9638-x6pw)
+  - [GO-2023-2412](https://github.com/advisories/GHSA-7ww5-4wqc-m92c)
+  - [CVE-2023-49568](https://github.com/advisories/GHSA-mw99-9chc-xw7r)
+
+### Bugfixes
+
+- Fix performance issue where perf lib where clause was not being set, leading to timeouts in collecting metrics for windows_exporter. (@mattdurham)
+
+v0.39.0-rc.0 (2024-01-05)
+-------------------------
+
 ### Breaking changes
 
 - `otelcol.receiver.prometheus` will drop all `otel_scope_info` metrics when converting them to OTLP. (@wildum)
@@ -25,6 +38,14 @@ Main (unreleased)
   - This change will not break any existing configurations and you can opt in to validation via the `validate_dimensions` configuration option.
   - Before this change, pulling metrics for azure resources with variable dimensions required one configuration per metric + dimension combination to avoid an error.
   - After this change, you can include all metrics and dimensions in a single configuration and the Azure APIs will only return dimensions which are valid for the various metrics.
+  
+### Features
+
+- A new `discovery.ovhcloud` component for discovering scrape targets on OVHcloud. (@ptodev)
+
+### Features
+
+- Allow specifying additional containers to run. (@juangom)
 
 ### Enhancements
 
@@ -77,6 +98,8 @@ Main (unreleased)
 - Add `max_cache_size` to `prometheus.relabel` to allow configurability instead of hard coded 100,000. (@mattdurham)
 
 - Add support for `http_sd_config` within a `scrape_config` for prometheus to flow config conversion. (@erikbaranowski)
+- `discovery.lightsail` now supports additional parameters for configuring HTTP client settings. (@ptodev)
+- Add `sample_age_limit` to remote_write config to drop samples older than a specified duration. (@marctc)
 
 - Expose `physical_disk` collector from `windows_exporter` v0.24.0 to 
   Flow configuration. (@hainenber)
@@ -99,11 +122,17 @@ Main (unreleased)
 
 - Fix issue where `prometheus.exporter.kafka` would crash when configuring `sasl_password`. (@rfratto)
 
+- Fix nil panic when using the process collector with the windows exporter. (@mattdurham)
+
 ### Other changes
 
 - Bump github.com/IBM/sarama from v1.41.2 to v1.42.1
 
-- Attatch unique Agent ID header to remote-write requests. (@captncraig)
+- Attach unique Agent ID header to remote-write requests. (@captncraig)
+
+- Update to v2.48.1 of `github.com/prometheus/prometheus`.
+  Previously, a custom fork of v2.47.2 was used. 
+  The custom fork of v2.47.2 also contained prometheus#12729 and prometheus#12677.
 
 v0.38.1 (2023-11-30)
 --------------------
