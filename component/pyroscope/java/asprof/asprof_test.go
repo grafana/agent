@@ -19,7 +19,7 @@ func TestDistributionExtract(t *testing.T) {
 	err := d.write(tmpDir, tmpDirMarker)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, d.extractedDir)
-	assert.FileExists(t, d.AsprofPath())
+	assert.FileExists(t, d.Launcher())
 	assert.FileExists(t, d.LibPath())
 	libStat1, err := os.Stat(d.LibPath())
 	assert.NoError(t, err)
@@ -28,13 +28,13 @@ func TestDistributionExtract(t *testing.T) {
 	err = d.write(tmpDir, tmpDirMarker)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, d.extractedDir)
-	assert.FileExists(t, filepath.Join(d.AsprofPath()))
+	assert.FileExists(t, filepath.Join(d.Launcher()))
 	assert.FileExists(t, filepath.Join(d.LibPath()))
 	libStat2, err := os.Stat(d.LibPath())
 	require.NoError(t, err)
 	require.Equal(t, libStat1.ModTime(), libStat2.ModTime())
 
-	file, err := os.OpenFile(d.AsprofPath(), os.O_RDWR, 0)
+	file, err := os.OpenFile(d.Launcher(), os.O_RDWR, 0)
 	require.NoError(t, err)
 	defer file.Close()
 	file.Write([]byte("hello")) //modify binary
@@ -69,6 +69,6 @@ func TestDistributionExtractRace(t *testing.T) {
 	err := d.write(tmpDir, tmpDirMarker)
 	assert.Error(t, err)
 	assert.Empty(t, d.extractedDir)
-	assert.NoFileExists(t, filepath.Join(d.AsprofPath()))
+	assert.NoFileExists(t, filepath.Join(d.Launcher()))
 	assert.NoFileExists(t, filepath.Join(d.LibPath()))
 }
