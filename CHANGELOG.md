@@ -102,6 +102,9 @@ v0.39.0-rc.0 (2024-01-05)
 
 - Fix issue where `prometheus.exporter.kafka` would crash when configuring `sasl_password`. (@rfratto)
 
+- Fix performance issue where perf lib where clause was not being set, leading to timeouts in collecting metrics for windows_exporter. (@mattdurham)
+
+
 ### Other changes
 
 - Bump github.com/IBM/sarama from v1.41.2 to v1.42.1
