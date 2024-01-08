@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"os/exec"
@@ -14,37 +15,9 @@ import (
 )
 
 type metric struct {
-	name        string
-	config      string
-	port        int
-	description string
-}
-
-var metricsList = map[string]metric{
-	"normal": {
-		name:        "normal",
-		config:      "./configs/normal.river",
-		port:        12346,
-		description: "This is the normal configuration for the agent. It is used as a baseline for comparison.",
-	},
-	"relabel_large_cache": {
-		name:        "relabel_large_cache",
-		config:      "./configs/relabel_large_cache.river",
-		port:        12347,
-		description: "This configuration has a large relabel cache. It is used to test the performance of relabeling.",
-	},
-	"relabel_normal_cache": {
-		name:        "relabel_normal_cache",
-		config:      "./configs/relabel_normal_cache.river",
-		port:        12348,
-		description: "This configuration has the default label cache. It is used to test the performance of relabeling.",
-	},
-	"batch": {
-		name:        "batch",
-		config:      "./configs/batch.river",
-		port:        12349,
-		description: "Using batch instead of prometheus.",
-	},
+	Name        string
+	Config      string
+	Description string
 }
 
 type metrics struct {
@@ -76,25 +49,41 @@ func metricsCommand() *cobra.Command {
 			// Build the agent
 			buildAgent()
 
+			metricBytes, err := os.ReadFile("./benchmarks.json")
+			if err != nil {
+				return err
+			}
+			var metricList []metric
+			err = json.Unmarshal(metricBytes, &metricList)
+			if err != nil {
+				return err
+			}
+			metricMap := make(map[string]metric)
+			for _, m := range metricList {
+				metricMap[m.Name] = m
+			}
+
 			running := make(map[string]*exec.Cmd)
 			test := startMetricsAgent()
 			defer cleanupPid(test, "./data/test-data")
 			networkdown = f.networkDown
 			benchmarks := strings.Split(f.benchmark, ",")
+			port := 12345
 			for _, b := range benchmarks {
-				met, found := metricsList[b]
+				met, found := metricMap[b]
 				if !found {
 					return fmt.Errorf("unknown benchmark %q", b)
 				}
-				_ = os.RemoveAll("./data/" + met.name)
+				port++
+				_ = os.RemoveAll("./data/" + met.Name)
 
 				_ = os.Setenv("NAME", f.name)
-				_ = os.Setenv("HOST", fmt.Sprintf("localhost:%d", met.port))
-				_ = os.Setenv("RUNTYPE", met.name)
+				_ = os.Setenv("HOST", fmt.Sprintf("localhost:%d", port))
+				_ = os.Setenv("RUNTYPE", met.Name)
 				_ = os.Setenv("NETWORK_DOWN", strconv.FormatBool(f.networkDown))
 				_ = os.Setenv("DISCOVERY", fmt.Sprintf("http://127.0.0.1:9001/api/v0/component/prometheus.test.metrics.%s/discovery", f.metricSource))
-				agent := startNormalAgent(met)
-				running[met.name] = agent
+				agent := startNormalAgent(met, port)
+				running[met.Name] = agent
 			}
 			signalChannel := make(chan os.Signal, 1)
 			signal.Notify(signalChannel, os.Interrupt, syscall.SIGTERM)
@@ -119,8 +108,8 @@ func metricsCommand() *cobra.Command {
 	return cmd
 }
 
-func startNormalAgent(met metric) *exec.Cmd {
-	cmd := exec.Command("./grafana-agent-flow", "run", met.config, fmt.Sprintf("--storage.path=./data/%s", met.name), fmt.Sprintf("--server.http.listen-addr=127.0.0.1:%d", met.port))
+func startNormalAgent(met metric, port int) *exec.Cmd {
+	cmd := exec.Command("./grafana-agent-flow", "run", met.Config, fmt.Sprintf("--storage.path=./data/%s", met.Name), fmt.Sprintf("--server.http.listen-addr=127.0.0.1:%d", port))
 	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr

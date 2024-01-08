@@ -80,7 +80,7 @@ func (q *filequeue) Commit(handles []string) error {
 	for _, h := range handles {
 		newname := strings.Replace(h, "uncommitted", "committed", 1)
 		//TODO add windows specific check here
-		err := os.Rename(filepath.Join(q.directory, h), filepath.Join(q.directory, newname))
+		err := os.Rename(h, newname)
 		if err != nil {
 			return err
 		}

@@ -3,7 +3,7 @@ discovery.http "disco" {
 }
 
 prometheus.scrape "scraper" {
-	targets         = concat([{"__address__" =  env("HOST")}])
+	targets         = concat([{"__address__" = env("HOST")}])
 	forward_to      = [prometheus.relabel.mutator.receiver]
 	scrape_interval = "60s"
 }
@@ -77,5 +77,9 @@ prometheus.relabel "default" {
 prometheus.remote_write "empty" {
 	endpoint {
 		url = "http://localhost:8888/post"
+
+		headers = {
+			from = env("RUNTYPE"),
+		}
 	}
 }

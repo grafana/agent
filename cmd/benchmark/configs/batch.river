@@ -47,10 +47,10 @@ prometheus.relabel "mutator" {
 		regex         = "(agent_wal_storage_active_series|agent_resources_process_cpu_seconds_total|go_memstats_alloc_bytes|go_memstats_heap_inuse_bytes|go_gc_duration_seconds_sum|go_gc_duration_seconds_count)"
 	}
 
-	forward_to = [prometheus.remote_write.agent_stats.receiver]
+	forward_to = [prometheus.remote.batch.agent_stats.receiver]
 }
 
-prometheus.remote_write "agent_stats" {
+prometheus.remote.batch "agent_stats" {
 	endpoint {
 		url = "https://prometheus-us-central1.grafana.net/api/prom/push"
 
@@ -70,5 +70,9 @@ prometheus.scrape "data" {
 prometheus.remote.batch "empty" {
 	endpoint {
 		url = "http://localhost:8888/post"
+
+		headers = {
+			from = env("RUNTYPE"),
+		}
 	}
 }

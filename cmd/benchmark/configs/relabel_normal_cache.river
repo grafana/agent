@@ -75,5 +75,9 @@ prometheus.relabel "default" {
 prometheus.remote_write "empty" {
 	endpoint {
 		url = "http://localhost:8888/post"
+
+		headers = {
+			from = env("RUNTYPE"),
+		}
 	}
 }

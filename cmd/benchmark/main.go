@@ -1,12 +1,18 @@
 package main
 
 import (
+	"io"
 	"net/http"
 	"os"
 	"os/exec"
 	"syscall"
 
+	"github.com/golang/snappy"
 	"github.com/gorilla/mux"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/prometheus/prometheus/prompb"
 )
 
 // main handles creating the benchmark.
@@ -34,6 +40,14 @@ func cleanupPid(pid *exec.Cmd, dir string) {
 
 var networkdown = true
 
+var totalSeries = promauto.NewCounterVec(prometheus.CounterOpts{
+	Name: "benchmark_series_received",
+}, []string{"from"})
+
+var totalErrors = promauto.NewCounterVec(prometheus.CounterOpts{
+	Name: "benchmark_errors",
+}, []string{"from"})
+
 func httpServer() {
 	r := mux.NewRouter()
 	r.HandleFunc("/post", func(w http.ResponseWriter, r *http.Request) {
@@ -47,6 +61,7 @@ func httpServer() {
 		println("blocking")
 		networkdown = false
 	})
+	http.Handle("/metrics", promhttp.Handler())
 	http.Handle("/", r)
 	println("Starting server")
 	err := http.ListenAndServe(":8888", nil)
@@ -55,12 +70,36 @@ func httpServer() {
 	}
 }
 
-func handlePost(w http.ResponseWriter, _ *http.Request) {
+func handlePost(w http.ResponseWriter, r *http.Request) {
 	if networkdown {
 		println("returning 500")
 		w.WriteHeader(500)
 		return
 	} else {
+		defer r.Body.Close()
+		from := r.Header.Get("from")
+		data, err := io.ReadAll(r.Body)
+		if err != nil {
+			totalErrors.WithLabelValues(from).Inc()
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		data, err = snappy.Decode(nil, data)
+		if err != nil {
+			totalErrors.WithLabelValues(from).Inc()
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		var req prompb.WriteRequest
+		if err := req.Unmarshal(data); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		for _, x := range req.GetTimeseries() {
+			totalSeries.WithLabelValues(from).Add(float64(len(x.GetSamples())))
+		}
 		return
 	}
 }
