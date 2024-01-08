@@ -21,6 +21,26 @@ logging {
 	format = "json"
 }
 
+loki.relabel "integrations_eventhandler" {
+	forward_to = [loki.write.logs_log_config.receiver]
+
+	rule {
+		source_labels = ["__address__"]
+		target_label  = "test_label"
+		replacement   = "test_label_value"
+	}
+
+	rule {
+		source_labels = ["__address__"]
+		target_label  = "test_label_2"
+		replacement   = "test_label_value_2"
+	}
+}
+
+loki.source.kubernetes_events "integrations_eventhandler" {
+	forward_to = [loki.relabel.integrations_eventhandler.receiver]
+}
+
 prometheus.exporter.azure "integrations_azure1" {
 	subscriptions = ["subId"]
 	resource_type = "Microsoft.Dashboard/grafana"

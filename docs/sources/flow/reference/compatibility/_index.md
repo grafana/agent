@@ -32,7 +32,7 @@ that can export or consume it.
 
 ## Targets
 
-Targets are a `list(map(string))` - a [list]({{< relref "../../config-language/expressions/types_and_values/#naming-convention" >}}) of [maps]({{< relref "../../config-language/expressions/types_and_values/#naming-convention" >}}) with [string]({{< relref "../../config-language/expressions/types_and_values/#strings" >}}) values.
+Targets are a `list(map(string))` - a [list]({{< relref "../../concepts/config-language/expressions/types_and_values/#naming-convention" >}}) of [maps]({{< relref "../../concepts/config-language/expressions/types_and_values/#naming-convention" >}}) with [string]({{< relref "../../concepts/config-language/expressions/types_and_values/#strings" >}}) values.
 They can contain different key-value pairs, and you can use them with a wide range of
 components. Some components require Targets to contain specific key-value pairs
 to work correctly. It is recommended to always check component references for
@@ -152,7 +152,7 @@ The following components, grouped by namespace, _consume_ Targets.
 ## Prometheus `MetricsReceiver`
 
 The Prometheus metrics are sent between components using `MetricsReceiver`s. 
-`MetricsReceiver`s are [capsules]({{< relref "../../config-language/expressions/types_and_values/#capsules" >}})
+`MetricsReceiver`s are [capsules]({{< relref "../../concepts/config-language/expressions/types_and_values/#capsules" >}})
 that are exported by components that can receive Prometheus metrics. Components that
 can consume Prometheus metrics can be passed the `MetricsReceiver` as an argument. Use the
 following components to build your Prometheus metrics pipeline:
@@ -200,7 +200,7 @@ The following components, grouped by namespace, _consume_ Prometheus `MetricsRec
 
 ## Loki `LogsReceiver`
 
-`LogsReceiver` is a [capsule]({{< relref "../../config-language/expressions/types_and_values/#capsules" >}})
+`LogsReceiver` is a [capsule]({{< relref "../../concepts/config-language/expressions/types_and_values/#capsules" >}})
 that is exported by components that can receive Loki logs. Components that
 consume `LogsReceiver` as an argument typically send logs to it. Use the
 following components to build your Loki logs pipeline:
@@ -265,7 +265,7 @@ The following components, grouped by namespace, _consume_ Loki `LogsReceiver`.
 ## OpenTelemetry `otelcol.Consumer`
 
 The OpenTelemetry data is sent between components using `otelcol.Consumer`s.
-`otelcol.Consumer`s are [capsules]({{< relref "../../config-language/expressions/types_and_values/#capsules" >}})
+`otelcol.Consumer`s are [capsules]({{< relref "../../concepts/config-language/expressions/types_and_values/#capsules" >}})
 that are exported by components that can receive OpenTelemetry data. Components that
 can consume OpenTelemetry data can be passed the `otelcol.Consumer` as an argument. Note that some components
 that use `otelcol.Consumer` only support a subset of telemetry signals, for example, only traces. Check the component
@@ -342,7 +342,7 @@ The following components, grouped by namespace, _consume_ OpenTelemetry `otelcol
 ## Pyroscope `ProfilesReceiver`
 
 The Pyroscope profiles are sent between components using `ProfilesReceiver`s.
-`ProfilesReceiver`s are [capsules]({{< relref "../../config-language/expressions/types_and_values/#capsules" >}})
+`ProfilesReceiver`s are [capsules]({{< relref "../../concepts/config-language/expressions/types_and_values/#capsules" >}})
 that are exported by components that can receive Pyroscope profiles. Components that
 can consume Pyroscope profiles can be passed the `ProfilesReceiver` as an argument. Use the
 following components to build your Pyroscope profiles pipeline:

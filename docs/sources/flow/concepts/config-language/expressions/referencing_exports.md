@@ -1,11 +1,17 @@
 ---
 aliases:
-- ../../configuration-language/expressions/referencing-exports/
+- ../../configuration-language/expressions/referencing-exports/ # /docs/agent/latest/flow/concepts/configuration-language/expressions/referencing-exports/
+- /docs/grafana-cloud/agent/flow/concepts/config-language/expressions/referencing_exports/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/concepts/config-language/expressions/referencing_exports/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/concepts/config-language/expressions/referencing_exports/
+- /docs/grafana-cloud/send-data/agent/flow/concepts/config-language/expressions/referencing_exports/
+# Previous page aliases for backwards compatibility:
+- ../../../configuration-language/expressions/referencing-exports/ # /docs/agent/latest/flow/configuration-language/expressions/referencing-exports/
 - /docs/grafana-cloud/agent/flow/config-language/expressions/referencing_exports/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/config-language/expressions/referencing_exports/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/config-language/expressions/referencing_exports/
 - /docs/grafana-cloud/send-data/agent/flow/config-language/expressions/referencing_exports/
-canonical: https://grafana.com/docs/agent/latest/flow/config-language/expressions/referencing_exports/
+canonical: https://grafana.com/docs/agent/latest/flow/concepts/config-language/expressions/referencing_exports/
 description: Learn about referencing component exports
 title: Referencing component exports
 weight: 200
@@ -55,6 +61,6 @@ While you can only configure attributes using the basic River types,
 the exports of components can take on special internal River types, such as Secrets or Capsules, which expose different functionality.
 
 {{% docs/reference %}}
-[type]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/config-language/expressions/types_and_values"
-[type]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/config-language/expressions/types_and_values"
+[type]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/config-language/expressions/types_and_values"
+[type]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/concepts/config-language/expressions/types_and_values"
 {{% /docs/reference %}}

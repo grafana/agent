@@ -281,7 +281,7 @@ The following special labels can change the behavior of prometheus.scrape:
 * `__scheme__` is the name of the label that holds the scheme (http,https) on which to  scrape a target.
 * `__scrape_interval__` is the name of the label that holds the scrape interval used to scrape a target.
 * `__scrape_timeout__` is the name of the label that holds the scrape timeout used to scrape a target.
-* `__param__` is a prefix for labels that provide URL parameters used to scrape a target.
+* `__param_<name>` is a prefix for labels that provide URL parameters `<name>` used to scrape a target.
 
 Special labels added after a scrape
 * `__name__` is the label name indicating the metric name of a timeseries.

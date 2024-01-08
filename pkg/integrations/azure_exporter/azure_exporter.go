@@ -24,7 +24,7 @@ type Exporter struct {
 }
 
 func (e Exporter) MetricsHandler() (http.Handler, error) {
-	//Safe to re-use as it doesn't connect to anything directly
+	// Safe to re-use as it doesn't connect to anything directly
 	client, err := armclient.NewArmClientWithCloudName(e.cfg.AzureCloudEnvironment, e.logger)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create azure client, %v", err)
@@ -35,7 +35,13 @@ func (e Exporter) MetricsHandler() (http.Handler, error) {
 		ctx := context.Background()
 
 		params := req.URL.Query()
-		mergedConfig := MergeConfigWithQueryParams(e.cfg, params)
+		mergedConfig, err := MergeConfigWithQueryParams(e.cfg, params)
+		if err != nil {
+			err = fmt.Errorf("failed to merge config with query parameters, %v", err)
+			e.logger.Error(err)
+			http.Error(resp, err.Error(), http.StatusBadRequest)
+			return
+		}
 
 		if err := mergedConfig.Validate(); err != nil {
 			err = fmt.Errorf("config to be used for scraping was invalid, %v", err)
@@ -71,14 +77,22 @@ func (e Exporter) MetricsHandler() (http.Handler, error) {
 		prober.SetPrometheusRegistry(reg)
 		prober.SetAzureResourceTagManager(tagManager)
 
-		err = prober.ServiceDiscovery.FindResourceGraph(ctx, settings.Subscriptions, settings.ResourceType, settings.Filter)
-		if err != nil {
-			e.logger.Error(fmt.Errorf("service discovery failed, %v", err))
-			http.Error(resp, "Failed to discovery azure resources", http.StatusInternalServerError)
-			return
-		}
+		// When regions has values then the request is for all resources in the subscription.
+		//  "RunOnSubscriptionScope" uses a different API, https://github.com/Azure/azure-rest-api-specs/blob/main/specification/monitor/resource-manager/Microsoft.Insights/stable/2021-05-01/metrics_API.json#L40,
+		//  which can get metric data for all resources in a single API call reducing overhead/likelihood of being rate limited.
+		// Limiting to specific resources requires 1 API call per resource to get metrics which can easily lead to rate limiting
+		if len(settings.Regions) > 1 {
+			prober.RunOnSubscriptionScope()
+		} else {
+			err = prober.ServiceDiscovery.FindResourceGraph(ctx, settings.Subscriptions, settings.ResourceType, settings.Filter)
+			if err != nil {
+				e.logger.Error(fmt.Errorf("service discovery failed, %v", err))
+				http.Error(resp, "Failed to discovery azure resources", http.StatusInternalServerError)
+				return
+			}
 
-		prober.Run()
+			prober.Run()
+		}
 
 		promhttp.HandlerFor(reg, promhttp.HandlerOpts{}).ServeHTTP(resp, req)
 	})
