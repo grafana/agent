@@ -1,16 +1,23 @@
 ---
 aliases:
+- /docs/grafana-cloud/agent/flow/tasks/debug/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/tasks/debug/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/tasks/debug/
+- /docs/grafana-cloud/send-data/agent/flow/tasks/debug/
+# Previous page aliases for backwards compatibility:
 - /docs/grafana-cloud/agent/flow/monitoring/debugging/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/monitoring/debugging/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/monitoring/debugging/
 - /docs/grafana-cloud/send-data/agent/flow/monitoring/debugging/
+- ../monitoring/debugging/ # /docs/agent/latest/flow/monitoring/debugging/
 canonical: https://grafana.com/docs/agent/latest/flow/monitoring/debugging/
-description: Learn about debugging
-title: Debugging
-weight: 300
+description: Learn about debugging issues with Grafana Agent Flow
+title: Debug issues with Grafana Agent Flow
+menuTitle: Debug issues
+weight: 1000
 ---
 
-# Debugging
+# Debug {{< param "PRODUCT_NAME" >}}
 
 Follow these steps to debug issues with {{< param "PRODUCT_NAME" >}}:
 
@@ -32,7 +39,7 @@ Follow these steps to debug issues with {{< param "PRODUCT_NAME" >}}:
 
 ### Home page
 
-![](../../../assets/ui_home_page.png)
+![](../../assets/ui_home_page.png)
 
 The home page shows a table of components defined in the configuration file and their health.
 
@@ -42,14 +49,14 @@ Click the {{< param "PRODUCT_ROOT_NAME" >}} logo to navigate back to the home pa
 
 ### Graph page
 
-![](../../../assets/ui_graph_page.png)
+![](../../assets/ui_graph_page.png)
 
 The **Graph** page shows a graph view of components defined in the configuration file and their health.
 Clicking a component in the graph navigates to the [Component detail page](#component-detail-page) for that component.
 
 ### Component detail page
 
-![](../../../assets/ui_component_detail_page.png)
+![](../../assets/ui_component_detail_page.png)
 
 The component detail page shows the following information for each component:
 
@@ -62,7 +69,7 @@ The component detail page shows the following information for each component:
 
 ### Clustering page
 
-![](../../../assets/ui_clustering_page.png)
+![](../../assets/ui_clustering_page.png)
 
 The clustering page shows the following information for each cluster node:
 

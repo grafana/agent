@@ -76,8 +76,8 @@ Refer to [Debugging clustering issues][debugging] for additional troubleshooting
 [prometheus.operator.podmonitors]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/components/prometheus.operator.podmonitors.md#clustering-beta"
 [prometheus.operator.servicemonitors]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/prometheus.operator.servicemonitors.md#clustering-beta"
 [prometheus.operator.servicemonitors]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/components/prometheus.operator.servicemonitors.md#clustering-beta"
-[clustering page]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/monitoring/debugging.md#clustering-page"
-[clustering page]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/monitoring/debugging.md#clustering-page"
-[debugging]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/monitoring/debugging.md#debugging-clustering-issues"
-[debugging]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/monitoring/debugging.md#debugging-clustering-issues"
+[clustering page]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/tasks/debug.md#clustering-page"
+[clustering page]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/tasks/debug.md#clustering-page"
+[debugging]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/tasks/debug.md#debugging-clustering-issues"
+[debugging]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/tasks/debug.md#debugging-clustering-issues"
 {{% /docs/reference %}}

@@ -171,7 +171,7 @@ transitions to the terminating state when shutting down.
 
 The current state of a clustered {{< param "PRODUCT_ROOT_NAME" >}} is shown on the clustering page in the [UI][].
 
-[UI]: {{< relref "../../monitoring/debugging.md#clustering-page" >}}
+[UI]: {{< relref "../../tasks/debug.md#clustering-page" >}}
 
 ## Configuration conversion (beta)
 

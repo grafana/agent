@@ -1,17 +1,26 @@
 ---
 aliases:
+  - /docs/agent/flow/tasks/estimate-resource-usage/
+  - /docs/grafana-cloud/agent/flow/tasks/estimate-resource-usage/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/tasks/estimate-resource-usage/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/tasks/estimate-resource-usage/
+  - /docs/grafana-cloud/send-data/agent/flow/tasks/estimate-resource-usage/  
+  # Previous page aliases for backwards compatibility:
   - /docs/agent/flow/monitoring/resource-usage/
   - /docs/grafana-cloud/agent/flow/monitoring/resource-usage/
   - /docs/grafana-cloud/monitor-infrastructure/agent/flow/monitoring/resource-usage/
   - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/monitoring/resource-usage/
   - /docs/grafana-cloud/send-data/agent/flow/monitoring/resource-usage/
+  - ../monitoring/resource-usage/ # /docs/agent/latest/flow/monitoring/resource-usage/
 canonical: https://grafana.com/docs/agent/latest/flow/monitoring/resource-usage/
-description: Guidance for expected Agent resource usage
+description: Estimate expected Agent resource usage
 headless: true
-title: Resource usage
+title: Estimate resource usage
+menuTitle: Estimate resource usage
+weight: 190
 ---
 
-# {{% param "PRODUCT_NAME" %}} resource usage
+# Estimate {{% param "PRODUCT_NAME" %}} resource usage
 
 This page provides guidance for expected resource usage of 
 {{% param "PRODUCT_NAME" %}} for each telemetry type, based on operational 
