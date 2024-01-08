@@ -218,6 +218,9 @@ controller:
   ##
   initContainers: []
 
+  # -- Additional containers to run alongside the agent container and initContainers.
+  extraContainers: []
+
 service:
   # -- Creates a Service for the controller's pods.
   enabled: true
