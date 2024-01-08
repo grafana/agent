@@ -56,6 +56,7 @@ The following arguments are supported:
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `forward_to` | `list(MetricsReceiver)` | Where the metrics should be forwarded to, after relabeling takes place. | | yes
+`max_cache_size` | `int` | The maximum number of elements to hold in the relabeling cache. | 100,000 | no
 
 ## Blocks
 

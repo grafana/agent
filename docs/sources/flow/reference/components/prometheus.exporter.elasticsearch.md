@@ -56,6 +56,21 @@ Omitted fields take their default values.
 | `data_streams`         | `bool`     | Export stats for Data Streams.                                                                         |                           | no       |
 | `slm`                  | `bool`     | Export stats for SLM (Snapshot Lifecycle Management).                                                  |                           | no       |
 
+## Blocks
+
+The following blocks are supported inside the definition of
+`prometheus.exporter.elasticsearch`:
+
+| Hierarchy           | Block             | Description                                              | Required |
+| ------------------- | ----------------- | -------------------------------------------------------- | -------- |
+| basic_auth          | [basic_auth][]    | Configure basic_auth for authenticating to the endpoint. | no       |
+
+[basic_auth]: #basic_auth-block
+
+### basic_auth block
+
+{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" version="<AGENT VERSION>" >}}
+
 ## Exported fields
 
 {{< docs/shared lookup="flow/reference/components/exporter-component-exports.md" source="agent" version="<AGENT_VERSION>" >}}
@@ -84,6 +99,10 @@ from `prometheus.exporter.elasticsearch`:
 ```river
 prometheus.exporter.elasticsearch "example" {
   address = "http://localhost:9200"
+  basic_auth {
+    username = USERNAME
+    password = PASSWORD
+  }
 }
 
 // Configure a prometheus.scrape component to collect Elasticsearch metrics.

@@ -10,9 +10,26 @@ internal API changes are not present.
 Unreleased
 ----------
 
+### Bugfixes
+
+- Configure namespace for service account when RBAC resources is created. (@hainenber)
+
+### Other changes
+
+- Change config reloader image to `ghcr.io/jimmidyson/configmap-reload:v0.12.0` to reflect change in repository and version. (@berendiwema)
+
+0.30.0 (2024-01-05)
+-------------------
+
 ### Enhancements
 
 - Update `rbac` to include necessary rules for the `otelcol.processor.k8sattributes` component. (@rlankfo)
+
+- Add `serviceAccount.additionalLabels` to values.yaml to enable setting additional labels on the created service account. (@zopanix)
+
+### Bugfixes
+
+- Statefulset should use value `.controller.enableStatefulSetAutoDeletePVC` instead of just `.enableStatefulSetAutoDeletePVC`. (@captncraig)
 
 0.29.0 (2023-11-30)
 -------------------

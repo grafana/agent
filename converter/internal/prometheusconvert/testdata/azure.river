@@ -10,8 +10,6 @@ discovery.azure "prometheus1" {
 	managed_identity {
 		client_id = "client"
 	}
-	follow_redirects = true
-	enable_http2     = true
 }
 
 discovery.azure "prometheus2" {
@@ -26,8 +24,8 @@ discovery.azure "prometheus2" {
 	managed_identity {
 		client_id = "client"
 	}
-	proxy_url    = "proxy"
-	enable_http2 = true
+	proxy_url        = "proxy"
+	follow_redirects = false
 }
 
 prometheus.scrape "prometheus1" {

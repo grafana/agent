@@ -23,6 +23,11 @@ func New(logger log.Logger, c *Config) (integrations.Integration, error) {
 	if err != nil {
 		return nil, err
 	}
+	err = winCol.SetPerfCounterQuery()
+	if err != nil {
+		return nil, err
+	}
+
 	return integrations.NewCollectorIntegration(c.Name(), integrations.WithCollectors(
 		// Hard-coded 4m timeout to represent the time a series goes stale.
 		// TODO: Make configurable if useful.

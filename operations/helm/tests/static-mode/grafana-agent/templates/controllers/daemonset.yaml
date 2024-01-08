@@ -52,7 +52,7 @@ spec:
             - name: config
               mountPath: /etc/agent
         - name: config-reloader
-          image: docker.io/jimmidyson/configmap-reload:v0.8.0
+          image: ghcr.io/jimmidyson/configmap-reload:v0.12.0
           args:
             - --volume-dir=/etc/agent
             - --webhook-url=http://localhost:80/-/reload
