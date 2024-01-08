@@ -10,6 +10,7 @@ import (
 	"github.com/grafana/agent/component/prometheus/operator"
 	"github.com/grafana/agent/service/cluster"
 	"github.com/grafana/agent/service/labelstore"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/prometheus/config"
 	"github.com/prometheus/prometheus/discovery"
 	"github.com/prometheus/prometheus/discovery/targetgroup"
@@ -33,7 +34,7 @@ func TestClearConfigsSameNsSamePrefix(t *testing.T) {
 		logger,
 		&operator.DefaultArguments,
 		KindServiceMonitor,
-		labelstore.New(logger),
+		labelstore.New(logger, prometheus.DefaultRegisterer),
 	)
 
 	m.discoveryManager = newMockDiscoveryManager()
@@ -98,7 +99,7 @@ func TestClearConfigsProbe(t *testing.T) {
 		logger,
 		&operator.DefaultArguments,
 		KindProbe,
-		labelstore.New(logger),
+		labelstore.New(logger, prometheus.DefaultRegisterer),
 	)
 
 	m.discoveryManager = newMockDiscoveryManager()

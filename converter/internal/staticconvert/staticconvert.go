@@ -31,7 +31,7 @@ func Convert(in []byte, extraArgs []string) ([]byte, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	fs := flag.NewFlagSet("convert", flag.ContinueOnError)
-	args := []string{"-config.file", "convert", "-config.expand-env"}
+	args := []string{"-config.file", "convert"}
 	args = append(args, extraArgs...)
 	staticConfig, err := config.LoadFromFunc(fs, args, func(_, _ string, expandEnvVars bool, c *config.Config) error {
 		return config.LoadBytes(in, expandEnvVars, c)
