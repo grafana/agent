@@ -7,55 +7,6 @@ This document contains a historical list of changes between releases. Only
 changes that impact end-user behavior are listed; changes to documentation or
 internal API changes are not present.
 
-<<<<<<< HEAD
-=======
-Main (unreleased)
------------------
-
-### Security fixes
-
-- Fixes following vulnerabilities (@hainenber)
-  - [GO-2023-2409](https://github.com/advisories/GHSA-mhpq-9638-x6pw)
-  - [GO-2023-2412](https://github.com/advisories/GHSA-7ww5-4wqc-m92c)
-  - [CVE-2023-49568](https://github.com/advisories/GHSA-mw99-9chc-xw7r)
-
-### Features
-
-- A new `discovery.process` component for discovering Linux OS processes on the current host. (@korniltsev)
-
-- A new `pyroscope.java` component for profiling Java processes using async-profiler. (@korniltsev)
-
-### Enhancements
-
-- Add an option to the windows static mode installer for expanding environment vars in the yaml config. (@erikbaranowski)
-- Add authentication support to `loki.source.awsfirehose` (@sberz)
-
-- Sort kubelet endpoint to reduce pressure on K8s's API server and watcher endpoints. (@hainenber)
-
-- Expose `physical_disk` collector from `windows_exporter` v0.24.0 to 
-  Flow configuration. (@hainenber)
-
-### Bugfixes
-
-- Fix an issue in `remote.s3` where the exported content of an object would be an empty string if `remote.s3` failed to fully retrieve
-  the file in a single read call. (@grafana/agent-squad)
-
-- Utilize the `instance` Argument of `prometheus.exporter.kafka` when set. (@akhmatov-s)
-
-- Fix a duplicate metrics registration panic when sending metrics to an static
-  mode metric instance's write handler. (@tpaschalis)
-
-- Fix issue where installing the Windows Agent Flow installer would hang then crash. (@mattdurham)
-
-### Other changes
-
-- Removed support for Windows 2012 in line with Microsoft end of life. (@mattdurham)
-
-- Split instance ID and component groupings into separate panels for `remote write active series by component` in the Flow mixin. (@tristanburgess)
-
-- Updated dependency to add support for Go 1.22 (@stefanb)
-
->>>>>>> 3cc790121 (add nsis check for environment var (#6185))
 v0.39.0 (2024-01-09)
 --------------------
 
