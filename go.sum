@@ -1057,10 +1057,14 @@ github.com/grafana/jfr-parser v0.7.2-0.20240108082221-63c3c2cab13a h1:znT/8HSTiC
 github.com/grafana/jfr-parser v0.7.2-0.20240108082221-63c3c2cab13a/go.mod h1:M5u1ux34Qo47ZBWksbMYVk40s7dvU3WMVYpxweEu4R0=
 github.com/grafana/jfr-parser v0.7.2-0.20240108092556-b3bccd4e73a9 h1:603PVUrkQhlNcBC+6Vg18bz1U9+zGeY9IH7FgMhsJgY=
 github.com/grafana/jfr-parser v0.7.2-0.20240108092556-b3bccd4e73a9/go.mod h1:M5u1ux34Qo47ZBWksbMYVk40s7dvU3WMVYpxweEu4R0=
+github.com/grafana/jfr-parser v0.7.2-0.20240108100259-6b558fedfb6f h1:ioj3QOLQAc9MmXgDzzCNeA9KP6DbtH+CjUZKx1/99tE=
+github.com/grafana/jfr-parser v0.7.2-0.20240108100259-6b558fedfb6f/go.mod h1:M5u1ux34Qo47ZBWksbMYVk40s7dvU3WMVYpxweEu4R0=
 github.com/grafana/jfr-parser/pprof v0.0.0-20240108082221-63c3c2cab13a h1:njQ2A1uG1aYhldypRl1q0vzZcdKTifv/AR06oKx+6bA=
 github.com/grafana/jfr-parser/pprof v0.0.0-20240108082221-63c3c2cab13a/go.mod h1:SDOa+U4/vAkuGjYBWXJpHpiaesbeXuhaQW4xzHzTSL4=
 github.com/grafana/jfr-parser/pprof v0.0.0-20240108092556-b3bccd4e73a9 h1:Bvvz83qOw5dtfreK5eqndEJ8iZDm33PNjMz5nmPU4Gc=
 github.com/grafana/jfr-parser/pprof v0.0.0-20240108092556-b3bccd4e73a9/go.mod h1:SDOa+U4/vAkuGjYBWXJpHpiaesbeXuhaQW4xzHzTSL4=
+github.com/grafana/jfr-parser/pprof v0.0.0-20240108100259-6b558fedfb6f h1:IOUaXkpk5kxF00nwa34fTHMsX6lxq0So+fjiOA5ascM=
+github.com/grafana/jfr-parser/pprof v0.0.0-20240108100259-6b558fedfb6f/go.mod h1:SDOa+U4/vAkuGjYBWXJpHpiaesbeXuhaQW4xzHzTSL4=
 github.com/grafana/loki v1.6.2-0.20231004111112-07cbef92268a h1:lvSHlNONeo/H+aWRk86QEfBpRDCEX1yoqpsCK0Tys+g=
 github.com/grafana/loki v1.6.2-0.20231004111112-07cbef92268a/go.mod h1:a5c5ZTC6FNufKkvF8NeDAb2nCWJpgkVDrejmV+O9hac=
 github.com/grafana/loki/pkg/push v0.0.0-20230904153656-e4cc2a4f5ec8 h1:yQK/dX7WBva5QvITvmIcbv4boLwSo65a8zjuZcucnko=
