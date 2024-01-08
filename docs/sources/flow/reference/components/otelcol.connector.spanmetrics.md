@@ -22,7 +22,7 @@ aggregates Request, Error and Duration (R.E.D) OpenTelemetry metrics from the sp
   including Errors. Multiple metrics can be aggregated if, for instance, a user wishes to
   view call counts just on `service.name` and `span.name`.
 
-  To track requests, a `calls` metric will be created with a `status.code` metric datapoint attribute set to `Ok`:
+  To track requests, a `calls` metric is created with a `status.code` metric datapoint attribute set to `Ok`:
   ```
   calls { service.name="shipping", span.name="get_shipping/{shippingId}", span.kind="SERVER", status.code="Ok" }
   ```
