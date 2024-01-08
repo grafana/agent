@@ -134,7 +134,10 @@ stores the read offsets so that if there is a component or Agent restart,
 In case the targets argument contains multiple entries with the same container
 ID (for example as a result of `discovery.docker` picking up multiple exposed
 ports or networks) `loki.source.docker` will deduplicate them, and only keep
-the first of each container ID instances.
+the first of each container ID instances, based on the
+`__meta_docker_container_id` label.  As such, the Docker daemon will be queried
+for each container ID only once, and only one target will be available in the
+component's debug info.
 
 ## Example
 
