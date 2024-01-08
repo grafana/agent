@@ -102,8 +102,12 @@ v0.39.0-rc.0 (2024-01-05)
 
 - Fix issue where `prometheus.exporter.kafka` would crash when configuring `sasl_password`. (@rfratto)
 
+<<<<<<< HEAD
 - Fix performance issue where perf lib where clause was not being set, leading to timeouts in collecting metrics for windows_exporter. (@mattdurham)
 
+=======
+- Fix nil panic when using the process collector with the windows exporter. (@mattdurham)
+>>>>>>> f471706f7 (add changelog (#6058))
 
 ### Other changes
 
