@@ -1,10 +1,16 @@
 ---
 aliases:
+- /docs/grafana-cloud/agent/flow/tasks/configure-agent-clustering/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/tasks/configure-agent-clustering/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/tasks/configure-agent-clustering/
+- /docs/grafana-cloud/send-data/agent/flow/tasks/configure-agent-clustering/
+# Previous page aliases for backwards compatibility:
 - /docs/grafana-cloud/agent/flow/getting-started/configure-agent-clustering/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/getting-started/configure-agent-clustering/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/getting-started/configure-agent-clustering/
 - /docs/grafana-cloud/send-data/agent/flow/getting-started/configure-agent-clustering/
-canonical: https://grafana.com/docs/agent/latest/flow/getting-started/configure-agent-clustering/
+- ../getting-started/configure-agent-clustering/ # /docs/agent/latest/flow/getting-started/configure-agent-clustering/
+canonical: https://grafana.com/docs/agent/latest/flow/tasks/configure-agent-clustering/
 description: Learn how to configure Grafana Agent clustering in an existing installation
 menuTitle: Configure Grafana Agent clustering
 title: Configure Grafana Agent clustering in an existing installation
@@ -63,6 +69,6 @@ To configure clustering:
 [beta]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/stability.md#beta"
 [install-helm]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/install/kubernetes.md"
 [install-helm]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/setup/install/kubernetes.md"
-[UI]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/monitoring/debugging.md#component-detail-page"
-[UI]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/monitoring/debugging.md#component-detail-page"
+[UI]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/tasks/debug.md#component-detail-page"
+[UI]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/tasks/debug.md#component-detail-page"
 {{% /docs/reference %}}
