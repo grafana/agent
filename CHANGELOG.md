@@ -43,6 +43,10 @@ v0.39.0-rc.0 (2024-01-05)
 
 - A new `discovery.ovhcloud` component for discovering scrape targets on OVHcloud. (@ptodev)
 
+### Features
+
+- Allow specifying additional containers to run. (@juangom)
+
 ### Enhancements
 
 - Added a new `otelcol.exporter.debug` component based on OTel Collector's "debug" exporter`. (@BarunKGP)
