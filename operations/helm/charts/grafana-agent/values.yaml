@@ -215,7 +215,8 @@ controller:
   ## ref: https://kubernetes.io/docs/concepts/workloads/pods/init-containers/
   ##
   initContainers: []
-  # -- Addiotional sidecar containers
+
+  # -- Additional containers to run alongside the agent container and initContainers.
   extraContainers: []
 
 service:
