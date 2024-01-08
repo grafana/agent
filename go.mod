@@ -725,9 +725,6 @@ replace (
 	github.com/prometheus/node_exporter => github.com/grafana/node_exporter v0.18.1-grafana-r01.0.20231004161416-702318429731
 )
 
-// Excluding fixes a conflict in test packages and allows "go mod tidy" to run.
-exclude google.golang.org/grpc/examples v0.0.0-20200728065043-dfc0c05b2da9
-
 // Replacing for an internal fork which allows us to observe metrics produced by the Collector.
 // This is a temporary solution while a new configuration design is discussed for the collector. Related issues:
 // https://github.com/open-telemetry/opentelemetry-collector/issues/7532
