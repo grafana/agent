@@ -207,7 +207,7 @@ the defaults documented in [profile.mutex][] will be used.
 [clustering]: #clustering-beta
 
 [fgprof]: https://github.com/felixge/fgprof
-[godeltaprof]: https://github.com/grafana/godeltaprof
+[godeltaprof]: https://github.com/grafana/pyroscope-go/tree/main/godeltaprof
 
 [delta argument]: #delta-argument
 
