@@ -277,29 +277,29 @@ Various stateful {{< param "PRODUCT_NAME" >}} components require specific load-b
 
 ### otelcol.processor.tail_sampling
 <!-- TODO: Add a picture of the architecture?  -->
-All spans for a given trace ID must go to the same tail sampling {{< param "PRODUCT_ROOT_NAME" >}}.
+All spans for a given trace ID must go to the same tail sampling {{< param "PRODUCT_ROOT_NAME" >}} instance.
 * This can be done by configuring `otelcol.exporter.loadbalancing` with `routing_key = "traceID"`.
-* If this is not done, the sampling decision may be incorrect. This is because the tail sampler must
-  have a full view of the trace when making a sampling decision.
-  * For example, a `rate_limiting` tail sampling strategy may incorrectly pass through 
-    more spans than expected if the spans for the same trace are spread out to more than one Agent instance.
+* If you do not configure `routing_key = "traceID"`, the sampling decision may be incorrect.
+  The tail sampler must have a full view of the trace when making a sampling decision.
+  For example, a `rate_limiting` tail sampling strategy may incorrectly pass through 
+  more spans than expected if the spans for the same trace are spread out to more than
+  one {{< param "PRODUCT_NAME" >}} instance.
 
 <!-- Make "rate limiting" a URL to the tail sampler doc -->
 
 ### otelcol.connector.spanmetrics
 All spans for a given `service.name` must go to the same spanmetrics {{< param "PRODUCT_ROOT_NAME" >}}.
 * This can be done by configuring `otelcol.exporter.loadbalancing` with `routing_key = "service"`.
-* If this is not done, metrics generated from spans might be incorrect.
-  * For example, if similar spans for the same `service.name` end up on different Agent instances,
-    the two Agents will have identical metric series for calculating span latency, errors, and number of requests.
-  * When both Agents attempt to write the metrics to a database such as Mimir, the series may clash with each other.
-  * At best this will lead to an error in the Agent and a rejected write to the metrics database. 
-  * At worst, it could lead to an inaccurate data due to overlapping samples for the metric series.
+* If you do not configure `routing_key = "service"`, metrics generated from spans might be incorrect.
+For example, if similar spans for the same `service.name` end up on different {{< param "PRODUCT_ROOT_NAME" >}} instances, the two {{< param "PRODUCT_ROOT_NAME" >}}s will have identical metric series for calculating span latency, errors, and number of requests.
+When both {{< param "PRODUCT_ROOT_NAME" >}} instances attempt to write the metrics to a database such as Mimir, the series may clash with each other.
+At best, this will lead to an error in {{< param "PRODUCT_ROOT_NAME" >}} and a rejected write to the metrics database. 
+At worst, it could lead to inaccurate data due to overlapping samples for the metric series.
 
 However, there are ways to scale `otelcol.connector.spanmetrics` without the need for a load balancer:
-1. Each Agent could add an attribute such as `collector.id` in order to make its series unique.
-  * A `sum by` PromQL query could be used to aggregate the metrics from different Agents.
-  * An extra `collector.id` attribute has a downside that the metrics stored in the database will have higher {{< term "cardinality" >}}cardinality{{< /term >}}.
+1. Each {{< param "PRODUCT_ROOT_NAME" >}} could add an attribute such as `collector.id` in order to make its series unique.
+   For example, you could use a `sum by` PromQL query to aggregate the metrics from different {{< param "PRODUCT_ROOT_NAME" >}}s.
+   An extra `collector.id` attribute has a downside that the metrics stored in the database will have higher {{< term "cardinality" >}}cardinality{{< /term >}}.
 2. Spanmetrics could be generated in the backend database instead of in {{< param "PRODUCT_ROOT_NAME" >}}.
     For example, span metrics can be [generated][tempo-spanmetrics] in Grafana Cloud by the Tempo traces database.
 
@@ -311,17 +311,14 @@ For `otelcol.connector.servicegraph` to work correctly, each "client" span must 
 If a "client" span goes to one {{< param "PRODUCT_ROOT_NAME" >}}, but a "server" span goes to another {{< param "PRODUCT_ROOT_NAME" >}},  then no single {{< param "PRODUCT_ROOT_NAME" >}} will be able to pair the spans and a metric won't be generated.
 
 `otelcol.exporter.loadbalancing` can solve this problem partially if it is configured with `routing_key = "traceID"`.
-  * Each Agent will then be able to calculate service graph for each "client"/"server" pair in a trace.
-  * However, it is possible to have a span with similar "server"/"client" values 
-    in a different trace, processed by another Agent.
-  * If two different Agents process similar "server"/"client" spans, 
-    they will generate the same service graph metric series.
-  * If the series from two Agents are the same, this will lead to issues 
-    when writing them to the backend database.
-  * Users could differentiate the series by adding an attribute such as `"collector.id"`.
-      * Unfortunately, there is currently no method in the Agent to aggregate those series from different Agents and merge them into one series.
-    * A PromQL query could be used to aggregate the metrics from different Agents.
-    * If the metrics are stored in Grafana Mimir, cardinality issues due to `"collector.id"` labels can be solved using [Adaptive Metrics][adaptive-metrics].
+Each {{< param "PRODUCT_ROOT_NAME" >}} will then be able to calculate a service graph for each "client"/"server" pair in a trace.
+It is possible to have a span with similar "server"/"client" values in a different trace, processed by another {{< param "PRODUCT_ROOT_NAME" >}}.
+If two different {{< param "PRODUCT_ROOT_NAME" >}} process similar "server"/"client" spans, they will generate the same service graph metric series.
+If the series from two {{< param "PRODUCT_ROOT_NAME" >}} are the same, this will lead to issues when writing them to the backend database.
+You could differentiate the series by adding an attribute such as `"collector.id"`.
+Unfortunately, there is currently no method in {{< param "PRODUCT_ROOT_NAME" >}} to aggregate those series from different {{< param "PRODUCT_ROOT_NAME" >}}s and merge them into one series.
+You could use a PromQL query to aggregate the metrics from different {{< param "PRODUCT_ROOT_NAME" >}}s.
+If the metrics are stored in Grafana Mimir, cardinality issues due to `"collector.id"` labels can be solved using [Adaptive Metrics][adaptive-metrics].
 
 A simpler, more scalable alternative to generating service graph metrics in {{< param "PRODUCT_ROOT_NAME" >}} is to generate them entirely in the backend database. 
 For example, service graphs can be [generated][tempo-servicegraphs] in Grafana Cloud by the Tempo traces database.
@@ -418,8 +415,8 @@ The following example shows a Kubernetes configuration that configures two sets 
   * Spans are received from instrumented applications via `otelcol.receiver.otlp`
   * Spans are exported via `otelcol.exporter.loadbalancing`.
 * A pool of sampling {{< param "PRODUCT_ROOT_NAME" >}}s:
-  * The sampling Agents run behind a headless service to enable the load-balancer {{< param "PRODUCT_ROOT_NAME" >}}s to discover them.
-  * Spans are received from the load-balancer Agents via `otelcol.receiver.otlp`
+  * The sampling {{< param "PRODUCT_ROOT_NAME" >}}s run behind a headless service to enable the load-balancer {{< param "PRODUCT_ROOT_NAME" >}}s to discover them.
+  * Spans are received from the load-balancer {{< param "PRODUCT_ROOT_NAME" >}}s via `otelcol.receiver.otlp`
   * Traces are sampled via `otelcol.processor.tail_sampling`.
   * The traces are exported via `otelcol.exporter.otlp` to an OTLP-compatible database such as Tempo.
 

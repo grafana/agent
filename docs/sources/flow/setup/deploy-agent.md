@@ -62,7 +62,7 @@ Examples of stateful components:
 A "stateless component" does not need to aggregate specific spans to work correctly - 
 it can work correctly even if it only has some of the spans of a trace.
 
-Stateless {{< param "PRODUCT_ROOT_NAME" >}} can be scaled without using `otelcol.exporter.loadbalancing`.
+A stateless {{< param "PRODUCT_ROOT_NAME" >}} can be scaled without using `otelcol.exporter.loadbalancing`.
 For example, you could use an off-the-shelf load balancer to do a round-robin load balancing.
 
 Examples of stateless components:
