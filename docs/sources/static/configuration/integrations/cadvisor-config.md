@@ -60,10 +60,10 @@ Full reference of options:
   # cAdvisor-specific configuration options
   #
 
-  # Convert container labels and environment variables into labels on prometheus metrics for each container. If false, then only metrics exported are container name, first alias, and image name.
+  # Convert container labels and environment variables into labels on Prometheus metrics for each container. If false, then the only metrics exported are container name, first alias, and image name. `.` aren't valid in Prometheus label names, so if there are any in the container label, they will transformed to `_` when converted to the Prometheus label. 
   [store_container_labels: <boolean> | default = true]
 
-  # List of container labels to be converted to labels on prometheus metrics for each container. store_container_labels must be set to false for this to take effect.
+  # List of container labels to be converted to labels on Prometheus metrics for each container. store_container_labels must be set to false for this to take effect. This must match the format of the container label, not the converted Prometheus label (`.` are converted to `_` in the Prometheus label).   
   allowlisted_container_labels:
     [ - <string> ]
 
