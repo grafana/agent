@@ -14,13 +14,17 @@ import (
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/pyroscope"
 	"github.com/grafana/agent/component/pyroscope/java/asprof"
-	"github.com/grafana/agent/component/pyroscope/java/jfr"
 	"github.com/grafana/agent/pkg/flow/logging/level"
+	jfrpprof "github.com/grafana/jfr-parser/pprof"
+	jfrpprofPyroscope "github.com/grafana/jfr-parser/pprof/pyroscope"
+	"github.com/prometheus/prometheus/model/labels"
 	gopsutil "github.com/shirou/gopsutil/v3/process"
 )
 
 // we extract to /tmp so all users can read it, but only root write, see asprof.extractPerm
 var profiler = asprof.NewProfiler("/tmp")
+
+const spyName = "grafana-agent.java"
 
 type profilingLoop struct {
 	logger log.Logger
@@ -127,26 +131,26 @@ func (p *profilingLoop) reset() error {
 
 	return p.push(jfrBytes, startTime, endTime)
 }
-
 func (p *profilingLoop) push(jfrBytes []byte, startTime time.Time, endTime time.Time) error {
-	reqs, metrics, err := jfr.ParseJFR(jfrBytes, jfr.Metadata{
+	profiles, err := jfrpprof.ParseJFR(jfrBytes, &jfrpprof.ParseInput{
 		StartTime:  startTime,
 		EndTime:    endTime,
-		SampleRate: p.cfg.SampleRate,
-		Target:     p.getTarget(),
-	})
+		SampleRate: int64(p.cfg.SampleRate),
+	}, new(jfrpprof.LabelsSnapshot))
 	if err != nil {
 		return fmt.Errorf("failed to parse jfr: %w", err)
 	}
-	for i, req := range reqs {
-		metric := metrics[i]
-		sz := 0
-		for _, s := range req.Samples {
-			sz += len(s.RawProfile)
-		}
+	for _, req := range profiles.Profiles {
+		metric := req.Metric
+		sz := req.Profile.SizeVT()
 		l := log.With(p.logger, "metric", metric, "sz", sz)
-		appender := p.output.Appender()
-		err := appender.Append(context.Background(), req.Labels, req.Samples)
+		ls := labels.NewBuilder(nil)
+		for _, l := range jfrpprofPyroscope.Labels(p.target, profiles.JFREvent, req.Metric, "", spyName) {
+			ls.Set(l.Name, l.Value)
+		}
+		profile, err := req.Profile.MarshalVT()
+		samples := []*pyroscope.RawSample{{RawProfile: profile}}
+		err = p.output.Appender().Append(context.Background(), ls.Labels(), samples)
 		if err != nil {
 			_ = l.Log("msg", "failed to push jfr", "err", err)
 			continue

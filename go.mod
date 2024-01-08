@@ -58,7 +58,7 @@ require (
 	// Loki main commit where the Prometheus dependency matches ours. TODO(@tpaschalis) Update to kXYZ branch once it's available
 	github.com/grafana/loki v1.6.2-0.20231004111112-07cbef92268a
 	github.com/grafana/pyroscope-go/godeltaprof v0.1.3
-	github.com/grafana/pyroscope/api v0.2.0
+	github.com/grafana/pyroscope/api v0.3.0
 	github.com/grafana/pyroscope/ebpf v0.3.2
 	github.com/grafana/regexp v0.0.0-20221123153739-15dc172cd2db
 	github.com/grafana/river v0.3.0
@@ -222,7 +222,7 @@ require (
 	golang.org/x/time v0.3.0
 	google.golang.org/api v0.146.0
 	google.golang.org/grpc v1.59.0
-	google.golang.org/protobuf v1.31.0
+	google.golang.org/protobuf v1.32.0
 	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.1
 	gotest.tools v2.2.0+incompatible
@@ -613,7 +613,7 @@ require github.com/ianlancetaylor/demangle v0.0.0-20230524184225-eabc099b10ab
 
 require (
 	github.com/githubexporter/github-exporter v0.0.0-20231025122338-656e7dc33fe7
-	github.com/grafana/jfr-parser v0.7.2-0.20230831140626-08fa3a941bf8
+	github.com/grafana/jfr-parser v0.7.2-0.20240108092556-b3bccd4e73a9
 	github.com/natefinch/atomic v1.0.1
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/filterprocessor v0.87.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/vcenterreceiver v0.87.0
@@ -627,6 +627,7 @@ require (
 	github.com/drone/envsubst v1.0.3 // indirect
 	github.com/go-jose/go-jose/v3 v3.0.0 // indirect
 	github.com/google/gnostic-models v0.6.8 // indirect
+	github.com/grafana/jfr-parser/pprof v0.0.0-20240108092556-b3bccd4e73a9 // indirect
 	github.com/hetznercloud/hcloud-go/v2 v2.0.0 // indirect
 	github.com/julienschmidt/httprouter v1.3.0 // indirect
 	github.com/knadh/koanf/v2 v2.0.1 // indirect
