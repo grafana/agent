@@ -199,83 +199,9 @@ The following fields are exported and can be referenced by other components:
 
 `input` accepts `otelcol.Consumer` traces telemetry data. It does not accept metrics and logs.
 
-## Component health
+## Handling of resource attributes
 
-`otelcol.connector.spanmetrics` is only reported as unhealthy if given an invalid
-configuration.
-
-## Debug information
-
-`otelcol.connector.spanmetrics` does not expose any component-specific debug
-information.
-
-## Examples
-
-### Explicit histogram and extra dimensions
-
-In the example below, `http.status_code` and `http.method` are additional dimensions on top of:
-
-- `service.name`
-- `span.name`
-- `span.kind`
-- `status.code`
-
-```river
-otelcol.receiver.otlp "default" {
-  http {}
-  grpc {}
-
-  output {
-    traces  = [otelcol.connector.spanmetrics.default.input]
-  }
-}
-
-otelcol.connector.spanmetrics "default" {
-  // Since a default is not provided, the http.status_code dimension will be omitted
-  // if the span does not contain http.status_code.
-  dimension {
-    name = "http.status_code"
-  }
-
-  // If the span is missing http.method, the connector will insert
-  // the http.method dimension with value 'GET'.
-  dimension {
-    name = "http.method"
-    default = "GET"
-  }
-
-  dimensions_cache_size = 333
-
-  aggregation_temporality = "DELTA"
-
-  histogram {
-    unit = "s"
-    explicit {
-      buckets = ["333ms", "777s", "999h"]
-    }
-  }
-
-  // The period on which all metrics (whose dimension keys remain in cache) will be emitted.
-  metrics_flush_interval = "33s"
-
-  namespace = "test.namespace"
-
-  output {
-    metrics = [otelcol.exporter.otlp.production.input]
-  }
-}
-
-otelcol.exporter.otlp "production" {
-  client {
-    endpoint = env("OTLP_SERVER_ENDPOINT")
-  }
-}
-```
-
-### Sending metrics via a Prometheus remote write
-
-The generated metrics can be sent to a Prometheus-compatible database such as Grafana Mimir.
-However, extra steps are required in order to make sure all metric samples are received.
+[Handling of resource attributes]: #handling-of-resource-attributes
 
 `otelcol.connector.spanmetrics` is an OTLP-native component. As such, it aims to preserve the resource attributes of spans.
 
@@ -615,14 +541,91 @@ However, extra steps are required in order to make sure all metric samples are r
    ```
    {{< /collapse >}}
 
-[prom-data-model]: https://prometheus.io/docs/concepts/data_model/
+## Component health
+
+`otelcol.connector.spanmetrics` is only reported as unhealthy if given an invalid
+configuration.
+
+## Debug information
+
+`otelcol.connector.spanmetrics` does not expose any component-specific debug
+information.
+
+## Examples
+
+### Explicit histogram and extra dimensions
+
+In the example below, `http.status_code` and `http.method` are additional dimensions on top of:
+
+- `service.name`
+- `span.name`
+- `span.kind`
+- `status.code`
+
+```river
+otelcol.receiver.otlp "default" {
+  http {}
+  grpc {}
+
+  output {
+    traces  = [otelcol.connector.spanmetrics.default.input]
+  }
+}
+
+otelcol.connector.spanmetrics "default" {
+  // Since a default is not provided, the http.status_code dimension will be omitted
+  // if the span does not contain http.status_code.
+  dimension {
+    name = "http.status_code"
+  }
+
+  // If the span is missing http.method, the connector will insert
+  // the http.method dimension with value 'GET'.
+  dimension {
+    name = "http.method"
+    default = "GET"
+  }
+
+  dimensions_cache_size = 333
+
+  aggregation_temporality = "DELTA"
+
+  histogram {
+    unit = "s"
+    explicit {
+      buckets = ["333ms", "777s", "999h"]
+    }
+  }
+
+  // The period on which all metrics (whose dimension keys remain in cache) will be emitted.
+  metrics_flush_interval = "33s"
+
+  namespace = "test.namespace"
+
+  output {
+    metrics = [otelcol.exporter.otlp.production.input]
+  }
+}
+
+otelcol.exporter.otlp "production" {
+  client {
+    endpoint = env("OTLP_SERVER_ENDPOINT")
+  }
+}
+```
+
+### Sending metrics via a Prometheus remote write
+
+The generated metrics can be sent to a Prometheus-compatible database such as Grafana Mimir.
+However, extra steps are required in order to make sure all metric samples are received.
+This is because `otelcol.connector.spanmetrics` aims to [preserve resource attributes][Handling of resource attributes] in the metrics which it outputs.
 
 Unfortunately, the [Prometheus data model][prom-data-model] has no notion of resource attributes.
 This means that if `otelcol.connector.spanmetrics` outputs metrics with identical metric attributes,
 but different resource attributes, `otelcol.exporter.prometheus` will convert the metrics into the same metric series.
 This problem can be solved by doing **either** of the following:
 
-- Recommended approach: Prior to `otelcol.connector.spanmetrics`, remove all resource attributes from the incoming spans which are not needed by `otelcol.connector.spanmetrics`.
+- **Recommended approach:** Prior to `otelcol.connector.spanmetrics`, remove all resource attributes from the incoming spans which are not needed by `otelcol.connector.spanmetrics`.
   {{< collapse title="Example River configuration to remove unnecessary resource attributes." >}}
   ```river
   otelcol.receiver.otlp "default" {
@@ -757,6 +760,7 @@ metric names and attributes will be normalized to be compliant with Prometheus n
 {{% /admonition %}}
 
 [merge_maps]: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/{{< param "OTEL_VERSION" >}}/pkg/ottl/ottlfuncs/README.md#merge_maps
+[prom-data-model]: https://prometheus.io/docs/concepts/data_model/
 
 <!-- START GENERATED COMPATIBLE COMPONENTS -->
 
