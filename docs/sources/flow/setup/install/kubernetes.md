@@ -64,6 +64,6 @@ For more information on the {{< param "PRODUCT_ROOT_NAME" >}} Helm chart, refer 
 [Helm]: https://helm.sh
 
 {{% docs/reference %}}
-[Configure]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/configure/configure-kubernetes.md"
-[Configure]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/setup/configure/configure-kubernetes.md"
+[Configure]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/tasks/configure/configure-kubernetes.md"
+[Configure]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/tasks/configure/configure-kubernetes.md"
 {{% /docs/reference %}}

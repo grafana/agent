@@ -1,10 +1,16 @@
 ---
 aliases:
+- /docs/grafana-cloud/agent/flow/tasks/configure/configure-windows/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/tasks/configure/configure-windows/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/tasks/configure/configure-windows/
+- /docs/grafana-cloud/send-data/agent/flow/tasks/configure/configure-windows/  
+# Previous page aliases for backwards compatibility:
 - /docs/grafana-cloud/agent/flow/setup/configure/configure-windows/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/setup/configure/configure-windows/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/setup/configure/configure-windows/
 - /docs/grafana-cloud/send-data/agent/flow/setup/configure/configure-windows/
-canonical: https://grafana.com/docs/agent/latest/flow/setup/configure/configure-windows/
+- ../../setup/configure/configure-windows/ # /docs/agent/latest/flow/setup/configure/configure-windows/
+canonical: https://grafana.com/docs/agent/latest/flow/tasks/configure/configure-windows/
 description: Learn how to configure Grafana Agent Flow on Windows
 menuTitle: Windows
 title: Configure Grafana Agent Flow on Windows

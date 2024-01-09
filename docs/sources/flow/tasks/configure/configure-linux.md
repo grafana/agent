@@ -1,10 +1,16 @@
 ---
 aliases:
+- /docs/grafana-cloud/agent/flow/tasks/configure/configure-linux/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/tasks/configure/configure-linux/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/tasks/configure/configure-linux/
+- /docs/grafana-cloud/send-data/agent/flow/tasks/configure/configure-linux/
+# Previous page aliases for backwards compatibility:
 - /docs/grafana-cloud/agent/flow/setup/configure/configure-linux/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/setup/configure/configure-linux/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/setup/configure/configure-linux/
 - /docs/grafana-cloud/send-data/agent/flow/setup/configure/configure-linux/
-canonical: https://grafana.com/docs/agent/latest/flow/setup/configure/configure-linux/
+- ../../setup/configure/configure-linux/ # /docs/agent/latest/flow/setup/configure/configure-linux/
+canonical: https://grafana.com/docs/agent/latest/flow/tasks/configure/configure-linux/
 description: Learn how to configure Grafana Agent Flow on Linux
 menuTitle: Linux
 title: Configure Grafana Agent Flow on Linux
