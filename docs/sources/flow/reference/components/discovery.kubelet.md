@@ -49,7 +49,7 @@ One of the following authentication methods must be provided if kubelet authenti
 The `namespaces` list limits the namespaces to discover resources in. If
 omitted, all namespaces are searched.
 
-`discovery.kubelet` appends a `/pods` path to url to request the available pods.
+`discovery.kubelet` appends a `/pods` path to `url` to request the available pods.
 You can have additional paths in the `url`.
 For example, if `url` is `https://kubernetes.default.svc.cluster.local:443/api/v1/nodes/cluster-node-1/proxy`, then `discovery.kubelet` sends a request on `https://kubernetes.default.svc.cluster.local:443/api/v1/nodes/cluster-node-1/proxy/pods`
 
