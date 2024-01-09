@@ -7,8 +7,8 @@ This document contains a historical list of changes between releases. Only
 changes that impact end-user behavior are listed; changes to documentation or
 internal API changes are not present.
 
-v0.39.0-rc.0 (2024-01-05)
--------------------------
+v0.39.0 (2024-01-09)
+--------------------
 
 ### Breaking changes
 
@@ -29,6 +29,7 @@ v0.39.0-rc.0 (2024-01-05)
 ### Features
 
 - A new `discovery.ovhcloud` component for discovering scrape targets on OVHcloud. (@ptodev)
+- Allow specifying additional containers to run. (@juangom)
 
 ### Enhancements
 
