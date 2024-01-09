@@ -3,7 +3,6 @@ package sigv4
 import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/otelcol/auth"
-	otel_service "github.com/grafana/agent/service/otel"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/sigv4authextension"
 	otelcomponent "go.opentelemetry.io/collector/component"
 	otelextension "go.opentelemetry.io/collector/extension"
@@ -11,10 +10,9 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name:          "otelcol.auth.sigv4",
-		Args:          Arguments{},
-		Exports:       auth.Exports{},
-		NeedsServices: []string{otel_service.ServiceName},
+		Name:    "otelcol.auth.sigv4",
+		Args:    Arguments{},
+		Exports: auth.Exports{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			fact := sigv4authextension.NewFactory()

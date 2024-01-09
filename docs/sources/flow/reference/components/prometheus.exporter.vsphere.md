@@ -5,13 +5,18 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/prometheus.exporter.vsphere/
 - /docs/grafana-cloud/send-data/agent/flow/reference/components/prometheus.exporter.vsphere/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.vsphere/
-description: Learn about prometheus.exporter.vsphere
 title: prometheus.exporter.vsphere
+description: Learn about prometheus.exporter.vsphere
 ---
 
 # prometheus.exporter.vsphere
 
 The `prometheus.exporter.vsphere` component embeds [`vmware_exporter`](https://github.com/grafana/vmware_exporter) to collect vSphere metrics
+
+> **NOTE**: We recommend to use [otelcol.receiver.vcenter][] instead.
+
+[otelcol.receiver.vcenter]: {{< relref "./otelcol.receiver.vcenter.md" >}}
+
 
 ## Usage
 
@@ -40,7 +45,7 @@ Omitted fields take their default values.
 
 ## Exported fields
 
-{{< docs/shared lookup="flow/reference/components/exporter-component-exports.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/exporter-component-exports.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ## Component health
 
@@ -84,3 +89,20 @@ prometheus.remote_write "default" {
 ```
 
 [scrape]: {{< relref "./prometheus.scrape.md" >}}
+
+<!-- START GENERATED COMPATIBLE COMPONENTS -->
+
+## Compatible components
+
+`prometheus.exporter.vsphere` has exports that can be consumed by the following components:
+
+- Components that consume [Targets]({{< relref "../compatibility/#targets-consumers" >}})
+
+{{% admonition type="note" %}}
+
+Connecting some components may not be sensible or components may require further configuration to make the 
+connection work correctly. Refer to the linked documentation for more details.
+
+{{% /admonition %}}
+
+<!-- END GENERATED COMPATIBLE COMPONENTS -->

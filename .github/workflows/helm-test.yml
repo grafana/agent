@@ -51,13 +51,13 @@ jobs:
           version: v3.10.3
 
       - name: Install Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.9'
           check-latest: true
 
       - name: Install chart-testing
-        uses: helm/chart-testing-action@v2.6.0
+        uses: helm/chart-testing-action@v2.6.1
 
       - name: Determine changed charts
         id: list-changed

@@ -13,13 +13,13 @@ import (
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/component"
 	common_config "github.com/grafana/agent/component/common/config"
-	"github.com/grafana/agent/pkg/build"
+	"github.com/grafana/agent/internal/useragent"
 	"github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/grafana/river/rivertypes"
 	prom_config "github.com/prometheus/common/config"
 )
 
-var userAgent = fmt.Sprintf("GrafanaAgent/%s", build.Version)
+var userAgent = useragent.Get()
 
 func init() {
 	component.Register(component.Registration{
@@ -41,6 +41,7 @@ type Arguments struct {
 
 	Method  string            `river:"method,attr,optional"`
 	Headers map[string]string `river:"headers,attr,optional"`
+	Body    string            `river:"body,attr,optional"`
 
 	Client common_config.HTTPClientConfig `river:"client,block,optional"`
 }
@@ -193,7 +194,12 @@ func (c *Component) pollError() error {
 	ctx, cancel := context.WithTimeout(context.Background(), c.args.PollTimeout)
 	defer cancel()
 
-	req, err := http.NewRequest(c.args.Method, c.args.URL, nil)
+	var body io.Reader
+	if c.args.Body != "" {
+		body = strings.NewReader(c.args.Body)
+	}
+
+	req, err := http.NewRequest(c.args.Method, c.args.URL, body)
 	if err != nil {
 		level.Error(c.log).Log("msg", "failed to build request", "err", err)
 		return fmt.Errorf("building request: %w", err)

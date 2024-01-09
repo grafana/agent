@@ -21,7 +21,8 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/component"
-	"github.com/grafana/agent/pkg/build"
+	"github.com/grafana/agent/internal/agentseed"
+	"github.com/grafana/agent/internal/useragent"
 	"github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/grafana/agent/pkg/metrics/wal"
 	"github.com/prometheus/prometheus/model/timestamp"
@@ -35,13 +36,13 @@ import (
 var remoteFlushDeadline = 1 * time.Minute
 
 func init() {
-	remote.UserAgent = fmt.Sprintf("GrafanaAgent/%s", build.Version)
+	remote.UserAgent = useragent.Get()
 
 	component.Register(component.Registration{
-		Name:          "prometheus.remote_write",
-		Args:          Arguments{},
-		Exports:       Exports{},
-		NeedsServices: []string{labelstore.ServiceName},
+		Name:    "prometheus.remote_write",
+		Args:    Arguments{},
+		Exports: Exports{},
+
 		Build: func(o component.Options, c component.Arguments) (component.Component, error) {
 			return New(o, c.(Arguments))
 		},
@@ -256,6 +257,13 @@ func (c *Component) Update(newConfig component.Arguments) error {
 	convertedConfig, err := convertConfigs(cfg)
 	if err != nil {
 		return err
+	}
+	uid := agentseed.Get().UID
+	for _, cfg := range convertedConfig.RemoteWriteConfigs {
+		if cfg.Headers == nil {
+			cfg.Headers = map[string]string{}
+		}
+		cfg.Headers[agentseed.HeaderName] = uid
 	}
 	err = c.remoteStore.ApplyConfig(convertedConfig)
 	if err != nil {

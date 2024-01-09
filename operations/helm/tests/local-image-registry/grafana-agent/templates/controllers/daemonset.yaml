@@ -25,7 +25,7 @@ spec:
       serviceAccountName: grafana-agent
       containers:
         - name: grafana-agent
-          image: quay.io/grafana/agent:v0.37.4
+          image: quay.io/grafana/agent:v0.38.1
           imagePullPolicy: IfNotPresent
           args:
             - run
@@ -36,6 +36,8 @@ spec:
           env:
             - name: AGENT_MODE
               value: flow
+            - name: AGENT_DEPLOY_MODE
+              value: "helm"
             - name: HOSTNAME
               valueFrom:
                 fieldRef:
@@ -53,7 +55,7 @@ spec:
             - name: config
               mountPath: /etc/agent
         - name: config-reloader
-          image: quay.io/jimmidyson/configmap-reload:v0.8.0
+          image: quay.io/jimmidyson/configmap-reload:v0.12.0
           args:
             - --volume-dir=/etc/agent
             - --webhook-url=http://localhost:80/-/reload

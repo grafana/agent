@@ -21,9 +21,9 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name:          "prometheus.receive_http",
-		Args:          Arguments{},
-		NeedsServices: []string{labelstore.ServiceName},
+		Name: "prometheus.receive_http",
+		Args: Arguments{},
+
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			return New(opts, args.(Arguments))
 		},

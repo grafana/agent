@@ -31,6 +31,7 @@ OutFile     "${OUT}"
 Var PassedInParameters
 Var Config
 Var ConfigFlag
+Var Environment
 Var DisableReporting
 Var DisableReportingFlag
 Var DisableProfiling
@@ -51,6 +52,7 @@ Section "install"
   ${GetParameters} $PassedInParameters
   ${GetOptions} $PassedInParameters "/DISABLEPROFILING=" $DisableProfiling
   ${GetOptions} $PassedInParameters "/DISABLEREPORTING=" $DisableReporting
+  ${GetOptions} $PassedInParameters "/ENVIRONMENT=" $Environment
   ${GetOptions} $PassedInParameters "/CONFIG=" $Config
 
   # Calls to functions like nsExec::ExecToLog below push the exit code to the
@@ -94,6 +96,10 @@ Section "install"
 
   # Start the service.
   nsExec::ExecToLog 'sc start "Grafana Agent Flow"'
+  Pop $0
+
+  # Auto-restart agent on failure. Reset failure counter after 60 seconds without failure
+  nsExec::ExecToLog `sc failure "Grafana Agent Flow" reset= 60 actions= restart/5000 reboot= "Grafana Agent Flow has failed. Restarting in 5 seconds"`
   Pop $0
 SectionEnd
 
@@ -145,6 +151,11 @@ Function InitializeRegistry
     nsExec::ExecToLog 'Reg.exe add "${REGKEY}" /reg:64 /v Arguments /t REG_MULTI_SZ /d "run"\0"$ConfigFlag"\0"--storage.path=$APPDATA\${APPNAME}\data"\0"$DisableReportingFlag$DisableProfilingFlag"'
     Pop $0 # Ignore return result
   ${EndIf}
+
+  # Define the environment key, which holds environment variables to pass to the
+  # service.
+  nsExec::ExecToLog 'Reg.exe add "${REGKEY}" /reg:64 /v Environment /t REG_MULTI_SZ /d "$Environment"'
+  Pop $0 # Ignore return result
 
   Return
 FunctionEnd

@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/grafana/agent/component"
+	commonCfg "github.com/grafana/agent/component/common/config"
 	"github.com/grafana/agent/component/prometheus/exporter"
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/integrations/elasticsearch_exporter"
@@ -11,11 +12,11 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name:          "prometheus.exporter.elasticsearch",
-		Args:          Arguments{},
-		Exports:       exporter.Exports{},
-		NeedsServices: exporter.RequiredServices(),
-		Build:         exporter.New(createExporter, "elasticsearch"),
+		Name:    "prometheus.exporter.elasticsearch",
+		Args:    Arguments{},
+		Exports: exporter.Exports{},
+
+		Build: exporter.New(createExporter, "elasticsearch"),
 	})
 }
 
@@ -35,23 +36,24 @@ var DefaultArguments = Arguments{
 }
 
 type Arguments struct {
-	Address                   string        `river:"address,attr,optional"`
-	Timeout                   time.Duration `river:"timeout,attr,optional"`
-	AllNodes                  bool          `river:"all,attr,optional"`
-	Node                      string        `river:"node,attr,optional"`
-	ExportIndices             bool          `river:"indices,attr,optional"`
-	ExportIndicesSettings     bool          `river:"indices_settings,attr,optional"`
-	ExportClusterSettings     bool          `river:"cluster_settings,attr,optional"`
-	ExportShards              bool          `river:"shards,attr,optional"`
-	IncludeAliases            bool          `river:"aliases,attr,optional"`
-	ExportSnapshots           bool          `river:"snapshots,attr,optional"`
-	ExportClusterInfoInterval time.Duration `river:"clusterinfo_interval,attr,optional"`
-	CA                        string        `river:"ca,attr,optional"`
-	ClientPrivateKey          string        `river:"client_private_key,attr,optional"`
-	ClientCert                string        `river:"client_cert,attr,optional"`
-	InsecureSkipVerify        bool          `river:"ssl_skip_verify,attr,optional"`
-	ExportDataStreams         bool          `river:"data_stream,attr,optional"`
-	ExportSLM                 bool          `river:"slm,attr,optional"`
+	Address                   string               `river:"address,attr,optional"`
+	Timeout                   time.Duration        `river:"timeout,attr,optional"`
+	AllNodes                  bool                 `river:"all,attr,optional"`
+	Node                      string               `river:"node,attr,optional"`
+	ExportIndices             bool                 `river:"indices,attr,optional"`
+	ExportIndicesSettings     bool                 `river:"indices_settings,attr,optional"`
+	ExportClusterSettings     bool                 `river:"cluster_settings,attr,optional"`
+	ExportShards              bool                 `river:"shards,attr,optional"`
+	IncludeAliases            bool                 `river:"aliases,attr,optional"`
+	ExportSnapshots           bool                 `river:"snapshots,attr,optional"`
+	ExportClusterInfoInterval time.Duration        `river:"clusterinfo_interval,attr,optional"`
+	CA                        string               `river:"ca,attr,optional"`
+	ClientPrivateKey          string               `river:"client_private_key,attr,optional"`
+	ClientCert                string               `river:"client_cert,attr,optional"`
+	InsecureSkipVerify        bool                 `river:"ssl_skip_verify,attr,optional"`
+	ExportDataStreams         bool                 `river:"data_stream,attr,optional"`
+	ExportSLM                 bool                 `river:"slm,attr,optional"`
+	BasicAuth                 *commonCfg.BasicAuth `river:"basic_auth,block,optional"`
 }
 
 // SetToDefault implements river.Defaulter.
@@ -78,5 +80,6 @@ func (a *Arguments) Convert() *elasticsearch_exporter.Config {
 		InsecureSkipVerify:        a.InsecureSkipVerify,
 		ExportDataStreams:         a.ExportDataStreams,
 		ExportSLM:                 a.ExportSLM,
+		BasicAuth:                 a.BasicAuth.Convert(),
 	}
 }

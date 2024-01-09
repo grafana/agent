@@ -24,6 +24,7 @@ import (
 	_ "github.com/grafana/agent/component/discovery/nerve"                          // Import discovery.nerve
 	_ "github.com/grafana/agent/component/discovery/nomad"                          // Import discovery.nomad
 	_ "github.com/grafana/agent/component/discovery/openstack"                      // Import discovery.openstack
+	_ "github.com/grafana/agent/component/discovery/ovhcloud"                       // Import discovery.ovhcloud
 	_ "github.com/grafana/agent/component/discovery/puppetdb"                       // Import discovery.puppetdb
 	_ "github.com/grafana/agent/component/discovery/relabel"                        // Import discovery.relabel
 	_ "github.com/grafana/agent/component/discovery/scaleway"                       // Import discovery.scaleway
@@ -89,6 +90,7 @@ import (
 	_ "github.com/grafana/agent/component/otelcol/receiver/opencensus"              // Import otelcol.receiver.opencensus
 	_ "github.com/grafana/agent/component/otelcol/receiver/otlp"                    // Import otelcol.receiver.otlp
 	_ "github.com/grafana/agent/component/otelcol/receiver/prometheus"              // Import otelcol.receiver.prometheus
+	_ "github.com/grafana/agent/component/otelcol/receiver/vcenter"                 // Import otelcol.receiver.vcenter
 	_ "github.com/grafana/agent/component/otelcol/receiver/zipkin"                  // Import otelcol.receiver.zipkin
 	_ "github.com/grafana/agent/component/prometheus/exporter/agent"                // Import prometheus.exporter.agent
 	_ "github.com/grafana/agent/component/prometheus/exporter/apache"               // Import prometheus.exporter.apache
