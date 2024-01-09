@@ -31,6 +31,9 @@ v0.39.1 (2024-01-19)
 
 - Fix issue where installing the Windows Agent Flow installer would hang then crash. (@mattdurham)
 
+### Other changes
+
+- Removed support for Windows 2012 in line with Microsoft end of life. (@mattdurham)
 
 v0.39.0 (2024-01-09)
 --------------------
@@ -54,6 +57,7 @@ v0.39.0 (2024-01-09)
 ### Features
 
 - A new `discovery.ovhcloud` component for discovering scrape targets on OVHcloud. (@ptodev)
+
 - Allow specifying additional containers to run. (@juangom)
 
 ### Enhancements
@@ -83,6 +87,7 @@ v0.39.0 (2024-01-09)
 - `otelcol.receiver.prometheus` does not drop histograms without buckets anymore. (@wildum)
 
 - Added exemplars support to `otelcol.receiver.prometheus`. (@wildum)
+
 - `mimir.rules.kubernetes` may now retry its startup on failure. (@hainenber)
 
 - Added links between compatible components in the documentation to make it
