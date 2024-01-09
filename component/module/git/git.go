@@ -3,17 +3,12 @@ package git
 
 import (
 	"context"
-	"errors"
-	"path/filepath"
-	"reflect"
 	"sync"
-	"time"
+	"sync/atomic"
 
-	"github.com/go-kit/log"
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/module"
-	"github.com/grafana/agent/component/module/git/internal/vcs"
-	"github.com/grafana/agent/pkg/flow/logging/level"
+	remote_git "github.com/grafana/agent/component/remote/git"
 )
 
 func init() {
@@ -28,43 +23,30 @@ func init() {
 	})
 }
 
-// Arguments configures the module.git component.
+// Arguments olds values which are used to configure the module.git component.
 type Arguments struct {
-	Repository    string        `river:"repository,attr"`
-	Revision      string        `river:"revision,attr,optional"`
-	Path          string        `river:"path,attr"`
-	PullFrequency time.Duration `river:"pull_frequency,attr,optional"`
+	RemoteGitArguments remote_git.Arguments `river:",squash"`
 
-	Arguments     map[string]any    `river:"arguments,block,optional"`
-	GitAuthConfig vcs.GitAuthConfig `river:",squash"`
-}
-
-// DefaultArguments holds default settings for Arguments.
-var DefaultArguments = Arguments{
-	Revision:      "HEAD",
-	PullFrequency: time.Minute,
+	Arguments map[string]any `river:"arguments,block,optional"`
 }
 
 // SetToDefault implements river.Defaulter.
 func (args *Arguments) SetToDefault() {
-	*args = DefaultArguments
+	args.RemoteGitArguments.SetToDefault()
 }
 
 // Component implements the module.git component.
 type Component struct {
 	opts component.Options
-	log  log.Logger
 	mod  *module.ModuleComponent
 
-	mut      sync.RWMutex
-	repo     *vcs.GitRepo
-	repoOpts vcs.GitRepoOptions
-	args     Arguments
+	mut     sync.RWMutex
+	args    Arguments
+	content string
 
-	argsChanged chan struct{}
-
-	healthMut sync.RWMutex
-	health    component.Health
+	managedRemoteGit *remote_git.Component
+	inUpdate         atomic.Bool
+	isCreated        atomic.Bool
 }
 
 var (
@@ -80,24 +62,34 @@ func New(o component.Options, args Arguments) (*Component, error) {
 	}
 	c := &Component{
 		opts: o,
-		log:  o.Logger,
-
-		mod: m,
-
-		argsChanged: make(chan struct{}, 1),
+		args: args,
+		mod:  m,
 	}
 
-	// Only acknowledge the error from Update if it's not a
-	// vcs.UpdateFailedError; vcs.UpdateFailedError means that the Git repo
-	// exists but we were just unable to update it.
+	c.managedRemoteGit, err = c.newManagedLocalComponent(o)
+	if err != nil {
+		return nil, err
+	}
 	if err := c.Update(args); err != nil {
-		if errors.As(err, &vcs.UpdateFailedError{}) {
-			level.Error(c.log).Log("msg", "failed to update repository", "err", err)
-		} else {
-			return nil, err
+		return nil, err
+	}
+
+	return c, nil
+}
+
+// NewManagedLocalComponent creates the new remote.git managed component.
+func (c *Component) newManagedLocalComponent(o component.Options) (*remote_git.Component, error) {
+	remoteGitOpts := o
+	remoteGitOpts.OnStateChange = func(e component.Exports) {
+		c.setContent(e.(remote_git.Exports).Content)
+
+		if !c.inUpdate.Load() && c.isCreated.Load() {
+			// Any errors found here are reported via component health
+			_ = c.mod.LoadFlowSource(c.getArgs().Arguments, c.getContent())
 		}
 	}
-	return c, nil
+
+	return remote_git.New(remoteGitOpts, c.getArgs().RemoteGitArguments)
 }
 
 // Run implements component.Component.
@@ -105,165 +97,73 @@ func (c *Component) Run(ctx context.Context) error {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	go c.mod.RunFlowController(ctx)
+	ch := make(chan error, 1)
+	go func() {
+		err := c.managedRemoteGit.Run(ctx)
+		if err != nil {
+			ch <- err
+		}
+	}()
 
-	var (
-		ticker  *time.Ticker
-		tickerC <-chan time.Time
-	)
+	go c.mod.RunFlowController(ctx)
 
 	for {
 		select {
 		case <-ctx.Done():
 			return nil
-
-		case <-c.argsChanged:
-			c.mut.Lock()
-			{
-				level.Info(c.log).Log("msg", "updating repository pull frequency", "new_frequency", c.args.PullFrequency)
-
-				if c.args.PullFrequency > 0 {
-					if ticker == nil {
-						ticker = time.NewTicker(c.args.PullFrequency)
-						tickerC = ticker.C
-					} else {
-						ticker.Reset(c.args.PullFrequency)
-					}
-				} else {
-					if ticker != nil {
-						ticker.Stop()
-					}
-					ticker = nil
-					tickerC = nil
-				}
-			}
-			c.mut.Unlock()
-
-		case <-tickerC:
-			level.Info(c.log).Log("msg", "updating repository", "new_frequency", c.args.PullFrequency)
-			c.tickPollFile(ctx)
-		}
-	}
-}
-
-func (c *Component) tickPollFile(ctx context.Context) {
-	c.mut.Lock()
-	err := c.pollFile(ctx, c.args)
-	c.mut.Unlock()
-
-	c.updateHealth(err)
-}
-
-func (c *Component) updateHealth(err error) {
-	c.healthMut.Lock()
-	defer c.healthMut.Unlock()
-
-	if err != nil {
-		c.health = component.Health{
-			Health:     component.HealthTypeUnhealthy,
-			Message:    err.Error(),
-			UpdateTime: time.Now(),
-		}
-	} else {
-		c.health = component.Health{
-			Health:     component.HealthTypeHealthy,
-			Message:    "module updated",
-			UpdateTime: time.Now(),
+		case err := <-ch:
+			return err
 		}
 	}
 }
 
 // Update implements component.Component.
-func (c *Component) Update(args component.Arguments) (err error) {
-	defer func() {
-		c.updateHealth(err)
-	}()
-
-	c.mut.Lock()
-	defer c.mut.Unlock()
+func (c *Component) Update(args component.Arguments) error {
+	c.inUpdate.Store(true)
+	defer c.inUpdate.Store(false)
 
 	newArgs := args.(Arguments)
+	c.setArgs(newArgs)
 
-	// TODO(rfratto): store in a repo-specific directory so changing repositories
-	// doesn't risk break the module loader if there's a SHA collision between
-	// the two different repositories.
-	repoPath := filepath.Join(c.opts.DataPath, "repo")
-
-	repoOpts := vcs.GitRepoOptions{
-		Repository: newArgs.Repository,
-		Revision:   newArgs.Revision,
-		Auth:       newArgs.GitAuthConfig,
-	}
-
-	// Create or update the repo field.
-	// Failure to update repository makes the module loader temporarily use cached contents on disk
-	if c.repo == nil || !reflect.DeepEqual(repoOpts, c.repoOpts) {
-		r, err := vcs.NewGitRepo(context.Background(), repoPath, repoOpts)
-		if err != nil {
-			if errors.As(err, &vcs.UpdateFailedError{}) {
-				level.Error(c.log).Log("msg", "failed to update repository", "err", err)
-				c.updateHealth(err)
-			} else {
-				return err
-			}
-		}
-		c.repo = r
-		c.repoOpts = repoOpts
-	}
-
-	if err := c.pollFile(context.Background(), newArgs); err != nil {
-		return err
-	}
-
-	// Schedule an update for handling the changed arguments.
-	select {
-	case c.argsChanged <- struct{}{}:
-	default:
-	}
-
-	c.args = newArgs
-	return nil
-}
-
-// pollFile fetches the latest content from the repository and updates the
-// controller. pollFile must only be called with c.mut held.
-func (c *Component) pollFile(ctx context.Context, args Arguments) error {
-	// Make sure our repo is up-to-date.
-	if err := c.repo.Update(ctx); err != nil {
-		return err
-	}
-
-	// Finally, configure our controller.
-	bb, err := c.repo.ReadFile(args.Path)
+	err := c.managedRemoteGit.Update(newArgs.RemoteGitArguments)
 	if err != nil {
 		return err
 	}
 
-	return c.mod.LoadFlowSource(args.Arguments, string(bb))
+	// Force a content load here and bubble up any error. This will catch problems
+	// on initial load.
+	return c.mod.LoadFlowSource(newArgs.Arguments, c.getContent())
 }
 
 // CurrentHealth implements component.HealthComponent.
 func (c *Component) CurrentHealth() component.Health {
-	c.healthMut.RLock()
-	defer c.healthMut.RUnlock()
-
-	return component.LeastHealthy(c.health, c.mod.CurrentHealth())
+	return component.LeastHealthy(c.managedRemoteGit.CurrentHealth(), c.mod.CurrentHealth())
 }
 
-// DebugInfo implements component.DebugComponent.
-func (c *Component) DebugInfo() interface{} {
-	type DebugInfo struct {
-		SHA       string `river:"sha,attr"`
-		RepoError string `river:"repo_error,attr,optional"`
-	}
-
+// getArgs is a goroutine safe way to get args
+func (c *Component) getArgs() Arguments {
 	c.mut.RLock()
 	defer c.mut.RUnlock()
+	return c.args
+}
 
-	rev, err := c.repo.CurrentRevision()
-	if err != nil {
-		return DebugInfo{RepoError: err.Error()}
-	} else {
-		return DebugInfo{SHA: rev}
-	}
+// setArgs is a goroutine safe way to set args
+func (c *Component) setArgs(args Arguments) {
+	c.mut.Lock()
+	c.args = args
+	c.mut.Unlock()
+}
+
+// getContent is a goroutine safe way to get content
+func (c *Component) getContent() string {
+	c.mut.RLock()
+	defer c.mut.RUnlock()
+	return c.content
+}
+
+// setContent is a goroutine safe way to set content
+func (c *Component) setContent(content string) {
+	c.mut.Lock()
+	c.content = content
+	c.mut.Unlock()
 }

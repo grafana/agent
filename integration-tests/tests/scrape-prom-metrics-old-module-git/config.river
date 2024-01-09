@@ -1,0 +1,25 @@
+module.git "scrape_prom_metrics_old_module_git" {
+  repository = "https://github.com/wildum/module.git"
+  revision   = "master"
+  path       = "old_module.river"
+  arguments {
+    scrape_endpoint = "localhost:9001"
+    forward_to = [prometheus.remote_write.scrape_prom_metrics_old_module_git.receiver]
+  }
+}
+
+prometheus.remote_write "scrape_prom_metrics_old_module_git" {
+  endpoint {
+    url = "http://localhost:9009/api/v1/push"
+    send_native_histograms = true
+    metadata_config {
+        send_interval = "1s"
+    }
+    queue_config {
+        max_samples_per_send = 100
+    }
+  }
+  external_labels = {
+    test_name = "scrape_prom_metrics_old_module_git",
+  }
+}

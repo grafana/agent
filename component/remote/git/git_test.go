@@ -1,21 +1,28 @@
-package vcs_test
+package git_test
 
 import (
-	"context"
+	"fmt"
 	"testing"
+	"time"
 
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/config"
-	"github.com/grafana/agent/component/module/git/internal/vcs"
+	git_component "github.com/grafana/agent/component/remote/git"
+	"github.com/grafana/agent/pkg/flow/componenttest"
+	"github.com/grafana/agent/pkg/util"
+	"github.com/grafana/river"
 	"github.com/stretchr/testify/require"
 )
 
-func Test_GitRepo(t *testing.T) {
+func Test_(t *testing.T) {
+	ctx := componenttest.TestContext(t)
 	origRepo := initRepository(t)
+
+	expectedContent := "Hello, world!"
 
 	// Write a file into the repository and commit it.
 	{
-		err := origRepo.WriteFile("a.txt", []byte("Hello, world!"))
+		err := origRepo.WriteFile("a.txt", []byte(expectedContent))
 		require.NoError(t, err)
 
 		_, err = origRepo.Worktree.Add(".")
@@ -28,20 +35,34 @@ func Test_GitRepo(t *testing.T) {
 	origRef, err := origRepo.CurrentRef()
 	require.NoError(t, err)
 
-	newRepoDir := t.TempDir()
-	newRepo, err := vcs.NewGitRepo(context.Background(), newRepoDir, vcs.GitRepoOptions{
-		Repository: origRepo.Directory,
-		Revision:   origRef,
-	})
+	ctrl, err := componenttest.NewControllerFromID(util.TestLogger(t), "remote.git")
 	require.NoError(t, err)
 
-	bb, err := newRepo.ReadFile("a.txt")
-	require.NoError(t, err)
-	require.Equal(t, "Hello, world!", string(bb))
+	cfg := fmt.Sprintf(`
+		repository = "%s"
+		revision = "%s"
+		path = "%s"
+		pull_frequency = "50ms"
+	`, origRepo.Directory, origRef, "a.txt")
+	var args git_component.Arguments
+	require.NoError(t, river.Unmarshal([]byte(cfg), &args))
+
+	go func() {
+		err := ctrl.Run(ctx, args)
+		require.NoError(t, err)
+	}()
+
+	require.NoError(t, ctrl.WaitExports(time.Second), "component didn't update exports")
+
+	require.Eventually(t, func() bool {
+		return ctrl.Exports().(git_component.Exports).Content == expectedContent
+	}, 100*time.Millisecond, 10*time.Millisecond, "timed out waiting for git content")
+
+	expectedContent = "See you later!"
 
 	// Update the file.
 	{
-		err := origRepo.WriteFile("a.txt", []byte("See you later!"))
+		err := origRepo.WriteFile("a.txt", []byte(expectedContent))
 		require.NoError(t, err)
 
 		_, err = origRepo.Worktree.Add(".")
@@ -51,12 +72,9 @@ func Test_GitRepo(t *testing.T) {
 		require.NoError(t, err)
 	}
 
-	err = newRepo.Update(context.Background())
-	require.NoError(t, err)
-
-	bb, err = newRepo.ReadFile("a.txt")
-	require.NoError(t, err)
-	require.Equal(t, "See you later!", string(bb))
+	require.Eventually(t, func() bool {
+		return ctrl.Exports().(git_component.Exports).Content == expectedContent
+	}, 100*time.Millisecond, 10*time.Millisecond, "timed out waiting for git content")
 }
 
 type testRepository struct {

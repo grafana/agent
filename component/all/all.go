@@ -129,6 +129,7 @@ import (
 	_ "github.com/grafana/agent/component/pyroscope/ebpf"                           // Import pyroscope.ebpf
 	_ "github.com/grafana/agent/component/pyroscope/scrape"                         // Import pyroscope.scrape
 	_ "github.com/grafana/agent/component/pyroscope/write"                          // Import pyroscope.write
+	_ "github.com/grafana/agent/component/remote/git"                               // Import remote.git
 	_ "github.com/grafana/agent/component/remote/http"                              // Import remote.http
 	_ "github.com/grafana/agent/component/remote/kubernetes/configmap"              // Import remote.kubernetes.configmap
 	_ "github.com/grafana/agent/component/remote/kubernetes/secret"                 // Import remote.kubernetes.secret

@@ -39,6 +39,8 @@ v0.39.0-rc.0 (2024-01-05)
 
 - A new `discovery.ovhcloud` component for discovering scrape targets on OVHcloud. (@ptodev)
 
+- A new `remote.git` component for exposing the content of a file stored in a git repository to other components. (@wildum)
+
 ### Enhancements
 
 - Flow Windows service: Support environment variables. (@jkroepke)
