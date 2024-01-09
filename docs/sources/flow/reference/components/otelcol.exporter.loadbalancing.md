@@ -272,8 +272,10 @@ Name | Type | Description
 <!-- TODO: Mention gropubytrace processor when Flow supports it -->
 <!-- TODO: Should we run more than 1 LB instance for better resiliency and spreading out the load? -->
 
-Various stateful {{< param "PRODUCT_NAME" >}} components require specific load-balancing strategies.
-<!-- TODO: "stateful" should be a link to the other doc which defines it -->
+Different {{< param "PRODUCT_NAME" >}} components require different load-balancing strategies.
+The use of `otelcol.exporter.loadbalancing` is only necessary for [stateful Flow components][stateful-and-stateless-components].
+
+[stateful-and-stateless-components]: {{< relref "../../setup/deploy-agent.md#stateful-and-stateless-components" >}}
 
 ### otelcol.processor.tail_sampling
 <!-- TODO: Add a picture of the architecture?  -->
@@ -298,8 +300,8 @@ At worst, it could lead to inaccurate data due to overlapping samples for the me
 
 However, there are ways to scale `otelcol.connector.spanmetrics` without the need for a load balancer:
 1. Each {{< param "PRODUCT_ROOT_NAME" >}} could add an attribute such as `collector.id` in order to make its series unique.
-   For example, you could use a `sum by` PromQL query to aggregate the metrics from different {{< param "PRODUCT_ROOT_NAME" >}}s.
-   An extra `collector.id` attribute has a downside that the metrics stored in the database will have higher {{< term "cardinality" >}}cardinality{{< /term >}}.
+   Then, for example, you could use a `sum by` PromQL query to aggregate the metrics from different {{< param "PRODUCT_ROOT_NAME" >}}s.
+   Unfortunately, an extra `collector.id` attribute has a downside that the metrics stored in the database will have higher {{< term "cardinality" >}}cardinality{{< /term >}}.
 2. Spanmetrics could be generated in the backend database instead of in {{< param "PRODUCT_ROOT_NAME" >}}.
     For example, span metrics can be [generated][tempo-spanmetrics] in Grafana Cloud by the Tempo traces database.
 
@@ -313,11 +315,10 @@ If a "client" span goes to one {{< param "PRODUCT_ROOT_NAME" >}}, but a "server"
 `otelcol.exporter.loadbalancing` can solve this problem partially if it is configured with `routing_key = "traceID"`.
 Each {{< param "PRODUCT_ROOT_NAME" >}} will then be able to calculate a service graph for each "client"/"server" pair in a trace.
 It is possible to have a span with similar "server"/"client" values in a different trace, processed by another {{< param "PRODUCT_ROOT_NAME" >}}.
-If two different {{< param "PRODUCT_ROOT_NAME" >}} process similar "server"/"client" spans, they will generate the same service graph metric series.
+If two different {{< param "PRODUCT_ROOT_NAME" >}} instances process similar "server"/"client" spans, they will generate the same service graph metric series.
 If the series from two {{< param "PRODUCT_ROOT_NAME" >}} are the same, this will lead to issues when writing them to the backend database.
 You could differentiate the series by adding an attribute such as `"collector.id"`.
-Unfortunately, there is currently no method in {{< param "PRODUCT_ROOT_NAME" >}} to aggregate those series from different {{< param "PRODUCT_ROOT_NAME" >}}s and merge them into one series.
-You could use a PromQL query to aggregate the metrics from different {{< param "PRODUCT_ROOT_NAME" >}}s.
+The series from different {{< param "PRODUCT_ROOT_NAME" >}}s can be aggregated using PromQL queries on the backed metrics database.
 If the metrics are stored in Grafana Mimir, cardinality issues due to `"collector.id"` labels can be solved using [Adaptive Metrics][adaptive-metrics].
 
 A simpler, more scalable alternative to generating service graph metrics in {{< param "PRODUCT_ROOT_NAME" >}} is to generate them entirely in the backend database. 
@@ -330,8 +331,7 @@ For example, service graphs can be [generated][tempo-servicegraphs] in Grafana C
 <!-- TODO: Add a picture of the architecture?  -->
 Different {{< param "PRODUCT_NAME" >}} components may require a different `routing_key` for `otelcol.exporter.loadbalancing`.
 For example, `otelcol.processor.tail_sampling` requires `routing_key = "traceID"` whereas `otelcol.connector.spanmetrics` requires `routing_key = "service"`.
-Therefore. using the same load balancer for both tail sampling and span metrics is impossible.
-Two different sets of load balancers have to be set up:
+To load balance both types of components, two different sets of load balancers have to be set up:
 
 * One set of `otelcol.exporter.loadbalancing` with `routing_key = "traceID"`, sending spans to {{< param "PRODUCT_ROOT_NAME" >}}s doing tail sampling and no span metrics.
 * Another set of `otelcol.exporter.loadbalancing` with `routing_key = "service"`, sending spans to {{< param "PRODUCT_ROOT_NAME" >}}s doing span metrics and no service graphs.
