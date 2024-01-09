@@ -6,6 +6,7 @@ import (
 	"context"
 
 	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/pkg/flow/logging/level"
 )
 
 func init() {
