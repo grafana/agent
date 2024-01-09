@@ -11,11 +11,15 @@ Main (unreleased)
 -----------------
 
 ### Security fixes
+
 - Fixes following vulnerabilities (@hainenber)
   - [GO-2023-2409](https://github.com/advisories/GHSA-mhpq-9638-x6pw)
   - [GO-2023-2412](https://github.com/advisories/GHSA-7ww5-4wqc-m92c)
   - [CVE-2023-49568](https://github.com/advisories/GHSA-mw99-9chc-xw7r)
 
+### Other changes
+
+- Removed support for Windows 2012 in line with Microsoft end of life. (@mattdurham)
 
 v0.39.0 (2024-01-09)
 --------------------
@@ -39,6 +43,7 @@ v0.39.0 (2024-01-09)
 ### Features
 
 - A new `discovery.ovhcloud` component for discovering scrape targets on OVHcloud. (@ptodev)
+
 - Allow specifying additional containers to run. (@juangom)
 
 ### Enhancements
@@ -70,6 +75,7 @@ v0.39.0 (2024-01-09)
 - `otelcol.receiver.prometheus` does not drop histograms without buckets anymore. (@wildum)
 
 - Added exemplars support to `otelcol.receiver.prometheus`. (@wildum)
+
 - `mimir.rules.kubernetes` may now retry its startup on failure. (@hainenber)
 
 - Added links between compatible components in the documentation to make it

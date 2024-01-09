@@ -77,7 +77,7 @@ Grafana Agent can collect, transform, and send data to:
 
 * Windows
 
-  * Minimum version: Windows Server 2012 or later, or Windows 10 or later.
+  * Minimum version: Windows Server 2016 or later, or Windows 10 or later.
   * Architectures: AMD64
 
 * macOS
