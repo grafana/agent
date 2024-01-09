@@ -34,7 +34,7 @@ responded with an HTTP `200 OK` status code and returned the body of a valid [pp
 
 If a scrape request fails, the [debug UI][] for `pyroscope.scrape` will show:
 * Detailed information about the failure.
-* The last successful scrape.
+* The time of the last successful scrape.
 * The labels last used for scraping.
 
 The scraped performance profiles can be forwarded to components such as 
@@ -75,7 +75,7 @@ Name                | Type                     | Description                    
 `job_name`          | `string`                 | The job name to override the job label with.                       | component name | no
 `params`            | `map(list(string))`      | A set of query parameters with which the target is scraped.        |                | no
 `scrape_interval`   | `duration`               | How frequently to scrape the targets of this scrape configuration. | `"15s"`        | no
-`scrape_timeout`    | `duration`               | The timeout for scraping targets of this configuration.            | `"18s"`        | no
+`scrape_timeout`    | `duration`               | The timeout for scraping targets of this configuration. Must be larger than `scrape_interval`. | `"18s"`        | no
 `scheme`            | `string`                 | The URL scheme with which to fetch metrics from targets.           | `"http"`       | no
 `bearer_token`      | `secret`                 | Bearer token to authenticate with.                                 |                | no
 `bearer_token_file` | `string`                 | File containing a bearer token to authenticate with.               |                | no
@@ -96,7 +96,7 @@ At most one of the following authentication mechanisms can be provided:
 
 `job_name` defaults to the component's unique identifier.
 
-For example, the `job_name` of `pyroscope.scrape "local" { ... }` will be `"pyroscope.scrape/local"`.
+For example, the `job_name` of `pyroscope.scrape "local" { ... }` will be `"pyroscope.scrape.local"`.
 
 #### `targets` argument
 
@@ -128,6 +128,10 @@ so that they can be linked to a scrape target:
 
 #### `scrape_interval` argument
 
+The `scrape_interval` typically refers to the frequency with which {{< param "PRODUCT_NAME" >}} collects performance profiles from the monitored targets. 
+It represents the time interval between consecutive scrapes or data collection events. 
+This parameter is important for controlling the trade-off between resource usage and the freshness of the collected data.
+
 If `scrape_interval` is short:
 * Advantages:
   * Fewer profiles may be lost if the application being scraped crashes.
@@ -151,10 +155,6 @@ For example, consider this situation:
 * The application being scraped is running an HTTP server with a timeout of 30 seconds.
 * Any scrape HTTP requests where the [delta argument][] is set to `true` will fail, 
   because they will attempt to run for 59 seconds.
-
-#### `scrape_timeout` argument
-
-`scrape_timeout` must be larger than `scrape_interval`.
 
 ## Blocks
 
