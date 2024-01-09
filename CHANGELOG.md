@@ -24,6 +24,8 @@ Main (unreleased)
 
 - A new `remote.git` component for exposing the content of a file stored in a git repository to other components. (@wildum)
 
+- Allow specifying additional containers to run. (@juangom)
+
 v0.39.0-rc.0 (2024-01-05)
 -------------------------
 
@@ -46,10 +48,6 @@ v0.39.0-rc.0 (2024-01-05)
 ### Features
 
 - A new `discovery.ovhcloud` component for discovering scrape targets on OVHcloud. (@ptodev)
-
-### Features
-
-- Allow specifying additional containers to run. (@juangom)
 
 ### Enhancements
 
