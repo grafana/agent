@@ -32,3 +32,6 @@ func (j *javaComponent) Run(ctx context.Context) error {
 		}
 	}
 }
+func (j *javaComponent) Update(args component.Arguments) error {
+	return nil
+}
