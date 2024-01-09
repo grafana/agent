@@ -3,9 +3,10 @@ aliases:
 - /docs/grafana-cloud/agent/flow/reference/components/loki.process/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/loki.process/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/loki.process/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/loki.process/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/loki.process/
-title: loki.process
 description: Learn about loki.process
+title: loki.process
 ---
 
 # loki.process
@@ -1537,7 +1538,7 @@ The following arguments are supported:
 | ---------------- | ------------- | -------------------------------------------------- | ------- | -------- |
 | `db`             | `string`      | Path to the Maxmind DB file.                       |         | yes      |
 | `source`         | `string`      | IP from extracted data to parse.                   |         | yes      |
-| `db_type`        | `string`      | Maxmind DB type. Allowed values are "city", "asn". |         | no       |
+| `db_type`        | `string`      | Maxmind DB type. Allowed values are "city", "asn", "country". |         | no       |
 | `custom_lookups` | `map(string)` | Key-value pairs of JMESPath expressions.           |         | no       |
 
 
@@ -1561,6 +1562,7 @@ loki.process "example" {
 		values = {
 			geoip_city_name          = "",
 			geoip_country_name       = "",
+			geoip_country_code       = "",
 			geoip_continent_name     = "",
 			geoip_continent_code     = "",
 			geoip_location_latitude  = "",
@@ -1581,6 +1583,7 @@ The extracted data from the IP used in this example:
 
 - geoip_city_name: Kansas City
 - geoip_country_name: United States
+- geoip_country_code: US
 - geoip_continent_name: North America
 - geoip_continent_code: NA
 - geoip_location_latitude: 39.1027
@@ -1621,6 +1624,42 @@ The extracted data from the IP used in this example:
 - geoip_autonomous_system_number: 396982
 - geoip_autonomous_system_organization: GOOGLE-CLOUD-PLATFORM
 
+#### GeoIP with Country database example:
+
+```
+{"log":"log message","client_ip":"34.120.177.193"}
+
+loki.process "example" {
+	stage.json {
+		expressions = {ip = "client_ip"}
+	}
+
+	stage.geoip {
+		source  = "ip"
+		db      = "/path/to/db/GeoLite2-Country.mmdb"
+		db_type = "country"
+	}
+
+	stage.labels {
+		values = {
+			geoip_country_name       = "",
+			geoip_country_code       = "",
+			geoip_continent_name     = "",
+			geoip_continent_code     = "",
+		}
+	}
+}
+```
+
+The `json` stage extracts the IP address from the `client_ip` key in the log line. 
+Then the extracted `ip` value is given as source to geoip stage. The geoip stage performs a lookup on the IP and populates the following fields in the shared map which are added as labels using the `labels` stage.
+
+The extracted data from the IP used in this example:
+
+- geoip_country_name: United States
+- geoip_country_code: US
+- geoip_continent_name: North America
+- geoip_continent_code: NA
 
 #### GeoIP with custom fields example
 
@@ -1693,3 +1732,23 @@ loki.process "local" {
   }
 }
 ```
+<!-- START GENERATED COMPATIBLE COMPONENTS -->
+
+## Compatible components
+
+`loki.process` can accept arguments from the following components:
+
+- Components that export [Loki `LogsReceiver`]({{< relref "../compatibility/#loki-logsreceiver-exporters" >}})
+
+`loki.process` has exports that can be consumed by the following components:
+
+- Components that consume [Loki `LogsReceiver`]({{< relref "../compatibility/#loki-logsreceiver-consumers" >}})
+
+{{% admonition type="note" %}}
+
+Connecting some components may not be sensible or components may require further configuration to make the 
+connection work correctly. Refer to the linked documentation for more details.
+
+{{% /admonition %}}
+
+<!-- END GENERATED COMPATIBLE COMPONENTS -->

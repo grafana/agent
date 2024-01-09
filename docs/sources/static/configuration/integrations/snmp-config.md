@@ -1,9 +1,11 @@
 ---
 aliases:
 - ../../../configuration/integrations/snmp-config/
+- /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/integrations/snmp-config/
+- /docs/grafana-cloud/send-data/agent/static/configuration/integrations/snmp-config/
 canonical: https://grafana.com/docs/agent/latest/static/configuration/integrations/snmp-config/
-title: snmp config
 description: Learn about snmp config
+title: snmp config
 ---
 
 # snmp config

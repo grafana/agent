@@ -19,11 +19,11 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name:          "prometheus.exporter.blackbox",
-		Args:          Arguments{},
-		Exports:       exporter.Exports{},
-		NeedsServices: exporter.RequiredServices(),
-		Build:         exporter.NewWithTargetBuilder(createExporter, "blackbox", buildBlackboxTargets),
+		Name:    "prometheus.exporter.blackbox",
+		Args:    Arguments{},
+		Exports: exporter.Exports{},
+
+		Build: exporter.NewWithTargetBuilder(createExporter, "blackbox", buildBlackboxTargets),
 	})
 }
 
@@ -67,7 +67,7 @@ var DefaultArguments = Arguments{
 
 // BlackboxTarget defines a target to be used by the exporter.
 type BlackboxTarget struct {
-	Name   string            `river:",label"`
+	Name   string            `river:"name,attr"`
 	Target string            `river:"address,attr"`
 	Module string            `river:"module,attr,optional"`
 	Labels map[string]string `river:"labels,attr,optional"`
@@ -106,10 +106,14 @@ func (a *Arguments) Validate() error {
 		return errors.New("config and config_file are mutually exclusive")
 	}
 
+	if a.ConfigFile == "" && a.Config.Value == "" {
+		return errors.New("config or config_file must be set")
+	}
+
 	var blackboxConfig blackbox_config.Config
 	err := yaml.UnmarshalStrict([]byte(a.Config.Value), &blackboxConfig)
 	if err != nil {
-		return fmt.Errorf("invalid backbox_exporter config: %s", err)
+		return fmt.Errorf("invalid blackbox_exporter config: %s", err)
 	}
 
 	return nil

@@ -64,8 +64,9 @@ const (
 	// defaultLoadBalancingPort is the default port the agent uses for internal load balancing
 	defaultLoadBalancingPort = "4318"
 	// agent's load balancing options
-	dnsTagName    = "dns"
-	staticTagName = "static"
+	dnsTagName        = "dns"
+	staticTagName     = "static"
+	kubernetesTagName = "kubernetes"
 
 	// sampling policies
 	alwaysSamplePolicy = "always_sample"
@@ -580,13 +581,15 @@ func (c *InstanceConfig) extensions() (map[string]interface{}, error) {
 
 func resolver(config map[string]interface{}) (map[string]interface{}, error) {
 	if len(config) == 0 {
-		return nil, fmt.Errorf("must configure one resolver (dns or static)")
+		return nil, fmt.Errorf("must configure one resolver (dns, static, or kubernetes)")
 	}
 	resolverCfg := make(map[string]interface{})
 	for typ, cfg := range config {
 		switch typ {
 		case dnsTagName, staticTagName:
 			resolverCfg[typ] = cfg
+		case kubernetesTagName:
+			resolverCfg["k8s"] = cfg
 		default:
 			return nil, fmt.Errorf("unsupported resolver config type: %s", typ)
 		}
@@ -947,7 +950,9 @@ func tracingFactories() (otelcol.Factories, error) {
 // sets: before and after load balancing
 func orderProcessors(processors []string, splitPipelines bool) [][]string {
 	order := map[string]int{
-		"attributes":        0,
+		"attributes": 0,
+		// Spanmetrics should be before tail_sampling so that
+		// metrics are generated using as many spans as possible.
 		"spanmetrics":       1,
 		"service_graphs":    2,
 		"tail_sampling":     3,
@@ -975,6 +980,7 @@ func orderProcessors(processors []string, splitPipelines bool) [][]string {
 		if processor == "batch" ||
 			processor == "tail_sampling" ||
 			processor == "automatic_logging" ||
+			processor == "spanmetrics" ||
 			processor == "service_graphs" {
 
 			foundAt = i

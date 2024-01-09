@@ -3,14 +3,15 @@ aliases:
 - /docs/grafana-cloud/agent/flow/reference/components/discovery.file/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/discovery.file/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/discovery.file/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/discovery.file/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.file/
-title: discovery.file
 description: Learn about discovery.file
+title: discovery.file
 ---
 
 # discovery.file
 
-> **NOTE:** In `v0.35.0` of the Grafana Agent, the `discovery.file` component was renamed to [local.file_match][],
+> **NOTE:** In {{< param "PRODUCT_ROOT_NAME" >}} `v0.35.0`, the `discovery.file` component was renamed to [local.file_match][],
 > and `discovery.file` was repurposed to discover scrape targets from one or more files.
 >
 > <br>
@@ -172,3 +173,20 @@ Replace the following:
   - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
   - `USERNAME`: The username to use for authentication to the remote_write API.
   - `PASSWORD`: The password to use for authentication to the remote_write API.
+
+<!-- START GENERATED COMPATIBLE COMPONENTS -->
+
+## Compatible components
+
+`discovery.file` has exports that can be consumed by the following components:
+
+- Components that consume [Targets]({{< relref "../compatibility/#targets-consumers" >}})
+
+{{% admonition type="note" %}}
+
+Connecting some components may not be sensible or components may require further configuration to make the 
+connection work correctly. Refer to the linked documentation for more details.
+
+{{% /admonition %}}
+
+<!-- END GENERATED COMPATIBLE COMPONENTS -->

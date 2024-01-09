@@ -3,18 +3,19 @@ aliases:
 - /docs/grafana-cloud/agent/flow/reference/components/module.string/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/module.string/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/module.string/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/module.string/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/module.string/
+description: Learn about module.string
 labels:
   stage: beta
 title: module.string
-description: Learn about module.string
 ---
 
 # module.string
 
-{{< docs/shared lookup="flow/stability/beta.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/stability/beta.md" source="agent" version="<AGENT_VERSION>" >}}
 
-`module.string` is a *module loader* component. A module loader is a Grafana Agent Flow
+`module.string` is a *module loader* component. A module loader is a {{< param "PRODUCT_NAME" >}}
 component which retrieves a [module][] and runs the components defined inside of it.
 
 [module]: {{< relref "../../concepts/modules.md" >}}

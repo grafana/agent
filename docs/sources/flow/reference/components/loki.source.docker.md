@@ -1,12 +1,13 @@
 ---
 aliases:
-- /docs/agent/latest/flow/reference/components/loki.source.docker
+- /docs/agent/latest/flow/reference/components/loki.source.docker/
 - /docs/grafana-cloud/agent/flow/reference/components/loki.source.docker/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/loki.source.docker/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/loki.source.docker/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/loki.source.docker/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/loki.source.docker/
-title: loki.source.docker
 description: Learn about loki.source.docker
+title: loki.source.docker
 ---
 
 # loki.source.docker
@@ -152,3 +153,22 @@ loki.write "local" {
   }
 }
 ```
+
+<!-- START GENERATED COMPATIBLE COMPONENTS -->
+
+## Compatible components
+
+`loki.source.docker` can accept arguments from the following components:
+
+- Components that export [Targets]({{< relref "../compatibility/#targets-exporters" >}})
+- Components that export [Loki `LogsReceiver`]({{< relref "../compatibility/#loki-logsreceiver-exporters" >}})
+
+
+{{% admonition type="note" %}}
+
+Connecting some components may not be sensible or components may require further configuration to make the 
+connection work correctly. Refer to the linked documentation for more details.
+
+{{% /admonition %}}
+
+<!-- END GENERATED COMPATIBLE COMPONENTS -->

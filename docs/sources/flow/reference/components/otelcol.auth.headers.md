@@ -3,9 +3,10 @@ aliases:
 - /docs/grafana-cloud/agent/flow/reference/components/otelcol.auth.headers/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/otelcol.auth.headers/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/otelcol.auth.headers/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/otelcol.auth.headers/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.auth.headers/
-title: otelcol.auth.headers
 description: Learn about otelcol.auth.headers
+title: otelcol.auth.headers
 ---
 
 # otelcol.auth.headers
@@ -72,13 +73,6 @@ The `value` attribute sets the value of the header directly.
 
 Alternatively, `from_context` can be used to dynamically retrieve the header
 value from request metadata.
-
-> **NOTE**: It is not possible to use `from_context` to get the header value if
-> [the `otelcol.processor.batch` component][otelcol.processor.batch] is used to
-> batch before data is sent to the component referencing
-> `otelcol.auth.headers`.
-
-[otelcol.processor.batch]: {{< relref "./otelcol.processor.batch.md" >}}
 
 ## Exported fields
 

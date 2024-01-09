@@ -17,11 +17,11 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name:          "prometheus.exporter.snmp",
-		Args:          Arguments{},
-		Exports:       exporter.Exports{},
-		NeedsServices: exporter.RequiredServices(),
-		Build:         exporter.NewWithTargetBuilder(createExporter, "snmp", buildSNMPTargets),
+		Name:    "prometheus.exporter.snmp",
+		Args:    Arguments{},
+		Exports: exporter.Exports{},
+
+		Build: exporter.NewWithTargetBuilder(createExporter, "snmp", buildSNMPTargets),
 	})
 }
 

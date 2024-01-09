@@ -15,21 +15,19 @@ import (
 	"github.com/grafana/agent/component/otelcol/receiver/prometheus/internal"
 	"github.com/grafana/agent/pkg/build"
 	"github.com/grafana/agent/pkg/util/zapadapter"
-	otel_service "github.com/grafana/agent/service/otel"
 	"github.com/prometheus/prometheus/model/labels"
 	"github.com/prometheus/prometheus/storage"
 	otelcomponent "go.opentelemetry.io/collector/component"
 	otelreceiver "go.opentelemetry.io/collector/receiver"
-	"go.opentelemetry.io/otel/metric/noop"
-	"go.opentelemetry.io/otel/trace"
+	metricNoop "go.opentelemetry.io/otel/metric/noop"
+	traceNoop "go.opentelemetry.io/otel/trace/noop"
 )
 
 func init() {
 	component.Register(component.Registration{
-		Name:          "otelcol.receiver.prometheus",
-		Args:          Arguments{},
-		Exports:       Exports{},
-		NeedsServices: []string{otel_service.ServiceName},
+		Name:    "otelcol.receiver.prometheus",
+		Args:    Arguments{},
+		Exports: Exports{},
 
 		Build: func(o component.Options, a component.Arguments) (component.Component, error) {
 			return New(o, a.(Arguments))
@@ -102,15 +100,26 @@ func (c *Component) Update(newConfig component.Arguments) error {
 		useStartTimeMetric   = false
 		startTimeMetricRegex *regexp.Regexp
 
+		// Start time for Summary, Histogram and Sum metrics can be retrieved from `_created` metrics.
+		useCreatedMetric = false
+
+		// Trimming the metric suffixes is used to remove the metric type and the unit and the end of the metric name.
+		// To trim the unit, the opentelemetry code uses the MetricMetadataStore which is currently not supported by the agent.
+		// When supported, this could be added as an arg.
+		trimMetricSuffixes = false
+
 		gcInterval = 5 * time.Minute
 	)
 	settings := otelreceiver.CreateSettings{
+
+		ID: otelcomponent.NewID(otelcomponent.Type(c.opts.ID)),
+
 		TelemetrySettings: otelcomponent.TelemetrySettings{
 			Logger: zapadapter.New(c.opts.Logger),
 
 			// TODO(tpaschalis): expose tracing and logging statistics.
-			TracerProvider: trace.NewNoopTracerProvider(),
-			MeterProvider:  noop.NewMeterProvider(),
+			TracerProvider: traceNoop.NewTracerProvider(),
+			MeterProvider:  metricNoop.NewMeterProvider(),
 
 			ReportComponentStatus: func(*otelcomponent.StatusEvent) error {
 				return nil
@@ -131,8 +140,9 @@ func (c *Component) Update(newConfig component.Arguments) error {
 		gcInterval,
 		useStartTimeMetric,
 		startTimeMetricRegex,
-		otelcomponent.NewID(otelcomponent.Type(c.opts.ID)),
+		useCreatedMetric,
 		labels.Labels{},
+		trimMetricSuffixes,
 	)
 	if err != nil {
 		return err

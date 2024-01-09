@@ -55,9 +55,9 @@ helm.sh/chart: {{ include "grafana-agent.chart" . }}
 app.kubernetes.io/version: "vX.Y.Z"
 app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- else }}
-{{- if .Chart.AppVersion }}
-app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
-{{- end }}
+{{/* substr trims delimeter prefix char from grafana-agent.imageId output 
+    e.g. ':' for tags and '@' for digests. */}}
+app.kubernetes.io/version: {{ substr 1 -1 (include "grafana-agent.imageId" .) }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- end }}
 {{- end }}

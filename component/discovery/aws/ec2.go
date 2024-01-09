@@ -7,6 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/ec2metadata"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/component/common/config"
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/river/rivertypes"
 	promcfg "github.com/prometheus/common/config"
@@ -42,18 +43,21 @@ type EC2Arguments struct {
 	RefreshInterval time.Duration     `river:"refresh_interval,attr,optional"`
 	Port            int               `river:"port,attr,optional"`
 	Filters         []*EC2Filter      `river:"filter,block,optional"`
+
+	HTTPClientConfig config.HTTPClientConfig `river:",squash"`
 }
 
 func (args EC2Arguments) Convert() *promaws.EC2SDConfig {
 	cfg := &promaws.EC2SDConfig{
-		Endpoint:        args.Endpoint,
-		Region:          args.Region,
-		AccessKey:       args.AccessKey,
-		SecretKey:       promcfg.Secret(args.SecretKey),
-		Profile:         args.Profile,
-		RoleARN:         args.RoleARN,
-		RefreshInterval: model.Duration(args.RefreshInterval),
-		Port:            args.Port,
+		Endpoint:         args.Endpoint,
+		Region:           args.Region,
+		AccessKey:        args.AccessKey,
+		SecretKey:        promcfg.Secret(args.SecretKey),
+		Profile:          args.Profile,
+		RoleARN:          args.RoleARN,
+		RefreshInterval:  model.Duration(args.RefreshInterval),
+		Port:             args.Port,
+		HTTPClientConfig: *args.HTTPClientConfig.Convert(),
 	}
 	for _, f := range args.Filters {
 		cfg.Filters = append(cfg.Filters, &promaws.EC2Filter{
@@ -65,8 +69,9 @@ func (args EC2Arguments) Convert() *promaws.EC2SDConfig {
 }
 
 var DefaultEC2SDConfig = EC2Arguments{
-	Port:            80,
-	RefreshInterval: 60 * time.Second,
+	Port:             80,
+	RefreshInterval:  60 * time.Second,
+	HTTPClientConfig: config.DefaultHTTPClientConfig,
 }
 
 // SetToDefault implements river.Defaulter.

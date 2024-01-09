@@ -3,11 +3,11 @@ aliases:
 - /docs/grafana-cloud/agent/flow/reference/cli/tools/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/cli/tools/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/cli/tools/
+- /docs/grafana-cloud/send-data/agent/flow/reference/cli/tools/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/cli/tools/
-description: Command line tools that read the WAL and provide statistical information.
+description: Learn about the tools command
 menuTitle: tools
 title: The tools command
-description: Learn about the tools command
 weight: 400
 ---
 
@@ -24,7 +24,7 @@ guarantees and may change or be removed between releases.
 
 ### prometheus.remote_write sample-stats
 
-Usage: 
+Usage:
 
 * `AGENT_MODE=flow grafana-agent tools prometheus.remote_write sample-stats [FLAG ...] WAL_DIRECTORY`
 * `grafana-agent-flow tools prometheus.remote_write sample-stats [FLAG ...] WAL_DIRECTORY`
@@ -47,7 +47,7 @@ The following flag is supported:
 
 ### prometheus.remote_write target-stats
 
-Usage: 
+Usage:
 
 * `AGENT_MODE=flow grafana-agent tools prometheus.remote_write target-stats --job JOB --instance INSTANCE WAL_DIRECTORY`
 * `grafana-agent-flow tools prometheus.remote_write target-stats --job JOB --instance INSTANCE WAL_DIRECTORY`

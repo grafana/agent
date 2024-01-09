@@ -1,12 +1,14 @@
 package kubelet
 
 import (
+	"net/url"
 	"testing"
 
 	"github.com/prometheus/prometheus/discovery/targetgroup"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
+	"github.com/grafana/agent/component/common/config"
 	"github.com/grafana/river"
 	"github.com/stretchr/testify/require"
 )
@@ -87,4 +89,38 @@ func newPod(name, namespace string) v1.Pod {
 			PodIP: "1.2.3.4",
 		},
 	}
+}
+
+func TestDiscoveryPodWithoutPod(t *testing.T) {
+	pod1 := newPod("pod-1", "namespace-1")
+	pod2 := newPod("pod-2", "namespace-2")
+	pod1.Spec.Containers[0].Ports = []v1.ContainerPort{}
+
+	podList1 := v1.PodList{
+		Items: []v1.Pod{pod1, pod2},
+	}
+
+	kubeletDiscovery, err := NewKubeletDiscovery(DefaultConfig)
+	require.NoError(t, err)
+
+	_, err = kubeletDiscovery.refresh(podList1)
+	require.NoError(t, err)
+	require.Len(t, kubeletDiscovery.discoveredPodSources, 2)
+}
+
+func TestWithDefaultKubeletHost(t *testing.T) {
+	kubeletDiscovery, err := NewKubeletDiscovery(DefaultConfig)
+	require.NoError(t, err)
+	require.Equal(t, "https://localhost:10250/pods", kubeletDiscovery.url)
+}
+
+func TestWithCustomPath(t *testing.T) {
+	kubeletProxyUrl, _ := url.Parse("https://kubernetes.default.svc.cluster.local:443/api/v1/nodes/cluster-node-1/proxy")
+	kubeletDiscovery, err := NewKubeletDiscovery(Arguments{
+		URL: config.URL{
+			URL: kubeletProxyUrl,
+		},
+	})
+	require.NoError(t, err)
+	require.Equal(t, "https://kubernetes.default.svc.cluster.local:443/api/v1/nodes/cluster-node-1/proxy/pods", kubeletDiscovery.url)
 }

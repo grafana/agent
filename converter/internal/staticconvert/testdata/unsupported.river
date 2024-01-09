@@ -8,7 +8,7 @@ prometheus.scrape "metrics_agent_prometheus" {
 
 prometheus.remote_write "metrics_agent" {
 	endpoint {
-		name = "agent-d885f6"
+		name = "agent-eea444"
 		url  = "https://prometheus-us-central1.grafana.net/api/prom/push"
 
 		queue_config { }
@@ -24,15 +24,24 @@ logging {
 
 prometheus.exporter.statsd "integrations_statsd_exporter" { }
 
+discovery.relabel "integrations_statsd_exporter" {
+	targets = prometheus.exporter.statsd.integrations_statsd_exporter.targets
+
+	rule {
+		target_label = "job"
+		replacement  = "integrations/statsd_exporter"
+	}
+}
+
 prometheus.scrape "integrations_statsd_exporter" {
-	targets    = prometheus.exporter.statsd.integrations_statsd_exporter.targets
+	targets    = discovery.relabel.integrations_statsd_exporter.output
 	forward_to = [prometheus.remote_write.integrations.receiver]
 	job_name   = "integrations/statsd_exporter"
 }
 
 prometheus.remote_write "integrations" {
 	endpoint {
-		name = "agent-d885f6"
+		name = "agent-eea444"
 		url  = "https://prometheus-us-central1.grafana.net/api/prom/push"
 
 		queue_config { }

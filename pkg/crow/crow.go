@@ -152,7 +152,7 @@ func newCrow(cfg Config) (*Crow, error) {
 		RoundTripper: api.DefaultRoundTripper,
 	}
 	if cfg.UserID != "" && cfg.PasswordFile != "" {
-		apiCfg.RoundTripper = commonCfg.NewBasicAuthRoundTripper(cfg.UserID, "", cfg.PasswordFile, api.DefaultRoundTripper)
+		apiCfg.RoundTripper = commonCfg.NewBasicAuthRoundTripper(cfg.UserID, "", "", cfg.PasswordFile, api.DefaultRoundTripper)
 	}
 	if cfg.OrgID != "" {
 		apiCfg.RoundTripper = &nethttp.Transport{

@@ -11,6 +11,8 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
+	"github.com/grafana/agent/internal/agentseed"
+	"github.com/grafana/agent/internal/useragent"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/grafana/loki/clients/pkg/promtail"
 	"github.com/grafana/loki/clients/pkg/promtail/api"
@@ -21,11 +23,10 @@ import (
 	"github.com/grafana/loki/clients/pkg/promtail/wal"
 	"github.com/grafana/loki/pkg/tracing"
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/common/version"
 )
 
 func init() {
-	client.UserAgent = fmt.Sprintf("GrafanaAgent/%s", version.Version)
+	client.UserAgent = useragent.Get()
 }
 
 // Logs is a Logs log collection. It uses multiple distinct sets of Logs
@@ -181,6 +182,14 @@ func (i *Instance) ApplyConfig(c *InstanceConfig, g GlobalConfig, dryRun bool) e
 	if len(c.ClientConfigs) == 0 {
 		level.Debug(i.log).Log("msg", "skipping creation of a promtail because no client_configs are present")
 		return nil
+	}
+
+	uid := agentseed.Get().UID
+	for _, cfg := range c.ClientConfigs {
+		if cfg.Headers == nil {
+			cfg.Headers = map[string]string{}
+		}
+		cfg.Headers[agentseed.HeaderName] = uid
 	}
 
 	clientMetrics := client.NewMetrics(i.reg)

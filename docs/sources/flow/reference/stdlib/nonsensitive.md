@@ -4,9 +4,10 @@ aliases:
 - /docs/grafana-cloud/agent/flow/reference/stdlib/nonsensitive/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/stdlib/nonsensitive/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/stdlib/nonsensitive/
+- /docs/grafana-cloud/send-data/agent/flow/reference/stdlib/nonsensitive/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/stdlib/nonsensitive/
-title: nonsensitive
 description: Learn about nonsensitive
+title: nonsensitive
 ---
 
 # nonsensitive
@@ -19,7 +20,7 @@ description: Learn about nonsensitive
 > Strings resulting from calls to `nonsensitive` will be displayed in plaintext
 > in the UI and internal API calls.
 
-[secret]: {{< relref "../../config-language/expressions/types_and_values.md#secrets" >}}
+[secret]: {{< relref "../../concepts/config-language/expressions/types_and_values.md#secrets" >}}
 
 ## Examples
 

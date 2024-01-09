@@ -1,14 +1,17 @@
 ---
+aliases:
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/remote.kubernetes.configmap/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/remote.kubernetes.configmap/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/remote.kubernetes.configmap/
-title: remote.kubernetes.configmap
 description: Learn about remote.kubernetes.configmap
+title: remote.kubernetes.configmap
 ---
 
 # remote.kubernetes.configmap
 
 `remote.kubernetes.configmap` reads a ConfigMap from the Kubernetes API server and exposes its data for other components to consume.
 
-This can be useful anytime the agent needs data from a ConfigMap that is not directly mounted to the Grafana Agent pod.
+This can be useful anytime {{< param "PRODUCT_NAME" >}} needs data from a ConfigMap that is not directly mounted to the {{< param "PRODUCT_ROOT_NAME" >}} pod.
 
 ## Usage
 
@@ -65,7 +68,7 @@ refers to a `basic_auth` block defined inside a `client` block.
 ### client block
 
 The `client` block configures the Kubernetes client used to discover Probes. If the `client` block isn't provided, the default in-cluster
-configuration with the service account of the running Grafana Agent pod is
+configuration with the service account of the running {{< param "PRODUCT_ROOT_NAME" >}} pod is
 used.
 
 The following arguments are supported:
@@ -88,19 +91,19 @@ Name | Type | Description | Default | Required
 
 ### basic_auth block
 
-{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### authorization block
 
-{{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### oauth2 block
 
-{{< docs/shared lookup="flow/reference/components/oauth2-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/oauth2-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### tls_config block
 
-{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 
 ## Exported fields

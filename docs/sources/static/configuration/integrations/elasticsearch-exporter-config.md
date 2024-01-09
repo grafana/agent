@@ -1,9 +1,11 @@
 ---
 aliases:
 - ../../../configuration/integrations/elasticsearch-exporter-config/
+- /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/integrations/elasticsearch-exporter-config/
+- /docs/grafana-cloud/send-data/agent/static/configuration/integrations/elasticsearch-exporter-config/
 canonical: https://grafana.com/docs/agent/latest/static/configuration/integrations/elasticsearch-exporter-config/
-title: elasticsearch_exporter_config
 description: Learn about elasticsearch_exporter_config
+title: elasticsearch_exporter_config
 ---
 
 # elasticsearch_exporter_config
@@ -114,4 +116,12 @@ Full reference of options:
 
   # Export stats for SLM (Snapshot Lifecycle Management).
   [ slm: <boolean> ]
+
+  # Sets the `Authorization` header on every ES probe with the
+  # configured username and password.
+  # password and password_file are mutually exclusive.
+  basic_auth:
+    [ username: <string> ]
+    [ password: <secret> ]
+    [ password_file: <string> ]
 ```

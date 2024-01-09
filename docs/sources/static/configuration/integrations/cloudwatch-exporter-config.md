@@ -1,9 +1,11 @@
 ---
 aliases:
 - ../../../configuration/integrations/cloudwatch-exporter-config/
+- /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/integrations/cloudwatch-exporter-config/
+- /docs/grafana-cloud/send-data/agent/static/configuration/integrations/cloudwatch-exporter-config/
 canonical: https://grafana.com/docs/agent/latest/static/configuration/integrations/cloudwatch-exporter-config/
-title: cloudwatch_exporter_config
 description: Learn about cloudwatch_exporter_config
+title: cloudwatch_exporter_config
 ---
 
 # cloudwatch_exporter_config
@@ -438,6 +440,7 @@ discovery job, the `type` field of each `discovery_job` must match either the de
 - Namespace: `AWS/PrivateLinkEndpoints` or Alias: `vpc-endpoint`
 - Namespace: `AWS/PrivateLinkServices` or Alias: `vpc-endpoint-service`
 - Namespace: `AWS/Prometheus` or Alias: `amp`
+- Namespace: `AWS/QLDB` or Alias: `qldb`
 - Namespace: `AWS/RDS` or Alias: `rds`
 - Namespace: `AWS/Redshift` or Alias: `redshift`
 - Namespace: `AWS/Route53Resolver` or Alias: `route53-resolver`
@@ -451,6 +454,7 @@ discovery job, the `type` field of each `discovery_job` must match either the de
 - Namespace: `AWS/TransitGateway` or Alias: `tgw`
 - Namespace: `AWS/TrustedAdvisor` or Alias: `trustedadvisor`
 - Namespace: `AWS/VPN` or Alias: `vpn`
+- Namespace: `AWS/ClientVPN` or Alias: `clientvpn`
 - Namespace: `AWS/WAFV2` or Alias: `wafv2`
 - Namespace: `AWS/WorkSpaces` or Alias: `workspaces`
 - Namespace: `AWS/AOSS` or Alias: `aoss`

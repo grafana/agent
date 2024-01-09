@@ -1,11 +1,13 @@
 ---
 aliases:
-- ../../scraping-service/
 - ../../configuration/scraping-service/
+- ../../scraping-service/
+- /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/scraping-service/
+- /docs/grafana-cloud/send-data/agent/static/configuration/scraping-service/
 canonical: https://grafana.com/docs/agent/latest/static/configuration/scraping-service/
-title: Scraping service (Beta)
-menuTitle: Scraping service
 description: Learn about the scraping service
+menuTitle: Scraping service
+title: Scraping service (Beta)
 weight: 600
 ---
 
@@ -167,8 +169,8 @@ utilize `grafana/agentctl` and sync a set of configurations to the API
 are planned for the future.
 
 {{% docs/reference %}}
-[api]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/api"
+[api]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static/api"
 [api]: "/docs/grafana-cloud/ -> ../api"
-[metrics]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/configuration/metrics-config"
+[metrics]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static/configuration/metrics-config"
 [metrics]: "/docs/grafana-cloud/ -> ./metrics-config"
 {{% /docs/reference %}}

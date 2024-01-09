@@ -1,14 +1,17 @@
 ---
+aliases:
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/otelcol.processor.probabilistic_sampler/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/otelcol.processor.probabilistic_sampler/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.processor.probabilistic_sampler/
+description: Learn about telcol.processor.probabilistic_sampler
 labels:
   stage: experimental
 title: otelcol.processor.probabilistic_sampler
-description: Learn about telcol.processor.probabilistic_sampler
 ---
 
 # otelcol.processor.probabilistic_sampler
 
-{{< docs/shared lookup="flow/stability/experimental.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/stability/experimental.md" source="agent" version="<AGENT_VERSION>" >}}
 
 `otelcol.processor.probabilistic_sampler` accepts logs and traces data from other otelcol components and applies probabilistic sampling based on configuration options.
 
@@ -142,3 +145,23 @@ otelcol.processor.probabilistic_sampler "default" {
   }
 }
 ```
+<!-- START GENERATED COMPATIBLE COMPONENTS -->
+
+## Compatible components
+
+`otelcol.processor.probabilistic_sampler` can accept arguments from the following components:
+
+- Components that export [OpenTelemetry `otelcol.Consumer`]({{< relref "../compatibility/#opentelemetry-otelcolconsumer-exporters" >}})
+
+`otelcol.processor.probabilistic_sampler` has exports that can be consumed by the following components:
+
+- Components that consume [OpenTelemetry `otelcol.Consumer`]({{< relref "../compatibility/#opentelemetry-otelcolconsumer-consumers" >}})
+
+{{% admonition type="note" %}}
+
+Connecting some components may not be sensible or components may require further configuration to make the 
+connection work correctly. Refer to the linked documentation for more details.
+
+{{% /admonition %}}
+
+<!-- END GENERATED COMPATIBLE COMPONENTS -->

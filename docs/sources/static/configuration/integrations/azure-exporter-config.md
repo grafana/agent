@@ -1,9 +1,11 @@
 ---
 aliases:
 - ../../../configuration/integrations/azure-exporter-config/
+- /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/integrations/azure-exporter-config/
+- /docs/grafana-cloud/send-data/agent/static/configuration/integrations/azure-exporter-config/
 canonical: https://grafana.com/docs/agent/latest/static/configuration/integrations/azure-exporter-config/
-title: azure_exporter_config
 description: Learn about azure_exporter_config
+title: azure_exporter_config
 ---
 
 # azure_exporter_config
@@ -11,9 +13,18 @@ description: Learn about azure_exporter_config
 ## Overview
 The `azure_exporter_config` block configures the `azure_exporter` integration, an embedded version of
 [`azure-metrics-exporter`](https://github.com/webdevops/azure-metrics-exporter), used to
-collect metrics from [Azure Monitor](https://azure.microsoft.com/en-us/products/monitor). The
-exporter uses [Azure Resource Graph](https://azure.microsoft.com/en-us/get-started/azure-portal/resource-graph/#overview)
-queries to identify resources for gathering metrics.
+collect metrics from [Azure Monitor](https://azure.microsoft.com/en-us/products/monitor). 
+
+The exporter offers the following two options for gathering metrics.
+
+1. (Default) Use an [Azure Resource Graph](https://azure.microsoft.com/en-us/get-started/azure-portal/resource-graph/#overview) query to identify resources for gathering metrics.
+   1. This query will make one API call per resource identified.
+   1. Subscriptions with a reasonable amount of resources can hit the [12000 requests per hour rate limit](https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/request-limits-and-throttling#subscription-and-tenant-limits) Azure enforces.
+1. Set the regions to gather metrics from and get metrics for all resources across those regions.
+   1. This option will make one API call per subscription, dramatically reducing the number of API calls. 
+   1. This approach does not work with all resource types, and Azure does not document which resource types do or do not work.
+   1. A resource type that is not supported produces errors that look like `Resource type: microsoft.containerservice/managedclusters not enabled for Cross Resource metrics`.
+   1. If you encounter one of these errors you must use the default Azure Resource Graph based option to gather metrics.
 
 ## List of Supported Services and Metrics
 The exporter supports all metrics defined by Azure Monitor. The complete list of available metrics can be found in the [Azure Monitor documentation](https://learn.microsoft.com/en-us/azure/azure-monitor/essentials/metrics-supported).
@@ -93,7 +104,14 @@ The account used by Grafana Agent needs:
 
   # Optional: The [kusto query](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/) filter to apply when searching for resources
   # This value will be embedded in to a template query of the form `Resources | where type =~ "<resource_type>" <resource_graph_query_filter> | project id, tags`
+  # Can't be used if `regions` is set.
   [resource_graph_query_filter: <string>]
+  
+  # Optional: The list of regions for gathering metrics. Enables gathering metrics for all resources in the subscription.
+  # The list of available `regions` to your subscription can be found by running the Azure CLI command `az account list-locations --query '[].name'`.
+  # Can't be used if `resource_graph_query_filter` is set.
+  regions:
+      [ - <string> ... ]
 
   # Optional: Aggregation to apply for the metrics produced. Valid values are minimum, maximum, average, total, and count
   # If no aggregation is specified the value for `Aggregation Type` on the `Metric` is used from https://learn.microsoft.com/en-us/azure/azure-monitor/essentials/metrics-supported
@@ -137,6 +155,10 @@ The account used by Grafana Agent needs:
 
   # Optional: Which azure cloud environment to connect to, azurecloud, azurechinacloud, azuregovernmentcloud, or azurepprivatecloud
   [azure_cloud_environment: <string> | default = "azurecloud"]
+  
+  # Optional: Validation is disabled by default to reduce the number of Azure exporter instances required when a `resource_type` has metrics with varying dimensions. 
+  # Choosing to enable `validate_dimensions` will require one exporter instance per metric + dimension combination which can be very tedious to maintain.
+  [validate_dimensions: <bool> | default = false]
 ```
 
 ### Examples
@@ -165,6 +187,7 @@ The account used by Grafana Agent needs:
     included_dimensions:
       - node
       - nodepool
+      - device
 ```
 
 #### Blob Storage Metrics
@@ -176,6 +199,8 @@ The account used by Grafana Agent needs:
       - <subscription_id>
     resource_type: Microsoft.Storage/storageAccounts
     metric_namespace: Microsoft.Storage/storageAccounts/blobServices
+    regions:
+      - westeurope
     metrics:
       - Availability
       - BlobCapacity
@@ -187,8 +212,10 @@ The account used by Grafana Agent needs:
       - SuccessE2ELatency
       - SuccessServerLatency
       - Transactions
+    included_dimensions:
+      - ApiName
+      - TransactionType
     timespan: PT1H
-    resource_graph_query_filter: where location == "westeurope"
 ```
 
 ### Multiple Azure Services in a single config
@@ -220,6 +247,8 @@ metrics:
             subscriptions:
               - 179c4f30-ebd8-489e-92bc-fb64588dadb3
             resource_type: ["Microsoft.Storage/storageAccounts"]
+            regions:
+              - westeurope
             metric_namespace: ["Microsoft.Storage/storageAccounts/blobServices"]
             metrics:
               - Availability
@@ -232,8 +261,10 @@ metrics:
               - SuccessE2ELatency
               - SuccessServerLatency
               - Transactions
+            included_dimensions:
+              - ApiName
+              - TransactionType
             timespan: ["PT1H"]
-            resource_graph_query_filter: ["where location == 'westeurope'"]
         - job_name: azure-kubernetes-node
           scrape_interval: 1m
           scrape_timeout: 50s
@@ -261,6 +292,7 @@ metrics:
             included_dimensions:
               - node
               - nodepool
+              - device
 ```
 
 In this example, all `azure_exporter`-specific configuration settings have been moved to the `scrape_config`. This method supports all available configuration options except `azure_cloud_environment`, which must be configured on the `azure_exporter`. For this method, if a field supports a singular value like `resource_graph_query_filter`, you

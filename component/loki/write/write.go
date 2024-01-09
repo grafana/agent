@@ -12,7 +12,7 @@ import (
 	"github.com/grafana/agent/component/common/loki/client"
 	"github.com/grafana/agent/component/common/loki/limit"
 	"github.com/grafana/agent/component/common/loki/wal"
-	"github.com/grafana/agent/pkg/build"
+	"github.com/grafana/agent/internal/agentseed"
 )
 
 func init() {
@@ -25,8 +25,6 @@ func init() {
 			return New(opts, args.(Arguments))
 		},
 	})
-
-	client.UserAgent = fmt.Sprintf("GrafanaAgent/%s", build.Version)
 }
 
 // Arguments holds values which are used to configure the loki.write component.
@@ -44,6 +42,7 @@ type WalArguments struct {
 	MaxSegmentAge    time.Duration `river:"max_segment_age,attr,optional"`
 	MinReadFrequency time.Duration `river:"min_read_frequency,attr,optional"`
 	MaxReadFrequency time.Duration `river:"max_read_frequency,attr,optional"`
+	DrainTimeout     time.Duration `river:"drain_timeout,attr,optional"`
 }
 
 func (wa *WalArguments) Validate() error {
@@ -61,6 +60,7 @@ func (wa *WalArguments) SetToDefault() {
 		MaxSegmentAge:    wal.DefaultMaxSegmentAge,
 		MinReadFrequency: wal.DefaultWatchConfig.MinReadFrequency,
 		MaxReadFrequency: wal.DefaultWatchConfig.MaxReadFrequency,
+		DrainTimeout:     wal.DefaultWatchConfig.DrainTimeout,
 	}
 }
 
@@ -84,7 +84,7 @@ type Component struct {
 	receiver loki.LogsReceiver
 
 	// remote write components
-	clientManger client.Client
+	clientManger *client.Manager
 	walWriter    *wal.Writer
 
 	// sink is the place where log entries received by this component should be written to. If WAL
@@ -114,16 +114,31 @@ func New(o component.Options, args Arguments) (*Component, error) {
 
 // Run implements component.Component.
 func (c *Component) Run(ctx context.Context) error {
+	defer func() {
+		// when exiting Run, proceed to shut down first the writer component, and then
+		// the client manager, with the WAL and remote-write client inside
+		if c.walWriter != nil {
+			c.walWriter.Stop()
+		}
+		if c.clientManger != nil {
+			// drain, since the component is shutting down. That means the agent is shutting down as well
+			c.clientManger.StopWithDrain(true)
+		}
+	}()
+
 	for {
 		select {
 		case <-ctx.Done():
 			return nil
 		case entry := <-c.receiver.Chan():
+			c.mut.RLock()
 			select {
 			case <-ctx.Done():
+				c.mut.RUnlock()
 				return nil
 			case c.sink.Chan() <- entry:
 			}
+			c.mut.RUnlock()
 		}
 	}
 }
@@ -140,16 +155,25 @@ func (c *Component) Update(args component.Arguments) error {
 		c.walWriter.Stop()
 	}
 	if c.clientManger != nil {
+		// only drain on component shutdown
 		c.clientManger.Stop()
 	}
 
 	cfgs := newArgs.convertClientConfigs()
+	uid := agentseed.Get().UID
+	for _, cfg := range cfgs {
+		if cfg.Headers == nil {
+			cfg.Headers = map[string]string{}
+		}
+		cfg.Headers[agentseed.HeaderName] = uid
+	}
 	walCfg := wal.Config{
 		Enabled:       newArgs.WAL.Enabled,
 		MaxSegmentAge: newArgs.WAL.MaxSegmentAge,
 		WatchConfig: wal.WatchConfig{
 			MinReadFrequency: newArgs.WAL.MinReadFrequency,
 			MaxReadFrequency: newArgs.WAL.MaxReadFrequency,
+			DrainTimeout:     newArgs.WAL.DrainTimeout,
 		},
 	}
 

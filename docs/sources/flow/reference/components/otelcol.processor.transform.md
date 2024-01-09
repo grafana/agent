@@ -3,16 +3,17 @@ aliases:
 - /docs/grafana-cloud/agent/flow/reference/components/otelcol.processor.transform/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/otelcol.processor.transform/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/otelcol.processor.transform/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/otelcol.processor.transform/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.processor.transform/
+description: Learn about otelcol.processor.transform
 labels:
   stage: experimental
 title: otelcol.processor.transform
-description: Learn about otelcol.processor.transform
 ---
 
 # otelcol.processor.transform
 
-{{< docs/shared lookup="flow/stability/experimental.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/stability/experimental.md" source="agent" version="<AGENT_VERSION>" >}}
 
 `otelcol.processor.transform` accepts telemetry data from other `otelcol`
 components and modifies it using the [OpenTelemetry Transformation Language (OTTL)][OTTL].
@@ -54,8 +55,8 @@ For example, the OTTL statement `set(description, "Sum") where type == "Sum"` ca
 
 Raw strings are generally more convenient for writing OTTL statements.
 
-[river-strings]: {{< relref "../../config-language/expressions/types_and_values.md/#strings" >}}
-[river-raw-strings]: {{< relref "../../config-language/expressions/types_and_values.md/#raw-strings" >}}
+[river-strings]: {{< relref "../../concepts/config-language/expressions/types_and_values.md/#strings" >}}
+[river-raw-strings]: {{< relref "../../concepts/config-language/expressions/types_and_values.md/#raw-strings" >}}
 {{% /admonition %}}
 
 {{% admonition type="note" %}}
@@ -250,7 +251,7 @@ span using the `span` context, it is more efficient to use the `resource` contex
 
 ### output block
 
-{{< docs/shared lookup="flow/reference/components/output-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/output-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ## Exported fields
 
@@ -565,8 +566,8 @@ Each statement is enclosed in backticks instead of quotation marks.
 This constitutes a [raw string][river-raw-strings], and lets us avoid the need to escape
 each `"` with a `\"`, and each `\` with a `\\` inside a [normal][river-strings] River string.
 
-[river-strings]: {{< relref "../../config-language/expressions/types_and_values.md/#strings" >}}
-[river-raw-strings]: {{< relref "../../config-language/expressions/types_and_values.md/#raw-strings" >}}
+[river-strings]: {{< relref "../../concepts/config-language/expressions/types_and_values.md/#strings" >}}
+[river-raw-strings]: {{< relref "../../concepts/config-language/expressions/types_and_values.md/#raw-strings" >}}
 
 [traces protobuf]: https://github.com/open-telemetry/opentelemetry-proto/blob/v1.0.0/opentelemetry/proto/trace/v1/trace.proto
 [metrics protobuf]: https://github.com/open-telemetry/opentelemetry-proto/blob/v1.0.0/opentelemetry/proto/metrics/v1/metrics.proto
@@ -589,3 +590,23 @@ each `"` with a `\"`, and each `\` with a `\\` inside a [normal][river-strings] 
 [OTTL metric context]: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/{{< param "OTEL_VERSION" >}}/pkg/ottl/contexts/ottlmetric/README.md
 [OTTL datapoint context]: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/{{< param "OTEL_VERSION" >}}/pkg/ottl/contexts/ottldatapoint/README.md
 [OTTL log context]: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/{{< param "OTEL_VERSION" >}}/pkg/ottl/contexts/ottllog/README.md
+<!-- START GENERATED COMPATIBLE COMPONENTS -->
+
+## Compatible components
+
+`otelcol.processor.transform` can accept arguments from the following components:
+
+- Components that export [OpenTelemetry `otelcol.Consumer`]({{< relref "../compatibility/#opentelemetry-otelcolconsumer-exporters" >}})
+
+`otelcol.processor.transform` has exports that can be consumed by the following components:
+
+- Components that consume [OpenTelemetry `otelcol.Consumer`]({{< relref "../compatibility/#opentelemetry-otelcolconsumer-consumers" >}})
+
+{{% admonition type="note" %}}
+
+Connecting some components may not be sensible or components may require further configuration to make the 
+connection work correctly. Refer to the linked documentation for more details.
+
+{{% /admonition %}}
+
+<!-- END GENERATED COMPATIBLE COMPONENTS -->

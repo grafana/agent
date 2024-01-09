@@ -3,9 +3,10 @@ aliases:
 - /docs/grafana-cloud/agent/flow/reference/components/discovery.kubernetes/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/discovery.kubernetes/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/discovery.kubernetes/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/discovery.kubernetes/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.kubernetes/
-title: discovery.kubernetes
 description: Learn about discovery.kubernetes
+title: discovery.kubernetes
 ---
 
 # discovery.kubernetes
@@ -15,7 +16,7 @@ resources. It watches cluster state, and ensures targets are continually synced
 with what is currently running in your cluster.
 
 If you supply no connection information, this component defaults to an
-in-cluster config. A kubeconfig file or manual connection settings can be used
+in-cluster configuration. A kubeconfig file or manual connection settings can be used
 to override the defaults.
 
 ## Usage
@@ -43,7 +44,7 @@ Name | Type | Description | Default | Required
 
  At most one of the following can be provided:
  - [`bearer_token` argument](#arguments).
- - [`bearer_token_file` argument](#arguments). 
+ - [`bearer_token_file` argument](#arguments).
  - [`basic_auth` block][basic_auth].
  - [`authorization` block][authorization].
  - [`oauth2` block][oauth2].
@@ -258,6 +259,7 @@ basic_auth | [basic_auth][] | Configure basic_auth for authenticating to the end
 authorization | [authorization][] | Configure generic authorization to the endpoint. | no
 oauth2 | [oauth2][] | Configure OAuth2 for authenticating to the endpoint. | no
 oauth2 > tls_config | [tls_config][] | Configure TLS settings for connecting to the endpoint. | no
+tls_config | [tls_config][] | Configure TLS settings for connecting to the endpoint. | no
 
 The `>` symbol indicates deeper levels of nesting. For example,
 `oauth2 > tls_config` refers to a `tls_config` block defined inside
@@ -278,7 +280,7 @@ omitted, all namespaces are searched.
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`own_namespace` | `bool`   | Include the namespace the agent is running in. | | no
+`own_namespace` | `bool`   | Include the namespace {{< param "PRODUCT_NAME" >}} is running in. | | no
 `names` | `list(string)` | List of namespaces to search. | | no
 
 ### selectors block
@@ -321,19 +323,19 @@ Name | Type | Description | Default | Required
 
 ### basic_auth block
 
-{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### authorization block
 
-{{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### oauth2 block
 
-{{< docs/shared lookup="flow/reference/components/oauth2-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/oauth2-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### tls_config block
 
-{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ## Exported fields
 
@@ -461,14 +463,20 @@ Replace the following:
 
 ### Limit to only pods on the same node
 
-This example limits the search to pods on the same node as this Grafana Agent. This configuration could be useful if you are running the Agent as a DaemonSet:
+This example limits the search to pods on the same node as this {{< param "PRODUCT_ROOT_NAME" >}}.
+This configuration could be useful if you are running {{< param "PRODUCT_ROOT_NAME" >}} as a DaemonSet.
+
+{{% admonition type="note" %}}
+This example assumes you have used Helm chart to deploy {{< param "PRODUCT_NAME" >}} in Kubernetes and sets `HOSTNAME` to the Kubernetes host name.
+If you have a custom Kubernetes deployment, you must adapt this example to your configuration.
+{{% /admonition %}}
 
 ```river
 discovery.kubernetes "k8s_pods" {
   role = "pod"
   selectors {
     role = "pod"
-    field = "spec.nodeName=" + constants.hostname
+    field = "spec.nodeName=" + coalesce(env("HOSTNAME"), constants.hostname)
   }
 }
 
@@ -488,7 +496,25 @@ prometheus.remote_write "demo" {
   }
 }
 ```
+
 Replace the following:
   - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
   - `USERNAME`: The username to use for authentication to the remote_write API.
   - `PASSWORD`: The password to use for authentication to the remote_write API.
+
+<!-- START GENERATED COMPATIBLE COMPONENTS -->
+
+## Compatible components
+
+`discovery.kubernetes` has exports that can be consumed by the following components:
+
+- Components that consume [Targets]({{< relref "../compatibility/#targets-consumers" >}})
+
+{{% admonition type="note" %}}
+
+Connecting some components may not be sensible or components may require further configuration to make the 
+connection work correctly. Refer to the linked documentation for more details.
+
+{{% /admonition %}}
+
+<!-- END GENERATED COMPATIBLE COMPONENTS -->

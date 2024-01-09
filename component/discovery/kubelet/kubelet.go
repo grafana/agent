@@ -34,6 +34,7 @@ const (
 	podNameLabel                  = metaLabelPrefix + "pod_name"
 	podIPLabel                    = metaLabelPrefix + "pod_ip"
 	podContainerNameLabel         = metaLabelPrefix + "pod_container_name"
+	podContainerIDLabel           = metaLabelPrefix + "pod_container_id"
 	podContainerImageLabel        = metaLabelPrefix + "pod_container_image"
 	podContainerPortNameLabel     = metaLabelPrefix + "pod_container_port_name"
 	podContainerPortNumberLabel   = metaLabelPrefix + "pod_container_port_number"
@@ -128,11 +129,10 @@ func NewKubeletDiscovery(args Arguments) (*Discovery, error) {
 		Transport: transport,
 		Timeout:   30 * time.Second,
 	}
-	// ensure the path is the kubelet pods endpoint
-	args.URL.Path = "/pods"
+	// Append the path to the kubelet pods endpoint
 	return &Discovery{
 		client:           client,
-		url:              args.URL.String(),
+		url:              args.URL.String() + "/pods",
 		targetNamespaces: args.Namespaces,
 	}, nil
 }
@@ -214,6 +214,27 @@ func (d *Discovery) buildPodTargetGroup(pod v1.Pod) *targetgroup.Group {
 	containers := append(pod.Spec.Containers, pod.Spec.InitContainers...)
 	for i, c := range containers {
 		isInit := i >= len(pod.Spec.Containers)
+		cStatuses := &pod.Status.ContainerStatuses
+		if isInit {
+			cStatuses = &pod.Status.InitContainerStatuses
+		}
+		cID := d.findPodContainerID(cStatuses, c.Name)
+
+		// If no ports are defined for the container, create an anonymous
+		// target per container.
+		if len(c.Ports) == 0 {
+			// We don't have a port so we just set the address label to the pod IP.
+			// The user has to add a port manually.
+			tg.Targets = append(tg.Targets, model.LabelSet{
+				model.AddressLabel:     lv(pod.Status.PodIP),
+				podContainerNameLabel:  lv(c.Name),
+				podContainerIDLabel:    lv(cID),
+				podContainerImageLabel: lv(c.Image),
+				podContainerIsInit:     lv(strconv.FormatBool(isInit)),
+			})
+			continue
+		}
+
 		for _, port := range c.Ports {
 			ports := strconv.FormatUint(uint64(port.ContainerPort), 10)
 			addr := net.JoinHostPort(pod.Status.PodIP, ports)
@@ -221,6 +242,7 @@ func (d *Discovery) buildPodTargetGroup(pod v1.Pod) *targetgroup.Group {
 			tg.Targets = append(tg.Targets, model.LabelSet{
 				model.AddressLabel:            lv(addr),
 				podContainerNameLabel:         lv(c.Name),
+				podContainerIDLabel:           lv(cID),
 				podContainerImageLabel:        lv(c.Image),
 				podContainerPortNumberLabel:   lv(ports),
 				podContainerPortNameLabel:     lv(port.Name),
@@ -231,6 +253,23 @@ func (d *Discovery) buildPodTargetGroup(pod v1.Pod) *targetgroup.Group {
 	}
 
 	return tg
+}
+
+func (p *Discovery) findPodContainerStatus(statuses *[]v1.ContainerStatus, containerName string) (*v1.ContainerStatus, error) {
+	for _, s := range *statuses {
+		if s.Name == containerName {
+			return &s, nil
+		}
+	}
+	return nil, fmt.Errorf("cannot find container with name %v", containerName)
+}
+
+func (p *Discovery) findPodContainerID(statuses *[]v1.ContainerStatus, containerName string) string {
+	cStatus, err := p.findPodContainerStatus(statuses, containerName)
+	if err != nil {
+		return ""
+	}
+	return cStatus.ContainerID
 }
 
 func (d *Discovery) podInTargetNamespaces(pod v1.Pod) bool {

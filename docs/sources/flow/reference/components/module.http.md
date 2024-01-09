@@ -3,16 +3,17 @@ aliases:
 - /docs/grafana-cloud/agent/flow/reference/components/module.http/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/module.http/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/module.http/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/module.http/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/module.http/
+description: Learn about module.http
 labels:
   stage: beta
 title: module.http
-description: Learn about module.http
 ---
 
 # module.http
 
-{{< docs/shared lookup="flow/stability/beta.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/stability/beta.md" source="agent" version="<AGENT_VERSION>" >}}
 
 `module.http` is a [module loader][] component.
 
@@ -51,7 +52,7 @@ Name | Type | Description | Default | Required
 `poll_timeout` | `duration` | Timeout when polling the URL. | `"10s"` | no
 `is_secret` | `bool` | Whether the response body should be treated as a secret. | false | no
 
-[secret]: {{< relref "../../config-language/expressions/types_and_values.md#secrets" >}}
+[secret]: {{< relref "../../concepts/config-language/expressions/types_and_values.md#secrets" >}}
 
 ## Blocks
 

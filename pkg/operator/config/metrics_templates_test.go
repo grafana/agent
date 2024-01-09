@@ -6,16 +6,17 @@ import (
 	"strings"
 	"testing"
 
-	jsonnet "github.com/google/go-jsonnet"
-	gragent "github.com/grafana/agent/pkg/operator/apis/monitoring/v1alpha1"
-	"github.com/grafana/agent/pkg/operator/assets"
-	"github.com/grafana/agent/pkg/util"
+	"github.com/google/go-jsonnet"
 	prom_v1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	v1 "k8s.io/api/core/v1"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/utils/pointer"
+	"k8s.io/utils/ptr"
+
+	gragent "github.com/grafana/agent/pkg/operator/apis/monitoring/v1alpha1"
+	"github.com/grafana/agent/pkg/operator/assets"
+	"github.com/grafana/agent/pkg/util"
 )
 
 func TestExternalLabels(t *testing.T) {
@@ -89,8 +90,8 @@ func TestExternalLabels(t *testing.T) {
 					},
 					Spec: gragent.GrafanaAgentSpec{
 						Metrics: gragent.MetricsSubsystemSpec{
-							MetricsExternalLabelName: pointer.String("deployment"),
-							ReplicaExternalLabelName: pointer.String("replica"),
+							MetricsExternalLabelName: ptr.To("deployment"),
+							ReplicaExternalLabelName: ptr.To("replica"),
 							ExternalLabels:           map[string]string{"foo": "bar"},
 						},
 					},

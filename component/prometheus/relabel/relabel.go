@@ -26,10 +26,10 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name:          "prometheus.relabel",
-		Args:          Arguments{},
-		Exports:       Exports{},
-		NeedsServices: []string{labelstore.ServiceName},
+		Name:    "prometheus.relabel",
+		Args:    Arguments{},
+		Exports: Exports{},
+
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			return New(opts, args.(Arguments))
 		},
@@ -46,15 +46,23 @@ type Arguments struct {
 	MetricRelabelConfigs []*flow_relabel.Config `river:"rule,block,optional"`
 
 	// Cache size to use for LRU cache.
-	//CacheSize int `river:"cache_size,attr,optional"`
+	CacheSize int `river:"max_cache_size,attr,optional"`
 }
 
 // SetToDefault implements river.Defaulter.
-/*func (arg *Arguments) SetToDefault() {
+func (arg *Arguments) SetToDefault() {
 	*arg = Arguments{
-		CacheSize: 500_000,
+		CacheSize: 100_000,
 	}
-}*/
+}
+
+// Validate implements river.Validator.
+func (arg *Arguments) Validate() error {
+	if arg.CacheSize <= 0 {
+		return fmt.Errorf("max_cache_size must be greater than 0 and is %d", arg.CacheSize)
+	}
+	return nil
+}
 
 // Exports holds values which are exported by the prometheus.relabel component.
 type Exports struct {
@@ -88,7 +96,7 @@ var (
 
 // New creates a new prometheus.relabel component.
 func New(o component.Options, args Arguments) (*Component, error) {
-	cache, err := lru.New[uint64, *labelAndID](100_000)
+	cache, err := lru.New[uint64, *labelAndID](args.CacheSize)
 	if err != nil {
 		return nil, err
 	}
@@ -210,7 +218,7 @@ func (c *Component) Update(args component.Arguments) error {
 	defer c.mut.Unlock()
 
 	newArgs := args.(Arguments)
-	c.clearCache(100_000)
+	c.clearCache(newArgs.CacheSize)
 	c.mrc = flow_relabel.ComponentToPromRelabelConfigs(newArgs.MetricRelabelConfigs)
 	c.fanout.UpdateChildren(newArgs.ForwardTo)
 

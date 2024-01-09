@@ -1,9 +1,11 @@
 ---
 aliases:
 - ../../configuration/server-config/
+- /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/server-config/
+- /docs/grafana-cloud/send-data/agent/static/configuration/server-config/
 canonical: https://grafana.com/docs/agent/latest/static/configuration/server-config/
-title: server_config
 description: Learn about server_config
+title: server_config
 weight: 100
 ---
 

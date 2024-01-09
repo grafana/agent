@@ -3,18 +3,19 @@ aliases:
 - /docs/grafana-cloud/agent/flow/reference/components/module.file/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/module.file/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/module.file/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/module.file/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/module.file/
+description: Learn about module.file
 labels:
   stage: beta
 title: module.file
-description: Learn about module.file
 ---
 
 # module.file
 
-{{< docs/shared lookup="flow/stability/beta.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/stability/beta.md" source="agent" version="<AGENT_VERSION>" >}}
 
-`module.file` is a *module loader* component. A module loader is a Grafana Agent Flow
+`module.file` is a *module loader* component. A module loader is a {{< param "PRODUCT_NAME" >}}
 component which retrieves a [module][] and runs the components defined inside of it.
 
 `module.file` simplifies the configurations for modules loaded from a file by embedding
@@ -50,9 +51,9 @@ Name | Type | Description | Default | Required
 `poll_frequency` | `duration` | How often to poll for file changes | `"1m"` | no
 `is_secret`      | `bool`     | Marks the file as containing a [secret][] | `false` | no
 
-[secret]: {{< relref "../../config-language/expressions/types_and_values.md#secrets" >}}
+[secret]: {{< relref "../../concepts/config-language/expressions/types_and_values.md#secrets" >}}
 
-{{< docs/shared lookup="flow/reference/components/local-file-arguments-text.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/local-file-arguments-text.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ## Blocks
 

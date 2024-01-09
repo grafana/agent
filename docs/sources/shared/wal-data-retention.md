@@ -4,6 +4,7 @@ aliases:
 - /docs/grafana-cloud/agent/shared/wal-data-retention/
 - /docs/grafana-cloud/monitor-infrastructure/agent/shared/wal-data-retention/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/shared/wal-data-retention/
+- /docs/grafana-cloud/send-data/agent/shared/wal-data-retention/
 canonical: https://grafana.com/docs/agent/latest/shared/wal-data-retention/
 description: Shared content, information about data retention in the WAL
 headless: true
@@ -79,7 +80,7 @@ before being pushed to the remote_write endpoint.
 WAL corruption can occur when Grafana Agent unexpectedly stops while the latest WAL segments
 are still being written to disk. For example, the host computer has a general disk failure
 and crashes before you can stop Grafana Agent and other running services. When you restart Grafana
-Agent, the Agent verifies the WAL, removing any corrupt segments it finds. Sometimes, this repair
+Agent, it verifies the WAL, removing any corrupt segments it finds. Sometimes, this repair
 is unsuccessful, and you must manually delete the corrupted WAL to continue.
 
 If the WAL becomes corrupted, Grafana Agent writes error messages such as

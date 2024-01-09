@@ -33,9 +33,10 @@ type Appender struct {
 
 	commitCalled, rollbackCalled bool
 
-	samples   map[string]dtobuilder.Sample         // metric labels -> sample
-	exemplars map[string]dtobuilder.SeriesExemplar // metric labels -> series exemplar
-	metadata  map[string]metadata.Metadata         // metric family name -> metadata
+	samples    map[string]dtobuilder.Sample          // metric labels -> sample
+	exemplars  map[string]dtobuilder.SeriesExemplar  // metric labels -> series exemplar
+	metadata   map[string]metadata.Metadata          // metric family name -> metadata
+	histograms map[string]dtobuilder.SeriesHistogram // metric labels - > series histogram
 
 	families []*dto.MetricFamily
 }
@@ -51,6 +52,9 @@ func (app *Appender) init() {
 	}
 	if app.metadata == nil {
 		app.metadata = make(map[string]metadata.Metadata)
+	}
+	if app.histograms == nil {
+		app.histograms = make(map[string]dtobuilder.SeriesHistogram)
 	}
 }
 
@@ -149,10 +153,25 @@ func (app *Appender) UpdateMetadata(ref storage.SeriesRef, l labels.Labels, m me
 	return 0, nil
 }
 
-// AppendHistogram implements storage.Appendable, but always returns an error
-// as native histograms are not supported.
+// AppendHistogram implements storage.Appendable
 func (app *Appender) AppendHistogram(ref storage.SeriesRef, l labels.Labels, t int64, h *histogram.Histogram, fh *histogram.FloatHistogram) (storage.SeriesRef, error) {
-	return 0, fmt.Errorf("native histograms are not supported")
+	if app.commitCalled || app.rollbackCalled {
+		return 0, fmt.Errorf("appender is closed")
+	}
+	app.init()
+
+	l = l.WithoutEmpty()
+	if len(l) == 0 {
+		return 0, fmt.Errorf("empty labelset: %w", tsdb.ErrInvalidSample)
+	}
+	if lbl, dup := l.HasDuplicateLabelNames(); dup {
+		return 0, fmt.Errorf("label name %q is not unique: %w", lbl, tsdb.ErrInvalidSample)
+	}
+	app.histograms[l.String()] = dtobuilder.SeriesHistogram{
+		Labels:    l,
+		Histogram: *h,
+	}
+	return 0, nil
 }
 
 // Commit commits pending samples, exemplars, and metadata, converting them
@@ -169,6 +188,7 @@ func (app *Appender) Commit() error {
 	app.families = dtobuilder.Build(
 		app.samples,
 		app.exemplars,
+		app.histograms,
 		app.metadata,
 	)
 	return nil

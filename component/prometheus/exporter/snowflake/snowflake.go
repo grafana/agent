@@ -11,11 +11,11 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name:          "prometheus.exporter.snowflake",
-		Args:          Arguments{},
-		Exports:       exporter.Exports{},
-		NeedsServices: exporter.RequiredServices(),
-		Build:         exporter.New(createExporter, "snowflake"),
+		Name:    "prometheus.exporter.snowflake",
+		Args:    Arguments{},
+		Exports: exporter.Exports{},
+
+		Build: exporter.New(createExporter, "snowflake"),
 	})
 }
 

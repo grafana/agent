@@ -3,11 +3,12 @@ aliases:
 - /docs/grafana-cloud/agent/flow/reference/components/discovery.kubelet/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/discovery.kubelet/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/discovery.kubelet/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/discovery.kubelet/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.kubelet/
+description: Learn about discovery.kubelet
 labels:
   stage: beta
 title: discovery.kubelet
-description: Learn about discovery.kubelet
 ---
 
 # discovery.kubelet
@@ -34,7 +35,7 @@ The following arguments are supported:
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`url` | `string` | URL of the Kubelet server. | | no
+`url` | `string` | URL of the Kubelet server. | "https://localhost:10250" | no
 `bearer_token` | `secret` | Bearer token to authenticate with. | | no
 `bearer_token_file` | `string` | File containing a bearer token to authenticate with. | | no
 `refresh_interval` | `duration` | How often the Kubelet should be polled for scrape targets | `5s` | no
@@ -47,6 +48,10 @@ One of the following authentication methods must be provided if kubelet authenti
 
 The `namespaces` list limits the namespaces to discover resources in. If
 omitted, all namespaces are searched.
+
+`discovery.kubelet` appends a `/pods` path to `url` to request the available pods.
+You can have additional paths in the `url`.
+For example, if `url` is `https://kubernetes.default.svc.cluster.local:443/api/v1/nodes/cluster-node-1/proxy`, then `discovery.kubelet` sends a request on `https://kubernetes.default.svc.cluster.local:443/api/v1/nodes/cluster-node-1/proxy/pods`
 
 ## Blocks
 
@@ -63,11 +68,11 @@ tls_config | [tls_config][] | Configure TLS settings for connecting to the endpo
 
 ### authorization block
 
-{{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### tls_config block
 
-{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ## Exported fields
 
@@ -192,3 +197,20 @@ Replace the following:
   - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
   - `USERNAME`: The username to use for authentication to the remote_write API.
   - `PASSWORD`: The password to use for authentication to the remote_write API.
+
+<!-- START GENERATED COMPATIBLE COMPONENTS -->
+
+## Compatible components
+
+`discovery.kubelet` has exports that can be consumed by the following components:
+
+- Components that consume [Targets]({{< relref "../compatibility/#targets-consumers" >}})
+
+{{% admonition type="note" %}}
+
+Connecting some components may not be sensible or components may require further configuration to make the 
+connection work correctly. Refer to the linked documentation for more details.
+
+{{% /admonition %}}
+
+<!-- END GENERATED COMPATIBLE COMPONENTS -->
