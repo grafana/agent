@@ -62,6 +62,8 @@ If `pull_frequency` is not `"0s"`, the Git repository will be pulled for
 updates at the frequency specified, causing the loaded module to update with
 the retrieved changes. If it is set to `"0s"`, the Git repository will be pulled once on init.
 
+**_WARNING:_** Pulling hosted git repositories too often can result in throttling.
+
 ## Blocks
 
 The following blocks are supported inside the definition of `module.git`:
