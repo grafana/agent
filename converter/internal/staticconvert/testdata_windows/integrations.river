@@ -22,16 +22,19 @@ http {
 	}
 }
 
-prometheus.exporter.windows "integrations_windows_exporter" {
-	exchange { }
+prometheus.exporter.windows "integrations_windows_exporter" { }
 
-	network {
-		exclude = ".+"
+discovery.relabel "integrations_windows_exporter" {
+	targets = prometheus.exporter.windows.integrations_windows_exporter.targets
+
+	rule {
+		target_label = "job"
+		replacement  = "integrations/windows_exporter"
 	}
 }
 
 prometheus.scrape "integrations_windows_exporter" {
-	targets    = prometheus.exporter.windows.integrations_windows_exporter.targets
+	targets    = discovery.relabel.integrations_windows_exporter.output
 	forward_to = [prometheus.remote_write.integrations.receiver]
 	job_name   = "integrations/windows_exporter"
 }

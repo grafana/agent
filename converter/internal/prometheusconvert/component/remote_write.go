@@ -96,6 +96,7 @@ func toQueueOptions(queueConfig *prom_config.QueueConfig) *remotewrite.QueueOpti
 		MinBackoff:        time.Duration(queueConfig.MinBackoff),
 		MaxBackoff:        time.Duration(queueConfig.MaxBackoff),
 		RetryOnHTTP429:    queueConfig.RetryOnRateLimit,
+		SampleAgeLimit:    time.Duration(queueConfig.SampleAgeLimit),
 	}
 }
 

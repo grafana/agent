@@ -91,32 +91,32 @@ Name | Type | Description | Default | Required
 Setting `disable_keep_alives` to `true` will result in significant overhead establishing a new HTTP(s) connection for every request.
 Before enabling this option, consider whether changes to idle connection settings can achieve your goal.
 
-{{< docs/shared lookup="flow/reference/components/otelcol-compression-field.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/otelcol-compression-field.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### tls block
 
 The `tls` block configures TLS settings used for the connection to the HTTP
 server.
 
-{{< docs/shared lookup="flow/reference/components/otelcol-tls-config-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/otelcol-tls-config-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### sending_queue block
 
 The `sending_queue` block configures an in-memory buffer of batches before data is sent
 to the HTTP server.
 
-{{< docs/shared lookup="flow/reference/components/otelcol-queue-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/otelcol-queue-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### retry_on_failure block
 
 The `retry_on_failure` block configures how failed requests to the HTTP server are
 retried.
 
-{{< docs/shared lookup="flow/reference/components/otelcol-retry-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/otelcol-retry-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### debug_metrics block
 
-{{< docs/shared lookup="flow/reference/components/otelcol-debug-metrics-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/otelcol-debug-metrics-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ## Exported fields
 
@@ -155,3 +155,19 @@ otelcol.exporter.otlphttp "tempo" {
     }
 }
 ```
+<!-- START GENERATED COMPATIBLE COMPONENTS -->
+
+## Compatible components
+
+`otelcol.exporter.otlphttp` has exports that can be consumed by the following components:
+
+- Components that consume [OpenTelemetry `otelcol.Consumer`]({{< relref "../compatibility/#opentelemetry-otelcolconsumer-consumers" >}})
+
+{{% admonition type="note" %}}
+
+Connecting some components may not be sensible or components may require further configuration to make the 
+connection work correctly. Refer to the linked documentation for more details.
+
+{{% /admonition %}}
+
+<!-- END GENERATED COMPATIBLE COMPONENTS -->

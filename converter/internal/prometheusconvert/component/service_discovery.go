@@ -9,6 +9,7 @@ import (
 	"github.com/grafana/agent/converter/internal/prometheusconvert/build"
 
 	prom_discover "github.com/prometheus/prometheus/discovery"
+	prom_http "github.com/prometheus/prometheus/discovery/http"
 	_ "github.com/prometheus/prometheus/discovery/install" // Register Prometheus SDs
 
 	prom_aws "github.com/prometheus/prometheus/discovery/aws"
@@ -24,6 +25,7 @@ import (
 	prom_marathon "github.com/prometheus/prometheus/discovery/marathon"
 	prom_docker "github.com/prometheus/prometheus/discovery/moby"
 	prom_openstack "github.com/prometheus/prometheus/discovery/openstack"
+	prom_ovhcloud "github.com/prometheus/prometheus/discovery/ovhcloud"
 	prom_scaleway "github.com/prometheus/prometheus/discovery/scaleway"
 	prom_triton "github.com/prometheus/prometheus/discovery/triton"
 	prom_xds "github.com/prometheus/prometheus/discovery/xds"
@@ -60,6 +62,9 @@ func AppendServiceDiscoveryConfig(pb *build.PrometheusBlocks, serviceDiscoveryCo
 	case *prom_gce.SDConfig:
 		labelCounts["gce"]++
 		return appendDiscoveryGCE(pb, common.LabelWithIndex(labelCounts["gce"]-1, label), sdc)
+	case *prom_http.SDConfig:
+		labelCounts["http"]++
+		return appendDiscoveryHttp(pb, common.LabelWithIndex(labelCounts["http"]-1, label), sdc)
 	case *prom_kubernetes.SDConfig:
 		labelCounts["kubernetes"]++
 		return appendDiscoveryKubernetes(pb, common.LabelWithIndex(labelCounts["kubernetes"]-1, label), sdc)
@@ -96,6 +101,9 @@ func AppendServiceDiscoveryConfig(pb *build.PrometheusBlocks, serviceDiscoveryCo
 	case *prom_docker.DockerSwarmSDConfig:
 		labelCounts["dockerswarm"]++
 		return appendDiscoveryDockerswarm(pb, common.LabelWithIndex(labelCounts["dockerswarm"]-1, label), sdc)
+	case *prom_ovhcloud.SDConfig:
+		labelCounts["ovhcloud"]++
+		return appendDiscoveryOvhcloud(pb, common.LabelWithIndex(labelCounts["ovhcloud"]-1, label), sdc)
 	default:
 		return discovery.Exports{}
 	}
@@ -121,6 +129,8 @@ func ValidateServiceDiscoveryConfig(serviceDiscoveryConfig prom_discover.Config)
 		return ValidateDiscoveryFile(sdc)
 	case *prom_gce.SDConfig:
 		return ValidateDiscoveryGCE(sdc)
+	case *prom_http.SDConfig:
+		return ValidateDiscoveryHttp(sdc)
 	case *prom_kubernetes.SDConfig:
 		return ValidateDiscoveryKubernetes(sdc)
 	case *prom_aws.LightsailSDConfig:
@@ -145,6 +155,8 @@ func ValidateServiceDiscoveryConfig(serviceDiscoveryConfig prom_discover.Config)
 		return ValidateDiscoveryOpenstack(sdc)
 	case *prom_docker.DockerSwarmSDConfig:
 		return ValidateDiscoveryDockerswarm(sdc)
+	case *prom_ovhcloud.SDConfig:
+		return ValidateDiscoveryOvhcloud(sdc)
 	default:
 		var diags diag.Diagnostics
 		diags.Add(diag.SeverityLevelError, fmt.Sprintf("The converter does not support converting the provided %s service discovery.", serviceDiscoveryConfig.Name()))

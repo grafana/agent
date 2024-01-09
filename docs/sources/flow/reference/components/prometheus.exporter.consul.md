@@ -28,7 +28,7 @@ All arguments are optional. Omitted fields take their default values.
 
 | Name                       | Type       | Description                                                                                                                                                         | Default                 | Required |
 | -------------------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------- | -------- |
-| `server`                   | `string`   | Address (host and port) of the Consul instance we should connect to. This could be a local agent (localhost:8500, for instance), or the address of a Consul server. | `http://localhost:8500` | no       |
+| `server`                   | `string`   | Address (host and port) of the Consul instance we should connect to. This could be a local {{< param "PRODUCT_ROOT_NAME" >}} (localhost:8500, for instance), or the address of a Consul server. | `http://localhost:8500` | no       |
 | `ca_file`                  | `string`   | File path to a PEM-encoded certificate authority used to validate the authenticity of a server certificate.                                                         |                         | no       |
 | `cert_file`                | `string`   | File path to a PEM-encoded certificate used with the private key to verify the exporter's authenticity.                                                             |                         | no       |
 | `key_file`                 | `string`   | File path to a PEM-encoded private key used with the certificate to verify the exporter's authenticity.                                                             |                         | no       |
@@ -44,7 +44,7 @@ All arguments are optional. Omitted fields take their default values.
 
 ## Exported fields
 
-{{< docs/shared lookup="flow/reference/components/exporter-component-exports.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/exporter-component-exports.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ## Component health
 
@@ -97,3 +97,20 @@ Replace the following:
 - `PASSWORD`: The password to use for authentication to the remote_write API.
 
 [scrape]: {{< relref "./prometheus.scrape.md" >}}
+
+<!-- START GENERATED COMPATIBLE COMPONENTS -->
+
+## Compatible components
+
+`prometheus.exporter.consul` has exports that can be consumed by the following components:
+
+- Components that consume [Targets]({{< relref "../compatibility/#targets-consumers" >}})
+
+{{% admonition type="note" %}}
+
+Connecting some components may not be sensible or components may require further configuration to make the 
+connection work correctly. Refer to the linked documentation for more details.
+
+{{% /admonition %}}
+
+<!-- END GENERATED COMPATIBLE COMPONENTS -->

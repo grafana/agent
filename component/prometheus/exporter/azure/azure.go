@@ -9,11 +9,11 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name:          "prometheus.exporter.azure",
-		Args:          Arguments{},
-		Exports:       exporter.Exports{},
-		NeedsServices: exporter.RequiredServices(),
-		Build:         exporter.New(createExporter, "azure"),
+		Name:    "prometheus.exporter.azure",
+		Args:    Arguments{},
+		Exports: exporter.Exports{},
+
+		Build: exporter.New(createExporter, "azure"),
 	})
 }
 
@@ -35,6 +35,8 @@ type Arguments struct {
 	MetricNameTemplate       string   `river:"metric_name_template,attr,optional"`
 	MetricHelpTemplate       string   `river:"metric_help_template,attr,optional"`
 	AzureCloudEnvironment    string   `river:"azure_cloud_environment,attr,optional"`
+	ValidateDimensions       bool     `river:"validate_dimensions,attr,optional"`
+	Regions                  []string `river:"regions,attr,optional"`
 }
 
 var DefaultArguments = Arguments{
@@ -43,6 +45,10 @@ var DefaultArguments = Arguments{
 	MetricHelpTemplate:    "Azure metric {metric} for {type} with aggregation {aggregation} as {unit}",
 	IncludedResourceTags:  []string{"owner"},
 	AzureCloudEnvironment: "azurecloud",
+	// Dimensions do not always apply to all metrics for a service, which requires you to configure multiple exporters
+	//  to fully monitor a service which is tedious. Turning off validation eliminates this complexity. The underlying
+	//  sdk will only give back the dimensions which are valid for particular metrics.
+	ValidateDimensions: false,
 }
 
 // SetToDefault implements river.Defaulter.
@@ -72,5 +78,7 @@ func (a *Arguments) Convert() *azure_exporter.Config {
 		MetricNameTemplate:       a.MetricNameTemplate,
 		MetricHelpTemplate:       a.MetricHelpTemplate,
 		AzureCloudEnvironment:    a.AzureCloudEnvironment,
+		ValidateDimensions:       a.ValidateDimensions,
+		Regions:                  a.Regions,
 	}
 }

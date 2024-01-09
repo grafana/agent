@@ -7,7 +7,6 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/otelcol"
 	"github.com/grafana/agent/component/otelcol/connector"
-	otel_service "github.com/grafana/agent/service/otel"
 	"github.com/grafana/river"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/connector/servicegraphconnector"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/servicegraphprocessor"
@@ -17,10 +16,9 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name:          "otelcol.connector.servicegraph",
-		Args:          Arguments{},
-		Exports:       otelcol.ConsumerExports{},
-		NeedsServices: []string{otel_service.ServiceName},
+		Name:    "otelcol.connector.servicegraph",
+		Args:    Arguments{},
+		Exports: otelcol.ConsumerExports{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			fact := servicegraphconnector.NewFactory()
@@ -93,7 +91,7 @@ var DefaultArguments = Arguments{
 	Dimensions: []string{},
 	Store: StoreConfig{
 		MaxItems: 1000,
-		TTL:      2 * time.Millisecond,
+		TTL:      2 * time.Second,
 	},
 	CacheLoop:           1 * time.Minute,
 	StoreExpirationLoop: 2 * time.Second,

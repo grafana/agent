@@ -103,6 +103,11 @@ func (s *ScrapeConfigBuilder) getOrNewLokiRelabel() string {
 		args := lokirelabel.Arguments{
 			ForwardTo:      s.getOrNewProcessStageReceivers(),
 			RelabelConfigs: component.ToFlowRelabelConfigs(s.cfg.RelabelConfigs),
+			// max_cache_size doesnt exist in static, and we need to manually set it to default.
+			// Since the default is 10_000 if we didnt set the value, it would compare the default 10k to 0 and emit 0.
+			// We actually dont want to emit anything since this setting doesnt exist in static, setting to 10k matches the default
+			// and ensures it doesnt get emitted.
+			MaxCacheSize: lokirelabel.DefaultArguments.MaxCacheSize,
 		}
 		compLabel := common.LabelForParts(s.globalCtx.LabelPrefix, s.cfg.JobName)
 		s.f.Body().AppendBlock(common.NewBlockWithOverride([]string{"loki", "relabel"}, compLabel, args))

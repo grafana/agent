@@ -24,6 +24,7 @@ import (
 	_ "github.com/grafana/agent/component/discovery/nerve"                          // Import discovery.nerve
 	_ "github.com/grafana/agent/component/discovery/nomad"                          // Import discovery.nomad
 	_ "github.com/grafana/agent/component/discovery/openstack"                      // Import discovery.openstack
+	_ "github.com/grafana/agent/component/discovery/ovhcloud"                       // Import discovery.ovhcloud
 	_ "github.com/grafana/agent/component/discovery/puppetdb"                       // Import discovery.puppetdb
 	_ "github.com/grafana/agent/component/discovery/relabel"                        // Import discovery.relabel
 	_ "github.com/grafana/agent/component/discovery/scaleway"                       // Import discovery.scaleway

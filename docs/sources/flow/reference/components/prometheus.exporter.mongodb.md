@@ -14,11 +14,10 @@ title: prometheus.exporter.mongodb
 The `prometheus.exporter.mongodb` component embeds percona's [`mongodb_exporter`](https://github.com/percona/mongodb_exporter).
 
 {{% admonition type="note" %}}
-For this integration to work properly, you must have connect each node of your MongoDB cluster to an agent instance.
-That's because this exporter does not collect metrics from multiple nodes.
+This exporter doesn't collect metrics from multiple nodes. For this integration to work properly, you must have connect each node of your MongoDB cluster to a {{< param "PRODUCT_NAME" >}} instance.
 {{% /admonition %}}
 
-We strongly recommend configuring a separate user for the Grafana Agent, giving it only the strictly mandatory security privileges necessary for monitoring your node.
+We strongly recommend configuring a separate user for {{< param "PRODUCT_NAME" >}}, giving it only the strictly mandatory security privileges necessary for monitoring your node.
 Refer to the [Percona documentation](https://github.com/percona/mongodb_exporter#permissions) for more information.
 
 ## Usage
@@ -47,7 +46,7 @@ For `tls_basic_auth_config_path`, check [`tls_config`](https://prometheus.io/doc
 
 ## Exported fields
 
-{{< docs/shared lookup="flow/reference/components/exporter-component-exports.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/exporter-component-exports.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ## Component health
 
@@ -89,3 +88,20 @@ prometheus.remote_write "default" {
 ```
 
 [scrape]: {{< relref "./prometheus.scrape.md" >}}
+
+<!-- START GENERATED COMPATIBLE COMPONENTS -->
+
+## Compatible components
+
+`prometheus.exporter.mongodb` has exports that can be consumed by the following components:
+
+- Components that consume [Targets]({{< relref "../compatibility/#targets-consumers" >}})
+
+{{% admonition type="note" %}}
+
+Connecting some components may not be sensible or components may require further configuration to make the 
+connection work correctly. Refer to the linked documentation for more details.
+
+{{% /admonition %}}
+
+<!-- END GENERATED COMPATIBLE COMPONENTS -->

@@ -13,7 +13,7 @@ title: otelcol.connector.spanmetrics
 
 # otelcol.connector.spanmetrics
 
-{{< docs/shared lookup="flow/stability/experimental.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/stability/experimental.md" source="agent" version="<AGENT_VERSION>" >}}
 
 `otelcol.connector.spanmetrics` accepts span data from other `otelcol` components and
 aggregates Request, Error and Duration (R.E.D) OpenTelemetry metrics from the spans:
@@ -172,7 +172,7 @@ The following attributes are supported:
 
 ### output block
 
-{{< docs/shared lookup="flow/reference/components/output-block-metrics.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/output-block-metrics.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ## Exported fields
 
@@ -295,3 +295,23 @@ prometheus.remote_write "mimir" {
   }
 }
 ```
+<!-- START GENERATED COMPATIBLE COMPONENTS -->
+
+## Compatible components
+
+`otelcol.connector.spanmetrics` can accept arguments from the following components:
+
+- Components that export [OpenTelemetry `otelcol.Consumer`]({{< relref "../compatibility/#opentelemetry-otelcolconsumer-exporters" >}})
+
+`otelcol.connector.spanmetrics` has exports that can be consumed by the following components:
+
+- Components that consume [OpenTelemetry `otelcol.Consumer`]({{< relref "../compatibility/#opentelemetry-otelcolconsumer-consumers" >}})
+
+{{% admonition type="note" %}}
+
+Connecting some components may not be sensible or components may require further configuration to make the 
+connection work correctly. Refer to the linked documentation for more details.
+
+{{% /admonition %}}
+
+<!-- END GENERATED COMPATIBLE COMPONENTS -->

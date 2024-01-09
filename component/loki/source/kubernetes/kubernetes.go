@@ -24,9 +24,8 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name:          "loki.source.kubernetes",
-		Args:          Arguments{},
-		NeedsServices: []string{cluster.ServiceName},
+		Name: "loki.source.kubernetes",
+		Args: Arguments{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			return New(opts, args.(Arguments))

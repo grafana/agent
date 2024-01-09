@@ -32,7 +32,7 @@ type Loader struct {
 	componentReg ComponentRegistry
 	workerPool   worker.Pool
 	// backoffConfig is used to backoff when an updated component's dependencies cannot be submitted to worker
-	// pool for evaluation in EvaluateDependencies, because the queue is full. This is an unlikely scenario, but when
+	// pool for evaluation in EvaluateDependants, because the queue is full. This is an unlikely scenario, but when
 	// it happens we should avoid retrying too often to give other goroutines a chance to progress. Having a backoff
 	// also prevents log spamming with errors.
 	backoffConfig backoff.Config
@@ -149,9 +149,7 @@ func (l *Loader) Apply(args map[string]any, componentBlocks []*ast.BlockStmt, co
 	defer func() {
 		span.SetStatus(codes.Ok, "")
 
-		duration := time.Since(start)
-		level.Info(logger).Log("msg", "finished complete graph evaluation", "duration", duration)
-		l.cm.componentEvaluationTime.Observe(duration.Seconds())
+		level.Info(logger).Log("msg", "finished complete graph evaluation", "duration", time.Since(start))
 	}()
 
 	l.cache.ClearModuleExports()
@@ -234,7 +232,6 @@ func (l *Loader) Apply(args map[string]any, componentBlocks []*ast.BlockStmt, co
 	l.graph = &newGraph
 	l.cache.SyncIDs(componentIDs)
 	l.blocks = componentBlocks
-	l.cm.componentEvaluationTime.Observe(time.Since(start).Seconds())
 	if l.globals.OnExportsChange != nil && l.cache.ExportChangeIndex() != l.moduleExportIndex {
 		l.moduleExportIndex = l.cache.ExportChangeIndex()
 		l.globals.OnExportsChange(l.cache.CreateModuleExports())
@@ -498,22 +495,6 @@ func (l *Loader) wireGraphEdges(g *dag.Graph) diag.Diagnostics {
 
 				g.AddEdge(dag.Edge{From: n, To: dep})
 			}
-
-		case *ComponentNode: // Component depending on service.
-			for _, depName := range n.Registration().NeedsServices {
-				dep := g.GetByID(depName)
-				if dep == nil {
-					diags.Add(diag.Diagnostic{
-						Severity: diag.SeverityLevelError,
-						Message:  fmt.Sprintf("%s component depends on undefined service %q; please report this issue to project maintainers", n.NodeID(), depName),
-						StartPos: ast.StartPos(n.Block()).Position(),
-						EndPos:   ast.EndPos(n.Block()).Position(),
-					})
-					continue
-				}
-
-				g.AddEdge(dag.Edge{From: n, To: dep})
-			}
 		}
 
 		// Finally, wire component references.
@@ -562,13 +543,13 @@ func (l *Loader) OriginalGraph() *dag.Graph {
 	return l.originalGraph.Clone()
 }
 
-// EvaluateDependencies sends components which depend directly on components in updatedNodes for evaluation to the
+// EvaluateDependants sends components which depend directly on components in updatedNodes for evaluation to the
 // workerPool. It should be called whenever components update their exports.
-// It is beneficial to call EvaluateDependencies with a batch of components, as it will enqueue the entire batch before
+// It is beneficial to call EvaluateDependants with a batch of components, as it will enqueue the entire batch before
 // the worker pool starts to evaluate them, resulting in smaller number of total evaluations when
-// node updates are frequent. If the worker pool's queue is full, EvaluateDependencies will retry with a backoff until
+// node updates are frequent. If the worker pool's queue is full, EvaluateDependants will retry with a backoff until
 // it succeeds or until the ctx is cancelled.
-func (l *Loader) EvaluateDependencies(ctx context.Context, updatedNodes []*ComponentNode) {
+func (l *Loader) EvaluateDependants(ctx context.Context, updatedNodes []*ComponentNode) {
 	if len(updatedNodes) == 0 {
 		return
 	}
@@ -597,7 +578,7 @@ func (l *Loader) EvaluateDependencies(ctx context.Context, updatedNodes []*Compo
 
 	// Submit all dependencies for asynchronous evaluation.
 	// During evaluation, if a node's exports change, Flow will add it to updated nodes queue (controller.Queue) and
-	// the Flow controller will call EvaluateDependencies on it again. This results in a concurrent breadth-first
+	// the Flow controller will call EvaluateDependants on it again. This results in a concurrent breadth-first
 	// traversal of the nodes that need to be evaluated.
 	for n, parent := range dependenciesToParentsMap {
 		dependantCtx, span := tracer.Start(spanCtx, "SubmitForEvaluation", trace.WithSpanKind(trace.SpanKindInternal))
@@ -652,8 +633,8 @@ func (l *Loader) concurrentEvalFn(n dag.Node, spanCtx context.Context, tracer tr
 
 	defer func() {
 		duration := time.Since(start)
+		l.cm.onComponentEvaluationDone(n.NodeID(), duration)
 		level.Info(l.log).Log("msg", "finished node evaluation", "node_id", n.NodeID(), "duration", duration)
-		l.cm.componentEvaluationTime.Observe(duration.Seconds())
 	}()
 
 	var err error

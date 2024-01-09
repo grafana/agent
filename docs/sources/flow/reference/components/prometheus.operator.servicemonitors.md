@@ -13,17 +13,19 @@ title: prometheus.operator.servicemonitors
 
 # prometheus.operator.servicemonitors
 
-{{< docs/shared lookup="flow/stability/beta.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/stability/beta.md" source="agent" version="<AGENT_VERSION>" >}}
 
 `prometheus.operator.servicemonitors` discovers [ServiceMonitor](https://prometheus-operator.dev/docs/operator/api/#monitoring.coreos.com/v1.ServiceMonitor) resources in your kubernetes cluster and scrapes the targets they reference. This component performs three main functions:
 
 1. Discover ServiceMonitor resources from your Kubernetes cluster.
-2. Discover Services and Endpoints in your cluster that match those ServiceMonitors.
-3. Scrape metrics from those Endpoints, and forward them to a receiver.
+1. Discover Services and Endpoints in your cluster that match those ServiceMonitors.
+1. Scrape metrics from those Endpoints, and forward them to a receiver.
 
-The default configuration assumes the agent is running inside a Kubernetes cluster, and uses the in-cluster config to access the Kubernetes API. It can be run from outside the cluster by supplying connection info in the `client` block, but network level access to discovered endpoints is required to scrape metrics from them.
+The default configuration assumes {{< param "PRODUCT_NAME" >}} is running inside a Kubernetes cluster, and uses the in-cluster configuration to access the Kubernetes API.
+It can be run from outside the cluster by supplying connection info in the `client` block, but network level access to discovered endpoints is required to scrape metrics from them.
 
-ServiceMonitors may reference secrets for authenticating to targets to scrape them. In these cases, the secrets are loaded and refreshed only when the ServiceMonitor is updated or when this component refreshes its' internal state, which happens on a 5-minute refresh cycle.
+ServiceMonitors may reference secrets for authenticating to targets to scrape them.
+In these cases, the secrets are loaded and refreshed only when the ServiceMonitor is updated or when this component refreshes its' internal state, which happens on a 5-minute refresh cycle.
 
 ## Usage
 
@@ -58,7 +60,7 @@ rule | [rule][] | Relabeling rules to apply to discovered targets. | no
 scrape | [scrape][] | Default scrape configuration to apply to discovered targets. | no
 selector | [selector][] | Label selector for which ServiceMonitors to discover. | no
 selector > match_expression | [match_expression][] | Label selector expression for which ServiceMonitors to discover. | no
-clustering | [clustering][] | Configure the component for when the Agent is running in clustered mode. | no
+clustering | [clustering][] | Configure the component for when {{< param "PRODUCT_NAME" >}} is running in clustered mode. | no
 
 The `>` symbol indicates deeper levels of nesting. For example, `client >
 basic_auth` refers to a `basic_auth` block defined
@@ -77,9 +79,8 @@ inside a `client` block.
 
 ### client block
 
-The `client` block configures the Kubernetes client used to discover ServiceMonitors. If the `client` block isn't provided, the default in-cluster
-configuration with the service account of the running Grafana Agent pod is
-used.
+The `client` block configures the Kubernetes client used to discover ServiceMonitors.
+If the `client` block isn't provided, the default in-cluster configuration with the service account of the running {{< param "PRODUCT_ROOT_NAME" >}} pod is used.
 
 The following arguments are supported:
 
@@ -101,27 +102,27 @@ Name | Type | Description | Default | Required
 
 ### basic_auth block
 
-{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### authorization block
 
-{{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### oauth2 block
 
-{{< docs/shared lookup="flow/reference/components/oauth2-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/oauth2-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### tls_config block
 
-{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### rule block
 
-{{< docs/shared lookup="flow/reference/components/rule-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/rule-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### scrape block
 
-{{< docs/shared lookup="flow/reference/components/prom-operator-scrape.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/prom-operator-scrape.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### selector block
 
@@ -163,7 +164,7 @@ Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `enabled` | `bool` | Enables sharing targets with other cluster nodes. | `false` | yes
 
-When the agent is using [using clustering][], and `enabled` is set to true,
+When {{< param "PRODUCT_NAME" >}} is using [using clustering][], and `enabled` is set to true,
 then this component instance opts-in to participating in
 the cluster to distribute scrape load between all cluster nodes.
 
@@ -182,7 +183,7 @@ sharding where _all_ nodes have to be re-distributed, as only 1/N of the
 target's ownership is transferred, but is eventually consistent (rather than
 fully consistent like hashmod sharding is).
 
-If the agent is _not_ running in clustered mode, then the block is a no-op, and
+If {{< param "PRODUCT_NAME" >}} is _not_ running in clustered mode, then the block is a no-op, and
 `prometheus.operator.servicemonitors` scrapes every target it receives in its arguments.
 
 [using clustering]: {{< relref "../../concepts/clustering.md" >}}
@@ -245,7 +246,7 @@ prometheus.operator.servicemonitors "services" {
 }
 ```
 
-This example will apply additional relabel rules to discovered targets to filter by hostname. This may be useful if running the agent as a DaemonSet.
+This example will apply additional relabel rules to discovered targets to filter by hostname. This may be useful if running {{< param "PRODUCT_NAME" >}} as a DaemonSet.
 
 ```river
 prometheus.operator.servicemonitors "services" {
@@ -257,3 +258,20 @@ prometheus.operator.servicemonitors "services" {
     }
 }
 ```
+<!-- START GENERATED COMPATIBLE COMPONENTS -->
+
+## Compatible components
+
+`prometheus.operator.servicemonitors` can accept arguments from the following components:
+
+- Components that export [Prometheus `MetricsReceiver`]({{< relref "../compatibility/#prometheus-metricsreceiver-exporters" >}})
+
+
+{{% admonition type="note" %}}
+
+Connecting some components may not be sensible or components may require further configuration to make the 
+connection work correctly. Refer to the linked documentation for more details.
+
+{{% /admonition %}}
+
+<!-- END GENERATED COMPATIBLE COMPONENTS -->

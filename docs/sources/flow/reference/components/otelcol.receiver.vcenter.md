@@ -12,7 +12,7 @@ labels:
 
 # otelcol.receiver.vcenter
 
-{{< docs/shared lookup="flow/stability/experimental.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/stability/experimental.md" source="agent" version="<AGENT_VERSION>" >}}
 
 `otelcol.receiver.vcenter` accepts metrics from a 
 vCenter or ESXi host running VMware vSphere APIs and
@@ -28,7 +28,7 @@ different labels.
 
 The full list of metrics that can be collected can be found in [vcenter receiver documentation][vcenter metrics].
 
-[vcenter metrics]: https://github.com/open-telemetry/opentelemetry-collector/blob/{{< param "OTEL_VERSION" >}}/receiver/vcenterreceiver/documentation.md
+[vcenter metrics]: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/{{< param "OTEL_VERSION" >}}/receiver/vcenterreceiver/documentation.md
 
 ## Prerequisites
 
@@ -78,11 +78,15 @@ The following blocks are supported inside the definition of
 Hierarchy | Block | Description | Required
 --------- | ----- | ----------- | --------
 tls | [tls][] | Configures TLS for the HTTP client. | no
+metrics | [metrics][] | Configures which metrics will be sent to downstream components. | no
+resource_attributes | [resource_attributes][] | Configures resource attributes for metrics sent to downstream components. | no
 debug_metrics | [debug_metrics][] | Configures the metrics that this component generates to monitor its state. | no
 output | [output][] | Configures where to send received telemetry data. | yes
 
 [tls]: #tls-block
 [debug_metrics]: #debug_metrics-block
+[metrics]: #metrics-block
+[resource_attributes]: #resource_attributes-block
 [output]: #output-block
 
 ### tls block
@@ -90,15 +94,89 @@ output | [output][] | Configures where to send received telemetry data. | yes
 The `tls` block configures TLS settings used for a server. If the `tls` block
 isn't provided, TLS won't be used for connections to the server.
 
-{{< docs/shared lookup="flow/reference/components/otelcol-tls-config-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/otelcol-tls-config-block.md" source="agent" version="<AGENT_VERSION>" >}}
+
+### metrics block
+
+Name | Type | Description | Default | Required
+---- | ---- | ----------- | ------- | --------
+`vcenter.cluster.cpu.effective` | [metric][] | Enables the `vcenter.cluster.cpu.effective` metric. | `true` | no
+`vcenter.cluster.cpu.usage` | [metric][] | Enables the `vcenter.cluster.cpu.usage` metric. | `true` | no
+`vcenter.cluster.host.count` | [metric][] | Enables the `vcenter.cluster.host.count` metric. | `true` | no
+`vcenter.cluster.memory.effective` | [metric][] | Enables the `vcenter.cluster.memory.effective` metric. | `true` | no
+`vcenter.cluster.memory.limit` | [metric][] | Enables the `vcenter.cluster.memory.limit` metric. | `true` | no
+`vcenter.cluster.memory.used` | [metric][] | Enables the `vcenter.cluster.memory.used` metric. | `true` | no
+`vcenter.cluster.vm.count` | [metric][] | Enables the `vcenter.cluster.vm.count` metric. | `true` | no
+`vcenter.datastore.disk.usage` | [metric][] | Enables the `vcenter.datastore.disk.usage` metric. | `true` | no
+`vcenter.datastore.disk.utilization` | [metric][] | Enables the `vcenter.datastore.disk.utilization` metric. | `true` | no
+`vcenter.host.cpu.usage` | [metric][] | Enables the `vcenter.host.cpu.usage` metric. | `true` | no
+`vcenter.host.cpu.utilization` | [metric][] | Enables the `vcenter.host.cpu.utilization` metric. | `true` | no
+`vcenter.host.disk.latency.avg` | [metric][] | Enables the `vcenter.host.disk.latency.avg` metric. | `true` | no
+`vcenter.host.disk.latency.max` | [metric][] | Enables the `vcenter.host.disk.latency.max` metric. | `true` | no
+`vcenter.host.disk.throughput` | [metric][] | Enables the `vcenter.host.disk.throughput` metric. | `true` | no
+`vcenter.host.memory.usage` | [metric][] | Enables the `vcenter.host.memory.usage` metric. | `true` | no
+`vcenter.host.memory.utilization` | [metric][] | Enables the `vcenter.host.memory.utilization` metric. | `true` | no
+`vcenter.host.network.packet.count` | [metric][] | Enables the `vcenter.host.network.packet.count` metric. | `true` | no
+`vcenter.host.network.packet.errors` | [metric][] | Enables the `vcenter.host.network.packet.errors` metric. | `true` | no
+`vcenter.host.network.throughput` | [metric][] | Enables the `vcenter.host.network.throughput` metric. | `true` | no
+`vcenter.host.network.usage` | [metric][] | Enables the `vcenter.host.network.usage` metric. | `true` | no
+`vcenter.resource_pool.cpu.shares` | [metric][] | Enables the `vcenter.resource_pool.cpu.shares` metric. | `true` | no
+`vcenter.resource_pool.cpu.usage` | [metric][] | Enables the `vcenter.resource_pool.cpu.usage` metric. | `true` | no
+`vcenter.resource_pool.memory.shares` | [metric][] | Enables the `vcenter.resource_pool.memory.shares` metric. | `true` | no
+`vcenter.resource_pool.memory.usage` | [metric][] | Enables the `vcenter.resource_pool.memory.usage` metric. | `true` | no
+`vcenter.vm.cpu.usage` | [metric][] | Enables the `vcenter.vm.cpu.usage` metric. | `true` | no
+`vcenter.vm.cpu.utilization` | [metric][] | Enables the `vcenter.vm.cpu.utilization` metric. | `true` | no
+`vcenter.vm.disk.latency.avg` | [metric][] | Enables the `vcenter.vm.disk.latency.avg` metric. | `true` | no
+`vcenter.vm.disk.latency.max` | [metric][] | Enables the `vcenter.vm.disk.latency.max` metric. | `true` | no
+`vcenter.vm.disk.throughput` | [metric][] | Enables the `vcenter.vm.disk.throughput` metric. | `true` | no
+`vcenter.vm.disk.usage` | [metric][] | Enables the `vcenter.vm.disk.usage` metric. | `true` | no
+`vcenter.vm.disk.utilization` | [metric][] | Enables the `vcenter.vm.disk.utilization` metric. | `true` | no
+`vcenter.vm.memory.ballooned` | [metric][] | Enables the `vcenter.vm.memory.ballooned` metric. | `true` | no
+`vcenter.vm.memory.swapped` | [metric][] | Enables the `vcenter.vm.memory.swapped` metric. | `true` | no
+`vcenter.vm.memory.swapped_ssd` | [metric][] | Enables the `vcenter.vm.memory.swapped_ssd` metric. | `true` | no
+`vcenter.vm.memory.usage` | [metric][] | Enables the `vcenter.vm.memory.usage` metric. | `true` | no
+`vcenter.vm.memory.utilization` | [metric][] | Enables the `vcenter.vm.memory.utilization` metric. | `false` | no
+`vcenter.vm.network.packet.count` | [metric][] | Enables the `vcenter.vm.network.packet.count` metric. | `true` | no
+`vcenter.vm.network.throughput` | [metric][] | Enables the `vcenter.vm.network.throughput` metric. | `true` | no
+`vcenter.vm.network.usage` | [metric][] | Enables the `vcenter.vm.network.usage` metric. | `true` | no
+
+[metric]: #metric-block
+
+#### metric block
+
+Name | Type | Description | Default | Required
+---- | ---- | ----------- | ------- | --------
+`enabled` | `boolean` | Whether to enable the metric. | `true` | no
+
+
+### resource_attributes block
+
+Name | Type | Description | Default | Required
+---- | ---- | ----------- | ------- | --------
+`vcenter.cluster.name` | [resource_attribute][] | Enables the `vcenter.cluster.name` resource attribute. | `true` | no
+`vcenter.datastore.name` | [resource_attribute][] | Enables the `vcenter.cluster.resource_pool` resource attribute. | `true` | no
+`vcenter.host.name` | [resource_attribute][] | Enables the `vcenter.host.name` resource attribute. | `true` | no
+`vcenter.resource_pool.inventory_path` | [resource_attribute][] | Enables the `vcenter.resource_pool.inventory_path` resource attribute. | `true` | no
+`vcenter.resource_pool.name` | [resource_attribute][] | Enables the `vcenter.resource_pool.name` resource attribute. | `true` | no
+`vcenter.vm.id` | [resource_attribute][] | Enables the `vcenter.vm.id` resource attribute. | `true` | no
+`vcenter.vm.name` | [resource_attribute][] | Enables the `vcenter.vm.name` resource attribute. | `true` | no
+
+[resource_attribute]: #resource_attribute-block
+
+#### resource_attribute block
+
+Name | Type | Description | Default | Required
+---- | ---- | ----------- | ------- | --------
+`enabled` | `boolean` | Whether to enable the resource attribute. | `true` | no
+
 
 ### debug_metrics block
 
-{{< docs/shared lookup="flow/reference/components/otelcol-debug-metrics-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/otelcol-debug-metrics-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### output block
 
-{{< docs/shared lookup="flow/reference/components/output-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/output-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ## Exported fields
 
@@ -141,3 +219,22 @@ otelcol.exporter.otlp "default" {
     endpoint = env("OTLP_ENDPOINT")
   }
 }
+```
+
+<!-- START GENERATED COMPATIBLE COMPONENTS -->
+
+## Compatible components
+
+`otelcol.receiver.vcenter` can accept arguments from the following components:
+
+- Components that export [OpenTelemetry `otelcol.Consumer`]({{< relref "../compatibility/#opentelemetry-otelcolconsumer-exporters" >}})
+
+
+{{% admonition type="note" %}}
+
+Connecting some components may not be sensible or components may require further configuration to make the 
+connection work correctly. Refer to the linked documentation for more details.
+
+{{% /admonition %}}
+
+<!-- END GENERATED COMPATIBLE COMPONENTS -->

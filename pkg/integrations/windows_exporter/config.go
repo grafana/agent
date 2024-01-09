@@ -7,71 +7,6 @@ import (
 	"github.com/grafana/agent/pkg/integrations/v2/metricsutils"
 )
 
-// DefaultConfig holds the default settings for the windows_exporter integration.
-var DefaultConfig = Config{
-	// NOTE(rfratto): there is an init function in config_windows.go that
-	// populates defaults for collectors based on the exporter defaults.
-	EnabledCollectors: "cpu,cs,logical_disk,net,os,service,system",
-
-	Dfsr: DfsrConfig{
-		SourcesEnabled: "",
-	},
-	Exchange: ExchangeConfig{
-		EnabledList: "",
-	},
-	IIS: IISConfig{
-		AppBlackList:  "",
-		AppWhiteList:  "",
-		SiteBlackList: "",
-		SiteWhiteList: "",
-		AppInclude:    "",
-		AppExclude:    "",
-		SiteInclude:   "",
-		SiteExclude:   "",
-	},
-	LogicalDisk: LogicalDiskConfig{
-		BlackList: "",
-		WhiteList: "",
-		Include:   "",
-		Exclude:   "",
-	},
-	MSMQ: MSMQConfig{
-		Where: "",
-	},
-	MSSQL: MSSQLConfig{
-		EnabledClasses: "",
-	},
-	Network: NetworkConfig{
-		BlackList: "",
-		WhiteList: "",
-		Include:   "",
-		Exclude:   "",
-	},
-	Process: ProcessConfig{
-		BlackList: "",
-		WhiteList: "",
-		Include:   "",
-		Exclude:   "",
-	},
-	ScheduledTask: ScheduledTaskConfig{
-		Include: "",
-		Exclude: "",
-	},
-	Service: ServiceConfig{
-		UseApi: "",
-		Where:  "",
-	},
-	SMTP: SMTPConfig{
-		BlackList: "",
-		WhiteList: "",
-		Include:   "",
-		Exclude:   "",
-	},
-	TextFile: TextFileConfig{
-		TextFileDirectory: "",
-	},
-}
-
 func init() {
 	integrations.RegisterIntegration(&Config{})
 	integrations_v2.RegisterLegacy(&Config{}, integrations_v2.TypeSingleton, metricsutils.NewNamedShim("windows"))
@@ -94,14 +29,6 @@ type Config struct {
 	MSMQ          MSMQConfig          `yaml:"msmq,omitempty"`
 	LogicalDisk   LogicalDiskConfig   `yaml:"logical_disk,omitempty"`
 	ScheduledTask ScheduledTaskConfig `yaml:"scheduled_task,omitempty"`
-}
-
-// UnmarshalYAML implements yaml.Unmarshaler for Config.
-func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	*c = DefaultConfig
-
-	type plain Config
-	return unmarshal((*plain)(c))
 }
 
 // Name returns the name used, "windows_explorer"
