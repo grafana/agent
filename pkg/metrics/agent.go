@@ -34,7 +34,8 @@ var DefaultConfig = Config{
 	ServiceConfig:          cluster.DefaultConfig,
 	ServiceClientConfig:    client.DefaultConfig,
 	InstanceMode:           instance.DefaultMode,
-	UTF8Names: false,
+	UTF8Names:              false,
+	NameEscapingScheme:     model.DefaultNameEscapingScheme.String(),
 }
 
 // Config defines the configuration for the entire set of Prometheus client
@@ -52,6 +53,7 @@ type Config struct {
 	DisableKeepAlives      bool                  `yaml:"http_disable_keepalives,omitempty"`
 	IdleConnTimeout        time.Duration         `yaml:"http_idle_conn_timeout,omitempty"`
 	UTF8Names              bool                  `yaml:"utf8_names,omitempty"`
+	NameEscapingScheme     string                `yaml:"name_escaping_scheme,omitempty"`
 
 	// Unmarshaled is true when the Config was unmarshaled from YAML.
 	Unmarshaled bool `yaml:"-"`
@@ -123,6 +125,7 @@ func (c *Config) RegisterFlagsWithPrefix(prefix string, f *flag.FlagSet) {
 	f.DurationVar(&c.WALCleanupPeriod, prefix+"wal-cleanup-period", DefaultConfig.WALCleanupPeriod, "how often to check for abandoned WALs")
 	f.DurationVar(&c.InstanceRestartBackoff, prefix+"instance-restart-backoff", DefaultConfig.InstanceRestartBackoff, "how long to wait before restarting a failed Prometheus instance")
 	f.BoolVar(&c.UTF8Names, prefix+"utf8-names", DefaultConfig.UTF8Names, "yup this again")
+	f.StringVar(&c.NameEscapingScheme, prefix+"name-escaping-scheme", model.DefaultNameEscapingScheme.String(), "method to escape legacy invalid names when sending to an old version of prometheus.  can be one of values (default), underscores, or dots")
 
 	c.ServiceConfig.RegisterFlagsWithPrefix(prefix+"service.", f)
 	c.ServiceClientConfig.RegisterFlagsWithPrefix(prefix, f)
@@ -254,6 +257,13 @@ func (a *Agent) ApplyConfig(cfg Config) error {
 	} else {
 		level.Info(a.logger).Log("msg", "enabling legacy name validation (no utf8 for u)")
 		model.NameValidationScheme = model.LegacyValidation
+	}
+	if cfg.NameEscapingScheme != "" {
+		scheme, err := model.ToEscapingScheme(cfg.NameEscapingScheme)
+		if err != nil {
+			return err
+		}
+		model.DefaultNameEscapingScheme = scheme
 	}
 
 	if a.cleaner != nil {
