@@ -114,6 +114,9 @@ func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) 
 		collectorConfig = *customCollectorConfig
 	}
 
+	// TODO(hainenber): expose below attr as config
+	enablePing := false
+
 	t, err := sql_exporter.NewTarget(
 		"mssqlintegration",
 		"",
@@ -128,6 +131,7 @@ func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) 
 			MaxConns:      c.MaxOpenConnections,
 			MaxIdleConns:  c.MaxIdleConnections,
 		},
+		&enablePing,
 	)
 
 	if err != nil {

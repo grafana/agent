@@ -32,6 +32,9 @@ spec:
   containers:
     {{- include "grafana-agent.container" . | nindent 4 }}
     {{- include "grafana-agent.watch-container" . | nindent 4 }}
+    {{- with .Values.controller.extraContainers }}
+    {{- toYaml . | nindent 4 }}
+    {{- end}}
   {{- if .Values.controller.priorityClassName }}
   priorityClassName: {{ .Values.controller.priorityClassName }}
   {{- end }}

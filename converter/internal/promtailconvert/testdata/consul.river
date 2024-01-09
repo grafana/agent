@@ -17,8 +17,6 @@ discovery.consul "fun" {
 		username = "toby"
 		password = "this_password_is_safe_innit?"
 	}
-	follow_redirects = true
-	enable_http2     = true
 }
 
 discovery.relabel "fun" {
