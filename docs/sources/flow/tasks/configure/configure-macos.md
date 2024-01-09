@@ -1,10 +1,16 @@
 ---
 aliases:
+- /docs/grafana-cloud/agent/flow/tasks/configure/configure-macos/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/tasks/configure/configure-macos/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/tasks/configure/configure-macos/
+- /docs/grafana-cloud/send-data/agent/flow/tasks/configure/configure-macos/
+# Previous page aliases for backwards compatibility:
 - /docs/grafana-cloud/agent/flow/setup/configure/configure-macos/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/setup/configure/configure-macos/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/setup/configure/configure-macos/
 - /docs/grafana-cloud/send-data/agent/flow/setup/configure/configure-macos/
-canonical: https://grafana.com/docs/agent/latest/flow/setup/configure/configure-macos/
+- ../../setup/configure/configure-macos/ # /docs/agent/latest/flow/setup/configure/configure-macos/
+canonical: https://grafana.com/docs/agent/latest/flow/tasks/configure/configure-macos/
 description: Learn how to configure Grafana Agent Flow on macOS
 menuTitle: macOS
 title: Configure Grafana Agent Flow on macOS

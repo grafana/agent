@@ -1,10 +1,16 @@
 ---
 aliases:
+- /docs/grafana-cloud/agent/flow/tasks/configure/configure-kubernetes/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/tasks/configure/configure-kubernetes/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/tasks/configure/configure-kubernetes/
+- /docs/grafana-cloud/send-data/agent/flow/tasks/configure/configure-kubernetes/
+# Previous page aliases for backwards compatibility:
 - /docs/grafana-cloud/agent/flow/setup/configure/configure-kubernetes/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/setup/configure/configure-kubernetes/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/setup/configure/configure-kubernetes/
 - /docs/grafana-cloud/send-data/agent/flow/setup/configure/configure-kubernetes/
-canonical: https://grafana.com/docs/agent/latest/flow/setup/configure/configure-kubernetes/
+- ../../setup/configure/configure-kubernetes/ # /docs/agent/latest/flow/setup/configure/configure-kubernetes/
+canonical: https://grafana.com/docs/agent/latest/flow/tasks/configure/configure-kubernetes/
 description: Learn how to configure Grafana Agent Flow on Kubernetes
 menuTitle: Kubernetes
 title: Configure Grafana Agent Flow on Kubernetes
