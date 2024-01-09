@@ -101,7 +101,7 @@ func New(o component.Options, args Arguments) (*Component, error) {
 
 	// Only acknowledge the error from Update if it's not a
 	// vcs.UpdateFailedError; vcs.UpdateFailedError means that the Git repo
-	// exists but we were just unable to update it.
+	// exists, but we were unable to update it. It makes sense to retry on the next poll and it may succeed.
 	if err := c.Update(args); err != nil {
 		if errors.As(err, &vcs.UpdateFailedError{}) {
 			level.Error(c.log).Log("msg", "failed to update repository", "err", err)
