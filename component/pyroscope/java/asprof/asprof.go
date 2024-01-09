@@ -112,7 +112,11 @@ func (p *Profiler) CopyLib(dist *Distribution, pid int) error {
 		return fmt.Errorf("failed to open proc root %s: %w", procRoot, err)
 	}
 
-	return writeFile(procRootFile, dist.LibPath(), libData)
+	dstLibPath := dist.LibPath()
+	if dstLibPath[0] == '/' {
+		dstLibPath = dstLibPath[1:]
+	}
+	return writeFile(procRootFile, dstLibPath, libData, false)
 }
 
 func (p *Profiler) DistributionForProcess(pid int) (*Distribution, error) {
@@ -218,7 +222,7 @@ func (p *Profiler) extractDistributions() error {
 	}
 
 	for path, data := range fileMap {
-		if err := writeFile(tmpDirFile, path, data); err != nil {
+		if err = writeFile(tmpDirFile, path, data, true); err != nil {
 			return err
 		}
 	}

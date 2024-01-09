@@ -56,7 +56,7 @@ func readTarGZ(buf []byte, cb func(name string, fi fs.FileInfo, data []byte) err
 	return nil
 }
 
-func writeFile(dir *os.File, path string, data []byte) error {
+func writeFile(dir *os.File, path string, data []byte, doOwnershipChecks bool) error {
 	pl := strings.Split(path, string(filepath.Separator))
 	it := dir
 	dirPathParts := pl[:len(pl)-1]
@@ -74,8 +74,10 @@ func writeFile(dir *os.File, path string, data []byte) error {
 			}
 		}
 		defer f.Close()
-		if err = checkExtractFile(f, it); err != nil {
-			return err
+		if doOwnershipChecks {
+			if err = checkExtractFile(f, it); err != nil {
+				return err
+			}
 		}
 		it = f
 	}
@@ -84,8 +86,10 @@ func writeFile(dir *os.File, path string, data []byte) error {
 		return writeFileData(it, fname, path, data)
 	}
 	defer f.Close()
-	if err = checkExtractFile(f, nil); err != nil {
-		return err
+	if doOwnershipChecks {
+		if err = checkExtractFile(f, it); err != nil {
+			return err
+		}
 	}
 	return checkFileData(f, path, data)
 }
