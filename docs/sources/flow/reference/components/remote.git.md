@@ -12,7 +12,7 @@ title: remote.git
 # remote.git
 
 `remote.git` retrieves the content of file stored in a git repository and exposes it to other components. The repo
-is polled for changes so that the most recent content is always available.
+is polled for changes so that the most recent content is eventually available.
 
 ## Usage
 
