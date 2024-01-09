@@ -383,9 +383,12 @@ username: agent
 ```
 
 {{% admonition type="note" %}}
-Due to a limitation of the upstream jmespath library, defining an expression
-that contains a hyphen `-` needs to be wrapped in quotes so that it's not
-considered a numeric expression.
+Due to a limitation of the upstream jmespath library, any string that contains
+a hyphen `-` needs to be wrapped in quotes so that it's not considered a
+numerical expression.
+
+Otherwise, you might get errors like:
+`Unexpected token at the end of the expression: tNumber`
 {{% /admonition %}}
 
 In this case, you can use one of two syntaxes to circumvent this issue:
