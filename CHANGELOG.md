@@ -103,6 +103,8 @@ v0.39.0-rc.0 (2024-01-05)
 - `discovery.lightsail` now supports additional parameters for configuring HTTP client settings. (@ptodev)
 - Add `sample_age_limit` to remote_write config to drop samples older than a specified duration. (@marctc)
 
+- Handle paths in the Kubelet URL for `discovery.kubelet`. (@petewall)
+
 ### Bugfixes
 
 - Update `pyroscope.ebpf` to fix a logical bug causing to profile to many kthreads instead of regular processes https://github.com/grafana/pyroscope/pull/2778 (@korniltsev)

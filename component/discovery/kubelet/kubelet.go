@@ -129,11 +129,10 @@ func NewKubeletDiscovery(args Arguments) (*Discovery, error) {
 		Transport: transport,
 		Timeout:   30 * time.Second,
 	}
-	// ensure the path is the kubelet pods endpoint
-	args.URL.Path = "/pods"
+	// Append the path to the kubelet pods endpoint
 	return &Discovery{
 		client:           client,
-		url:              args.URL.String(),
+		url:              args.URL.String() + "/pods",
 		targetNamespaces: args.Namespaces,
 	}, nil
 }
