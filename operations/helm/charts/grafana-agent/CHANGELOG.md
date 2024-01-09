@@ -12,8 +12,15 @@ Unreleased
 
 ### Bugfixes
 
+- Configure namespace for service account when RBAC resources is created. (@hainenber)
+
 - Fix a bug preventing the `.Values.configReloader.image.digest` Helm value to be correctly retrieved. (@claudioscalzo)
+
 - Fix a bug preventing digests to be used as labels because of their length. Labels values [must be 63 characters or less](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#syntax-and-character-set). (@claudioscalzo)
+
+### Other changes
+
+- Change config reloader image to `ghcr.io/jimmidyson/configmap-reload:v0.12.0` to reflect change in repository and version. (@berendiwema)
 
 0.30.0 (2024-01-05)
 -------------------

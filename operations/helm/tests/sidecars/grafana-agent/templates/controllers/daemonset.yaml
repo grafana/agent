@@ -1,7 +1,7 @@
 ---
-# Source: grafana-agent/templates/controllers/statefulset.yaml
+# Source: grafana-agent/templates/controllers/daemonset.yaml
 apiVersion: apps/v1
-kind: StatefulSet
+kind: DaemonSet
 metadata:
   name: grafana-agent
   labels:
@@ -11,10 +11,7 @@ metadata:
     app.kubernetes.io/version: "vX.Y.Z"
     app.kubernetes.io/managed-by: Helm
 spec:
-  replicas: 1
-  podManagementPolicy: Parallel
   minReadySeconds: 10
-  serviceName: grafana-agent
   selector:
     matchLabels:
       app.kubernetes.io/name: grafana-agent
@@ -57,6 +54,9 @@ spec:
           volumeMounts:
             - name: config
               mountPath: /etc/agent
+            -
+              mountPath: /etc/geoip
+              name: geoip
         - name: config-reloader
           image: ghcr.io/jimmidyson/configmap-reload:v0.12.0
           args:
@@ -69,8 +69,27 @@ spec:
             requests:
               cpu: 1m
               memory: 5Mi
+        - env:
+          - name: GEOIPUPDATE_ACCOUNT_ID
+            value: geoipupdate_account_id
+          - name: GEOIPUPDATE_LICENSE_KEY
+            value: geoipupdate_license_key
+          - name: GEOIPUPDATE_EDITION_IDS
+            value: GeoLite2-ASN GeoLite2-City GeoLite2-Country
+          - name: GEOIPUPDATE_DB_DIR
+            value: /etc/geoip
+          image: ghcr.io/maxmind/geoipupdate:v6.0
+          name: geo-ip
+          volumeMounts:
+          - mountPath: /etc/geoip
+            name: geoip
+          volumes:
+          - emptyDir: {}
+            name: geoip
       dnsPolicy: ClusterFirst
       volumes:
         - name: config
           configMap:
             name: grafana-agent
+        - mountPath: /etc/geoip
+          name: geoip
