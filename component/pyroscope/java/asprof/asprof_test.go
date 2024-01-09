@@ -23,7 +23,7 @@ import (
 // write skippable tests with uid=0
 func TestStickyDir(t *testing.T) {
 	dir := "/tmp"
-	p := NewProfiler(dir, embeddedArchive)
+	p := NewProfiler(dir, EmbeddedArchive)
 	p.tmpDirMarker = fmt.Sprintf("grafana-agent-asprof-%s", uuid.NewString())
 	t.Logf("tmpDirMarker: %s", p.tmpDirMarker)
 	err := p.ExtractDistributions()
@@ -34,7 +34,7 @@ func TestOwnedDir(t *testing.T) {
 	dir := tempDir(t)
 	err := os.Chmod(dir, 0755)
 	assert.NoError(t, err)
-	p := NewProfiler(dir, embeddedArchive)
+	p := NewProfiler(dir, EmbeddedArchive)
 	err = p.ExtractDistributions()
 	assert.NoError(t, err)
 }
@@ -43,7 +43,7 @@ func TestOwnedDirWrongPermission(t *testing.T) {
 	dir := tempDir(t)
 	err := os.Chmod(dir, 0777)
 	assert.NoError(t, err)
-	p := NewProfiler(dir, embeddedArchive)
+	p := NewProfiler(dir, EmbeddedArchive)
 	err = p.ExtractDistributions()
 	assert.Error(t, err)
 }
@@ -59,7 +59,7 @@ func TestDistSymlink(t *testing.T) {
 			manipulated := tempDir(t)
 			err = os.Chmod(manipulated, 0755)
 			assert.NoError(t, err)
-			p := NewProfiler(root, embeddedArchive)
+			p := NewProfiler(root, EmbeddedArchive)
 			muslDistName, glibcDistName := p.getDistNames()
 
 			if glibc {

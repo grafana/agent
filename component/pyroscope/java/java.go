@@ -1,3 +1,5 @@
+//go:build linux && (amd64 || arm64)
+
 package java
 
 import (
@@ -6,7 +8,6 @@ import (
 	"os"
 	"strconv"
 	"sync"
-	"time"
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/discovery"
@@ -29,7 +30,7 @@ func init() {
 				return nil, fmt.Errorf("java profiler: must be run as root")
 			}
 			a := args.(Arguments)
-			var profiler = asprof.NewProfiler(a.TmpDir)
+			var profiler = asprof.NewProfiler(a.TmpDir, asprof.EmbeddedArchive)
 			err := profiler.ExtractDistributions()
 			if err != nil {
 				return nil, fmt.Errorf("extract async profiler: %w", err)
@@ -47,41 +48,6 @@ func init() {
 			return c, nil
 		},
 	})
-}
-
-type Arguments struct {
-	Targets   []discovery.Target     `river:"targets,attr"`
-	ForwardTo []pyroscope.Appendable `river:"forward_to,attr"`
-
-	TmpDir          string          `river:"tmp_dir,attr,optional"`
-	ProfilingConfig ProfilingConfig `river:"profiling_config,block,optional"`
-}
-
-type ProfilingConfig struct {
-	Interval   time.Duration `river:"interval,attr,optional"`
-	SampleRate int           `river:"sample_rate,attr,optional"`
-	Alloc      string        `river:"alloc,attr,optional"`
-	Lock       string        `river:"lock,attr,optional"`
-	CPU        bool          `river:"cpu,attr,optional"`
-}
-
-func (rc *Arguments) UnmarshalRiver(f func(interface{}) error) error {
-	*rc = defaultArguments()
-	type config Arguments
-	return f((*config)(rc))
-}
-
-func defaultArguments() Arguments {
-	return Arguments{
-		TmpDir: "/tmp",
-		ProfilingConfig: ProfilingConfig{
-			Interval:   15 * time.Second,
-			SampleRate: 100,
-			Alloc:      "",
-			Lock:       "",
-			CPU:        true,
-		},
-	}
 }
 
 type javaComponent struct {

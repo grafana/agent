@@ -1,0 +1,33 @@
+//go:build (linux && !(amd64 || arm64)) || !linux
+
+package java
+
+import (
+	"context"
+
+	"github.com/grafana/agent/component"
+)
+
+func init() {
+	component.Register(component.Registration{
+		Name: "pyroscope.java",
+		Args: Arguments{},
+
+		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
+			level.Warn(opts.Logger).Log("msg", "the pyroscope.java component only works on linux; enabling it otherwise will do nothing")
+			return &Component{}, nil
+		},
+	})
+}
+
+type javaComponent struct {
+}
+
+func (j *javaComponent) Run(ctx context.Context) error {
+	for {
+		select {
+		case <-ctx.Done():
+			return nil
+		}
+	}
+}

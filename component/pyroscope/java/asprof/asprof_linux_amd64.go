@@ -15,4 +15,4 @@ var embededArchiveData []byte
 
 var embededArchiveVersion = 300
 
-var embeddedArchive = Archive{data: embededArchiveData, version: embededArchiveVersion}
+var EmbeddedArchive = Archive{data: embededArchiveData, version: embededArchiveVersion}
