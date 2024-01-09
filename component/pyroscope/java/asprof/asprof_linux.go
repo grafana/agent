@@ -122,7 +122,7 @@ func (p *Profiler) ExtractDistributions() error {
 			p.unpackError = fmt.Errorf("failed to find libasyncProfiler in tar.gz")
 			return
 		}
-		if binaryLauncher() {
+		if !binaryLauncher() {
 			if jattach == nil {
 				p.unpackError = fmt.Errorf("failed to find jattach in tar.gz")
 				return

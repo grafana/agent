@@ -6,12 +6,11 @@ import (
 	_ "embed"
 )
 
-//go:embed async-profiler-2.9-linux-x64.tar.gz
+//go:embed async-profiler-3.0-ea-linux-x64.tar.gz
 var tarGzArchive []byte
 
-// profiler.sh
-// jattach
+// asprof
 // glibc / libasyncProfiler.so
 // musl / libasyncProfiler.so
 
-var version = 209
+var version = 300
