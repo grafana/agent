@@ -69,6 +69,7 @@ type EndpointOptions struct {
 	Name                 string                  `river:"name,attr,optional"`
 	URL                  string                  `river:"url,attr"`
 	RemoteTimeout        time.Duration           `river:"remote_timeout,attr,optional"`
+	// ok here is a headers thing, looks like it's empty by default?
 	Headers              map[string]string       `river:"headers,attr,optional"`
 	SendExemplars        bool                    `river:"send_exemplars,attr,optional"`
 	SendNativeHistograms bool                    `river:"send_native_histograms,attr,optional"`

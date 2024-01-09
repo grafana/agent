@@ -141,12 +141,13 @@ service:
 	processors, err := processor.MakeFactoryMap(batchprocessor.NewFactory())
 	require.Nil(t, err)
 
-	factories := otelcol.Factories{
-		Receivers:  receivers,
-		Exporters:  exporters,
-		Processors: processors,
+	factories := func() (otelcol.Factories, error) {
+		return otelcol.Factories{
+			Receivers:  receivers,
+			Exporters:  exporters,
+			Processors: processors,
+		}, nil
 	}
-
 	fmp := fileprovider.New()
 	configProvider, err := otelcol.NewConfigProvider(
 		otelcol.ConfigProviderSettings{

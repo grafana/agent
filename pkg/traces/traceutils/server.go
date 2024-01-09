@@ -128,18 +128,10 @@ func newServer(addr string, callback func(ptrace.Traces)) (*server, error) {
 	}
 
 	configMap := confmap.NewFromStringMap(cfg)
-	otelCfgSettings, err := otelcol.Unmarshal(configMap, factories)
+	var otelCfg otelcol.Config
+	err = configMap.Unmarshal(&otelCfg)
 	if err != nil {
 		return nil, fmt.Errorf("failed to make otel config: %w", err)
-	}
-
-	otelCfg := otelcol.Config{
-		Receivers:  otelCfgSettings.Receivers.Configs(),
-		Processors: otelCfgSettings.Processors.Configs(),
-		Exporters:  otelCfgSettings.Exporters.Configs(),
-		Connectors: otelCfgSettings.Connectors.Configs(),
-		Extensions: otelCfgSettings.Extensions.Configs(),
-		Service:    otelCfgSettings.Service,
 	}
 
 	if err := otelCfg.Validate(); err != nil {

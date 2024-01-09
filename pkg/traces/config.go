@@ -996,19 +996,21 @@ func orderProcessors(processors []string, splitPipelines bool) [][]string {
 
 func otelcolConfigFromStringMap(otelMapStructure map[string]interface{}, factories *otelcol.Factories) (*otelcol.Config, error) {
 	configMap := confmap.NewFromStringMap(otelMapStructure)
-	otelCfg, err := otelcol.Unmarshal(configMap, *factories)
+	var res otelcol.Config
+	// otelCfg, err := otelcol.Unmarshal(configMap, *factories)
+	err := configMap.Unmarshal(&res)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load OTel config: %w", err)
 	}
 
-	res := otelcol.Config{
-		Receivers:  otelCfg.Receivers.Configs(),
-		Processors: otelCfg.Processors.Configs(),
-		Exporters:  otelCfg.Exporters.Configs(),
-		Connectors: otelCfg.Connectors.Configs(),
-		Extensions: otelCfg.Extensions.Configs(),
-		Service:    otelCfg.Service,
-	}
+	// res := otelcol.Config{
+	// 	Receivers:  otelCfg.Receivers.Configs(),
+	// 	Processors: otelCfg.Processors.Configs(),
+	// 	Exporters:  otelCfg.Exporters.Configs(),
+	// 	Connectors: otelCfg.Connectors.Configs(),
+	// 	Extensions: otelCfg.Extensions.Configs(),
+	// 	Service:    otelCfg.Service,
+	// }
 
 	if err := res.Validate(); err != nil {
 		return nil, err

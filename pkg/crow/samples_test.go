@@ -79,7 +79,7 @@ func Test_sampleGenerator(t *testing.T) {
 	require.NoError(t, err)
 
 	var sb strings.Builder
-	enc := expfmt.NewEncoder(&sb, expfmt.FmtText)
+	enc := expfmt.NewEncoder(&sb, expfmt.FmtText_1_0_0)
 	for _, mf := range mfs {
 		require.NoError(t, enc.Encode(mf))
 	}

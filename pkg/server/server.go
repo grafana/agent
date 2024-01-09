@@ -8,6 +8,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	stdlog "log"
 	"net"
 	"net/http"
 	_ "net/http/pprof" // anonymous import to get the pprof handler registered
@@ -341,11 +342,14 @@ func newHTTPServer(l log.Logger, g prometheus.Gatherer, opts *Flags, m *metrics)
 		},
 	}
 
+	errlog := stdlog.New(log.NewStdlibAdapter(level.Error(l)), "", 0)
+
 	httpServer := &http.Server{
 		ReadTimeout:  opts.HTTP.ReadTimeout,
 		WriteTimeout: opts.HTTP.WriteTimeout,
 		IdleTimeout:  opts.HTTP.IdleTimeout,
 		Handler:      middleware.Merge(httpMiddleware...).Wrap(router),
+		ErrorLog:    errlog,
 	}
 
 	return httpServer, router, nil

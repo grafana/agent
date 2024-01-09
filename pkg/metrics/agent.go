@@ -20,6 +20,7 @@ import (
 	"github.com/grafana/agent/pkg/metrics/cluster/client"
 	"github.com/grafana/agent/pkg/metrics/instance"
 	"github.com/grafana/agent/pkg/util"
+	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/discovery"
 )
 
@@ -33,6 +34,7 @@ var DefaultConfig = Config{
 	ServiceConfig:          cluster.DefaultConfig,
 	ServiceClientConfig:    client.DefaultConfig,
 	InstanceMode:           instance.DefaultMode,
+	UTF8Names: false,
 }
 
 // Config defines the configuration for the entire set of Prometheus client
@@ -49,6 +51,7 @@ type Config struct {
 	InstanceMode           instance.Mode         `yaml:"instance_mode,omitempty"`
 	DisableKeepAlives      bool                  `yaml:"http_disable_keepalives,omitempty"`
 	IdleConnTimeout        time.Duration         `yaml:"http_idle_conn_timeout,omitempty"`
+	UTF8Names              bool                  `yaml:"utf8_names,omitempty"`
 
 	// Unmarshaled is true when the Config was unmarshaled from YAML.
 	Unmarshaled bool `yaml:"-"`
@@ -119,6 +122,7 @@ func (c *Config) RegisterFlagsWithPrefix(prefix string, f *flag.FlagSet) {
 	f.DurationVar(&c.WALCleanupAge, prefix+"wal-cleanup-age", DefaultConfig.WALCleanupAge, "remove abandoned (unused) WALs older than this")
 	f.DurationVar(&c.WALCleanupPeriod, prefix+"wal-cleanup-period", DefaultConfig.WALCleanupPeriod, "how often to check for abandoned WALs")
 	f.DurationVar(&c.InstanceRestartBackoff, prefix+"instance-restart-backoff", DefaultConfig.InstanceRestartBackoff, "how long to wait before restarting a failed Prometheus instance")
+	f.BoolVar(&c.UTF8Names, prefix+"utf8-names", DefaultConfig.UTF8Names, "yup this again")
 
 	c.ServiceConfig.RegisterFlagsWithPrefix(prefix+"service.", f)
 	c.ServiceClientConfig.RegisterFlagsWithPrefix(prefix, f)
@@ -243,6 +247,14 @@ func (a *Agent) ApplyConfig(cfg Config) error {
 	// 3. Modal Manager
 	// 4. Cluster
 	// 5. Local configs
+
+	if cfg.UTF8Names {
+		level.Info(a.logger).Log("msg", "enabling utf8 names and stuff")
+		model.NameValidationScheme = model.UTF8Validation
+	} else {
+		level.Info(a.logger).Log("msg", "enabling legacy name validation (no utf8 for u)")
+		model.NameValidationScheme = model.LegacyValidation
+	}
 
 	if a.cleaner != nil {
 		a.cleaner.Stop()
