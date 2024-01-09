@@ -1,17 +1,24 @@
 ---
 aliases:
+- /docs/grafana-cloud/agent/flow/tasks/monitor/controller_metrics/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/tasks/monitor/controller_metrics/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/tasks/monitor/controller_metrics/
+- /docs/grafana-cloud/send-data/agent/flow/tasks/monitor/controller_metrics/
+- controller-metrics/ # /docs/agent/latest/flow/tasks/monitor/controller-metrics/
+# Previous page aliases for backwards compatibility:
 - /docs/grafana-cloud/agent/flow/monitoring/controller_metrics/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/monitoring/controller_metrics/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/monitoring/controller_metrics/
 - /docs/grafana-cloud/send-data/agent/flow/monitoring/controller_metrics/
-- controller-metrics/
+- ../../monitoring/controller-metrics/ # /docs/agent/latest/flow/monitoring/controller-metrics/
+- ../../monitoring/controller_metrics/ # /docs/agent/latest/flow/monitoring/controller_metrics/
 canonical: https://grafana.com/docs/agent/latest/flow/monitoring/controller_metrics/
-description: Learn about controller metrics
-title: Controller metrics
+description: Learn how to monitor controller metrics
+title: Monitor controller
 weight: 100
 ---
 
-# Controller metrics
+# How to monitor controller
 
 The {{< param "PRODUCT_NAME" >}} [component controller][] exposes Prometheus metrics which you can use to investigate the controller state.
 

@@ -1,17 +1,24 @@
 ---
 aliases:
+- /docs/grafana-cloud/agent/flow/tasks/monitor/component_metrics/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/tasks/monitor/component_metrics/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/tasks/monitor/component_metrics/
+- /docs/grafana-cloud/send-data/agent/flow/tasks/monitor/component_metrics/
+- component-metrics/ # /docs/agent/latest/flow/tasks/monitor/component-metrics/
+# Previous page aliases for backwards compatibility:
 - /docs/grafana-cloud/agent/flow/monitoring/component_metrics/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/monitoring/component_metrics/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/monitoring/component_metrics/
 - /docs/grafana-cloud/send-data/agent/flow/monitoring/component_metrics/
-- component-metrics/
+- ../../monitoring/component-metrics/ # /docs/agent/latest/flow/monitoring/component-metrics/
+- ../../monitoring/component_metrics/ # /docs/agent/latest/flow/monitoring/component_metrics/
 canonical: https://grafana.com/docs/agent/latest/flow/monitoring/component_metrics/
-description: Learn about component metrics
-title: Component metrics
+description: Learn how to monitor component metrics
+title: Monitor components
 weight: 200
 ---
 
-# Component metrics
+# How to monitor components
 
 {{< param "PRODUCT_NAME" >}} [components][] may optionally expose Prometheus metrics which can be used to investigate the behavior of that component.
 These component-specific metrics are only generated when an instance of that component is running.

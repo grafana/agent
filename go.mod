@@ -624,7 +624,7 @@ require (
 	github.com/Workiva/go-datastructures v1.1.0 // indirect
 	github.com/aws/aws-sdk-go-v2/service/secretsmanager v1.26.0 // indirect
 	github.com/channelmeter/iso8601duration v0.0.0-20150204201828-8da3af7a2a61 // indirect
-	github.com/cloudflare/circl v1.3.3 // indirect
+	github.com/cloudflare/circl v1.3.7 // indirect
 	github.com/containerd/log v0.1.0 // indirect
 	github.com/drone/envsubst v1.0.3 // indirect
 	github.com/go-jose/go-jose/v3 v3.0.1 // indirect
@@ -724,9 +724,6 @@ replace (
 	// TODO(marctc, mattdurham): Replace node_export with custom fork for multi usage. https://github.com/prometheus/node_exporter/pull/2812
 	github.com/prometheus/node_exporter => github.com/grafana/node_exporter v0.18.1-grafana-r01.0.20231004161416-702318429731
 )
-
-// Excluding fixes a conflict in test packages and allows "go mod tidy" to run.
-exclude google.golang.org/grpc/examples v0.0.0-20200728065043-dfc0c05b2da9
 
 // Replacing for an internal fork which allows us to observe metrics produced by the Collector.
 // This is a temporary solution while a new configuration design is discussed for the collector. Related issues:
