@@ -10,6 +10,19 @@ internal API changes are not present.
 v0.39.0-rc.0 (2024-01-05)
 -------------------------
 
+### Security fixes
+- Fixes following vulnerabilities (@hainenber)
+  - [GO-2023-2409](https://github.com/advisories/GHSA-mhpq-9638-x6pw)
+  - [GO-2023-2412](https://github.com/advisories/GHSA-7ww5-4wqc-m92c)
+  - [CVE-2023-49568](https://github.com/advisories/GHSA-mw99-9chc-xw7r)
+
+### Bugfixes
+
+- Fix performance issue where perf lib where clause was not being set, leading to timeouts in collecting metrics for windows_exporter. (@mattdurham)
+
+v0.39.0-rc.0 (2024-01-05)
+-------------------------
+
 ### Breaking changes
 
 - `otelcol.receiver.prometheus` will drop all `otel_scope_info` metrics when converting them to OTLP. (@wildum)
@@ -29,6 +42,8 @@ v0.39.0-rc.0 (2024-01-05)
 ### Features
 
 - A new `discovery.ovhcloud` component for discovering scrape targets on OVHcloud. (@ptodev)
+
+- Allow specifying additional containers to run. (@juangom)
 
 ### Enhancements
 
@@ -83,6 +98,8 @@ v0.39.0-rc.0 (2024-01-05)
 - Add support for `http_sd_config` within a `scrape_config` for prometheus to flow config conversion. (@erikbaranowski)
 - `discovery.lightsail` now supports additional parameters for configuring HTTP client settings. (@ptodev)
 - Add `sample_age_limit` to remote_write config to drop samples older than a specified duration. (@marctc)
+
+- Handle paths in the Kubelet URL for `discovery.kubelet`. (@petewall)
 
 ### Bugfixes
 
