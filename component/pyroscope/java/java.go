@@ -33,10 +33,11 @@ func init() {
 
 			forwardTo := pyroscope.NewFanout(a.ForwardTo, opts.ID, opts.Registerer)
 			c := &javaComponent{
-				opts:      opts,
-				args:      a,
-				forwardTo: forwardTo,
-				profiler:  profiler,
+				opts:        opts,
+				args:        a,
+				forwardTo:   forwardTo,
+				profiler:    profiler,
+				pid2process: make(map[int]*profilingLoop),
 			}
 			c.updateTargets(a.Targets)
 			return c, nil
@@ -126,6 +127,7 @@ func (j *javaComponent) updateTargets(targets []discovery.Target) {
 		proc := j.pid2process[pid]
 		if proc == nil {
 			proc = newProfilingLoop(pid, target, j.opts.Logger, j.profiler, j.forwardTo, j.args.ProfilingConfig)
+			j.pid2process[pid] = proc
 		} else {
 			proc.update(target)
 		}
@@ -142,6 +144,7 @@ func (j *javaComponent) updateTargets(targets []discovery.Target) {
 }
 
 func (j *javaComponent) stop() {
+	_ = level.Debug(j.opts.Logger).Log("msg", "stopping")
 	j.mutex.Lock()
 	defer j.mutex.Unlock()
 	for _, proc := range j.pid2process {
