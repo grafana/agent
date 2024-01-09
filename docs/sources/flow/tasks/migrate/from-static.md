@@ -1,16 +1,16 @@
 ---
 aliases:
-- /docs/grafana-cloud/agent/flow/tasks/migrating-from-static/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/tasks/migrating-from-static/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/tasks/migrating-from-static/
-- /docs/grafana-cloud/send-data/agent/flow/tasks/migrating-from-static/
+- /docs/grafana-cloud/agent/flow/tasks/migrate/from-static/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/tasks/migrate/from-static/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/tasks/migrate/from-static/
+- /docs/grafana-cloud/send-data/agent/flow/tasks/migrate/from-static/
 # Previous page aliases for backwards compatibility:
 - /docs/grafana-cloud/agent/flow/getting-started/migrating-from-static/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/getting-started/migrating-from-static/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/getting-started/migrating-from-static/
 - /docs/grafana-cloud/send-data/agent/flow/getting-started/migrating-from-static/
 - ../getting-started/migrating-from-static/ # /docs/agent/latest/flow/getting-started/migrating-from-static/
-canonical: https://grafana.com/docs/agent/latest/flow/tasks/migrating-from-static/
+canonical: https://grafana.com/docs/agent/latest/flow/tasks/migrate/from-static/
 description: Learn how to migrate your configuration from Grafana Agent Static to Grafana Agent Flow
 menuTitle: Migrate from Static to Flow
 title: Migrate Grafana Agent Static to Grafana Agent Flow
@@ -376,8 +376,8 @@ The following list is specific to the convert command and not {{< param "PRODUCT
 [run]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/cli/run.md"
 [Start]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/start-agent.md"
 [Start]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/setup/start-agent.md"
-[DebuggingUI]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/monitoring/debugging.md"
-[DebuggingUI]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/monitoring/debugging.md"
+[DebuggingUI]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/tasks/debug.md"
+[DebuggingUI]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/tasks/debug.md"
 [River]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/config-language/"
 [River]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/concepts/config-language/"
 [Integrations next]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static/configuration/integrations/integrations-next/_index.md"
@@ -388,14 +388,14 @@ The following list is specific to the convert command and not {{< param "PRODUCT
 [Agent Management]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/static/configuration/agent-management.md"
 [env]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/stdlib/env.md"
 [env]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/stdlib/env.md"
-[Prometheus Limitations]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/tasks/migrating-from-prometheus.md#limitations"
-[Prometheus Limitations]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/tasks/migrating-from-prometheus.md#limitations"
-[Promtail Limitations]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/tasks/migrating-from-promtail.md#limitations"
-[Promtail Limitations]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/tasks/migrating-from-promtail.md#limitations"
+[Prometheus Limitations]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/tasks/migrate/from-prometheus.md#limitations"
+[Prometheus Limitations]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/tasks/migrate/from-prometheus.md#limitations"
+[Promtail Limitations]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/tasks/migrate/from-promtail.md#limitations"
+[Promtail Limitations]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/tasks/migrate/from-promtail.md#limitations"
 [Metrics]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static/configuration/metrics-config.md"
 [Metrics]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/static/configuration/metrics-config.md"
 [Logs]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static/configuration/logs-config.md"
 [Logs]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/static/logs-config.md"
-[UI]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/monitoring/debugging#grafana-agent-flow-ui"
-[UI]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/monitoring/debugging#grafana-agent-flow-ui"
+[UI]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/tasks/debug#grafana-agent-flow-ui"
+[UI]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/tasks/debug#grafana-agent-flow-ui"
 {{% /docs/reference %}}

@@ -1,8 +1,6 @@
 discovery.digitalocean "fun" {
 	refresh_interval = "10m0s"
 	port             = 1234
-	follow_redirects = true
-	enable_http2     = true
 }
 
 local.file_match "fun" {
