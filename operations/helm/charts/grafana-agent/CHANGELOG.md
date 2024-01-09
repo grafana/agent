@@ -10,6 +10,14 @@ internal API changes are not present.
 Unreleased
 ----------
 
+### Bugfixes
+
+- Configure namespace for service account when RBAC resources is created. (@hainenber)
+
+### Other changes
+
+- Change config reloader image to `ghcr.io/jimmidyson/configmap-reload:v0.12.0` to reflect change in repository and version. (@berendiwema)
+
 0.30.0 (2024-01-05)
 -------------------
 

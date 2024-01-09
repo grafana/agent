@@ -10,9 +10,19 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+### Security fixes
+- Fixes following vulnerabilities (@hainenber)
+  - [GO-2023-2409](https://github.com/advisories/GHSA-mhpq-9638-x6pw)
+  - [GO-2023-2412](https://github.com/advisories/GHSA-7ww5-4wqc-m92c)
+  - [CVE-2023-49568](https://github.com/advisories/GHSA-mw99-9chc-xw7r)
+
 ### Enhancements
 
 - Add support for Basic Auth for agent's web UI, including the APIs. (@hainenber)
+
+### Bugfixes
+
+- Fix performance issue where perf lib where clause was not being set, leading to timeouts in collecting metrics for windows_exporter. (@mattdurham)
 
 v0.39.0-rc.0 (2024-01-05)
 -------------------------
@@ -36,6 +46,10 @@ v0.39.0-rc.0 (2024-01-05)
 ### Features
 
 - A new `discovery.ovhcloud` component for discovering scrape targets on OVHcloud. (@ptodev)
+
+### Features
+
+- Allow specifying additional containers to run. (@juangom)
 
 ### Enhancements
 
@@ -91,6 +105,7 @@ v0.39.0-rc.0 (2024-01-05)
 - `discovery.lightsail` now supports additional parameters for configuring HTTP client settings. (@ptodev)
 - Add `sample_age_limit` to remote_write config to drop samples older than a specified duration. (@marctc)
 
+- Handle paths in the Kubelet URL for `discovery.kubelet`. (@petewall)
 
 ### Bugfixes
 
@@ -109,6 +124,8 @@ v0.39.0-rc.0 (2024-01-05)
 - Add staleness tracking to labelstore to reduce memory usage. (@mattdurham)
 
 - Fix issue where `prometheus.exporter.kafka` would crash when configuring `sasl_password`. (@rfratto)
+
+- Fix nil panic when using the process collector with the windows exporter. (@mattdurham)
 
 ### Other changes
 
