@@ -19,8 +19,8 @@ Main (unreleased)
 
 ### Bugfixes
 
-- Fixes handling of an unexpeced EOF from S3 in `remote.s3` by erroring if an EOF
-  is encountered before Content-Length number of bytes have been read. (@spartan0x117)
+- Fixes `remote.s3` to always read the full Content-Length of the returned object, 
+  additionally erroring if an unexpected EOF is encountered before that many bytes are read. (@agent-squad)
 
 ### Other changes
 
