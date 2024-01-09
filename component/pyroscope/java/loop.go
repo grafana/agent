@@ -88,9 +88,8 @@ func (p *profilingLoop) loop(ctx context.Context) {
 		err := p.start()
 		if err != nil {
 			//  could happen when agent restarted - [ERROR] Profiler already started\n
-			p.onError(fmt.Errorf("failed to start: %w", err))
-			if !p.alive() {
-				_ = level.Error(p.logger).Log("msg", "process is not alive")
+			alive := p.onError(fmt.Errorf("failed to start: %w", err))
+			if !alive {
 				return
 			}
 		}
@@ -100,9 +99,8 @@ func (p *profilingLoop) loop(ctx context.Context) {
 		}
 		err = p.reset()
 		if err != nil {
-			p.onError(fmt.Errorf("failed to reset: %w", err))
-			if !p.alive() {
-				_ = level.Error(p.logger).Log("msg", "process is not alive")
+			alive := p.onError(fmt.Errorf("failed to reset: %w", err))
+			if !alive {
 				return
 			}
 		}
@@ -202,8 +200,7 @@ func (p *profilingLoop) stop() error {
 	_ = level.Debug(p.logger).Log("msg", "asprof", "cmd", fmt.Sprintf("%s %s", p.dist.Launcher(), strings.Join(argv, " ")))
 	stdout, stderr, err := p.profiler.Execute(p.dist, argv)
 	if err != nil {
-		_ = level.Error(p.logger).Log("msg", "asprof failed to run", "err", err, "stdout", stdout, "stderr", stderr)
-		return fmt.Errorf("asprof failed to run: %w", err)
+		return fmt.Errorf("asprof failed to run: %w %s %s", err, stdout, stderr)
 	}
 	_ = level.Debug(p.logger).Log("msg", "asprof stopped", "stdout", stdout, "stderr", stderr)
 	return nil
@@ -222,11 +219,17 @@ func (p *profilingLoop) Close() error {
 	return nil
 }
 
-func (p *profilingLoop) onError(err error) {
-	_ = level.Error(p.logger).Log("err", err)
+func (p *profilingLoop) onError(err error) bool {
+	alive := p.alive()
+	if alive {
+		_ = level.Error(p.logger).Log("err", err)
+	} else {
+		_ = level.Debug(p.logger).Log("err", err)
+	}
 	p.mutex.Lock()
 	defer p.mutex.Unlock()
 	p.error = err
+	return alive
 }
 
 func (p *profilingLoop) interval() time.Duration {
