@@ -64,7 +64,7 @@ type DeclareComponentNode struct {
 }
 
 var _ NodeWithDependants = (*DeclareComponentNode)(nil)
-var _ UINode = (*ComponentNode)(nil)
+var _ ComponentNode = (*DeclareComponentNode)(nil)
 
 // NewDeclareComponentNode creates a new DeclareComponentNode from an initial ast.BlockStmt.
 // The underlying managed module isn't created until Evaluate is called.

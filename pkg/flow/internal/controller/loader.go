@@ -41,7 +41,7 @@ type Loader struct {
 	mut                      sync.RWMutex
 	graph                    *dag.Graph
 	originalGraph            *dag.Graph
-	componentNodes           []*ComponentNode
+	componentNodes           []*NativeComponentNode
 	serviceNodes             []*ServiceNode
 	declareComponentNodes    []*DeclareComponentNode
 	importNodes              map[string]*ImportConfigNode
@@ -146,7 +146,7 @@ func (l *Loader) Apply(args map[string]any, componentBlocks []*ast.BlockStmt, co
 	}
 
 	var (
-		components            = make([]*ComponentNode, 0, len(componentBlocks))
+		components            = make([]*NativeComponentNode, 0, len(componentBlocks))
 		componentIDs          = make([]ComponentID, 0, len(componentBlocks))
 		services              = make([]*ServiceNode, 0, len(l.services))
 		declareComponentNodes = make([]*DeclareComponentNode, 0, len(l.declareComponentNodes))
@@ -180,7 +180,7 @@ func (l *Loader) Apply(args map[string]any, componentBlocks []*ast.BlockStmt, co
 		var err error
 
 		switch n := n.(type) {
-		case *ComponentNode:
+		case *NativeComponentNode:
 			components = append(components, n)
 			componentIDs = append(componentIDs, n.ID())
 
@@ -494,7 +494,7 @@ func (l *Loader) populateComponentNodes(g *dag.Graph, componentBlocks []*ast.Blo
 		// existing instance of ComponentNode and DeclareComponentNode.
 		if exist := l.graph.GetByID(id); exist != nil {
 			switch v := exist.(type) {
-			case *ComponentNode:
+			case *NativeComponentNode:
 				v.UpdateBlock(block)
 				g.Add(v)
 			case *DeclareComponentNode:
@@ -637,7 +637,7 @@ func (l *Loader) Variables() map[string]interface{} {
 }
 
 // Components returns the current set of loaded components.
-func (l *Loader) Components() []*ComponentNode {
+func (l *Loader) Components() []*NativeComponentNode {
 	l.mut.RLock()
 	defer l.mut.RUnlock()
 	return l.componentNodes
@@ -821,7 +821,7 @@ func (l *Loader) evaluate(logger log.Logger, bn BlockNode) error {
 // mut must be held when calling postEvaluate.
 func (l *Loader) postEvaluate(logger log.Logger, bn BlockNode, err error) error {
 	switch c := bn.(type) {
-	case *ComponentNode:
+	case *NativeComponentNode:
 		// Always update the cache both the arguments and exports, since both might
 		// change when a component gets re-evaluated. We also want to cache the arguments and exports in case of an error
 		l.cache.CacheArguments(c.ID(), c.Arguments())

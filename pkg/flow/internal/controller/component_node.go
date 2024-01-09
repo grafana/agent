@@ -5,9 +5,7 @@ import (
 	"github.com/grafana/agent/pkg/flow/internal/dag"
 )
 
-// TODO: UI nodes should not have to implement all of this to appear in the UI, a refactor would be nice.
-// UINode must be implemented by nodes which needs to appear in the UI graph.
-type UINode interface {
+type ComponentNode interface {
 	dag.Node
 
 	// CurrentHealth returns the current health of the node.
