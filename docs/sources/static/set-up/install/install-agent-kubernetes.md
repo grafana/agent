@@ -42,7 +42,7 @@ To deploy Grafana Agent in static mode on Kubernetes using Helm, run the followi
    helm repo update
    ```
 
-1. Install {{< param "PRODUCT_ROOT_NAME" >}}:
+1. Install Grafana Agent in static mode:
 
    ```shell
    helm install <RELEASE_NAME> grafana/grafana-agent --set agent.mode=static
@@ -50,12 +50,12 @@ To deploy Grafana Agent in static mode on Kubernetes using Helm, run the followi
 
    Replace the following:
 
-   -  _`<RELEASE_NAME>`_: The name to use for your {{< param "PRODUCT_ROOT_NAME" >}} installation, such as `grafana-agent-flow`.
+   -  _`<RELEASE_NAME>`_: The name to use for your Grafana Agent installation, such as `grafana-agent`.
 
-   {{% admonition type="note" %}}
+   {{% admonition type="warning" %}}
    Always pass `--set agent.mode=static` in `helm install` or `helm upgrade` commands to ensure Grafana Agent gets installed in static mode.
    Alternatively, set `agent.mode` to `static` in your values.yaml file.
-   {{% /admonition }}
+   {{% /admonition %}}
 
 For more information on the Grafana Agent Helm chart, refer to the Helm chart documentation on [Artifact Hub][].
 
