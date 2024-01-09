@@ -7,8 +7,8 @@ This document contains a historical list of changes between releases. Only
 changes that impact end-user behavior are listed; changes to documentation or
 internal API changes are not present.
 
-v0.39.0-rc.0 (2024-01-05)
--------------------------
+Main (unreleased)
+-----------------
 
 ### Security fixes
 - Fixes following vulnerabilities (@hainenber)
@@ -16,12 +16,9 @@ v0.39.0-rc.0 (2024-01-05)
   - [GO-2023-2412](https://github.com/advisories/GHSA-7ww5-4wqc-m92c)
   - [CVE-2023-49568](https://github.com/advisories/GHSA-mw99-9chc-xw7r)
 
-### Bugfixes
 
-- Fix performance issue where perf lib where clause was not being set, leading to timeouts in collecting metrics for windows_exporter. (@mattdurham)
-
-v0.39.0-rc.0 (2024-01-05)
--------------------------
+v0.39.0 (2024-01-09)
+--------------------
 
 ### Breaking changes
 
@@ -42,7 +39,6 @@ v0.39.0-rc.0 (2024-01-05)
 ### Features
 
 - A new `discovery.ovhcloud` component for discovering scrape targets on OVHcloud. (@ptodev)
-
 - Allow specifying additional containers to run. (@juangom)
 
 ### Enhancements
