@@ -5,7 +5,7 @@ aliases:
 # Previous page aliases for backwards compatibility:
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/getting-started/migrating-from-operator/
 - /docs/grafana-cloud/send-data/agent/flow/getting-started/migrating-from-operator/
-- ../getting-started/migrating-from-operator/ # /docs/agent/latest/flow/getting-started/migrating-from-operator/
+- ../../getting-started/migrating-from-operator/ # /docs/agent/latest/flow/getting-started/migrating-from-operator/
 canonical: https://grafana.com/docs/agent/latest/flow/tasks/migrate/from-operator/
 description: Migrate from Grafana Agent Operator to Grafana Agent Flow
 menuTitle: Migrate from Operator
