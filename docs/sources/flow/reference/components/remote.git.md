@@ -97,7 +97,7 @@ Instances of `remote.git` report as healthy if the repository was cloned success
 
 ## Example
 
-This example reads a JSON array of objects from an endpoint and uses them as a
+This example reads a JSON array of objects from a file stored in a git repository and uses them as a
 set of scrape targets:
 
 ```river
