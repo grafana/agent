@@ -252,6 +252,6 @@ These steps assume you have a default systemd and {{< param "PRODUCT_NAME" >}} c
 [release]: https://github.com/grafana/agent/releases/latest
 
 {{% docs/reference %}}
-[Configure]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/configure/configure-macos.md#configure-the-grafana-agent-service"
-[Configure]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/setup/configure/configure-macos.md#configure-the-grafana-agent-service"
+[Configure]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/tasks/configure/configure-macos.md#configure-the-grafana-agent-service"
+[Configure]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/tasks/configure/configure-macos.md#configure-the-grafana-agent-service"
 {{% /docs/reference %}}
