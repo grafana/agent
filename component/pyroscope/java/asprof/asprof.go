@@ -9,16 +9,19 @@ import (
 	"sync"
 )
 
+var fsMutex sync.Mutex
+
 type Profiler struct {
 	tmpDir     string
 	unpackOnce sync.Once
 
-	mutex       sync.Mutex
+	glibcDist   *Distribution
+	muslDist    *Distribution
 	unpackError error
 }
 
 func NewProfiler(tmpDir string) *Profiler {
-	return &Profiler{tmpDir: tmpDir}
+	return &Profiler{tmpDir: tmpDir, glibcDist: new(Distribution), muslDist: new(Distribution)}
 }
 
 type Distribution struct {
@@ -50,8 +53,8 @@ func (p *Profiler) Execute(dist *Distribution, argv []string) (string, string, e
 }
 
 func (p *Profiler) CopyLib(dist *Distribution, pid int) error {
-	p.mutex.Lock()
-	defer p.mutex.Unlock()
+	fsMutex.Lock()
+	defer fsMutex.Unlock()
 	data, err := os.ReadFile(dist.LibPath())
 	if err != nil {
 		return err

@@ -21,9 +21,6 @@ import (
 	gopsutil "github.com/shirou/gopsutil/v3/process"
 )
 
-// we extract to /tmp so all users can read it, but only root write, see asprof.extractPerm
-var profiler = asprof.NewProfiler("/tmp")
-
 const spyName = "grafana-agent.java"
 
 type profilingLoop struct {
@@ -40,20 +37,22 @@ type profilingLoop struct {
 	dist      *asprof.Distribution
 	jfrFile   string
 	startTime time.Time
+	profiler  *asprof.Profiler
 }
 
-func newProfilingLoop(pid int, target discovery.Target, logger log.Logger, output *pyroscope.Fanout, cfg ProfilingConfig) *profilingLoop {
+func newProfilingLoop(pid int, target discovery.Target, logger log.Logger, profiler *asprof.Profiler, output *pyroscope.Fanout, cfg ProfilingConfig) *profilingLoop {
 	ctx, cancel := context.WithCancel(context.Background())
-	dist, err := asprof.DistributionForProcess(pid)
+	dist, err := profiler.DistributionForProcess(pid)
 	p := &profilingLoop{
-		logger:  log.With(logger, "pid", pid),
-		output:  output,
-		pid:     pid,
-		target:  target,
-		cancel:  cancel,
-		dist:    dist,
-		jfrFile: fmt.Sprintf("/tmp/asprof-%d-%d.jfr", os.Getpid(), pid),
-		cfg:     cfg,
+		logger:   log.With(logger, "pid", pid),
+		output:   output,
+		pid:      pid,
+		target:   target,
+		cancel:   cancel,
+		dist:     dist,
+		jfrFile:  fmt.Sprintf("/tmp/asprof-%d-%d.jfr", os.Getpid(), pid),
+		cfg:      cfg,
+		profiler: profiler,
 	}
 	_ = level.Debug(p.logger).Log("msg", "new process", "target", fmt.Sprintf("%+v", target))
 
@@ -71,7 +70,7 @@ func newProfilingLoop(pid int, target discovery.Target, logger log.Logger, outpu
 }
 
 func (p *profilingLoop) loop(ctx context.Context) {
-	if err := profiler.CopyLib(p.dist, p.pid); err != nil {
+	if err := p.profiler.CopyLib(p.dist, p.pid); err != nil {
 		p.onError(fmt.Errorf("failed to copy libasyncProfiler.so: %w", err))
 		return
 	}
@@ -187,7 +186,7 @@ func (p *profilingLoop) start() error {
 	)
 
 	_ = level.Debug(p.logger).Log("cmd", fmt.Sprintf("%s %s", p.dist.Launcher(), strings.Join(argv, " ")))
-	stdout, stderr, err := profiler.Execute(p.dist, argv)
+	stdout, stderr, err := p.profiler.Execute(p.dist, argv)
 	if err != nil {
 		return fmt.Errorf("asprof failed to run: %w %s %s", err, stdout, stderr)
 	}
@@ -201,12 +200,12 @@ func (p *profilingLoop) stop() error {
 		strconv.Itoa(p.pid),
 	}
 	_ = level.Debug(p.logger).Log("msg", "asprof", "cmd", fmt.Sprintf("%s %s", p.dist.Launcher(), strings.Join(argv, " ")))
-	stdout, stderr, err := profiler.Execute(p.dist, argv)
+	stdout, stderr, err := p.profiler.Execute(p.dist, argv)
 	if err != nil {
 		_ = level.Error(p.logger).Log("msg", "asprof failed to run", "err", err, "stdout", stdout, "stderr", stderr)
 		return fmt.Errorf("asprof failed to run: %w", err)
 	}
-	_ = level.Debug(p.logger).Log("msg", "asprof stopped", "stdout", stdout, "stderr", stderr) //todo this should be empty
+	_ = level.Debug(p.logger).Log("msg", "asprof stopped", "stdout", stdout, "stderr", stderr)
 	return nil
 }
 
@@ -242,5 +241,8 @@ func (p *profilingLoop) getTarget() discovery.Target {
 
 func (p *profilingLoop) alive() bool {
 	exists, err := gopsutil.PidExists(int32(p.pid))
-	return err != nil && exists
+	if err != nil {
+		_ = level.Error(p.logger).Log("msg", "failed to check if process is alive", "err", err)
+	}
+	return err == nil && exists
 }

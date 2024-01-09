@@ -16,11 +16,7 @@ import (
 	"github.com/prometheus/procfs"
 )
 
-var glibcDist = &Distribution{}
-
-var muslDist = &Distribution{}
-
-func DistributionForProcess(pid int) (*Distribution, error) {
+func (p *Profiler) DistributionForProcess(pid int) (*Distribution, error) {
 	proc, err := procfs.NewProc(pid)
 	if err != nil {
 		return nil, fmt.Errorf("failed to select dist for pid %d %w", pid, err)
@@ -47,19 +43,19 @@ func DistributionForProcess(pid int) (*Distribution, error) {
 		return nil, fmt.Errorf("failed to select dist for pid %d: both musl and glibc found", pid)
 	}
 	if musl {
-		return muslDist, nil
+		return p.muslDist, nil
 	}
 	if glibc {
-		return glibcDist, nil
+		return p.glibcDist, nil
 	}
 	if _, err := os.Stat(ProcessPath("/lib/ld-musl-x86_64.so.1", pid)); err == nil {
-		return muslDist, nil
+		return p.muslDist, nil
 	}
 	if _, err := os.Stat(ProcessPath("/lib/ld-musl-aarch64.so.1", pid)); err == nil {
-		return muslDist, nil
+		return p.muslDist, nil
 	}
 	if _, err := os.Stat(ProcessPath("/lib64/ld-linux-x86-64.so.2", pid)); err == nil {
-		return glibcDist, nil
+		return p.glibcDist, nil
 	}
 	return nil, fmt.Errorf("failed to select dist for pid %d: neither musl nor glibc found", pid)
 }
@@ -87,67 +83,72 @@ func (d *Distribution) Launcher() string {
 
 func (p *Profiler) ExtractDistributions() error {
 	p.unpackOnce.Do(func() {
+		p.extractDistributions()
+	})
+	return p.unpackError
+}
 
-		sum := sha1.Sum(tarGzArchive)
-		hexSum := hex.EncodeToString(sum[:])
-		muslDistName := fmt.Sprintf("%s-%s-%s", tmpDirMarker,
-			"musl",
-			hexSum)
-		glibcDistName := fmt.Sprintf("%s-%s-%s", tmpDirMarker,
-			"glibc",
-			hexSum)
+func (p *Profiler) extractDistributions() {
+	fsMutex.Lock()
+	defer fsMutex.Unlock()
+	sum := sha1.Sum(tarGzArchive)
+	hexSum := hex.EncodeToString(sum[:])
+	muslDistName := fmt.Sprintf("%s-%s-%s", tmpDirMarker,
+		"musl",
+		hexSum)
+	glibcDistName := fmt.Sprintf("%s-%s-%s", tmpDirMarker,
+		"glibc",
+		hexSum)
 
-		var launcher, jattach, glibc, musl []byte
-		err := readTarGZ(tarGzArchive, func(name string, fi fs.FileInfo, data []byte) error {
-			fmt.Printf("gz file %s\n", name)
-			if name == "profiler.sh" || name == "asprof" {
-				launcher = data
-			}
-			if name == "jattach" {
-				jattach = data
-			}
-			if strings.Contains(name, "glibc/libasyncProfiler.so") {
-				glibc = data
-			}
-			if strings.Contains(name, "musl/libasyncProfiler.so") {
-				musl = data
-			}
-			return nil
-		})
+	var launcher, jattach, glibc, musl []byte
+	err := readTarGZ(tarGzArchive, func(name string, fi fs.FileInfo, data []byte) error {
+		fmt.Printf("gz file %s\n", name)
+		if name == "profiler.sh" || name == "asprof" {
+			launcher = data
+		}
+		if name == "jattach" {
+			jattach = data
+		}
+		if strings.Contains(name, "glibc/libasyncProfiler.so") {
+			glibc = data
+		}
+		if strings.Contains(name, "musl/libasyncProfiler.so") {
+			musl = data
+		}
+		return nil
+	})
+	if err != nil {
+		p.unpackError = err
+		return
+	}
+	if launcher == nil || glibc == nil || musl == nil {
+		p.unpackError = fmt.Errorf("failed to find libasyncProfiler in tar.gz")
+		return
+	}
+	if !binaryLauncher() {
+		if jattach == nil {
+			p.unpackError = fmt.Errorf("failed to find jattach in tar.gz")
+			return
+		}
+	}
+	fileMap := map[string][]byte{}
+	fileMap[filepath.Join(glibcDistName, p.glibcDist.Launcher())] = launcher
+	fileMap[filepath.Join(glibcDistName, p.glibcDist.LibPath())] = glibc
+	fileMap[filepath.Join(muslDistName, p.muslDist.Launcher())] = launcher
+	fileMap[filepath.Join(muslDistName, p.muslDist.LibPath())] = musl
+	if !binaryLauncher() {
+		fileMap[filepath.Join(glibcDistName, p.glibcDist.JattachPath())] = jattach
+		fileMap[filepath.Join(muslDistName, p.muslDist.JattachPath())] = jattach
+	}
+	for path, data := range fileMap {
+		err := writeFile(p.tmpDir, path, data)
 		if err != nil {
 			p.unpackError = err
 			return
 		}
-		if launcher == nil || glibc == nil || musl == nil {
-			p.unpackError = fmt.Errorf("failed to find libasyncProfiler in tar.gz")
-			return
-		}
-		if !binaryLauncher() {
-			if jattach == nil {
-				p.unpackError = fmt.Errorf("failed to find jattach in tar.gz")
-				return
-			}
-		}
-		fileMap := map[string][]byte{}
-		fileMap[filepath.Join(glibcDistName, glibcDist.Launcher())] = launcher
-		fileMap[filepath.Join(glibcDistName, glibcDist.LibPath())] = glibc
-		fileMap[filepath.Join(muslDistName, muslDist.Launcher())] = launcher
-		fileMap[filepath.Join(muslDistName, muslDist.LibPath())] = musl
-		if !binaryLauncher() {
-			fileMap[filepath.Join(glibcDistName, glibcDist.JattachPath())] = jattach
-			fileMap[filepath.Join(muslDistName, muslDist.JattachPath())] = jattach
-		}
-		for path, data := range fileMap {
-			err := writeFile(p.tmpDir, path, data)
-			if err != nil {
-				p.unpackError = err
-				return
-			}
-		}
-		glibcDist.extractedDir = filepath.Join(p.tmpDir, glibcDistName)
-		muslDist.extractedDir = filepath.Join(p.tmpDir, muslDistName)
-	})
-	return p.unpackError
+	}
+	p.glibcDist.extractedDir = filepath.Join(p.tmpDir, glibcDistName)
+	p.muslDist.extractedDir = filepath.Join(p.tmpDir, muslDistName)
 }
 
 func ProcessPath(path string, pid int) string {
