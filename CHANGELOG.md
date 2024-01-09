@@ -20,7 +20,7 @@ Main (unreleased)
 ### Bugfixes
 
 - Fixes `remote.s3` to always read the full Content-Length of the returned object, 
-  additionally erroring if an unexpected EOF is encountered before that many bytes are read. (@agent-squad)
+  additionally erroring if an unexpected EOF is encountered before that many bytes are read. (@grafana/agent-squad)
 
 ### Other changes
 
