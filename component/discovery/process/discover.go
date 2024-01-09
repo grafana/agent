@@ -117,7 +117,7 @@ func discover(l log.Logger, cfg *DiscoverConfig) ([]process, error) {
 			commandline: commandline,
 			containerID: containerID,
 		})
-		_ = level.Debug(l).Log("msg", "found process", "pid", p.Pid, "exe", exe, "cwd", cwd, "container_id", containerID, "commandline", commandline)
+		//_ = level.Debug(l).Log("msg", "found process", "pid", p.Pid, "exe", exe, "cwd", cwd, "container_id", containerID, "commandline", commandline)
 	}
 
 	return res, nil
