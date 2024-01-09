@@ -42,7 +42,7 @@ The scraped performance profiles can be forwarded to components such as
 
 Multiple `pyroscope.scrape` components can be specified by giving them different labels.
 
-[debug UI]: {{< relref "../../monitoring/debugging/" >}}
+[debug UI]: {{< relref "../../tasks/debug.md" >}}
 
 ## Usage
 
