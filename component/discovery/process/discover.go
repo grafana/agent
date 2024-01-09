@@ -19,6 +19,8 @@ const (
 	labelProcessExe         = "__meta_process_exe"
 	labelProcessCwd         = "__meta_process_cwd"
 	labelProcessCommandline = "__meta_process_commandline"
+	labelProcessUsername    = "__meta_process_username"
+	labelProcessUID         = "__meta_process_uid"
 	labelProcessContainerID = "__container_id__"
 )
 
@@ -28,6 +30,8 @@ type process struct {
 	cwd         string
 	commandline string
 	containerID string
+	username    string
+	uid         string
 }
 
 func (p process) String() string {
@@ -58,6 +62,12 @@ func convertProcess(p process) discovery.Target {
 	if p.containerID != "" {
 		t[labelProcessContainerID] = p.containerID
 	}
+	if p.username != "" {
+		t[labelProcessUsername] = p.username
+	}
+	if p.uid != "" {
+		t[labelProcessUID] = p.uid
+	}
 	return t
 }
 
@@ -79,7 +89,7 @@ func discover(l log.Logger, cfg *DiscoverConfig) ([]process, error) {
 	for _, p := range processes {
 		spid := fmt.Sprintf("%d", p.Pid)
 		var (
-			exe, cwd, commandline, containerID string
+			exe, cwd, commandline, containerID, username, uid string
 		)
 		if cfg.Exe {
 			exe, err = p.Exe()
@@ -102,6 +112,23 @@ func discover(l log.Logger, cfg *DiscoverConfig) ([]process, error) {
 				continue
 			}
 		}
+		if cfg.Username {
+			username, err = p.Username()
+			if err != nil {
+				loge(int(p.Pid), err)
+				continue
+			}
+		}
+		if cfg.UID {
+			uids, err := p.Uids()
+			if err != nil {
+				loge(int(p.Pid), err)
+				continue
+			}
+			if len(uids) > 0 {
+				uid = fmt.Sprintf("%d", uids[0])
+			}
+		}
 
 		if cfg.ContainerID {
 			containerID, err = getLinuxProcessContainerID(l, spid)
@@ -116,6 +143,8 @@ func discover(l log.Logger, cfg *DiscoverConfig) ([]process, error) {
 			cwd:         cwd,
 			commandline: commandline,
 			containerID: containerID,
+			username:    username,
+			uid:         uid,
 		})
 		//_ = level.Debug(l).Log("msg", "found process", "pid", p.Pid, "exe", exe, "cwd", cwd, "container_id", containerID, "commandline", commandline)
 	}

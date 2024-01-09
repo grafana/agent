@@ -7,10 +7,12 @@ import (
 )
 
 //go:embed async-profiler-3.0-ea-linux-x64.tar.gz
-var tarGzArchive []byte
+var embededArchiveData []byte
 
 // asprof
 // glibc / libasyncProfiler.so
 // musl / libasyncProfiler.so
 
-var version = 300
+var embededArchiveVersion = 300
+
+var embeddedArchive = Archive{data: embededArchiveData, version: embededArchiveVersion}

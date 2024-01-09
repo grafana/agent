@@ -3,6 +3,7 @@ package java
 import (
 	"context"
 	"fmt"
+	"os"
 	"strconv"
 	"sync"
 	"time"
@@ -24,6 +25,9 @@ func init() {
 		Args: Arguments{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
+			if os.Getuid() != 0 {
+				return nil, fmt.Errorf("java profiler: must be run as root")
+			}
 			a := args.(Arguments)
 			var profiler = asprof.NewProfiler(a.TmpDir)
 			err := profiler.ExtractDistributions()
