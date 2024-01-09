@@ -83,7 +83,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: spec.nodeName
-        image: grafana/agent:v0.37.4
+        image: grafana/agent:v0.39.0
         imagePullPolicy: IfNotPresent
         name: grafana-agent
         ports:
