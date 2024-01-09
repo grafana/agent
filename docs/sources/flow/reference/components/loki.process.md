@@ -382,6 +382,27 @@ following key-value pair to the set of extracted data.
 username: agent
 ```
 
+{{% admonition type="note" %}}
+Due to a limitation of the upstream jmespath library, defining an expression
+that contains a hyphen `-` needs to be wrapped in quotes so that it's not
+considered a numeric expression.
+{{% /admonition %}}
+
+In this case, you can use one of two syntaxes to circumvent this issue:
+```
+stage.json {
+  expressions = {
+    http_user_agent = "\"request_User-Agent\"",
+  }
+}
+
+stage.json {
+  expressions = {
+    http_user_agent = `"request_User-Agent"`,
+  }
+}
+```
+
 ### stage.label_drop block
 
 The `stage.label_drop` inner block configures a processing stage that drops labels
