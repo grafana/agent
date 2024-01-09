@@ -136,7 +136,7 @@ func (c *Component) Run(ctx context.Context) error {
 }
 
 func (c *Component) updateTicker(pullFrequency time.Duration, ticker *time.Ticker, tickerC <-chan time.Time) (*time.Ticker, <-chan time.Time) {
-	level.Info(c.log).Log("msg", "updating repository pull frequency", "new_frequency", pullFrequency)
+	level.Info(c.log).Log("msg", "updating repository pull frequency, next pull attempt planned in:", "new_frequency", pullFrequency)
 
 	if pullFrequency > 0 {
 		if ticker == nil {
