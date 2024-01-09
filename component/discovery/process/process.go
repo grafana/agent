@@ -26,25 +26,25 @@ func New(opts component.Options, args Arguments) (*Component, error) {
 		l:               opts.Logger,
 		onStateChange:   opts.OnStateChange,
 		refreshInterval: args.RefreshInterval,
+		discoverConfig:  args.DiscoverConfig,
 		joinUpdates:     make(chan []discovery.Target),
 	}
 	return c, nil
 }
 
 type Component struct {
-	l             log.Logger
-	onStateChange func(e component.Exports)
-
+	l               log.Logger
+	onStateChange   func(e component.Exports)
 	refreshInterval time.Duration
-
-	processes   []discovery.Target
-	join        []discovery.Target
-	joinUpdates chan []discovery.Target
+	processes       []discovery.Target
+	join            []discovery.Target
+	joinUpdates     chan []discovery.Target
+	discoverConfig  DiscoverConfig
 }
 
 func (c *Component) Run(ctx context.Context) error {
 	doDiscover := func() error {
-		processes, err := discover(c.l)
+		processes, err := discover(c.l, &c.discoverConfig)
 		if err != nil {
 			return err
 		}

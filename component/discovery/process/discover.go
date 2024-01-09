@@ -44,11 +44,16 @@ func convertProcesses(ps []process) []discovery.Target {
 }
 
 func convertProcess(p process) discovery.Target {
-	t := discovery.Target{
-		labelProcessID:          p.pid,
-		labelProcessExe:         p.exe,
-		labelProcessCwd:         p.cwd,
-		labelProcessCommandline: p.commandline,
+	t := make(discovery.Target, 5)
+	t[labelProcessID] = p.pid
+	if p.exe != "" {
+		t[labelProcessExe] = p.exe
+	}
+	if p.cwd != "" {
+		t[labelProcessCwd] = p.cwd
+	}
+	if p.commandline != "" {
+		t[labelProcessCommandline] = p.commandline
 	}
 	if p.containerID != "" {
 		t[labelProcessContainerID] = p.containerID
@@ -56,7 +61,7 @@ func convertProcess(p process) discovery.Target {
 	return t
 }
 
-func discover(l log.Logger) ([]process, error) {
+func discover(l log.Logger, cfg *DiscoverConfig) ([]process, error) {
 	processes, err := gopsutil.Processes()
 	if err != nil {
 		return nil, fmt.Errorf("failed to list processes: %w", err)
@@ -73,26 +78,37 @@ func discover(l log.Logger) ([]process, error) {
 	}
 	for _, p := range processes {
 		spid := fmt.Sprintf("%d", p.Pid)
-		exe, err := p.Exe()
-		if err != nil {
-			loge(int(p.Pid), err)
-			continue
+		var (
+			exe, cwd, commandline, containerID string
+		)
+		if cfg.Exe {
+			exe, err = p.Exe()
+			if err != nil {
+				loge(int(p.Pid), err)
+				continue
+			}
 		}
-		cwd, err := p.Cwd()
-		if err != nil {
-			loge(int(p.Pid), err)
-			continue
+		if cfg.Cwd {
+			cwd, err = p.Cwd()
+			if err != nil {
+				loge(int(p.Pid), err)
+				continue
+			}
 		}
-		commandline, err := p.Cmdline()
-		if err != nil {
-			loge(int(p.Pid), err)
-			continue
+		if cfg.Commandline {
+			commandline, err = p.Cmdline()
+			if err != nil {
+				loge(int(p.Pid), err)
+				continue
+			}
 		}
 
-		containerID, err := getLinuxProcessContainerID(l, spid)
-		if err != nil {
-			loge(int(p.Pid), err)
-			continue
+		if cfg.ContainerID {
+			containerID, err = getLinuxProcessContainerID(l, spid)
+			if err != nil {
+				loge(int(p.Pid), err)
+				continue
+			}
 		}
 		res = append(res, process{
 			pid:         spid,

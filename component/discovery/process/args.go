@@ -9,11 +9,25 @@ import (
 type Arguments struct {
 	Join            []discovery.Target `river:"join,attr,optional"`
 	RefreshInterval time.Duration      `river:"refresh_interval,attr,optional"`
+	DiscoverConfig  DiscoverConfig     `river:"discover_config,block,optional"`
+}
+
+type DiscoverConfig struct {
+	Cwd         bool `river:"cwd,attr,optional"`
+	Exe         bool `river:"exe,attr,optional"`
+	Commandline bool `river:"commandline,attr,optional"`
+	ContainerID bool `river:"container_id,attr,optional"`
 }
 
 var DefaultConfig = Arguments{
 	Join:            nil,
 	RefreshInterval: 14 * time.Second,
+	DiscoverConfig: DiscoverConfig{
+		Cwd:         true,
+		Exe:         true,
+		Commandline: true,
+		ContainerID: true,
+	},
 }
 
 func (args *Arguments) SetToDefault() {
