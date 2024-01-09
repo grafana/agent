@@ -2,11 +2,17 @@
 
 package asprof
 
+import (
+	_ "embed"
+)
+
 //go:embed async-profiler-3.0-ea-linux-arm64.tar.gz
-var tarGzArchive []byte
+var embededArchiveData []byte
 
 // asprof
 // glibc / libasyncProfiler.so
 // musl / libasyncProfiler.so
 
-var version = 300
+var embededArchiveVersion = 300
+
+var EmbeddedArchive = Archive{data: embededArchiveData, version: embededArchiveVersion}
