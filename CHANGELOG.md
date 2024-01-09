@@ -17,6 +17,11 @@ Main (unreleased)
   - [GO-2023-2412](https://github.com/advisories/GHSA-7ww5-4wqc-m92c)
   - [CVE-2023-49568](https://github.com/advisories/GHSA-mw99-9chc-xw7r)
 
+### Bugfixes
+
+- Fixes handling of an unexpeced EOF from S3 in `remote.s3` by erroring if an EOF
+  is encountered before Content-Length number of bytes have been read. (@spartan0x117)
+
 ### Other changes
 
 - Removed support for Windows 2012 in line with Microsoft end of life. (@mattdurham)
