@@ -2,6 +2,8 @@
 
 package main
 
+// TODO: refactor the tests to reduce redundancy.
+
 import (
 	"fmt"
 	"strconv"

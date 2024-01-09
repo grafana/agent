@@ -23,7 +23,7 @@ func init() {
 	})
 }
 
-// Arguments olds values which are used to configure the module.git component.
+// Arguments holds values which are used to configure the module.git component.
 type Arguments struct {
 	RemoteGitArguments remote_git.Arguments `river:",squash"`
 

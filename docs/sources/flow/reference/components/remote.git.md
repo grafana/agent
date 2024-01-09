@@ -45,12 +45,11 @@ The `path` attribute must be set to a path which is accessible from the root of
 the repository, such as `FILE_NAME.river` or `FOLDER_NAME/FILE_NAME.river`.
 
 If `pull_frequency` is not `"0s"`, the Git repository will be pulled for
-updates at the frequency specified, causing the loaded module to update with
-the retrieved changes.
+updates at the frequency specified.
 
 ## Blocks
 
-The following blocks are supported inside the definition of `module.git`:
+The following blocks are supported inside the definition of `remote.git`:
 
 Hierarchy        | Block      | Description | Required
 ---------------- | ---------- | ----------- | --------
