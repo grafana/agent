@@ -50,7 +50,7 @@ Name | Type | Description | Default | Required
 
 The `repository` attribute must be set to a repository address that would be
 recognized by Git with a `git clone REPOSITORY_ADDRESS` command, such as
-`htts://github.com/grafana/agent.git`.
+`https://github.com/grafana/agent.git`.
 
 The `revision` attribute, when provided, must be set to a valid branch, tag, or
 commit SHA within the repository.
@@ -60,7 +60,7 @@ the repository, such as `FILE_NAME.river` or `FOLDER_NAME/FILE_NAME.river`.
 
 If `pull_frequency` is not `"0s"`, the Git repository will be pulled for
 updates at the frequency specified, causing the loaded module to update with
-the retrieved changes.
+the retrieved changes. If it is set to `"0s"`, the Git repository will be pulled once on init.
 
 ## Blocks
 

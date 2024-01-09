@@ -57,7 +57,7 @@ func (args *Arguments) SetToDefault() {
 // Validate implements river.Validator.
 func (args *Arguments) Validate() error {
 	if args.PullFrequency < 0 {
-		return fmt.Errorf("poll_frequency cannot be negative")
+		return fmt.Errorf("poll_frequency cannot be negative %s", args.PullFrequency)
 	}
 	return nil
 }
@@ -98,16 +98,8 @@ func New(o component.Options, args Arguments) (*Component, error) {
 			UpdateTime: time.Now(),
 		},
 	}
-
-	// Only acknowledge the error from Update if it's not a
-	// vcs.UpdateFailedError; vcs.UpdateFailedError means that the Git repo
-	// exists, but we were unable to update it. It makes sense to retry on the next poll and it may succeed.
 	if err := c.Update(args); err != nil {
-		if errors.As(err, &vcs.UpdateFailedError{}) {
-			level.Error(c.log).Log("msg", "failed to update repository", "err", err)
-		} else {
-			return nil, err
-		}
+		return nil, err
 	}
 	return c, nil
 }
@@ -125,43 +117,54 @@ func (c *Component) Run(ctx context.Context) error {
 	for {
 		select {
 		case <-ctx.Done():
+			if ticker != nil {
+				ticker.Stop()
+			}
 			return nil
 
 		case <-c.argsChanged:
 			c.mut.Lock()
-			{
-				level.Info(c.log).Log("msg", "updating repository pull frequency", "new_frequency", c.args.PullFrequency)
-
-				if c.args.PullFrequency > 0 {
-					if ticker == nil {
-						ticker = time.NewTicker(c.args.PullFrequency)
-						tickerC = ticker.C
-					} else {
-						ticker.Reset(c.args.PullFrequency)
-					}
-				} else {
-					if ticker != nil {
-						ticker.Stop()
-					}
-					ticker = nil
-					tickerC = nil
-				}
-			}
+			pullFrequency := c.args.PullFrequency
 			c.mut.Unlock()
+			ticker, tickerC = c.updateTicker(pullFrequency, ticker, tickerC)
 
 		case <-tickerC:
-			level.Info(c.log).Log("msg", "updating repository", "new_frequency", c.args.PullFrequency)
+			level.Info(c.log).Log("msg", "updating repository")
 			c.tickPollFile(ctx)
 		}
 	}
 }
 
+func (c *Component) updateTicker(pullFrequency time.Duration, ticker *time.Ticker, tickerC <-chan time.Time) (*time.Ticker, <-chan time.Time) {
+	level.Info(c.log).Log("msg", "updating repository pull frequency", "new_frequency", pullFrequency)
+
+	if pullFrequency > 0 {
+		if ticker == nil {
+			ticker = time.NewTicker(pullFrequency)
+			tickerC = ticker.C
+		} else {
+			ticker.Reset(pullFrequency)
+		}
+		return ticker, tickerC
+	}
+
+	if ticker != nil {
+		ticker.Stop()
+	}
+	return nil, nil
+}
+
 func (c *Component) tickPollFile(ctx context.Context) {
 	c.mut.Lock()
 	err := c.pollFile(ctx, c.args)
+	pullFrequency := c.args.PullFrequency
 	c.mut.Unlock()
 
 	c.updateHealth(err)
+
+	if err != nil {
+		level.Error(c.log).Log("msg", "failed to update repository", "pullFrequency", pullFrequency, "err", err)
+	}
 }
 
 func (c *Component) updateHealth(err error) {
@@ -184,6 +187,9 @@ func (c *Component) updateHealth(err error) {
 }
 
 // Update implements component.Component.
+// Only acknowledge the error from Update if it's not a
+// vcs.UpdateFailedError; vcs.UpdateFailedError means that the Git repo
+// exists, but we were unable to update it. It makes sense to retry on the next poll and it may succeed.
 func (c *Component) Update(args component.Arguments) (err error) {
 	defer func() {
 		c.updateHealth(err)
@@ -222,7 +228,12 @@ func (c *Component) Update(args component.Arguments) (err error) {
 	}
 
 	if err := c.pollFile(context.Background(), newArgs); err != nil {
-		return err
+		if errors.As(err, &vcs.UpdateFailedError{}) {
+			level.Error(c.log).Log("msg", "failed to poll file from repository", "err", err)
+			c.updateHealth(err)
+		} else {
+			return err
+		}
 	}
 
 	// Schedule an update for handling the changed arguments.

@@ -45,7 +45,7 @@ The `path` attribute must be set to a path which is accessible from the root of
 the repository, such as `FILE_NAME.river` or `FOLDER_NAME/FILE_NAME.river`.
 
 If `pull_frequency` is not `"0s"`, the Git repository will be pulled for
-updates at the frequency specified.
+updates at the frequency specified. If it is set to `"0s"`, the Git repository will be pulled once on init.
 
 ## Blocks
 

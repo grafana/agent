@@ -66,6 +66,7 @@ func New(o component.Options, args Arguments) (*Component, error) {
 		args: args,
 		mod:  m,
 	}
+	defer c.isCreated.Store(true)
 
 	c.managedRemoteGit, err = c.newManagedLocalComponent(o)
 	if err != nil {
@@ -138,7 +139,15 @@ func (c *Component) Update(args component.Arguments) error {
 
 // CurrentHealth implements component.HealthComponent.
 func (c *Component) CurrentHealth() component.Health {
-	return component.LeastHealthy(c.managedRemoteGit.CurrentHealth(), c.mod.CurrentHealth())
+	leastHealthy := component.LeastHealthy(
+		c.managedRemoteGit.CurrentHealth(),
+		c.mod.CurrentHealth(),
+	)
+
+	if leastHealthy.Health == component.HealthTypeHealthy {
+		return c.mod.CurrentHealth()
+	}
+	return leastHealthy
 }
 
 // getArgs is a goroutine safe way to get args
