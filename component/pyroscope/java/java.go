@@ -25,7 +25,7 @@ func init() {
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			a := args.(Arguments)
-			var profiler = asprof.NewProfiler("/tmp")
+			var profiler = asprof.NewProfiler(a.TmpDir)
 			err := profiler.ExtractDistributions()
 			if err != nil {
 				return nil, fmt.Errorf("extract async profiler: %w", err)
