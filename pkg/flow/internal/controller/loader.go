@@ -491,7 +491,7 @@ func (l *Loader) populateComponentNodes(g *dag.Graph, componentBlocks []*ast.Blo
 		blockMap[id] = block
 
 		// Check the graph from the previous call to Load to see we can copy an
-		// existing instance of ComponentNode and DeclareComponentNode.
+		// existing instance of NativeComponentNode and DeclareComponentNode.
 		if exist := l.graph.GetByID(id); exist != nil {
 			switch v := exist.(type) {
 			case *NativeComponentNode:
@@ -512,8 +512,8 @@ func (l *Loader) populateComponentNodes(g *dag.Graph, componentBlocks []*ast.Blo
 				})
 				continue
 			}
-			namespace := strings.Split(componentName, ".")[0]
-			if l.shouldAddDeclareComponentNode(namespace, componentName) {
+			firstPart := strings.Split(componentName, ".")[0]
+			if l.shouldAddDeclareComponentNode(firstPart, componentName) {
 				dc := NewDeclareComponentNode(l.globals, block, l.getModuleInfo)
 				g.Add(dc)
 			} else {
@@ -537,17 +537,12 @@ func (l *Loader) populateComponentNodes(g *dag.Graph, componentBlocks []*ast.Blo
 	return diags
 }
 
-func (l *Loader) shouldAddDeclareComponentNode(namespace, componentName string) bool {
-	if _, exists := l.declareNodes[namespace]; exists {
-		return true
-	}
-	if _, exists := l.importNodes[namespace]; exists {
-		return true
-	}
-	if _, exists := l.parentModuleDependencies[componentName]; exists {
-		return true
-	}
-	return false
+func (l *Loader) shouldAddDeclareComponentNode(firstPart, componentName string) bool {
+	_, declareExists := l.declareNodes[firstPart]
+	_, importExists := l.importNodes[firstPart]
+	_, moduleDepExists := l.parentModuleDependencies[componentName]
+
+	return declareExists || importExists || moduleDepExists
 }
 
 func (l *Loader) wireModuleDependencies(g *dag.Graph, dc *DeclareComponentNode, declareNode *DeclareNode) error {
