@@ -13,7 +13,7 @@ title: loki.source.kubernetes
 
 # loki.source.kubernetes
 
-{{< docs/shared lookup="flow/stability/experimental.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/stability/experimental.md" source="agent" version="<AGENT_VERSION>" >}}
 
 `loki.source.kubernetes` tails logs from Kubernetes containers using the
 Kubernetes API. It has the following benefits over `loki.source.file`:
@@ -21,7 +21,7 @@ Kubernetes API. It has the following benefits over `loki.source.file`:
 * It works without a privileged container.
 * It works without a root user.
 * It works without needing access to the filesystem of the Kubernetes node.
-* It doesn't require a DaemonSet to collect logs, so one agent could collect
+* It doesn't require a DaemonSet to collect logs, so one {{< param "PRODUCT_ROOT_NAME" >}} could collect
   logs for the whole cluster.
 
 > **NOTE**: Because `loki.source.kubernetes` uses the Kubernetes API to tail
@@ -83,7 +83,7 @@ client > authorization | [authorization][] | Configure generic authorization to 
 client > oauth2 | [oauth2][] | Configure OAuth2 for authenticating to the endpoint. | no
 client > oauth2 > tls_config | [tls_config][] | Configure TLS settings for connecting to the endpoint. | no
 client > tls_config | [tls_config][] | Configure TLS settings for connecting to the endpoint. | no
-clustering | [clustering][] | Configure the component for when the Agent is running in clustered mode. | no
+clustering | [clustering][] | Configure the component for when {{< param "PRODUCT_NAME" >}} is running in clustered mode. | no
 
 The `>` symbol indicates deeper levels of nesting. For example, `client >
 basic_auth` refers to a `basic_auth` block defined
@@ -100,7 +100,7 @@ inside a `client` block.
 
 The `client` block configures the Kubernetes client used to tail logs from
 containers. If the `client` block isn't provided, the default in-cluster
-configuration with the service account of the running Grafana Agent pod is
+configuration with the service account of the running {{< param "PRODUCT_ROOT_NAME" >}} pod is
 used.
 
 The following arguments are supported:
@@ -124,19 +124,19 @@ Name | Type | Description | Default | Required
 
 ### basic_auth block
 
-{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### authorization block
 
-{{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### oauth2 block
 
-{{< docs/shared lookup="flow/reference/components/oauth2-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/oauth2-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### tls_config block
 
-{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### clustering (beta)
 
@@ -144,11 +144,11 @@ Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `enabled` | `bool` | Distribute log collection with other cluster nodes. | | yes
 
-When the agent is [using clustering][], and `enabled` is set to true, then this
+When {{< param "PRODUCT_ROOT_NAME" >}} is [using clustering][], and `enabled` is set to true, then this
 `loki.source.kubernetes` component instance opts-in to participating in the
 cluster to distribute the load of log collection between all cluster nodes.
 
-If the agent is _not_ running in clustered mode, then the block is a no-op and
+If {{< param "PRODUCT_ROOT_NAME" >}} is _not_ running in clustered mode, then the block is a no-op and
 `loki.source.kubernetes` collects logs from every target it receives in its
 arguments.
 
@@ -199,3 +199,22 @@ loki.write "local" {
   }
 }
 ```
+
+<!-- START GENERATED COMPATIBLE COMPONENTS -->
+
+## Compatible components
+
+`loki.source.kubernetes` can accept arguments from the following components:
+
+- Components that export [Targets]({{< relref "../compatibility/#targets-exporters" >}})
+- Components that export [Loki `LogsReceiver`]({{< relref "../compatibility/#loki-logsreceiver-exporters" >}})
+
+
+{{% admonition type="note" %}}
+
+Connecting some components may not be sensible or components may require further configuration to make the 
+connection work correctly. Refer to the linked documentation for more details.
+
+{{% /admonition %}}
+
+<!-- END GENERATED COMPATIBLE COMPONENTS -->

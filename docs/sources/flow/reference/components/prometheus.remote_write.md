@@ -127,31 +127,31 @@ metrics fails.
 
 ### basic_auth block
 
-{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### authorization block
 
-{{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/authorization-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### oauth2 block
 
-{{< docs/shared lookup="flow/reference/components/oauth2-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/oauth2-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### sigv4 block
 
-{{< docs/shared lookup="flow/reference/components/sigv4-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/sigv4-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### azuread block
 
-{{< docs/shared lookup="flow/reference/components/azuread-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/azuread-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### managed_identity block
 
-{{< docs/shared lookup="flow/reference/components/managed_identity-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/managed_identity-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### tls_config block
 
-{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### queue_config block
 
@@ -165,6 +165,7 @@ Name | Type | Description | Default | Required
 `min_backoff` | `duration` | Initial retry delay. The backoff time gets doubled for each retry. | `"30ms"` | no
 `max_backoff` | `duration` | Maximum retry delay. | `"5s"` | no
 `retry_on_http_429` | `bool` | Retry when an HTTP 429 status code is received. | `true` | no
+`sample_age_limit` | `duration` | Maximum age of samples to send. | `"0s"` | no
 
 Each queue then manages a number of concurrent _shards_ which is responsible
 for sending a fraction of data to their respective endpoints. The number of
@@ -191,6 +192,10 @@ responses should be treated as recoverable errors; other `HTTP 4xx` status code
 responses are never considered recoverable errors. When `retry_on_http_429` is
 enabled, `Retry-After` response headers from the servers are honored.
 
+The `sample_age_limit` argument specifies the maximum age of samples to send. Any
+samples older than the limit are dropped and won't be sent to the remote storage.
+The default value is `0s`, which means that all samples are sent (feature is disabled).
+
 ### metadata_config block
 
 Name | Type | Description | Default | Required
@@ -201,7 +206,7 @@ Name | Type | Description | Default | Required
 
 ### write_relabel_config block
 
-{{< docs/shared lookup="flow/reference/components/rule-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/rule-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### wal block
 
@@ -220,7 +225,7 @@ The WAL serves two primary purposes:
 * Populate in-memory cache after a process restart.
 
 The WAL is located inside a component-specific directory relative to the
-storage path Grafana Agent is configured to use. See the
+storage path {{< param "PRODUCT_NAME" >}} is configured to use. See the
 [`agent run` documentation][run] for how to change the storage path.
 
 The `truncate_frequency` argument configures how often to clean up the WAL.
@@ -242,7 +247,7 @@ The following fields are exported and can be referenced by other components:
 
 Name | Type | Description
 ---- | ---- | -----------
-`receiver` | `receiver` | A value which other components can use to send metrics to.
+`receiver` | `MetricsReceiver` | A value which other components can use to send metrics to.
 
 ## Component health
 
@@ -355,7 +360,7 @@ prometheus.remote_write "staging" {
 // prometheus.remote_write component.
 prometheus.scrape "demo" {
   targets = [
-    // Collect metrics from Grafana Agent's default HTTP listen address.
+    // Collect metrics from the default HTTP listen address.
     {"__address__" = "127.0.0.1:12345"},
   ]
   forward_to = [prometheus.remote_write.staging.receiver]
@@ -374,7 +379,7 @@ prometheus.remote_write "staging" {
     url = "http://mimir:9009/api/v1/push"
 
     headers = {
-      "X-Scope-OrgID" = "staging"
+      "X-Scope-OrgID" = "staging",
     }
   }
 }
@@ -403,5 +408,21 @@ Any labels that start with `__` will be removed before sending to the endpoint.
 
 ## Data retention
 
-{{< docs/shared source="agent" lookup="/wal-data-retention.md" version="<AGENT VERSION>" >}}
+{{< docs/shared source="agent" lookup="/wal-data-retention.md" version="<AGENT_VERSION>" >}}
 
+<!-- START GENERATED COMPATIBLE COMPONENTS -->
+
+## Compatible components
+
+`prometheus.remote_write` has exports that can be consumed by the following components:
+
+- Components that consume [Prometheus `MetricsReceiver`]({{< relref "../compatibility/#prometheus-metricsreceiver-consumers" >}})
+
+{{% admonition type="note" %}}
+
+Connecting some components may not be sensible or components may require further configuration to make the 
+connection work correctly. Refer to the linked documentation for more details.
+
+{{% /admonition %}}
+
+<!-- END GENERATED COMPATIBLE COMPONENTS -->

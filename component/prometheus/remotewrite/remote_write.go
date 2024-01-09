@@ -21,6 +21,7 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/internal/agentseed"
 	"github.com/grafana/agent/internal/useragent"
 	"github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/grafana/agent/pkg/metrics/wal"
@@ -256,6 +257,13 @@ func (c *Component) Update(newConfig component.Arguments) error {
 	convertedConfig, err := convertConfigs(cfg)
 	if err != nil {
 		return err
+	}
+	uid := agentseed.Get().UID
+	for _, cfg := range convertedConfig.RemoteWriteConfigs {
+		if cfg.Headers == nil {
+			cfg.Headers = map[string]string{}
+		}
+		cfg.Headers[agentseed.HeaderName] = uid
 	}
 	err = c.remoteStore.ApplyConfig(convertedConfig)
 	if err != nil {

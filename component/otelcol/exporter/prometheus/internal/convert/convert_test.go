@@ -2,6 +2,7 @@ package convert_test
 
 import (
 	"context"
+	"encoding/json"
 	"testing"
 
 	"github.com/grafana/agent/component/otelcol/exporter/prometheus/internal/convert"
@@ -18,12 +19,13 @@ func TestConverter(t *testing.T) {
 		input  string
 		expect string
 
-		showTimestamps     bool
-		includeTargetInfo  bool
-		includeScopeInfo   bool
-		includeScopeLabels bool
-		addMetricSuffixes  bool
-		enableOpenMetrics  bool
+		showTimestamps                bool
+		includeTargetInfo             bool
+		includeScopeInfo              bool
+		includeScopeLabels            bool
+		addMetricSuffixes             bool
+		enableOpenMetrics             bool
+		resourceToTelemetryConversion bool
 	}{
 		{
 			name: "Gauge",
@@ -838,6 +840,274 @@ func TestConverter(t *testing.T) {
 			addMetricSuffixes: true,
 			enableOpenMetrics: true,
 		},
+		{
+			name: "Gauge: convert resource attributes to metric label",
+			input: `{
+				"resource_metrics": [{
+					"resource": {
+						"attributes": [{
+							"key": "service.name",
+							"value": { "stringValue": "myservice" }
+						}, {
+							"key": "service.instance.id",
+							"value": { "stringValue": "instance" }
+						}, {
+							"key": "raw",
+							"value": { "stringValue": "test" }
+						},{
+							"key": "foo.one",
+							"value": { "stringValue": "foo" }
+						}, {
+							"key": "bar.one",
+							"value": { "stringValue": "bar" }
+						}]
+					},
+					"scope_metrics": [{
+						"metrics": [{
+							"name": "test_metric_gauge",
+							"gauge": {
+								"data_points": [{
+									"as_double": 1234.56
+								}]
+							}
+						}]
+					}]
+				}]
+			}`,
+			expect: `
+				# TYPE test_metric_gauge gauge
+				test_metric_gauge{bar_one="bar",foo_one="foo",instance="instance",service_instance_id="instance",job="myservice",service_name="myservice",raw="test"} 1234.56
+			`,
+			enableOpenMetrics:             true,
+			resourceToTelemetryConversion: true,
+		},
+		{
+			name: "Gauge: NOT convert resource attributes to metric label",
+			input: `{
+				"resource_metrics": [{
+					"resource": {
+						"attributes": [{
+							"key": "service.name",
+							"value": { "stringValue": "myservice" }
+						}, {
+							"key": "service.instance.id",
+							"value": { "stringValue": "instance" }
+						}, {
+							"key": "raw",
+							"value": { "stringValue": "test" }
+						},{
+							"key": "foo.one",
+							"value": { "stringValue": "foo" }
+						}, {
+							"key": "bar.one",
+							"value": { "stringValue": "bar" }
+						}]
+					},
+					"scope_metrics": [{
+						"metrics": [{
+							"name": "test_metric_gauge",
+							"gauge": {
+								"data_points": [{
+									"as_double": 1234.56
+								}]
+							}
+						}]
+					}]
+				}]
+			}`,
+			expect: `
+				# TYPE test_metric_gauge gauge
+				test_metric_gauge{instance="instance",job="myservice"} 1234.56
+			`,
+			enableOpenMetrics:             true,
+			resourceToTelemetryConversion: false,
+		},
+		{
+			name: "Summary: convert resource attributes to metric label",
+			input: `{
+				"resource_metrics": [{
+					"resource": {
+						"attributes": [{
+							"key": "service.name",
+							"value": { "stringValue": "myservice" }
+						}, {
+							"key": "service.instance.id",
+							"value": { "stringValue": "instance" }
+						}, {
+							"key": "raw",
+							"value": { "stringValue": "test" }
+						},{
+							"key": "foo.one",
+							"value": { "stringValue": "foo" }
+						}, {
+							"key": "bar.one",
+							"value": { "stringValue": "bar" }
+						}]
+					},
+					"scope_metrics": [{
+						"metrics": [{
+							"name": "test_metric_summary",
+							"unit": "seconds",
+							"summary": {
+								"data_points": [{
+									"start_time_unix_nano": 1000000000,
+									"time_unix_nano": 1000000000,
+									"count": 333,
+									"sum": 100,
+									"quantile_values": [
+										{ "quantile": 0, "value": 100 },
+										{ "quantile": 0.5, "value": 400 },
+										{ "quantile": 1, "value": 500 }
+									]
+								}]
+							}
+						}]
+					}]
+				}]
+			}`,
+			expect: `
+				# TYPE test_metric_summary summary
+				test_metric_summary{bar_one="bar",foo_one="foo",instance="instance",service_instance_id="instance",job="myservice",service_name="myservice",raw="test",quantile="0.0"} 100.0
+				test_metric_summary{bar_one="bar",foo_one="foo",instance="instance",service_instance_id="instance",job="myservice",service_name="myservice",raw="test",quantile="0.5"} 400.0
+				test_metric_summary{bar_one="bar",foo_one="foo",instance="instance",service_instance_id="instance",job="myservice",service_name="myservice",raw="test",quantile="1.0"} 500.0
+				test_metric_summary_sum{bar_one="bar",foo_one="foo",instance="instance",service_instance_id="instance",job="myservice",service_name="myservice",raw="test"} 100.0
+				test_metric_summary_count{bar_one="bar",foo_one="foo",instance="instance",service_instance_id="instance",job="myservice",service_name="myservice",raw="test"} 333
+			`,
+			enableOpenMetrics:             true,
+			resourceToTelemetryConversion: true,
+		},
+		{
+			name: "Histogram: convert resource attributes to metric label",
+			input: `{
+				"resource_metrics": [{
+					"resource": {
+						"attributes": [{
+							"key": "service.name",
+							"value": { "stringValue": "myservice" }
+						}, {
+							"key": "service.instance.id",
+							"value": { "stringValue": "instance" }
+						}, {
+							"key": "raw",
+							"value": { "stringValue": "test" }
+						},{
+							"key": "foo.one",
+							"value": { "stringValue": "foo" }
+						}, {
+							"key": "bar.one",
+							"value": { "stringValue": "bar" }
+						}]
+					},
+					"scope_metrics": [{
+						"metrics": [
+							{
+								"name": "test_metric_histogram",
+								"unit": "seconds",
+								"histogram": {
+									"aggregation_temporality": 2,
+									"data_points": [{
+										"start_time_unix_nano": 1000000000,
+										"time_unix_nano": 1000000000,
+										"count": 333,
+										"sum": 100,
+										"bucket_counts": [0, 111, 0, 222],
+										"explicit_bounds": [0.25, 0.5, 0.75, 1.0],
+										"exemplars":[
+											{
+												"time_unix_nano": 1000000001,
+												"as_double": 0.3,
+												"span_id": "aaaaaaaaaaaaaaaa",
+												"trace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											},
+											{
+												"time_unix_nano": 1000000003,
+												"as_double": 1.5,
+												"span_id": "cccccccccccccccc",
+												"trace_id": "cccccccccccccccccccccccccccccccc"
+											},
+											{
+												"time_unix_nano": 1000000002,
+												"as_double": 0.5,
+												"span_id": "bbbbbbbbbbbbbbbb",
+												"trace_id": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+											}
+										]
+									}]
+								}
+							}
+						]
+					}]
+				}]
+			}`,
+			expect: `
+				# TYPE test_metric_histogram histogram
+				test_metric_histogram_bucket{bar_one="bar",foo_one="foo",instance="instance",service_instance_id="instance",job="myservice",service_name="myservice",raw="test",le="0.25"} 0
+				test_metric_histogram_bucket{bar_one="bar",foo_one="foo",instance="instance",service_instance_id="instance",job="myservice",service_name="myservice",raw="test",le="0.5"} 111 # {span_id="aaaaaaaaaaaaaaaa",trace_id="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"} 0.3
+				test_metric_histogram_bucket{bar_one="bar",foo_one="foo",instance="instance",service_instance_id="instance",job="myservice",service_name="myservice",raw="test",le="0.75"} 111 # {span_id="bbbbbbbbbbbbbbbb",trace_id="bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"} 0.5
+				test_metric_histogram_bucket{bar_one="bar",foo_one="foo",instance="instance",service_instance_id="instance",job="myservice",service_name="myservice",raw="test",le="1.0"} 333
+				test_metric_histogram_bucket{bar_one="bar",foo_one="foo",instance="instance",service_instance_id="instance",job="myservice",service_name="myservice",raw="test",le="+Inf"} 333 # {span_id="cccccccccccccccc",trace_id="cccccccccccccccccccccccccccccccc"} 1.5
+				test_metric_histogram_sum{bar_one="bar",foo_one="foo",instance="instance",service_instance_id="instance",job="myservice",service_name="myservice",raw="test"} 100.0
+				test_metric_histogram_count{bar_one="bar",foo_one="foo",instance="instance",service_instance_id="instance",job="myservice",service_name="myservice",raw="test"} 333
+			`,
+			enableOpenMetrics:             true,
+			resourceToTelemetryConversion: true,
+		},
+		{
+			name: "Monotonic sum: convert resource attributes to metric label",
+			input: `{
+				"resource_metrics": [{
+					"resource": {
+						"attributes": [{
+							"key": "service.name",
+							"value": { "stringValue": "myservice" }
+						}, {
+							"key": "service.instance.id",
+							"value": { "stringValue": "instance" }
+						}, {
+							"key": "raw",
+							"value": { "stringValue": "test" }
+						},{
+							"key": "foo.one",
+							"value": { "stringValue": "foo" }
+						}, {
+							"key": "bar.one",
+							"value": { "stringValue": "bar" }
+						}]
+					},
+					"scope_metrics": [{
+						"metrics": [
+							{
+								"name": "test_metric_mono_sum_total",
+								"unit": "seconds",
+								"sum": {
+									"aggregation_temporality": 2,
+									"is_monotonic": true,
+									"data_points": [{
+										"start_time_unix_nano": 1000000000,
+										"time_unix_nano": 1000000000,
+										"as_double": 15,
+										"exemplars":[
+											{
+												"time_unix_nano": 1000000001,
+												"as_double": 0.3,
+												"span_id": "aaaaaaaaaaaaaaaa",
+												"trace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+											}
+										]
+									}]
+								}
+							}
+						]
+					}]
+				}]
+			}`,
+			expect: `
+				# TYPE test_metric_mono_sum counter
+				test_metric_mono_sum_total{bar_one="bar",foo_one="foo",instance="instance",service_instance_id="instance",job="myservice",service_name="myservice",raw="test"} 15.0 # {span_id="aaaaaaaaaaaaaaaa",trace_id="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"} 0.3
+			`,
+			enableOpenMetrics:             true,
+			resourceToTelemetryConversion: true,
+		},
 	}
 
 	decoder := &pmetric.JSONUnmarshaler{}
@@ -851,10 +1121,11 @@ func TestConverter(t *testing.T) {
 
 			l := util.TestLogger(t)
 			conv := convert.New(l, appenderAppendable{Inner: &app}, convert.Options{
-				IncludeTargetInfo:  tc.includeTargetInfo,
-				IncludeScopeInfo:   tc.includeScopeInfo,
-				IncludeScopeLabels: tc.includeScopeLabels,
-				AddMetricSuffixes:  tc.addMetricSuffixes,
+				IncludeTargetInfo:             tc.includeTargetInfo,
+				IncludeScopeInfo:              tc.includeScopeInfo,
+				IncludeScopeLabels:            tc.includeScopeLabels,
+				AddMetricSuffixes:             tc.addMetricSuffixes,
+				ResourceToTelemetryConversion: tc.resourceToTelemetryConversion,
 			})
 			require.NoError(t, conv.ConsumeMetrics(context.Background(), payload))
 
@@ -863,6 +1134,201 @@ func TestConverter(t *testing.T) {
 
 			c := testappender.Comparer{OpenMetrics: tc.enableOpenMetrics}
 			require.NoError(t, c.Compare(families, tc.expect))
+		})
+	}
+}
+
+// Exponential histograms don't have a text format representation.
+// In this test we are comparing the JSON format.
+func TestConverterExponentialHistograms(t *testing.T) {
+	tt := []struct {
+		name   string
+		input  string
+		expect string
+	}{
+		{
+			name: "Exponential Histogram",
+			input: `{
+			"resource_metrics": [{
+				"scope_metrics": [{
+					"metrics": [{
+						"name": "test_exponential_histogram",
+						"exponential_histogram": {
+							"aggregation_temporality": 2,
+							"data_points": [{
+								"start_time_unix_nano": 1000000000,
+								"time_unix_nano": 1000000000,
+								"scale": 0,
+								"count": 11,
+								"sum": 158.63,
+								"positive": {
+									"offset": -1,
+									"bucket_counts": [2, 1, 3, 2, 0, 0, 3]
+								},
+								"exemplars":[
+									{
+										"time_unix_nano": 1000000001,
+										"as_double": 3.0,
+										"span_id": "aaaaaaaaaaaaaaaa",
+										"trace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+									},
+									{
+										"time_unix_nano": 1000000003,
+										"as_double": 1.0,
+										"span_id": "cccccccccccccccc",
+										"trace_id": "cccccccccccccccccccccccccccccccc"
+									},
+									{
+										"time_unix_nano": 1000000002,
+										"as_double": 1.5,
+										"span_id": "bbbbbbbbbbbbbbbb",
+										"trace_id": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+									}
+								]
+							}]
+						}
+					}]
+				}]
+			}]
+		}`,
+			// The tests only allow one exemplar/series because it uses a map[series]exemplar as storage. Therefore only the exemplar "bbbbbbbbbbbbbbbb" is stored.
+			expect: `{
+				"bucket": [
+				  {
+					"exemplar": {
+					  "label": [
+						{
+						  "name": "span_id",
+						  "value": "bbbbbbbbbbbbbbbb"
+						},
+						{
+						  "name": "trace_id",
+						  "value": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+						}
+					  ],
+					  "value": 1.5
+					}
+				  }
+				],
+				"positive_delta": [2, -1, 2, -1, -2, 0, 3],
+				"positive_span": [
+				  {
+					"length": 7,
+					"offset": 0
+				  }
+				],
+				"sample_count": 11,
+				"sample_sum": 158.63,
+				"schema": 0,
+				"zero_count": 0,
+				"zero_threshold": 1e-128
+			  }`,
+		},
+		{
+			name: "Exponential Histogram 2",
+			input: `{
+			"resource_metrics": [{
+				"scope_metrics": [{
+					"metrics": [{
+						"name": "test_exponential_histogram_2",
+						"exponential_histogram": {
+							"aggregation_temporality": 2,
+							"data_points": [{
+								"start_time_unix_nano": 1000000000,
+								"time_unix_nano": 1000000000,
+								"scale": 2,
+								"count": 19,
+								"sum": 200,
+								"zero_count" : 5,
+								"zero_threshold": 0.1,
+								"positive": {
+									"offset": 3,
+									"bucket_counts": [0, 0, 0, 0, 2, 1, 1, 0, 3, 0, 0]
+								},
+								"negative": {
+									"offset": 0,
+									"bucket_counts": [0, 4, 0, 2, 3, 0, 0, 3]
+								},
+								"exemplars":[
+									{
+										"time_unix_nano": 1000000001,
+										"as_double": 3.0,
+										"span_id": "aaaaaaaaaaaaaaaa",
+										"trace_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+									}
+								]
+							}]
+						}
+					}]
+				}]
+			}]
+		}`,
+			// zero_threshold is set to 1e-128 because dp.ZeroThreshold() is not yet available.
+			expect: `{
+				"bucket": [
+				  {
+					"exemplar": {
+					  "label": [
+						{
+						  "name": "span_id",
+						  "value": "aaaaaaaaaaaaaaaa"
+						},
+						{
+						  "name": "trace_id",
+						  "value": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+						}
+					  ],
+					  "value": 3
+					}
+				  }
+				],
+				"negative_delta": [0, 4, -4, 2, 1, -3, 0, 3],
+				"negative_span": [
+				  {
+					"length": 8,
+					"offset": 1
+				  }
+				],
+				"positive_delta": [2, -1, 0, -1, 3, -3, 0],
+				"positive_span": [
+				  {
+					"length": 0,
+					"offset": 4
+				  },
+				  {
+					"length": 7,
+					"offset": 4
+				  }
+				],
+				"sample_count": 19,
+				"sample_sum": 200,
+				"schema": 2,
+				"zero_count": 5,
+				"zero_threshold": 1e-128
+			  }`,
+		},
+	}
+	decoder := &pmetric.JSONUnmarshaler{}
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			payload, err := decoder.UnmarshalMetrics([]byte(tc.input))
+			require.NoError(t, err)
+
+			var app testappender.Appender
+			l := util.TestLogger(t)
+			conv := convert.New(l, appenderAppendable{Inner: &app}, convert.Options{})
+			require.NoError(t, conv.ConsumeMetrics(context.Background(), payload))
+
+			families, err := app.MetricFamilies()
+			require.NoError(t, err)
+
+			require.NotEmpty(t, families)
+			require.NotNil(t, families[0])
+			require.NotEmpty(t, families[0].Metric)
+			require.NotNil(t, families[0].Metric[0].Histogram)
+			histJsonRep, err := json.Marshal(families[0].Metric[0].Histogram)
+			require.NoError(t, err)
+			require.JSONEq(t, string(histJsonRep), tc.expect)
 		})
 	}
 }

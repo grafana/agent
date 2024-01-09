@@ -3,6 +3,7 @@ controller:
   type: statefulset
   autoscaling:
     enabled: true
+  enableStatefulSetAutoDeletePVC: true
 agent:
   resources:
     requests:

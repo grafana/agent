@@ -1,6 +1,6 @@
 prometheus.remote_write "metrics_integrations" {
 	endpoint {
-		name = "integrations-717d0f"
+		name = "integrations-ce3432"
 		url  = "https://region.grafana.net/api/prom/push"
 
 		basic_auth {
@@ -37,7 +37,6 @@ loki.relabel "logs_integrations_integrations_windows_exporter_application" {
 		source_labels = ["computer"]
 		target_label  = "agent_hostname"
 	}
-	max_cache_size = 0
 }
 
 loki.source.windowsevent "logs_integrations_integrations_windows_exporter_application" {
@@ -75,7 +74,6 @@ loki.relabel "logs_integrations_integrations_windows_exporter_system" {
 		source_labels = ["computer"]
 		target_label  = "agent_hostname"
 	}
-	max_cache_size = 0
 }
 
 loki.source.windowsevent "logs_integrations_integrations_windows_exporter_system" {

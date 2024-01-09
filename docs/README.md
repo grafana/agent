@@ -1,14 +1,15 @@
 # Grafana Agent Documentation
 
-This directory contains documentation for Grafana Agent. It is split into two
-parts:
+This directory contains documentation for Grafana Agent. It is split into the
+following parts:
 
-* `user/`: Documentation for users. This directory is hosted on
-  [grafana.com/docs/agent](https://grafana.com/docs/agent/latest/) and we
-  recommend interacting with it there instead of viewing the markdown on
+* `sources/`: Source of user-facing documentation. This directory is hosted on
+  [grafana.com/docs/agent](https://grafana.com/docs/agent/latest/), and we
+  recommend viewing it there instead of the markdown on
   GitHub.
 * `developer/`: Documentation for contributors and maintainers.
 * `rfcs/`: RFCs for proposals relating to Grafana Agent.
+* `generator/`: Code for generating some parts of the documentation.
 
 ## Preview the website
 
@@ -21,9 +22,13 @@ First, inside the `docs/` folder run `make check-cloudwatch-integration` to veri
 
 If the check fails, then the doc supported services list should be updated. For that, run `make generate-cloudwatch-integration` to get the updated list, which should replace the old one in [the docs](./sources/static/configuration/integrations/cloudwatch-exporter-config.md).
 
+## Update generated reference docs
+
+Some sections of Grafana Agent Flow reference documentation are automatically generated. To update them, run `make generate-docs`.
+
 ### Community Projects
 
-Below is a list of community-led projects for working with Grafana Agent. These projects are not maintained or supported by Grafana Labs.
+The following is a list of community-led projects for working with Grafana Agent. These projects are not maintained or supported by Grafana Labs.
 
 #### Helm (Kubernetes Deployment)
 

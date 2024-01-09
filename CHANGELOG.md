@@ -10,9 +10,42 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+### Security fixes
+- Fixes following vulnerabilities (@hainenber)
+  - [GO-2023-2409](https://github.com/advisories/GHSA-mhpq-9638-x6pw)
+  - [GO-2023-2412](https://github.com/advisories/GHSA-7ww5-4wqc-m92c)
+  - [CVE-2023-49568](https://github.com/advisories/GHSA-mw99-9chc-xw7r)
+
+### Bugfixes
+
+- Fix performance issue where perf lib where clause was not being set, leading to timeouts in collecting metrics for windows_exporter. (@mattdurham)
+
+v0.39.0-rc.0 (2024-01-05)
+-------------------------
+
+### Breaking changes
+
+- `otelcol.receiver.prometheus` will drop all `otel_scope_info` metrics when converting them to OTLP. (@wildum)
+  - If the `otel_scope_info` metric has labels `otel_scope_name` and `otel_scope_version`,
+    their values will be used to set OTLP Instrumentation Scope name and  version respectively.
+  - Labels of `otel_scope_info` metrics other than `otel_scope_name` and `otel_scope_version`
+    are added as scope attributes with the matching name and version.
+
+- The `target` block in `prometheus.exporter.blackbox` requires a mandatory `name`
+  argument instead of a block label. (@hainenber)
+
+- In the azure exporter, dimension options will no longer be validated by the Azure API. (@kgeckhart)
+  - This change will not break any existing configurations and you can opt in to validation via the `validate_dimensions` configuration option.
+  - Before this change, pulling metrics for azure resources with variable dimensions required one configuration per metric + dimension combination to avoid an error.
+  - After this change, you can include all metrics and dimensions in a single configuration and the Azure APIs will only return dimensions which are valid for the various metrics.
+  
 ### Features
 
-- Agent Management: Introduce support for templated configuration. (@jcreixell)
+- A new `discovery.ovhcloud` component for discovering scrape targets on OVHcloud. (@ptodev)
+
+### Features
+
+- Allow specifying additional containers to run. (@juangom)
 
 ### Enhancements
 
@@ -31,6 +64,86 @@ Main (unreleased)
   Previously, only `remote.*` and `local.*` components could be referenced
   without a circular dependency. (@rfratto)
 
+- Add support for Basic Auth-secured connection with Elasticsearch cluster using `prometheus.exporter.elasticsearch`. (@hainenber)
+
+- Add a `resource_to_telemetry_conversion` argument to `otelcol.exporter.prometheus`
+  for converting resource attributes to Prometheus labels. (@hainenber)
+
+- `pyroscope.ebpf` support python on arm64 platforms. (@korniltsev)
+
+- `otelcol.receiver.prometheus` does not drop histograms without buckets anymore. (@wildum)
+
+- Added exemplars support to `otelcol.receiver.prometheus`. (@wildum)
+- `mimir.rules.kubernetes` may now retry its startup on failure. (@hainenber)
+
+- Added links between compatible components in the documentation to make it
+  easier to discover them. (@thampiotr)
+
+- Allow defining `HTTPClientConfig` for `discovery.ec2`. (@cmbrad)
+
+- The `remote.http` component can optionally define a request body. (@tpaschalis)
+
+- Added support for `loki.write` to flush WAL on agent shutdown. (@thepalbi)
+
+- Add support for `integrations-next` static to flow config conversion. (@erikbaranowski)
+
+- Add support for passing extra arguments to the static converter such as `-config.expand-env`. (@erikbaranowski)
+
+- Added 'country' mmdb-type to log pipeline-stage geoip. (@superstes)
+
+- Azure exporter enhancements for flow and static mode, (@kgeckhart)
+  - Allows for pulling metrics at the Azure subscription level instead of resource by resource
+  - Disable dimension validation by default to reduce the number of exporter instances needed for full dimension coverage
+
+- Add `max_cache_size` to `prometheus.relabel` to allow configurability instead of hard coded 100,000. (@mattdurham)
+
+- Add support for `http_sd_config` within a `scrape_config` for prometheus to flow config conversion. (@erikbaranowski)
+- `discovery.lightsail` now supports additional parameters for configuring HTTP client settings. (@ptodev)
+- Add `sample_age_limit` to remote_write config to drop samples older than a specified duration. (@marctc)
+
+- Handle paths in the Kubelet URL for `discovery.kubelet`. (@petewall)
+
+### Bugfixes
+
+- Update `pyroscope.ebpf` to fix a logical bug causing to profile to many kthreads instead of regular processes https://github.com/grafana/pyroscope/pull/2778 (@korniltsev)
+
+- Update `pyroscope.ebpf` to produce more optimal pprof profiles for python processes https://github.com/grafana/pyroscope/pull/2788 (@korniltsev)
+
+- In Static mode's `traces` subsystem, `spanmetrics` used to be generated prior to load balancing.
+  This could lead to inaccurate metrics. This issue only affects Agents using both `spanmetrics` and
+  `load_balancing`, when running in a load balanced cluster with more than one Agent instance. (@ptodev)
+
+- Fixes `loki.source.docker` a behavior that synced an incomplete list of targets to the tailer manager. (@FerdinandvHagen)
+
+- Fixes `otelcol.connector.servicegraph` store ttl default value from 2ms to 2s. (@rlankfo)
+
+- Add staleness tracking to labelstore to reduce memory usage. (@mattdurham)
+
+- Fix issue where `prometheus.exporter.kafka` would crash when configuring `sasl_password`. (@rfratto)
+
+- Fix nil panic when using the process collector with the windows exporter. (@mattdurham)
+
+### Other changes
+
+- Bump github.com/IBM/sarama from v1.41.2 to v1.42.1
+
+- Attach unique Agent ID header to remote-write requests. (@captncraig)
+
+- Update to v2.48.1 of `github.com/prometheus/prometheus`.
+  Previously, a custom fork of v2.47.2 was used. 
+  The custom fork of v2.47.2 also contained prometheus#12729 and prometheus#12677.
+
+v0.38.1 (2023-11-30)
+--------------------
+
+### Security fixes
+
+- Fix CVE-2023-47108 by updating `otelgrpc` from v0.45.0 to v0.46.0. (@hainenber)
+
+### Features
+
+- Agent Management: Introduce support for templated configuration. (@jcreixell)
+
 ### Bugfixes
 
 - Permit `X-Faro-Session-ID` header in CORS requests for the `faro.receiver`
@@ -38,6 +151,19 @@ Main (unreleased)
   (@cedricziel)
 
 - Fix issue with windows_exporter defaults not being set correctly. (@mattdurham)
+
+- Fix agent crash when process null OTel's fan out consumers. (@hainenber)
+
+- Fix issue in `prometheus.operator.*` where targets would be dropped if two crds share a common prefix in their names. (@Paul424, @captncraig)
+
+- Fix issue where `convert` command would generate incorrect Flow Mode config
+  when provided `promtail` configuration that uses `docker_sd_configs` (@thampiotr)
+
+- Fix converter issue with `loki.relabel` and `max_cache_size` being set to 0 instead of default (10_000). (@mattdurham)
+
+### Other changes
+
+- Add Agent Deploy Mode to usage report. (@captncraig)
 
 v0.38.0 (2023-11-21)
 --------------------
@@ -81,6 +207,8 @@ v0.38.0 (2023-11-21)
 
 - Added support for python profiling to `pyroscope.ebpf` component. (@korniltsev)
 
+- Added support for native Prometheus histograms to `otelcol.exporter.prometheus` (@wildum)
+
 - Windows Flow Installer: Add /CONFIG /DISABLEPROFILING and /DISABLEREPORTING flag (@jkroepke)
 
 - Add queueing logs remote write client for `loki.write` when WAL is enabled. (@thepalbi)
@@ -120,7 +248,7 @@ v0.38.0 (2023-11-21)
 - Make component list sortable in web UI. (@hainenber)
 
 - Adds new metrics (`mssql_server_total_memory_bytes`, `mssql_server_target_memory_bytes`,
-  and `mssql_available_commit_memory_bytes`) for `mssql` integration.
+  and `mssql_available_commit_memory_bytes`) for `mssql` integration (@StefanKurek).
 
 - Grafana Agent Operator: `config-reloader` container no longer runs as root.
   (@rootmout)
@@ -136,6 +264,8 @@ v0.38.0 (2023-11-21)
 - Updated windows exporter to use prometheus-community/windows_exporter commit 1836cd1. (@mattdurham)
 
 - Allow agent to start with `module.git` config if cached before. (@hainenber)
+
+- Adds new optional config parameter `query_config` to `mssql` integration to allow for custom metrics (@StefanKurek)
 
 ### Bugfixes
 
