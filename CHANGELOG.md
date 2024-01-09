@@ -11,6 +11,7 @@ Main (unreleased)
 -----------------
 
 ### Security fixes
+
 - Fixes following vulnerabilities (@hainenber)
   - [GO-2023-2409](https://github.com/advisories/GHSA-mhpq-9638-x6pw)
   - [GO-2023-2412](https://github.com/advisories/GHSA-7ww5-4wqc-m92c)
