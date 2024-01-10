@@ -17,6 +17,11 @@ Main (unreleased)
   - [GO-2023-2412](https://github.com/advisories/GHSA-7ww5-4wqc-m92c)
   - [CVE-2023-49568](https://github.com/advisories/GHSA-mw99-9chc-xw7r)
 
+### Bugfixes
+
+- Fix an issue in `remote.s3` where the exported content of an object would be an empty string if `remote.s3` failed to fully retrieve
+  the file in a single read call. (@grafana/agent-squad)
+
 ### Other changes
 
 - Removed support for Windows 2012 in line with Microsoft end of life. (@mattdurham)
