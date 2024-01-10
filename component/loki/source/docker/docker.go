@@ -215,6 +215,7 @@ func (c *Component) Update(args component.Arguments) error {
 
 	// Convert input targets into targets to give to tailer.
 	targets := make([]*dt.Target, 0, len(newArgs.Targets))
+	seenTargets := make(map[string]struct{}, len(newArgs.Targets))
 
 	for _, target := range newArgs.Targets {
 		containerID, ok := target[dockerLabelContainerID]
@@ -222,6 +223,10 @@ func (c *Component) Update(args component.Arguments) error {
 			level.Debug(c.opts.Logger).Log("msg", "docker target did not include container ID label:"+dockerLabelContainerID)
 			continue
 		}
+		if _, seen := seenTargets[containerID]; seen {
+			continue
+		}
+		seenTargets[containerID] = struct{}{}
 
 		var labels = make(model.LabelSet)
 		for k, v := range target {

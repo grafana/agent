@@ -9,7 +9,7 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/getting-started/migrating-from-static/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/getting-started/migrating-from-static/
 - /docs/grafana-cloud/send-data/agent/flow/getting-started/migrating-from-static/
-- ../getting-started/migrating-from-static/ # /docs/agent/latest/flow/getting-started/migrating-from-static/
+- ../../getting-started/migrating-from-static/ # /docs/agent/latest/flow/getting-started/migrating-from-static/
 canonical: https://grafana.com/docs/agent/latest/flow/tasks/migrate/from-static/
 description: Learn how to migrate your configuration from Grafana Agent Static to Grafana Agent Flow
 menuTitle: Migrate from Static to Flow
@@ -374,8 +374,8 @@ The following list is specific to the convert command and not {{< param "PRODUCT
 [convert]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/cli/convert.md"
 [run]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/cli/run.md"
 [run]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/cli/run.md"
-[Start]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/start-agent.md"
-[Start]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/setup/start-agent.md"
+[Start]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/start/"
+[Start]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/setup/start/"
 [DebuggingUI]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/tasks/debug.md"
 [DebuggingUI]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/tasks/debug.md"
 [River]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/config-language/"
