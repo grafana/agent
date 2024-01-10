@@ -11,7 +11,7 @@ title: remote.git
 
 # remote.git
 
-`remote.git` retrieves the content of file stored in a git repository and exposes it to other components. The repo
+`remote.git` retrieves the content of a file stored in a Git repository and exposes it to other components. The repository
 is polled for changes so that the most recent content is eventually available.
 
 ## Usage
@@ -35,20 +35,21 @@ Name | Type | Description | Default | Required
 `pull_frequency` | `duration` | The frequency to pull the repository for updates. | `"60s"` | no
 `is_secret` | `bool` | Whether the retrieved content should be treated as a secret. | false | no
 
-The `repository` attribute must be set to a repository address that would be
-recognized by Git with a `git clone REPOSITORY_ADDRESS` command, such as
-`https://github.com/grafana/agent.git`.
+You must set the `repository` attribute to a repository address that Git would recognize
+with a `git clone REPOSITORY_ADDRESS` command, such as `https://github.com/grafana/agent.git`.
 
-The `revision` attribute, when provided, must be set to a valid branch, tag, or
+When provided, the `revision` attribute must be set to a valid branch, tag, or
 commit SHA within the repository.
 
-The `path` attribute must be set to a path which is accessible from the root of
-the repository, such as `FILE_NAME.river` or `FOLDER_NAME/FILE_NAME.river`.
+You must set the `path` attribute to a path accessible from the repository's root,
+such as `FILE_NAME.river` or `FOLDER_NAME/FILE_NAME.river`.
 
-If `pull_frequency` is not `"0s"`, the Git repository will be pulled for
-updates at the frequency specified. If it is set to `"0s"`, the Git repository will be pulled once on init.
+If `pull_frequency` is not `"0s"`, the Git repository is pulled for
+updates at the frequency specified. If it is set to `"0s"`, the Git repository is pulled once on init.
 
-**_WARNING:_** Pulling hosted git repositories too often can result in throttling.
+{{% admonition type="warning" %}}
+Pulling hosted Git repositories too often can result in throttling.
+{{% /admonition %}}
 
 [secret]: {{< relref "../../concepts/config-language/expressions/types_and_values.md#secrets" >}}
 
