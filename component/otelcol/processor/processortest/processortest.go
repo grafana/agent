@@ -109,6 +109,105 @@ func (s traceToLogSignal) CheckOutput(t *testing.T) {
 }
 
 //
+// Trace to Metrics
+//
+
+type traceToMetricSignal struct {
+	metricCh              chan pmetric.Metrics
+	inputTrace            ptrace.Traces
+	expectedOuutputMetric pmetric.Metrics
+}
+
+// Any timestamps inside expectedOutputJson should be set to 0.
+func NewTraceToMetricSignal(inputJson string, expectedOutputJson string) Signal {
+	return &traceToMetricSignal{
+		metricCh:              make(chan pmetric.Metrics),
+		inputTrace:            CreateTestTraces(inputJson),
+		expectedOuutputMetric: CreateTestMetrics(expectedOutputJson),
+	}
+}
+
+func (s traceToMetricSignal) MakeOutput() *otelcol.ConsumerArguments {
+	return makeMetricsOutput(s.metricCh)
+}
+
+func (s traceToMetricSignal) ConsumeInput(ctx context.Context, consumer otelcol.Consumer) error {
+	return consumer.ConsumeTraces(ctx, s.inputTrace)
+}
+
+// Set the timestamp of all data points to 0.
+// This helps avoid flaky tests due to timestamps.
+func setMetricTimestampToZero(metrics pmetric.Metrics) {
+	// Loop over all resource metrics
+	for i := 0; i < metrics.ResourceMetrics().Len(); i++ {
+		rm := metrics.ResourceMetrics().At(i)
+		// Loop over all metric scopes.
+		for j := 0; j < rm.ScopeMetrics().Len(); j++ {
+			sm := rm.ScopeMetrics().At(j)
+			// Loop over all metrics.
+			for k := 0; k < sm.Metrics().Len(); k++ {
+				m := sm.Metrics().At(k)
+				switch m.Type() {
+				case pmetric.MetricTypeSum:
+					// Loop over all data points.
+					for l := 0; l < m.Sum().DataPoints().Len(); l++ {
+						// Set the timestamp to 0 to avoid flaky tests.
+						dp := m.Sum().DataPoints().At(l)
+						dp.SetTimestamp(0)
+						dp.SetStartTimestamp(0)
+					}
+				case pmetric.MetricTypeGauge:
+					// Loop over all data points.
+					for l := 0; l < m.Gauge().DataPoints().Len(); l++ {
+						// Set the timestamp to 0 to avoid flaky tests.
+						dp := m.Gauge().DataPoints().At(l)
+						dp.SetTimestamp(0)
+						dp.SetStartTimestamp(0)
+					}
+				case pmetric.MetricTypeHistogram:
+					// Loop over all data points.
+					for l := 0; l < m.Histogram().DataPoints().Len(); l++ {
+						// Set the timestamp to 0 to avoid flaky tests.
+						dp := m.Histogram().DataPoints().At(l)
+						dp.SetTimestamp(0)
+						dp.SetStartTimestamp(0)
+					}
+				case pmetric.MetricTypeSummary:
+					// Loop over all data points.
+					for l := 0; l < m.Summary().DataPoints().Len(); l++ {
+						// Set the timestamp to 0 to avoid flaky tests.
+						dp := m.Summary().DataPoints().At(l)
+						dp.SetTimestamp(0)
+						dp.SetStartTimestamp(0)
+					}
+				}
+			}
+		}
+	}
+}
+
+// Wait for the component to finish and check its output.
+func (s traceToMetricSignal) CheckOutput(t *testing.T) {
+	// Set the timeout to a few seconds so that all components have finished.
+	// Components such as otelcol.connector.spanmetrics may need a few
+	// seconds before they output metrics.
+	timeout := time.Second * 5
+
+	select {
+	case <-time.After(timeout):
+		require.FailNow(t, "failed waiting for metrics")
+	case tr := <-s.metricCh:
+		setMetricTimestampToZero(tr)
+		trStr := marshalMetrics(tr)
+
+		expStr := marshalMetrics(s.expectedOuutputMetric)
+		// Set a field from the json to an empty string to avoid flaky tests containing timestamps.
+
+		require.JSONEq(t, expStr, trStr)
+	}
+}
+
+//
 // Traces
 //
 
