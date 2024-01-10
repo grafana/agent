@@ -13,7 +13,7 @@ weight: 300
 
 # Start {{% param "PRODUCT_NAME" %}} on Linux
 
-{{< param "PRODUCT_NAME" >}} is installed as a [systemd][] service on Linux.
+{{< param "PRODUCT_NAME" >}} is [installed][InstallLinux] as a [systemd][] service on Linux.
 
 [systemd]: https://systemd.io/
 
@@ -62,3 +62,14 @@ To view {{< param "PRODUCT_NAME" >}} log files, run the following command in a t
 ```shell
 sudo journalctl -u grafana-agent-flow
 ```
+
+## Next steps
+
+- [Configure {{< param "PRODUCT_NAME" >}}][Configure]
+
+{{% docs/reference %}}
+[InstallLinux]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/install/linux.md"
+[InstallLinux]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/flow/setup/install/linux.md"
+[Configure]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/tasks/configure/configure-linux.md"
+[Configure]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/tasks/configure/configure-linux.md"
+{{% /docs/reference %}}

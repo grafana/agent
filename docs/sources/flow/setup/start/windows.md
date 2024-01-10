@@ -13,7 +13,7 @@ weight: 500
 
 # Start {{% param "PRODUCT_NAME" %}} on Windows
 
-{{< param "PRODUCT_NAME" >}} is installed as a Windows Service. The service is configured to automatically run on startup.
+{{< param "PRODUCT_NAME" >}} is [installed][InstallWindows] as a Windows Service. The service is configured to automatically run on startup.
 
 To verify that {{< param "PRODUCT_NAME" >}} is running as a Windows Service:
 
@@ -41,3 +41,14 @@ To view the logs, perform the following steps:
 1. In the Event Viewer, click on **Windows Logs > Application**.
 
 1. Search for events with the source **{{< param "PRODUCT_NAME" >}}**.
+
+## Next steps
+
+- [Configure {{< param "PRODUCT_NAME" >}}][Configure]
+
+{{% docs/reference %}}
+[InstallWindows]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/install/windows.md"
+[InstallWindows]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/flow/setup/install/windows.md"
+[Configure]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/tasks/configure/configure-windows.md"
+[Configure]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/tasks/configure/configure-windows.md"
+{{% /docs/reference %}}
