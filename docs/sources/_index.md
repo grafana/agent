@@ -1,6 +1,8 @@
 ---
 title: Grafana Agent
 weight: 550
+cascade:
+  AGENT_RELEASE: v0.33.0
 ---
 
 # Grafana Agent
