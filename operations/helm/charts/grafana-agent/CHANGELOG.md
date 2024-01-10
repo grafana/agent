@@ -10,6 +10,13 @@ internal API changes are not present.
 Unreleased
 ----------
 
+0.31.0 (2024-01-10)
+-------------------
+
+### Enhancements
+
+- Update Grafana Agent version to v0.39.0. (@marctc)
+
 ### Bugfixes
 
 - Configure namespace for service account when RBAC resources is created. (@hainenber)
