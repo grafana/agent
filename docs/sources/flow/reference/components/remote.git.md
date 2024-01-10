@@ -37,7 +37,7 @@ Name | Type | Description | Default | Required
 You must set the `repository` attribute to a repository address that Git would recognize
 with a `git clone REPOSITORY_ADDRESS` command, such as `https://github.com/grafana/agent.git`.
 
-The `revision` attribute, when provided, must be set to a valid branch, tag, or
+When provided, the `revision` attribute must be set to a valid branch, tag, or
 commit SHA within the repository.
 
 The `path` attribute must be set to a path which is accessible from the root of
