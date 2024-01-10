@@ -14,6 +14,7 @@ type ModuleReference struct {
 	moduleContentProvider ModuleContentProvider
 }
 
+// This function will parse the provided river content and collect references to known modules.
 func GetModuleReferences(
 	content string,
 	importNodes map[string]*ImportConfigNode,
@@ -60,20 +61,18 @@ func getModuleReferences(
 				}
 			default:
 				parts := strings.Split(fullName, ".")
-				namespace := parts[0]
+				firstPart := parts[0]
 				var scopedName string
 				if len(parts) > 1 {
 					scopedName = strings.Join(parts[1:], ".")
-				} else {
-					scopedName = parts[len(parts)-1]
 				}
 
-				if declareNode, ok := declareNodes[namespace]; ok {
-					uniqueReferences[fullName] = ModuleReference{fullName: fullName, scopedName: scopedName, moduleContentProvider: declareNode}
-				} else if importNode, ok := importNodes[namespace]; ok {
-					uniqueReferences[fullName] = ModuleReference{fullName: fullName, namespace: namespace, scopedName: scopedName, moduleContentProvider: importNode}
+				if declareNode, ok := declareNodes[firstPart]; ok {
+					uniqueReferences[fullName] = ModuleReference{fullName: fullName, namespace: "", scopedName: firstPart, moduleContentProvider: declareNode}
+				} else if importNode, ok := importNodes[firstPart]; ok {
+					uniqueReferences[fullName] = ModuleReference{fullName: fullName, namespace: firstPart, scopedName: scopedName, moduleContentProvider: importNode}
 				} else if _, ok := parentModuleDependencies[fullName]; ok {
-					uniqueReferences[fullName] = ModuleReference{fullName: fullName, namespace: namespace, scopedName: scopedName, moduleContentProvider: nil}
+					uniqueReferences[fullName] = ModuleReference{fullName: fullName, namespace: firstPart, scopedName: scopedName, moduleContentProvider: nil}
 				}
 			}
 		}

@@ -36,14 +36,15 @@ type DeclareComponentNode struct {
 	label             string
 	componentName     string
 	namespace         string
-	moduleName        string
+	scopedName        string
 	nodeID            string // Cached from id.String() to avoid allocating new strings every time NodeID is called.
 	managedOpts       component.Options
 	registry          *prometheus.Registry
 	moduleController  ModuleController
-	OnComponentUpdate func(cn NodeWithDependants)                                                // Informs controller that we need to reevaluate
-	GetModuleInfo     func(fullName string, namespace string, module string) (ModuleInfo, error) // Retrieve the module config.
-	lastUpdateTime    atomic.Time
+	OnComponentUpdate func(cn NodeWithDependants) // Informs controller that we need to reevaluate
+
+	GetModuleInfo  func(fullName string, namespace string, module string) (ModuleInfo, error) // Retrieve the module config.
+	lastUpdateTime atomic.Time
 
 	mut     sync.RWMutex
 	block   *ast.BlockStmt // Current River block to derive args from
@@ -93,12 +94,12 @@ func NewDeclareComponentNode(globals ComponentGlobals, b *ast.BlockStmt, GetModu
 	// In case of a declare, we have "declare myModule {}".
 	// => The corresponding component should be "myModule label {}". (no namespace, module: myModule)
 	namespace := ""
-	moduleName := strings.Join(b.Name, ".")
+	scopedName := strings.Join(b.Name, ".")
 	// In case of an import, we have "import myImport{}" which imports "declare myModule{}".
 	// => The corresponding component should be "myImport.myModule label {}". (namespace: myImport, module: myModule)
 	if len(b.Name) > 1 {
 		namespace = b.Name[0]
-		moduleName = strings.Join(b.Name[1:], ".")
+		scopedName = strings.Join(b.Name[1:], ".")
 	}
 
 	cn := &DeclareComponentNode{
@@ -108,7 +109,7 @@ func NewDeclareComponentNode(globals ComponentGlobals, b *ast.BlockStmt, GetModu
 		nodeID:            nodeID,
 		componentName:     b.GetBlockName(),
 		namespace:         namespace,
-		moduleName:        moduleName,
+		scopedName:        scopedName,
 		moduleController:  globals.NewModuleController(globalID),
 		OnComponentUpdate: globals.OnComponentUpdate,
 		GetModuleInfo:     GetModuleInfo,
@@ -210,7 +211,7 @@ func (cn *DeclareComponentNode) evaluate(scope *vm.Scope) error {
 		cn.managed = managed
 	}
 
-	moduleInfo, err := cn.GetModuleInfo(cn.componentName, cn.namespace, cn.moduleName)
+	moduleInfo, err := cn.GetModuleInfo(cn.componentName, cn.namespace, cn.scopedName)
 	if err != nil {
 		return fmt.Errorf("retrieving module info: %w", err)
 	}
@@ -225,6 +226,7 @@ func (cn *DeclareComponentNode) evaluate(scope *vm.Scope) error {
 func (cn *DeclareComponentNode) Run(ctx context.Context) error {
 	cn.mut.RLock()
 	managed := cn.managed
+	logger := cn.managedOpts.Logger
 	cn.mut.RUnlock()
 
 	if managed == nil {
@@ -234,7 +236,6 @@ func (cn *DeclareComponentNode) Run(ctx context.Context) error {
 	cn.setRunHealth(component.HealthTypeHealthy, "started module")
 	cn.managed.RunFlowController(ctx)
 
-	logger := cn.managedOpts.Logger
 	level.Info(logger).Log("msg", "module exited")
 	cn.setRunHealth(component.HealthTypeExited, "module shut down")
 	return nil

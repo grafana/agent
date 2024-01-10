@@ -212,6 +212,29 @@ func (cn *ImportConfigNode) evaluateChildren() {
 	}
 }
 
+// runChildren run the import nodes managed by this import node.
+func (cn *ImportConfigNode) runChildren(ctx context.Context) error {
+	var wg sync.WaitGroup
+	errChildrenChan := make(chan error, len(cn.importConfigNodesChildren))
+
+	for _, child := range cn.importConfigNodesChildren {
+		wg.Add(1)
+		go func(child *ImportConfigNode) {
+			defer wg.Done()
+			if err := child.Run(ctx); err != nil {
+				errChildrenChan <- err
+			}
+		}(child)
+	}
+
+	go func() {
+		wg.Wait()
+		close(errChildrenChan)
+	}()
+
+	return <-errChildrenChan
+}
+
 // OnChildrenContentUpdate passes their imported content to their parents.
 // To avoid collisions, the content is scoped via namespaces.
 func (cn *ImportConfigNode) OnChildrenContentUpdate(child NodeWithDependants) {
@@ -221,8 +244,6 @@ func (cn *ImportConfigNode) OnChildrenContentUpdate(child NodeWithDependants) {
 			label := child.label + "." + importedDeclareLabel
 			cn.importedContent[label] = content
 		}
-	default:
-		// TODO: error something went very wrong in the logic of the code
 	}
 	// This avoids to OnComponentUpdate to be called multiple times in a row when the content changes.
 	if !cn.inContentUpdate {
@@ -230,13 +251,13 @@ func (cn *ImportConfigNode) OnChildrenContentUpdate(child NodeWithDependants) {
 	}
 }
 
-func (cn *ImportConfigNode) ModuleContent(module string) (string, error) {
+func (cn *ImportConfigNode) ModuleContent(moduleName string) (string, error) {
 	cn.importedContentMut.Lock()
 	defer cn.importedContentMut.Unlock()
-	if content, ok := cn.importedContent[module]; ok {
+	if content, ok := cn.importedContent[moduleName]; ok {
 		return content, nil
 	}
-	return "", fmt.Errorf("module %s not found in imported node %s", module, cn.label)
+	return "", fmt.Errorf("module %s not found in imported node %s", moduleName, cn.label)
 }
 
 // Run runs the managed component in the calling goroutine until ctx is
@@ -254,8 +275,24 @@ func (cn *ImportConfigNode) Run(ctx context.Context) error {
 		return ErrUnevaluated
 	}
 
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
+	errChan := make(chan error, 1)
+
+	if len(cn.importConfigNodesChildren) > 0 {
+		go func() {
+			errChan <- cn.runChildren(ctx)
+		}()
+	}
+
 	cn.setRunHealth(component.HealthTypeHealthy, "started component")
-	err := managed.Run(ctx)
+
+	go func() {
+		errChan <- managed.Run(ctx)
+	}()
+
+	err := <-errChan
 
 	var exitMsg string
 	if err != nil {
