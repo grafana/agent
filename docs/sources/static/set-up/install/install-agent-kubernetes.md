@@ -16,9 +16,9 @@ To deploy Grafana Agent in static mode on Kubernetes, perform the following step
 
 1. Download one of the following manifests from GitHub and save it as `manifest.yaml`:
 
-   - Metric collection (StatefulSet): [agent-bare.yaml](https://github.com/grafana/agent/blob/main/production/kubernetes/agent-bare.yaml)
-   - Log collection (DaemonSet): [agent-loki.yaml](https://github.com/grafana/agent/blob/main/production/kubernetes/agent-loki.yaml)
-   - Trace collection (Deployment): [agent-traces.yaml](https://github.com/grafana/agent/blob/main/production/kubernetes/agent-traces.yaml)
+   - Metric collection (StatefulSet): [agent-bare.yaml](https://github.com/grafana/agent/blob/{{< param "AGENT_RELEASE" >}}/production/kubernetes/agent-bare.yaml)
+   - Log collection (DaemonSet): [agent-loki.yaml](https://github.com/grafana/agent/blob/{{< param "AGENT_RELEASE" >}}/production/kubernetes/agent-loki.yaml)
+   - Trace collection (Deployment): [agent-traces.yaml](https://github.com/grafana/agent/blob/{{< param "AGENT_RELEASE" >}}/production/kubernetes/agent-traces.yaml)
 
 1. Edit the downloaded `manifest.yaml` and replace the placeholders with information relevant to your Kubernetes deployment.
 
