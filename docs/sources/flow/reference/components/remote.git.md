@@ -34,9 +34,8 @@ Name | Type | Description | Default | Required
 `path` | `string` | The path in the repository where the content is stored. | | yes
 `pull_frequency` | `duration` | The frequency to pull the repository for updates. | `"60s"` | no
 
-The `repository` attribute must be set to a repository address that would be
-recognized by Git with a `git clone REPOSITORY_ADDRESS` command, such as
-`https://github.com/grafana/agent.git`.
+You must set the `repository` attribute to a repository address that Git would recognize
+with a `git clone REPOSITORY_ADDRESS` command, such as `https://github.com/grafana/agent.git`.
 
 The `revision` attribute, when provided, must be set to a valid branch, tag, or
 commit SHA within the repository.
