@@ -17,6 +17,10 @@ Main (unreleased)
   - [GO-2023-2412](https://github.com/advisories/GHSA-7ww5-4wqc-m92c)
   - [CVE-2023-49568](https://github.com/advisories/GHSA-mw99-9chc-xw7r)
 
+### Enhancements
+
+- Add an option to the windows static mode installer for expanding environment vars in the yaml config. (@erikbaranowski)
+
 ### Bugfixes
 
 - Fix an issue in `remote.s3` where the exported content of an object would be an empty string if `remote.s3` failed to fully retrieve
