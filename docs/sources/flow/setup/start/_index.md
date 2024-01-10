@@ -26,8 +26,6 @@ For installation instructions, refer to [Install {{< param "PRODUCT_NAME" >}}][I
 {{< section >}}
 
 {{% docs/reference %}}
-[data collection]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/data-collection.md"
-[data collection]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/data-collection.md"
 [Install]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/install/"
 [Install]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/setup/install/"
 {{% /docs/reference %}}
