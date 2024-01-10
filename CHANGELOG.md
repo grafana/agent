@@ -19,7 +19,7 @@ Main (unreleased)
 
 ### Bugfixes
 
-- Fix an issue in remote.s3 where the exported content of an object would be an empty string if remote.s3 failed to fully retrieve
+- Fix an issue in `remote.s3` where the exported content of an object would be an empty string if `remote.s3` failed to fully retrieve
   the file in a single read call. (@grafana/agent-squad)
 
 ### Other changes
