@@ -419,7 +419,7 @@ The following fields are exported and can be referenced by other components:
 
    {{< /collapse >}}
 
-1. In order to preserve the values of all resource attributes, `otelcol.connector.spanmetrics` will produce two resource metrics.
+1. To preserve the values of all resource attributes, `otelcol.connector.spanmetrics` will produce two resource metrics.
    Each resource metric will have a different value for the `k8s.pod.name` recourse attribute.
    This way none of the resource attributes will be lost during the generation of metrics.
    {{< collapse title="Example JSON of two outgoing metric resources." >}}
