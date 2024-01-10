@@ -41,7 +41,7 @@ otelcol.processor.resourcedetection "LABEL" {
 
 Name        | Type           | Description                                                                            | Default   | Required
 ----------- | -------------- | -------------------------------------------------------------------------------------- |---------- | --------
-`detectors` | `list(string)` | An ordered list of named detectors which should be ran to detect resource information. | `["env"]` | yes
+`detectors` | `list(string)` | An ordered list of named detectors which should be ran to detect resource information. | `["env"]` | no
 `override`  | `bool`         | Configures whether existing resource attributes should be overridden or preserved.     | `true`    | no
 `timeout`   | `duration`     | Timeout by which all specified detectors must complete.                                | `"5s"`    | no
 
@@ -67,7 +67,9 @@ The `env` detector reads resource information from the `OTEL_RESOURCE_ATTRIBUTES
 This is expected to be in the format `<key1>=<value1>,<key2>=<value2>,...`, 
 the details of which are currently pending confirmation in the OpenTelemetry specification.
 
-If a detector other than `env`
+If a detector other than `env` is needed, it can be customized by using the relevant River block for it.
+For example, the `ec2` detector can be customized using the [ec2][] block.
+If the [ec2][] block is omitted, the defaults specified in the [ec2][] block documentation will be used.
 
 If multiple detectors are inserting the same attribute name, the first detector to insert wins. 
 For example if you had `detectors = ["eks", "ec2"]` then `cloud.platform` will be `aws_eks` instead of `ec2`. 

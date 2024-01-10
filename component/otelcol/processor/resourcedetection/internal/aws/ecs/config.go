@@ -12,20 +12,20 @@ type Config struct {
 // DefaultArguments holds default settings for Config.
 var DefaultArguments = Config{
 	ResourceAttributes: ResourceAttributesConfig{
-		AwsEcsClusterArn:      &rac.ResourceAttributeConfig{Enabled: true},
-		AwsEcsLaunchtype:      &rac.ResourceAttributeConfig{Enabled: true},
-		AwsEcsTaskArn:         &rac.ResourceAttributeConfig{Enabled: true},
-		AwsEcsTaskFamily:      &rac.ResourceAttributeConfig{Enabled: true},
-		AwsEcsTaskRevision:    &rac.ResourceAttributeConfig{Enabled: true},
-		AwsLogGroupArns:       &rac.ResourceAttributeConfig{Enabled: true},
-		AwsLogGroupNames:      &rac.ResourceAttributeConfig{Enabled: true},
-		AwsLogStreamArns:      &rac.ResourceAttributeConfig{Enabled: true},
-		AwsLogStreamNames:     &rac.ResourceAttributeConfig{Enabled: true},
-		CloudAccountID:        &rac.ResourceAttributeConfig{Enabled: true},
-		CloudAvailabilityZone: &rac.ResourceAttributeConfig{Enabled: true},
-		CloudPlatform:         &rac.ResourceAttributeConfig{Enabled: true},
-		CloudProvider:         &rac.ResourceAttributeConfig{Enabled: true},
-		CloudRegion:           &rac.ResourceAttributeConfig{Enabled: true},
+		AwsEcsClusterArn:      rac.ResourceAttributeConfig{Enabled: true},
+		AwsEcsLaunchtype:      rac.ResourceAttributeConfig{Enabled: true},
+		AwsEcsTaskArn:         rac.ResourceAttributeConfig{Enabled: true},
+		AwsEcsTaskFamily:      rac.ResourceAttributeConfig{Enabled: true},
+		AwsEcsTaskRevision:    rac.ResourceAttributeConfig{Enabled: true},
+		AwsLogGroupArns:       rac.ResourceAttributeConfig{Enabled: true},
+		AwsLogGroupNames:      rac.ResourceAttributeConfig{Enabled: true},
+		AwsLogStreamArns:      rac.ResourceAttributeConfig{Enabled: true},
+		AwsLogStreamNames:     rac.ResourceAttributeConfig{Enabled: true},
+		CloudAccountID:        rac.ResourceAttributeConfig{Enabled: true},
+		CloudAvailabilityZone: rac.ResourceAttributeConfig{Enabled: true},
+		CloudPlatform:         rac.ResourceAttributeConfig{Enabled: true},
+		CloudProvider:         rac.ResourceAttributeConfig{Enabled: true},
+		CloudRegion:           rac.ResourceAttributeConfig{Enabled: true},
 	},
 }
 
@@ -48,27 +48,23 @@ func (args *Config) Convert() map[string]interface{} {
 
 // ResourceAttributesConfig provides config for resourcedetectionprocessor/ecs resource attributes.
 type ResourceAttributesConfig struct {
-	AwsEcsClusterArn      *rac.ResourceAttributeConfig `river:"aws.ecs.cluster.arn,block,optional"`
-	AwsEcsLaunchtype      *rac.ResourceAttributeConfig `river:"aws.ecs.launchtype,block,optional"`
-	AwsEcsTaskArn         *rac.ResourceAttributeConfig `river:"aws.ecs.task.arn,block,optional"`
-	AwsEcsTaskFamily      *rac.ResourceAttributeConfig `river:"aws.ecs.task.family,block,optional"`
-	AwsEcsTaskRevision    *rac.ResourceAttributeConfig `river:"aws.ecs.task.revision,block,optional"`
-	AwsLogGroupArns       *rac.ResourceAttributeConfig `river:"aws.log.group.arns,block,optional"`
-	AwsLogGroupNames      *rac.ResourceAttributeConfig `river:"aws.log.group.names,block,optional"`
-	AwsLogStreamArns      *rac.ResourceAttributeConfig `river:"aws.log.stream.arns,block,optional"`
-	AwsLogStreamNames     *rac.ResourceAttributeConfig `river:"aws.log.stream.names,block,optional"`
-	CloudAccountID        *rac.ResourceAttributeConfig `river:"cloud.account.id,block,optional"`
-	CloudAvailabilityZone *rac.ResourceAttributeConfig `river:"cloud.availability_zone,block,optional"`
-	CloudPlatform         *rac.ResourceAttributeConfig `river:"cloud.platform,block,optional"`
-	CloudProvider         *rac.ResourceAttributeConfig `river:"cloud.provider,block,optional"`
-	CloudRegion           *rac.ResourceAttributeConfig `river:"cloud.region,block,optional"`
+	AwsEcsClusterArn      rac.ResourceAttributeConfig `river:"aws.ecs.cluster.arn,block,optional"`
+	AwsEcsLaunchtype      rac.ResourceAttributeConfig `river:"aws.ecs.launchtype,block,optional"`
+	AwsEcsTaskArn         rac.ResourceAttributeConfig `river:"aws.ecs.task.arn,block,optional"`
+	AwsEcsTaskFamily      rac.ResourceAttributeConfig `river:"aws.ecs.task.family,block,optional"`
+	AwsEcsTaskRevision    rac.ResourceAttributeConfig `river:"aws.ecs.task.revision,block,optional"`
+	AwsLogGroupArns       rac.ResourceAttributeConfig `river:"aws.log.group.arns,block,optional"`
+	AwsLogGroupNames      rac.ResourceAttributeConfig `river:"aws.log.group.names,block,optional"`
+	AwsLogStreamArns      rac.ResourceAttributeConfig `river:"aws.log.stream.arns,block,optional"`
+	AwsLogStreamNames     rac.ResourceAttributeConfig `river:"aws.log.stream.names,block,optional"`
+	CloudAccountID        rac.ResourceAttributeConfig `river:"cloud.account.id,block,optional"`
+	CloudAvailabilityZone rac.ResourceAttributeConfig `river:"cloud.availability_zone,block,optional"`
+	CloudPlatform         rac.ResourceAttributeConfig `river:"cloud.platform,block,optional"`
+	CloudProvider         rac.ResourceAttributeConfig `river:"cloud.provider,block,optional"`
+	CloudRegion           rac.ResourceAttributeConfig `river:"cloud.region,block,optional"`
 }
 
-func (r *ResourceAttributesConfig) Convert() map[string]interface{} {
-	if r == nil {
-		return nil
-	}
-
+func (r ResourceAttributesConfig) Convert() map[string]interface{} {
 	return map[string]interface{}{
 		"aws.ecs.cluster.arn":     r.AwsEcsClusterArn.Convert(),
 		"aws.ecs.launchtype":      r.AwsEcsLaunchtype.Convert(),

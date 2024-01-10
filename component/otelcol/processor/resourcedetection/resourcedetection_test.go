@@ -5,6 +5,20 @@ import (
 	"time"
 
 	"github.com/grafana/agent/component/otelcol/processor/resourcedetection"
+	"github.com/grafana/agent/component/otelcol/processor/resourcedetection/internal/aws/ec2"
+	"github.com/grafana/agent/component/otelcol/processor/resourcedetection/internal/aws/ecs"
+	"github.com/grafana/agent/component/otelcol/processor/resourcedetection/internal/aws/eks"
+	"github.com/grafana/agent/component/otelcol/processor/resourcedetection/internal/aws/elasticbeanstalk"
+	"github.com/grafana/agent/component/otelcol/processor/resourcedetection/internal/aws/lambda"
+	"github.com/grafana/agent/component/otelcol/processor/resourcedetection/internal/azure"
+	"github.com/grafana/agent/component/otelcol/processor/resourcedetection/internal/azure/aks"
+	"github.com/grafana/agent/component/otelcol/processor/resourcedetection/internal/consul"
+	"github.com/grafana/agent/component/otelcol/processor/resourcedetection/internal/docker"
+	"github.com/grafana/agent/component/otelcol/processor/resourcedetection/internal/gcp"
+	"github.com/grafana/agent/component/otelcol/processor/resourcedetection/internal/heroku"
+	kubernetes_node "github.com/grafana/agent/component/otelcol/processor/resourcedetection/internal/k8snode"
+	"github.com/grafana/agent/component/otelcol/processor/resourcedetection/internal/openshift"
+	"github.com/grafana/agent/component/otelcol/processor/resourcedetection/internal/system"
 	"github.com/grafana/river"
 	"github.com/mitchellh/mapstructure"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourcedetectionprocessor"
@@ -25,6 +39,31 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 			output {}
 			`,
 			errorMsg: "at least one detector must be specified",
+		},
+		{
+			testName: "default_detector",
+			cfg: `
+			output {}
+			`,
+			expected: map[string]interface{}{
+				"detectors":        []string{"env"},
+				"timeout":          5 * time.Second,
+				"override":         true,
+				"ec2":              ec2.DefaultArguments.Convert(),
+				"ecs":              ecs.DefaultArguments.Convert(),
+				"eks":              eks.DefaultArguments.Convert(),
+				"elasticbeanstalk": elasticbeanstalk.DefaultArguments.Convert(),
+				"lambda":           lambda.DefaultArguments.Convert(),
+				"azure":            azure.DefaultArguments.Convert(),
+				"aks":              aks.DefaultArguments.Convert(),
+				"consul":           consul.DefaultArguments.Convert(),
+				"docker":           docker.DefaultArguments.Convert(),
+				"gcp":              gcp.DefaultArguments.Convert(),
+				"heroku":           heroku.DefaultArguments.Convert(),
+				"system":           system.DefaultArguments.Convert(),
+				"openshift":        openshift.DefaultArguments.Convert(),
+				"k8snode":          kubernetes_node.DefaultArguments.Convert(),
+			},
 		},
 		{
 			testName: "ec2_defaults",
@@ -52,6 +91,19 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 						"host.type":               map[string]interface{}{"enabled": true},
 					},
 				},
+				"ecs":              ecs.DefaultArguments.Convert(),
+				"eks":              eks.DefaultArguments.Convert(),
+				"elasticbeanstalk": elasticbeanstalk.DefaultArguments.Convert(),
+				"lambda":           lambda.DefaultArguments.Convert(),
+				"azure":            azure.DefaultArguments.Convert(),
+				"aks":              aks.DefaultArguments.Convert(),
+				"consul":           consul.DefaultArguments.Convert(),
+				"docker":           docker.DefaultArguments.Convert(),
+				"gcp":              gcp.DefaultArguments.Convert(),
+				"heroku":           heroku.DefaultArguments.Convert(),
+				"system":           system.DefaultArguments.Convert(),
+				"openshift":        openshift.DefaultArguments.Convert(),
+				"k8snode":          kubernetes_node.DefaultArguments.Convert(),
 			},
 		},
 		{
@@ -81,6 +133,19 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 						"host.type":               map[string]interface{}{"enabled": true},
 					},
 				},
+				"ecs":              ecs.DefaultArguments.Convert(),
+				"eks":              eks.DefaultArguments.Convert(),
+				"elasticbeanstalk": elasticbeanstalk.DefaultArguments.Convert(),
+				"lambda":           lambda.DefaultArguments.Convert(),
+				"azure":            azure.DefaultArguments.Convert(),
+				"aks":              aks.DefaultArguments.Convert(),
+				"consul":           consul.DefaultArguments.Convert(),
+				"docker":           docker.DefaultArguments.Convert(),
+				"gcp":              gcp.DefaultArguments.Convert(),
+				"heroku":           heroku.DefaultArguments.Convert(),
+				"system":           system.DefaultArguments.Convert(),
+				"openshift":        openshift.DefaultArguments.Convert(),
+				"k8snode":          kubernetes_node.DefaultArguments.Convert(),
 			},
 		},
 		{
@@ -121,6 +186,19 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 						"host.type":               map[string]interface{}{"enabled": false},
 					},
 				},
+				"ecs":              ecs.DefaultArguments.Convert(),
+				"eks":              eks.DefaultArguments.Convert(),
+				"elasticbeanstalk": elasticbeanstalk.DefaultArguments.Convert(),
+				"lambda":           lambda.DefaultArguments.Convert(),
+				"azure":            azure.DefaultArguments.Convert(),
+				"aks":              aks.DefaultArguments.Convert(),
+				"consul":           consul.DefaultArguments.Convert(),
+				"docker":           docker.DefaultArguments.Convert(),
+				"gcp":              gcp.DefaultArguments.Convert(),
+				"heroku":           heroku.DefaultArguments.Convert(),
+				"system":           system.DefaultArguments.Convert(),
+				"openshift":        openshift.DefaultArguments.Convert(),
+				"k8snode":          kubernetes_node.DefaultArguments.Convert(),
 			},
 		},
 		{
@@ -170,6 +248,19 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 						"cloud.region":            map[string]interface{}{"enabled": true},
 					},
 				},
+				"ec2":              ec2.DefaultArguments.Convert(),
+				"eks":              eks.DefaultArguments.Convert(),
+				"elasticbeanstalk": elasticbeanstalk.DefaultArguments.Convert(),
+				"lambda":           lambda.DefaultArguments.Convert(),
+				"azure":            azure.DefaultArguments.Convert(),
+				"aks":              aks.DefaultArguments.Convert(),
+				"consul":           consul.DefaultArguments.Convert(),
+				"docker":           docker.DefaultArguments.Convert(),
+				"gcp":              gcp.DefaultArguments.Convert(),
+				"heroku":           heroku.DefaultArguments.Convert(),
+				"system":           system.DefaultArguments.Convert(),
+				"openshift":        openshift.DefaultArguments.Convert(),
+				"k8snode":          kubernetes_node.DefaultArguments.Convert(),
 			},
 		},
 		{
@@ -219,6 +310,19 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 						"cloud.region":            map[string]interface{}{"enabled": true},
 					},
 				},
+				"ec2":              ec2.DefaultArguments.Convert(),
+				"eks":              eks.DefaultArguments.Convert(),
+				"elasticbeanstalk": elasticbeanstalk.DefaultArguments.Convert(),
+				"lambda":           lambda.DefaultArguments.Convert(),
+				"azure":            azure.DefaultArguments.Convert(),
+				"aks":              aks.DefaultArguments.Convert(),
+				"consul":           consul.DefaultArguments.Convert(),
+				"docker":           docker.DefaultArguments.Convert(),
+				"gcp":              gcp.DefaultArguments.Convert(),
+				"heroku":           heroku.DefaultArguments.Convert(),
+				"system":           system.DefaultArguments.Convert(),
+				"openshift":        openshift.DefaultArguments.Convert(),
+				"k8snode":          kubernetes_node.DefaultArguments.Convert(),
 			},
 		},
 		{
@@ -243,6 +347,19 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 						},
 					},
 				},
+				"ec2":              ec2.DefaultArguments.Convert(),
+				"ecs":              ecs.DefaultArguments.Convert(),
+				"elasticbeanstalk": elasticbeanstalk.DefaultArguments.Convert(),
+				"lambda":           lambda.DefaultArguments.Convert(),
+				"azure":            azure.DefaultArguments.Convert(),
+				"aks":              aks.DefaultArguments.Convert(),
+				"consul":           consul.DefaultArguments.Convert(),
+				"docker":           docker.DefaultArguments.Convert(),
+				"gcp":              gcp.DefaultArguments.Convert(),
+				"heroku":           heroku.DefaultArguments.Convert(),
+				"system":           system.DefaultArguments.Convert(),
+				"openshift":        openshift.DefaultArguments.Convert(),
+				"k8snode":          kubernetes_node.DefaultArguments.Convert(),
 			},
 		},
 		{
@@ -272,6 +389,19 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 						},
 					},
 				},
+				"ec2":              ec2.DefaultArguments.Convert(),
+				"ecs":              ecs.DefaultArguments.Convert(),
+				"elasticbeanstalk": elasticbeanstalk.DefaultArguments.Convert(),
+				"lambda":           lambda.DefaultArguments.Convert(),
+				"azure":            azure.DefaultArguments.Convert(),
+				"aks":              aks.DefaultArguments.Convert(),
+				"consul":           consul.DefaultArguments.Convert(),
+				"docker":           docker.DefaultArguments.Convert(),
+				"gcp":              gcp.DefaultArguments.Convert(),
+				"heroku":           heroku.DefaultArguments.Convert(),
+				"system":           system.DefaultArguments.Convert(),
+				"openshift":        openshift.DefaultArguments.Convert(),
+				"k8snode":          kubernetes_node.DefaultArguments.Convert(),
 			},
 		},
 		{
@@ -320,6 +450,19 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 						},
 					},
 				},
+				"ec2":              ec2.DefaultArguments.Convert(),
+				"ecs":              ecs.DefaultArguments.Convert(),
+				"eks":              eks.DefaultArguments.Convert(),
+				"elasticbeanstalk": elasticbeanstalk.DefaultArguments.Convert(),
+				"lambda":           lambda.DefaultArguments.Convert(),
+				"aks":              aks.DefaultArguments.Convert(),
+				"consul":           consul.DefaultArguments.Convert(),
+				"docker":           docker.DefaultArguments.Convert(),
+				"gcp":              gcp.DefaultArguments.Convert(),
+				"heroku":           heroku.DefaultArguments.Convert(),
+				"system":           system.DefaultArguments.Convert(),
+				"openshift":        openshift.DefaultArguments.Convert(),
+				"k8snode":          kubernetes_node.DefaultArguments.Convert(),
 			},
 		},
 		{
@@ -376,6 +519,19 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 						},
 					},
 				},
+				"ec2":              ec2.DefaultArguments.Convert(),
+				"ecs":              ecs.DefaultArguments.Convert(),
+				"eks":              eks.DefaultArguments.Convert(),
+				"elasticbeanstalk": elasticbeanstalk.DefaultArguments.Convert(),
+				"lambda":           lambda.DefaultArguments.Convert(),
+				"aks":              aks.DefaultArguments.Convert(),
+				"consul":           consul.DefaultArguments.Convert(),
+				"docker":           docker.DefaultArguments.Convert(),
+				"gcp":              gcp.DefaultArguments.Convert(),
+				"heroku":           heroku.DefaultArguments.Convert(),
+				"system":           system.DefaultArguments.Convert(),
+				"openshift":        openshift.DefaultArguments.Convert(),
+				"k8snode":          kubernetes_node.DefaultArguments.Convert(),
 			},
 		},
 		{
@@ -400,6 +556,19 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 						},
 					},
 				},
+				"ec2":              ec2.DefaultArguments.Convert(),
+				"ecs":              ecs.DefaultArguments.Convert(),
+				"eks":              eks.DefaultArguments.Convert(),
+				"elasticbeanstalk": elasticbeanstalk.DefaultArguments.Convert(),
+				"lambda":           lambda.DefaultArguments.Convert(),
+				"azure":            azure.DefaultArguments.Convert(),
+				"consul":           consul.DefaultArguments.Convert(),
+				"docker":           docker.DefaultArguments.Convert(),
+				"gcp":              gcp.DefaultArguments.Convert(),
+				"heroku":           heroku.DefaultArguments.Convert(),
+				"system":           system.DefaultArguments.Convert(),
+				"openshift":        openshift.DefaultArguments.Convert(),
+				"k8snode":          kubernetes_node.DefaultArguments.Convert(),
 			},
 		},
 		{
@@ -429,6 +598,19 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 						},
 					},
 				},
+				"ec2":              ec2.DefaultArguments.Convert(),
+				"ecs":              ecs.DefaultArguments.Convert(),
+				"eks":              eks.DefaultArguments.Convert(),
+				"elasticbeanstalk": elasticbeanstalk.DefaultArguments.Convert(),
+				"lambda":           lambda.DefaultArguments.Convert(),
+				"azure":            azure.DefaultArguments.Convert(),
+				"consul":           consul.DefaultArguments.Convert(),
+				"docker":           docker.DefaultArguments.Convert(),
+				"gcp":              gcp.DefaultArguments.Convert(),
+				"heroku":           heroku.DefaultArguments.Convert(),
+				"system":           system.DefaultArguments.Convert(),
+				"openshift":        openshift.DefaultArguments.Convert(),
+				"k8snode":          kubernetes_node.DefaultArguments.Convert(),
 			},
 		},
 		{
@@ -439,64 +621,23 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 			output {}
 			`,
 			expected: map[string]interface{}{
-				"detectors": []string{"gcp"},
-				"timeout":   5 * time.Second,
-				"override":  true,
-				"gcp": map[string]interface{}{
-					"resource_attributes": map[string]interface{}{
-						"cloud.account.id": map[string]interface{}{
-							"enabled": true,
-						},
-						"cloud.availability_zone": map[string]interface{}{
-							"enabled": true,
-						},
-						"cloud.platform": map[string]interface{}{
-							"enabled": true,
-						},
-						"cloud.provider": map[string]interface{}{
-							"enabled": true,
-						},
-						"cloud.region": map[string]interface{}{
-							"enabled": true,
-						},
-						"faas.id": map[string]interface{}{
-							"enabled": true,
-						},
-						"faas.instance": map[string]interface{}{
-							"enabled": true,
-						},
-						"faas.name": map[string]interface{}{
-							"enabled": true,
-						},
-						"faas.version": map[string]interface{}{
-							"enabled": true,
-						},
-						"gcp.cloud_run.job.execution": map[string]interface{}{
-							"enabled": true,
-						},
-						"gcp.cloud_run.job.task_index": map[string]interface{}{
-							"enabled": true,
-						},
-						"gcp.gce.instance.hostname": map[string]interface{}{
-							"enabled": false,
-						},
-						"gcp.gce.instance.name": map[string]interface{}{
-							"enabled": false,
-						},
-						"host.id": map[string]interface{}{
-							"enabled": true,
-						},
-						"host.name": map[string]interface{}{
-							"enabled": true,
-						},
-						"host.type": map[string]interface{}{
-							"enabled": true,
-						},
-						"k8s.cluster.name": map[string]interface{}{
-							"enabled": true,
-						},
-					},
-				},
+				"detectors":        []string{"gcp"},
+				"timeout":          5 * time.Second,
+				"override":         true,
+				"ec2":              ec2.DefaultArguments.Convert(),
+				"ecs":              ecs.DefaultArguments.Convert(),
+				"eks":              eks.DefaultArguments.Convert(),
+				"elasticbeanstalk": elasticbeanstalk.DefaultArguments.Convert(),
+				"lambda":           lambda.DefaultArguments.Convert(),
+				"azure":            azure.DefaultArguments.Convert(),
+				"aks":              aks.DefaultArguments.Convert(),
+				"consul":           consul.DefaultArguments.Convert(),
+				"docker":           docker.DefaultArguments.Convert(),
+				"gcp":              gcp.DefaultArguments.Convert(),
+				"heroku":           heroku.DefaultArguments.Convert(),
+				"system":           system.DefaultArguments.Convert(),
+				"openshift":        openshift.DefaultArguments.Convert(),
+				"k8snode":          kubernetes_node.DefaultArguments.Convert(),
 			},
 		},
 		{
@@ -574,6 +715,19 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 						},
 					},
 				},
+				"ec2":              ec2.DefaultArguments.Convert(),
+				"ecs":              ecs.DefaultArguments.Convert(),
+				"eks":              eks.DefaultArguments.Convert(),
+				"elasticbeanstalk": elasticbeanstalk.DefaultArguments.Convert(),
+				"lambda":           lambda.DefaultArguments.Convert(),
+				"azure":            azure.DefaultArguments.Convert(),
+				"aks":              aks.DefaultArguments.Convert(),
+				"consul":           consul.DefaultArguments.Convert(),
+				"docker":           docker.DefaultArguments.Convert(),
+				"heroku":           heroku.DefaultArguments.Convert(),
+				"system":           system.DefaultArguments.Convert(),
+				"openshift":        openshift.DefaultArguments.Convert(),
+				"k8snode":          kubernetes_node.DefaultArguments.Convert(),
 			},
 		},
 		{
@@ -584,19 +738,23 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 			output {}
 			`,
 			expected: map[string]interface{}{
-				"detectors": []string{"docker"},
-				"timeout":   5 * time.Second,
-				"override":  true,
-				"docker": map[string]interface{}{
-					"resource_attributes": map[string]interface{}{
-						"host.name": map[string]interface{}{
-							"enabled": true,
-						},
-						"os.type": map[string]interface{}{
-							"enabled": true,
-						},
-					},
-				},
+				"detectors":        []string{"docker"},
+				"timeout":          5 * time.Second,
+				"override":         true,
+				"ec2":              ec2.DefaultArguments.Convert(),
+				"ecs":              ecs.DefaultArguments.Convert(),
+				"eks":              eks.DefaultArguments.Convert(),
+				"elasticbeanstalk": elasticbeanstalk.DefaultArguments.Convert(),
+				"lambda":           lambda.DefaultArguments.Convert(),
+				"azure":            azure.DefaultArguments.Convert(),
+				"aks":              aks.DefaultArguments.Convert(),
+				"consul":           consul.DefaultArguments.Convert(),
+				"docker":           docker.DefaultArguments.Convert(),
+				"gcp":              gcp.DefaultArguments.Convert(),
+				"heroku":           heroku.DefaultArguments.Convert(),
+				"system":           system.DefaultArguments.Convert(),
+				"openshift":        openshift.DefaultArguments.Convert(),
+				"k8snode":          kubernetes_node.DefaultArguments.Convert(),
 			},
 		},
 		{
@@ -626,6 +784,19 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 						},
 					},
 				},
+				"ec2":              ec2.DefaultArguments.Convert(),
+				"ecs":              ecs.DefaultArguments.Convert(),
+				"eks":              eks.DefaultArguments.Convert(),
+				"elasticbeanstalk": elasticbeanstalk.DefaultArguments.Convert(),
+				"lambda":           lambda.DefaultArguments.Convert(),
+				"azure":            azure.DefaultArguments.Convert(),
+				"aks":              aks.DefaultArguments.Convert(),
+				"consul":           consul.DefaultArguments.Convert(),
+				"gcp":              gcp.DefaultArguments.Convert(),
+				"heroku":           heroku.DefaultArguments.Convert(),
+				"system":           system.DefaultArguments.Convert(),
+				"openshift":        openshift.DefaultArguments.Convert(),
+				"k8snode":          kubernetes_node.DefaultArguments.Convert(),
 			},
 		},
 		{
@@ -636,40 +807,23 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 			output {}
 			`,
 			expected: map[string]interface{}{
-				"detectors": []string{"lambda"},
-				"timeout":   5 * time.Second,
-				"override":  true,
-				"lambda": map[string]interface{}{
-					"resource_attributes": map[string]interface{}{
-						"aws.log.group.names": map[string]interface{}{
-							"enabled": true,
-						},
-						"aws.log.stream.names": map[string]interface{}{
-							"enabled": true,
-						},
-						"cloud.platform": map[string]interface{}{
-							"enabled": true,
-						},
-						"cloud.provider": map[string]interface{}{
-							"enabled": true,
-						},
-						"cloud.region": map[string]interface{}{
-							"enabled": true,
-						},
-						"faas.instance": map[string]interface{}{
-							"enabled": true,
-						},
-						"faas.max_memory": map[string]interface{}{
-							"enabled": true,
-						},
-						"faas.name": map[string]interface{}{
-							"enabled": true,
-						},
-						"faas.version": map[string]interface{}{
-							"enabled": true,
-						},
-					},
-				},
+				"detectors":        []string{"lambda"},
+				"timeout":          5 * time.Second,
+				"override":         true,
+				"ec2":              ec2.DefaultArguments.Convert(),
+				"ecs":              ecs.DefaultArguments.Convert(),
+				"eks":              eks.DefaultArguments.Convert(),
+				"elasticbeanstalk": elasticbeanstalk.DefaultArguments.Convert(),
+				"lambda":           lambda.DefaultArguments.Convert(),
+				"azure":            azure.DefaultArguments.Convert(),
+				"aks":              aks.DefaultArguments.Convert(),
+				"consul":           consul.DefaultArguments.Convert(),
+				"docker":           docker.DefaultArguments.Convert(),
+				"gcp":              gcp.DefaultArguments.Convert(),
+				"heroku":           heroku.DefaultArguments.Convert(),
+				"system":           system.DefaultArguments.Convert(),
+				"openshift":        openshift.DefaultArguments.Convert(),
+				"k8snode":          kubernetes_node.DefaultArguments.Convert(),
 			},
 		},
 		{
@@ -722,6 +876,19 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 						},
 					},
 				},
+				"ec2":              ec2.DefaultArguments.Convert(),
+				"ecs":              ecs.DefaultArguments.Convert(),
+				"eks":              eks.DefaultArguments.Convert(),
+				"elasticbeanstalk": elasticbeanstalk.DefaultArguments.Convert(),
+				"azure":            azure.DefaultArguments.Convert(),
+				"aks":              aks.DefaultArguments.Convert(),
+				"consul":           consul.DefaultArguments.Convert(),
+				"docker":           docker.DefaultArguments.Convert(),
+				"gcp":              gcp.DefaultArguments.Convert(),
+				"heroku":           heroku.DefaultArguments.Convert(),
+				"system":           system.DefaultArguments.Convert(),
+				"openshift":        openshift.DefaultArguments.Convert(),
+				"k8snode":          kubernetes_node.DefaultArguments.Convert(),
 			},
 		},
 		{
@@ -732,28 +899,23 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 			output {}
 			`,
 			expected: map[string]interface{}{
-				"detectors": []string{"elasticbeanstalk"},
-				"timeout":   5 * time.Second,
-				"override":  true,
-				"elasticbeanstalk": map[string]interface{}{
-					"resource_attributes": map[string]interface{}{
-						"cloud.platform": map[string]interface{}{
-							"enabled": true,
-						},
-						"cloud.provider": map[string]interface{}{
-							"enabled": true,
-						},
-						"deployment.environment": map[string]interface{}{
-							"enabled": true,
-						},
-						"service.instance.id": map[string]interface{}{
-							"enabled": true,
-						},
-						"service.version": map[string]interface{}{
-							"enabled": true,
-						},
-					},
-				},
+				"detectors":        []string{"elasticbeanstalk"},
+				"timeout":          5 * time.Second,
+				"override":         true,
+				"ec2":              ec2.DefaultArguments.Convert(),
+				"ecs":              ecs.DefaultArguments.Convert(),
+				"eks":              eks.DefaultArguments.Convert(),
+				"elasticbeanstalk": elasticbeanstalk.DefaultArguments.Convert(),
+				"lambda":           lambda.DefaultArguments.Convert(),
+				"azure":            azure.DefaultArguments.Convert(),
+				"aks":              aks.DefaultArguments.Convert(),
+				"consul":           consul.DefaultArguments.Convert(),
+				"docker":           docker.DefaultArguments.Convert(),
+				"gcp":              gcp.DefaultArguments.Convert(),
+				"heroku":           heroku.DefaultArguments.Convert(),
+				"system":           system.DefaultArguments.Convert(),
+				"openshift":        openshift.DefaultArguments.Convert(),
+				"k8snode":          kubernetes_node.DefaultArguments.Convert(),
 			},
 		},
 		{
@@ -793,6 +955,19 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 						},
 					},
 				},
+				"ec2":       ec2.DefaultArguments.Convert(),
+				"ecs":       ecs.DefaultArguments.Convert(),
+				"eks":       eks.DefaultArguments.Convert(),
+				"lambda":    lambda.DefaultArguments.Convert(),
+				"azure":     azure.DefaultArguments.Convert(),
+				"aks":       aks.DefaultArguments.Convert(),
+				"consul":    consul.DefaultArguments.Convert(),
+				"docker":    docker.DefaultArguments.Convert(),
+				"gcp":       gcp.DefaultArguments.Convert(),
+				"heroku":    heroku.DefaultArguments.Convert(),
+				"system":    system.DefaultArguments.Convert(),
+				"openshift": openshift.DefaultArguments.Convert(),
+				"k8snode":   kubernetes_node.DefaultArguments.Convert(),
 			},
 		},
 		{
@@ -803,48 +978,23 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 			output {}
 			`,
 			expected: map[string]interface{}{
-				"detectors": []string{"consul"},
-				"timeout":   5 * time.Second,
-				"override":  true,
-				"consul": map[string]interface{}{
-					"address":    "",
-					"datacenter": "",
-					"token":      "",
-					"namespace":  "",
-					"meta":       nil,
-					"resource_attributes": map[string]interface{}{
-						"azure.resourcegroup.name": map[string]interface{}{
-							"enabled": true,
-						},
-						"azure.vm.name": map[string]interface{}{
-							"enabled": true,
-						},
-						"azure.vm.scaleset.name": map[string]interface{}{
-							"enabled": true,
-						},
-						"azure.vm.size": map[string]interface{}{
-							"enabled": true,
-						},
-						"cloud.account.id": map[string]interface{}{
-							"enabled": true,
-						},
-						"cloud.platform": map[string]interface{}{
-							"enabled": true,
-						},
-						"cloud.provider": map[string]interface{}{
-							"enabled": true,
-						},
-						"cloud.region": map[string]interface{}{
-							"enabled": true,
-						},
-						"host.id": map[string]interface{}{
-							"enabled": true,
-						},
-						"host.name": map[string]interface{}{
-							"enabled": true,
-						},
-					},
-				},
+				"detectors":        []string{"consul"},
+				"timeout":          5 * time.Second,
+				"override":         true,
+				"ec2":              ec2.DefaultArguments.Convert(),
+				"ecs":              ecs.DefaultArguments.Convert(),
+				"eks":              eks.DefaultArguments.Convert(),
+				"elasticbeanstalk": elasticbeanstalk.DefaultArguments.Convert(),
+				"lambda":           lambda.DefaultArguments.Convert(),
+				"azure":            azure.DefaultArguments.Convert(),
+				"aks":              aks.DefaultArguments.Convert(),
+				"consul":           consul.DefaultArguments.Convert(),
+				"docker":           docker.DefaultArguments.Convert(),
+				"gcp":              gcp.DefaultArguments.Convert(),
+				"heroku":           heroku.DefaultArguments.Convert(),
+				"system":           system.DefaultArguments.Convert(),
+				"openshift":        openshift.DefaultArguments.Convert(),
+				"k8snode":          kubernetes_node.DefaultArguments.Convert(),
 			},
 		},
 		{
@@ -911,6 +1061,19 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 						},
 					},
 				},
+				"ec2":              ec2.DefaultArguments.Convert(),
+				"ecs":              ecs.DefaultArguments.Convert(),
+				"eks":              eks.DefaultArguments.Convert(),
+				"elasticbeanstalk": elasticbeanstalk.DefaultArguments.Convert(),
+				"lambda":           lambda.DefaultArguments.Convert(),
+				"azure":            azure.DefaultArguments.Convert(),
+				"aks":              aks.DefaultArguments.Convert(),
+				"docker":           docker.DefaultArguments.Convert(),
+				"gcp":              gcp.DefaultArguments.Convert(),
+				"heroku":           heroku.DefaultArguments.Convert(),
+				"system":           system.DefaultArguments.Convert(),
+				"openshift":        openshift.DefaultArguments.Convert(),
+				"k8snode":          kubernetes_node.DefaultArguments.Convert(),
 			},
 		},
 		{
@@ -921,37 +1084,23 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 			output {}
 			`,
 			expected: map[string]interface{}{
-				"detectors": []string{"heroku"},
-				"timeout":   5 * time.Second,
-				"override":  true,
-				"heroku": map[string]interface{}{
-					"resource_attributes": map[string]interface{}{
-						"cloud.provider": map[string]interface{}{
-							"enabled": true,
-						},
-						"heroku.app.id": map[string]interface{}{
-							"enabled": true,
-						},
-						"heroku.dyno.id": map[string]interface{}{
-							"enabled": true,
-						},
-						"heroku.release.commit": map[string]interface{}{
-							"enabled": true,
-						},
-						"heroku.release.creation_timestamp": map[string]interface{}{
-							"enabled": true,
-						},
-						"service.instance.id": map[string]interface{}{
-							"enabled": true,
-						},
-						"service.name": map[string]interface{}{
-							"enabled": true,
-						},
-						"service.version": map[string]interface{}{
-							"enabled": true,
-						},
-					},
-				},
+				"detectors":        []string{"heroku"},
+				"timeout":          5 * time.Second,
+				"override":         true,
+				"ec2":              ec2.DefaultArguments.Convert(),
+				"ecs":              ecs.DefaultArguments.Convert(),
+				"eks":              eks.DefaultArguments.Convert(),
+				"elasticbeanstalk": elasticbeanstalk.DefaultArguments.Convert(),
+				"lambda":           lambda.DefaultArguments.Convert(),
+				"azure":            azure.DefaultArguments.Convert(),
+				"aks":              aks.DefaultArguments.Convert(),
+				"consul":           consul.DefaultArguments.Convert(),
+				"docker":           docker.DefaultArguments.Convert(),
+				"gcp":              gcp.DefaultArguments.Convert(),
+				"heroku":           heroku.DefaultArguments.Convert(),
+				"system":           system.DefaultArguments.Convert(),
+				"openshift":        openshift.DefaultArguments.Convert(),
+				"k8snode":          kubernetes_node.DefaultArguments.Convert(),
 			},
 		},
 		{
@@ -1002,6 +1151,19 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 						},
 					},
 				},
+				"ec2":              ec2.DefaultArguments.Convert(),
+				"ecs":              ecs.DefaultArguments.Convert(),
+				"eks":              eks.DefaultArguments.Convert(),
+				"elasticbeanstalk": elasticbeanstalk.DefaultArguments.Convert(),
+				"lambda":           lambda.DefaultArguments.Convert(),
+				"azure":            azure.DefaultArguments.Convert(),
+				"aks":              aks.DefaultArguments.Convert(),
+				"consul":           consul.DefaultArguments.Convert(),
+				"docker":           docker.DefaultArguments.Convert(),
+				"gcp":              gcp.DefaultArguments.Convert(),
+				"system":           system.DefaultArguments.Convert(),
+				"openshift":        openshift.DefaultArguments.Convert(),
+				"k8snode":          kubernetes_node.DefaultArguments.Convert(),
 			},
 		},
 		{
@@ -1012,21 +1174,23 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 			output {}
 			`,
 			expected: map[string]interface{}{
-				"detectors": []string{"k8snode"},
-				"timeout":   5 * time.Second,
-				"override":  true,
-				"k8snode": map[string]interface{}{
-					"auth_type":         "none",
-					"node_from_env_var": "K8S_NODE_NAME",
-					"resource_attributes": map[string]interface{}{
-						"k8s.node.name": map[string]interface{}{
-							"enabled": true,
-						},
-						"k8s.node.uid": map[string]interface{}{
-							"enabled": true,
-						},
-					},
-				},
+				"detectors":        []string{"k8snode"},
+				"timeout":          5 * time.Second,
+				"override":         true,
+				"ec2":              ec2.DefaultArguments.Convert(),
+				"ecs":              ecs.DefaultArguments.Convert(),
+				"eks":              eks.DefaultArguments.Convert(),
+				"elasticbeanstalk": elasticbeanstalk.DefaultArguments.Convert(),
+				"lambda":           lambda.DefaultArguments.Convert(),
+				"azure":            azure.DefaultArguments.Convert(),
+				"aks":              aks.DefaultArguments.Convert(),
+				"consul":           consul.DefaultArguments.Convert(),
+				"docker":           docker.DefaultArguments.Convert(),
+				"gcp":              gcp.DefaultArguments.Convert(),
+				"heroku":           heroku.DefaultArguments.Convert(),
+				"system":           system.DefaultArguments.Convert(),
+				"openshift":        openshift.DefaultArguments.Convert(),
+				"k8snode":          kubernetes_node.DefaultArguments.Convert(),
 			},
 		},
 		{
@@ -1061,6 +1225,19 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 						},
 					},
 				},
+				"ec2":              ec2.DefaultArguments.Convert(),
+				"ecs":              ecs.DefaultArguments.Convert(),
+				"eks":              eks.DefaultArguments.Convert(),
+				"elasticbeanstalk": elasticbeanstalk.DefaultArguments.Convert(),
+				"lambda":           lambda.DefaultArguments.Convert(),
+				"azure":            azure.DefaultArguments.Convert(),
+				"aks":              aks.DefaultArguments.Convert(),
+				"consul":           consul.DefaultArguments.Convert(),
+				"docker":           docker.DefaultArguments.Convert(),
+				"gcp":              gcp.DefaultArguments.Convert(),
+				"heroku":           heroku.DefaultArguments.Convert(),
+				"system":           system.DefaultArguments.Convert(),
+				"openshift":        openshift.DefaultArguments.Convert(),
 			},
 		},
 		{
@@ -1083,47 +1260,23 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 			output {}
 			`,
 			expected: map[string]interface{}{
-				"detectors": []string{"system"},
-				"timeout":   5 * time.Second,
-				"override":  true,
-				"system": map[string]interface{}{
-					"hostname_sources": []string{"dns", "os"},
-					"resource_attributes": map[string]interface{}{
-						"host.arch": map[string]interface{}{
-							"enabled": false,
-						},
-						"host.cpu.cache.l2.size": map[string]interface{}{
-							"enabled": false,
-						},
-						"host.cpu.family": map[string]interface{}{
-							"enabled": false,
-						},
-						"host.cpu.model.id": map[string]interface{}{
-							"enabled": false,
-						},
-						"host.cpu.model.name": map[string]interface{}{
-							"enabled": false,
-						},
-						"host.cpu.stepping": map[string]interface{}{
-							"enabled": false,
-						},
-						"host.cpu.vendor.id": map[string]interface{}{
-							"enabled": false,
-						},
-						"host.id": map[string]interface{}{
-							"enabled": false,
-						},
-						"host.name": map[string]interface{}{
-							"enabled": true,
-						},
-						"os.description": map[string]interface{}{
-							"enabled": false,
-						},
-						"os.type": map[string]interface{}{
-							"enabled": true,
-						},
-					},
-				},
+				"detectors":        []string{"system"},
+				"timeout":          5 * time.Second,
+				"override":         true,
+				"ec2":              ec2.DefaultArguments.Convert(),
+				"ecs":              ecs.DefaultArguments.Convert(),
+				"eks":              eks.DefaultArguments.Convert(),
+				"elasticbeanstalk": elasticbeanstalk.DefaultArguments.Convert(),
+				"lambda":           lambda.DefaultArguments.Convert(),
+				"azure":            azure.DefaultArguments.Convert(),
+				"aks":              aks.DefaultArguments.Convert(),
+				"consul":           consul.DefaultArguments.Convert(),
+				"docker":           docker.DefaultArguments.Convert(),
+				"gcp":              gcp.DefaultArguments.Convert(),
+				"heroku":           heroku.DefaultArguments.Convert(),
+				"system":           system.DefaultArguments.Convert(),
+				"openshift":        openshift.DefaultArguments.Convert(),
+				"k8snode":          kubernetes_node.DefaultArguments.Convert(),
 			},
 		},
 		{
@@ -1190,6 +1343,19 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 						},
 					},
 				},
+				"ec2":              ec2.DefaultArguments.Convert(),
+				"ecs":              ecs.DefaultArguments.Convert(),
+				"eks":              eks.DefaultArguments.Convert(),
+				"elasticbeanstalk": elasticbeanstalk.DefaultArguments.Convert(),
+				"lambda":           lambda.DefaultArguments.Convert(),
+				"azure":            azure.DefaultArguments.Convert(),
+				"aks":              aks.DefaultArguments.Convert(),
+				"consul":           consul.DefaultArguments.Convert(),
+				"docker":           docker.DefaultArguments.Convert(),
+				"gcp":              gcp.DefaultArguments.Convert(),
+				"heroku":           heroku.DefaultArguments.Convert(),
+				"openshift":        openshift.DefaultArguments.Convert(),
+				"k8snode":          kubernetes_node.DefaultArguments.Convert(),
 			},
 		},
 		{
@@ -1200,30 +1366,23 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 			output {}
 			`,
 			expected: map[string]interface{}{
-				"detectors": []string{"openshift"},
-				"timeout":   5 * time.Second,
-				"override":  true,
-				"openshift": map[string]interface{}{
-					"address": "",
-					"token":   "",
-					// "tls": map[string]interface{}{
-					// 	"insecure": true,
-					// },
-					"resource_attributes": map[string]interface{}{
-						"cloud.platform": map[string]interface{}{
-							"enabled": true,
-						},
-						"cloud.provider": map[string]interface{}{
-							"enabled": true,
-						},
-						"cloud.region": map[string]interface{}{
-							"enabled": true,
-						},
-						"k8s.cluster.name": map[string]interface{}{
-							"enabled": true,
-						},
-					},
-				},
+				"detectors":        []string{"openshift"},
+				"timeout":          5 * time.Second,
+				"override":         true,
+				"ec2":              ec2.DefaultArguments.Convert(),
+				"ecs":              ecs.DefaultArguments.Convert(),
+				"eks":              eks.DefaultArguments.Convert(),
+				"elasticbeanstalk": elasticbeanstalk.DefaultArguments.Convert(),
+				"lambda":           lambda.DefaultArguments.Convert(),
+				"azure":            azure.DefaultArguments.Convert(),
+				"aks":              aks.DefaultArguments.Convert(),
+				"consul":           consul.DefaultArguments.Convert(),
+				"docker":           docker.DefaultArguments.Convert(),
+				"gcp":              gcp.DefaultArguments.Convert(),
+				"heroku":           heroku.DefaultArguments.Convert(),
+				"system":           system.DefaultArguments.Convert(),
+				"openshift":        openshift.DefaultArguments.Convert(),
+				"k8snode":          kubernetes_node.DefaultArguments.Convert(),
 			},
 		},
 		{
@@ -1280,6 +1439,19 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 						},
 					},
 				},
+				"ec2":              ec2.DefaultArguments.Convert(),
+				"ecs":              ecs.DefaultArguments.Convert(),
+				"eks":              eks.DefaultArguments.Convert(),
+				"elasticbeanstalk": elasticbeanstalk.DefaultArguments.Convert(),
+				"lambda":           lambda.DefaultArguments.Convert(),
+				"azure":            azure.DefaultArguments.Convert(),
+				"aks":              aks.DefaultArguments.Convert(),
+				"consul":           consul.DefaultArguments.Convert(),
+				"docker":           docker.DefaultArguments.Convert(),
+				"gcp":              gcp.DefaultArguments.Convert(),
+				"heroku":           heroku.DefaultArguments.Convert(),
+				"system":           system.DefaultArguments.Convert(),
+				"k8snode":          kubernetes_node.DefaultArguments.Convert(),
 			},
 		},
 		{
@@ -1291,9 +1463,23 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 			output {}
 			`,
 			expected: map[string]interface{}{
-				"detectors": []string{"env"},
-				"timeout":   7 * time.Second,
-				"override":  false,
+				"detectors":        []string{"env"},
+				"timeout":          7 * time.Second,
+				"override":         false,
+				"ec2":              ec2.DefaultArguments.Convert(),
+				"ecs":              ecs.DefaultArguments.Convert(),
+				"eks":              eks.DefaultArguments.Convert(),
+				"elasticbeanstalk": elasticbeanstalk.DefaultArguments.Convert(),
+				"lambda":           lambda.DefaultArguments.Convert(),
+				"azure":            azure.DefaultArguments.Convert(),
+				"aks":              aks.DefaultArguments.Convert(),
+				"consul":           consul.DefaultArguments.Convert(),
+				"docker":           docker.DefaultArguments.Convert(),
+				"gcp":              gcp.DefaultArguments.Convert(),
+				"heroku":           heroku.DefaultArguments.Convert(),
+				"system":           system.DefaultArguments.Convert(),
+				"openshift":        openshift.DefaultArguments.Convert(),
+				"k8snode":          kubernetes_node.DefaultArguments.Convert(),
 			},
 		},
 	}

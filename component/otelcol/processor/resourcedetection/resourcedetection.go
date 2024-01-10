@@ -45,7 +45,7 @@ func init() {
 type Arguments struct {
 	// Detectors is an ordered list of named detectors that should be
 	// run to attempt to detect resource information.
-	Detectors []string `river:"detectors,attr"`
+	Detectors []string `river:"detectors,attr,optional"`
 
 	// Override indicates whether any existing resource attributes
 	// should be overridden or preserved. Defaults to true.
@@ -72,46 +72,46 @@ type Arguments struct {
 // DetectorConfig contains user-specified configurations unique to all individual detectors
 type DetectorConfig struct {
 	// EC2Config contains user-specified configurations for the EC2 detector
-	EC2Config *ec2.Config `river:"ec2,block,optional"`
+	EC2Config ec2.Config `river:"ec2,block,optional"`
 
 	// ECSConfig contains user-specified configurations for the ECS detector
 	ECSConfig ecs.Config `river:"ecs,block,optional"`
 
 	// EKSConfig contains user-specified configurations for the EKS detector
-	EKSConfig *eks.Config `river:"eks,block,optional"`
+	EKSConfig eks.Config `river:"eks,block,optional"`
 
 	// Elasticbeanstalk contains user-specified configurations for the elasticbeanstalk detector
-	ElasticbeanstalkConfig *elasticbeanstalk.Config `river:"elasticbeanstalk,block,optional"`
+	ElasticbeanstalkConfig elasticbeanstalk.Config `river:"elasticbeanstalk,block,optional"`
 
 	// Lambda contains user-specified configurations for the lambda detector
-	LambdaConfig *lambda.Config `river:"lambda,block,optional"`
+	LambdaConfig lambda.Config `river:"lambda,block,optional"`
 
 	// Azure contains user-specified configurations for the azure detector
-	AzureConfig *azure.Config `river:"azure,block,optional"`
+	AzureConfig azure.Config `river:"azure,block,optional"`
 
 	// Aks contains user-specified configurations for the aks detector
-	AksConfig *aks.Config `river:"aks,block,optional"`
+	AksConfig aks.Config `river:"aks,block,optional"`
 
 	// ConsulConfig contains user-specified configurations for the Consul detector
-	ConsulConfig *consul.Config `river:"consul,block,optional"`
+	ConsulConfig consul.Config `river:"consul,block,optional"`
 
 	// DockerConfig contains user-specified configurations for the docker detector
-	DockerConfig *docker.Config `river:"docker,block,optional"`
+	DockerConfig docker.Config `river:"docker,block,optional"`
 
 	// GcpConfig contains user-specified configurations for the gcp detector
-	GcpConfig *gcp.Config `river:"gcp,block,optional"`
+	GcpConfig gcp.Config `river:"gcp,block,optional"`
 
 	// HerokuConfig contains user-specified configurations for the heroku detector
-	HerokuConfig *heroku.Config `river:"heroku,block,optional"`
+	HerokuConfig heroku.Config `river:"heroku,block,optional"`
 
 	// SystemConfig contains user-specified configurations for the System detector
-	SystemConfig *system.Config `river:"system,block,optional"`
+	SystemConfig system.Config `river:"system,block,optional"`
 
 	// OpenShift contains user-specified configurations for the Openshift detector
-	OpenShiftConfig *openshift.Config `river:"openshift,block,optional"`
+	OpenShiftConfig openshift.Config `river:"openshift,block,optional"`
 
 	// KubernetesNode contains user-specified configurations for the K8SNode detector
-	KubernetesNodeConfig *kubernetes_node.Config `river:"kubernetes_node,block,optional"`
+	KubernetesNodeConfig kubernetes_node.Config `river:"kubernetes_node,block,optional"`
 }
 
 var (
@@ -122,8 +122,25 @@ var (
 
 // DefaultArguments holds default settings for Arguments.
 var DefaultArguments = Arguments{
-	Override: true,
-	Timeout:  5 * time.Second,
+	Detectors: []string{"env"},
+	Override:  true,
+	Timeout:   5 * time.Second,
+	DetectorConfig: DetectorConfig{
+		EC2Config:              ec2.DefaultArguments,
+		ECSConfig:              ecs.DefaultArguments,
+		EKSConfig:              eks.DefaultArguments,
+		ElasticbeanstalkConfig: elasticbeanstalk.DefaultArguments,
+		LambdaConfig:           lambda.DefaultArguments,
+		AzureConfig:            azure.DefaultArguments,
+		AksConfig:              aks.DefaultArguments,
+		ConsulConfig:           consul.DefaultArguments,
+		DockerConfig:           docker.DefaultArguments,
+		GcpConfig:              gcp.DefaultArguments,
+		HerokuConfig:           heroku.DefaultArguments,
+		SystemConfig:           system.DefaultArguments,
+		OpenShiftConfig:        openshift.DefaultArguments,
+		KubernetesNodeConfig:   kubernetes_node.DefaultArguments,
+	},
 }
 
 // SetToDefault implements river.Defaulter.

@@ -12,15 +12,15 @@ type Config struct {
 // DefaultArguments holds default settings for Config.
 var DefaultArguments = Config{
 	ResourceAttributes: ResourceAttributesConfig{
-		AwsLogGroupNames:  &rac.ResourceAttributeConfig{Enabled: true},
-		AwsLogStreamNames: &rac.ResourceAttributeConfig{Enabled: true},
-		CloudPlatform:     &rac.ResourceAttributeConfig{Enabled: true},
-		CloudProvider:     &rac.ResourceAttributeConfig{Enabled: true},
-		CloudRegion:       &rac.ResourceAttributeConfig{Enabled: true},
-		FaasInstance:      &rac.ResourceAttributeConfig{Enabled: true},
-		FaasMaxMemory:     &rac.ResourceAttributeConfig{Enabled: true},
-		FaasName:          &rac.ResourceAttributeConfig{Enabled: true},
-		FaasVersion:       &rac.ResourceAttributeConfig{Enabled: true},
+		AwsLogGroupNames:  rac.ResourceAttributeConfig{Enabled: true},
+		AwsLogStreamNames: rac.ResourceAttributeConfig{Enabled: true},
+		CloudPlatform:     rac.ResourceAttributeConfig{Enabled: true},
+		CloudProvider:     rac.ResourceAttributeConfig{Enabled: true},
+		CloudRegion:       rac.ResourceAttributeConfig{Enabled: true},
+		FaasInstance:      rac.ResourceAttributeConfig{Enabled: true},
+		FaasMaxMemory:     rac.ResourceAttributeConfig{Enabled: true},
+		FaasName:          rac.ResourceAttributeConfig{Enabled: true},
+		FaasVersion:       rac.ResourceAttributeConfig{Enabled: true},
 	},
 }
 
@@ -31,11 +31,7 @@ func (args *Config) SetToDefault() {
 	*args = DefaultArguments
 }
 
-func (args *Config) Convert() map[string]interface{} {
-	if args == nil {
-		return nil
-	}
-
+func (args Config) Convert() map[string]interface{} {
 	return map[string]interface{}{
 		"resource_attributes": args.ResourceAttributes.Convert(),
 	}
@@ -43,22 +39,18 @@ func (args *Config) Convert() map[string]interface{} {
 
 // ResourceAttributesConfig provides config for resourcedetectionprocessor/lambda resource attributes.
 type ResourceAttributesConfig struct {
-	AwsLogGroupNames  *rac.ResourceAttributeConfig `river:"aws.log.group.names,block,optional"`
-	AwsLogStreamNames *rac.ResourceAttributeConfig `river:"aws.log.stream.names,block,optional"`
-	CloudPlatform     *rac.ResourceAttributeConfig `river:"cloud.platform,block,optional"`
-	CloudProvider     *rac.ResourceAttributeConfig `river:"cloud.provider,block,optional"`
-	CloudRegion       *rac.ResourceAttributeConfig `river:"cloud.region,block,optional"`
-	FaasInstance      *rac.ResourceAttributeConfig `river:"faas.instance,block,optional"`
-	FaasMaxMemory     *rac.ResourceAttributeConfig `river:"faas.max_memory,block,optional"`
-	FaasName          *rac.ResourceAttributeConfig `river:"faas.name,block,optional"`
-	FaasVersion       *rac.ResourceAttributeConfig `river:"faas.version,block,optional"`
+	AwsLogGroupNames  rac.ResourceAttributeConfig `river:"aws.log.group.names,block,optional"`
+	AwsLogStreamNames rac.ResourceAttributeConfig `river:"aws.log.stream.names,block,optional"`
+	CloudPlatform     rac.ResourceAttributeConfig `river:"cloud.platform,block,optional"`
+	CloudProvider     rac.ResourceAttributeConfig `river:"cloud.provider,block,optional"`
+	CloudRegion       rac.ResourceAttributeConfig `river:"cloud.region,block,optional"`
+	FaasInstance      rac.ResourceAttributeConfig `river:"faas.instance,block,optional"`
+	FaasMaxMemory     rac.ResourceAttributeConfig `river:"faas.max_memory,block,optional"`
+	FaasName          rac.ResourceAttributeConfig `river:"faas.name,block,optional"`
+	FaasVersion       rac.ResourceAttributeConfig `river:"faas.version,block,optional"`
 }
 
-func (r *ResourceAttributesConfig) Convert() map[string]interface{} {
-	if r == nil {
-		return nil
-	}
-
+func (r ResourceAttributesConfig) Convert() map[string]interface{} {
 	return map[string]interface{}{
 		"aws.log.group.names":  r.AwsLogGroupNames.Convert(),
 		"aws.log.stream.names": r.AwsLogStreamNames.Convert(),

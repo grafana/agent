@@ -31,14 +31,14 @@ type Config struct {
 	ResourceAttributes ResourceAttributesConfig `river:"resource_attributes,block,optional"`
 }
 
-var DefaultConfig = Config{
+var DefaultArguments = Config{
 	KubernetesAPIConfig: otelcol.KubernetesAPIConfig{
 		AuthType: "none",
 	},
 	NodeFromEnvVar: "K8S_NODE_NAME",
 	ResourceAttributes: ResourceAttributesConfig{
-		K8sNodeName: &rac.ResourceAttributeConfig{Enabled: true},
-		K8sNodeUID:  &rac.ResourceAttributeConfig{Enabled: true},
+		K8sNodeName: rac.ResourceAttributeConfig{Enabled: true},
+		K8sNodeUID:  rac.ResourceAttributeConfig{Enabled: true},
 	},
 }
 
@@ -46,14 +46,10 @@ var _ river.Defaulter = (*Config)(nil)
 
 // SetToDefault implements river.Defaulter.
 func (c *Config) SetToDefault() {
-	*c = DefaultConfig
+	*c = DefaultArguments
 }
 
-func (args *Config) Convert() map[string]interface{} {
-	if args == nil {
-		return nil
-	}
-
+func (args Config) Convert() map[string]interface{} {
 	return map[string]interface{}{
 		//TODO: K8sAPIConfig is squashed - is there a better way to "convert" it?
 		"auth_type":           args.KubernetesAPIConfig.AuthType,
@@ -65,15 +61,11 @@ func (args *Config) Convert() map[string]interface{} {
 
 // ResourceAttributesConfig provides config for resourcedetectionprocessor/k8snode resource attributes.
 type ResourceAttributesConfig struct {
-	K8sNodeName *rac.ResourceAttributeConfig `river:"k8s.node.name,block,optional"`
-	K8sNodeUID  *rac.ResourceAttributeConfig `river:"k8s.node.uid,block,optional"`
+	K8sNodeName rac.ResourceAttributeConfig `river:"k8s.node.name,block,optional"`
+	K8sNodeUID  rac.ResourceAttributeConfig `river:"k8s.node.uid,block,optional"`
 }
 
-func (r *ResourceAttributesConfig) Convert() map[string]interface{} {
-	if r == nil {
-		return nil
-	}
-
+func (r ResourceAttributesConfig) Convert() map[string]interface{} {
 	return map[string]interface{}{
 		"k8s.node.name": r.K8sNodeName.Convert(),
 		"k8s.node.uid":  r.K8sNodeUID.Convert(),

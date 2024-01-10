@@ -43,16 +43,16 @@ type Config struct {
 // DefaultArguments holds default settings for Config.
 var DefaultArguments = Config{
 	ResourceAttributes: ResourceAttributesConfig{
-		AzureResourcegroupName: &rac.ResourceAttributeConfig{Enabled: true},
-		AzureVMName:            &rac.ResourceAttributeConfig{Enabled: true},
-		AzureVMScalesetName:    &rac.ResourceAttributeConfig{Enabled: true},
-		AzureVMSize:            &rac.ResourceAttributeConfig{Enabled: true},
-		CloudAccountID:         &rac.ResourceAttributeConfig{Enabled: true},
-		CloudPlatform:          &rac.ResourceAttributeConfig{Enabled: true},
-		CloudProvider:          &rac.ResourceAttributeConfig{Enabled: true},
-		CloudRegion:            &rac.ResourceAttributeConfig{Enabled: true},
-		HostID:                 &rac.ResourceAttributeConfig{Enabled: true},
-		HostName:               &rac.ResourceAttributeConfig{Enabled: true},
+		AzureResourcegroupName: rac.ResourceAttributeConfig{Enabled: true},
+		AzureVMName:            rac.ResourceAttributeConfig{Enabled: true},
+		AzureVMScalesetName:    rac.ResourceAttributeConfig{Enabled: true},
+		AzureVMSize:            rac.ResourceAttributeConfig{Enabled: true},
+		CloudAccountID:         rac.ResourceAttributeConfig{Enabled: true},
+		CloudPlatform:          rac.ResourceAttributeConfig{Enabled: true},
+		CloudProvider:          rac.ResourceAttributeConfig{Enabled: true},
+		CloudRegion:            rac.ResourceAttributeConfig{Enabled: true},
+		HostID:                 rac.ResourceAttributeConfig{Enabled: true},
+		HostName:               rac.ResourceAttributeConfig{Enabled: true},
 	},
 }
 
@@ -63,11 +63,7 @@ func (args *Config) SetToDefault() {
 	*args = DefaultArguments
 }
 
-func (args *Config) Convert() map[string]interface{} {
-	if args == nil {
-		return nil
-	}
-
+func (args Config) Convert() map[string]interface{} {
 	//TODO(ptodev): Change the OTel Collector's "meta" param to be a slice instead of a map.
 	var metaLabels map[string]string
 	if args.MetaLabels != nil {
@@ -89,23 +85,19 @@ func (args *Config) Convert() map[string]interface{} {
 
 // ResourceAttributesConfig provides config for resourcedetectionprocessor/consul resource attributes.
 type ResourceAttributesConfig struct {
-	AzureResourcegroupName *rac.ResourceAttributeConfig `river:"azure.resourcegroup.name,block,optional"`
-	AzureVMName            *rac.ResourceAttributeConfig `river:"azure.vm.name,block,optional"`
-	AzureVMScalesetName    *rac.ResourceAttributeConfig `river:"azure.vm.scaleset.name,block,optional"`
-	AzureVMSize            *rac.ResourceAttributeConfig `river:"azure.vm.size,block,optional"`
-	CloudAccountID         *rac.ResourceAttributeConfig `river:"cloud.account.id,block,optional"`
-	CloudPlatform          *rac.ResourceAttributeConfig `river:"cloud.platform,block,optional"`
-	CloudProvider          *rac.ResourceAttributeConfig `river:"cloud.provider,block,optional"`
-	CloudRegion            *rac.ResourceAttributeConfig `river:"cloud.region,block,optional"`
-	HostID                 *rac.ResourceAttributeConfig `river:"host.id,block,optional"`
-	HostName               *rac.ResourceAttributeConfig `river:"host.name,block,optional"`
+	AzureResourcegroupName rac.ResourceAttributeConfig `river:"azure.resourcegroup.name,block,optional"`
+	AzureVMName            rac.ResourceAttributeConfig `river:"azure.vm.name,block,optional"`
+	AzureVMScalesetName    rac.ResourceAttributeConfig `river:"azure.vm.scaleset.name,block,optional"`
+	AzureVMSize            rac.ResourceAttributeConfig `river:"azure.vm.size,block,optional"`
+	CloudAccountID         rac.ResourceAttributeConfig `river:"cloud.account.id,block,optional"`
+	CloudPlatform          rac.ResourceAttributeConfig `river:"cloud.platform,block,optional"`
+	CloudProvider          rac.ResourceAttributeConfig `river:"cloud.provider,block,optional"`
+	CloudRegion            rac.ResourceAttributeConfig `river:"cloud.region,block,optional"`
+	HostID                 rac.ResourceAttributeConfig `river:"host.id,block,optional"`
+	HostName               rac.ResourceAttributeConfig `river:"host.name,block,optional"`
 }
 
 func (r *ResourceAttributesConfig) Convert() map[string]interface{} {
-	if r == nil {
-		return nil
-	}
-
 	return map[string]interface{}{
 		"azure.resourcegroup.name": r.AzureResourcegroupName.Convert(),
 		"azure.vm.name":            r.AzureVMName.Convert(),

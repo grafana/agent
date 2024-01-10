@@ -12,8 +12,8 @@ type Config struct {
 // DefaultArguments holds default settings for Config.
 var DefaultArguments = Config{
 	ResourceAttributes: ResourceAttributesConfig{
-		HostName: &rac.ResourceAttributeConfig{Enabled: true},
-		OsType:   &rac.ResourceAttributeConfig{Enabled: true},
+		HostName: rac.ResourceAttributeConfig{Enabled: true},
+		OsType:   rac.ResourceAttributeConfig{Enabled: true},
 	},
 }
 
@@ -24,11 +24,7 @@ func (args *Config) SetToDefault() {
 	*args = DefaultArguments
 }
 
-func (args *Config) Convert() map[string]interface{} {
-	if args == nil {
-		return nil
-	}
-
+func (args Config) Convert() map[string]interface{} {
 	return map[string]interface{}{
 		"resource_attributes": args.ResourceAttributes.Convert(),
 	}
@@ -36,15 +32,11 @@ func (args *Config) Convert() map[string]interface{} {
 
 // ResourceAttributesConfig provides config for resourcedetectionprocessor/docker resource attributes.
 type ResourceAttributesConfig struct {
-	HostName *rac.ResourceAttributeConfig `river:"host.name,block,optional"`
-	OsType   *rac.ResourceAttributeConfig `river:"os.type,block,optional"`
+	HostName rac.ResourceAttributeConfig `river:"host.name,block,optional"`
+	OsType   rac.ResourceAttributeConfig `river:"os.type,block,optional"`
 }
 
-func (r *ResourceAttributesConfig) Convert() map[string]interface{} {
-	if r == nil {
-		return nil
-	}
-
+func (r ResourceAttributesConfig) Convert() map[string]interface{} {
 	return map[string]interface{}{
 		"host.name": r.HostName.Convert(),
 		"os.type":   r.OsType.Convert(),

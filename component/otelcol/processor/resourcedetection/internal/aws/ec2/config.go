@@ -16,15 +16,15 @@ type Config struct {
 // DefaultArguments holds default settings for Config.
 var DefaultArguments = Config{
 	ResourceAttributes: ResourceAttributesConfig{
-		CloudAccountID:        &rac.ResourceAttributeConfig{Enabled: true},
-		CloudAvailabilityZone: &rac.ResourceAttributeConfig{Enabled: true},
-		CloudPlatform:         &rac.ResourceAttributeConfig{Enabled: true},
-		CloudProvider:         &rac.ResourceAttributeConfig{Enabled: true},
-		CloudRegion:           &rac.ResourceAttributeConfig{Enabled: true},
-		HostID:                &rac.ResourceAttributeConfig{Enabled: true},
-		HostImageID:           &rac.ResourceAttributeConfig{Enabled: true},
-		HostName:              &rac.ResourceAttributeConfig{Enabled: true},
-		HostType:              &rac.ResourceAttributeConfig{Enabled: true},
+		CloudAccountID:        rac.ResourceAttributeConfig{Enabled: true},
+		CloudAvailabilityZone: rac.ResourceAttributeConfig{Enabled: true},
+		CloudPlatform:         rac.ResourceAttributeConfig{Enabled: true},
+		CloudProvider:         rac.ResourceAttributeConfig{Enabled: true},
+		CloudRegion:           rac.ResourceAttributeConfig{Enabled: true},
+		HostID:                rac.ResourceAttributeConfig{Enabled: true},
+		HostImageID:           rac.ResourceAttributeConfig{Enabled: true},
+		HostName:              rac.ResourceAttributeConfig{Enabled: true},
+		HostType:              rac.ResourceAttributeConfig{Enabled: true},
 	},
 }
 
@@ -35,11 +35,7 @@ func (args *Config) SetToDefault() {
 	*args = DefaultArguments
 }
 
-func (args *Config) Convert() map[string]interface{} {
-	if args == nil {
-		return nil
-	}
-
+func (args Config) Convert() map[string]interface{} {
 	return map[string]interface{}{
 		"tags":                append([]string{}, args.Tags...),
 		"resource_attributes": args.ResourceAttributes.Convert(),
@@ -48,22 +44,18 @@ func (args *Config) Convert() map[string]interface{} {
 
 // ResourceAttributesConfig provides config to enable and disable resource attributes.
 type ResourceAttributesConfig struct {
-	CloudAccountID        *rac.ResourceAttributeConfig `river:"cloud.account.id,block,optional"`
-	CloudAvailabilityZone *rac.ResourceAttributeConfig `river:"cloud.availability_zone,block,optional"`
-	CloudPlatform         *rac.ResourceAttributeConfig `river:"cloud.platform,block,optional"`
-	CloudProvider         *rac.ResourceAttributeConfig `river:"cloud.provider,block,optional"`
-	CloudRegion           *rac.ResourceAttributeConfig `river:"cloud.region,block,optional"`
-	HostID                *rac.ResourceAttributeConfig `river:"host.id,block,optional"`
-	HostImageID           *rac.ResourceAttributeConfig `river:"host.image.id,block,optional"`
-	HostName              *rac.ResourceAttributeConfig `river:"host.name,block,optional"`
-	HostType              *rac.ResourceAttributeConfig `river:"host.type,block,optional"`
+	CloudAccountID        rac.ResourceAttributeConfig `river:"cloud.account.id,block,optional"`
+	CloudAvailabilityZone rac.ResourceAttributeConfig `river:"cloud.availability_zone,block,optional"`
+	CloudPlatform         rac.ResourceAttributeConfig `river:"cloud.platform,block,optional"`
+	CloudProvider         rac.ResourceAttributeConfig `river:"cloud.provider,block,optional"`
+	CloudRegion           rac.ResourceAttributeConfig `river:"cloud.region,block,optional"`
+	HostID                rac.ResourceAttributeConfig `river:"host.id,block,optional"`
+	HostImageID           rac.ResourceAttributeConfig `river:"host.image.id,block,optional"`
+	HostName              rac.ResourceAttributeConfig `river:"host.name,block,optional"`
+	HostType              rac.ResourceAttributeConfig `river:"host.type,block,optional"`
 }
 
-func (r *ResourceAttributesConfig) Convert() map[string]interface{} {
-	if r == nil {
-		return nil
-	}
-
+func (r ResourceAttributesConfig) Convert() map[string]interface{} {
 	return map[string]interface{}{
 		"cloud.account.id":        r.CloudAccountID.Convert(),
 		"cloud.availability_zone": r.CloudAvailabilityZone.Convert(),
