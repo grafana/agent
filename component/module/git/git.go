@@ -83,7 +83,7 @@ func New(o component.Options, args Arguments) (*Component, error) {
 func (c *Component) newManagedLocalComponent(o component.Options) (*remote_git.Component, error) {
 	remoteGitOpts := o
 	remoteGitOpts.OnStateChange = func(e component.Exports) {
-		c.setContent(e.(remote_git.Exports).Content)
+		c.setContent(e.(remote_git.Exports).Content.Value)
 
 		if !c.inUpdate.Load() && c.isCreated.Load() {
 			// Any errors found here are reported via component health

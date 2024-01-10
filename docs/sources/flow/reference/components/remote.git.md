@@ -33,6 +33,7 @@ Name | Type | Description | Default | Required
 `revision` | `string` | The Git revision to retrieve the content from. | `"HEAD"` | no
 `path` | `string` | The path in the repository where the content is stored. | | yes
 `pull_frequency` | `duration` | The frequency to pull the repository for updates. | `"60s"` | no
+`is_secret` | `bool` | Whether the retrieved content should be treated as a secret. | false | no
 
 The `repository` attribute must be set to a repository address that would be
 recognized by Git with a `git clone REPOSITORY_ADDRESS` command, such as
@@ -48,6 +49,8 @@ If `pull_frequency` is not `"0s"`, the Git repository will be pulled for
 updates at the frequency specified. If it is set to `"0s"`, the Git repository will be pulled once on init.
 
 **_WARNING:_** Pulling hosted git repositories too often can result in throttling.
+
+[secret]: {{< relref "../../concepts/config-language/expressions/types_and_values.md#secrets" >}}
 
 ## Blocks
 
@@ -80,7 +83,9 @@ The following field is exported and can be referenced by other components:
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`content` | `string` | The content of the file. | | no
+`content` | `string` or `secret` | The content of the file. | | no
+
+If the `is_secret` argument was `true`, `content` is a secret type.
 
 ## Component health
 

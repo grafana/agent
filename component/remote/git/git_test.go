@@ -55,7 +55,7 @@ func Test_(t *testing.T) {
 	require.NoError(t, ctrl.WaitExports(time.Second), "component didn't update exports")
 
 	require.Eventually(t, func() bool {
-		return ctrl.Exports().(git_component.Exports).Content == expectedContent
+		return ctrl.Exports().(git_component.Exports).Content.Value == expectedContent
 	}, 100*time.Millisecond, 10*time.Millisecond, "timed out waiting for git content")
 
 	expectedContent = "See you later!"
@@ -73,7 +73,7 @@ func Test_(t *testing.T) {
 	}
 
 	require.Eventually(t, func() bool {
-		return ctrl.Exports().(git_component.Exports).Content == expectedContent
+		return ctrl.Exports().(git_component.Exports).Content.Value == expectedContent
 	}, 100*time.Millisecond, 10*time.Millisecond, "timed out waiting for git content")
 }
 

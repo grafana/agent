@@ -15,6 +15,7 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/remote/git/internal/vcs"
 	"github.com/grafana/agent/pkg/flow/logging/level"
+	"github.com/grafana/river/rivertypes"
 )
 
 func init() {
@@ -35,12 +36,13 @@ type Arguments struct {
 	Revision      string            `river:"revision,attr,optional"`
 	Path          string            `river:"path,attr"`
 	PullFrequency time.Duration     `river:"pull_frequency,attr,optional"`
+	IsSecret      bool              `river:"is_secret,attr,optional"`
 	GitAuthConfig vcs.GitAuthConfig `river:",squash"`
 }
 
 // Exports holds settings exported by remote.git.
 type Exports struct {
-	Content string `river:"content,attr"`
+	Content rivertypes.OptionalSecret `river:"content,attr"`
 }
 
 // DefaultArguments holds default settings for Arguments.
@@ -136,7 +138,7 @@ func (c *Component) Run(ctx context.Context) error {
 }
 
 func (c *Component) updateTicker(pullFrequency time.Duration, ticker *time.Ticker, tickerC <-chan time.Time) (*time.Ticker, <-chan time.Time) {
-	level.Info(c.log).Log("msg", "updating repository pull frequency, next pull attempt planned in:", "new_frequency", pullFrequency)
+	level.Info(c.log).Log("msg", "updating repository pull frequency, next pull attempt will be done according to the pullFrequency", "new_frequency", pullFrequency)
 
 	if pullFrequency > 0 {
 		if ticker == nil {
@@ -261,7 +263,10 @@ func (c *Component) pollFile(ctx context.Context, args Arguments) error {
 	}
 
 	newExports := Exports{
-		Content: strings.TrimSpace(string(bb)),
+		Content: rivertypes.OptionalSecret{
+			IsSecret: args.IsSecret,
+			Value:    strings.TrimSpace(string(bb)),
+		},
 	}
 
 	if c.lastExports != newExports {
