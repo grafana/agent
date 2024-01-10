@@ -4,7 +4,7 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/setup/deploy-agent/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/setup/deploy-agent/
 - /docs/grafana-cloud/send-data/agent/flow/setup/deploy-agent/
-canonical: https://grafana.com/docs/agent/latest/flow/setup/start-agent/
+canonical: https://grafana.com/docs/agent/latest/flow/setup/deploy-agent/
 description: Learn about possible deployment topologies for Grafana Agent Flow
 menuTitle: Deploy Grafana Agent Flow
 title: Grafana Agent Flow deployment topologies
