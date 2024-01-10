@@ -56,7 +56,6 @@
 ##   generate-drone           Generate the Drone YAML from Jsonnet.
 ##   generate-helm-docs       Generate Helm chart documentation.
 ##   generate-helm-tests      Generate Helm chart tests.
-##   generate-manifests       Generate production/kubernetes YAML manifests.
 ##   generate-dashboards      Generate dashboards in example/docker-compose after
 ##                            changing Jsonnet.
 ##   generate-protos          Generate protobuf files.
@@ -286,8 +285,8 @@ smoke-image:
 # Targets for generating assets
 #
 
-.PHONY: generate generate-crds generate-drone generate-helm-docs generate-helm-tests generate-manifests generate-dashboards generate-protos generate-ui generate-versioned-files
-generate: generate-crds generate-drone generate-helm-docs generate-helm-tests generate-manifests generate-dashboards generate-protos generate-ui generate-versioned-files generate-docs
+.PHONY: generate generate-crds generate-drone generate-helm-docs generate-helm-tests generate-dashboards generate-protos generate-ui generate-versioned-files
+generate: generate-crds generate-drone generate-helm-docs generate-helm-tests generate-dashboards generate-protos generate-ui generate-versioned-files generate-docs
 
 generate-crds:
 ifeq ($(USE_CONTAINER),1)
@@ -312,13 +311,6 @@ ifeq ($(USE_CONTAINER),1)
 	$(RERUN_IN_CONTAINER)
 else
 	bash ./operations/helm/scripts/rebuild-tests.sh
-endif
-
-generate-manifests:
-ifeq ($(USE_CONTAINER),1)
-	$(RERUN_IN_CONTAINER)
-else
-	cd production/kubernetes/build && bash build.sh
 endif
 
 generate-dashboards:
