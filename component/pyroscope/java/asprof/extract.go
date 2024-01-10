@@ -83,7 +83,7 @@ func writeFile(dir *os.File, path string, data []byte, doOwnershipChecks bool) e
 	}
 	f, err := openAt(it, fname, unix.O_RDONLY|unix.O_NOFOLLOW, 0)
 	if err != nil {
-		return writeFileData(it, fname, path, data)
+		return writeFileData(it, fname, path, data, doOwnershipChecks)
 	}
 	defer f.Close()
 	if doOwnershipChecks {
@@ -105,14 +105,16 @@ func checkFileData(f *os.File, path string, data []byte) error {
 	return nil
 }
 
-func writeFileData(it *os.File, fname string, path string, data []byte) error {
+func writeFileData(it *os.File, fname string, path string, data []byte, doOwnershipChecks bool) error {
 	f, err := openAt(it, fname, unix.O_WRONLY|unix.O_CREAT|unix.O_EXCL|unix.O_NOFOLLOW, extractPerm)
 	if err != nil {
 		return fmt.Errorf("failed to create file %s %s: %w", path, fname, err)
 	}
 	defer f.Close()
-	if err = checkExtractFile(f, it); err != nil {
-		return err
+	if doOwnershipChecks {
+		if err = checkExtractFile(f, it); err != nil {
+			return err
+		}
 	}
 	if _, err = f.Write(data); err != nil {
 		return fmt.Errorf("failed to write file %s %s: %w", path, fname, err)

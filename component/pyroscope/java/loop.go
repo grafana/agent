@@ -185,7 +185,7 @@ func (p *profilingLoop) start() error {
 		strconv.Itoa(p.pid),
 	)
 
-	_ = level.Debug(p.logger).Log("cmd", fmt.Sprintf("%s %s", p.dist.Launcher(), strings.Join(argv, " ")))
+	_ = level.Debug(p.logger).Log("cmd", fmt.Sprintf("%s %s", p.dist.LauncherPath(), strings.Join(argv, " ")))
 	stdout, stderr, err := p.profiler.Execute(p.dist, argv)
 	if err != nil {
 		return fmt.Errorf("asprof failed to run: %w %s %s", err, stdout, stderr)
@@ -199,7 +199,7 @@ func (p *profilingLoop) stop() error {
 		"-o", "jfr",
 		strconv.Itoa(p.pid),
 	}
-	_ = level.Debug(p.logger).Log("msg", "asprof", "cmd", fmt.Sprintf("%s %s", p.dist.Launcher(), strings.Join(argv, " ")))
+	_ = level.Debug(p.logger).Log("msg", "asprof", "cmd", fmt.Sprintf("%s %s", p.dist.LauncherPath(), strings.Join(argv, " ")))
 	stdout, stderr, err := p.profiler.Execute(p.dist, argv)
 	if err != nil {
 		return fmt.Errorf("asprof failed to run: %w %s %s", err, stdout, stderr)

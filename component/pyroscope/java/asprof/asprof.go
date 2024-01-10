@@ -45,7 +45,7 @@ func (d *Distribution) JattachPath() string {
 	return filepath.Join(d.extractedDir, "build/jattach")
 }
 
-func (d *Distribution) Launcher() string {
+func (d *Distribution) LauncherPath() string {
 	if d.binaryLauncher() {
 		return filepath.Join(d.extractedDir, "bin/asprof")
 	}
@@ -83,7 +83,7 @@ func (p *Profiler) Execute(dist *Distribution, argv []string) (string, string, e
 	stdout := bytes.NewBuffer(nil)
 	stderr := bytes.NewBuffer(nil)
 
-	exe := dist.Launcher()
+	exe := dist.LauncherPath()
 	cmd := exec.Command(exe, argv...)
 
 	cmd.Stdout = stdout
@@ -106,17 +106,25 @@ func (p *Profiler) CopyLib(dist *Distribution, pid int) error {
 	if err != nil {
 		return err
 	}
+	launcherData, err := os.ReadFile(dist.LauncherPath())
+	if err != nil {
+		return err
+	}
 	procRoot := ProcessPath("/", pid)
 	procRootFile, err := os.Open(procRoot)
 	if err != nil {
 		return fmt.Errorf("failed to open proc root %s: %w", procRoot, err)
 	}
-
-	dstLibPath := dist.LibPath()
-	if dstLibPath[0] == '/' {
-		dstLibPath = dstLibPath[1:]
+	dstLibPath := strings.TrimPrefix(dist.LibPath(), "/")
+	dstLauncherPath := strings.TrimPrefix(dist.LauncherPath(), "/")
+	if err = writeFile(procRootFile, dstLibPath, libData, false); err != nil {
+		return err
 	}
-	return writeFile(procRootFile, dstLibPath, libData, false)
+	// this is to create bin directory, we dont actually need to write anything there, and we dont execute launcher there
+	if err = writeFile(procRootFile, dstLauncherPath, launcherData, false); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (p *Profiler) DistributionForProcess(pid int) (*Distribution, error) {
@@ -203,9 +211,9 @@ func (p *Profiler) extractDistributions() error {
 		}
 	}
 	fileMap := map[string][]byte{}
-	fileMap[filepath.Join(glibcDistName, p.glibcDist.Launcher())] = launcher
+	fileMap[filepath.Join(glibcDistName, p.glibcDist.LauncherPath())] = launcher
 	fileMap[filepath.Join(glibcDistName, p.glibcDist.LibPath())] = glibc
-	fileMap[filepath.Join(muslDistName, p.muslDist.Launcher())] = launcher
+	fileMap[filepath.Join(muslDistName, p.muslDist.LauncherPath())] = launcher
 	fileMap[filepath.Join(muslDistName, p.muslDist.LibPath())] = musl
 	if !p.glibcDist.binaryLauncher() {
 		fileMap[filepath.Join(glibcDistName, p.glibcDist.JattachPath())] = jattach
