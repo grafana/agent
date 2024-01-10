@@ -1,0 +1,2 @@
+prometheus.remote_write "default" {
+}

@@ -1,0 +1,5 @@
+# The configuration directory holding the agent configs.
+CONFIG_FILE="/etc/grafana-agent-flow/"
+
+# User-defined arguments to pass to the run command.
+CUSTOM_ARGS="--server.http.listen-addr=0.0.0.0:12345"
