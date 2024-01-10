@@ -21,6 +21,7 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 		{
 			testName: "err_no_detector",
 			cfg: `
+			detectors = []
 			output {}
 			`,
 			errorMsg: "at least one detector must be specified",
@@ -30,15 +31,6 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 			cfg: `
 			detectors = ["ec2"]
 			ec2 {
-				resource_attributes {
-					cloud.account.id  { enabled = true }
-					cloud.availability_zone  { enabled = true }
-					cloud.platform  { enabled = true }
-					cloud.provider  { enabled = true }
-					cloud.region  { enabled = true }
-					host.id  { enabled = true }
-					host.image.id  { enabled = false }
-				}
 			}
 			output {}
 			`,
@@ -47,34 +39,46 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 				"timeout":   5 * time.Second,
 				"override":  true,
 				"ec2": map[string]interface{}{
+					"tags": []string{},
 					"resource_attributes": map[string]interface{}{
-						"cloud.account.id": map[string]interface{}{
-							"enabled": true,
-						},
-						"cloud.availability_zone": map[string]interface{}{
-							"enabled": true,
-						},
-						"cloud.platform": map[string]interface{}{
-							"enabled": true,
-						},
-						"cloud.provider": map[string]interface{}{
-							"enabled": true,
-						},
-						"cloud.region": map[string]interface{}{
-							"enabled": true,
-						},
-						"host.id": map[string]interface{}{
-							"enabled": true,
-						},
-						"host.image.id": map[string]interface{}{
-							"enabled": false,
-						},
-						"host.name": map[string]interface{}{
-							"enabled": false,
-						},
-						"host.type": map[string]interface{}{
-							"enabled": false,
-						},
+						"cloud.account.id":        map[string]interface{}{"enabled": true},
+						"cloud.availability_zone": map[string]interface{}{"enabled": true},
+						"cloud.platform":          map[string]interface{}{"enabled": true},
+						"cloud.provider":          map[string]interface{}{"enabled": true},
+						"cloud.region":            map[string]interface{}{"enabled": true},
+						"host.id":                 map[string]interface{}{"enabled": true},
+						"host.image.id":           map[string]interface{}{"enabled": true},
+						"host.name":               map[string]interface{}{"enabled": true},
+						"host.type":               map[string]interface{}{"enabled": true},
+					},
+				},
+			},
+		},
+		{
+			testName: "ec2_defaults_empty_resource_attributes",
+			cfg: `
+			detectors = ["ec2"]
+			ec2 {
+				resource_attributes {}
+			}
+			output {}
+			`,
+			expected: map[string]interface{}{
+				"detectors": []string{"ec2"},
+				"timeout":   5 * time.Second,
+				"override":  true,
+				"ec2": map[string]interface{}{
+					"tags": []string{},
+					"resource_attributes": map[string]interface{}{
+						"cloud.account.id":        map[string]interface{}{"enabled": true},
+						"cloud.availability_zone": map[string]interface{}{"enabled": true},
+						"cloud.platform":          map[string]interface{}{"enabled": true},
+						"cloud.provider":          map[string]interface{}{"enabled": true},
+						"cloud.region":            map[string]interface{}{"enabled": true},
+						"host.id":                 map[string]interface{}{"enabled": true},
+						"host.image.id":           map[string]interface{}{"enabled": true},
+						"host.name":               map[string]interface{}{"enabled": true},
+						"host.type":               map[string]interface{}{"enabled": true},
 					},
 				},
 			},
@@ -106,39 +110,21 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 				"ec2": map[string]interface{}{
 					"tags": []string{"^tag1$", "^tag2$", "^label.*$"},
 					"resource_attributes": map[string]interface{}{
-						"cloud.account.id": map[string]interface{}{
-							"enabled": true,
-						},
-						"cloud.availability_zone": map[string]interface{}{
-							"enabled": true,
-						},
-						"cloud.platform": map[string]interface{}{
-							"enabled": true,
-						},
-						"cloud.provider": map[string]interface{}{
-							"enabled": true,
-						},
-						"cloud.region": map[string]interface{}{
-							"enabled": true,
-						},
-						"host.id": map[string]interface{}{
-							"enabled": true,
-						},
-						"host.image.id": map[string]interface{}{
-							"enabled": false,
-						},
-						"host.name": map[string]interface{}{
-							"enabled": false,
-						},
-						"host.type": map[string]interface{}{
-							"enabled": false,
-						},
+						"cloud.account.id":        map[string]interface{}{"enabled": true},
+						"cloud.availability_zone": map[string]interface{}{"enabled": true},
+						"cloud.platform":          map[string]interface{}{"enabled": true},
+						"cloud.provider":          map[string]interface{}{"enabled": true},
+						"cloud.region":            map[string]interface{}{"enabled": true},
+						"host.id":                 map[string]interface{}{"enabled": true},
+						"host.image.id":           map[string]interface{}{"enabled": false},
+						"host.name":               map[string]interface{}{"enabled": false},
+						"host.type":               map[string]interface{}{"enabled": false},
 					},
 				},
 			},
 		},
 		{
-			testName: "ecs",
+			testName: "ecs_defaults",
 			cfg: `
 			detectors = ["ecs"]
 			ecs {
@@ -166,55 +152,101 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 				"timeout":   5 * time.Second,
 				"override":  true,
 				"ecs": map[string]interface{}{
+					"tags": []string{},
 					"resource_attributes": map[string]interface{}{
-						"aws.ecs.cluster.arn": map[string]interface{}{
-							"enabled": true,
-						},
-						"aws.ecs.launchtype": map[string]interface{}{
-							"enabled": true,
-						},
-						"aws.ecs.task.arn": map[string]interface{}{
-							"enabled": true,
-						},
-						"aws.ecs.task.family": map[string]interface{}{
-							"enabled": true,
-						},
-						"aws.ecs.task.revision": map[string]interface{}{
-							"enabled": true,
-						},
-						"aws.log.group.arns": map[string]interface{}{
-							"enabled": true,
-						},
-						"aws.log.group.names": map[string]interface{}{
-							"enabled": false,
-						},
-						"aws.log.stream.arns": map[string]interface{}{
-							"enabled": false,
-						},
-						"aws.log.stream.names": map[string]interface{}{
-							"enabled": false,
-						},
-						"cloud.account.id": map[string]interface{}{
-							"enabled": false,
-						},
-						"cloud.availability_zone": map[string]interface{}{
-							"enabled": false,
-						},
+						"aws.ecs.cluster.arn":     map[string]interface{}{"enabled": true},
+						"aws.ecs.launchtype":      map[string]interface{}{"enabled": true},
+						"aws.ecs.task.arn":        map[string]interface{}{"enabled": true},
+						"aws.ecs.task.family":     map[string]interface{}{"enabled": true},
+						"aws.ecs.task.revision":   map[string]interface{}{"enabled": true},
+						"aws.log.group.arns":      map[string]interface{}{"enabled": true},
+						"aws.log.group.names":     map[string]interface{}{"enabled": false},
+						"aws.log.stream.arns":     map[string]interface{}{"enabled": true},
+						"aws.log.stream.names":    map[string]interface{}{"enabled": true},
+						"cloud.account.id":        map[string]interface{}{"enabled": true},
+						"cloud.availability_zone": map[string]interface{}{"enabled": true},
+						"cloud.platform":          map[string]interface{}{"enabled": true},
+						"cloud.provider":          map[string]interface{}{"enabled": true},
+						"cloud.region":            map[string]interface{}{"enabled": true},
+					},
+				},
+			},
+		},
+		{
+			testName: "ecs_explicit",
+			cfg: `
+			detectors = ["ecs"]
+			ecs {
+				resource_attributes {
+					aws.ecs.cluster.arn  { enabled = true }
+					aws.ecs.launchtype  { enabled = true }
+					aws.ecs.task.arn  { enabled = true }
+					aws.ecs.task.family  { enabled = true }
+					aws.ecs.task.revision  { enabled = true }
+					aws.log.group.arns  { enabled = true }
+					aws.log.group.names  { enabled = false }
+					// aws.log.stream.arns  { enabled = true }
+					// aws.log.stream.names  { enabled = true }
+					// cloud.account.id  { enabled = true }
+					// cloud.availability_zone  { enabled = true }
+					// cloud.platform  { enabled = true }
+					// cloud.provider  { enabled = true }
+					// cloud.region  { enabled = true }
+				}
+			}
+			output {}
+			`,
+			expected: map[string]interface{}{
+				"detectors": []string{"ecs"},
+				"timeout":   5 * time.Second,
+				"override":  true,
+				"ecs": map[string]interface{}{
+					"tags": []string{},
+					"resource_attributes": map[string]interface{}{
+						"aws.ecs.cluster.arn":     map[string]interface{}{"enabled": true},
+						"aws.ecs.launchtype":      map[string]interface{}{"enabled": true},
+						"aws.ecs.task.arn":        map[string]interface{}{"enabled": true},
+						"aws.ecs.task.family":     map[string]interface{}{"enabled": true},
+						"aws.ecs.task.revision":   map[string]interface{}{"enabled": true},
+						"aws.log.group.arns":      map[string]interface{}{"enabled": true},
+						"aws.log.group.names":     map[string]interface{}{"enabled": false},
+						"aws.log.stream.arns":     map[string]interface{}{"enabled": true},
+						"aws.log.stream.names":    map[string]interface{}{"enabled": true},
+						"cloud.account.id":        map[string]interface{}{"enabled": true},
+						"cloud.availability_zone": map[string]interface{}{"enabled": true},
+						"cloud.platform":          map[string]interface{}{"enabled": true},
+						"cloud.provider":          map[string]interface{}{"enabled": true},
+						"cloud.region":            map[string]interface{}{"enabled": true},
+					},
+				},
+			},
+		},
+		{
+			testName: "eks_defaults",
+			cfg: `
+			detectors = ["eks"]
+			eks {}
+			output {}
+			`,
+			expected: map[string]interface{}{
+				"detectors": []string{"eks"},
+				"timeout":   5 * time.Second,
+				"override":  true,
+				"eks": map[string]interface{}{
+					"tags": []string{},
+					"resource_attributes": map[string]interface{}{
 						"cloud.platform": map[string]interface{}{
-							"enabled": false,
+							"enabled": true,
 						},
 						"cloud.provider": map[string]interface{}{
-							"enabled": false,
-						},
-						"cloud.region": map[string]interface{}{
-							"enabled": false,
+							"enabled": true,
 						},
 					},
 				},
 			},
 		},
 		{
-			testName: "eks",
+			testName: "eks_explicit",
 			cfg: `
 			detectors = ["eks"]
 			eks {
@@ -230,6 +262,7 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 				"timeout":   5 * time.Second,
 				"override":  true,
 				"eks": map[string]interface{}{
+					"tags": []string{},
 					"resource_attributes": map[string]interface{}{
 						"cloud.platform": map[string]interface{}{
 							"enabled": true,
@@ -242,19 +275,10 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 			},
 		},
 		{
-			testName: "azure",
+			testName: "azure_defaults",
 			cfg: `
 			detectors = ["azure"]
-			azure {
-				resource_attributes {
-					azure.resourcegroup.name { enabled = true }
-					azure.vm.name { enabled = true }
-					azure.vm.scaleset.name { enabled = true }
-					azure.vm.size { enabled = true }
-					cloud.account.id { enabled = true }
-					cloud.platform { enabled = false }
-				}
-			}
+			azure {}
 			output {}
 			`,
 			expected: map[string]interface{}{
@@ -263,6 +287,7 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 				"override":  true,
 				"azure": map[string]interface{}{
 					"resource_attributes": map[string]interface{}{
+						"tags": []string{},
 						"azure.resourcegroup.name": map[string]interface{}{
 							"enabled": true,
 						},
@@ -279,26 +304,106 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 							"enabled": true,
 						},
 						"cloud.platform": map[string]interface{}{
-							"enabled": false,
+							"enabled": true,
 						},
 						"cloud.provider": map[string]interface{}{
-							"enabled": false,
+							"enabled": true,
 						},
 						"cloud.region": map[string]interface{}{
-							"enabled": false,
+							"enabled": true,
 						},
 						"host.id": map[string]interface{}{
-							"enabled": false,
+							"enabled": true,
 						},
 						"host.name": map[string]interface{}{
-							"enabled": false,
+							"enabled": true,
 						},
 					},
 				},
 			},
 		},
 		{
-			testName: "aks",
+			testName: "azure_explicit",
+			cfg: `
+			detectors = ["azure"]
+			azure {
+				resource_attributes {
+					azure.resourcegroup.name { enabled = true }
+					azure.vm.name { enabled = true }
+					azure.vm.scaleset.name { enabled = true }
+					azure.vm.size { enabled = true }
+					cloud.account.id { enabled = false }
+				}
+			}
+			output {}
+			`,
+			expected: map[string]interface{}{
+				"detectors": []string{"azure"},
+				"timeout":   5 * time.Second,
+				"override":  true,
+				"azure": map[string]interface{}{
+					"resource_attributes": map[string]interface{}{
+						"tags": []string{},
+						"azure.resourcegroup.name": map[string]interface{}{
+							"enabled": true,
+						},
+						"azure.vm.name": map[string]interface{}{
+							"enabled": true,
+						},
+						"azure.vm.scaleset.name": map[string]interface{}{
+							"enabled": true,
+						},
+						"azure.vm.size": map[string]interface{}{
+							"enabled": true,
+						},
+						"cloud.account.id": map[string]interface{}{
+							"enabled": false,
+						},
+						"cloud.platform": map[string]interface{}{
+							"enabled": true,
+						},
+						"cloud.provider": map[string]interface{}{
+							"enabled": true,
+						},
+						"cloud.region": map[string]interface{}{
+							"enabled": true,
+						},
+						"host.id": map[string]interface{}{
+							"enabled": true,
+						},
+						"host.name": map[string]interface{}{
+							"enabled": true,
+						},
+					},
+				},
+			},
+		},
+		{
+			testName: "aks_defaults",
+			cfg: `
+			detectors = ["aks"]
+			aks {}
+			output {}
+			`,
+			expected: map[string]interface{}{
+				"detectors": []string{"aks"},
+				"timeout":   5 * time.Second,
+				"override":  true,
+				"aks": map[string]interface{}{
+					"tags": []string{},
+					"resource_attributes": map[string]interface{}{
+						"cloud.platform": map[string]interface{}{
+							"enabled": true,
+						},
+						"cloud.provider": map[string]interface{}{
+							"enabled": true,
+						},
+					},
+				},
+			},
+		},
+		{
+			testName: "aks_explicit",
 			cfg: `
 			detectors = ["aks"]
 			aks {
@@ -314,6 +419,7 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 				"timeout":   5 * time.Second,
 				"override":  true,
 				"aks": map[string]interface{}{
+					"tags": []string{},
 					"resource_attributes": map[string]interface{}{
 						"cloud.platform": map[string]interface{}{
 							"enabled": true,
@@ -326,7 +432,75 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 			},
 		},
 		{
-			testName: "gcp",
+			testName: "gcp_defaults",
+			cfg: `
+			detectors = ["gcp"]
+			gcp {}
+			output {}
+			`,
+			expected: map[string]interface{}{
+				"detectors": []string{"gcp"},
+				"timeout":   5 * time.Second,
+				"override":  true,
+				"gcp": map[string]interface{}{
+					"resource_attributes": map[string]interface{}{
+						"cloud.account.id": map[string]interface{}{
+							"enabled": true,
+						},
+						"cloud.availability_zone": map[string]interface{}{
+							"enabled": true,
+						},
+						"cloud.platform": map[string]interface{}{
+							"enabled": true,
+						},
+						"cloud.provider": map[string]interface{}{
+							"enabled": true,
+						},
+						"cloud.region": map[string]interface{}{
+							"enabled": true,
+						},
+						"faas.id": map[string]interface{}{
+							"enabled": true,
+						},
+						"faas.instance": map[string]interface{}{
+							"enabled": true,
+						},
+						"faas.name": map[string]interface{}{
+							"enabled": true,
+						},
+						"faas.version": map[string]interface{}{
+							"enabled": true,
+						},
+						"gcp.cloud_run.job.execution": map[string]interface{}{
+							"enabled": true,
+						},
+						"gcp.cloud_run.job.task_index": map[string]interface{}{
+							"enabled": true,
+						},
+						"gcp.gce.instance.hostname": map[string]interface{}{
+							"enabled": false,
+						},
+						"gcp.gce.instance.name": map[string]interface{}{
+							"enabled": false,
+						},
+						"host.id": map[string]interface{}{
+							"enabled": true,
+						},
+						"host.name": map[string]interface{}{
+							"enabled": true,
+						},
+						"host.type": map[string]interface{}{
+							"enabled": true,
+						},
+						"k8s.cluster.name": map[string]interface{}{
+							"enabled": true,
+						},
+					},
+				},
+			},
+		},
+		{
+			testName: "gcp_explicit",
 			cfg: `
 			detectors = ["gcp"]
 			gcp {
@@ -366,19 +540,19 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 							"enabled": false,
 						},
 						"faas.instance": map[string]interface{}{
-							"enabled": false,
+							"enabled": true,
 						},
 						"faas.name": map[string]interface{}{
-							"enabled": false,
+							"enabled": true,
 						},
 						"faas.version": map[string]interface{}{
-							"enabled": false,
+							"enabled": true,
 						},
 						"gcp.cloud_run.job.execution": map[string]interface{}{
-							"enabled": false,
+							"enabled": true,
 						},
 						"gcp.cloud_run.job.task_index": map[string]interface{}{
-							"enabled": false,
+							"enabled": true,
 						},
 						"gcp.gce.instance.hostname": map[string]interface{}{
 							"enabled": false,
@@ -387,23 +561,46 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 							"enabled": false,
 						},
 						"host.id": map[string]interface{}{
-							"enabled": false,
+							"enabled": true,
 						},
 						"host.name": map[string]interface{}{
-							"enabled": false,
+							"enabled": true,
 						},
 						"host.type": map[string]interface{}{
-							"enabled": false,
+							"enabled": true,
 						},
 						"k8s.cluster.name": map[string]interface{}{
-							"enabled": false,
+							"enabled": true,
 						},
 					},
 				},
 			},
 		},
 		{
-			testName: "docker",
+			testName: "docker_defaults",
+			cfg: `
+			detectors = ["docker"]
+			docker {}
+			output {}
+			`,
+			expected: map[string]interface{}{
+				"detectors": []string{"docker"},
+				"timeout":   5 * time.Second,
+				"override":  true,
+				"docker": map[string]interface{}{
+					"resource_attributes": map[string]interface{}{
+						"host.name": map[string]interface{}{
+							"enabled": true,
+						},
+						"os.type": map[string]interface{}{
+							"enabled": true,
+						},
+					},
+				},
+			},
+		},
+		{
+			testName: "docker_explicit",
 			cfg: `
 			detectors = ["docker"]
 			docker {
@@ -432,7 +629,51 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 			},
 		},
 		{
-			testName: "lambda",
+			testName: "lambda_defaults",
+			cfg: `
+			detectors = ["lambda"]
+			lambda {}
+			output {}
+			`,
+			expected: map[string]interface{}{
+				"detectors": []string{"lambda"},
+				"timeout":   5 * time.Second,
+				"override":  true,
+				"lambda": map[string]interface{}{
+					"resource_attributes": map[string]interface{}{
+						"aws.log.group.names": map[string]interface{}{
+							"enabled": true,
+						},
+						"aws.log.stream.names": map[string]interface{}{
+							"enabled": true,
+						},
+						"cloud.platform": map[string]interface{}{
+							"enabled": true,
+						},
+						"cloud.provider": map[string]interface{}{
+							"enabled": true,
+						},
+						"cloud.region": map[string]interface{}{
+							"enabled": true,
+						},
+						"faas.instance": map[string]interface{}{
+							"enabled": true,
+						},
+						"faas.max_memory": map[string]interface{}{
+							"enabled": true,
+						},
+						"faas.name": map[string]interface{}{
+							"enabled": true,
+						},
+						"faas.version": map[string]interface{}{
+							"enabled": true,
+						},
+					},
+				},
+			},
+		},
+		{
+			testName: "lambda_explicit",
 			cfg: `
 			detectors = ["lambda"]
 			lambda {
@@ -468,23 +709,55 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 							"enabled": false,
 						},
 						"faas.instance": map[string]interface{}{
-							"enabled": false,
+							"enabled": true,
 						},
 						"faas.max_memory": map[string]interface{}{
-							"enabled": false,
+							"enabled": true,
 						},
 						"faas.name": map[string]interface{}{
-							"enabled": false,
+							"enabled": true,
 						},
 						"faas.version": map[string]interface{}{
-							"enabled": false,
+							"enabled": true,
 						},
 					},
 				},
 			},
 		},
 		{
-			testName: "elasticbeanstalk",
+			testName: "elasticbeanstalk_defaults",
+			cfg: `
+			detectors = ["elasticbeanstalk"]
+			elasticbeanstalk {}
+			output {}
+			`,
+			expected: map[string]interface{}{
+				"detectors": []string{"elasticbeanstalk"},
+				"timeout":   5 * time.Second,
+				"override":  true,
+				"elasticbeanstalk": map[string]interface{}{
+					"resource_attributes": map[string]interface{}{
+						"cloud.platform": map[string]interface{}{
+							"enabled": true,
+						},
+						"cloud.provider": map[string]interface{}{
+							"enabled": true,
+						},
+						"deployment.environment": map[string]interface{}{
+							"enabled": true,
+						},
+						"service.instance.id": map[string]interface{}{
+							"enabled": true,
+						},
+						"service.version": map[string]interface{}{
+							"enabled": true,
+						},
+					},
+				},
+			},
+		},
+		{
+			testName: "elasticbeanstalk_explicit",
 			cfg: `
 			detectors = ["elasticbeanstalk"]
 			elasticbeanstalk {
@@ -516,7 +789,7 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 							"enabled": false,
 						},
 						"service.version": map[string]interface{}{
-							"enabled": false,
+							"enabled": true,
 						},
 					},
 				},
@@ -526,9 +799,7 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 			testName: "consul_defaults",
 			cfg: `
 			detectors = ["consul"]
-			consul {
-				resource_attributes { }
-			}
+			consul {}
 			output {}
 			`,
 			expected: map[string]interface{}{
@@ -543,34 +814,34 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 					"meta":       nil,
 					"resource_attributes": map[string]interface{}{
 						"azure.resourcegroup.name": map[string]interface{}{
-							"enabled": false,
+							"enabled": true,
 						},
 						"azure.vm.name": map[string]interface{}{
-							"enabled": false,
+							"enabled": true,
 						},
 						"azure.vm.scaleset.name": map[string]interface{}{
-							"enabled": false,
+							"enabled": true,
 						},
 						"azure.vm.size": map[string]interface{}{
-							"enabled": false,
+							"enabled": true,
 						},
 						"cloud.account.id": map[string]interface{}{
-							"enabled": false,
+							"enabled": true,
 						},
 						"cloud.platform": map[string]interface{}{
-							"enabled": false,
+							"enabled": true,
 						},
 						"cloud.provider": map[string]interface{}{
-							"enabled": false,
+							"enabled": true,
 						},
 						"cloud.region": map[string]interface{}{
-							"enabled": false,
+							"enabled": true,
 						},
 						"host.id": map[string]interface{}{
-							"enabled": false,
+							"enabled": true,
 						},
 						"host.name": map[string]interface{}{
-							"enabled": false,
+							"enabled": true,
 						},
 					},
 				},
@@ -627,23 +898,64 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 							"enabled": false,
 						},
 						"cloud.provider": map[string]interface{}{
-							"enabled": false,
+							"enabled": true,
 						},
 						"cloud.region": map[string]interface{}{
-							"enabled": false,
+							"enabled": true,
 						},
 						"host.id": map[string]interface{}{
-							"enabled": false,
+							"enabled": true,
 						},
 						"host.name": map[string]interface{}{
-							"enabled": false,
+							"enabled": true,
 						},
 					},
 				},
 			},
 		},
 		{
-			testName: "heroku",
+			testName: "heroku_defaults",
+			cfg: `
+			detectors = ["heroku"]
+			heroku {}
+			output {}
+			`,
+			expected: map[string]interface{}{
+				"detectors": []string{"heroku"},
+				"timeout":   5 * time.Second,
+				"override":  true,
+				"heroku": map[string]interface{}{
+					"resource_attributes": map[string]interface{}{
+						"cloud.provider": map[string]interface{}{
+							"enabled": true,
+						},
+						"heroku.app.id": map[string]interface{}{
+							"enabled": true,
+						},
+						"heroku.dyno.id": map[string]interface{}{
+							"enabled": true,
+						},
+						"heroku.release.commit": map[string]interface{}{
+							"enabled": true,
+						},
+						"heroku.release.creation_timestamp": map[string]interface{}{
+							"enabled": true,
+						},
+						"service.instance.id": map[string]interface{}{
+							"enabled": true,
+						},
+						"service.name": map[string]interface{}{
+							"enabled": true,
+						},
+						"service.version": map[string]interface{}{
+							"enabled": true,
+						},
+					},
+				},
+			},
+		},
+		{
+			testName: "heroku_explicit",
 			cfg: `
 			detectors = ["heroku"]
 			heroku {
@@ -683,10 +995,10 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 							"enabled": false,
 						},
 						"service.name": map[string]interface{}{
-							"enabled": false,
+							"enabled": true,
 						},
 						"service.version": map[string]interface{}{
-							"enabled": false,
+							"enabled": true,
 						},
 					},
 				},
@@ -696,9 +1008,7 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 			testName: "kubernetes_node_defaults",
 			cfg: `
 			detectors = ["kubernetes_node"]
-			kubernetes_node {
-				resource_attributes { }
-			}
+			kubernetes_node {}
 			output {}
 			`,
 			expected: map[string]interface{}{
@@ -710,10 +1020,10 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 					"node_from_env_var": "K8S_NODE_NAME",
 					"resource_attributes": map[string]interface{}{
 						"k8s.node.name": map[string]interface{}{
-							"enabled": false,
+							"enabled": true,
 						},
 						"k8s.node.uid": map[string]interface{}{
-							"enabled": false,
+							"enabled": true,
 						},
 					},
 				},
@@ -754,11 +1064,74 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 			},
 		},
 		{
+			testName: "system_invalid_hostname_source",
+			cfg: `
+			detectors = ["system"]
+			system {
+				hostname_sources = ["asdf"]
+				resource_attributes { }
+			}
+			output {}
+			`,
+			errorMsg: "invalid hostname source: asdf",
+		},
+		{
+			testName: "system_defaults",
+			cfg: `
+			detectors = ["system"]
+			system {}
+			output {}
+			`,
+			expected: map[string]interface{}{
+				"detectors": []string{"system"},
+				"timeout":   5 * time.Second,
+				"override":  true,
+				"system": map[string]interface{}{
+					"hostname_sources": []string{"dns", "os"},
+					"resource_attributes": map[string]interface{}{
+						"host.arch": map[string]interface{}{
+							"enabled": false,
+						},
+						"host.cpu.cache.l2.size": map[string]interface{}{
+							"enabled": false,
+						},
+						"host.cpu.family": map[string]interface{}{
+							"enabled": false,
+						},
+						"host.cpu.model.id": map[string]interface{}{
+							"enabled": false,
+						},
+						"host.cpu.model.name": map[string]interface{}{
+							"enabled": false,
+						},
+						"host.cpu.stepping": map[string]interface{}{
+							"enabled": false,
+						},
+						"host.cpu.vendor.id": map[string]interface{}{
+							"enabled": false,
+						},
+						"host.id": map[string]interface{}{
+							"enabled": false,
+						},
+						"host.name": map[string]interface{}{
+							"enabled": true,
+						},
+						"os.description": map[string]interface{}{
+							"enabled": false,
+						},
+						"os.type": map[string]interface{}{
+							"enabled": true,
+						},
+					},
+				},
+			},
+		},
+		{
 			testName: "system_explicit",
 			cfg: `
 			detectors = ["system"]
 			system {
-				hostname_sources = ["os"]
+				hostname_sources = ["cname","lookup"]
 				resource_attributes {
 					host.arch { enabled = true }
 					host.cpu.cache.l2.size { enabled = true }
@@ -769,7 +1142,7 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 					host.cpu.vendor.id { enabled = false }
 					host.id { enabled = false }
 					host.name { enabled = false }
-					// os.description { enabled = true }
+					// os.description { enabled = false }
 					// os.type { enabled = true }
 				}
 			}
@@ -780,7 +1153,7 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 				"timeout":   5 * time.Second,
 				"override":  true,
 				"system": map[string]interface{}{
-					"hostname_sources": []string{"os"},
+					"hostname_sources": []string{"cname", "lookup"},
 					"resource_attributes": map[string]interface{}{
 						"host.arch": map[string]interface{}{
 							"enabled": true,
@@ -800,29 +1173,30 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 						"host.cpu.stepping": map[string]interface{}{
 							"enabled": true,
 						},
+						"host.cpu.vendor.id": map[string]interface{}{
+							"enabled": false,
+						},
+						"host.id": map[string]interface{}{
+							"enabled": false,
+						},
+						"host.name": map[string]interface{}{
+							"enabled": false,
+						},
+						"os.description": map[string]interface{}{
+							"enabled": false,
+						},
+						"os.type": map[string]interface{}{
+							"enabled": true,
+						},
 					},
 				},
 			},
 		},
 		{
-			testName: "system_defaults",
-			cfg: `
-			detectors = ["system"]
-			system {
-				hostname_sources = ["asdf"]
-				resource_attributes { }
-			}
-			output {}
-			`,
-			errorMsg: "invalid hostname source: asdf",
-		},
-		{
 			testName: "openshift_default",
 			cfg: `
 			detectors = ["openshift"]
-			openshift {
-				resource_attributes {}
-			}
+			openshift {}
 			output {}
 			`,
 			expected: map[string]interface{}{
@@ -835,11 +1209,25 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 					// "tls": map[string]interface{}{
 					// 	"insecure": true,
 					// },
+					"resource_attributes": map[string]interface{}{
+						"cloud.platform": map[string]interface{}{
+							"enabled": true,
+						},
+						"cloud.provider": map[string]interface{}{
+							"enabled": true,
+						},
+						"cloud.region": map[string]interface{}{
+							"enabled": true,
+						},
+						"k8s.cluster.name": map[string]interface{}{
+							"enabled": true,
+						},
+					},
 				},
 			},
 		},
 		{
-			testName: "openshift",
+			testName: "openshift_explicit",
 			cfg: `
 			detectors = ["openshift"]
 			timeout = "7s"
@@ -892,6 +1280,20 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 						},
 					},
 				},
+			},
+		},
+		{
+			testName: "env",
+			cfg: `
+			detectors = ["env"]
+			timeout = "7s"
+			override = false
+			output {}
+			`,
+			expected: map[string]interface{}{
+				"detectors": []string{"env"},
+				"timeout":   7 * time.Second,
+				"override":  false,
 			},
 		},
 	}

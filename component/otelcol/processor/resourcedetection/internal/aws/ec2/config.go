@@ -1,28 +1,52 @@
 package ec2
 
-import rac "github.com/grafana/agent/component/otelcol/processor/resourcedetection/internal/resource_attribute_config"
+import (
+	rac "github.com/grafana/agent/component/otelcol/processor/resourcedetection/internal/resource_attribute_config"
+	"github.com/grafana/river"
+)
 
 // Config defines user-specified configurations unique to the EC2 detector
 type Config struct {
 	// Tags is a list of regex's to match ec2 instance tag keys that users want
 	// to add as resource attributes to processed data
 	Tags               []string                 `river:"tags,attr,optional"`
-	ResourceAttributes ResourceAttributesConfig `river:"resource_attributes,block"`
+	ResourceAttributes ResourceAttributesConfig `river:"resource_attributes,block,optional"`
+}
+
+// DefaultArguments holds default settings for Config.
+var DefaultArguments = Config{
+	ResourceAttributes: ResourceAttributesConfig{
+		CloudAccountID:        &rac.ResourceAttributeConfig{Enabled: true},
+		CloudAvailabilityZone: &rac.ResourceAttributeConfig{Enabled: true},
+		CloudPlatform:         &rac.ResourceAttributeConfig{Enabled: true},
+		CloudProvider:         &rac.ResourceAttributeConfig{Enabled: true},
+		CloudRegion:           &rac.ResourceAttributeConfig{Enabled: true},
+		HostID:                &rac.ResourceAttributeConfig{Enabled: true},
+		HostImageID:           &rac.ResourceAttributeConfig{Enabled: true},
+		HostName:              &rac.ResourceAttributeConfig{Enabled: true},
+		HostType:              &rac.ResourceAttributeConfig{Enabled: true},
+	},
+}
+
+var _ river.Defaulter = (*Config)(nil)
+
+// SetToDefault implements river.Defaulter.
+func (args *Config) SetToDefault() {
+	*args = DefaultArguments
 }
 
 func (args *Config) Convert() map[string]interface{} {
-	var tags []string
-	if args.Tags != nil {
-		tags = append([]string{}, args.Tags...)
+	if args == nil {
+		return nil
 	}
 
 	return map[string]interface{}{
-		"tags":                tags,
+		"tags":                append([]string{}, args.Tags...),
 		"resource_attributes": args.ResourceAttributes.Convert(),
 	}
 }
 
-// ResourceAttributesConfig provides config for resourcedetectionprocessor/ec2 resource attributes.
+// ResourceAttributesConfig provides config to enable and disable resource attributes.
 type ResourceAttributesConfig struct {
 	CloudAccountID        *rac.ResourceAttributeConfig `river:"cloud.account.id,block,optional"`
 	CloudAvailabilityZone *rac.ResourceAttributeConfig `river:"cloud.availability_zone,block,optional"`
@@ -36,6 +60,10 @@ type ResourceAttributesConfig struct {
 }
 
 func (r *ResourceAttributesConfig) Convert() map[string]interface{} {
+	if r == nil {
+		return nil
+	}
+
 	return map[string]interface{}{
 		"cloud.account.id":        r.CloudAccountID.Convert(),
 		"cloud.availability_zone": r.CloudAvailabilityZone.Convert(),

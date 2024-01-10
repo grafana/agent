@@ -3,6 +3,7 @@ package k8snode
 import (
 	"github.com/grafana/agent/component/otelcol"
 	rac "github.com/grafana/agent/component/otelcol/processor/resourcedetection/internal/resource_attribute_config"
+	"github.com/grafana/river"
 )
 
 type Config struct {
@@ -27,7 +28,7 @@ type Config struct {
 	//
 	// More on downward API here: https://kubernetes.io/docs/tasks/inject-data-application/environment-variable-expose-pod-information/
 	NodeFromEnvVar     string                   `river:"node_from_env_var,attr,optional"`
-	ResourceAttributes ResourceAttributesConfig `river:"resource_attributes,block"`
+	ResourceAttributes ResourceAttributesConfig `river:"resource_attributes,block,optional"`
 }
 
 var DefaultConfig = Config{
@@ -35,13 +36,24 @@ var DefaultConfig = Config{
 		AuthType: "none",
 	},
 	NodeFromEnvVar: "K8S_NODE_NAME",
+	ResourceAttributes: ResourceAttributesConfig{
+		K8sNodeName: &rac.ResourceAttributeConfig{Enabled: true},
+		K8sNodeUID:  &rac.ResourceAttributeConfig{Enabled: true},
+	},
 }
 
+var _ river.Defaulter = (*Config)(nil)
+
+// SetToDefault implements river.Defaulter.
 func (c *Config) SetToDefault() {
 	*c = DefaultConfig
 }
 
 func (args *Config) Convert() map[string]interface{} {
+	if args == nil {
+		return nil
+	}
+
 	return map[string]interface{}{
 		//TODO: K8sAPIConfig is squashed - is there a better way to "convert" it?
 		"auth_type":           args.KubernetesAPIConfig.AuthType,
@@ -58,6 +70,10 @@ type ResourceAttributesConfig struct {
 }
 
 func (r *ResourceAttributesConfig) Convert() map[string]interface{} {
+	if r == nil {
+		return nil
+	}
+
 	return map[string]interface{}{
 		"k8s.node.name": r.K8sNodeName.Convert(),
 		"k8s.node.uid":  r.K8sNodeUID.Convert(),

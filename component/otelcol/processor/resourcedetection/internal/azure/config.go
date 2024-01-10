@@ -1,12 +1,42 @@
 package azure
 
-import rac "github.com/grafana/agent/component/otelcol/processor/resourcedetection/internal/resource_attribute_config"
+import (
+	rac "github.com/grafana/agent/component/otelcol/processor/resourcedetection/internal/resource_attribute_config"
+	"github.com/grafana/river"
+)
 
 type Config struct {
-	ResourceAttributes ResourceAttributesConfig `river:"resource_attributes,block"`
+	ResourceAttributes ResourceAttributesConfig `river:"resource_attributes,block,optional"`
+}
+
+// DefaultArguments holds default settings for Config.
+var DefaultArguments = Config{
+	ResourceAttributes: ResourceAttributesConfig{
+		AzureResourcegroupName: &rac.ResourceAttributeConfig{Enabled: true},
+		AzureVMName:            &rac.ResourceAttributeConfig{Enabled: true},
+		AzureVMScalesetName:    &rac.ResourceAttributeConfig{Enabled: true},
+		AzureVMSize:            &rac.ResourceAttributeConfig{Enabled: true},
+		CloudAccountID:         &rac.ResourceAttributeConfig{Enabled: true},
+		CloudPlatform:          &rac.ResourceAttributeConfig{Enabled: true},
+		CloudProvider:          &rac.ResourceAttributeConfig{Enabled: true},
+		CloudRegion:            &rac.ResourceAttributeConfig{Enabled: true},
+		HostID:                 &rac.ResourceAttributeConfig{Enabled: true},
+		HostName:               &rac.ResourceAttributeConfig{Enabled: true},
+	},
+}
+
+var _ river.Defaulter = (*Config)(nil)
+
+// SetToDefault implements river.Defaulter.
+func (args *Config) SetToDefault() {
+	*args = DefaultArguments
 }
 
 func (args *Config) Convert() map[string]interface{} {
+	if args == nil {
+		return nil
+	}
+
 	return map[string]interface{}{
 		"resource_attributes": args.ResourceAttributes.Convert(),
 	}
@@ -27,6 +57,10 @@ type ResourceAttributesConfig struct {
 }
 
 func (r *ResourceAttributesConfig) Convert() map[string]interface{} {
+	if r == nil {
+		return nil
+	}
+
 	return map[string]interface{}{
 		"azure.resourcegroup.name": r.AzureResourcegroupName.Convert(),
 		"azure.vm.name":            r.AzureVMName.Convert(),

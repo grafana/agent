@@ -2,9 +2,6 @@ package resource_attribute_config
 
 // Configures whether a resource attribute should be enabled or not.
 type ResourceAttributeConfig struct {
-	// "enabled" as a mandatory parameter, because if this block is present in the config,
-	// it makes sense for the user to explicitly say whether they want to enable the attribute.
-	//
 	// Unlike the Collector, the Agent does not try to set a default value for "enabled" because:
 	// * Different resource attributes have different default values.
 	//   It is time consuming to try to keep default values in sync with the Collector.

@@ -1,12 +1,46 @@
 package ecs
 
-import rac "github.com/grafana/agent/component/otelcol/processor/resourcedetection/internal/resource_attribute_config"
+import (
+	rac "github.com/grafana/agent/component/otelcol/processor/resourcedetection/internal/resource_attribute_config"
+	"github.com/grafana/river"
+)
 
 type Config struct {
-	ResourceAttributes ResourceAttributesConfig `river:"resource_attributes,block"`
+	ResourceAttributes ResourceAttributesConfig `river:"resource_attributes,block,optional"`
+}
+
+// DefaultArguments holds default settings for Config.
+var DefaultArguments = Config{
+	ResourceAttributes: ResourceAttributesConfig{
+		AwsEcsClusterArn:      &rac.ResourceAttributeConfig{Enabled: true},
+		AwsEcsLaunchtype:      &rac.ResourceAttributeConfig{Enabled: true},
+		AwsEcsTaskArn:         &rac.ResourceAttributeConfig{Enabled: true},
+		AwsEcsTaskFamily:      &rac.ResourceAttributeConfig{Enabled: true},
+		AwsEcsTaskRevision:    &rac.ResourceAttributeConfig{Enabled: true},
+		AwsLogGroupArns:       &rac.ResourceAttributeConfig{Enabled: true},
+		AwsLogGroupNames:      &rac.ResourceAttributeConfig{Enabled: true},
+		AwsLogStreamArns:      &rac.ResourceAttributeConfig{Enabled: true},
+		AwsLogStreamNames:     &rac.ResourceAttributeConfig{Enabled: true},
+		CloudAccountID:        &rac.ResourceAttributeConfig{Enabled: true},
+		CloudAvailabilityZone: &rac.ResourceAttributeConfig{Enabled: true},
+		CloudPlatform:         &rac.ResourceAttributeConfig{Enabled: true},
+		CloudProvider:         &rac.ResourceAttributeConfig{Enabled: true},
+		CloudRegion:           &rac.ResourceAttributeConfig{Enabled: true},
+	},
+}
+
+var _ river.Defaulter = (*Config)(nil)
+
+// SetToDefault implements river.Defaulter.
+func (args *Config) SetToDefault() {
+	*args = DefaultArguments
 }
 
 func (args *Config) Convert() map[string]interface{} {
+	if args == nil {
+		return nil
+	}
+
 	return map[string]interface{}{
 		"resource_attributes": args.ResourceAttributes.Convert(),
 	}
@@ -31,6 +65,10 @@ type ResourceAttributesConfig struct {
 }
 
 func (r *ResourceAttributesConfig) Convert() map[string]interface{} {
+	if r == nil {
+		return nil
+	}
+
 	return map[string]interface{}{
 		"aws.ecs.cluster.arn":     r.AwsEcsClusterArn.Convert(),
 		"aws.ecs.launchtype":      r.AwsEcsLaunchtype.Convert(),

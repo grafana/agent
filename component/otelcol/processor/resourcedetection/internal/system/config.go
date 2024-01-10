@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	rac "github.com/grafana/agent/component/otelcol/processor/resourcedetection/internal/resource_attribute_config"
+	"github.com/grafana/river"
 )
 
 // Config defines user-specified configurations unique to the system detector
@@ -13,13 +14,29 @@ type Config struct {
 	// the next source from the list will be considered.
 	HostnameSources []string `river:"hostname_sources,attr,optional"`
 
-	ResourceAttributes ResourceAttributesConfig `river:"resource_attributes,block"`
+	ResourceAttributes ResourceAttributesConfig `river:"resource_attributes,block,optional"`
 }
 
 var DefaultConfig = Config{
 	HostnameSources: []string{"dns", "os"},
+	ResourceAttributes: ResourceAttributesConfig{
+		HostArch:           &rac.ResourceAttributeConfig{Enabled: false},
+		HostCPUCacheL2Size: &rac.ResourceAttributeConfig{Enabled: false},
+		HostCPUFamily:      &rac.ResourceAttributeConfig{Enabled: false},
+		HostCPUModelID:     &rac.ResourceAttributeConfig{Enabled: false},
+		HostCPUModelName:   &rac.ResourceAttributeConfig{Enabled: false},
+		HostCPUStepping:    &rac.ResourceAttributeConfig{Enabled: false},
+		HostCPUVendorID:    &rac.ResourceAttributeConfig{Enabled: false},
+		HostID:             &rac.ResourceAttributeConfig{Enabled: false},
+		HostName:           &rac.ResourceAttributeConfig{Enabled: true},
+		OsDescription:      &rac.ResourceAttributeConfig{Enabled: false},
+		OsType:             &rac.ResourceAttributeConfig{Enabled: true},
+	},
 }
 
+var _ river.Defaulter = (*Config)(nil)
+
+// SetToDefault implements river.Defaulter.
 func (c *Config) SetToDefault() {
 	*c = DefaultConfig
 }
@@ -38,6 +55,10 @@ func (cfg *Config) Validate() error {
 }
 
 func (args *Config) Convert() map[string]interface{} {
+	if args == nil {
+		return nil
+	}
+
 	return map[string]interface{}{
 		"hostname_sources":    args.HostnameSources,
 		"resource_attributes": args.ResourceAttributes.Convert(),
@@ -60,6 +81,10 @@ type ResourceAttributesConfig struct {
 }
 
 func (r *ResourceAttributesConfig) Convert() map[string]interface{} {
+	if r == nil {
+		return nil
+	}
+
 	return map[string]interface{}{
 		"host.arch":              r.HostArch.Convert(),
 		"host.cpu.cache.l2.size": r.HostCPUCacheL2Size.Convert(),
