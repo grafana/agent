@@ -84,7 +84,7 @@ If you are using `remote_write` you must enable Windows Exporter and set the glo
 
 ## Silent install with `-config.expand_env`
 
-It is possible to enable [-config.expand-env][flags] during a silent install.
+You can enable [-config.expand-env][flags] during a silent install.
 
 1. Navigate to the [latest release](https://github.com/grafana/agent/releases) on GitHub.
 
