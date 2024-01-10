@@ -11,7 +11,7 @@ weight: 300
 
 # Deploy Grafana Agent in static mode on Kubernetes
 
-Grafana Agent in static mode can be deployed on Kubernetes by using the Helm chart for Grafana Agent.
+You can use the Helm chart for Grafana Agent to deploy Grafana Agent in static mode on Kubernetes.
 
 ## Before you begin
 
