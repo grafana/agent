@@ -83,6 +83,7 @@ func TestRiverConvert(t *testing.T) {
 	}
 	converted := orig.Convert()
 	expected := kafka_exporter.Config{
+		Instance:                "example",
 		KafkaURIs:               []string{"localhost:9092", "localhost:19092"},
 		KafkaVersion:            "2.0.0",
 		MetadataRefreshInterval: "1m",

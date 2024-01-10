@@ -22,6 +22,8 @@ Main (unreleased)
 - Fix an issue in `remote.s3` where the exported content of an object would be an empty string if `remote.s3` failed to fully retrieve
   the file in a single read call. (@grafana/agent-squad)
 
+- Utilize the `instance` Argument of `prometheus.exporter.kafka` when set. (@akhmatov-s)
+
 ### Other changes
 
 - Removed support for Windows 2012 in line with Microsoft end of life. (@mattdurham)

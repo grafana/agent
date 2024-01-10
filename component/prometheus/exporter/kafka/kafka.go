@@ -90,6 +90,7 @@ func createExporter(opts component.Options, args component.Arguments, defaultIns
 
 func (a *Arguments) Convert() *kafka_exporter.Config {
 	return &kafka_exporter.Config{
+		Instance:                a.Instance,
 		KafkaURIs:               a.KafkaURIs,
 		UseSASL:                 a.UseSASL,
 		UseSASLHandshake:        a.UseSASLHandshake,
