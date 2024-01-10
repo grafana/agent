@@ -382,6 +382,20 @@ following key-value pair to the set of extracted data.
 username: agent
 ```
 
+{{% admonition type="note" %}}
+Due to a limitation of the upstream jmespath library, you must wrap any string
+that contains a hyphen `-` in quotes so that it's not considered a numerical
+expression.
+	
+If you don't use quotes to wrap a string that contains a hyphen, you will get
+errors like: `Unexpected token at the end of the expression: tNumber`
+
+You can use one of two options to circumvent this issue:
+
+1. An escaped double quote. For example: `http_user_agent = "\"request_User-Agent\""`
+1. A backtick quote. For example: ``http_user_agent = `"request_User-Agent"` ``
+{{% /admonition %}}
+
 ### stage.label_drop block
 
 The `stage.label_drop` inner block configures a processing stage that drops labels
