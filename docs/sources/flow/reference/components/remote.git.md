@@ -43,7 +43,7 @@ commit SHA within the repository.
 You must set the `path` attribute to a path accessible from the repository's root,
 such as `FILE_NAME.river` or `FOLDER_NAME/FILE_NAME.river`.
 
-If `pull_frequency` is not `"0s"`, the Git repository will be pulled for
+If `pull_frequency` is not `"0s"`, the Git repository is pulled for
 updates at the frequency specified. If it is set to `"0s"`, the Git repository will be pulled once on init.
 
 {{% admonition type="warning" %}}
