@@ -60,10 +60,10 @@ When `include_target_info` is true, OpenTelemetry Collector resources are conver
 
 {{% admonition type="note" %}}
 
-OTLP metrics tend to have a lot of resource attributes. 
+OTLP metrics can have a lot of resource attributes. 
 Setting `resource_to_telemetry_conversion` to `true` would convert all of them to Prometheus labels, which may not be what you want.
 Instead of using `resource_to_telemetry_conversion`, most users need to use `otelcol.processor.transform` 
-to convert OTLP resource attributes to OTLP metric datapoint attributes prior to using `otelcol.exporter.prometheus`. 
+to convert OTLP resource attributes to OTLP metric datapoint attributes before using `otelcol.exporter.prometheus`. 
 See [Creating Prometheus labels from OTLP resource attributes][] for an example.
 
 [Creating Prometheus labels from OTLP resource attributes]: #creating-prometheus-labels-from-otlp-resource-attributes
@@ -124,7 +124,7 @@ prometheus.remote_write "mimir" {
 }
 ```
 
-## Creating Prometheus labels from OTLP resource attributes
+## Create Prometheus labels from OTLP resource attributes
 
 This example uses `otelcol.processor.transform` to add extra `key1` and `key2` OTLP metric datapoint attributes from the
 `key1` and `key2` OTLP resource attributes. 
