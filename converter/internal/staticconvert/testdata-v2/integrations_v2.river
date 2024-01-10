@@ -1,6 +1,6 @@
 prometheus.remote_write "metrics_default" {
 	endpoint {
-		name = "default-8be96f"
+		name = "default-149bbd"
 		url  = "http://localhost:9009/api/prom/push"
 
 		queue_config { }

@@ -77,7 +77,7 @@ Grafana Agent can collect, transform, and send data to:
 
 * Windows
 
-  * Minimum version: Windows Server 2012 or later, or Windows 10 or later.
+  * Minimum version: Windows Server 2016 or later, or Windows 10 or later.
   * Architectures: AMD64
 
 * macOS
@@ -115,6 +115,6 @@ Patch and security releases may be created at any time.
 [Flow mode]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow"
 [Flow mode]: "/docs/grafana-cloud/ -> /docs/agent/<AGENT_VERSION>/flow"
 
-[UI]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/monitoring/debugging.md#grafana-agent-flow-ui"
-[UI]: "/docs/grafana-cloud/ -> /docs/agent/<AGENT_VERSION>/flow/monitoring/debugging.md#grafana-agent-flow-ui"
+[UI]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/tasks/debug.md#grafana-agent-flow-ui"
+[UI]: "/docs/grafana-cloud/ -> /docs/agent/<AGENT_VERSION>/flow/tasks/debug.md#grafana-agent-flow-ui"
 {{% /docs/reference %}}
