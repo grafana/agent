@@ -11,7 +11,7 @@ title: remote.git
 
 # remote.git
 
-`remote.git` retrieves the content of file stored in a git repository and exposes it to other components. The repo
+`remote.git` retrieves the content of a file stored in a Git repository and exposes it to other components. The repository
 is polled for changes so that the most recent content is eventually available.
 
 ## Usage
