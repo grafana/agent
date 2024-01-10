@@ -131,11 +131,11 @@ fully qualified name) to store its _positions file_. The positions file
 stores the read offsets so that if there is a component or Agent restart,
 `loki.source.docker` can pick up tailing from the same spot.
 
-In case the targets argument contains multiple entries with the same container
+If the target's argument contains multiple entries with the same container
 ID (for example as a result of `discovery.docker` picking up multiple exposed
-ports or networks) `loki.source.docker` will deduplicate them, and only keep
+ports or networks), `loki.source.docker` will deduplicate them, and only keep
 the first of each container ID instances, based on the
-`__meta_docker_container_id` label.  As such, the Docker daemon will be queried
+`__meta_docker_container_id` label.  As such, the Docker daemon is queried
 for each container ID only once, and only one target will be available in the
 component's debug info.
 
