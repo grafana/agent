@@ -28,6 +28,9 @@ var DefaultConfig = Config{
 
 // Config controls kafka_exporter
 type Config struct {
+	// The instance label for metrics.
+	Instance string `yaml:"instance,omitempty"`
+
 	// Address array (host:port) of Kafka server
 	KafkaURIs []string `yaml:"kafka_uris,omitempty"`
 
@@ -109,11 +112,14 @@ func (c *Config) Name() string {
 // there is not exactly one Kafka node, the user must manually provide
 // their own value for instance key in the common config.
 func (c *Config) InstanceKey(agentKey string) (string, error) {
-	if len(c.KafkaURIs) != 1 {
+	if len(c.KafkaURIs) == 1 {
+		return c.KafkaURIs[0], nil
+	}
+	if c.Instance == "" && len(c.KafkaURIs) > 1 {
 		return "", fmt.Errorf("an automatic value for `instance` cannot be determined from %d kafka servers, manually provide one for this integration", len(c.KafkaURIs))
 	}
 
-	return c.KafkaURIs[0], nil
+	return c.Instance, nil
 }
 
 // NewIntegration creates a new elasticsearch_exporter

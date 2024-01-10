@@ -11,17 +11,29 @@ Main (unreleased)
 -----------------
 
 ### Security fixes
+
 - Fixes following vulnerabilities (@hainenber)
   - [GO-2023-2409](https://github.com/advisories/GHSA-mhpq-9638-x6pw)
   - [GO-2023-2412](https://github.com/advisories/GHSA-7ww5-4wqc-m92c)
   - [CVE-2023-49568](https://github.com/advisories/GHSA-mw99-9chc-xw7r)
 
+### Enhancements
+
+- Add an option to the windows static mode installer for expanding environment vars in the yaml config. (@erikbaranowski)
+
 ### Bugfixes
 
-- Fix performance issue where perf lib where clause was not being set, leading to timeouts in collecting metrics for windows_exporter. (@mattdurham)
+- Fix an issue in `remote.s3` where the exported content of an object would be an empty string if `remote.s3` failed to fully retrieve
+  the file in a single read call. (@grafana/agent-squad)
 
-v0.39.0-rc.0 (2024-01-05)
--------------------------
+- Utilize the `instance` Argument of `prometheus.exporter.kafka` when set. (@akhmatov-s)
+
+### Other changes
+
+- Removed support for Windows 2012 in line with Microsoft end of life. (@mattdurham)
+
+v0.39.0 (2024-01-09)
+--------------------
 
 ### Breaking changes
 
@@ -42,8 +54,6 @@ v0.39.0-rc.0 (2024-01-05)
 ### Features
 
 - A new `discovery.ovhcloud` component for discovering scrape targets on OVHcloud. (@ptodev)
-
-### Features
 
 - Allow specifying additional containers to run. (@juangom)
 
@@ -74,6 +84,7 @@ v0.39.0-rc.0 (2024-01-05)
 - `otelcol.receiver.prometheus` does not drop histograms without buckets anymore. (@wildum)
 
 - Added exemplars support to `otelcol.receiver.prometheus`. (@wildum)
+
 - `mimir.rules.kubernetes` may now retry its startup on failure. (@hainenber)
 
 - Added links between compatible components in the documentation to make it
@@ -98,10 +109,14 @@ v0.39.0-rc.0 (2024-01-05)
 - Add `max_cache_size` to `prometheus.relabel` to allow configurability instead of hard coded 100,000. (@mattdurham)
 
 - Add support for `http_sd_config` within a `scrape_config` for prometheus to flow config conversion. (@erikbaranowski)
+
 - `discovery.lightsail` now supports additional parameters for configuring HTTP client settings. (@ptodev)
 - Add `sample_age_limit` to remote_write config to drop samples older than a specified duration. (@marctc)
 
 - Handle paths in the Kubelet URL for `discovery.kubelet`. (@petewall)
+
+- `loki.source.docker` now deduplicates targets which report the same container
+  ID. (@tpaschalis)
 
 ### Bugfixes
 
@@ -120,6 +135,8 @@ v0.39.0-rc.0 (2024-01-05)
 - Add staleness tracking to labelstore to reduce memory usage. (@mattdurham)
 
 - Fix issue where `prometheus.exporter.kafka` would crash when configuring `sasl_password`. (@rfratto)
+
+- Fix performance issue where perf lib where clause was not being set, leading to timeouts in collecting metrics for windows_exporter. (@mattdurham)
 
 - Fix nil panic when using the process collector with the windows exporter. (@mattdurham)
 
