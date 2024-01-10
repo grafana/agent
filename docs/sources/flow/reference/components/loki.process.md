@@ -383,28 +383,18 @@ username: agent
 ```
 
 {{% admonition type="note" %}}
-Due to a limitation of the upstream jmespath library, any string that contains
-a hyphen `-` needs to be wrapped in quotes so that it's not considered a
-numerical expression.
+Due to a limitation of the upstream jmespath library, you must wrap any string
+that contains a hyphen `-` in quotes so that it's not considered a numerical
+expression.
+	
+If you don't use quotes to wrap a string that contains a hyphen, you will get
+errors like: `Unexpected token at the end of the expression: tNumber`
 
-Otherwise, you might get errors like:
-`Unexpected token at the end of the expression: tNumber`
+You can use one of two options to circumvent this issue:
+
+1. An escaped double quote. For example: `http_user_agent = "\"request_User-Agent\""`
+1. A backtick quote. For example: ``http_user_agent = `"request_User-Agent"` ``
 {{% /admonition %}}
-
-In this case, you can use one of two syntaxes to circumvent this issue:
-```
-stage.json {
-  expressions = {
-    http_user_agent = "\"request_User-Agent\"",
-  }
-}
-
-stage.json {
-  expressions = {
-    http_user_agent = `"request_User-Agent"`,
-  }
-}
-```
 
 ### stage.label_drop block
 
