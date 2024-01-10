@@ -105,10 +105,14 @@ v0.39.0 (2024-01-09)
 - Add `max_cache_size` to `prometheus.relabel` to allow configurability instead of hard coded 100,000. (@mattdurham)
 
 - Add support for `http_sd_config` within a `scrape_config` for prometheus to flow config conversion. (@erikbaranowski)
+
 - `discovery.lightsail` now supports additional parameters for configuring HTTP client settings. (@ptodev)
 - Add `sample_age_limit` to remote_write config to drop samples older than a specified duration. (@marctc)
 
 - Handle paths in the Kubelet URL for `discovery.kubelet`. (@petewall)
+
+- `loki.source.docker` now deduplicates targets which report the same container
+  ID. (@tpaschalis)
 
 ### Bugfixes
 

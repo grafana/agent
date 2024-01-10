@@ -174,7 +174,7 @@ lint: agentlint
 # more without -race for packages that have known race detection issues.
 test:
 	$(GO_ENV) go test $(GO_FLAGS) -race $(shell go list ./... | grep -v /integration-tests/)
-	$(GO_ENV) go test $(GO_FLAGS) ./pkg/integrations/node_exporter ./pkg/logs ./pkg/operator ./pkg/util/k8s ./component/otelcol/processor/tail_sampling ./component/loki/source/file
+	$(GO_ENV) go test $(GO_FLAGS) ./pkg/integrations/node_exporter ./pkg/logs ./pkg/operator ./pkg/util/k8s ./component/otelcol/processor/tail_sampling ./component/loki/source/file ./component/loki/source/docker
 
 test-packages:
 	docker pull $(BUILD_IMAGE)
