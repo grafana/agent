@@ -251,13 +251,13 @@ func (cn *ImportConfigNode) OnChildrenContentUpdate(child NodeWithDependants) {
 	}
 }
 
-func (cn *ImportConfigNode) ModuleContent(moduleName string) (string, error) {
+func (cn *ImportConfigNode) ModuleContent(scopedName string) (string, error) {
 	cn.importedContentMut.Lock()
 	defer cn.importedContentMut.Unlock()
-	if content, ok := cn.importedContent[moduleName]; ok {
+	if content, ok := cn.importedContent[scopedName]; ok {
 		return content, nil
 	}
-	return "", fmt.Errorf("module %s not found in imported node %s", moduleName, cn.label)
+	return "", fmt.Errorf("module %s not found in imported node %s", scopedName, cn.label)
 }
 
 // Run runs the managed component in the calling goroutine until ctx is

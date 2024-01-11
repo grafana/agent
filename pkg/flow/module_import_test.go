@@ -607,6 +607,102 @@ func TestImportModule(t *testing.T) {
                     }
                 `,
 		},
+		{
+			name: "TestImportModuleDepth1WithNestedDeclareDependency",
+			module: `
+                import.file "otherModule" {
+                    filename = "other_module"
+                }
+            `,
+			otherModule: `
+                declare "other_test" {
+                    argument "input" {
+                        optional = false
+                    }
+
+                    testcomponents.passthrough "pt" {
+                        input = argument.input.value
+                        lag = "1ms"
+                    }
+
+                    export "output" {
+                        value = testcomponents.passthrough.pt.output
+                    }
+                }
+
+                declare "test" {
+                    argument "input" {
+                        optional = false
+                    }
+
+                    other_test "default" {
+                        input = argument.input.value
+                    }
+
+                    export "output" {
+                        value = other_test.default.output
+                    }
+                }
+            `,
+			config: `
+                testcomponents.count "inc" {
+                    frequency = "10ms"
+                    max = 10
+                }
+
+                import.file "testImport" {
+                    filename = "my_module"
+                }
+
+                declare "anotherModule" {
+                    testcomponents.count "inc" {
+                        frequency = "10ms"
+                        max = 10
+                    }
+
+                    testImport.otherModule.test "myModule" {
+                        input = testcomponents.count.inc.count
+                    }
+
+                    export "output" {
+                        value = testImport.otherModule.test.myModule.output
+                    }
+                }
+
+                anotherModule "myOtherModule" {}
+
+                testcomponents.summation "sum" {
+                    input = anotherModule.myOtherModule.output
+                }
+            `,
+			updateModule: func(filename string) string {
+				return `
+                declare "other_test" {
+                    argument "input" {
+                        optional = false
+                    }
+                    export "output" {
+                        value = -10
+                    }
+                }
+
+                declare "test" {
+                    argument "input" {
+                        optional = false
+                    }
+
+                    other_test "default" {
+                        input = argument.input.value
+                    }
+
+                    export "output" {
+                        value = other_test.default.output
+                    }
+                }
+                `
+			},
+			updateFile: "other_module",
+		},
 	}
 
 	for _, tc := range testCases {

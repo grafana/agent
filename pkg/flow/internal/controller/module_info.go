@@ -34,6 +34,7 @@ func getLocalModuleInfo(
 		}
 	} else if c, ok := parentModuleDependencies[fullName]; ok {
 		content = c
+		moduleInfo.moduleDependencies = parentModuleDependencies
 	} else {
 		return moduleInfo, fmt.Errorf("could not find the module declaration in declareNodes")
 	}
@@ -53,6 +54,10 @@ func getLocalModuleDependencies(fullName string,
 	for _, moduleDependency := range localModuleDependencies[fullName] {
 		if moduleDependency.moduleContentProvider != nil {
 			dependency, err = moduleDependency.moduleContentProvider.ModuleContent(moduleDependency.scopedName)
+			switch n := moduleDependency.moduleContentProvider.(type) {
+			case *ImportConfigNode:
+				moduleDependencies = getImportedModuleDependencies(n, moduleDependency.scopedName)
+			}
 			if err != nil {
 				return moduleDependencies, err
 			}
@@ -87,6 +92,7 @@ func getImportedModuleInfo(
 		}
 	} else if c, ok := parentModuleDependencies[fullName]; ok {
 		content = c
+		moduleInfo.moduleDependencies = parentModuleDependencies
 	} else {
 		return moduleInfo, fmt.Errorf("could not find the module declaration in importNodes")
 	}
@@ -109,7 +115,7 @@ func getImportedModuleDependencies(node *ImportConfigNode, scopedName string) ma
 	if lastIndex != -1 {
 		scope := scopedName[:lastIndex]
 		for importedMod, importedModContent := range node.importedContent {
-			if strings.HasPrefix(importedMod, scope) {
+			if importedMod != scopedName && strings.HasPrefix(importedMod, scope) {
 				moduleDependencies[strings.TrimPrefix(importedMod, scope+".")] = importedModContent
 			}
 		}
