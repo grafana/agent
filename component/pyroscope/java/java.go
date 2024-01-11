@@ -10,7 +10,6 @@ import (
 	"sync"
 
 	"github.com/grafana/agent/component"
-	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/pyroscope"
 	"github.com/grafana/agent/component/pyroscope/java/asprof"
 	"github.com/grafana/agent/pkg/flow/logging/level"
@@ -44,7 +43,7 @@ func init() {
 				profiler:    profiler,
 				pid2process: make(map[int]*profilingLoop),
 			}
-			c.updateTargets(a.Targets)
+			c.updateTargets(a)
 			return c, nil
 		},
 	})
@@ -75,17 +74,17 @@ func (j *javaComponent) Run(ctx context.Context) error {
 func (j *javaComponent) Update(args component.Arguments) error {
 	newArgs := args.(Arguments)
 	j.forwardTo.UpdateChildren(newArgs.ForwardTo)
-	a := args.(Arguments)
-	j.updateTargets(a.Targets)
+	j.updateTargets(newArgs)
 	return nil
 }
 
-func (j *javaComponent) updateTargets(targets []discovery.Target) {
+func (j *javaComponent) updateTargets(args Arguments) {
 	j.mutex.Lock()
 	defer j.mutex.Unlock()
+	j.args = args
 
 	active := make(map[int]struct{})
-	for _, target := range targets {
+	for _, target := range args.Targets {
 		pid, err := strconv.Atoi(target[labelProcessID])
 		_ = level.Debug(j.opts.Logger).Log("msg", "active target",
 			"target", fmt.Sprintf("%+v", target),
@@ -97,9 +96,10 @@ func (j *javaComponent) updateTargets(targets []discovery.Target) {
 		proc := j.pid2process[pid]
 		if proc == nil {
 			proc = newProfilingLoop(pid, target, j.opts.Logger, j.profiler, j.forwardTo, j.args.ProfilingConfig)
+			_ = level.Debug(j.opts.Logger).Log("msg", "new process", "target", fmt.Sprintf("%+v", target))
 			j.pid2process[pid] = proc
 		} else {
-			proc.update(target)
+			proc.update(target, j.args.ProfilingConfig)
 		}
 		active[pid] = struct{}{}
 	}
@@ -108,7 +108,7 @@ func (j *javaComponent) updateTargets(targets []discovery.Target) {
 			continue
 		}
 		_ = level.Debug(j.opts.Logger).Log("msg", "inactive target", "pid", pid)
-		j.pid2process[pid].Close()
+		_ = j.pid2process[pid].Close()
 		delete(j.pid2process, pid)
 	}
 }

@@ -120,6 +120,7 @@ pyroscope.java "java" {
   targets = discovery.relabel.java.output
   forward_to = [pyroscope.write.staging.receiver]
   profiling_config {
+    interval = "60s"
     alloc = "512k"
     cpu = true
     sample_rate = 100

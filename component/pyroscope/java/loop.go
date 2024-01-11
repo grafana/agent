@@ -26,20 +26,20 @@ import (
 const spyName = "grafana-agent.java"
 
 type profilingLoop struct {
-	logger log.Logger
-	output *pyroscope.Fanout
-
-	cfg       ProfilingConfig
-	wg        sync.WaitGroup
-	mutex     sync.Mutex
-	pid       int
-	target    discovery.Target
-	cancel    context.CancelFunc
-	error     error
-	dist      *asprof.Distribution
-	jfrFile   string
-	startTime time.Time
-	profiler  *asprof.Profiler
+	logger     log.Logger
+	output     *pyroscope.Fanout
+	cfg        ProfilingConfig
+	wg         sync.WaitGroup
+	mutex      sync.Mutex
+	pid        int
+	target     discovery.Target
+	cancel     context.CancelFunc
+	error      error
+	dist       *asprof.Distribution
+	jfrFile    string
+	startTime  time.Time
+	profiler   *asprof.Profiler
+	sampleRate int
 }
 
 func newProfilingLoop(pid int, target discovery.Target, logger log.Logger, profiler *asprof.Profiler, output *pyroscope.Fanout, cfg ProfilingConfig) *profilingLoop {
@@ -114,6 +114,7 @@ func (p *profilingLoop) reset() error {
 	jfrFile := asprof.ProcessPath(p.jfrFile, p.pid)
 	startTime := p.startTime
 	endTime := time.Now()
+	sampleRate := p.sampleRate
 	p.startTime = endTime
 	defer func() {
 		os.Remove(jfrFile)
@@ -129,13 +130,13 @@ func (p *profilingLoop) reset() error {
 	}
 	_ = level.Debug(p.logger).Log("msg", "jfr file read", "len", len(jfrBytes))
 
-	return p.push(jfrBytes, startTime, endTime)
+	return p.push(jfrBytes, startTime, endTime, int64(sampleRate))
 }
-func (p *profilingLoop) push(jfrBytes []byte, startTime time.Time, endTime time.Time) error {
+func (p *profilingLoop) push(jfrBytes []byte, startTime time.Time, endTime time.Time, sampleRate int64) error {
 	profiles, err := jfrpprof.ParseJFR(jfrBytes, &jfrpprof.ParseInput{
 		StartTime:  startTime,
 		EndTime:    endTime,
-		SampleRate: int64(p.cfg.SampleRate),
+		SampleRate: sampleRate,
 	}, new(jfrpprof.LabelsSnapshot))
 	if err != nil {
 		return fmt.Errorf("failed to parse jfr: %w", err)
@@ -165,21 +166,23 @@ func (p *profilingLoop) push(jfrBytes []byte, startTime time.Time, endTime time.
 }
 
 func (p *profilingLoop) start() error {
+	cfg := p.getConfig()
 	p.startTime = time.Now()
+	p.sampleRate = cfg.SampleRate
 	argv := make([]string, 0, 14)
-        // asprof cli reference: https://github.com/async-profiler/async-profiler?tab=readme-ov-file#profiler-options
+	// asprof cli reference: https://github.com/async-profiler/async-profiler?tab=readme-ov-file#profiler-options
 	argv = append(argv,
 		"-f", p.jfrFile,
 		"-o", "jfr",
 	)
-	if p.cfg.CPU {
+	if cfg.CPU {
 		argv = append(argv, "-e", "itimer")
 	}
-	if p.cfg.Alloc != "" {
-		argv = append(argv, "--alloc", p.cfg.Alloc)
+	if cfg.Alloc != "" {
+		argv = append(argv, "--alloc", cfg.Alloc)
 	}
-	if p.cfg.Lock != "" {
-		argv = append(argv, "--lock", p.cfg.Lock)
+	if cfg.Lock != "" {
+		argv = append(argv, "--lock", cfg.Lock)
 	}
 	argv = append(argv,
 		"start",
@@ -193,6 +196,12 @@ func (p *profilingLoop) start() error {
 		return fmt.Errorf("asprof failed to run: %w %s %s", err, stdout, stderr)
 	}
 	return nil
+}
+
+func (p *profilingLoop) getConfig() ProfilingConfig {
+	p.mutex.Lock()
+	defer p.mutex.Unlock()
+	return p.cfg
 }
 
 func (p *profilingLoop) stop() error {
@@ -210,10 +219,11 @@ func (p *profilingLoop) stop() error {
 	return nil
 }
 
-func (p *profilingLoop) update(target discovery.Target) {
+func (p *profilingLoop) update(target discovery.Target, config ProfilingConfig) {
 	p.mutex.Lock()
 	defer p.mutex.Unlock()
 	p.target = target
+	p.cfg = config
 }
 
 // Close stops profiling this profilingLoop
@@ -237,7 +247,7 @@ func (p *profilingLoop) onError(err error) bool {
 }
 
 func (p *profilingLoop) interval() time.Duration {
-	return time.Second * 15 // todo
+	return p.getConfig().Interval
 }
 
 func (p *profilingLoop) getTarget() discovery.Target {
