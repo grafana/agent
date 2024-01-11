@@ -6,7 +6,7 @@ local ghTokenFilename = '/drone/src/gh-token.txt';
 // job_names gets the list of job names for use in depends_on.
 local job_names = function(jobs) std.map(function(job) job.name, jobs);
 
-local linux_containers = ['agent','agent-boringcrypto', 'agentctl', 'agent-operator', 'smoke', 'crow'];
+local linux_containers = ['agent', 'agent-boringcrypto', 'agentctl', 'agent-operator'];
 local linux_containers_jobs = std.map(function(container) (
   pipelines.linux('Publish Linux %s container' % container) {
     trigger: {
@@ -163,8 +163,8 @@ linux_containers_jobs + windows_containers_jobs + [
           GITHUB_APP_PRIVATE_KEY: secrets.updater_private_key.fromSecret,
         },
         commands: [
-          '/usr/bin/github-app-external-token > %s' % ghTokenFilename
-        ]
+          '/usr/bin/github-app-external-token > %s' % ghTokenFilename,
+        ],
       },
       {
         name: 'Publish release',
@@ -188,7 +188,7 @@ linux_containers_jobs + windows_containers_jobs + [
             VERSION=${DRONE_TAG} RELEASE_DOC_TAG=$(echo ${DRONE_TAG} | awk -F '.' '{print $1"."$2}') ./tools/release
           |||,
         ],
-      }
+      },
     ],
     volumes: [{
       name: 'docker',
