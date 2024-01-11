@@ -1,6 +1,6 @@
 ---
 aliases:
-  - /docs/grafana-cloud/agent/flow/setup/start/macos/
+  - /docs/grafana-cloud/agent/flow/get-started/start/macos/
   - /docs/grafana-cloud/monitor-infrastructure/agent/flow/get-started/start/macos/
   - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/get-started/start/macos/
   - /docs/grafana-cloud/send-data/agent/flow/get-started/start/macos/
