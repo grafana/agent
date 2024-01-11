@@ -79,6 +79,7 @@ func (p *profilingLoop) loop(ctx context.Context) {
 	defer p.stop()
 	sleep := func() bool {
 		timer := time.NewTimer(p.interval())
+		defer timer.Stop()
 		select {
 		case <-timer.C:
 			return false
