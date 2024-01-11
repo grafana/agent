@@ -13,6 +13,8 @@ title: discovery.process
 
 `discovery.process` discovers processes running on the local Linux OS.
 
+`discovery.process` requires to run as privileged user in the host pid namespace.
+
 ## Usage
 
 ```river
