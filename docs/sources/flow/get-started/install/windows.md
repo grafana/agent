@@ -84,14 +84,14 @@ This includes any configuration files in the installation directory.
 
 ## Next steps
 
-- [Start {{< param "PRODUCT_NAME" >}}][Start]
+- [Run {{< param "PRODUCT_NAME" >}}][Start]
 - [Configure {{< param "PRODUCT_NAME" >}}][Configure]
 
 [latest]: https://github.com/grafana/agent/releases/latest
 
 {{% docs/reference %}}
-[Start]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/get-started/start/windows.md"
-[Start]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/get-started/start/windows.md"
+[Run]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/get-started/run/windows.md"
+[Run]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/get-started/run/windows.md"
 [Configure]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/tasks/configure/configure-windows.md"
 [Configure]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/tasks/configure/configure-windows.md"
 [data collection]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/data-collection.md"

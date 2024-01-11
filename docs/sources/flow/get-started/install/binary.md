@@ -51,9 +51,9 @@ To download {{< param "PRODUCT_NAME" >}} as a standalone binary, perform the fol
 
 ## Next steps
 
-- [Start {{< param "PRODUCT_NAME" >}}][Start]
+- [Run {{< param "PRODUCT_NAME" >}}][Run]
 
 {{% docs/reference %}}
-[Start]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/get-started/start/binary.md"
-[Start]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/get-started/start/binary.md"
+[Run]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/get-started/run/binary.md"
+[Run]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/get-started/run/binary.md"
 {{% /docs/reference %}}

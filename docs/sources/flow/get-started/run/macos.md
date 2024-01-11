@@ -1,17 +1,17 @@
 ---
 aliases:
-  - /docs/grafana-cloud/agent/flow/get-started/start/macos/
-  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/get-started/start/macos/
-  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/get-started/start/macos/
-  - /docs/grafana-cloud/send-data/agent/flow/get-started/start/macos/
-canonical: https://grafana.com/docs/agent/latest/flow/get-started/start/macos/
-description: Learn how to start Grafana Agent Flow on macOS
+  - /docs/grafana-cloud/agent/flow/get-started/run/macos/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/get-started/run/macos/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/get-started/run/macos/
+  - /docs/grafana-cloud/send-data/agent/flow/get-started/run/macos/
+canonical: https://grafana.com/docs/agent/latest/flow/get-started/run/macos/
+description: Learn how to run Grafana Agent Flow on macOS
 menuTitle: macOS
-title: Start Grafana Agent Flow on macOS
+title: Run Grafana Agent Flow on macOS
 weight: 400
 ---
 
-# Start {{% param "PRODUCT_NAME" %}} on macOS
+# Run {{% param "PRODUCT_NAME" %}} on macOS
 
 {{< param "PRODUCT_NAME" >}} is [installed][InstallMacOS] as a launchd service on macOS.
 
