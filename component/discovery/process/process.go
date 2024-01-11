@@ -23,28 +23,25 @@ func init() {
 
 func New(opts component.Options, args Arguments) (*Component, error) {
 	c := &Component{
-		l:               opts.Logger,
-		onStateChange:   opts.OnStateChange,
-		refreshInterval: args.RefreshInterval,
-		discoverConfig:  args.DiscoverConfig,
-		joinUpdates:     make(chan []discovery.Target),
+		l:             opts.Logger,
+		onStateChange: opts.OnStateChange,
+		argsUpdates:   make(chan Arguments),
+		args:          args,
 	}
 	return c, nil
 }
 
 type Component struct {
-	l               log.Logger
-	onStateChange   func(e component.Exports)
-	refreshInterval time.Duration
-	processes       []discovery.Target
-	join            []discovery.Target
-	joinUpdates     chan []discovery.Target
-	discoverConfig  DiscoverConfig
+	l             log.Logger
+	onStateChange func(e component.Exports)
+	processes     []discovery.Target
+	argsUpdates   chan Arguments
+	args          Arguments
 }
 
 func (c *Component) Run(ctx context.Context) error {
 	doDiscover := func() error {
-		processes, err := discover(c.l, &c.discoverConfig)
+		processes, err := discover(c.l, &c.args.DiscoverConfig)
 		if err != nil {
 			return err
 		}
@@ -56,7 +53,7 @@ func (c *Component) Run(ctx context.Context) error {
 		return err
 	}
 
-	t := time.NewTicker(c.refreshInterval)
+	t := time.NewTicker(c.args.RefreshInterval)
 	for {
 		select {
 		case <-ctx.Done():
@@ -65,21 +62,22 @@ func (c *Component) Run(ctx context.Context) error {
 			if err := doDiscover(); err != nil {
 				return err
 			}
-
-		case jt := <-c.joinUpdates:
-			c.join = jt
+			t.Reset(c.args.RefreshInterval)
+		case a := <-c.argsUpdates:
+			c.args = a
 			c.changed()
 		}
 	}
 }
 
 func (c *Component) Update(args component.Arguments) error {
-	c.joinUpdates <- args.(Arguments).Join
+	a := args.(Arguments)
+	c.argsUpdates <- a
 	return nil
 }
 
 func (c *Component) changed() {
 	c.onStateChange(discovery.Exports{
-		Targets: join(c.processes, c.join),
+		Targets: join(c.processes, c.args.Join),
 	})
 }
