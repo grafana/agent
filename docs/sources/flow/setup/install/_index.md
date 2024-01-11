@@ -6,8 +6,8 @@ aliases:
 - /docs/grafana-cloud/send-data/agent/flow/setup/install/
 - /docs/sources/flow/install/
 canonical: https://grafana.com/docs/agent/latest/flow/setup/install/
-description: Learn how to install Grafana Agent  Flow
-menuTitle: Install Grafana Agent Flow
+description: Learn how to install Grafana Agent Flow
+menuTitle: Install
 title: Install Grafana Agent Flow
 weight: 50
 ---
