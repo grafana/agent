@@ -226,6 +226,7 @@ func (p *Profiler) extractDistributions() error {
 			return fmt.Errorf("failed to find jattach in tar.gz")
 		}
 	}
+
 	fileMap := map[string][]byte{}
 	fileMap[filepath.Join(glibcDistName, p.glibcDist.LauncherPath())] = launcher
 	fileMap[filepath.Join(glibcDistName, p.glibcDist.LibPath())] = glibc
