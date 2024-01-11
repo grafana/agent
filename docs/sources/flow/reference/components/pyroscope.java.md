@@ -13,7 +13,7 @@ title: pyroscope.java
 
 {{< docs/shared lookup="flow/stability/beta.md" source="agent" version="<AGENT_VERSION>" >}}
 
-`pyroscope.java` continuously profiles Java processes running on the local Linux OS using async-profiler.
+`pyroscope.java` continuously profiles Java processes running on the local Linux OS using [async-profiler](https://github.com/async-profiler/async-profiler).
 
 {{% admonition type="note" %}}
 To use the  `pyroscope.java` component you must run {{< param "PRODUCT_NAME" >}} as root and inside host pid namespace.
