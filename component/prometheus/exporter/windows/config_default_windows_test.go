@@ -25,6 +25,8 @@ func TestRiverUnmarshalWithDefaultConfig(t *testing.T) {
 	require.Equal(t, DefaultArguments.MSSQL.EnabledClasses, args.MSSQL.EnabledClasses)
 	require.Equal(t, DefaultArguments.Network.Exclude, args.Network.Exclude)
 	require.Equal(t, DefaultArguments.Network.Include, args.Network.Include)
+	require.Equal(t, DefaultArguments.PhysicalDisk.Exclude, args.PhysicalDisk.Exclude)
+	require.Equal(t, DefaultArguments.PhysicalDisk.Include, args.PhysicalDisk.Include)
 	require.Equal(t, DefaultArguments.Process.Exclude, args.Process.Exclude)
 	require.Equal(t, DefaultArguments.Process.Include, args.Process.Include)
 	require.Equal(t, DefaultArguments.ScheduledTask.Exclude, args.ScheduledTask.Exclude)

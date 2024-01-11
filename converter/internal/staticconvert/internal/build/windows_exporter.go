@@ -50,6 +50,10 @@ func toWindowsExporter(config *windows_exporter.Config) *windows.Arguments {
 			Exclude:   config.Network.Exclude,
 			Include:   config.Network.Include,
 		},
+		PhysicalDisk: windows.PhysicalDiskConfig{
+			Exclude: config.PhysicalDisk.Exclude,
+			Include: config.PhysicalDisk.Include,
+		},
 		Process: windows.ProcessConfig{
 			BlackList: config.Process.BlackList,
 			WhiteList: config.Process.WhiteList,

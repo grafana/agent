@@ -23,6 +23,7 @@ type Config struct {
 	TextFile      TextFileConfig      `yaml:"text_file,omitempty"`
 	SMTP          SMTPConfig          `yaml:"smtp,omitempty"`
 	Service       ServiceConfig       `yaml:"service,omitempty"`
+	PhysicalDisk  PhysicalDiskConfig  `yaml:"physical_disk,omitempty"`
 	Process       ProcessConfig       `yaml:"process,omitempty"`
 	Network       NetworkConfig       `yaml:"network,omitempty"`
 	MSSQL         MSSQLConfig         `yaml:"mssql,omitempty"`
@@ -123,6 +124,12 @@ type LogicalDiskConfig struct {
 
 // ScheduledTaskConfig handles settings for the windows_exporter scheduled_task collector
 type ScheduledTaskConfig struct {
+	Include string `yaml:"include,omitempty"`
+	Exclude string `yaml:"exclude,omitempty"`
+}
+
+// PhysicalDiskConfig handles settings for the windows_exporter physical disk collector
+type PhysicalDiskConfig struct {
 	Include string `yaml:"include,omitempty"`
 	Exclude string `yaml:"exclude,omitempty"`
 }

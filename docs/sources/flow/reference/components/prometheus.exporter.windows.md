@@ -254,6 +254,7 @@ Name     | Description | Enabled by default
 [netframework_clrsecurity](https://github.com/prometheus-community/windows_exporter/blob/master/docs/collector.netframework_clrsecurity.md) | .NET Framework Security Check metrics |
 [net](https://github.com/prometheus-community/windows_exporter/blob/master/docs/collector.net.md) | Network interface I/O | &#10003;
 [os](https://github.com/prometheus-community/windows_exporter/blob/master/docs/collector.os.md) | OS metrics (memory, processes, users) | &#10003;
+[physical_disk](https://github.com/prometheus-community/windows_exporter/blob/master/docs/collector.physical_disk.md) | Physical disks | &#10003;
 [process](https://github.com/prometheus-community/windows_exporter/blob/master/docs/collector.process.md) | Per-process metrics |
 [remote_fx](https://github.com/prometheus-community/windows_exporter/blob/master/docs/collector.remote_fx.md) | RemoteFX protocol (RDP) metrics |
 [scheduled_task](https://github.com/prometheus-community/windows_exporter/blob/master/docs/collector.scheduled_task.md) | Scheduled Tasks metrics |
