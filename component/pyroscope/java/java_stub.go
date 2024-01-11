@@ -15,7 +15,7 @@ func init() {
 		Args: Arguments{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
-			level.Warn(opts.Logger).Log("msg", "the pyroscope.java component only works on linux; enabling it otherwise will do nothing")
+			level.Warn(opts.Logger).Log("msg", "the pyroscope.java component only works on linux for amd64 and arm64; enabling it otherwise will do nothing")
 			return &javaComponent{}, nil
 		},
 	})
