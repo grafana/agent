@@ -1,10 +1,10 @@
 ---
 aliases:
   - /docs/grafana-cloud/agent/flow/setup/start/macos/
-  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/setup/start/macos/
-  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/setup/start/macos/
-  - /docs/grafana-cloud/send-data/agent/flow/setup/start/macos/
-canonical: https://grafana.com/docs/agent/latest/flow/setup/start/macos/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/get-started/start/macos/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/get-started/start/macos/
+  - /docs/grafana-cloud/send-data/agent/flow/get-started/start/macos/
+canonical: https://grafana.com/docs/agent/latest/flow/get-started/start/macos/
 description: Learn how to start Grafana Agent Flow on macOS
 menuTitle: macOS
 title: Start Grafana Agent Flow on macOS
@@ -60,8 +60,8 @@ refer to your current copy of the {{< param "PRODUCT_NAME" >}} formula to locate
 - [Configure {{< param "PRODUCT_NAME" >}}][ConfigureMacOS]
 
 {{% docs/reference %}}
-[InstallMacOS]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/install/macos.md"
-[InstallMacOS]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/flow/setup/install/macos.md"
+[InstallMacOS]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/get-started/install/macos.md"
+[InstallMacOS]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/flow/get-started/install/macos.md"
 [ConfigureMacOS]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/tasks/configure/configure-macos.md"
 [ConfigureMacOS]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/tasks/configure/configure-macos.md"
 [ConfigureService]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/tasks/configure/configure-macos.md#configure-the-grafana-agent-flow-service"

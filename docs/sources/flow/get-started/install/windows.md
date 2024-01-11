@@ -1,11 +1,17 @@
 ---
 aliases:
-- ../../install/windows/
+- /docs/grafana-cloud/agent/flow/get-started/install/windows/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/get-started/install/windows/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/get-started/install/windows/
+- /docs/grafana-cloud/send-data/agent/flow/get-started/install/windows/
+# Previous docs aliases for backwards compatibility:
+- ../../install/windows/ # /docs/agent/latest/flow/install/windows/
 - /docs/grafana-cloud/agent/flow/setup/install/windows/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/setup/install/windows/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/setup/install/windows/
 - /docs/grafana-cloud/send-data/agent/flow/setup/install/windows/
-canonical: https://grafana.com/docs/agent/latest/flow/setup/install/windows/
+- ../../setup/install/windows/ # /docs/agent/latest/flow/setup/install/windows/
+canonical: https://grafana.com/docs/agent/latest/flow/get-started/install/windows/
 description: Learn how to install Grafana Agent Flow on Windows
 menuTitle: Windows
 title: Install Grafana Agent Flow on Windows
@@ -84,8 +90,8 @@ This includes any configuration files in the installation directory.
 [latest]: https://github.com/grafana/agent/releases/latest
 
 {{% docs/reference %}}
-[Start]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/start/windows.md"
-[Start]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/setup/start/windows.md"
+[Start]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/get-started/start/windows.md"
+[Start]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/get-started/start/windows.md"
 [Configure]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/tasks/configure/configure-windows.md"
 [Configure]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/tasks/configure/configure-windows.md"
 [data collection]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/data-collection.md"
