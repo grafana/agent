@@ -7,6 +7,7 @@ import (
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/discovery"
+	"github.com/grafana/agent/pkg/flow/logging/level"
 )
 
 func init() {
@@ -22,7 +23,7 @@ func init() {
 }
 
 func New(opts component.Options, args Arguments) (*Component, error) {
-	level.Warn(opts.Logger).Log("msg", "the discovery.process component only works on linux; enabling it otherwise will do nothing")
+	_ = level.Warn(opts.Logger).Log("msg", "the discovery.process component only works on linux; enabling it otherwise will do nothing")
 	return &Component{}, nil
 }
 
