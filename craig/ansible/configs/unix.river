@@ -1,7 +1,0 @@
-prometheus.exporter.unix "node_exporter" { }
-
-
-prometheus.scrape "node_exporter" {
-  targets    = prometheus.exporter.unix.node_exporter.targets
-  forward_to = [prometheus.remote_write.default.receiver]
-}
