@@ -1,11 +1,17 @@
 ---
 aliases:
-- ../../install/macos/
+- /docs/grafana-cloud/agent/flow/get-started/install/macos/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/get-started/install/macos/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/get-started/install/macos/
+- /docs/grafana-cloud/send-data/agent/flow/get-started/install/macos/
+# Previous docs aliases for backwards compatibility:
+- ../../install/macos/ # /docs/agent/latest/flow/install/macos/
 - /docs/grafana-cloud/agent/flow/setup/install/macos/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/setup/install/macos/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/setup/install/macos/
 - /docs/grafana-cloud/send-data/agent/flow/setup/install/macos/
-canonical: https://grafana.com/docs/agent/latest/flow/setup/install/macos/
+- ../../setup/install/macos/ # /docs/agent/latest/flow/setup/install/macos/
+canonical: https://grafana.com/docs/agent/latest/flow/get-started/install/macos/
 description: Learn how to install Grafana AgentFlow on macOS
 menuTitle: macOS
 title: Install Grafana Agent Flow on macOS
@@ -66,14 +72,14 @@ brew uninstall grafana-agent-flow
 
 ## Next steps
 
-- [Start {{< param "PRODUCT_NAME" >}}][Start]
+- [Run {{< param "PRODUCT_NAME" >}}][Run]
 - [Configure {{< param "PRODUCT_NAME" >}}][Configure]
 
 [Homebrew]: https://brew.sh
 
 {{% docs/reference %}}
-[Start]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/start/macos.md"
-[Start]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/setup/start/macos.md"
+[Run]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/get-started/run/macos.md"
+[Run]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/get-started/run/macos.md"
 [Configure]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/tasks/configure/configure-macos.md"
 [Configure]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/tasks/configure/configure-macos.md"
 {{% /docs/reference %}}

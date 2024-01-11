@@ -1,11 +1,17 @@
 ---
 aliases:
-- ../../install/docker/
+- /docs/grafana-cloud/agent/flow/get-started/install/docker/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/get-started/install/docker/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/get-started/install/docker/
+- /docs/grafana-cloud/send-data/agent/flow/get-started/install/docker/
+# Previous docs aliases for backwards compatibility:
+- ../../install/docker/ # /docs/agent/latest/flow/install/docker/
 - /docs/grafana-cloud/agent/flow/setup/install/docker/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/setup/install/docker/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/setup/install/docker/
 - /docs/grafana-cloud/send-data/agent/flow/setup/install/docker/
-canonical: https://grafana.com/docs/agent/latest/flow/setup/install/docker/
+- ../../setup/install/docker/ # /docs/agent/latest/flow/setup/install/docker/
+canonical: https://grafana.com/docs/agent/latest/flow/get-started/install/docker/
 description: Learn how to install Grafana Agent Flow on Docker
 menuTitle: Docker
 title: Run Grafana Agent Flow in a Docker container

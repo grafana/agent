@@ -85,7 +85,7 @@ This feature is experimental, and it doesn't support all River components.
 * Check out our [Reference][] documentation to find specific information you
   might be looking for.
 
-[Install]: {{< relref "./setup/install/" >}}
+[Install]: {{< relref "./get-started/install/" >}}
 [Concepts]: {{< relref "./concepts/" >}}
 [Tasks]: {{< relref "./tasks/" >}}
 [Tutorials]: {{< relref "./tutorials/ ">}}

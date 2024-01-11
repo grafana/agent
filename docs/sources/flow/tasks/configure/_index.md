@@ -31,6 +31,6 @@ This section includes information that helps you configure {{< param "PRODUCT_NA
 {{< section >}}
 
 {{% docs/reference %}}
-[Install]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/install/"
-[Install]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/setup/install/"
+[Install]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/get-started/install/"
+[Install]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/get-started/install/"
 {{% /docs/reference %}}

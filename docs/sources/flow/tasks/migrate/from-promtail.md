@@ -64,7 +64,7 @@ This conversion will enable you to take full advantage of the many additional fe
     * _`<INPUT_CONFIG_PATH>`_: The full path to the Promtail configuration.
     * _`<OUTPUT_CONFIG_PATH>`_: The full path to output the {{< param "PRODUCT_NAME" >}} configuration.
 
-1. [Start][] {{< param "PRODUCT_NAME" >}} using the new configuration from _`<OUTPUT_CONFIG_PATH>`_:
+1. [Run][] {{< param "PRODUCT_NAME" >}} using the new configuration from _`<OUTPUT_CONFIG_PATH>`_:
 
 ### Debugging
 
@@ -127,7 +127,7 @@ This allows you to try {{< param "PRODUCT_NAME" >}} without modifying your exist
 
 > In this task, you will use the [run][] CLI command to run {{< param "PRODUCT_NAME" >}} using a Promtail configuration.
 
-[Start][] {{< param "PRODUCT_NAME" >}} and include the command line flag `--config.format=promtail`.
+[Run][] {{< param "PRODUCT_NAME" >}} and include the command line flag `--config.format=promtail`.
 Your configuration file must be a valid Promtail configuration file rather than a {{< param "PRODUCT_NAME" >}} configuration file.
 
 ### Debugging
@@ -239,8 +239,8 @@ The following list is specific to the convert command and not {{< param "PRODUCT
 [convert]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/cli/convert.md"
 [run]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/cli/run.md"
 [run]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/cli/run.md"
-[Start]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/start/"
-[Start]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/setup/start/"
+[Run]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/get-started/run/"
+[Run]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/get-started/run/"
 [DebuggingUI]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/tasks/debug.md"
 [DebuggingUI]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/tasks/debug.md"
 [River]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/config-language/_index.md"
