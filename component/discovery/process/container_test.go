@@ -1,4 +1,5 @@
-//gp:build linux
+//go:build linux
+
 package process
 
 import (
