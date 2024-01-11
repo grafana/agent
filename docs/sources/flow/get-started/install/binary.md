@@ -1,11 +1,17 @@
 ---
 aliases:
-- ../../install/binary/
+- /docs/grafana-cloud/agent/flow/get-started/install/binary/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/get-started/install/binary/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/get-started/install/binary/
+- /docs/grafana-cloud/send-data/agent/flow/get-started/install/binary/
+# Previous docs aliases for backwards compatibility:
+- ../../install/binary/ # /docs/agent/latest/flow/install/binary/
 - /docs/grafana-cloud/agent/flow/setup/install/binary/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/setup/install/binary/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/setup/install/binary/
 - /docs/grafana-cloud/send-data/agent/flow/setup/install/binary/
-canonical: https://grafana.com/docs/agent/latest/flow/setup/install/binary/
+- ../../setup/install/binary/ # /docs/agent/latest/flow/setup/install/binary/
+canonical: https://grafana.com/docs/agent/latest/flow/get-started/install/binary/
 description: Learn how to install Grafana Agent Flow as a standalone binary
 menuTitle: Standalone
 title: Install Grafana Agent Flow as a standalone binary
@@ -45,9 +51,9 @@ To download {{< param "PRODUCT_NAME" >}} as a standalone binary, perform the fol
 
 ## Next steps
 
-- [Start {{< param "PRODUCT_NAME" >}}][Start]
+- [Run {{< param "PRODUCT_NAME" >}}][Run]
 
 {{% docs/reference %}}
-[Start]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/start/binary.md"
-[Start]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/setup/start/binary.md"
+[Run]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/get-started/run/binary.md"
+[Run]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/get-started/run/binary.md"
 {{% /docs/reference %}}
