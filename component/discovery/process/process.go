@@ -56,6 +56,7 @@ func (c *Component) Run(ctx context.Context) error {
 	}
 
 	t := time.NewTicker(c.args.RefreshInterval)
+	defer t.Stop()
 	for {
 		select {
 		case <-ctx.Done():
