@@ -1,12 +1,18 @@
 ---
 aliases:
+- /docs/grafana-cloud/agent/flow/get-started/deploy-agent/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/get-started/deploy-agent/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/get-started/deploy-agent/
+- /docs/grafana-cloud/send-data/agent/flow/get-started/deploy-agent/
+# Previous docs aliases for backwards compatibility:
 - /docs/grafana-cloud/agent/flow/setup/deploy-agent/
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/setup/deploy-agent/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/setup/deploy-agent/
 - /docs/grafana-cloud/send-data/agent/flow/setup/deploy-agent/
-canonical: https://grafana.com/docs/agent/latest/flow/setup/deploy-agent/
+- ../setup/deploy-agent/ # /docs/agent/latest/flow/setup/deploy-agent/
+canonical: https://grafana.com/docs/agent/latest/flow/get-started/deploy-agent/
 description: Learn about possible deployment topologies for Grafana Agent Flow
-menuTitle: Deploy Grafana Agent Flow
+menuTitle: Deploy
 title: Grafana Agent Flow deployment topologies
 weight: 900
 ---
