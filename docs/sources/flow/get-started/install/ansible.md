@@ -26,8 +26,7 @@ apt or yum package managers.
 To add {{% param "PRODUCT_NAME" %}} to a host:
 
 1. Add these tasks to your playbook to add the Grafana package repositories to your system:
-
-```yaml
+    ```yaml
     - name: "Install deb repo"
       when:
         - "ansible_pkg_mgr == 'apt'"
@@ -56,10 +55,9 @@ To add {{% param "PRODUCT_NAME" %}} to a host:
             gpgkey: "https://packages.grafana.com/gpg.key"
             repo_gpgcheck: true
             gpgcheck: true
-```
+    ```
 1. Add these tasks to install and enable the `grafana-agent-flow` service:
-
-```yaml
+    ```yaml
     - name: Install grafana-agent-flow
       ansible.builtin.package:
         name: grafana-agent-flow
@@ -70,7 +68,7 @@ To add {{% param "PRODUCT_NAME" %}} to a host:
         name: grafana-agent-flow
         enabled: yes
         state: started
-```
+    ```
 
 ## Configuration
 
