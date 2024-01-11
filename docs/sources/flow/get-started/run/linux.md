@@ -1,17 +1,17 @@
 ---
 aliases:
-  - /docs/grafana-cloud/agent/flow/setup/start/linux/
-  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/setup/start/linux/
-  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/setup/start/linux/
-  - /docs/grafana-cloud/send-data/agent/flow/setup/start/linux/
-canonical: https://grafana.com/docs/agent/latest/flow/setup/start/linux/
-description: Learn how to start Grafana Agent Flow on Linux
+  - /docs/grafana-cloud/agent/flow/get-started/run/linux/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/get-started/run/linux/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/get-started/run/linux/
+  - /docs/grafana-cloud/send-data/agent/flow/get-started/run/linux/
+canonical: https://grafana.com/docs/agent/latest/flow/get-started/run/linux/
+description: Learn how to run Grafana Agent Flow on Linux
 menuTitle: Linux
-title: Start Grafana Agent Flow on Linux
+title: Run Grafana Agent Flow on Linux
 weight: 300
 ---
 
-# Start {{% param "PRODUCT_NAME" %}} on Linux
+# Run {{% param "PRODUCT_NAME" %}} on Linux
 
 {{< param "PRODUCT_NAME" >}} is [installed][InstallLinux] as a [systemd][] service on Linux.
 
@@ -68,8 +68,8 @@ sudo journalctl -u grafana-agent-flow
 - [Configure {{< param "PRODUCT_NAME" >}}][Configure]
 
 {{% docs/reference %}}
-[InstallLinux]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/install/linux.md"
-[InstallLinux]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/flow/setup/install/linux.md"
+[InstallLinux]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/get-started/install/linux.md"
+[InstallLinux]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/flow/get-started/install/linux.md"
 [Configure]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/tasks/configure/configure-linux.md"
 [Configure]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/tasks/configure/configure-linux.md"
 {{% /docs/reference %}}

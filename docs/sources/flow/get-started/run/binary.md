@@ -1,17 +1,17 @@
 ---
 aliases:
-- /docs/grafana-cloud/agent/flow/setup/start/binary/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/setup/start/binary/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/setup/start/binary/
-- /docs/grafana-cloud/send-data/agent/flow/setup/start/binary/
-canonical: https://grafana.com/docs/agent/latest/flow/setup/start/binary/
-description: Learn how to start Grafana Agent Flow as a standalone binary
+   - /docs/grafana-cloud/agent/flow/get-started/run/binary/
+   - /docs/grafana-cloud/monitor-infrastructure/agent/flow/get-started/run/binary/
+   - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/get-started/run/binary/
+   - /docs/grafana-cloud/send-data/agent/flow/get-started/run/binary/
+canonical: https://grafana.com/docs/agent/latest/flow/get-started/run/binary/
+description: Learn how to run Grafana Agent Flow as a standalone binary
 menuTitle: Standalone
-title: Start Grafana Agent Flow as a standalone binary
+title: Run Grafana Agent Flow as a standalone binary
 weight: 600
 ---
 
-# Start {{% param "PRODUCT_NAME" %}} as a standalone binary
+# Run {{% param "PRODUCT_NAME" %}} as a standalone binary
 
 If you [downloaded][InstallBinary] the standalone binary, you must run {{< param "PRODUCT_NAME" >}} from a terminal or command window.
 
@@ -119,8 +119,8 @@ These steps assume you have a default systemd and {{< param "PRODUCT_NAME" >}} c
 1. Use the [Linux][StartLinux] systemd commands to manage your standalone Linux installation of {{< param "PRODUCT_NAME" >}}.
 
 {{% docs/reference %}}
-[InstallBinary]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/install/binary.md"
-[InstallBinary]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/flow/setup/install/binary.md"
-[StartLinux]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/start/linux.md"
-[StartLinux]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/flow/setup/start/linux.md"
+[InstallBinary]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/get-started/install/binary.md"
+[InstallBinary]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/flow/get-started/install/binary.md"
+[StartLinux]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/get-started/run/linux.md"
+[StartLinux]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/flow/get-started/run/linux.md"
 {{% /docs/reference %}}
