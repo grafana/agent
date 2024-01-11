@@ -167,6 +167,7 @@ func (p *profilingLoop) push(jfrBytes []byte, startTime time.Time, endTime time.
 func (p *profilingLoop) start() error {
 	p.startTime = time.Now()
 	argv := make([]string, 0, 14)
+        // asprof cli reference: https://github.com/async-profiler/async-profiler?tab=readme-ov-file#profiler-options
 	argv = append(argv,
 		"-f", p.jfrFile,
 		"-o", "jfr",
