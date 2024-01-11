@@ -91,7 +91,7 @@ var DefaultConfig = Config{
 		Exclude:   collector.ConfigDefaults.Net.NicExclude,
 	},
 	PhysicalDisk: PhysicalDiskConfig{
-		Include: collector.ConfigDefaults.PhysicalDisk.DiskInclude
+		Include: collector.ConfigDefaults.PhysicalDisk.DiskInclude,
 		Exclude: collector.ConfigDefaults.PhysicalDisk.DiskExclude,
 	},
 	Process: ProcessConfig{
