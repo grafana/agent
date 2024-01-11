@@ -317,9 +317,15 @@ local stackedPanelMixin = {
         panel.withQueries([
           panel.newQuery(
             expr=|||
-              agent_wal_storage_active_series{cluster="$cluster", namespace="$namespace", instance=~"$instance", component_id=~"$component", url=~"$url"}
+              sum by (component_id) (agent_wal_storage_active_series{cluster="$cluster", namespace="$namespace", instance=~"$instance", component_id!="", component_id=~"$component", url=~"$url"})
             |||,
-            legendFormat='{{instance}} / {{component_id}}',
+            legendFormat='{{component_id}}',
+          ),
+          panel.newQuery(
+            expr=|||
+              agent_wal_storage_active_series{cluster="$cluster", namespace="$namespace", instance=~"$instance", component_id="", url=~"$url"}
+            |||,
+            legendFormat='{{instance}}',
           ),
         ])
       ),
