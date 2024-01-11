@@ -139,14 +139,10 @@ func (p *Profiler) DistributionForProcess(pid int) (*Distribution, error) {
 	musl := false
 	glibc := false
 	for _, m := range maps {
-		if strings.Contains(m.Pathname, "/lib/ld-musl-x86_64.so.1") ||
-			strings.Contains(m.Pathname, "/lib/ld-musl-aarch64.so.1") {
+		if isMuslMapping(m) {
 			musl = true
 		}
-		if strings.HasSuffix(m.Pathname, "/libc.so.6") {
-			glibc = true
-		}
-		if strings.Contains(m.Pathname, "x86_64-linux-gnu/libc-") {
+		if isGlibcMapping(m) {
 			glibc = true
 		}
 	}
@@ -169,6 +165,26 @@ func (p *Profiler) DistributionForProcess(pid int) (*Distribution, error) {
 		return p.glibcDist, nil
 	}
 	return nil, fmt.Errorf("failed to select dist for pid %d: neither musl nor glibc found", pid)
+}
+
+func isMuslMapping(m *procfs.ProcMap) bool {
+	if strings.Contains(m.Pathname, "/lib/ld-musl-x86_64.so.1") {
+		return true
+	}
+	if strings.Contains(m.Pathname, "/lib/ld-musl-aarch64.so.1") {
+		return true
+	}
+	return false
+}
+
+func isGlibcMapping(m *procfs.ProcMap) bool {
+	if strings.HasSuffix(m.Pathname, "/libc.so.6") {
+		return true
+	}
+	if strings.Contains(m.Pathname, "x86_64-linux-gnu/libc-") {
+		return true
+	}
+	return false
 }
 
 func (p *Profiler) ExtractDistributions() error {

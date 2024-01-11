@@ -76,7 +76,9 @@ func (p *profilingLoop) loop(ctx context.Context) {
 		p.onError(fmt.Errorf("failed to copy libasyncProfiler.so: %w", err))
 		return
 	}
-	defer p.stop()
+	defer func() {
+		_ = p.stop()
+	}()
 	sleep := func() {
 		timer := time.NewTimer(p.interval())
 		defer timer.Stop()

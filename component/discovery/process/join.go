@@ -1,3 +1,5 @@
+//go:build linux
+
 package process
 
 import "github.com/grafana/agent/component/discovery"
