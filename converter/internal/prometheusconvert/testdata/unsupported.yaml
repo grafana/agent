@@ -44,6 +44,7 @@ scrape_configs:
       - targets: ["localhost:9091"]
     scrape_classic_histograms: true
     native_histogram_bucket_limit: 2
+    keep_dropped_targets: 1000
 
 remote_write:
   - name: "remote1"

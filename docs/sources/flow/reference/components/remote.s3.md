@@ -44,7 +44,7 @@ Name | Type | Description | Default | Required
 
 > **NOTE**: `path` must include a full path to a file. This does not support reading of directories.
 
-[secret]: {{< relref "../../config-language/expressions/types_and_values.md#secrets" >}}
+[secret]: {{< relref "../../concepts/config-language/expressions/types_and_values.md#secrets" >}}
 
 ## Blocks
 

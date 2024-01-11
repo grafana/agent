@@ -87,7 +87,7 @@ func TestForwardingToAppendable(t *testing.T) {
 			case cluster.ServiceName:
 				return cluster.Mock(), nil
 			case labelstore.ServiceName:
-				return labelstore.New(nil), nil
+				return labelstore.New(nil, prometheus_client.DefaultRegisterer), nil
 			default:
 				return nil, fmt.Errorf("service %q does not exist", name)
 			}
@@ -114,7 +114,7 @@ func TestForwardingToAppendable(t *testing.T) {
 	// Update the component with a mock receiver; it should be passed along to the Appendable.
 	var receivedTs int64
 	var receivedSamples labels.Labels
-	ls := labelstore.New(nil)
+	ls := labelstore.New(nil, prometheus_client.DefaultRegisterer)
 	fanout := prometheus.NewInterceptor(nil, ls, prometheus.WithAppendHook(func(ref storage.SeriesRef, l labels.Labels, t int64, _ float64, _ storage.Appender) (storage.SeriesRef, error) {
 		receivedTs = t
 		receivedSamples = l
@@ -193,7 +193,7 @@ func TestCustomDialer(t *testing.T) {
 			case cluster.ServiceName:
 				return cluster.Mock(), nil
 			case labelstore.ServiceName:
-				return labelstore.New(nil), nil
+				return labelstore.New(nil, prometheus_client.DefaultRegisterer), nil
 
 			default:
 				return nil, fmt.Errorf("service %q does not exist", name)

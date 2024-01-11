@@ -44,30 +44,30 @@ The following arguments are supported:
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`targets`                  | `list(map(string))`     | List of targets to scrape. | | yes
-`forward_to`               | `list(MetricsReceiver)` | List of receivers to send scraped metrics to. | | yes
-`job_name`                 | `string`   | The value to use for the job label if not already set. | component name | no
-`extra_metrics`            | `bool`     | Whether extra metrics should be generated for scrape targets. | `false` | no
+`targets`                     | `list(map(string))`     | List of targets to scrape. | | yes
+`forward_to`                  | `list(MetricsReceiver)` | List of receivers to send scraped metrics to. | | yes
+`job_name`                    | `string`   | The value to use for the job label if not already set. | component name | no
+`extra_metrics`               | `bool`     | Whether extra metrics should be generated for scrape targets. | `false` | no
 `enable_protobuf_negotiation` | `bool`     | Whether to enable protobuf negotiation with the client. | `false` | no
-`honor_labels`             | `bool`     | Indicator whether the scraped metrics should remain unmodified. | `false` | no
-`honor_timestamps`         | `bool`     | Indicator whether the scraped timestamps should be respected. | `true` | no
-`params`                   | `map(list(string))` | A set of query parameters with which the target is scraped. | | no
-`scrape_classic_histograms` | `bool`     | Whether to scrape a classic histogram that is also exposed as a native histogram. | `false` | no
-`scrape_interval`          | `duration` | How frequently to scrape the targets of this scrape configuration. | `"60s"` | no
-`scrape_timeout`           | `duration` | The timeout for scraping targets of this configuration. | `"10s"` | no
-`metrics_path`             | `string`   | The HTTP resource path on which to fetch metrics from targets. | `/metrics` | no
-`scheme`                   | `string`   | The URL scheme with which to fetch metrics from targets. | | no
-`body_size_limit`          | `int`      | An uncompressed response body larger than this many bytes causes the scrape to fail. 0 means no limit. | | no
-`sample_limit`             | `uint`     | More than this many samples post metric-relabeling causes the scrape to fail | | no
-`target_limit`             | `uint`     | More than this many targets after the target relabeling causes the scrapes to fail. | | no
-`label_limit`              | `uint`     | More than this many labels post metric-relabeling causes the scrape to fail. | | no
-`label_name_length_limit`  | `uint`     | More than this label name length post metric-relabeling causes the scrape to fail. | | no
-`label_value_length_limit` | `uint`     | More than this label value length post metric-relabeling causes the scrape to fail. | | no
-`bearer_token` | `secret` | Bearer token to authenticate with. | | no
-`bearer_token_file` | `string` | File containing a bearer token to authenticate with. | | no
-`proxy_url` | `string` | HTTP proxy to proxy requests through. | | no
-`follow_redirects` | `bool` | Whether redirects returned by the server should be followed. | `true` | no
-`enable_http2` | `bool` | Whether HTTP2 is supported for requests. | `true` | no
+`honor_labels`                | `bool`     | Indicator whether the scraped metrics should remain unmodified. | `false` | no
+`honor_timestamps`            | `bool`     | Indicator whether the scraped timestamps should be respected. | `true` | no
+`params`                      | `map(list(string))` | A set of query parameters with which the target is scraped. | | no
+`scrape_classic_histograms`   | `bool`     | Whether to scrape a classic histogram that is also exposed as a native histogram. | `false` | no
+`scrape_interval`             | `duration` | How frequently to scrape the targets of this scrape configuration. | `"60s"` | no
+`scrape_timeout`              | `duration` | The timeout for scraping targets of this configuration. | `"10s"` | no
+`metrics_path`                | `string`   | The HTTP resource path on which to fetch metrics from targets. | `/metrics` | no
+`scheme`                      | `string`   | The URL scheme with which to fetch metrics from targets. | | no
+`body_size_limit`             | `int`      | An uncompressed response body larger than this many bytes causes the scrape to fail. 0 means no limit. | | no
+`sample_limit`                | `uint`     | More than this many samples post metric-relabeling causes the scrape to fail | | no
+`target_limit`                | `uint`     | More than this many targets after the target relabeling causes the scrapes to fail. | | no
+`label_limit`                 | `uint`     | More than this many labels post metric-relabeling causes the scrape to fail. | | no
+`label_name_length_limit`     | `uint`     | More than this label name length post metric-relabeling causes the scrape to fail. | | no
+`label_value_length_limit`    | `uint`     | More than this label value length post metric-relabeling causes the scrape to fail. | | no
+`bearer_token`                | `secret`   | Bearer token to authenticate with. | | no
+`bearer_token_file`           | `string`   | File containing a bearer token to authenticate with. | | no
+`proxy_url`                   | `string`   | HTTP proxy to proxy requests through. | | no
+`follow_redirects`            | `bool`     | Whether redirects returned by the server should be followed. | `true` | no
+`enable_http2`                | `bool`     | Whether HTTP2 is supported for requests. | `true` | no
 
  At most one of the following can be provided:
  - [`bearer_token` argument](#arguments).
@@ -281,7 +281,7 @@ The following special labels can change the behavior of prometheus.scrape:
 * `__scheme__` is the name of the label that holds the scheme (http,https) on which to  scrape a target.
 * `__scrape_interval__` is the name of the label that holds the scrape interval used to scrape a target.
 * `__scrape_timeout__` is the name of the label that holds the scrape timeout used to scrape a target.
-* `__param__` is a prefix for labels that provide URL parameters used to scrape a target.
+* `__param_<name>` is a prefix for labels that provide URL parameters `<name>` used to scrape a target.
 
 Special labels added after a scrape
 * `__name__` is the label name indicating the metric name of a timeseries.

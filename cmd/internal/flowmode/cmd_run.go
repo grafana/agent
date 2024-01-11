@@ -18,6 +18,7 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/converter"
 	convert_diag "github.com/grafana/agent/converter/diag"
+	"github.com/grafana/agent/internal/agentseed"
 	"github.com/grafana/agent/pkg/boringcrypto"
 	"github.com/grafana/agent/pkg/config/instrumentation"
 	"github.com/grafana/agent/pkg/flow"
@@ -123,6 +124,7 @@ depending on the nature of the reload error.
 		BoolVar(&r.disableReporting, "disable-reporting", r.disableReporting, "Disable reporting of enabled components to Grafana.")
 	cmd.Flags().StringVar(&r.configFormat, "config.format", r.configFormat, fmt.Sprintf("The format of the source file. Supported formats: %s.", supportedFormatsList()))
 	cmd.Flags().BoolVar(&r.configBypassConversionErrors, "config.bypass-conversion-errors", r.configBypassConversionErrors, "Enable bypassing errors when converting")
+	cmd.Flags().StringVar(&r.configExtraArgs, "config.extra-args", r.configExtraArgs, "Extra arguments from the original format used by the converter. Multiple arguments can be passed by separating them with a space.")
 	return cmd
 }
 
@@ -144,6 +146,7 @@ type flowRun struct {
 	clusterName                  string
 	configFormat                 string
 	configBypassConversionErrors bool
+	configExtraArgs              string
 }
 
 func (fr *flowRun) Run(configPath string) error {
@@ -245,7 +248,8 @@ func (fr *flowRun) Run(configPath string) error {
 		return fmt.Errorf("failed to create otel service")
 	}
 
-	labelService := labelstore.New(l)
+	labelService := labelstore.New(l, reg)
+	agentseed.Init(fr.storagePath, l)
 
 	f := flow.New(flow.Options{
 		Logger:   l,
@@ -263,7 +267,7 @@ func (fr *flowRun) Run(configPath string) error {
 
 	ready = f.Ready
 	reload = func() (*flow.Source, error) {
-		flowSource, err := loadFlowSource(configPath, fr.configFormat, fr.configBypassConversionErrors)
+		flowSource, err := loadFlowSource(configPath, fr.configFormat, fr.configBypassConversionErrors, fr.configExtraArgs)
 		defer instrumentation.InstrumentSHA256(flowSource.SHA256())
 		defer instrumentation.InstrumentLoad(err == nil)
 
@@ -362,7 +366,7 @@ func getEnabledComponentsFunc(f *flow.Flow) func() map[string]interface{} {
 	}
 }
 
-func loadFlowSource(path string, converterSourceFormat string, converterBypassErrors bool) (*flow.Source, error) {
+func loadFlowSource(path string, converterSourceFormat string, converterBypassErrors bool, configExtraArgs string) (*flow.Source, error) {
 	fi, err := os.Stat(path)
 	if err != nil {
 		return nil, err
@@ -403,7 +407,12 @@ func loadFlowSource(path string, converterSourceFormat string, converterBypassEr
 	}
 	if converterSourceFormat != "flow" {
 		var diags convert_diag.Diagnostics
-		bb, diags = converter.Convert(bb, converter.Input(converterSourceFormat), []string{})
+		ea, err := parseExtraArgs(configExtraArgs)
+		if err != nil {
+			return nil, err
+		}
+
+		bb, diags = converter.Convert(bb, converter.Input(converterSourceFormat), ea)
 		hasError := hasErrorLevel(diags, convert_diag.SeverityLevelError)
 		hasCritical := hasErrorLevel(diags, convert_diag.SeverityLevelCritical)
 		if hasCritical || (!converterBypassErrors && hasError) {

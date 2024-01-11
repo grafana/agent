@@ -1,9 +1,10 @@
 package windows
 
 import (
+	"strings"
+
 	windows_integration "github.com/grafana/agent/pkg/integrations/windows_exporter"
 	col "github.com/prometheus-community/windows_exporter/pkg/collector"
-	"strings"
 )
 
 // DefaultArguments holds non-zero default options for Arguments when it is
@@ -43,6 +44,10 @@ var DefaultArguments = Arguments{
 		WhiteList: col.ConfigDefaults.Net.NicInclude,
 		Include:   col.ConfigDefaults.Net.NicInclude,
 		Exclude:   col.ConfigDefaults.Net.NicExclude,
+	},
+	PhysicalDisk: PhysicalDiskConfig{
+		Exclude: col.ConfigDefaults.PhysicalDisk.DiskExclude,
+		Include: col.ConfigDefaults.PhysicalDisk.DiskInclude,
 	},
 	Process: ProcessConfig{
 		BlackList: col.ConfigDefaults.Process.ProcessExclude,

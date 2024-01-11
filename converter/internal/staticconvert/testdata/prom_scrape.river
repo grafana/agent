@@ -10,9 +10,7 @@ discovery.azure "metrics_agent_promobee" {
 	managed_identity {
 		client_id = "client"
 	}
-	proxy_url        = "proxy"
-	follow_redirects = true
-	enable_http2     = true
+	proxy_url = "proxy"
 }
 
 discovery.azure "metrics_agent_promobee_2" {
@@ -27,9 +25,7 @@ discovery.azure "metrics_agent_promobee_2" {
 	managed_identity {
 		client_id = "client"
 	}
-	proxy_url        = "proxy"
-	follow_redirects = true
-	enable_http2     = true
+	proxy_url = "proxy"
 }
 
 discovery.relabel "metrics_agent_promobee" {
@@ -95,7 +91,7 @@ prometheus.relabel "metrics_agent_promobee" {
 
 prometheus.remote_write "metrics_agent" {
 	endpoint {
-		name = "agent-6ea089"
+		name = "agent-36127e"
 		url  = "https://prometheus-us-central1.grafana.net/api/prom/push"
 
 		basic_auth {
@@ -107,6 +103,7 @@ prometheus.remote_write "metrics_agent" {
 			max_shards          = 10
 			batch_send_deadline = "3m0s"
 			max_backoff         = "10s"
+			sample_age_limit    = "50s"
 		}
 
 		metadata_config { }

@@ -10,6 +10,7 @@ import (
 	"runtime"
 	"time"
 
+	"github.com/grafana/agent/internal/agentseed"
 	"github.com/grafana/agent/internal/useragent"
 	"github.com/prometheus/common/version"
 )
@@ -31,7 +32,7 @@ type Report struct {
 	DeployMode   string                 `json:"deployMode"`
 }
 
-func sendReport(ctx context.Context, seed *AgentSeed, interval time.Time, metrics map[string]interface{}) error {
+func sendReport(ctx context.Context, seed *agentseed.AgentSeed, interval time.Time, metrics map[string]interface{}) error {
 	report := Report{
 		UsageStatsID: seed.UID,
 		CreatedAt:    seed.CreatedAt,

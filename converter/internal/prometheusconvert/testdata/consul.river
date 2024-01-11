@@ -1,13 +1,9 @@
 discovery.consul "prometheus1" {
-	services         = ["myapp"]
-	follow_redirects = true
-	enable_http2     = true
+	services = ["myapp"]
 }
 
 discovery.consul "prometheus2" {
-	services         = ["otherapp"]
-	follow_redirects = true
-	enable_http2     = true
+	services = ["otherapp"]
 }
 
 prometheus.scrape "prometheus1" {

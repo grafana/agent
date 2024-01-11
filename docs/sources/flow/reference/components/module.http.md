@@ -52,7 +52,7 @@ Name | Type | Description | Default | Required
 `poll_timeout` | `duration` | Timeout when polling the URL. | `"10s"` | no
 `is_secret` | `bool` | Whether the response body should be treated as a secret. | false | no
 
-[secret]: {{< relref "../../config-language/expressions/types_and_values.md#secrets" >}}
+[secret]: {{< relref "../../concepts/config-language/expressions/types_and_values.md#secrets" >}}
 
 ## Blocks
 
