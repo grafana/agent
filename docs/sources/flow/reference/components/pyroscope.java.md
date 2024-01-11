@@ -13,7 +13,8 @@ title: pyroscope.java
 
 {{< docs/shared lookup="flow/stability/beta.md" source="agent" version="<AGENT_VERSION>" >}}
 
-`pyroscope.java` continuously profiles Java processes running on the local Linux OS using [async-profiler](https://github.com/async-profiler/async-profiler).
+`pyroscope.java` continuously profiles Java processes running on the local Linux OS
+using [async-profiler](https://github.com/async-profiler/async-profiler).
 
 {{% admonition type="note" %}}
 To use the  `pyroscope.java` component you must run {{< param "PRODUCT_NAME" >}} as root and inside host pid namespace.
@@ -38,7 +39,32 @@ The following arguments are supported:
 | `forward_to` | `list(ProfilesReceiver)` | List of receivers to send collected profiles to. |         | yes      |
 | `tmp_dir`    | `string`                 | Temporary directory to store async-profiler      | `/tmp`  | no       |
 
-The special label `__process_pid__` _must always_ be present and corresponds to the `PID` of the process to profile.
+## Profiling behavior
+
+The special label `__process_pid__` _must always_ be present in each target of `targets` and corresponds to the `PID` of
+the process to profile.
+
+Upon component startup, `pyroscope.java` will create a temporary directory under `tmp_dir` and extract the
+async-profiler binaries for both glibc and musl into it with the following layout.
+
+```
+/tmp/grafana-agent-asprof-glibc-{SHA1}/bin/asprof
+/tmp/grafana-agent-asprof-glibc-{SHA1}/lib/libasyncProfiler.so
+/tmp/grafana-agent-asprof-musl-{SHA1}/bin/asprof
+/tmp/grafana-agent-asprof-musl-{SHA1}/lib/libasyncProfiler.so
+```
+
+Upon process profiling startup, the component detects libc type and copies according `libAsyncProfiler.so` into the
+target process file system at the exact same path.
+
+{{% admonition type="note" %}}
+The `asprof` binary is executed as privileged user.
+If user changes `tmp_dir` configuration to something other than `/tmp`, then it is up to the user to ensure that the
+directory is not writable by unprivileged users.
+{{% /admonition %}}
+
+{{% admonition type="note" %}}
+{{% /admonition %}}
 
 ## Blocks
 
@@ -53,17 +79,19 @@ The following blocks are supported inside the definition of
 
 ### profiling_config block
 
-The `profiling_config` block describes which process metadata to discover.
+The `profiling_config` block describes how async-profiler is invoked.
 
 The following arguments are supported:
 
-| Name          | Type       | Description                                         | Default | Required |
-|---------------|------------|-----------------------------------------------------|---------|----------|
-| `interval`    | `duration` | How frequently to collect profiles from the targets | "60s"   | no       |
-| `cpu`         | `bool`     | A flag to enable cpu profiling                      | true    | no       |
-| `sample_rate` | `int`      | CPU profiling sample rate.                          | 100     | no       |
-| `alloc`       | `int`      | Allocation profiling sampling configuration         | "512k"  | no       |
-| `lock`        | `int`      | Lock profiling sampling configuration               | "10ms"  | no       |
+| Name          | Type       | Description                                                                                             | Default | Required |
+|---------------|------------|---------------------------------------------------------------------------------------------------------|---------|----------|
+| `interval`    | `duration` | How frequently to collect profiles from the targets.                                                    | "60s"   | no       |
+| `cpu`         | `bool`     | A flag to enable cpu profiling, using `itimer` async-profiler event.                                    | true    | no       |
+| `sample_rate` | `int`      | CPU profiling sample rate. It is converted from Hz to interval and passed as `-i` arg to async-profiler | 100     | no       |
+| `alloc`       | `string`   | Allocation profiling sampling configuration  It is passed as `--alloc` arg to async-profiler            | "512k"  | no       |
+| `lock`        | `string`   | Lock profiling sampling configuration. It is passed as `--lock` arg to async-profiler                   | "10ms"  | no       |
+
+For more information on async-profiler configuration, see [profiler-options](https://github.com/async-profiler/async-profiler?tab=readme-ov-file#profiler-options)
 
 ## Exported fields
 
@@ -129,7 +157,6 @@ pyroscope.java "java" {
 }
 ```
 
-
 <!-- START GENERATED COMPATIBLE COMPONENTS -->
 
 ## Compatible components
@@ -137,12 +164,12 @@ pyroscope.java "java" {
 `pyroscope.java` can accept arguments from the following components:
 
 - Components that export [Targets]({{< relref "../compatibility/#targets-exporters" >}})
-- Components that export [Pyroscope `ProfilesReceiver`]({{< relref "../compatibility/#pyroscope-profilesreceiver-exporters" >}})
-
+- Components that export [Pyroscope `ProfilesReceiver`]({{< relref "
+  ../compatibility/#pyroscope-profilesreceiver-exporters" >}})
 
 {{% admonition type="note" %}}
 
-Connecting some components may not be sensible or components may require further configuration to make the 
+Connecting some components may not be sensible or components may require further configuration to make the
 connection work correctly. Refer to the linked documentation for more details.
 
 {{% /admonition %}}

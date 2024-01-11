@@ -177,6 +177,8 @@ func (p *profilingLoop) start() error {
 	)
 	if cfg.CPU {
 		argv = append(argv, "-e", "itimer")
+		profilingInterval := time.Second.Nanoseconds() / int64(cfg.SampleRate)
+		argv = append(argv, "-i", strconv.FormatInt(profilingInterval, 10))
 	}
 	if cfg.Alloc != "" {
 		argv = append(argv, "--alloc", cfg.Alloc)
