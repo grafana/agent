@@ -1,3 +1,4 @@
+//gp:build linux
 package process
 
 import (
