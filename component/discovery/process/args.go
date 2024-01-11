@@ -23,7 +23,7 @@ type DiscoverConfig struct {
 
 var DefaultConfig = Arguments{
 	Join:            nil,
-	RefreshInterval: 14 * time.Second,
+	RefreshInterval: 60 * time.Second,
 	DiscoverConfig: DiscoverConfig{
 		Cwd:         true,
 		Exe:         true,
