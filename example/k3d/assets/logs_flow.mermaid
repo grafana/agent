@@ -1,9 +1,0 @@
-sequenceDiagram
-    Canary ->>+ Canary: Logs to stdout
-    Agent  ->>+ Canary: Reads pod logs through /var/log/pods/
-    Agent  ->>+ Loki: Pushes logs (remote_write)
-    Canary ->>+ Loki: Queries logs storage
-    Canary ->>+ Canary: Exposed success/failure metrics
-    Agent  ->>+ Canary: Scrapes /metrics
-    Agent  ->>+ Prometheus: Sends success/failure metrics
-    Prometheus ->>+ Prometheus: Checks alerts
