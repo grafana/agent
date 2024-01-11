@@ -77,80 +77,10 @@ func TestDistSymlink(t *testing.T) {
 	}
 }
 
-//this one requires root and docker(or mount namespace)
-//func TestDistSymlinkIntoProcRoot(t *testing.T) {
-//	if os.Getuid() != 0 {
-//		t.Fail()
-//	}
-//	td := []bool{true, false}
-//	victim := "/proc/5186/root/"
-//	for _, glibc := range td {
-//		t.Run(fmt.Sprintf("glibc=%t", glibc), func(t *testing.T) {
-//			// check if /tmp/dist-... is a symlink to /proc/pid/root/tmp/dist-
-//			root := tempDir(t)
-//			err := os.Chmod(root, 0755)
-//			assert.NoError(t, err)
-//
-//			p := NewProfiler(root, embeddedArchive)
-//			muslDistName, glibcDistName := p.getDistNames()
-//			fake := ""
-//			if glibc {
-//				fake = filepath.Join(victim, root, glibcDistName)
-//				err = os.Symlink(fake, filepath.Join(root, glibcDistName))
-//				assert.NoError(t, err)
-//			} else {
-//				fake = filepath.Join(victim, root, muslDistName)
-//				err = os.Symlink(fake, filepath.Join(root, muslDistName))
-//				assert.NoError(t, err)
-//			}
-//			err = mkdirAll(fake)
-//			assert.NoError(t, err)
-//
-//			err = p.ExtractDistributions()
-//			t.Logf("expected error %s", err)
-//			assert.Error(t, err)
-//		})
-//	}
-//}
-
-// this one requires root and docker(or mount namespace)
-//func TestFlag(t *testing.T) {
-//	if os.Getuid() != 0 {
-//		t.Fail()
-//	}
-//	procFlag := "/proc/20837/root"
-//	f, err := os.Open(procFlag)
-//	assert.NoError(t, err)
-//
-//	err = writeFile(f, "asd/qwe", []byte("FLAG"))
-//	assert.Error(t, err)
-//	file, err := os.ReadFile("/asd/qwe")
-//	assert.Error(t, err)
-//	assert.NotContains(t, string(file), "FLAG")
-//
-//}
-
-//func mkdirAll(fake string) error {
-//	parts := strings.Split(fake, string(filepath.Separator))
-//	it := "/"
-//	for i := 0; i < len(parts); i++ {
-//		it = filepath.Join(it, parts[i])
-//		if _, err := os.Stat(it); err != nil {
-//			err := os.Mkdir(it, 0755)
-//			if err != nil {
-//				return err
-//			}
-//		}
-//	}
-//	return nil
-//}
-
 func tempDir(t *testing.T) string {
-        t.Helper()
+	t.Helper()
 	dir, err := os.MkdirTemp("", "asprof-test")
 	assert.NoError(t, err)
 	t.Logf("dir: %s", dir)
 	return dir
 }
-
-// copying the lib to /proc/pid/root/tmp/dist-.../libasyncProfiler.so
