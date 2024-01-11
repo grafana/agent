@@ -21,11 +21,6 @@ import (
 	"go.uber.org/atomic"
 )
 
-type ModuleInfo struct {
-	content            string
-	moduleDependencies map[string]string
-}
-
 // DeclareComponentNode is a controller node which manages a module.
 //
 // DeclareComponentNode manages the underlying module and caches its current
@@ -43,7 +38,7 @@ type DeclareComponentNode struct {
 	moduleController  ModuleController
 	OnComponentUpdate func(cn NodeWithDependants) // Informs controller that we need to reevaluate
 
-	GetModuleInfo  func(fullName string, namespace string, module string) (ModuleInfo, error) // Retrieve the module config.
+	GetModuleInfo  func(fullName string, namespace string, scopedName string) (ModuleInfo, error) // Retrieve the module config.
 	lastUpdateTime atomic.Time
 
 	mut     sync.RWMutex

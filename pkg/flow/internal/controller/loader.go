@@ -845,83 +845,9 @@ func (l *Loader) postEvaluate(logger log.Logger, bn BlockNode, err error) error 
 func (l *Loader) getModuleInfo(fullName string, namespace string, scopedName string) (ModuleInfo, error) {
 	// If there is no namespace, the declare node component is an instance of a local declare.
 	if namespace == "" {
-		return l.getModuleInfoDeclareNode(fullName, scopedName)
+		return getLocalModuleInfo(l.declareNodes, l.moduleDependencies, l.parentModuleDependencies, fullName, scopedName)
 	}
-	return l.getModuleInfoImportNode(fullName, scopedName, namespace)
-}
-
-func (l *Loader) getModuleInfoDeclareNode(fullName string, scopedName string) (ModuleInfo, error) {
-	var moduleInfo ModuleInfo
-	var content string
-	var err error
-	if node, exists := l.declareNodes[scopedName]; exists {
-
-		// Set dependencies.
-		moduleInfo.moduleDependencies = make(map[string]string)
-		for _, moduleDependency := range l.moduleDependencies[fullName] {
-			if moduleDependency.moduleContentProvider != nil {
-				content, err = moduleDependency.moduleContentProvider.ModuleContent(moduleDependency.scopedName)
-				if err != nil {
-					return moduleInfo, err
-				}
-			} else {
-				if c, ok := l.parentModuleDependencies[moduleDependency.fullName]; ok {
-					content = c
-				} else {
-					return moduleInfo, fmt.Errorf("could not find the module declaration in parentModuleDependencies")
-				}
-			}
-			moduleInfo.moduleDependencies[moduleDependency.fullName] = content
-		}
-
-		// Set content.
-		content, err = node.ModuleContent(scopedName)
-		if err != nil {
-			return moduleInfo, err
-		}
-	} else if c, ok := l.parentModuleDependencies[fullName]; ok {
-		content = c
-	} else {
-		return moduleInfo, fmt.Errorf("could not find the module declaration in declareNodes")
-	}
-	moduleInfo.content = content
-	return moduleInfo, nil
-}
-
-func (l *Loader) getModuleInfoImportNode(fullName string, module string, namespace string) (ModuleInfo, error) {
-	var moduleInfo ModuleInfo
-	var content string
-	var err error
-	if node, exists := l.importNodes[namespace]; exists {
-		// Set dependencies.
-		// The import node might need its nested imported content.
-		// We need to pass the correct content according to the namespace.
-		lastIndex := strings.LastIndex(module, ".")
-		if lastIndex != -1 {
-			scope := module[:lastIndex]
-			moduleInfo.moduleDependencies = make(map[string]string)
-			for importedMod, importedModContent := range node.importedContent {
-				if strings.HasPrefix(importedMod, scope) {
-					moduleInfo.moduleDependencies[strings.TrimPrefix(importedMod, scope+".")] = importedModContent
-				}
-			}
-		} else {
-			// In this case the declare is only at depth 1 which corresponds to the importedContent, so we can just pass everything.
-			moduleInfo.moduleDependencies = node.importedContent
-		}
-
-		// Set content.
-		content, err = node.ModuleContent(module)
-		if err != nil {
-			return moduleInfo, err
-		}
-	} else if c, ok := l.parentModuleDependencies[fullName]; ok {
-		content = c
-	} else {
-		return moduleInfo, fmt.Errorf("could not find the module declaration in importNodes")
-	}
-	moduleInfo.content = content
-	return moduleInfo, nil
+	return getImportedModuleInfo(l.importNodes, l.parentModuleDependencies, fullName, scopedName, namespace)
 }
 
 func multierrToDiags(errors error) diag.Diagnostics {
