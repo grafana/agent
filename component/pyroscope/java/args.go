@@ -33,10 +33,10 @@ func defaultArguments() Arguments {
 	return Arguments{
 		TmpDir: "/tmp",
 		ProfilingConfig: ProfilingConfig{
-			Interval:   15 * time.Second,
+			Interval:   60 * time.Second,
 			SampleRate: 100,
-			Alloc:      "",
-			Lock:       "",
+			Alloc:      "10ms",
+			Lock:       "512k",
 			CPU:        true,
 		},
 	}

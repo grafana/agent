@@ -16,6 +16,12 @@ Main (unreleased)
   - [GO-2023-2412](https://github.com/advisories/GHSA-7ww5-4wqc-m92c)
   - [CVE-2023-49568](https://github.com/advisories/GHSA-mw99-9chc-xw7r)
 
+### Features
+
+- A new `discovery.process` component for discovering Linux OS processes on the current host. (@korniltsev)
+ 
+- A new `pyroscope.java` component for profiling Java processes using async-profiler. (@korniltsev)
+
 ### Bugfixes
 
 - Fix performance issue where perf lib where clause was not being set, leading to timeouts in collecting metrics for windows_exporter. (@mattdurham)

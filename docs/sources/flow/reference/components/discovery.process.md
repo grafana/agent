@@ -11,9 +11,13 @@ title: discovery.process
 
 # discovery.process
 
+{{< docs/shared lookup="flow/stability/beta.md" source="agent" version="<AGENT_VERSION>" >}}
+
 `discovery.process` discovers processes running on the local Linux OS.
 
-`discovery.process` requires to run as privileged user in the host pid namespace.
+{{% admonition type="note" %}}
+To use the  `discovery.process` component you must run {{< param "PRODUCT_NAME" >}} as root and inside host pid namespace.
+{{% /admonition %}}
 
 ## Usage
 
