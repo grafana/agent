@@ -66,7 +66,7 @@ The Reference section is a collection of pages that describe the Agent
 components and their configuration options exhaustively. This is a more narrow
 definition than the one found in the [writer's toolkit][].
 
-We have a dedicated page with the best practices for writing the Reference
+We have a dedicated page with the best practices for writing Reference
 docs: [writing flow components documentation][writing-flow-docs].
 
 This is our most detailed documentation, and it should be used as a source of
