@@ -51,7 +51,7 @@ will broadly apply to other deployment modes. For more information on how to
 deploy {{% param "PRODUCT_NAME" %}}, see
 [deploying grafana agent][].
 
-[deploying grafana agent]: {{< relref "../setup/deploy-agent.md" >}}
+[deploying grafana agent]: {{< relref "../get-started/deploy-agent.md" >}}
 [clustering]: {{< relref "../concepts/clustering.md" >}}
 
 ## Loki logs

@@ -111,6 +111,6 @@ To delete the corrupted WAL:
 
 [WAL block]: /docs/agent/<AGENT_VERSION>/flow/reference/components/prometheus.remote_write#wal-block
 [metrics config]: /docs/agent/<AGENT_VERSION>/static/configuration/metrics-config
-[Stop]: /docs/agent/<AGENT_VERSION>/flow/setup/start-agent
+[Stop]: /docs/agent/<AGENT_VERSION>/flow/get-started/start-agent
 [wal_directory]: /docs/agent/<AGENT_VERSION>/static/configuration/metrics-config
 [run]: /docs/agent/<AGENT_VERSION>/flow/reference/cli/run
