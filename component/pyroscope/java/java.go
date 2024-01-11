@@ -63,11 +63,9 @@ func (j *javaComponent) Run(ctx context.Context) error {
 	defer func() {
 		j.stop()
 	}()
-	for {
-		select {
-		case <-ctx.Done():
-			return nil
-		}
+	select {
+	case <-ctx.Done():
+		return nil
 	}
 }
 

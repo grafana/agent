@@ -141,12 +141,13 @@ func (p *profilingLoop) push(jfrBytes []byte, startTime time.Time, endTime time.
 	if err != nil {
 		return fmt.Errorf("failed to parse jfr: %w", err)
 	}
+	target := p.getTarget()
 	for _, req := range profiles.Profiles {
 		metric := req.Metric
 		sz := req.Profile.SizeVT()
 		l := log.With(p.logger, "metric", metric, "sz", sz)
 		ls := labels.NewBuilder(nil)
-		for _, l := range jfrpprofPyroscope.Labels(p.target, profiles.JFREvent, req.Metric, "", spyName) {
+		for _, l := range jfrpprofPyroscope.Labels(target, profiles.JFREvent, req.Metric, "", spyName) {
 			ls.Set(l.Name, l.Value)
 		}
 		profile, err := req.Profile.MarshalVT()

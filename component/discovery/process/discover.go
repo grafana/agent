@@ -133,7 +133,7 @@ func discover(l log.Logger, cfg *DiscoverConfig) ([]process, error) {
 		}
 
 		if cfg.ContainerID {
-			containerID, err = getLinuxProcessContainerID(l, spid)
+			containerID, err = getLinuxProcessContainerID(spid)
 			if err != nil {
 				loge(int(p.Pid), err)
 				continue
@@ -153,7 +153,7 @@ func discover(l log.Logger, cfg *DiscoverConfig) ([]process, error) {
 	return res, nil
 }
 
-func getLinuxProcessContainerID(l log.Logger, pid string) (string, error) {
+func getLinuxProcessContainerID(pid string) (string, error) {
 	if runtime.GOOS == "linux" {
 		cgroup, err := os.Open(path.Join("/proc", pid, "cgroup"))
 		if err != nil {
