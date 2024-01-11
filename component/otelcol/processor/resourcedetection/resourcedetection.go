@@ -41,7 +41,7 @@ func init() {
 	})
 }
 
-// Arguments configures the otelcol.processor.probabilistic_sampler component.
+// Arguments configures the otelcol.processor.resourcedetection component.
 type Arguments struct {
 	// Detectors is an ordered list of named detectors that should be
 	// run to attempt to detect resource information.
