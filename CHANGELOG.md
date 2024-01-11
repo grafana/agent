@@ -32,6 +32,8 @@ Main (unreleased)
 
 - Removed support for Windows 2012 in line with Microsoft end of life. (@mattdurham)
 
+- Remove instance ID grouping from Agent Flow mixin panel for remote write active series by component. (@tristanburgess)
+
 v0.39.0 (2024-01-09)
 --------------------
 
