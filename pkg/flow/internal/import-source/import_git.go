@@ -12,8 +12,8 @@ import (
 	"github.com/go-kit/log"
 
 	"github.com/grafana/agent/component"
-	"github.com/grafana/agent/pkg/flow/internal/import-source/internal/vcs"
 	"github.com/grafana/agent/pkg/flow/logging/level"
+	vcs "github.com/grafana/agent/pkg/util/git"
 	"github.com/grafana/river/vm"
 )
 
