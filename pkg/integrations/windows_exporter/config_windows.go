@@ -22,6 +22,9 @@ func (c *Config) ToWindowsExporterConfig() collector.Config {
 
 	cfg.Textfile.TextFileDirectories = c.TextFile.TextFileDirectory
 
+	cfg.PhysicalDisk.DiskInclude = c.PhysicalDisk.Include
+	cfg.PhysicalDisk.DiskExclude = c.PhysicalDisk.Exclude
+
 	cfg.Process.ProcessExclude = coalesceString(c.Process.Exclude, c.Process.BlackList)
 	cfg.Process.ProcessInclude = coalesceString(c.Process.Include, c.Process.WhiteList)
 
@@ -86,6 +89,10 @@ var DefaultConfig = Config{
 		WhiteList: collector.ConfigDefaults.Net.NicInclude,
 		Include:   collector.ConfigDefaults.Net.NicInclude,
 		Exclude:   collector.ConfigDefaults.Net.NicExclude,
+	},
+	PhysicalDisk: PhysicalDiskConfig{
+		Include: collector.ConfigDefaults.PhysicalDisk.DiskInclude,
+		Exclude: collector.ConfigDefaults.PhysicalDisk.DiskExclude,
 	},
 	Process: ProcessConfig{
 		BlackList: collector.ConfigDefaults.Process.ProcessExclude,
