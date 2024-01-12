@@ -13,7 +13,6 @@ import (
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/model/labels"
 	"github.com/prometheus/prometheus/scrape"
-	"github.com/prometheus/prometheus/storage/remote"
 )
 
 // WireAPI adds API routes to the provided mux router.
@@ -151,8 +150,7 @@ func (a *Agent) PushMetricsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	handler := remote.NewWriteHandler(a.logger, a.reg, managedInstance)
-	handler.ServeHTTP(w, r)
+	managedInstance.WriteHandler().ServeHTTP(w, r)
 }
 
 // getInstanceName uses gorilla/mux's route variables to extract the

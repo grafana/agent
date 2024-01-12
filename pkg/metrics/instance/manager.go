@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
 	"sync"
 	"time"
 
@@ -66,6 +67,7 @@ type ManagedInstance interface {
 	TargetsActive() map[string][]*scrape.Target
 	StorageDirectory() string
 	Appender(ctx context.Context) storage.Appender
+	WriteHandler() http.Handler
 }
 
 // BasicManagerConfig controls the operations of a BasicManager.

@@ -10,6 +10,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"net/http"
 	"os"
 	"path/filepath"
 	"sync"
@@ -243,8 +244,9 @@ type Instance struct {
 
 	logger log.Logger
 
-	reg    prometheus.Registerer
-	newWal walStorageFactory
+	reg          prometheus.Registerer
+	newWal       walStorageFactory
+	writeHandler http.Handler
 }
 
 // New creates a new Instance with a directory for storing the WAL. The instance
@@ -406,6 +408,8 @@ func (i *Instance) initialize(ctx context.Context, reg prometheus.Registerer, cf
 	if err != nil {
 		return fmt.Errorf("error creating WAL: %w", err)
 	}
+
+	i.writeHandler = remote.NewWriteHandler(i.logger, i.reg, i.wal)
 
 	i.discovery, err = i.newDiscoveryManager(ctx, cfg)
 	if err != nil {
@@ -580,6 +584,12 @@ func (i *Instance) TargetsActive() map[string][]*scrape.Target {
 // and samples to for the WAL.
 func (i *Instance) StorageDirectory() string {
 	return i.wal.Directory()
+}
+
+// WriteHandler returns an HTTP handler for pushing metrics directly into the
+// instance's WAL.
+func (i *Instance) WriteHandler() http.Handler {
+	return i.writeHandler
 }
 
 // Appender returns a storage.Appender from the instance's WAL

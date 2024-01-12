@@ -28,6 +28,9 @@ Main (unreleased)
 
 - Utilize the `instance` Argument of `prometheus.exporter.kafka` when set. (@akhmatov-s)
 
+- Fix a duplicate metrics registration panic when sending metrics to an static
+  mode metric instance's write handler. (@tpaschalis)
+
 ### Other changes
 
 - Removed support for Windows 2012 in line with Microsoft end of life. (@mattdurham)
