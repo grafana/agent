@@ -62,10 +62,6 @@ The `asprof` binary is executed as privileged user.
 If you change the `tmp_dir` configuration to something other than `/tmp`, then you must ensure that the
 directory is not writable by unprivileged users.
 {{% /admonition %}}
-
-{{% admonition type="note" %}}
-{{% /admonition %}}
-
 ## Blocks
 
 The following blocks are supported inside the definition of
