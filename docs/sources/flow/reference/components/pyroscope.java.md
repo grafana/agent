@@ -37,7 +37,7 @@ The following arguments are supported:
 |--------------|--------------------------|--------------------------------------------------|---------|----------|
 | `targets`    | `list(map(string))`      | List of java process targets to profile.         |         | yes      |
 | `forward_to` | `list(ProfilesReceiver)` | List of receivers to send collected profiles to. |         | yes      |
-| `tmp_dir`    | `string`                 | Temporary directory to store async-profiler      | `/tmp`  | no       |
+| `tmp_dir`    | `string`                 | Temporary directory to store async-profiler.      | `/tmp`  | no       |
 
 ## Profiling behavior
 
