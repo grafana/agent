@@ -87,9 +87,9 @@ The following arguments are supported:
 |---------------|------------|---------------------------------------------------------------------------------------------------------|---------|----------|
 | `interval`    | `duration` | How frequently to collect profiles from the targets.                                                    | "60s"   | no       |
 | `cpu`         | `bool`     | A flag to enable cpu profiling, using `itimer` async-profiler event.                                    | true    | no       |
-| `sample_rate` | `int`      | CPU profiling sample rate. It is converted from Hz to interval and passed as `-i` arg to async-profiler | 100     | no       |
-| `alloc`       | `string`   | Allocation profiling sampling configuration  It is passed as `--alloc` arg to async-profiler            | "512k"  | no       |
-| `lock`        | `string`   | Lock profiling sampling configuration. It is passed as `--lock` arg to async-profiler                   | "10ms"  | no       |
+| `sample_rate` | `int`      | CPU profiling sample rate. It is converted from Hz to interval and passed as `-i` arg to async-profiler. | 100     | no       |
+| `alloc`       | `string`   | Allocation profiling sampling configuration  It is passed as `--alloc` arg to async-profiler.            | "512k"  | no       |
+| `lock`        | `string`   | Lock profiling sampling configuration. It is passed as `--lock` arg to async-profiler.                   | "10ms"  | no       |
 
 For more information on async-profiler configuration, see [profiler-options](https://github.com/async-profiler/async-profiler?tab=readme-ov-file#profiler-options)
 
