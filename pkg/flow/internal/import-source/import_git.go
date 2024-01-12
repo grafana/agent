@@ -29,6 +29,8 @@ type ImportGit struct {
 	args            Arguments
 	onContentChange func(string)
 
+	lastContent string
+
 	argsChanged chan struct{}
 
 	healthMut sync.RWMutex
@@ -101,39 +103,47 @@ func (im *ImportGit) Run(ctx context.Context) error {
 
 		case <-im.argsChanged:
 			im.mut.Lock()
-			{
-				level.Info(im.log).Log("msg", "updating repository pull frequency", "new_frequency", im.args.PullFrequency)
-
-				if im.args.PullFrequency > 0 {
-					if ticker == nil {
-						ticker = time.NewTicker(im.args.PullFrequency)
-						tickerC = ticker.C
-					} else {
-						ticker.Reset(im.args.PullFrequency)
-					}
-				} else {
-					if ticker != nil {
-						ticker.Stop()
-					}
-					ticker = nil
-					tickerC = nil
-				}
-			}
+			pullFrequency := im.args.PullFrequency
 			im.mut.Unlock()
+			ticker, tickerC = im.updateTicker(pullFrequency, ticker, tickerC)
 
 		case <-tickerC:
-			level.Info(im.log).Log("msg", "updating repository", "new_frequency", im.args.PullFrequency)
+			level.Info(im.log).Log("msg", "updating repository")
 			im.tickPollFile(ctx)
 		}
 	}
 }
 
+func (im *ImportGit) updateTicker(pullFrequency time.Duration, ticker *time.Ticker, tickerC <-chan time.Time) (*time.Ticker, <-chan time.Time) {
+	level.Info(im.log).Log("msg", "updating repository pull frequency, next pull attempt will be done according to the pullFrequency", "new_frequency", pullFrequency)
+
+	if pullFrequency > 0 {
+		if ticker == nil {
+			ticker = time.NewTicker(pullFrequency)
+			tickerC = ticker.C
+		} else {
+			ticker.Reset(pullFrequency)
+		}
+		return ticker, tickerC
+	}
+
+	if ticker != nil {
+		ticker.Stop()
+	}
+	return nil, nil
+}
+
 func (im *ImportGit) tickPollFile(ctx context.Context) {
 	im.mut.Lock()
 	err := im.pollFile(ctx, im.args)
+	pullFrequency := im.args.PullFrequency
 	im.mut.Unlock()
 
 	im.updateHealth(err)
+
+	if err != nil {
+		level.Error(im.log).Log("msg", "failed to update repository", "pullFrequency", pullFrequency, "err", err)
+	}
 }
 
 func (im *ImportGit) updateHealth(err error) {
@@ -156,11 +166,13 @@ func (im *ImportGit) updateHealth(err error) {
 }
 
 // Update implements component.Component.
+// Only acknowledge the error from Update if it's not a
+// vcs.UpdateFailedError; vcs.UpdateFailedError means that the Git repo
+// exists, but we were unable to update it. It makes sense to retry on the next poll and it may succeed.
 func (im *ImportGit) Update(args component.Arguments) (err error) {
 	defer func() {
 		im.updateHealth(err)
 	}()
-
 	im.mut.Lock()
 	defer im.mut.Unlock()
 
@@ -194,7 +206,14 @@ func (im *ImportGit) Update(args component.Arguments) (err error) {
 	}
 
 	if err := im.pollFile(context.Background(), newArgs); err != nil {
-		return err
+		if errors.As(err, &vcs.UpdateFailedError{}) {
+			level.Error(im.log).Log("msg", "failed to poll file from repository", "err", err)
+			// We don't update the health here because it will be updated via the defer call.
+			// This is not very good because if we reassign the err before exiting the function it will not update the health correctly.
+			// TODO improve the error  health handling.
+		} else {
+			return err
+		}
 	}
 
 	// Schedule an update for handling the changed arguments.
@@ -220,7 +239,11 @@ func (im *ImportGit) pollFile(ctx context.Context, args Arguments) error {
 	if err != nil {
 		return err
 	}
-	im.onContentChange(string(bb))
+	content := string(bb)
+	if im.lastContent != content {
+		im.onContentChange(content)
+		im.lastContent = content
+	}
 	return nil
 }
 
