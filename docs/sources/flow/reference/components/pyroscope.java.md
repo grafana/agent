@@ -69,7 +69,7 @@ The following blocks are supported inside the definition of
 
 | Hierarchy        | Block                | Description                            | Required |
 |------------------|----------------------|----------------------------------------|----------|
-| profiling_config | [profiling_config][] | Describes java profiling configuration | no       |
+| profiling_config | [profiling_config][] | Describes java profiling configuration. | no       |
 
 [profiling_config]: #profiling_config-block
 
