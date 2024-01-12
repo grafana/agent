@@ -69,7 +69,7 @@ And the discovered processes are:
 ]
 ```
 
-The resulting targets will be:
+The resulting targets are:
 
 ```json
 [
