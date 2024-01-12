@@ -706,3 +706,80 @@ func TestImportModule(t *testing.T) {
 		})
 	}
 }
+
+func TestImportModuleError(t *testing.T) {
+	testCases := []struct {
+		name          string
+		module        string
+		otherModule   string
+		config        string
+		expectedError string
+	}{
+		{
+			name: "TestImportedModuleTriesAccessingDeclareOnRoot",
+			module: `
+                declare "test" {
+                    argument "input" {
+                        optional = false
+                    }
+
+                    cantAccessThis "default" {}
+
+                    testcomponents.passthrough "pt" {
+                        input = argument.input.value
+                        lag = "1ms"
+                    }
+
+                    export "output" {
+                        value = testcomponents.passthrough.pt.output
+                    }
+                }`,
+			config: `
+                declare "cantAccessThis" {
+                    export "output" {
+                        value = -1
+                    }
+                }
+                testcomponents.count "inc" {
+                    frequency = "10ms"
+                    max = 10
+                }
+
+                import.file "testImport" {
+                    filename = "module"
+                }
+
+                testImport.test "myModule" {
+                    input = testcomponents.count.inc.count
+                }
+
+                testcomponents.summation "sum" {
+                    input = testImport.test.myModule.output
+                }
+            `,
+			expectedError: `Unrecognized component name "cantAccessThis"`,
+		}, // TODO: add more tests
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			filename := "module"
+			require.NoError(t, os.WriteFile(filename, []byte(tc.module), 0664))
+			defer os.Remove(filename)
+
+			otherFilename := "other_module"
+			if tc.otherModule != "" {
+				require.NoError(t, os.WriteFile(otherFilename, []byte(tc.otherModule), 0664))
+				defer os.Remove(otherFilename)
+			}
+
+			ctrl := flow.New(testOptions(t))
+			f, err := flow.ParseSource(t.Name(), []byte(tc.config))
+			require.NoError(t, err)
+			require.NotNil(t, f)
+
+			err = ctrl.LoadSource(f, nil, nil)
+			require.ErrorContains(t, err, tc.expectedError)
+		})
+	}
+}
