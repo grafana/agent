@@ -54,7 +54,7 @@ async-profiler binaries for both glibc and musl into it with the following layou
 /tmp/grafana-agent-asprof-musl-{SHA1}/lib/libasyncProfiler.so
 ```
 
-Upon process profiling startup, the component detects libc type and copies according `libAsyncProfiler.so` into the
+After process profiling startup, the component detects libc type and copies according `libAsyncProfiler.so` into the
 target process file system at the exact same path.
 
 {{% admonition type="note" %}}
