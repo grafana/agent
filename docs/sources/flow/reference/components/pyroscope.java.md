@@ -44,7 +44,7 @@ The following arguments are supported:
 The special label `__process_pid__` _must always_ be present in each target of `targets` and corresponds to the `PID` of
 the process to profile.
 
-Upon component startup, `pyroscope.java` will create a temporary directory under `tmp_dir` and extract the
+After component startup, `pyroscope.java` creates a temporary directory under `tmp_dir` and extracts the
 async-profiler binaries for both glibc and musl into the directory with the following layout.
 
 ```
