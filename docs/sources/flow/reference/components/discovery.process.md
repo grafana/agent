@@ -111,12 +111,12 @@ The following arguments are supported:
 
 | Name           | Type   | Description                                                     | Default | Required |
 |----------------|--------|-----------------------------------------------------------------|---------|----------|
-| `exe`          | `bool` | A flag to enable discovering `__meta_process_exe` label         | true    | no       |
-| `cwd`          | `bool` | A flag to enable discovering `__meta_process_cwd` label         | true    | no       |
-| `commandline`  | `bool` | A flag to enable discovering `__meta_process_commandline` label | true    | no       |
-| `uid`          | `bool` | A flag to enable discovering `__meta_process_uid`: label        | true    | no       |
-| `username`     | `bool` | A flag to enable discovering `__meta_process_username`: label   | true    | no       |
-| `container_id` | `bool` | A flag to enable discovering `__container_id__` label           | true    | no       |
+| `exe`          | `bool` | A flag to enable discovering `__meta_process_exe` label.        | true    | no       |
+| `cwd`          | `bool` | A flag to enable discovering `__meta_process_cwd` label.         | true    | no       |
+| `commandline`  | `bool` | A flag to enable discovering `__meta_process_commandline` label. | true    | no       |
+| `uid`          | `bool` | A flag to enable discovering `__meta_process_uid`: label.        | true    | no       |
+| `username`     | `bool` | A flag to enable discovering `__meta_process_username`: label.  | true    | no       |
+| `container_id` | `bool` | A flag to enable discovering `__container_id__` label.           | true    | no       |
 
 ## Exported fields
 
