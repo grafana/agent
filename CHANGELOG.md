@@ -38,6 +38,8 @@ Main (unreleased)
 
 - Removed support for Windows 2012 in line with Microsoft end of life. (@mattdurham)
 
+- Split instance ID and component groupings into separate panels for `remote write active series by component` in the Flow mixin. (@tristanburgess)
+
 v0.39.0 (2024-01-09)
 --------------------
 

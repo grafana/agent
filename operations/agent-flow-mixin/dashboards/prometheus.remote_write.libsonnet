@@ -290,7 +290,7 @@ local stackedPanelMixin = {
           received a sample for. Active series are garbage collected whenever a
           truncation of the WAL occurs.
         |||) +
-        panel.withPosition({ x: 0, y: 20, w: 12, h: 10 }) +
+        panel.withPosition({ x: 0, y: 20, w: 8, h: 10 }) +
         panel.withQueries([
           panel.newQuery(
             expr=|||
@@ -301,25 +301,48 @@ local stackedPanelMixin = {
         ])
       ),
 
+      // Active series (by instance/component)
+      (
+        panel.new(title='Active series (by instance/component)', type='timeseries') +
+        panel.withUnit('short') +
+        panel.withDescription(|||
+          Total number of active series which are currently being tracked by
+          prometheus.remote_write components, with separate lines for each agent instance.
+
+          An "active series" is a series that prometheus.remote_write recently
+          received a sample for. Active series are garbage collected whenever a
+          truncation of the WAL occurs.
+        |||) +
+        panel.withPosition({ x: 8, y: 20, w: 8, h: 10 }) +
+        panel.withQueries([
+          panel.newQuery(
+            expr=|||
+              agent_wal_storage_active_series{cluster="$cluster", namespace="$namespace", instance=~"$instance", component_id!="", component_id=~"$component", url=~"$url"}
+            |||,
+            legendFormat='{{instance}} / {{component_id}}',
+          ),
+        ])
+      ),
+
       // Active series (by component)
       (
         panel.new(title='Active series (by component)', type='timeseries') +
         panel.withUnit('short') +
         panel.withDescription(|||
           Total number of active series which are currently being tracked by
-          prometheus.remote_write components.
+          prometheus.remote_write components, aggregated across all instances.
 
           An "active series" is a series that prometheus.remote_write recently
           received a sample for. Active series are garbage collected whenever a
           truncation of the WAL occurs.
         |||) +
-        panel.withPosition({ x: 12, y: 20, w: 12, h: 10 }) +
+        panel.withPosition({ x: 16, y: 20, w: 8, h: 10 }) +
         panel.withQueries([
           panel.newQuery(
             expr=|||
-              agent_wal_storage_active_series{cluster="$cluster", namespace="$namespace", instance=~"$instance", component_id=~"$component", url=~"$url"}
+              sum by (component_id) (agent_wal_storage_active_series{cluster="$cluster", namespace="$namespace", instance=~"$instance", component_id!="", component_id=~"$component", url=~"$url"})
             |||,
-            legendFormat='{{instance}} / {{component_id}}',
+            legendFormat='{{component_id}}',
           ),
         ])
       ),
