@@ -17,7 +17,7 @@ title: pyroscope.java
 using [async-profiler](https://github.com/async-profiler/async-profiler).
 
 {{% admonition type="note" %}}
-To use the  `pyroscope.java` component you must run {{< param "PRODUCT_NAME" >}} as root and inside host pid namespace.
+To use the  `pyroscope.java` component you must run {{< param "PRODUCT_NAME" >}} as root and inside host PID namespace.
 {{% /admonition %}}
 
 ## Usage
