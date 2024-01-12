@@ -21,6 +21,8 @@ Main (unreleased)
 
 - Add an option to the windows static mode installer for expanding environment vars in the yaml config. (@erikbaranowski)
 
+- Sort kubelet endpoint to reduce pressure on K8s's API server and watcher endpoints. (@hainenber)
+
 ### Bugfixes
 
 - Fix an issue in `remote.s3` where the exported content of an object would be an empty string if `remote.s3` failed to fully retrieve
