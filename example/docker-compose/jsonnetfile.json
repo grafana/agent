@@ -4,7 +4,7 @@
     {
       "source": {
         "local": {
-          "directory": "../../production/grafana-agent-mixin"
+          "directory": "../../operations/agent-static-mixin"
         }
       },
       "version": ""

@@ -19,6 +19,7 @@ type Arguments struct {
 	MSMQ          MSMQConfig          `river:"msmq,block,optional"`
 	MSSQL         MSSQLConfig         `river:"mssql,block,optional"`
 	Network       NetworkConfig       `river:"network,block,optional"`
+	PhysicalDisk  PhysicalDiskConfig  `river:"physical_disk,block,optional"`
 	Process       ProcessConfig       `river:"process,block,optional"`
 	ScheduledTask ScheduledTaskConfig `river:"scheduled_task,block,optional"`
 	Service       ServiceConfig       `river:"service,block,optional"`
@@ -38,6 +39,7 @@ func (a *Arguments) Convert() *windows_integration.Config {
 		MSSQL:             a.MSSQL.Convert(),
 		Network:           a.Network.Convert(),
 		Process:           a.Process.Convert(),
+		PhysicalDisk:      a.PhysicalDisk.Convert(),
 		ScheduledTask:     a.ScheduledTask.Convert(),
 		Service:           a.Service.Convert(),
 		SMTP:              a.SMTP.Convert(),
@@ -228,5 +230,19 @@ func (t LogicalDiskConfig) Convert() windows_integration.LogicalDiskConfig {
 		WhiteList: t.WhiteList,
 		Include:   t.Include,
 		Exclude:   t.Exclude,
+	}
+}
+
+// PhysicalDiskConfig handles settings for the windows_exporter physical disk collector
+type PhysicalDiskConfig struct {
+	Include string `river:"include,attr,optional"`
+	Exclude string `river:"exclude,attr,optional"`
+}
+
+// Convert converts the component's PhysicalDiskConfig to the integration's PhysicalDiskConfig.
+func (t PhysicalDiskConfig) Convert() windows_integration.PhysicalDiskConfig {
+	return windows_integration.PhysicalDiskConfig{
+		Include: t.Include,
+		Exclude: t.Exclude,
 	}
 }
