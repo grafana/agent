@@ -14,7 +14,7 @@ func getLocalModuleInfo(
 	declareNodes map[string]*DeclareNode,
 	moduleDependencies map[string][]ModuleReference,
 	parentModuleDependencies map[string]string,
-	fullName string,
+	componentName string,
 	declareLabel string,
 ) (ModuleInfo, error) {
 
@@ -23,7 +23,7 @@ func getLocalModuleInfo(
 	var err error
 
 	if node, exists := declareNodes[declareLabel]; exists {
-		moduleInfo.moduleDependencies, err = getLocalModuleDependencies(fullName, moduleDependencies, parentModuleDependencies)
+		moduleInfo.moduleDependencies, err = getLocalModuleDependencies(componentName, moduleDependencies, parentModuleDependencies)
 		if err != nil {
 			return moduleInfo, err
 		}
@@ -32,7 +32,7 @@ func getLocalModuleInfo(
 		if err != nil {
 			return moduleInfo, err
 		}
-	} else if c, ok := parentModuleDependencies[fullName]; ok {
+	} else if c, ok := parentModuleDependencies[componentName]; ok {
 		content = c
 		moduleInfo.moduleDependencies = parentModuleDependencies
 	} else {
@@ -42,33 +42,35 @@ func getLocalModuleInfo(
 	return moduleInfo, nil
 }
 
-// getLocalModuleDependencies provides the dependencies needed for nested local modules.
-func getLocalModuleDependencies(fullName string,
+func getLocalModuleDependencies(componentName string,
 	localModuleDependencies map[string][]ModuleReference,
 	parentModuleDependencies map[string]string,
 ) (map[string]string, error) {
 
-	var dependency string
 	var err error
 	moduleDependencies := make(map[string]string)
-	for _, moduleDependency := range localModuleDependencies[fullName] {
+	for _, moduleDependency := range localModuleDependencies[componentName] {
 		if moduleDependency.moduleContentProvider != nil {
-			dependency, err = moduleDependency.moduleContentProvider.ModuleContent(moduleDependency.scopedName)
+
 			switch n := moduleDependency.moduleContentProvider.(type) {
 			case *ImportConfigNode:
-				moduleDependencies = getImportedModuleDependencies(n, moduleDependency.scopedName)
-			}
-			if err != nil {
-				return moduleDependencies, err
+				for importModulePath, importModuleContent := range n.importedDeclares {
+					moduleDependencies[n.label+"."+importModulePath] = importModuleContent
+				}
+			case *DeclareNode:
+				moduleDependencies[moduleDependency.declareLabel], err = n.ModuleContent(moduleDependency.declareLabel)
+				if err != nil {
+					return moduleDependencies, nil
+				}
 			}
 		} else {
-			if c, ok := parentModuleDependencies[moduleDependency.fullName]; ok {
-				dependency = c
+			// Nested declares have access to their parents module definitions.
+			if c, ok := parentModuleDependencies[moduleDependency.componentName]; ok {
+				moduleDependencies[moduleDependency.componentName] = c
 			} else {
 				return moduleDependencies, fmt.Errorf("could not find the dependency in parentModuleDependencies")
 			}
 		}
-		moduleDependencies[moduleDependency.fullName] = dependency
 	}
 	return moduleDependencies, nil
 }
@@ -76,24 +78,23 @@ func getLocalModuleDependencies(fullName string,
 func getImportedModuleInfo(
 	importNodes map[string]*ImportConfigNode,
 	parentModuleDependencies map[string]string,
-	fullName string,
-	scopedName string,
-	namespace string,
+	componentName string,
+	declareLabel string,
+	importLabel string,
 ) (ModuleInfo, error) {
 
 	var moduleInfo ModuleInfo
 	var content string
 	var err error
-	if node, exists := importNodes[namespace]; exists {
-		moduleInfo.moduleDependencies = getImportedModuleDependencies(node, scopedName)
-		declareLabel := strings.Split(scopedName, ".")[0]
+	if node, exists := importNodes[importLabel]; exists {
+		moduleInfo.moduleDependencies = node.importedDeclares
 		content, err = node.ModuleContent(declareLabel)
 		if err != nil {
 			return moduleInfo, err
 		}
-	} else if c, ok := parentModuleDependencies[fullName]; ok {
+	} else if c, ok := parentModuleDependencies[componentName]; ok {
 		content = c
-		moduleInfo.moduleDependencies = parentModuleDependencies
+		moduleInfo.moduleDependencies = filterParentModuleDependencies(importLabel, parentModuleDependencies)
 	} else {
 		return moduleInfo, fmt.Errorf("could not find the module declaration in importNodes")
 	}
@@ -101,20 +102,12 @@ func getImportedModuleInfo(
 	return moduleInfo, nil
 }
 
-// getImportedModuleDependencies provides the dependencies needed for nested imported modules.
-func getImportedModuleDependencies(node *ImportConfigNode, scopedName string) map[string]string {
-	moduleDependencies := make(map[string]string)
-	lastIndex := strings.LastIndex(scopedName, ".")
-	if lastIndex != -1 {
-		scope := scopedName[:lastIndex]
-		for importedMod, importedModContent := range node.importedContent {
-			if importedMod != scopedName && strings.HasPrefix(importedMod, scope) {
-				moduleDependencies[strings.TrimPrefix(importedMod, scope+".")] = importedModContent
-			}
+func filterParentModuleDependencies(importLabel string, parentModuleDependencies map[string]string) map[string]string {
+	filteredParentDependencies := make(map[string]string)
+	for importPath, content := range parentModuleDependencies {
+		if strings.HasPrefix(importPath, importLabel) {
+			filteredParentDependencies[strings.TrimPrefix(importPath, importLabel+".")] = content
 		}
-	} else {
-		// In this case the declare is only at depth 1 which corresponds to the importedContent, so we can just pass everything.
-		moduleDependencies = node.importedContent
 	}
-	return moduleDependencies
+	return filteredParentDependencies
 }

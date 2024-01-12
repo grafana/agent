@@ -8,9 +8,9 @@ import (
 )
 
 type ModuleReference struct {
-	fullName              string // declareLabel / import1.declareLabel / import1.import2.declareLabel
-	namespace             string // ""           / import1             / import1
-	scopedName            string // declareLabel / declareLabel       / import2.declareLabel
+	componentName         string
+	importLabel           string
+	declareLabel          string
 	moduleContentProvider ModuleContentProvider
 }
 
@@ -51,8 +51,8 @@ func getModuleReferences(
 	for _, stmt := range node.Body {
 		switch stmt := stmt.(type) {
 		case *ast.BlockStmt:
-			fullName := strings.Join(stmt.Name, ".")
-			switch fullName {
+			componentName := strings.Join(stmt.Name, ".")
+			switch componentName {
 			case "declare":
 				declareContent := string(content[stmt.LCurlyPos.Position().Offset+1 : stmt.RCurlyPos.Position().Offset-1])
 				err = getModuleReferences(declareContent, importNodes, declareNodes, uniqueReferences, parentModuleDependencies)
@@ -60,19 +60,13 @@ func getModuleReferences(
 					return err
 				}
 			default:
-				parts := strings.Split(fullName, ".")
-				firstPart := parts[0]
-				var scopedName string
-				if len(parts) > 1 {
-					scopedName = strings.Join(parts[1:], ".")
-				}
-
-				if declareNode, ok := declareNodes[firstPart]; ok {
-					uniqueReferences[fullName] = ModuleReference{fullName: fullName, namespace: "", scopedName: firstPart, moduleContentProvider: declareNode}
-				} else if importNode, ok := importNodes[firstPart]; ok {
-					uniqueReferences[fullName] = ModuleReference{fullName: fullName, namespace: firstPart, scopedName: scopedName, moduleContentProvider: importNode}
-				} else if _, ok := parentModuleDependencies[fullName]; ok {
-					uniqueReferences[fullName] = ModuleReference{fullName: fullName, namespace: firstPart, scopedName: scopedName, moduleContentProvider: nil}
+				potentialImportLabel, potentialDeclareLabel := ExtractImportAndDeclareLabels(componentName)
+				if declareNode, ok := declareNodes[potentialDeclareLabel]; ok {
+					uniqueReferences[componentName] = ModuleReference{componentName: componentName, importLabel: "", declareLabel: potentialDeclareLabel, moduleContentProvider: declareNode}
+				} else if importNode, ok := importNodes[potentialImportLabel]; ok {
+					uniqueReferences[componentName] = ModuleReference{componentName: componentName, importLabel: potentialImportLabel, declareLabel: potentialDeclareLabel, moduleContentProvider: importNode}
+				} else if _, ok := parentModuleDependencies[componentName]; ok {
+					uniqueReferences[componentName] = ModuleReference{componentName: componentName, importLabel: potentialImportLabel, declareLabel: potentialDeclareLabel, moduleContentProvider: nil}
 				}
 			}
 		}

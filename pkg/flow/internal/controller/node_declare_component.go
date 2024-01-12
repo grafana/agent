@@ -30,15 +30,15 @@ type DeclareComponentNode struct {
 	globalID          string
 	label             string
 	componentName     string
-	namespace         string
-	scopedName        string
+	importLabel       string
+	declareLabel      string
 	nodeID            string // Cached from id.String() to avoid allocating new strings every time NodeID is called.
 	managedOpts       component.Options
 	registry          *prometheus.Registry
 	moduleController  ModuleController
 	OnComponentUpdate func(cn NodeWithDependants) // Informs controller that we need to reevaluate
 
-	GetModuleInfo  func(fullName string, namespace string, scopedName string) (ModuleInfo, error) // Retrieve the module config.
+	GetModuleInfo  func(fullName string, importLabel string, declareLabel string) (ModuleInfo, error) // Retrieve the module config.
 	lastUpdateTime atomic.Time
 
 	mut     sync.RWMutex
@@ -57,6 +57,22 @@ type DeclareComponentNode struct {
 
 	exportsMut sync.RWMutex
 	exports    component.Exports // Evaluated exports for the managed module
+}
+
+func ExtractImportAndDeclareLabels(componentName string) (string, string) {
+	parts := strings.Split(componentName, ".")
+	if len(parts) == 0 {
+		return "", ""
+	}
+	// If this is a local declare.
+	importLabel := ""
+	declareLabel := parts[0]
+	// If this is an imported module.
+	if len(parts) > 1 {
+		importLabel = parts[0]
+		declareLabel = parts[1]
+	}
+	return importLabel, declareLabel
 }
 
 var _ NodeWithDependants = (*DeclareComponentNode)(nil)
@@ -86,25 +102,18 @@ func NewDeclareComponentNode(globals ComponentGlobals, b *ast.BlockStmt, GetModu
 		globalID = path.Join(globals.ControllerID, nodeID)
 	}
 
-	// In case of a declare, we have "declare myModule {}".
-	// => The corresponding component should be "myModule label {}". (no namespace, module: myModule)
-	namespace := ""
-	scopedName := strings.Join(b.Name, ".")
-	// In case of an import, we have "import myImport{}" which imports "declare myModule{}".
-	// => The corresponding component should be "myImport.myModule label {}". (namespace: myImport, module: myModule)
-	if len(b.Name) > 1 {
-		namespace = b.Name[0]
-		scopedName = strings.Join(b.Name[1:], ".")
-	}
+	componentName := b.GetBlockName()
+
+	importLabel, declareLabel := ExtractImportAndDeclareLabels(componentName)
 
 	cn := &DeclareComponentNode{
 		id:                id,
 		globalID:          globalID,
 		label:             b.Label,
 		nodeID:            nodeID,
-		componentName:     b.GetBlockName(),
-		namespace:         namespace,
-		scopedName:        scopedName,
+		componentName:     componentName,
+		importLabel:       importLabel,
+		declareLabel:      declareLabel,
 		moduleController:  globals.NewModuleController(globalID),
 		OnComponentUpdate: globals.OnComponentUpdate,
 		GetModuleInfo:     GetModuleInfo,
@@ -206,7 +215,7 @@ func (cn *DeclareComponentNode) evaluate(scope *vm.Scope) error {
 		cn.managed = managed
 	}
 
-	moduleInfo, err := cn.GetModuleInfo(cn.componentName, cn.namespace, cn.scopedName)
+	moduleInfo, err := cn.GetModuleInfo(cn.componentName, cn.importLabel, cn.declareLabel)
 	if err != nil {
 		return fmt.Errorf("retrieving module info: %w", err)
 	}

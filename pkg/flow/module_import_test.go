@@ -482,6 +482,178 @@ func TestImportModule(t *testing.T) {
 			},
 			updateFile: "module",
 		},
+		{
+			name: "TestImportModuleWithMoreNesting",
+			module: `
+                import.file "importOtherTest" {
+                    filename = "other_module"
+                }
+                declare "test" {
+                    argument "input" {
+                        optional = false
+                    }
+
+                    importOtherTest.other_test "default" {
+                        input = argument.input.value
+                    }
+
+                    export "output" {
+                        value = importOtherTest.other_test.default.output
+                    }
+                }
+            `,
+			otherModule: `
+            declare "other_test" {
+                argument "input" {
+                    optional = false
+                }
+
+                testcomponents.passthrough "pt" {
+                    input = argument.input.value
+                    lag = "1ms"
+                }
+
+                export "output" {
+                    value = testcomponents.passthrough.pt.output
+                }
+            }`,
+			config: `
+                testcomponents.count "inc" {
+                    frequency = "10ms"
+                    max = 10
+                }
+
+                import.file "testImport" {
+                    filename = "module"
+                }
+
+                declare "anotherModule" {
+                    testcomponents.count "inc" {
+                        frequency = "10ms"
+                        max = 10
+                    }
+
+                    testImport.test "myModule" {
+                        input = testcomponents.count.inc.count
+                    }
+
+                    export "output" {
+                        value = testImport.test.myModule.output
+                    }
+                }
+
+                anotherModule "myOtherModule" {}
+
+                testcomponents.summation "sum" {
+                    input = anotherModule.myOtherModule.output
+                }
+            `,
+			updateModule: func(filename string) string {
+				return `
+                declare "other_test" {
+                    argument "input" {
+                        optional = false
+                    }
+                    export "output" {
+                        value = -10
+                    }
+                }
+                `
+			},
+			updateFile: "other_module",
+		},
+		{
+			name: "TestImportModuleWithMoreNestingAndMoreNesting",
+			module: `
+                import.file "importOtherTest" {
+                    filename = "other_module"
+                }
+                declare "test" {
+                    argument "input" {
+                        optional = false
+                    }
+
+                    declare "anotherOne" {
+                        argument "input" {
+                            optional = false
+                        }
+                        importOtherTest.other_test "default" {
+                            input = argument.input.value
+                        }
+                        export "output" {
+                            value = importOtherTest.other_test.default.output
+                        }
+                    }
+
+                    anotherOne "default" {
+                        input = argument.input.value
+                    }
+
+                    export "output" {
+                        value = anotherOne.default.output
+                    }
+                }
+            `,
+			otherModule: `
+            declare "other_test" {
+                argument "input" {
+                    optional = false
+                }
+
+                testcomponents.passthrough "pt" {
+                    input = argument.input.value
+                    lag = "1ms"
+                }
+
+                export "output" {
+                    value = testcomponents.passthrough.pt.output
+                }
+            }`,
+			config: `
+                testcomponents.count "inc" {
+                    frequency = "10ms"
+                    max = 10
+                }
+
+                import.file "testImport" {
+                    filename = "module"
+                }
+
+                declare "anotherModule" {
+                    testcomponents.count "inc" {
+                        frequency = "10ms"
+                        max = 10
+                    }
+
+                    testImport.test "myModule" {
+                        input = testcomponents.count.inc.count
+                    }
+
+                    export "output" {
+                        value = testImport.test.myModule.output
+                    }
+                }
+
+                anotherModule "myOtherModule" {}
+
+                testcomponents.summation "sum" {
+                    input = anotherModule.myOtherModule.output
+                }
+            `,
+			updateModule: func(filename string) string {
+				return `
+                declare "other_test" {
+                    argument "input" {
+                        optional = false
+                    }
+                    export "output" {
+                        value = -10
+                    }
+                }
+                `
+			},
+			updateFile: "other_module",
+		},
 	}
 
 	for _, tc := range testCases {

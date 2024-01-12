@@ -30,7 +30,7 @@ type ImportConfigNode struct {
 	globals                   ComponentGlobals // Need a copy of the globals to create other import nodes.
 	source                    importsource.ImportSource
 	registry                  *prometheus.Registry
-	importedContent           map[string]string
+	importedDeclares          map[string]string
 	importConfigNodesChildren map[string]*ImportConfigNode
 	OnComponentUpdate         func(cn NodeWithDependants) // Informs controller that we need to reevaluate
 	logger                    log.Logger
@@ -75,7 +75,7 @@ func NewImportConfigNode(block *ast.BlockStmt, globals ComponentGlobals, sourceT
 		globals:           globals,
 		nodeID:            BlockComponentID(block).String(),
 		componentName:     block.GetBlockName(),
-		importedContent:   make(map[string]string),
+		importedDeclares:  make(map[string]string),
 		OnComponentUpdate: globals.OnComponentUpdate,
 		block:             block,
 		evalHealth:        initHealth,
@@ -163,11 +163,11 @@ func (cn *ImportConfigNode) processNodeBody(node *ast.File, content string) {
 
 // processDeclareBlock processes a declare block.
 func (cn *ImportConfigNode) processDeclareBlock(stmt *ast.BlockStmt, content string) {
-	if _, ok := cn.importedContent[stmt.Label]; ok {
+	if _, ok := cn.importedDeclares[stmt.Label]; ok {
 		level.Error(cn.logger).Log("msg", "declare block redefined", "name", stmt.Label)
 		return
 	}
-	cn.importedContent[stmt.Label] = content[stmt.LCurlyPos.Position().Offset+1 : stmt.RCurlyPos.Position().Offset-1]
+	cn.importedDeclares[stmt.Label] = content[stmt.LCurlyPos.Position().Offset+1 : stmt.RCurlyPos.Position().Offset-1]
 }
 
 // processDeclareBlock processes an import block.
@@ -187,8 +187,8 @@ func (cn *ImportConfigNode) onContentUpdate(content string) {
 	cn.importedContentMut.Lock()
 	defer cn.importedContentMut.Unlock()
 	cn.inContentUpdate = true
-	cn.importedContent = make(map[string]string)
-	// TODO: We recreate the nodes when the content changes. Can we copy instead for optimization?
+	cn.importedDeclares = make(map[string]string)
+	// We recreate the nodes when the content changes. Can we copy instead for optimization?
 	cn.importConfigNodesChildren = make(map[string]*ImportConfigNode)
 	node, err := parser.ParseFile(cn.label, []byte(content))
 	if err != nil {
@@ -240,9 +240,9 @@ func (cn *ImportConfigNode) runChildren(ctx context.Context) error {
 func (cn *ImportConfigNode) OnChildrenContentUpdate(child NodeWithDependants) {
 	switch child := child.(type) {
 	case *ImportConfigNode:
-		for importedDeclareLabel, content := range child.importedContent {
+		for importedDeclareLabel, content := range child.importedDeclares {
 			label := child.label + "." + importedDeclareLabel
-			cn.importedContent[label] = content
+			cn.importedDeclares[label] = content
 		}
 	}
 	// This avoids to OnComponentUpdate to be called multiple times in a row when the content changes.
@@ -254,7 +254,7 @@ func (cn *ImportConfigNode) OnChildrenContentUpdate(child NodeWithDependants) {
 func (cn *ImportConfigNode) ModuleContent(declareLabel string) (string, error) {
 	cn.importedContentMut.Lock()
 	defer cn.importedContentMut.Unlock()
-	if content, ok := cn.importedContent[declareLabel]; ok {
+	if content, ok := cn.importedDeclares[declareLabel]; ok {
 		return content, nil
 	}
 	return "", fmt.Errorf("declareLabel %s not found in imported node %s", declareLabel, cn.label)

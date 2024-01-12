@@ -841,12 +841,11 @@ func (l *Loader) postEvaluate(logger log.Logger, bn BlockNode, err error) error 
 	return nil
 }
 
-func (l *Loader) getModuleInfo(fullName string, namespace string, scopedName string) (ModuleInfo, error) {
-	// If there is no namespace, the declare node component is an instance of a local declare.
-	if namespace == "" {
-		return getLocalModuleInfo(l.declareNodes, l.moduleDependencies, l.parentModuleDependencies, fullName, scopedName)
+func (l *Loader) getModuleInfo(componentName string, importLabel string, declareLabel string) (ModuleInfo, error) {
+	if importLabel == "" {
+		return getLocalModuleInfo(l.declareNodes, l.moduleDependencies, l.parentModuleDependencies, componentName, declareLabel)
 	}
-	return getImportedModuleInfo(l.importNodes, l.parentModuleDependencies, fullName, scopedName, namespace)
+	return getImportedModuleInfo(l.importNodes, l.parentModuleDependencies, componentName, declareLabel, importLabel)
 }
 
 func multierrToDiags(errors error) diag.Diagnostics {
