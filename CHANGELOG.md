@@ -20,6 +20,7 @@ Main (unreleased)
 ### Enhancements
 
 - Add an option to the windows static mode installer for expanding environment vars in the yaml config. (@erikbaranowski)
+- Add authentication support to `loki.source.awsfirehose` (@sberz)
 
 - Sort kubelet endpoint to reduce pressure on K8s's API server and watcher endpoints. (@hainenber)
 
@@ -36,6 +37,8 @@ Main (unreleased)
 ### Other changes
 
 - Removed support for Windows 2012 in line with Microsoft end of life. (@mattdurham)
+
+- Split instance ID and component groupings into separate panels for `remote write active series by component` in the Flow mixin. (@tristanburgess)
 
 v0.39.0 (2024-01-09)
 --------------------
