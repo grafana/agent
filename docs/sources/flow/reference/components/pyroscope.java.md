@@ -45,7 +45,7 @@ The special label `__process_pid__` _must always_ be present in each target of `
 the process to profile.
 
 Upon component startup, `pyroscope.java` will create a temporary directory under `tmp_dir` and extract the
-async-profiler binaries for both glibc and musl into it with the following layout.
+async-profiler binaries for both glibc and musl into the directory with the following layout.
 
 ```
 /tmp/grafana-agent-asprof-glibc-{SHA1}/bin/asprof
