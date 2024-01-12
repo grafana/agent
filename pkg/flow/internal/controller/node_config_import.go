@@ -187,6 +187,9 @@ func (cn *ImportConfigNode) onContentUpdate(content string) {
 	cn.importedContentMut.Lock()
 	defer cn.importedContentMut.Unlock()
 	cn.inContentUpdate = true
+	defer func() {
+		cn.inContentUpdate = false
+	}()
 	cn.importedDeclares = make(map[string]string)
 	// We recreate the nodes when the content changes. Can we copy instead for optimization?
 	cn.importConfigNodesChildren = make(map[string]*ImportConfigNode)
@@ -196,20 +199,27 @@ func (cn *ImportConfigNode) onContentUpdate(content string) {
 		return
 	}
 	cn.processNodeBody(node, content)
-	cn.evaluateChildren()
+	err = cn.evaluateChildren()
+	if err != nil {
+		level.Error(cn.logger).Log("msg", "failed to update content", "err", err)
+		return
+	}
 	cn.lastUpdateTime.Store(time.Now())
 	cn.OnComponentUpdate(cn)
-	cn.inContentUpdate = false
 }
 
 // evaluateChildren evaluates the import nodes managed by this import node.
-func (cn *ImportConfigNode) evaluateChildren() {
+func (cn *ImportConfigNode) evaluateChildren() error {
 	for _, child := range cn.importConfigNodesChildren {
-		child.Evaluate(&vm.Scope{
+		err := child.Evaluate(&vm.Scope{
 			Parent:    nil,
 			Variables: make(map[string]interface{}),
 		})
+		if err != nil {
+			return fmt.Errorf("imported node %s failed to evaluate, %v", child.label, err)
+		}
 	}
+	return nil
 }
 
 // runChildren run the import nodes managed by this import node.

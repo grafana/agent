@@ -14,6 +14,22 @@ import (
 )
 
 func TestImportModule(t *testing.T) {
+	const defaultModuleUpdate = `
+    declare "test" {
+        argument "input" {
+            optional = false
+        }
+
+        testcomponents.passthrough "pt" {
+            input = argument.input.value
+            lag = "1ms"
+        }
+
+        export "output" {
+            value = -10
+        }
+    }
+`
 	testCases := []struct {
 		name         string
 		module       string
@@ -58,22 +74,7 @@ func TestImportModule(t *testing.T) {
                 }
             `,
 			updateModule: func(filename string) string {
-				return `
-                    declare "test" {
-                        argument "input" {
-                            optional = false
-                        }
-
-                        testcomponents.passthrough "pt" {
-                            input = argument.input.value
-                            lag = "1ms"
-                        }
-
-                        export "output" {
-                            value = -10
-                        }
-                    }
-                `
+				return defaultModuleUpdate
 			},
 			updateFile: "module",
 		},
@@ -168,22 +169,7 @@ func TestImportModule(t *testing.T) {
                 }
             `,
 			updateModule: func(filename string) string {
-				return `
-                    declare "test" {
-                        argument "input" {
-                            optional = false
-                        }
-
-                        testcomponents.passthrough "pt" {
-                            input = argument.input.value
-                            lag = "1ms"
-                        }
-
-                        export "output" {
-                            value = -10
-                        }
-                    }
-                `
+				return defaultModuleUpdate
 			},
 			updateFile: "module",
 		},
@@ -244,22 +230,7 @@ func TestImportModule(t *testing.T) {
                 }
             `,
 			updateModule: func(filename string) string {
-				return `
-                    declare "test" {
-                        argument "input" {
-                            optional = false
-                        }
-
-                        testcomponents.passthrough "pt" {
-                            input = argument.input.value
-                            lag = "1ms"
-                        }
-
-                        export "output" {
-                            value = -10
-                        }
-                    }
-                `
+				return defaultModuleUpdate
 			},
 			updateFile: "module",
 		},
@@ -312,22 +283,7 @@ func TestImportModule(t *testing.T) {
                 }
             `,
 			updateModule: func(filename string) string {
-				return `
-                    declare "test" {
-                        argument "input" {
-                            optional = false
-                        }
-
-                        testcomponents.passthrough "pt" {
-                            input = argument.input.value
-                            lag = "1ms"
-                        }
-
-                        export "output" {
-                            value = -10
-                        }
-                    }
-                `
+				return defaultModuleUpdate
 			},
 			updateFile: "other_module",
 		},

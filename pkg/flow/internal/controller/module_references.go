@@ -22,6 +22,7 @@ func GetModuleReferences(
 	declareNodes map[string]*DeclareNode,
 	parentModuleDefinitions map[string]string,
 ) ([]ModuleReference, error) {
+
 	uniqueReferences := make(map[string]ModuleReference)
 	err := getModuleReferences(content, importNodes, declareNodes, uniqueReferences, parentModuleDefinitions)
 	if err != nil {
@@ -55,7 +56,7 @@ func getModuleReferences(
 			componentName := strings.Join(stmt.Name, ".")
 			switch componentName {
 			case "declare":
-				declareContent := string(content[stmt.LCurlyPos.Position().Offset+1 : stmt.RCurlyPos.Position().Offset-1])
+				declareContent := content[stmt.LCurlyPos.Position().Offset+1 : stmt.RCurlyPos.Position().Offset-1]
 				err = getModuleReferences(declareContent, importNodes, declareNodes, uniqueReferences, parentModuleDefinitions)
 				if err != nil {
 					return err
