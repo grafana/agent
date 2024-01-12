@@ -9,7 +9,7 @@ title: Grafana Agent
 description: Grafana Agent is a flexible, performant, vendor-neutral, telemetry collector
 weight: 350
 cascade:
-  AGENT_RELEASE: v0.39.0-rc.0
+  AGENT_RELEASE: v0.39.0
   OTEL_VERSION: v0.87.0
 ---
 
@@ -77,7 +77,7 @@ Grafana Agent can collect, transform, and send data to:
 
 * Windows
 
-  * Minimum version: Windows Server 2012 or later, or Windows 10 or later.
+  * Minimum version: Windows Server 2016 or later, or Windows 10 or later.
   * Architectures: AMD64
 
 * macOS

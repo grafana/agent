@@ -5,7 +5,7 @@ aliases:
 # Previous page aliases for backwards compatibility:
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/getting-started/migrating-from-operator/
 - /docs/grafana-cloud/send-data/agent/flow/getting-started/migrating-from-operator/
-- ../getting-started/migrating-from-operator/ # /docs/agent/latest/flow/getting-started/migrating-from-operator/
+- ../../getting-started/migrating-from-operator/ # /docs/agent/latest/flow/getting-started/migrating-from-operator/
 canonical: https://grafana.com/docs/agent/latest/flow/tasks/migrate/from-operator/
 description: Migrate from Grafana Agent Operator to Grafana Agent Flow
 menuTitle: Migrate from Operator
@@ -283,12 +283,12 @@ The [reference documentation][component documentation] should help convert those
 {{% docs/reference %}}
 [clustering]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/clustering"
 [clustering]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/concepts/clustering"
-[deployment guide]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/deploy-agent"
-[deployment guide]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/flow/setup/deploy-agent"
+[deployment guide]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/get-started/deploy-agent"
+[deployment guide]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/flow/get-started/deploy-agent"
 [operator guide]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/operator/deploy-agent-operator-resources.md#deploy-a-metricsinstance-resource"
 [operator guide]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/operator/deploy-agent-operator-resources.md#deploy-a-metricsinstance-resource"
-[Helm chart]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/install/kubernetes"
-[Helm chart]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/flow/setup/install/kubernetes"
+[Helm chart]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/get-started/install/kubernetes"
+[Helm chart]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/flow/get-started/install/kubernetes"
 [remote.kubernetes.secret]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/remote.kubernetes.secret.md"
 [remote.kubernetes.secret]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/flow/reference/components/remote.kubernetes.secret.md"
 [prometheus.remote_write]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/prometheus.remote_write.md"
