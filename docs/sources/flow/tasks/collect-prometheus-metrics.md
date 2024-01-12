@@ -424,7 +424,7 @@ prometheus.scrape "custom_targets" {
 }
 
 prometheus.remote_write "default" {
-  endpoint { 
+  endpoint {
     url = "http://localhost:9090/api/prom/push"
   }
 }
