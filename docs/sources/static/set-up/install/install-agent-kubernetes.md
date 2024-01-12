@@ -11,40 +11,53 @@ weight: 300
 
 # Deploy Grafana Agent in static mode on Kubernetes
 
-You can deploy Grafana Agent in static mode on Kubernetes.
+You can use the Helm chart for Grafana Agent to deploy Grafana Agent in static mode on Kubernetes.
+
+## Before you begin
+
+* Install [Helm][] on your computer.
+* Configure a Kubernetes cluster that you can use for Grafana Agent.
+* Configure your local Kubernetes context to point to the cluster.
+
+[Helm]: https://helm.sh
 
 ## Deploy
 
-To deploy Grafana Agent in static mode on Kubernetes, perform the following steps.
-
-1. Download one of the following manifests from GitHub and save it as `manifest.yaml`:
-
-   - Metric collection (StatefulSet): [agent-bare.yaml](https://github.com/grafana/agent/blob/main/production/kubernetes/agent-bare.yaml)
-   - Log collection (DaemonSet): [agent-loki.yaml](https://github.com/grafana/agent/blob/main/production/kubernetes/agent-loki.yaml)
-   - Trace collection (Deployment): [agent-traces.yaml](https://github.com/grafana/agent/blob/main/production/kubernetes/agent-traces.yaml)
-
-1. Edit the downloaded `manifest.yaml` and replace the placeholders with information relevant to your Kubernetes deployment.
-
-1. Apply the modified manifest file:
-
-   ```shell
-   kubectl -n default apply -f manifest.yaml
-   ```
-
 {{% admonition type="note" %}}
-The manifests do not include the `ConfigMaps` which are necessary to run Grafana Agent.
+These instructions show you how to install the generic [Helm chart](https://github.com/grafana/agent/tree/main/operations/helm/charts/grafana-agent) for Grafana Agent.
+You can deploy Grafana Agent in static mode or flow mode. The Helm chart deploys flow mode by default.
 {{% /admonition %}}
 
-For sample configuration files and detailed instructions, refer to [Configure Kubernetes Monitoring](/docs/grafana-cloud/monitor-infrastructure/kubernetes-monitoring/configuration/) in the Grafana Cloud documentation.
+To deploy Grafana Agent in static mode on Kubernetes using Helm, run the following commands in a terminal window:
 
+1. Add the Grafana Helm chart repository:
 
-## Rebuild the Kubernetes manifests
+   ```shell
+   helm repo add grafana https://grafana.github.io/helm-charts
+   ```
 
-The manifests provided are created using Grafana Labs' production Tanka configs with some default values. If you want to build the YAML file with some custom values, you must install the following applications:
+1. Update the Grafana Helm chart repository:
 
-- [Tanka](https://github.com/grafana/tanka) version 0.8 or higher
-- [jsonnet-bundler](https://github.com/jsonnet-bundler/jsonnet-bundler) version 0.2.1 or higher
+   ```shell
+   helm repo update
+   ```
 
-Refer to the [`template` Tanka environment](https://github.com/grafana/agent/blob/main/production/kubernetes/build/templates) for the current settings that initialize the Grafana Agent Tanka configurations.
+1. Install Grafana Agent in static mode:
 
-To build the YAML files, run the `/build/build.sh` script, or run `make example-kubernetes` from the project's root directory.
+   ```shell
+   helm install <RELEASE_NAME> grafana/grafana-agent --set agent.mode=static
+   ```
+
+   Replace the following:
+
+   -  _`<RELEASE_NAME>`_: The name to use for your Grafana Agent installation, such as `grafana-agent`.
+
+   {{% admonition type="warning" %}}
+   Always pass `--set agent.mode=static` in `helm install` or `helm upgrade` commands to ensure Grafana Agent gets installed in static mode.
+   Alternatively, set `agent.mode` to `static` in your values.yaml file.
+   {{% /admonition %}}
+
+For more information on the Grafana Agent Helm chart, refer to the Helm chart documentation on [Artifact Hub][].
+
+[Artifact Hub]: https://artifacthub.io/packages/helm/grafana/grafana-agent
+
