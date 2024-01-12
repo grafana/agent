@@ -38,7 +38,7 @@ The following arguments are supported:
 
 ### Targets joining
 
-If `join` is specified, `discovery.process` will join the discovered processes based on the `__container_id__` label
+If `join` is specified, `discovery.process` will join the discovered processes based on the `__container_id__` label.
 
 For example, if `join` is specified as follows:
 
