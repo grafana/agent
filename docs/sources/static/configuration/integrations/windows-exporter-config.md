@@ -114,6 +114,16 @@ Full reference of options:
     # Maps to collector.service.services-where in windows_exporter
     [where_clause: <string> | default=""]
 
+  # Configuration for physical disk on Windows 
+  physical_disk:
+    # Regexp of volumes to include. Disk name must both match include and not match exclude to be included.
+    # Maps to collector.logical_disk.disk-include in windows_exporter.
+    [include: <string> | default=".+"]
+
+    # Regexp of volumes to exclude. Disk name must both match include and not match exclude to be included.
+    # Maps to collector.logical_disk.disk-exclude in windows_exporter.
+    [exclude: <string> | default=".+"]
+
   # Configuration for Windows Processes
   process:
     # Regexp of processes to include. Process name must both match whitelist and not match blacklist to be included.

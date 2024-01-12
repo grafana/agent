@@ -67,8 +67,8 @@ To configure clustering:
 [clustering]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/concepts/clustering.md"
 [beta]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/stability.md#beta"
 [beta]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/stability.md#beta"
-[install-helm]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/install/kubernetes.md"
-[install-helm]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/setup/install/kubernetes.md"
+[install-helm]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/get-started/install/kubernetes.md"
+[install-helm]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/get-started/install/kubernetes.md"
 [UI]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/tasks/debug.md#component-detail-page"
 [UI]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/tasks/debug.md#component-detail-page"
 {{% /docs/reference %}}

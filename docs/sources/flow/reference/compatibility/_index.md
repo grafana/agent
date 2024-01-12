@@ -20,13 +20,13 @@ that can export or consume it.
 
 {{% admonition type="note" %}}
 
-> The type of export may not be the only requirement for chaining components together.
-> The value of an attribute may matter as well as its type.
-> Please refer to each component's documentation for more details on what values are acceptable.
->
-> For example:
-> * A Prometheus component may always expect an `"__address__"` label inside a list of targets.
-> * A `string` argument may only accept certain values like "traceID" or "spanID".
+The type of export may not be the only requirement for chaining components together.
+The value of an attribute may matter as well as its type.
+Please refer to each component's documentation for more details on what values are acceptable.
+
+For example:
+* A Prometheus component may always expect an `"__address__"` label inside a list of targets.
+* A `string` argument may only accept certain values like "traceID" or "spanID".
 
 {{% /admonition %}}
 
