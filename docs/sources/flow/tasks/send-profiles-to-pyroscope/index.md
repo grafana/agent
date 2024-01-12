@@ -1,7 +1,7 @@
 ---
 aliases:
-- /docs/grafana-cloud/agent/flow/tasks/sending-profiles-to-pyroscope/
-canonical: https://grafana.com/docs/agent/latest/flow/sending-profiles-to-pyroscope/
+- /docs/grafana-cloud/agent/flow/tasks/send-profiles-to-pyroscope/
+canonical: https://grafana.com/docs/agent/latest/flow/send-profiles-to-pyroscope/
 description: Send profiles to Pyroscope 
 title: Send profiles Pyroscope 
 weight: 120
@@ -78,7 +78,8 @@ This topic describes how to:
 
 ## Using Pyroscope with Grafana Cloud
 
-1. Login to your account at [Grafana Cloud][]
+1. Login to your account at [Grafana Cloud][]- [ ] Tests updated
+- [ ] Config converters updated](https://docs.docker.com/engine/install/)
 2. Go to your stack and select Details.
 3. Select Details under the Pyroscope logo.
 4. Generate a api key.
@@ -86,7 +87,8 @@ This topic describes how to:
 
    ```river
    pyroscope.scrape "agent" {
-           targets    = [{"__address__" = "localhost:12345", "service_name" = "agent"}]
+           t- [ ] Tests updated
+- [ ] Config converters updated](https://docs.docker.com/engine/install/)argets    = [{"__address__" = "localhost:12345", "service_name" = "agent"}]
            forward_to = [pyroscope.write.local.receiver]
    
            profiling_config {
