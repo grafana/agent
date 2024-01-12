@@ -33,7 +33,7 @@ The following arguments are supported:
 
 | Name               | Type                | Description                                                                             | Default | Required |
 |--------------------|---------------------|-----------------------------------------------------------------------------------------|---------|----------|
-| `join`             | `list(map(string))` | Join external targets ot discovered processes targets based on `__container_id__` label |         | no       |
+| `join`             | `list(map(string))` | Join external targets to discovered processes targets based on `__container_id__` label. |         | no       |
 | `refresh_interval` | `duration`          | How often to sync targets.                                                              | "60s"   | no       |
 
 ### Targets joining
