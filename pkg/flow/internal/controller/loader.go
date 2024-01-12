@@ -229,7 +229,6 @@ func (l *Loader) Apply(args map[string]any, componentBlocks []*ast.BlockStmt, co
 					})
 				}
 			}
-		// do imports need a specific handling?
 		case BlockNode:
 			if err = l.evaluate(logger, n); err != nil {
 				diags.Add(diag.Diagnostic{

@@ -15,20 +15,20 @@ func getLocalModuleInfo(
 	moduleDependencies map[string][]ModuleReference,
 	parentModuleDependencies map[string]string,
 	fullName string,
-	scopedName string,
+	declareLabel string,
 ) (ModuleInfo, error) {
 
 	var moduleInfo ModuleInfo
 	var content string
 	var err error
 
-	if node, exists := declareNodes[scopedName]; exists {
+	if node, exists := declareNodes[declareLabel]; exists {
 		moduleInfo.moduleDependencies, err = getLocalModuleDependencies(fullName, moduleDependencies, parentModuleDependencies)
 		if err != nil {
 			return moduleInfo, err
 		}
 
-		content, err = node.ModuleContent(scopedName)
+		content, err = node.ModuleContent(declareLabel)
 		if err != nil {
 			return moduleInfo, err
 		}
@@ -86,7 +86,8 @@ func getImportedModuleInfo(
 	var err error
 	if node, exists := importNodes[namespace]; exists {
 		moduleInfo.moduleDependencies = getImportedModuleDependencies(node, scopedName)
-		content, err = node.ModuleContent(scopedName)
+		declareLabel := strings.Split(scopedName, ".")[0]
+		content, err = node.ModuleContent(declareLabel)
 		if err != nil {
 			return moduleInfo, err
 		}
@@ -101,14 +102,6 @@ func getImportedModuleInfo(
 }
 
 // getImportedModuleDependencies provides the dependencies needed for nested imported modules.
-// Concrete example: Let's say that we have an import "A" and we have a declare component node A.B.C.D.e "bla"
-// "bla" is an instance of a declare "e" within the content imported by "D".
-// Let's say that there is an instance of a declare "f" inside of "e" which is imported by "E".
-// The content of this declare needs to be passed via the moduleDependencies.
-// "e"'s scope is limited to everything after "D" in the chain, that's why we need to check the prefixes.
-// The scopedName is B.C.D.e, the scope is B.C.D.
-// "f" is currently imported via B.C.D.E, that means that it is within "e"'s scope.
-// When we pass the dependency, we need to trim the scope so that "e" can resolve it properly.
 func getImportedModuleDependencies(node *ImportConfigNode, scopedName string) map[string]string {
 	moduleDependencies := make(map[string]string)
 	lastIndex := strings.LastIndex(scopedName, ".")

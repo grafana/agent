@@ -7,9 +7,9 @@ import.file "write" {
 }
 
 declare "loki" {
-  argument "file" {}
+  logTarget.getLogFile "logFile" {}
   loki.source.file "test" {
-    targets    = argument.file.value
+    targets    = logTarget.getLogFile.logFile.output
     forward_to = [write.loki_write.default.receiver]
   }
   write.loki_write "default" {}

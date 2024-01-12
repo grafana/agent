@@ -1,18 +1,24 @@
-import.file "all" {
-  filename = "import.river"
+import.file "import_loki" {
+  filename = "loki.river"
 }
 
-all.target "getTarget" {}
+import_loki.loki "loki" {}
 
-all.import_prom_scrape.scrape "promScraper" {
-  scrape_endpoint = all.target.getTarget.output
+import.file "import_prom_scrape" {
+  filename = "prom-scrape.river"
+}
+
+declare "target" {
+  export "output" {
+    value = "localhost:9001"
+  }
+}
+
+target "promTarget" {}
+
+import_prom_scrape.scrape "promScraper" {
+  scrape_endpoint = target.promTarget.output
   forward_to = [prometheus.remote_write.module_file.receiver]
-}
-
-all.import_loki.logTarget.getLogFile "logFile" {}
-
-all.import_loki.loki "loki" {
-  file = all.import_loki.logTarget.getLogFile.logFile.output
 }
 
 prometheus.remote_write "module_file" {
