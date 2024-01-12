@@ -20,6 +20,7 @@ Main (unreleased)
 ### Enhancements
 
 - Add an option to the windows static mode installer for expanding environment vars in the yaml config. (@erikbaranowski)
+- Add authentication support to `loki.source.awsfirehose` (@sberz)
 
 - Sort kubelet endpoint to reduce pressure on K8s's API server and watcher endpoints. (@hainenber)
 
