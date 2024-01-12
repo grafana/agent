@@ -59,7 +59,7 @@ target process file system at the exact same path.
 
 {{% admonition type="note" %}}
 The `asprof` binary is executed as privileged user.
-If user changes `tmp_dir` configuration to something other than `/tmp`, then it is up to the user to ensure that the
+If you change the `tmp_dir` configuration to something other than `/tmp`, then you must ensure that the
 directory is not writable by unprivileged users.
 {{% /admonition %}}
 
