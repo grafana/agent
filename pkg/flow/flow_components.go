@@ -31,7 +31,7 @@ func (f *Flow) GetComponent(id component.ID, opts component.InfoOptions) (*compo
 
 	cn, ok := node.(controller.ComponentNode)
 	if !ok {
-		return nil, fmt.Errorf("%q is not a UINode", id)
+		return nil, fmt.Errorf("%q is not a ComponentNode", id)
 	}
 
 	return f.getComponentDetail(cn, graph, opts), nil

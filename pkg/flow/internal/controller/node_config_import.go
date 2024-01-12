@@ -49,7 +49,6 @@ type ImportConfigNode struct {
 var _ NodeWithDependants = (*ImportConfigNode)(nil)
 var _ RunnableNode = (*ImportConfigNode)(nil)
 var _ ComponentNode = (*ImportConfigNode)(nil)
-var _ ModuleContentProvider = (*ImportConfigNode)(nil)
 
 // NewImportConfigNode creates a new ImportConfigNode from an initial ast.BlockStmt.
 // The underlying config isn't applied until Evaluate is called.

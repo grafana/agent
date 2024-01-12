@@ -553,10 +553,10 @@ func (l *Loader) wireModuleReferences(g *dag.Graph, dc *DeclareComponentNode, de
 		}
 		l.moduleReferences[declareNode.label] = references
 	}
-	// Add edges between the DeclareComponentNode and all the moduleContentProviders (declare/import) that it needs.
+	// Add edges between the DeclareComponentNode and all import nodes that it needs.
 	for _, ref := range references {
-		if ref.moduleContentProvider != nil {
-			g.AddEdge(dag.Edge{From: dc, To: ref.moduleContentProvider})
+		if ref.importNode != nil {
+			g.AddEdge(dag.Edge{From: dc, To: ref.importNode})
 		}
 	}
 	return nil
@@ -610,14 +610,12 @@ func (l *Loader) wireGraphEdges(g *dag.Graph) diag.Diagnostics {
 }
 
 func (l *Loader) wireDeclareComponentNode(g *dag.Graph, dc *DeclareComponentNode) error {
-	firstPart := strings.Split(dc.componentName, ".")[0]
-	if declareNode, exists := l.declareNodes[firstPart]; exists {
-		g.AddEdge(dag.Edge{From: dc, To: declareNode})
+	if declareNode, exists := l.declareNodes[dc.declareLabel]; exists {
 		err := l.wireModuleReferences(g, dc, declareNode)
 		if err != nil {
 			return err
 		}
-	} else if importNode, exists := l.importNodes[firstPart]; exists {
+	} else if importNode, exists := l.importNodes[dc.importLabel]; exists {
 		g.AddEdge(dag.Edge{From: dc, To: importNode})
 	}
 	return nil

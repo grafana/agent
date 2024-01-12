@@ -28,7 +28,7 @@ func getLocalModuleInfo(
 			return moduleInfo, err
 		}
 
-		config, err = node.ModuleContent(declareLabel)
+		config, err = node.ModuleContent()
 		if err != nil {
 			return moduleInfo, err
 		}
@@ -50,25 +50,21 @@ func getLocalModuleDefinitions(componentName string,
 	var err error
 	moduleReferences := make(map[string]string)
 	for _, moduleDependency := range localModuleReferences[componentName] {
-		if moduleDependency.moduleContentProvider != nil {
-
-			switch n := moduleDependency.moduleContentProvider.(type) {
-			case *ImportConfigNode:
-				for importModulePath, importModuleContent := range n.importedDeclares {
-					moduleReferences[n.label+"."+importModulePath] = importModuleContent
-				}
-			case *DeclareNode:
-				moduleReferences[moduleDependency.declareLabel], err = n.ModuleContent(moduleDependency.declareLabel)
-				if err != nil {
-					return moduleReferences, nil
-				}
+		if moduleDependency.importNode != nil {
+			for importModulePath, importModuleContent := range moduleDependency.importNode.importedDeclares {
+				moduleReferences[moduleDependency.importNode.label+"."+importModulePath] = importModuleContent
+			}
+		} else if moduleDependency.declareNode != nil {
+			moduleReferences[moduleDependency.declareLabel], err = moduleDependency.declareNode.ModuleContent()
+			if err != nil {
+				return moduleReferences, nil
 			}
 		} else {
 			// Nested declares have access to their parents module definitions.
 			if c, ok := parentModuleDefinitions[moduleDependency.componentName]; ok {
 				moduleReferences[moduleDependency.componentName] = c
 			} else {
-				return moduleReferences, fmt.Errorf("could not find the dependency in parentModuleDefinitions")
+				return moduleReferences, fmt.Errorf("could not find the dependency %s in parentModuleDefinitions", moduleDependency.componentName)
 			}
 		}
 	}

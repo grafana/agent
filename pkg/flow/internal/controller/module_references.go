@@ -8,10 +8,11 @@ import (
 )
 
 type ModuleReference struct {
-	componentName         string
-	importLabel           string
-	declareLabel          string
-	moduleContentProvider ModuleContentProvider
+	componentName string
+	importLabel   string
+	declareLabel  string
+	importNode    *ImportConfigNode
+	declareNode   *DeclareNode
 }
 
 // This function will parse the provided river content and collect references to known modules.
@@ -62,11 +63,11 @@ func getModuleReferences(
 			default:
 				potentialImportLabel, potentialDeclareLabel := ExtractImportAndDeclareLabels(componentName)
 				if declareNode, ok := declareNodes[potentialDeclareLabel]; ok {
-					uniqueReferences[componentName] = ModuleReference{componentName: componentName, importLabel: "", declareLabel: potentialDeclareLabel, moduleContentProvider: declareNode}
+					uniqueReferences[componentName] = ModuleReference{componentName: componentName, importLabel: "", declareLabel: potentialDeclareLabel, declareNode: declareNode}
 				} else if importNode, ok := importNodes[potentialImportLabel]; ok {
-					uniqueReferences[componentName] = ModuleReference{componentName: componentName, importLabel: potentialImportLabel, declareLabel: potentialDeclareLabel, moduleContentProvider: importNode}
+					uniqueReferences[componentName] = ModuleReference{componentName: componentName, importLabel: potentialImportLabel, declareLabel: potentialDeclareLabel, importNode: importNode}
 				} else if _, ok := parentModuleDefinitions[componentName]; ok {
-					uniqueReferences[componentName] = ModuleReference{componentName: componentName, importLabel: potentialImportLabel, declareLabel: potentialDeclareLabel, moduleContentProvider: nil}
+					uniqueReferences[componentName] = ModuleReference{componentName: componentName, importLabel: potentialImportLabel, declareLabel: potentialDeclareLabel}
 				}
 			}
 		}
