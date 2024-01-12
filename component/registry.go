@@ -44,7 +44,7 @@ type Module interface {
 	// LoadConfig parses River config and loads it into the Module.
 	// LoadConfig can be called multiple times, and called prior to
 	// [Module.Run].
-	LoadConfig(config []byte, args map[string]any, moduleDependencies map[string]string) error
+	LoadConfig(config []byte, args map[string]any, moduleReferences map[string]string) error
 
 	// Run starts the Module. No components within the Module
 	// will be run until Run is called.

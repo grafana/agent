@@ -19,10 +19,10 @@ func GetModuleReferences(
 	content string,
 	importNodes map[string]*ImportConfigNode,
 	declareNodes map[string]*DeclareNode,
-	parentModuleDependencies map[string]string,
+	parentModuleDefinitions map[string]string,
 ) ([]ModuleReference, error) {
 	uniqueReferences := make(map[string]ModuleReference)
-	err := getModuleReferences(content, importNodes, declareNodes, uniqueReferences, parentModuleDependencies)
+	err := getModuleReferences(content, importNodes, declareNodes, uniqueReferences, parentModuleDefinitions)
 	if err != nil {
 		return nil, err
 	}
@@ -40,7 +40,7 @@ func getModuleReferences(
 	importNodes map[string]*ImportConfigNode,
 	declareNodes map[string]*DeclareNode,
 	uniqueReferences map[string]ModuleReference,
-	parentModuleDependencies map[string]string,
+	parentModuleDefinitions map[string]string,
 ) error {
 
 	node, err := parser.ParseFile("", []byte(content))
@@ -55,7 +55,7 @@ func getModuleReferences(
 			switch componentName {
 			case "declare":
 				declareContent := string(content[stmt.LCurlyPos.Position().Offset+1 : stmt.RCurlyPos.Position().Offset-1])
-				err = getModuleReferences(declareContent, importNodes, declareNodes, uniqueReferences, parentModuleDependencies)
+				err = getModuleReferences(declareContent, importNodes, declareNodes, uniqueReferences, parentModuleDefinitions)
 				if err != nil {
 					return err
 				}
@@ -65,7 +65,7 @@ func getModuleReferences(
 					uniqueReferences[componentName] = ModuleReference{componentName: componentName, importLabel: "", declareLabel: potentialDeclareLabel, moduleContentProvider: declareNode}
 				} else if importNode, ok := importNodes[potentialImportLabel]; ok {
 					uniqueReferences[componentName] = ModuleReference{componentName: componentName, importLabel: potentialImportLabel, declareLabel: potentialDeclareLabel, moduleContentProvider: importNode}
-				} else if _, ok := parentModuleDependencies[componentName]; ok {
+				} else if _, ok := parentModuleDefinitions[componentName]; ok {
 					uniqueReferences[componentName] = ModuleReference{componentName: componentName, importLabel: potentialImportLabel, declareLabel: potentialDeclareLabel, moduleContentProvider: nil}
 				}
 			}

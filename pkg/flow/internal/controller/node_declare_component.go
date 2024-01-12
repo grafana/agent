@@ -221,7 +221,7 @@ func (cn *DeclareComponentNode) evaluate(scope *vm.Scope) error {
 	}
 
 	// Reload the module with new config
-	if err := cn.managed.LoadFlowSource(args, moduleInfo.content, moduleInfo.moduleDependencies); err != nil {
+	if err := cn.managed.LoadFlowSource(args, moduleInfo.content, moduleInfo.moduleDefinitions); err != nil {
 		return fmt.Errorf("updating component: %w", err)
 	}
 	return nil

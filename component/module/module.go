@@ -16,11 +16,11 @@ type ModuleComponent struct {
 	opts component.Options
 	mod  component.Module
 
-	mut                            sync.RWMutex
-	health                         component.Health
-	latestContent                  string
-	latestArgs                     map[string]any
-	latestParentModuleDependencies map[string]string
+	mut                           sync.RWMutex
+	health                        component.Health
+	latestContent                 string
+	latestArgs                    map[string]any
+	latestParentModuleDefinitions map[string]string
 }
 
 // Exports holds values which are exported from the run module.
@@ -57,12 +57,12 @@ func NewModuleComponentDeprecated(o component.Options) (*ModuleComponent, error)
 // LoadFlowSource loads the flow controller with the current component source.
 // It will set the component health in addition to return the error so that the consumer can rely on either or both.
 // If the content is the same as the last time it was successfully loaded, it will not be reloaded.
-func (c *ModuleComponent) LoadFlowSource(args map[string]any, contentValue string, parentModuleDependencies map[string]string) error {
-	if reflect.DeepEqual(args, c.getLatestArgs()) && contentValue == c.getLatestContent() && reflect.DeepEqual(args, c.getLatestParentModuleDependencies()) {
+func (c *ModuleComponent) LoadFlowSource(args map[string]any, contentValue string, parentModuleDefinitions map[string]string) error {
+	if reflect.DeepEqual(args, c.getLatestArgs()) && contentValue == c.getLatestContent() && reflect.DeepEqual(args, c.getLatestParentModuleDefinitions()) {
 		return nil
 	}
 
-	err := c.mod.LoadConfig([]byte(contentValue), args, parentModuleDependencies)
+	err := c.mod.LoadConfig([]byte(contentValue), args, parentModuleDefinitions)
 	if err != nil {
 		c.setHealth(component.Health{
 			Health:     component.HealthTypeUnhealthy,
@@ -75,7 +75,7 @@ func (c *ModuleComponent) LoadFlowSource(args map[string]any, contentValue strin
 
 	c.setLatestArgs(args)
 	c.setLatestContent(contentValue)
-	c.setLatestParentModuleDependencies(parentModuleDependencies)
+	c.setLatestParentModuleDefinitions(parentModuleDefinitions)
 	c.setHealth(component.Health{
 		Health:     component.HealthTypeHealthy,
 		Message:    "module content loaded",
@@ -119,16 +119,16 @@ func (c *ModuleComponent) getLatestContent() string {
 	return c.latestContent
 }
 
-func (c *ModuleComponent) setLatestParentModuleDependencies(parentModuleDependencies map[string]string) {
+func (c *ModuleComponent) setLatestParentModuleDefinitions(parentModuleDefinitions map[string]string) {
 	c.mut.Lock()
 	defer c.mut.Unlock()
-	c.latestParentModuleDependencies = parentModuleDependencies
+	c.latestParentModuleDefinitions = parentModuleDefinitions
 }
 
-func (c *ModuleComponent) getLatestParentModuleDependencies() map[string]string {
+func (c *ModuleComponent) getLatestParentModuleDefinitions() map[string]string {
 	c.mut.RLock()
 	defer c.mut.RUnlock()
-	return c.latestParentModuleDependencies
+	return c.latestParentModuleDefinitions
 }
 
 func (c *ModuleComponent) setLatestArgs(args map[string]any) {

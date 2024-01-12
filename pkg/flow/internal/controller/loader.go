@@ -38,16 +38,16 @@ type Loader struct {
 	// also prevents log spamming with errors.
 	backoffConfig backoff.Config
 
-	mut                      sync.RWMutex
-	graph                    *dag.Graph
-	originalGraph            *dag.Graph
-	componentNodes           []*NativeComponentNode
-	serviceNodes             []*ServiceNode
-	declareComponentNodes    []*DeclareComponentNode
-	importNodes              map[string]*ImportConfigNode
-	declareNodes             map[string]*DeclareNode
-	parentModuleDependencies map[string]string
-	moduleDependencies       map[string][]ModuleReference
+	mut                     sync.RWMutex
+	graph                   *dag.Graph
+	originalGraph           *dag.Graph
+	componentNodes          []*NativeComponentNode
+	serviceNodes            []*ServiceNode
+	declareComponentNodes   []*DeclareComponentNode
+	importNodes             map[string]*ImportConfigNode
+	declareNodes            map[string]*DeclareNode
+	parentModuleDefinitions map[string]string
+	moduleReferences        map[string][]ModuleReference
 
 	cache             *valueCache
 	blocks            []*ast.BlockStmt // Most recently loaded blocks, used for writing
@@ -82,16 +82,16 @@ func NewLoader(opts LoaderOptions) *Loader {
 	}
 
 	l := &Loader{
-		log:                log.With(globals.Logger, "controller_id", globals.ControllerID),
-		tracer:             tracing.WrapTracerForLoader(globals.TraceProvider, globals.ControllerID),
-		globals:            globals,
-		services:           services,
-		host:               host,
-		componentReg:       reg,
-		workerPool:         opts.WorkerPool,
-		importNodes:        map[string]*ImportConfigNode{},
-		declareNodes:       map[string]*DeclareNode{},
-		moduleDependencies: map[string][]ModuleReference{},
+		log:              log.With(globals.Logger, "controller_id", globals.ControllerID),
+		tracer:           tracing.WrapTracerForLoader(globals.TraceProvider, globals.ControllerID),
+		globals:          globals,
+		services:         services,
+		host:             host,
+		componentReg:     reg,
+		workerPool:       opts.WorkerPool,
+		importNodes:      map[string]*ImportConfigNode{},
+		declareNodes:     map[string]*DeclareNode{},
+		moduleReferences: map[string][]ModuleReference{},
 
 		// This is a reasonable default which should work for most cases. If a component is completely stuck, we would
 		// retry and log an error every 10 seconds, at most.
@@ -127,7 +127,7 @@ func NewLoader(opts LoaderOptions) *Loader {
 // The provided parentContext can be used to provide global variables and
 // functions to components. A child context will be constructed from the parent
 // to expose values of other components.
-func (l *Loader) Apply(args map[string]any, componentBlocks []*ast.BlockStmt, configBlocks []*ast.BlockStmt, declares []Declare, parentModuleDependencies map[string]string) diag.Diagnostics {
+func (l *Loader) Apply(args map[string]any, componentBlocks []*ast.BlockStmt, configBlocks []*ast.BlockStmt, declares []Declare, parentModuleDefinitions map[string]string) diag.Diagnostics {
 	start := time.Now()
 	l.mut.Lock()
 	defer l.mut.Unlock()
@@ -139,7 +139,7 @@ func (l *Loader) Apply(args map[string]any, componentBlocks []*ast.BlockStmt, co
 	}
 	l.cache.SyncModuleArgs(args)
 
-	l.parentModuleDependencies = parentModuleDependencies
+	l.parentModuleDefinitions = parentModuleDefinitions
 	newGraph, diags := l.loadNewGraph(args, componentBlocks, configBlocks, declares)
 	if diags.HasErrors() {
 		return diags
@@ -282,7 +282,7 @@ func (l *Loader) Cleanup(stopWorkerPool bool) {
 func (l *Loader) loadNewGraph(args map[string]any, componentBlocks []*ast.BlockStmt, configBlocks []*ast.BlockStmt, declares []Declare) (dag.Graph, diag.Diagnostics) {
 	var g dag.Graph
 
-	l.moduleDependencies = make(map[string][]ModuleReference)
+	l.moduleReferences = make(map[string][]ModuleReference)
 
 	// Split component blocks into blocks for components and services.
 	componentBlocks, serviceBlocks := l.splitComponentBlocks(componentBlocks)
@@ -536,22 +536,22 @@ func (l *Loader) populateComponentNodes(g *dag.Graph, componentBlocks []*ast.Blo
 func (l *Loader) shouldAddDeclareComponentNode(firstPart, componentName string) bool {
 	_, declareExists := l.declareNodes[firstPart]
 	_, importExists := l.importNodes[firstPart]
-	_, moduleDepExists := l.parentModuleDependencies[componentName]
+	_, moduleDepExists := l.parentModuleDefinitions[componentName]
 
 	return declareExists || importExists || moduleDepExists
 }
 
-func (l *Loader) wireModuleDependencies(g *dag.Graph, dc *DeclareComponentNode, declareNode *DeclareNode) error {
+func (l *Loader) wireModuleReferences(g *dag.Graph, dc *DeclareComponentNode, declareNode *DeclareNode) error {
 	var references []ModuleReference
-	if deps, ok := l.moduleDependencies[declareNode.label]; ok {
+	if deps, ok := l.moduleReferences[declareNode.label]; ok {
 		references = deps
 	} else {
 		var err error
-		references, err = GetModuleReferences(declareNode.content, l.importNodes, l.declareNodes, l.parentModuleDependencies)
+		references, err = GetModuleReferences(declareNode.content, l.importNodes, l.declareNodes, l.parentModuleDefinitions)
 		if err != nil {
 			return err
 		}
-		l.moduleDependencies[declareNode.label] = references
+		l.moduleReferences[declareNode.label] = references
 	}
 	// Add edges between the DeclareComponentNode and all the moduleContentProviders (declare/import) that it needs.
 	for _, ref := range references {
@@ -613,7 +613,7 @@ func (l *Loader) wireDeclareComponentNode(g *dag.Graph, dc *DeclareComponentNode
 	firstPart := strings.Split(dc.componentName, ".")[0]
 	if declareNode, exists := l.declareNodes[firstPart]; exists {
 		g.AddEdge(dag.Edge{From: dc, To: declareNode})
-		err := l.wireModuleDependencies(g, dc, declareNode)
+		err := l.wireModuleReferences(g, dc, declareNode)
 		if err != nil {
 			return err
 		}
@@ -843,9 +843,9 @@ func (l *Loader) postEvaluate(logger log.Logger, bn BlockNode, err error) error 
 
 func (l *Loader) getModuleInfo(componentName string, importLabel string, declareLabel string) (ModuleInfo, error) {
 	if importLabel == "" {
-		return getLocalModuleInfo(l.declareNodes, l.moduleDependencies, l.parentModuleDependencies, componentName, declareLabel)
+		return getLocalModuleInfo(l.declareNodes, l.moduleReferences, l.parentModuleDefinitions, componentName, declareLabel)
 	}
-	return getImportedModuleInfo(l.importNodes, l.parentModuleDependencies, componentName, declareLabel, importLabel)
+	return getImportedModuleInfo(l.importNodes, l.parentModuleDefinitions, componentName, declareLabel, importLabel)
 }
 
 func multierrToDiags(errors error) diag.Diagnostics {
