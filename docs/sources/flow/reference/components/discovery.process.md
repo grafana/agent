@@ -16,7 +16,7 @@ title: discovery.process
 `discovery.process` discovers processes running on the local Linux OS.
 
 {{% admonition type="note" %}}
-To use the  `discovery.process` component you must run {{< param "PRODUCT_NAME" >}} as root and inside host pid namespace.
+To use the `discovery.process` component you must run {{< param "PRODUCT_NAME" >}} as root and inside host PID namespace.
 {{% /admonition %}}
 
 ## Usage
