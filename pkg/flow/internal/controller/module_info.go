@@ -19,7 +19,7 @@ func getLocalModuleInfo(
 ) (ModuleInfo, error) {
 
 	var moduleInfo ModuleInfo
-	var config string
+	var content string
 	var err error
 
 	if node, exists := declareNodes[declareLabel]; exists {
@@ -28,17 +28,17 @@ func getLocalModuleInfo(
 			return moduleInfo, err
 		}
 
-		config, err = node.ModuleContent()
+		content, err = node.ModuleContent()
 		if err != nil {
 			return moduleInfo, err
 		}
 	} else if c, ok := parentModuleDefinitions[componentName]; ok {
-		config = c
+		content = c
 		moduleInfo.moduleDefinitions = parentModuleDefinitions
 	} else {
-		return moduleInfo, fmt.Errorf("could not find the module declaration in declareNodes")
+		return moduleInfo, fmt.Errorf("could not find a definition for the declared module %s", componentName)
 	}
-	moduleInfo.content = config
+	moduleInfo.content = content
 	return moduleInfo, nil
 }
 
@@ -47,7 +47,6 @@ func getLocalModuleDefinitions(componentName string,
 	parentModuleDefinitions map[string]string,
 ) (map[string]string, error) {
 
-	var err error
 	moduleReferences := make(map[string]string)
 	for _, moduleDependency := range localModuleReferences[componentName] {
 		if moduleDependency.importNode != nil {
@@ -55,16 +54,17 @@ func getLocalModuleDefinitions(componentName string,
 				moduleReferences[moduleDependency.importNode.label+"."+importModulePath] = importModuleContent
 			}
 		} else if moduleDependency.declareNode != nil {
-			moduleReferences[moduleDependency.declareLabel], err = moduleDependency.declareNode.ModuleContent()
+			ref, err := moduleDependency.declareNode.ModuleContent()
 			if err != nil {
 				return moduleReferences, nil
 			}
+			moduleReferences[moduleDependency.declareLabel] = ref
 		} else {
 			// Nested declares have access to their parents module definitions.
 			if c, ok := parentModuleDefinitions[moduleDependency.componentName]; ok {
 				moduleReferences[moduleDependency.componentName] = c
 			} else {
-				return moduleReferences, fmt.Errorf("could not find the dependency %s in parentModuleDefinitions", moduleDependency.componentName)
+				return moduleReferences, fmt.Errorf("could not find the required module dependency %s for the module %s", moduleDependency.componentName, componentName)
 			}
 		}
 	}
@@ -80,31 +80,31 @@ func getImportedModuleInfo(
 ) (ModuleInfo, error) {
 
 	var moduleInfo ModuleInfo
-	var config string
+	var content string
 	var err error
 	if node, exists := importNodes[importLabel]; exists {
 		moduleInfo.moduleDefinitions = node.importedDeclares
-		config, err = node.ModuleContent(declareLabel)
+		content, err = node.ModuleContent(declareLabel)
 		if err != nil {
 			return moduleInfo, err
 		}
 	} else if c, ok := parentModuleDefinitions[componentName]; ok {
-		config = c
+		content = c
 		moduleInfo.moduleDefinitions = filterParentModuleDefinitions(importLabel, parentModuleDefinitions)
 	} else {
-		return moduleInfo, fmt.Errorf("could not find the module declaration in importNodes")
+		return moduleInfo, fmt.Errorf("could not find a definition for the imported module %s", componentName)
 	}
-	moduleInfo.content = config
+	moduleInfo.content = content
 	return moduleInfo, nil
 }
 
-// filterParentModuleDefinitions prevents module from accessing other module definitions which are not in their scope.
+// filterParentModuleDefinitions prevents modules from accessing other module definitions which are not in their scope.
 func filterParentModuleDefinitions(importLabel string, parentModuleDefinitions map[string]string) map[string]string {
 	filteredParentModuleDefinitions := make(map[string]string)
-	for importPath, config := range parentModuleDefinitions {
-		// This defines whether they are allowed to access their parent definition or not.
+	for importPath, content := range parentModuleDefinitions {
+		// The scope is defined by the importLabel prefix in the importPath of the modules.
 		if strings.HasPrefix(importPath, importLabel) {
-			filteredParentModuleDefinitions[strings.TrimPrefix(importPath, importLabel+".")] = config
+			filteredParentModuleDefinitions[strings.TrimPrefix(importPath, importLabel+".")] = content
 		}
 	}
 	return filteredParentModuleDefinitions

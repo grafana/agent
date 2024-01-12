@@ -32,7 +32,7 @@ type ImportConfigNode struct {
 	registry                  *prometheus.Registry
 	importedDeclares          map[string]string
 	importConfigNodesChildren map[string]*ImportConfigNode
-	OnComponentUpdate         func(cn NodeWithDependants) // Informs controller that we need to reevaluate
+	OnComponentUpdate         func(cn NodeWithDependants)
 	logger                    log.Logger
 	inContentUpdate           bool
 
@@ -177,6 +177,7 @@ func (cn *ImportConfigNode) processImportBlock(stmt *ast.BlockStmt, fullName str
 		return
 	}
 	childGlobals := cn.globals
+	// Children have a special OnComponentUpdate function which will surface all the imported declares to the root import config node.
 	childGlobals.OnComponentUpdate = cn.OnChildrenContentUpdate
 	cn.importConfigNodesChildren[stmt.Label] = NewImportConfigNode(stmt, childGlobals, sourceType)
 }
@@ -244,12 +245,13 @@ func (cn *ImportConfigNode) OnChildrenContentUpdate(child NodeWithDependants) {
 			cn.importedDeclares[label] = content
 		}
 	}
-	// This avoids to OnComponentUpdate to be called multiple times in a row when the content changes.
+	// This avoids OnComponentUpdate to be called multiple times in a row when the content changes.
 	if !cn.inContentUpdate {
 		cn.OnComponentUpdate(cn)
 	}
 }
 
+// ModuleContent returns the content of a declare block imported by the node.
 func (cn *ImportConfigNode) ModuleContent(declareLabel string) (string, error) {
 	cn.importedContentMut.Lock()
 	defer cn.importedContentMut.Unlock()

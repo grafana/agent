@@ -19,7 +19,7 @@ type DeclareNode struct {
 
 var _ BlockNode = (*DeclareNode)(nil)
 
-// NewDeclareNode creates a new declare node with a content which will be loaded by declare component node.
+// NewDeclareNode creates a new declare node with a content which will be loaded by declare component nodes.
 func NewDeclareNode(block *ast.BlockStmt, content string) *DeclareNode {
 	return &DeclareNode{
 		label:         block.Label,

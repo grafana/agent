@@ -59,6 +59,7 @@ type DeclareComponentNode struct {
 	exports    component.Exports // Evaluated exports for the managed module
 }
 
+// ExtractImportAndDeclareLabels extract an importLabel and a declareLabel from a componentName.
 func ExtractImportAndDeclareLabels(componentName string) (string, string) {
 	parts := strings.Split(componentName, ".")
 	if len(parts) == 0 {
