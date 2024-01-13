@@ -56,7 +56,7 @@ The following blocks are supported inside the definition of `loki.source.file`:
 
 | Hierarchy      | Name               | Description                                                       | Required |
 | -------------- | ------------------ | ----------------------------------------------------------------- | -------- |
-| decompression | [decompression][] | Configure reading logs from compressed files.                     | no       |
+| decompression  | [decompression][] | Configure reading logs from compressed files.                     | no       |
 | file_watch     | [file_watch][]     | Configure how often files should be polled from disk for changes. | no       |
 
 [decompression]: #decompression-block
