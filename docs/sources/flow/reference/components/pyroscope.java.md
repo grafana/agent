@@ -58,7 +58,7 @@ After process profiling startup, the component detects libc type and copies acco
 target process file system at the exact same path.
 
 {{% admonition type="note" %}}
-The `asprof` binary is executed as privileged user.
+The `asprof` binary runs with root permissions.
 If you change the `tmp_dir` configuration to something other than `/tmp`, then you must ensure that the
 directory is only writable by root.
 {{% /admonition %}}
