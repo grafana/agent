@@ -58,7 +58,7 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{/* substr trims delimeter prefix char from grafana-agent.imageId output 
     e.g. ':' for tags and '@' for digests.
     For digests, we crop the string to a 7-char (short) sha. */}}
-app.kubernetes.io/version: "{{ .Values.imageId | trunc 15 | trimPrefix "@sha256" | trimPrefix ":" }}"
+app.kubernetes.io/version: {{ (include "grafana-agent.imageId" .) | trunc 15 | trimPrefix "@sha256" | trimPrefix ":" | quote }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- end }}
 {{- end }}
