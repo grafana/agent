@@ -60,7 +60,7 @@ target process file system at the exact same path.
 {{% admonition type="note" %}}
 The `asprof` binary is executed as privileged user.
 If you change the `tmp_dir` configuration to something other than `/tmp`, then you must ensure that the
-directory is not writable by unprivileged users.
+directory is only writable by root.
 {{% /admonition %}}
 ## Blocks
 
