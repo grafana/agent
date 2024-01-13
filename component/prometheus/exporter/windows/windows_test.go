@@ -34,6 +34,11 @@ var (
         service {
             where_clause = "where"
         }
+
+		physical_disk {
+			include = ".+"
+			exclude = ""
+		}
 		
 		process {
 			include = ".+"
@@ -75,6 +80,8 @@ func TestRiverUnmarshal(t *testing.T) {
 	require.Equal(t, "", args.SMTP.Exclude)
 	require.Equal(t, ".+", args.SMTP.Include)
 	require.Equal(t, "where", args.Service.Where)
+	require.Equal(t, "", args.PhysicalDisk.Exclude)
+	require.Equal(t, ".+", args.PhysicalDisk.Include)
 	require.Equal(t, "", args.Process.Exclude)
 	require.Equal(t, ".+", args.Process.Include)
 	require.Equal(t, "", args.Network.Exclude)
@@ -102,6 +109,8 @@ func TestConvert(t *testing.T) {
 	require.Equal(t, "", conf.SMTP.Exclude)
 	require.Equal(t, ".+", conf.SMTP.Include)
 	require.Equal(t, "where", conf.Service.Where)
+	require.Equal(t, "", conf.PhysicalDisk.Exclude)
+	require.Equal(t, ".+", conf.PhysicalDisk.Include)
 	require.Equal(t, "", conf.Process.Exclude)
 	require.Equal(t, ".+", conf.Process.Include)
 	require.Equal(t, "", conf.Network.Exclude)
