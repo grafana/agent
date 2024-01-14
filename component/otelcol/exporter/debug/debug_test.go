@@ -1,6 +1,7 @@
 package debug_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/grafana/agent/component/otelcol/exporter/debug"
@@ -15,14 +16,14 @@ func Test(t *testing.T) {
 	tests := []struct {
 		testName       string
 		args           string
-		expectedReturn otelcomponent.Config
+		expectedReturn debugexporter.Config
 		errorMsg       string
 	}{
 		{
 			testName: "defaultConfig",
-			args:     `
+			args: `
 			verbosity = "basic"
-			sampling_initial = 1
+			sampling_initial = 2
 			sampling_thereafter = 500
 			`,
 			expectedReturn: debugexporter.Config{
@@ -35,9 +36,9 @@ func Test(t *testing.T) {
 		{
 			testName: "validConfig",
 			args:` 
-				verbosity:          "detailed",
-				sampling_initial:    5,
-				sampling_thereafter: 20,
+				verbosity = "detailed"
+				sampling_initial = 5
+				sampling_thereafter = 20
 			`,
 			expectedReturn: debugexporter.Config{
 				Verbosity:          configtelemetry.LevelDetailed,
@@ -49,9 +50,9 @@ func Test(t *testing.T) {
 		{
 			testName: "invalidConfig",
 			args: `
-				verbosity:          "test",
-				sampling_initial:    5,
-				sampling_thereafter: 20,
+				verbosity = "test"
+				sampling_initial = 5
+				sampling_thereafter = 20
 			`,
 			errorMsg: "error in conversion to config arguments",
 		},
@@ -61,20 +62,21 @@ func Test(t *testing.T) {
 		t.Run(tc.testName, func(t *testing.T) {
 			var args debug.Arguments
 			err := river.Unmarshal([]byte(tc.args), &args)
+			require.NoError(t, err)
+			
+			actualPtr, err := args.Convert()
 			if tc.errorMsg != "" {
 				require.ErrorContains(t, err, tc.errorMsg)
 				return
-			}
-
+			} 
+			
 			require.NoError(t, err)
-
-			actualPtr, err := args.Convert()
-			require.NoError(t, err)
-
-			actual := actualPtr.(*otelcomponent.Config)
+		
+			actual := actualPtr.(*debugexporter.Config)
+			fmt.Printf("Passed conversion")
 
 			require.NoError(t, otelcomponent.ValidateConfig(actual))
-			
+
 			require.Equal(t, tc.expectedReturn, *actual)
 		})
 	}
