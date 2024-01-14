@@ -43,6 +43,8 @@ Main (unreleased)
 
 - Split instance ID and component groupings into separate panels for `remote write active series by component` in the Flow mixin. (@tristanburgess)
 
+- Updated dependency to add support for Go 1.22 (@stefanb)
+
 v0.39.0 (2024-01-09)
 --------------------
 
