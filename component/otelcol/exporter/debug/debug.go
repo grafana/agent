@@ -26,9 +26,9 @@ func init() {
 }
 
 type Arguments struct {
-	Verbosity          string `river:"verbosity, attr, optional"`
-	SamplingInitial    int    `river:"sampling_initial,attr, optional"`
-	SamplingThereafter int    `river:"sampling_thereafter,attr, optional"`
+	Verbosity          string `river:"verbosity,attr,optional"`
+	SamplingInitial    int    `river:"sampling_initial,attr,optional"`
+	SamplingThereafter int    `river:"sampling_thereafter,attr,optional"`
 }
 
 func (args Arguments) convertVerbosity() (configtelemetry.Level, error) {
