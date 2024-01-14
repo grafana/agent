@@ -20,7 +20,7 @@ Main (unreleased)
 
 ### Enhancements
 
-- Added `otelcol.exporter.debug` component based on `go.opentelemetry.io/collector/exporter/debugexporter`. (@BarunKGP)
+- Added a new `otelcol.exporter.debug` component based on OTel Collector's "debug" exporter`. (@BarunKGP)
 
 - Flow Windows service: Support environment variables. (@jkroepke)
 
