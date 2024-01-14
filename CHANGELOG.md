@@ -180,6 +180,8 @@ v0.40.0 (2024-02-27)
 - `grafana-agent` and `grafana-agent-flow` fallback to default X.509 trusted root certificates
   when the `GODEBUG=x509usefallbackroots=1` environment variable is set. (@hainenber)
 
+- Migrate away from EoL'ed `github.com/aws-sdk-go` v1. (@hainenber)
+
 v0.39.2 (2024-1-31)
 --------------------
 
@@ -189,7 +191,6 @@ v0.39.2 (2024-1-31)
 
 - An error will be returned in the converter from Static to Flow when `scrape_integration` is set
   to `true` but no `remote_write` is defined. (@erikbaranowski)
-
 
 v0.39.1 (2024-01-19)
 --------------------
@@ -204,7 +205,6 @@ v0.39.1 (2024-01-19)
 ### Bugfixes
 
 - Fix issue where installing the Windows Agent Flow installer would hang then crash. (@mattdurham)
-
 
 v0.39.0 (2024-01-09)
 --------------------
