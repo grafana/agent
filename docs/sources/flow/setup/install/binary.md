@@ -45,8 +45,8 @@ To download {{< param "PRODUCT_NAME" >}} as a standalone binary, perform the fol
 
 ## Next steps
 
-- [Start {{< param "PRODUCT_NAME" >}}[Start]
-- [Configure {{< param "PRODUCT_NAME" >}}[Configure]
+- [Start {{< param "PRODUCT_NAME" >}}][Start]
+- [Configure {{< param "PRODUCT_NAME" >}}][Configure]
 
 {{% docs/reference %}}
 [Start]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/start-agent.md#standalone-binary"
