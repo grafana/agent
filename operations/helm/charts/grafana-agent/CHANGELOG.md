@@ -12,7 +12,7 @@ Unreleased
 
 ### Enhancments
 
-- Add `kubectl.kubernetes.io/default-container: grafana-agent` annotation to allow various tools to choose `grafana-agent` container as default target
+- Add `kubectl.kubernetes.io/default-container: grafana-agent` annotation to allow various tools to choose `grafana-agent` container as default target (@aerfio)
 
 0.31.0 (2024-01-10)
 -------------------
