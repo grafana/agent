@@ -184,8 +184,6 @@ Information returned by the `/debug/ring` endpoint includes:
 The exact details of the instance ID generation might be specific to the implementation of the Grafana Agent.
 - The time of the "Last Heartbeat" of each instance. The Last Heartbeat is the last time the instance was active in the ring.
 
-
-  
 {{% docs/reference %}}
 [api]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static/api"
 [api]: "/docs/grafana-cloud/ -> ../api"
