@@ -1,9 +1,10 @@
 {{- define "grafana-agent.pod-template" -}}
 metadata:
-  {{- with .Values.controller.podAnnotations }}
   annotations:
-    {{- toYaml . | nindent 4 }}
-  {{- end }}
+    kubectl.kubernetes.io/default-container: grafana-agent
+    {{- with .Values.controller.podAnnotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
   labels:
     {{- include "grafana-agent.selectorLabels" . | nindent 4 }}
     {{- with .Values.controller.podLabels }}
