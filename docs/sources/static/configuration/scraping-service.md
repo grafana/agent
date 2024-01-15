@@ -179,7 +179,7 @@ You can access this endpoint by making an HTTP request to the Agent's API server
 Information returned by the `/debug/ring` endpoint includes:
 
 - The list of Agents in the cluster, and their respective tokens used for sharding.
-- The list of configuration files in the KV store and their associated hash values used for lookup in the ring.
+- The list of configuration files in the KV store and associated hash values used for lookup in the ring.
 - The unique instance ID assigned to each instance of the Agent running in the cluster.
    The instance ID is a unique identifier assigned to each running instance of the Agent within the cluster.
    The exact details of the instance ID generation might be specific to the implementation of the Grafana Agent.
