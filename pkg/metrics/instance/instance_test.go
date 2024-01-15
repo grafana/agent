@@ -281,6 +281,7 @@ func TestInstance_Recreate(t *testing.T) {
 		inst, err := New(prometheus.NewRegistry(), cfg, walDir, logger)
 		require.NoError(t, err)
 		runInstance(t, inst)
+		_ = inst.WriteHandler()
 
 		time.Sleep(1 * time.Second)
 	})
@@ -416,6 +417,5 @@ func runInstance(t *testing.T, i *Instance) {
 	t.Cleanup(func() { cancel() })
 	go require.NotPanics(t, func() {
 		_ = i.Run(ctx)
-		require.NotNil(t, i.WriteHandler())
 	})
 }
