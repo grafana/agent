@@ -171,7 +171,8 @@ are planned for the future.
 ## Debug Ring endpoint
 
 You can use the `/debug/ring` endpoint to troubleshoot issues with the scraping service in Scraping Service Mode. 
-It provides information about the Distributed Hash Ring and the current distribution of configurations among Agents in the cluster and gives you the ability to forget an instance in the ring manually.   
+It provides information about the Distributed Hash Ring and the current distribution of configurations among Agents in the cluster.
+It also allows you to forget an instance in the ring manually.
 
 You can access this endpoint by making an HTTP request to the Agent's API server.
 
