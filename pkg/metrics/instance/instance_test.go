@@ -281,7 +281,6 @@ func TestInstance_Recreate(t *testing.T) {
 		inst, err := New(prometheus.NewRegistry(), cfg, walDir, logger)
 		require.NoError(t, err)
 		runInstance(t, inst)
-		_ = inst.WriteHandler()
 
 		time.Sleep(1 * time.Second)
 	})
