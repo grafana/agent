@@ -37,7 +37,7 @@ Main (unreleased)
 - Fix a duplicate metrics registration panic when sending metrics to an static
   mode metric instance's write handler. (@tpaschalis)
 
-- Fix OTEL metrics not exported after reload. (@hainenber)
+- Fix OTEL metrics not getting collected after reload. (@hainenber)
 
 ### Other changes
 
