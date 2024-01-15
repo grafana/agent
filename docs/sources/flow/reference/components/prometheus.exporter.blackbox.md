@@ -105,7 +105,7 @@ prometheus.exporter.blackbox "example" {
     address = "http://grafana.com"
     module  = "http_2xx"
     labels = {
-      "env": "dev",
+      "env" = "dev",
     }
   }
 }
