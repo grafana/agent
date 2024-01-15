@@ -54,23 +54,19 @@ func (f *Flow) ListComponents(moduleID string, opts component.InfoOptions) ([]*c
 	var (
 		components        = f.loader.Components()
 		imports           = f.loader.Imports()
-		declareComponents = f.loader.DeclareComponent()
+		declareComponents = f.loader.DeclareComponents()
 		graph             = f.loader.OriginalGraph()
 	)
 
-	detail := make([]*component.Info, len(components)+len(imports)+len(declareComponents))
-	idx := 0
+	detail := make([]*component.Info, 0, len(components)+len(imports)+len(declareComponents))
 	for _, component := range components {
-		detail[idx] = f.getComponentDetail(component, graph, opts)
-		idx++
+		detail = append(detail, f.getComponentDetail(component, graph, opts))
 	}
 	for _, importNode := range imports {
-		detail[idx] = f.getComponentDetail(importNode, graph, opts)
-		idx++
+		detail = append(detail, f.getComponentDetail(importNode, graph, opts))
 	}
 	for _, declareComponent := range declareComponents {
-		detail[idx] = f.getComponentDetail(declareComponent, graph, opts)
-		idx++
+		detail = append(detail, f.getComponentDetail(declareComponent, graph, opts))
 	}
 	return detail, nil
 }

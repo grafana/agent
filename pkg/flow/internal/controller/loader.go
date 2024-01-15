@@ -282,6 +282,7 @@ func (l *Loader) Cleanup(stopWorkerPool bool) {
 func (l *Loader) loadNewGraph(args map[string]any, componentBlocks []*ast.BlockStmt, configBlocks []*ast.BlockStmt, declares []Declare) (dag.Graph, diag.Diagnostics) {
 	var g dag.Graph
 
+	// Reset the module cache before loading a new graph. This step is crucial to ensure that references to outdated modules, not included in the new configuration, are removed.
 	l.moduleReferences = make(map[string][]ModuleReference)
 
 	// Split component blocks into blocks for components and services.
@@ -525,7 +526,7 @@ func (l *Loader) populateComponentNodes(g *dag.Graph, componentBlocks []*ast.Blo
 					})
 					continue
 				}
-				g.Add(NewComponentNode(l.globals, registration, block))
+				g.Add(NewNativeComponentNode(l.globals, registration, block))
 			}
 		}
 	}
@@ -634,7 +635,7 @@ func (l *Loader) Components() []*NativeComponentNode {
 	return l.componentNodes
 }
 
-func (l *Loader) DeclareComponent() []*DeclareComponentNode {
+func (l *Loader) DeclareComponents() []*DeclareComponentNode {
 	l.mut.RLock()
 	defer l.mut.RUnlock()
 	return l.declareComponentNodes

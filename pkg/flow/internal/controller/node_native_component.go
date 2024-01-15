@@ -63,15 +63,15 @@ type DialFunc func(ctx context.Context, network, address string) (net.Conn, erro
 // ComponentGlobals are used by ComponentNodes to build managed components. All
 // ComponentNodes should use the same ComponentGlobals.
 type ComponentGlobals struct {
-	Logger              *logging.Logger                        // Logger shared between all managed components.
-	TraceProvider       trace.TracerProvider                   // Tracer shared between all managed components.
-	DataPath            string                                 // Shared directory where component data may be stored
-	OnComponentUpdate   func(cn NodeWithDependants)            // Informs controller that we need to reevaluate
-	OnExportsChange     func(exports map[string]any)           // Invoked when the managed component updated its exports
-	Registerer          prometheus.Registerer                  // Registerer for serving agent and component metrics
-	ControllerID        string                                 // ID of controller.
-	NewModuleController func(id string) ModuleController       // Func to generate a module controller.
-	GetServiceData      func(name string) (interface{}, error) // Get data for a service.
+	Logger                     *logging.Logger                        // Logger shared between all managed components.
+	TraceProvider              trace.TracerProvider                   // Tracer shared between all managed components.
+	DataPath                   string                                 // Shared directory where component data may be stored
+	OnNodeWithDependantsUpdate func(cn NodeWithDependants)            // Informs controller that we need to reevaluate
+	OnExportsChange            func(exports map[string]any)           // Invoked when the managed component updated its exports
+	Registerer                 prometheus.Registerer                  // Registerer for serving agent and component metrics
+	ControllerID               string                                 // ID of controller.
+	NewModuleController        func(id string) ModuleController       // Func to generate a module controller.
+	GetServiceData             func(name string) (interface{}, error) // Get data for a service.
 }
 
 // NativeComponentNode is a controller node which manages a user-defined component.
@@ -80,18 +80,18 @@ type ComponentGlobals struct {
 // arguments and exports. NativeComponentNode manages the arguments for the component
 // from a River block.
 type NativeComponentNode struct {
-	id                ComponentID
-	globalID          string
-	label             string
-	componentName     string
-	nodeID            string // Cached from id.String() to avoid allocating new strings every time NodeID is called.
-	reg               component.Registration
-	managedOpts       component.Options
-	registry          *prometheus.Registry
-	exportsType       reflect.Type
-	moduleController  ModuleController
-	OnComponentUpdate func(cn NodeWithDependants) // Informs controller that we need to reevaluate
-	lastUpdateTime    atomic.Time
+	id                         ComponentID
+	globalID                   string
+	label                      string
+	componentName              string
+	nodeID                     string // Cached from id.String() to avoid allocating new strings every time NodeID is called.
+	reg                        component.Registration
+	managedOpts                component.Options
+	registry                   *prometheus.Registry
+	exportsType                reflect.Type
+	moduleController           ModuleController
+	OnNodeWithDependantsUpdate func(cn NodeWithDependants) // Informs controller that we need to reevaluate
+	lastUpdateTime             atomic.Time
 
 	mut     sync.RWMutex
 	block   *ast.BlockStmt // Current River block to derive args from
@@ -114,9 +114,9 @@ type NativeComponentNode struct {
 var _ NodeWithDependants = (*NativeComponentNode)(nil)
 var _ ComponentNode = (*NativeComponentNode)(nil)
 
-// NewComponentNode creates a new ComponentNode from an initial ast.BlockStmt.
+// NewNativeComponentNode creates a new NewNativeComponentNode from an initial ast.BlockStmt.
 // The underlying managed component isn't created until Evaluate is called.
-func NewComponentNode(globals ComponentGlobals, reg component.Registration, b *ast.BlockStmt) *NativeComponentNode {
+func NewNativeComponentNode(globals ComponentGlobals, reg component.Registration, b *ast.BlockStmt) *NativeComponentNode {
 	var (
 		id     = BlockComponentID(b)
 		nodeID = id.String()
@@ -139,15 +139,15 @@ func NewComponentNode(globals ComponentGlobals, reg component.Registration, b *a
 	}
 
 	cn := &NativeComponentNode{
-		id:                id,
-		globalID:          globalID,
-		label:             b.Label,
-		nodeID:            nodeID,
-		componentName:     b.GetBlockName(),
-		reg:               reg,
-		exportsType:       getExportsType(reg),
-		moduleController:  globals.NewModuleController(globalID),
-		OnComponentUpdate: globals.OnComponentUpdate,
+		id:                         id,
+		globalID:                   globalID,
+		label:                      b.Label,
+		nodeID:                     nodeID,
+		componentName:              b.GetBlockName(),
+		reg:                        reg,
+		exportsType:                getExportsType(reg),
+		moduleController:           globals.NewModuleController(globalID),
+		OnNodeWithDependantsUpdate: globals.OnNodeWithDependantsUpdate,
 
 		block: b,
 		eval:  vm.New(b.Body),
@@ -385,7 +385,7 @@ func (cn *NativeComponentNode) setExports(e component.Exports) {
 	if changed {
 		// Inform the controller that we have new exports.
 		cn.lastUpdateTime.Store(time.Now())
-		cn.OnComponentUpdate(cn)
+		cn.OnNodeWithDependantsUpdate(cn)
 	}
 }
 

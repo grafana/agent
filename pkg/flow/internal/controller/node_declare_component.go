@@ -26,17 +26,17 @@ import (
 // DeclareComponentNode manages the underlying module and caches its current
 // arguments and exports.
 type DeclareComponentNode struct {
-	id                ComponentID
-	globalID          string
-	label             string
-	componentName     string
-	importLabel       string
-	declareLabel      string
-	nodeID            string // Cached from id.String() to avoid allocating new strings every time NodeID is called.
-	managedOpts       component.Options
-	registry          *prometheus.Registry
-	moduleController  ModuleController
-	OnComponentUpdate func(cn NodeWithDependants) // Informs controller that we need to reevaluate
+	id                         ComponentID
+	globalID                   string
+	label                      string
+	componentName              string
+	importLabel                string
+	declareLabel               string
+	nodeID                     string // Cached from id.String() to avoid allocating new strings every time NodeID is called.
+	managedOpts                component.Options
+	registry                   *prometheus.Registry
+	moduleController           ModuleController
+	OnNodeWithDependantsUpdate func(cn NodeWithDependants) // Informs controller that we need to reevaluate
 
 	GetModuleInfo  func(fullName string, importLabel string, declareLabel string) (ModuleInfo, error) // Retrieve the module config.
 	lastUpdateTime atomic.Time
@@ -108,16 +108,16 @@ func NewDeclareComponentNode(globals ComponentGlobals, b *ast.BlockStmt, GetModu
 	importLabel, declareLabel := ExtractImportAndDeclareLabels(componentName)
 
 	cn := &DeclareComponentNode{
-		id:                id,
-		globalID:          globalID,
-		label:             b.Label,
-		nodeID:            nodeID,
-		componentName:     componentName,
-		importLabel:       importLabel,
-		declareLabel:      declareLabel,
-		moduleController:  globals.NewModuleController(globalID),
-		OnComponentUpdate: globals.OnComponentUpdate,
-		GetModuleInfo:     GetModuleInfo,
+		id:                         id,
+		globalID:                   globalID,
+		label:                      b.Label,
+		nodeID:                     nodeID,
+		componentName:              componentName,
+		importLabel:                importLabel,
+		declareLabel:               declareLabel,
+		moduleController:           globals.NewModuleController(globalID),
+		OnNodeWithDependantsUpdate: globals.OnNodeWithDependantsUpdate,
+		GetModuleInfo:              GetModuleInfo,
 
 		block: b,
 		eval:  vm.New(b.Body),
@@ -294,7 +294,7 @@ func (cn *DeclareComponentNode) setExports(e component.Exports) {
 	if changed {
 		// Inform the controller that we have new exports.
 		cn.lastUpdateTime.Store(time.Now())
-		cn.OnComponentUpdate(cn)
+		cn.OnNodeWithDependantsUpdate(cn)
 	}
 }
 

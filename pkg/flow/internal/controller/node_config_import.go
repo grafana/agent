@@ -11,7 +11,7 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/component"
-	importsource "github.com/grafana/agent/pkg/flow/internal/import-source"
+	"github.com/grafana/agent/pkg/flow/internal/importsource"
 	"github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/grafana/agent/pkg/flow/tracing"
 	"github.com/grafana/river/ast"
@@ -22,19 +22,19 @@ import (
 )
 
 type ImportConfigNode struct {
-	id                        ComponentID
-	label                     string
-	nodeID                    string
-	componentName             string
-	globalID                  string
-	globals                   ComponentGlobals // Need a copy of the globals to create other import nodes.
-	source                    importsource.ImportSource
-	registry                  *prometheus.Registry
-	importedDeclares          map[string]string
-	importConfigNodesChildren map[string]*ImportConfigNode
-	OnComponentUpdate         func(cn NodeWithDependants)
-	logger                    log.Logger
-	inContentUpdate           bool
+	id                         ComponentID
+	label                      string
+	nodeID                     string
+	componentName              string
+	globalID                   string
+	globals                    ComponentGlobals // Need a copy of the globals to create other import nodes.
+	source                     importsource.ImportSource
+	registry                   *prometheus.Registry
+	importedDeclares           map[string]string
+	importConfigNodesChildren  map[string]*ImportConfigNode
+	OnNodeWithDependantsUpdate func(cn NodeWithDependants)
+	logger                     log.Logger
+	inContentUpdate            bool
 
 	mut                sync.RWMutex
 	importedContentMut sync.RWMutex
@@ -68,17 +68,17 @@ func NewImportConfigNode(block *ast.BlockStmt, globals ComponentGlobals, sourceT
 		globalID = path.Join(globals.ControllerID, nodeID)
 	}
 	cn := &ImportConfigNode{
-		id:                id,
-		globalID:          globalID,
-		label:             block.Label,
-		globals:           globals,
-		nodeID:            BlockComponentID(block).String(),
-		componentName:     block.GetBlockName(),
-		importedDeclares:  make(map[string]string),
-		OnComponentUpdate: globals.OnComponentUpdate,
-		block:             block,
-		evalHealth:        initHealth,
-		runHealth:         initHealth,
+		id:                         id,
+		globalID:                   globalID,
+		label:                      block.Label,
+		globals:                    globals,
+		nodeID:                     BlockComponentID(block).String(),
+		componentName:              block.GetBlockName(),
+		importedDeclares:           make(map[string]string),
+		OnNodeWithDependantsUpdate: globals.OnNodeWithDependantsUpdate,
+		block:                      block,
+		evalHealth:                 initHealth,
+		runHealth:                  initHealth,
 	}
 	managedOpts := getImportManagedOptions(globals, cn)
 	cn.logger = managedOpts.Logger
@@ -177,8 +177,8 @@ func (cn *ImportConfigNode) processImportBlock(stmt *ast.BlockStmt, fullName str
 		return
 	}
 	childGlobals := cn.globals
-	// Children have a special OnComponentUpdate function which will surface all the imported declares to the root import config node.
-	childGlobals.OnComponentUpdate = cn.OnChildrenContentUpdate
+	// Children have a special OnNodeWithDependantsUpdate function which will surface all the imported declares to the root import config node.
+	childGlobals.OnNodeWithDependantsUpdate = cn.OnChildrenContentUpdate
 	cn.importConfigNodesChildren[stmt.Label] = NewImportConfigNode(stmt, childGlobals, sourceType)
 }
 
@@ -205,7 +205,7 @@ func (cn *ImportConfigNode) onContentUpdate(content string) {
 		return
 	}
 	cn.lastUpdateTime.Store(time.Now())
-	cn.OnComponentUpdate(cn)
+	cn.OnNodeWithDependantsUpdate(cn)
 }
 
 // evaluateChildren evaluates the import nodes managed by this import node.
@@ -255,9 +255,9 @@ func (cn *ImportConfigNode) OnChildrenContentUpdate(child NodeWithDependants) {
 			cn.importedDeclares[label] = content
 		}
 	}
-	// This avoids OnComponentUpdate to be called multiple times in a row when the content changes.
+	// This avoids OnNodeWithDependantsUpdate to be called multiple times in a row when the content changes.
 	if !cn.inContentUpdate {
-		cn.OnComponentUpdate(cn)
+		cn.OnNodeWithDependantsUpdate(cn)
 	}
 }
 

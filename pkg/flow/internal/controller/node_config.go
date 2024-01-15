@@ -3,7 +3,7 @@ package controller
 import (
 	"fmt"
 
-	importsource "github.com/grafana/agent/pkg/flow/internal/import-source"
+	"github.com/grafana/agent/pkg/flow/internal/importsource"
 	"github.com/grafana/river/ast"
 	"github.com/grafana/river/diag"
 )

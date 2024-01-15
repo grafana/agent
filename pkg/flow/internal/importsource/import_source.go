@@ -11,9 +11,9 @@ import (
 type SourceType int
 
 const (
-	FILE SourceType = iota
-	HTTP
-	GIT
+	File SourceType = iota
+	Http
+	Git
 )
 
 const (
@@ -33,11 +33,11 @@ type ImportSource interface {
 
 func NewImportSource(sourceType SourceType, managedOpts component.Options, eval *vm.Evaluator, onContentChange func(string)) ImportSource {
 	switch sourceType {
-	case FILE:
+	case File:
 		return NewImportFile(managedOpts, eval, onContentChange)
-	case HTTP:
+	case Http:
 		return NewImportHTTP(managedOpts, eval, onContentChange)
-	case GIT:
+	case Git:
 		return NewImportGit(managedOpts, eval, onContentChange)
 	}
 	// This is a programming error, not a config error so this is ok to panic.
@@ -47,11 +47,11 @@ func NewImportSource(sourceType SourceType, managedOpts component.Options, eval 
 func GetSourceType(fullName string) SourceType {
 	switch fullName {
 	case BlockImportFile:
-		return FILE
+		return File
 	case BlockImportGit:
-		return GIT
+		return Git
 	case BlockImportHTTP:
-		return HTTP
+		return Http
 	}
 	// This is a programming error, not a config error so this is ok to panic.
 	panic(fmt.Errorf("name does not map to a know source type: %v", fullName))

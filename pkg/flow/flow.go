@@ -185,8 +185,8 @@ func newController(o controllerOptions) *Flow {
 			Logger:        log,
 			TraceProvider: tracer,
 			DataPath:      o.DataPath,
-			OnComponentUpdate: func(cn controller.NodeWithDependants) {
-				// Changed components should be queued for reevaluation.
+			OnNodeWithDependantsUpdate: func(cn controller.NodeWithDependants) {
+				// Changed node with dependants should be queued for reevaluation.
 				f.updateQueue.Enqueue(cn)
 			},
 			OnExportsChange: o.OnExportsChange,
@@ -248,7 +248,7 @@ func (f *Flow) Run(ctx context.Context) {
 				components        = f.loader.Components()
 				services          = f.loader.Services()
 				imports           = f.loader.Imports()
-				declareComponents = f.loader.DeclareComponent()
+				declareComponents = f.loader.DeclareComponents()
 
 				runnables = make([]controller.RunnableNode, 0, len(components)+len(services)+len(imports)+len(declareComponents))
 			)

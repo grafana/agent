@@ -5,6 +5,7 @@ import (
 	"github.com/grafana/agent/pkg/flow/internal/dag"
 )
 
+// ComponentNode is a dag.Node that manages a component.
 type ComponentNode interface {
 	dag.Node
 
