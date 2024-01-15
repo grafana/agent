@@ -53,6 +53,7 @@ import (
 	_ "github.com/grafana/agent/component/loki/source/podlogs"                      // Import loki.source.podlogs
 	_ "github.com/grafana/agent/component/loki/source/syslog"                       // Import loki.source.syslog
 	_ "github.com/grafana/agent/component/loki/source/windowsevent"                 // Import loki.source.windowsevent
+	_ "github.com/grafana/agent/component/loki/test/logs"                           // Import loki.test.logs
 	_ "github.com/grafana/agent/component/loki/write"                               // Import loki.write
 	_ "github.com/grafana/agent/component/mimir/rules/kubernetes"                   // Import mimir.rules.kubernetes
 	_ "github.com/grafana/agent/component/module/file"                              // Import module.file
@@ -126,6 +127,7 @@ import (
 	_ "github.com/grafana/agent/component/prometheus/relabel"                       // Import prometheus.relabel
 	_ "github.com/grafana/agent/component/prometheus/remotewrite"                   // Import prometheus.remote_write
 	_ "github.com/grafana/agent/component/prometheus/scrape"                        // Import prometheus.scrape
+	_ "github.com/grafana/agent/component/prometheus/test/metrics"                  // Import prometheus.test.metrics
 	_ "github.com/grafana/agent/component/pyroscope/ebpf"                           // Import pyroscope.ebpf
 	_ "github.com/grafana/agent/component/pyroscope/scrape"                         // Import pyroscope.scrape
 	_ "github.com/grafana/agent/component/pyroscope/write"                          // Import pyroscope.write

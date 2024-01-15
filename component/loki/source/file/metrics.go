@@ -13,6 +13,7 @@ type metrics struct {
 
 	// File-specific metrics
 	readBytes        *prometheus.GaugeVec
+	totalReadBytes   prometheus.Gauge
 	totalBytes       *prometheus.GaugeVec
 	readLines        *prometheus.CounterVec
 	encodingFailures *prometheus.CounterVec
@@ -29,6 +30,12 @@ func newMetrics(reg prometheus.Registerer) *metrics {
 		Name: "loki_source_file_read_bytes_total",
 		Help: "Number of bytes read.",
 	}, []string{"path"})
+	g := prometheus.NewGauge(prometheus.GaugeOpts{
+		Name: "loki_sum_source_file_read_bytes_total",
+		Help: "Number of bytes read across all files.",
+	})
+	m.totalReadBytes = g
+
 	m.totalBytes = prometheus.NewGaugeVec(prometheus.GaugeOpts{
 		Name: "loki_source_file_file_bytes_total",
 		Help: "Number of bytes total.",
@@ -49,6 +56,7 @@ func newMetrics(reg prometheus.Registerer) *metrics {
 	if reg != nil {
 		reg.MustRegister(
 			m.readBytes,
+			m.totalReadBytes,
 			m.totalBytes,
 			m.readLines,
 			m.encodingFailures,
