@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"compress/gzip"
 	"context"
+	"crypto/subtle"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -57,16 +58,18 @@ type Handler struct {
 	sender        Sender
 	relabelRules  []*relabel.Config
 	useIncomingTs bool
+	accessKey     string
 }
 
 // NewHandler creates a new handler.
-func NewHandler(sender Sender, logger log.Logger, metrics *Metrics, rbs []*relabel.Config, useIncomingTs bool) *Handler {
+func NewHandler(sender Sender, logger log.Logger, metrics *Metrics, rbs []*relabel.Config, useIncomingTs bool, accessKey string) *Handler {
 	return &Handler{
 		metrics:       metrics,
 		logger:        logger,
 		sender:        sender,
 		relabelRules:  rbs,
 		useIncomingTs: useIncomingTs,
+		accessKey:     accessKey,
 	}
 }
 
@@ -75,6 +78,16 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	var err error
 	defer req.Body.Close()
 	level.Info(h.logger).Log("msg", "handling request")
+
+	// authenticate request if the component has an access key configured
+	if len(h.accessKey) > 0 {
+		apiHeader := req.Header.Get("X-Amz-Firehose-Access-Key")
+
+		if subtle.ConstantTimeCompare([]byte(apiHeader), []byte(h.accessKey)) != 1 {
+			http.Error(w, "access key not provided or incorrect", http.StatusUnauthorized)
+			return
+		}
+	}
 
 	var bodyReader io.Reader = req.Body
 	// firehose allows the user to configure gzip content-encoding, in that case

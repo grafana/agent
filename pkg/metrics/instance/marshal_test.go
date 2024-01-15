@@ -36,6 +36,7 @@ scrape_configs:
   honor_timestamps: true
   metrics_path: /metrics
   scheme: http
+  track_timestamps_staleness: true
   static_configs:
   - targets:
     - 127.0.0.1:12345
@@ -92,6 +93,7 @@ scrape_configs:
   honor_timestamps: true
   metrics_path: /metrics
   scheme: http
+  track_timestamps_staleness: true
   static_configs:
   - targets:
     - 127.0.0.1:12345

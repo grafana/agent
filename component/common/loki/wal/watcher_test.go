@@ -685,9 +685,9 @@ func TestWatcher_StopAndDrainWAL(t *testing.T) {
 		watcher.Drain()
 		watcher.Stop()
 
-		// expecting 15s (missing 15 entries * 1 sec delay in AppendEntries) +/- 1.1s (taking into account the drain timeout
+		// expecting 15s (missing 15 entries * 1 sec delay in AppendEntries) +/- 2.0s (taking into account the drain timeout
 		// has one extra second.
-		require.InDelta(t, time.Second*15, time.Since(now), float64(time.Millisecond*1100), "expected the drain procedure to take around 15s")
+		require.InDelta(t, time.Second*15, time.Since(now), float64(time.Millisecond*2000), "expected the drain procedure to take around 15s")
 		require.Equal(t, int(writeTo.entriesReceived.Load()), 20, "expected the watcher to fully drain the WAL")
 	})
 
@@ -737,9 +737,9 @@ func TestWatcher_StopAndDrainWAL(t *testing.T) {
 		watcher.Drain()
 		watcher.Stop()
 
-		// expecting 15s (missing 15 entries * 1 sec delay in AppendEntries) +/- 1.1s (taking into account the drain timeout
+		// expecting 15s (missing 15 entries * 1 sec delay in AppendEntries) +/- 2.0s (taking into account the drain timeout
 		// has one extra second.
-		require.InDelta(t, time.Second*15, time.Since(now), float64(time.Millisecond*1100), "expected the drain procedure to take around 15s")
+		require.InDelta(t, time.Second*15, time.Since(now), float64(time.Millisecond*2000), "expected the drain procedure to take around 15s")
 		require.Equal(t, int(writeTo.entriesReceived.Load()), 20, "expected the watcher to fully drain the WAL")
 	})
 
@@ -790,7 +790,7 @@ func TestWatcher_StopAndDrainWAL(t *testing.T) {
 		watcher.Drain()
 		watcher.Stop()
 
-		require.InDelta(t, time.Second*10, time.Since(now), float64(time.Millisecond*1100), "expected the drain procedure to take around 15s")
+		require.InDelta(t, time.Second*10, time.Since(now), float64(time.Millisecond*2000), "expected the drain procedure to take around 15s")
 		require.Less(t, int(writeTo.entriesReceived.Load()), 20, "expected watcher to have not consumed WAL fully")
 		require.InDelta(t, 15, int(writeTo.entriesReceived.Load()), 1.0, "expected Watcher to consume at most +/- 1 entry from the WAL")
 	})

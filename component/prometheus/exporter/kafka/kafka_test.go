@@ -83,6 +83,7 @@ func TestRiverConvert(t *testing.T) {
 	}
 	converted := orig.Convert()
 	expected := kafka_exporter.Config{
+		Instance:                "example",
 		KafkaURIs:               []string{"localhost:9092", "localhost:19092"},
 		KafkaVersion:            "2.0.0",
 		MetadataRefreshInterval: "1m",
@@ -106,4 +107,16 @@ func TestCustomizeTarget(t *testing.T) {
 	newTargets := customizeTarget(baseTarget, args)
 	require.Equal(t, 1, len(newTargets))
 	require.Equal(t, "example", newTargets[0]["instance"])
+}
+
+func TestSASLPassword(t *testing.T) { // #6044
+	var exampleRiverConfig = `
+		kafka_uris    = ["broker1"]
+		use_sasl      = true 
+		sasl_password = "foobar"
+	`
+
+	var args Arguments
+	err := river.Unmarshal([]byte(exampleRiverConfig), &args)
+	require.NoError(t, err)
 }

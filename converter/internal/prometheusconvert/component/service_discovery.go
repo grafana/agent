@@ -25,6 +25,7 @@ import (
 	prom_marathon "github.com/prometheus/prometheus/discovery/marathon"
 	prom_docker "github.com/prometheus/prometheus/discovery/moby"
 	prom_openstack "github.com/prometheus/prometheus/discovery/openstack"
+	prom_ovhcloud "github.com/prometheus/prometheus/discovery/ovhcloud"
 	prom_scaleway "github.com/prometheus/prometheus/discovery/scaleway"
 	prom_triton "github.com/prometheus/prometheus/discovery/triton"
 	prom_xds "github.com/prometheus/prometheus/discovery/xds"
@@ -100,6 +101,9 @@ func AppendServiceDiscoveryConfig(pb *build.PrometheusBlocks, serviceDiscoveryCo
 	case *prom_docker.DockerSwarmSDConfig:
 		labelCounts["dockerswarm"]++
 		return appendDiscoveryDockerswarm(pb, common.LabelWithIndex(labelCounts["dockerswarm"]-1, label), sdc)
+	case *prom_ovhcloud.SDConfig:
+		labelCounts["ovhcloud"]++
+		return appendDiscoveryOvhcloud(pb, common.LabelWithIndex(labelCounts["ovhcloud"]-1, label), sdc)
 	default:
 		return discovery.Exports{}
 	}
@@ -151,6 +155,8 @@ func ValidateServiceDiscoveryConfig(serviceDiscoveryConfig prom_discover.Config)
 		return ValidateDiscoveryOpenstack(sdc)
 	case *prom_docker.DockerSwarmSDConfig:
 		return ValidateDiscoveryDockerswarm(sdc)
+	case *prom_ovhcloud.SDConfig:
+		return ValidateDiscoveryOvhcloud(sdc)
 	default:
 		var diags diag.Diagnostics
 		diags.Add(diag.SeverityLevelError, fmt.Sprintf("The converter does not support converting the provided %s service discovery.", serviceDiscoveryConfig.Name()))

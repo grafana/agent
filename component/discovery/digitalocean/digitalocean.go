@@ -39,6 +39,8 @@ type Arguments struct {
 var DefaultArguments = Arguments{
 	Port:            80,
 	RefreshInterval: time.Minute,
+	FollowRedirects: true,
+	EnableHTTP2:     true,
 }
 
 // SetToDefault implements river.Defaulter.

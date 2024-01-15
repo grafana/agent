@@ -1,6 +1,6 @@
 prometheus.remote_write "metrics_default" {
 	endpoint {
-		name = "default-8be96f"
+		name = "default-149bbd"
 		url  = "http://localhost:9009/api/prom/push"
 
 		queue_config { }
@@ -19,6 +19,26 @@ loki.write "logs_log_config" {
 logging {
 	level  = "debug"
 	format = "json"
+}
+
+loki.relabel "integrations_eventhandler" {
+	forward_to = [loki.write.logs_log_config.receiver]
+
+	rule {
+		source_labels = ["__address__"]
+		target_label  = "test_label"
+		replacement   = "test_label_value"
+	}
+
+	rule {
+		source_labels = ["__address__"]
+		target_label  = "test_label_2"
+		replacement   = "test_label_value_2"
+	}
+}
+
+loki.source.kubernetes_events "integrations_eventhandler" {
+	forward_to = [loki.relabel.integrations_eventhandler.receiver]
 }
 
 prometheus.exporter.azure "integrations_azure1" {
