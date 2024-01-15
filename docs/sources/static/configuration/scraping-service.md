@@ -180,8 +180,9 @@ Information returned by the `/debug/ring` endpoint includes:
 - The list of Agents in the cluster along with their respective tokens
   used for sharding.
 - The list of configuration files in the KV store and their associated hash values used for lookup in the ring.
-- The unique instance ID assigned to each instance of the Agent running in the cluster. The instance ID is a unique identifier assigned to each running instance of the Agent within the cluster.
-The exact details of the instance ID generation might be specific to the implementation of the Grafana Agent.
+- The unique instance ID assigned to each instance of the Agent running in the cluster.
+   The instance ID is a unique identifier assigned to each running instance of the Agent within the cluster.
+   The exact details of the instance ID generation might be specific to the implementation of the Grafana Agent.
 - The time of the "Last Heartbeat" of each instance. The Last Heartbeat is the last time the instance was active in the ring.
 
 {{% docs/reference %}}
