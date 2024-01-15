@@ -37,6 +37,8 @@ Main (unreleased)
 - Fix a duplicate metrics registration panic when sending metrics to an static
   mode metric instance's write handler. (@tpaschalis)
 
+- Fix OTEL metrics not exported after reload. (@hainenber)
+
 ### Other changes
 
 - Removed support for Windows 2012 in line with Microsoft end of life. (@mattdurham)
