@@ -27,11 +27,7 @@ func getLocalModuleInfo(
 		if err != nil {
 			return moduleInfo, err
 		}
-
-		content, err = node.ModuleContent()
-		if err != nil {
-			return moduleInfo, err
-		}
+		content = node.Declare().Content
 	} else if c, ok := parentModuleDefinitions[componentName]; ok {
 		content = c
 		moduleInfo.moduleDefinitions = parentModuleDefinitions
@@ -47,28 +43,25 @@ func getLocalModuleDefinitions(componentName string,
 	parentModuleDefinitions map[string]string,
 ) (map[string]string, error) {
 
-	moduleReferences := make(map[string]string)
+	moduleDefinitions := make(map[string]string)
 	for _, moduleDependency := range localModuleReferences[componentName] {
 		if moduleDependency.importNode != nil {
-			for importModulePath, importModuleContent := range moduleDependency.importNode.importedDeclares {
-				moduleReferences[moduleDependency.importNode.label+"."+importModulePath] = importModuleContent
+			for importModulePath, importModuleDeclare := range moduleDependency.importNode.ImportedDeclares() {
+				moduleDefinitions[moduleDependency.importNode.label+"."+importModulePath] = importModuleDeclare.Content
 			}
 		} else if moduleDependency.declareNode != nil {
-			ref, err := moduleDependency.declareNode.ModuleContent()
-			if err != nil {
-				return moduleReferences, nil
-			}
-			moduleReferences[moduleDependency.declareLabel] = ref
+			def := moduleDependency.declareNode.Declare().Content
+			moduleDefinitions[moduleDependency.declareLabel] = def
 		} else {
 			// Nested declares have access to their parents module definitions.
 			if c, ok := parentModuleDefinitions[moduleDependency.componentName]; ok {
-				moduleReferences[moduleDependency.componentName] = c
+				moduleDefinitions[moduleDependency.componentName] = c
 			} else {
-				return moduleReferences, fmt.Errorf("could not find the required module dependency %s for the module %s", moduleDependency.componentName, componentName)
+				return moduleDefinitions, fmt.Errorf("could not find the required module dependency %s for the module %s", moduleDependency.componentName, componentName)
 			}
 		}
 	}
-	return moduleReferences, nil
+	return moduleDefinitions, nil
 }
 
 func getImportedModuleInfo(
@@ -81,13 +74,16 @@ func getImportedModuleInfo(
 
 	var moduleInfo ModuleInfo
 	var content string
-	var err error
 	if node, exists := importNodes[importLabel]; exists {
-		moduleInfo.moduleDefinitions = node.importedDeclares
-		content, err = node.ModuleContent(declareLabel)
+		moduleInfo.moduleDefinitions = make(map[string]string, len(node.ImportedDeclares()))
+		for importDeclarePath, importedDeclare := range node.ImportedDeclares() {
+			moduleInfo.moduleDefinitions[importDeclarePath] = importedDeclare.Content
+		}
+		declare, err := node.GetImportedDeclareByLabel(declareLabel)
 		if err != nil {
 			return moduleInfo, err
 		}
+		content = declare.Content
 	} else if c, ok := parentModuleDefinitions[componentName]; ok {
 		content = c
 		moduleInfo.moduleDefinitions = filterParentModuleDefinitions(importLabel, parentModuleDefinitions)

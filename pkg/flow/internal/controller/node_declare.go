@@ -11,30 +11,26 @@ type DeclareNode struct {
 	label         string
 	nodeID        string
 	componentName string
-	content       string
-
-	mut   sync.RWMutex
-	block *ast.BlockStmt
+	declare       *Declare
+	mut           sync.RWMutex
 }
 
 var _ BlockNode = (*DeclareNode)(nil)
 
 // NewDeclareNode creates a new declare node with a content which will be loaded by declare component nodes.
-func NewDeclareNode(block *ast.BlockStmt, content string) *DeclareNode {
+func NewDeclareNode(declare *Declare) *DeclareNode {
 	return &DeclareNode{
-		label:         block.Label,
-		nodeID:        BlockComponentID(block).String(),
-		componentName: block.GetBlockName(),
-		content:       content,
-
-		block: block,
+		label:         declare.Block.Label,
+		nodeID:        BlockComponentID(declare.Block).String(),
+		componentName: declare.Block.GetBlockName(),
+		declare:       declare,
 	}
 }
 
-func (cn *DeclareNode) ModuleContent() (string, error) {
+func (cn *DeclareNode) Declare() *Declare {
 	cn.mut.Lock()
 	defer cn.mut.Unlock()
-	return cn.content, nil
+	return cn.declare
 }
 
 // Evaluate does nothing for this node.
@@ -48,7 +44,7 @@ func (cn *DeclareNode) Label() string { return cn.label }
 func (cn *DeclareNode) Block() *ast.BlockStmt {
 	cn.mut.RLock()
 	defer cn.mut.RUnlock()
-	return cn.block
+	return cn.declare.Block
 }
 
 // NodeID implements dag.Node and returns the unique ID for the config node.

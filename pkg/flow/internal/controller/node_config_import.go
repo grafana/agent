@@ -30,7 +30,7 @@ type ImportConfigNode struct {
 	globals                    ComponentGlobals // Need a copy of the globals to create other import nodes.
 	source                     importsource.ImportSource
 	registry                   *prometheus.Registry
-	importedDeclares           map[string]string
+	importedDeclares           map[string]*Declare
 	importConfigNodesChildren  map[string]*ImportConfigNode
 	OnNodeWithDependantsUpdate func(cn NodeWithDependants)
 	logger                     log.Logger
@@ -74,7 +74,6 @@ func NewImportConfigNode(block *ast.BlockStmt, globals ComponentGlobals, sourceT
 		globals:                    globals,
 		nodeID:                     BlockComponentID(block).String(),
 		componentName:              block.GetBlockName(),
-		importedDeclares:           make(map[string]string),
 		OnNodeWithDependantsUpdate: globals.OnNodeWithDependantsUpdate,
 		block:                      block,
 		evalHealth:                 initHealth,
@@ -166,7 +165,7 @@ func (cn *ImportConfigNode) processDeclareBlock(stmt *ast.BlockStmt, content str
 		level.Error(cn.logger).Log("msg", "declare block redefined", "name", stmt.Label)
 		return
 	}
-	cn.importedDeclares[stmt.Label] = content[stmt.LCurlyPos.Position().Offset+1 : stmt.RCurlyPos.Position().Offset-1]
+	cn.importedDeclares[stmt.Label] = NewDeclare(stmt, content[stmt.LCurlyPos.Position().Offset+1:stmt.RCurlyPos.Position().Offset-1])
 }
 
 // processDeclareBlock processes an import block.
@@ -190,7 +189,7 @@ func (cn *ImportConfigNode) onContentUpdate(content string) {
 	defer func() {
 		cn.inContentUpdate = false
 	}()
-	cn.importedDeclares = make(map[string]string)
+	cn.importedDeclares = make(map[string]*Declare)
 	// We recreate the nodes when the content changes. Can we copy instead for optimization?
 	cn.importConfigNodesChildren = make(map[string]*ImportConfigNode)
 	node, err := parser.ParseFile(cn.label, []byte(content))
@@ -250,9 +249,9 @@ func (cn *ImportConfigNode) runChildren(ctx context.Context) error {
 func (cn *ImportConfigNode) OnChildrenContentUpdate(child NodeWithDependants) {
 	switch child := child.(type) {
 	case *ImportConfigNode:
-		for importedDeclareLabel, content := range child.importedDeclares {
+		for importedDeclareLabel, importedDeclare := range child.importedDeclares {
 			label := child.label + "." + importedDeclareLabel
-			cn.importedDeclares[label] = content
+			cn.importedDeclares[label] = importedDeclare
 		}
 	}
 	// This avoids OnNodeWithDependantsUpdate to be called multiple times in a row when the content changes.
@@ -261,14 +260,14 @@ func (cn *ImportConfigNode) OnChildrenContentUpdate(child NodeWithDependants) {
 	}
 }
 
-// ModuleContent returns the content of a declare block imported by the node.
-func (cn *ImportConfigNode) ModuleContent(declareLabel string) (string, error) {
+// GetImportedDeclareByLabel returns a declare block imported by the node.
+func (cn *ImportConfigNode) GetImportedDeclareByLabel(declareLabel string) (*Declare, error) {
 	cn.importedContentMut.Lock()
 	defer cn.importedContentMut.Unlock()
-	if content, ok := cn.importedDeclares[declareLabel]; ok {
-		return content, nil
+	if declare, ok := cn.importedDeclares[declareLabel]; ok {
+		return declare, nil
 	}
-	return "", fmt.Errorf("declareLabel %s not found in imported node %s", declareLabel, cn.label)
+	return nil, fmt.Errorf("declareLabel %s not found in imported node %s", declareLabel, cn.label)
 }
 
 // Run runs the managed component in the calling goroutine until ctx is
@@ -365,6 +364,20 @@ func (cn *ImportConfigNode) Component() component.Component {
 	cn.mut.RLock()
 	defer cn.mut.RUnlock()
 	return cn.source.Component()
+}
+
+// ImportedDeclares returns all declare blocks that it imported.
+func (cn *ImportConfigNode) ImportedDeclares() map[string]*Declare {
+	cn.mut.RLock()
+	defer cn.mut.RUnlock()
+	return cn.importedDeclares
+}
+
+// ImportConfigNodesChildren returns the ImportConfigNodesChildren of this ImportConfigNode.
+func (cn *ImportConfigNode) ImportConfigNodesChildren() map[string]*ImportConfigNode {
+	cn.mut.RLock()
+	defer cn.mut.RUnlock()
+	return cn.importConfigNodesChildren
 }
 
 // CurrentHealth returns the current health of the ComponentNode.

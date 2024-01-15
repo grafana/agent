@@ -22,7 +22,7 @@ type Source struct {
 	// The Flow controller can interpret them.
 	components   []*ast.BlockStmt
 	configBlocks []*ast.BlockStmt
-	declares     []controller.Declare
+	declares     []*controller.Declare
 }
 
 // ParseSource parses the River file specified by bb into a File. name should be
@@ -47,7 +47,7 @@ func ParseSource(name string, bb []byte) (*Source, error) {
 	var (
 		components []*ast.BlockStmt
 		configs    []*ast.BlockStmt
-		declares   []controller.Declare
+		declares   []*controller.Declare
 	)
 
 	for _, stmt := range node.Body {
@@ -64,7 +64,7 @@ func ParseSource(name string, bb []byte) (*Source, error) {
 			fullName := strings.Join(stmt.Name, ".")
 			switch fullName {
 			case "declare":
-				declares = append(declares, controller.Declare{Block: stmt, Content: string(bb[stmt.LCurlyPos.Position().Offset+1 : stmt.RCurlyPos.Position().Offset-1])})
+				declares = append(declares, controller.NewDeclare(stmt, string(bb[stmt.LCurlyPos.Position().Offset+1:stmt.RCurlyPos.Position().Offset-1])))
 			case "logging", "tracing", "argument", "export", "import.file", "import.git", "import.http":
 				configs = append(configs, stmt)
 			default:

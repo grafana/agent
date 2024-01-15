@@ -127,7 +127,7 @@ func NewLoader(opts LoaderOptions) *Loader {
 // The provided parentContext can be used to provide global variables and
 // functions to components. A child context will be constructed from the parent
 // to expose values of other components.
-func (l *Loader) Apply(args map[string]any, componentBlocks []*ast.BlockStmt, configBlocks []*ast.BlockStmt, declares []Declare, parentModuleDefinitions map[string]string) diag.Diagnostics {
+func (l *Loader) Apply(args map[string]any, componentBlocks []*ast.BlockStmt, configBlocks []*ast.BlockStmt, declares []*Declare, parentModuleDefinitions map[string]string) diag.Diagnostics {
 	start := time.Now()
 	l.mut.Lock()
 	defer l.mut.Unlock()
@@ -279,7 +279,7 @@ func (l *Loader) Cleanup(stopWorkerPool bool) {
 }
 
 // loadNewGraph creates a new graph from the provided blocks and validates it.
-func (l *Loader) loadNewGraph(args map[string]any, componentBlocks []*ast.BlockStmt, configBlocks []*ast.BlockStmt, declares []Declare) (dag.Graph, diag.Diagnostics) {
+func (l *Loader) loadNewGraph(args map[string]any, componentBlocks []*ast.BlockStmt, configBlocks []*ast.BlockStmt, declares []*Declare) (dag.Graph, diag.Diagnostics) {
 	var g dag.Graph
 
 	// Reset the module cache before loading a new graph. This step is crucial to ensure that references to outdated modules, not included in the new configuration, are removed.
@@ -344,11 +344,11 @@ func (l *Loader) splitComponentBlocks(blocks []*ast.BlockStmt) (componentBlocks,
 	return componentBlocks, serviceBlocks
 }
 
-func (l *Loader) populateDeclareNodes(g *dag.Graph, declares []Declare) diag.Diagnostics {
+func (l *Loader) populateDeclareNodes(g *dag.Graph, declares []*Declare) diag.Diagnostics {
 	var diags diag.Diagnostics
 	l.declareNodes = map[string]*DeclareNode{}
 	for _, declare := range declares {
-		node := NewDeclareNode(declare.Block, declare.Content)
+		node := NewDeclareNode(declare)
 		if g.GetByID(node.NodeID()) != nil {
 			diags.Add(diag.Diagnostic{
 				Severity: diag.SeverityLevelError,
@@ -548,7 +548,7 @@ func (l *Loader) wireModuleReferences(g *dag.Graph, dc *DeclareComponentNode, de
 		references = deps
 	} else {
 		var err error
-		references, err = GetModuleReferences(declareNode.content, l.importNodes, l.declareNodes, l.parentModuleDefinitions)
+		references, err = GetModuleReferences(declareNode.Declare(), l.importNodes, l.declareNodes, l.parentModuleDefinitions)
 		if err != nil {
 			return err
 		}
