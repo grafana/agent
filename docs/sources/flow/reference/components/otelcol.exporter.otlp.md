@@ -205,7 +205,7 @@ You can create an `otlp` exporter that sends your data to a managed service, for
 ```river
 otelcol.exporter.otlp "grafana_cloud_tempo" {
     client {
-        endpoint = "https://tempo-xxx.grafana.net/tempo"
+        endpoint = "tempo-xxx.grafana.net/tempo:443"
         auth     = otelcol.auth.basic.grafana_cloud_tempo.handler
     }
 }
