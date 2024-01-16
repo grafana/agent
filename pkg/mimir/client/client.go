@@ -20,22 +20,18 @@ import (
 	"github.com/prometheus/prometheus/model/rulefmt"
 )
 
-const (
-	rulerAPIPath  = "/prometheus/config/v1/rules"
-	legacyAPIPath = "/api/v1/rules"
-)
-
 var (
-	ErrNoConfig         = errors.New("No config exists for this user")
+	ErrNoConfig         = errors.New("no config exists for this user")
 	ErrResourceNotFound = errors.New("requested resource not found")
 )
 
 // Config is used to configure a MimirClient.
 type Config struct {
-	ID               string
-	Address          string
-	UseLegacyRoutes  bool
-	HTTPClientConfig config.HTTPClientConfig
+	ID                   string
+	Address              string
+	UseLegacyRoutes      bool
+	HTTPClientConfig     config.HTTPClientConfig
+	PrometheusHTTPPrefix string
 }
 
 type Interface interface {
@@ -65,9 +61,12 @@ func New(logger log.Logger, cfg Config, timingHistogram *prometheus.HistogramVec
 		return nil, err
 	}
 
-	path := rulerAPIPath
+	path, err := url.JoinPath(cfg.PrometheusHTTPPrefix, "/config/v1/rules")
+	if err != nil {
+		return nil, err
+	}
 	if cfg.UseLegacyRoutes {
-		path = legacyAPIPath
+		path = "/api/v1/rules"
 	}
 
 	collector := instrument.NewHistogramCollector(timingHistogram)
