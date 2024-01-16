@@ -29,7 +29,7 @@ This topic describes how to:
 
 1. Setup Pyroscope
      
-   The easiest path to setting up Pyroscope is using `docker run -it -p 4040:4040 grafana/pyroscope`. This will spin up a docker instance running Pyroscope on port `4040`. The server will autoscrape itself and after a few minutes data will appear. If you immedietly access the server it may error with `No applications available` until it has scraped itself.  
+   The easiest path to setting up Pyroscope is using `docker run -it -p 4040:4040 grafana/pyroscope`. This will spin up a Docker instance running Pyroscope on port `4040`. The server will autoscrape itself, and after a few minutes, data will appear. If you immediately access the server, it may error with `No applications available` until it has scraped itself.  
    
    ![Initial Pyroscope server screen](../../../assets/tasks/initial-pyro.png)
 
