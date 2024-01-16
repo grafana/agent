@@ -25,6 +25,7 @@ import (
 	_ "github.com/grafana/agent/component/discovery/nomad"                          // Import discovery.nomad
 	_ "github.com/grafana/agent/component/discovery/openstack"                      // Import discovery.openstack
 	_ "github.com/grafana/agent/component/discovery/ovhcloud"                       // Import discovery.ovhcloud
+	_ "github.com/grafana/agent/component/discovery/process"                        // Import discovery.process
 	_ "github.com/grafana/agent/component/discovery/puppetdb"                       // Import discovery.puppetdb
 	_ "github.com/grafana/agent/component/discovery/relabel"                        // Import discovery.relabel
 	_ "github.com/grafana/agent/component/discovery/scaleway"                       // Import discovery.scaleway
@@ -127,6 +128,7 @@ import (
 	_ "github.com/grafana/agent/component/prometheus/remotewrite"                   // Import prometheus.remote_write
 	_ "github.com/grafana/agent/component/prometheus/scrape"                        // Import prometheus.scrape
 	_ "github.com/grafana/agent/component/pyroscope/ebpf"                           // Import pyroscope.ebpf
+	_ "github.com/grafana/agent/component/pyroscope/java"                           // Import pyroscope.java
 	_ "github.com/grafana/agent/component/pyroscope/scrape"                         // Import pyroscope.scrape
 	_ "github.com/grafana/agent/component/pyroscope/write"                          // Import pyroscope.write
 	_ "github.com/grafana/agent/component/remote/http"                              // Import remote.http
