@@ -58,7 +58,7 @@ var (
 
 // New creates a new module.file component.
 func New(o component.Options, args Arguments) (*Component, error) {
-	m, err := module.NewModuleComponentDeprecated(o)
+	m, err := module.NewModuleComponent(o)
 	if err != nil {
 		return nil, err
 	}

@@ -30,8 +30,9 @@ type Exports struct {
 	Exports map[string]any `river:"exports,block"`
 }
 
-// NewModuleComponent initializes a new ModuleComponent.
-func NewModuleComponent(o component.Options) (*ModuleComponent, error) {
+// NewModuleComponentV2 initializes a new ModuleComponent.
+// Compared to the previous constructor, the export is simply map[string]any instead of the Exports type containing the map.
+func NewModuleComponentV2(o component.Options) (*ModuleComponent, error) {
 	c := &ModuleComponent{
 		opts: o,
 	}
@@ -42,8 +43,8 @@ func NewModuleComponent(o component.Options) (*ModuleComponent, error) {
 	return c, err
 }
 
-// TODO: Remove when getting rid of old modules
-func NewModuleComponentDeprecated(o component.Options) (*ModuleComponent, error) {
+// Deprecated: Use NewModuleComponentV2 instead.
+func NewModuleComponent(o component.Options) (*ModuleComponent, error) {
 	c := &ModuleComponent{
 		opts: o,
 	}

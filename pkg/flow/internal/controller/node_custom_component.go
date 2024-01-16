@@ -209,7 +209,7 @@ func (cn *CustomComponentNode) evaluate(scope *vm.Scope) error {
 
 	if cn.managed == nil {
 		// We haven't built the managed custom component successfully yet.
-		managed, err := module.NewModuleComponent(cn.managedOpts)
+		managed, err := module.NewModuleComponentV2(cn.managedOpts)
 		if err != nil {
 			return fmt.Errorf("building custom component: %w", err)
 		}
