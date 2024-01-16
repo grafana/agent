@@ -17,6 +17,12 @@ Main (unreleased)
   - [GO-2023-2412](https://github.com/advisories/GHSA-7ww5-4wqc-m92c)
   - [CVE-2023-49568](https://github.com/advisories/GHSA-mw99-9chc-xw7r)
 
+### Features
+
+- A new `discovery.process` component for discovering Linux OS processes on the current host. (@korniltsev)
+
+- A new `pyroscope.java` component for profiling Java processes using async-profiler. (@korniltsev)
+
 ### Enhancements
 
 - Add an option to the windows static mode installer for expanding environment vars in the yaml config. (@erikbaranowski)
@@ -42,6 +48,8 @@ Main (unreleased)
 - Removed support for Windows 2012 in line with Microsoft end of life. (@mattdurham)
 
 - Split instance ID and component groupings into separate panels for `remote write active series by component` in the Flow mixin. (@tristanburgess)
+
+- Updated dependency to add support for Go 1.22 (@stefanb)
 
 v0.39.0 (2024-01-09)
 --------------------

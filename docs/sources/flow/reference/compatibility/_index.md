@@ -69,6 +69,7 @@ The following components, grouped by namespace, _export_ Targets.
 - [discovery.nomad]({{< relref "../components/discovery.nomad.md" >}})
 - [discovery.openstack]({{< relref "../components/discovery.openstack.md" >}})
 - [discovery.ovhcloud]({{< relref "../components/discovery.ovhcloud.md" >}})
+- [discovery.process]({{< relref "../components/discovery.process.md" >}})
 - [discovery.puppetdb]({{< relref "../components/discovery.puppetdb.md" >}})
 - [discovery.relabel]({{< relref "../components/discovery.relabel.md" >}})
 - [discovery.scaleway]({{< relref "../components/discovery.scaleway.md" >}})
@@ -121,6 +122,7 @@ The following components, grouped by namespace, _consume_ Targets.
 <!-- START GENERATED SECTION: CONSUMERS OF Targets -->
 
 {{< collapse title="discovery" >}}
+- [discovery.process]({{< relref "../components/discovery.process.md" >}})
 - [discovery.relabel]({{< relref "../components/discovery.relabel.md" >}})
 {{< /collapse >}}
 
@@ -144,6 +146,7 @@ The following components, grouped by namespace, _consume_ Targets.
 
 {{< collapse title="pyroscope" >}}
 - [pyroscope.ebpf]({{< relref "../components/pyroscope.ebpf.md" >}})
+- [pyroscope.java]({{< relref "../components/pyroscope.java.md" >}})
 - [pyroscope.scrape]({{< relref "../components/pyroscope.scrape.md" >}})
 {{< /collapse >}}
 
@@ -368,6 +371,7 @@ The following components, grouped by namespace, _consume_ Pyroscope `ProfilesRec
 
 {{< collapse title="pyroscope" >}}
 - [pyroscope.ebpf]({{< relref "../components/pyroscope.ebpf.md" >}})
+- [pyroscope.java]({{< relref "../components/pyroscope.java.md" >}})
 - [pyroscope.scrape]({{< relref "../components/pyroscope.scrape.md" >}})
 {{< /collapse >}}
 
