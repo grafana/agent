@@ -33,7 +33,7 @@ This topic describes how to:
    
    ![Initial Pyroscope server screen](../../../assets/tasks/initial-pyro.png)
 
-2. Download the [latest][] version of {{< param "PRODUCT_NAME" >}} for the system your are running. 
+2. Install the [latest][] version of {{< param "PRODUCT_NAME" >}} for your operating system.
 
 3. Add the below configuration to `agent.river` file in the same directory as the file downloaded above.
 
