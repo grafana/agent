@@ -30,6 +30,8 @@ type Exports struct {
 	Exports map[string]any `river:"exports,block"`
 }
 
+var _ component.Component = (*ModuleComponent)(nil)
+
 // NewModuleComponentV2 initializes a new ModuleComponent.
 // Compared to the previous constructor, the export is simply map[string]any instead of the Exports type containing the map.
 func NewModuleComponentV2(o component.Options) (*ModuleComponent, error) {
@@ -83,6 +85,17 @@ func (c *ModuleComponent) LoadFlowSource(args map[string]any, contentValue strin
 		UpdateTime: time.Now(),
 	})
 
+	return nil
+}
+
+// Run implements component.Component.
+func (c *ModuleComponent) Run(ctx context.Context) error {
+	<-ctx.Done()
+	return nil
+}
+
+// Update implements component.Component.
+func (c *ModuleComponent) Update(_ component.Arguments) error {
 	return nil
 }
 

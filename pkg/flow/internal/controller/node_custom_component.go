@@ -355,9 +355,12 @@ func (cn *CustomComponentNode) BlockName() string {
 	return cn.componentName
 }
 
-// This node does not manage any component.
+// Component returns the instance of the managed component. Component may be
+// nil if the CustomComponentNode has not been successfully evaluated yet.
 func (cn *CustomComponentNode) Component() component.Component {
-	return nil
+	cn.mut.RLock()
+	defer cn.mut.RUnlock()
+	return cn.managed
 }
 
 // Registry returns the prometheus registry of the component.
