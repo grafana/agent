@@ -82,7 +82,7 @@ This topic describes how to:
 2. Go to your stack and select Details.
 3. Select Details under the Pyroscope logo.
 4. Generate an API key.
-5. Update the `agent.river` file to look like the below configuration. Filling in `URL`,`USERNAME`, and `PASSWORD` with the information from the Pyroscope details page.
+5. Update the `agent.river` file to look like the following configuration. Fill in `URL`,`USERNAME`, and `PASSWORD` with the information from the Pyroscope details page.
 
    ```river
    pyroscope.scrape "agent" {
