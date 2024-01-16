@@ -9,7 +9,7 @@ weight: 120
 
 # Send profiles to Pyroscope
 
-Learn how to configure {{< param "PRODUCT_NAME" >}} to collect [Pyroscope Server][] profiles and forward them to a [Pyroscope Server][].
+Learn how to configure {{< param "PRODUCT_NAME" >}} to collect profiles and forward them to a [Pyroscope Server][].
 
 This topic describes how to:
 
