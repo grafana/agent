@@ -16,6 +16,11 @@ Unreleased
 
 - Add support for topology spread constraints in helm chart. (@etiennep)
 
+### Bugfixes
+
+- Fix a bug preventing the `.Values.configReloader.image.digest` Helm value to be correctly retrieved. (@claudioscalzo)
+
+- Fix a bug preventing digests to be used as labels because of their length. Labels values [must be 63 characters or less](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#syntax-and-character-set). (@claudioscalzo)
 
 0.31.0 (2024-01-10)
 -------------------
