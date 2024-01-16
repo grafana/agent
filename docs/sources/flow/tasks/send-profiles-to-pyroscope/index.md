@@ -9,7 +9,7 @@ weight: 120
 
 # Send profiles to Pyroscope
 
-Learn how to configure {{< param "PRODUCT_NAME" >}} to collect [Pyroscope Server][] profiles and forward them to a [Pyroscope Server][].
+Learn how to configure {{< param "PRODUCT_NAME" >}} to collect profiles and forward them to a [Pyroscope Server][].
 
 This topic describes how to:
 
@@ -23,18 +23,17 @@ This topic describes how to:
 
 ## Before you begin
 
-* Download {{< param "PRODUCT_NAME" >}}.
-* Install [docker][] if it is not already installed.
+* Install [docker][].
 
 ## Steps
 
 1. Setup Pyroscope
      
-   The easiest path to setting up Pyroscope is using `docker run -it -p 4040:4040 grafana/pyroscope`. This will spin up a docker instance running Pyroscope on port `4040`. The server will autoscrape itself and after a few minutes data will appear. If you immedietly access the server it may error with `No applications available` until it has scraped itself.  
+   The easiest path to setting up Pyroscope is using `docker run -it -p 4040:4040 grafana/pyroscope`. This will spin up a Docker instance running Pyroscope on port `4040`. The server will autoscrape itself, and after a few minutes, data will appear. If you immediately access the server, it may error with `No applications available` until it has scraped itself.  
    
    ![Initial Pyroscope server screen](/media/oss/agent/initial-pyro.png)
 
-2. Download the [latest][] version of {{< param "PRODUCT_NAME" >}} for the system your are running. 
+2. Install the [latest][] version of {{< param "PRODUCT_NAME" >}} for your operating system.
 
 3. Add the below configuration to `agent.river` file in the same directory as the file downloaded above.
 
@@ -62,7 +61,7 @@ This topic describes how to:
     
    ```
 
-   The above configuration will scrape the `localhost:12345/-/pprof` endpoint for cpu and memory evey 60 seconds and send those profiles to the Pyroscope server that was setup earlier. The `localhost:12345` endpoint is the default host and port for {{< param "PRODUCT_NAME" >}}.
+   This configuration will scrape the `localhost:12345/-/pprof` endpoint for CPU and memory data every 60 seconds and send those profiles to the Pyroscope server. The `localhost:12345` endpoint is the default host and port for {{< param "PRODUCT_NAME" >}}.
 
 4. Run {{< param "PRODUCT_NAME" >}} with `AGENT_MODE=flow ./grafana-agent-linux-amd64 run ./agent.river`. The exact executable name will change depending on the platform. Wait 2 minutes, this will give time for startup and a scrape to occur.
 
@@ -72,7 +71,7 @@ This topic describes how to:
 
    ![Select agent from dropdown](/media/oss/agent/select-pyro.png)
 
-7. Select any cpu or metric you want to view.
+7. Select any CPU or metric you want to view.
 
    ![Agent CPU](/media/oss/agent/normal-pyro.png)
 
@@ -82,8 +81,8 @@ This topic describes how to:
 - [ ] Config converters updated](https://docs.docker.com/engine/install/)
 2. Go to your stack and select Details.
 3. Select Details under the Pyroscope logo.
-4. Generate a api key.
-5. Update the `agent.river` file to look like the below configuration. Filling in `URL`,`USERNAME`, and `PASSWORD` with the information from the Pyroscope details page.
+4. Generate an API key.
+5. Update the `agent.river` file to look like the following configuration. Fill in `URL`,`USERNAME`, and `PASSWORD` with the information from the Pyroscope details page.
 
    ```river
    pyroscope.scrape "agent" {

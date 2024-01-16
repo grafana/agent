@@ -66,6 +66,9 @@ The Reference section is a collection of pages that describe the Agent
 components and their configuration options exhaustively. This is a more narrow
 definition than the one found in the [writer's toolkit][].
 
+We have a dedicated page with the best practices for writing Reference
+docs: [writing flow components documentation][writing-flow-docs].
+
 This is our most detailed documentation, and it should be used as a source of
 truth. The contents of the Reference pages should not be repeated in other parts
 of the documentation.
@@ -76,3 +79,4 @@ Release notes contain all the notable changes in the Agent. They are updated as
 part of the release process.
 
 [writer's toolkit]: https://grafana.com/docs/writers-toolkit/structure/topic-types/
+[writing-flow-docs]: writing-flow-component-documentation.md
