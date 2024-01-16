@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"strings"
 	"sync"
 	"time"
 
@@ -25,28 +24,24 @@ import (
 
 // The Loader builds and evaluates ComponentNodes from River blocks.
 type Loader struct {
-	log          log.Logger
-	tracer       trace.TracerProvider
-	globals      ComponentGlobals
-	services     []service.Service
-	host         service.Host
-	componentReg ComponentRegistry
-	workerPool   worker.Pool
+	log        log.Logger
+	tracer     trace.TracerProvider
+	globals    ComponentGlobals
+	services   []service.Service
+	host       service.Host
+	workerPool worker.Pool
 	// backoffConfig is used to backoff when an updated component's dependencies cannot be submitted to worker
 	// pool for evaluation in EvaluateDependants, because the queue is full. This is an unlikely scenario, but when
 	// it happens we should avoid retrying too often to give other goroutines a chance to progress. Having a backoff
 	// also prevents log spamming with errors.
 	backoffConfig backoff.Config
 
-	mut                         sync.RWMutex
-	graph                       *dag.Graph
-	originalGraph               *dag.Graph
-	componentNodes              []ComponentNode
-	serviceNodes                []*ServiceNode
-	importNodes                 map[string]*ImportConfigNode
-	declareNodes                map[string]*DeclareNode
-	parentDeclareContents       map[string]string
-	customComponentDependencies map[string][]CustomComponentDependency
+	mut                  sync.RWMutex
+	graph                *dag.Graph
+	originalGraph        *dag.Graph
+	componentNodes       []ComponentNode
+	serviceNodes         []*ServiceNode
+	componentNodeManager *ComponentNodeManager
 
 	cache             *valueCache
 	blocks            []*ast.BlockStmt // Most recently loaded blocks, used for writing
@@ -81,16 +76,13 @@ func NewLoader(opts LoaderOptions) *Loader {
 	}
 
 	l := &Loader{
-		log:                         log.With(globals.Logger, "controller_id", globals.ControllerID),
-		tracer:                      tracing.WrapTracerForLoader(globals.TraceProvider, globals.ControllerID),
-		globals:                     globals,
-		services:                    services,
-		host:                        host,
-		componentReg:                reg,
-		workerPool:                  opts.WorkerPool,
-		importNodes:                 map[string]*ImportConfigNode{},
-		declareNodes:                map[string]*DeclareNode{},
-		customComponentDependencies: map[string][]CustomComponentDependency{},
+		log:                  log.With(globals.Logger, "controller_id", globals.ControllerID),
+		tracer:               tracing.WrapTracerForLoader(globals.TraceProvider, globals.ControllerID),
+		globals:              globals,
+		services:             services,
+		host:                 host,
+		workerPool:           opts.WorkerPool,
+		componentNodeManager: NewComponentNodeManager(globals, reg),
 
 		// This is a reasonable default which should work for most cases. If a component is completely stuck, we would
 		// retry and log an error every 10 seconds, at most.
@@ -138,7 +130,8 @@ func (l *Loader) Apply(args map[string]any, componentBlocks []*ast.BlockStmt, co
 	}
 	l.cache.SyncModuleArgs(args)
 
-	l.parentDeclareContents = parentDeclareContents
+	// Reload the component node manager when a new config is applied.
+	l.componentNodeManager.OnReload(parentDeclareContents)
 	newGraph, diags := l.loadNewGraph(args, componentBlocks, configBlocks, declares)
 	if diags.HasErrors() {
 		return diags
@@ -263,10 +256,6 @@ func (l *Loader) Cleanup(stopWorkerPool bool) {
 func (l *Loader) loadNewGraph(args map[string]any, componentBlocks []*ast.BlockStmt, configBlocks []*ast.BlockStmt, declares []*Declare) (dag.Graph, diag.Diagnostics) {
 	var g dag.Graph
 
-	// Reset the custom component dependencies cache before loading a new graph.
-	// This step is crucial to ensure that references to outdated declares, not included in the new configuration, are removed.
-	l.customComponentDependencies = make(map[string][]CustomComponentDependency)
-
 	// Split component blocks into blocks for components and services.
 	componentBlocks, serviceBlocks := l.splitComponentBlocks(componentBlocks)
 
@@ -328,7 +317,7 @@ func (l *Loader) splitComponentBlocks(blocks []*ast.BlockStmt) (componentBlocks,
 
 func (l *Loader) populateDeclareNodes(g *dag.Graph, declares []*Declare) diag.Diagnostics {
 	var diags diag.Diagnostics
-	l.declareNodes = map[string]*DeclareNode{}
+	l.componentNodeManager.declareNodes = map[string]*DeclareNode{}
 	for _, declare := range declares {
 		node := NewDeclareNode(declare)
 		if g.GetByID(node.NodeID()) != nil {
@@ -339,7 +328,7 @@ func (l *Loader) populateDeclareNodes(g *dag.Graph, declares []*Declare) diag.Di
 			continue
 		}
 		g.Add(node)
-		l.declareNodes[node.label] = node
+		l.componentNodeManager.declareNodes[node.label] = node
 	}
 	return diags
 }
@@ -447,8 +436,7 @@ func (l *Loader) populateConfigBlockNodes(args map[string]any, g *dag.Graph, con
 		g.Add(c)
 	}
 
-	l.importNodes = nodeMap.importMap
-
+	l.componentNodeManager.importNodes = nodeMap.importMap
 	return diags
 }
 
@@ -490,52 +478,31 @@ func (l *Loader) populateComponentNodes(g *dag.Graph, componentBlocks []*ast.Blo
 				})
 				continue
 			}
-			firstPart := strings.Split(componentName, ".")[0]
-			if l.shouldAddCustomComponentNode(firstPart, componentName) {
-				g.Add(NewCustomComponentNode(l.globals, block, l.getCustomComponentConfig))
-			} else {
-				registration, exists := l.componentReg.Get(componentName)
-				if !exists {
-					diags.Add(diag.Diagnostic{
-						Severity: diag.SeverityLevelError,
-						Message:  fmt.Sprintf("Unrecognized component name %q", componentName),
-						StartPos: block.NamePos.Position(),
-						EndPos:   block.NamePos.Add(len(componentName) - 1).Position(),
-					})
-					continue
-				}
-				g.Add(NewBuiltinComponentNode(l.globals, registration, block))
+			componentNode, err := l.componentNodeManager.CreateComponentNode(componentName, block)
+			if err != nil {
+				diags.Add(diag.Diagnostic{
+					Severity: diag.SeverityLevelError,
+					Message:  err.Error(),
+					StartPos: block.NamePos.Position(),
+					EndPos:   block.NamePos.Add(len(componentName) - 1).Position(),
+				})
+				continue
 			}
+			g.Add(componentNode)
 		}
 	}
-
 	return diags
 }
 
-func (l *Loader) shouldAddCustomComponentNode(firstPart, componentName string) bool {
-	_, declareExists := l.declareNodes[firstPart]
-	_, importExists := l.importNodes[firstPart]
-	_, parentDeclareContentExists := l.parentDeclareContents[componentName]
-
-	return declareExists || importExists || parentDeclareContentExists
-}
-
-func (l *Loader) wireCustomComponentDependencies(g *dag.Graph, dc *CustomComponentNode, declareNode *DeclareNode) error {
-	var dependencies []CustomComponentDependency
-	if deps, ok := l.customComponentDependencies[declareNode.label]; ok {
-		dependencies = deps
-	} else {
-		var err error
-		dependencies, err = GetCustomComponentDependencies(declareNode.Declare(), l.importNodes, l.declareNodes, l.parentDeclareContents)
-		if err != nil {
-			return err
-		}
-		l.customComponentDependencies[declareNode.label] = dependencies
+func (l *Loader) wireCustomComponentDependencies(g *dag.Graph, cc *CustomComponentNode, declareNode *DeclareNode) error {
+	dependencies, err := l.componentNodeManager.getCustomComponentDependencies(declareNode)
+	if err != nil {
+		return err
 	}
 	// Add edges between the CustomComponentNode and all import nodes that it needs.
 	for _, dependency := range dependencies {
 		if dependency.importNode != nil {
-			g.AddEdge(dag.Edge{From: dc, To: dependency.importNode})
+			g.AddEdge(dag.Edge{From: cc, To: dependency.importNode})
 		}
 	}
 	return nil
@@ -588,14 +555,14 @@ func (l *Loader) wireGraphEdges(g *dag.Graph) diag.Diagnostics {
 	return diags
 }
 
-func (l *Loader) wireCustomComponentNode(g *dag.Graph, dc *CustomComponentNode) error {
-	if declareNode, exists := l.declareNodes[dc.declareLabel]; exists {
-		err := l.wireCustomComponentDependencies(g, dc, declareNode)
+func (l *Loader) wireCustomComponentNode(g *dag.Graph, cc *CustomComponentNode) error {
+	if declareNode, exists := l.componentNodeManager.GetCorrespondingLocalDeclare(cc); exists {
+		err := l.wireCustomComponentDependencies(g, cc, declareNode)
 		if err != nil {
 			return err
 		}
-	} else if importNode, exists := l.importNodes[dc.importLabel]; exists {
-		g.AddEdge(dag.Edge{From: dc, To: importNode})
+	} else if importNode, exists := l.componentNodeManager.GetCorrespondingImportedDeclare(cc); exists {
+		g.AddEdge(dag.Edge{From: cc, To: importNode})
 	}
 	return nil
 }
@@ -623,7 +590,7 @@ func (l *Loader) Services() []*ServiceNode {
 func (l *Loader) Imports() map[string]*ImportConfigNode {
 	l.mut.RLock()
 	defer l.mut.RUnlock()
-	return l.importNodes
+	return l.componentNodeManager.importNodes
 }
 
 // Graph returns a copy of the DAG managed by the Loader.
@@ -807,13 +774,6 @@ func (l *Loader) postEvaluate(logger log.Logger, bn BlockNode, err error) error 
 		return err
 	}
 	return nil
-}
-
-func (l *Loader) getCustomComponentConfig(componentName string, importLabel string, declareLabel string) (CustomComponentConfig, error) {
-	if importLabel == "" {
-		return getLocalCustomComponentConfig(l.declareNodes, l.customComponentDependencies, l.parentDeclareContents, componentName, declareLabel)
-	}
-	return getImportedCustomComponentConfig(l.importNodes, l.parentDeclareContents, componentName, declareLabel, importLabel)
 }
 
 func multierrToDiags(errors error) diag.Diagnostics {

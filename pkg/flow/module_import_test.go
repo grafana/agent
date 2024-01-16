@@ -713,7 +713,7 @@ func TestImportModuleError(t *testing.T) {
                     input = testImport.test.myModule.output
                 }
             `,
-			expectedError: `Unrecognized component name "cantAccessThis"`,
+			expectedError: `unrecognized component name "cantAccessThis"`,
 		}, // TODO: add more tests
 	}
 

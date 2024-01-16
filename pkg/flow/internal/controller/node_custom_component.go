@@ -38,7 +38,7 @@ type CustomComponentNode struct {
 	moduleController           ModuleController
 	OnNodeWithDependantsUpdate func(cn NodeWithDependants) // Informs controller that we need to reevaluate
 
-	GetCustomComponentConfig func(fullName string, importLabel string, declareLabel string) (CustomComponentConfig, error) // Retrieve the custom component config.
+	GetCustomComponentConfig func(*CustomComponentNode) (CustomComponentConfig, error) // Retrieve the custom component config.
 	lastUpdateTime           atomic.Time
 
 	mut     sync.RWMutex
@@ -81,7 +81,7 @@ var _ ComponentNode = (*CustomComponentNode)(nil)
 
 // NewCustomComponentNode creates a new CustomComponentNode from an initial ast.BlockStmt.
 // The underlying managed custom component isn't created until Evaluate is called.
-func NewCustomComponentNode(globals ComponentGlobals, b *ast.BlockStmt, GetCustomComponentConfig func(string, string, string) (CustomComponentConfig, error)) *CustomComponentNode {
+func NewCustomComponentNode(globals ComponentGlobals, b *ast.BlockStmt, GetCustomComponentConfig func(*CustomComponentNode) (CustomComponentConfig, error)) *CustomComponentNode {
 	var (
 		id     = BlockComponentID(b)
 		nodeID = id.String()
@@ -216,9 +216,9 @@ func (cn *CustomComponentNode) evaluate(scope *vm.Scope) error {
 		cn.managed = managed
 	}
 
-	customComponentConfig, err := cn.GetCustomComponentConfig(cn.componentName, cn.importLabel, cn.declareLabel)
+	customComponentConfig, err := cn.GetCustomComponentConfig(cn)
 	if err != nil {
-		return fmt.Errorf("retrieving custom component info: %w", err)
+		return fmt.Errorf("retrieving custom component config: %w", err)
 	}
 
 	// Reload the custom component with new config
