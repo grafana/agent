@@ -3,7 +3,7 @@ aliases:
 - /docs/grafana-cloud/agent/flow/tasks/send-profiles-to-pyroscope/
 canonical: https://grafana.com/docs/agent/latest/flow/send-profiles-to-pyroscope/
 description: Send profiles to Pyroscope 
-title: Send profiles Pyroscope 
+title: Send profiles to Pyroscope 
 weight: 120
 ---
 
@@ -19,7 +19,7 @@ This topic describes how to:
 ## Components used in this topic
 
 * [pyroscope.write][]
-* [pyroscope.scrape][]
+* [pyroscope.scrape][]initial
 
 ## Before you begin
 
@@ -32,7 +32,7 @@ This topic describes how to:
      
    The easiest path to setting up Pyroscope is using `docker run -it -p 4040:4040 grafana/pyroscope`. This will spin up a docker instance running Pyroscope on port `4040`. The server will autoscrape itself and after a few minutes data will appear. If you immedietly access the server it may error with `No applications available` until it has scraped itself.  
    
-   ![Initial Pyroscope server screen](../../../assets/tasks/initial-pyro.png)
+   ![Initial Pyroscope server screen](/media/oss/agent/initial-pyro.png)
 
 2. Download the [latest][] version of {{< param "PRODUCT_NAME" >}} for the system your are running. 
 
@@ -70,11 +70,11 @@ This topic describes how to:
 
 6. Select `agent` from the dropdown. This name is derived from `service_name` specified in `agent.river`.
 
-   ![Select agent from dropdown](../../../assets/tasks/select-pyro.png)
+   ![Select agent from dropdown](/media/oss/agent/select-pyro.png)
 
 7. Select any cpu or metric you want to view.
 
-   ![Agent CPU](../../../assets/tasks/normal-pyro.png)
+   ![Agent CPU](/media/oss/agent/normal-pyro.png)
 
 ## Using Pyroscope with Grafana Cloud
 

@@ -361,7 +361,8 @@ prometheus.remote_write "default" {
 }
 ```
 
-For more information on configuring Kubernetes service delivery and collecting metrics, refer to [discovery.kubernetes][] and [prometheus.scrape][].
+For more inf- [ ] Tests updated
+- [ ] Config converters updated](https://docs.docker.com/engine/install/)ormation on configuring Kubernetes service delivery and collecting metrics, refer to [discovery.kubernetes][] and [prometheus.scrape][].
 
 ## Collect metrics from custom targets
 
