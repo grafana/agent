@@ -21,11 +21,11 @@ import (
 	"go.uber.org/atomic"
 )
 
-// DeclareComponentNode is a controller node which manages a module.
+// CustomComponentNode is a controller node which manages a custom component.
 //
-// DeclareComponentNode manages the underlying module and caches its current
+// CustomComponentNode manages the underlying custom component and caches its current
 // arguments and exports.
-type DeclareComponentNode struct {
+type CustomComponentNode struct {
 	id                         ComponentID
 	globalID                   string
 	label                      string
@@ -38,25 +38,25 @@ type DeclareComponentNode struct {
 	moduleController           ModuleController
 	OnNodeWithDependantsUpdate func(cn NodeWithDependants) // Informs controller that we need to reevaluate
 
-	GetModuleInfo  func(fullName string, importLabel string, declareLabel string) (ModuleInfo, error) // Retrieve the module config.
+	GetModuleInfo  func(fullName string, importLabel string, declareLabel string) (CustomComponentConfig, error) // Retrieve the module config.
 	lastUpdateTime atomic.Time
 
 	mut     sync.RWMutex
 	block   *ast.BlockStmt // Current River block to derive args from
 	eval    *vm.Evaluator
-	managed *module.ModuleComponent // Inner managed module
+	managed *module.ModuleComponent // Inner managed custom component
 	args    component.Arguments     // Evaluated arguments for the managed component
 
 	// NOTE(rfratto): health and exports have their own mutex because they may be
 	// set asynchronously while mut is still being held (i.e., when calling Evaluate
-	// and the managed module immediately creates new exports)
+	// and the managed custom component immediately creates new exports)
 
 	healthMut  sync.RWMutex
 	evalHealth component.Health // Health of the last evaluate
 	runHealth  component.Health // Health of running the component
 
 	exportsMut sync.RWMutex
-	exports    component.Exports // Evaluated exports for the managed module
+	exports    component.Exports // Evaluated exports for the managed custom component
 }
 
 // ExtractImportAndDeclareLabels extract an importLabel and a declareLabel from a componentName.
@@ -68,7 +68,7 @@ func ExtractImportAndDeclareLabels(componentName string) (string, string) {
 	// If this is a local declare.
 	importLabel := ""
 	declareLabel := parts[0]
-	// If this is an imported module.
+	// If this is an imported custom component.
 	if len(parts) > 1 {
 		importLabel = parts[0]
 		declareLabel = parts[1]
@@ -76,12 +76,12 @@ func ExtractImportAndDeclareLabels(componentName string) (string, string) {
 	return importLabel, declareLabel
 }
 
-var _ NodeWithDependants = (*DeclareComponentNode)(nil)
-var _ ComponentNode = (*DeclareComponentNode)(nil)
+var _ NodeWithDependants = (*CustomComponentNode)(nil)
+var _ ComponentNode = (*CustomComponentNode)(nil)
 
-// NewDeclareComponentNode creates a new DeclareComponentNode from an initial ast.BlockStmt.
-// The underlying managed module isn't created until Evaluate is called.
-func NewDeclareComponentNode(globals ComponentGlobals, b *ast.BlockStmt, GetModuleInfo func(string, string, string) (ModuleInfo, error)) *DeclareComponentNode {
+// NewCustomComponentNode creates a new CustomComponentNode from an initial ast.BlockStmt.
+// The underlying managed custom component isn't created until Evaluate is called.
+func NewCustomComponentNode(globals ComponentGlobals, b *ast.BlockStmt, GetModuleInfo func(string, string, string) (CustomComponentConfig, error)) *CustomComponentNode {
 	var (
 		id     = BlockComponentID(b)
 		nodeID = id.String()
@@ -107,7 +107,7 @@ func NewDeclareComponentNode(globals ComponentGlobals, b *ast.BlockStmt, GetModu
 
 	importLabel, declareLabel := ExtractImportAndDeclareLabels(componentName)
 
-	cn := &DeclareComponentNode{
+	cn := &CustomComponentNode{
 		id:                         id,
 		globalID:                   globalID,
 		label:                      b.Label,
@@ -130,7 +130,7 @@ func NewDeclareComponentNode(globals ComponentGlobals, b *ast.BlockStmt, GetModu
 	return cn
 }
 
-func getDeclareManagedOptions(globals ComponentGlobals, cn *DeclareComponentNode) component.Options {
+func getDeclareManagedOptions(globals ComponentGlobals, cn *CustomComponentNode) component.Options {
 	cn.registry = prometheus.NewRegistry()
 	return component.Options{
 		ID:     cn.globalID,
@@ -152,23 +152,23 @@ func getDeclareManagedOptions(globals ComponentGlobals, cn *DeclareComponentNode
 }
 
 // ID returns the component ID of the managed component from its River block.
-func (cn *DeclareComponentNode) ID() ComponentID { return cn.id }
+func (cn *CustomComponentNode) ID() ComponentID { return cn.id }
 
 // Label returns the label for the block or "" if none was specified.
-func (cn *DeclareComponentNode) Label() string { return cn.label }
+func (cn *CustomComponentNode) Label() string { return cn.label }
 
 // NodeID implements dag.Node and returns the unique ID for this node. The
 // NodeID is the string representation of the component's ID from its River
 // block.
-func (cn *DeclareComponentNode) NodeID() string { return cn.nodeID }
+func (cn *CustomComponentNode) NodeID() string { return cn.nodeID }
 
 // UpdateBlock updates the River block used to construct arguments for the
 // managed component. The new block isn't used until the next time Evaluate is
 // invoked.
 //
 // UpdateBlock will panic if the block does not match the component ID of the
-// DeclareComponentNode.
-func (cn *DeclareComponentNode) UpdateBlock(b *ast.BlockStmt) {
+// CustomComponentNode.
+func (cn *CustomComponentNode) UpdateBlock(b *ast.BlockStmt) {
 	if !BlockComponentID(b).Equals(cn.id) {
 		panic("UpdateBlock called with an River block with a different component ID")
 	}
@@ -179,13 +179,13 @@ func (cn *DeclareComponentNode) UpdateBlock(b *ast.BlockStmt) {
 	cn.eval = vm.New(b.Body)
 }
 
-// Evaluate implements BlockNode and updates the arguments by re-evaluating its River block with the provided scope and the module content by
-// retrieving it from the corresponding import or declare node for the managed module.
-// The managed module will be built the first time Evaluate is called.
+// Evaluate implements BlockNode and updates the arguments by re-evaluating its River block with the provided scope and the custom component by
+// retrieving the component definition from the corresponding import or declare node.
+// The managed custom component will be built the first time Evaluate is called.
 //
 // Evaluate will return an error if the River block cannot be evaluated, if
-// decoding to arguments fails or if the module content cannot be retrieved.
-func (cn *DeclareComponentNode) Evaluate(scope *vm.Scope) error {
+// decoding to arguments fails or if the custom component definition cannot be retrieved.
+func (cn *CustomComponentNode) Evaluate(scope *vm.Scope) error {
 	err := cn.evaluate(scope)
 
 	switch err {
@@ -198,7 +198,7 @@ func (cn *DeclareComponentNode) Evaluate(scope *vm.Scope) error {
 	return err
 }
 
-func (cn *DeclareComponentNode) evaluate(scope *vm.Scope) error {
+func (cn *CustomComponentNode) evaluate(scope *vm.Scope) error {
 	cn.mut.Lock()
 	defer cn.mut.Unlock()
 
@@ -208,27 +208,27 @@ func (cn *DeclareComponentNode) evaluate(scope *vm.Scope) error {
 	}
 
 	if cn.managed == nil {
-		// We haven't built the managed module successfully yet.
+		// We haven't built the managed custom component successfully yet.
 		managed, err := module.NewModuleComponent(cn.managedOpts)
 		if err != nil {
-			return fmt.Errorf("building module: %w", err)
+			return fmt.Errorf("building custom component: %w", err)
 		}
 		cn.managed = managed
 	}
 
 	moduleInfo, err := cn.GetModuleInfo(cn.componentName, cn.importLabel, cn.declareLabel)
 	if err != nil {
-		return fmt.Errorf("retrieving module info: %w", err)
+		return fmt.Errorf("retrieving custom component info: %w", err)
 	}
 
-	// Reload the module with new config
-	if err := cn.managed.LoadFlowSource(args, moduleInfo.content, moduleInfo.moduleDefinitions); err != nil {
+	// Reload the custom component with new config
+	if err := cn.managed.LoadFlowSource(args, moduleInfo.declareContent, moduleInfo.additionalDeclareContents); err != nil {
 		return fmt.Errorf("updating component: %w", err)
 	}
 	return nil
 }
 
-func (cn *DeclareComponentNode) Run(ctx context.Context) error {
+func (cn *CustomComponentNode) Run(ctx context.Context) error {
 	cn.mut.RLock()
 	managed := cn.managed
 	logger := cn.managedOpts.Logger
@@ -238,43 +238,43 @@ func (cn *DeclareComponentNode) Run(ctx context.Context) error {
 		return ErrUnevaluated
 	}
 
-	cn.setRunHealth(component.HealthTypeHealthy, "started module")
+	cn.setRunHealth(component.HealthTypeHealthy, "started custom component")
 	cn.managed.RunFlowController(ctx)
 
-	level.Info(logger).Log("msg", "module exited")
-	cn.setRunHealth(component.HealthTypeExited, "module shut down")
+	level.Info(logger).Log("msg", "custom component exited")
+	cn.setRunHealth(component.HealthTypeExited, "custom component shut down")
 	return nil
 }
 
-// Arguments returns the current arguments of the managed module.
-func (cn *DeclareComponentNode) Arguments() component.Arguments {
+// Arguments returns the current arguments of the managed custom component.
+func (cn *CustomComponentNode) Arguments() component.Arguments {
 	cn.mut.RLock()
 	defer cn.mut.RUnlock()
 	return cn.args
 }
 
-// Block implements BlockNode and returns the current block of the managed module.
-func (cn *DeclareComponentNode) Block() *ast.BlockStmt {
+// Block implements BlockNode and returns the current block of the managed custom component.
+func (cn *CustomComponentNode) Block() *ast.BlockStmt {
 	cn.mut.RLock()
 	defer cn.mut.RUnlock()
 	return cn.block
 }
 
-// Exports returns the current set of exports from the managed module.
-// Exports returns nil if the managed module does not have exports.
-func (cn *DeclareComponentNode) Exports() component.Exports {
+// Exports returns the current set of exports from the managed custom component.
+// Exports returns nil if the managed custom component does not have exports.
+func (cn *CustomComponentNode) Exports() component.Exports {
 	cn.exportsMut.RLock()
 	defer cn.exportsMut.RUnlock()
 	return cn.exports
 }
 
-func (cn *DeclareComponentNode) LastUpdateTime() time.Time {
+func (cn *CustomComponentNode) LastUpdateTime() time.Time {
 	return cn.lastUpdateTime.Load()
 }
 
-// setExports is called whenever the managed module updates. e must be the
-// same type as the registered exports type of the managed module.
-func (cn *DeclareComponentNode) setExports(e component.Exports) {
+// setExports is called whenever the managed custom component updates. e must be the
+// same type as the registered exports type of the managed custom component.
+func (cn *CustomComponentNode) setExports(e component.Exports) {
 	// Some components may aggressively reexport values even though no exposed
 	// state has changed. This may be done for components which always supply
 	// exports whenever their arguments are evaluated without tracking internal
@@ -298,21 +298,21 @@ func (cn *DeclareComponentNode) setExports(e component.Exports) {
 	}
 }
 
-// CurrentHealth returns the current health of the DeclareComponentNode.
+// CurrentHealth returns the current health of the CustomComponentNode.
 //
-// The health of a DeclareComponentNode is determined by combining:
+// The health of a CustomComponentNode is determined by combining:
 //
 //  1. Health from the call to Run().
 //  2. Health from the last call to Evaluate().
-//  3. Health reported from the module.
-func (cn *DeclareComponentNode) CurrentHealth() component.Health {
+//  3. Health reported from the custom component.
+func (cn *CustomComponentNode) CurrentHealth() component.Health {
 	cn.healthMut.RLock()
 	defer cn.healthMut.RUnlock()
 	return component.LeastHealthy(cn.runHealth, cn.evalHealth, cn.managed.CurrentHealth())
 }
 
 // TODO implement debugInfo?
-func (cn *DeclareComponentNode) DebugInfo() interface{} {
+func (cn *CustomComponentNode) DebugInfo() interface{} {
 	cn.mut.RLock()
 	defer cn.mut.RUnlock()
 	return nil
@@ -320,7 +320,7 @@ func (cn *DeclareComponentNode) DebugInfo() interface{} {
 
 // setEvalHealth sets the internal health from a call to Evaluate. See Health
 // for information on how overall health is calculated.
-func (cn *DeclareComponentNode) setEvalHealth(t component.HealthType, msg string) {
+func (cn *CustomComponentNode) setEvalHealth(t component.HealthType, msg string) {
 	cn.healthMut.Lock()
 	defer cn.healthMut.Unlock()
 
@@ -333,7 +333,7 @@ func (cn *DeclareComponentNode) setEvalHealth(t component.HealthType, msg string
 
 // setRunHealth sets the internal health from a call to Run. See Health for
 // information on how overall health is calculated.
-func (cn *DeclareComponentNode) setRunHealth(t component.HealthType, msg string) {
+func (cn *CustomComponentNode) setRunHealth(t component.HealthType, msg string) {
 	cn.healthMut.Lock()
 	defer cn.healthMut.Unlock()
 
@@ -344,23 +344,23 @@ func (cn *DeclareComponentNode) setRunHealth(t component.HealthType, msg string)
 	}
 }
 
-// ModuleIDs returns the current list of modules that this component is
+// ModuleIDs returns the current list of custom components that this component is
 // managing.
-func (cn *DeclareComponentNode) ModuleIDs() []string {
+func (cn *CustomComponentNode) ModuleIDs() []string {
 	return cn.moduleController.ModuleIDs()
 }
 
 // BlockName returns the name of the block.
-func (cn *DeclareComponentNode) BlockName() string {
+func (cn *CustomComponentNode) BlockName() string {
 	return cn.componentName
 }
 
 // This node does not manage any component.
-func (cn *DeclareComponentNode) Component() component.Component {
+func (cn *CustomComponentNode) Component() component.Component {
 	return nil
 }
 
 // Registry returns the prometheus registry of the component.
-func (cn *DeclareComponentNode) Registry() *prometheus.Registry {
+func (cn *CustomComponentNode) Registry() *prometheus.Registry {
 	return cn.registry
 }

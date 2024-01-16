@@ -281,11 +281,11 @@ func (f *Flow) Run(ctx context.Context) {
 //
 // The controller will only start running components after Load is called once
 // without any configuration errors.
-func (f *Flow) LoadSource(source *Source, args map[string]any, parentModuleDefinitions map[string]string) error {
+func (f *Flow) LoadSource(source *Source, args map[string]any, parentDeclareContents map[string]string) error {
 	f.loadMut.Lock()
 	defer f.loadMut.Unlock()
 
-	diags := f.loader.Apply(args, source.components, source.configBlocks, source.declares, parentModuleDefinitions)
+	diags := f.loader.Apply(args, source.components, source.configBlocks, source.declares, parentDeclareContents)
 	if !f.loadedOnce.Load() && diags.HasErrors() {
 		// The first call to Load should not run any components if there were
 		// errors in the configuration file.

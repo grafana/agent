@@ -38,15 +38,15 @@ type Loader struct {
 	// also prevents log spamming with errors.
 	backoffConfig backoff.Config
 
-	mut                     sync.RWMutex
-	graph                   *dag.Graph
-	originalGraph           *dag.Graph
-	componentNodes          []ComponentNode
-	serviceNodes            []*ServiceNode
-	importNodes             map[string]*ImportConfigNode
-	declareNodes            map[string]*DeclareNode
-	parentModuleDefinitions map[string]string
-	moduleReferences        map[string][]ModuleReference
+	mut                         sync.RWMutex
+	graph                       *dag.Graph
+	originalGraph               *dag.Graph
+	componentNodes              []ComponentNode
+	serviceNodes                []*ServiceNode
+	importNodes                 map[string]*ImportConfigNode
+	declareNodes                map[string]*DeclareNode
+	parentDeclareContents       map[string]string
+	customComponentDependencies map[string][]CustomComponentDependency
 
 	cache             *valueCache
 	blocks            []*ast.BlockStmt // Most recently loaded blocks, used for writing
@@ -81,16 +81,16 @@ func NewLoader(opts LoaderOptions) *Loader {
 	}
 
 	l := &Loader{
-		log:              log.With(globals.Logger, "controller_id", globals.ControllerID),
-		tracer:           tracing.WrapTracerForLoader(globals.TraceProvider, globals.ControllerID),
-		globals:          globals,
-		services:         services,
-		host:             host,
-		componentReg:     reg,
-		workerPool:       opts.WorkerPool,
-		importNodes:      map[string]*ImportConfigNode{},
-		declareNodes:     map[string]*DeclareNode{},
-		moduleReferences: map[string][]ModuleReference{},
+		log:                         log.With(globals.Logger, "controller_id", globals.ControllerID),
+		tracer:                      tracing.WrapTracerForLoader(globals.TraceProvider, globals.ControllerID),
+		globals:                     globals,
+		services:                    services,
+		host:                        host,
+		componentReg:                reg,
+		workerPool:                  opts.WorkerPool,
+		importNodes:                 map[string]*ImportConfigNode{},
+		declareNodes:                map[string]*DeclareNode{},
+		customComponentDependencies: map[string][]CustomComponentDependency{},
 
 		// This is a reasonable default which should work for most cases. If a component is completely stuck, we would
 		// retry and log an error every 10 seconds, at most.
@@ -126,7 +126,7 @@ func NewLoader(opts LoaderOptions) *Loader {
 // The provided parentContext can be used to provide global variables and
 // functions to components. A child context will be constructed from the parent
 // to expose values of other components.
-func (l *Loader) Apply(args map[string]any, componentBlocks []*ast.BlockStmt, configBlocks []*ast.BlockStmt, declares []*Declare, parentModuleDefinitions map[string]string) diag.Diagnostics {
+func (l *Loader) Apply(args map[string]any, componentBlocks []*ast.BlockStmt, configBlocks []*ast.BlockStmt, declares []*Declare, parentDeclareContents map[string]string) diag.Diagnostics {
 	start := time.Now()
 	l.mut.Lock()
 	defer l.mut.Unlock()
@@ -138,7 +138,7 @@ func (l *Loader) Apply(args map[string]any, componentBlocks []*ast.BlockStmt, co
 	}
 	l.cache.SyncModuleArgs(args)
 
-	l.parentModuleDefinitions = parentModuleDefinitions
+	l.parentDeclareContents = parentDeclareContents
 	newGraph, diags := l.loadNewGraph(args, componentBlocks, configBlocks, declares)
 	if diags.HasErrors() {
 		return diags
@@ -263,8 +263,9 @@ func (l *Loader) Cleanup(stopWorkerPool bool) {
 func (l *Loader) loadNewGraph(args map[string]any, componentBlocks []*ast.BlockStmt, configBlocks []*ast.BlockStmt, declares []*Declare) (dag.Graph, diag.Diagnostics) {
 	var g dag.Graph
 
-	// Reset the module cache before loading a new graph. This step is crucial to ensure that references to outdated modules, not included in the new configuration, are removed.
-	l.moduleReferences = make(map[string][]ModuleReference)
+	// Reset the custom component dependencies cache before loading a new graph.
+	// This step is crucial to ensure that references to outdated declares, not included in the new configuration, are removed.
+	l.customComponentDependencies = make(map[string][]CustomComponentDependency)
 
 	// Split component blocks into blocks for components and services.
 	componentBlocks, serviceBlocks := l.splitComponentBlocks(componentBlocks)
@@ -490,8 +491,8 @@ func (l *Loader) populateComponentNodes(g *dag.Graph, componentBlocks []*ast.Blo
 				continue
 			}
 			firstPart := strings.Split(componentName, ".")[0]
-			if l.shouldAddDeclareComponentNode(firstPart, componentName) {
-				g.Add(NewDeclareComponentNode(l.globals, block, l.getModuleInfo))
+			if l.shouldAddCustomComponentNode(firstPart, componentName) {
+				g.Add(NewCustomComponentNode(l.globals, block, l.getModuleInfo))
 			} else {
 				registration, exists := l.componentReg.Get(componentName)
 				if !exists {
@@ -503,7 +504,7 @@ func (l *Loader) populateComponentNodes(g *dag.Graph, componentBlocks []*ast.Blo
 					})
 					continue
 				}
-				g.Add(NewNativeComponentNode(l.globals, registration, block))
+				g.Add(NewBuiltinComponentNode(l.globals, registration, block))
 			}
 		}
 	}
@@ -511,27 +512,27 @@ func (l *Loader) populateComponentNodes(g *dag.Graph, componentBlocks []*ast.Blo
 	return diags
 }
 
-func (l *Loader) shouldAddDeclareComponentNode(firstPart, componentName string) bool {
+func (l *Loader) shouldAddCustomComponentNode(firstPart, componentName string) bool {
 	_, declareExists := l.declareNodes[firstPart]
 	_, importExists := l.importNodes[firstPart]
-	_, moduleDepExists := l.parentModuleDefinitions[componentName]
+	_, parentDeclareContentExists := l.parentDeclareContents[componentName]
 
-	return declareExists || importExists || moduleDepExists
+	return declareExists || importExists || parentDeclareContentExists
 }
 
-func (l *Loader) wireModuleReferences(g *dag.Graph, dc *DeclareComponentNode, declareNode *DeclareNode) error {
-	var references []ModuleReference
-	if deps, ok := l.moduleReferences[declareNode.label]; ok {
+func (l *Loader) wireModuleReferences(g *dag.Graph, dc *CustomComponentNode, declareNode *DeclareNode) error {
+	var references []CustomComponentDependency
+	if deps, ok := l.customComponentDependencies[declareNode.label]; ok {
 		references = deps
 	} else {
 		var err error
-		references, err = GetModuleReferences(declareNode.Declare(), l.importNodes, l.declareNodes, l.parentModuleDefinitions)
+		references, err = GetCustomComponentDependencies(declareNode.Declare(), l.importNodes, l.declareNodes, l.parentDeclareContents)
 		if err != nil {
 			return err
 		}
-		l.moduleReferences[declareNode.label] = references
+		l.customComponentDependencies[declareNode.label] = references
 	}
-	// Add edges between the DeclareComponentNode and all import nodes that it needs.
+	// Add edges between the CustomComponentNode and all import nodes that it needs.
 	for _, ref := range references {
 		if ref.importNode != nil {
 			g.AddEdge(dag.Edge{From: dc, To: ref.importNode})
@@ -563,8 +564,8 @@ func (l *Loader) wireGraphEdges(g *dag.Graph) diag.Diagnostics {
 		case *DeclareNode:
 			// A DeclareNode has no edge, it only holds a static content.
 			continue
-		case *DeclareComponentNode:
-			err := l.wireDeclareComponentNode(g, n)
+		case *CustomComponentNode:
+			err := l.wireCustomComponentNode(g, n)
 			if err != nil {
 				diags.Add(diag.Diagnostic{
 					Severity: diag.SeverityLevelError,
@@ -587,7 +588,7 @@ func (l *Loader) wireGraphEdges(g *dag.Graph) diag.Diagnostics {
 	return diags
 }
 
-func (l *Loader) wireDeclareComponentNode(g *dag.Graph, dc *DeclareComponentNode) error {
+func (l *Loader) wireCustomComponentNode(g *dag.Graph, dc *CustomComponentNode) error {
 	if declareNode, exists := l.declareNodes[dc.declareLabel]; exists {
 		err := l.wireModuleReferences(g, dc, declareNode)
 		if err != nil {
@@ -808,11 +809,11 @@ func (l *Loader) postEvaluate(logger log.Logger, bn BlockNode, err error) error 
 	return nil
 }
 
-func (l *Loader) getModuleInfo(componentName string, importLabel string, declareLabel string) (ModuleInfo, error) {
+func (l *Loader) getModuleInfo(componentName string, importLabel string, declareLabel string) (CustomComponentConfig, error) {
 	if importLabel == "" {
-		return getLocalModuleInfo(l.declareNodes, l.moduleReferences, l.parentModuleDefinitions, componentName, declareLabel)
+		return getLocalCustomComponentConfig(l.declareNodes, l.customComponentDependencies, l.parentDeclareContents, componentName, declareLabel)
 	}
-	return getImportedModuleInfo(l.importNodes, l.parentModuleDefinitions, componentName, declareLabel, importLabel)
+	return getImportedCustomComponentConfig(l.importNodes, l.parentDeclareContents, componentName, declareLabel, importLabel)
 }
 
 func multierrToDiags(errors error) diag.Diagnostics {

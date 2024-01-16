@@ -16,7 +16,7 @@ type testCase struct {
 	expected int
 }
 
-func TestDeclareComponent(t *testing.T) {
+func TestDeclare(t *testing.T) {
 	tt := []testCase{
 		{
 			name: "BasicDeclare",

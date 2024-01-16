@@ -9,7 +9,7 @@ import (
 )
 
 func TestEnqueueDequeue(t *testing.T) {
-	tn := &NativeComponentNode{}
+	tn := &BuiltinComponentNode{}
 	q := NewQueue()
 	q.Enqueue(tn)
 	require.Lenf(t, q.queuedSet, 1, "queue should be 1")
@@ -26,7 +26,7 @@ func TestDequeue_Empty(t *testing.T) {
 }
 
 func TestDequeue_InOrder(t *testing.T) {
-	c1, c2, c3 := &NativeComponentNode{}, &NativeComponentNode{}, &NativeComponentNode{}
+	c1, c2, c3 := &BuiltinComponentNode{}, &BuiltinComponentNode{}, &BuiltinComponentNode{}
 	q := NewQueue()
 	q.Enqueue(c1)
 	q.Enqueue(c2)
@@ -41,7 +41,7 @@ func TestDequeue_InOrder(t *testing.T) {
 }
 
 func TestDequeue_NoDuplicates(t *testing.T) {
-	c1, c2 := &NativeComponentNode{}, &NativeComponentNode{}
+	c1, c2 := &BuiltinComponentNode{}, &BuiltinComponentNode{}
 	q := NewQueue()
 	q.Enqueue(c1)
 	q.Enqueue(c1)
@@ -58,7 +58,7 @@ func TestDequeue_NoDuplicates(t *testing.T) {
 }
 
 func TestEnqueue_ChannelNotification(t *testing.T) {
-	c1 := &NativeComponentNode{}
+	c1 := &BuiltinComponentNode{}
 	q := NewQueue()
 
 	notificationsCount := atomic.Int32{}
