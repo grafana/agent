@@ -14,6 +14,9 @@ Unreleased
 
 - Add `kubectl.kubernetes.io/default-container: grafana-agent` annotation to allow various tools to choose `grafana-agent` container as default target (@aerfio)
 
+- Add support for topology spread constraints in helm chart. (@etiennep)
+
+
 0.31.0 (2024-01-10)
 -------------------
 
