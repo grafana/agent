@@ -71,7 +71,7 @@ This topic describes how to:
 
    ![Select agent from dropdown](../../../assets/tasks/select-pyro.png)
 
-7. Select any cpu or metric you want to view.
+7. Select any CPU or metric you want to view.
 
    ![Agent CPU](../../../assets/tasks/normal-pyro.png)
 
