@@ -48,7 +48,7 @@ type ImportConfigNode struct {
 
 var _ NodeWithDependants = (*ImportConfigNode)(nil)
 var _ RunnableNode = (*ImportConfigNode)(nil)
-var _ ComponentNode = (*ImportConfigNode)(nil)
+var _ NodeWithComponent = (*ImportConfigNode)(nil)
 
 // NewImportConfigNode creates a new ImportConfigNode from an initial ast.BlockStmt.
 // The underlying config isn't applied until Evaluate is called.
@@ -406,4 +406,9 @@ func (cn *ImportConfigNode) ModuleIDs() []string {
 // BlockName returns the name of the block.
 func (cn *ImportConfigNode) BlockName() string {
 	return cn.componentName
+}
+
+// Registry returns the prometheus registry of the component.
+func (cn *ImportConfigNode) Registry() *prometheus.Registry {
+	return cn.registry
 }

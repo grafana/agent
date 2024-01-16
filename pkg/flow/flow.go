@@ -245,12 +245,11 @@ func (f *Flow) Run(ctx context.Context) {
 			level.Info(f.log).Log("msg", "scheduling loaded components and services")
 
 			var (
-				components        = f.loader.Components()
-				services          = f.loader.Services()
-				imports           = f.loader.Imports()
-				declareComponents = f.loader.DeclareComponents()
+				components = f.loader.Components()
+				services   = f.loader.Services()
+				imports    = f.loader.Imports()
 
-				runnables = make([]controller.RunnableNode, 0, len(components)+len(services)+len(imports)+len(declareComponents))
+				runnables = make([]controller.RunnableNode, 0, len(components)+len(services)+len(imports))
 			)
 			for _, c := range components {
 				runnables = append(runnables, c)
@@ -258,10 +257,6 @@ func (f *Flow) Run(ctx context.Context) {
 
 			for _, i := range imports {
 				runnables = append(runnables, i)
-			}
-
-			for _, d := range declareComponents {
-				runnables = append(runnables, d)
 			}
 
 			// Only the root controller should run services, since modules share the

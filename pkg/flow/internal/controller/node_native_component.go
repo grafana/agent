@@ -460,3 +460,8 @@ func (cn *NativeComponentNode) ModuleIDs() []string {
 func (cn *NativeComponentNode) BlockName() string {
 	return cn.componentName
 }
+
+// Registry returns the prometheus registry of the component.
+func (cn *NativeComponentNode) Registry() *prometheus.Registry {
+	return cn.registry
+}

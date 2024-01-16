@@ -163,7 +163,7 @@ func (cn *DeclareComponentNode) Label() string { return cn.label }
 func (cn *DeclareComponentNode) NodeID() string { return cn.nodeID }
 
 // UpdateBlock updates the River block used to construct arguments for the
-// managed module. The new block isn't used until the next time Evaluate is
+// managed component. The new block isn't used until the next time Evaluate is
 // invoked.
 //
 // UpdateBlock will panic if the block does not match the component ID of the
@@ -358,4 +358,9 @@ func (cn *DeclareComponentNode) BlockName() string {
 // This node does not manage any component.
 func (cn *DeclareComponentNode) Component() component.Component {
 	return nil
+}
+
+// Registry returns the prometheus registry of the component.
+func (cn *DeclareComponentNode) Registry() *prometheus.Registry {
+	return cn.registry
 }

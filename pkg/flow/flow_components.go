@@ -29,7 +29,7 @@ func (f *Flow) GetComponent(id component.ID, opts component.InfoOptions) (*compo
 		return nil, component.ErrComponentNotFound
 	}
 
-	cn, ok := node.(controller.ComponentNode)
+	cn, ok := node.(controller.NodeWithComponent)
 	if !ok {
 		return nil, fmt.Errorf("%q is not a ComponentNode", id)
 	}
@@ -52,26 +52,22 @@ func (f *Flow) ListComponents(moduleID string, opts component.InfoOptions) ([]*c
 	}
 
 	var (
-		components        = f.loader.Components()
-		imports           = f.loader.Imports()
-		declareComponents = f.loader.DeclareComponents()
-		graph             = f.loader.OriginalGraph()
+		components = f.loader.Components()
+		imports    = f.loader.Imports()
+		graph      = f.loader.OriginalGraph()
 	)
 
-	detail := make([]*component.Info, 0, len(components)+len(imports)+len(declareComponents))
+	detail := make([]*component.Info, 0, len(components)+len(imports))
 	for _, component := range components {
 		detail = append(detail, f.getComponentDetail(component, graph, opts))
 	}
 	for _, importNode := range imports {
 		detail = append(detail, f.getComponentDetail(importNode, graph, opts))
 	}
-	for _, declareComponent := range declareComponents {
-		detail = append(detail, f.getComponentDetail(declareComponent, graph, opts))
-	}
 	return detail, nil
 }
 
-func (f *Flow) getComponentDetail(cn controller.ComponentNode, graph *dag.Graph, opts component.InfoOptions) *component.Info {
+func (f *Flow) getComponentDetail(cn controller.NodeWithComponent, graph *dag.Graph, opts component.InfoOptions) *component.Info {
 	var references, referencedBy []string
 
 	// Skip over any edge which isn't between two component nodes. This is a
@@ -83,12 +79,12 @@ func (f *Flow) getComponentDetail(cn controller.ComponentNode, graph *dag.Graph,
 	//
 	// TODO(rfratto): add support for config block nodes in the API and UI.
 	for _, dep := range graph.Dependencies(cn) {
-		if _, ok := dep.(controller.ComponentNode); ok {
+		if _, ok := dep.(controller.NodeWithComponent); ok {
 			references = append(references, dep.NodeID())
 		}
 	}
 	for _, dep := range graph.Dependants(cn) {
-		if _, ok := dep.(controller.ComponentNode); ok {
+		if _, ok := dep.(controller.NodeWithComponent); ok {
 			referencedBy = append(referencedBy, dep.NodeID())
 		}
 	}

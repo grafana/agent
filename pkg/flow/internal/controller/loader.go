@@ -41,9 +41,8 @@ type Loader struct {
 	mut                     sync.RWMutex
 	graph                   *dag.Graph
 	originalGraph           *dag.Graph
-	componentNodes          []*NativeComponentNode
+	componentNodes          []ComponentNode
 	serviceNodes            []*ServiceNode
-	declareComponentNodes   []*DeclareComponentNode
 	importNodes             map[string]*ImportConfigNode
 	declareNodes            map[string]*DeclareNode
 	parentModuleDefinitions map[string]string
@@ -146,10 +145,9 @@ func (l *Loader) Apply(args map[string]any, componentBlocks []*ast.BlockStmt, co
 	}
 
 	var (
-		components            = make([]*NativeComponentNode, 0, len(componentBlocks))
-		componentIDs          = make([]ComponentID, 0, len(componentBlocks))
-		services              = make([]*ServiceNode, 0, len(l.services))
-		declareComponentNodes = make([]*DeclareComponentNode, 0, len(l.declareComponentNodes))
+		components   = make([]ComponentNode, 0)
+		componentIDs = make([]ComponentID, 0, len(componentBlocks))
+		services     = make([]*ServiceNode, 0, len(l.services))
 	)
 
 	tracer := l.tracer.Tracer("")
@@ -180,7 +178,7 @@ func (l *Loader) Apply(args map[string]any, componentBlocks []*ast.BlockStmt, co
 		var err error
 
 		switch n := n.(type) {
-		case *NativeComponentNode:
+		case ComponentNode:
 			components = append(components, n)
 			componentIDs = append(componentIDs, n.ID())
 
@@ -213,22 +211,6 @@ func (l *Loader) Apply(args map[string]any, componentBlocks []*ast.BlockStmt, co
 					})
 				}
 			}
-		case *DeclareComponentNode:
-			declareComponentNodes = append(declareComponentNodes, n)
-			componentIDs = append(componentIDs, n.ID())
-			if err = l.evaluate(logger, n); err != nil {
-				var evalDiags diag.Diagnostics
-				if errors.As(err, &evalDiags) {
-					diags = append(diags, evalDiags...)
-				} else {
-					diags.Add(diag.Diagnostic{
-						Severity: diag.SeverityLevelError,
-						Message:  fmt.Sprintf("Failed to build declared component: %s", err),
-						StartPos: ast.StartPos(n.Block()).Position(),
-						EndPos:   ast.EndPos(n.Block()).Position(),
-					})
-				}
-			}
 		case BlockNode:
 			if err = l.evaluate(logger, n); err != nil {
 				diags.Add(diag.Diagnostic{
@@ -253,7 +235,6 @@ func (l *Loader) Apply(args map[string]any, componentBlocks []*ast.BlockStmt, co
 		return nil
 	})
 
-	l.declareComponentNodes = declareComponentNodes
 	l.componentNodes = components
 	l.serviceNodes = services
 	l.graph = &newGraph
@@ -490,14 +471,10 @@ func (l *Loader) populateComponentNodes(g *dag.Graph, componentBlocks []*ast.Blo
 		}
 		blockMap[id] = block
 
-		// Check the graph from the previous call to Load to see we can copy an
-		// existing instance of NativeComponentNode and DeclareComponentNode.
+		// Check the graph from the previous call to Load to see we can copy an existing instance of ComponentNode.
 		if exist := l.graph.GetByID(id); exist != nil {
 			switch v := exist.(type) {
-			case *NativeComponentNode:
-				v.UpdateBlock(block)
-				g.Add(v)
-			case *DeclareComponentNode:
+			case ComponentNode:
 				v.UpdateBlock(block)
 				g.Add(v)
 			}
@@ -629,16 +606,10 @@ func (l *Loader) Variables() map[string]interface{} {
 }
 
 // Components returns the current set of loaded components.
-func (l *Loader) Components() []*NativeComponentNode {
+func (l *Loader) Components() []ComponentNode {
 	l.mut.RLock()
 	defer l.mut.RUnlock()
 	return l.componentNodes
-}
-
-func (l *Loader) DeclareComponents() []*DeclareComponentNode {
-	l.mut.RLock()
-	defer l.mut.RUnlock()
-	return l.declareComponentNodes
 }
 
 // Services returns the current set of service nodes.
@@ -813,12 +784,9 @@ func (l *Loader) evaluate(logger log.Logger, bn BlockNode) error {
 // mut must be held when calling postEvaluate.
 func (l *Loader) postEvaluate(logger log.Logger, bn BlockNode, err error) error {
 	switch c := bn.(type) {
-	case *NativeComponentNode:
+	case ComponentNode:
 		// Always update the cache both the arguments and exports, since both might
 		// change when a component gets re-evaluated. We also want to cache the arguments and exports in case of an error
-		l.cache.CacheArguments(c.ID(), c.Arguments())
-		l.cache.CacheExports(c.ID(), c.Exports())
-	case *DeclareComponentNode:
 		l.cache.CacheArguments(c.ID(), c.Arguments())
 		l.cache.CacheExports(c.ID(), c.Exports())
 	case *ArgumentConfigNode:
