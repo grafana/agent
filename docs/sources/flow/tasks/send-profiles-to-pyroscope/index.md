@@ -61,7 +61,7 @@ This topic describes how to:
     
    ```
 
-   The above configuration will scrape the `localhost:12345/-/pprof` endpoint for cpu and memory evey 60 seconds and send those profiles to the Pyroscope server that was setup earlier. The `localhost:12345` endpoint is the default host and port for {{< param "PRODUCT_NAME" >}}.
+   This configuration will scrape the `localhost:12345/-/pprof` endpoint for CPU and memory data every 60 seconds and send those profiles to the Pyroscope server. The `localhost:12345` endpoint is the default host and port for {{< param "PRODUCT_NAME" >}}.
 
 4. Run {{< param "PRODUCT_NAME" >}} with `AGENT_MODE=flow ./grafana-agent-linux-amd64 run ./agent.river`. The exact executable name will change depending on the platform. Wait 2 minutes, this will give time for startup and a scrape to occur.
 
