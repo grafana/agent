@@ -77,6 +77,8 @@ Main (unreleased)
 
 - Updated dependency to add support for Go 1.22 (@stefanb)
 
+- Use Go 1.22.0 for builds. (@hainenber)
+
 v0.39.2 (2024-1-31)
 --------------------
 
