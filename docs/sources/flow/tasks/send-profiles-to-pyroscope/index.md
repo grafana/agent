@@ -23,8 +23,7 @@ This topic describes how to:
 
 ## Before you begin
 
-* Download {{< param "PRODUCT_NAME" >}}.
-* Install [docker][] if it is not already installed.
+* Install [docker][].
 
 ## Steps
 
