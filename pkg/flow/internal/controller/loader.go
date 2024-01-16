@@ -492,7 +492,7 @@ func (l *Loader) populateComponentNodes(g *dag.Graph, componentBlocks []*ast.Blo
 			}
 			firstPart := strings.Split(componentName, ".")[0]
 			if l.shouldAddCustomComponentNode(firstPart, componentName) {
-				g.Add(NewCustomComponentNode(l.globals, block, l.getModuleInfo))
+				g.Add(NewCustomComponentNode(l.globals, block, l.getCustomComponentConfig))
 			} else {
 				registration, exists := l.componentReg.Get(componentName)
 				if !exists {
@@ -520,22 +520,22 @@ func (l *Loader) shouldAddCustomComponentNode(firstPart, componentName string) b
 	return declareExists || importExists || parentDeclareContentExists
 }
 
-func (l *Loader) wireModuleReferences(g *dag.Graph, dc *CustomComponentNode, declareNode *DeclareNode) error {
-	var references []CustomComponentDependency
+func (l *Loader) wireCustomComponentDependencies(g *dag.Graph, dc *CustomComponentNode, declareNode *DeclareNode) error {
+	var dependencies []CustomComponentDependency
 	if deps, ok := l.customComponentDependencies[declareNode.label]; ok {
-		references = deps
+		dependencies = deps
 	} else {
 		var err error
-		references, err = GetCustomComponentDependencies(declareNode.Declare(), l.importNodes, l.declareNodes, l.parentDeclareContents)
+		dependencies, err = GetCustomComponentDependencies(declareNode.Declare(), l.importNodes, l.declareNodes, l.parentDeclareContents)
 		if err != nil {
 			return err
 		}
-		l.customComponentDependencies[declareNode.label] = references
+		l.customComponentDependencies[declareNode.label] = dependencies
 	}
 	// Add edges between the CustomComponentNode and all import nodes that it needs.
-	for _, ref := range references {
-		if ref.importNode != nil {
-			g.AddEdge(dag.Edge{From: dc, To: ref.importNode})
+	for _, dependency := range dependencies {
+		if dependency.importNode != nil {
+			g.AddEdge(dag.Edge{From: dc, To: dependency.importNode})
 		}
 	}
 	return nil
@@ -590,7 +590,7 @@ func (l *Loader) wireGraphEdges(g *dag.Graph) diag.Diagnostics {
 
 func (l *Loader) wireCustomComponentNode(g *dag.Graph, dc *CustomComponentNode) error {
 	if declareNode, exists := l.declareNodes[dc.declareLabel]; exists {
-		err := l.wireModuleReferences(g, dc, declareNode)
+		err := l.wireCustomComponentDependencies(g, dc, declareNode)
 		if err != nil {
 			return err
 		}
@@ -809,7 +809,7 @@ func (l *Loader) postEvaluate(logger log.Logger, bn BlockNode, err error) error 
 	return nil
 }
 
-func (l *Loader) getModuleInfo(componentName string, importLabel string, declareLabel string) (CustomComponentConfig, error) {
+func (l *Loader) getCustomComponentConfig(componentName string, importLabel string, declareLabel string) (CustomComponentConfig, error) {
 	if importLabel == "" {
 		return getLocalCustomComponentConfig(l.declareNodes, l.customComponentDependencies, l.parentDeclareContents, componentName, declareLabel)
 	}

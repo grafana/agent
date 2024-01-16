@@ -38,8 +38,8 @@ type CustomComponentNode struct {
 	moduleController           ModuleController
 	OnNodeWithDependantsUpdate func(cn NodeWithDependants) // Informs controller that we need to reevaluate
 
-	GetModuleInfo  func(fullName string, importLabel string, declareLabel string) (CustomComponentConfig, error) // Retrieve the module config.
-	lastUpdateTime atomic.Time
+	GetCustomComponentConfig func(fullName string, importLabel string, declareLabel string) (CustomComponentConfig, error) // Retrieve the custom component config.
+	lastUpdateTime           atomic.Time
 
 	mut     sync.RWMutex
 	block   *ast.BlockStmt // Current River block to derive args from
@@ -81,7 +81,7 @@ var _ ComponentNode = (*CustomComponentNode)(nil)
 
 // NewCustomComponentNode creates a new CustomComponentNode from an initial ast.BlockStmt.
 // The underlying managed custom component isn't created until Evaluate is called.
-func NewCustomComponentNode(globals ComponentGlobals, b *ast.BlockStmt, GetModuleInfo func(string, string, string) (CustomComponentConfig, error)) *CustomComponentNode {
+func NewCustomComponentNode(globals ComponentGlobals, b *ast.BlockStmt, GetCustomComponentConfig func(string, string, string) (CustomComponentConfig, error)) *CustomComponentNode {
 	var (
 		id     = BlockComponentID(b)
 		nodeID = id.String()
@@ -117,7 +117,7 @@ func NewCustomComponentNode(globals ComponentGlobals, b *ast.BlockStmt, GetModul
 		declareLabel:               declareLabel,
 		moduleController:           globals.NewModuleController(globalID),
 		OnNodeWithDependantsUpdate: globals.OnNodeWithDependantsUpdate,
-		GetModuleInfo:              GetModuleInfo,
+		GetCustomComponentConfig:   GetCustomComponentConfig,
 
 		block: b,
 		eval:  vm.New(b.Body),
@@ -216,13 +216,13 @@ func (cn *CustomComponentNode) evaluate(scope *vm.Scope) error {
 		cn.managed = managed
 	}
 
-	moduleInfo, err := cn.GetModuleInfo(cn.componentName, cn.importLabel, cn.declareLabel)
+	customComponentConfig, err := cn.GetCustomComponentConfig(cn.componentName, cn.importLabel, cn.declareLabel)
 	if err != nil {
 		return fmt.Errorf("retrieving custom component info: %w", err)
 	}
 
 	// Reload the custom component with new config
-	if err := cn.managed.LoadFlowSource(args, moduleInfo.declareContent, moduleInfo.additionalDeclareContents); err != nil {
+	if err := cn.managed.LoadFlowSource(args, customComponentConfig.declareContent, customComponentConfig.additionalDeclareContents); err != nil {
 		return fmt.Errorf("updating component: %w", err)
 	}
 	return nil
