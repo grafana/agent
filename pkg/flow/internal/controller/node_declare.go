@@ -1,8 +1,6 @@
 package controller
 
 import (
-	"sync"
-
 	"github.com/grafana/river/ast"
 	"github.com/grafana/river/vm"
 )
@@ -11,8 +9,8 @@ type DeclareNode struct {
 	label         string
 	nodeID        string
 	componentName string
-	declare       *Declare
-	mut           sync.RWMutex
+	// A declare content is static, it does not change during the lifetime of the node.
+	declare *Declare
 }
 
 var _ BlockNode = (*DeclareNode)(nil)
@@ -28,8 +26,6 @@ func NewDeclareNode(declare *Declare) *DeclareNode {
 }
 
 func (cn *DeclareNode) Declare() *Declare {
-	cn.mut.Lock()
-	defer cn.mut.Unlock()
 	return cn.declare
 }
 
@@ -42,8 +38,6 @@ func (cn *DeclareNode) Label() string { return cn.label }
 
 // Block implements BlockNode and returns the current block of the managed config node.
 func (cn *DeclareNode) Block() *ast.BlockStmt {
-	cn.mut.RLock()
-	defer cn.mut.RUnlock()
 	return cn.declare.block
 }
 
