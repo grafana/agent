@@ -50,6 +50,7 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/grafana/agent/pkg/flow/config"
 	"github.com/grafana/agent/pkg/flow/internal/controller"
 	"github.com/grafana/agent/pkg/flow/internal/worker"
 	"github.com/grafana/agent/pkg/flow/logging"
@@ -281,11 +282,15 @@ func (f *Flow) Run(ctx context.Context) {
 //
 // The controller will only start running components after Load is called once
 // without any configuration errors.
-func (f *Flow) LoadSource(source *Source, args map[string]any, parentDeclareContents map[string]string) error {
+func (f *Flow) LoadSource(source *Source, args map[string]any) error {
+	return f.loadSource(source, args, config.DefaultLoaderConfigOptions())
+}
+
+func (f *Flow) loadSource(source *Source, args map[string]any, options config.LoaderConfigOptions) error {
 	f.loadMut.Lock()
 	defer f.loadMut.Unlock()
 
-	diags := f.loader.Apply(args, source.components, source.configBlocks, source.declares, parentDeclareContents)
+	diags := f.loader.Apply(args, source.components, source.configBlocks, source.declares, options)
 	if !f.loadedOnce.Load() && diags.HasErrors() {
 		// The first call to Load should not run any components if there were
 		// errors in the configuration file.

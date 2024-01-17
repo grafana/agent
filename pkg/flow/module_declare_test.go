@@ -204,7 +204,7 @@ func TestDeclare(t *testing.T) {
 			require.NoError(t, err)
 			require.NotNil(t, f)
 
-			err = ctrl.LoadSource(f, nil, nil)
+			err = ctrl.LoadSource(f, nil)
 			require.NoError(t, err)
 
 			ctx, cancel := context.WithCancel(context.Background())

@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/pkg/flow/config"
 	"github.com/grafana/agent/pkg/flow/logging/level"
 )
 
@@ -16,11 +17,11 @@ type ModuleComponent struct {
 	opts component.Options
 	mod  component.Module
 
-	mut                         sync.RWMutex
-	health                      component.Health
-	latestContent               string
-	latestArgs                  map[string]any
-	latestParentDeclareContents map[string]string
+	mut                       sync.RWMutex
+	health                    component.Health
+	latestContent             string
+	latestArgs                map[string]any
+	latestLoaderConfigOptions config.LoaderConfigOptions
 }
 
 // Exports holds values which are exported from the run module.
@@ -36,7 +37,8 @@ var _ component.Component = (*ModuleComponent)(nil)
 // Compared to the previous constructor, the export is simply map[string]any instead of the Exports type containing the map.
 func NewModuleComponentV2(o component.Options) (*ModuleComponent, error) {
 	c := &ModuleComponent{
-		opts: o,
+		opts:                      o,
+		latestLoaderConfigOptions: config.DefaultLoaderConfigOptions(),
 	}
 	var err error
 	c.mod, err = o.ModuleController.NewModule("", func(exports map[string]any) {
@@ -48,7 +50,8 @@ func NewModuleComponentV2(o component.Options) (*ModuleComponent, error) {
 // Deprecated: Use NewModuleComponentV2 instead.
 func NewModuleComponent(o component.Options) (*ModuleComponent, error) {
 	c := &ModuleComponent{
-		opts: o,
+		opts:                      o,
+		latestLoaderConfigOptions: config.DefaultLoaderConfigOptions(),
 	}
 	var err error
 	c.mod, err = o.ModuleController.NewModule("", func(exports map[string]any) {
@@ -60,12 +63,12 @@ func NewModuleComponent(o component.Options) (*ModuleComponent, error) {
 // LoadFlowSource loads the flow controller with the current component source.
 // It will set the component health in addition to return the error so that the consumer can rely on either or both.
 // If the content is the same as the last time it was successfully loaded, it will not be reloaded.
-func (c *ModuleComponent) LoadFlowSource(args map[string]any, contentValue string, parentDeclareContents map[string]string) error {
-	if reflect.DeepEqual(args, c.getLatestArgs()) && contentValue == c.getLatestContent() && reflect.DeepEqual(args, c.getLatestParentDeclareContents()) {
+func (c *ModuleComponent) LoadFlowSource(args map[string]any, contentValue string, options config.LoaderConfigOptions) error {
+	if reflect.DeepEqual(args, c.getLatestArgs()) && contentValue == c.getLatestContent() && reflect.DeepEqual(options, c.getLatestLoaderConfigOptions()) {
 		return nil
 	}
 
-	err := c.mod.LoadConfig([]byte(contentValue), args, parentDeclareContents)
+	err := c.mod.LoadConfig([]byte(contentValue), args, options)
 	if err != nil {
 		c.setHealth(component.Health{
 			Health:     component.HealthTypeUnhealthy,
@@ -78,7 +81,7 @@ func (c *ModuleComponent) LoadFlowSource(args map[string]any, contentValue strin
 
 	c.setLatestArgs(args)
 	c.setLatestContent(contentValue)
-	c.setLatestParentDeclareContents(parentDeclareContents)
+	c.setLatestLoaderConfigOptions(options)
 	c.setHealth(component.Health{
 		Health:     component.HealthTypeHealthy,
 		Message:    "module content loaded",
@@ -133,16 +136,16 @@ func (c *ModuleComponent) getLatestContent() string {
 	return c.latestContent
 }
 
-func (c *ModuleComponent) setLatestParentDeclareContents(parentDeclareContents map[string]string) {
+func (c *ModuleComponent) setLatestLoaderConfigOptions(options config.LoaderConfigOptions) {
 	c.mut.Lock()
 	defer c.mut.Unlock()
-	c.latestParentDeclareContents = parentDeclareContents
+	c.latestLoaderConfigOptions = options
 }
 
-func (c *ModuleComponent) getLatestParentDeclareContents() map[string]string {
+func (c *ModuleComponent) getLatestLoaderConfigOptions() config.LoaderConfigOptions {
 	c.mut.RLock()
 	defer c.mut.RUnlock()
-	return c.latestParentDeclareContents
+	return c.latestLoaderConfigOptions
 }
 
 func (c *ModuleComponent) setLatestArgs(args map[string]any) {

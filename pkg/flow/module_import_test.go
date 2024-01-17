@@ -629,7 +629,7 @@ func TestImportModule(t *testing.T) {
 			require.NoError(t, err)
 			require.NotNil(t, f)
 
-			err = ctrl.LoadSource(f, nil, nil)
+			err = ctrl.LoadSource(f, nil)
 			require.NoError(t, err)
 
 			ctx, cancel := context.WithCancel(context.Background())
@@ -734,7 +734,7 @@ func TestImportModuleError(t *testing.T) {
 			require.NoError(t, err)
 			require.NotNil(t, f)
 
-			err = ctrl.LoadSource(f, nil, nil)
+			err = ctrl.LoadSource(f, nil)
 			require.ErrorContains(t, err, tc.expectedError)
 		})
 	}

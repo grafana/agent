@@ -14,7 +14,7 @@ type ComponentNodeManager struct {
 	globals                     ComponentGlobals
 	componentReg                ComponentRegistry
 	customComponentDependencies map[string][]CustomComponentDependency
-	parentDeclareContents       map[string]string
+	additionalDeclareContents   map[string]string
 }
 
 // NewComponentNodeManager creates a new ComponentNodeManager.
@@ -29,8 +29,8 @@ func NewComponentNodeManager(globals ComponentGlobals, componentReg ComponentReg
 }
 
 // OnReload resets the state of the component node manager.
-func (m *ComponentNodeManager) OnReload(parentDeclareContents map[string]string) {
-	m.parentDeclareContents = parentDeclareContents
+func (m *ComponentNodeManager) OnReload(additionalDeclareContents map[string]string) {
+	m.additionalDeclareContents = additionalDeclareContents
 	m.customComponentDependencies = make(map[string][]CustomComponentDependency)
 	m.importNodes = map[string]*ImportConfigNode{}
 	m.declareNodes = map[string]*DeclareNode{}
@@ -70,9 +70,9 @@ func (m *ComponentNodeManager) getCustomComponentDependencies(declareNode *Decla
 func (m *ComponentNodeManager) shouldAddCustomComponentNode(firstPart, componentName string) bool {
 	_, declareExists := m.declareNodes[firstPart]
 	_, importExists := m.importNodes[firstPart]
-	_, parentDeclareContentExists := m.parentDeclareContents[componentName]
+	_, additionalDeclareContentExists := m.additionalDeclareContents[componentName]
 
-	return declareExists || importExists || parentDeclareContentExists
+	return declareExists || importExists || additionalDeclareContentExists
 }
 
 func (m *ComponentNodeManager) GetCorrespondingLocalDeclare(cc *CustomComponentNode) (*DeclareNode, bool) {
@@ -108,7 +108,7 @@ func (m *ComponentNodeManager) getCustomComponentConfig(cc *CustomComponentNode)
 		}
 		if !found {
 			customComponentConfig, found = m.getCustomComponentConfigFromParent(cc)
-			customComponentConfig.additionalDeclareContents = filterParentDeclareContents(cc.importLabel, customComponentConfig.additionalDeclareContents)
+			customComponentConfig.additionalDeclareContents = filterAdditionalDeclareContents(cc.importLabel, customComponentConfig.additionalDeclareContents)
 		}
 	}
 	if !found {
@@ -131,13 +131,13 @@ func (m *ComponentNodeManager) getCustomComponentConfigFromLocalDeclares(cc *Cus
 
 // getCustomComponentConfigFromParent retrieves the config of a custom component from the parent controller.
 func (m *ComponentNodeManager) getCustomComponentConfigFromParent(cc *CustomComponentNode) (CustomComponentConfig, bool) {
-	declareContent, exists := m.parentDeclareContents[cc.componentName]
+	declareContent, exists := m.additionalDeclareContents[cc.componentName]
 	if !exists {
 		return CustomComponentConfig{}, false
 	}
 	return CustomComponentConfig{
 		declareContent:            declareContent,
-		additionalDeclareContents: m.parentDeclareContents,
+		additionalDeclareContents: m.additionalDeclareContents,
 	}, true
 }
 
@@ -180,22 +180,22 @@ func (m *ComponentNodeManager) getLocalAdditionalDeclareContents(componentName s
 		} else if customComponentDependency.declareNode != nil {
 			additionalDeclareContents[customComponentDependency.declareLabel] = customComponentDependency.declareNode.Declare().Content
 		} else {
-			additionalDeclareContents[customComponentDependency.componentName] = m.parentDeclareContents[customComponentDependency.componentName]
+			additionalDeclareContents[customComponentDependency.componentName] = m.additionalDeclareContents[customComponentDependency.componentName]
 		}
 	}
 	return additionalDeclareContents
 }
 
-// filterParentDeclareContents prevents custom components from accessing declared content out of their scope.
-func filterParentDeclareContents(importLabel string, parentDeclareContents map[string]string) map[string]string {
-	filteredParentDeclareContents := make(map[string]string)
-	for declareLabel, declareContent := range parentDeclareContents {
+// filterAdditionalDeclareContents prevents custom components from accessing declared content out of their scope.
+func filterAdditionalDeclareContents(importLabel string, additionalDeclareContents map[string]string) map[string]string {
+	filteredAdditionalDeclareContents := make(map[string]string)
+	for declareLabel, declareContent := range additionalDeclareContents {
 		// The scope is defined by the importLabel prefix in the declareLabel of the declare block.
 		if strings.HasPrefix(declareLabel, importLabel) {
-			filteredParentDeclareContents[strings.TrimPrefix(declareLabel, importLabel+".")] = declareContent
+			filteredAdditionalDeclareContents[strings.TrimPrefix(declareLabel, importLabel+".")] = declareContent
 		}
 	}
-	return filteredParentDeclareContents
+	return filteredAdditionalDeclareContents
 }
 
 // CustomComponentDependency represents a dependency that a custom component has to a declare block.
@@ -235,7 +235,7 @@ func (m *ComponentNodeManager) findCustomComponentDependencies(stmts ast.Body, u
 					uniqueReferences[componentName] = CustomComponentDependency{componentName: componentName, importLabel: "", declareLabel: potentialDeclareLabel, declareNode: declareNode}
 				} else if importNode, ok := m.importNodes[potentialImportLabel]; ok {
 					uniqueReferences[componentName] = CustomComponentDependency{componentName: componentName, importLabel: potentialImportLabel, declareLabel: potentialDeclareLabel, importNode: importNode}
-				} else if _, ok := m.parentDeclareContents[componentName]; ok {
+				} else if _, ok := m.additionalDeclareContents[componentName]; ok {
 					uniqueReferences[componentName] = CustomComponentDependency{componentName: componentName, importLabel: potentialImportLabel, declareLabel: potentialDeclareLabel}
 				}
 			}

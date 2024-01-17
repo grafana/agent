@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/pkg/flow/config"
 	"github.com/grafana/agent/pkg/flow/internal/worker"
 	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/prometheus/client_golang/prometheus"
@@ -144,7 +145,7 @@ func TestArgsNotInModules(t *testing.T) {
 	defer cleanUpController(f)
 	fl, err := ParseSource("test", []byte("argument \"arg\"{}"))
 	require.NoError(t, err)
-	err = f.LoadSource(fl, nil, nil)
+	err = f.LoadSource(fl, nil)
 	require.ErrorContains(t, err, "argument blocks only allowed inside a module")
 }
 
@@ -154,7 +155,7 @@ func TestExportsNotInModules(t *testing.T) {
 	defer cleanUpController(f)
 	fl, err := ParseSource("test", []byte("export \"arg\"{ value = 1}"))
 	require.NoError(t, err)
-	err = f.LoadSource(fl, nil, nil)
+	err = f.LoadSource(fl, nil)
 	require.ErrorContains(t, err, "export blocks only allowed inside a module")
 }
 
@@ -165,7 +166,7 @@ func TestExportsWhenNotUsed(t *testing.T) {
 	fullContent := "test.module \"t1\" { content = \"" + content + "\" }"
 	fl, err := ParseSource("test", []byte(fullContent))
 	require.NoError(t, err)
-	err = f.LoadSource(fl, nil, nil)
+	err = f.LoadSource(fl, nil)
 	require.NoError(t, err)
 	ctx := context.Background()
 	ctx, cnc := context.WithTimeout(ctx, 1*time.Second)
@@ -296,7 +297,7 @@ func (t *testModule) Run(ctx context.Context) error {
 		return err
 	}
 
-	err = m.LoadConfig([]byte(t.content), t.args, nil)
+	err = m.LoadConfig([]byte(t.content), t.args, config.DefaultLoaderConfigOptions())
 	if err != nil {
 		return err
 	}

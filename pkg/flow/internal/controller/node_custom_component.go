@@ -13,6 +13,7 @@ import (
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/module"
+	"github.com/grafana/agent/pkg/flow/config"
 	"github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/grafana/agent/pkg/flow/tracing"
 	"github.com/grafana/river/ast"
@@ -221,8 +222,12 @@ func (cn *CustomComponentNode) evaluate(scope *vm.Scope) error {
 		return fmt.Errorf("retrieving custom component config: %w", err)
 	}
 
+	loaderConfig := config.LoaderConfigOptions{
+		AdditionalDeclareContents: customComponentConfig.additionalDeclareContents,
+	}
+
 	// Reload the custom component with new config
-	if err := cn.managed.LoadFlowSource(args, customComponentConfig.declareContent, customComponentConfig.additionalDeclareContents); err != nil {
+	if err := cn.managed.LoadFlowSource(args, customComponentConfig.declareContent, loaderConfig); err != nil {
 		return fmt.Errorf("updating component: %w", err)
 	}
 	return nil
