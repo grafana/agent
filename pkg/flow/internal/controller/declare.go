@@ -4,7 +4,9 @@ import "github.com/grafana/river/ast"
 
 // Declare represents the content of a declare block as AST and as plain string.
 type Declare struct {
-	block   *ast.BlockStmt
+	block *ast.BlockStmt
+	// TODO: we would not need this content field if the content of the block was saved in ast.BlockStmt when parsing.
+	// Not only it looks redundant but it allows discrepancies between the block and the content.
 	content string
 }
 
