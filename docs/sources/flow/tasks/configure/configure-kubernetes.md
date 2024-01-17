@@ -21,6 +21,12 @@ weight: 200
 
 To configure {{< param "PRODUCT_NAME" >}} on Kubernetes, perform the following steps:
 
+TODO(thampiotr): The values.yaml is quite dense and may not be suitable for new users. Instead, we should
+turn this into more step-by-step instruction to changing Grafana Agent configuration when helm chart is used. This will 
+put it more in-line with the other docs inside this "configure" section.
+For changing the Helm chart config we can refer to our other task-based docs (to be added in the future) that cover this and to the Helm 
+chart configuration docs for full details.
+
 1. Download a local copy of [values.yaml][] for the Helm chart.
 
 1. Make changes to your copy of `values.yaml` to customize settings for the

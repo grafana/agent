@@ -30,6 +30,12 @@ weight: 200
 
 ## Deploy
 
+TODO(thampiotr): Describe that on Kubernetes we have a choice of deployment controllers: Deployment, StatefulSet, DaemonSet, etc.
+Provide some basic guidelines here what is best for each use-case. Refer to the `deploy-agent.md` doc for more considerations and 
+details on different deployment topologies.
+Then provide here instructions on how to deploy using each deployment controller - this should be quite easy to do with Helm chart changes
+and may fit well on a single page instead of separate page for each deployment controller.
+
 {{% admonition type="note" %}}
 These instructions show you how to install the generic [Helm chart](https://github.com/grafana/agent/tree/main/operations/helm/charts/grafana-agent) for {{< param "PRODUCT_NAME" >}}.
 You can deploy {{< param "PRODUCT_ROOT_NAME" >}} either in static mode or flow mode. The Helm chart deploys {{< param "PRODUCT_NAME" >}} by default.
@@ -50,6 +56,8 @@ To deploy {{< param "PRODUCT_ROOT_NAME" >}} on Kubernetes using Helm, run the fo
    ```
 
 1. Install {{< param "PRODUCT_ROOT_NAME" >}}:
+
+TODO(thampiotr): Update the below command to include a namespace.
 
    ```shell
    helm install <RELEASE_NAME> grafana/grafana-agent
