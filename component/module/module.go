@@ -24,8 +24,7 @@ type ModuleComponent struct {
 	latestLoaderConfigOptions config.LoaderConfigOptions
 }
 
-// Exports holds values which are exported from the run module.
-// This export type is deprecated.
+// Deprecated: Exports holds values which are exported from the run module. New modules use map[string]any directly.
 type Exports struct {
 	// Exports exported from the running module.
 	Exports map[string]any `river:"exports,block"`

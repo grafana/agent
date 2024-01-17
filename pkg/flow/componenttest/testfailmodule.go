@@ -11,8 +11,9 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name:    "test.fail.module",
-		Args:    TestFailArguments{},
+		Name: "test.fail.module",
+		Args: TestFailArguments{},
+		//nolint:staticcheck
 		Exports: mod.Exports{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {

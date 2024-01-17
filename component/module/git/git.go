@@ -19,8 +19,9 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name:    "module.git",
-		Args:    Arguments{},
+		Name: "module.git",
+		Args: Arguments{},
+		//nolint:staticcheck
 		Exports: module.Exports{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {

@@ -15,8 +15,9 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name:    "module.file",
-		Args:    Arguments{},
+		Name: "module.file",
+		Args: Arguments{},
+		//nolint:staticcheck
 		Exports: module.Exports{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
