@@ -38,8 +38,7 @@ func (m *ComponentNodeManager) OnReload(additionalDeclareContents map[string]str
 
 // CreateComponentNode creates a new builtin component or a new custom component.
 func (m *ComponentNodeManager) CreateComponentNode(componentName string, block *ast.BlockStmt) (ComponentNode, error) {
-	firstPart := strings.Split(componentName, ".")[0]
-	if m.shouldAddCustomComponentNode(firstPart, componentName) {
+	if m.isCustomComponent(componentName) {
 		return NewCustomComponentNode(m.globals, block, m.getCustomComponentConfig), nil
 	} else {
 		registration, exists := m.componentReg.Get(componentName)
@@ -66,8 +65,9 @@ func (m *ComponentNodeManager) getCustomComponentDependencies(declareNode *Decla
 	return dependencies, nil
 }
 
-// shouldAddCustomComponentNode searches for a declare corresponding to the given component name.
-func (m *ComponentNodeManager) shouldAddCustomComponentNode(firstPart, componentName string) bool {
+// isCustomComponent searches for a declare corresponding to the given component name.
+func (m *ComponentNodeManager) isCustomComponent(componentName string) bool {
+	firstPart := strings.Split(componentName, ".")[0]
 	_, declareExists := m.declareNodes[firstPart]
 	_, importExists := m.importNodes[firstPart]
 	_, additionalDeclareContentExists := m.additionalDeclareContents[componentName]
