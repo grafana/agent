@@ -16,6 +16,7 @@ func init() {
 		Exports: mod.Exports{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
+			//nolint:staticcheck
 			m, err := mod.NewModuleComponent(opts)
 			if err != nil {
 				return nil, err
