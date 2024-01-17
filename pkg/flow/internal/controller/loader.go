@@ -119,7 +119,7 @@ func NewLoader(opts LoaderOptions) *Loader {
 // The provided parentContext can be used to provide global variables and
 // functions to components. A child context will be constructed from the parent
 // to expose values of other components.
-func (l *Loader) Apply(args map[string]any, componentBlocks []*ast.BlockStmt, configBlocks []*ast.BlockStmt, declares []*Declare, options config.LoaderConfigOptions) diag.Diagnostics {
+func (l *Loader) Apply(args map[string]any, blocks []*ast.BlockStmt, configBlocks []*ast.BlockStmt, declares []*Declare, options config.LoaderConfigOptions) diag.Diagnostics {
 	start := time.Now()
 	l.mut.Lock()
 	defer l.mut.Unlock()
@@ -133,14 +133,14 @@ func (l *Loader) Apply(args map[string]any, componentBlocks []*ast.BlockStmt, co
 
 	// Reload the component node manager when a new config is applied.
 	l.componentNodeManager.OnReload(options.AdditionalDeclareContents)
-	newGraph, diags := l.loadNewGraph(args, componentBlocks, configBlocks, declares)
+	newGraph, diags := l.loadNewGraph(args, blocks, configBlocks, declares)
 	if diags.HasErrors() {
 		return diags
 	}
 
 	var (
 		components   = make([]ComponentNode, 0)
-		componentIDs = make([]ComponentID, 0, len(componentBlocks))
+		componentIDs = make([]ComponentID, 0)
 		services     = make([]*ServiceNode, 0, len(l.services))
 	)
 
@@ -233,7 +233,6 @@ func (l *Loader) Apply(args map[string]any, componentBlocks []*ast.BlockStmt, co
 	l.serviceNodes = services
 	l.graph = &newGraph
 	l.cache.SyncIDs(componentIDs)
-	l.blocks = componentBlocks
 	if l.globals.OnExportsChange != nil && l.cache.ExportChangeIndex() != l.moduleExportIndex {
 		l.moduleExportIndex = l.cache.ExportChangeIndex()
 		l.globals.OnExportsChange(l.cache.CreateModuleExports())
@@ -254,11 +253,11 @@ func (l *Loader) Cleanup(stopWorkerPool bool) {
 }
 
 // loadNewGraph creates a new graph from the provided blocks and validates it.
-func (l *Loader) loadNewGraph(args map[string]any, componentBlocks []*ast.BlockStmt, configBlocks []*ast.BlockStmt, declares []*Declare) (dag.Graph, diag.Diagnostics) {
+func (l *Loader) loadNewGraph(args map[string]any, blocks []*ast.BlockStmt, configBlocks []*ast.BlockStmt, declares []*Declare) (dag.Graph, diag.Diagnostics) {
 	var g dag.Graph
 
-	// Split component blocks into blocks for components and services.
-	componentBlocks, serviceBlocks := l.splitComponentBlocks(componentBlocks)
+	// Split blocks into blocks for components and services.
+	componentBlocks, serviceBlocks := l.categorizeBlocks(blocks)
 
 	// Fill our graph with service blocks, which must be added before any other
 	// block.
@@ -296,7 +295,7 @@ func (l *Loader) loadNewGraph(args map[string]any, componentBlocks []*ast.BlockS
 	return g, diags
 }
 
-func (l *Loader) splitComponentBlocks(blocks []*ast.BlockStmt) (componentBlocks, serviceBlocks []*ast.BlockStmt) {
+func (l *Loader) categorizeBlocks(blocks []*ast.BlockStmt) (componentBlocks, serviceBlocks []*ast.BlockStmt) {
 	componentBlocks = make([]*ast.BlockStmt, 0, len(blocks))
 	serviceBlocks = make([]*ast.BlockStmt, 0, len(l.services))
 

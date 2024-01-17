@@ -18,9 +18,9 @@ type Source struct {
 	sourceMap map[string][]byte // Map that links parsed Flow source's name with its content.
 	hash      [sha256.Size]byte // Hash of all files in sourceMap sorted by name.
 
-	// Components holds the list of raw River AST blocks describing components.
+	// Components holds the list of raw River AST blocks describing components and services.
 	// The Flow controller can interpret them.
-	components   []*ast.BlockStmt
+	blocks       []*ast.BlockStmt
 	configBlocks []*ast.BlockStmt
 	declares     []*controller.Declare
 }
@@ -45,9 +45,9 @@ func ParseSource(name string, bb []byte) (*Source, error) {
 	// TODO(rfratto): should this code be brought into a helper somewhere? Maybe
 	// in ast?
 	var (
-		components []*ast.BlockStmt
-		configs    []*ast.BlockStmt
-		declares   []*controller.Declare
+		blocks   []*ast.BlockStmt
+		configs  []*ast.BlockStmt
+		declares []*controller.Declare
 	)
 
 	for _, stmt := range node.Body {
@@ -68,7 +68,7 @@ func ParseSource(name string, bb []byte) (*Source, error) {
 			case "logging", "tracing", "argument", "export", "import.file", "import.git", "import.http":
 				configs = append(configs, stmt)
 			default:
-				components = append(components, stmt)
+				blocks = append(blocks, stmt)
 			}
 
 		default:
@@ -82,7 +82,7 @@ func ParseSource(name string, bb []byte) (*Source, error) {
 	}
 
 	return &Source{
-		components:   components,
+		blocks:       blocks,
 		configBlocks: configs,
 		declares:     declares,
 		sourceMap:    map[string][]byte{name: bb},
@@ -124,7 +124,7 @@ func ParseSources(sources map[string][]byte) (*Source, error) {
 			return nil, err
 		}
 
-		mergedSource.components = append(mergedSource.components, sourceFragment.components...)
+		mergedSource.blocks = append(mergedSource.blocks, sourceFragment.blocks...)
 		mergedSource.configBlocks = append(mergedSource.configBlocks, sourceFragment.configBlocks...)
 		mergedSource.declares = append(mergedSource.declares, sourceFragment.declares...)
 	}

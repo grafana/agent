@@ -26,9 +26,9 @@ func TestParseSource(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, f)
 
-	require.Len(t, f.components, 2)
-	require.Equal(t, "testcomponents.tick.ticker_a", getBlockID(f.components[0]))
-	require.Equal(t, "testcomponents.passthrough.static", getBlockID(f.components[1]))
+	require.Len(t, f.blocks, 2)
+	require.Equal(t, "testcomponents.tick.ticker_a", getBlockID(f.blocks[0]))
+	require.Equal(t, "testcomponents.passthrough.static", getBlockID(f.blocks[1]))
 }
 
 func TestParseSourceWithConfigBlock(t *testing.T) {
@@ -46,8 +46,8 @@ func TestParseSourceWithConfigBlock(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, f)
 
-	require.Len(t, f.components, 1)
-	require.Equal(t, "testcomponents.tick.ticker_with_config_block", getBlockID(f.components[0]))
+	require.Len(t, f.blocks, 1)
+	require.Equal(t, "testcomponents.tick.ticker_with_config_block", getBlockID(f.blocks[0]))
 	require.Len(t, f.configBlocks, 1)
 	require.Equal(t, "logging", getBlockID(f.configBlocks[0]))
 }
@@ -57,7 +57,7 @@ func TestParseSource_Defaults(t *testing.T) {
 	require.NotNil(t, f)
 	require.NoError(t, err)
 
-	require.Len(t, f.components, 0)
+	require.Len(t, f.blocks, 0)
 }
 
 func TestParseSources_DuplicateComponent(t *testing.T) {
