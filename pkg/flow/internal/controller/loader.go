@@ -45,7 +45,6 @@ type Loader struct {
 	componentNodeManager *ComponentNodeManager
 
 	cache             *valueCache
-	blocks            []*ast.BlockStmt // Most recently loaded blocks, used for writing
 	cm                *controllerMetrics
 	cc                *controllerCollector
 	moduleExportIndex int
