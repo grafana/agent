@@ -12,9 +12,9 @@ weight: 30
 
 # Logs and relabeling basics
 
-This tutorial assumes you have completed the [First components and introducing the standard library](https://grafana.com/docs/agent/<AGENT_VERSION>/flow/tutorials/flow-by-example/first-components-and-stdlib/) tutorial, or are at least familiar with the concepts of components, attributes, and expressions and how to use them. You will cover some basic metric relabeling followed by how to send logs to Loki.
+This tutorial assumes you have completed the [First components and introducing the standard library](https://grafana.com/docs/agent/<AGENT_VERSION>/flow/tutorials/flow-by-example/first-components-and-stdlib/) tutorial, or are at least familiar with the concepts of components, attributes, and expressions and how to use them. You will cover some basic metric relabeling, followed by how to send logs to Loki.
 
-## Relabeling metrics
+## Relabel metrics
 
 [prometheus.relabel]: https://grafana.com/docs/agent/<AGENT_VERSION>/flow/reference/components/prometheus.relabel/
 
@@ -22,7 +22,7 @@ This tutorial assumes you have completed the [First components and introducing t
 
 - Optional: [prometheus.relabel][]
 
-Before we move on to logs, let's take a look at how we can use the `prometheus.relabel` component to relabel metrics. The `prometheus.relabel` component allows you to perform Prometheus relabeling on metrics and is similar to the `relabel_configs` section of a Prometheus scrape config.
+Before moving on to logs, let's look at how we can use the `prometheus.relabel` component to relabel metrics. The `prometheus.relabel` component allows you to perform Prometheus relabeling on metrics and is similar to the `relabel_configs` section of a Prometheus scrape config.
 
 Let's add a `prometheus.relabel` component to a basic pipeline and see how to add labels.
 
@@ -59,25 +59,28 @@ prometheus.remote_write "local_prom" {
 
 We have now created the following pipeline:
 
-<p align="center">
-<img src="/media/docs/agent/diagram-flow-by-example-relabel-0.svg" alt="Diagram of pipeline that scrapes prometheus.exporter.unix, relabels the metrics, and remote_writes them." width="500" />
-</p>
+![Diagram of pipeline that scrapes prometheus.exporter.unix, relabels the metrics, and remote_writes them](/media/docs/agent/diagram-flow-by-example-relabel-0.svg)
 
-This pipeline has a `prometheus.relabel` component that has a single rule. This rule has the `replace` action, which will replace the value of the `os` label with a special value: `constants.os`. This value is a special constant that will be replaced with the os of the host the Agent is running on. You can see the other available constants in the [constants](https://grafana.com/docs/agent/<AGENT_VERSION>/flow/reference/stdlib/constants/) documentation page. In this example we have one rule block, but you can have as many as you want. Each rule block will be applied in order.
+This pipeline has a `prometheus.relabel` component that has a single rule.
+This rule has the `replace` action, which will replace the value of the `os` label with a special value: `constants.os`.
+This value is a special constant that is replaced with the OS of the host {{< param "PRODUCT_ROOT_NAME" >}} is running on.
+You can see the other available constants in the [constants](https://grafana.com/docs/agent/<AGENT_VERSION>/flow/reference/stdlib/constants/) documentation.
+This example has one rule block, but you can have as many as you want.
+Each rule block is applied in order.
 
-If you run the Agent and navigate to [localhost:3000/explore](http://localhost:3000/explore), you should be able to see the `os` label on the metrics. Try querying for `node_context_switches_total` and look at the labels!
+If you run {{< param "PRODUCT_ROOT_NAME" >}} and navigate to [localhost:3000/explore](http://localhost:3000/explore), you can see the `os` label on the metrics. Try querying for `node_context_switches_total` and look at the labels.
 
 Relabeling uses the same rules as Prometheus. You can always refer to the [prometheus.relabel documentation](https://grafana.com/docs/agent/<AGENT_VERSION>/flow/reference/components/prometheus.relabel/#rule-block) for a full list of available options.
 
 {{% admonition type="note" %}}
-You can have multiple components forward to one `prometheus.relabel` component. This allows you to apply the same relabeling rules to multiple pipelines.
+You can forward multiple components to one `prometheus.relabel` component. This allows you to apply the same relabeling rules to multiple pipelines.
 {{% /admonition %}}
 
 {{% admonition type="warning" %}}
 There is a common "gotcha" when using metrics that start with `__` (double underscore). These labels are considered internal and will be dropped before relabeling rules from a `prometheus.relabel` component are applied. If you would like to keep or act on these kinds of labels, use a [discovery.relabel](https://grafana.com/docs/agent/<AGENT_VERSION>/flow/reference/components/discovery.relabel/) component.
 {{% /admonition %}}
 
-## Sending logs to loki
+## Send logs to Loki
 
 [local.file_match]: https://grafana.com/docs/agent/<AGENT_VERSION>/flow/reference/components/local.file_match/
 [loki.source.file]: https://grafana.com/docs/agent/<AGENT_VERSION>/flow/reference/components/loki.source.file/
@@ -91,7 +94,7 @@ There is a common "gotcha" when using metrics that start with `__` (double under
 
 Now that you're comfortable creating components and chaining them together, let's collect some logs and send them to Loki. We will use the `local.file_match` component to perform file discovery, the `loki.source.file` to collect the logs, and the `loki.write` component to send the logs to Loki.
 
-Before we do this, we need to make sure we have a log file to scrape. We will use the `echo` command to create a file with some logs in it.
+Before doing this, we need to ensure we have a log file to scrape. We will use the `echo` command to create a file with some log content.
 
 ```bash
 mkdir -p /tmp/flow-logs
@@ -119,25 +122,22 @@ loki.write "local_loki" {
 
 The rough flow of this pipeline is:
 
-<p align="center">
-<img src="/media/docs/agent/diagram-flow-by-example-logs-0.svg" alt="Diagram of pipeline that collects logs from /tmp/flow-logs and writes them to a local loki instance" width="500" />
-</p>
+![Diagram of pipeline that collects logs from /tmp/flow-logs and writes them to a local Loki instance](/media/docs/agent/diagram-flow-by-example-logs-0.svg)
 
-If you navigate to [localhost:3000/explore](http://localhost:3000/explore) and switch the Datasource to `Loki`, you should be able to query for `{filename="/tmp/flow-logs/log.log"}` and see the log line we created earlier. Try running:
+If you navigate to [localhost:3000/explore](http://localhost:3000/explore) and switch the Datasource to `Loki`, you can query for `{filename="/tmp/flow-logs/log.log"}` and see the log line we created earlier. Try running the following command to add more logs to the file.
 
 ```bash
 echo "This is another log line!" >> /tmp/flow-logs/log.log
 ```
 
-to add some more logs to the file. If you re-execute the query, you should see the new log lines.
+If you re-execute the query, you can see the new log lines.
 
-<p align="center">
-<img src="/media/docs/agent/screenshot-flow-by-example-log-lines.png" alt="Grafana Explore view of example log lines." />
-</p>
+![Grafana Explore view of example log lines](/media/docs/agent/screenshot-flow-by-example-log-lines.png)
 
-If you are curious how the Agent keeps track of where in a log file it is, you can take a look at `data-agent/loki.source.file.local_files/positions.yml`. If you delete this file, the Agent will start reading from the beginning of the file again, which is why it is desirable to keep the Agent's data directory in a persistent location.
+If you are curious how {{< param "PRODUCT_ROOT_NAME" >}} keeps track of where it is in a log file, you can look at `data-agent/loki.source.file.local_files/positions.yml`. 
+If you delete this file, {{< param "PRODUCT_ROOT_NAME" >}} starts reading from the beginning of the file again, which is why keeping the {{< param "PRODUCT_ROOT_NAME" >}}'s data directory in a persistent location is desirable.
 
-## Exercise for the Reader
+## Exercise
 
 [loki.relabel]: https://grafana.com/docs/agent/<AGENT_VERSION>/flow/reference/components/loki.relabel/
 [loki.process]: https://grafana.com/docs/agent/<AGENT_VERSION>/flow/reference/components/loki.process/
@@ -149,9 +149,9 @@ If you are curious how the Agent keeps track of where in a log file it is, you c
 
 ### Add a Label to Logs
 
-This exercise will have two parts, building on the previous example. Let's start by adding an `os` label (just like the Prometheus example) to all of the logs we are collecting.
+This exercise will have two parts, building on the previous example. Let's start by adding an `os` label (just like the Prometheus example) to all of the logs we collect.
 
-Modify the following snippet to add label `os` with the value of the `os` constant.
+Modify the following snippet to add the label `os` with the value of the `os` constant.
 
 ```river
 local.file_match "tmplogs" {
@@ -171,10 +171,10 @@ loki.write "local_loki" {
 ```
 
 {{% admonition type="note" %}}
-The [loki.relabel](https://grafana.com/docs/agent/<AGENT_VERSION>/flow/reference/components/loki.relabel) component can be used to relabel and add labels, just like the [prometheus.relabel](https://grafana.com/docs/agent/<AGENT_VERSION>/flow/reference/components/prometheus.relabel) component.
+You can use the [loki.relabel](https://grafana.com/docs/agent/<AGENT_VERSION>/flow/reference/components/loki.relabel) component to relabel and add labels, just like you can with the [prometheus.relabel](https://grafana.com/docs/agent/<AGENT_VERSION>/flow/reference/components/prometheus.relabel) component.
 {{% /admonition %}}
 
-Once you have your completed config, run the Agent and execute the following:
+Once you have your completed configuration, run {{< param "PRODUCT_ROOT_NAME" >}} and execute the following:
 
 ```bash
 echo 'level=info msg="INFO: This is an info level log!"' >> /tmp/flow-logs/log.log
@@ -221,20 +221,22 @@ loki.write "local_loki" {
 ### Extract and add a Label from Logs
 
 {{% admonition type="note" %}}
-This exercise is more challenging than the previous one. If you are having trouble, feel free to skip it and move to the next section, which will cover some of the concepts used here. You can always come back to this exercise later!
+This exercise is more challenging than the previous one. If you are having trouble, skip it and move to the next section, which will cover some of the concepts used here. You can always come back to this exercise later.
 {{% /admonition %}}
 
-This exercise will build on the previous one, though it's a bit more involved. 
+This exercise will build on the previous one, though it's more involved. 
 
-Let's say we want to extract the `level` from the logs and add it as a label. As a starting point, take a look at [loki.process][]. This component allows you to perform processing on logs, including extracting values from log contents.
+Let's say we want to extract the `level` from the logs and add it as a label. As a starting point, look at [loki.process][].
+This component allows you to perform processing on logs, including extracting values from log contents.
 
-Try modifying your config from the previous section to extract the `level` from the logs and add it as a label. If you need it, you can find a solution to the previous exercise at the end of the [previous section](#add-a-label-to-logs).
+Try modifying your configuration from the previous section to extract the `level` from the logs and add it as a label.
+If needed, you can find a solution to the previous exercise at the end of the [previous section](#add-a-label-to-logs).
 
 {{% admonition type="note" %}}
 The `stage.logfmt` and `stage.labels` blocks for `loki.process` may be helpful.
 {{% /admonition %}}
 
-Once you have your completed config, run the Agent and execute the following:
+Once you have your completed config, run {{< param "PRODUCT_ROOT_NAME" >}} and execute the following:
 
 ```bash
 echo 'level=info msg="INFO: This is an info level log!"' >> /tmp/flow-logs/log.log
@@ -242,11 +244,9 @@ echo 'level=warn msg="WARN: This is a warn level log!"' >> /tmp/flow-logs/log.lo
 echo 'level=debug msg="DEBUG: This is a debug level log!"' >> /tmp/flow-logs/log.log
 ```
 
-Navigate to [localhost:3000/explore](http://localhost:3000/explore) and switch the Datasource to `Loki`. Try querying for `{level!=""}` to see the new labels in action!
+Navigate to [localhost:3000/explore](http://localhost:3000/explore) and switch the Datasource to `Loki`. Try querying for `{level!=""}` to see the new labels in action.
 
-<p align="center">
-<img src="/media/docs/agent/screenshot-flow-by-example-log-line-levels.png" alt="Grafana Explore view of example log lines, now with the extracted 'level' label." />
-</p>
+![Grafana Explore view of example log lines, now with the extracted 'level' label](/media/docs/agent/screenshot-flow-by-example-log-line-levels.png)
 
 {{< collapse title="Solution" >}}
 
@@ -304,4 +304,5 @@ loki.write "local_loki" {
 
 ## Finishing up and next steps
 
-Hopefully by now the concepts of components, attributes, and expressions are starting to make sense. You have also seen how to use some of the standard library components to collect metrics and logs. In the next section, you will learn more about how to use the `loki.process` component to extract values from logs and use them.
+You have learned the concepts of components, attributes, and expressions. You have also seen how to use some standard library components to collect metrics and logs. In the next tutorial, you will learn more about how to use the `loki.process` component to extract values from logs and use them.
+
