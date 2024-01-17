@@ -181,13 +181,8 @@ func TestImportModule(t *testing.T) {
                         optional = false
                     }
 
-                    testcomponents.passthrough "pt" {
-                        input = argument.input.value
-                        lag = "1ms"
-                    }
-
                     export "output" {
-                        value = testcomponents.passthrough.pt.output
+                        value = argument.input.value
                     }
                 }
             `,
@@ -207,9 +202,14 @@ func TestImportModule(t *testing.T) {
                             frequency = "10ms"
                             max = 10
                         }
+
+                        testcomponents.passthrough "pt" {
+                            input = testcomponents.count.inc.count
+                            lag = "1ms"
+                        }
     
                         testImport.test "myModule" {
-                            input = testcomponents.count.inc.count
+                            input = testcomponents.passthrough.pt.output
                         }
     
                         export "output" {

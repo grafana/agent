@@ -22,24 +22,27 @@ import (
 )
 
 type ImportConfigNode struct {
-	id                         ComponentID
-	label                      string
-	nodeID                     string
-	componentName              string
-	globalID                   string
-	globals                    ComponentGlobals // Need a copy of the globals to create other import nodes.
-	source                     importsource.ImportSource
+	id            ComponentID
+	label         string
+	nodeID        string
+	componentName string
+	globalID      string
+	globals       ComponentGlobals // Need a copy of the globals to create other import nodes.
+
 	registry                   *prometheus.Registry
-	importedDeclares           map[string]*Declare
-	importConfigNodesChildren  map[string]*ImportConfigNode
 	OnNodeWithDependantsUpdate func(cn NodeWithDependants)
 	logger                     log.Logger
-	inContentUpdate            bool
 
-	mut                sync.RWMutex
-	importedContentMut sync.RWMutex
-	block              *ast.BlockStmt // Current River blocks to derive config from
-	lastUpdateTime     atomic.Time
+	mut                       sync.RWMutex
+	block                     *ast.BlockStmt // Current River blocks to derive config from
+	source                    importsource.ImportSource
+	importConfigNodesChildren map[string]*ImportConfigNode
+
+	contentMut       sync.RWMutex
+	importedDeclares map[string]*Declare
+	inContentUpdate  bool
+
+	lastUpdateTime atomic.Time
 
 	healthMut  sync.RWMutex
 	evalHealth component.Health // Health of the last evaluate
@@ -161,6 +164,8 @@ func (cn *ImportConfigNode) processNodeBody(node *ast.File, content string) {
 
 // processDeclareBlock processes a declare block.
 func (cn *ImportConfigNode) processDeclareBlock(stmt *ast.BlockStmt, content string) {
+	cn.contentMut.Lock()
+	defer cn.contentMut.Unlock()
 	if _, ok := cn.importedDeclares[stmt.Label]; ok {
 		level.Error(cn.logger).Log("msg", "declare block redefined", "name", stmt.Label)
 		return
@@ -183,13 +188,16 @@ func (cn *ImportConfigNode) processImportBlock(stmt *ast.BlockStmt, fullName str
 
 // onContentUpdate is triggered every time the managed import component has new content.
 func (cn *ImportConfigNode) onContentUpdate(content string) {
-	cn.importedContentMut.Lock()
-	defer cn.importedContentMut.Unlock()
+	cn.contentMut.Lock()
 	cn.inContentUpdate = true
 	defer func() {
+		cn.contentMut.Lock()
 		cn.inContentUpdate = false
+		cn.contentMut.Unlock()
 	}()
 	cn.importedDeclares = make(map[string]*Declare)
+	cn.contentMut.Unlock()
+
 	// We recreate the nodes when the content changes. Can we copy instead for optimization?
 	cn.importConfigNodesChildren = make(map[string]*ImportConfigNode)
 	node, err := parser.ParseFile(cn.label, []byte(content))
@@ -247,6 +255,8 @@ func (cn *ImportConfigNode) runChildren(ctx context.Context) error {
 // OnChildrenContentUpdate passes their imported content to their parents.
 // To avoid collisions, the content is scoped via namespaces.
 func (cn *ImportConfigNode) OnChildrenContentUpdate(child NodeWithDependants) {
+	cn.contentMut.Lock()
+	defer cn.contentMut.Unlock()
 	switch child := child.(type) {
 	case *ImportConfigNode:
 		for importedDeclareLabel, importedDeclare := range child.importedDeclares {
@@ -262,8 +272,8 @@ func (cn *ImportConfigNode) OnChildrenContentUpdate(child NodeWithDependants) {
 
 // GetImportedDeclareByLabel returns a declare block imported by the node.
 func (cn *ImportConfigNode) GetImportedDeclareByLabel(declareLabel string) (*Declare, error) {
-	cn.importedContentMut.Lock()
-	defer cn.importedContentMut.Unlock()
+	cn.contentMut.Lock()
+	defer cn.contentMut.Unlock()
 	if declare, ok := cn.importedDeclares[declareLabel]; ok {
 		return declare, nil
 	}
@@ -368,8 +378,8 @@ func (cn *ImportConfigNode) Component() component.Component {
 
 // ImportedDeclares returns all declare blocks that it imported.
 func (cn *ImportConfigNode) ImportedDeclares() map[string]*Declare {
-	cn.mut.RLock()
-	defer cn.mut.RUnlock()
+	cn.contentMut.RLock()
+	defer cn.contentMut.RUnlock()
 	return cn.importedDeclares
 }
 
