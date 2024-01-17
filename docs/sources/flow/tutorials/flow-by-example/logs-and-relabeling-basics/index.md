@@ -77,7 +77,7 @@ You can forward multiple components to one `prometheus.relabel` component. This 
 {{% /admonition %}}
 
 {{% admonition type="warning" %}}
-There is a common "gotcha" when using metrics that start with `__` (double underscore). These labels are considered internal and will be dropped before relabeling rules from a `prometheus.relabel` component are applied. If you would like to keep or act on these kinds of labels, use a [discovery.relabel](https://grafana.com/docs/agent/<AGENT_VERSION>/flow/reference/components/discovery.relabel/) component.
+There is an issue commonly faced when relabeling and using labels that start with `__` (double underscore). These labels are considered internal and are dropped before relabeling rules from a `prometheus.relabel` component are applied. If you would like to keep or act on these kinds of labels, use a [discovery.relabel](https://grafana.com/docs/agent/<AGENT_VERSION>/flow/reference/components/discovery.relabel/) component.
 {{% /admonition %}}
 
 ## Send logs to Loki
