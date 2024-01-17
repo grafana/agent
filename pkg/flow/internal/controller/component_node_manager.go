@@ -124,7 +124,7 @@ func (m *ComponentNodeManager) getCustomComponentConfigFromLocalDeclares(cc *Cus
 		return CustomComponentConfig{}, false
 	}
 	return CustomComponentConfig{
-		declareContent:            node.Declare().Content,
+		declareContent:            node.Declare().content,
 		additionalDeclareContents: m.getLocalAdditionalDeclareContents(cc.componentName),
 	}, true
 }
@@ -152,7 +152,7 @@ func (m *ComponentNodeManager) getCustomComponentConfigFromImportedDeclares(cc *
 		return CustomComponentConfig{}, false, err
 	}
 	return CustomComponentConfig{
-		declareContent:            declare.Content,
+		declareContent:            declare.content,
 		additionalDeclareContents: m.getImportAdditionalDeclareContents(node),
 	}, true, nil
 }
@@ -161,7 +161,7 @@ func (m *ComponentNodeManager) getCustomComponentConfigFromImportedDeclares(cc *
 func (m *ComponentNodeManager) getImportAdditionalDeclareContents(node *ImportConfigNode) map[string]string {
 	additionalDeclareContents := make(map[string]string, len(node.ImportedDeclares()))
 	for importedDeclareLabel, importedDeclare := range node.ImportedDeclares() {
-		additionalDeclareContents[importedDeclareLabel] = importedDeclare.Content
+		additionalDeclareContents[importedDeclareLabel] = importedDeclare.content
 	}
 	return additionalDeclareContents
 }
@@ -175,10 +175,10 @@ func (m *ComponentNodeManager) getLocalAdditionalDeclareContents(componentName s
 				// The label of the importNode is added as a prefix to the declare label to create a scope.
 				// This is useful in the scenario where a custom component of an imported declare is defined inside of a local declare.
 				// In this case, this custom component should only have have access to the imported declares of its corresponding import node.
-				additionalDeclareContents[customComponentDependency.importNode.label+"."+importedDeclareLabel] = importedDeclare.Content
+				additionalDeclareContents[customComponentDependency.importNode.label+"."+importedDeclareLabel] = importedDeclare.content
 			}
 		} else if customComponentDependency.declareNode != nil {
-			additionalDeclareContents[customComponentDependency.declareLabel] = customComponentDependency.declareNode.Declare().Content
+			additionalDeclareContents[customComponentDependency.declareLabel] = customComponentDependency.declareNode.Declare().content
 		} else {
 			additionalDeclareContents[customComponentDependency.componentName] = m.additionalDeclareContents[customComponentDependency.componentName]
 		}
@@ -211,7 +211,7 @@ type CustomComponentDependency struct {
 // Panics if declare is nil.
 func (m *ComponentNodeManager) FindCustomComponentDependencies(declare *Declare) ([]CustomComponentDependency, error) {
 	uniqueReferences := make(map[string]CustomComponentDependency)
-	m.findCustomComponentDependencies(declare.Block.Body, uniqueReferences)
+	m.findCustomComponentDependencies(declare.block.Body, uniqueReferences)
 
 	references := make([]CustomComponentDependency, 0, len(uniqueReferences))
 	for _, ref := range uniqueReferences {

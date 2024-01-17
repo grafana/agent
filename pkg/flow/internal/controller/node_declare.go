@@ -20,9 +20,9 @@ var _ BlockNode = (*DeclareNode)(nil)
 // NewDeclareNode creates a new declare node with a content which will be loaded by declare component nodes.
 func NewDeclareNode(declare *Declare) *DeclareNode {
 	return &DeclareNode{
-		label:         declare.Block.Label,
-		nodeID:        BlockComponentID(declare.Block).String(),
-		componentName: declare.Block.GetBlockName(),
+		label:         declare.block.Label,
+		nodeID:        BlockComponentID(declare.block).String(),
+		componentName: declare.block.GetBlockName(),
 		declare:       declare,
 	}
 }
@@ -44,7 +44,7 @@ func (cn *DeclareNode) Label() string { return cn.label }
 func (cn *DeclareNode) Block() *ast.BlockStmt {
 	cn.mut.RLock()
 	defer cn.mut.RUnlock()
-	return cn.declare.Block
+	return cn.declare.block
 }
 
 // NodeID implements dag.Node and returns the unique ID for the config node.
