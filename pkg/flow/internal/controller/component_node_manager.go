@@ -67,9 +67,9 @@ func (m *ComponentNodeManager) getCustomComponentDependencies(declareNode *Decla
 
 // isCustomComponent searches for a declare corresponding to the given component name.
 func (m *ComponentNodeManager) isCustomComponent(componentName string) bool {
-	firstPart := strings.Split(componentName, ".")[0]
-	_, declareExists := m.declareNodes[firstPart]
-	_, importExists := m.importNodes[firstPart]
+	namespace := strings.Split(componentName, ".")[0]
+	_, declareExists := m.declareNodes[namespace]
+	_, importExists := m.importNodes[namespace]
 	_, additionalDeclareContentExists := m.additionalDeclareContents[componentName]
 
 	return declareExists || importExists || additionalDeclareContentExists
