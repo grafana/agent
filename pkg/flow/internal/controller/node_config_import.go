@@ -51,7 +51,7 @@ type ImportConfigNode struct {
 
 var _ NodeWithDependants = (*ImportConfigNode)(nil)
 var _ RunnableNode = (*ImportConfigNode)(nil)
-var _ NodeWithComponent = (*ImportConfigNode)(nil)
+var _ ComponentInfo = (*ImportConfigNode)(nil)
 
 // NewImportConfigNode creates a new ImportConfigNode from an initial ast.BlockStmt.
 // The underlying config isn't applied until Evaluate is called.

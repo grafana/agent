@@ -29,7 +29,7 @@ func (f *Flow) GetComponent(id component.ID, opts component.InfoOptions) (*compo
 		return nil, component.ErrComponentNotFound
 	}
 
-	cn, ok := node.(controller.NodeWithComponent)
+	cn, ok := node.(controller.ComponentInfo)
 	if !ok {
 		return nil, fmt.Errorf("%q is not a ComponentNode", id)
 	}
@@ -67,7 +67,7 @@ func (f *Flow) ListComponents(moduleID string, opts component.InfoOptions) ([]*c
 	return detail, nil
 }
 
-func (f *Flow) getComponentDetail(cn controller.NodeWithComponent, graph *dag.Graph, opts component.InfoOptions) *component.Info {
+func (f *Flow) getComponentDetail(cn controller.ComponentInfo, graph *dag.Graph, opts component.InfoOptions) *component.Info {
 	var references, referencedBy []string
 
 	// Skip over any edge which isn't between two component nodes. This is a
@@ -79,12 +79,12 @@ func (f *Flow) getComponentDetail(cn controller.NodeWithComponent, graph *dag.Gr
 	//
 	// TODO(rfratto): add support for config block nodes in the API and UI.
 	for _, dep := range graph.Dependencies(cn) {
-		if _, ok := dep.(controller.NodeWithComponent); ok {
+		if _, ok := dep.(controller.ComponentInfo); ok {
 			references = append(references, dep.NodeID())
 		}
 	}
 	for _, dep := range graph.Dependants(cn) {
-		if _, ok := dep.(controller.NodeWithComponent); ok {
+		if _, ok := dep.(controller.ComponentInfo); ok {
 			referencedBy = append(referencedBy, dep.NodeID())
 		}
 	}

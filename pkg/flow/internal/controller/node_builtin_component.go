@@ -112,6 +112,7 @@ type BuiltinComponentNode struct {
 }
 
 var _ NodeWithDependants = (*BuiltinComponentNode)(nil)
+var _ RunnableNode = (*BuiltinComponentNode)(nil)
 var _ ComponentNode = (*BuiltinComponentNode)(nil)
 
 // BuiltinComponentNode creates a new BuiltinComponentNode from an initial ast.BlockStmt.

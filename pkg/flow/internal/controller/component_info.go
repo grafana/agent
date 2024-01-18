@@ -7,9 +7,10 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 )
 
-// NodeWithComponent is ?
-// TODO we need a better name
-type NodeWithComponent interface {
+// ComponentInfo is an interface that encapsulates a comprehensive suite of methods
+// for managing and retrieving detailed information about a specific component
+// within a dag.Node.
+type ComponentInfo interface {
 	BlockNode
 
 	// CurrentHealth returns the current health of the node.
