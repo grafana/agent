@@ -20,64 +20,9 @@ weight: 200
 
 # Deploy {{% param "PRODUCT_NAME" %}} on Kubernetes
 
-{{< param "PRODUCT_NAME" >}} can be deployed on Kubernetes by using the Helm chart for {{< param "PRODUCT_ROOT_NAME" >}}.
-
-## Before you begin
-
-* Install [Helm][] on your computer.
-* Configure a Kubernetes cluster that you can use for {{< param "PRODUCT_NAME" >}}.
-* Configure your local Kubernetes context to point to the cluster.
-
-## Deploy
-
-TODO(thampiotr): Describe that on Kubernetes we have a choice of deployment controllers: Deployment, StatefulSet, DaemonSet, etc.
-Provide some basic guidelines here what is best for each use-case. Refer to the `deploy-agent.md` doc for more considerations and 
-details on different deployment topologies.
-Then provide here instructions on how to deploy using each deployment controller - this should be quite easy to do with Helm chart changes
-and may fit well on a single page instead of separate page for each deployment controller.
-
-{{% admonition type="note" %}}
-These instructions show you how to install the generic [Helm chart](https://github.com/grafana/agent/tree/main/operations/helm/charts/grafana-agent) for {{< param "PRODUCT_NAME" >}}.
-You can deploy {{< param "PRODUCT_ROOT_NAME" >}} either in static mode or flow mode. The Helm chart deploys {{< param "PRODUCT_NAME" >}} by default.
-{{% /admonition %}}
-
-To deploy {{< param "PRODUCT_ROOT_NAME" >}} on Kubernetes using Helm, run the following commands in a terminal window:
-
-1. Add the Grafana Helm chart repository:
-
-   ```shell
-   helm repo add grafana https://grafana.github.io/helm-charts
-   ```
-
-1. Update the Grafana Helm chart repository:
-
-   ```shell
-   helm repo update
-   ```
-
-1. Install {{< param "PRODUCT_ROOT_NAME" >}}:
-
-TODO(thampiotr): Update the below command to include a namespace.
-
-   ```shell
-   helm install <RELEASE_NAME> grafana/grafana-agent
-   ```
-
-   Replace the following:
-
-   -  _`<RELEASE_NAME>`_: The name to use for your {{< param "PRODUCT_ROOT_NAME" >}} installation, such as `grafana-agent-flow`.
-
-For more information on the {{< param "PRODUCT_ROOT_NAME" >}} Helm chart, refer to the Helm chart documentation on [Artifact Hub][].
-
-[Artifact Hub]: https://artifacthub.io/packages/helm/grafana/grafana-agent
-
-## Next steps
-
-- [Configure {{< param "PRODUCT_NAME" >}}][Configure]
-
-[Helm]: https://helm.sh
-
-{{% docs/reference %}}
-[Configure]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/tasks/configure/configure-kubernetes.md"
-[Configure]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/tasks/configure/configure-kubernetes.md"
-{{% /docs/reference %}}
+TODO(thampiotr): Describe that on Kubernetes we have a choice of deployment
+controllers: Deployment, StatefulSet, DaemonSet, etc. that are suitable for
+different use-cases. Refer to the `deploy-agent.md` doc for more considerations
+and details on different deployment topologies. Then provide here links to
+relevant `tasks/kubernetes/collect-.*.md` page which will describe how to deploy
+and configure a full solution for given telemetry type.

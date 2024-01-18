@@ -1,7 +1,7 @@
 TODO(thampiotr): A doc that will describe how to collect and send metrics in a Kubernetes cluster.
-The prerequisite is to install as a StatefulSet.
+This includes the installation steps via Helm, as a StatefulSet.
 
-We may describe adding persistent volume for the WAL.
+We describe adding persistent volume for the WAL and how to manage it.
 
 This will use the [kubernetes module](https://github.com/grafana/agent-modules/tree/main/modules/kubernetes)
 which uses annotation-driven approach. This doc will describe how to get a 

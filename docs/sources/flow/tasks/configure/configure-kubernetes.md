@@ -19,53 +19,11 @@ weight: 200
 
 # Configure {{% param "PRODUCT_NAME" %}} on Kubernetes
 
-To configure {{< param "PRODUCT_NAME" >}} on Kubernetes, perform the following steps:
-
-TODO(thampiotr): The values.yaml is quite dense and may not be suitable for new users. Instead, we should
-turn this into more step-by-step instruction to changing Grafana Agent configuration when helm chart is used. This will 
-put it more in-line with the other docs inside this "configure" section.
-For changing the Helm chart config we can refer to our other task-based docs (to be added in the future) that cover this and to the Helm 
-chart configuration docs for full details.
-
-1. Download a local copy of [values.yaml][] for the Helm chart.
-
-1. Make changes to your copy of `values.yaml` to customize settings for the
-   Helm chart.
-
-   Refer to the inline documentation in the `values.yaml` for more information about each option.
-
-1. Run the following command in a terminal to upgrade your {{< param "PRODUCT_NAME" >}} installation:
-
-   ```shell
-   helm upgrade RELEASE_NAME grafana/grafana-agent -f VALUES_PATH
-   ```
-
-   1. Replace `RELEASE_NAME` with the name you used for your {{< param "PRODUCT_NAME" >}} installation.
-
-   1. Replace `VALUES_PATH` with the path to your copy of `values.yaml` to use.
-
-[values.yaml]: https://raw.githubusercontent.com/grafana/agent/main/operations/helm/charts/grafana-agent/values.yaml
-
-## Kustomize considerations
-
-If you are using [Kustomize][] to inflate and install the [Helm chart][], be careful
-when using a `configMapGenerator` to generate the ConfigMap containing the
-configuration. By default, the generator appends a hash to the name and patches
-the resource mentioning it, triggering a rolling update.
-
-This behavior is undesirable for {{< param "PRODUCT_NAME" >}} because the startup time can be significant depending on the size of the Write-Ahead Log.
-You can use the [Helm chart][] sidecar container to watch the ConfigMap and trigger a dynamic reload.
-
-The following is an example snippet of a `kustomization` that disables this behavior:
-
-```yaml
-configMapGenerator:
-  - name: grafana-agent
-    files:
-      - config.river
-    options:
-      disableNameSuffixHash: true
-```
-
-[Helm chart]: https://github.com/grafana/agent/tree/main/operations/helm/charts/grafana-agent
-[Kustomize]: https://kubernetes.io/docs/tasks/manage-kubernetes-objects/kustomization/
+TODO(thampiotr): The pre-requisite for this page is to have installed the Agent
+on Kubernetes using a Helm chart, following one of the
+tasks/kubernetes/collect-*.md pages. We'll describe here how a user can edit
+Agent configuration and update it in their k8s cluster. It's quite generic,
+independent of the telemetry type / deployment topology. There are two ways:
+edit configmap embedded inside values.yaml of the Helm chart, or edit/update the
+configmap directly. We'll describe both ways. There is also something to be said
+about config reloader and checking for errors when invalid config is passed.
