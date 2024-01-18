@@ -18,7 +18,6 @@ import (
 )
 
 // The difference between this import source and the others is that there is no git component.
-// The git logic in the internal package is a copy of the one used in the old module.
 type ImportGit struct {
 	opts            component.Options
 	log             log.Logger
