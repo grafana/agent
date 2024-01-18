@@ -12,12 +12,6 @@ const (
 	metricValue         = "process_cpu"
 )
 
-func injectServiceName(target discovery.Target) {
-	if target[labelServiceName] == "" {
-		target[labelServiceName] = inferServiceName(target)
-	}
-}
-
 func inferServiceName(target discovery.Target) string {
 	k8sServiceName := target[labelServiceNameK8s]
 	if k8sServiceName != "" {

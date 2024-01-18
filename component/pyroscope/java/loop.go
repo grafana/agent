@@ -152,6 +152,10 @@ func (p *profilingLoop) push(jfrBytes []byte, startTime time.Time, endTime time.
 		for _, l := range jfrpprofPyroscope.Labels(target, profiles.JFREvent, req.Metric, "", spyName) {
 			ls.Set(l.Name, l.Value)
 		}
+		if ls.Get(labelServiceName) == "" {
+			ls.Set(labelServiceName, inferServiceName(target))
+		}
+
 		profile, err := req.Profile.MarshalVT()
 		if err != nil {
 			_ = l.Log("msg", "failed to marshal profile", "err", err)
@@ -229,7 +233,6 @@ func (p *profilingLoop) update(target discovery.Target, config ProfilingConfig) 
 	defer p.mutex.Unlock()
 	p.target = target
 	p.cfg = config
-	injectServiceName(p.target)
 }
 
 // Close stops profiling this profilingLoop
