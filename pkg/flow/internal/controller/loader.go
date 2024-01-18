@@ -118,6 +118,10 @@ func NewLoader(opts LoaderOptions) *Loader {
 // The provided parentContext can be used to provide global variables and
 // functions to components. A child context will be constructed from the parent
 // to expose values of other components.
+//
+// Declares are pieces of config that can be used as a blueprints to instantiate custom components.
+// The declares argument corresponds to declares written directly in the river config.
+// Other declares may come via the import config blocks (provided by the configBlocks argument) and via the LoaderConfigOptions.
 func (l *Loader) Apply(args map[string]any, blocks []*ast.BlockStmt, configBlocks []*ast.BlockStmt, declares []*Declare, options config.LoaderConfigOptions) diag.Diagnostics {
 	start := time.Now()
 	l.mut.Lock()
