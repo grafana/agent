@@ -229,6 +229,7 @@ func (p *profilingLoop) update(target discovery.Target, config ProfilingConfig) 
 	defer p.mutex.Unlock()
 	p.target = target
 	p.cfg = config
+	injectServiceName(p.target)
 }
 
 // Close stops profiling this profilingLoop
