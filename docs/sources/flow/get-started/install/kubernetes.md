@@ -20,20 +20,39 @@ weight: 200
 
 # Deploy {{% param "PRODUCT_NAME" %}} on Kubernetes
 
-{{< param "PRODUCT_NAME" >}} can be deployed on Kubernetes by using the Helm chart for {{< param "PRODUCT_ROOT_NAME" >}}.
+You can deploy {{< param "PRODUCT_NAME" >}} on Kubernetes using our Helm chart.
 
-## Before you begin
+{{< admonition type="note" >}}
+These instructions show you how to install using our generic [Helm chart](https://github.com/grafana/agent/tree/main/operations/helm/charts/grafana-agent) for {{< param "PRODUCT_NAME" >}}.
+You can deploy {{< param "PRODUCT_ROOT_NAME" >}} either in static mode or flow mode. The Helm chart deploys {{< param "PRODUCT_NAME" >}} by default.
+{{< /admonition >}}
+
+## Dedicated guides
+
+We recommend using our dedicated guides for each telemetry signal to deploy a 
+production-ready {{< param "PRODUCT_NAME" >}} on Kubernetes:
+
+* For metrics, follow our dedicated [collect Prometheus metrics on Kubernetes][collect-prometheus] guide.
+* For logs, follow our dedicated [collect logs on Kubernetes][collect-logs] guide.
+* For anything else, follow the [generic Helm installation](#generic-helm-installation) instructions below.
+
+[collect-prometheus]: {{< relref "../../tasks/kubernetes/collect-prometheus.md" >}}
+[collect-logs]: {{< relref "../../tasks/kubernetes/collect-logs.md" >}}
+
+If you want to collect multiple types of telemetry, we recommend deploying separate  
+{{< param "PRODUCT_NAME" >}} workloads for each telemetry type.
+
+## Generic Helm installation
+
+Follow the instructions below to deploy {{< param "PRODUCT_NAME" >}} on Kubernetes using Helm.
+
+### Before you begin
 
 * Install [Helm][] on your computer.
 * Configure a Kubernetes cluster that you can use for {{< param "PRODUCT_NAME" >}}.
 * Configure your local Kubernetes context to point to the cluster.
 
-## Deploy
-
-{{< admonition type="note" >}}
-These instructions show you how to install the generic [Helm chart](https://github.com/grafana/agent/tree/main/operations/helm/charts/grafana-agent) for {{< param "PRODUCT_NAME" >}}.
-You can deploy {{< param "PRODUCT_ROOT_NAME" >}} either in static mode or flow mode. The Helm chart deploys {{< param "PRODUCT_NAME" >}} by default.
-{{< /admonition >}}
+### Deploy
 
 To deploy {{< param "PRODUCT_ROOT_NAME" >}} on Kubernetes using Helm, run the following commands in a terminal window:
 
@@ -48,22 +67,32 @@ To deploy {{< param "PRODUCT_ROOT_NAME" >}} on Kubernetes using Helm, run the fo
    ```shell
    helm repo update
    ```
-
-1. Install {{< param "PRODUCT_ROOT_NAME" >}}:
+1. Create a namespace for the Agent:
 
    ```shell
-   helm install <RELEASE_NAME> grafana/grafana-agent
+   kubectl create namespace <NAMESPACE>
    ```
 
    Replace the following:
 
-   -  _`<RELEASE_NAME>`_: The name to use for your {{< param "PRODUCT_ROOT_NAME" >}} installation, such as `grafana-agent-flow`.
+   - _`<NAMESPACE>`_: The namespace to use for your {{< param "PRODUCT_NAME" >}} 
+     installation, such as `agent`.
+
+1. Install {{< param "PRODUCT_ROOT_NAME" >}}:
+
+   ```shell
+   helm install --namespace <NAMESPACE> <RELEASE_NAME> grafana/grafana-agent
+   ```
+
+   Replace the following:
+  - `<NAMESPACE>`: The namespace created in the previous step.
+  - `<RELEASE_NAME>`: The name to use for your {{< param "PRODUCT_ROOT_NAME" >}} installation, such as `grafana-agent-flow`.
 
 For more information on the {{< param "PRODUCT_ROOT_NAME" >}} Helm chart, refer to the Helm chart documentation on [Artifact Hub][].
 
 [Artifact Hub]: https://artifacthub.io/packages/helm/grafana/grafana-agent
 
-## Next steps
+### Next steps
 
 - [Configure {{< param "PRODUCT_NAME" >}}][Configure]
 
