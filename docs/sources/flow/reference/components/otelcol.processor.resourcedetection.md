@@ -22,7 +22,7 @@ overrides the resource values in the telemetry data with this information.
 {{% admonition type="note" %}}
 `otelcol.processor.resourcedetection` is a wrapper over the upstream
 OpenTelemetry Collector Contrib `resourcedetection` processor. If necessary, 
-bug reports or feature requests will be redirected to the upstream repository.
+bug reports or feature requests are redirected to the upstream repository.
 {{% /admonition %}}
 
 You can specify multiple `otelcol.processor.resourcedetection` components by giving them
@@ -67,19 +67,19 @@ Name        | Type           | Description                                      
 * `openshift`
 * `kubernetes_node`
 
-Note that `env` is the only detector which is not configured through a River block.
+`env` is the only detector that is not configured through a River block.
 The `env` detector reads resource information from the `OTEL_RESOURCE_ATTRIBUTES` environment variable. 
-This is expected to be in the format `<key1>=<value1>,<key2>=<value2>,...`, 
+This variable must be in the format `<key1>=<value1>,<key2>=<value2>,...`, 
 the details of which are currently pending confirmation in the OpenTelemetry specification.
 
-If a detector other than `env` is needed, it can be customized by using the relevant River block for it.
-For example, the `ec2` detector can be customized using the [ec2][] block.
-If the [ec2][] block is omitted, the defaults specified in the [ec2][] block documentation will be used.
+If a detector other than `env` is needed, you can customize it with the relevant River block.
+For example, you can customize the `ec2` detector with the [ec2][] block.
+If you omit the [ec2][] block, the defaults specified in the [ec2][] block documentation are used.
 
 If multiple detectors are inserting the same attribute name, the first detector to insert wins. 
-For example if you had `detectors = ["eks", "ec2"]` then `cloud.platform` will be `aws_eks` instead of `ec2`. 
+For example, if you had `detectors = ["eks", "ec2"]` then `cloud.platform` will be `aws_eks` instead of `ec2`. 
 
-For AWS, the below ordering is recommended:
+The following order is recommended for AWS:
   1. [lambda][]
   1. [elasticbeanstalk][]
   1. [eks][]
@@ -492,9 +492,9 @@ Block                                   | Description                           
 * `host.id`: instance id
 * `host.name`: instance name; only when workload identity is disabled
 
-One known issue is when GKE workload identity is enabled, the GCE metadata endpoints won't be available, 
-thus the GKE resource detector won't be able to determine `host.name`. 
-In that case, users are encouraged to set `host.name` from either:
+One known issue happens when GKE workload identity is enabled. The GCE metadata endpoints won't be available, 
+and the GKE resource detector won't be able to determine `host.name`. 
+If this happens, you can set `host.name` from one of the following resources:
 - `node.name` through the downward API with the `env` detector.
 - Obtaining the Kubernetes node name from the Kubernetes API (with `k8s.io/client-go`).
 
@@ -660,8 +660,8 @@ rules:
 
 By default, the API address is determined from the environment variables `KUBERNETES_SERVICE_HOST`, 
 `KUBERNETES_SERVICE_PORT` and the service token is read from `/var/run/secrets/kubernetes.io/serviceaccount/token`. 
-If TLS is not explicit disabled and no `ca_file` is configured, `/var/run/secrets/kubernetes.io/serviceaccount/ca.crt` is used. 
-The determination of the API address, `ca_file` and the service token is skipped if they are set in the configuration.
+If TLS is not explicitly disabled and no `ca_file` is configured, `/var/run/secrets/kubernetes.io/serviceaccount/ca.crt` is used. 
+The determination of the API address, `ca_file`, and the service token is skipped if they are set in the configuration.
 
 The `openshift` block supports the following blocks:
 
@@ -712,7 +712,7 @@ rules:
     verbs: ["get", "list"]
 ```
 
-`auth_type` can be set either of the following:
+`auth_type` can be set to one of the following:
 * `none`: no authentication.
 * `serviceAccount`: use the standard service account token provided to the agent pod.
 * `kubeConfig`: use credentials from `~/.kube/config`.
@@ -800,7 +800,7 @@ otelcol.processor.resourcedetection "default" {
 
 ### env and ec2
 
-There is no need to put in a `ec2 {}` River block.
+There is no need to put in an `ec2 {}` River block.
 The `ec2` defaults will be applied automatically, as specified in [ec2][].
 
 ```river
@@ -879,7 +879,7 @@ otelcol.processor.resourcedetection "default" {
 }
 ```
 
-You need to also add this to your workload:
+You need to add this to your workload:
 
 ```yaml
         env:
@@ -908,7 +908,7 @@ otelcol.processor.resourcedetection "default" {
 }
 ```
 
-You need to also add this to your workload:
+You need to add this to your workload:
 
 ```yaml
         env:
@@ -931,7 +931,7 @@ You need to also add this to your workload:
 
 {{% admonition type="note" %}}
 
-Connecting some components may not be sensible or components may require further configuration to make the 
+Connecting some components may not be sensible, or components may require further configuration to make the 
 connection work correctly. Refer to the linked documentation for more details.
 
 {{% /admonition %}}
