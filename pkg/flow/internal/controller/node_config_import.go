@@ -35,6 +35,8 @@ type ImportConfigNode struct {
 	OnNodeWithDependantsUpdate func(cn NodeWithDependants)
 	logger                     log.Logger
 
+	importChildrenUpdateChan chan struct{}
+
 	importChildrenMut         sync.RWMutex
 	importConfigNodesChildren map[string]*ImportConfigNode
 	importChildrenRunning     bool
@@ -82,6 +84,7 @@ func NewImportConfigNode(block *ast.BlockStmt, globals ComponentGlobals, sourceT
 		block:                      block,
 		evalHealth:                 initHealth,
 		runHealth:                  initHealth,
+		importChildrenUpdateChan:   make(chan struct{}),
 	}
 	managedOpts := getImportManagedOptions(globals, cn)
 	cn.logger = managedOpts.Logger
@@ -212,6 +215,11 @@ func (cn *ImportConfigNode) onContentUpdate(content string) {
 		level.Error(cn.logger).Log("msg", "failed to evaluate nested import", "err", err)
 		return
 	}
+
+	if cn.importChildrenRunning {
+		cn.importChildrenUpdateChan <- struct{}{}
+	}
+
 	cn.lastUpdateTime.Store(time.Now())
 	cn.OnNodeWithDependantsUpdate(cn)
 }
@@ -231,29 +239,59 @@ func (cn *ImportConfigNode) evaluateChildren() error {
 }
 
 // runChildren run the import nodes managed by this import node.
-func (cn *ImportConfigNode) runChildren(ctx context.Context) error {
+// The children list can be updated onContentUpdate. In this case we need to stop the running children and run the new set of children.
+func (cn *ImportConfigNode) runChildren(parentCtx context.Context) error {
+	errChildrenChan := make(chan error, 1)
 	var wg sync.WaitGroup
+	var ctx context.Context
+	var cancel context.CancelFunc
 
-	cn.importChildrenMut.Lock()
-	errChildrenChan := make(chan error, len(cn.importConfigNodesChildren))
-	for _, child := range cn.importConfigNodesChildren {
-		wg.Add(1)
-		go func(child *ImportConfigNode) {
-			defer wg.Done()
-			if err := child.Run(ctx); err != nil {
-				errChildrenChan <- err
-			}
-		}(child)
+	startChildren := func(ctx context.Context, children map[string]*ImportConfigNode, wg *sync.WaitGroup) {
+		for _, child := range children {
+			wg.Add(1)
+			go func(child *ImportConfigNode) {
+				defer wg.Done()
+				if err := child.Run(ctx); err != nil {
+					errChildrenChan <- err
+				}
+			}(child)
+		}
 	}
-	cn.importChildrenRunning = true
-	cn.importChildrenMut.Unlock()
 
-	go func() {
+	childrenDone := func() {
 		wg.Wait()
 		close(errChildrenChan)
-	}()
+	}
 
-	return <-errChildrenChan
+	ctx, cancel = context.WithCancel(parentCtx)
+	cn.importChildrenMut.Lock()
+	startChildren(ctx, cn.importConfigNodesChildren, &wg) // initial start of children
+	cn.importChildrenRunning = true
+	cn.importChildrenMut.Unlock()
+	go childrenDone()
+
+	for {
+		select {
+		case <-cn.importChildrenUpdateChan:
+			errChildrenChan = make(chan error, 1) // we erase the previous channel so that it is not closed by the running childrenDone goroutine
+			cancel()                              // we cancel all running children, which will stop the running childrenDone goroutine
+			wg = sync.WaitGroup{}
+			ctx, cancel = context.WithCancel(parentCtx) // we create a new context
+			cn.importChildrenMut.Lock()
+			startChildren(ctx, cn.importConfigNodesChildren, &wg) // start the new set of children
+			cn.importChildrenMut.Unlock()
+			go childrenDone()
+		case err, ok := <-errChildrenChan:
+			if !ok {
+				// All children were cancelled without error.
+				return nil
+			}
+			if err != nil {
+				// One child stopped because of an error.
+				return err
+			}
+		}
+	}
 }
 
 // OnChildrenContentUpdate passes their imported content to their parents.
@@ -299,7 +337,7 @@ func (cn *ImportConfigNode) Run(ctx context.Context) error {
 	}
 
 	ctx, cancel := context.WithCancel(ctx)
-	defer cancel()
+	defer cancel() // This will stop the children and the managed component.
 
 	errChan := make(chan error, 1)
 
