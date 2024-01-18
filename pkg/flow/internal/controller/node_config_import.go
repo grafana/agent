@@ -284,10 +284,12 @@ func (cn *ImportConfigNode) runChildren(parentCtx context.Context) error {
 		case err, ok := <-errChildrenChan:
 			if !ok {
 				// All children were cancelled without error.
+				cancel()
 				return nil
 			}
 			if err != nil {
 				// One child stopped because of an error.
+				cancel()
 				return err
 			}
 		}
