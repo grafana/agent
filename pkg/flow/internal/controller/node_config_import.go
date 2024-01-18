@@ -28,15 +28,16 @@ type ImportConfigNode struct {
 	componentName string
 	globalID      string
 	globals       ComponentGlobals // Need a copy of the globals to create other import nodes.
+	block         *ast.BlockStmt   // Current River blocks to derive config from
+	source        importsource.ImportSource
 
 	registry                   *prometheus.Registry
 	OnNodeWithDependantsUpdate func(cn NodeWithDependants)
 	logger                     log.Logger
 
-	mut                       sync.RWMutex
-	block                     *ast.BlockStmt // Current River blocks to derive config from
-	source                    importsource.ImportSource
+	importChildrenMut         sync.RWMutex
 	importConfigNodesChildren map[string]*ImportConfigNode
+	importChildrenRunning     bool
 
 	contentMut       sync.RWMutex
 	importedDeclares map[string]*Declare
@@ -137,8 +138,6 @@ func (cn *ImportConfigNode) setEvalHealth(t component.HealthType, msg string) {
 }
 
 func (cn *ImportConfigNode) evaluate(scope *vm.Scope) error {
-	cn.mut.Lock()
-	defer cn.mut.Unlock()
 	return cn.source.Evaluate(scope)
 }
 
@@ -188,6 +187,10 @@ func (cn *ImportConfigNode) processImportBlock(stmt *ast.BlockStmt, fullName str
 
 // onContentUpdate is triggered every time the managed import component has new content.
 func (cn *ImportConfigNode) onContentUpdate(content string) {
+	cn.importChildrenMut.Lock()
+	defer cn.importChildrenMut.Unlock()
+	cn.importConfigNodesChildren = make(map[string]*ImportConfigNode)
+
 	cn.contentMut.Lock()
 	cn.inContentUpdate = true
 	defer func() {
@@ -198,8 +201,6 @@ func (cn *ImportConfigNode) onContentUpdate(content string) {
 	cn.importedDeclares = make(map[string]*Declare)
 	cn.contentMut.Unlock()
 
-	// We recreate the nodes when the content changes. Can we copy instead for optimization?
-	cn.importConfigNodesChildren = make(map[string]*ImportConfigNode)
 	node, err := parser.ParseFile(cn.label, []byte(content))
 	if err != nil {
 		level.Error(cn.logger).Log("msg", "failed to parse file on update", "err", err)
@@ -208,7 +209,7 @@ func (cn *ImportConfigNode) onContentUpdate(content string) {
 	cn.processNodeBody(node, content)
 	err = cn.evaluateChildren()
 	if err != nil {
-		level.Error(cn.logger).Log("msg", "failed to update content", "err", err)
+		level.Error(cn.logger).Log("msg", "failed to evaluate nested import", "err", err)
 		return
 	}
 	cn.lastUpdateTime.Store(time.Now())
@@ -232,8 +233,9 @@ func (cn *ImportConfigNode) evaluateChildren() error {
 // runChildren run the import nodes managed by this import node.
 func (cn *ImportConfigNode) runChildren(ctx context.Context) error {
 	var wg sync.WaitGroup
-	errChildrenChan := make(chan error, len(cn.importConfigNodesChildren))
 
+	cn.importChildrenMut.Lock()
+	errChildrenChan := make(chan error, len(cn.importConfigNodesChildren))
 	for _, child := range cn.importConfigNodesChildren {
 		wg.Add(1)
 		go func(child *ImportConfigNode) {
@@ -243,6 +245,8 @@ func (cn *ImportConfigNode) runChildren(ctx context.Context) error {
 			}
 		}(child)
 	}
+	cn.importChildrenRunning = true
+	cn.importChildrenMut.Unlock()
 
 	go func() {
 		wg.Wait()
@@ -287,11 +291,10 @@ func (cn *ImportConfigNode) GetImportedDeclareByLabel(declareLabel string) (*Dec
 // Run will immediately return ErrUnevaluated if Evaluate has never been called
 // successfully. Otherwise, Run will return nil.
 func (cn *ImportConfigNode) Run(ctx context.Context) error {
-	cn.mut.RLock()
-	managed := cn.source
-	cn.mut.RUnlock()
-
-	if managed == nil {
+	cn.importChildrenMut.Lock()
+	importChildren := len(cn.importConfigNodesChildren)
+	cn.importChildrenMut.Unlock()
+	if cn.source == nil {
 		return ErrUnevaluated
 	}
 
@@ -300,7 +303,7 @@ func (cn *ImportConfigNode) Run(ctx context.Context) error {
 
 	errChan := make(chan error, 1)
 
-	if len(cn.importConfigNodesChildren) > 0 {
+	if importChildren > 0 {
 		go func() {
 			errChan <- cn.runChildren(ctx)
 		}()
@@ -309,7 +312,7 @@ func (cn *ImportConfigNode) Run(ctx context.Context) error {
 	cn.setRunHealth(component.HealthTypeHealthy, "started component")
 
 	go func() {
-		errChan <- managed.Run(ctx)
+		errChan <- cn.source.Run(ctx)
 	}()
 
 	err := <-errChan
@@ -342,8 +345,6 @@ func (cn *ImportConfigNode) Label() string { return cn.label }
 
 // Block implements BlockNode and returns the current block of the managed config node.
 func (cn *ImportConfigNode) Block() *ast.BlockStmt {
-	cn.mut.RLock()
-	defer cn.mut.RUnlock()
 	return cn.block
 }
 
@@ -363,16 +364,12 @@ func (cn *ImportConfigNode) LastUpdateTime() time.Time {
 
 // Arguments returns the current arguments of the managed component.
 func (cn *ImportConfigNode) Arguments() component.Arguments {
-	cn.mut.RLock()
-	defer cn.mut.RUnlock()
 	return cn.source.Arguments()
 }
 
 // Component returns the instance of the managed component. Component may be
 // nil if the ComponentNode has not been successfully evaluated yet.
 func (cn *ImportConfigNode) Component() component.Component {
-	cn.mut.RLock()
-	defer cn.mut.RUnlock()
 	return cn.source.Component()
 }
 
@@ -385,8 +382,8 @@ func (cn *ImportConfigNode) ImportedDeclares() map[string]*Declare {
 
 // ImportConfigNodesChildren returns the ImportConfigNodesChildren of this ImportConfigNode.
 func (cn *ImportConfigNode) ImportConfigNodesChildren() map[string]*ImportConfigNode {
-	cn.mut.RLock()
-	defer cn.mut.RUnlock()
+	cn.importChildrenMut.Lock()
+	defer cn.importChildrenMut.Unlock()
 	return cn.importConfigNodesChildren
 }
 

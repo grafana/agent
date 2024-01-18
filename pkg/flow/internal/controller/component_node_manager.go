@@ -7,7 +7,7 @@ import (
 	"github.com/grafana/river/ast"
 )
 
-// ComponentNodeManager is a manager that manages component nodes.
+// ComponentNodeManager manages component nodes.
 type ComponentNodeManager struct {
 	importNodes                 map[string]*ImportConfigNode
 	declareNodes                map[string]*DeclareNode
@@ -28,8 +28,8 @@ func NewComponentNodeManager(globals ComponentGlobals, componentReg ComponentReg
 	}
 }
 
-// OnReload resets the state of the component node manager.
-func (m *ComponentNodeManager) OnReload(additionalDeclareContents map[string]string) {
+// Reload resets the state of the component node manager and stores the provided additionalDeclareContents.
+func (m *ComponentNodeManager) Reload(additionalDeclareContents map[string]string) {
 	m.additionalDeclareContents = additionalDeclareContents
 	m.customComponentDependencies = make(map[string][]CustomComponentDependency)
 	m.importNodes = map[string]*ImportConfigNode{}
@@ -52,10 +52,10 @@ func (m *ComponentNodeManager) CreateComponentNode(componentName string, block *
 // GetCustomComponentDependencies retrieves and caches the dependencies that declare might have to other declares.
 func (m *ComponentNodeManager) getCustomComponentDependencies(declareNode *DeclareNode) ([]CustomComponentDependency, error) {
 	var dependencies []CustomComponentDependency
+	var err error
 	if deps, ok := m.customComponentDependencies[declareNode.label]; ok {
 		dependencies = deps
 	} else {
-		var err error
 		dependencies, err = m.FindCustomComponentDependencies(declareNode.Declare())
 		if err != nil {
 			return nil, err
@@ -75,11 +75,13 @@ func (m *ComponentNodeManager) isCustomComponent(componentName string) bool {
 	return declareExists || importExists || additionalDeclareContentExists
 }
 
+// GetCorrespondingLocalDeclare returns the declareNode matching the declareLabel of the provided CustomComponentNode if present.
 func (m *ComponentNodeManager) GetCorrespondingLocalDeclare(cc *CustomComponentNode) (*DeclareNode, bool) {
 	declareNode, exist := m.declareNodes[cc.declareLabel]
 	return declareNode, exist
 }
 
+// GetCorrespondingImportedDeclare returns the importNode matching the importLabel of the provided CustomComponentNode if present.
 func (m *ComponentNodeManager) GetCorrespondingImportedDeclare(cc *CustomComponentNode) (*ImportConfigNode, bool) {
 	importNode, exist := m.importNodes[cc.importLabel]
 	return importNode, exist
@@ -108,6 +110,7 @@ func (m *ComponentNodeManager) getCustomComponentConfig(cc *CustomComponentNode)
 		}
 		if !found {
 			customComponentConfig, found = m.getCustomComponentConfigFromParent(cc)
+			// Custom components that receive their config from imported declares in a parent controller can only access the imported declares coming from the same import.
 			customComponentConfig.additionalDeclareContents = filterAdditionalDeclareContents(cc.importLabel, customComponentConfig.additionalDeclareContents)
 		}
 	}

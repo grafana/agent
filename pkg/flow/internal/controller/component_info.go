@@ -7,9 +7,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 )
 
-// ComponentInfo is an interface that encapsulates a comprehensive suite of methods
-// for managing and retrieving detailed information about a specific component
-// within a dag.Node.
+// ComponentInfo is an interface that encapsulates methods for managing and retrieving detailed information about a component within a dag.Node.
 type ComponentInfo interface {
 	BlockNode
 

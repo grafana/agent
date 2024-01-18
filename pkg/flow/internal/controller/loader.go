@@ -135,7 +135,9 @@ func (l *Loader) Apply(args map[string]any, blocks []*ast.BlockStmt, configBlock
 	l.cache.SyncModuleArgs(args)
 
 	// Reload the component node manager when a new config is applied.
-	l.componentNodeManager.OnReload(options.AdditionalDeclareContents)
+	// This step is important to remove configs that might have been removed in the new config.
+	l.componentNodeManager.Reload(options.AdditionalDeclareContents)
+
 	newGraph, diags := l.loadNewGraph(args, blocks, configBlocks, declares)
 	if diags.HasErrors() {
 		return diags
@@ -539,7 +541,7 @@ func (l *Loader) wireGraphEdges(g *dag.Graph) diag.Diagnostics {
 			if err != nil {
 				diags.Add(diag.Diagnostic{
 					Severity: diag.SeverityLevelError,
-					Message:  fmt.Sprintf("Error while parsing the declare component %s: %v", n.label, err),
+					Message:  fmt.Sprintf("Error while wiring the custom component %s: %v", n.label, err),
 					StartPos: n.block.NamePos.Position(),
 					EndPos:   n.block.NamePos.Add(len(n.componentName) - 1).Position(),
 				})
