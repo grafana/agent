@@ -355,13 +355,8 @@ func TestImportModule(t *testing.T) {
                         optional = false
                     }
 
-                    testcomponents.passthrough "pt" {
-                        input = argument.input.value
-                        lag = "1ms"
-                    }
-
                     export "output" {
-                        value = testcomponents.passthrough.pt.output
+                        value = argument.input.value
                     }
                 }
 
@@ -614,6 +609,7 @@ func TestImportModule(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			defer verifyNoGoroutineLeaks(t)
 			filename := "module"
 			require.NoError(t, os.WriteFile(filename, []byte(tc.module), 0664))
 			defer os.Remove(filename)
