@@ -241,7 +241,7 @@ func (cn *ImportConfigNode) evaluateChildren() error {
 // runChildren run the import nodes managed by this import node.
 // The children list can be updated onContentUpdate. In this case we need to stop the running children and run the new set of children.
 func (cn *ImportConfigNode) runChildren(parentCtx context.Context) error {
-	errChildrenChan := make(chan error, 1)
+	errChildrenChan := make(chan error)
 	var wg sync.WaitGroup
 	var ctx context.Context
 	var cancel context.CancelFunc
@@ -258,9 +258,9 @@ func (cn *ImportConfigNode) runChildren(parentCtx context.Context) error {
 		}
 	}
 
-	childrenDone := func() {
+	childrenDone := func(wg *sync.WaitGroup, doneChan chan struct{}) {
 		wg.Wait()
-		close(errChildrenChan)
+		close(doneChan)
 	}
 
 	ctx, cancel = context.WithCancel(parentCtx)
@@ -268,30 +268,33 @@ func (cn *ImportConfigNode) runChildren(parentCtx context.Context) error {
 	startChildren(ctx, cn.importConfigNodesChildren, &wg) // initial start of children
 	cn.importChildrenRunning = true
 	cn.importChildrenMut.Unlock()
-	go childrenDone()
+
+	doneChan := make(chan struct{})
+	go childrenDone(&wg, doneChan) // start goroutine to check in case all children finish
 
 	for {
 		select {
 		case <-cn.importChildrenUpdateChan:
-			errChildrenChan = make(chan error, 1) // we erase the previous channel so that it is not closed by the running childrenDone goroutine
-			cancel()                              // we cancel all running children, which will stop the running childrenDone goroutine
+			cancel()   // cancel all running children
+			<-doneChan // wait for the children to finish
+
 			wg = sync.WaitGroup{}
-			ctx, cancel = context.WithCancel(parentCtx) // we create a new context
+			errChildrenChan = make(chan error)
+			doneChan = make(chan struct{})
+
+			ctx, cancel = context.WithCancel(parentCtx) // create a new context
 			cn.importChildrenMut.Lock()
 			startChildren(ctx, cn.importConfigNodesChildren, &wg) // start the new set of children
 			cn.importChildrenMut.Unlock()
-			go childrenDone()
-		case err, ok := <-errChildrenChan:
-			if !ok {
-				// All children were cancelled without error.
-				cancel()
-				return nil
-			}
-			if err != nil {
-				// One child stopped because of an error.
-				cancel()
-				return err
-			}
+			go childrenDone(&wg, doneChan) // start goroutine to check in case all new children finish
+		case err := <-errChildrenChan:
+			// One child stopped because of an error.
+			cancel()
+			return err
+		case <-doneChan:
+			// All children were cancelled without error.
+			cancel()
+			return nil
 		}
 	}
 }
