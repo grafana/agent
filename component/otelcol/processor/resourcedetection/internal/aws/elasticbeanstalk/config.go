@@ -33,7 +33,7 @@ func (args Config) Convert() map[string]interface{} {
 	}
 }
 
-// ResourceAttributesConfig provides config for resourcedetectionprocessor/elastic_beanstalk resource attributes.
+// ResourceAttributesConfig provides config for elastic_beanstalk resource attributes.
 type ResourceAttributesConfig struct {
 	CloudPlatform         rac.ResourceAttributeConfig `river:"cloud.platform,block,optional"`
 	CloudProvider         rac.ResourceAttributeConfig `river:"cloud.provider,block,optional"`

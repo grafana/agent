@@ -46,7 +46,7 @@ func (args *Config) Convert() map[string]interface{} {
 	}
 }
 
-// ResourceAttributesConfig provides config for resourcedetectionprocessor/ecs resource attributes.
+// ResourceAttributesConfig provides config for ecs resource attributes.
 type ResourceAttributesConfig struct {
 	AwsEcsClusterArn      rac.ResourceAttributeConfig `river:"aws.ecs.cluster.arn,block,optional"`
 	AwsEcsLaunchtype      rac.ResourceAttributeConfig `river:"aws.ecs.launchtype,block,optional"`

@@ -30,7 +30,7 @@ func (args Config) Convert() map[string]interface{} {
 	}
 }
 
-// ResourceAttributesConfig provides config for resourcedetectionprocessor/aks resource attributes.
+// ResourceAttributesConfig provides config for aks resource attributes.
 type ResourceAttributesConfig struct {
 	CloudPlatform rac.ResourceAttributeConfig `river:"cloud.platform,block,optional"`
 	CloudProvider rac.ResourceAttributeConfig `river:"cloud.provider,block,optional"`

@@ -61,7 +61,7 @@ func (args Config) Convert() map[string]interface{} {
 	}
 }
 
-// ResourceAttributesConfig provides config for resourcedetectionprocessor/system resource attributes.
+// ResourceAttributesConfig provides config for system resource attributes.
 type ResourceAttributesConfig struct {
 	HostArch           rac.ResourceAttributeConfig `river:"host.arch,block,optional"`
 	HostCPUCacheL2Size rac.ResourceAttributeConfig `river:"host.cpu.cache.l2.size,block,optional"`

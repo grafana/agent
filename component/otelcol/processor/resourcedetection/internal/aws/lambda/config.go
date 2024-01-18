@@ -37,7 +37,7 @@ func (args Config) Convert() map[string]interface{} {
 	}
 }
 
-// ResourceAttributesConfig provides config for resourcedetectionprocessor/lambda resource attributes.
+// ResourceAttributesConfig provides config for lambda resource attributes.
 type ResourceAttributesConfig struct {
 	AwsLogGroupNames  rac.ResourceAttributeConfig `river:"aws.log.group.names,block,optional"`
 	AwsLogStreamNames rac.ResourceAttributeConfig `river:"aws.log.stream.names,block,optional"`

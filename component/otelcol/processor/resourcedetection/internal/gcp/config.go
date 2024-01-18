@@ -45,7 +45,7 @@ func (args Config) Convert() map[string]interface{} {
 	}
 }
 
-// ResourceAttributesConfig provides config for resourcedetectionprocessor/gcp resource attributes.
+// ResourceAttributesConfig provides config for gcp resource attributes.
 type ResourceAttributesConfig struct {
 	CloudAccountID          rac.ResourceAttributeConfig `river:"cloud.account.id,block,optional"`
 	CloudAvailabilityZone   rac.ResourceAttributeConfig `river:"cloud.availability_zone,block,optional"`

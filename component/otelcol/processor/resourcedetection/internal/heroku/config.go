@@ -36,7 +36,7 @@ func (args Config) Convert() map[string]interface{} {
 	}
 }
 
-// ResourceAttributesConfig provides config for resourcedetectionprocessor/heroku resource attributes.
+// ResourceAttributesConfig provides config for heroku resource attributes.
 type ResourceAttributesConfig struct {
 	CloudProvider                  rac.ResourceAttributeConfig `river:"cloud.provider,block,optional"`
 	HerokuAppID                    rac.ResourceAttributeConfig `river:"heroku.app.id,block,optional"`

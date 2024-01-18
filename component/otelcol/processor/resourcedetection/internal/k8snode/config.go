@@ -59,7 +59,7 @@ func (args Config) Convert() map[string]interface{} {
 	}
 }
 
-// ResourceAttributesConfig provides config for resourcedetectionprocessor/k8snode resource attributes.
+// ResourceAttributesConfig provides config for k8snode resource attributes.
 type ResourceAttributesConfig struct {
 	K8sNodeName rac.ResourceAttributeConfig `river:"k8s.node.name,block,optional"`
 	K8sNodeUID  rac.ResourceAttributeConfig `river:"k8s.node.uid,block,optional"`

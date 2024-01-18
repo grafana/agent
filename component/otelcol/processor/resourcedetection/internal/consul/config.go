@@ -83,7 +83,7 @@ func (args Config) Convert() map[string]interface{} {
 	}
 }
 
-// ResourceAttributesConfig provides config for resourcedetectionprocessor/consul resource attributes.
+// ResourceAttributesConfig provides config for consul resource attributes.
 type ResourceAttributesConfig struct {
 	AzureResourcegroupName rac.ResourceAttributeConfig `river:"azure.resourcegroup.name,block,optional"`
 	AzureVMName            rac.ResourceAttributeConfig `river:"azure.vm.name,block,optional"`

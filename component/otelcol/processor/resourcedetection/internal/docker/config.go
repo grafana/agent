@@ -30,7 +30,7 @@ func (args Config) Convert() map[string]interface{} {
 	}
 }
 
-// ResourceAttributesConfig provides config for resourcedetectionprocessor/docker resource attributes.
+// ResourceAttributesConfig provides config for docker resource attributes.
 type ResourceAttributesConfig struct {
 	HostName rac.ResourceAttributeConfig `river:"host.name,block,optional"`
 	OsType   rac.ResourceAttributeConfig `river:"os.type,block,optional"`

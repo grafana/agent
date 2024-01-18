@@ -85,7 +85,6 @@ For AWS, the below ordering is recommended:
   1. [eks][]
   1. [ecs][]
   1. [ec2][]
-<!-- TODO: Why do the otel docs also list a GCP ordering? There is only one GCP detector. -->
 
 ## Blocks
 
