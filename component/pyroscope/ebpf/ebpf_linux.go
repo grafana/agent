@@ -83,7 +83,7 @@ func defaultArguments() Arguments {
 		CollectUserProfile:   true,
 		CollectKernelProfile: true,
 		TargetsOnly:          true,
-		Demangle:             "none",
+		Demangle:             "full",
 		PythonEnabled:        true,
 	}
 }
