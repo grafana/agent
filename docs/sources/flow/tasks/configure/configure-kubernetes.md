@@ -28,9 +28,6 @@ for example, to collect and store a specific telemetry signal, check out the [Ku
 
 [k8s-tasks]: {{< relref "../kubernetes/" >}}
 
-This page covers both: changing the {{< param "PRODUCT_NAME" >}}'s configuration,
-and the Helm chart's configuration.
-
 ## Configure the Helm chart
 
 To modify {{< param "PRODUCT_NAME" >}}'s Helm chart configuration, perform the following steps:
@@ -80,10 +77,6 @@ configMapGenerator:
     options:
       disableNameSuffixHash: true
 ```
-
-## Configure {{< param "PRODUCT_NAME" >}}
-
-TODO: How to change the river config that is used by the Helm chart.
 
 [Helm chart]: https://github.com/grafana/agent/tree/main/operations/helm/charts/grafana-agent
 [Kustomize]: https://kubernetes.io/docs/tasks/manage-kubernetes-objects/kustomization/
