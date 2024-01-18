@@ -43,6 +43,8 @@ Main (unreleased)
 - Fix a duplicate metrics registration panic when sending metrics to an static
   mode metric instance's write handler. (@tpaschalis)
 
+- Fix issue where installing the Windows Agent Flow installer would hang then crash. (@mattdurham)
+
 ### Other changes
 
 - Removed support for Windows 2012 in line with Microsoft end of life. (@mattdurham)
