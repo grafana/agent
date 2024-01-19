@@ -33,7 +33,7 @@ type Config struct {
 
 var DefaultArguments = Config{
 	KubernetesAPIConfig: otelcol.KubernetesAPIConfig{
-		AuthType: "none",
+		AuthType: otelcol.KubernetesAPIConfig_AuthType_None,
 	},
 	NodeFromEnvVar: "K8S_NODE_NAME",
 	ResourceAttributes: ResourceAttributesConfig{
