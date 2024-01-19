@@ -7,6 +7,21 @@ This document contains a historical list of changes between releases. Only
 changes that impact end-user behavior are listed; changes to documentation or
 internal API changes are not present.
 
+v0.39.1 (2024-01-19)
+--------------------
+
+### Security fixes
+
+- Fixes following vulnerabilities (@hainenber)
+  - [GO-2023-2409](https://github.com/advisories/GHSA-mhpq-9638-x6pw)
+  - [GO-2023-2412](https://github.com/advisories/GHSA-7ww5-4wqc-m92c)
+  - [CVE-2023-49568](https://github.com/advisories/GHSA-mw99-9chc-xw7r)
+
+### Bugfixes
+
+- Fix issue where installing the Windows Agent Flow installer would hang then crash. (@mattdurham)
+
+
 v0.39.0 (2024-01-09)
 --------------------
 
