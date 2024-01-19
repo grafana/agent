@@ -35,8 +35,8 @@ func TestModuleBug(t *testing.T) {
 					}
 				}
 
-				export "output" {
-					value = module.file.default.exports.output
+				export "output4" {
+					value = module.file.default.exports.output3
 				}
 			`,
 			otherModule: `
@@ -58,7 +58,7 @@ func TestModuleBug(t *testing.T) {
 							lag = "5ms"
 						}
 		
-						export "output" {
+						export "output1" {
 							value = testcomponents.passthrough.pta.output
 						}`)+`
 						arguments {
@@ -66,8 +66,8 @@ func TestModuleBug(t *testing.T) {
 						}
 					}
 	
-					export "output" {
-						value = module.string.default1.exports.output
+					export "output2" {
+						value = module.string.default1.exports.output1
 					}`) + `
 					arguments {
 						input = argument.input.value
@@ -77,8 +77,8 @@ func TestModuleBug(t *testing.T) {
 					optional = false
 				}
 
-				export "output" {
-					value = module.string.default.exports.output
+				export "output3" {
+					value = module.string.default.exports.output2
 				}
 			`,
 			config: `
@@ -86,7 +86,7 @@ func TestModuleBug(t *testing.T) {
 					filename = "module"
 				}
                 testcomponents.summation "sum" {
-                    input = module.file.default1.exports.output
+                    input = module.file.default1.exports.output4
                 }
             `,
 		},
