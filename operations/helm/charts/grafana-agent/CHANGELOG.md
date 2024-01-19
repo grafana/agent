@@ -10,11 +10,16 @@ internal API changes are not present.
 Unreleased
 ----------
 
-### Enhancments
+0.31.1 (2024-01-19)
+-------------------
+
+### Enhancements
 
 - Add `kubectl.kubernetes.io/default-container: grafana-agent` annotation to allow various tools to choose `grafana-agent` container as default target (@aerfio)
 
 - Add support for topology spread constraints in helm chart. (@etiennep)
+
+- Update Grafana Agent version to v0.39.1. (@marctc)
 
 ### Bugfixes
 
