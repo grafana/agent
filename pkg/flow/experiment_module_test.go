@@ -49,7 +49,7 @@ func TestModuleBug(t *testing.T) {
 						lag = "5ms"
 					}
 
-					module.string "default" {
+					module.string "default1" {
 						content = `+strconv.Quote(`argument "input" {
 							optional = false
 						}
@@ -67,7 +67,7 @@ func TestModuleBug(t *testing.T) {
 					}
 	
 					export "output" {
-						value = module.string.default.exports.output
+						value = module.string.default1.exports.output
 					}`) + `
 					arguments {
 						input = argument.input.value
