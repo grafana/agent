@@ -44,7 +44,7 @@ func TestModuleBug(t *testing.T) {
 					content = ` + strconv.Quote(`argument "input" {
 						optional = false
 					}
-					testcomponents.passthrough "pt" {
+					testcomponents.passthrough "pto" {
 						input = argument.input.value
 						lag = "5ms"
 					}
@@ -53,16 +53,16 @@ func TestModuleBug(t *testing.T) {
 						content = `+strconv.Quote(`argument "input" {
 							optional = false
 						}
-						testcomponents.passthrough "pt" {
+						testcomponents.passthrough "pta" {
 							input = argument.input.value
 							lag = "5ms"
 						}
 		
 						export "output" {
-							value = testcomponents.passthrough.pt.output
+							value = testcomponents.passthrough.pta.output
 						}`)+`
 						arguments {
-							input = testcomponents.passthrough.pt.output
+							input = testcomponents.passthrough.pto.output
 						}
 					}
 	
