@@ -289,8 +289,6 @@ func (cn *CustomComponentNode) setExports(e component.Exports) {
 	// exports.
 	var changed bool
 
-	fmt.Println(cn.nodeID, e)
-
 	cn.exportsMut.Lock()
 	if !reflect.DeepEqual(cn.exports, e) {
 		changed = true
