@@ -44,6 +44,7 @@ type ImportConfigNode struct {
 	contentMut       sync.RWMutex
 	importedDeclares map[string]*Declare
 	inContentUpdate  bool
+	content          string
 
 	lastUpdateTime atomic.Time
 
@@ -192,6 +193,13 @@ func (cn *ImportConfigNode) processImportBlock(stmt *ast.BlockStmt, fullName str
 func (cn *ImportConfigNode) onContentUpdate(content string) {
 	cn.importChildrenMut.Lock()
 	defer cn.importChildrenMut.Unlock()
+	cn.contentMut.Lock()
+	// If the source sent the same content, there is no need to reload.
+	if cn.content == content {
+		return
+	}
+	cn.content = content
+	cn.contentMut.Unlock()
 	cn.importConfigNodesChildren = make(map[string]*ImportConfigNode)
 
 	cn.contentMut.Lock()
