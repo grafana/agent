@@ -126,12 +126,12 @@ func NewCustomComponentNode(globals ComponentGlobals, b *ast.BlockStmt, GetCusto
 		evalHealth: initHealth,
 		runHealth:  initHealth,
 	}
-	cn.managedOpts = getDeclareManagedOptions(globals, cn)
+	cn.managedOpts = getCustomManagedOptions(globals, cn)
 
 	return cn
 }
 
-func getDeclareManagedOptions(globals ComponentGlobals, cn *CustomComponentNode) component.Options {
+func getCustomManagedOptions(globals ComponentGlobals, cn *CustomComponentNode) component.Options {
 	cn.registry = prometheus.NewRegistry()
 	return component.Options{
 		ID:     cn.globalID,
@@ -288,6 +288,8 @@ func (cn *CustomComponentNode) setExports(e component.Exports) {
 	// To avoid needlessly reevaluating components we'll ignore unchanged
 	// exports.
 	var changed bool
+
+	fmt.Println(cn.nodeID, e)
 
 	cn.exportsMut.Lock()
 	if !reflect.DeepEqual(cn.exports, e) {
