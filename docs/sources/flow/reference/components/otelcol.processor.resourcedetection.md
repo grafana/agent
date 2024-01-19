@@ -44,11 +44,11 @@ otelcol.processor.resourcedetection "LABEL" {
 
 `otelcol.processor.resourcedetection` supports the following arguments:
 
-Name        | Type           | Description                                                                            | Default   | Required
------------ | -------------- | -------------------------------------------------------------------------------------- |---------- | --------
-`detectors` | `list(string)` | An ordered list of named detectors which should be ran to detect resource information. | `["env"]` | no
-`override`  | `bool`         | Configures whether existing resource attributes should be overridden or preserved.     | `true`    | no
-`timeout`   | `duration`     | Timeout by which all specified detectors must complete.                                | `"5s"`    | no
+Name        | Type           | Description                                                                         | Default   | Required
+----------- | -------------- | ----------------------------------------------------------------------------------- |---------- | --------
+`detectors` | `list(string)` | An ordered list of named detectors used to detect resource information.             | `["env"]` | no
+`override`  | `bool`         | Configures whether existing resource attributes should be overridden or preserved.  | `true`    | no
+`timeout`   | `duration`     | Timeout by which all specified detectors must complete.                             | `"5s"`    | no
 
 `detectors` could contain the following values:
 * `env`
@@ -151,7 +151,7 @@ check the iptable and make sure the chain `PARALLELCLUSTER_IMDS` contains a rule
 [AWS cli user guide]: https://github.com/awsdocs/aws-cli-user-guide/blob/a2393582590b64bd2a1d9978af15b350e1f9eb8e/doc_source/cli-configure-proxy.md#using-a-proxy-on-amazon-ec2-instances
 
 `tags` can be used to gather tags for the EC2 instance which {{< param "PRODUCT_ROOT_NAME" >}} is running on. 
-Note that in order to fetch EC2 tags, the IAM role assigned to the EC2 instance must have a policy that includes the `ec2:DescribeTags` permission.
+To fetch EC2 tags, the IAM role assigned to the EC2 instance must have a policy that includes the `ec2:DescribeTags` permission.
 
 The `ec2` block supports the following blocks:
 
@@ -468,7 +468,7 @@ Block                                   | Description                           
 [host.type][res-attr-cfg]        | Toggles the `host.type` resource attribute. <br> Sets `enabled` to `true` by default.        | no
 [k8s.cluster.name][res-attr-cfg]        | Toggles the `k8s.cluster.name` resource attribute. <br> Sets `enabled` to `true` by default.        | no
 
-#### Google Compute Engine (GCE) Metadata
+#### Google Compute Engine (GCE) metadata
 
 * `cloud.provider`: `"gcp"`
 * `cloud.platform`: `"gcp_compute_engine"`
@@ -481,7 +481,7 @@ Block                                   | Description                           
 * (optional) `gcp.gce.instance.hostname`
 * (optional) `gcp.gce.instance.name`
 
-#### Google Kubernetes Engine (GKE) Metadata
+#### Google Kubernetes Engine (GKE) metadata
 
 * `cloud.provider`: `"gcp"`
 * `cloud.platform`: `"gcp_kubernetes_engine"`
@@ -495,10 +495,12 @@ Block                                   | Description                           
 One known issue happens when GKE workload identity is enabled. The GCE metadata endpoints won't be available, 
 and the GKE resource detector won't be able to determine `host.name`. 
 If this happens, you can set `host.name` from one of the following resources:
-- `node.name` through the downward API with the `env` detector.
-- Obtaining the Kubernetes node name from the Kubernetes API (with `k8s.io/client-go`).
+- Get the `node.name` through the [downward API][] with the `env` detector.
+- Get the Kubernetes node name from the Kubernetes API (with `k8s.io/client-go`).
 
-#### Google Cloud Run Services Metadata
+[downward API]: https://kubernetes.io/docs/concepts/workloads/pods/downward-api/
+
+#### Google Cloud Run Services metadata
 
 * `cloud.provider`: `"gcp"`
 * `cloud.platform`: `"gcp_cloud_run"`
@@ -508,7 +510,7 @@ If this happens, you can set `host.name` from one of the following resources:
 * `faas.name`: service name
 * `faas.version`: service revision
 
-#### Cloud Run Jobs Metadata
+#### Cloud Run Jobs metadata
 
 * `cloud.provider`: `"gcp"`
 * `cloud.platform`: `"gcp_cloud_run"`
@@ -519,7 +521,7 @@ If this happens, you can set `host.name` from one of the following resources:
 * `gcp.cloud_run.job.execution`: e.g. `"my-service-ajg89"`
 * `gcp.cloud_run.job.task_index`: e.g. `"0"`
 
-#### Google Cloud Functions Metadata
+#### Google Cloud Functions metadata
 
 * `cloud.provider`: `"gcp"`
 * `cloud.platform`: `"gcp_cloud_functions"`
@@ -529,7 +531,7 @@ If this happens, you can set `host.name` from one of the following resources:
 * `faas.name`: function name
 * `faas.version`: function version
 
-#### Google App Engine Metadata
+#### Google App Engine metadata
 
 * `cloud.provider`: `"gcp"`
 * `cloud.platform`: `"gcp_app_engine"`
@@ -931,7 +933,7 @@ You need to add this to your workload:
 
 {{% admonition type="note" %}}
 
-Connecting some components may not be sensible, or components may require further configuration to make the 
+Connecting some components may not be sensible or components may require further configuration to make the 
 connection work correctly. Refer to the linked documentation for more details.
 
 {{% /admonition %}}
