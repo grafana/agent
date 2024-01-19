@@ -34,7 +34,7 @@ All arguments are optional. Omitted fields take their default values.
 
 | Name                 | Type             | Description                               | Default | Required |
 |----------------------|------------------|-------------------------------------------|---------|----------|
-| `enabled_collectors` | `list(string)`   | List of collectors to enable.             | `["cpu","cs","logical_disk","net","os","service","system"]` | no       |
+| `enabled_collectors` | `list(string)`   | List of collectors to enable.             | `["cpu","cs","logical_disk","net","os","service","system","textfile"]` | no       |
 | `timeout`            | `duration`       | Configure timeout for collecting metrics. | `4m`    | no       |
 
 `enabled_collectors` defines a hand-picked list of enabled-by-default

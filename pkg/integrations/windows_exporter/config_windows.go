@@ -55,7 +55,7 @@ func coalesceString(v ...string) string {
 
 // DefaultConfig holds the default settings for the windows_exporter integration.
 var DefaultConfig = Config{
-	EnabledCollectors: "cpu,cs,logical_disk,net,os,service,system",
+	EnabledCollectors: "cpu,cs,logical_disk,net,os,service,system,textfile",
 	Dfsr: DfsrConfig{
 		SourcesEnabled: collector.ConfigDefaults.Dfsr.DfsrEnabledCollectors,
 	},
