@@ -25,7 +25,7 @@ func TestImportModule(t *testing.T) {
             lag = "1ms"
         }
 
-        export "output" {
+        export "testOutput" {
             value = -10
         }
     }
@@ -51,7 +51,7 @@ func TestImportModule(t *testing.T) {
                         lag = "1ms"
                     }
 
-                    export "output" {
+                    export "testOutput" {
                         value = testcomponents.passthrough.pt.output
                     }
                 }`,
@@ -70,7 +70,7 @@ func TestImportModule(t *testing.T) {
                 }
 
                 testcomponents.summation "sum" {
-                    input = testImport.test.myModule.output
+                    input = testImport.test.myModule.testOutput
                 }
             `,
 			updateModule: func(filename string) string {
@@ -87,7 +87,7 @@ func TestImportModule(t *testing.T) {
                         lag = "1ms"
                     }
 
-                    export "output" {
+                    export "testOutput" {
                         value = testcomponents.passthrough.pt.output
                     }
                 }`,
@@ -100,7 +100,7 @@ func TestImportModule(t *testing.T) {
                 }
 
                 testcomponents.summation "sum" {
-                    input = testImport.test.myModule.output
+                    input = testImport.test.myModule.testOutput
                 }
             `,
 			updateModule: func(filename string) string {
@@ -111,7 +111,7 @@ func TestImportModule(t *testing.T) {
                             lag = "1ms"
                         }
 
-                        export "output" {
+                        export "testOutput" {
                             value = testcomponents.passthrough.pt.output
                         }
                     }
@@ -132,7 +132,7 @@ func TestImportModule(t *testing.T) {
                         lag = "1ms"
                     }
 
-                    export "output" {
+                    export "testOutput" {
                         value = testcomponents.passthrough.pt.output
                     }
                 }
@@ -157,15 +157,15 @@ func TestImportModule(t *testing.T) {
                         input = testcomponents.count.inc.count
                     }
 
-                    export "output" {
-                        value = testImport.test.myModule.output
+                    export "anotherModuleOutput" {
+                        value = testImport.test.myModule.testOutput
                     }
                 }
 
                 anotherModule "myOtherModule" {}
 
                 testcomponents.summation "sum" {
-                    input = anotherModule.myOtherModule.output
+                    input = anotherModule.myOtherModule.anotherModuleOutput
                 }
             `,
 			updateModule: func(filename string) string {
@@ -181,7 +181,7 @@ func TestImportModule(t *testing.T) {
                         optional = false
                     }
 
-                    export "output" {
+                    export "testOutput" {
                         value = argument.input.value
                     }
                 }
@@ -212,21 +212,21 @@ func TestImportModule(t *testing.T) {
                             input = testcomponents.passthrough.pt.output
                         }
     
-                        export "output" {
-                            value = testImport.test.myModule.output
+                        export "anotherModuleOutput" {
+                            value = testImport.test.myModule.testOutput
                         }
                     }
                     anotherModule "myOtherModule" {}
 
-                    export "output" {
-                        value = anotherModule.myOtherModule.output
+                    export "yetAgainAnotherModuleOutput" {
+                        value = anotherModule.myOtherModule.anotherModuleOutput
                     }
                 }
 
                 yetAgainAnotherModule "default" {}
 
                 testcomponents.summation "sum" {
-                    input = yetAgainAnotherModule.default.output
+                    input = yetAgainAnotherModule.default.yetAgainAnotherModuleOutput
                 }
             `,
 			updateModule: func(filename string) string {
@@ -250,8 +250,8 @@ func TestImportModule(t *testing.T) {
                         input = testcomponents.count.inc.count
                     }
 
-                    export "output" {
-                        value = otherModule.test.default.output
+                    export "anotherModuleOutput" {
+                        value = otherModule.test.default.testOutput
                     }
                 }
             `,
@@ -266,7 +266,7 @@ func TestImportModule(t *testing.T) {
                         lag = "1ms"
                     }
 
-                    export "output" {
+                    export "testOutput" {
                         value = testcomponents.passthrough.pt.output
                     }
                 }
@@ -279,7 +279,7 @@ func TestImportModule(t *testing.T) {
                 testImport.anotherModule "myOtherModule" {}
 
                 testcomponents.summation "sum" {
-                    input = testImport.anotherModule.myOtherModule.output
+                    input = testImport.anotherModule.myOtherModule.anotherModuleOutput
                 }
             `,
 			updateModule: func(filename string) string {
@@ -305,8 +305,8 @@ func TestImportModule(t *testing.T) {
                             input = argument.input.value
                         }
 
-                        export "output" {
-                            value = default.test.default.output
+                        export "blablaOutput" {
+                            value = default.test.default.testOutput
                         }
                     }
 
@@ -314,8 +314,8 @@ func TestImportModule(t *testing.T) {
                         input = testcomponents.count.inc.count
                     }
 
-                    export "output" {
-                        value = blabla.default.output
+                    export "anotherModuleOutput" {
+                        value = blabla.default.blablaOutput
                     }
                 }
                 `,
@@ -330,7 +330,7 @@ func TestImportModule(t *testing.T) {
                     lag = "1ms"
                 }
 
-                export "output" {
+                export "testOutput" {
                     value = testcomponents.passthrough.pt.output
                 }
             }
@@ -343,7 +343,7 @@ func TestImportModule(t *testing.T) {
                     testImport.anotherModule "myOtherModule" {}
     
                     testcomponents.summation "sum" {
-                        input = testImport.anotherModule.myOtherModule.output
+                        input = testImport.anotherModule.myOtherModule.anotherModuleOutput
                     }
                 `,
 		},
@@ -355,8 +355,13 @@ func TestImportModule(t *testing.T) {
                         optional = false
                     }
 
-                    export "output" {
-                        value = argument.input.value
+                    testcomponents.passthrough "pt" {
+                        input = argument.input.value
+                        lag = "1ms"
+                    }
+
+                    export "other_testOutput" {
+                        value = testcomponents.passthrough.pt.output
                     }
                 }
 
@@ -369,8 +374,8 @@ func TestImportModule(t *testing.T) {
                         input = argument.input.value
                     }
 
-                    export "output" {
-                        value = other_test.default.output
+                    export "testOutput" {
+                        value = other_test.default.other_testOutput
                     }
                 }
             `,
@@ -394,15 +399,15 @@ func TestImportModule(t *testing.T) {
                         input = testcomponents.count.inc.count
                     }
 
-                    export "output" {
-                        value = testImport.test.myModule.output
+                    export "anotherModuleOutput" {
+                        value = testImport.test.myModule.testOutput
                     }
                 }
 
                 anotherModule "myOtherModule" {}
 
                 testcomponents.summation "sum" {
-                    input = anotherModule.myOtherModule.output
+                    input = anotherModule.myOtherModule.anotherModuleOutput
                 }
             `,
 			updateModule: func(filename string) string {
@@ -425,7 +430,7 @@ func TestImportModule(t *testing.T) {
                         input = argument.input.value
                     }
 
-                    export "output" {
+                    export "testOutput" {
                         value = other_test.default.output
                     }
                 }
@@ -448,8 +453,8 @@ func TestImportModule(t *testing.T) {
                         input = argument.input.value
                     }
 
-                    export "output" {
-                        value = importOtherTest.other_test.default.output
+                    export "testOutput" {
+                        value = importOtherTest.other_test.default.other_testOutput
                     }
                 }
             `,
@@ -464,7 +469,7 @@ func TestImportModule(t *testing.T) {
                     lag = "1ms"
                 }
 
-                export "output" {
+                export "other_testOutput" {
                     value = testcomponents.passthrough.pt.output
                 }
             }`,
@@ -488,15 +493,15 @@ func TestImportModule(t *testing.T) {
                         input = testcomponents.count.inc.count
                     }
 
-                    export "output" {
-                        value = testImport.test.myModule.output
+                    export "anotherModuleOutput" {
+                        value = testImport.test.myModule.testOutput
                     }
                 }
 
                 anotherModule "myOtherModule" {}
 
                 testcomponents.summation "sum" {
-                    input = anotherModule.myOtherModule.output
+                    input = anotherModule.myOtherModule.anotherModuleOutput
                 }
             `,
 			updateModule: func(filename string) string {
@@ -505,7 +510,7 @@ func TestImportModule(t *testing.T) {
                     argument "input" {
                         optional = false
                     }
-                    export "output" {
+                    export "other_testOutput" {
                         value = -10
                     }
                 }
@@ -531,8 +536,8 @@ func TestImportModule(t *testing.T) {
                         importOtherTest.other_test "default" {
                             input = argument.input.value
                         }
-                        export "output" {
-                            value = importOtherTest.other_test.default.output
+                        export "anotherOneOutput" {
+                            value = importOtherTest.other_test.default.other_testOutput
                         }
                     }
 
@@ -540,8 +545,8 @@ func TestImportModule(t *testing.T) {
                         input = argument.input.value
                     }
 
-                    export "output" {
-                        value = anotherOne.default.output
+                    export "testOutput" {
+                        value = anotherOne.default.anotherOneOutput
                     }
                 }
             `,
@@ -553,10 +558,10 @@ func TestImportModule(t *testing.T) {
 
                 testcomponents.passthrough "pt" {
                     input = argument.input.value
-                    lag = "1ms"
+                    lag = "5ms"
                 }
 
-                export "output" {
+                export "other_testOutput" {
                     value = testcomponents.passthrough.pt.output
                 }
             }`,
@@ -580,15 +585,15 @@ func TestImportModule(t *testing.T) {
                         input = testcomponents.count.inc.count
                     }
 
-                    export "output" {
-                        value = testImport.test.myModule.output
+                    export "anotherModuleOutput" {
+                        value = testImport.test.myModule.testOutput
                     }
                 }
 
                 anotherModule "myOtherModule" {}
 
                 testcomponents.summation "sum" {
-                    input = anotherModule.myOtherModule.output
+                    input = anotherModule.myOtherModule.anotherModuleOutput
                 }
             `,
 			updateModule: func(filename string) string {
@@ -597,7 +602,7 @@ func TestImportModule(t *testing.T) {
                     argument "input" {
                         optional = false
                     }
-                    export "output" {
+                    export "other_testOutput" {
                         value = -10
                     }
                 }
