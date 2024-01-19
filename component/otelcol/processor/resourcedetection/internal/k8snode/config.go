@@ -6,6 +6,8 @@ import (
 	"github.com/grafana/river"
 )
 
+const Name = "kubernetes_node"
+
 type Config struct {
 	KubernetesAPIConfig otelcol.KubernetesAPIConfig `river:",squash"`
 	// NodeFromEnv can be used to extract the node name from an environment

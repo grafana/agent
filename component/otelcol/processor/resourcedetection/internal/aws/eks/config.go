@@ -5,6 +5,8 @@ import (
 	"github.com/grafana/river"
 )
 
+const Name = "eks"
+
 type Config struct {
 	ResourceAttributes ResourceAttributesConfig `river:"resource_attributes,block,optional"`
 }

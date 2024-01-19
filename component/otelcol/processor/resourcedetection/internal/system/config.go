@@ -7,6 +7,8 @@ import (
 	"github.com/grafana/river"
 )
 
+const Name = "system"
+
 // Config defines user-specified configurations unique to the system detector
 type Config struct {
 	// The HostnameSources is a priority list of sources from which hostname will be fetched.

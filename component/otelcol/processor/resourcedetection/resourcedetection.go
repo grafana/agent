@@ -18,6 +18,7 @@ import (
 	"github.com/grafana/agent/component/otelcol/processor/resourcedetection/internal/docker"
 	"github.com/grafana/agent/component/otelcol/processor/resourcedetection/internal/gcp"
 	"github.com/grafana/agent/component/otelcol/processor/resourcedetection/internal/heroku"
+	"github.com/grafana/agent/component/otelcol/processor/resourcedetection/internal/k8snode"
 	kubernetes_node "github.com/grafana/agent/component/otelcol/processor/resourcedetection/internal/k8snode"
 	"github.com/grafana/agent/component/otelcol/processor/resourcedetection/internal/openshift"
 	"github.com/grafana/agent/component/otelcol/processor/resourcedetection/internal/system"
@@ -153,6 +154,30 @@ func (args *Arguments) Validate() error {
 	if len(args.Detectors) == 0 {
 		return fmt.Errorf("at least one detector must be specified")
 	}
+
+	for _, detector := range args.Detectors {
+		switch detector {
+		case "env",
+			ec2.Name,
+			ecs.Name,
+			eks.Name,
+			elasticbeanstalk.Name,
+			lambda.Name,
+			azure.Name,
+			aks.Name,
+			consul.Name,
+			docker.Name,
+			gcp.Name,
+			heroku.Name,
+			system.Name,
+			openshift.Name,
+			k8snode.Name:
+		// Valid option - nothing to do
+		default:
+			return fmt.Errorf("invalid detector: %s", detector)
+		}
+	}
+
 	return nil
 }
 
@@ -163,9 +188,8 @@ func (args Arguments) ConvertDetectors() []string {
 
 	res := make([]string, 0, len(args.Detectors))
 	for _, detector := range args.Detectors {
-		//TODO(ptodev): Check if the detector name is valid
 		switch detector {
-		case "kubernetes_node":
+		case k8snode.Name:
 			res = append(res, "k8snode")
 		default:
 			res = append(res, detector)

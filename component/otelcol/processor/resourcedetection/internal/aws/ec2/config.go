@@ -5,6 +5,8 @@ import (
 	"github.com/grafana/river"
 )
 
+const Name = "ec2"
+
 // Config defines user-specified configurations unique to the EC2 detector
 type Config struct {
 	// Tags is a list of regex's to match ec2 instance tag keys that users want

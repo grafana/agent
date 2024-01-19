@@ -41,6 +41,48 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 			errorMsg: "at least one detector must be specified",
 		},
 		{
+			testName: "invalid_detector",
+			cfg: `
+			detectors = ["non-existent-detector"]
+			output {}
+			`,
+			errorMsg: "invalid detector: non-existent-detector",
+		},
+		{
+			testName: "invalid_detector_and_all_valid_ones",
+			cfg: `
+			detectors = ["non-existent-detector2", "env", "ec2", "ecs", "eks", "elasticbeanstalk", "lambda", "azure", "aks", "consul", "docker", "gcp", "heroku", "system", "openshift", "kubernetes_node"]
+			output {}
+			`,
+			errorMsg: "invalid detector: non-existent-detector2",
+		},
+		{
+			testName: "all_detectors_with_defaults",
+			cfg: `
+			detectors = ["env", "ec2", "ecs", "eks", "elasticbeanstalk", "lambda", "azure", "aks", "consul", "docker", "gcp", "heroku", "system", "openshift", "kubernetes_node"]
+			output {}
+			`,
+			expected: map[string]interface{}{
+				"detectors":        []string{"env", "ec2", "ecs", "eks", "elasticbeanstalk", "lambda", "azure", "aks", "consul", "docker", "gcp", "heroku", "system", "openshift", "k8snode"},
+				"timeout":          5 * time.Second,
+				"override":         true,
+				"ec2":              ec2.DefaultArguments.Convert(),
+				"ecs":              ecs.DefaultArguments.Convert(),
+				"eks":              eks.DefaultArguments.Convert(),
+				"elasticbeanstalk": elasticbeanstalk.DefaultArguments.Convert(),
+				"lambda":           lambda.DefaultArguments.Convert(),
+				"azure":            azure.DefaultArguments.Convert(),
+				"aks":              aks.DefaultArguments.Convert(),
+				"consul":           consul.DefaultArguments.Convert(),
+				"docker":           docker.DefaultArguments.Convert(),
+				"gcp":              gcp.DefaultArguments.Convert(),
+				"heroku":           heroku.DefaultArguments.Convert(),
+				"system":           system.DefaultArguments.Convert(),
+				"openshift":        openshift.DefaultArguments.Convert(),
+				"k8snode":          kubernetes_node.DefaultArguments.Convert(),
+			},
+		},
+		{
 			testName: "default_detector",
 			cfg: `
 			output {}

@@ -7,6 +7,8 @@ import (
 	"go.opentelemetry.io/collector/config/configopaque"
 )
 
+const Name = "consul"
+
 // The struct requires no user-specified fields by default as consul agent's default
 // configuration will be provided to the API client.
 // See `consul.go#NewDetector` for more information.

@@ -6,6 +6,8 @@ import (
 	"github.com/grafana/river"
 )
 
+const Name = "openshift"
+
 // Config can contain user-specified inputs to overwrite default values.
 // See `openshift.go#NewDetector` for more information.
 type Config struct {
