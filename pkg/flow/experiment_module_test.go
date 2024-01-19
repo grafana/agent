@@ -82,11 +82,11 @@ func TestModuleBug(t *testing.T) {
 				}
 			`,
 			config: `
-				module.file "default" {
+				module.file "default1" {
 					filename = "module"
 				}
                 testcomponents.summation "sum" {
-                    input = module.file.default.exports.output
+                    input = module.file.default1.exports.output
                 }
             `,
 		},
