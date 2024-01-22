@@ -219,6 +219,7 @@ func (t *Target) process(r io.Reader, logStreamLset model.LabelSet) {
 		// labels (e.g. duplicated and relabeled), but this shouldn't be the
 		// case anyway.
 		t.positions.Put(positions.CursorKey(t.containerName), t.labelsStr, ts.Unix())
+		t.since = ts.Unix()
 	}
 }
 
