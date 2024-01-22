@@ -5,7 +5,7 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/tutorials/flow-by-example/first-components-and-stdlib/
 - /docs/grafana-cloud/send-data/agent/flow/tutorials/first-components-and-stdlib/
 canonical: https://grafana.com/docs/agent/latest/flow/tutorials/flow-by-example/first-components-and-stdlib/
-description: Learn about the basics of River and the Flow configuration language
+description: Learn about the basics of River and the configuration language
 title: First components and introducing the standard library
 weight: 20
 ---
@@ -16,7 +16,7 @@ This tutorial covers the basics of the River language and the standard library. 
 
 ## River basics
 
-[Configuration language]: https://grafana.com/docs/agent/<AGENT_VERSION>/flow/config-language/
+[Configuration language]: https://grafana.com/docs/agent/<AGENT_VERSION>/flow/concepts/config-language/
 [Configuration language concepts]: https://grafana.com/docs/agent/<AGENT_VERSION>/flow/concepts/configuration_language/
 [Standard library documentation]: https://grafana.com/docs/agent/<AGENT_VERSION>/flow/reference/stdlib/
 
@@ -66,7 +66,7 @@ Comments in River are prefixed with `//` and are single-line only. For example: 
 
 [Components]: https://grafana.com/docs/agent/<AGENT_VERSION>/flow/concepts/components/
 [Component controller]: https://grafana.com/docs/agent/<AGENT_VERSION>/flow/concepts/component_controller/
-[Components configuration language]: https://grafana.com/docs/agent/<AGENT_VERSION>/flow/config-language/components/
+[Components configuration language]: https://grafana.com/docs/agent/<AGENT_VERSION>/flow/concepts/config-language/components/
 [env]: https://grafana.com/docs/agent/<AGENT_VERSION>/flow/reference/stdlib/env/
 
 **Recommended reading**
@@ -131,7 +131,7 @@ This example pipeline still doesn't do anything, so let's add some more componen
 Let's make a simple pipeline with a `prometheus.exporter.unix` component, a `prometheus.scrape` component to scrape it, and a `prometheus.remote_write` component to send the scraped metrics to Prometheus.
 
 ```river
-prometheus.exporter.unix "localhost" { 
+prometheus.exporter.unix "localhost" {
     // This component exposes a lot of metrics by default, so we will keep all of the default arguments.
 }
 
@@ -152,7 +152,7 @@ prometheus.remote_write "local_prom" {
 }
 ```
 
-Run the agent with:
+Run {{< param "PRODUCT_NAME" >}} with:
 
 ```bash
 /path/to/agent run config.river
@@ -190,7 +190,7 @@ One rule is that components cannot form a cycle. This means that a component can
 
 - Optional: [prometheus.exporter.redis][]
 
-Let's start a container running Redis and configure the agent to scrape metrics from it.
+Let's start a container running Redis and configure {{< param "PRODUCT_NAME" >}} to scrape metrics from it.
 
 ```bash
 docker container run -d --name flow-redis -p 6379:6379 --rm redis
@@ -200,9 +200,7 @@ Try modifying the above pipeline to scrape metrics from the Redis exporter. You 
 
 To give a visual hint, you want to create a pipeline that looks like this:
 
-<p align="center">
-<img src="/media/docs/agent/diagram-flow-by-example-exercise-0.svg" alt="Flow of exercise pipeline, with a scrape, unix_exporter, redis_exporter, and remote_write component" width="600" />
-</p>
+![Flow of exercise pipeline, with a scrape, unix_exporter, redis_exporter, and remote_write component](/media/docs/agent/diagram-flow-by-example-exercise-0.svg)
 
 {{% admonition type="note" %}}
 [concat]: https://grafana.com/docs/agent/<AGENT_VERSION>/flow/reference/stdlib/concat/
@@ -210,13 +208,13 @@ To give a visual hint, you want to create a pipeline that looks like this:
 You may find the [concat][] standard library function useful.
 {{% /admonition %}}
 
-You can run the agent with the new config file by running:
+You can run {{< param "PRODUCT_NAME" >}} with the new configuration file by running:
 
 ```bash
 /path/to/agent run config.river
 ```
 
-Navigate to [http://localhost:3000/explore](http://localhost:3000/explore) in your browser. After the first scrape, you should be able to query for `redis` metrics as well as `node` metrics!
+Navigate to [http://localhost:3000/explore](http://localhost:3000/explore) in your browser. After the first scrape, you should be able to query for `redis` metrics as well as `node` metrics.
 
 To shut down the Redis container, run:
 
@@ -228,7 +226,7 @@ If you get stuck, you can always view a solution here:
 {{< collapse title="Solution" >}}
 
 ```river
-// Configure your first components, learn about the standard library, and learn how to run the Agent!
+// Configure your first components, learn about the standard library, and learn how to run Grafana Agent
 
 // prometheus.exporter.redis collects information about Redis and exposes
 // targets for other components to use
@@ -267,8 +265,8 @@ prometheus.remote_write "local_prom" {
 
 ## Finishing up and next steps
 
-You might have noticed that running the agent with the above configurations created a directory called `data-agent` in the directory you ran the agent from. This directory is where components can store data, such as the `prometheus.exporter.unix` component storing its WAL (Write Ahead Log). If you look in the directory, do you notice anything interesting? The directory for each component is the fully-qualified name!
+You might have noticed that running {{< param "PRODUCT_NAME" >}} with the above configurations created a directory called `data-agent` in the directory you ran {{< param "PRODUCT_NAME" >}} from. This directory is where components can store data, such as the `prometheus.exporter.unix` component storing its WAL (Write Ahead Log). If you look in the directory, do you notice anything interesting? The directory for each component is the fully qualified name.
 
-If you'd like to store the data elsewhere, you can specify a different directory by supplying the `--storage.path` flag to the agent's run command, for example, `/path/to/agent run config.river --storage.path /etc/grafana-agent`. Generally, you will want to use a persistent directory for this, as some components may use the data stored in this directory to perform their function.
+If you'd like to store the data elsewhere, you can specify a different directory by supplying the `--storage.path` flag to {{< param "PRODUCT_ROOT_NAME" >}}'s run command, for example, `/path/to/agent run config.river --storage.path /etc/grafana-agent`. Generally, you will want to use a persistent directory for this, as some components may use the data stored in this directory to perform their function.
 
-In the next tutorial, we will look at how to configure the agent to collect logs from a file and send them to Loki. We will also look at using different components to process metrics and logs before sending them.
+In the next tutorial, we will look at how to configure {{< param "PRODUCT_NAME" >}} to collect logs from a file and send them to Loki. We will also look at using different components to process metrics and logs before sending them.

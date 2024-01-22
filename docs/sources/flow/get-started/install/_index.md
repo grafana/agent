@@ -30,7 +30,7 @@ The following architectures are supported:
 - FreeBSD: AMD64
 
 {{% admonition type="note" %}}
-Installing {{< param "PRODUCT_NAME" >}} on other operating systems is possible, but is not recommended or supported.
+Installing {{< param "PRODUCT_NAME" >}} on other operating systems is possible, but isn't recommended or supported.
 {{% /admonition %}}
 
 {{< section >}}

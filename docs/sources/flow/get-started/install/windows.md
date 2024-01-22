@@ -52,7 +52,7 @@ To do a silent install of {{< param "PRODUCT_NAME" >}} on Windows, perform the f
 
 1. Run the following command in PowerShell or Command Prompt:
 
-   ```shell
+   ```cmd
    <PATH_TO_INSTALLER> /S
    ```
 
