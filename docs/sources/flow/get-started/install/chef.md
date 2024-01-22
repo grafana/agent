@@ -8,7 +8,7 @@ title: Install Grafana Agent Flow with Chef
 weight: 550
 ---
 
-# Install or uninstall {{% param "PRODUCT_NAME" %}} using Chef
+# Install {{% param "PRODUCT_NAME" %}} with Chef
 
 You can use Chef to install and manage {{< param "PRODUCT_NAME" >}}.
 
