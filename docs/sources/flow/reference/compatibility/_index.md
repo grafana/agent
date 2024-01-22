@@ -4,7 +4,7 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/compatible-components/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/compatible-components/
 - /docs/grafana-cloud/send-data/agent/flow/reference/compatible-components/
-canonical: https://grafana.com/docs/agent/latest/flow/reference/compatible-components/
+canonical: https://grafana.com/docs/agent/latest/flow/reference/compatibility/
 description: Learn about which components are compatible with each other in Grafana Agent Flow
 title: Compatible components
 weight: 400
