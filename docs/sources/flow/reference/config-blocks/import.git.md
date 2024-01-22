@@ -118,12 +118,12 @@ math.add "default" {
 ```
 
 The same example as above using basic auth:
+
 ```river
 import.git "math" {
-  repository = "https://github.com/rfratto/agent-modules.git"
-  revision   = "main"
-  path       = "add/module.river"
-
+  repository = "https://github.com/wildum/module.git"
+  revision   = "master"
+  path       = "math.river"
   basic_auth {
     username = "USERNAME"
     password = "PASSWORD"
@@ -143,38 +143,38 @@ local.file "ssh_key" {
   is_secret = true
 }
 
-module.git "add" {
-  repository = "github.com:rfratto/agent-modules.git"
-  revision   = "main"
-  path       = "add/module.river"
+import.git "math" {
+  repository = "https://github.com/wildum/module.git"
+  revision   = "master"
+  path       = "math.river"
 
   ssh_key {
     username = "git"
     key = local.file.ssh_key.content
   }
+}
 
-  arguments {
-    a = 15
-    b = 45
-  }
+math.add "default" {
+  a = 15
+  b = 45
 }
 ```
 
 The same example as above using SSH Key auth:
 ```river
-module.git "add" {
-  repository = "github.com:rfratto/agent-modules.git"
-  revision   = "main"
-  path       = "add/module.river"
+import.git "math" {
+  repository = "https://github.com/wildum/module.git"
+  revision   = "master"
+  path       = "math.river"
 
   ssh_key {
     username = "git"
     key_file = "PATH/TO/SSH.KEY"
   }
+}
 
-  arguments {
-    a = 15
-    b = 45
-  }
+math.add "default" {
+  a = 15
+  b = 45
 }
 ```

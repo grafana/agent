@@ -60,9 +60,6 @@ Only _Declares_ defined inside of the imported module can be used to instantiate
 
 If the _Import_ namespace collides with an existing namespace, the existing namespace is shadowed by the _Import_. This keeps forward compatibility in case new "core" namespaces are introduced which collide with an import.
 
-
-
-
 {{< collapse title="Old modules" >}}
 # Modules
 
