@@ -14,7 +14,7 @@ You can use Chef to install and manage {{< param "PRODUCT_NAME" >}}.
 
 ## Before you begin
 
-- These steps assume you already have a working [Chef](https://www.chef.io/products/chef-infrastructure-management/) setup.
+- These steps assume you already have a working [Chef][] setup.
 - You can add the following resources to any new or existing recipe you choose.
 - These tasks install {{< param "PRODUCT_NAME" >}} from the package repositories. The tasks target Linux systems from the following families:
   - Debian (including Ubuntu)
@@ -26,7 +26,7 @@ You can use Chef to install and manage {{< param "PRODUCT_NAME" >}}.
 
 To add {{% param "PRODUCT_NAME" %}} to a host:
 
-1. Add the following resources to a recipe to add the Grafana package repositories to your system:
+1. Add the following resources to your [Chef][] recipe to add the Grafana package repositories to your system:
     ```ruby
     if platform_family?('debian', 'rhel', 'amazon', 'fedora')
       if platform_family?('debian')
@@ -88,6 +88,8 @@ The default configuration file location is `/etc/grafana-agent-flow.river`. You 
 ## Next steps
 
 - [Configure {{< param "PRODUCT_NAME" >}}][Configure]
+
+[Chef]: https://www.chef.io/products/chef-infrastructure-management/
 
 {{% docs/reference %}}
 
