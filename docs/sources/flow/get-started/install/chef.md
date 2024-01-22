@@ -16,7 +16,7 @@ You can use Chef to install and manage {{< param "PRODUCT_NAME" >}}.
 
 - These steps assume you already have a working [Chef](https://www.chef.io/products/chef-infrastructure-management/) setup.
 - You can add the following resources to any new or existing recipe you choose.
-- These tasks install {{< param "PRODUCT_NAME" >}} from the package repositories. They expect to target Linux systems from the following families:
+- These tasks install {{< param "PRODUCT_NAME" >}} from the package repositories. The tasks target Linux systems from the following families:
   - Debian (including Ubuntu)
   - RedHat Enterprise Linux
   - Amazon Linux
