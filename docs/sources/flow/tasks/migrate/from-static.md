@@ -65,7 +65,7 @@ This conversion will enable you to take full advantage of the many additional fe
    Replace the following:
 
     * _`<INPUT_CONFIG_PATH>`_: The full path to the [Static][] configuration.
-    * _`<OUTPUT_CONFIG_PAT>H_`: The full path to output the {{< param "PRODUCT_NAME" >}} configuration.
+    * _`<OUTPUT_CONFIG_PATH>_`: The full path to output the {{< param "PRODUCT_NAME" >}} configuration.
 
 1. [Run][] {{< param "PRODUCT_NAME" >}} using the new {{< param "PRODUCT_NAME" >}} configuration from _`<OUTPUT_CONFIG_PATH>`_:
 

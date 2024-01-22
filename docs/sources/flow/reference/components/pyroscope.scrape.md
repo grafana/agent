@@ -522,11 +522,10 @@ discovery.http "dynamic_targets" {
 }
 
 pyroscope.scrape "local" {
-  targets = [
-    {"__address__" = "localhost:4100", "service_name"="pyroscope"},
+  targets = concat([
+    {"__address__" = "localhost:4040", "service_name"="pyroscope"},
     {"__address__" = "localhost:12345", "service_name"="agent"},
-    discovery.http.dynamic_targets.targets,
-  ]
+  ], discovery.http.dynamic_targets.targets)
 
   forward_to = [pyroscope.write.local.receiver]
 }

@@ -10,18 +10,22 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
-### Security fixes
+### Features
 
-- Fixes following vulnerabilities (@hainenber)
-  - [GO-2023-2409](https://github.com/advisories/GHSA-mhpq-9638-x6pw)
-  - [GO-2023-2412](https://github.com/advisories/GHSA-7ww5-4wqc-m92c)
-  - [CVE-2023-49568](https://github.com/advisories/GHSA-mw99-9chc-xw7r)
+- A new `discovery.process` component for discovering Linux OS processes on the current host. (@korniltsev)
+
+- A new `pyroscope.java` component for profiling Java processes using async-profiler. (@korniltsev)
 
 ### Enhancements
 
+- Include line numbers in profiles produced by `pyrsocope.java` component. (@korniltsev)
 - Add an option to the windows static mode installer for expanding environment vars in the yaml config. (@erikbaranowski)
+- Add authentication support to `loki.source.awsfirehose` (@sberz)
 
 - Sort kubelet endpoint to reduce pressure on K8s's API server and watcher endpoints. (@hainenber)
+
+- Expose `physical_disk` collector from `windows_exporter` v0.24.0 to 
+  Flow configuration. (@hainenber)
 
 ### Bugfixes
 
@@ -33,9 +37,30 @@ Main (unreleased)
 - Fix a duplicate metrics registration panic when sending metrics to an static
   mode metric instance's write handler. (@tpaschalis)
 
+- Fix issue causing duplicate logs when a docker target is restarted. (@captncraig)
+
 ### Other changes
 
 - Removed support for Windows 2012 in line with Microsoft end of life. (@mattdurham)
+
+- Split instance ID and component groupings into separate panels for `remote write active series by component` in the Flow mixin. (@tristanburgess)
+
+- Updated dependency to add support for Go 1.22 (@stefanb)
+
+v0.39.1 (2024-01-19)
+--------------------
+
+### Security fixes
+
+- Fixes following vulnerabilities (@hainenber)
+  - [GO-2023-2409](https://github.com/advisories/GHSA-mhpq-9638-x6pw)
+  - [GO-2023-2412](https://github.com/advisories/GHSA-7ww5-4wqc-m92c)
+  - [CVE-2023-49568](https://github.com/advisories/GHSA-mw99-9chc-xw7r)
+
+### Bugfixes
+
+- Fix issue where installing the Windows Agent Flow installer would hang then crash. (@mattdurham)
+
 
 v0.39.0 (2024-01-09)
 --------------------
@@ -117,9 +142,6 @@ v0.39.0 (2024-01-09)
 
 - `discovery.lightsail` now supports additional parameters for configuring HTTP client settings. (@ptodev)
 - Add `sample_age_limit` to remote_write config to drop samples older than a specified duration. (@marctc)
-
-- Expose `physical_disk` collector from `windows_exporter` v0.24.0 to 
-  Flow configuration. (@hainenber)
 
 - Handle paths in the Kubelet URL for `discovery.kubelet`. (@petewall)
 
