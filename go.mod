@@ -56,7 +56,7 @@ require (
 	github.com/grafana/go-gelf/v2 v2.0.1
 	// Loki main commit where the Prometheus dependency matches ours. TODO(@tpaschalis) Update to kXYZ branch once it's available
 	github.com/grafana/loki v1.6.2-0.20231004111112-07cbef92268a
-	github.com/grafana/pyroscope-go/godeltaprof v0.1.6
+	github.com/grafana/pyroscope-go/godeltaprof v0.1.7
 	github.com/grafana/pyroscope/api v0.4.0
 	github.com/grafana/pyroscope/ebpf v0.4.1
 	github.com/grafana/regexp v0.0.0-20221123153739-15dc172cd2db
@@ -630,7 +630,7 @@ require (
 	github.com/go-jose/go-jose/v3 v3.0.1 // indirect
 	github.com/golang-jwt/jwt/v5 v5.0.0 // indirect
 	github.com/google/gnostic-models v0.6.8 // indirect
-	github.com/grafana/jfr-parser v0.7.2-0.20240108100259-6b558fedfb6f // indirect
+	github.com/grafana/jfr-parser v0.8.0 // indirect
 	github.com/hetznercloud/hcloud-go/v2 v2.4.0 // indirect
 	github.com/julienschmidt/httprouter v1.3.0 // indirect
 	github.com/knadh/koanf/v2 v2.0.1 // indirect
