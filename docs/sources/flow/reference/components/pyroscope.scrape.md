@@ -114,6 +114,7 @@ either of the following sources, in this order:
 1. `__meta_kubernetes_pod_annotation_pyroscope_io_service_name` which is a `pyroscope.io/service_name` pod annotation.
 2. `__meta_kubernetes_namespace` and `__meta_kubernetes_pod_container_name`
 3. `__meta_docker_container_name`
+4. `__meta_dockerswarm_container_label_service_name` or `__meta_dockerswarm_service_name`
 
 If `service_name` is not specified and could not be inferred, then it is set to `unspecified`.
 

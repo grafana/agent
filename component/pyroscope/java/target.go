@@ -9,7 +9,6 @@ import (
 const (
 	labelServiceName    = "service_name"
 	labelServiceNameK8s = "__meta_kubernetes_pod_annotation_pyroscope_io_service_name"
-	metricValue         = "process_cpu"
 )
 
 func inferServiceName(target discovery.Target) string {

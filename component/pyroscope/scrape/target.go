@@ -430,5 +430,11 @@ func inferServiceName(lset labels.Labels) string {
 	if dockerContainer != "" {
 		return dockerContainer
 	}
+	if swarmService := lset.Get("__meta_dockerswarm_container_label_service_name"); swarmService != "" {
+		return swarmService
+	}
+	if swarmService := lset.Get("__meta_dockerswarm_service_name"); swarmService != "" {
+		return swarmService
+	}
 	return "unspecified"
 }
