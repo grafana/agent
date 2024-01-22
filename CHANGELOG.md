@@ -18,6 +18,7 @@ Main (unreleased)
 
 ### Enhancements
 
+- Include line numbers in profiles produced by `pyrsocope.java` component. (@korniltsev)
 - Add an option to the windows static mode installer for expanding environment vars in the yaml config. (@erikbaranowski)
 - Add authentication support to `loki.source.awsfirehose` (@sberz)
 
