@@ -1,0 +1,7 @@
+extraObjects:
+  - kind: ConfigMap
+    apiVersion: v1
+    metadata:
+      name: extra-cm-{{ .Release.Name }}
+    data: |
+      extra.yml: "extra-config: true"
