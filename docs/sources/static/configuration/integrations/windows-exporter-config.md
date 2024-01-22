@@ -62,7 +62,7 @@ Full reference of options:
 
   # List of collectors to enable. Any non-experimental collector from the
   # embedded version of windows_exporter can be enabled here.
-  [enabled_collectors: <string> | default = "cpu,cs,logical_disk,net,os,service,system,textfile"]
+  [enabled_collectors: <string> | default = "cpu,cs,logical_disk,net,os,service,system"]
 
   # Settings for collectors which accept configuration. Settings specified here
   # are only used if the corresponding collector is enabled in
