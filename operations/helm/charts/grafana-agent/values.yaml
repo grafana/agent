@@ -306,3 +306,4 @@ extraObjects: []
   #     name: extra-cm-{{ .Release.Name }}
   #   data: |
   #     extra.yml: "extra-config: true"
+  
