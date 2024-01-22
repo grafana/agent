@@ -18,6 +18,7 @@ Main (unreleased)
 
 ### Enhancements
 
+- Include line numbers in profiles produced by `pyrsocope.java` component. (@korniltsev)
 - Add an option to the windows static mode installer for expanding environment vars in the yaml config. (@erikbaranowski)
 - Add authentication support to `loki.source.awsfirehose` (@sberz)
 
@@ -39,6 +40,9 @@ Main (unreleased)
   mode metric instance's write handler. (@tpaschalis)
 
 - Fix issue causing duplicate logs when a docker target is restarted. (@captncraig)
+
+- Fix an issue where blocks having the same type and the same label across
+  modules could result in missed updates. (@thampiotr)
 
 ### Other changes
 
