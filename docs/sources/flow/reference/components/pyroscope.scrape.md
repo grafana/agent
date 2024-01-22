@@ -451,7 +451,7 @@ The scraped profiles are sent to `pyroscope.write` which remote writes them to a
 ```river
 pyroscope.scrape "local" {
   targets = [
-    {"__address__" = "localhost:4100", "service_name"="pyroscope"},
+    {"__address__" = "localhost:4040", "service_name"="pyroscope"},
     {"__address__" = "localhost:12345", "service_name"="agent"},
   ]
 
@@ -460,7 +460,7 @@ pyroscope.scrape "local" {
 
 pyroscope.write "local" {
   endpoint {
-    url = "http://pyroscope:4100"
+    url = "http://pyroscope:4040"
   }
 }
 ```
@@ -468,11 +468,11 @@ pyroscope.write "local" {
 These endpoints will be scraped every 15 seconds:
 
 ```
-http://localhost:4100/debug/pprof/allocs
-http://localhost:4100/debug/pprof/block
-http://localhost:4100/debug/pprof/goroutine
-http://localhost:4100/debug/pprof/mutex
-http://localhost:4100/debug/pprof/profile?seconds=14
+http://localhost:4040/debug/pprof/allocs
+http://localhost:4040/debug/pprof/block
+http://localhost:4040/debug/pprof/goroutine
+http://localhost:4040/debug/pprof/mutex
+http://localhost:4040/debug/pprof/profile?seconds=14
 
 http://localhost:12345/debug/pprof/allocs
 http://localhost:12345/debug/pprof/block
@@ -506,7 +506,7 @@ pyroscope.scrape "local" {
 
 pyroscope.write "local" {
   endpoint {
-    url = "http://pyroscope:4100"
+    url = "http://pyroscope:4040"
   }
 }
 ```
@@ -522,18 +522,17 @@ discovery.http "dynamic_targets" {
 }
 
 pyroscope.scrape "local" {
-  targets = [
-    {"__address__" = "localhost:4100", "service_name"="pyroscope"},
+  targets = concat([
+    {"__address__" = "localhost:4040", "service_name"="pyroscope"},
     {"__address__" = "localhost:12345", "service_name"="agent"},
-    discovery.http.dynamic_targets.targets,
-  ]
+  ], discovery.http.dynamic_targets.targets)
 
   forward_to = [pyroscope.write.local.receiver]
 }
 
 pyroscope.write "local" {
   endpoint {
-    url = "http://pyroscope:4100"
+    url = "http://pyroscope:4040"
   }
 }
 ```
