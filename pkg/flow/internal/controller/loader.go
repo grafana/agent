@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"path"
 	"sync"
 	"time"
 
@@ -592,7 +593,8 @@ func (l *Loader) EvaluateDependants(ctx context.Context, updatedNodes []*Compone
 			err                error
 		)
 		for retryBackoff.Ongoing() {
-			err = l.workerPool.SubmitWithKey(nodeRef.NodeID(), func() {
+			globalUniqueKey := path.Join(l.globals.ControllerID, nodeRef.NodeID())
+			err = l.workerPool.SubmitWithKey(globalUniqueKey, func() {
 				l.concurrentEvalFn(nodeRef, dependantCtx, tracer, parentRef)
 			})
 			if err != nil {
