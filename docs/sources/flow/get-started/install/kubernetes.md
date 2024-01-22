@@ -85,8 +85,8 @@ To deploy {{< param "PRODUCT_ROOT_NAME" >}} on Kubernetes using Helm, run the fo
    ```
 
    Replace the following:
-  - `<NAMESPACE>`: The namespace created in the previous step.
-  - `<RELEASE_NAME>`: The name to use for your {{< param "PRODUCT_ROOT_NAME" >}} installation, such as `grafana-agent-flow`.
+  - _`<NAMESPACE>`_: The namespace created in the previous step.
+  - _`<RELEASE_NAME>`_: The name to use for your {{< param "PRODUCT_ROOT_NAME" >}} installation, such as `grafana-agent-flow`.
 
 For more information on the {{< param "PRODUCT_ROOT_NAME" >}} Helm chart, refer to the Helm chart documentation on [Artifact Hub][].
 

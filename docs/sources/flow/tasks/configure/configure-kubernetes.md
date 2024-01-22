@@ -19,7 +19,7 @@ weight: 200
 
 # Configure {{% param "PRODUCT_NAME" %}} on Kubernetes
 
-This page describes _how_ to apply a new configuration to {{< param "PRODUCT_NAME" >}} 
+This page describes how to apply a new configuration to {{< param "PRODUCT_NAME" >}} 
 when running on Kubernetes with the Helm chart. It assumes that you already have a new configuration that you 
 want to apply to your Helm chart installation. 
 
@@ -49,9 +49,9 @@ To modify {{< param "PRODUCT_NAME" >}}'s Helm chart configuration, perform the f
    helm upgrade --namespace <NAMESPACE> <RELEASE_NAME> grafana/grafana-agent -f <VALUES_PATH>
    ```
    Replace the following:
-   - `<NAMESPACE>` with the namespace you used for your {{< param "PRODUCT_NAME" >}} installation.
-   - `<RELEASE_NAME>` with the name you used for your {{< param "PRODUCT_NAME" >}} installation.
-   - `<VALUES_PATH>` with the path to your copy of `values.yaml` to use.
+   - _`<NAMESPACE>`_: The namespace you used for your {{< param "PRODUCT_NAME" >}} installation.
+   - _`<RELEASE_NAME>`_: The name you used for your {{< param "PRODUCT_NAME" >}} installation.
+   - _`<VALUES_PATH>`_: The path to your copy of `values.yaml` to use.
 
 [values.yaml]: https://raw.githubusercontent.com/grafana/agent/main/operations/helm/charts/grafana-agent/values.yaml
 
