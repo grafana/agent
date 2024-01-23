@@ -20,6 +20,9 @@ Main (unreleased)
 
 - A new `pyroscope.java` component for profiling Java processes using async-profiler. (@korniltsev)
 
+- A new `otelcol.processor.resourcedetection` component which inserts resource attributes 
+  to OTLP telemetry based on the host on which Grafana Agent is running. (@ptodev)
+  
 ### Enhancements
 
 - Include line numbers in profiles produced by `pyrsocope.java` component. (@korniltsev)
