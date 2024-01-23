@@ -70,11 +70,11 @@ func TestLoader(t *testing.T) {
 		l, _ := logging.New(os.Stderr, logging.DefaultOptions)
 		return controller.LoaderOptions{
 			ComponentGlobals: controller.ComponentGlobals{
-				Logger:            l,
-				TraceProvider:     noop.NewTracerProvider(),
-				DataPath:          t.TempDir(),
-				OnComponentUpdate: func(cn *controller.ComponentNode) { /* no-op */ },
-				Registerer:        prometheus.NewRegistry(),
+				Logger:                     l,
+				TraceProvider:              noop.NewTracerProvider(),
+				DataPath:                   t.TempDir(),
+				OnNodeWithDependantsUpdate: func(cn controller.NodeWithDependants) { /* no-op */ },
+				Registerer:                 prometheus.NewRegistry(),
 				NewModuleController: func(id string) controller.ModuleController {
 					return nil
 				},
@@ -204,11 +204,11 @@ func TestScopeWithFailingComponent(t *testing.T) {
 		l, _ := logging.New(os.Stderr, logging.DefaultOptions)
 		return controller.LoaderOptions{
 			ComponentGlobals: controller.ComponentGlobals{
-				Logger:            l,
-				TraceProvider:     noop.NewTracerProvider(),
-				DataPath:          t.TempDir(),
-				OnComponentUpdate: func(cn *controller.ComponentNode) { /* no-op */ },
-				Registerer:        prometheus.NewRegistry(),
+				Logger:                     l,
+				TraceProvider:              noop.NewTracerProvider(),
+				DataPath:                   t.TempDir(),
+				OnNodeWithDependantsUpdate: func(cn controller.NodeWithDependants) { /* no-op */ },
+				Registerer:                 prometheus.NewRegistry(),
 				NewModuleController: func(id string) controller.ModuleController {
 					return fakeModuleController{}
 				},
