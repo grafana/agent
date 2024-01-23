@@ -8,8 +8,10 @@ import (
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/pkg/flow/config"
+	"github.com/grafana/agent/pkg/flow/internal/controller"
 	"github.com/grafana/agent/pkg/flow/internal/worker"
 	"github.com/grafana/agent/pkg/flow/logging"
+	"github.com/grafana/agent/service"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/require"
 )
@@ -44,6 +46,9 @@ const exportDummy = `
 		value = "bob"
 	}`
 
+const serviceConfig = `
+	testservice {}`
+
 func TestModule(t *testing.T) {
 	tt := []struct {
 		name                  string
@@ -72,6 +77,12 @@ func TestModule(t *testing.T) {
 			argumentModuleContent: argumentConfig + tracingConfig,
 			exportModuleContent:   exportStringConfig,
 			expectedErrorContains: "tracing block not allowed inside a module",
+		},
+		{
+			name:                  "Service blocks not allowed in module config",
+			argumentModuleContent: argumentConfig + serviceConfig,
+			exportModuleContent:   exportStringConfig,
+			expectedErrorContains: "service blocks not allowed inside a module: \"testservice\"",
 		},
 		{
 			name:                  "Argument not defined in module source",
@@ -246,12 +257,19 @@ func testModuleControllerOptions(t *testing.T) *moduleControllerOptions {
 	s, err := logging.New(os.Stderr, logging.DefaultOptions)
 	require.NoError(t, err)
 
+	services := []service.Service{
+		&testService{},
+	}
+
+	serviceMap := controller.NewServiceMap(services)
+
 	return &moduleControllerOptions{
 		Logger:         s,
 		DataPath:       t.TempDir(),
 		Reg:            prometheus.NewRegistry(),
 		ModuleRegistry: newModuleRegistry(),
 		WorkerPool:     worker.NewFixedWorkerPool(1, 100),
+		ServiceMap:     serviceMap,
 	}
 }
 
@@ -306,5 +324,25 @@ func (t *testModule) Run(ctx context.Context) error {
 }
 
 func (t *testModule) Update(_ component.Arguments) error {
+	return nil
+}
+
+type testService struct{}
+
+func (t *testService) Definition() service.Definition {
+	return service.Definition{
+		Name: "testservice",
+	}
+}
+
+func (t *testService) Run(ctx context.Context, host service.Host) error {
+	return nil
+}
+
+func (t *testService) Update(newConfig any) error {
+	return nil
+}
+
+func (t *testService) Data() any {
 	return nil
 }

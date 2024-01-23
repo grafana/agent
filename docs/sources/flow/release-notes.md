@@ -29,6 +29,13 @@ Other release notes for the different {{< param "PRODUCT_ROOT_NAME" >}} variants
 [release-notes-operator]: {{< relref "../operator/release-notes.md" >}}
 {{% /admonition %}}
 
+## v0.40
+
+### Breaking change: Prohibit the configuration of services within modules.
+
+Previously it was possible to configure the HTTP service via the [HTTP config block](https://grafana.com/docs/agent/v0.39/flow/reference/config-blocks/http/) inside of a module.
+This functionality is now only available in the main configuration.
+
 ## v0.39
 
 ### Breaking change: `otelcol.receiver.prometheus` will drop all `otel_scope_info` metrics when converting them to OTLP
