@@ -208,6 +208,8 @@ func (cn *CustomComponentNode) evaluate(scope *vm.Scope) error {
 		return fmt.Errorf("decoding River: %w", err)
 	}
 
+	cn.args = args
+
 	if cn.managed == nil {
 		// We haven't built the managed custom component successfully yet.
 		managed, err := module.NewModuleComponentV2(cn.managedOpts)
