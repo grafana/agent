@@ -60,7 +60,7 @@ require (
 	github.com/grafana/pyroscope/api v0.4.0
 	github.com/grafana/pyroscope/ebpf v0.4.1
 	github.com/grafana/regexp v0.0.0-20221123153739-15dc172cd2db
-	github.com/grafana/river v0.3.0
+	github.com/grafana/river v0.3.1-0.20240123144725-960753160cd1
 	github.com/grafana/snowflake-prometheus-exporter v0.0.0-20221213150626-862cad8e9538
 	github.com/grafana/tail v0.0.0-20230510142333-77b18831edf0
 	github.com/grafana/vmware_exporter v0.0.4-beta
@@ -94,7 +94,7 @@ require (
 	github.com/mwitkow/go-conntrack v0.0.0-20190716064945-2f068394615f
 	github.com/ncabatoff/process-exporter v0.7.10
 	github.com/nerdswords/yet-another-cloudwatch-exporter v0.55.0
-	github.com/ohler55/ojg v1.20.0 // indirect
+	github.com/ohler55/ojg v1.20.1 // indirect
 	github.com/oklog/run v1.1.0
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/oliver006/redis_exporter v1.54.0
