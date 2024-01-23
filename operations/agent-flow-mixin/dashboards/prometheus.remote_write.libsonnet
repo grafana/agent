@@ -347,6 +347,70 @@ local stackedPanelMixin = {
         ])
       ),
 
+      // Scrape success rate
+      (
+        panel.new(title='Scrape success rate', type='timeseries') +
+        panel.withUnit('percent') +
+        panel.withDescription(|||
+          Percentage of targets successfully scraped by prometheus.scrape
+          components.
+
+          This metric is calculated by dividing the number of targets
+          successfully scraped by the total number of targets scraped,
+          across all the namespaces in the selected cluster.
+
+          Low success rates can indicate a problem with scrape targets,
+          stale service discovery, or agent misconfiguration.
+        |||) +
+        panel.withPosition({ x: 0, y: 30, w: 12, h: 10 }) +
+        panel.withQueries([
+          panel.newQuery(
+            expr=|||
+              sum(up{cluster="$cluster"})
+              /
+              count (up{cluster="$cluster"})
+            |||,
+            legendFormat='% of targets successfully scraped',
+          ),
+        ])
+      ),
+
+      // Scrape duration
+      (
+        panel.new(title='Scrape duration', type='timeseries') +
+        panel.withUnit('s') +
+        panel.withDescription(|||
+          Duration of successful scrapes by prometheus.scrape components,
+          across all the namespaces in the selected cluster.
+
+          This metric should be below your configured scrape interval.
+          High durations can indicate a problem with a scrape target or
+          a performance issue with the agent.
+        |||) +
+        panel.withPosition({ x: 12, y: 30, w: 12, h: 10 }) +
+        panel.withQueries([
+          panel.newQuery(
+            expr=|||
+              quantile(0.99, scrape_duration_seconds{cluster="$cluster"})
+            |||,
+            legendFormat='p99',
+          ),
+          panel.newQuery(
+            expr=|||
+              quantile(0.95, scrape_duration_seconds{cluster="$cluster"})
+            |||,
+            legendFormat='p95',
+          ),
+          panel.newQuery(
+            expr=|||
+              quantile(0.50, scrape_duration_seconds{cluster="$cluster"})
+            |||,
+            legendFormat='p50',
+          ),
+
+        ])
+      ),
+
 
     ]),
 }

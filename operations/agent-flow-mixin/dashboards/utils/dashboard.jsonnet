@@ -7,6 +7,7 @@
     timezone: 'utc',
     refresh: '10s',
     schemaVersion: 36,
+    graphTooltip: 1, // shared crosshair for all graphs
     tags: ['grafana-agent-flow-mixin'],
     templating: {
       list: [{

@@ -34,6 +34,9 @@ Main (unreleased)
 - Expose `physical_disk` collector from `windows_exporter` v0.24.0 to 
   Flow configuration. (@hainenber)
 
+- Added visibility of Prometheus scrape success rate and duration to the Grafana
+  Agent Flow mixin. (@thampiotr)
+
 ### Bugfixes
 
 - Fix an issue in `remote.s3` where the exported content of an object would be an empty string if `remote.s3` failed to fully retrieve
