@@ -1050,12 +1050,8 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 				namespace = "test_namespace"
 				meta = ["test"]
 				resource_attributes {
-					azure.resourcegroup.name { enabled = true }
-					azure.vm.name { enabled = true }
-					azure.vm.scaleset.name { enabled = true }
-					azure.vm.size { enabled = true }
-					cloud.account.id { enabled = false }
-					cloud.platform { enabled = false }
+					cloud.region { enabled = false }
+					host.id { enabled = false }
 				}
 			}
 			output {}
@@ -1071,32 +1067,11 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 					"namespace":  "test_namespace",
 					"meta":       map[string]string{"test": ""},
 					"resource_attributes": map[string]interface{}{
-						"azure.resourcegroup.name": map[string]interface{}{
-							"enabled": true,
-						},
-						"azure.vm.name": map[string]interface{}{
-							"enabled": true,
-						},
-						"azure.vm.scaleset.name": map[string]interface{}{
-							"enabled": true,
-						},
-						"azure.vm.size": map[string]interface{}{
-							"enabled": true,
-						},
-						"cloud.account.id": map[string]interface{}{
-							"enabled": false,
-						},
-						"cloud.platform": map[string]interface{}{
-							"enabled": false,
-						},
-						"cloud.provider": map[string]interface{}{
-							"enabled": true,
-						},
 						"cloud.region": map[string]interface{}{
-							"enabled": true,
+							"enabled": false,
 						},
 						"host.id": map[string]interface{}{
-							"enabled": true,
+							"enabled": false,
 						},
 						"host.name": map[string]interface{}{
 							"enabled": true,

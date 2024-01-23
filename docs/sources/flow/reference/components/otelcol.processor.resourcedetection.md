@@ -392,16 +392,8 @@ Block                                          | Description                    
 
 The `resource_attributes` block supports the following blocks:
 
-<!-- TODO: Why are all these azure resource attributes here? -->
 Block                                   | Description                                                                                         | Required
 --------------------------------------- | --------------------------------------------------------------------------------------------------- | --------
-[azure.resourcegroup.name][res-attr-cfg]        | Toggles the `azure.resourcegroup.name` resource attribute. <br> Sets `enabled` to `true` by default.        | no
-[azure.vm.name][res-attr-cfg]        | Toggles the `azure.vm.name` resource attribute. <br> Sets `enabled` to `true` by default.        | no
-[azure.vm.scaleset.name][res-attr-cfg]        | Toggles the `azure.vm.scaleset.name` resource attribute. <br> Sets `enabled` to `true` by default.        | no
-[azure.vm.size][res-attr-cfg]        | Toggles the `azure.vm.size` resource attribute. <br> Sets `enabled` to `true` by default.        | no
-[cloud.account.id][res-attr-cfg]        | Toggles the `cloud.account.id` resource attribute. <br> Sets `enabled` to `true` by default.        | no
-[cloud.platform][res-attr-cfg]        | Toggles the `cloud.platform` resource attribute. <br> Sets `enabled` to `true` by default.        | no
-[cloud.provider][res-attr-cfg]        | Toggles the `cloud.provider` resource attribute. <br> Sets `enabled` to `true` by default.        | no
 [cloud.region][res-attr-cfg]        | Toggles the `cloud.region` resource attribute. <br> Sets `enabled` to `true` by default.        | no
 [host.id][res-attr-cfg]        | Toggles the `host.id` resource attribute. <br> Sets `enabled` to `true` by default.        | no
 [host.name][res-attr-cfg]        | Toggles the `host.name` resource attribute. <br> Sets `enabled` to `true` by default.        | no
