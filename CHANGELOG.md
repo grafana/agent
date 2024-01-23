@@ -39,6 +39,9 @@ Main (unreleased)
 
 - Fix issue causing duplicate logs when a docker target is restarted. (@captncraig)
 
+- Fix an issue where blocks having the same type and the same label across
+  modules could result in missed updates. (@thampiotr)
+
 ### Other changes
 
 - Removed support for Windows 2012 in line with Microsoft end of life. (@mattdurham)
