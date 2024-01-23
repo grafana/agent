@@ -345,6 +345,17 @@ func (l *Loader) populateServiceNodes(g *dag.Graph, serviceBlocks []*ast.BlockSt
 	// Now, assign blocks to services.
 	for _, block := range serviceBlocks {
 		blockID := BlockComponentID(block).String()
+
+		if l.isModule() {
+			diags.Add(diag.Diagnostic{
+				Severity: diag.SeverityLevelError,
+				Message:  fmt.Sprintf("service blocks not allowed inside a module: %q", blockID),
+				StartPos: ast.StartPos(block).Position(),
+				EndPos:   ast.EndPos(block).Position(),
+			})
+			continue
+		}
+
 		node := g.GetByID(blockID).(*ServiceNode)
 
 		// Blocks assigned to services are reset to nil in the previous loop.
