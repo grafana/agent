@@ -162,6 +162,33 @@ func (i *appAgentReceiverIntegration) RunIntegration(ctx context.Context) error 
 		ResponseBodySize: i.sentMessageSizeCollector,
 		InflightRequests: i.inflightRequestsCollector,
 	}
+	//
+	//var sourceIPs *middleware.SourceIPExtractor
+	//if opts.LogSourceIPs {
+	//	var err error
+	//	sourceIPs, err = middleware.NewSourceIPs(opts.LogSourceIPsHeader, opts.LogSourceIPsRegex)
+	//	if err != nil {
+	//		return nil, nil, fmt.Errorf("error setting up source IP extraction: %v", err)
+	//	}
+	//}
+	//
+	//httpMiddleware := []middleware.Interface{
+	//	middleware.Tracer{
+	//		RouteMatcher: router,
+	//		SourceIPs:    sourceIPs,
+	//	},
+	//	middleware.Log{
+	//		Log:       l,
+	//		SourceIPs: sourceIPs,
+	//	},
+	//	middleware.Instrument{
+	//		RouteMatcher:     router,
+	//		Duration:         m.requestDuration,
+	//		RequestBodySize:  m.receivedMessageSize,
+	//		ResponseBodySize: m.sentMessageSize,
+	//		InflightRequests: m.inflightRequests,
+	//	},
+	//}
 
 	srv := &http.Server{
 		Addr:    fmt.Sprintf("%s:%d", i.conf.Server.Host, i.conf.Server.Port),

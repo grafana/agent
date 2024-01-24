@@ -3,6 +3,7 @@ package app_agent_receiver
 import (
 	"context"
 	"fmt"
+	"net"
 	"time"
 
 	kitlog "github.com/go-kit/log"
@@ -59,17 +60,30 @@ func (le *LogsExporter) Name() string {
 
 // Export implements the AppDataExporter interface
 func (le *LogsExporter) Export(ctx context.Context, payload Payload) error {
-	meta := payload.Meta.KeyVal()
+	//meta := payload.Meta.KeyVal()
+	//Modify meta with GeoIPProvider result.
 
-	// TODO: Modify meta with GeoIPProvider result.
+	// retrieve client ip from request context. This is set by the geoip middleware
+	clientIPStr := getClientIPFromContext(ctx)
+	clientIP := net.ParseIP(clientIPStr)
 
-	var err error
+	if clientIP == nil { // TODO deal with error
+		fmt.Println("Invalid IP address")
+	} else {
+		fmt.Println("The IP address is", clientIPStr)
+	}
+
+	transformedMeta := le.geoIPProvider.TransformMetas(&payload.Meta, clientIP)
+	meta := transformedMeta.KeyVal()
 
 	// log events
 	for _, logItem := range payload.Logs {
 		kv := logItem.KeyVal()
 		MergeKeyVal(kv, meta)
-		err = le.sendKeyValsToLogsPipeline(kv)
+		err := le.sendKeyValsToLogsPipeline(kv)
+		if err != nil {
+			return err
+		}
 	}
 
 	// exceptions
@@ -77,24 +91,33 @@ func (le *LogsExporter) Export(ctx context.Context, payload Payload) error {
 		transformedException := TransformException(le.sourceMapStore, le.logger, &exception, payload.Meta.App.Release)
 		kv := transformedException.KeyVal()
 		MergeKeyVal(kv, meta)
-		err = le.sendKeyValsToLogsPipeline(kv)
+		err := le.sendKeyValsToLogsPipeline(kv)
+		if err != nil {
+			return err
+		}
 	}
 
 	// measurements
 	for _, measurement := range payload.Measurements {
 		kv := measurement.KeyVal()
 		MergeKeyVal(kv, meta)
-		err = le.sendKeyValsToLogsPipeline(kv)
+		err := le.sendKeyValsToLogsPipeline(kv)
+		if err != nil {
+			return err
+		}
 	}
 
 	// events
 	for _, event := range payload.Events {
 		kv := event.KeyVal()
 		MergeKeyVal(kv, meta)
-		err = le.sendKeyValsToLogsPipeline(kv)
+		err := le.sendKeyValsToLogsPipeline(kv)
+		if err != nil {
+			return err
+		}
 	}
 
-	return err
+	return nil
 }
 
 func (le *LogsExporter) sendKeyValsToLogsPipeline(kv *KeyVal) error {
