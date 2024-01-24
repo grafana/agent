@@ -110,6 +110,7 @@ func TestDockerTarget(t *testing.T) {
 	}, 5*time.Second, 100*time.Millisecond, "Expected log lines after restart were not found within the time limit.")
 }
 
+// assertExpectedLog will verify that all expectedLines were received, in any order, without duplicates.
 func assertExpectedLog(c *assert.CollectT, entryHandler *fake.Client, expectedLines []string) {
 	logLines := entryHandler.Received()
 	testLogLines := make(map[string]int, 5)
