@@ -3,18 +3,15 @@ package controller
 import (
 	"fmt"
 	"sync"
-	"time"
 
 	"github.com/grafana/river/ast"
 	"github.com/grafana/river/vm"
-	"go.uber.org/atomic"
 )
 
 type ExportConfigNode struct {
-	label          string
-	nodeID         string
-	componentName  string
-	lastUpdateTime atomic.Time
+	label         string
+	nodeID        string
+	componentName string
 
 	mut   sync.RWMutex
 	block *ast.BlockStmt // Current River blocks to derive config from
@@ -56,7 +53,6 @@ func (cn *ExportConfigNode) Evaluate(scope *vm.Scope) error {
 		return fmt.Errorf("decoding River: %w", err)
 	}
 	cn.value = export.Value
-	cn.lastUpdateTime.Store(time.Now())
 	return nil
 }
 
@@ -78,8 +74,3 @@ func (cn *ExportConfigNode) Block() *ast.BlockStmt {
 
 // NodeID implements dag.Node and returns the unique ID for the config node.
 func (cn *ExportConfigNode) NodeID() string { return cn.nodeID }
-
-// LastUpdateTime returns the time corresponding to the last time where the node was updated.
-func (cn *ExportConfigNode) LastUpdateTime() time.Time {
-	return cn.lastUpdateTime.Load()
-}

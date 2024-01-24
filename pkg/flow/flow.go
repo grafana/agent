@@ -49,6 +49,7 @@ import (
 	"context"
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/grafana/agent/pkg/flow/internal/controller"
 	"github.com/grafana/agent/pkg/flow/internal/worker"
@@ -187,7 +188,7 @@ func newController(o controllerOptions) *Flow {
 			DataPath:      o.DataPath,
 			OnBlockNodeUpdate: func(cn controller.BlockNode) {
 				// Changed node should be queued for reevaluation.
-				f.updateQueue.Enqueue(cn)
+				f.updateQueue.Enqueue(&controller.QueuedNode{Node: cn, LastUpdatedTime: time.Now()})
 			},
 			OnExportsChange: o.OnExportsChange,
 			Registerer:      o.Reg,

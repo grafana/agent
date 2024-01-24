@@ -21,7 +21,6 @@ import (
 	"github.com/grafana/river/vm"
 	"github.com/prometheus/client_golang/prometheus"
 	"go.opentelemetry.io/otel/trace"
-	"go.uber.org/atomic"
 )
 
 // ComponentID is a fully-qualified name of a component. Each element in
@@ -91,7 +90,6 @@ type ComponentNode struct {
 	exportsType       reflect.Type
 	moduleController  ModuleController
 	OnBlockNodeUpdate func(cn BlockNode) // Informs controller that we need to reevaluate
-	lastUpdateTime    atomic.Time
 
 	mut     sync.RWMutex
 	block   *ast.BlockStmt // Current River block to derive args from
@@ -351,11 +349,6 @@ func (cn *ComponentNode) Exports() component.Exports {
 	return cn.exports
 }
 
-// LastUpdateTime returns the time corresponding to the last time where the component changed its exports.
-func (cn *ComponentNode) LastUpdateTime() time.Time {
-	return cn.lastUpdateTime.Load()
-}
-
 // setExports is called whenever the managed component updates. e must be the
 // same type as the registered exports type of the managed component.
 func (cn *ComponentNode) setExports(e component.Exports) {
@@ -384,7 +377,6 @@ func (cn *ComponentNode) setExports(e component.Exports) {
 
 	if changed {
 		// Inform the controller that we have new exports.
-		cn.lastUpdateTime.Store(time.Now())
 		cn.OnBlockNodeUpdate(cn)
 	}
 }

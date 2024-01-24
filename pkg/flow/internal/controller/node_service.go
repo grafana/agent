@@ -5,21 +5,18 @@ import (
 	"fmt"
 	"reflect"
 	"sync"
-	"time"
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/service"
 	"github.com/grafana/river/ast"
 	"github.com/grafana/river/vm"
-	"go.uber.org/atomic"
 )
 
 // ServiceNode is a Flow DAG node which represents a running service.
 type ServiceNode struct {
-	host           service.Host
-	svc            service.Service
-	def            service.Definition
-	lastUpdateTime atomic.Time
+	host service.Host
+	svc  service.Service
+	def  service.Definition
 
 	mut   sync.RWMutex
 	block *ast.BlockStmt // Current River block to derive args from
@@ -123,15 +120,9 @@ func (sn *ServiceNode) Evaluate(scope *vm.Scope) error {
 	}
 
 	sn.args = argsCopyValue
-	sn.lastUpdateTime.Store(time.Now())
 	return nil
 }
 
 func (sn *ServiceNode) Run(ctx context.Context) error {
 	return sn.svc.Run(ctx, sn.host)
-}
-
-// LastUpdateTime returns the time corresponding to the last time where the node was updated.
-func (sn *ServiceNode) LastUpdateTime() time.Time {
-	return sn.lastUpdateTime.Load()
 }
