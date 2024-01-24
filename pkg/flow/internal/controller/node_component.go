@@ -21,7 +21,6 @@ import (
 	"github.com/grafana/river/vm"
 	"github.com/prometheus/client_golang/prometheus"
 	"go.opentelemetry.io/otel/trace"
-	"go.uber.org/atomic"
 )
 
 // ComponentID is a fully-qualified name of a component. Each element in
@@ -66,7 +65,7 @@ type ComponentGlobals struct {
 	Logger              *logging.Logger                        // Logger shared between all managed components.
 	TraceProvider       trace.TracerProvider                   // Tracer shared between all managed components.
 	DataPath            string                                 // Shared directory where component data may be stored
-	OnComponentUpdate   func(cn *ComponentNode)                // Informs controller that we need to reevaluate
+	OnBlockNodeUpdate   func(cn BlockNode)                     // Informs controller that we need to reevaluate
 	OnExportsChange     func(exports map[string]any)           // Invoked when the managed component updated its exports
 	Registerer          prometheus.Registerer                  // Registerer for serving agent and component metrics
 	ControllerID        string                                 // ID of controller.
@@ -90,8 +89,7 @@ type ComponentNode struct {
 	registry          *prometheus.Registry
 	exportsType       reflect.Type
 	moduleController  ModuleController
-	OnComponentUpdate func(cn *ComponentNode) // Informs controller that we need to reevaluate
-	lastUpdateTime    atomic.Time
+	OnBlockNodeUpdate func(cn BlockNode) // Informs controller that we need to reevaluate
 
 	mut     sync.RWMutex
 	block   *ast.BlockStmt // Current River block to derive args from
@@ -146,7 +144,7 @@ func NewComponentNode(globals ComponentGlobals, reg component.Registration, b *a
 		reg:               reg,
 		exportsType:       getExportsType(reg),
 		moduleController:  globals.NewModuleController(globalID),
-		OnComponentUpdate: globals.OnComponentUpdate,
+		OnBlockNodeUpdate: globals.OnBlockNodeUpdate,
 
 		block: b,
 		eval:  vm.New(b.Body),
@@ -379,8 +377,7 @@ func (cn *ComponentNode) setExports(e component.Exports) {
 
 	if changed {
 		// Inform the controller that we have new exports.
-		cn.lastUpdateTime.Store(time.Now())
-		cn.OnComponentUpdate(cn)
+		cn.OnBlockNodeUpdate(cn)
 	}
 }
 
