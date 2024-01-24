@@ -67,6 +67,7 @@ func (cn *LoggingConfigNode) Evaluate(scope *vm.Scope) error {
 	if err := cn.l.(*logging.Logger).Update(args); err != nil {
 		return fmt.Errorf("could not update logger: %w", err)
 	}
+
 	return nil
 }
 

@@ -71,6 +71,7 @@ func (cn *TracingConfigNode) Evaluate(scope *vm.Scope) error {
 			return fmt.Errorf("could not update tracer: %v", err)
 		}
 	}
+
 	return nil
 }
 
