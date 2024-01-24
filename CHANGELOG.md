@@ -27,7 +27,8 @@ Main (unreleased)
 - Expose `physical_disk` collector from `windows_exporter` v0.24.0 to 
   Flow configuration. (@hainenber)
 
-- Add argument to configure path prefix for Mimir's Prometheus API endpoint. (@hainenber)
+- `mimir.rules.kubernetes` has a new `prometheus_http_prefix` argument to configure 
+  the HTTP endpoint on which to connect to Mimir's API. (@hainenber)
 
 ### Bugfixes
 

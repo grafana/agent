@@ -52,7 +52,7 @@ mimir.rules.kubernetes "LABEL" {
 | `address`                | `string`   | URL of the Mimir ruler.                                                         |               | yes      |
 | `tenant_id`              | `string`   | Mimir tenant ID.                                                                |               | no       |
 | `use_legacy_routes`      | `bool`     | Whether to use [deprecated][gem-2_2] ruler API endpoints.                                  | false         | no       |
-| `prometheus_http_prefix` | `string`   | Path prefix for Mimir's Prometheus endpoint.                                    | `/prometheus` | no       |
+| `prometheus_http_prefix` | `string`   | Path prefix for [Mimir's Prometheus endpoint][gem-path-prefix].                                    | `/prometheus` | no       |
 | `sync_interval`          | `duration` | Amount of time between reconciliations with Mimir.                              | "30s"         | no       |
 | `mimir_namespace_prefix` | `string`   | Prefix used to differentiate multiple {{< param "PRODUCT_NAME" >}} deployments. | "agent"       | no       |
 | `bearer_token`           | `secret`   | Bearer token to authenticate with.                                              |               | no       |
