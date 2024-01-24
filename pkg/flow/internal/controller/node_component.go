@@ -111,7 +111,7 @@ type ComponentNode struct {
 	exports    component.Exports // Evaluated exports for the managed component
 }
 
-var _ BlockNode = (*ComponentNode)(nil)
+var _ ComponentInfo = (*ComponentNode)(nil)
 
 // NewComponentNode creates a new ComponentNode from an initial ast.BlockStmt.
 // The underlying managed component isn't created until Evaluate is called.
@@ -449,4 +449,14 @@ func (cn *ComponentNode) setRunHealth(t component.HealthType, msg string) {
 // managing.
 func (cn *ComponentNode) ModuleIDs() []string {
 	return cn.moduleController.ModuleIDs()
+}
+
+// BlockName returns the name of the block.
+func (cn *ComponentNode) BlockName() string {
+	return cn.componentName
+}
+
+// Registry returns the prometheus registry of the component.
+func (cn *ComponentNode) Registry() *prometheus.Registry {
+	return cn.registry
 }

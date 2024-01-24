@@ -29,9 +29,9 @@ func (f *Flow) GetComponent(id component.ID, opts component.InfoOptions) (*compo
 		return nil, component.ErrComponentNotFound
 	}
 
-	cn, ok := node.(*controller.ComponentNode)
+	cn, ok := node.(controller.ComponentInfo)
 	if !ok {
-		return nil, fmt.Errorf("%q is not a component", id)
+		return nil, fmt.Errorf("%q does not implement ComponentInfo", id)
 	}
 
 	return f.getComponentDetail(cn, graph, opts), nil
@@ -63,11 +63,11 @@ func (f *Flow) ListComponents(moduleID string, opts component.InfoOptions) ([]*c
 	return detail, nil
 }
 
-func (f *Flow) getComponentDetail(cn *controller.ComponentNode, graph *dag.Graph, opts component.InfoOptions) *component.Info {
+func (f *Flow) getComponentDetail(cn controller.ComponentInfo, graph *dag.Graph, opts component.InfoOptions) *component.Info {
 	var references, referencedBy []string
 
-	// Skip over any edge which isn't between two component nodes. This is a
-	// temporary workaround needed until there's athe concept of configuration
+	// Skip over any edge which isn't between two nodes implementing the componentInfo interface.
+	// This is a temporary workaround needed until there's a concept of configuration
 	// blocks in the API.
 	//
 	// Without this change, the graph fails to render when a configuration
@@ -75,12 +75,12 @@ func (f *Flow) getComponentDetail(cn *controller.ComponentNode, graph *dag.Graph
 	//
 	// TODO(rfratto): add support for config block nodes in the API and UI.
 	for _, dep := range graph.Dependencies(cn) {
-		if _, ok := dep.(*controller.ComponentNode); ok {
+		if _, ok := dep.(controller.ComponentInfo); ok {
 			references = append(references, dep.NodeID())
 		}
 	}
 	for _, dep := range graph.Dependants(cn) {
-		if _, ok := dep.(*controller.ComponentNode); ok {
+		if _, ok := dep.(controller.ComponentInfo); ok {
 			referencedBy = append(referencedBy, dep.NodeID())
 		}
 	}
@@ -119,8 +119,8 @@ func (f *Flow) getComponentDetail(cn *controller.ComponentNode, graph *dag.Graph
 		References:   references,
 		ReferencedBy: referencedBy,
 
-		Registration: cn.Registration(),
-		Health:       health,
+		BlockName: cn.BlockName(),
+		Health:    health,
 
 		Arguments: arguments,
 		Exports:   exports,
