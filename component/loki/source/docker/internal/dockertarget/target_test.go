@@ -113,7 +113,7 @@ func TestDockerTarget(t *testing.T) {
 // assertExpectedLog will verify that all expectedLines were received, in any order, without duplicates.
 func assertExpectedLog(c *assert.CollectT, entryHandler *fake.Client, expectedLines []string) {
 	logLines := entryHandler.Received()
-	testLogLines := make(map[string]int, 5)
+	testLogLines := make(map[string]int)
 	for _, l := range logLines {
 		if containsString(expectedLines, l.Line) {
 			testLogLines[l.Line] += 1
