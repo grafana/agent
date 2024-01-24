@@ -94,6 +94,7 @@ func TestDockerTarget(t *testing.T) {
 		assertExpectedLog(c, entryHandler, expectedLines)
 	}, 5*time.Second, 100*time.Millisecond, "Expected log lines were not found within the time limit.")
 
+	tgt.Stop()
 	entryHandler.Clear()
 	// restart target to simulate container restart
 	tgt.StartIfNotRunning()
