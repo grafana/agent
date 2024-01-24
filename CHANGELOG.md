@@ -34,8 +34,9 @@ Main (unreleased)
 - Expose `physical_disk` collector from `windows_exporter` v0.24.0 to 
   Flow configuration. (@hainenber)
 
-- Added visibility of Prometheus scrape success rate and duration to the Grafana
-  Agent Flow mixin. (@thampiotr)
+- Renamed Grafana Agent Mixin's "prometheus.remote_write" dashboard to
+  "Prometheus Components" and added charts for `prometheus.scrape` success rate
+  and duration metrics. (@thampiotr)
 
 ### Bugfixes
 
