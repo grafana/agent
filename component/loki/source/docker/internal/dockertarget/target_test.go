@@ -94,9 +94,9 @@ func TestDockerTarget(t *testing.T) {
 		assertExpectedLog(c, entryHandler, expectedLines)
 	}, 5*time.Second, 100*time.Millisecond, "Expected log lines were not found within the time limit.")
 
+	entryHandler.Clear()
 	// restart target to simulate container restart
 	tgt.StartIfNotRunning()
-	entryHandler.Clear()
 	expectedLinesAfterRestart := []string{
 		"243.115.12.215 - - [09/Dec/2023:09:16:57 +0000] \"DELETE /morph/exploit/granular HTTP/1.0\" 500 26468",
 		"221.41.123.237 - - [09/Dec/2023:09:16:57 +0000] \"DELETE /user-centric/whiteboard HTTP/2.0\" 205 22487",
