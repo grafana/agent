@@ -3,7 +3,7 @@
 * Date: 2021-11-29
 * Author: Robert Fratto (@rfratto)
 * PR: [grafana/agent#1140](https://github.com/grafana/agent/pull/1140)
-* Status: Draft
+* Status: Abandoned
 
 ## Background
 
