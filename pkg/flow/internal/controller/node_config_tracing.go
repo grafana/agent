@@ -3,17 +3,20 @@ package controller
 import (
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/grafana/agent/pkg/flow/tracing"
 	"github.com/grafana/river/ast"
 	"github.com/grafana/river/vm"
 	"go.opentelemetry.io/otel/trace"
+	"go.uber.org/atomic"
 )
 
 type TracingConfigNode struct {
-	nodeID        string
-	componentName string
-	traceProvider trace.TracerProvider // Tracer shared between all managed components.
+	nodeID         string
+	componentName  string
+	traceProvider  trace.TracerProvider // Tracer shared between all managed components.
+	lastUpdateTime atomic.Time
 
 	mut   sync.RWMutex
 	block *ast.BlockStmt // Current River blocks to derive config from
@@ -70,8 +73,8 @@ func (cn *TracingConfigNode) Evaluate(scope *vm.Scope) error {
 		if err != nil {
 			return fmt.Errorf("could not update tracer: %v", err)
 		}
+		cn.lastUpdateTime.Store(time.Now())
 	}
-
 	return nil
 }
 
@@ -84,3 +87,8 @@ func (cn *TracingConfigNode) Block() *ast.BlockStmt {
 
 // NodeID implements dag.Node and returns the unique ID for the config node.
 func (cn *TracingConfigNode) NodeID() string { return cn.nodeID }
+
+// LastUpdateTime returns the time corresponding to the last time where the node was updated.
+func (cn *TracingConfigNode) LastUpdateTime() time.Time {
+	return cn.lastUpdateTime.Load()
+}

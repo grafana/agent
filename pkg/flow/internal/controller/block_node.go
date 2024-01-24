@@ -1,6 +1,8 @@
 package controller
 
 import (
+	"time"
+
 	"github.com/grafana/agent/pkg/flow/internal/dag"
 	"github.com/grafana/river/ast"
 	"github.com/grafana/river/vm"
@@ -21,4 +23,7 @@ type BlockNode interface {
 	// Evaluate will return an error if the River block cannot be evaluated or if
 	// decoding to arguments fails.
 	Evaluate(scope *vm.Scope) error
+
+	// LastUpdateTime returns the time corresponding to the last time where the node was updated.
+	LastUpdateTime() time.Time
 }

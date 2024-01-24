@@ -6,12 +6,11 @@ import (
 
 // Queue is a thread-safe, insertion-ordered set of nodes.
 //
-// Queue is intended for tracking nodes that have updated their Exports
-// for later reevaluation.
+// Queue is intended for tracking nodes that have been updated for later reevaluation.
 type Queue struct {
 	mut         sync.Mutex
-	queuedSet   map[NodeWithDependants]struct{}
-	queuedOrder []NodeWithDependants
+	queuedSet   map[BlockNode]struct{}
+	queuedOrder []BlockNode
 
 	updateCh chan struct{}
 }
@@ -20,14 +19,14 @@ type Queue struct {
 func NewQueue() *Queue {
 	return &Queue{
 		updateCh:    make(chan struct{}, 1),
-		queuedSet:   make(map[NodeWithDependants]struct{}),
-		queuedOrder: make([]NodeWithDependants, 0),
+		queuedSet:   make(map[BlockNode]struct{}),
+		queuedOrder: make([]BlockNode, 0),
 	}
 }
 
-// Enqueue inserts a new NodeWithDependants into the Queue. Enqueue is a no-op if the
-// NodeWithDependants is already in the Queue.
-func (q *Queue) Enqueue(c NodeWithDependants) {
+// Enqueue inserts a new BlockNode into the Queue. Enqueue is a no-op if the
+// BlockNode is already in the Queue.
+func (q *Queue) Enqueue(c BlockNode) {
 	q.mut.Lock()
 	defer q.mut.Unlock()
 
@@ -47,14 +46,14 @@ func (q *Queue) Enqueue(c NodeWithDependants) {
 // Chan returns a channel which is written to when the queue is non-empty.
 func (q *Queue) Chan() <-chan struct{} { return q.updateCh }
 
-// DequeueAll removes all NodeWithDependants from the queue and returns them.
-func (q *Queue) DequeueAll() []NodeWithDependants {
+// DequeueAll removes all BlockNode from the queue and returns them.
+func (q *Queue) DequeueAll() []BlockNode {
 	q.mut.Lock()
 	defer q.mut.Unlock()
 
 	all := q.queuedOrder
-	q.queuedOrder = make([]NodeWithDependants, 0)
-	q.queuedSet = make(map[NodeWithDependants]struct{})
+	q.queuedOrder = make([]BlockNode, 0)
+	q.queuedSet = make(map[BlockNode]struct{})
 
 	return all
 }

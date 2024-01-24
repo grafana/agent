@@ -561,7 +561,7 @@ func (l *Loader) OriginalGraph() *dag.Graph {
 // the worker pool starts to evaluate them, resulting in smaller number of total evaluations when
 // node updates are frequent. If the worker pool's queue is full, EvaluateDependants will retry with a backoff until
 // it succeeds or until the ctx is cancelled.
-func (l *Loader) EvaluateDependants(ctx context.Context, updatedNodes []NodeWithDependants) {
+func (l *Loader) EvaluateDependants(ctx context.Context, updatedNodes []BlockNode) {
 	if len(updatedNodes) == 0 {
 		return
 	}
@@ -577,10 +577,12 @@ func (l *Loader) EvaluateDependants(ctx context.Context, updatedNodes []NodeWith
 	l.mut.RLock()
 	defer l.mut.RUnlock()
 
-	dependenciesToParentsMap := make(map[dag.Node]NodeWithDependants)
+	dependenciesToParentsMap := make(map[dag.Node]BlockNode)
 	for _, parent := range updatedNodes {
 		// Make sure we're in-sync with the current exports of parent.
-		l.cache.CacheExports(parent.ID(), parent.Exports())
+		if componentNode, ok := parent.(*ComponentNode); ok {
+			l.cache.CacheExports(componentNode.ID(), componentNode.Exports())
+		}
 		// We collect all nodes directly incoming to parent.
 		_ = dag.WalkIncomingNodes(l.graph, parent, func(n dag.Node) error {
 			dependenciesToParentsMap[n] = parent
@@ -637,7 +639,7 @@ func (l *Loader) EvaluateDependants(ctx context.Context, updatedNodes []NodeWith
 
 // concurrentEvalFn returns a function that evaluates a node and updates the cache. This function can be submitted to
 // a worker pool for asynchronous evaluation.
-func (l *Loader) concurrentEvalFn(n dag.Node, spanCtx context.Context, tracer trace.Tracer, parent NodeWithDependants) {
+func (l *Loader) concurrentEvalFn(n dag.Node, spanCtx context.Context, tracer trace.Tracer, parent BlockNode) {
 	start := time.Now()
 	l.cm.dependenciesWaitTime.Observe(time.Since(parent.LastUpdateTime()).Seconds())
 	_, span := tracer.Start(spanCtx, "EvaluateNode", trace.WithSpanKind(trace.SpanKindInternal))

@@ -185,8 +185,8 @@ func newController(o controllerOptions) *Flow {
 			Logger:        log,
 			TraceProvider: tracer,
 			DataPath:      o.DataPath,
-			OnNodeWithDependantsUpdate: func(cn controller.NodeWithDependants) {
-				// Changed node with dependants should be queued for reevaluation.
+			OnBlockNodeUpdate: func(cn controller.BlockNode) {
+				// Changed node should be queued for reevaluation.
 				f.updateQueue.Enqueue(cn)
 			},
 			OnExportsChange: o.OnExportsChange,

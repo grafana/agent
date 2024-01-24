@@ -3,19 +3,22 @@ package controller
 import (
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/grafana/river/ast"
 	"github.com/grafana/river/vm"
+	"go.uber.org/atomic"
 )
 
 var _ BlockNode = (*LoggingConfigNode)(nil)
 
 type LoggingConfigNode struct {
-	nodeID        string
-	componentName string
-	l             log.Logger
+	nodeID         string
+	componentName  string
+	l              log.Logger
+	lastUpdateTime atomic.Time
 
 	mut   sync.RWMutex
 	block *ast.BlockStmt // Current River blocks to derive config from
@@ -67,7 +70,7 @@ func (cn *LoggingConfigNode) Evaluate(scope *vm.Scope) error {
 	if err := cn.l.(*logging.Logger).Update(args); err != nil {
 		return fmt.Errorf("could not update logger: %w", err)
 	}
-
+	cn.lastUpdateTime.Store(time.Now())
 	return nil
 }
 
@@ -80,3 +83,8 @@ func (cn *LoggingConfigNode) Block() *ast.BlockStmt {
 
 // NodeID implements dag.Node and returns the unique ID for the config node.
 func (cn *LoggingConfigNode) NodeID() string { return cn.nodeID }
+
+// LastUpdateTime returns the time corresponding to the last time where the node was updated.
+func (cn *LoggingConfigNode) LastUpdateTime() time.Time {
+	return cn.lastUpdateTime.Load()
+}

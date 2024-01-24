@@ -3,15 +3,18 @@ package controller
 import (
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/grafana/river/ast"
 	"github.com/grafana/river/vm"
+	"go.uber.org/atomic"
 )
 
 type ArgumentConfigNode struct {
-	label         string
-	nodeID        string
-	componentName string
+	label          string
+	nodeID         string
+	componentName  string
+	lastUpdateTime atomic.Time
 
 	mut          sync.RWMutex
 	block        *ast.BlockStmt // Current River blocks to derive config from
@@ -59,6 +62,7 @@ func (cn *ArgumentConfigNode) Evaluate(scope *vm.Scope) error {
 	cn.defaultValue = argument.Default
 	cn.optional = argument.Optional
 
+	cn.lastUpdateTime.Store(time.Now())
 	return nil
 }
 
@@ -85,3 +89,8 @@ func (cn *ArgumentConfigNode) Block() *ast.BlockStmt {
 
 // NodeID implements dag.Node and returns the unique ID for the config node.
 func (cn *ArgumentConfigNode) NodeID() string { return cn.nodeID }
+
+// LastUpdateTime returns the time corresponding to the last time where the node was updated.
+func (cn *ArgumentConfigNode) LastUpdateTime() time.Time {
+	return cn.lastUpdateTime.Load()
+}
