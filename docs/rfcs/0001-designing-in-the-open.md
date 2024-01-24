@@ -3,7 +3,6 @@
 * Date: 2021-11-02
 * Author: Robert Fratto (@rfratto)
 * PR: [grafana/agent#1055](https://github.com/grafana/agent/pull/1055)
-* Status: Implemented
 
 ## Summary
 

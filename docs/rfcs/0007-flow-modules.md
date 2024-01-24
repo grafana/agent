@@ -3,7 +3,6 @@
 * Date: 2023-01-27
 * Author: Matt Durham @mattdurham
 * PR: [grafana/agent#2898](https://github.com/grafana/agent/pull/2898)
-* Status: Draft
 
 [Formatted Link for ease of user](https://github.com/grafana/agent/blob/rfc_modules/docs/rfcs/0007-flow-modules.md)
 
@@ -30,7 +29,7 @@ During this time the Agent team saw a lot of potential in the idea of "modules."
 
 ### Enable re-use of common patterns
 
-Common functionality can be wrapped in a set of common components that form a module. These shared modules can then be used instead of reinventing use cases. 
+Common functionality can be wrapped in a set of common components that form a module. These shared modules can then be used instead of reinventing use cases.
 
 ### Allow loading a module from a string
 
@@ -42,11 +41,11 @@ Modules will be able to load other modules, with reasonable safe guards. There w
 
 ### Modules should be sandboxed except via arguments and exports
 
-Modules cannot directly access children or parent modules except through predefined arguments and exports. 
+Modules cannot directly access children or parent modules except through predefined arguments and exports.
 
 ## Non Goals
 
-Non goals represent capabilities that are not going to be done in the initial release of modules but may come in later versions.  
+Non goals represent capabilities that are not going to be done in the initial release of modules but may come in later versions.
 
 * Add additional capabilities to load strings
 * Any type of versioning
@@ -66,7 +65,7 @@ Modules will not contain any sort of versioning nor will check for compatibility
 
 ### Any user interface work beyond ensuring it works as the UI currently does
 
-Users will not be able to drill into modules, they will be represented as any other normal component. 
+Users will not be able to drill into modules, they will be represented as any other normal component.
 
 ## Example
 
@@ -122,7 +121,7 @@ prometheus.scrape "scraper" {
 * A module cannot directly or indirectly load itself, this will not be enforced by the system
 * Singleton components are not supported at this time. Example [node_exporter](https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.integration.node_exporter/).
 * Modules will not prevent competing resources, such as starting a server on the same port
-* [Configuration blocks](https://grafana.com/docs/agent/latest/flow/reference/config-blocks/#configuration-blocks) will not be supported. 
+* [Configuration blocks](https://grafana.com/docs/agent/latest/flow/reference/config-blocks/#configuration-blocks) will not be supported.
 * Names of arguments and exports within a module must be unique across that module.
 
 ## Proposal
