@@ -90,7 +90,6 @@ func (f *Flow) getComponentDetail(cn controller.ComponentNode, graph *dag.Graph,
 		health    component.Health
 		arguments component.Arguments
 		exports   component.Exports
-		debugInfo interface{}
 	)
 
 	if opts.GetHealth {
@@ -118,7 +117,6 @@ func (f *Flow) getComponentDetail(cn controller.ComponentNode, graph *dag.Graph,
 
 		Arguments: arguments,
 		Exports:   exports,
-		DebugInfo: debugInfo,
 	}
 
 	if builtinComponent, ok := cn.(*controller.BuiltinComponentNode); ok {

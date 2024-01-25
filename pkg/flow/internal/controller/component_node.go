@@ -1,9 +1,8 @@
 package controller
 
 import (
-	"context"
-
 	"github.com/grafana/agent/component"
+	"github.com/grafana/river/ast"
 )
 
 // ComponentNode is a generic representation of a Flow component.
@@ -27,4 +26,7 @@ type ComponentNode interface {
 
 	// ID returns the component ID of the managed component from its River block.
 	ID() ComponentID
+
+	// UpdateBlock updates the River block used to construct arguments for the managed component.
+	UpdateBlock(b *ast.BlockStmt)
 }
