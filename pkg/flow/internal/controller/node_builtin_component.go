@@ -447,8 +447,3 @@ func (cn *BuiltinComponentNode) setRunHealth(t component.HealthType, msg string)
 func (cn *BuiltinComponentNode) ModuleIDs() []string {
 	return cn.moduleController.ModuleIDs()
 }
-
-// Registry returns the prometheus registry of the component.
-func (cn *BuiltinComponentNode) Registry() *prometheus.Registry {
-	return cn.registry
-}

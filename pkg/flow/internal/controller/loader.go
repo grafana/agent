@@ -41,7 +41,7 @@ type Loader struct {
 	mut               sync.RWMutex
 	graph             *dag.Graph
 	originalGraph     *dag.Graph
-	componentNodes    []*ComponentNode
+	componentNodes    []ComponentNode
 	serviceNodes      []*ServiceNode
 	cache             *valueCache
 	blocks            []*ast.BlockStmt // Most recently loaded blocks, used for writing
@@ -136,7 +136,7 @@ func (l *Loader) Apply(args map[string]any, componentBlocks []*ast.BlockStmt, co
 	}
 
 	var (
-		components   = make([]*ComponentNode, 0, len(componentBlocks))
+		components   = make([]ComponentNode, 0, len(componentBlocks))
 		componentIDs = make([]ComponentID, 0, len(componentBlocks))
 		services     = make([]*ServiceNode, 0, len(l.services))
 	)
@@ -169,7 +169,7 @@ func (l *Loader) Apply(args map[string]any, componentBlocks []*ast.BlockStmt, co
 		var err error
 
 		switch n := n.(type) {
-		case *ComponentNode:
+		case ComponentNode:
 			components = append(components, n)
 			componentIDs = append(componentIDs, n.ID())
 
@@ -435,7 +435,7 @@ func (l *Loader) populateComponentNodes(g *dag.Graph, componentBlocks []*ast.Blo
 		blockMap = make(map[string]*ast.BlockStmt, len(componentBlocks))
 	)
 	for _, block := range componentBlocks {
-		var c *ComponentNode
+		var c *BuiltinComponentNode
 		id := BlockComponentID(block).String()
 
 		if orig, redefined := blockMap[id]; redefined {
@@ -452,7 +452,7 @@ func (l *Loader) populateComponentNodes(g *dag.Graph, componentBlocks []*ast.Blo
 		// Check the graph from the previous call to Load to see we can copy an
 		// existing instance of ComponentNode.
 		if exist := l.graph.GetByID(id); exist != nil {
-			c = exist.(*ComponentNode)
+			c = exist.(*BuiltinComponentNode)
 			c.UpdateBlock(block)
 		} else {
 			componentName := block.GetBlockName()
@@ -478,7 +478,7 @@ func (l *Loader) populateComponentNodes(g *dag.Graph, componentBlocks []*ast.Blo
 			}
 
 			// Create a new component
-			c = NewComponentNode(l.globals, registration, block)
+			c = NewBuiltinComponentNode(l.globals, registration, block)
 		}
 
 		g.Add(c)
@@ -527,7 +527,7 @@ func (l *Loader) Variables() map[string]interface{} {
 }
 
 // Components returns the current set of loaded components.
-func (l *Loader) Components() []*ComponentNode {
+func (l *Loader) Components() []ComponentNode {
 	l.mut.RLock()
 	defer l.mut.RUnlock()
 	return l.componentNodes
@@ -580,7 +580,7 @@ func (l *Loader) EvaluateDependants(ctx context.Context, updatedNodes []*QueuedN
 	dependenciesToParentsMap := make(map[dag.Node]*QueuedNode)
 	for _, parent := range updatedNodes {
 		// Make sure we're in-sync with the current exports of parent.
-		if componentNode, ok := parent.Node.(*ComponentNode); ok {
+		if componentNode, ok := parent.Node.(ComponentNode); ok {
 			l.cache.CacheExports(componentNode.ID(), componentNode.Exports())
 		}
 		// We collect all nodes directly incoming to parent.
@@ -702,7 +702,7 @@ func (l *Loader) evaluate(logger log.Logger, bn BlockNode) error {
 // mut must be held when calling postEvaluate.
 func (l *Loader) postEvaluate(logger log.Logger, bn BlockNode, err error) error {
 	switch c := bn.(type) {
-	case *ComponentNode:
+	case ComponentNode:
 		// Always update the cache both the arguments and exports, since both might
 		// change when a component gets re-evaluated. We also want to cache the arguments and exports in case of an error
 		l.cache.CacheArguments(c.ID(), c.Arguments())
