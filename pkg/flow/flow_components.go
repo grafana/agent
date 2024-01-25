@@ -31,7 +31,7 @@ func (f *Flow) GetComponent(id component.ID, opts component.InfoOptions) (*compo
 
 	cn, ok := node.(controller.ComponentNode)
 	if !ok {
-		return nil, fmt.Errorf("%q does not implement ComponentInfo", id)
+		return nil, fmt.Errorf("%q is not a component", id)
 	}
 
 	return f.getComponentDetail(cn, graph, opts), nil
@@ -56,9 +56,9 @@ func (f *Flow) ListComponents(moduleID string, opts component.InfoOptions) ([]*c
 		graph      = f.loader.OriginalGraph()
 	)
 
-	detail := make([]*component.Info, 0, len(components))
-	for _, component := range components {
-		detail = append(detail, f.getComponentDetail(component, graph, opts))
+	detail := make([]*component.Info, len(components))
+	for i, component := range components {
+		detail[i] = f.getComponentDetail(component, graph, opts)
 	}
 	return detail, nil
 }
