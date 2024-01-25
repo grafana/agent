@@ -10,7 +10,7 @@ import (
 type ComponentNode interface {
 	RunnableNode
 
-	// CurrentHealth returns the current health of the node.
+	// CurrentHealth returns the current health of the component.
 	CurrentHealth() component.Health
 
 	// Arguments returns the current arguments of the managed component.
