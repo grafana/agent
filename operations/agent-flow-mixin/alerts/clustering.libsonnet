@@ -61,7 +61,7 @@ alert.newGroup(
         ) > 1
       |||,
       'Cluster nodes are not using the same configuration file.',
-      '10m',
+      '5m',
     ),
   ]
 )
