@@ -36,7 +36,7 @@ To add {{% param "PRODUCT_NAME" %}} to a host:
             dest: /etc/apt/keyrings/grafana.gpg
             mode: "0644"
 
-        - name: "Add Grafana apt repository"
+        - name: "Add Grafana APT repository"
           ansible.builtin.apt_repository:
             repo: "deb [signed-by=/usr/share/keyrings/grafana.key] https://apt.grafana.com/ stable main"
             state: present
