@@ -38,6 +38,12 @@ Main (unreleased)
   "Prometheus Components" and added charts for `prometheus.scrape` success rate
   and duration metrics. (@thampiotr)
 
+- Removed `ClusterLamportClockDrift` and `ClusterLamportClockStuck` alerts from
+  Grafana Agent Mixin to focus on alerting on symptoms. (@thampiotr)
+
+- Increased clustering alert periods to 10 minutes to improve the
+  signal-to-noise ratio in Grafana Agent Mixin. (@thampiotr)
+
 ### Bugfixes
 
 - Fix an issue in `remote.s3` where the exported content of an object would be an empty string if `remote.s3` failed to fully retrieve
