@@ -22,7 +22,7 @@ type ComponentNode interface {
 	// Label returns the component label.
 	Label() string
 
-	// ComponentName returns the name of the block.
+	// ComponentName returns the name of the component.
 	ComponentName() string
 
 	// Run runs the managed component in the calling goroutine until ctx is canceled.
