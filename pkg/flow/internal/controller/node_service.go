@@ -24,10 +24,7 @@ type ServiceNode struct {
 	args  component.Arguments // Evaluated arguments for the managed component
 }
 
-var (
-	_ BlockNode    = (*ServiceNode)(nil)
-	_ RunnableNode = (*ServiceNode)(nil)
-)
+var _ RunnableNode = (*ServiceNode)(nil)
 
 // NewServiceNode creates a new instance of a ServiceNode from an instance of a
 // Service. The provided host is used when running the service.

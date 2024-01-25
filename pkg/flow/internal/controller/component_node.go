@@ -8,7 +8,7 @@ import (
 
 // ComponentNode is a generic representation of a Flow component.
 type ComponentNode interface {
-	BlockNode
+	RunnableNode
 
 	// CurrentHealth returns the current health of the node.
 	CurrentHealth() component.Health
