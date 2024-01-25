@@ -35,7 +35,7 @@ will fail if it can't find the Custom Resource Definitions of objects it is
 looking to use. To learn more about the custom resources Agent Operator provides and their hierarchy, see [Grafana Agent Operator architecture]({{< relref "./architecture" >}}).
 
 You can find the set of Custom Resource Definitions for Grafana Agent Operator in the Grafana Agent repository under
-[production/operator/crds](https://github.com/grafana/agent/tree/main/production/operator/crds).
+[`operations/agent-static-operator/crds`](https://github.com/grafana/agent/tree/main/operations/agent-static-operator/crds).
 
 To deploy the CRDs:
 
