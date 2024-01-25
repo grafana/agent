@@ -19,7 +19,7 @@ type ComponentNode interface {
 	// Exports returns the current set of exports from the managed component.
 	Exports() component.Exports
 
-	// Label returns the label for the block or "" if none was specified.
+	// Label returns the component label.
 	Label() string
 
 	// ComponentName returns the name of the block.
