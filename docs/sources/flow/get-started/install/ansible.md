@@ -17,8 +17,8 @@ You can use Ansible to install and manage {{< param "PRODUCT_NAME" >}}.
 - These steps assume you already have a working [Ansible](https://www.ansible.com/) setup,
 and a pre-existing inventory.
 - You can add the tasks below to any new or existing Role you choose.
-- These tasks install from Grafana's package repositories. They expect to target linux systems using 
-apt or yum package managers.
+- These tasks install {{< param "PRODUCT_NAME" >}} from the package repositories. They expect to target Linux systems using 
+APT or YUM package managers.
 
 ## Steps
 
