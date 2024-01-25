@@ -59,8 +59,8 @@ func (id ComponentID) Equals(other ComponentID) bool {
 // DialFunc is a function to establish a network connection.
 type DialFunc func(ctx context.Context, network, address string) (net.Conn, error)
 
-// ComponentGlobals are used by ComponentNodes to build managed components. All
-// ComponentNodes should use the same ComponentGlobals.
+// ComponentGlobals are used by BuiltinComponentNodes to build managed components. All
+// BuiltinComponentNodes should use the same ComponentGlobals.
 type ComponentGlobals struct {
 	Logger              *logging.Logger                        // Logger shared between all managed components.
 	TraceProvider       trace.TracerProvider                   // Tracer shared between all managed components.
@@ -73,12 +73,12 @@ type ComponentGlobals struct {
 	GetServiceData      func(name string) (interface{}, error) // Get data for a service.
 }
 
-// ComponentNode is a controller node which manages a user-defined component.
+// BuiltinComponentNode is a controller node which manages a builtin component.
 //
-// ComponentNode manages the underlying component and caches its current
-// arguments and exports. ComponentNode manages the arguments for the component
+// BuiltinComponentNode manages the underlying component and caches its current
+// arguments and exports. BuiltinComponentNode manages the arguments for the component
 // from a River block.
-type ComponentNode struct {
+type BuiltinComponentNode struct {
 	id                ComponentID
 	globalID          string
 	label             string
@@ -109,11 +109,11 @@ type ComponentNode struct {
 	exports    component.Exports // Evaluated exports for the managed component
 }
 
-var _ BlockNode = (*ComponentNode)(nil)
+var _ ComponentNode = (*BuiltinComponentNode)(nil)
 
-// NewComponentNode creates a new ComponentNode from an initial ast.BlockStmt.
+// NewBuiltinComponentNode creates a new BuiltinComponentNode from an initial ast.BlockStmt.
 // The underlying managed component isn't created until Evaluate is called.
-func NewComponentNode(globals ComponentGlobals, reg component.Registration, b *ast.BlockStmt) *ComponentNode {
+func NewBuiltinComponentNode(globals ComponentGlobals, reg component.Registration, b *ast.BlockStmt) *BuiltinComponentNode {
 	var (
 		id     = BlockComponentID(b)
 		nodeID = id.String()
@@ -135,7 +135,7 @@ func NewComponentNode(globals ComponentGlobals, reg component.Registration, b *a
 		globalID = path.Join(globals.ControllerID, nodeID)
 	}
 
-	cn := &ComponentNode{
+	cn := &BuiltinComponentNode{
 		id:                id,
 		globalID:          globalID,
 		label:             b.Label,
@@ -161,7 +161,7 @@ func NewComponentNode(globals ComponentGlobals, reg component.Registration, b *a
 	return cn
 }
 
-func getManagedOptions(globals ComponentGlobals, cn *ComponentNode) component.Options {
+func getManagedOptions(globals ComponentGlobals, cn *BuiltinComponentNode) component.Options {
 	cn.registry = prometheus.NewRegistry()
 	return component.Options{
 		ID:     cn.globalID,
@@ -190,37 +190,37 @@ func getExportsType(reg component.Registration) reflect.Type {
 }
 
 // Registration returns the original registration of the component.
-func (cn *ComponentNode) Registration() component.Registration { return cn.reg }
+func (cn *BuiltinComponentNode) Registration() component.Registration { return cn.reg }
 
 // Component returns the instance of the managed component. Component may be
-// nil if the ComponentNode has not been successfully evaluated yet.
-func (cn *ComponentNode) Component() component.Component {
+// nil if the BuiltinComponentNode has not been successfully evaluated yet.
+func (cn *BuiltinComponentNode) Component() component.Component {
 	cn.mut.RLock()
 	defer cn.mut.RUnlock()
 	return cn.managed
 }
 
 // ID returns the component ID of the managed component from its River block.
-func (cn *ComponentNode) ID() ComponentID { return cn.id }
+func (cn *BuiltinComponentNode) ID() ComponentID { return cn.id }
 
 // Label returns the label for the block or "" if none was specified.
-func (cn *ComponentNode) Label() string { return cn.label }
+func (cn *BuiltinComponentNode) Label() string { return cn.label }
 
 // ComponentName returns the component's type, i.e. `local.file.test` returns `local.file`.
-func (cn *ComponentNode) ComponentName() string { return cn.componentName }
+func (cn *BuiltinComponentNode) ComponentName() string { return cn.componentName }
 
 // NodeID implements dag.Node and returns the unique ID for this node. The
 // NodeID is the string representation of the component's ID from its River
 // block.
-func (cn *ComponentNode) NodeID() string { return cn.nodeID }
+func (cn *BuiltinComponentNode) NodeID() string { return cn.nodeID }
 
 // UpdateBlock updates the River block used to construct arguments for the
 // managed component. The new block isn't used until the next time Evaluate is
 // invoked.
 //
 // UpdateBlock will panic if the block does not match the component ID of the
-// ComponentNode.
-func (cn *ComponentNode) UpdateBlock(b *ast.BlockStmt) {
+// BuiltinComponentNode.
+func (cn *BuiltinComponentNode) UpdateBlock(b *ast.BlockStmt) {
 	if !BlockComponentID(b).Equals(cn.id) {
 		panic("UpdateBlock called with an River block with a different component ID")
 	}
@@ -237,7 +237,7 @@ func (cn *ComponentNode) UpdateBlock(b *ast.BlockStmt) {
 //
 // Evaluate will return an error if the River block cannot be evaluated or if
 // decoding to arguments fails.
-func (cn *ComponentNode) Evaluate(scope *vm.Scope) error {
+func (cn *BuiltinComponentNode) Evaluate(scope *vm.Scope) error {
 	err := cn.evaluate(scope)
 
 	switch err {
@@ -250,7 +250,7 @@ func (cn *ComponentNode) Evaluate(scope *vm.Scope) error {
 	return err
 }
 
-func (cn *ComponentNode) evaluate(scope *vm.Scope) error {
+func (cn *BuiltinComponentNode) evaluate(scope *vm.Scope) error {
 	cn.mut.Lock()
 	defer cn.mut.Unlock()
 
@@ -297,7 +297,7 @@ func (cn *ComponentNode) evaluate(scope *vm.Scope) error {
 //
 // Run will immediately return ErrUnevaluated if Evaluate has never been called
 // successfully. Otherwise, Run will return nil.
-func (cn *ComponentNode) Run(ctx context.Context) error {
+func (cn *BuiltinComponentNode) Run(ctx context.Context) error {
 	cn.mut.RLock()
 	managed := cn.managed
 	cn.mut.RUnlock()
@@ -323,19 +323,19 @@ func (cn *ComponentNode) Run(ctx context.Context) error {
 	return err
 }
 
-// ErrUnevaluated is returned if ComponentNode.Run is called before a managed
+// ErrUnevaluated is returned if BuiltinComponentNode.Run is called before a managed
 // component is built.
 var ErrUnevaluated = errors.New("managed component not built")
 
 // Arguments returns the current arguments of the managed component.
-func (cn *ComponentNode) Arguments() component.Arguments {
+func (cn *BuiltinComponentNode) Arguments() component.Arguments {
 	cn.mut.RLock()
 	defer cn.mut.RUnlock()
 	return cn.args
 }
 
 // Block implements BlockNode and returns the current block of the managed component.
-func (cn *ComponentNode) Block() *ast.BlockStmt {
+func (cn *BuiltinComponentNode) Block() *ast.BlockStmt {
 	cn.mut.RLock()
 	defer cn.mut.RUnlock()
 	return cn.block
@@ -343,7 +343,7 @@ func (cn *ComponentNode) Block() *ast.BlockStmt {
 
 // Exports returns the current set of exports from the managed component.
 // Exports returns nil if the managed component does not have exports.
-func (cn *ComponentNode) Exports() component.Exports {
+func (cn *BuiltinComponentNode) Exports() component.Exports {
 	cn.exportsMut.RLock()
 	defer cn.exportsMut.RUnlock()
 	return cn.exports
@@ -351,7 +351,7 @@ func (cn *ComponentNode) Exports() component.Exports {
 
 // setExports is called whenever the managed component updates. e must be the
 // same type as the registered exports type of the managed component.
-func (cn *ComponentNode) setExports(e component.Exports) {
+func (cn *BuiltinComponentNode) setExports(e component.Exports) {
 	if cn.exportsType == nil {
 		panic(fmt.Sprintf("Component %s called OnStateChange but never registered an Exports type", cn.nodeID))
 	}
@@ -381,14 +381,14 @@ func (cn *ComponentNode) setExports(e component.Exports) {
 	}
 }
 
-// CurrentHealth returns the current health of the ComponentNode.
+// CurrentHealth returns the current health of the BuiltinComponentNode.
 //
-// The health of a ComponentNode is determined by combining:
+// The health of a BuiltinComponentNode is determined by combining:
 //
 //  1. Health from the call to Run().
 //  2. Health from the last call to Evaluate().
 //  3. Health reported from the component.
-func (cn *ComponentNode) CurrentHealth() component.Health {
+func (cn *BuiltinComponentNode) CurrentHealth() component.Health {
 	cn.healthMut.RLock()
 	defer cn.healthMut.RUnlock()
 
@@ -406,7 +406,7 @@ func (cn *ComponentNode) CurrentHealth() component.Health {
 }
 
 // DebugInfo returns debugging information from the managed component (if any).
-func (cn *ComponentNode) DebugInfo() interface{} {
+func (cn *BuiltinComponentNode) DebugInfo() interface{} {
 	cn.mut.RLock()
 	defer cn.mut.RUnlock()
 
@@ -418,7 +418,7 @@ func (cn *ComponentNode) DebugInfo() interface{} {
 
 // setEvalHealth sets the internal health from a call to Evaluate. See Health
 // for information on how overall health is calculated.
-func (cn *ComponentNode) setEvalHealth(t component.HealthType, msg string) {
+func (cn *BuiltinComponentNode) setEvalHealth(t component.HealthType, msg string) {
 	cn.healthMut.Lock()
 	defer cn.healthMut.Unlock()
 
@@ -431,7 +431,7 @@ func (cn *ComponentNode) setEvalHealth(t component.HealthType, msg string) {
 
 // setRunHealth sets the internal health from a call to Run. See Health for
 // information on how overall health is calculated.
-func (cn *ComponentNode) setRunHealth(t component.HealthType, msg string) {
+func (cn *BuiltinComponentNode) setRunHealth(t component.HealthType, msg string) {
 	cn.healthMut.Lock()
 	defer cn.healthMut.Unlock()
 
@@ -444,6 +444,6 @@ func (cn *ComponentNode) setRunHealth(t component.HealthType, msg string) {
 
 // ModuleIDs returns the current list of modules that this component is
 // managing.
-func (cn *ComponentNode) ModuleIDs() []string {
+func (cn *BuiltinComponentNode) ModuleIDs() []string {
 	return cn.moduleController.ModuleIDs()
 }
