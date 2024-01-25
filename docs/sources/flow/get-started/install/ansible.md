@@ -45,7 +45,7 @@ To add {{% param "PRODUCT_NAME" %}} to a host:
       when:
         - "ansible_pkg_mgr in ['yum', 'dnf']"
       block:
-        - name: "Add Grafana yum/dnf repository"
+        - name: "Add Grafana YUM/DNF repository"
           ansible.builtin.yum_repository:
             name: grafana
             description: grafana
