@@ -30,7 +30,7 @@ To add {{% param "PRODUCT_NAME" %}} to a host:
       when:
         - "ansible_pkg_mgr == 'apt'"
       block:
-        - name: "Import Grafana apt gpg key"
+        - name: "Import Grafana APT GPG key"
           ansible.builtin.get_url:
             url: "https://apt.grafana.com/gpg.key"
             dest: /etc/apt/keyrings/grafana.gpg
