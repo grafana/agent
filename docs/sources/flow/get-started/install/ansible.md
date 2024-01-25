@@ -26,7 +26,7 @@ To add {{% param "PRODUCT_NAME" %}} to a host:
 
 1. Add these tasks to your playbook to add the Grafana package repositories to your system:
     ```yaml
-    - name: "Install deb repo"
+    - name: "Install DEB repo"
       when:
         - "ansible_pkg_mgr == 'apt'"
       block:
