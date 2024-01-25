@@ -73,7 +73,7 @@ type ComponentGlobals struct {
 	GetServiceData      func(name string) (interface{}, error) // Get data for a service.
 }
 
-// BuiltinComponentNode is a controller node which manages a user-defined component.
+// BuiltinComponentNode is a controller node which manages a builtin component.
 //
 // BuiltinComponentNode manages the underlying component and caches its current
 // arguments and exports. BuiltinComponentNode manages the arguments for the component
