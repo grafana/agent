@@ -10,8 +10,7 @@ weight: 550
 
 # Install or uninstall {{% param "PRODUCT_NAME" %}} using Ansible
 
-If your machines are already managed with Ansible, you can install {{< param "PRODUCT_NAME" >}} from
-our package repositories with these steps.
+You can use Ansible to install and manage {{< param "PRODUCT_NAME" >}}.
 
 ## Before you begin
 
