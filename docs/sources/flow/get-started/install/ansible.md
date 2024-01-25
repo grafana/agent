@@ -33,7 +33,7 @@ To add {{% param "PRODUCT_NAME" %}} to a host:
         - name: "Import Grafana apt gpg key"
           ansible.builtin.get_url:
             url: "https://apt.grafana.com/gpg.key"
-            dest: /usr/share/keyrings/grafana.key
+            dest: /etc/apt/keyrings/grafana.gpg
             mode: "0644"
 
         - name: "Add Grafana apt repository"
