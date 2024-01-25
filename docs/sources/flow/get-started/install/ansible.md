@@ -71,7 +71,7 @@ To add {{% param "PRODUCT_NAME" %}} to a host:
 
 ## Configuration
 
-The `grafana-agent-flow` package will install a default configuration file that does not send telemetry anywhere.
+The `grafana-agent-flow` package installs a default configuration file that doesn't send telemetry anywhere.
 
 The default config file location is `/etc/grafana-agent-flow.river`. You may replace this file with your own config, or create a new file for the service to use. 
 
