@@ -55,7 +55,7 @@ To add {{% param "PRODUCT_NAME" %}} to a host:
             repo_gpgcheck: true
             gpgcheck: true
     ```
-1. Add these tasks to install and enable the `grafana-agent-flow` service:
+1. Add the following tasks to install and enable the `grafana-agent-flow` service:
     ```yaml
     - name: Install grafana-agent-flow
       ansible.builtin.package:
