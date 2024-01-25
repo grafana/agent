@@ -25,9 +25,6 @@ type ComponentNode interface {
 	// ComponentName returns the name of the component.
 	ComponentName() string
 
-	// Run runs the managed component in the calling goroutine until ctx is canceled.
-	Run(ctx context.Context) error
-
 	// ID returns the component ID of the managed component from its River block.
 	ID() ComponentID
 }
