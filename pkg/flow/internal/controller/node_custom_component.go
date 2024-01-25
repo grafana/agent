@@ -19,7 +19,6 @@ import (
 	"github.com/grafana/river/ast"
 	"github.com/grafana/river/vm"
 	"github.com/prometheus/client_golang/prometheus"
-	"go.uber.org/atomic"
 )
 
 // CustomComponentNode is a controller node which manages a custom component.
@@ -27,20 +26,19 @@ import (
 // CustomComponentNode manages the underlying custom component and caches its current
 // arguments and exports.
 type CustomComponentNode struct {
-	id                         ComponentID
-	globalID                   string
-	label                      string
-	componentName              string
-	importLabel                string
-	declareLabel               string
-	nodeID                     string // Cached from id.String() to avoid allocating new strings every time NodeID is called.
-	managedOpts                component.Options
-	registry                   *prometheus.Registry
-	moduleController           ModuleController
-	OnNodeWithDependantsUpdate func(cn NodeWithDependants) // Informs controller that we need to reevaluate
+	id                ComponentID
+	globalID          string
+	label             string
+	componentName     string
+	importLabel       string
+	declareLabel      string
+	nodeID            string // Cached from id.String() to avoid allocating new strings every time NodeID is called.
+	managedOpts       component.Options
+	registry          *prometheus.Registry
+	moduleController  ModuleController
+	OnBlockNodeUpdate func(cn BlockNode) // Informs controller that we need to reevaluate
 
 	GetCustomComponentConfig func(*CustomComponentNode) (CustomComponentConfig, error) // Retrieve the custom component config.
-	lastUpdateTime           atomic.Time
 
 	mut     sync.RWMutex
 	block   *ast.BlockStmt // Current River block to derive args from
@@ -77,7 +75,6 @@ func ExtractImportAndDeclareLabels(componentName string) (string, string) {
 	return importLabel, declareLabel
 }
 
-var _ NodeWithDependants = (*CustomComponentNode)(nil)
 var _ ComponentNode = (*CustomComponentNode)(nil)
 
 // NewCustomComponentNode creates a new CustomComponentNode from an initial ast.BlockStmt.
@@ -109,16 +106,16 @@ func NewCustomComponentNode(globals ComponentGlobals, b *ast.BlockStmt, GetCusto
 	importLabel, declareLabel := ExtractImportAndDeclareLabels(componentName)
 
 	cn := &CustomComponentNode{
-		id:                         id,
-		globalID:                   globalID,
-		label:                      b.Label,
-		nodeID:                     nodeID,
-		componentName:              componentName,
-		importLabel:                importLabel,
-		declareLabel:               declareLabel,
-		moduleController:           globals.NewModuleController(globalID),
-		OnNodeWithDependantsUpdate: globals.OnNodeWithDependantsUpdate,
-		GetCustomComponentConfig:   GetCustomComponentConfig,
+		id:                       id,
+		globalID:                 globalID,
+		label:                    b.Label,
+		nodeID:                   nodeID,
+		componentName:            componentName,
+		importLabel:              importLabel,
+		declareLabel:             declareLabel,
+		moduleController:         globals.NewModuleController(globalID),
+		OnBlockNodeUpdate:        globals.OnBlockNodeUpdate,
+		GetCustomComponentConfig: GetCustomComponentConfig,
 
 		block: b,
 		eval:  vm.New(b.Body),
@@ -275,10 +272,6 @@ func (cn *CustomComponentNode) Exports() component.Exports {
 	return cn.exports
 }
 
-func (cn *CustomComponentNode) LastUpdateTime() time.Time {
-	return cn.lastUpdateTime.Load()
-}
-
 // setExports is called whenever the managed custom component updates. e must be the
 // same type as the registered exports type of the managed custom component.
 func (cn *CustomComponentNode) setExports(e component.Exports) {
@@ -300,8 +293,7 @@ func (cn *CustomComponentNode) setExports(e component.Exports) {
 
 	if changed {
 		// Inform the controller that we have new exports.
-		cn.lastUpdateTime.Store(time.Now())
-		cn.OnNodeWithDependantsUpdate(cn)
+		cn.OnBlockNodeUpdate(cn)
 	}
 }
 
@@ -357,8 +349,8 @@ func (cn *CustomComponentNode) ModuleIDs() []string {
 	return cn.moduleController.ModuleIDs()
 }
 
-// BlockName returns the name of the block.
-func (cn *CustomComponentNode) BlockName() string {
+// ComponentName returns the name of the component.
+func (cn *CustomComponentNode) ComponentName() string {
 	return cn.componentName
 }
 

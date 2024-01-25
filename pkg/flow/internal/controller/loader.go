@@ -464,6 +464,7 @@ func (l *Loader) populateComponentNodes(g *dag.Graph, componentBlocks []*ast.Blo
 		blockMap = make(map[string]*ast.BlockStmt, len(componentBlocks))
 	)
 	for _, block := range componentBlocks {
+		var c ComponentNode
 		id := BlockComponentID(block).String()
 
 		if orig, redefined := blockMap[id]; redefined {
@@ -479,11 +480,8 @@ func (l *Loader) populateComponentNodes(g *dag.Graph, componentBlocks []*ast.Blo
 
 		// Check the graph from the previous call to Load to see we can copy an existing instance of ComponentNode.
 		if exist := l.graph.GetByID(id); exist != nil {
-			switch v := exist.(type) {
-			case ComponentNode:
-				v.UpdateBlock(block)
-				g.Add(v)
-			}
+			c = exist.(ComponentNode)
+			c.UpdateBlock(block)
 		} else {
 			componentName := block.GetBlockName()
 			if block.Label == "" {
@@ -495,7 +493,8 @@ func (l *Loader) populateComponentNodes(g *dag.Graph, componentBlocks []*ast.Blo
 				})
 				continue
 			}
-			componentNode, err := l.componentNodeManager.CreateComponentNode(componentName, block)
+			var err error
+			c, err = l.componentNodeManager.CreateComponentNode(componentName, block)
 			if err != nil {
 				diags.Add(diag.Diagnostic{
 					Severity: diag.SeverityLevelError,
@@ -505,8 +504,8 @@ func (l *Loader) populateComponentNodes(g *dag.Graph, componentBlocks []*ast.Blo
 				})
 				continue
 			}
-			g.Add(componentNode)
 		}
+		g.Add(c)
 	}
 	return diags
 }
@@ -625,13 +624,13 @@ func (l *Loader) OriginalGraph() *dag.Graph {
 	return l.originalGraph.Clone()
 }
 
-// EvaluateDependants sends components which depend directly on components in updatedNodes for evaluation to the
-// workerPool. It should be called whenever components update their exports.
-// It is beneficial to call EvaluateDependants with a batch of components, as it will enqueue the entire batch before
+// EvaluateDependants sends nodes which depend directly on nodes in updatedNodes for evaluation to the
+// workerPool. It should be called whenever nodes update their exports.
+// It is beneficial to call EvaluateDependants with a batch of nodes, as it will enqueue the entire batch before
 // the worker pool starts to evaluate them, resulting in smaller number of total evaluations when
 // node updates are frequent. If the worker pool's queue is full, EvaluateDependants will retry with a backoff until
 // it succeeds or until the ctx is cancelled.
-func (l *Loader) EvaluateDependants(ctx context.Context, updatedNodes []NodeWithDependants) {
+func (l *Loader) EvaluateDependants(ctx context.Context, updatedNodes []*QueuedNode) {
 	if len(updatedNodes) == 0 {
 		return
 	}
@@ -647,12 +646,14 @@ func (l *Loader) EvaluateDependants(ctx context.Context, updatedNodes []NodeWith
 	l.mut.RLock()
 	defer l.mut.RUnlock()
 
-	dependenciesToParentsMap := make(map[dag.Node]NodeWithDependants)
+	dependenciesToParentsMap := make(map[dag.Node]*QueuedNode)
 	for _, parent := range updatedNodes {
 		// Make sure we're in-sync with the current exports of parent.
-		l.cache.CacheExports(parent.ID(), parent.Exports())
+		if componentNode, ok := parent.Node.(ComponentNode); ok {
+			l.cache.CacheExports(componentNode.ID(), componentNode.Exports())
+		}
 		// We collect all nodes directly incoming to parent.
-		_ = dag.WalkIncomingNodes(l.graph, parent, func(n dag.Node) error {
+		_ = dag.WalkIncomingNodes(l.graph, parent.Node, func(n dag.Node) error {
 			dependenciesToParentsMap[n] = parent
 			return nil
 		})
@@ -665,7 +666,7 @@ func (l *Loader) EvaluateDependants(ctx context.Context, updatedNodes []NodeWith
 	for n, parent := range dependenciesToParentsMap {
 		dependantCtx, span := tracer.Start(spanCtx, "SubmitForEvaluation", trace.WithSpanKind(trace.SpanKindInternal))
 		span.SetAttributes(attribute.String("node_id", n.NodeID()))
-		span.SetAttributes(attribute.String("originator_id", parent.NodeID()))
+		span.SetAttributes(attribute.String("originator_id", parent.Node.NodeID()))
 
 		// Submit for asynchronous evaluation with retries and backoff. Don't use range variables in the closure.
 		var (
@@ -684,7 +685,7 @@ func (l *Loader) EvaluateDependants(ctx context.Context, updatedNodes []NodeWith
 						"and cannot keep up with evaluating components - will retry",
 					"err", err,
 					"node_id", n.NodeID(),
-					"originator_id", parent.NodeID(),
+					"originator_id", parent.Node.NodeID(),
 					"retries", retryBackoff.NumRetries(),
 				)
 				retryBackoff.Wait()
@@ -707,9 +708,9 @@ func (l *Loader) EvaluateDependants(ctx context.Context, updatedNodes []NodeWith
 
 // concurrentEvalFn returns a function that evaluates a node and updates the cache. This function can be submitted to
 // a worker pool for asynchronous evaluation.
-func (l *Loader) concurrentEvalFn(n dag.Node, spanCtx context.Context, tracer trace.Tracer, parent NodeWithDependants) {
+func (l *Loader) concurrentEvalFn(n dag.Node, spanCtx context.Context, tracer trace.Tracer, parent *QueuedNode) {
 	start := time.Now()
-	l.cm.dependenciesWaitTime.Observe(time.Since(parent.LastUpdateTime()).Seconds())
+	l.cm.dependenciesWaitTime.Observe(time.Since(parent.LastUpdatedTime).Seconds())
 	_, span := tracer.Start(spanCtx, "EvaluateNode", trace.WithSpanKind(trace.SpanKindInternal))
 	span.SetAttributes(attribute.String("node_id", n.NodeID()))
 	defer span.End()

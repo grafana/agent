@@ -18,7 +18,6 @@ import (
 	"github.com/grafana/river/parser"
 	"github.com/grafana/river/vm"
 	"github.com/prometheus/client_golang/prometheus"
-	"go.uber.org/atomic"
 )
 
 type ImportConfigNode struct {
@@ -31,9 +30,9 @@ type ImportConfigNode struct {
 	block         *ast.BlockStmt   // Current River blocks to derive config from
 	source        importsource.ImportSource
 
-	registry                   *prometheus.Registry
-	OnNodeWithDependantsUpdate func(cn NodeWithDependants)
-	logger                     log.Logger
+	registry          *prometheus.Registry
+	OnBlockNodeUpdate func(cn BlockNode)
+	logger            log.Logger
 
 	importChildrenUpdateChan chan struct{}
 
@@ -46,16 +45,12 @@ type ImportConfigNode struct {
 	inContentUpdate  bool
 	content          string
 
-	lastUpdateTime atomic.Time
-
 	healthMut  sync.RWMutex
 	evalHealth component.Health // Health of the last evaluate
 	runHealth  component.Health // Health of running the component
 }
 
-var _ NodeWithDependants = (*ImportConfigNode)(nil)
 var _ RunnableNode = (*ImportConfigNode)(nil)
-var _ ComponentInfo = (*ImportConfigNode)(nil)
 
 // NewImportConfigNode creates a new ImportConfigNode from an initial ast.BlockStmt.
 // The underlying config isn't applied until Evaluate is called.
@@ -75,17 +70,17 @@ func NewImportConfigNode(block *ast.BlockStmt, globals ComponentGlobals, sourceT
 		globalID = path.Join(globals.ControllerID, nodeID)
 	}
 	cn := &ImportConfigNode{
-		id:                         id,
-		globalID:                   globalID,
-		label:                      block.Label,
-		globals:                    globals,
-		nodeID:                     BlockComponentID(block).String(),
-		componentName:              block.GetBlockName(),
-		OnNodeWithDependantsUpdate: globals.OnNodeWithDependantsUpdate,
-		block:                      block,
-		evalHealth:                 initHealth,
-		runHealth:                  initHealth,
-		importChildrenUpdateChan:   make(chan struct{}),
+		id:                       id,
+		globalID:                 globalID,
+		label:                    block.Label,
+		globals:                  globals,
+		nodeID:                   BlockComponentID(block).String(),
+		componentName:            block.GetBlockName(),
+		OnBlockNodeUpdate:        globals.OnBlockNodeUpdate,
+		block:                    block,
+		evalHealth:               initHealth,
+		runHealth:                initHealth,
+		importChildrenUpdateChan: make(chan struct{}),
 	}
 	managedOpts := getImportManagedOptions(globals, cn)
 	cn.logger = managedOpts.Logger
@@ -185,7 +180,7 @@ func (cn *ImportConfigNode) processImportBlock(stmt *ast.BlockStmt, fullName str
 	}
 	childGlobals := cn.globals
 	// Children have a special OnNodeWithDependantsUpdate function which will surface all the imported declares to the root import config node.
-	childGlobals.OnNodeWithDependantsUpdate = cn.OnChildrenContentUpdate
+	childGlobals.OnBlockNodeUpdate = cn.OnChildrenContentUpdate
 	cn.importConfigNodesChildren[stmt.Label] = NewImportConfigNode(stmt, childGlobals, sourceType)
 }
 
@@ -228,8 +223,7 @@ func (cn *ImportConfigNode) onContentUpdate(content string) {
 		cn.importChildrenUpdateChan <- struct{}{}
 	}
 
-	cn.lastUpdateTime.Store(time.Now())
-	cn.OnNodeWithDependantsUpdate(cn)
+	cn.OnBlockNodeUpdate(cn)
 }
 
 // evaluateChildren evaluates the import nodes managed by this import node.
@@ -309,7 +303,7 @@ func (cn *ImportConfigNode) runChildren(parentCtx context.Context) error {
 
 // OnChildrenContentUpdate passes their imported content to their parents.
 // To avoid collisions, the content is scoped via namespaces.
-func (cn *ImportConfigNode) OnChildrenContentUpdate(child NodeWithDependants) {
+func (cn *ImportConfigNode) OnChildrenContentUpdate(child BlockNode) {
 	cn.contentMut.Lock()
 	defer cn.contentMut.Unlock()
 	switch child := child.(type) {
@@ -321,7 +315,7 @@ func (cn *ImportConfigNode) OnChildrenContentUpdate(child NodeWithDependants) {
 	}
 	// This avoids OnNodeWithDependantsUpdate to be called multiple times in a row when the content changes.
 	if !cn.inContentUpdate {
-		cn.OnNodeWithDependantsUpdate(cn)
+		cn.OnBlockNodeUpdate(cn)
 	}
 }
 
@@ -409,10 +403,6 @@ func (cn *ImportConfigNode) Exports() component.Exports {
 
 func (cn *ImportConfigNode) ID() ComponentID { return cn.id }
 
-func (cn *ImportConfigNode) LastUpdateTime() time.Time {
-	return cn.lastUpdateTime.Load()
-}
-
 // Arguments returns the current arguments of the managed component.
 func (cn *ImportConfigNode) Arguments() component.Arguments {
 	return cn.source.Arguments()
@@ -459,11 +449,6 @@ func (cn *ImportConfigNode) DebugInfo() interface{} {
 // This component does not manage modules.
 func (cn *ImportConfigNode) ModuleIDs() []string {
 	return nil
-}
-
-// BlockName returns the name of the block.
-func (cn *ImportConfigNode) BlockName() string {
-	return cn.componentName
 }
 
 // Registry returns the prometheus registry of the component.

@@ -29,7 +29,7 @@ func (f *Flow) GetComponent(id component.ID, opts component.InfoOptions) (*compo
 		return nil, component.ErrComponentNotFound
 	}
 
-	cn, ok := node.(controller.ComponentInfo)
+	cn, ok := node.(controller.ComponentNode)
 	if !ok {
 		return nil, fmt.Errorf("%q does not implement ComponentInfo", id)
 	}
@@ -53,25 +53,21 @@ func (f *Flow) ListComponents(moduleID string, opts component.InfoOptions) ([]*c
 
 	var (
 		components = f.loader.Components()
-		imports    = f.loader.Imports()
 		graph      = f.loader.OriginalGraph()
 	)
 
-	detail := make([]*component.Info, 0, len(components)+len(imports))
+	detail := make([]*component.Info, 0, len(components))
 	for _, component := range components {
 		detail = append(detail, f.getComponentDetail(component, graph, opts))
-	}
-	for _, importNode := range imports {
-		detail = append(detail, f.getComponentDetail(importNode, graph, opts))
 	}
 	return detail, nil
 }
 
-func (f *Flow) getComponentDetail(cn controller.ComponentInfo, graph *dag.Graph, opts component.InfoOptions) *component.Info {
+func (f *Flow) getComponentDetail(cn controller.ComponentNode, graph *dag.Graph, opts component.InfoOptions) *component.Info {
 	var references, referencedBy []string
 
 	// Skip over any edge which isn't between two component nodes. This is a
-	// temporary workaround needed until there's athe concept of configuration
+	// temporary workaround needed until there's a concept of configuration
 	// blocks in the API.
 	//
 	// Without this change, the graph fails to render when a configuration
@@ -79,12 +75,12 @@ func (f *Flow) getComponentDetail(cn controller.ComponentInfo, graph *dag.Graph,
 	//
 	// TODO(rfratto): add support for config block nodes in the API and UI.
 	for _, dep := range graph.Dependencies(cn) {
-		if _, ok := dep.(controller.ComponentInfo); ok {
+		if _, ok := dep.(controller.ComponentNode); ok {
 			references = append(references, dep.NodeID())
 		}
 	}
 	for _, dep := range graph.Dependants(cn) {
-		if _, ok := dep.(controller.ComponentInfo); ok {
+		if _, ok := dep.(controller.ComponentNode); ok {
 			referencedBy = append(referencedBy, dep.NodeID())
 		}
 	}
@@ -94,7 +90,6 @@ func (f *Flow) getComponentDetail(cn controller.ComponentInfo, graph *dag.Graph,
 		health    component.Health
 		arguments component.Arguments
 		exports   component.Exports
-		debugInfo interface{}
 	)
 
 	if opts.GetHealth {
@@ -106,14 +101,8 @@ func (f *Flow) getComponentDetail(cn controller.ComponentInfo, graph *dag.Graph,
 	if opts.GetExports {
 		exports = cn.Exports()
 	}
-	if opts.GetDebugInfo {
-		debugInfo = cn.DebugInfo()
-	}
 
-	return &component.Info{
-		Component: cn.Component(),
-		ModuleIDs: cn.ModuleIDs(),
-
+	componentInfo := &component.Info{
 		ID: component.ID{
 			ModuleID: f.opts.ControllerID,
 			LocalID:  cn.NodeID(),
@@ -123,11 +112,19 @@ func (f *Flow) getComponentDetail(cn controller.ComponentInfo, graph *dag.Graph,
 		References:   references,
 		ReferencedBy: referencedBy,
 
-		BlockName: cn.BlockName(),
-		Health:    health,
+		ComponentName: cn.ComponentName(),
+		Health:        health,
 
 		Arguments: arguments,
 		Exports:   exports,
-		DebugInfo: debugInfo,
 	}
+
+	if builtinComponent, ok := cn.(*controller.BuiltinComponentNode); ok {
+		componentInfo.Component = builtinComponent.Component()
+		componentInfo.ModuleIDs = builtinComponent.ModuleIDs()
+		if opts.GetDebugInfo {
+			componentInfo.DebugInfo = builtinComponent.DebugInfo()
+		}
+	}
+	return componentInfo
 }

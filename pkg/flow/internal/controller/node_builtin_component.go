@@ -21,7 +21,6 @@ import (
 	"github.com/grafana/river/vm"
 	"github.com/prometheus/client_golang/prometheus"
 	"go.opentelemetry.io/otel/trace"
-	"go.uber.org/atomic"
 )
 
 // ComponentID is a fully-qualified name of a component. Each element in
@@ -60,38 +59,37 @@ func (id ComponentID) Equals(other ComponentID) bool {
 // DialFunc is a function to establish a network connection.
 type DialFunc func(ctx context.Context, network, address string) (net.Conn, error)
 
-// ComponentGlobals are used by ComponentNodes to build managed components. All
-// ComponentNodes should use the same ComponentGlobals.
+// ComponentGlobals are used by BuiltinComponentNodes to build managed components. All
+// BuiltinComponentNodes should use the same ComponentGlobals.
 type ComponentGlobals struct {
-	Logger                     *logging.Logger                        // Logger shared between all managed components.
-	TraceProvider              trace.TracerProvider                   // Tracer shared between all managed components.
-	DataPath                   string                                 // Shared directory where component data may be stored
-	OnNodeWithDependantsUpdate func(cn NodeWithDependants)            // Informs controller that we need to reevaluate
-	OnExportsChange            func(exports map[string]any)           // Invoked when the managed component updated its exports
-	Registerer                 prometheus.Registerer                  // Registerer for serving agent and component metrics
-	ControllerID               string                                 // ID of controller.
-	NewModuleController        func(id string) ModuleController       // Func to generate a module controller.
-	GetServiceData             func(name string) (interface{}, error) // Get data for a service.
+	Logger              *logging.Logger                        // Logger shared between all managed components.
+	TraceProvider       trace.TracerProvider                   // Tracer shared between all managed components.
+	DataPath            string                                 // Shared directory where component data may be stored
+	OnBlockNodeUpdate   func(cn BlockNode)                     // Informs controller that we need to reevaluate
+	OnExportsChange     func(exports map[string]any)           // Invoked when the managed component updated its exports
+	Registerer          prometheus.Registerer                  // Registerer for serving agent and component metrics
+	ControllerID        string                                 // ID of controller.
+	NewModuleController func(id string) ModuleController       // Func to generate a module controller.
+	GetServiceData      func(name string) (interface{}, error) // Get data for a service.
 }
 
-// BuiltinComponentNode is a controller node which manages a user-defined component.
+// BuiltinComponentNode is a controller node which manages a builtin component.
 //
 // BuiltinComponentNode manages the underlying component and caches its current
 // arguments and exports. BuiltinComponentNode manages the arguments for the component
 // from a River block.
 type BuiltinComponentNode struct {
-	id                         ComponentID
-	globalID                   string
-	label                      string
-	componentName              string
-	nodeID                     string // Cached from id.String() to avoid allocating new strings every time NodeID is called.
-	reg                        component.Registration
-	managedOpts                component.Options
-	registry                   *prometheus.Registry
-	exportsType                reflect.Type
-	moduleController           ModuleController
-	OnNodeWithDependantsUpdate func(cn NodeWithDependants) // Informs controller that we need to reevaluate
-	lastUpdateTime             atomic.Time
+	id                ComponentID
+	globalID          string
+	label             string
+	componentName     string
+	nodeID            string // Cached from id.String() to avoid allocating new strings every time NodeID is called.
+	reg               component.Registration
+	managedOpts       component.Options
+	registry          *prometheus.Registry
+	exportsType       reflect.Type
+	moduleController  ModuleController
+	OnBlockNodeUpdate func(cn BlockNode) // Informs controller that we need to reevaluate
 
 	mut     sync.RWMutex
 	block   *ast.BlockStmt // Current River block to derive args from
@@ -111,11 +109,9 @@ type BuiltinComponentNode struct {
 	exports    component.Exports // Evaluated exports for the managed component
 }
 
-var _ NodeWithDependants = (*BuiltinComponentNode)(nil)
-var _ RunnableNode = (*BuiltinComponentNode)(nil)
 var _ ComponentNode = (*BuiltinComponentNode)(nil)
 
-// BuiltinComponentNode creates a new BuiltinComponentNode from an initial ast.BlockStmt.
+// NewBuiltinComponentNode creates a new BuiltinComponentNode from an initial ast.BlockStmt.
 // The underlying managed component isn't created until Evaluate is called.
 func NewBuiltinComponentNode(globals ComponentGlobals, reg component.Registration, b *ast.BlockStmt) *BuiltinComponentNode {
 	var (
@@ -140,15 +136,15 @@ func NewBuiltinComponentNode(globals ComponentGlobals, reg component.Registratio
 	}
 
 	cn := &BuiltinComponentNode{
-		id:                         id,
-		globalID:                   globalID,
-		label:                      b.Label,
-		nodeID:                     nodeID,
-		componentName:              b.GetBlockName(),
-		reg:                        reg,
-		exportsType:                getExportsType(reg),
-		moduleController:           globals.NewModuleController(globalID),
-		OnNodeWithDependantsUpdate: globals.OnNodeWithDependantsUpdate,
+		id:                id,
+		globalID:          globalID,
+		label:             b.Label,
+		nodeID:            nodeID,
+		componentName:     strings.Join(b.Name, "."),
+		reg:               reg,
+		exportsType:       getExportsType(reg),
+		moduleController:  globals.NewModuleController(globalID),
+		OnBlockNodeUpdate: globals.OnBlockNodeUpdate,
 
 		block: b,
 		eval:  vm.New(b.Body),
@@ -197,7 +193,7 @@ func getExportsType(reg component.Registration) reflect.Type {
 func (cn *BuiltinComponentNode) Registration() component.Registration { return cn.reg }
 
 // Component returns the instance of the managed component. Component may be
-// nil if the ComponentNode has not been successfully evaluated yet.
+// nil if the BuiltinComponentNode has not been successfully evaluated yet.
 func (cn *BuiltinComponentNode) Component() component.Component {
 	cn.mut.RLock()
 	defer cn.mut.RUnlock()
@@ -223,7 +219,7 @@ func (cn *BuiltinComponentNode) NodeID() string { return cn.nodeID }
 // invoked.
 //
 // UpdateBlock will panic if the block does not match the component ID of the
-// ComponentNode.
+// BuiltinComponentNode.
 func (cn *BuiltinComponentNode) UpdateBlock(b *ast.BlockStmt) {
 	if !BlockComponentID(b).Equals(cn.id) {
 		panic("UpdateBlock called with an River block with a different component ID")
@@ -327,7 +323,7 @@ func (cn *BuiltinComponentNode) Run(ctx context.Context) error {
 	return err
 }
 
-// ErrUnevaluated is returned if ComponentNode.Run is called before a managed
+// ErrUnevaluated is returned if BuiltinComponentNode.Run is called before a managed
 // component is built.
 var ErrUnevaluated = errors.New("managed component not built")
 
@@ -351,10 +347,6 @@ func (cn *BuiltinComponentNode) Exports() component.Exports {
 	cn.exportsMut.RLock()
 	defer cn.exportsMut.RUnlock()
 	return cn.exports
-}
-
-func (cn *BuiltinComponentNode) LastUpdateTime() time.Time {
-	return cn.lastUpdateTime.Load()
 }
 
 // setExports is called whenever the managed component updates. e must be the
@@ -385,14 +377,13 @@ func (cn *BuiltinComponentNode) setExports(e component.Exports) {
 
 	if changed {
 		// Inform the controller that we have new exports.
-		cn.lastUpdateTime.Store(time.Now())
-		cn.OnNodeWithDependantsUpdate(cn)
+		cn.OnBlockNodeUpdate(cn)
 	}
 }
 
-// CurrentHealth returns the current health of the ComponentNode.
+// CurrentHealth returns the current health of the BuiltinComponentNode.
 //
-// The health of a ComponentNode is determined by combining:
+// The health of a BuiltinComponentNode is determined by combining:
 //
 //  1. Health from the call to Run().
 //  2. Health from the last call to Evaluate().
@@ -455,14 +446,4 @@ func (cn *BuiltinComponentNode) setRunHealth(t component.HealthType, msg string)
 // managing.
 func (cn *BuiltinComponentNode) ModuleIDs() []string {
 	return cn.moduleController.ModuleIDs()
-}
-
-// BlockName returns the name of the block.
-func (cn *BuiltinComponentNode) BlockName() string {
-	return cn.componentName
-}
-
-// Registry returns the prometheus registry of the component.
-func (cn *BuiltinComponentNode) Registry() *prometheus.Registry {
-	return cn.registry
 }
