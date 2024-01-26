@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/pkg/flow/config"
 	"github.com/grafana/agent/pkg/flow/internal/controller"
 	"github.com/grafana/agent/pkg/flow/internal/dag"
 	"github.com/grafana/agent/pkg/flow/logging"
@@ -129,7 +130,7 @@ func TestLoader(t *testing.T) {
 		`
 		l := controller.NewLoader(newLoaderOptions())
 		diags := applyFromContent(t, l, []byte(invalidFile), nil)
-		require.ErrorContains(t, diags.ErrorOrNil(), `Unrecognized component name "doesnotexist`)
+		require.ErrorContains(t, diags.ErrorOrNil(), `unrecognized component name "doesnotexist`)
 	})
 
 	t.Run("Partial load with invalid reference", func(t *testing.T) {
@@ -230,6 +231,7 @@ func applyFromContent(t *testing.T, l *controller.Loader, componentBytes []byte,
 		diags           diag.Diagnostics
 		componentBlocks []*ast.BlockStmt
 		configBlocks    []*ast.BlockStmt = nil
+		declares        []*controller.Declare
 	)
 
 	componentBlocks, diags = fileToBlock(t, componentBytes)
@@ -244,7 +246,7 @@ func applyFromContent(t *testing.T, l *controller.Loader, componentBytes []byte,
 		}
 	}
 
-	applyDiags := l.Apply(nil, componentBlocks, configBlocks)
+	applyDiags := l.Apply(nil, componentBlocks, configBlocks, declares, config.DefaultLoaderConfigOptions())
 	diags = append(diags, applyDiags...)
 
 	return diags
