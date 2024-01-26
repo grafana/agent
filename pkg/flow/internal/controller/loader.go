@@ -26,18 +26,19 @@ import (
 
 // The Loader builds and evaluates ComponentNodes from River blocks.
 type Loader struct {
-	log          log.Logger
-	tracer       trace.TracerProvider
-	globals      ComponentGlobals
-	services     []service.Service
-	host         service.Host
-	componentReg ComponentRegistry
-	workerPool   worker.Pool
+	log        log.Logger
+	tracer     trace.TracerProvider
+	globals    ComponentGlobals
+	services   []service.Service
+	host       service.Host
+	workerPool worker.Pool
 	// backoffConfig is used to backoff when an updated component's dependencies cannot be submitted to worker
 	// pool for evaluation in EvaluateDependants, because the queue is full. This is an unlikely scenario, but when
 	// it happens we should avoid retrying too often to give other goroutines a chance to progress. Having a backoff
 	// also prevents log spamming with errors.
 	backoffConfig backoff.Config
+
+	componentNodeManager *ComponentNodeManager
 
 	mut               sync.RWMutex
 	graph             *dag.Graph
@@ -77,13 +78,14 @@ func NewLoader(opts LoaderOptions) *Loader {
 	}
 
 	l := &Loader{
-		log:          log.With(globals.Logger, "controller_id", globals.ControllerID),
-		tracer:       tracing.WrapTracerForLoader(globals.TraceProvider, globals.ControllerID),
-		globals:      globals,
-		services:     services,
-		host:         host,
-		componentReg: reg,
-		workerPool:   opts.WorkerPool,
+		log:        log.With(globals.Logger, "controller_id", globals.ControllerID),
+		tracer:     tracing.WrapTracerForLoader(globals.TraceProvider, globals.ControllerID),
+		globals:    globals,
+		services:   services,
+		host:       host,
+		workerPool: opts.WorkerPool,
+
+		componentNodeManager: NewComponentNodeManager(globals, reg),
 
 		// This is a reasonable default which should work for most cases. If a component is completely stuck, we would
 		// retry and log an error every 10 seconds, at most.
@@ -133,14 +135,18 @@ func (l *Loader) Apply(args map[string]any, componentBlocks []*ast.BlockStmt, co
 	}
 	l.cache.SyncModuleArgs(args)
 
+	// Reload the component node manager when a new config is applied.
+	// This step is important to remove configs that might have been removed in the new config.
+	l.componentNodeManager.Reload(options.AdditionalDeclareContents)
+
 	newGraph, diags := l.loadNewGraph(args, componentBlocks, configBlocks, declares)
 	if diags.HasErrors() {
 		return diags
 	}
 
 	var (
-		components   = make([]ComponentNode, 0, len(componentBlocks))
-		componentIDs = make([]ComponentID, 0, len(componentBlocks))
+		components   = make([]ComponentNode, 0)
+		componentIDs = make([]ComponentID, 0)
 		services     = make([]*ServiceNode, 0, len(l.services))
 	)
 
@@ -320,6 +326,7 @@ func (l *Loader) splitComponentBlocks(blocks []*ast.BlockStmt) (componentBlocks,
 
 func (l *Loader) populateDeclareNodes(g *dag.Graph, declares []*Declare) diag.Diagnostics {
 	var diags diag.Diagnostics
+	l.componentNodeManager.declareNodes = map[string]*DeclareNode{}
 	for _, declare := range declares {
 		node := NewDeclareNode(declare)
 		if g.GetByID(node.NodeID()) != nil {
@@ -330,6 +337,7 @@ func (l *Loader) populateDeclareNodes(g *dag.Graph, declares []*Declare) diag.Di
 			continue
 		}
 		g.Add(node)
+		l.componentNodeManager.declareNodes[node.label] = node
 	}
 	return diags
 }
@@ -458,7 +466,6 @@ func (l *Loader) populateComponentNodes(g *dag.Graph, componentBlocks []*ast.Blo
 		blockMap = make(map[string]*ast.BlockStmt, len(componentBlocks))
 	)
 	for _, block := range componentBlocks {
-		var c ComponentNode
 		id := BlockComponentID(block).String()
 
 		if orig, redefined := blockMap[id]; redefined {
@@ -472,39 +479,26 @@ func (l *Loader) populateComponentNodes(g *dag.Graph, componentBlocks []*ast.Blo
 		}
 		blockMap[id] = block
 
-		// Check the graph from the previous call to Load to see we can copy an
+		// Check the graph from the previous call to Load to see if we can copy an
 		// existing instance of ComponentNode.
 		if exist := l.graph.GetByID(id); exist != nil {
-			c = exist.(ComponentNode)
+			c := exist.(ComponentNode)
 			c.UpdateBlock(block)
+			g.Add(c)
 		} else {
 			componentName := block.GetBlockName()
-			registration, exists := l.componentReg.Get(componentName)
-			if !exists {
+			c, err := l.componentNodeManager.CreateComponentNode(componentName, block)
+			if err != nil {
 				diags.Add(diag.Diagnostic{
 					Severity: diag.SeverityLevelError,
-					Message:  fmt.Sprintf("Unrecognized component name %q", componentName),
+					Message:  err.Error(),
 					StartPos: block.NamePos.Position(),
 					EndPos:   block.NamePos.Add(len(componentName) - 1).Position(),
 				})
 				continue
 			}
-
-			if block.Label == "" {
-				diags.Add(diag.Diagnostic{
-					Severity: diag.SeverityLevelError,
-					Message:  fmt.Sprintf("Component %q must have a label", componentName),
-					StartPos: block.NamePos.Position(),
-					EndPos:   block.NamePos.Add(len(componentName) - 1).Position(),
-				})
-				continue
-			}
-
-			// Create a new component
-			c = NewBuiltinComponentNode(l.globals, registration, block)
+			g.Add(c)
 		}
-
-		g.Add(c)
 	}
 
 	return diags
@@ -533,6 +527,8 @@ func (l *Loader) wireGraphEdges(g *dag.Graph) diag.Diagnostics {
 		case *DeclareNode:
 			// A DeclareNode has no edge, it only holds a static content.
 			continue
+		case *CustomComponentNode:
+			l.wireCustomComponentNode(g, n)
 		}
 
 		// Finally, wire component references.
@@ -544,6 +540,27 @@ func (l *Loader) wireGraphEdges(g *dag.Graph) diag.Diagnostics {
 	}
 
 	return diags
+}
+
+// wireCustomComponentNode wires a custom component to the import nodes that it depends on.
+func (l *Loader) wireCustomComponentNode(g *dag.Graph, cc *CustomComponentNode) {
+	if declareNode, exists := l.componentNodeManager.FindLocalDeclareNode(cc); exists {
+		l.wireCustomComponentDependencies(g, cc, declareNode)
+	} else if importNode, exists := l.componentNodeManager.FindImportedConfigNode(cc); exists {
+		g.AddEdge(dag.Edge{From: cc, To: importNode})
+	}
+}
+
+// wireCustomComponentDependencies wires a custom component to the import nodes that custom components instantiated inside
+// of it depends on.
+func (l *Loader) wireCustomComponentDependencies(g *dag.Graph, cc *CustomComponentNode, declareNode *DeclareNode) {
+	dependencies := l.componentNodeManager.ComputeCustomComponentDependencies(declareNode)
+	// Add edges between the CustomComponentNode and all import nodes that it needs.
+	for _, dependency := range dependencies {
+		if dependency.importNode != nil {
+			g.AddEdge(dag.Edge{From: cc, To: dependency.importNode})
+		}
+	}
 }
 
 // Variables returns the Variables the Loader exposes for other Flow components

@@ -130,7 +130,7 @@ func TestLoader(t *testing.T) {
 		`
 		l := controller.NewLoader(newLoaderOptions())
 		diags := applyFromContent(t, l, []byte(invalidFile), nil)
-		require.ErrorContains(t, diags.ErrorOrNil(), `Unrecognized component name "doesnotexist`)
+		require.ErrorContains(t, diags.ErrorOrNil(), `unrecognized component name "doesnotexist`)
 	})
 
 	t.Run("Partial load with invalid reference", func(t *testing.T) {
