@@ -46,7 +46,7 @@ require (
 	github.com/google/dnsmasq_exporter v0.2.1-0.20230620100026-44b14480804a
 	github.com/google/go-cmp v0.6.0
 	github.com/google/go-jsonnet v0.18.0
-	github.com/google/pprof v0.0.0-20230926050212-f7f687d19a98
+	github.com/google/pprof v0.0.0-20240117000934-35fc243c5815
 	github.com/google/renameio/v2 v2.0.0
 	github.com/google/uuid v1.4.0
 	github.com/gorilla/mux v1.8.0
@@ -608,7 +608,7 @@ require github.com/ianlancetaylor/demangle v0.0.0-20230524184225-eabc099b10ab
 require (
 	connectrpc.com/connect v1.14.0
 	github.com/githubexporter/github-exporter v0.0.0-20231025122338-656e7dc33fe7
-	github.com/grafana/jfr-parser/pprof v0.0.0-20240108100259-6b558fedfb6f
+	github.com/grafana/jfr-parser/pprof v0.0.0-20240126072739-986e71dc0361
 	github.com/natefinch/atomic v1.0.1
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusremotewriteexporter v0.87.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/filterprocessor v0.87.0
