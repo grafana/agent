@@ -36,6 +36,11 @@ Other release notes for the different {{< param "PRODUCT_ROOT_NAME" >}} variants
 Previously it was possible to configure the HTTP service via the [HTTP config block](https://grafana.com/docs/agent/v0.39/flow/reference/config-blocks/http/) inside of a module.
 This functionality is now only available in the main configuration.
 
+### Breaking change: Change the default value of `disable_high_cardinality_metrics` to `true`.
+
+The `disable_high_cardinality_metrics` configuration argument is used by `otelcol.exporter` components such as `otelcol.exporter.otlp`.
+If you need to see high cardinality metrics containing labels such as IP addresses and port numbers, you now have to explicitly set `disable_high_cardinality_metrics` to `false`.
+
 ## v0.39
 
 ### Breaking change: `otelcol.receiver.prometheus` will drop all `otel_scope_info` metrics when converting them to OTLP
