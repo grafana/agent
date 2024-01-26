@@ -7,13 +7,14 @@ import (
 	"sync"
 	"time"
 
+	"github.com/go-kit/log"
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/pkg/flow/logging/level"
 )
 
 // ModuleComponent holds the common properties for module components.
 type ModuleComponent struct {
-	opts component.Options
+	opts ModuleComponentOptions
 	mod  component.Module
 
 	mut           sync.RWMutex
@@ -22,20 +23,54 @@ type ModuleComponent struct {
 	latestArgs    map[string]any
 }
 
-// Exports holds values which are exported from the run module.
+// ModuleComponentOptions holds the required options to create a ModuleComponent.
+type ModuleComponentOptions struct {
+	// ModuleController allows for the creation of modules.
+	ModuleController component.ModuleController
+
+	// ID of the custom component. Guaranteed to be globally unique across all running components.
+	ID string
+
+	// Logger the custom component may use for logging. Logs emitted with the logger
+	// always include the component ID as a field.
+	Logger log.Logger
+
+	// OnStateChange may be invoked at any time by the custom component when its exports values change.
+	// The Flow controller then will queue re-processing components which depend on the changed component.
+	OnStateChange func(e component.Exports)
+}
+
+// Deprecated: Exports holds values which are exported from the run module. New modules use map[string]any directly.
 type Exports struct {
 	// Exports exported from the running module.
 	Exports map[string]any `river:"exports,block"`
 }
 
-// NewModuleComponent initializes a new ModuleComponent.
+// Deprecated: Use NewModuleComponentV2 instead.
 func NewModuleComponent(o component.Options) (*ModuleComponent, error) {
+	c := &ModuleComponent{
+		opts: ModuleComponentOptions{
+			ModuleController: o.ModuleController,
+			ID:               o.ID,
+			Logger:           o.Logger,
+			OnStateChange:    o.OnStateChange,
+		},
+	}
+	var err error
+	c.mod, err = o.ModuleController.NewModule("", func(exports map[string]any) {
+		c.opts.OnStateChange(Exports{Exports: exports})
+	})
+	return c, err
+}
+
+// NewModuleComponentV2 initializes a new ModuleComponent.
+func NewModuleComponentV2(o ModuleComponentOptions) (*ModuleComponent, error) {
 	c := &ModuleComponent{
 		opts: o,
 	}
 	var err error
 	c.mod, err = o.ModuleController.NewModule("", func(exports map[string]any) {
-		c.opts.OnStateChange(Exports{Exports: exports})
+		c.opts.OnStateChange(exports)
 	})
 	return c, err
 }
