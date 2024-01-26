@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/grafana/agent/pkg/config/encoder"
+	"github.com/grafana/agent/pkg/flow/internal/controller"
 	"github.com/grafana/river/ast"
 	"github.com/grafana/river/diag"
 	"github.com/grafana/river/parser"
@@ -21,6 +22,7 @@ type Source struct {
 	// The Flow controller can interpret them.
 	components   []*ast.BlockStmt
 	configBlocks []*ast.BlockStmt
+	declares     []*controller.Declare
 }
 
 // ParseSource parses the River file specified by bb into a File. name should be
@@ -45,6 +47,7 @@ func ParseSource(name string, bb []byte) (*Source, error) {
 	var (
 		components []*ast.BlockStmt
 		configs    []*ast.BlockStmt
+		declares   []*controller.Declare
 	)
 
 	for _, stmt := range node.Body {
@@ -60,6 +63,8 @@ func ParseSource(name string, bb []byte) (*Source, error) {
 		case *ast.BlockStmt:
 			fullName := strings.Join(stmt.Name, ".")
 			switch fullName {
+			case "declare":
+				declares = append(declares, controller.NewDeclare(stmt, string(bb[stmt.LCurlyPos.Position().Offset+1:stmt.RCurlyPos.Position().Offset-1])))
 			case "logging", "tracing", "argument", "export":
 				configs = append(configs, stmt)
 			default:
@@ -79,6 +84,7 @@ func ParseSource(name string, bb []byte) (*Source, error) {
 	return &Source{
 		components:   components,
 		configBlocks: configs,
+		declares:     declares,
 		sourceMap:    map[string][]byte{name: bb},
 		hash:         sha256.Sum256(bb),
 	}, nil
@@ -120,6 +126,7 @@ func ParseSources(sources map[string][]byte) (*Source, error) {
 
 		mergedSource.components = append(mergedSource.components, sourceFragment.components...)
 		mergedSource.configBlocks = append(mergedSource.configBlocks, sourceFragment.configBlocks...)
+		mergedSource.declares = append(mergedSource.declares, sourceFragment.declares...)
 	}
 
 	mergedSource.hash = [32]byte(hash.Sum(nil))

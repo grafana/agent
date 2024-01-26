@@ -281,7 +281,7 @@ func (f *Flow) LoadSource(source *Source, args map[string]any) error {
 	f.loadMut.Lock()
 	defer f.loadMut.Unlock()
 
-	diags := f.loader.Apply(args, source.components, source.configBlocks)
+	diags := f.loader.Apply(args, source.components, source.configBlocks, source.declares)
 	if !f.loadedOnce.Load() && diags.HasErrors() {
 		// The first call to Load should not run any components if there were
 		// errors in the configuration file.
