@@ -70,7 +70,7 @@ where an output can still be generated. These can be bypassed using the
 
 ### Prometheus
 
-Using the `--source-format=prometheus` will convert the source config from
+Using the `--source-format=prometheus` will convert the source configuration from
 [Prometheus v2.45](https://prometheus.io/docs/prometheus/2.45/configuration/configuration/)
 to {{< param "PRODUCT_NAME" >}} configuration.
 
