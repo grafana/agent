@@ -112,7 +112,7 @@ local stackedPanelMixin = {
         panel.withQueries([
           panel.newQuery(
             expr=|||
-             sum(processor_batch_metadata_cardinality_ratio{cluster="$cluster", namespace="$namespace", instance=~"$instance"}) or vector(0)
+             processor_batch_metadata_cardinality_ratio{cluster="$cluster", namespace="$namespace", instance=~"$instance"}
             |||,
             legendFormat='{{ pod }}',
           ),
