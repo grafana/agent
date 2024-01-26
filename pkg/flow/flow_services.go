@@ -3,6 +3,7 @@ package flow
 import (
 	"github.com/grafana/agent/pkg/flow/internal/controller"
 	"github.com/grafana/agent/pkg/flow/internal/dag"
+	"github.com/grafana/agent/pkg/flow/internal/worker"
 	"github.com/grafana/agent/service"
 )
 
@@ -51,4 +52,23 @@ func serviceConsumersForGraph(graph *dag.Graph, serviceName string, includePeerS
 	}
 
 	return consumers
+}
+
+// NewController returns a new, unstarted, isolated Flow controller so that
+// services can instantiate their own components.
+func (f *Flow) NewController(id string) service.Controller {
+	return newController(controllerOptions{
+		Options: Options{
+			ControllerID:    id,
+			Logger:          f.opts.Logger,
+			Tracer:          f.opts.Tracer,
+			DataPath:        f.opts.DataPath,
+			Reg:             f.opts.Reg,
+			OnExportsChange: f.opts.OnExportsChange,
+			Services:        f.opts.Services,
+		},
+		IsModule:       true,
+		ModuleRegistry: newModuleRegistry(),
+		WorkerPool:     worker.NewDefaultWorkerPool(),
+	})
 }
