@@ -73,7 +73,7 @@ func TestLoader(t *testing.T) {
 				Logger:            l,
 				TraceProvider:     noop.NewTracerProvider(),
 				DataPath:          t.TempDir(),
-				OnComponentUpdate: func(cn *controller.ComponentNode) { /* no-op */ },
+				OnBlockNodeUpdate: func(cn controller.BlockNode) { /* no-op */ },
 				Registerer:        prometheus.NewRegistry(),
 				NewModuleController: func(id string) controller.ModuleController {
 					return nil
@@ -207,7 +207,7 @@ func TestScopeWithFailingComponent(t *testing.T) {
 				Logger:            l,
 				TraceProvider:     noop.NewTracerProvider(),
 				DataPath:          t.TempDir(),
-				OnComponentUpdate: func(cn *controller.ComponentNode) { /* no-op */ },
+				OnBlockNodeUpdate: func(cn controller.BlockNode) { /* no-op */ },
 				Registerer:        prometheus.NewRegistry(),
 				NewModuleController: func(id string) controller.ModuleController {
 					return fakeModuleController{}
