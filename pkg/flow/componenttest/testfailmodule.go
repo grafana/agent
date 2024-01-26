@@ -6,6 +6,7 @@ import (
 
 	"github.com/grafana/agent/component"
 	mod "github.com/grafana/agent/component/module"
+	"github.com/grafana/agent/pkg/flow/config"
 )
 
 func init() {
@@ -24,7 +25,7 @@ func init() {
 			if args.(TestFailArguments).Fail {
 				return nil, fmt.Errorf("module told to fail")
 			}
-			err = m.LoadFlowSource(nil, args.(TestFailArguments).Content)
+			err = m.LoadFlowSource(nil, args.(TestFailArguments).Content, config.DefaultLoaderConfigOptions())
 			if err != nil {
 				return nil, err
 			}
@@ -60,7 +61,7 @@ func (t *TestFailModule) Run(ctx context.Context) error {
 
 func (t *TestFailModule) UpdateContent(content string) error {
 	t.content = content
-	err := t.mc.LoadFlowSource(nil, t.content)
+	err := t.mc.LoadFlowSource(nil, t.content, config.DefaultLoaderConfigOptions())
 	return err
 }
 

@@ -5,6 +5,7 @@ import (
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/module"
+	"github.com/grafana/agent/pkg/flow/config"
 	"github.com/grafana/river/rivertypes"
 )
 
@@ -68,7 +69,7 @@ func (c *Component) Run(ctx context.Context) error {
 func (c *Component) Update(args component.Arguments) error {
 	newArgs := args.(Arguments)
 
-	return c.mod.LoadFlowSource(newArgs.Arguments, newArgs.Content.Value)
+	return c.mod.LoadFlowSource(newArgs.Arguments, newArgs.Content.Value, config.DefaultLoaderConfigOptions())
 }
 
 // CurrentHealth implements component.HealthComponent.

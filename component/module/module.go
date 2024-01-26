@@ -9,6 +9,7 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/pkg/flow/config"
 	"github.com/grafana/agent/pkg/flow/logging/level"
 )
 
@@ -17,10 +18,11 @@ type ModuleComponent struct {
 	opts ModuleComponentOptions
 	mod  component.Module
 
-	mut           sync.RWMutex
-	health        component.Health
-	latestContent string
-	latestArgs    map[string]any
+	mut                       sync.RWMutex
+	health                    component.Health
+	latestContent             string
+	latestArgs                map[string]any
+	latestLoaderConfigOptions config.LoaderConfigOptions
 }
 
 // ModuleComponentOptions holds the required options to create a ModuleComponent.
@@ -78,12 +80,15 @@ func NewModuleComponentV2(o ModuleComponentOptions) (*ModuleComponent, error) {
 // LoadFlowSource loads the flow controller with the current component source.
 // It will set the component health in addition to return the error so that the consumer can rely on either or both.
 // If the content is the same as the last time it was successfully loaded, it will not be reloaded.
-func (c *ModuleComponent) LoadFlowSource(args map[string]any, contentValue string) error {
-	if reflect.DeepEqual(args, c.getLatestArgs()) && contentValue == c.getLatestContent() {
+func (c *ModuleComponent) LoadFlowSource(args map[string]any, contentValue string, options config.LoaderConfigOptions) error {
+	if reflect.DeepEqual(args, c.getLatestArgs()) &&
+		contentValue == c.getLatestContent() &&
+		reflect.DeepEqual(options, c.getLatestLoaderConfigOptions()) {
+
 		return nil
 	}
 
-	err := c.mod.LoadConfig([]byte(contentValue), args)
+	err := c.mod.LoadConfig([]byte(contentValue), args, options)
 	if err != nil {
 		c.setHealth(component.Health{
 			Health:     component.HealthTypeUnhealthy,
@@ -96,6 +101,7 @@ func (c *ModuleComponent) LoadFlowSource(args map[string]any, contentValue strin
 
 	c.setLatestArgs(args)
 	c.setLatestContent(contentValue)
+	c.setLatestLoaderConfigOptions(options)
 	c.setHealth(component.Health{
 		Health:     component.HealthTypeHealthy,
 		Message:    "module content loaded",
@@ -153,4 +159,16 @@ func (c *ModuleComponent) getLatestArgs() map[string]any {
 	c.mut.RLock()
 	defer c.mut.RUnlock()
 	return c.latestArgs
+}
+
+func (c *ModuleComponent) setLatestLoaderConfigOptions(options config.LoaderConfigOptions) {
+	c.mut.Lock()
+	defer c.mut.Unlock()
+	c.latestLoaderConfigOptions = options
+}
+
+func (c *ModuleComponent) getLatestLoaderConfigOptions() config.LoaderConfigOptions {
+	c.mut.RLock()
+	defer c.mut.RUnlock()
+	return c.latestLoaderConfigOptions
 }

@@ -9,6 +9,7 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/module"
 	remote_http "github.com/grafana/agent/component/remote/http"
+	"github.com/grafana/agent/pkg/flow/config"
 	"github.com/grafana/river/rivertypes"
 )
 
@@ -89,7 +90,7 @@ func (c *Component) newManagedLocalComponent(o component.Options) (*remote_http.
 
 		if !c.inUpdate.Load() && c.isCreated.Load() {
 			// Any errors found here are reported via component health
-			_ = c.mod.LoadFlowSource(c.getArgs().Arguments, c.getContent().Value)
+			_ = c.mod.LoadFlowSource(c.getArgs().Arguments, c.getContent().Value, config.DefaultLoaderConfigOptions())
 		}
 	}
 
@@ -136,7 +137,7 @@ func (c *Component) Update(args component.Arguments) error {
 
 	// Force a content load here and bubble up any error. This will catch problems
 	// on initial load.
-	return c.mod.LoadFlowSource(newArgs.Arguments, c.getContent().Value)
+	return c.mod.LoadFlowSource(newArgs.Arguments, c.getContent().Value, config.DefaultLoaderConfigOptions())
 }
 
 // CurrentHealth implements component.HealthComponent.

@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/pkg/flow/config"
 	"github.com/grafana/agent/pkg/flow/internal/controller"
 	"github.com/grafana/agent/pkg/flow/internal/worker"
 	"github.com/grafana/agent/pkg/flow/logging"
@@ -314,7 +315,7 @@ func (t *testModule) Run(ctx context.Context) error {
 		return err
 	}
 
-	err = m.LoadConfig([]byte(t.content), t.args)
+	err = m.LoadConfig([]byte(t.content), t.args, config.DefaultLoaderConfigOptions())
 	if err != nil {
 		return err
 	}

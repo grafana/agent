@@ -13,6 +13,7 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/module"
 	"github.com/grafana/agent/internal/vcs"
+	"github.com/grafana/agent/pkg/flow/config"
 	"github.com/grafana/agent/pkg/flow/logging/level"
 )
 
@@ -241,7 +242,7 @@ func (c *Component) pollFile(ctx context.Context, args Arguments) error {
 		return err
 	}
 
-	return c.mod.LoadFlowSource(args.Arguments, string(bb))
+	return c.mod.LoadFlowSource(args.Arguments, string(bb), config.DefaultLoaderConfigOptions())
 }
 
 // CurrentHealth implements component.HealthComponent.
