@@ -54,6 +54,17 @@ type Host interface {
 	// GetServiceConsumers gets the list of services which depend on a service by
 	// name.
 	GetServiceConsumers(serviceName string) []Consumer
+
+	// NewController returns an unstarted, isolated Controller that a Service
+	// can use to instantiate its own components.
+	NewController(id string) Controller
+}
+
+// Controller is implemented by flow.Flow.
+type Controller interface {
+	Run(ctx context.Context)
+	LoadSource(source any, args map[string]any) error
+	Ready() bool
 }
 
 type Consumer struct {
