@@ -29,4 +29,7 @@ type ComponentNode interface {
 
 	// UpdateBlock updates the River block used to construct arguments for the managed component.
 	UpdateBlock(b *ast.BlockStmt)
+
+	// ModuleIDs returns the current list of modules managed by the component.
+	ModuleIDs() []string
 }
