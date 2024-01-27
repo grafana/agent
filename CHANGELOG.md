@@ -27,6 +27,8 @@ Main (unreleased)
 - Increased the alert interval and renamed the `ClusterSplitBrain` alert to `ClusterNodeCountMismatch` in the Grafana
   Agent Mixin to better match the alert conditions. (@thampiotr)
 
+- Not restart tailers in `loki.source.kubernetes` component by above-average time deltas if K8s version is >= 1.29.1 (@hainenber)
+
 ### Features
 
 - Added a new CLI flag `--stability.level` which defines the minimum stability
