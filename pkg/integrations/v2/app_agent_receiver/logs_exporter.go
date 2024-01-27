@@ -65,7 +65,10 @@ func (le *LogsExporter) Export(ctx context.Context, payload Payload) error {
 	for _, logItem := range payload.Logs {
 		kv := logItem.KeyVal()
 		MergeKeyVal(kv, meta)
-		err = le.sendKeyValsToLogsPipeline(kv)
+		err := le.sendKeyValsToLogsPipeline(kv)
+		if err != nil {
+			return err
+		}
 	}
 
 	// exceptions
@@ -73,21 +76,30 @@ func (le *LogsExporter) Export(ctx context.Context, payload Payload) error {
 		transformedException := TransformException(le.sourceMapStore, le.logger, &exception, payload.Meta.App.Release)
 		kv := transformedException.KeyVal()
 		MergeKeyVal(kv, meta)
-		err = le.sendKeyValsToLogsPipeline(kv)
+		err := le.sendKeyValsToLogsPipeline(kv)
+		if err != nil {
+			return err
+		}
 	}
 
 	// measurements
 	for _, measurement := range payload.Measurements {
 		kv := measurement.KeyVal()
 		MergeKeyVal(kv, meta)
-		err = le.sendKeyValsToLogsPipeline(kv)
+		err := le.sendKeyValsToLogsPipeline(kv)
+		if err != nil {
+			return err
+		}
 	}
 
 	// events
 	for _, event := range payload.Events {
 		kv := event.KeyVal()
 		MergeKeyVal(kv, meta)
-		err = le.sendKeyValsToLogsPipeline(kv)
+		err := le.sendKeyValsToLogsPipeline(kv)
+		if err != nil {
+			return err
+		}
 	}
 
 	return err
