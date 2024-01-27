@@ -3,7 +3,6 @@
 * Date: 2022-06-27
 * Author: Robert Fratto (@rfratto), Matt Durham (@mattdurham)
 * PR: [grafana/agent#1839](https://github.com/grafana/agent/pull/1839)
-* Status: Draft
 
 ## Summary
 

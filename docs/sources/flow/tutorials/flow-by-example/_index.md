@@ -7,7 +7,7 @@ aliases:
 canonical: https://grafana.com/docs/agent/latest/flow/tutorials/flow-by-example/
 description: Learn how to use Grafana Agent Flow
 title: Flow by example
-weight: 300
+weight: 100
 ---
 
 # Flow by example
