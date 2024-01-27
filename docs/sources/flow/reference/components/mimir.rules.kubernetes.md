@@ -82,7 +82,7 @@ The `mimir_namespace_prefix` argument can be used to separate the rules managed
 by multiple {{< param "PRODUCT_NAME" >}} deployments across your infrastructure. It should be set to a
 unique value for each deployment.
 
-If `use_legacy_routes` is set to `true`, `mimir.rules.kubernetes` will contact Mimir on a `/api/v1/rules` endpoint.
+If `use_legacy_routes` is set to `true`, `mimir.rules.kubernetes` contacts Mimir on a `/api/v1/rules` endpoint.
 
 If `prometheus_http_prefix` is set to `/mimir`, `mimir.rules.kubernetes` will contact Mimir on a `/mimir/config/v1/rules` endpoint. 
 This is useful in case Mimir is configured to use a different [prefix][gem-path-prefix] for its Prometheus endpoints than the default one.
