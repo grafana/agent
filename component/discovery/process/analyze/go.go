@@ -41,10 +41,8 @@ func analyzeGo(pid string, reader io.ReaderAt, m map[string]string) error {
 	}
 
 	for _, setting := range info.Settings {
-		if setting.Key == "vcs.revision" {
-			k := sanitizeLabelName(setting.Key)
-			m[LabelGoBuildSettingPrefix+k] = setting.Value
-		}
+		k := sanitizeLabelName(setting.Key)
+		m[LabelGoBuildSettingPrefix+k] = setting.Value
 	}
 
 	for _, dep := range info.Deps {
