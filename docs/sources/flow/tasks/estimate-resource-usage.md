@@ -4,7 +4,7 @@ aliases:
   - /docs/grafana-cloud/agent/flow/tasks/estimate-resource-usage/
   - /docs/grafana-cloud/monitor-infrastructure/agent/flow/tasks/estimate-resource-usage/
   - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/tasks/estimate-resource-usage/
-  - /docs/grafana-cloud/send-data/agent/flow/tasks/estimate-resource-usage/  
+  - /docs/grafana-cloud/send-data/agent/flow/tasks/estimate-resource-usage/
   # Previous page aliases for backwards compatibility:
   - /docs/agent/flow/monitoring/resource-usage/
   - /docs/grafana-cloud/agent/flow/monitoring/resource-usage/
@@ -13,7 +13,7 @@ aliases:
   - /docs/grafana-cloud/send-data/agent/flow/monitoring/resource-usage/
   - ../monitoring/resource-usage/ # /docs/agent/latest/flow/monitoring/resource-usage/
 canonical: https://grafana.com/docs/agent/latest/flow/monitoring/resource-usage/
-description: Estimate expected Agent resource usage
+description: Estimate expected Grafana Agent resource usage
 headless: true
 title: Estimate resource usage
 menuTitle: Estimate resource usage
@@ -22,13 +22,13 @@ weight: 190
 
 # Estimate {{% param "PRODUCT_NAME" %}} resource usage
 
-This page provides guidance for expected resource usage of 
-{{% param "PRODUCT_NAME" %}} for each telemetry type, based on operational 
+This page provides guidance for expected resource usage of
+{{% param "PRODUCT_NAME" %}} for each telemetry type, based on operational
 experience of some of the {{% param "PRODUCT_NAME" %}} maintainers.
 
 {{% admonition type="note" %}}
 
-The resource usage depends on the workload, hardware and the configuration used.
+The resource usage depends on the workload, hardware, and the configuration used.
 The information on this page is a good starting point for most users, but your
 actual usage may be different.
 
@@ -39,7 +39,7 @@ actual usage may be different.
 The Prometheus metrics resource usage depends mainly on the number of active
 series that need to be scraped and the scrape interval.
 
-As a rule of thumb, **per each 1 million active series** and with the default 
+As a rule of thumb, **per each 1 million active series** and with the default
 scrape interval, you can expect to use approximately:
 
 * 0.4 CPU cores
