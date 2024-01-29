@@ -62,6 +62,9 @@ Main (unreleased)
 - Fix an issue where blocks having the same type and the same label across
   modules could result in missed updates. (@thampiotr)
 
+- Add an error diag to the converter from static to flow when `scrape_integration` is set
+  to true but no remote_write is defined. (@erikbaranowski)
+
 ### Other changes
 
 - Removed support for Windows 2012 in line with Microsoft end of life. (@mattdurham)
