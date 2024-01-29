@@ -25,7 +25,7 @@ You can specify multiple `otelcol.receiver.awsfirehose` components by giving the
 
 ```river
 otelcol.receiver.awsfirehose "LABEL" {
-  endpoint = "0.0.0.0:4433"
+  endpoint = "HOST:PORT"
   output {
     metrics = [...]
   }
