@@ -45,9 +45,9 @@ Name | Type | Description | Default | Required
 `include_metadata` | `boolean` | Propagate incoming connection metadata to downstream consumers. | | no
 
 
-### Record Types
-
-- `cwmetrics`: The record type for the CloudWatch metric stream. Expects the format for the records to be JSON. See documentation for details.
+The supported values for `record_type`  are:
+* `cwmetrics`: The record type for the CloudWatch metric stream. Expects the format for the records to be JSON. See the [CloudWatch documentation][cloudwatch-metric-streams] for details.
+[cloudwatch-metric-streams]: https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-Metric-Streams.html
 
 ## Blocks
 
