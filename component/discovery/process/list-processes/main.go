@@ -8,7 +8,6 @@ import (
 	"github.com/go-kit/log/level"
 
 	"github.com/grafana/agent/component/discovery/process"
-	"github.com/grafana/agent/component/discovery/process/analyze"
 )
 
 var logger = log.NewLogfmtLogger(os.Stderr)
@@ -26,11 +25,6 @@ func run() error {
 	)
 
 	for _, p := range processes {
-		m, err := analyze.PID(logger, p.PID)
-		if err != nil {
-			level.Error(logger).Log("msg", "error analyzing process", "pid", p.PID, "err", err)
-			continue
-		}
 
 		attributes = attributes[:4]
 		attributes[0] = "msg"
@@ -39,13 +33,13 @@ func run() error {
 		attributes[3] = p.PID
 
 		keys = keys[:0]
-		for k := range m {
+		for k := range p.Analysis {
 			keys = append(keys, k)
 		}
 		sort.Strings(keys)
 
 		for _, k := range keys {
-			attributes = append(attributes, k, m[k])
+			attributes = append(attributes, k, p.Analysis[k])
 		}
 
 		level.Info(logger).Log(attributes...)
