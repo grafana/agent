@@ -168,7 +168,7 @@ test-packages:
 	go test -tags=packaging  ./packaging
 
 .PHONY: integration-tests
-integration-test:
+integration-tests:
 	cd integration-tests && $(GO_ENV) go run .
 
 #
