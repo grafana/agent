@@ -43,7 +43,7 @@ func PID(logger log.Logger, pid string) (map[string]string, error) {
 	}
 	defer f.Close()
 
-	for _, a := range []analyserFunc{analyzeGo} {
+	for _, a := range []analyserFunc{analyzeGo, analyzePython} {
 		if err := a(pid, f, m); err == io.EOF {
 			break
 		} else if err != nil {
