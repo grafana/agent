@@ -10,7 +10,12 @@ import (
 	"github.com/go-kit/log/level"
 )
 
-type analyserFunc func(pid string, reader io.ReaderAt, labels map[string]string) error
+// analyzerFunc is called with a particular pid and a reader into its binary.
+//
+// If an error occurs analyzing the binary/process information it is returned.
+// If there is strong evidence that this process has been detected, the
+// analyzer can return io.EOF and it will skip all following analyzers.
+type analyzerFunc func(pid string, reader io.ReaderAt, labels map[string]string) error
 
 func PID(logger log.Logger, pid string) (map[string]string, error) {
 	m := make(map[string]string)
@@ -43,7 +48,11 @@ func PID(logger log.Logger, pid string) (map[string]string, error) {
 	}
 	defer f.Close()
 
-	for _, a := range []analyserFunc{analyzeGo, analyzePython} {
+	for _, a := range []analyzerFunc{
+		analyzeGo,
+		analyzePython,
+		analyzeDotNet,
+	} {
 		if err := a(pid, f, m); err == io.EOF {
 			break
 		} else if err != nil {
