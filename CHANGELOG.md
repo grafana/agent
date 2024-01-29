@@ -10,14 +10,22 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+### Breaking changes
+
+- Prohibit the configuration of services within modules. (@wildum)
+
 ### Features
 
 - A new `discovery.process` component for discovering Linux OS processes on the current host. (@korniltsev)
 
 - A new `pyroscope.java` component for profiling Java processes using async-profiler. (@korniltsev)
 
+- A new `otelcol.processor.resourcedetection` component which inserts resource attributes 
+  to OTLP telemetry based on the host on which Grafana Agent is running. (@ptodev)
+  
 ### Enhancements
 
+- Include line numbers in profiles produced by `pyrsocope.java` component. (@korniltsev)
 - Add an option to the windows static mode installer for expanding environment vars in the yaml config. (@erikbaranowski)
 - Add authentication support to `loki.source.awsfirehose` (@sberz)
 
@@ -25,6 +33,19 @@ Main (unreleased)
 
 - Expose `physical_disk` collector from `windows_exporter` v0.24.0 to 
   Flow configuration. (@hainenber)
+
+- Renamed Grafana Agent Mixin's "prometheus.remote_write" dashboard to
+  "Prometheus Components" and added charts for `prometheus.scrape` success rate
+  and duration metrics. (@thampiotr)
+
+- Removed `ClusterLamportClockDrift` and `ClusterLamportClockStuck` alerts from
+  Grafana Agent Mixin to focus on alerting on symptoms. (@thampiotr)
+
+- Increased clustering alert periods to 10 minutes to improve the
+  signal-to-noise ratio in Grafana Agent Mixin. (@thampiotr)
+  
+- `mimir.rules.kubernetes` has a new `prometheus_http_prefix` argument to configure 
+  the HTTP endpoint on which to connect to Mimir's API. (@hainenber)
 
 - `service_name` label is inferred from discovery meta labels in `pyroscope.java` (@korniltsev)
 
@@ -39,6 +60,9 @@ Main (unreleased)
   mode metric instance's write handler. (@tpaschalis)
 
 - Fix issue causing duplicate logs when a docker target is restarted. (@captncraig)
+
+- Fix an issue where blocks having the same type and the same label across
+  modules could result in missed updates. (@thampiotr)
 
 ### Other changes
 

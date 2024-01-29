@@ -14,7 +14,7 @@ func TestGlobalID(t *testing.T) {
 		NewModuleController: func(id string) ModuleController {
 			return nil
 		},
-	}, &ComponentNode{
+	}, &BuiltinComponentNode{
 		nodeID:   "local.id",
 		globalID: "module.file/local.id",
 	})
@@ -28,7 +28,7 @@ func TestLocalID(t *testing.T) {
 		NewModuleController: func(id string) ModuleController {
 			return nil
 		},
-	}, &ComponentNode{
+	}, &BuiltinComponentNode{
 		nodeID:   "local.id",
 		globalID: "local.id",
 	})

@@ -8,7 +8,8 @@ title: prometheus.exporter.agent
 ---
 
 # prometheus.exporter.agent
-The `prometheus.exporter.agent` component collects and exposes metrics about the agent itself.
+
+The `prometheus.exporter.agent` component collects and exposes metrics about {{< param "PRODUCT_NAME" >}} itself.
 
 ## Usage
 
@@ -18,6 +19,7 @@ prometheus.exporter.agent "agent" {
 ```
 
 ## Arguments
+
 `prometheus.exporter.agent` accepts no arguments.
 
 ## Exported fields
@@ -31,12 +33,12 @@ an invalid configuration.
 
 ## Debug information
 
-`prometheus.exporter.agent` does not expose any component-specific
+`prometheus.exporter.agent` doesn't expose any component-specific
 debug information.
 
 ## Debug metrics
 
-`prometheus.exporter.agent` does not expose any component-specific
+`prometheus.exporter.agent` doesn't expose any component-specific
 debug metrics.
 
 ## Example

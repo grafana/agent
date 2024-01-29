@@ -7,6 +7,8 @@ import (
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/pkg/flow/internal/controller"
+	"github.com/grafana/river/ast"
+	"github.com/grafana/river/vm"
 	"github.com/stretchr/testify/require"
 )
 
@@ -93,8 +95,10 @@ type fakeRunnable struct {
 
 var _ controller.RunnableNode = fakeRunnable{}
 
-func (fr fakeRunnable) NodeID() string                { return fr.ID }
-func (fr fakeRunnable) Run(ctx context.Context) error { return fr.Component.Run(ctx) }
+func (fr fakeRunnable) NodeID() string                 { return fr.ID }
+func (fr fakeRunnable) Run(ctx context.Context) error  { return fr.Component.Run(ctx) }
+func (fr fakeRunnable) Block() *ast.BlockStmt          { return nil }
+func (fr fakeRunnable) Evaluate(scope *vm.Scope) error { return nil }
 
 type mockComponent struct {
 	RunFunc    func(ctx context.Context) error
