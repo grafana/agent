@@ -44,7 +44,7 @@ Name | Type | Description | Default | Required
 `max_request_body_size` | `string` | Maximum request body size the HTTP server will allow. No limit when unset. | | no
 `include_metadata` | `boolean` | Propagate incoming connection metadata to downstream consumers. | | no
 
-
+`access_key` can be set when creating or updating the delivery stream. See the [AWS Firehose documentation](https://docs.aws.amazon.com/firehose/latest/dev/create-destination.html#create-destination-http) for more details.
 The supported values for `record_type`  are:
 * `cwmetrics`: The record type for the CloudWatch metric stream. Expects the format for the records to be JSON. See the [CloudWatch documentation][cloudwatch-metric-streams] for details.
 [cloudwatch-metric-streams]: https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-Metric-Streams.html
