@@ -18,20 +18,20 @@ func TestJoin(t *testing.T) {
 	}{
 		{
 			[]discovery.Target{
-				convertProcess(process{
-					pid:         "239",
+				convertProcess(Process{
+					PID:         "239",
 					exe:         "/bin/foo",
 					cwd:         "/",
 					containerID: "7edda1de1e0d1d366351e478359cf5fa16bb8ab53063a99bb119e56971bfb7e2",
 				}),
-				convertProcess(process{
-					pid:         "240",
+				convertProcess(Process{
+					PID:         "240",
 					exe:         "/bin/bar",
 					cwd:         "/tmp",
 					containerID: "7edda1de1e0d1d366351e478359cf5fa16bb8ab53063a99bb119e56971bfb7e2",
 				}),
-				convertProcess(process{
-					pid:         "241",
+				convertProcess(Process{
+					PID:         "241",
 					exe:         "/bin/bash",
 					cwd:         "/opt",
 					containerID: "",
@@ -85,28 +85,28 @@ func TestJoin(t *testing.T) {
 		},
 		{
 			[]discovery.Target{
-				convertProcess(process{
-					pid:         "239",
+				convertProcess(Process{
+					PID:         "239",
 					exe:         "/bin/foo",
 					cwd:         "/",
 					containerID: "7edda1de1e0d1d366351e478359cf5fa16bb8ab53063a99bb119e56971bfb7e2",
 				}),
-				convertProcess(process{
-					pid:         "240",
+				convertProcess(Process{
+					PID:         "240",
 					exe:         "/bin/bar",
 					cwd:         "/",
 					containerID: "",
 				}),
 			},
 			[]discovery.Target{}, []discovery.Target{
-				convertProcess(process{
-					pid:         "239",
+				convertProcess(Process{
+					PID:         "239",
 					exe:         "/bin/foo",
 					cwd:         "/",
 					containerID: "7edda1de1e0d1d366351e478359cf5fa16bb8ab53063a99bb119e56971bfb7e2",
 				}),
-				convertProcess(process{
-					pid:         "240",
+				convertProcess(Process{
+					PID:         "240",
 					exe:         "/bin/bar",
 					cwd:         "/",
 					containerID: "",
