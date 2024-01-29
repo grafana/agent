@@ -205,7 +205,7 @@ func (b *IntegrationsConfigBuilder) appendExporter(commonConfig *int_config.Comm
 	}
 
 	if len(b.cfg.Integrations.ConfigV1.PrometheusRemoteWrite) == 0 {
-		b.diags.Add(diag.SeverityLevelError, "The converter does not support handling integrations with are not connected to a remote_write.")
+		b.diags.Add(diag.SeverityLevelError, "The converter does not support handling integrations which are not connected to a remote_write.")
 	}
 
 	jobNameToCompLabelsFunc := func(jobName string) string {
