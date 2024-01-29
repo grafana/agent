@@ -12,6 +12,7 @@ import (
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component/discovery"
+	"github.com/grafana/agent/component/discovery/process/analyze"
 	gopsutil "github.com/shirou/gopsutil/v3/process"
 	"golang.org/x/sys/unix"
 )
@@ -34,6 +35,7 @@ type Process struct {
 	containerID string
 	username    string
 	uid         string
+	Analysis    map[string]string
 }
 
 func (p Process) String() string {
@@ -70,6 +72,10 @@ func convertProcess(p Process) discovery.Target {
 	if p.uid != "" {
 		t[labelProcessUID] = p.uid
 	}
+	for k, v := range p.Analysis {
+		t[k] = v
+	}
+
 	return t
 }
 
@@ -139,6 +145,11 @@ func Discover(l log.Logger, cfg *DiscoverConfig) ([]Process, error) {
 				continue
 			}
 		}
+		m, err := analyze.PID(l, spid) //todo do not analyze same process and or binary twice
+		if err != nil {
+			level.Error(l).Log("msg", "error analyzing process", "pid", spid, "err", err)
+			continue
+		}
 		res = append(res, Process{
 			PID:         spid,
 			exe:         exe,
@@ -147,6 +158,7 @@ func Discover(l log.Logger, cfg *DiscoverConfig) ([]Process, error) {
 			containerID: containerID,
 			username:    username,
 			uid:         uid,
+			Analysis:    m,
 		})
 	}
 
