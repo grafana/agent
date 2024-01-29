@@ -47,6 +47,8 @@ Main (unreleased)
 - `mimir.rules.kubernetes` has a new `prometheus_http_prefix` argument to configure 
   the HTTP endpoint on which to connect to Mimir's API. (@hainenber)
 
+- `service_name` label is inferred from discovery meta labels in `pyroscope.java` (@korniltsev)
+
 ### Bugfixes
 
 - Fix an issue in `remote.s3` where the exported content of an object would be an empty string if `remote.s3` failed to fully retrieve
