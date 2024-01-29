@@ -43,7 +43,7 @@ type Component struct {
 
 func (c *Component) Run(ctx context.Context) error {
 	doDiscover := func() error {
-		processes, err := discover(c.l, &c.args.DiscoverConfig)
+		processes, err := Discover(c.l, &c.args.DiscoverConfig)
 		if err != nil {
 			return err
 		}

@@ -26,8 +26,8 @@ const (
 	labelProcessContainerID = "__container_id__"
 )
 
-type process struct {
-	pid         string
+type Process struct {
+	PID         string
 	exe         string
 	cwd         string
 	commandline string
@@ -36,11 +36,11 @@ type process struct {
 	uid         string
 }
 
-func (p process) String() string {
-	return fmt.Sprintf("pid=%s exe=%s cwd=%s commandline=%s containerID=%s", p.pid, p.exe, p.cwd, p.commandline, p.containerID)
+func (p Process) String() string {
+	return fmt.Sprintf("pid=%s exe=%s cwd=%s commandline=%s containerID=%s", p.PID, p.exe, p.cwd, p.commandline, p.containerID)
 }
 
-func convertProcesses(ps []process) []discovery.Target {
+func convertProcesses(ps []Process) []discovery.Target {
 	var res []discovery.Target
 	for _, p := range ps {
 		t := convertProcess(p)
@@ -49,9 +49,9 @@ func convertProcesses(ps []process) []discovery.Target {
 	return res
 }
 
-func convertProcess(p process) discovery.Target {
+func convertProcess(p Process) discovery.Target {
 	t := make(discovery.Target, 5)
-	t[labelProcessID] = p.pid
+	t[labelProcessID] = p.PID
 	if p.exe != "" {
 		t[labelProcessExe] = p.exe
 	}
@@ -73,12 +73,12 @@ func convertProcess(p process) discovery.Target {
 	return t
 }
 
-func discover(l log.Logger, cfg *DiscoverConfig) ([]process, error) {
+func Discover(l log.Logger, cfg *DiscoverConfig) ([]Process, error) {
 	processes, err := gopsutil.Processes()
 	if err != nil {
 		return nil, fmt.Errorf("failed to list processes: %w", err)
 	}
-	res := make([]process, 0, len(processes))
+	res := make([]Process, 0, len(processes))
 	loge := func(pid int, e error) {
 		if errors.Is(e, unix.ESRCH) {
 			return
@@ -139,8 +139,8 @@ func discover(l log.Logger, cfg *DiscoverConfig) ([]process, error) {
 				continue
 			}
 		}
-		res = append(res, process{
-			pid:         spid,
+		res = append(res, Process{
+			PID:         spid,
 			exe:         exe,
 			cwd:         cwd,
 			commandline: commandline,
