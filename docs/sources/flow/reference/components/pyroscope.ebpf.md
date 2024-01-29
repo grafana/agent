@@ -95,16 +95,16 @@ can help you pin down a profiling target.
 | `__name__`         | pyroscope metric name. Defaults to `process_cpu`.                                                                                |
 | `__container_id__` | The container ID derived from target.                                                                                            |
 
-### Container ID
+### Targets 
 
-Each collected stack trace is then associated with a specified target from the targets list, determined by a
-container ID. This association process involves checking the `__container_id__`, `__meta_docker_container_id`,
-and `__meta_kubernetes_pod_container_id` labels of a target against the `/proc/{pid}/cgroup` of a process.
+One of the following special labels `__container_id__`, `__meta_docker_container_id`, and `__meta_kubernetes_pod_container_id`, 
+`__process_pid__` _must always_ be present in each target of `targets` and correspond to the container or process to profile.
 
-If a corresponding container ID is found, the stack traces are aggregated per target based on the container ID.
-If a container ID is not found, the stack trace is associated with a `default_target`.
+Each process is then associated with a specified target from the targets list, determined by a container ID or process PID. 
 
-Any stack traces not associated with a listed target are ignored.
+If a process's container ID matches a target's container ID label, the stack traces are aggregated per target based on the container ID.
+If a process's PID matches a target's process PID label, the stack traces are aggregated per target based on the process PID.
+Otherwise the process is not profiled.
 
 ### Service name
 
