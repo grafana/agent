@@ -43,6 +43,9 @@ Main (unreleased)
 
 - Increased clustering alert periods to 10 minutes to improve the
   signal-to-noise ratio in Grafana Agent Mixin. (@thampiotr)
+  
+- `mimir.rules.kubernetes` has a new `prometheus_http_prefix` argument to configure 
+  the HTTP endpoint on which to connect to Mimir's API. (@hainenber)
 
 ### Bugfixes
 
