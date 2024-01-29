@@ -127,6 +127,7 @@ sending it to an OTLP-capable endpoint:
 
 ```river
 otelcol.receiver.awsfirehose "default" {
+  endpoint = "0.0.0.0:4433"
   output {
     metrics = [otelcol.processor.batch.default.input]
   }
