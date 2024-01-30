@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"sync"
 	"time"
 
 	"connectrpc.com/connect"
@@ -39,6 +40,7 @@ type Service struct {
 
 	ctrl service.Controller
 
+	mut               sync.RWMutex
 	asClient          agentv1connect.AgentServiceClient
 	getConfigRequest  *connect.Request[agentv1.GetConfigRequest]
 	ticker            *time.Ticker
@@ -147,6 +149,8 @@ func (s *Service) Run(ctx context.Context, host service.Host) error {
 		src              *flow.Source
 		getErr, parseErr error
 	)
+
+	s.mut.RLock()
 	gcr, getErr = s.asClient.GetConfig(ctx, s.getConfigRequest)
 	if getErr == nil {
 		src, parseErr = flow.ParseSource(ServiceName, []byte(gcr.Msg.GetContent()))
@@ -182,10 +186,12 @@ func (s *Service) Run(ctx context.Context, host service.Host) error {
 			}
 		}
 	}
+	s.mut.RUnlock()
 
 	for {
 		select {
 		case <-s.ticker.C:
+			s.mut.RLock()
 			gcr, err := s.asClient.GetConfig(ctx, s.getConfigRequest)
 			if err != nil {
 				level.Error(s.opts.Logger).Log("msg", "failed to fetch configuration from the API", "err", err)
@@ -217,7 +223,11 @@ func (s *Service) Run(ctx context.Context, host service.Host) error {
 			if err != nil {
 				level.Error(s.opts.Logger).Log("msg", "failed to flush remote_configuration contents the on-disk cache", "err", err)
 			}
+			s.mut.RUnlock()
+
+			s.mut.Lock()
 			s.currentConfigHash = newConfigHash
+			s.mut.Unlock()
 		case <-ctx.Done():
 			s.ticker.Stop()
 			return nil
@@ -230,15 +240,23 @@ func (s *Service) Run(ctx context.Context, host service.Host) error {
 func (s *Service) Update(newConfig any) error {
 	newArgs := newConfig.(Arguments)
 
+	// We either never set the block on the first place, or recently removed
+	// it. Make sure we stop everything gracefully before returning.
 	if newArgs.URL == "" {
-		// TODO: We either never set the block on the first place,
-		// or recently removed it. Make sure we stop everything gracefully
-		// before returning.
+		s.mut.Lock()
+		defer s.mut.Unlock()
+		s.ticker.Reset(math.MaxInt64)
+		s.getConfigRequest = nil
+		s.asClient = nil
+		s.args.HTTPClientConfig = nil
+		s.getConfigRequest = nil
+		s.currentConfigHash = ""
 		return nil
 	}
 
-	// TODO: Should we also include the username, or some other property on the
-	// hash for the directory name?
+	s.mut.Lock()
+	defer s.mut.Unlock()
+
 	s.dataPath = filepath.Join(s.opts.StoragePath, ServiceName, getHash(newArgs.URL))
 	s.ticker.Reset(newArgs.PollFrequency)
 
@@ -253,8 +271,6 @@ func (s *Service) Update(newConfig any) error {
 		)
 	}
 
-	// TODO: Is this ok to reuse since it contains some kind of 'state' field?
-	// TODO: Wire in Agent ID, Metadata from the Arguments.
 	s.getConfigRequest = connect.NewRequest(&agentv1.GetConfigRequest{
 		Id:       newArgs.ID,
 		Metadata: newArgs.Metadata,
