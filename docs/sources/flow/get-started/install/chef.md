@@ -24,7 +24,7 @@ You can use Chef to install and manage {{< param "PRODUCT_NAME" >}}.
 
 ## Steps
 
-To add {{% param "PRODUCT_NAME" %}} to a host:
+To add {{< param "PRODUCT_NAME" >}} to a host:
 
 1. Add the following resources to your [Chef][] recipe to add the Grafana package repositories to your system:
 
