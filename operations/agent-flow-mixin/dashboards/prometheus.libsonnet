@@ -19,8 +19,8 @@ local scrapePanels(y_offset) = [
 
   // Scrape success rate
   (
-    panel.new(title='Scrape success rate', type='timeseries') +
-    panel.withUnit('percent') +
+    panel.new(title='Scrape success rate in $cluster', type='timeseries') +
+    panel.withUnit('percentunit') +
     panel.withDescription(|||
       Percentage of targets successfully scraped by prometheus.scrape
       components.
@@ -47,7 +47,7 @@ local scrapePanels(y_offset) = [
 
   // Scrape duration
   (
-    panel.new(title='Scrape duration', type='timeseries') +
+    panel.new(title='Scrape duration in $cluster', type='timeseries') +
     panel.withUnit('s') +
     panel.withDescription(|||
       Duration of successful scrapes by prometheus.scrape components,

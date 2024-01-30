@@ -6,9 +6,9 @@ import (
 	"sync"
 )
 
-// RunnableNode is any dag.Node which can also be run.
+// RunnableNode is any BlockNode which can also be run.
 type RunnableNode interface {
-	NodeID() string
+	BlockNode
 	Run(ctx context.Context) error
 }
 
