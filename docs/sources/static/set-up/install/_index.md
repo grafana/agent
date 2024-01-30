@@ -36,10 +36,6 @@ Installing Grafana Agent on other operating systems is possible, but is not reco
 
 Use the Grafana Agent [Kubernetes configuration](/docs/grafana-cloud/monitor-infrastructure/kubernetes-monitoring/configuration/) or follow instructions for installing the Grafana Agent in the [Walkthrough](/docs/grafana-cloud/monitor-infrastructure/integrations/get-started/).
 
-## Tanka
-
-For more information, refer to the [Tanka](https://tanka.dev) configurations in the Grafana Agent [production](https://github.com/grafana/agent/tree/main/production/tanka/grafana-agent) directory on GitHub.
-
 ## Data collection
 
 By default, Grafana Agent sends anonymous usage information to Grafana Labs. Refer to [data collection][] for more information
