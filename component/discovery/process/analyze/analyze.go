@@ -52,6 +52,7 @@ func PID(logger log.Logger, pid string) (map[string]string, error) {
 		analyzeGo,
 		analyzePython,
 		analyzeDotNet,
+		analyzeJava,
 	} {
 		if err := a(pid, f, m); err == io.EOF {
 			break
