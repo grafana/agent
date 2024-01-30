@@ -1,11 +1,15 @@
 ---
 aliases:
 - /docs/grafana-cloud/agent/flow/get-started/install/puppet/
-canonical: https://www.puppet.com/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/get-started/install/puppet/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/get-started/install/puppet/
+- /docs/grafana-cloud/send-data/agent/flow/get-started/install/puppet/
+
+canonical: https://grafana.com/docs/agent/latest/flow/get-started/install/puppet/
 description: Learn how to install Grafana Agent Flow with Puppet
 menuTitle: Puppet
 title: Install Grafana Agent Flow with Puppet
-weight: 550
+weight: 560
 ---
 
 # Install {{% param "PRODUCT_NAME" %}} with Puppet
@@ -16,7 +20,7 @@ You can use Puppet to install and manage {{< param "PRODUCT_NAME" >}}.
 
 - These steps assume you already have a working [Puppet][] setup.
 - You can add the following manifest to any new or existing module you choose.
-- The manifest installs {{< param "PRODUCT_NAME" >}} from the package repositories. The manifest targets Linux systems from the following families:
+- The manifest installs {{< param "PRODUCT_NAME" >}} from the package repositories. It targets Linux systems from the following families:
   - Debian (including Ubuntu)
   - RedHat Enterprise Linux (including Fedora)
 
@@ -35,7 +39,7 @@ To add {{% param "PRODUCT_NAME" %}} to a host:
     "version_requirement": "<= 2.0.0"
     }
     ```
-1. Create a new [Puppet][] manifest with the following resources to add the Grafana package repositories, install the `grafana-agent-flow` package, and run the service:
+1. Create a new [Puppet][] manifest with the following class to add the Grafana package repositories, install the `grafana-agent-flow` package, and run the service:
     ```ruby
     class grafana_agent::grafana_agent_flow () {
       case $::os['family'] {
@@ -81,7 +85,7 @@ To add {{% param "PRODUCT_NAME" %}} to a host:
       }
     }
     ```
-1. To use this manifest, add the following line to your desired manifests:
+1. To use this class in a module, add the following line to the module's `init.pp` file:
     ```ruby
     include grafana_agent::grafana_agent_flow
     ```
