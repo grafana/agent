@@ -7,7 +7,7 @@ type DebugMetricsArguments struct {
 
 // DefaultDebugMetricsArguments holds default settings for DebugMetricsArguments.
 var DefaultDebugMetricsArguments = DebugMetricsArguments{
-	DisableHighCardinalityMetrics: false,
+	DisableHighCardinalityMetrics: true,
 }
 
 // SetToDefault implements river.Defaulter.

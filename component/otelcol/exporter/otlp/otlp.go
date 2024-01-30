@@ -43,10 +43,11 @@ var _ exporter.Arguments = Arguments{}
 
 // DefaultArguments holds default values for Arguments.
 var DefaultArguments = Arguments{
-	Timeout: otelcol.DefaultTimeout,
-	Queue:   otelcol.DefaultQueueArguments,
-	Retry:   otelcol.DefaultRetryArguments,
-	Client:  DefaultGRPCClientArguments,
+	Timeout:      otelcol.DefaultTimeout,
+	Queue:        otelcol.DefaultQueueArguments,
+	Retry:        otelcol.DefaultRetryArguments,
+	Client:       DefaultGRPCClientArguments,
+	DebugMetrics: otelcol.DefaultDebugMetricsArguments,
 }
 
 // SetToDefault implements river.Defaulter.
