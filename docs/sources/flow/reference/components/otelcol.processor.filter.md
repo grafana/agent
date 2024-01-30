@@ -39,22 +39,22 @@ the following metrics-only functions are used exclusively by the processor:
   * `end_time_unix_nano - start_time_unix_nano`
   * `sum([1, 2, 3, 4]) + (10 / 1) - 1`
 
-{{% admonition type="note" %}}
+{{< admonition type="note" >}}
 Raw River strings can be used to write OTTL statements.
 For example, the OTTL statement `attributes["grpc"] == true` 
 is written in River as \`attributes["grpc"] == true\`
 
-{{% /admonition %}}
+{{< /admonition >}}
 
-{{% admonition type="note" %}}
+{{< admonition type="note" >}}
 `otelcol.processor.filter` is a wrapper over the upstream
 OpenTelemetry Collector `filter` processor. If necessary, bug reports or feature requests
 will be redirected to the upstream repository.
-{{% /admonition %}}
+{{< /admonition >}}
 
 You can specify multiple `otelcol.processor.filter` components by giving them different labels.
 
-{{% admonition type="warning" %}}
+{{< admonition type="warning" >}}
 Exercise caution when using `otelcol.processor.filter`:
 
 - Make sure you understand schema/format of the incoming data and test the configuration thoroughly. 
@@ -64,7 +64,7 @@ Exercise caution when using `otelcol.processor.filter`:
   if the log references the dropped span.
 
 [Orphaned Telemetry]: https://github.com/open-telemetry/opentelemetry-collector/blob/v0.85.0/docs/standard-warnings.md#orphaned-telemetry
-{{% /admonition %}}
+{{< /admonition >}}
 
 ## Usage
 

@@ -147,9 +147,9 @@ You can use the following blocks in`prometheus.exporter.cloudwatch` to configure
 | static > metric    | [metric][]             | Configures the list of metrics the job should scrape. Multiple metrics can be defined inside one job.                                                      | yes      |
 | decoupled_scraping | [decoupled_scraping][] | Configures the decoupled scraping feature to retrieve metrics on a schedule and return the cached metrics.                                                 | no       |
 
-{{% admonition type="note" %}}
+{{< admonition type="note" >}}
 The `static` and `discovery` blocks are marked as not required, but you must configure at least one static or discovery job.
-{{% /admonition %}}
+{{< /admonition >}}
 
 [discovery]: #discovery-block
 [static]: #static-block

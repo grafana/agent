@@ -71,10 +71,10 @@ This conversion will enable you to take full advantage of the many additional fe
 1. If the convert command can't convert a Promtail configuration, diagnostic information is sent to `stderr`.
    You can bypass any non-critical issues and output the {{< param "PRODUCT_NAME" >}} configuration using a best-effort conversion by including the `--bypass-errors` flag.
 
-   {{% admonition type="caution" %}}
+   {{< admonition type="caution" >}}
    If you bypass the errors, the behavior of the converted configuration may not match the original Promtail configuration.
    Make sure you fully test the converted configuration before using it in a production environment.
-   {{% /admonition %}}
+   {{< /admonition >}}
 
    {{< code >}}
 
@@ -139,10 +139,10 @@ Your configuration file must be a valid Promtail configuration file rather than 
 1. If your Promtail configuration can't be converted and loaded directly into {{< param "PRODUCT_ROOT_NAME" >}}, diagnostic information is sent to `stderr`.
    You can bypass any non-critical issues and start {{< param "PRODUCT_ROOT_NAME" >}} by including the `--config.bypass-conversion-errors` flag in addition to `--config.format=promtail`.
 
-   {{% admonition type="caution" %}}
+   {{< admonition type="caution" >}}
    If you bypass the errors, the behavior of the converted configuration may not match the original Promtail configuration.
    Do not use this flag in a production environment.
-   {{%/admonition %}}
+   {{< /admonition >}}
 
 ## Example
 

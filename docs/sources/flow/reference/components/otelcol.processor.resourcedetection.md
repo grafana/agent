@@ -19,11 +19,11 @@ description: Learn about otelcol.processor.resourcedetection
 in a format that conforms to the [OpenTelemetry resource semantic conventions](https://github.com/open-telemetry/opentelemetry-specification/tree/main/specification/resource/semantic_conventions/), and appends or
 overrides the resource values in the telemetry data with this information.
 
-{{% admonition type="note" %}}
+{{< admonition type="note" >}}
 `otelcol.processor.resourcedetection` is a wrapper over the upstream
 OpenTelemetry Collector Contrib `resourcedetection` processor. If necessary,
 bug reports or feature requests are redirected to the upstream repository.
-{{% /admonition %}}
+{{< /admonition >}}
 
 You can specify multiple `otelcol.processor.resourcedetection` components by giving them
 different labels.
@@ -581,11 +581,11 @@ For more information, see the [Heroku cloud provider documentation][] under the 
 
 The `system` block queries the host machine to retrieve various resource attributes.
 
-{{% admonition type="note" %}}
+{{< admonition type="note" >}}
 
 Use the [Docker](#docker) detector if running {{< param "PRODUCT_ROOT_NAME" >}} as a Docker container.
 
-{{% /admonition %}}
+{{< /admonition >}}
 
 The `system` block supports the following attributes:
 

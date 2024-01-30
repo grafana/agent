@@ -18,9 +18,9 @@ title: pyroscope.ebpf
 `pyroscope.ebpf` configures an ebpf profiling job for the current host. The collected performance profiles are forwarded
 to the list of receivers passed in `forward_to`.
 
-{{% admonition type="note" %}}
+{{< admonition type="note" >}}
 To use the  `pyroscope.ebpf` component you must run {{< param "PRODUCT_NAME" >}} as root and inside host pid namespace.
-{{% /admonition %}}
+{{< /admonition >}}
 
 You can specify multiple `pyroscope.ebpf` components by giving them different labels, however it is not recommended as
 it can lead to additional memory and CPU usage.

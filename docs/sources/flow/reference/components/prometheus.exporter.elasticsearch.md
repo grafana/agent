@@ -15,10 +15,10 @@ The `prometheus.exporter.elasticsearch` component embeds
 [elasticsearch_exporter](https://github.com/prometheus-community/elasticsearch_exporter) for
 the collection of metrics from ElasticSearch servers.
 
-{{% admonition type="note" %}}
+{{< admonition type="note" >}}
 Currently, an Agent can only collect metrics from a single ElasticSearch server.
 However, the exporter can collect the metrics from all nodes through that server configured.
-{{% /admonition %}}
+{{< /admonition >}}
 
 We strongly recommend that you configure a separate user for the Agent, and give it only the strictly mandatory
 security privileges necessary for monitoring your node, as per the [official documentation](https://github.com/prometheus-community/elasticsearch_exporter#elasticsearch-7x-security-privileges).

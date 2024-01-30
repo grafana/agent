@@ -20,9 +20,9 @@ discovery.linode "LABEL" {
 }
 ```
 
-{{% admonition type="note" %}}
+{{< admonition type="note" >}}
 The linode APIv4 Token must be created with the scopes: `linodes:read_only`, `ips:read_only`, and `events:read_only`.
-{{% /admonition %}}
+{{< /admonition >}}
 
 ## Arguments
 

@@ -18,7 +18,7 @@ The release notes provide information about deprecations and breaking changes in
 
 For a complete list of changes to {{< param "PRODUCT_ROOT_NAME" >}}, with links to pull requests and related issues when available, refer to the [Changelog](https://github.com/grafana/agent/blob/main/CHANGELOG.md).
 
-{{% admonition type="note" %}}
+{{< admonition type="note" >}}
 These release notes are specific to {{< param "PRODUCT_NAME" >}}.
 Other release notes for the different {{< param "PRODUCT_ROOT_NAME" >}} variants are contained on separate pages:
 
@@ -27,7 +27,7 @@ Other release notes for the different {{< param "PRODUCT_ROOT_NAME" >}} variants
 
 [release-notes-static]: {{< relref "../static/release-notes.md" >}}
 [release-notes-operator]: {{< relref "../operator/release-notes.md" >}}
-{{% /admonition %}}
+{{< /admonition >}}
 
 ## v0.40
 

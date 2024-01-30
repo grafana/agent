@@ -15,10 +15,10 @@ weight: 400
 
 The `tools` command contains command line tooling grouped by Flow component.
 
-{{% admonition type="caution" %}}
+{{< admonition type="caution" >}}
 Utilities in this command have no backward compatibility
 guarantees and may change or be removed between releases.
-{{% /admonition %}}
+{{< /admonition >}}
 
 ## Subcommands
 

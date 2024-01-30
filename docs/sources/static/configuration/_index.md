@@ -137,9 +137,9 @@ The following flags will configure basic auth for requests made to HTTP/S remote
 - `-config.url.basic-auth-user <user>`: the basic auth username
 - `-config.url.basic-auth-password-file <file>`: path to a file containing the basic auth password
 
-{{% admonition type="note" %}}
+{{< admonition type="note" >}}
 This beta feature is subject to change in future releases.
-{{% /admonition %}}
+{{< /admonition >}}
 
 {{% docs/reference %}}
 [flags]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static/configuration/flags"

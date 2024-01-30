@@ -22,15 +22,15 @@ The following architectures are supported:
 - macOS: AMD64 (Intel), ARM64 (Apple Silicon)
 - FreeBSD: AMD64
 
-{{% admonition type="note" %}}
+{{< admonition type="note" >}}
 ppc64le builds are considered secondary release targets and do not have the same level of support and testing as other platforms.
-{{% /admonition %}}
+{{< /admonition >}}
 
 {{< section >}}
 
-{{% admonition type="note" %}}
+{{< admonition type="note" >}}
 Installing Grafana Agent on other operating systems is possible, but is not recommended or supported.
-{{% /admonition %}}
+{{< /admonition >}}
 
 ## Grafana Cloud
 

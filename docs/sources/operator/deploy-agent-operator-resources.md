@@ -34,9 +34,9 @@ The hierarchy of custom resources is as follows:
 
 To learn more about the custom resources Agent Operator provides and their hierarchy, see [Grafana Agent Operator architecture]({{< relref "./architecture" >}}).
 
-{{% admonition type="note" %}}
+{{< admonition type="note" >}}
 Agent Operator is currently in [beta]({{< relref "../stability.md#beta" >}}) and its custom resources are subject to change.
-{{% /admonition %}}
+{{< /admonition >}}
 
 ## Before you begin
 
@@ -46,9 +46,9 @@ Before you begin, make sure that you have deployed the Grafana Agent Operator CR
 
 In this section, you'll roll out a `GrafanaAgent` resource. See [Grafana Agent Operator architecture]({{< relref "./architecture" >}}) for a discussion of the resources in the `GrafanaAgent` resource hierarchy.
 
-{{% admonition type="note" %}}
+{{< admonition type="note" >}}
 Due to the variety of possible deployment architectures, the official Agent Operator Helm chart does not provide built-in templates for the custom resources described in this guide. You must configure and deploy these manually as described in this section. We recommend templating and adding the following manifests to your own in-house Helm charts and GitOps flows.
-{{% /admonition %}}
+{{< /admonition >}}
 
 To deploy the `GrafanaAgent` resource:
 
@@ -381,9 +381,9 @@ To deploy the `LogsInstance` resource into your cluster:
 
 1. Copy the following `PodLogs` manifest to a file, then roll it to your cluster using `kubectl apply -f` followed by the filename. The manifest defines your logging targets. Agent Operator  turns this into Agent configuration for the logs subsystem, and rolls it out to the DaemonSet of logging Agents.
 
-    {{% admonition type="note" %}}
+    {{< admonition type="note" >}}
     The following is a minimal working example which you should adapt to your production needs.
-    {{% /admonition %}}
+    {{< /admonition >}}
 
     ```yaml
     apiVersion: monitoring.grafana.com/v1alpha1

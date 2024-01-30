@@ -23,10 +23,10 @@ You can use the Helm chart for Grafana Agent to deploy Grafana Agent in static m
 
 ## Deploy
 
-{{% admonition type="note" %}}
+{{< admonition type="note" >}}
 These instructions show you how to install the generic [Helm chart](https://github.com/grafana/agent/tree/main/operations/helm/charts/grafana-agent) for Grafana Agent.
 You can deploy Grafana Agent in static mode or flow mode. The Helm chart deploys flow mode by default.
-{{% /admonition %}}
+{{< /admonition >}}
 
 To deploy Grafana Agent in static mode on Kubernetes using Helm, run the following commands in a terminal window:
 
@@ -52,10 +52,10 @@ To deploy Grafana Agent in static mode on Kubernetes using Helm, run the followi
 
    -  _`<RELEASE_NAME>`_: The name to use for your Grafana Agent installation, such as `grafana-agent`.
 
-   {{% admonition type="warning" %}}
+   {{< admonition type="warning" >}}
    Always pass `--set agent.mode=static` in `helm install` or `helm upgrade` commands to ensure Grafana Agent gets installed in static mode.
    Alternatively, set `agent.mode` to `static` in your values.yaml file.
-   {{% /admonition %}}
+   {{< /admonition >}}
 
 For more information on the Grafana Agent Helm chart, refer to the Helm chart documentation on [Artifact Hub][].
 

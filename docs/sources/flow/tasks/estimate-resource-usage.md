@@ -26,13 +26,13 @@ This page provides guidance for expected resource usage of
 {{% param "PRODUCT_NAME" %}} for each telemetry type, based on operational
 experience of some of the {{% param "PRODUCT_NAME" %}} maintainers.
 
-{{% admonition type="note" %}}
+{{< admonition type="note" >}}
 
 The resource usage depends on the workload, hardware, and the configuration used.
 The information on this page is a good starting point for most users, but your
 actual usage may be different.
 
-{{% /admonition %}}
+{{< /admonition >}}
 
 ## Prometheus metrics
 

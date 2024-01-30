@@ -466,10 +466,10 @@ Replace the following:
 This example limits the search to pods on the same node as this {{< param "PRODUCT_ROOT_NAME" >}}.
 This configuration could be useful if you are running {{< param "PRODUCT_ROOT_NAME" >}} as a DaemonSet.
 
-{{% admonition type="note" %}}
+{{< admonition type="note" >}}
 This example assumes you have used Helm chart to deploy {{< param "PRODUCT_NAME" >}} in Kubernetes and sets `HOSTNAME` to the Kubernetes host name.
 If you have a custom Kubernetes deployment, you must adapt this example to your configuration.
-{{% /admonition %}}
+{{< /admonition >}}
 
 ```river
 discovery.kubernetes "k8s_pods" {
