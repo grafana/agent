@@ -41,6 +41,7 @@ var DefaultArguments = Arguments{
 	Verbosity:          configtelemetry.LevelNormal,
 	SamplingInitial:    2,
 	SamplingThereafter: 500,
+	DebugMetrics:       otelcol.DefaultDebugMetricsArguments,
 }
 
 // SetToDefault implements river.Defaulter.

@@ -59,7 +59,8 @@ var (
 		Protocol: Protocol{
 			OTLP: DefaultOTLPConfig,
 		},
-		RoutingKey: "traceID",
+		RoutingKey:   "traceID",
+		DebugMetrics: otelcol.DefaultDebugMetricsArguments,
 	}
 
 	DefaultOTLPConfig = OtlpConfig{

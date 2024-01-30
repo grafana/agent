@@ -14,6 +14,8 @@ Main (unreleased)
 
 - Prohibit the configuration of services within modules. (@wildum)
 
+- For `otelcol.exporter` components, change the default value of `disable_high_cardinality_metrics` to `true`. (@ptodev)
+
 ### Features
 
 - A new `discovery.process` component for discovering Linux OS processes on the current host. (@korniltsev)
