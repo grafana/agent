@@ -249,11 +249,16 @@ func (f *Flow) Run(ctx context.Context) {
 			var (
 				components = f.loader.Components()
 				services   = f.loader.Services()
+				imports    = f.loader.Imports()
 
-				runnables = make([]controller.RunnableNode, 0, len(components)+len(services))
+				runnables = make([]controller.RunnableNode, 0, len(components)+len(services)+len(imports))
 			)
 			for _, c := range components {
 				runnables = append(runnables, c)
+			}
+
+			for _, i := range imports {
+				runnables = append(runnables, i)
 			}
 
 			// Only the root controller should run services, since modules share the

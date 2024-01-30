@@ -45,6 +45,7 @@ type Loader struct {
 	originalGraph     *dag.Graph
 	componentNodes    []ComponentNode
 	serviceNodes      []*ServiceNode
+	nodeConfigMap     *ConfigNodeMap
 	cache             *valueCache
 	blocks            []*ast.BlockStmt // Most recently loaded blocks, used for writing
 	cm                *controllerMetrics
@@ -135,9 +136,12 @@ func (l *Loader) Apply(args map[string]any, componentBlocks []*ast.BlockStmt, co
 	}
 	l.cache.SyncModuleArgs(args)
 
-	// Reload the component node manager when a new config is applied.
-	// This step is important to remove configs that might have been removed in the new config.
-	l.componentNodeManager.Reload(options.AdditionalDeclareContents)
+	// TODO: change this
+	if options.Scope != nil {
+		l.componentNodeManager.scope = NewScope(options.Scope.(*Scope))
+	} else {
+		l.componentNodeManager.scope = NewScope(nil)
+	}
 
 	newGraph, diags := l.loadNewGraph(args, componentBlocks, configBlocks, declares)
 	if diags.HasErrors() {
@@ -272,13 +276,13 @@ func (l *Loader) loadNewGraph(args map[string]any, componentBlocks []*ast.BlockS
 	// block.
 	diags := l.populateServiceNodes(&g, serviceBlocks)
 
+	declareDiags := l.registerDeclares(declares)
+	diags = append(diags, declareDiags...)
+
 	// Fill our graph with config blocks.
+	l.nodeConfigMap = NewConfigNodeMap()
 	configBlockDiags := l.populateConfigBlockNodes(args, &g, configBlocks)
 	diags = append(diags, configBlockDiags...)
-
-	// Fill our graph with declare nodes
-	declareDiags := l.populateDeclareNodes(&g, declares)
-	diags = append(diags, declareDiags...)
 
 	// Fill our graph with components.
 	componentNodeDiags := l.populateComponentNodes(&g, componentBlocks)
@@ -324,20 +328,16 @@ func (l *Loader) splitComponentBlocks(blocks []*ast.BlockStmt) (componentBlocks,
 	return componentBlocks, serviceBlocks
 }
 
-func (l *Loader) populateDeclareNodes(g *dag.Graph, declares []*Declare) diag.Diagnostics {
+func (l *Loader) registerDeclares(declares []*Declare) diag.Diagnostics {
 	var diags diag.Diagnostics
-	l.componentNodeManager.declareNodes = map[string]*DeclareNode{}
 	for _, declare := range declares {
-		node := NewDeclareNode(declare)
-		if g.GetByID(node.NodeID()) != nil {
+		err := l.componentNodeManager.scope.registerDeclare(declare)
+		if err != nil {
 			diags.Add(diag.Diagnostic{
 				Severity: diag.SeverityLevelError,
-				Message:  fmt.Sprintf("cannot add declare node %q; node with same ID already exists", node.NodeID()),
+				Message:  err.Error(),
 			})
-			continue
 		}
-		g.Add(node)
-		l.componentNodeManager.declareNodes[node.label] = node
 	}
 	return diags
 }
@@ -411,10 +411,7 @@ func (l *Loader) populateServiceNodes(g *dag.Graph, serviceBlocks []*ast.BlockSt
 
 // populateConfigBlockNodes adds any config blocks to the graph.
 func (l *Loader) populateConfigBlockNodes(args map[string]any, g *dag.Graph, configBlocks []*ast.BlockStmt) diag.Diagnostics {
-	var (
-		diags   diag.Diagnostics
-		nodeMap = NewConfigNodeMap()
-	)
+	var diags diag.Diagnostics
 
 	for _, block := range configBlocks {
 		node, newConfigNodeDiags := NewConfigNode(block, l.globals)
@@ -432,26 +429,37 @@ func (l *Loader) populateConfigBlockNodes(args map[string]any, g *dag.Graph, con
 			continue
 		}
 
-		nodeMapDiags := nodeMap.Append(node)
-		diags = append(diags, nodeMapDiags...)
+		nodeConfigMapDiags := l.nodeConfigMap.Append(node)
+		diags = append(diags, nodeConfigMapDiags...)
 		if diags.HasErrors() {
 			continue
+		}
+
+		if importNode, ok := node.(*ImportConfigNode); ok {
+			err := l.componentNodeManager.scope.registerImport(importNode.label)
+			if err != nil {
+				diags.Add(diag.Diagnostic{
+					Severity: diag.SeverityLevelError,
+					Message:  err.Error(),
+				})
+				continue
+			}
 		}
 
 		g.Add(node)
 	}
 
-	validateDiags := nodeMap.Validate(l.isModule(), args)
+	validateDiags := l.nodeConfigMap.Validate(l.isModule(), args)
 	diags = append(diags, validateDiags...)
 
 	// If a logging config block is not provided, we create an empty node which uses defaults.
-	if nodeMap.logging == nil && !l.isModule() {
+	if l.nodeConfigMap.logging == nil && !l.isModule() {
 		c := NewDefaultLoggingConfigNode(l.globals)
 		g.Add(c)
 	}
 
 	// If a tracing config block is not provided, we create an empty node which uses defaults.
-	if nodeMap.tracing == nil && !l.isModule() {
+	if l.nodeConfigMap.tracing == nil && !l.isModule() {
 		c := NewDefaulTracingConfigNode(l.globals)
 		g.Add(c)
 	}
@@ -487,7 +495,7 @@ func (l *Loader) populateComponentNodes(g *dag.Graph, componentBlocks []*ast.Blo
 			g.Add(c)
 		} else {
 			componentName := block.GetBlockName()
-			c, err := l.componentNodeManager.CreateComponentNode(componentName, block)
+			c, err := l.componentNodeManager.createComponentNode(componentName, block)
 			if err != nil {
 				diags.Add(diag.Diagnostic{
 					Severity: diag.SeverityLevelError,
@@ -544,22 +552,13 @@ func (l *Loader) wireGraphEdges(g *dag.Graph) diag.Diagnostics {
 
 // wireCustomComponentNode wires a custom component to the import nodes that it depends on.
 func (l *Loader) wireCustomComponentNode(g *dag.Graph, cc *CustomComponentNode) {
-	if declareNode, exists := l.componentNodeManager.FindLocalDeclareNode(cc); exists {
-		l.wireCustomComponentDependencies(g, cc, declareNode)
-	} else if importNode, exists := l.componentNodeManager.FindImportedConfigNode(cc); exists {
-		g.AddEdge(dag.Edge{From: cc, To: importNode})
-	}
-}
-
-// wireCustomComponentDependencies wires a custom component to the import nodes that custom components instantiated inside
-// of it depends on.
-func (l *Loader) wireCustomComponentDependencies(g *dag.Graph, cc *CustomComponentNode, declareNode *DeclareNode) {
-	dependencies := l.componentNodeManager.ComputeCustomComponentDependencies(declareNode)
-	// Add edges between the CustomComponentNode and all import nodes that it needs.
-	for _, dependency := range dependencies {
-		if dependency.importNode != nil {
-			g.AddEdge(dag.Edge{From: cc, To: dependency.importNode})
+	if declare, ok := l.componentNodeManager.scope.declares[cc.declareLabel]; ok {
+		refs := l.nodeConfigMap.findImportNodeReferences(declare)
+		for ref := range refs {
+			g.AddEdge(dag.Edge{From: cc, To: ref})
 		}
+	} else if importNode, ok := l.nodeConfigMap.importMap[cc.importLabel]; ok {
+		g.AddEdge(dag.Edge{From: cc, To: importNode})
 	}
 }
 
@@ -581,6 +580,12 @@ func (l *Loader) Services() []*ServiceNode {
 	l.mut.RLock()
 	defer l.mut.RUnlock()
 	return l.serviceNodes
+}
+
+func (l *Loader) Imports() map[string]*ImportConfigNode {
+	l.mut.RLock()
+	defer l.mut.RUnlock()
+	return l.nodeConfigMap.importMap
 }
 
 // Graph returns a copy of the DAG managed by the Loader.
@@ -622,10 +627,15 @@ func (l *Loader) EvaluateDependants(ctx context.Context, updatedNodes []*QueuedN
 
 	dependenciesToParentsMap := make(map[dag.Node]*QueuedNode)
 	for _, parent := range updatedNodes {
-		// Make sure we're in-sync with the current exports of parent.
-		if componentNode, ok := parent.Node.(ComponentNode); ok {
-			l.cache.CacheExports(componentNode.ID(), componentNode.Exports())
+		switch parentNode := parent.Node.(type) {
+		case ComponentNode:
+			// Make sure we're in-sync with the current exports of parent.
+			l.cache.CacheExports(parentNode.ID(), parentNode.Exports())
+		case *ImportConfigNode:
+			// Update the scope with the imported content.
+			l.componentNodeManager.scope.updateImportContent(parentNode)
 		}
+
 		// We collect all nodes directly incoming to parent.
 		_ = dag.WalkIncomingNodes(l.graph, parent.Node, func(n dag.Node) error {
 			dependenciesToParentsMap[n] = parent
@@ -760,6 +770,8 @@ func (l *Loader) postEvaluate(logger log.Logger, bn BlockNode, err error) error 
 				err = fmt.Errorf("missing required argument %q to module", c.Label())
 			}
 		}
+	case *ImportConfigNode:
+		l.componentNodeManager.scope.updateImportContent(c)
 	}
 
 	if err != nil {

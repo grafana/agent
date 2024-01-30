@@ -2,7 +2,9 @@ package controller
 
 import (
 	"fmt"
+	"strings"
 
+	"github.com/grafana/agent/pkg/flow/internal/importsource"
 	"github.com/grafana/river/ast"
 	"github.com/grafana/river/diag"
 )
@@ -26,6 +28,8 @@ func NewConfigNode(block *ast.BlockStmt, globals ComponentGlobals) (BlockNode, d
 		return NewLoggingConfigNode(block, globals), nil
 	case tracingBlockID:
 		return NewTracingConfigNode(block, globals), nil
+	case importsource.BlockImportFile, importsource.BlockImportGit, importsource.BlockImportHTTP:
+		return NewImportConfigNode(block, globals, importsource.GetSourceType(block.GetBlockName())), nil
 	default:
 		var diags diag.Diagnostics
 		diags.Add(diag.Diagnostic{
@@ -46,6 +50,7 @@ type ConfigNodeMap struct {
 	tracing     *TracingConfigNode
 	argumentMap map[string]*ArgumentConfigNode
 	exportMap   map[string]*ExportConfigNode
+	importMap   map[string]*ImportConfigNode
 }
 
 // NewConfigNodeMap will create an initial ConfigNodeMap. Append must be called
@@ -56,6 +61,7 @@ func NewConfigNodeMap() *ConfigNodeMap {
 		tracing:     nil,
 		argumentMap: map[string]*ArgumentConfigNode{},
 		exportMap:   map[string]*ExportConfigNode{},
+		importMap:   map[string]*ImportConfigNode{},
 	}
 }
 
@@ -73,6 +79,8 @@ func (nodeMap *ConfigNodeMap) Append(configNode BlockNode) diag.Diagnostics {
 		nodeMap.logging = n
 	case *TracingConfigNode:
 		nodeMap.tracing = n
+	case *ImportConfigNode:
+		nodeMap.importMap[n.Label()] = n
 	default:
 		diags.Add(diag.Diagnostic{
 			Severity: diag.SeverityLevelError,
@@ -161,4 +169,29 @@ func (nodeMap *ConfigNodeMap) ValidateUnsupportedArguments(args map[string]any) 
 	}
 
 	return diags
+}
+
+func (nodeMap *ConfigNodeMap) findImportNodeReferences(declare *Declare) map[*ImportConfigNode]struct{} {
+	uniqueReferences := make(map[*ImportConfigNode]struct{})
+	nodeMap.collectImportNodeReferences(declare.block.Body, uniqueReferences)
+	return uniqueReferences
+}
+
+// collectCustomComponentDependencies collects recursively references to import nodes through an AST body.
+func (nodeMap *ConfigNodeMap) collectImportNodeReferences(stmts ast.Body, uniqueReferences map[*ImportConfigNode]struct{}) {
+	for _, stmt := range stmts {
+		switch stmt := stmt.(type) {
+		case *ast.BlockStmt:
+			componentName := strings.Join(stmt.Name, ".")
+			switch componentName {
+			case "declare":
+				nodeMap.collectImportNodeReferences(stmt.Body, uniqueReferences)
+			default:
+				potentialImportLabel := stmt.Name[0]
+				if node, exists := nodeMap.importMap[potentialImportLabel]; exists {
+					uniqueReferences[node] = struct{}{}
+				}
+			}
+		}
+	}
 }

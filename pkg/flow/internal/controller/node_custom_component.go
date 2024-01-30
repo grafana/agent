@@ -34,7 +34,7 @@ type CustomComponentNode struct {
 	moduleController  ModuleController
 	OnBlockNodeUpdate func(cn BlockNode) // Informs controller that we need to reevaluate
 
-	GetCustomComponentConfig func(*CustomComponentNode) (*CustomComponentConfig, error) // Retrieve the custom component config.
+	getConfig getCustomComponentConfig // Retrieve the custom component config.
 
 	mut     sync.RWMutex
 	block   *ast.BlockStmt // Current River block to derive args from
@@ -75,7 +75,7 @@ var _ ComponentNode = (*CustomComponentNode)(nil)
 
 // NewCustomComponentNode creates a new CustomComponentNode from an initial ast.BlockStmt.
 // The underlying managed custom component isn't created until Evaluate is called.
-func NewCustomComponentNode(globals ComponentGlobals, b *ast.BlockStmt, GetCustomComponentConfig func(*CustomComponentNode) (*CustomComponentConfig, error)) *CustomComponentNode {
+func NewCustomComponentNode(globals ComponentGlobals, b *ast.BlockStmt, getConfig getCustomComponentConfig) *CustomComponentNode {
 	var (
 		id     = BlockComponentID(b)
 		nodeID = id.String()
@@ -102,16 +102,16 @@ func NewCustomComponentNode(globals ComponentGlobals, b *ast.BlockStmt, GetCusto
 	importLabel, declareLabel := ExtractImportAndDeclareLabels(componentName)
 
 	cn := &CustomComponentNode{
-		id:                       id,
-		globalID:                 globalID,
-		label:                    b.Label,
-		nodeID:                   nodeID,
-		componentName:            componentName,
-		importLabel:              importLabel,
-		declareLabel:             declareLabel,
-		moduleController:         globals.NewModuleController(globalID),
-		OnBlockNodeUpdate:        globals.OnBlockNodeUpdate,
-		GetCustomComponentConfig: GetCustomComponentConfig,
+		id:                id,
+		globalID:          globalID,
+		label:             b.Label,
+		nodeID:            nodeID,
+		componentName:     componentName,
+		importLabel:       importLabel,
+		declareLabel:      declareLabel,
+		moduleController:  globals.NewModuleController(globalID),
+		OnBlockNodeUpdate: globals.OnBlockNodeUpdate,
+		getConfig:         getConfig,
 
 		block: b,
 		eval:  vm.New(b.Body),
@@ -163,8 +163,8 @@ func (cn *CustomComponentNode) UpdateBlock(b *ast.BlockStmt) {
 //
 // Evaluate will return an error if the River block cannot be evaluated, if
 // decoding to arguments fails or if the custom component definition cannot be retrieved.
-func (cn *CustomComponentNode) Evaluate(scope *vm.Scope) error {
-	err := cn.evaluate(scope)
+func (cn *CustomComponentNode) Evaluate(evalScope *vm.Scope) error {
+	err := cn.evaluate(evalScope)
 
 	switch err {
 	case nil:
@@ -176,12 +176,12 @@ func (cn *CustomComponentNode) Evaluate(scope *vm.Scope) error {
 	return err
 }
 
-func (cn *CustomComponentNode) evaluate(scope *vm.Scope) error {
+func (cn *CustomComponentNode) evaluate(evalScope *vm.Scope) error {
 	cn.mut.Lock()
 	defer cn.mut.Unlock()
 
 	var args map[string]any
-	if err := cn.eval.Evaluate(scope, &args); err != nil {
+	if err := cn.eval.Evaluate(evalScope, &args); err != nil {
 		return fmt.Errorf("decoding River: %w", err)
 	}
 
@@ -196,17 +196,17 @@ func (cn *CustomComponentNode) evaluate(scope *vm.Scope) error {
 		cn.managed = managed
 	}
 
-	customComponentConfig, err := cn.GetCustomComponentConfig(cn)
-	if err != nil {
-		return fmt.Errorf("retrieving custom component config: %w", err)
+	template, scope := cn.getConfig(cn.importLabel, cn.declareLabel)
+	if template == nil || scope == nil {
+		return fmt.Errorf("could not retrieve custom component config")
 	}
 
 	loaderConfig := config.LoaderConfigOptions{
-		AdditionalDeclareContents: customComponentConfig.additionalDeclareContents,
+		Scope: scope,
 	}
 
 	// Reload the custom component with new config
-	if err := cn.managed.LoadFlowSource(args, customComponentConfig.declareContent, loaderConfig); err != nil {
+	if err := cn.managed.LoadFlowSource(args, template.content, loaderConfig); err != nil {
 		return fmt.Errorf("updating custom component: %w", err)
 	}
 	return nil
