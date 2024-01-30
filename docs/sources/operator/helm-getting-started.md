@@ -27,7 +27,7 @@ To deploy Agent Operator with Helm, make sure that you have the following:
 
 ## Install the Agent Operator Helm Chart
 
-In this section, you'll install the [grafana-agent-operator Helm chart](https://github.com/grafana/helm-charts/tree/main/charts/agent-operator) into your Kubernetes cluster. This will install the latest version of Agent Operator and its [Custom Resource Definitions](https://github.com/grafana/agent/tree/main/production/operator/crds) (CRDs). The chart configures Operator to maintain a Service that lets you scrape kubelets using a `ServiceMonitor`.
+In this section, you'll install the [grafana-agent-operator Helm chart](https://github.com/grafana/helm-charts/tree/main/charts/agent-operator) into your Kubernetes cluster. This will install the latest version of Agent Operator and its [Custom Resource Definitions](https://github.com/grafana/agent/tree/main/operations/agent-static-operator/crds) (CRDs). The chart configures Operator to maintain a Service that lets you scrape kubelets using a `ServiceMonitor`.
 
 To install the Agent Operator Helm chart:
 
