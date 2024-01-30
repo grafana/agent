@@ -1,0 +1,5 @@
+declare "getLogFile" {
+  export "output" {
+    value = [{__path__ = "logs.txt"}]
+  }
+}

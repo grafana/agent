@@ -1,0 +1,24 @@
+import.http "scrape_module" {
+  url = coalesce(env("MODULE_HTTP_ENDPOINT"), "http://localhost:8090/module.river")
+}
+
+scrape_module.myModule "scrape_prom_metrics_module_http" {
+  scrape_endpoint = "localhost:9001"
+  forward_to = [prometheus.remote_write.scrape_prom_metrics_module_http.receiver]
+}
+
+prometheus.remote_write "scrape_prom_metrics_module_http" {
+  endpoint {
+    url = "http://localhost:9009/api/v1/push"
+    send_native_histograms = true
+    metadata_config {
+        send_interval = "1s"
+    }
+    queue_config {
+        max_samples_per_send = 100
+    }
+  }
+  external_labels = {
+    test_name = "scrape_prom_metrics_module_http",
+  }
+}

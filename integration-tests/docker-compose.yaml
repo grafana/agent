@@ -30,3 +30,10 @@ services:
       context: ..
     ports:
       - "9001:9001"
+  
+  http-module:
+    image: nginx:alpine
+    ports:
+      - "8090:80"
+    volumes:
+      - ./configs/http-module/module.river:/usr/share/nginx/html/module.river:ro

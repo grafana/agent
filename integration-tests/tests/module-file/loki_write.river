@@ -1,0 +1,13 @@
+declare "loki_write" {
+    loki.write "test" {
+        endpoint {
+            url = "http://localhost:3100/loki/api/v1/push"
+        }
+        external_labels = {
+            test_name = "module_file",
+        }
+    }
+    export "receiver" {
+        value = loki.write.test.receiver
+    }
+}
