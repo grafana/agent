@@ -37,14 +37,32 @@ type jvmInfo struct {
 }
 
 func analyzeJava(pid string, reader io.ReaderAt, m map[string]string) error {
+	pidn, _ := strconv.Atoi(pid)
+	proc, err := procfs.NewProc(pidn)
+	if err != nil {
+		return err
+	}
+
+	cmdLine, err := proc.CmdLine()
+	isJava := false
+	for _, c := range cmdLine {
+		if strings.HasPrefix(c, "java") || strings.HasSuffix(c, "java") {
+			isJava = true
+			break
+		}
+	}
+
+	if !isJava {
+		return nil
+	}
+	m[labelJava] = "true"
 	jInfo, err := getInfoFromJcmd(pid)
 	if err != nil {
-		jInfo, _ = getInfoFromReleaseFile(pid)
+		jInfo, _ = getInfoFromReleaseFile(proc)
 	}
 	if jInfo == nil {
 		return nil
 	}
-	m[labelJava] = "true"
 	if jInfo.classpath != "" {
 		m[labelJavaClasspath] = jInfo.classpath
 	}
@@ -104,13 +122,7 @@ func getInfoFromJcmd(pid string) (*jvmInfo, error) {
 	return j, nil
 }
 
-func getInfoFromReleaseFile(pid string) (*jvmInfo, error) {
-	pidn, _ := strconv.Atoi(pid)
-	proc, err := procfs.NewProc(pidn)
-	if err != nil {
-		return nil, err
-	}
-
+func getInfoFromReleaseFile(proc procfs.Proc) (*jvmInfo, error) {
 	envVars, err := proc.Environ()
 	if err != nil {
 		return nil, err
