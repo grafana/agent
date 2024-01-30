@@ -145,7 +145,7 @@ To deploy the `GrafanaAgent` resource:
 
     - Specifies an Agent image version.
     - Specifies `MetricsInstance` and `LogsInstance` selectors. These search for `MetricsInstances` and `LogsInstances` in the same namespace with labels matching `agent: grafana-agent-metrics` and `agent: grafana-agent-logs`, respectively.
-    - Sets a `cluster: cloud` label for all metrics shipped to your Prometheus-compatible endpoint. Change this label to your cluster name. To search for `MetricsInstances` or `LogsInstances` in a *different* namespace, use the `instanceNamespaceSelector` field. To learn more about this field, see the `GrafanaAgent` [CRD specification](https://github.com/grafana/agent/blob/main/production/operator/crds/monitoring.grafana.com_grafanaagents.yaml).
+    - Sets a `cluster: cloud` label for all metrics shipped to your Prometheus-compatible endpoint. Change this label to your cluster name. To search for `MetricsInstances` or `LogsInstances` in a *different* namespace, use the `instanceNamespaceSelector` field. To learn more about this field, see the `GrafanaAgent` [CRD specification](https://github.com/grafana/agent/tree/main/operations/agent-static-operator/crds/monitoring.grafana.com_grafanaagents.yaml).
 
 1. Customize the manifests as needed and roll them out to your cluster using `kubectl apply -f` followed by the filename.
 
@@ -403,7 +403,7 @@ To deploy the `LogsInstance` resource into your cluster:
         matchLabels: {}
     ```
 
-    This example tails container logs for all Pods in the `default` namespace. You can restrict the set of matched Pods by using the `matchLabels` selector. You can also set additional `pipelineStages` and create `relabelings` to add or modify log line labels. To learn more about the `PodLogs` specification and available resource fields, see the [PodLogs CRD](https://github.com/grafana/agent/blob/main/production/operator/crds/monitoring.grafana.com_podlogs.yaml).
+    This example tails container logs for all Pods in the `default` namespace. You can restrict the set of matched Pods by using the `matchLabels` selector. You can also set additional `pipelineStages` and create `relabelings` to add or modify log line labels. To learn more about the `PodLogs` specification and available resource fields, see the [PodLogs CRD](https://github.com/grafana/agent/tree/main/operations/agent-static-operator/crds/monitoring.grafana.com_podlogs.yaml).
 
     The above `PodLogs` resource adds the following labels to log lines:
 
