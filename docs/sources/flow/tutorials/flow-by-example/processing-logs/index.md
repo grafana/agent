@@ -44,7 +44,7 @@ loki.source.api "listener" {
 ```
 
 This is a simple configuration.
-You are configuring the `loki.source.api` component to listen on `127.0.0.1:9999` and attach a `source="api"` label to the received log entries, which are then forwarded forwarded to the `loki.process.process_logs` component's exported receiver.
+You are configuring the `loki.source.api` component to listen on `127.0.0.1:9999` and attach a `source="api"` label to the received log entries, which are then forwarded to the `loki.process.process_logs` component's exported receiver.
 Next, you can configure the `loki.process` and `loki.write` components.
 
 ## Process and Write Logs
@@ -135,7 +135,7 @@ You can skip to the next section if you successfully completed the previous sect
 If not, or if you were unsure how things worked, let's break down what is happening in the `loki.process` component.
 
 Many of the `stage.*` blocks in `loki.process` act on reading or writing a shared map of values extracted from the logs.
-You can think of this extracted map as a hashmap or table that each stage has access to and it will be referred to as the "extracted map" from here on.
+You can think of this extracted map as a hashmap or table that each stage has access to, and it is referred to as the "extracted map" from here on.
 In subsequent stages, you can use the extracted map to filter logs, add or remove labels, or even modify the log line.
 
 {{< admonition type="note" >}}
@@ -166,7 +166,7 @@ stage.json {
 }
 ```
 
-This stage parses the log line as JSON and extracts two values from it, `log` and `timestamp`, and puts them into the extracted map with keys `log` and `ts`, respectively. 
+This stage parses the log line as JSON, extracts two values from it, `log` and `timestamp`, and puts them into the extracted map with keys `log` and `ts`, respectively. 
 
 {{< admonition type="note" >}}
 Supplying an empty string is shorthand for using the same key as in the input log line (so `log = ""` is the same as `log = "log"`). The _keys_ of the `expressions` object end up as the keys in the extracted map, and the _values_ are used as keys to look up in the parsed log line.
@@ -210,7 +210,7 @@ stage.timestamp {
 }
 ```
 
-This stage acts on the `ts` value in the extracted map that you extracted in the previous stage.
+This stage acts on the `ts` value in the map you extracted in the previous stage.
 The value of `ts` is parsed in the format of `RFC3339` and added as the timestamp to be ingested by Loki.
 This is useful if you want to use the timestamp present in the log itself, rather than the time the log is ingested.
 This stage does not modify the extracted map.
