@@ -62,8 +62,8 @@ Main (unreleased)
 - Fix an issue where blocks having the same type and the same label across
   modules could result in missed updates. (@thampiotr)
 
-- Add an error diag to the converter from static to flow when `scrape_integration` is set
-  to true but no remote_write is defined. (@erikbaranowski)
+- An error will be returned in the converter from Static to Flow when `scrape_integration` is set
+  to `true` but no `remote_write` is defined. (@erikbaranowski)
 
 ### Other changes
 
