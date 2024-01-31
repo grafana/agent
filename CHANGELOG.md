@@ -69,6 +69,8 @@ Main (unreleased)
 - An error will be returned in the converter from Static to Flow when `scrape_integration` is set
   to `true` but no `remote_write` is defined. (@erikbaranowski)
 
+- Fix error introduced in v0.39.0 preventing remote write to Amazon Managed Prometheus. (@capttncraig)
+
 ### Other changes
 
 - Removed support for Windows 2012 in line with Microsoft end of life. (@mattdurham)
