@@ -53,3 +53,12 @@ func (cn *DeclareNode) NodeID() string { return cn.nodeID }
 
 // ComponentName returns the name of the component being declared.
 func (cn *DeclareNode) ComponentName() string { return cn.componentName }
+
+// Definition implements [CustomComponent] and returns the body of the declare
+// node.
+func (cn *DeclareNode) Definition() (ast.Body, error) {
+	cn.mut.RLock()
+	defer cn.mut.RUnlock()
+
+	return cn.block.Body, nil
+}

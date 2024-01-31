@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/pkg/flow/internal/dag"
 	"github.com/grafana/river/ast"
 )
 
@@ -107,4 +108,38 @@ func (m RegistryMap) Get(name string) (Component, bool) {
 		kind:    ComponentKindBuiltin,
 		builtin: reg,
 	}, true
+}
+
+// customComponentRegistry looks up custom components defined within a graph,
+// falling back to a parent registry if provided.
+type customComponentRegistry struct {
+	parent ComponentRegistry
+	graph  *dag.Graph
+}
+
+func (reg *customComponentRegistry) Get(name string) (Component, bool) {
+	// First look for a custom component.
+	if c, ok := reg.getCustomComponent(name); ok {
+		return c, ok
+	}
+
+	// Fall back to the parent registry if it exists.
+	if reg.parent == nil {
+		return Component{}, false
+	}
+	return reg.parent.Get(name)
+}
+
+func (reg *customComponentRegistry) getCustomComponent(name string) (Component, bool) {
+	node := reg.graph.GetByID("declare." + name)
+	switch node := node.(type) {
+	case *DeclareNode:
+		return Component{
+			kind:   ComponentKindCustom,
+			custom: node,
+		}, true
+
+	default:
+		return Component{}, false
+	}
 }
