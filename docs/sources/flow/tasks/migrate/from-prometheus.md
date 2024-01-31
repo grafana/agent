@@ -71,10 +71,10 @@ This conversion will enable you to take full advantage of the many additional fe
 1. If the `convert` command can't convert a Prometheus configuration, diagnostic information is sent to `stderr`.\
    You can bypass any non-critical issues and output the {{< param "PRODUCT_NAME" >}} configuration using a best-effort conversion by including the `--bypass-errors` flag.
 
-    {{% admonition type="caution" %}}
+    {{< admonition type="caution" >}}
     If you bypass the errors, the behavior of the converted configuration may not match the original Prometheus configuration.
     Make sure you fully test the converted configuration before using it in a production environment.
-    {{% /admonition %}}
+    {{< /admonition >}}
 
    {{< code >}}
 
@@ -143,10 +143,10 @@ Your configuration file must be a valid Prometheus configuration file rather tha
 1. If your Prometheus configuration can't be converted and loaded directly into {{< param "PRODUCT_NAME" >}}, diagnostic information is sent to `stderr`.
    You can bypass any non-critical issues and start the Agent by including the `--config.bypass-conversion-errors` flag in addition to `--config.format=prometheus`.
 
-   {{% admonition type="caution" %}}
+   {{< admonition type="caution" >}}
    If you bypass the errors, the behavior of the converted configuration may not match the original Prometheus configuration.
    Do not use this flag in a production environment.
-   {{% /admonition %}}
+   {{< /admonition >}}
 
 ## Example
 

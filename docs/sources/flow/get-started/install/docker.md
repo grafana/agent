@@ -57,10 +57,10 @@ Replace the following:
 You can modify the last line to change the arguments passed to the {{< param "PRODUCT_NAME" >}} binary.
 Refer to the documentation for [run][] for more information about the options available to the `run` command.
 
-{{% admonition type="note" %}}
+{{< admonition type="note" >}}
 Make sure you pass `--server.http.listen-addr=0.0.0.0:12345` as an argument as shown in the example above.
 If you don't pass this argument, the [debugging UI][UI] won't be available outside of the Docker container.
-{{% /admonition %}}
+{{< /admonition >}}
 
 ## Run a Windows Docker container
 
@@ -82,10 +82,10 @@ Replace the following:
 You can modify the last line to change the arguments passed to the {{< param "PRODUCT_NAME" >}} binary.
 Refer to the documentation for [run][] for more information about the options available to the `run` command.
 
-{{% admonition type="note" %}}
+{{< admonition type="note" >}}
 Make sure you pass `--server.http.listen-addr=0.0.0.0:12345` as an argument as shown in the example above.
 If you don't pass this argument, the [debugging UI][UI] won't be available outside of the Docker container.
-{{% /admonition %}}
+{{< /admonition >}}
 
 ## Verify
 

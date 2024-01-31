@@ -120,9 +120,9 @@ The following blocks are supported inside the definition of `loki.source.awsfire
 ## Debug metrics
 
 The following are some of the metrics that are exposed when this component is used. 
-{{% admonition type="note" %}}
+{{< admonition type="note" >}}
 The metrics include labels  such as `status_code` where relevant, which you can use to measure request success rates.
-{{%/admonition %}}
+{{< /admonition >}}
 
 - `loki_source_awsfirehose_request_errors` (counter): Count of errors while receiving a request.
 - `loki_source_awsfirehose_record_errors` (counter): Count of errors while decoding an individual record.
@@ -206,11 +206,9 @@ loki.relabel "logging_origin" {
 - Components that export [Loki `LogsReceiver`]({{< relref "../compatibility/#loki-logsreceiver-exporters" >}})
 
 
-{{% admonition type="note" %}}
-
-Connecting some components may not be sensible or components may require further configuration to make the 
-connection work correctly. Refer to the linked documentation for more details.
-
-{{% /admonition %}}
+{{< admonition type="note" >}}
+Connecting some components may not be sensible or components may require further configuration to make the connection work correctly.
+Refer to the linked documentation for more details.
+{{< /admonition >}}
 
 <!-- END GENERATED COMPATIBLE COMPONENTS -->

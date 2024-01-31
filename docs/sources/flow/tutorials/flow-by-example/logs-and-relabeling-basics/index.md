@@ -72,13 +72,13 @@ If you run {{< param "PRODUCT_ROOT_NAME" >}} and navigate to [localhost:3000/exp
 
 Relabeling uses the same rules as Prometheus. You can always refer to the [prometheus.relabel documentation](https://grafana.com/docs/agent/<AGENT_VERSION>/flow/reference/components/prometheus.relabel/#rule-block) for a full list of available options.
 
-{{% admonition type="note" %}}
+{{< admonition type="note" >}}
 You can forward multiple components to one `prometheus.relabel` component. This allows you to apply the same relabeling rules to multiple pipelines.
-{{% /admonition %}}
+{{< /admonition >}}
 
-{{% admonition type="warning" %}}
+{{< admonition type="warning" >}}
 There is an issue commonly faced when relabeling and using labels that start with `__` (double underscore). These labels are considered internal and are dropped before relabeling rules from a `prometheus.relabel` component are applied. If you would like to keep or act on these kinds of labels, use a [discovery.relabel](https://grafana.com/docs/agent/<AGENT_VERSION>/flow/reference/components/discovery.relabel/) component.
-{{% /admonition %}}
+{{< /admonition >}}
 
 ## Send logs to Loki
 
@@ -170,9 +170,9 @@ loki.write "local_loki" {
 }
 ```
 
-{{% admonition type="note" %}}
+{{< admonition type="note" >}}
 You can use the [loki.relabel](https://grafana.com/docs/agent/<AGENT_VERSION>/flow/reference/components/loki.relabel) component to relabel and add labels, just like you can with the [prometheus.relabel](https://grafana.com/docs/agent/<AGENT_VERSION>/flow/reference/components/prometheus.relabel) component.
-{{% /admonition %}}
+{{< /admonition >}}
 
 Once you have your completed configuration, run {{< param "PRODUCT_ROOT_NAME" >}} and execute the following:
 
@@ -220,9 +220,9 @@ loki.write "local_loki" {
 
 ### Extract and add a Label from Logs
 
-{{% admonition type="note" %}}
+{{< admonition type="note" >}}
 This exercise is more challenging than the previous one. If you are having trouble, skip it and move to the next section, which will cover some of the concepts used here. You can always come back to this exercise later.
-{{% /admonition %}}
+{{< /admonition >}}
 
 This exercise will build on the previous one, though it's more involved. 
 
@@ -232,9 +232,9 @@ This component allows you to perform processing on logs, including extracting va
 Try modifying your configuration from the previous section to extract the `level` from the logs and add it as a label.
 If needed, you can find a solution to the previous exercise at the end of the [previous section](#add-a-label-to-logs).
 
-{{% admonition type="note" %}}
+{{< admonition type="note" >}}
 The `stage.logfmt` and `stage.labels` blocks for `loki.process` may be helpful.
-{{% /admonition %}}
+{{< /admonition >}}
 
 Once you have your completed config, run {{< param "PRODUCT_ROOT_NAME" >}} and execute the following:
 

@@ -50,17 +50,17 @@ This tutorial covers the basics of the River language and the standard library. 
     }
     ```
 
-    {{% admonition type="note" %}}
+    {{< admonition type="note" >}}
 The default log level is `info` and the default log format is `logfmt`.
-    {{% /admonition %}}
+    {{< /admonition >}}
 
     Try pasting this into `config.river` and running `/path/to/agent run config.river` to see what happens.
 
     Congratulations, you've just written your first River file! You've also just written your first {{< param "PRODUCT_NAME" >}} configuration file. This configuration won't do anything, so let's add some components to it.
 
-    {{% admonition type="note" %}}
+    {{< admonition type="note" >}}
 Comments in River are prefixed with `//` and are single-line only. For example: `// This is a comment`.
-    {{% /admonition %}}
+    {{< /admonition >}}
 
 ## Components
 
@@ -96,11 +96,11 @@ prometheus.remote_write "local_prom" {
 }
 ```
 
-{{% admonition type="note" %}}
+{{< admonition type="note" >}}
 [Component reference]: https://grafana.com/docs/agent/<AGENT_VERSION>/flow/reference/components/
 
 A list of all available components can be found in the [Component reference][]. Each component has a link to its documentation, which contains a description of what the component does, its arguments, its exports, and examples.
-{{% /admonition %}}
+{{< /admonition >}}
 
 This pipeline has two components: `local.file` and `prometheus.remote_write`. The `local.file` component is configured with a single argument, `path`, which is set by calling the [env][] standard library function to retrieve the value of the `HOME` environment variable and concatenating it with the string `"file.txt"`. The `local.file` component has a single export, `content`, which contains the contents of the file.
 
@@ -110,9 +110,9 @@ The `prometheus.remote_write` component is configured with an `endpoint` block, 
 <img src="/media/docs/agent/diagram-flow-by-example-basic-0.svg" alt="Flow of example pipeline with local.file and prometheus.remote_write components" width="200" />
 </p>
 
-{{% admonition type="note" %}}
+{{< admonition type="note" >}}
 The `local.file` component's label is set to `"example"`, so the fully qualified name of the component is `local.file.example`. The `prometheus.remote_write` component's label is set to `"local_prom"`, so the fully qualified name of the component is `prometheus.remote_write.local_prom`.
-{{% /admonition %}}
+{{< /admonition >}}
 
 This example pipeline still doesn't do anything, so let's add some more components to it.
 
@@ -204,11 +204,11 @@ To give a visual hint, you want to create a pipeline that looks like this:
 <img src="/media/docs/agent/diagram-flow-by-example-exercise-0.svg" alt="Flow of exercise pipeline, with a scrape, unix_exporter, redis_exporter, and remote_write component" width="600" />
 </p>
 
-{{% admonition type="note" %}}
+{{< admonition type="note" >}}
 [concat]: https://grafana.com/docs/agent/<AGENT_VERSION>/flow/reference/stdlib/concat/
 
 You may find the [concat][] standard library function useful.
-{{% /admonition %}}
+{{< /admonition >}}
 
 You can run {{< param "PRODUCT_NAME" >}} with the new configuration file by running:
 

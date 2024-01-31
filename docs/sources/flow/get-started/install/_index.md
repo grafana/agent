@@ -29,9 +29,9 @@ The following architectures are supported:
 - macOS: AMD64 (Intel), ARM64 (Apple Silicon)
 - FreeBSD: AMD64
 
-{{% admonition type="note" %}}
+{{< admonition type="note" >}}
 Installing {{< param "PRODUCT_NAME" >}} on other operating systems is possible, but isn't recommended or supported.
-{{% /admonition %}}
+{{< /admonition >}}
 
 {{< section >}}
 
