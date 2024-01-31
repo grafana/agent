@@ -195,7 +195,7 @@ func newController(o controllerOptions) *Flow {
 			ControllerID:    o.ControllerID,
 			NewModuleController: func(id string) controller.ModuleController {
 				return newModuleController(&moduleControllerOptions{
-					ComponentRegistry: o.ComponentRegistry,
+					ComponentRegistry: f.loader.ComponentRegistry(),
 					ModuleRegistry:    o.ModuleRegistry,
 					Logger:            log,
 					Tracer:            tracer,

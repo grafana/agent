@@ -136,6 +136,9 @@ func (l *Loader) Apply(args map[string]any, componentBlocks []*ast.BlockStmt, co
 	if diags.HasErrors() {
 		return diags
 	}
+	// Immediately store the new graph. This is required as some nodes can
+	// perform a graph lookup during evaluation.
+	l.graph = &newGraph
 
 	var (
 		components   = make([]ComponentNode, 0, len(componentBlocks))
@@ -232,7 +235,6 @@ func (l *Loader) Apply(args map[string]any, componentBlocks []*ast.BlockStmt, co
 
 	l.componentNodes = components
 	l.serviceNodes = services
-	l.graph = &newGraph
 	l.cache.SyncIDs(componentIDs)
 	l.blocks = componentBlocks
 	if l.globals.OnExportsChange != nil && l.cache.ExportChangeIndex() != l.moduleExportIndex {
@@ -437,6 +439,9 @@ func (l *Loader) populateConfigBlockNodes(args map[string]any, g *dag.Graph, con
 
 // populateComponentNodes adds any components to the graph.
 func (l *Loader) populateComponentNodes(g *dag.Graph, componentBlocks []*ast.BlockStmt) diag.Diagnostics {
+	// Create a registry which is aware of custom components.
+	reg := &customComponentRegistry{parent: l.componentReg, graph: g}
+
 	var (
 		diags    diag.Diagnostics
 		blockMap = make(map[string]*ast.BlockStmt, len(componentBlocks))
@@ -463,7 +468,7 @@ func (l *Loader) populateComponentNodes(g *dag.Graph, componentBlocks []*ast.Blo
 			c.UpdateBlock(block)
 		} else {
 			componentName := block.GetBlockName()
-			component, exists := l.componentReg.Get(componentName)
+			component, exists := reg.Get(componentName)
 			if !exists {
 				diags.Add(diag.Diagnostic{
 					Severity: diag.SeverityLevelError,
@@ -484,12 +489,15 @@ func (l *Loader) populateComponentNodes(g *dag.Graph, componentBlocks []*ast.Blo
 				continue
 			}
 
-			if kind := component.Kind(); kind != ComponentKindBuiltin {
-				panic(fmt.Sprintf("unexpected component kind %s", kind))
+			// Create a new component.
+			switch component.Kind() {
+			case ComponentKindBuiltin:
+				c = NewBuiltinComponentNode(l.globals, component.Builtin(), block)
+			case ComponentKindCustom:
+				c = NewCustomComponentNode(l.globals, component.Custom(), block)
+			default:
+				panic(fmt.Sprintf("unexpected component kind %s", component.Kind()))
 			}
-
-			// Create a new component
-			c = NewBuiltinComponentNode(l.globals, component.Builtin(), block)
 		}
 
 		g.Add(c)
@@ -530,7 +538,9 @@ func (l *Loader) wireGraphEdges(g *dag.Graph) diag.Diagnostics {
 				continue
 			}
 
-			customRegistry := &customComponentRegistry{parent: l.componentReg, graph: g}
+			// We only want to find declare references to DeclareNodes in the same
+			// graph, so we pass nil for the parent registy here.
+			customRegistry := &customComponentRegistry{parent: nil, graph: g}
 			declareDeps, declareDiags := l.findDeclareReferences(customRegistry, def)
 			diags = append(diags, declareDiags...)
 			for _, dep := range declareDeps {
@@ -815,4 +825,30 @@ func multierrToDiags(errors error) diag.Diagnostics {
 func (l *Loader) isModule() bool {
 	// Either 1 of these checks is technically sufficient but let's be extra careful.
 	return l.globals.OnExportsChange != nil && l.globals.ControllerID != ""
+}
+
+// ComponentRegistry returns a ComponentRegistry for the loader which can look
+// up components including custom components defined in the Loader.
+func (l *Loader) ComponentRegistry() ComponentRegistry {
+	return loaderComponentRegistry{parent: l.componentReg, loader: l}
+}
+
+type loaderComponentRegistry struct {
+	parent ComponentRegistry
+	loader *Loader
+}
+
+func (reg loaderComponentRegistry) Get(name string) (Component, bool) {
+	// Try to get the loader's graph. This may be unavailable due to an
+	// in-progress evaluation.
+	//
+	// TODO(rfratto): this is a code smell; the graph should have its own mutex
+	// if it's going to be accessed from multiple goroutines after it's
+	// constructed.
+	if reg.loader.mut.TryRLock() {
+		defer reg.loader.mut.RUnlock()
+	}
+
+	graphReg := customComponentRegistry{parent: reg.parent, graph: reg.loader.graph}
+	return graphReg.Get(name)
 }
