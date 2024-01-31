@@ -29,6 +29,7 @@ You can use Puppet to install and manage {{< param "PRODUCT_NAME" >}}.
 To add {{< param "PRODUCT_NAME" >}} to a host:
 
 1. Ensure that the following module dependencies are declared and installed:
+
     ```json
     {
     "name": "puppetlabs/apt",
