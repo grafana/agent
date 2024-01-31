@@ -456,7 +456,7 @@ func (l *Loader) populateComponentNodes(g *dag.Graph, componentBlocks []*ast.Blo
 			c.UpdateBlock(block)
 		} else {
 			componentName := block.GetBlockName()
-			registration, exists := l.componentReg.Get(componentName)
+			component, exists := l.componentReg.Get(componentName)
 			if !exists {
 				diags.Add(diag.Diagnostic{
 					Severity: diag.SeverityLevelError,
@@ -477,8 +477,12 @@ func (l *Loader) populateComponentNodes(g *dag.Graph, componentBlocks []*ast.Blo
 				continue
 			}
 
+			if kind := component.Kind(); kind != ComponentKindBuiltin {
+				panic(fmt.Sprintf("unexpected component kind %s", kind))
+			}
+
 			// Create a new component
-			c = NewBuiltinComponentNode(l.globals, registration, block)
+			c = NewBuiltinComponentNode(l.globals, component.Builtin(), block)
 		}
 
 		g.Add(c)
