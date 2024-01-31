@@ -50,6 +50,7 @@ func PID(logger log.Logger, pid string) (map[string]string, error) {
 
 	for _, a := range []analyzerFunc{
 		analyzeGo,
+		analyzeCpp,
 		analyzePython,
 		analyzeDotNet,
 		analyzeJava,
