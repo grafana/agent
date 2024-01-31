@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"path"
+	"strings"
 	"sync"
 	"time"
 
@@ -96,6 +97,7 @@ func NewLoader(opts LoaderOptions) *Loader {
 		cache:         newValueCache(),
 		cm:            newControllerMetrics(globals.ControllerID),
 	}
+
 	l.cc = newControllerCollector(l, globals.ControllerID)
 
 	if globals.Registerer != nil {
@@ -501,7 +503,7 @@ func (l *Loader) wireGraphEdges(g *dag.Graph) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	for _, n := range g.Nodes() {
-		// First, wire up dependencies on services.
+		// First, wire up dependencies on special nodes.
 		switch n := n.(type) {
 		case *ServiceNode: // Service depending on other services.
 			for _, depName := range n.Definition().DependsOn {
@@ -516,6 +518,25 @@ func (l *Loader) wireGraphEdges(g *dag.Graph) diag.Diagnostics {
 
 				g.AddEdge(dag.Edge{From: n, To: dep})
 			}
+
+		case *DeclareNode: // Declare nodes may depend on other declare nodes.
+			def, err := n.Definition()
+			if err != nil {
+				diags.Add(diag.Diagnostic{
+					Severity: diag.SeverityLevelError,
+					Message:  fmt.Sprintf("could not  get definition of %s: %s", n.NodeID(), err),
+				})
+
+				continue
+			}
+
+			customRegistry := &customComponentRegistry{parent: l.componentReg, graph: g}
+			declareDeps, declareDiags := l.findDeclareReferences(customRegistry, def)
+			diags = append(diags, declareDiags...)
+			for _, dep := range declareDeps {
+				fmt.Println("Adding edge from", n.NodeID(), "to", dep.NodeID())
+				g.AddEdge(dag.Edge{From: n, To: dep})
+			}
 		}
 
 		// Finally, wire component references.
@@ -527,6 +548,49 @@ func (l *Loader) wireGraphEdges(g *dag.Graph) diag.Diagnostics {
 	}
 
 	return diags
+}
+
+// findDeclareReferences recursively finds all references to DeclareNodes made
+// within a given ast.Body.
+func (l *Loader) findDeclareReferences(reg ComponentRegistry, body ast.Body) ([]*DeclareNode, diag.Diagnostics) {
+	var (
+		deps  []*DeclareNode
+		diags diag.Diagnostics
+	)
+
+	for _, stmt := range body {
+		block, isBlock := stmt.(*ast.BlockStmt)
+		if !isBlock {
+			continue
+		}
+
+		componentName := strings.Join(block.Name, ".")
+
+		if componentName == "declare" {
+			// Recursively search inner declare blocks.
+			innerDeps, innerDiags := l.findDeclareReferences(reg, block.Body)
+			diags = append(diags, innerDiags...)
+			deps = append(deps, innerDeps...)
+			continue
+		}
+
+		// Make a best-effort attempt to look up the component. This will only
+		// be able to find top-level declare components since we only have access
+		// to the root scope right now.
+		//
+		// This is OK; top-level declare components are the only declare blocks
+		// that have a node in the DAG at this stage anyway.
+		//
+		// If a declare block references an invalid component, it will be reported
+		// as an error when evaluating an instantiation of that component.
+		component, ok := reg.Get(componentName)
+		if ok && component.Kind() == ComponentKindCustom {
+			// TODO(rfratto): the CustomComponent is not necessarily a DeclareNode.
+			deps = append(deps, component.Custom().(*DeclareNode))
+		}
+	}
+
+	return deps, diags
 }
 
 // Variables returns the Variables the Loader exposes for other Flow components

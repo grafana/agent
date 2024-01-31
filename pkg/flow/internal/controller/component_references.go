@@ -34,6 +34,17 @@ func ComponentReferences(cn dag.Node, g *dag.Graph) ([]Reference, diag.Diagnosti
 	)
 
 	switch cn := cn.(type) {
+	case *DeclareNode:
+		// Special case: DeclareNode can have references to components inside its
+		// definition. However, since DeclareNode is run in its own dedicated
+		// controller without access to external components, we don't need to
+		// detect anything here.
+		//
+		// TODO(rfratto): Relax the restriction that declare components can't
+		// reference external compnoents, as it's mentioned in the RFC as a
+		// requirement. See grafana/agent#5547.
+		return []Reference{}, nil
+
 	case BlockNode:
 		if cn.Block() != nil {
 			traversals = expressionsFromBody(cn.Block().Body)
