@@ -61,6 +61,9 @@ func (c *Config) Name() string {
 	return "apache_http"
 }
 
+// IsSingleton returns whether the integration is a singleton
+func (c *Config) IsSingleton() bool { return false }
+
 type apacheHandler struct {
 	cfg *Config
 	log log.Logger

@@ -82,7 +82,7 @@ func (c *Config) NewIntegration(log log.Logger) (integrations.Integration, error
 
 func init() {
 	integrations.RegisterIntegration(&Config{})
-	integrations_v2.RegisterLegacy(&Config{}, integrations_v2.TypeMultiplex, metricsutils.NewNamedShim("squid"))
+	integrations_v2.RegisterLegacy(&Config{}, integrations_v2.TypeMultiplex, metricsutils.NewNamedShim("squid", false))
 }
 
 // New creates a new squid integration. The integration scrapes metrics

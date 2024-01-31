@@ -48,6 +48,7 @@ func Test_controller_UpdateIntegration(t *testing.T) {
 				integrationStartWg.Add(1)
 				return mockIntegration, nil
 			},
+			IsSingletonFunc: func() bool { return true },
 		},
 	}
 

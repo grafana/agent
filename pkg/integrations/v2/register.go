@@ -228,10 +228,12 @@ func MarshalYAML(v interface{}) (interface{}, error) {
 			panic(fmt.Sprintf("config not registered: %T", data))
 		}
 
-		if _, exists := uniqueSingletons[fieldName]; exists {
-			return nil, fmt.Errorf("integration %q may not be defined more than once", fieldName)
+		if c.IsSingleton() {
+			if _, exists := uniqueSingletons[fieldName]; exists {
+				return nil, fmt.Errorf("integration %q may not be defined more than once", fieldName)
+			}
+			uniqueSingletons[fieldName] = struct{}{}
 		}
-		uniqueSingletons[fieldName] = struct{}{}
 
 		// TODO(rfratto): make sure that TypeSingleton integrations are unique on
 		// marshaling out

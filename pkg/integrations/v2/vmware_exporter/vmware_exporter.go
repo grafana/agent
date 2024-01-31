@@ -52,6 +52,9 @@ func (c *Config) Name() string {
 	return "vsphere"
 }
 
+// IsSingleton returns whether the integration is a singleton
+func (c *Config) IsSingleton() bool { return false }
+
 // ApplyDefaults applies the integration's default configuration.
 func (c *Config) ApplyDefaults(g integrations.Globals) error {
 	c.Common.ApplyDefaults(g.SubsystemOpts.Metrics.Autoscrape)

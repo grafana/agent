@@ -53,7 +53,7 @@ func (c *Config) Name() string {
 
 func init() {
 	integrations.RegisterIntegration(&Config{})
-	integrations_v2.RegisterLegacy(&Config{}, integrations_v2.TypeMultiplex, metricsutils.NewNamedShim("snowflake"))
+	integrations_v2.RegisterLegacy(&Config{}, integrations_v2.TypeMultiplex, metricsutils.NewNamedShim("snowflake", false))
 }
 
 // NewIntegration creates a new integration from the config.

@@ -209,6 +209,7 @@ func (s *legacyShim) Identifier(g Globals) (string, error) { return g.AgentIdent
 func (s *legacyShim) NewIntegration(log.Logger, Globals) (Integration, error) {
 	return NoOpIntegration, nil
 }
+func (s *legacyShim) IsSingleton() bool { return true }
 
 type testIntegrationA struct {
 	Text  string `yaml:"text"`
@@ -221,6 +222,7 @@ func (i *testIntegrationA) Identifier(Globals) (string, error) { return "integra
 func (i *testIntegrationA) NewIntegration(log.Logger, Globals) (Integration, error) {
 	return NoOpIntegration, nil
 }
+func (i *testIntegrationA) IsSingleton() bool { return true }
 
 func (i *testIntegrationA) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	i.Truth = true
@@ -238,6 +240,7 @@ func (*testIntegrationB) Identifier(Globals) (string, error) { return "integrati
 func (*testIntegrationB) NewIntegration(log.Logger, Globals) (Integration, error) {
 	return NoOpIntegration, nil
 }
+func (*testIntegrationB) IsSingleton() bool { return true }
 
 type testFullConfig struct {
 	// Some random fields that will also be exposed

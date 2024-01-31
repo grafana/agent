@@ -155,6 +155,7 @@ func Test_controller_SingletonCheck(t *testing.T) {
 			integrationsWg.Add(1)
 			return mockIntegration, nil
 		},
+		IsSingletonFunc: func() bool { return true },
 	}
 	configMap := make(map[Config]Type)
 	configMap[&c1] = TypeSingleton
@@ -221,6 +222,7 @@ type mockConfig struct {
 	ConfigEqualsFunc   func(Config) bool
 	IdentifierFunc     func(Globals) (string, error)
 	NewIntegrationFunc func(log.Logger, Globals) (Integration, error)
+	IsSingletonFunc    func() bool
 }
 
 func (mc mockConfig) Name() string {
@@ -256,6 +258,10 @@ func (mc mockConfig) WithNewIntegrationFunc(f func(log.Logger, Globals) (Integra
 	}
 }
 
+func (mc mockConfig) IsSingleton() bool {
+	return mc.IsSingletonFunc()
+}
+
 func mockConfigNameTuple(t *testing.T, name, id string) mockConfig {
 	t.Helper()
 
@@ -266,6 +272,7 @@ func mockConfigNameTuple(t *testing.T, name, id string) mockConfig {
 		NewIntegrationFunc: func(log.Logger, Globals) (Integration, error) {
 			return NoOpIntegration, nil
 		},
+		IsSingletonFunc: func() bool { return true },
 	}
 }
 

@@ -46,6 +46,9 @@ func (c *Config) Name() string {
 	return "blackbox"
 }
 
+// IsSingleton returns whether the integration is a singleton
+func (c *Config) IsSingleton() bool { return true }
+
 // ApplyDefaults applies the integration's default configuration.
 func (c *Config) ApplyDefaults(globals integrations_v2.Globals) error {
 	c.Common.ApplyDefaults(globals.SubsystemOpts.Metrics.Autoscrape)

@@ -106,6 +106,9 @@ func (c *Config) ApplyDefaults(globals integrations.Globals) error {
 // Name returns the name of the integration that this config represents
 func (c *Config) Name() string { return IntegrationName }
 
+// IsSingleton returns whether the integration is a singleton
+func (c *Config) IsSingleton() bool { return false }
+
 // Identifier uniquely identifies the app agent receiver integration
 func (c *Config) Identifier(globals integrations.Globals) (string, error) {
 	if c.Common.InstanceKey != nil {

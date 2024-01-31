@@ -19,6 +19,9 @@ type Config struct {
 // Name returns the name of the integration that this config represents.
 func (c *Config) Name() string { return "agent" }
 
+// IsSingleton returns whether the integration is a singleton
+func (c *Config) IsSingleton() bool { return true }
+
 // ApplyDefaults applies runtime-specific defaults to c.
 func (c *Config) ApplyDefaults(globals integrations.Globals) error {
 	c.Common.ApplyDefaults(globals.SubsystemOpts.Metrics.Autoscrape)
