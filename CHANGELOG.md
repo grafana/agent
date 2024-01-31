@@ -14,6 +14,8 @@ Main (unreleased)
 
 - Prohibit the configuration of services within modules. (@wildum)
 
+- For `otelcol.exporter` components, change the default value of `disable_high_cardinality_metrics` to `true`. (@ptodev)
+
 ### Features
 
 - A new `discovery.process` component for discovering Linux OS processes on the current host. (@korniltsev)
@@ -71,6 +73,17 @@ Main (unreleased)
 - Split instance ID and component groupings into separate panels for `remote write active series by component` in the Flow mixin. (@tristanburgess)
 
 - Updated dependency to add support for Go 1.22 (@stefanb)
+
+v0.39.2 (2024-1-31)
+--------------------
+
+### Bugfixes
+
+- Fix error introduced in v0.39.0 preventing remote write to Amazon Managed Prometheus. (@captncraig)
+
+- An error will be returned in the converter from Static to Flow when `scrape_integration` is set
+  to `true` but no `remote_write` is defined. (@erikbaranowski)
+
 
 v0.39.1 (2024-01-19)
 --------------------

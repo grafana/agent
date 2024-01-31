@@ -30,10 +30,10 @@ weight: 200
 
 ## Deploy
 
-{{% admonition type="note" %}}
+{{< admonition type="note" >}}
 These instructions show you how to install the generic [Helm chart](https://github.com/grafana/agent/tree/main/operations/helm/charts/grafana-agent) for {{< param "PRODUCT_NAME" >}}.
 You can deploy {{< param "PRODUCT_ROOT_NAME" >}} either in static mode or flow mode. The Helm chart deploys {{< param "PRODUCT_NAME" >}} by default.
-{{% /admonition %}}
+{{< /admonition >}}
 
 To deploy {{< param "PRODUCT_ROOT_NAME" >}} on Kubernetes using Helm, run the following commands in a terminal window:
 

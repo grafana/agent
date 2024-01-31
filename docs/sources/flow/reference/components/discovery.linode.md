@@ -20,9 +20,9 @@ discovery.linode "LABEL" {
 }
 ```
 
-{{% admonition type="note" %}}
+{{< admonition type="note" >}}
 The linode APIv4 Token must be created with the scopes: `linodes:read_only`, `ips:read_only`, and `events:read_only`.
-{{% /admonition %}}
+{{< /admonition >}}
 
 ## Arguments
 
@@ -185,11 +185,9 @@ prometheus.remote_write "demo" {
 
 - Components that consume [Targets]({{< relref "../compatibility/#targets-consumers" >}})
 
-{{% admonition type="note" %}}
-
-Connecting some components may not be sensible or components may require further configuration to make the 
-connection work correctly. Refer to the linked documentation for more details.
-
-{{% /admonition %}}
+{{< admonition type="note" >}}
+Connecting some components may not be sensible or components may require further configuration to make the connection work correctly.
+Refer to the linked documentation for more details.
+{{< /admonition >}}
 
 <!-- END GENERATED COMPATIBLE COMPONENTS -->
