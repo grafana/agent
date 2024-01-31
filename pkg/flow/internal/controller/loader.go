@@ -385,6 +385,7 @@ func (l *Loader) populateConfigBlockNodes(args map[string]any, g *dag.Graph, con
 		nodeMap = NewConfigNodeMap()
 	)
 
+	// TODO(rfratto): Don't recreate the ConfigNode blocks every time we reload.
 	for _, block := range configBlocks {
 		node, newConfigNodeDiags := NewConfigNode(block, l.globals)
 		diags = append(diags, newConfigNodeDiags...)

@@ -60,7 +60,7 @@ func ParseSource(name string, bb []byte) (*Source, error) {
 		case *ast.BlockStmt:
 			fullName := strings.Join(stmt.Name, ".")
 			switch fullName {
-			case "logging", "tracing", "argument", "export":
+			case "logging", "tracing", "argument", "export", "declare":
 				configs = append(configs, stmt)
 			default:
 				components = append(components, stmt)
