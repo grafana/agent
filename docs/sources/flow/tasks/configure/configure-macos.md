@@ -31,11 +31,11 @@ To configure {{< param "PRODUCT_NAME" >}} on macOS, perform the following steps:
 
 ## Configure the {{% param "PRODUCT_NAME" %}} service
 
-{{% admonition type="note" %}}
+{{< admonition type="note" >}}
 Due to limitations in Homebrew, customizing the service used by
 {{< param "PRODUCT_NAME" >}} on macOS requires changing the Homebrew formula and
 reinstalling {{< param "PRODUCT_NAME" >}}.
-{{% /admonition %}}
+{{< /admonition >}}
 
 To customize the {{< param "PRODUCT_NAME" >}} service on macOS, perform the following
 steps:

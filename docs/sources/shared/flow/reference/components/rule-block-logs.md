@@ -40,6 +40,6 @@ You can use the following actions:
 * `replace`   - Matches `regex` to the concatenated labels. If there's a match, it replaces the content of the `target_label` using the contents of the `replacement` field.
 * `uppercase` - Sets `target_label` to the uppercase form of the concatenated `source_labels`.
 
-{{% admonition type="note" %}}
+{{< admonition type="note" >}}
 The regular expression capture groups can be referred to using either the `$CAPTURE_GROUP_NUMBER` or `${CAPTURE_GROUP_NUMBER}` notation.
-{{% /admonition %}}
+{{< /admonition >}}
