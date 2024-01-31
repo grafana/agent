@@ -1,6 +1,10 @@
 ---
 aliases:
 - /docs/grafana-cloud/agent/flow/get-started/install/chef/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/get-started/install/chef/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/get-started/install/chef/
+- /docs/grafana-cloud/send-data/agent/flow/get-started/install/chef/
+
 canonical: https://grafana.com/docs/agent/latest/flow/get-started/install/chef/
 description: Learn how to install Grafana Agent Flow with Chef
 menuTitle: Chef
