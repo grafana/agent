@@ -19,18 +19,25 @@ func analyzeJava(pid string, reader io.ReaderAt, m map[string]string) error {
 		return err
 	}
 
-	cmdLine, err := proc.CmdLine()
-	isJava := false
-	for _, c := range cmdLine {
-		if strings.Contains(c, "java") {
-			isJava = true
-			break
+	executable, err := proc.Executable()
+	if err != nil {
+		return err
+	}
+	if strings.HasSuffix(executable, "java") {
+		m[labelJava] = "true"
+	} else {
+		cmdLine, err := proc.CmdLine()
+		if err != nil {
+			return err
+		}
+
+		for _, c := range cmdLine {
+			if strings.HasPrefix(c, "java") {
+				m[labelJava] = "true"
+				break
+			}
 		}
 	}
 
-	if !isJava {
-		return nil
-	}
-	m[labelJava] = "true"
 	return nil
 }
