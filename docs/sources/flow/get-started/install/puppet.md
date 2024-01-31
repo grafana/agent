@@ -26,7 +26,7 @@ You can use Puppet to install and manage {{< param "PRODUCT_NAME" >}}.
 
 ## Steps
 
-To add {{% param "PRODUCT_NAME" %}} to a host:
+To add {{< param "PRODUCT_NAME" >}} to a host:
 
 1. Ensure that the following module dependencies are declared and installed:
     ```json
