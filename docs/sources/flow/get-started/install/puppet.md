@@ -108,7 +108,6 @@ The default configuration file location is `/etc/grafana-agent-flow.river`. You 
 [Puppet]: https://www.puppet.com/
 
 {{% docs/reference %}}
-
 [Configure]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/tasks/configure/configure-linux.md"
 [Configure]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/tasks/configure/configure-linux.md"
 {{% /docs/reference %}}
