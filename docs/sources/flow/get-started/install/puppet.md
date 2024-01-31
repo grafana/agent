@@ -19,7 +19,7 @@ You can use Puppet to install and manage {{< param "PRODUCT_NAME" >}}.
 ## Before you begin
 
 - These steps assume you already have a working [Puppet][] setup.
-- You can add the following manifest to any new or existing module you choose.
+- You can add the following manifest to any new or existing module.
 - The manifest installs {{< param "PRODUCT_NAME" >}} from the package repositories. It targets Linux systems from the following families:
   - Debian (including Ubuntu)
   - RedHat Enterprise Linux (including Fedora)
