@@ -685,9 +685,10 @@ replace (
 //
 // * There is a release of Prometheus which contains
 // prometheus/prometheus#13002
+// and prometheus/prometheus#13497
 // We use the last v1-related tag as the replace statement does not work for v2
 // tags without the v2 suffix to the module root.
-replace github.com/prometheus/prometheus => github.com/grafana/prometheus v1.8.2-0.20240105105355-3e2c486167d2 // grafana/prometheus@drop-old-inmemory-samples-squashed-2
+replace github.com/prometheus/prometheus => github.com/grafana/prometheus v1.8.2-0.20240130142130-51b39f24d406 // cmp_header_order branch
 
 replace gopkg.in/yaml.v2 => github.com/rfratto/go-yaml v0.0.0-20211119180816-77389c3526dc
 

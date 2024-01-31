@@ -1078,8 +1078,8 @@ github.com/grafana/opentelemetry-collector/service v0.0.0-20231018134914-c0109e0
 github.com/grafana/opentelemetry-collector/service v0.0.0-20231018134914-c0109e052230/go.mod h1:kBdpzrqR2wJkOdg50yzp4dv+2XBMyeqTgF4lCx0hSpQ=
 github.com/grafana/postgres_exporter v0.8.1-0.20210722175051-db35d7c2f520 h1:HnFWqxhoSF3WC7sKAdMZ+SRXvHLVZlZ3sbQjuUlTqkw=
 github.com/grafana/postgres_exporter v0.8.1-0.20210722175051-db35d7c2f520/go.mod h1:+HPXgiOV0InDHcZ2jNijL1SOKvo0eEPege5fQA0+ICI=
-github.com/grafana/prometheus v1.8.2-0.20240105105355-3e2c486167d2 h1:eJD8U9G91ID/pKsLjJnjqve8yv1NiE/l6dGYnwchPVM=
-github.com/grafana/prometheus v1.8.2-0.20240105105355-3e2c486167d2/go.mod h1:SRw624aMAxTfryAcP8rOjg4S/sHHaetx2lyJJ2nM83g=
+github.com/grafana/prometheus v1.8.2-0.20240130142130-51b39f24d406 h1:LVIOYe5j92m10wluP5hgeHqSkOLnZzcPxhYCkdbLXCE=
+github.com/grafana/prometheus v1.8.2-0.20240130142130-51b39f24d406/go.mod h1:SRw624aMAxTfryAcP8rOjg4S/sHHaetx2lyJJ2nM83g=
 github.com/grafana/pyroscope-go/godeltaprof v0.1.3 h1:eunWpv1B3Z7ZK9o4499EmQGlY+CsDmSZ4FbxjRx37uk=
 github.com/grafana/pyroscope-go/godeltaprof v0.1.3/go.mod h1:1HSPtjU8vLG0jE9JrTdzjgFqdJ/VgN7fvxBNq3luJko=
 github.com/grafana/pyroscope/api v0.2.0 h1:TzOxL0s6SiaLEy944ZAKgHcx/JDRJXu4O8ObwkqR6p4=

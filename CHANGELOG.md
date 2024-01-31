@@ -7,6 +7,16 @@ This document contains a historical list of changes between releases. Only
 changes that impact end-user behavior are listed; changes to documentation or
 internal API changes are not present.
 
+v0.39.2 (2024-1-31)
+--------------------
+
+### Bugfixes
+
+- Fix error introduced in v0.39.0 preventing remote write to Amazon Managed Prometheus. (@captncraig)
+
+- An error will be returned in the converter from Static to Flow when `scrape_integration` is set
+  to `true` but no `remote_write` is defined. (@erikbaranowski)
+
 v0.39.1 (2024-01-19)
 --------------------
 
