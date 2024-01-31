@@ -7,84 +7,16 @@ This document contains a historical list of changes between releases. Only
 changes that impact end-user behavior are listed; changes to documentation or
 internal API changes are not present.
 
-<<<<<<< HEAD
-=======
-Main (unreleased)
------------------
-
-### Breaking changes
-
-- Prohibit the configuration of services within modules. (@wildum)
-
-- For `otelcol.exporter` components, change the default value of `disable_high_cardinality_metrics` to `true`. (@ptodev)
-
-### Features
-
-- A new `discovery.process` component for discovering Linux OS processes on the current host. (@korniltsev)
-
-- A new `pyroscope.java` component for profiling Java processes using async-profiler. (@korniltsev)
-
-- A new `otelcol.processor.resourcedetection` component which inserts resource attributes 
-  to OTLP telemetry based on the host on which Grafana Agent is running. (@ptodev)
-  
-### Enhancements
-
-- Include line numbers in profiles produced by `pyrsocope.java` component. (@korniltsev)
-- Add an option to the windows static mode installer for expanding environment vars in the yaml config. (@erikbaranowski)
-- Add authentication support to `loki.source.awsfirehose` (@sberz)
-
-- Sort kubelet endpoint to reduce pressure on K8s's API server and watcher endpoints. (@hainenber)
-
-- Expose `physical_disk` collector from `windows_exporter` v0.24.0 to 
-  Flow configuration. (@hainenber)
-
-- Renamed Grafana Agent Mixin's "prometheus.remote_write" dashboard to
-  "Prometheus Components" and added charts for `prometheus.scrape` success rate
-  and duration metrics. (@thampiotr)
-
-- Removed `ClusterLamportClockDrift` and `ClusterLamportClockStuck` alerts from
-  Grafana Agent Mixin to focus on alerting on symptoms. (@thampiotr)
-
-- Increased clustering alert periods to 10 minutes to improve the
-  signal-to-noise ratio in Grafana Agent Mixin. (@thampiotr)
-  
-- `mimir.rules.kubernetes` has a new `prometheus_http_prefix` argument to configure 
-  the HTTP endpoint on which to connect to Mimir's API. (@hainenber)
-
-- `service_name` label is inferred from discovery meta labels in `pyroscope.java` (@korniltsev)
+v0.39.2 (2024-1-31)
+--------------------
 
 ### Bugfixes
 
-- Fix an issue in `remote.s3` where the exported content of an object would be an empty string if `remote.s3` failed to fully retrieve
-  the file in a single read call. (@grafana/agent-squad)
-
-- Utilize the `instance` Argument of `prometheus.exporter.kafka` when set. (@akhmatov-s)
-
-- Fix a duplicate metrics registration panic when sending metrics to an static
-  mode metric instance's write handler. (@tpaschalis)
-
-- Fix issue causing duplicate logs when a docker target is restarted. (@captncraig)
-
-- Fix an issue where blocks having the same type and the same label across
-  modules could result in missed updates. (@thampiotr)
+- Fix error introduced in v0.39.0 preventing remote write to Amazon Managed Prometheus. (@captncraig)
 
 - An error will be returned in the converter from Static to Flow when `scrape_integration` is set
   to `true` but no `remote_write` is defined. (@erikbaranowski)
 
-<<<<<<< HEAD
-- Fix error introduced in v0.39.0 preventing remote write to Amazon Managed Prometheus. (@capttncraig)
-
-=======
->>>>>>> 5089e6087 (Add an error diag to the converter from static to flow when `scrape_i… (#6270))
-### Other changes
-
-- Removed support for Windows 2012 in line with Microsoft end of life. (@mattdurham)
-
-- Split instance ID and component groupings into separate panels for `remote write active series by component` in the Flow mixin. (@tristanburgess)
-
-- Updated dependency to add support for Go 1.22 (@stefanb)
-
->>>>>>> 62530fb85 (fix for errors sending to amp (#6272))
 v0.39.1 (2024-01-19)
 --------------------
 
