@@ -97,8 +97,12 @@ can help you pin down a profiling target.
 
 ### Targets 
 
-One of the following special labels `__container_id__`, `__meta_docker_container_id`, and `__meta_kubernetes_pod_container_id`, 
-`__process_pid__` _must always_ be present in each target of `targets` and correspond to the container or process to profile.
+One of the following special labels _must_ be included in each target of `targets` and the label must correspond to the container or process that is profiled:
+
+* `__container_id__`: The container ID.
+* `__meta_docker_container_id`: The ID of the Docker container.
+* `__meta_kubernetes_pod_container_id`: The ID of the Kubernetes pod container.
+* `__process_pid__` : The process ID.
 
 Each process is then associated with a specified target from the targets list, determined by a container ID or process PID. 
 
