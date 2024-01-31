@@ -37,6 +37,18 @@ func ParseSource(name string, bb []byte) (*Source, error) {
 		return nil, err
 	}
 
+	source, err := sourceFromBody(node.Body)
+	if err != nil {
+		return nil, err
+	}
+	source.sourceMap = map[string][]byte{name: bb}
+	source.hash = sha256.Sum256(bb)
+	return source, nil
+}
+
+// sourceFromBody creates a Source from an existing AST. This must only be used
+// internally as there will be no sourceMap or hash.
+func sourceFromBody(body ast.Body) (*Source, error) {
 	// Look for predefined non-components blocks (i.e., logging), and store
 	// everything else into a list of components.
 	//
@@ -47,7 +59,7 @@ func ParseSource(name string, bb []byte) (*Source, error) {
 		configs    []*ast.BlockStmt
 	)
 
-	for _, stmt := range node.Body {
+	for _, stmt := range body {
 		switch stmt := stmt.(type) {
 		case *ast.AttributeStmt:
 			return nil, diag.Diagnostic{
@@ -79,8 +91,6 @@ func ParseSource(name string, bb []byte) (*Source, error) {
 	return &Source{
 		components:   components,
 		configBlocks: configs,
-		sourceMap:    map[string][]byte{name: bb},
-		hash:         sha256.Sum256(bb),
 	}, nil
 }
 
