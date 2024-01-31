@@ -40,7 +40,9 @@ To add {{< param "PRODUCT_NAME" >}} to a host:
     "version_requirement": "<= 2.0.0"
     }
     ```
+
 1. Create a new [Puppet][] manifest with the following class to add the Grafana package repositories, install the `grafana-agent-flow` package, and run the service:
+
     ```ruby
     class grafana_agent::grafana_agent_flow () {
       case $::os['family'] {
