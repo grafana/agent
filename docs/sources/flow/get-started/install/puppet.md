@@ -88,7 +88,9 @@ To add {{< param "PRODUCT_NAME" >}} to a host:
       }
     }
     ```
+
 1. To use this class in a module, add the following line to the module's `init.pp` file:
+
     ```ruby
     include grafana_agent::grafana_agent_flow
     ```
