@@ -8,12 +8,15 @@ type Scope struct {
 	imports  map[string]*Scope   // importNamespace: importScope
 }
 
-func NewScope(parent *Scope) *Scope {
-	return &Scope{
-		parent:   parent,
+func NewScope(parent any) *Scope {
+	s := &Scope{
 		declares: make(map[string]*Declare),
 		imports:  make(map[string]*Scope),
 	}
+	if parent != nil {
+		s.parent = parent.(*Scope)
+	}
+	return s
 }
 
 func (s *Scope) DeepCopy() *Scope {

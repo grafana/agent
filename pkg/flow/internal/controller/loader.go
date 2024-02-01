@@ -138,13 +138,7 @@ func (l *Loader) Apply(args map[string]any, componentBlocks []*ast.BlockStmt, co
 	}
 	l.cache.SyncModuleArgs(args)
 
-	// TODO: change this
-	if options.Scope != nil {
-		l.componentNodeManager.scope = NewScope(options.Scope.(*Scope))
-	} else {
-		l.componentNodeManager.scope = NewScope(nil)
-	}
-
+	l.componentNodeManager.scope = NewScope(options.Scope)
 	newGraph, diags := l.loadNewGraph(args, componentBlocks, configBlocks, declares)
 	if diags.HasErrors() {
 		return diags
@@ -278,10 +272,11 @@ func (l *Loader) loadNewGraph(args map[string]any, componentBlocks []*ast.BlockS
 	// block.
 	diags := l.populateServiceNodes(&g, serviceBlocks)
 
+	// Fill our graph with declare blocks, must be added before componentNodes.
 	declareDiags := l.populateDeclareNodes(&g, declares)
 	diags = append(diags, declareDiags...)
 
-	// Fill our graph with config blocks.
+	// Fill our graph with config blocks, must be added before componentNodes.
 	configBlockDiags := l.populateConfigBlockNodes(args, &g, configBlocks)
 	diags = append(diags, configBlockDiags...)
 
