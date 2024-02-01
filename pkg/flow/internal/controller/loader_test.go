@@ -89,6 +89,22 @@ func TestLoader(t *testing.T) {
 		requireGraph(t, l.Graph(), testGraphDefinition)
 	})
 
+	t.Run("Reload Graph New Config", func(t *testing.T) {
+		l := controller.NewLoader(newLoaderOptions())
+		diags := applyFromContent(t, l, []byte(testFile), []byte(testConfig))
+		require.NoError(t, diags.ErrorOrNil())
+		requireGraph(t, l.Graph(), testGraphDefinition)
+		updatedTestConfig := `
+			tracing {
+				sampling_fraction = 2
+			}
+		`
+		diags = applyFromContent(t, l, []byte(testFile), []byte(updatedTestConfig))
+		require.NoError(t, diags.ErrorOrNil())
+		// Expect the same graph because tracing is still there and logging will be added by default.
+		requireGraph(t, l.Graph(), testGraphDefinition)
+	})
+
 	t.Run("New Graph No Config", func(t *testing.T) {
 		l := controller.NewLoader(newLoaderOptions())
 		diags := applyFromContent(t, l, []byte(testFile), nil)
