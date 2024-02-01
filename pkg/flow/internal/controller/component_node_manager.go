@@ -13,7 +13,7 @@ type ComponentNodeManager struct {
 	scope        *Scope
 }
 
-type getCustomComponentConfig func(namespace string, componentName string) (*Declare, *Scope)
+type getCustomComponentConfig func(namespace string, componentName string) (ast.Body, *Scope)
 
 // NewComponentNodeManager creates a new ComponentNodeManager.
 func NewComponentNodeManager(globals ComponentGlobals, componentReg ComponentRegistry) *ComponentNodeManager {
@@ -37,9 +37,9 @@ func (m *ComponentNodeManager) createComponentNode(componentName string, block *
 	}
 }
 
-func (m *ComponentNodeManager) getCustomComponentConfig(namespace string, componentName string) (*Declare, *Scope) {
+func (m *ComponentNodeManager) getCustomComponentConfig(namespace string, componentName string) (ast.Body, *Scope) {
 	var (
-		template *Declare
+		template ast.Body
 		scope    *Scope
 	)
 
@@ -64,7 +64,7 @@ func isCustomComponent(scope *Scope, namespace string) bool {
 	return declareExists || importExists || isCustomComponent(scope.parent, namespace)
 }
 
-func findLocalDeclare(scope *Scope, componentName string) (*Declare, *Scope) {
+func findLocalDeclare(scope *Scope, componentName string) (ast.Body, *Scope) {
 	if declare, ok := scope.declares[componentName]; ok {
 		return declare, scope
 	}
@@ -74,7 +74,7 @@ func findLocalDeclare(scope *Scope, componentName string) (*Declare, *Scope) {
 	return nil, nil
 }
 
-func findImportedDeclare(scope *Scope, namespace string, componentName string) (*Declare, *Scope) {
+func findImportedDeclare(scope *Scope, namespace string, componentName string) (ast.Body, *Scope) {
 	if imported, ok := scope.imports[namespace]; ok {
 		if declare, ok := imported.declares[componentName]; ok {
 			return declare, imported

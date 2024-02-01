@@ -126,7 +126,7 @@ func NewLoader(opts LoaderOptions) *Loader {
 // to expose values of other components.
 //
 // Declares are pieces of config that can be used as a blueprints to instantiate custom components.
-func (l *Loader) Apply(args map[string]any, componentBlocks []*ast.BlockStmt, configBlocks []*ast.BlockStmt, declares []*Declare, options config.LoaderConfigOptions) diag.Diagnostics {
+func (l *Loader) Apply(args map[string]any, componentBlocks []*ast.BlockStmt, configBlocks []*ast.BlockStmt, declares []*ast.BlockStmt, options config.LoaderConfigOptions) diag.Diagnostics {
 	start := time.Now()
 	l.mut.Lock()
 	defer l.mut.Unlock()
@@ -262,7 +262,7 @@ func (l *Loader) Cleanup(stopWorkerPool bool) {
 }
 
 // loadNewGraph creates a new graph from the provided blocks and validates it.
-func (l *Loader) loadNewGraph(args map[string]any, componentBlocks []*ast.BlockStmt, configBlocks []*ast.BlockStmt, declares []*Declare) (dag.Graph, diag.Diagnostics) {
+func (l *Loader) loadNewGraph(args map[string]any, componentBlocks []*ast.BlockStmt, configBlocks []*ast.BlockStmt, declares []*ast.BlockStmt) (dag.Graph, diag.Diagnostics) {
 	var g dag.Graph
 
 	// Split component blocks into blocks for components and services.
@@ -324,7 +324,7 @@ func (l *Loader) splitComponentBlocks(blocks []*ast.BlockStmt) (componentBlocks,
 	return componentBlocks, serviceBlocks
 }
 
-func (l *Loader) populateDeclareNodes(g *dag.Graph, declares []*Declare) diag.Diagnostics {
+func (l *Loader) populateDeclareNodes(g *dag.Graph, declares []*ast.BlockStmt) diag.Diagnostics {
 	var diags diag.Diagnostics
 	l.declareNodes = map[string]*DeclareNode{}
 	for _, declare := range declares {
@@ -532,7 +532,7 @@ func (l *Loader) wireGraphEdges(g *dag.Graph) diag.Diagnostics {
 				g.AddEdge(dag.Edge{From: n, To: dep})
 			}
 		case *DeclareNode:
-			refs := l.findCustomComponentReferences(n.Declare())
+			refs := l.findCustomComponentReferences(n.Block())
 			for ref := range refs {
 				g.AddEdge(dag.Edge{From: n, To: ref})
 			}
@@ -555,7 +555,7 @@ func (l *Loader) wireGraphEdges(g *dag.Graph) diag.Diagnostics {
 // wireCustomComponentNode wires a custom component to the import/declare nodes that it depends on.
 func (l *Loader) wireCustomComponentNode(g *dag.Graph, cc *CustomComponentNode) {
 	if declare, ok := l.declareNodes[cc.declareLabel]; ok {
-		refs := l.findCustomComponentReferences(declare.Declare())
+		refs := l.findCustomComponentReferences(declare.Block())
 		for ref := range refs {
 			g.AddEdge(dag.Edge{From: cc, To: ref})
 		}
@@ -801,9 +801,9 @@ func (l *Loader) isModule() bool {
 	return l.globals.OnExportsChange != nil && l.globals.ControllerID != ""
 }
 
-func (l *Loader) findCustomComponentReferences(declare *Declare) map[BlockNode]struct{} {
+func (l *Loader) findCustomComponentReferences(declare *ast.BlockStmt) map[BlockNode]struct{} {
 	uniqueReferences := make(map[BlockNode]struct{})
-	l.collectCustomComponentReferences(declare.block.Body, uniqueReferences)
+	l.collectCustomComponentReferences(declare.Body, uniqueReferences)
 	return uniqueReferences
 }
 

@@ -13,6 +13,7 @@ import (
 	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/grafana/agent/pkg/flow/tracing"
+	"github.com/grafana/river/ast"
 	"github.com/grafana/river/scanner"
 	"github.com/prometheus/client_golang/prometheus"
 	"golang.org/x/exp/maps"
@@ -129,8 +130,17 @@ func newModule(o *moduleOptions) *module {
 }
 
 // LoadConfig parses River config and loads it.
-func (c *module) LoadConfig(cfg []byte, args map[string]any, options config.LoaderConfigOptions) error {
+func (c *module) LoadConfig(cfg []byte, args map[string]any) error {
 	ff, err := ParseSource(c.o.ID, cfg)
+	if err != nil {
+		return err
+	}
+	return c.f.LoadSource(ff, args)
+}
+
+// LoadBody loads a pre-parsed River config.
+func (c *module) LoadBody(body ast.Body, args map[string]any, options config.LoaderConfigOptions) error {
+	ff, err := sourceFromBody(body)
 	if err != nil {
 		return err
 	}

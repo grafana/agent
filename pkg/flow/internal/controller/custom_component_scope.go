@@ -1,16 +1,20 @@
 package controller
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/grafana/river/ast"
+)
 
 type Scope struct {
 	parent   *Scope
-	declares map[string]*Declare // customComponentName: template
+	declares map[string]ast.Body // customComponentName: template
 	imports  map[string]*Scope   // importNamespace: importScope
 }
 
 func NewScope(parent any) *Scope {
 	s := &Scope{
-		declares: make(map[string]*Declare),
+		declares: make(map[string]ast.Body),
 		imports:  make(map[string]*Scope),
 	}
 	if parent != nil {
@@ -41,8 +45,8 @@ func (s *Scope) DeepCopy() *Scope {
 	return newScope
 }
 
-func (s *Scope) registerDeclare(declare *Declare) {
-	s.declares[declare.block.Label] = declare
+func (s *Scope) registerDeclare(declare *ast.BlockStmt) {
+	s.declares[declare.Label] = declare.Body
 }
 
 func (s *Scope) registerImport(importLabel string) {

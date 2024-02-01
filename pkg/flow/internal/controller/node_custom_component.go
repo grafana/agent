@@ -11,7 +11,6 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/component"
-	"github.com/grafana/agent/component/module"
 	"github.com/grafana/agent/pkg/flow/config"
 	"github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/grafana/river/ast"
@@ -30,17 +29,17 @@ type CustomComponentNode struct {
 	importLabel       string
 	declareLabel      string
 	nodeID            string // Cached from id.String() to avoid allocating new strings every time NodeID is called.
-	managedOpts       module.ModuleComponentOptions
 	moduleController  ModuleController
 	OnBlockNodeUpdate func(cn BlockNode) // Informs controller that we need to reevaluate
+	logger            log.Logger
 
 	getConfig getCustomComponentConfig // Retrieve the custom component config.
 
 	mut     sync.RWMutex
 	block   *ast.BlockStmt // Current River block to derive args from
 	eval    *vm.Evaluator
-	managed *module.ModuleComponent // Inner managed custom component
-	args    component.Arguments     // Evaluated arguments for the managed component
+	managed component.Module    // Inner managed custom component
+	args    component.Arguments // Evaluated arguments for the managed component
 
 	// NOTE(rfratto): health and exports have their own mutex because they may be
 	// set asynchronously while mut is still being held (i.e., when calling Evaluate
@@ -111,6 +110,7 @@ func NewCustomComponentNode(globals ComponentGlobals, b *ast.BlockStmt, getConfi
 		declareLabel:      declareLabel,
 		moduleController:  globals.NewModuleController(globalID),
 		OnBlockNodeUpdate: globals.OnBlockNodeUpdate,
+		logger:            log.With(globals.Logger, "component", globalID),
 		getConfig:         getConfig,
 
 		block: b,
@@ -118,12 +118,6 @@ func NewCustomComponentNode(globals ComponentGlobals, b *ast.BlockStmt, getConfi
 
 		evalHealth: initHealth,
 		runHealth:  initHealth,
-	}
-	cn.managedOpts = module.ModuleComponentOptions{
-		ID:               cn.globalID,
-		Logger:           log.With(globals.Logger, "component", cn.globalID),
-		OnStateChange:    cn.setExports,
-		ModuleController: cn.moduleController,
 	}
 
 	return cn
@@ -189,11 +183,11 @@ func (cn *CustomComponentNode) evaluate(evalScope *vm.Scope) error {
 
 	if cn.managed == nil {
 		// We haven't built the managed custom component successfully yet.
-		managed, err := module.NewModuleComponentV2(cn.managedOpts)
+		mod, err := cn.moduleController.NewModule("", func(exports map[string]any) { cn.setExports(exports) })
 		if err != nil {
-			return fmt.Errorf("building custom component: %w", err)
+			return fmt.Errorf("creating custom component controller: %w", err)
 		}
-		cn.managed = managed
+		cn.managed = mod
 	}
 
 	template, scope := cn.getConfig(cn.importLabel, cn.declareLabel)
@@ -206,7 +200,7 @@ func (cn *CustomComponentNode) evaluate(evalScope *vm.Scope) error {
 	}
 
 	// Reload the custom component with new config
-	if err := cn.managed.LoadFlowSource(args, template.content, loaderConfig); err != nil {
+	if err := cn.managed.LoadBody(template, args, loaderConfig); err != nil {
 		return fmt.Errorf("updating custom component: %w", err)
 	}
 	return nil
@@ -215,7 +209,7 @@ func (cn *CustomComponentNode) evaluate(evalScope *vm.Scope) error {
 func (cn *CustomComponentNode) Run(ctx context.Context) error {
 	cn.mut.RLock()
 	managed := cn.managed
-	logger := cn.managedOpts.Logger
+	logger := cn.logger
 	cn.mut.RUnlock()
 
 	if managed == nil {
@@ -223,11 +217,14 @@ func (cn *CustomComponentNode) Run(ctx context.Context) error {
 	}
 
 	cn.setRunHealth(component.HealthTypeHealthy, "started custom component")
-	managed.RunFlowController(ctx)
+	err := managed.Run(ctx)
+	if err != nil {
+		level.Error(logger).Log("msg", "error running custom component", "id", cn.nodeID, "err", err)
+	}
 
 	level.Info(logger).Log("msg", "custom component exited")
 	cn.setRunHealth(component.HealthTypeExited, "custom component shut down")
-	return nil
+	return err
 }
 
 // Arguments returns the current arguments of the managed custom component.
@@ -287,7 +284,7 @@ func (cn *CustomComponentNode) setExports(e component.Exports) {
 func (cn *CustomComponentNode) CurrentHealth() component.Health {
 	cn.healthMut.RLock()
 	defer cn.healthMut.RUnlock()
-	return component.LeastHealthy(cn.runHealth, cn.evalHealth, cn.managed.CurrentHealth())
+	return component.LeastHealthy(cn.runHealth, cn.evalHealth)
 }
 
 // setEvalHealth sets the internal health from a call to Evaluate. See Health

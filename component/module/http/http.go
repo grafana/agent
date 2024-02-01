@@ -15,9 +15,8 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name: "module.http",
-		Args: Arguments{},
-		//nolint:staticcheck
+		Name:    "module.http",
+		Args:    Arguments{},
 		Exports: module.Exports{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
@@ -59,7 +58,6 @@ var (
 
 // New creates a new module.http component.
 func New(o component.Options, args Arguments) (*Component, error) {
-	//nolint:staticcheck
 	m, err := module.NewModuleComponent(o)
 	if err != nil {
 		return nil, err

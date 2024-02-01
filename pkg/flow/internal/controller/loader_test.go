@@ -231,7 +231,7 @@ func applyFromContent(t *testing.T, l *controller.Loader, componentBytes []byte,
 		diags           diag.Diagnostics
 		componentBlocks []*ast.BlockStmt
 		configBlocks    []*ast.BlockStmt = nil
-		declares        []*controller.Declare
+		declares        []*ast.BlockStmt
 	)
 
 	componentBlocks, diags = fileToBlock(t, componentBytes)

@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/grafana/agent/component"
-	"github.com/grafana/agent/pkg/flow/config"
 	"github.com/grafana/agent/pkg/flow/internal/controller"
 	"github.com/grafana/agent/pkg/flow/internal/testcomponents"
 	"github.com/grafana/agent/pkg/flow/internal/testservices"
@@ -277,7 +276,7 @@ func TestComponents_Using_Services_In_Modules(t *testing.T) {
 					mod, err := opts.ModuleController.NewModule("", nil)
 					require.NoError(t, err, "Failed to create module")
 
-					err = mod.LoadConfig([]byte(`service_consumer "example" {}`), nil, config.DefaultLoaderConfigOptions())
+					err = mod.LoadConfig([]byte(`service_consumer "example" {}`), nil)
 					require.NoError(t, err, "Failed to load module config")
 
 					return &testcomponents.Fake{

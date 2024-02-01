@@ -41,7 +41,7 @@ type ImportConfigNode struct {
 	importChildrenRunning     bool
 
 	contentMut       sync.RWMutex
-	importedDeclares map[string]*Declare
+	importedDeclares map[string]ast.Body
 	inContentUpdate  bool
 	content          string
 
@@ -168,7 +168,7 @@ func (cn *ImportConfigNode) processDeclareBlock(stmt *ast.BlockStmt, content str
 		level.Error(cn.logger).Log("msg", "declare block redefined", "name", stmt.Label)
 		return
 	}
-	cn.importedDeclares[stmt.Label] = NewDeclare(stmt, content[stmt.LCurlyPos.Position().Offset+1:stmt.RCurlyPos.Position().Offset-1])
+	cn.importedDeclares[stmt.Label] = stmt.Body
 }
 
 // processDeclareBlock processes an import block.
@@ -205,7 +205,7 @@ func (cn *ImportConfigNode) onContentUpdate(content string) {
 		cn.inContentUpdate = false
 		cn.contentMut.Unlock()
 	}()
-	cn.importedDeclares = make(map[string]*Declare)
+	cn.importedDeclares = make(map[string]ast.Body)
 	cn.contentMut.Unlock()
 
 	node, err := parser.ParseFile(cn.label, []byte(content))
@@ -313,7 +313,7 @@ func (cn *ImportConfigNode) OnChildrenContentUpdate(child BlockNode) {
 }
 
 // GetImportedDeclareByLabel returns a declare block imported by the node.
-func (cn *ImportConfigNode) GetImportedDeclareByLabel(declareLabel string) (*Declare, error) {
+func (cn *ImportConfigNode) GetImportedDeclareByLabel(declareLabel string) (ast.Body, error) {
 	cn.contentMut.Lock()
 	defer cn.contentMut.Unlock()
 	if declare, ok := cn.importedDeclares[declareLabel]; ok {
@@ -408,7 +408,7 @@ func (cn *ImportConfigNode) Component() component.Component {
 }
 
 // ImportedDeclares returns all declare blocks that it imported.
-func (cn *ImportConfigNode) ImportedDeclares() map[string]*Declare {
+func (cn *ImportConfigNode) ImportedDeclares() map[string]ast.Body {
 	cn.contentMut.RLock()
 	defer cn.contentMut.RUnlock()
 	return cn.importedDeclares
