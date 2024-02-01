@@ -15,12 +15,12 @@ import (
 	"connectrpc.com/connect"
 	"github.com/go-kit/log"
 	agentv1 "github.com/grafana/agent-remote-config/api/gen/proto/go/agent/v1"
+	"github.com/grafana/agent-remote-config/api/gen/proto/go/agent/v1/agentv1connect"
 	"github.com/grafana/agent/component/common/config"
 	"github.com/grafana/agent/internal/agentseed"
 	"github.com/grafana/agent/pkg/flow"
 	"github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/grafana/agent/service"
-	"github.com/grafana/agentre-remote-config/api/gen/proto/go/agent/v1/agentv1connect"
 	commonconfig "github.com/prometheus/common/config"
 )
 
