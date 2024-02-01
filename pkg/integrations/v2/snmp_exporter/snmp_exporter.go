@@ -73,9 +73,6 @@ func (c *Config) Name() string {
 	return "snmp"
 }
 
-// IsSingleton returns whether the integration is a singleton
-func (c *Config) IsSingleton() bool { return true }
-
 func init() {
 	integrations_v2.Register(&Config{}, integrations_v2.TypeSingleton)
 }

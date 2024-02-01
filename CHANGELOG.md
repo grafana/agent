@@ -66,6 +66,9 @@ Main (unreleased)
 - Fix an issue where blocks having the same type and the same label across
   modules could result in missed updates. (@thampiotr)
 
+- Fix an issue with static integrations-next marshaling where non singletons
+  would cause `/-/config` to fail to marshal. (@erikbaranowski)
+
 ### Other changes
 
 - Removed support for Windows 2012 in line with Microsoft end of life. (@mattdurham)

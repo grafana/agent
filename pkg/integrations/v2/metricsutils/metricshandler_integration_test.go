@@ -80,4 +80,3 @@ func (fakeConfig) Identifier(g integrations.Globals) (string, error) { return g.
 func (fakeConfig) NewIntegration(_ log.Logger, _ integrations.Globals) (integrations.Integration, error) {
 	return nil, fmt.Errorf("not implemented")
 }
-func (fakeConfig) IsSingleton() bool { return true }

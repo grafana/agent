@@ -54,7 +54,7 @@ func (c *Config) UnmarshalYAML(unmarshal func(interface{}) error) error {
 
 func init() {
 	integrations.RegisterIntegration(&Config{})
-	integrations_v2.RegisterLegacy(&Config{}, integrations_v2.TypeMultiplex, metricsutils.NewNamedShim("dnsmasq", false))
+	integrations_v2.RegisterLegacy(&Config{}, integrations_v2.TypeMultiplex, metricsutils.NewNamedShim("dnsmasq"))
 }
 
 // New creates a new dnsmasq_exporter integration. The integration scrapes metrics

@@ -17,13 +17,12 @@ import (
 
 // NewNamedShim returns a v2.UpgradeFunc which will upgrade a v1.Config to a
 // v2.Config with a new name.
-func NewNamedShim(newName string, isSingleton bool) v2.UpgradeFunc {
+func NewNamedShim(newName string) v2.UpgradeFunc {
 	return func(before v1.Config, common common.MetricsConfig) v2.UpgradedConfig {
 		return &ConfigShim{
 			Orig:         before,
 			Common:       common,
 			nameOverride: newName,
-			isSingleton:  isSingleton,
 		}
 	}
 }
@@ -38,7 +37,6 @@ type ConfigShim struct {
 	Orig         v1.Config
 	Common       common.MetricsConfig
 	nameOverride string
-	isSingleton  bool
 }
 
 var (
@@ -54,10 +52,6 @@ func (s *ConfigShim) Name() string {
 		return s.nameOverride
 	}
 	return s.Orig.Name()
-}
-
-func (s *ConfigShim) IsSingleton() bool {
-	return s.isSingleton
 }
 
 func (s *ConfigShim) ApplyDefaults(g v2.Globals) error {

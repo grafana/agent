@@ -64,9 +64,6 @@ type Config interface {
 	// Integration.RunIntegration to do anything with side effects, such as
 	// opening a port.
 	NewIntegration(log.Logger, Globals) (Integration, error)
-
-	// Whether or not this config is a singleton.
-	IsSingleton() bool
 }
 
 // ComparableConfig extends Config with an ConfigEquals method.
