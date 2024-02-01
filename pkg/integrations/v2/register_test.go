@@ -186,6 +186,39 @@ func TestIntegrationRegistration_Marshal_MultipleSingleton(t *testing.T) {
 	require.EqualError(t, err, `integration "test" may not be defined more than once`)
 }
 
+func TestIntegrationRegistration_Marshal_Multiplex(t *testing.T) {
+	setRegistered(t, map[Config]Type{
+		&testIntegrationA{}: TypeMultiplex,
+		&testIntegrationB{}: TypeMultiplex,
+	})
+
+	// Generate an invalid config, which has two instances of a Singleton
+	// integration.
+	input := testFullConfig{
+		Name:     "John Doe",
+		Duration: 500 * time.Millisecond,
+		Default:  12345,
+		Configs: []Config{
+			&testIntegrationA{Text: "Hello, world!", Truth: true},
+			&testIntegrationA{Text: "Hello again!", Truth: true},
+		},
+	}
+
+	expectedCfg := `name: John Doe
+duration: 500ms
+default: 12345
+test_configs:
+- text: Hello, world!
+  truth: true
+- text: Hello again!
+  truth: true
+`
+
+	cfg, err := yaml.Marshal(&input)
+	require.NoError(t, err)
+	require.Equal(t, expectedCfg, string(cfg))
+}
+
 type legacyConfig struct {
 	Text string `yaml:"text"`
 }

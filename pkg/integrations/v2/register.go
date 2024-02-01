@@ -228,7 +228,7 @@ func MarshalYAML(v interface{}) (interface{}, error) {
 			panic(fmt.Sprintf("config not registered: %T", data))
 		}
 
-		if _, exists := uniqueSingletons[fieldName]; exists {
+		if _, exists := uniqueSingletons[fieldName]; exists && integrationType == TypeSingleton {
 			return nil, fmt.Errorf("integration %q may not be defined more than once", fieldName)
 		}
 		uniqueSingletons[fieldName] = struct{}{}
