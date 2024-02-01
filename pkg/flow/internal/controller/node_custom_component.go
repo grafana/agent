@@ -11,7 +11,6 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/component"
-	"github.com/grafana/agent/pkg/flow/config"
 	"github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/grafana/river/ast"
 	"github.com/grafana/river/vm"
@@ -195,7 +194,7 @@ func (cn *CustomComponentNode) evaluate(evalScope *vm.Scope) error {
 		return fmt.Errorf("could not retrieve custom component config")
 	}
 
-	loaderConfig := config.LoaderConfigOptions{
+	loaderConfig := component.LoaderConfigOptions{
 		Scope: scope,
 	}
 

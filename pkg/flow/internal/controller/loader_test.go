@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"github.com/grafana/agent/component"
-	"github.com/grafana/agent/pkg/flow/config"
 	"github.com/grafana/agent/pkg/flow/internal/controller"
 	"github.com/grafana/agent/pkg/flow/internal/dag"
 	"github.com/grafana/agent/pkg/flow/logging"
@@ -246,7 +245,7 @@ func applyFromContent(t *testing.T, l *controller.Loader, componentBytes []byte,
 		}
 	}
 
-	applyDiags := l.Apply(nil, componentBlocks, configBlocks, declareBlocks, config.DefaultLoaderConfigOptions())
+	applyDiags := l.Apply(nil, componentBlocks, configBlocks, declareBlocks, component.LoaderConfigOptions{})
 	diags = append(diags, applyDiags...)
 
 	return diags

@@ -7,7 +7,6 @@ import (
 	"sync"
 
 	"github.com/grafana/agent/component"
-	"github.com/grafana/agent/pkg/flow/config"
 	"github.com/grafana/agent/pkg/flow/internal/controller"
 	"github.com/grafana/agent/pkg/flow/internal/worker"
 	"github.com/grafana/agent/pkg/flow/logging"
@@ -139,7 +138,7 @@ func (c *module) LoadConfig(config []byte, args map[string]any) error {
 }
 
 // LoadBody loads a pre-parsed River config.
-func (c *module) LoadBody(body ast.Body, args map[string]any, options config.LoaderConfigOptions) error {
+func (c *module) LoadBody(body ast.Body, args map[string]any, options component.LoaderConfigOptions) error {
 	ff, err := sourceFromBody(body)
 	if err != nil {
 		return err
