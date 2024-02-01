@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/grafana/agent/component"
-	"github.com/grafana/agent/pkg/flow/config"
 	"github.com/grafana/agent/pkg/flow/logging/level"
 )
 
@@ -17,11 +16,10 @@ type ModuleComponent struct {
 	opts component.Options
 	mod  component.Module
 
-	mut                       sync.RWMutex
-	health                    component.Health
-	latestContent             string
-	latestArgs                map[string]any
-	latestLoaderConfigOptions config.LoaderConfigOptions
+	mut           sync.RWMutex
+	health        component.Health
+	latestContent string
+	latestArgs    map[string]any
 }
 
 type Exports struct {
@@ -44,7 +42,7 @@ func NewModuleComponent(o component.Options) (*ModuleComponent, error) {
 // LoadFlowSource loads the flow controller with the current component source.
 // It will set the component health in addition to return the error so that the consumer can rely on either or both.
 // If the content is the same as the last time it was successfully loaded, it will not be reloaded.
-func (c *ModuleComponent) LoadFlowSource(args map[string]any, contentValue string, options config.LoaderConfigOptions) error {
+func (c *ModuleComponent) LoadFlowSource(args map[string]any, contentValue string) error {
 	if reflect.DeepEqual(args, c.getLatestArgs()) && contentValue == c.getLatestContent() {
 		return nil
 	}
