@@ -386,19 +386,31 @@ func (l *Loader) populateConfigBlockNodes(args map[string]any, g *dag.Graph, con
 	)
 
 	for _, block := range configBlocks {
-		node, newConfigNodeDiags := NewConfigNode(block, l.globals)
-		diags = append(diags, newConfigNodeDiags...)
+		var (
+			node               BlockNode
+			newConfigNodeDiags diag.Diagnostics
+		)
+		id := BlockComponentID(block).String()
+		// Check the graph from the previous call to Load to see we can copy an
+		// existing instance of BlockNode.
+		if exist := l.graph.GetByID(id); exist != nil {
+			node = exist.(BlockNode)
+			node.UpdateBlock(block)
+		} else {
+			node, newConfigNodeDiags = NewConfigNode(block, l.globals)
+			diags = append(diags, newConfigNodeDiags...)
 
-		if g.GetByID(node.NodeID()) != nil {
-			configBlockStartPos := ast.StartPos(block).Position()
-			diags.Add(diag.Diagnostic{
-				Severity: diag.SeverityLevelError,
-				Message:  fmt.Sprintf("%q block already declared at %s", node.NodeID(), configBlockStartPos),
-				StartPos: configBlockStartPos,
-				EndPos:   ast.EndPos(block).Position(),
-			})
+			if g.GetByID(node.NodeID()) != nil {
+				configBlockStartPos := ast.StartPos(block).Position()
+				diags.Add(diag.Diagnostic{
+					Severity: diag.SeverityLevelError,
+					Message:  fmt.Sprintf("%q block already declared at %s", node.NodeID(), configBlockStartPos),
+					StartPos: configBlockStartPos,
+					EndPos:   ast.EndPos(block).Position(),
+				})
 
-			continue
+				continue
+			}
 		}
 
 		nodeMapDiags := nodeMap.Append(node)
