@@ -98,8 +98,6 @@ func AssertMetricData(t *testing.T, query, expectedMetric string, testName strin
 		if assert.NotEmpty(c, metricResponse.Data.Result) {
 			assert.Equal(c, metricResponse.Data.Result[0].Metric.Name, expectedMetric)
 			assert.Equal(c, metricResponse.Data.Result[0].Metric.TestName, testName)
-			fmt.Println(metricResponse.Data.Result[0])
-			fmt.Println(metricResponse.Data.Result[0].Value)
 			assert.NotEmpty(c, metricResponse.Data.Result[0].Value.Value)
 			assert.Nil(c, metricResponse.Data.Result[0].Histogram)
 		}
