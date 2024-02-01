@@ -42,7 +42,6 @@ type Service struct {
 
 	mut               sync.RWMutex
 	asClient          agentv1connect.AgentServiceClient
-	getConfigRequest  *connect.Request[agentv1.GetConfigRequest]
 	ticker            *time.Ticker
 	dataPath          string
 	currentConfigHash string
@@ -151,7 +150,15 @@ func (s *Service) Run(ctx context.Context, host service.Host) error {
 	)
 
 	s.mut.RLock()
-	gcr, getErr = s.asClient.GetConfig(ctx, s.getConfigRequest)
+	req := connect.NewRequest(&agentv1.GetConfigRequest{
+		Id:       s.args.ID,
+		Metadata: s.args.Metadata,
+	})
+	gcr, err := s.asClient.GetConfig(ctx, req)
+	if err != nil {
+		return err
+	}
+	gcr, getErr = s.asClient.GetConfig(ctx, req)
 	if getErr == nil {
 		src, parseErr = flow.ParseSource(ServiceName, []byte(gcr.Msg.GetContent()))
 	}
@@ -192,7 +199,11 @@ func (s *Service) Run(ctx context.Context, host service.Host) error {
 		select {
 		case <-s.ticker.C:
 			s.mut.RLock()
-			gcr, err := s.asClient.GetConfig(ctx, s.getConfigRequest)
+			req := connect.NewRequest(&agentv1.GetConfigRequest{
+				Id:       s.args.ID,
+				Metadata: s.args.Metadata,
+			})
+			gcr, err := s.asClient.GetConfig(ctx, req)
 			if err != nil {
 				level.Error(s.opts.Logger).Log("msg", "failed to fetch configuration from the API", "err", err)
 				continue
@@ -246,10 +257,8 @@ func (s *Service) Update(newConfig any) error {
 		s.mut.Lock()
 		defer s.mut.Unlock()
 		s.ticker.Reset(math.MaxInt64)
-		s.getConfigRequest = nil
 		s.asClient = nil
 		s.args.HTTPClientConfig = nil
-		s.getConfigRequest = nil
 		s.currentConfigHash = ""
 		return nil
 	}
@@ -271,10 +280,6 @@ func (s *Service) Update(newConfig any) error {
 		)
 	}
 
-	s.getConfigRequest = connect.NewRequest(&agentv1.GetConfigRequest{
-		Id:       newArgs.ID,
-		Metadata: newArgs.Metadata,
-	})
 	s.args = newArgs
 
 	return nil
