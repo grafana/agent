@@ -26,6 +26,9 @@ func analyzeGo(input Input, a *Results) error {
 	m := a.Labels
 	info, err := buildinfo.Read(input.File) // it reads elf second time
 	if err != nil {
+		if err.Error() == "not a Go executable" {
+			return nil
+		}
 		return err
 	}
 
