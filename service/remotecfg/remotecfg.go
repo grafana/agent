@@ -105,8 +105,9 @@ func New(opts Options) (*Service, error) {
 	}
 
 	return &Service{
-		opts:   opts,
-		ticker: time.NewTicker(math.MaxInt64),
+		opts:     opts,
+		asClient: noopClient{},
+		ticker:   time.NewTicker(math.MaxInt64),
 	}, nil
 }
 
@@ -257,8 +258,8 @@ func (s *Service) Update(newConfig any) error {
 		s.mut.Lock()
 		defer s.mut.Unlock()
 		s.ticker.Reset(math.MaxInt64)
-		s.asClient = nil
-		s.args.HTTPClientConfig = nil
+		s.asClient = noopClient{}
+		s.args.HTTPClientConfig = config.CloneDefaultHTTPClientConfig()
 		s.currentConfigHash = ""
 		return nil
 	}
