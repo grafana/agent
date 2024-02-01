@@ -9,7 +9,7 @@ title: Grafana Agent
 description: Grafana Agent is a flexible, performant, vendor-neutral, telemetry collector
 weight: 350
 cascade:
-  AGENT_RELEASE: v0.39.1
+  AGENT_RELEASE: v0.39.2
   OTEL_VERSION: v0.87.0
 ---
 
@@ -24,11 +24,11 @@ Grafana Agent is based around **components**. Components are wired together to
 form programmable observability **pipelines** for telemetry collection,
 processing, and delivery.
 
-{{% admonition type="note" %}}
+{{< admonition type="note" >}}
 This page focuses mainly on [Flow mode](https://grafana.com/docs/agent/<AGENT_VERSION>/flow/), the Terraform-inspired variant of Grafana Agent.
 
 For information on other variants of Grafana Agent, refer to [Introduction to Grafana Agent]({{< relref "./about.md" >}}).
-{{% /admonition %}}
+{{< /admonition >}}
 
 Grafana Agent can collect, transform, and send data to:
 

@@ -11,6 +11,7 @@ type Arguments struct {
 	Address              string                  `river:"address,attr"`
 	TenantID             string                  `river:"tenant_id,attr,optional"`
 	UseLegacyRoutes      bool                    `river:"use_legacy_routes,attr,optional"`
+	PrometheusHTTPPrefix string                  `river:"prometheus_http_prefix,attr,optional"`
 	HTTPClientConfig     config.HTTPClientConfig `river:",squash"`
 	SyncInterval         time.Duration           `river:"sync_interval,attr,optional"`
 	MimirNameSpacePrefix string                  `river:"mimir_namespace_prefix,attr,optional"`
@@ -23,6 +24,7 @@ var DefaultArguments = Arguments{
 	SyncInterval:         30 * time.Second,
 	MimirNameSpacePrefix: "agent",
 	HTTPClientConfig:     config.DefaultHTTPClientConfig,
+	PrometheusHTTPPrefix: "/prometheus",
 }
 
 // SetToDefault implements river.Defaulter.
