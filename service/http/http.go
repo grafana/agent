@@ -189,7 +189,7 @@ func (s *Service) Run(ctx context.Context, host service.Host) error {
 
 			_, err := s.opts.ReloadFunc()
 			if err != nil {
-				level.Error(s.log).Log("msg", err.Error())
+				level.Error(s.log).Log("msg", "failed to reload config", "err", err.Error())
 				http.Error(w, err.Error(), http.StatusBadRequest)
 				return
 			}
