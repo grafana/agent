@@ -2,13 +2,14 @@ package flow_test
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"testing"
 	"time"
 
 	"github.com/grafana/agent/pkg/flow"
 	"github.com/grafana/agent/pkg/flow/internal/testcomponents"
+	"github.com/grafana/agent/pkg/flow/logging"
+	"github.com/grafana/agent/service"
 	"github.com/stretchr/testify/require"
 
 	_ "github.com/grafana/agent/component/module/string"
@@ -658,7 +659,6 @@ func TestImportModule(t *testing.T) {
 
 				require.Eventually(t, func() bool {
 					export := getExport[testcomponents.SummationExports](t, ctrl, "", "testcomponents.summation.sum")
-					fmt.Println(export.LastAdded)
 					return export.LastAdded == -10
 				}, 60*time.Second, 10*time.Millisecond)
 			}
@@ -722,6 +722,7 @@ func TestImportModuleError(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			//defer verifyNoGoroutineLeaks(t)
 			filename := "module"
 			require.NoError(t, os.WriteFile(filename, []byte(tc.module), 0664))
 			defer os.Remove(filename)
@@ -732,13 +733,29 @@ func TestImportModuleError(t *testing.T) {
 				defer os.Remove(otherFilename)
 			}
 
-			ctrl := flow.New(testOptions(t))
+			s, err := logging.New(os.Stderr, logging.DefaultOptions)
+			require.NoError(t, err)
+			ctrl := flow.New(flow.Options{
+				Logger:   s,
+				DataPath: t.TempDir(),
+				Reg:      nil,
+				Services: []service.Service{},
+			})
 			f, err := flow.ParseSource(t.Name(), []byte(tc.config))
 			require.NoError(t, err)
 			require.NotNil(t, f)
 
 			err = ctrl.LoadSource(f, nil)
 			require.ErrorContains(t, err, tc.expectedError)
+
+			ctx, cancel := context.WithCancel(context.Background())
+			done := make(chan struct{})
+			go func() {
+				ctrl.Run(ctx)
+				close(done)
+			}()
+			cancel()
+			<-done
 		})
 	}
 }

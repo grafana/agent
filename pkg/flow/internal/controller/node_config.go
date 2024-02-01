@@ -2,7 +2,6 @@ package controller
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/grafana/agent/pkg/flow/internal/importsource"
 	"github.com/grafana/river/ast"
@@ -169,29 +168,4 @@ func (nodeMap *ConfigNodeMap) ValidateUnsupportedArguments(args map[string]any) 
 	}
 
 	return diags
-}
-
-func (nodeMap *ConfigNodeMap) findImportNodeReferences(declare *Declare) map[*ImportConfigNode]struct{} {
-	uniqueReferences := make(map[*ImportConfigNode]struct{})
-	nodeMap.collectImportNodeReferences(declare.block.Body, uniqueReferences)
-	return uniqueReferences
-}
-
-// collectCustomComponentDependencies collects recursively references to import nodes through an AST body.
-func (nodeMap *ConfigNodeMap) collectImportNodeReferences(stmts ast.Body, uniqueReferences map[*ImportConfigNode]struct{}) {
-	for _, stmt := range stmts {
-		switch stmt := stmt.(type) {
-		case *ast.BlockStmt:
-			componentName := strings.Join(stmt.Name, ".")
-			switch componentName {
-			case "declare":
-				nodeMap.collectImportNodeReferences(stmt.Body, uniqueReferences)
-			default:
-				potentialImportLabel := stmt.Name[0]
-				if node, exists := nodeMap.importMap[potentialImportLabel]; exists {
-					uniqueReferences[node] = struct{}{}
-				}
-			}
-		}
-	}
 }

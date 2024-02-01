@@ -34,9 +34,6 @@ func (cn *DeclareNode) Evaluate(scope *vm.Scope) error {
 	return nil
 }
 
-// Label returns the label of the block.
-func (cn *DeclareNode) Label() string { return cn.label }
-
 // Block implements BlockNode and returns the current block of the managed config node.
 func (cn *DeclareNode) Block() *ast.BlockStmt {
 	return cn.declare.block

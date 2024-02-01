@@ -38,20 +38,12 @@ func (s *Scope) DeepCopy() *Scope {
 	return newScope
 }
 
-func (s *Scope) registerDeclare(declare *Declare) error {
-	if _, exist := s.declares[declare.block.Label]; exist {
-		return fmt.Errorf("declare %q already exists", declare.block.Label)
-	}
+func (s *Scope) registerDeclare(declare *Declare) {
 	s.declares[declare.block.Label] = declare
-	return nil
 }
 
-func (s *Scope) registerImport(importLabel string) error {
-	if _, exist := s.imports[importLabel]; exist {
-		return fmt.Errorf("import %q already exists", importLabel)
-	}
+func (s *Scope) registerImport(importLabel string) {
 	s.imports[importLabel] = nil
-	return nil
 }
 
 func (s *Scope) updateImportContent(importNode *ImportConfigNode) error {
