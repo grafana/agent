@@ -229,7 +229,7 @@ func MarshalYAML(v interface{}) (interface{}, error) {
 		}
 
 		if _, exists := uniqueSingletons[fieldName]; exists && integrationType == TypeSingleton {
-				return nil, fmt.Errorf("integration %q may not be defined more than once", fieldName)
+			return nil, fmt.Errorf("integration %q may not be defined more than once", fieldName)
 		}
 		uniqueSingletons[fieldName] = struct{}{}
 
