@@ -130,8 +130,8 @@ func newModule(o *moduleOptions) *module {
 }
 
 // LoadConfig parses River config and loads it.
-func (c *module) LoadConfig(cfg []byte, args map[string]any) error {
-	ff, err := ParseSource(c.o.ID, cfg)
+func (c *module) LoadConfig(config []byte, args map[string]any) error {
+	ff, err := ParseSource(c.o.ID, config)
 	if err != nil {
 		return err
 	}

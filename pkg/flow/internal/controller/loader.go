@@ -126,7 +126,7 @@ func NewLoader(opts LoaderOptions) *Loader {
 // to expose values of other components.
 //
 // Declares are pieces of config that can be used as a blueprints to instantiate custom components.
-func (l *Loader) Apply(args map[string]any, componentBlocks []*ast.BlockStmt, configBlocks []*ast.BlockStmt, declares []*ast.BlockStmt, options config.LoaderConfigOptions) diag.Diagnostics {
+func (l *Loader) Apply(args map[string]any, componentBlocks []*ast.BlockStmt, configBlocks []*ast.BlockStmt, declareBlocks []*ast.BlockStmt, options config.LoaderConfigOptions) diag.Diagnostics {
 	start := time.Now()
 	l.mut.Lock()
 	defer l.mut.Unlock()
@@ -139,7 +139,7 @@ func (l *Loader) Apply(args map[string]any, componentBlocks []*ast.BlockStmt, co
 	l.cache.SyncModuleArgs(args)
 
 	l.componentNodeManager.scope = NewScope(options.Scope)
-	newGraph, diags := l.loadNewGraph(args, componentBlocks, configBlocks, declares)
+	newGraph, diags := l.loadNewGraph(args, componentBlocks, configBlocks, declareBlocks)
 	if diags.HasErrors() {
 		return diags
 	}
@@ -262,7 +262,7 @@ func (l *Loader) Cleanup(stopWorkerPool bool) {
 }
 
 // loadNewGraph creates a new graph from the provided blocks and validates it.
-func (l *Loader) loadNewGraph(args map[string]any, componentBlocks []*ast.BlockStmt, configBlocks []*ast.BlockStmt, declares []*ast.BlockStmt) (dag.Graph, diag.Diagnostics) {
+func (l *Loader) loadNewGraph(args map[string]any, componentBlocks []*ast.BlockStmt, configBlocks []*ast.BlockStmt, declareBlocks []*ast.BlockStmt) (dag.Graph, diag.Diagnostics) {
 	var g dag.Graph
 
 	// Split component blocks into blocks for components and services.
@@ -273,7 +273,7 @@ func (l *Loader) loadNewGraph(args map[string]any, componentBlocks []*ast.BlockS
 	diags := l.populateServiceNodes(&g, serviceBlocks)
 
 	// Fill our graph with declare blocks, must be added before componentNodes.
-	declareDiags := l.populateDeclareNodes(&g, declares)
+	declareDiags := l.populateDeclareNodes(&g, declareBlocks)
 	diags = append(diags, declareDiags...)
 
 	// Fill our graph with config blocks, must be added before componentNodes.
@@ -324,11 +324,11 @@ func (l *Loader) splitComponentBlocks(blocks []*ast.BlockStmt) (componentBlocks,
 	return componentBlocks, serviceBlocks
 }
 
-func (l *Loader) populateDeclareNodes(g *dag.Graph, declares []*ast.BlockStmt) diag.Diagnostics {
+func (l *Loader) populateDeclareNodes(g *dag.Graph, declareBlocks []*ast.BlockStmt) diag.Diagnostics {
 	var diags diag.Diagnostics
 	l.declareNodes = map[string]*DeclareNode{}
-	for _, declare := range declares {
-		node := NewDeclareNode(declare)
+	for _, declareBlock := range declareBlocks {
+		node := NewDeclareNode(declareBlock)
 		if g.GetByID(node.NodeID()) != nil {
 			diags.Add(diag.Diagnostic{
 				Severity: diag.SeverityLevelError,
@@ -336,7 +336,7 @@ func (l *Loader) populateDeclareNodes(g *dag.Graph, declares []*ast.BlockStmt) d
 			})
 			continue
 		}
-		l.componentNodeManager.scope.registerDeclare(declare)
+		l.componentNodeManager.scope.registerDeclare(declareBlock)
 		l.declareNodes[node.label] = node
 		g.Add(node)
 	}
@@ -433,8 +433,8 @@ func (l *Loader) populateConfigBlockNodes(args map[string]any, g *dag.Graph, con
 			continue
 		}
 
-		nodeConfigMapDiags := nodeMap.Append(node)
-		diags = append(diags, nodeConfigMapDiags...)
+		nodeMapDiags := nodeMap.Append(node)
+		diags = append(diags, nodeMapDiags...)
 		if diags.HasErrors() {
 			continue
 		}
@@ -637,7 +637,6 @@ func (l *Loader) EvaluateDependants(ctx context.Context, updatedNodes []*QueuedN
 			// Update the scope with the imported content.
 			l.componentNodeManager.scope.updateImportContent(parentNode)
 		}
-
 		// We collect all nodes directly incoming to parent.
 		_ = dag.WalkIncomingNodes(l.graph, parent.Node, func(n dag.Node) error {
 			dependenciesToParentsMap[n] = parent

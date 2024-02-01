@@ -19,9 +19,9 @@ type Source struct {
 
 	// Components holds the list of raw River AST blocks describing components.
 	// The Flow controller can interpret them.
-	components   []*ast.BlockStmt
-	configBlocks []*ast.BlockStmt
-	declares     []*ast.BlockStmt
+	components    []*ast.BlockStmt
+	configBlocks  []*ast.BlockStmt
+	declareBlocks []*ast.BlockStmt
 }
 
 // ParseSource parses the River file specified by bb into a File. name should be
@@ -92,9 +92,9 @@ func sourceFromBody(body ast.Body) (*Source, error) {
 	}
 
 	return &Source{
-		components:   components,
-		configBlocks: configs,
-		declares:     declares,
+		components:    components,
+		configBlocks:  configs,
+		declareBlocks: declares,
 	}, nil
 }
 
@@ -134,7 +134,7 @@ func ParseSources(sources map[string][]byte) (*Source, error) {
 
 		mergedSource.components = append(mergedSource.components, sourceFragment.components...)
 		mergedSource.configBlocks = append(mergedSource.configBlocks, sourceFragment.configBlocks...)
-		mergedSource.declares = append(mergedSource.declares, sourceFragment.declares...)
+		mergedSource.declareBlocks = append(mergedSource.declareBlocks, sourceFragment.declareBlocks...)
 	}
 
 	mergedSource.hash = [32]byte(hash.Sum(nil))

@@ -231,7 +231,7 @@ func applyFromContent(t *testing.T, l *controller.Loader, componentBytes []byte,
 		diags           diag.Diagnostics
 		componentBlocks []*ast.BlockStmt
 		configBlocks    []*ast.BlockStmt = nil
-		declares        []*ast.BlockStmt
+		declareBlocks   []*ast.BlockStmt
 	)
 
 	componentBlocks, diags = fileToBlock(t, componentBytes)
@@ -246,7 +246,7 @@ func applyFromContent(t *testing.T, l *controller.Loader, componentBytes []byte,
 		}
 	}
 
-	applyDiags := l.Apply(nil, componentBlocks, configBlocks, declares, config.DefaultLoaderConfigOptions())
+	applyDiags := l.Apply(nil, componentBlocks, configBlocks, declareBlocks, config.DefaultLoaderConfigOptions())
 	diags = append(diags, applyDiags...)
 
 	return diags
