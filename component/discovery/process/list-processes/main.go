@@ -6,6 +6,7 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
+	analCache "github.com/grafana/agent/component/discovery/process/analyze/cache"
 
 	"github.com/grafana/agent/component/discovery/process"
 )
@@ -13,8 +14,8 @@ import (
 var logger = log.NewLogfmtLogger(os.Stderr)
 
 func run() error {
-
-	processes, err := process.Discover(logger, &process.DiscoverConfig{})
+	cache := analCache.New(logger)
+	processes, err := process.Discover(logger, &process.DiscoverConfig{}, cache)
 	if err != nil {
 		return err
 	}
@@ -33,13 +34,13 @@ func run() error {
 		attributes[3] = p.PID
 
 		keys = keys[:0]
-		for k := range p.Analysis {
+		for k := range p.Analysis.Labels {
 			keys = append(keys, k)
 		}
 		sort.Strings(keys)
 
 		for _, k := range keys {
-			attributes = append(attributes, k, p.Analysis[k])
+			attributes = append(attributes, k, p.Analysis.Labels[k])
 		}
 
 		level.Info(logger).Log(attributes...)

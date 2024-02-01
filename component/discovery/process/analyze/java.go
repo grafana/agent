@@ -1,8 +1,6 @@
 package analyze
 
 import (
-	"io"
-	"strconv"
 	"strings"
 
 	"github.com/prometheus/procfs"
@@ -12,9 +10,9 @@ const (
 	labelJava = "__meta_process_java__"
 )
 
-func analyzeJava(pid string, reader io.ReaderAt, m map[string]string) error {
-	pidn, _ := strconv.Atoi(pid)
-	proc, err := procfs.NewProc(pidn)
+func analyzeJava(input Input, a *Results) error {
+	m := a.Labels
+	proc, err := procfs.NewProc(int(input.PID))
 	if err != nil {
 		return err
 	}

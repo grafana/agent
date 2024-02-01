@@ -20,9 +20,10 @@ const (
 	LabelDotNetAssemblyName     = "__meta_process_dotnet_assembly_name__"
 )
 
-func analyzeDotNet(pid string, reader io.ReaderAt, m map[string]string) error {
+func analyzeDotNet(input Input, a *Results) error {
+	m := a.Labels
 	// small hack: the per process api procfs.Proc doesn't support reading NetUnix, so i am using the global one
-	procPath := filepath.Join("/proc", pid)
+	procPath := filepath.Join("/proc", input.PIDs)
 	procph, err := procfs.NewFS(procPath)
 	if err != nil {
 		return err
@@ -40,11 +41,8 @@ func analyzeDotNet(pid string, reader io.ReaderAt, m map[string]string) error {
 	}
 
 	// now get the inodes for the fds of the process and see if they match
-	pidInt, err := strconv.Atoi(pid)
-	if err != nil {
-		return err
-	}
-	procp, err := procfs.NewProc(pidInt)
+
+	procp, err := procfs.NewProc(int(input.PID))
 	if err != nil {
 		return err
 	}

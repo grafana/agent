@@ -1,53 +1,35 @@
 package analyze
 
 import (
-	"fmt"
+	"debug/elf"
 	"io"
-	"os"
-	"path/filepath"
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 )
+
+type Results struct {
+	Labels map[string]string
+}
+
+type Input struct {
+	PID     uint32
+	PIDs    string
+	File    io.ReaderAt
+	ElfFile *elf.File
+}
 
 // analyzerFunc is called with a particular pid and a reader into its binary.
 //
 // If an error occurs analyzing the binary/process information it is returned.
 // If there is strong evidence that this process has been detected, the
 // analyzer can return io.EOF and it will skip all following analyzers.
-type analyzerFunc func(pid string, reader io.ReaderAt, labels map[string]string) error
+type analyzerFunc func(input Input, analysis *Results) error
 
-func PID(logger log.Logger, pid string) (map[string]string, error) {
-	m := make(map[string]string)
-
-	procPath := filepath.Join("/proc", pid)
-	exePath := filepath.Join(procPath, "exe")
-
-	// check if executable exists
-	_, err := os.Stat(exePath)
-	if err != nil {
-		if !os.IsNotExist(err) {
-			return nil, err
-		}
-
-		// resolve path relative to mount
-		// TODO:simonswine, don't think this actually needed, double check
-		fmt.Println("relative to mount")
-		dest, err := os.Readlink(filepath.Join(procPath, "exe"))
-		if err != nil {
-			return nil, err
-		}
-
-		exePath = filepath.Join(procPath, "root", dest)
+func Analyze(logger log.Logger, input Input) *Results {
+	res := &Results{
+		Labels: make(map[string]string),
 	}
-
-	// get path to executable
-	f, err := os.Open(exePath)
-	if err != nil {
-		return nil, err
-	}
-	defer f.Close()
-
 	for _, a := range []analyzerFunc{
 		analyzeGo,
 		analyzeCpp,
@@ -55,12 +37,12 @@ func PID(logger log.Logger, pid string) (map[string]string, error) {
 		analyzeDotNet,
 		analyzeJava,
 	} {
-		if err := a(pid, f, m); err == io.EOF {
+		if err := a(input, res); err == io.EOF {
 			break
 		} else if err != nil {
 			level.Warn(logger).Log("msg", "error during", "func", "todo", "err", err)
 		}
 	}
 
-	return m, nil
+	return res
 }

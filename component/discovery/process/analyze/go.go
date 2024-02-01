@@ -22,8 +22,9 @@ const (
 	godeltaprofModule = "github.com/grafana/pyroscope-go/godeltaprof"
 )
 
-func analyzeGo(pid string, reader io.ReaderAt, m map[string]string) error {
-	info, err := buildinfo.Read(reader)
+func analyzeGo(input Input, a *Results) error {
+	m := a.Labels
+	info, err := buildinfo.Read(input.File) // it reads elf second time
 	if err != nil {
 		return err
 	}

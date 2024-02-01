@@ -1,8 +1,6 @@
 package analyze
 
 import (
-	"debug/elf"
-	"io"
 	"strings"
 )
 
@@ -13,14 +11,10 @@ const (
 	libpythonPrefix = "libpython"
 )
 
-func analyzePython(pid string, reader io.ReaderAt, m map[string]string) error {
-	e, err := elf.NewFile(reader)
-	if err != nil {
-		return err
-	}
-	defer e.Close()
+func analyzePython(input Input, a *Results) error {
+	m := a.Labels
 
-	libs, err := e.ImportedLibraries()
+	libs, err := input.ElfFile.ImportedLibraries()
 	if err != nil {
 		return err
 	}

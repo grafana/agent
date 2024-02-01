@@ -13,6 +13,7 @@ import (
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/discovery/process/analyze"
+	analCache "github.com/grafana/agent/component/discovery/process/analyze/cache"
 	gopsutil "github.com/shirou/gopsutil/v3/process"
 	"golang.org/x/sys/unix"
 )
@@ -35,7 +36,7 @@ type Process struct {
 	containerID string
 	username    string
 	uid         string
-	Analysis    map[string]string
+	Analysis    *analyze.Results
 }
 
 func (p Process) String() string {
@@ -72,14 +73,14 @@ func convertProcess(p Process) discovery.Target {
 	if p.uid != "" {
 		t[labelProcessUID] = p.uid
 	}
-	for k, v := range p.Analysis {
+	for k, v := range p.Analysis.Labels {
 		t[k] = v
 	}
 
 	return t
 }
 
-func Discover(l log.Logger, cfg *DiscoverConfig) ([]Process, error) {
+func Discover(l log.Logger, cfg *DiscoverConfig, cache *analCache.Cache) ([]Process, error) {
 	processes, err := gopsutil.Processes()
 	if err != nil {
 		return nil, fmt.Errorf("failed to list processes: %w", err)
@@ -94,6 +95,7 @@ func Discover(l log.Logger, cfg *DiscoverConfig) ([]Process, error) {
 		}
 		_ = level.Error(l).Log("msg", "failed to get process info", "err", e, "pid", pid)
 	}
+	active := make(map[uint32]struct{})
 	for _, p := range processes {
 		spid := fmt.Sprintf("%d", p.Pid)
 		var (
@@ -145,7 +147,7 @@ func Discover(l log.Logger, cfg *DiscoverConfig) ([]Process, error) {
 				continue
 			}
 		}
-		m, err := analyze.PID(l, spid) //todo do not analyze same process and or binary twice
+		m, err := cache.AnalyzePID(spid)
 		if err != nil {
 			level.Error(l).Log("msg", "error analyzing process", "pid", spid, "err", err)
 			continue
@@ -160,7 +162,9 @@ func Discover(l log.Logger, cfg *DiscoverConfig) ([]Process, error) {
 			uid:         uid,
 			Analysis:    m,
 		})
+		active[uint32(p.Pid)] = struct{}{}
 	}
+	cache.GC(active)
 
 	return res, nil
 }
