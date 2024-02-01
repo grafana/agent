@@ -4,9 +4,11 @@ import (
 	"context"
 	"net/http"
 	"net/http/httptest"
+	"net/http/pprof"
 	"net/url"
 	"sort"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -17,6 +19,7 @@ import (
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/discovery/targetgroup"
 	"github.com/prometheus/prometheus/model/labels"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/atomic"
 	"go.uber.org/goleak"
@@ -152,17 +155,21 @@ func TestScrapePool(t *testing.T) {
 	}
 }
 
+func httpServerTestFix() {
+	// The test was failing on Windows, as the scrape loop was too fast for
+	// the Windows timer resolution.
+	// This used to lead the `t.lastScrapeDuration = time.Since(start)` to
+	// be recorded as zero. The small delay here allows the timer to record
+	// the time since the last scrape properly.
+	time.Sleep(2 * time.Millisecond)
+}
+
 func TestScrapeLoop(t *testing.T) {
 	defer goleak.VerifyNone(t, goleak.IgnoreTopFunction("go.opencensus.io/stats/view.(*worker).start"))
 
 	down := atomic.NewBool(false)
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// The test was failing on Windows, as the scrape loop was too fast for
-		// the Windows timer resolution.
-		// This used to lead the `t.lastScrapeDuration = time.Since(start)` to
-		// be recorded as zero. The small delay here allows the timer to record
-		// the time since the last scrape properly.
-		time.Sleep(2 * time.Millisecond)
+		httpServerTestFix()
 		if down.Load() {
 			w.WriteHeader(http.StatusInternalServerError)
 		}
@@ -248,4 +255,102 @@ func BenchmarkSync(b *testing.B) {
 		p.sync(groups2)
 		p.sync([]*targetgroup.Group{})
 	}
+}
+
+func TestLoopDeltaProbingSuccess(t *testing.T) {
+	m := new(sync.Mutex)
+	var requests []string
+	var appends []labels.Labels
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		httpServerTestFix()
+		m.Lock()
+		defer m.Unlock()
+		requests = append(requests, r.URL.Path)
+		w.Write([]byte("ok"))
+	}))
+	defer server.Close()
+
+	loop := newScrapeLoop(
+		NewTarget(
+			labels.FromStrings(
+				model.MetricNameLabel, pprofMemory,
+				model.SchemeLabel, "http",
+				model.AddressLabel, strings.TrimPrefix(server.URL, "http://"),
+				ProfilePath, "/debug/pprof/allocs",
+			), labels.FromStrings(), url.Values{}),
+		server.Client(),
+		pyroscope.AppendableFunc(func(_ context.Context, labels labels.Labels, samples []*pyroscope.RawSample) error {
+			m.Lock()
+			appends = append(appends, labels)
+			m.Unlock()
+			return nil
+		}),
+		200*time.Millisecond, time.Minute, util.TestLogger(t))
+
+	loop.scrape()
+	func() {
+		m.Lock()
+		defer m.Unlock()
+		require.Equal(t, 1, len(appends))
+		assert.Equal(t, appends[0].Get(pyroscope.LabelNameDelta), "false")
+		require.Equal(t, 1, len(requests))
+		require.Contains(t, requests[0], "delta_heap")
+		_, isDeltaAppender := loop.appender.(*deltaAppender)
+		assert.False(t, isDeltaAppender)
+	}()
+}
+
+func TestLoopDeltaProbingFailure(t *testing.T) {
+	m := new(sync.Mutex)
+	var requests []string
+	var appends []labels.Labels
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		httpServerTestFix()
+		m.Lock()
+		defer m.Unlock()
+		if strings.Contains(r.URL.Path, "/delta") {
+			w.WriteHeader(http.StatusNotFound)
+			w.Write([]byte("fail"))
+		} else {
+			pprof.Index(w, r)
+		}
+		requests = append(requests, r.URL.Path)
+	}))
+	defer server.Close()
+
+	loop := newScrapeLoop(
+		NewTarget(
+			labels.FromStrings(
+				model.MetricNameLabel, pprofMemory,
+				model.SchemeLabel, "http",
+				model.AddressLabel, strings.TrimPrefix(server.URL, "http://"),
+				ProfilePath, "/debug/pprof/allocs",
+			), labels.FromStrings(), url.Values{}),
+		server.Client(),
+		pyroscope.AppendableFunc(func(_ context.Context, labels labels.Labels, samples []*pyroscope.RawSample) error {
+			m.Lock()
+			appends = append(appends, labels)
+			m.Unlock()
+			return nil
+		}),
+		200*time.Millisecond, time.Minute, util.TestLogger(t))
+
+	loop.scrape()
+	loop.scrape()
+	func() {
+		m.Lock()
+		defer m.Unlock()
+		require.Equal(t, 1, len(appends))
+		assert.Equal(t, appends[0].Get(pyroscope.LabelNameDelta), "false")
+		require.Equal(t, 3, len(requests))
+		assert.Contains(t, requests[0], "/delta_heap")
+		assert.Contains(t, requests[1], "/allocs")
+		assert.Contains(t, requests[2], "/allocs")
+		_, isDeltaAppender := loop.appender.(*deltaAppender)
+		assert.True(t, isDeltaAppender)
+	}()
+}
+
+func TestTestLoopDeltaProbingFailureTwiceAndRecover(t *testing.T) {
+	t.Fail()
 }

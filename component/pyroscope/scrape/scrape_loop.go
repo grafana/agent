@@ -163,6 +163,7 @@ type scrapeLoop struct {
 	lastScrapeSize int
 
 	scrapeClient *http.Client
+	appendable   pyroscope.Appendable
 	appender     pyroscope.Appender
 
 	req               *http.Request
@@ -178,7 +179,8 @@ func newScrapeLoop(t *Target, scrapeClient *http.Client, appendable pyroscope.Ap
 		Target:       t,
 		logger:       logger,
 		scrapeClient: scrapeClient,
-		appender:     NewDeltaAppender(appendable.Appender(), t.allLabels),
+		appendable:   appendable,
+		appender:     nil,
 		interval:     interval,
 		timeout:      timeout,
 	}
@@ -214,8 +216,8 @@ func (t *scrapeLoop) start() {
 func (t *scrapeLoop) scrape() {
 	var (
 		start             = time.Now()
-		b                 = payloadBuffers.Get(t.lastScrapeSize).([]byte)
-		buf               = bytes.NewBuffer(b)
+		buf               *bytes.Buffer
+		err               error
 		profileType       string
 		scrapeCtx, cancel = context.WithTimeout(context.Background(), t.timeout)
 	)
@@ -227,13 +229,41 @@ func (t *scrapeLoop) scrape() {
 			break
 		}
 	}
-	if err := t.fetchProfile(scrapeCtx, profileType, buf); err != nil {
-		level.Error(t.logger).Log("msg", "fetch profile failed", "target", t.Labels().String(), "err", err)
-		t.updateTargetStatus(start, err)
-		return
-	}
 
-	b = buf.Bytes()
+	if t.req == nil {
+		req, err := http.NewRequest("GET", t.URL(), nil)
+		if err != nil {
+			level.Error(t.logger).Log("msg", "fetch profile failed", "target", t.Labels().String(), "err", err)
+			t.updateTargetStatus(start, err)
+			return
+		}
+		req.Header.Set("User-Agent", userAgentHeader)
+		t.req = req
+
+		for _, probe := range godeltaprofProbes(profileType, req.URL.Path) {
+			t.appender = newAppender(probe, t)
+			t.req.URL.Path = probe.path
+			buf, err = t.fetchProfile(scrapeCtx, profileType, t.req)
+			if err != nil {
+				level.Error(t.logger).Log("msg", "fetch profile failed", "target", t.Labels().String(), "err", err)
+				t.updateTargetStatus(start, err)
+				continue
+			} else {
+				break
+			}
+		}
+		if buf == nil {
+			return
+		}
+	} else {
+		buf, err = t.fetchProfile(scrapeCtx, profileType, t.req)
+		if err != nil {
+			level.Error(t.logger).Log("msg", "fetch profile failed", "target", t.Labels().String(), "err", err)
+			t.updateTargetStatus(start, err)
+			return
+		}
+	}
+	b := buf.Bytes()
 	if len(b) > 0 {
 		t.lastScrapeSize = len(b)
 	}
@@ -259,40 +289,34 @@ func (t *scrapeLoop) updateTargetStatus(start time.Time, err error) {
 	t.lastScrapeDuration = time.Since(start)
 }
 
-func (t *scrapeLoop) fetchProfile(ctx context.Context, profileType string, buf io.Writer) error {
-	if t.req == nil {
-		req, err := http.NewRequest("GET", t.URL(), nil)
-		if err != nil {
-			return err
-		}
-		req.Header.Set("User-Agent", userAgentHeader)
-
-		t.req = req
-	}
-
-	level.Debug(t.logger).Log("msg", "scraping profile", "labels", t.Labels().String(), "url", t.req.URL.String())
-	resp, err := ctxhttp.Do(ctx, t.scrapeClient, t.req)
+func (t *scrapeLoop) fetchProfile(ctx context.Context, profileType string, req *http.Request) (*bytes.Buffer, error) {
+	var (
+		buf = bytes.NewBuffer(payloadBuffers.Get(t.lastScrapeSize).([]byte)) //todo nobody is putting it back
+	)
+	level.Debug(t.logger).Log("msg", "scraping profile", "labels", t.Labels().String(), "url", req.URL.String())
+	resp, err := ctxhttp.Do(ctx, t.scrapeClient, req)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer resp.Body.Close()
 
-	b, err := io.ReadAll(io.TeeReader(resp.Body, buf))
+	n, err := io.Copy(buf, resp.Body)
+
 	if err != nil {
-		return fmt.Errorf("failed to read body: %w", err)
+		return nil, fmt.Errorf("failed to read body: %w", err)
 	}
 
 	if resp.StatusCode/100 != 2 {
-		if len(b) > 0 {
-			return fmt.Errorf("server returned HTTP status (%d) %v", resp.StatusCode, string(bytes.TrimSpace(b)))
+		if n > 0 {
+			return nil, fmt.Errorf("server returned HTTP status (%d) %v", resp.StatusCode, string(bytes.TrimSpace(buf.Bytes())))
 		}
-		return fmt.Errorf("server returned HTTP status (%d) %v", resp.StatusCode, resp.Status)
+		return nil, fmt.Errorf("server returned HTTP status (%d) %v", resp.StatusCode, resp.Status)
 	}
 
-	if len(b) == 0 {
-		return fmt.Errorf("empty %s profile from %s", profileType, t.req.URL.String())
+	if n == 0 {
+		return nil, fmt.Errorf("empty %s profile from %s", profileType, req.URL.String())
 	}
-	return nil
+	return buf, nil
 }
 
 func (t *scrapeLoop) stop(wait bool) {
