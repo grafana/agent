@@ -188,12 +188,12 @@ func (cn *CustomComponentNode) evaluate(evalScope *vm.Scope) error {
 		cn.managed = mod
 	}
 
-	template, scope, err := cn.getConfig(cn.importNamespace, cn.customComponentName)
+	template, customComponentRegistry, err := cn.getConfig(cn.importNamespace, cn.customComponentName)
 	if err != nil {
 		return fmt.Errorf("loading custom component controller: %w", err)
 	}
 	loaderConfig := component.LoaderConfigOptions{
-		Scope: scope,
+		CustomComponentRegistry: customComponentRegistry,
 	}
 
 	// Reload the custom component with new config

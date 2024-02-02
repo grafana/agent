@@ -138,7 +138,7 @@ func (l *Loader) Apply(args map[string]any, componentBlocks []*ast.BlockStmt, co
 	}
 	l.cache.SyncModuleArgs(args)
 
-	l.componentNodeManager.scope = NewCustomComponentRegistry(options.Scope)
+	l.componentNodeManager.scope = NewCustomComponentRegistry(options.CustomComponentRegistry)
 	newGraph, diags := l.loadNewGraph(args, componentBlocks, configBlocks, declareBlocks)
 	if diags.HasErrors() {
 		return diags

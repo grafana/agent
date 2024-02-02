@@ -41,7 +41,7 @@ type ModuleController interface {
 }
 
 type LoaderConfigOptions struct {
-	Scope interface{}
+	CustomComponentRegistry any
 }
 
 // Module is a controller for running components within a Module.
