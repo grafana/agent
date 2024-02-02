@@ -62,7 +62,7 @@ func (m *moduleController) NewModule(id string, export component.ExportFunc) (co
 // NewCustomComponent creates a new, unstarted CustomComponent.
 func (m *moduleController) NewCustomComponent(id string, export component.ExportFunc) (controller.CustomComponent, error) {
 	if id != "" && !scanner.IsValidIdentifier(id) {
-		return nil, fmt.Errorf("CustomComponent ID %q is not a valid River identifier", id)
+		return nil, fmt.Errorf("customComponent ID %q is not a valid River identifier", id)
 	}
 
 	m.mut.Lock()
