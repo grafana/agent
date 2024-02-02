@@ -30,7 +30,7 @@ func (s *CustomComponentRegistry) registerDeclare(declare *ast.BlockStmt) {
 	s.declares[declare.Label] = declare.Body
 }
 
-// registerImport stores the label of the import.
+// registerImport stores the import namespace.
 // The content will be added later during evaluation.
 // It's important to register it before populating the component nodes
 // (else we don't know which one exists).
@@ -83,6 +83,5 @@ func (s *CustomComponentRegistry) deepCopy() *CustomComponentRegistry {
 			newScope.imports[k] = v.deepCopy()
 		}
 	}
-
 	return newScope
 }

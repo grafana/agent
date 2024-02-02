@@ -15,6 +15,7 @@ type ModuleController interface {
 	// ModuleIDs returns the list of managed modules in unspecified order.
 	ModuleIDs() []string
 
+	// Creates a new custom component.
 	NewCustomComponent(id string, export component.ExportFunc) (CustomComponent, error)
 }
 

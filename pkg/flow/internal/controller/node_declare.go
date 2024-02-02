@@ -5,6 +5,7 @@ import (
 	"github.com/grafana/river/vm"
 )
 
+// DeclareNode represents a declare block in the DAG.
 type DeclareNode struct {
 	label         string
 	nodeID        string

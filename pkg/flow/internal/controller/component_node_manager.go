@@ -60,7 +60,7 @@ func (m *ComponentNodeManager) getCustomComponentConfig(namespace string, compon
 	return template, customComponentRegistry.deepCopy(), nil
 }
 
-// isCustomComponent returns true if the name matches a declare in the provided customComponentRegistry.
+// isCustomComponent returns true if the name matches a declare in the provided custom component registry.
 func isCustomComponent(reg *CustomComponentRegistry, name string) bool {
 	if reg == nil {
 		return false
@@ -82,7 +82,7 @@ func findLocalDeclare(reg *CustomComponentRegistry, componentName string) (ast.B
 }
 
 // findImportedDeclare recursively searches for an import matching the provided namespace.
-// When the import is found, it will search for a declare matching the componentName within the reg of the import.
+// When the import is found, it will search for a declare matching the componentName within the custom registry of the import.
 func findImportedDeclare(reg *CustomComponentRegistry, namespace string, componentName string) (ast.Body, *CustomComponentRegistry) {
 	if imported, ok := reg.imports[namespace]; ok {
 		if declare, ok := imported.declares[componentName]; ok {

@@ -132,7 +132,7 @@ type LoadOptions struct {
 // functions to components. A child context will be constructed from the parent
 // to expose values of other components.
 //
-// Declares are pieces of config that can be used as a blueprints to instantiate custom components.
+// declareBlocks are pieces of config that can be used as templates to instantiate custom components.
 func (l *Loader) Apply(args map[string]any, componentBlocks []*ast.BlockStmt, configBlocks []*ast.BlockStmt, declareBlocks []*ast.BlockStmt, options LoadOptions) diag.Diagnostics {
 	start := time.Now()
 	l.mut.Lock()
@@ -337,6 +337,8 @@ func (l *Loader) populateDeclareNodes(g *dag.Graph, declareBlocks []*ast.BlockSt
 	var diags diag.Diagnostics
 	l.declareNodes = map[string]*DeclareNode{}
 	for _, declareBlock := range declareBlocks {
+		// TODO: if node already exists in the graph, update the block
+		// instead of copying it.
 		node := NewDeclareNode(declareBlock)
 		if g.GetByID(node.NodeID()) != nil {
 			diags.Add(diag.Diagnostic{
@@ -526,7 +528,6 @@ func (l *Loader) wireGraphEdges(g *dag.Graph) diag.Diagnostics {
 
 	for _, n := range g.Nodes() {
 		switch n := n.(type) {
-		// First, wire up dependencies on services.
 		case *ServiceNode: // Service depending on other services.
 			for _, depName := range n.Definition().DependsOn {
 				dep := g.GetByID(depName)
