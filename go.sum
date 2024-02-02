@@ -1085,6 +1085,8 @@ github.com/grafana/pyroscope/ebpf v0.4.1 h1:iqQoOsfKen5KpTRe6MfGeBZfgK1s7ROH+Cs/
 github.com/grafana/pyroscope/ebpf v0.4.1/go.mod h1:W99Mq+yJGP5nZUQWNv+jVytiWWgWXwHjIRmi9k3xHzA=
 github.com/grafana/pyroscope/ebpf v0.4.2-0.20240201165531-63bf7ab704ee h1:AbCBhUlBQKpBqwpqoubBNv7VWIAHJIPnfJNoUHRWbjY=
 github.com/grafana/pyroscope/ebpf v0.4.2-0.20240201165531-63bf7ab704ee/go.mod h1:XJxNdwhUV42Z+a4eZvHe0nQtR1Bqs1u95lIkIeTakSA=
+github.com/grafana/pyroscope/ebpf v0.4.2-0.20240202070453-4d9118ed4821 h1:qHiiIP2Vw7scSP12tr9PRwxZHT2FAXbUFFfr84G86xE=
+github.com/grafana/pyroscope/ebpf v0.4.2-0.20240202070453-4d9118ed4821/go.mod h1:XJxNdwhUV42Z+a4eZvHe0nQtR1Bqs1u95lIkIeTakSA=
 github.com/grafana/regexp v0.0.0-20221123153739-15dc172cd2db h1:7aN5cccjIqCLTzedH7MZzRZt5/lsAHch6Z3L2ZGn5FA=
 github.com/grafana/regexp v0.0.0-20221123153739-15dc172cd2db/go.mod h1:M5qHK+eWfAv8VR/265dIuEpL3fNfeC21tXXp9itM24A=
 github.com/grafana/river v0.3.1-0.20240123144725-960753160cd1 h1:mCOKdWkLv8n9X0ORWrPR+W/zLOAa1o6iM+Dfy0ofQUs=
