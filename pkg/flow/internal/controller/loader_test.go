@@ -245,7 +245,7 @@ func applyFromContent(t *testing.T, l *controller.Loader, componentBytes []byte,
 		}
 	}
 
-	applyDiags := l.Apply(nil, componentBlocks, configBlocks, declareBlocks)
+	applyDiags := l.Apply(nil, componentBlocks, configBlocks, declareBlocks, controller.LoadOptions{})
 	diags = append(diags, applyDiags...)
 
 	return diags
@@ -318,4 +318,8 @@ func (f fakeModuleController) ModuleIDs() []string {
 }
 
 func (f fakeModuleController) ClearModuleIDs() {
+}
+
+func (f fakeModuleController) NewCustomComponent(id string, export component.ExportFunc) (controller.CustomComponent, error) {
+	return nil, nil
 }

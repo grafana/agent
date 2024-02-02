@@ -109,6 +109,14 @@ func NewLoader(opts LoaderOptions) *Loader {
 	return l
 }
 
+// LoadOptions are options that can be provided when loading a new River config.
+type LoadOptions struct {
+	// CustomComponentRegistry holds custom component templates.
+	// The definition of a custom component instantiated inside of the loaded config
+	// should be passed via this field if it's not declared or imported in the config.
+	CustomComponentRegistry *CustomComponentRegistry
+}
+
 // Apply loads a new set of components into the Loader. Apply will drop any
 // previously loaded component which is not described in the set of River
 // blocks.
@@ -123,7 +131,7 @@ func NewLoader(opts LoaderOptions) *Loader {
 // to expose values of other components.
 //
 // declareBlocks are pieces of config that can be used as templates to instantiate custom components.
-func (l *Loader) Apply(args map[string]any, componentBlocks []*ast.BlockStmt, configBlocks []*ast.BlockStmt, declareBlocks []*ast.BlockStmt) diag.Diagnostics {
+func (l *Loader) Apply(args map[string]any, componentBlocks []*ast.BlockStmt, configBlocks []*ast.BlockStmt, declareBlocks []*ast.BlockStmt, options LoadOptions) diag.Diagnostics {
 	start := time.Now()
 	l.mut.Lock()
 	defer l.mut.Unlock()
