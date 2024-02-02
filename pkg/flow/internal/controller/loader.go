@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"path"
+	"strings"
 	"sync"
 	"time"
 
@@ -42,6 +43,8 @@ type Loader struct {
 	graph             *dag.Graph
 	originalGraph     *dag.Graph
 	componentNodes    []ComponentNode
+	importConfigNodes map[string]*ImportConfigNode
+	declareNodes      map[string]*DeclareNode
 	serviceNodes      []*ServiceNode
 	cache             *valueCache
 	blocks            []*ast.BlockStmt // Most recently loaded blocks, used for writing
@@ -118,7 +121,9 @@ func NewLoader(opts LoaderOptions) *Loader {
 // The provided parentContext can be used to provide global variables and
 // functions to components. A child context will be constructed from the parent
 // to expose values of other components.
-func (l *Loader) Apply(args map[string]any, componentBlocks []*ast.BlockStmt, configBlocks []*ast.BlockStmt) diag.Diagnostics {
+//
+// declareBlocks are pieces of config that can be used as templates to instantiate custom components.
+func (l *Loader) Apply(args map[string]any, componentBlocks []*ast.BlockStmt, configBlocks []*ast.BlockStmt, declareBlocks []*ast.BlockStmt) diag.Diagnostics {
 	start := time.Now()
 	l.mut.Lock()
 	defer l.mut.Unlock()
@@ -130,7 +135,7 @@ func (l *Loader) Apply(args map[string]any, componentBlocks []*ast.BlockStmt, co
 	}
 	l.cache.SyncModuleArgs(args)
 
-	newGraph, diags := l.loadNewGraph(args, componentBlocks, configBlocks)
+	newGraph, diags := l.loadNewGraph(args, componentBlocks, configBlocks, declareBlocks)
 	if diags.HasErrors() {
 		return diags
 	}
@@ -253,7 +258,7 @@ func (l *Loader) Cleanup(stopWorkerPool bool) {
 }
 
 // loadNewGraph creates a new graph from the provided blocks and validates it.
-func (l *Loader) loadNewGraph(args map[string]any, componentBlocks []*ast.BlockStmt, configBlocks []*ast.BlockStmt) (dag.Graph, diag.Diagnostics) {
+func (l *Loader) loadNewGraph(args map[string]any, componentBlocks []*ast.BlockStmt, configBlocks []*ast.BlockStmt, declareBlocks []*ast.BlockStmt) (dag.Graph, diag.Diagnostics) {
 	var g dag.Graph
 
 	// Split component blocks into blocks for components and services.
@@ -262,6 +267,10 @@ func (l *Loader) loadNewGraph(args map[string]any, componentBlocks []*ast.BlockS
 	// Fill our graph with service blocks, which must be added before any other
 	// block.
 	diags := l.populateServiceNodes(&g, serviceBlocks)
+
+	// Fill our graph with declare blocks, must be added before componentNodes.
+	declareDiags := l.populateDeclareNodes(&g, declareBlocks)
+	diags = append(diags, declareDiags...)
 
 	// Fill our graph with config blocks.
 	configBlockDiags := l.populateConfigBlockNodes(args, &g, configBlocks)
@@ -309,6 +318,26 @@ func (l *Loader) splitComponentBlocks(blocks []*ast.BlockStmt) (componentBlocks,
 	}
 
 	return componentBlocks, serviceBlocks
+}
+
+func (l *Loader) populateDeclareNodes(g *dag.Graph, declareBlocks []*ast.BlockStmt) diag.Diagnostics {
+	var diags diag.Diagnostics
+	l.declareNodes = map[string]*DeclareNode{}
+	for _, declareBlock := range declareBlocks {
+		// TODO: if node already exists in the graph, update the block
+		// instead of copying it.
+		node := NewDeclareNode(declareBlock)
+		if g.GetByID(node.NodeID()) != nil {
+			diags.Add(diag.Diagnostic{
+				Severity: diag.SeverityLevelError,
+				Message:  fmt.Sprintf("cannot add declare node %q; node with same ID already exists", node.NodeID()),
+			})
+			continue
+		}
+		l.declareNodes[node.label] = node
+		g.Add(node)
+	}
+	return diags
 }
 
 // populateServiceNodes adds service nodes to the graph.
@@ -492,7 +521,6 @@ func (l *Loader) wireGraphEdges(g *dag.Graph) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	for _, n := range g.Nodes() {
-		// First, wire up dependencies on services.
 		switch n := n.(type) {
 		case *ServiceNode: // Service depending on other services.
 			for _, depName := range n.Definition().DependsOn {
@@ -507,6 +535,18 @@ func (l *Loader) wireGraphEdges(g *dag.Graph) diag.Diagnostics {
 
 				g.AddEdge(dag.Edge{From: n, To: dep})
 			}
+		case *DeclareNode:
+			// Although they do nothing on evaluation, DeclareNodes are wired
+			// to detect cyclic dependencies. If a declare "a" block contains an instance
+			// of a declare "b" which contains an instance of the declare "a", both DeclareNodes
+			// will depend on each others, creating a cycle in the graph which will be detected later.
+			// It also covers self-dependency.
+			refs := l.findCustomComponentReferences(n.Block())
+			for ref := range refs {
+				g.AddEdge(dag.Edge{From: n, To: ref})
+			}
+			// skip here because for now Declare nodes can't reference component nodes.
+			continue
 		}
 
 		// Finally, wire component references.
@@ -742,4 +782,31 @@ func multierrToDiags(errors error) diag.Diagnostics {
 func (l *Loader) isModule() bool {
 	// Either 1 of these checks is technically sufficient but let's be extra careful.
 	return l.globals.OnExportsChange != nil && l.globals.ControllerID != ""
+}
+
+// findCustomComponentReferences returns references to import/declare nodes in a declare block.
+func (l *Loader) findCustomComponentReferences(declare *ast.BlockStmt) map[BlockNode]struct{} {
+	uniqueReferences := make(map[BlockNode]struct{})
+	l.collectCustomComponentReferences(declare.Body, uniqueReferences)
+	return uniqueReferences
+}
+
+// collectCustomComponentDependencies recursively collects references to import/declare nodes through an AST body.
+func (l *Loader) collectCustomComponentReferences(stmts ast.Body, uniqueReferences map[BlockNode]struct{}) {
+	for _, stmt := range stmts {
+		switch stmt := stmt.(type) {
+		case *ast.BlockStmt:
+			componentName := strings.Join(stmt.Name, ".")
+			switch componentName {
+			case "declare":
+				l.collectCustomComponentReferences(stmt.Body, uniqueReferences)
+			default:
+				if declareNode, ok := l.declareNodes[stmt.Name[0]]; ok {
+					uniqueReferences[declareNode] = struct{}{}
+				} else if importNode, ok := l.importConfigNodes[stmt.Name[0]]; ok {
+					uniqueReferences[importNode] = struct{}{}
+				}
+			}
+		}
+	}
 }
