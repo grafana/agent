@@ -245,7 +245,7 @@ func applyFromContent(t *testing.T, l *controller.Loader, componentBytes []byte,
 		}
 	}
 
-	applyDiags := l.Apply(nil, componentBlocks, configBlocks, declareBlocks, component.LoaderConfigOptions{})
+	applyDiags := l.Apply(nil, componentBlocks, configBlocks, declareBlocks, controller.LoaderConfigOptions{})
 	diags = append(diags, applyDiags...)
 
 	return diags
@@ -310,6 +310,10 @@ func requireGraph(t *testing.T, g *dag.Graph, expect graphDefinition) {
 type fakeModuleController struct{}
 
 func (f fakeModuleController) NewModule(id string, export component.ExportFunc) (component.Module, error) {
+	return nil, nil
+}
+
+func (f fakeModuleController) NewModuleV2(id string, export component.ExportFunc) (controller.Module, error) {
 	return nil, nil
 }
 

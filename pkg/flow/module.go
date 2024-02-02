@@ -59,6 +59,29 @@ func (m *moduleController) NewModule(id string, export component.ExportFunc) (co
 	return mod, nil
 }
 
+// NewModule creates a new, unstarted Module.
+func (m *moduleController) NewModuleV2(id string, export component.ExportFunc) (controller.Module, error) {
+	if id != "" && !scanner.IsValidIdentifier(id) {
+		return nil, fmt.Errorf("module ID %q is not a valid River identifier", id)
+	}
+
+	m.mut.Lock()
+	defer m.mut.Unlock()
+	fullPath := m.o.ID
+	if id != "" {
+		fullPath = path.Join(fullPath, id)
+	}
+
+	mod := newModule(&moduleOptions{
+		ID:                      fullPath,
+		export:                  export,
+		moduleControllerOptions: m.o,
+		parent:                  m,
+	})
+
+	return mod, nil
+}
+
 func (m *moduleController) removeModule(mod *module) {
 	m.mut.Lock()
 	defer m.mut.Unlock()
@@ -138,7 +161,7 @@ func (c *module) LoadConfig(config []byte, args map[string]any) error {
 }
 
 // LoadBody loads a pre-parsed River config.
-func (c *module) LoadBody(body ast.Body, args map[string]any, options component.LoaderConfigOptions) error {
+func (c *module) LoadBody(body ast.Body, args map[string]any, options controller.LoaderConfigOptions) error {
 	ff, err := sourceFromBody(body)
 	if err != nil {
 		return err

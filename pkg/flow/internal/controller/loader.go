@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/go-kit/log"
-	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/pkg/flow/internal/dag"
 	"github.com/grafana/agent/pkg/flow/internal/worker"
 	"github.com/grafana/agent/pkg/flow/logging/level"
@@ -126,7 +125,7 @@ func NewLoader(opts LoaderOptions) *Loader {
 // to expose values of other components.
 //
 // Declares are pieces of config that can be used as a blueprints to instantiate custom components.
-func (l *Loader) Apply(args map[string]any, componentBlocks []*ast.BlockStmt, configBlocks []*ast.BlockStmt, declareBlocks []*ast.BlockStmt, options component.LoaderConfigOptions) diag.Diagnostics {
+func (l *Loader) Apply(args map[string]any, componentBlocks []*ast.BlockStmt, configBlocks []*ast.BlockStmt, declareBlocks []*ast.BlockStmt, options LoaderConfigOptions) diag.Diagnostics {
 	start := time.Now()
 	l.mut.Lock()
 	defer l.mut.Unlock()

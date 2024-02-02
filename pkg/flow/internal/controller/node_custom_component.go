@@ -37,7 +37,7 @@ type CustomComponentNode struct {
 	mut     sync.RWMutex
 	block   *ast.BlockStmt // Current River block to derive args from
 	eval    *vm.Evaluator
-	managed component.Module    // Inner managed custom component
+	managed Module              // Inner managed custom component
 	args    component.Arguments // Evaluated arguments for the managed component
 
 	// NOTE(rfratto): health and exports have their own mutex because they may be
@@ -181,7 +181,7 @@ func (cn *CustomComponentNode) evaluate(evalScope *vm.Scope) error {
 
 	if cn.managed == nil {
 		// We haven't built the managed custom component successfully yet.
-		mod, err := cn.moduleController.NewModule("", func(exports map[string]any) { cn.setExports(exports) })
+		mod, err := cn.moduleController.NewModuleV2("", func(exports map[string]any) { cn.setExports(exports) })
 		if err != nil {
 			return fmt.Errorf("creating custom component controller: %w", err)
 		}
@@ -192,7 +192,7 @@ func (cn *CustomComponentNode) evaluate(evalScope *vm.Scope) error {
 	if err != nil {
 		return fmt.Errorf("loading custom component controller: %w", err)
 	}
-	loaderConfig := component.LoaderConfigOptions{
+	loaderConfig := LoaderConfigOptions{
 		CustomComponentRegistry: customComponentRegistry,
 	}
 

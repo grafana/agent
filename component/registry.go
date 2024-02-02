@@ -8,7 +8,6 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/grafana/regexp"
-	"github.com/grafana/river/ast"
 	"github.com/prometheus/client_golang/prometheus"
 	"go.opentelemetry.io/otel/trace"
 	"golang.org/x/exp/maps"
@@ -40,20 +39,12 @@ type ModuleController interface {
 	NewModule(id string, export ExportFunc) (Module, error)
 }
 
-type LoaderConfigOptions struct {
-	CustomComponentRegistry any
-}
-
 // Module is a controller for running components within a Module.
 type Module interface {
 	// LoadConfig parses River config and loads it into the Module.
 	// LoadConfig can be called multiple times, and called prior to
 	// [Module.Run].
 	LoadConfig(config []byte, args map[string]any) error
-
-	// LoadBody loads a River AST body into the Module. LoadBody can be called
-	// multiple times, and called prior to [Module.Run].
-	LoadBody(body ast.Body, args map[string]any, options LoaderConfigOptions) error
 
 	// Run starts the Module. No components within the Module
 	// will be run until Run is called.
