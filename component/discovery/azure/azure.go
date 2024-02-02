@@ -90,7 +90,7 @@ func (a *Arguments) Convert() *prom_discovery.SDConfig {
 	}
 
 	httpClientConfig := config.DefaultHTTPClientConfig
-	httpClientConfig.ProxyURL = a.ProxyURL
+	httpClientConfig.ProxyConfig.ProxyURL = a.ProxyURL
 	httpClientConfig.FollowRedirects = a.FollowRedirects
 	httpClientConfig.EnableHTTP2 = a.EnableHTTP2
 	httpClientConfig.TLSConfig = a.TLSConfig

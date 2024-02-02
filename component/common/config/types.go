@@ -20,7 +20,7 @@ type HTTPClientConfig struct {
 	OAuth2          *OAuth2Config     `river:"oauth2,block,optional"`
 	BearerToken     rivertypes.Secret `river:"bearer_token,attr,optional"`
 	BearerTokenFile string            `river:"bearer_token_file,attr,optional"`
-	ProxyURL        URL               `river:"proxy_url,attr,optional"`
+	ProxyConfig     *ProxyConfig      `river:",squash"`
 	TLSConfig       TLSConfig         `river:"tls_config,block,optional"`
 	FollowRedirects bool              `river:"follow_redirects,attr,optional"`
 	EnableHTTP2     bool              `river:"enable_http2,attr,optional"`
@@ -89,6 +89,20 @@ func (h *HTTPClientConfig) Validate() error {
 			return fmt.Errorf("at most one of oauth2 client_secret & client_secret_file must be configured")
 		}
 	}
+	if h.ProxyConfig != nil {
+		if len(h.ProxyConfig.ProxyConnectHeader.Header) > 0 && (!h.ProxyConfig.ProxyFromEnvironment && (h.ProxyConfig.ProxyURL.URL == nil || h.ProxyConfig.ProxyURL.String() == "")) {
+			return fmt.Errorf("if proxy_connect_header is configured, proxy_url or proxy_from_environment must also be configured")
+		}
+		if h.ProxyConfig.ProxyFromEnvironment && h.ProxyConfig.ProxyURL.URL != nil && h.ProxyConfig.ProxyURL.String() != "" {
+			return fmt.Errorf("if proxy_from_environment is configured, proxy_url must not be configured")
+		}
+		if h.ProxyConfig.ProxyFromEnvironment && h.ProxyConfig.NoProxy != "" {
+			return fmt.Errorf("if proxy_from_environment is configured, no_proxy must not be configured")
+		}
+		if h.ProxyConfig.ProxyURL.URL == nil && h.ProxyConfig.NoProxy != "" {
+			return fmt.Errorf("if no_proxy is configured, proxy_url must also be configured")
+		}
+	}
 	return nil
 }
 
@@ -108,9 +122,7 @@ func (h *HTTPClientConfig) Convert() *config.HTTPClientConfig {
 		TLSConfig:       *h.TLSConfig.Convert(),
 		FollowRedirects: h.FollowRedirects,
 		EnableHTTP2:     h.EnableHTTP2,
-		ProxyConfig: config.ProxyConfig{
-			ProxyURL: h.ProxyURL.Convert(),
-		},
+		ProxyConfig:     h.ProxyConfig.Convert(),
 	}
 }
 
@@ -145,6 +157,22 @@ func (b *BasicAuth) Convert() *config.BasicAuth {
 	}
 }
 
+type ProxyConfig struct {
+	ProxyURL             URL    `river:"proxy_url,attr,optional"`
+	NoProxy              string `river:"no_proxy,attr,optional"`
+	ProxyFromEnvironment bool   `river:"proxy_from_environment,attr,optional"`
+	ProxyConnectHeader   Header `river:",squash"`
+}
+
+func (p *ProxyConfig) Convert() config.ProxyConfig {
+	return config.ProxyConfig{
+		ProxyURL:             p.ProxyURL.Convert(),
+		NoProxy:              p.NoProxy,
+		ProxyFromEnvironment: p.ProxyFromEnvironment,
+		ProxyConnectHeader:   p.ProxyConnectHeader.Convert(),
+	}
+}
+
 // URL mirrors config.URL
 type URL struct {
 	*url.URL
@@ -175,6 +203,28 @@ func (u *URL) UnmarshalText(text []byte) error {
 // Convert converts our type to the native prometheus type
 func (u URL) Convert() config.URL {
 	return config.URL{URL: u.URL}
+}
+
+type Header struct {
+	Header map[string][]rivertypes.Secret `river:"proxy_connect_header,attr,optional"`
+}
+
+func (h *Header) Convert() config.Header {
+	if h == nil {
+		return nil
+	}
+	header := make(config.Header)
+	for name, values := range h.Header {
+		var s []config.Secret
+		if values != nil {
+			s = make([]config.Secret, 0, len(values))
+			for _, value := range values {
+				s = append(s, config.Secret(value))
+			}
+		}
+		header[name] = s
+	}
+	return header
 }
 
 // Authorization sets up HTTP authorization credentials.

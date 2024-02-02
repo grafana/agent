@@ -31,9 +31,9 @@ type Arguments struct {
 	BearerToken     rivertypes.Secret `river:"bearer_token,attr,optional"`
 	BearerTokenFile string            `river:"bearer_token_file,attr,optional"`
 
-	ProxyURL        config.URL `river:"proxy_url,attr,optional"`
-	FollowRedirects bool       `river:"follow_redirects,attr,optional"`
-	EnableHTTP2     bool       `river:"enable_http2,attr,optional"`
+	ProxyConfig     *config.ProxyConfig `river:",squash"`
+	FollowRedirects bool                `river:"follow_redirects,attr,optional"`
+	EnableHTTP2     bool                `river:"enable_http2,attr,optional"`
 }
 
 var DefaultArguments = Arguments{
@@ -67,7 +67,7 @@ func (a *Arguments) Convert() *prom_discovery.SDConfig {
 	httpClientConfig := config.DefaultHTTPClientConfig
 	httpClientConfig.BearerToken = a.BearerToken
 	httpClientConfig.BearerTokenFile = a.BearerTokenFile
-	httpClientConfig.ProxyURL = a.ProxyURL
+	httpClientConfig.ProxyConfig.ProxyURL = a.ProxyConfig.ProxyURL
 	httpClientConfig.FollowRedirects = a.FollowRedirects
 	httpClientConfig.EnableHTTP2 = a.EnableHTTP2
 
