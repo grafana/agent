@@ -15,23 +15,19 @@ type ModuleController interface {
 	// ModuleIDs returns the list of managed modules in unspecified order.
 	ModuleIDs() []string
 
-	NewModuleV2(id string, export component.ExportFunc) (Module, error)
+	NewCustomComponent(id string, export component.ExportFunc) (CustomComponent, error)
 }
 
-type LoaderConfigOptions struct {
-	CustomComponentRegistry *CustomComponentRegistry
-}
+// CustomComponent is a controller for running components within a CustomComponent.
+type CustomComponent interface {
+	// LoadBody loads a River AST body into the CustomComponent. LoadBody can be called
+	// multiple times, and called prior to [CustomComponent.Run].
+	LoadBody(body ast.Body, args map[string]any, options LoadOptions) error
 
-// Module is a controller for running components within a Module.
-type Module interface {
-	// LoadBody loads a River AST body into the Module. LoadBody can be called
-	// multiple times, and called prior to [Module.Run].
-	LoadBody(body ast.Body, args map[string]any, options LoaderConfigOptions) error
-
-	// Run starts the Module. No components within the Module
+	// Run starts the CustomComponent. No components within the CustomComponent
 	// will be run until Run is called.
 	//
-	// Run blocks until the provided context is canceled. The ID of a module as defined in
-	// ModuleController.NewModule will not be released until Run returns.
+	// Run blocks until the provided context is canceled. The ID of a CustomComponent as defined in
+	// ModuleController.NewCustomComponent will not be released until Run returns.
 	Run(context.Context) error
 }

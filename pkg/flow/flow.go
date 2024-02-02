@@ -284,11 +284,11 @@ func (f *Flow) Run(ctx context.Context) {
 // without any configuration errors.
 // LoadSource uses default loader configuration.
 func (f *Flow) LoadSource(source *Source, args map[string]any) error {
-	return f.loadSource(source, args, controller.LoaderConfigOptions{})
+	return f.loadSource(source, args, controller.LoadOptions{})
 }
 
 // Same as above but uses provided loader configuration.
-func (f *Flow) loadSource(source *Source, args map[string]any, options controller.LoaderConfigOptions) error {
+func (f *Flow) loadSource(source *Source, args map[string]any, options controller.LoadOptions) error {
 	f.loadMut.Lock()
 	defer f.loadMut.Unlock()
 

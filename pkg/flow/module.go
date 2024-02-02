@@ -59,10 +59,10 @@ func (m *moduleController) NewModule(id string, export component.ExportFunc) (co
 	return mod, nil
 }
 
-// NewModule creates a new, unstarted Module.
-func (m *moduleController) NewModuleV2(id string, export component.ExportFunc) (controller.Module, error) {
+// NewCustomComponent creates a new, unstarted CustomComponent.
+func (m *moduleController) NewCustomComponent(id string, export component.ExportFunc) (controller.CustomComponent, error) {
 	if id != "" && !scanner.IsValidIdentifier(id) {
-		return nil, fmt.Errorf("module ID %q is not a valid River identifier", id)
+		return nil, fmt.Errorf("CustomComponent ID %q is not a valid River identifier", id)
 	}
 
 	m.mut.Lock()
@@ -161,7 +161,7 @@ func (c *module) LoadConfig(config []byte, args map[string]any) error {
 }
 
 // LoadBody loads a pre-parsed River config.
-func (c *module) LoadBody(body ast.Body, args map[string]any, options controller.LoaderConfigOptions) error {
+func (c *module) LoadBody(body ast.Body, args map[string]any, options controller.LoadOptions) error {
 	ff, err := sourceFromBody(body)
 	if err != nil {
 		return err

@@ -16,16 +16,13 @@ type CustomComponentRegistry struct {
 }
 
 // NewCustomComponentRegistry creates a new CustomComponentRegistry with a parent.
-// parent must be nil or *Scope.
-func NewCustomComponentRegistry(parent any) *CustomComponentRegistry {
-	s := &CustomComponentRegistry{
+// parent can be nil.
+func NewCustomComponentRegistry(parent *CustomComponentRegistry) *CustomComponentRegistry {
+	return &CustomComponentRegistry{
+		parent:   parent,
 		declares: make(map[string]ast.Body),
 		imports:  make(map[string]*CustomComponentRegistry),
 	}
-	if parent != nil {
-		s.parent = parent.(*CustomComponentRegistry)
-	}
-	return s
 }
 
 // registerDeclare stores a local declare block.
@@ -67,12 +64,12 @@ func (s *CustomComponentRegistry) updateImportContentChildren(importNode *Import
 	}
 }
 
-// DeepCopy returns a deep copy of the full scope (including parents and imports).
-func (s *CustomComponentRegistry) DeepCopy() *CustomComponentRegistry {
+// deepCopy returns a deep copy of the full scope (including parents and imports).
+func (s *CustomComponentRegistry) deepCopy() *CustomComponentRegistry {
 	newScope := NewCustomComponentRegistry(nil)
 
 	if s.parent != nil {
-		newScope.parent = s.parent.DeepCopy()
+		newScope.parent = s.parent.deepCopy()
 	}
 
 	for k, v := range s.declares {
@@ -83,7 +80,7 @@ func (s *CustomComponentRegistry) DeepCopy() *CustomComponentRegistry {
 
 	for k, v := range s.imports {
 		if v != nil {
-			newScope.imports[k] = v.DeepCopy()
+			newScope.imports[k] = v.deepCopy()
 		}
 	}
 

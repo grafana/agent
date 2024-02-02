@@ -111,6 +111,14 @@ func NewLoader(opts LoaderOptions) *Loader {
 	return l
 }
 
+// LoadOptions are options that can be provided when loading a new River config.
+type LoadOptions struct {
+	// CustomComponentRegistry holds custom component templates.
+	// The definition of a custom component instantiated inside of the loaded config
+	// should be passed via this field if it's not declared or imported in the config.
+	CustomComponentRegistry *CustomComponentRegistry
+}
+
 // Apply loads a new set of components into the Loader. Apply will drop any
 // previously loaded component which is not described in the set of River
 // blocks.
@@ -125,7 +133,7 @@ func NewLoader(opts LoaderOptions) *Loader {
 // to expose values of other components.
 //
 // Declares are pieces of config that can be used as a blueprints to instantiate custom components.
-func (l *Loader) Apply(args map[string]any, componentBlocks []*ast.BlockStmt, configBlocks []*ast.BlockStmt, declareBlocks []*ast.BlockStmt, options LoaderConfigOptions) diag.Diagnostics {
+func (l *Loader) Apply(args map[string]any, componentBlocks []*ast.BlockStmt, configBlocks []*ast.BlockStmt, declareBlocks []*ast.BlockStmt, options LoadOptions) diag.Diagnostics {
 	start := time.Now()
 	l.mut.Lock()
 	defer l.mut.Unlock()
@@ -137,7 +145,9 @@ func (l *Loader) Apply(args map[string]any, componentBlocks []*ast.BlockStmt, co
 	}
 	l.cache.SyncModuleArgs(args)
 
-	l.componentNodeManager.scope = NewCustomComponentRegistry(options.CustomComponentRegistry)
+	// Create a new CustomComponentRegistry based on the provided one.
+	// The provided one should be nil for the root config.
+	l.componentNodeManager.customComponentReg = NewCustomComponentRegistry(options.CustomComponentRegistry)
 	newGraph, diags := l.loadNewGraph(args, componentBlocks, configBlocks, declareBlocks)
 	if diags.HasErrors() {
 		return diags
@@ -335,7 +345,7 @@ func (l *Loader) populateDeclareNodes(g *dag.Graph, declareBlocks []*ast.BlockSt
 			})
 			continue
 		}
-		l.componentNodeManager.scope.registerDeclare(declareBlock)
+		l.componentNodeManager.customComponentReg.registerDeclare(declareBlock)
 		l.declareNodes[node.label] = node
 		g.Add(node)
 	}
@@ -439,7 +449,7 @@ func (l *Loader) populateConfigBlockNodes(args map[string]any, g *dag.Graph, con
 		}
 
 		if importNode, ok := node.(*ImportConfigNode); ok {
-			l.componentNodeManager.scope.registerImport(importNode.label)
+			l.componentNodeManager.customComponentReg.registerImport(importNode.label)
 		}
 
 		g.Add(node)
@@ -638,7 +648,7 @@ func (l *Loader) EvaluateDependants(ctx context.Context, updatedNodes []*QueuedN
 			l.cache.CacheExports(parentNode.ID(), parentNode.Exports())
 		case *ImportConfigNode:
 			// Update the scope with the imported content.
-			l.componentNodeManager.scope.updateImportContent(parentNode)
+			l.componentNodeManager.customComponentReg.updateImportContent(parentNode)
 		}
 		// We collect all nodes directly incoming to parent.
 		_ = dag.WalkIncomingNodes(l.graph, parent.Node, func(n dag.Node) error {
@@ -775,7 +785,7 @@ func (l *Loader) postEvaluate(logger log.Logger, bn BlockNode, err error) error 
 			}
 		}
 	case *ImportConfigNode:
-		l.componentNodeManager.scope.updateImportContent(c)
+		l.componentNodeManager.customComponentReg.updateImportContent(c)
 	}
 
 	if err != nil {
