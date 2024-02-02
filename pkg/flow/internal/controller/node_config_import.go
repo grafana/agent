@@ -313,13 +313,13 @@ func (cn *ImportConfigNode) OnChildrenContentUpdate(child BlockNode) {
 }
 
 // GetImportedDeclareByLabel returns a declare block imported by the node.
-func (cn *ImportConfigNode) GetImportedDeclareByLabel(declareLabel string) (ast.Body, error) {
+func (cn *ImportConfigNode) GetImportedDeclareByLabel(customComponentName string) (ast.Body, error) {
 	cn.contentMut.Lock()
 	defer cn.contentMut.Unlock()
-	if declare, ok := cn.importedDeclares[declareLabel]; ok {
+	if declare, ok := cn.importedDeclares[customComponentName]; ok {
 		return declare, nil
 	}
-	return nil, fmt.Errorf("declareLabel %s not found in imported node %s", declareLabel, cn.label)
+	return nil, fmt.Errorf("customComponentName %s not found in imported node %s", customComponentName, cn.label)
 }
 
 // Run runs the managed component in the calling goroutine until ctx is

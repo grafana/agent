@@ -21,16 +21,16 @@ import (
 // CustomComponentNode manages the underlying custom component and caches its current
 // arguments and exports.
 type CustomComponentNode struct {
-	id                ComponentID
-	globalID          string
-	label             string
-	componentName     string
-	importLabel       string
-	declareLabel      string
-	nodeID            string // Cached from id.String() to avoid allocating new strings every time NodeID is called.
-	moduleController  ModuleController
-	OnBlockNodeUpdate func(cn BlockNode) // Informs controller that we need to reevaluate
-	logger            log.Logger
+	id                  ComponentID
+	globalID            string
+	label               string
+	componentName       string
+	importNamespace     string
+	customComponentName string
+	nodeID              string // Cached from id.String() to avoid allocating new strings every time NodeID is called.
+	moduleController    ModuleController
+	OnBlockNodeUpdate   func(cn BlockNode) // Informs controller that we need to reevaluate
+	logger              log.Logger
 
 	getConfig getCustomComponentConfig // Retrieve the custom component config.
 
@@ -52,21 +52,21 @@ type CustomComponentNode struct {
 	exports    component.Exports // Evaluated exports for the managed custom component
 }
 
-// ExtractImportAndDeclareLabels extract an importLabel and a declareLabel from a componentName.
-func ExtractImportAndDeclareLabels(componentName string) (string, string) {
+// ExtractImportAndDeclare extracts an importNamespace and a customComponentName from a componentName.
+func ExtractImportAndDeclare(componentName string) (string, string) {
 	parts := strings.Split(componentName, ".")
 	if len(parts) == 0 {
 		return "", ""
 	}
 	// If this is a local declare.
-	importLabel := ""
-	declareLabel := parts[0]
-	// If this is an imported custom component.
+	importNamespace := ""
+	customComponentName := parts[0]
+	// If this is an imported declare.
 	if len(parts) > 1 {
-		importLabel = parts[0]
-		declareLabel = parts[1]
+		importNamespace = parts[0]
+		customComponentName = parts[1]
 	}
-	return importLabel, declareLabel
+	return importNamespace, customComponentName
 }
 
 var _ ComponentNode = (*CustomComponentNode)(nil)
@@ -96,21 +96,20 @@ func NewCustomComponentNode(globals ComponentGlobals, b *ast.BlockStmt, getConfi
 	}
 
 	componentName := b.GetBlockName()
-
-	importLabel, declareLabel := ExtractImportAndDeclareLabels(componentName)
+	importNamespace, customComponentName := ExtractImportAndDeclare(componentName)
 
 	cn := &CustomComponentNode{
-		id:                id,
-		globalID:          globalID,
-		label:             b.Label,
-		nodeID:            nodeID,
-		componentName:     componentName,
-		importLabel:       importLabel,
-		declareLabel:      declareLabel,
-		moduleController:  globals.NewModuleController(globalID),
-		OnBlockNodeUpdate: globals.OnBlockNodeUpdate,
-		logger:            log.With(globals.Logger, "component", globalID),
-		getConfig:         getConfig,
+		id:                  id,
+		globalID:            globalID,
+		label:               b.Label,
+		nodeID:              nodeID,
+		componentName:       componentName,
+		importNamespace:     importNamespace,
+		customComponentName: customComponentName,
+		moduleController:    globals.NewModuleController(globalID),
+		OnBlockNodeUpdate:   globals.OnBlockNodeUpdate,
+		logger:              log.With(globals.Logger, "component", globalID),
+		getConfig:           getConfig,
 
 		block: b,
 		eval:  vm.New(b.Body),
@@ -189,11 +188,10 @@ func (cn *CustomComponentNode) evaluate(evalScope *vm.Scope) error {
 		cn.managed = mod
 	}
 
-	template, scope := cn.getConfig(cn.importLabel, cn.declareLabel)
-	if template == nil || scope == nil {
-		return fmt.Errorf("could not retrieve custom component config")
+	template, scope, err := cn.getConfig(cn.importNamespace, cn.customComponentName)
+	if err != nil {
+		return fmt.Errorf("loading custom component controller: %w", err)
 	}
-
 	loaderConfig := component.LoaderConfigOptions{
 		Scope: scope,
 	}

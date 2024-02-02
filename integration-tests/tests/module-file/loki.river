@@ -6,7 +6,7 @@ import.file "write" {
   filename = "loki_write.river"
 }
 
-declare "loki" {
+declare "logs" {
   logTarget.getLogFile "logFile" {}
   loki.source.file "test" {
     targets    = logTarget.getLogFile.logFile.output

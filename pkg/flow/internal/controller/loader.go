@@ -138,7 +138,7 @@ func (l *Loader) Apply(args map[string]any, componentBlocks []*ast.BlockStmt, co
 	}
 	l.cache.SyncModuleArgs(args)
 
-	l.componentNodeManager.scope = NewScope(options.Scope)
+	l.componentNodeManager.scope = NewCustomComponentRegistry(options.Scope)
 	newGraph, diags := l.loadNewGraph(args, componentBlocks, configBlocks, declareBlocks)
 	if diags.HasErrors() {
 		return diags
@@ -516,8 +516,8 @@ func (l *Loader) wireGraphEdges(g *dag.Graph) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	for _, n := range g.Nodes() {
-		// First, wire up dependencies on services.
 		switch n := n.(type) {
+		// First, wire up dependencies on services.
 		case *ServiceNode: // Service depending on other services.
 			for _, depName := range n.Definition().DependsOn {
 				dep := g.GetByID(depName)
@@ -536,6 +536,7 @@ func (l *Loader) wireGraphEdges(g *dag.Graph) diag.Diagnostics {
 			for ref := range refs {
 				g.AddEdge(dag.Edge{From: n, To: ref})
 			}
+			// skip here because for now Declare nodes can't reference component nodes.
 			continue
 		case *CustomComponentNode:
 			l.wireCustomComponentNode(g, n)
@@ -554,12 +555,14 @@ func (l *Loader) wireGraphEdges(g *dag.Graph) diag.Diagnostics {
 
 // wireCustomComponentNode wires a custom component to the import/declare nodes that it depends on.
 func (l *Loader) wireCustomComponentNode(g *dag.Graph, cc *CustomComponentNode) {
-	if declare, ok := l.declareNodes[cc.declareLabel]; ok {
+	if declare, ok := l.declareNodes[cc.customComponentName]; ok {
 		refs := l.findCustomComponentReferences(declare.Block())
 		for ref := range refs {
+			// add edges between the custom component and declare/import nodes.
 			g.AddEdge(dag.Edge{From: cc, To: ref})
 		}
-	} else if importNode, ok := l.importConfigNodes[cc.importLabel]; ok {
+	} else if importNode, ok := l.importConfigNodes[cc.importNamespace]; ok {
+		// add an edge between the custom component and the corresponding import node.
 		g.AddEdge(dag.Edge{From: cc, To: importNode})
 	}
 }
@@ -584,6 +587,7 @@ func (l *Loader) Services() []*ServiceNode {
 	return l.serviceNodes
 }
 
+// Imports returns the current set of import nodes.
 func (l *Loader) Imports() map[string]*ImportConfigNode {
 	l.mut.RLock()
 	defer l.mut.RUnlock()
@@ -800,13 +804,14 @@ func (l *Loader) isModule() bool {
 	return l.globals.OnExportsChange != nil && l.globals.ControllerID != ""
 }
 
+// findCustomComponentReferences returns references to import/declare nodes in a declare block.
 func (l *Loader) findCustomComponentReferences(declare *ast.BlockStmt) map[BlockNode]struct{} {
 	uniqueReferences := make(map[BlockNode]struct{})
 	l.collectCustomComponentReferences(declare.Body, uniqueReferences)
 	return uniqueReferences
 }
 
-// collectCustomComponentDependencies collects recursively references to import nodes through an AST body.
+// collectCustomComponentDependencies recursively collects references to import/declare nodes through an AST body.
 func (l *Loader) collectCustomComponentReferences(stmts ast.Body, uniqueReferences map[BlockNode]struct{}) {
 	for _, stmt := range stmts {
 		switch stmt := stmt.(type) {
@@ -816,10 +821,9 @@ func (l *Loader) collectCustomComponentReferences(stmts ast.Body, uniqueReferenc
 			case "declare":
 				l.collectCustomComponentReferences(stmt.Body, uniqueReferences)
 			default:
-				potentialImportLabel, potentialDeclareLabel := ExtractImportAndDeclareLabels(componentName)
-				if declareNode, ok := l.declareNodes[potentialDeclareLabel]; ok {
+				if declareNode, ok := l.declareNodes[stmt.Name[0]]; ok {
 					uniqueReferences[declareNode] = struct{}{}
-				} else if importNode, ok := l.importConfigNodes[potentialImportLabel]; ok {
+				} else if importNode, ok := l.importConfigNodes[stmt.Name[0]]; ok {
 					uniqueReferences[importNode] = struct{}{}
 				}
 			}

@@ -2,7 +2,7 @@ import.file "import_loki" {
   filename = "loki.river"
 }
 
-import_loki.loki "loki" {}
+import_loki.logs "loki" {}
 
 import.file "import_prom_scrape" {
   filename = "prom-scrape.river"
