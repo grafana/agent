@@ -615,6 +615,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusreceiver v0.87.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/vcenterreceiver v0.87.0
 	github.com/pyroscope-io/dotnetdiag v0.0.0-00010101000000-000000000000
+	github.com/xyproto/ainur v1.3.3
 	go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp v0.42.0
 	k8s.io/apimachinery v0.28.3
 )

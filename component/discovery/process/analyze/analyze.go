@@ -31,8 +31,8 @@ func Analyze(logger log.Logger, input Input) *Results {
 		Labels: make(map[string]string),
 	}
 	for _, a := range []analyzerFunc{
+		analyzeBinary,
 		analyzeGo,
-		analyzeCpp,
 		analyzePython,
 		analyzeDotNet,
 		analyzeJava,
