@@ -213,7 +213,6 @@ func (u *URL) UnmarshalText(text []byte) error {
 func (u *URL) Convert() config.URL {
 	if u == nil {
 		return config.URL{URL: nil}
-
 	}
 	return config.URL{URL: u.URL}
 }

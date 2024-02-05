@@ -33,6 +33,10 @@ func TestConvert(t *testing.T) {
 		TagSeparator:    ";",
 		HTTPClientConfig: config.HTTPClientConfig{
 			BearerToken: "FOO",
+			BasicAuth: &config.BasicAuth{
+				Username: "test",
+				Password: "pass",
+			},
 		},
 	}
 
@@ -42,7 +46,7 @@ func TestConvert(t *testing.T) {
 	require.Equal(t, ";", promArgs.TagSeparator)
 	require.Equal(t, promconfig.Secret("FOO"), promArgs.HTTPClientConfig.BearerToken)
 	require.Equal(t, "test", promArgs.HTTPClientConfig.BasicAuth.Username)
-	require.Equal(t, "pass", promArgs.HTTPClientConfig.BasicAuth.Password)
+	require.Equal(t, "pass", string(promArgs.HTTPClientConfig.BasicAuth.Password))
 }
 
 func TestValidate(t *testing.T) {
