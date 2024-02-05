@@ -79,6 +79,8 @@ Main (unreleased)
 
 - Updated dependency to add support for Go 1.22 (@stefanb)
 
+- Added documentation for `yaml_decode` stdlib function (@djcode)
+
 v0.39.2 (2024-1-31)
 --------------------
 
