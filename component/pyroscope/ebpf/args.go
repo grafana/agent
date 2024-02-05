@@ -21,4 +21,6 @@ type Arguments struct {
 	CollectKernelProfile bool                   `river:"collect_kernel_profile,attr,optional"`
 	Demangle             string                 `river:"demangle,attr,optional"`
 	PythonEnabled        bool                   `river:"python_enabled,attr,optional"`
+	RubyEnabled          bool                   `river:"ruby_enabled,attr,optional"`
+	DwarfEnabled         bool                   `river:"dwarf_enabled,attr,optional"`
 }
