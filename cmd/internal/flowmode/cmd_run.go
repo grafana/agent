@@ -481,7 +481,7 @@ func setMutexBlockProfiling(l log.Logger) {
 			runtime.SetBlockProfileRate(10_000)
 		}
 	} else {
-		// This should have a neglible impact. This will track anything over 10_000ns, and will randomly sample shorter durations.
+		// This should have a negligible impact. This will track anything over 10_000ns, and will randomly sample shorter durations.
 		// Default taken from https://github.com/DataDog/go-profiler-notes/blob/main/block.md
 		runtime.SetBlockProfileRate(10_000)
 	}
