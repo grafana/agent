@@ -8,6 +8,8 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
+	"runtime"
+	"strconv"
 	"strings"
 	"sync"
 	"syscall"
@@ -150,6 +152,7 @@ type flowRun struct {
 }
 
 func (fr *flowRun) Run(configPath string) error {
+
 	var wg sync.WaitGroup
 	defer wg.Wait()
 
@@ -176,6 +179,9 @@ func (fr *flowRun) Run(configPath string) error {
 	otel.SetTracerProvider(t)
 
 	level.Info(l).Log("boringcrypto enabled", boringcrypto.Enabled)
+
+	// Enable the profiling.
+	setMutexBlockProfiling(l)
 
 	// Immediately start the tracer.
 	go func() {
@@ -449,4 +455,32 @@ func splitPeers(s, sep string) []string {
 		return []string{}
 	}
 	return strings.Split(s, sep)
+}
+
+func setMutexBlockProfiling(l log.Logger) {
+	mutexProfileFraction := os.Getenv("MUTEX_PROFILING_PERCENT")
+	if mutexProfileFraction != "" {
+		rate, err := strconv.Atoi(mutexProfileFraction)
+		if err == nil && rate > 0 {
+			// The 100/rate is because the value is interpreted as 1/rate. So 50 would be 100/50 = 2 and become 1/2 or 50%.
+			runtime.SetMutexProfileFraction(100 / rate)
+		} else {
+			level.Error(l).Log("msg", "error setting MUTEX_PROFILING_PERCENT", "err", err)
+		}
+	} else {
+		// Why 1000 because that is what istio defaults to and that seemed reasonable to start with.
+		runtime.SetMutexProfileFraction(1000)
+	}
+	blockProfileFraction := os.Getenv("BLOCK_PROFILING_PERCENT")
+	if blockProfileFraction != "" {
+		rate, err := strconv.Atoi(blockProfileFraction)
+		if err == nil && rate > 0 {
+			runtime.SetBlockProfileRate(100 / rate)
+		} else {
+			level.Error(l).Log("msg", "error setting MUTEX_PROFILING_PERCENT", "err", err)
+		}
+	} else {
+		runtime.SetBlockProfileRate(1000)
+	}
+
 }
