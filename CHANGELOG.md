@@ -51,6 +51,8 @@ Main (unreleased)
 
 - `service_name` label is inferred from discovery meta labels in `pyroscope.java` (@korniltsev)
 
+- Changed default buckets for `agent_prometheus_fanout_latency` to `.005, .01, .05, .1, .5, 1, 5, 10, 60, 90, 600`s. (@mattdurham)
+
 ### Bugfixes
 
 - Fix an issue in `remote.s3` where the exported content of an object would be an empty string if `remote.s3` failed to fully retrieve
