@@ -23,6 +23,10 @@ type EnabledAware interface {
 type Logger struct {
 	inner io.Writer // Writer passed to New.
 
+	buffer       [][]interface{} // Store logs before correctly determine the log format
+	hasLogFormat bool            // Confirmation whether log format has been determined
+	bufferMut    sync.Mutex
+
 	level   *slog.LevelVar // Current configured level.
 	format  *formatVar     // Current configured format.
 	writer  *writerVar     // Current configured multiwriter (inner + write_to).
@@ -47,6 +51,9 @@ func New(w io.Writer, o Options) (*Logger, error) {
 	l := &Logger{
 		inner: w,
 
+		buffer:       [][]interface{}{},
+		hasLogFormat: false,
+
 		level:  &leveler,
 		format: &format,
 		writer: &writer,
@@ -57,9 +64,6 @@ func New(w io.Writer, o Options) (*Logger, error) {
 		},
 	}
 
-	if err := l.Update(o); err != nil {
-		return nil, err
-	}
 	return l, nil
 }
 
@@ -69,9 +73,12 @@ func (l *Logger) Handler() slog.Handler { return l.handler }
 
 // Update re-configures the options used for the logger.
 func (l *Logger) Update(o Options) error {
+	l.bufferMut.Lock()
+	defer l.bufferMut.Unlock()
+
 	switch o.Format {
 	case FormatLogfmt, FormatJSON:
-		// no-op
+		l.hasLogFormat = true
 	default:
 		return fmt.Errorf("unrecognized log format %q", o.Format)
 	}
@@ -85,11 +92,25 @@ func (l *Logger) Update(o Options) error {
 	}
 	l.writer.Set(newWriter)
 
+	// Print out the buffered logs since we determined the log format already
+	for _, bufferedLogChunk := range l.buffer {
+		if err := slogadapter.GoKit(l.handler).Log(bufferedLogChunk...); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
 // Log implements log.Logger.
 func (l *Logger) Log(kvps ...interface{}) error {
+	// Buffer logs before confirming log format is configured in `logging` block
+	l.bufferMut.Lock()
+	defer l.bufferMut.Unlock()
+	if !l.hasLogFormat {
+		l.buffer = append(l.buffer, kvps)
+		return nil
+	}
+
 	// NOTE(rfratto): this method is a temporary shim while log/slog is still
 	// being adopted throughout the codebase.
 	return slogadapter.GoKit(l.handler).Log(kvps...)
