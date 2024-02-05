@@ -44,48 +44,21 @@ func TestLevels(t *testing.T) {
 
 	var testCases = []testCase{
 		{
-			name: "no level - prints",
-			logger: func(w io.Writer) (log.Logger, error) {
-				o := debugLevel()
-				logger, err := logging.New(w, o)
-				if err != nil {
-					return nil, err
-				}
-				if err := logger.Update(o); err != nil {
-					return nil, err
-				}
-				return logger, err
-			},
+			name:     "no level - prints",
+			logger:   func(w io.Writer) (log.Logger, error) { return getNewlyUpdatedLogger(w, debugLevel()) },
 			message:  "hello",
 			expected: "level=info msg=hello\n",
 		},
 		{
-			name: "no level - drops",
-			logger: func(w io.Writer) (log.Logger, error) {
-				o := warnLevel()
-				logger, err := logging.New(w, o)
-				if err != nil {
-					return nil, err
-				}
-				if err := logger.Update(o); err != nil {
-					return nil, err
-				}
-				return logger, err
-			},
+			name:     "no level - drops",
+			logger:   func(w io.Writer) (log.Logger, error) { return getNewlyUpdatedLogger(w, warnLevel()) },
 			message:  "hello",
 			expected: "",
 		},
 		{
 			name: "flow info level - drops",
 			logger: func(w io.Writer) (log.Logger, error) {
-				o := warnLevel()
-				logger, err := logging.New(w, o)
-				if err != nil {
-					return nil, err
-				}
-				if err := logger.Update(o); err != nil {
-					return nil, err
-				}
+				logger, err := getNewlyUpdatedLogger(w, warnLevel())
 				return flowlevel.Info(logger), err
 			},
 			message:  "hello",
@@ -94,14 +67,7 @@ func TestLevels(t *testing.T) {
 		{
 			name: "flow debug level - prints",
 			logger: func(w io.Writer) (log.Logger, error) {
-				o := debugLevel()
-				logger, err := logging.New(w, o)
-				if err != nil {
-					return nil, err
-				}
-				if err := logger.Update(o); err != nil {
-					return nil, err
-				}
+				logger, err := getNewlyUpdatedLogger(w, debugLevel())
 				return flowlevel.Debug(logger), err
 			},
 			message:  "hello",
@@ -110,14 +76,7 @@ func TestLevels(t *testing.T) {
 		{
 			name: "flow info level - prints",
 			logger: func(w io.Writer) (log.Logger, error) {
-				o := infoLevel()
-				logger, err := logging.New(w, o)
-				if err != nil {
-					return nil, err
-				}
-				if err := logger.Update(o); err != nil {
-					return nil, err
-				}
+				logger, err := getNewlyUpdatedLogger(w, infoLevel())
 				return flowlevel.Info(logger), err
 			},
 			message:  "hello",
@@ -126,14 +85,7 @@ func TestLevels(t *testing.T) {
 		{
 			name: "flow warn level - prints",
 			logger: func(w io.Writer) (log.Logger, error) {
-				o := debugLevel()
-				logger, err := logging.New(w, o)
-				if err != nil {
-					return nil, err
-				}
-				if err := logger.Update(o); err != nil {
-					return nil, err
-				}
+				logger, err := getNewlyUpdatedLogger(w, debugLevel())
 				return flowlevel.Warn(logger), err
 			},
 			message:  "hello",
@@ -142,14 +94,7 @@ func TestLevels(t *testing.T) {
 		{
 			name: "flow error level - prints",
 			logger: func(w io.Writer) (log.Logger, error) {
-				o := debugLevel()
-				logger, err := logging.New(w, o)
-				if err != nil {
-					return nil, err
-				}
-				if err := logger.Update(o); err != nil {
-					return nil, err
-				}
+				logger, err := getNewlyUpdatedLogger(w, debugLevel())
 				return flowlevel.Error(logger), err
 			},
 			message:  "hello",
@@ -158,14 +103,7 @@ func TestLevels(t *testing.T) {
 		{
 			name: "gokit info level - drops",
 			logger: func(w io.Writer) (log.Logger, error) {
-				o := warnLevel()
-				logger, err := logging.New(w, o)
-				if err != nil {
-					return nil, err
-				}
-				if err := logger.Update(o); err != nil {
-					return nil, err
-				}
+				logger, err := getNewlyUpdatedLogger(w, warnLevel())
 				return gokitlevel.Info(logger), err
 			},
 			message:  "hello",
@@ -174,14 +112,7 @@ func TestLevels(t *testing.T) {
 		{
 			name: "gokit debug level - prints",
 			logger: func(w io.Writer) (log.Logger, error) {
-				o := debugLevel()
-				logger, err := logging.New(w, o)
-				if err != nil {
-					return nil, err
-				}
-				if err := logger.Update(o); err != nil {
-					return nil, err
-				}
+				logger, err := getNewlyUpdatedLogger(w, debugLevel())
 				return gokitlevel.Debug(logger), err
 			},
 			message:  "hello",
@@ -190,14 +121,7 @@ func TestLevels(t *testing.T) {
 		{
 			name: "gokit info level - prints",
 			logger: func(w io.Writer) (log.Logger, error) {
-				o := infoLevel()
-				logger, err := logging.New(w, o)
-				if err != nil {
-					return nil, err
-				}
-				if err := logger.Update(o); err != nil {
-					return nil, err
-				}
+				logger, err := getNewlyUpdatedLogger(w, infoLevel())
 				return gokitlevel.Info(logger), err
 			},
 			message:  "hello",
@@ -206,14 +130,7 @@ func TestLevels(t *testing.T) {
 		{
 			name: "gokit warn level - prints",
 			logger: func(w io.Writer) (log.Logger, error) {
-				o := debugLevel()
-				logger, err := logging.New(w, o)
-				if err != nil {
-					return nil, err
-				}
-				if err := logger.Update(o); err != nil {
-					return nil, err
-				}
+				logger, err := getNewlyUpdatedLogger(w, debugLevel())
 				return gokitlevel.Warn(logger), err
 			},
 			message:  "hello",
@@ -222,14 +139,7 @@ func TestLevels(t *testing.T) {
 		{
 			name: "gokit error level - prints",
 			logger: func(w io.Writer) (log.Logger, error) {
-				o := debugLevel()
-				logger, err := logging.New(w, o)
-				if err != nil {
-					return nil, err
-				}
-				if err := logger.Update(o); err != nil {
-					return nil, err
-				}
+				logger, err := getNewlyUpdatedLogger(w, debugLevel())
 				return gokitlevel.Error(logger), err
 			},
 			message:  "hello",
@@ -365,4 +275,15 @@ func warnLevel() logging.Options {
 	opts := debugLevel()
 	opts.Level = logging.LevelWarn
 	return opts
+}
+
+func getNewlyUpdatedLogger(w io.Writer, o logging.Options) (log.Logger, error) {
+	logger, err := logging.New(w, o)
+	if err != nil {
+		return nil, err
+	}
+	if err := logger.Update(o); err != nil {
+		return nil, err
+	}
+	return logger, nil
 }
