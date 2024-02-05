@@ -17,7 +17,7 @@
 ##
 ##   test              Run tests
 ##   lint              Lint code
-##   integration-tests Run integration tests
+##   integration-test Run integration tests
 ##
 ## Targets for building binaries:
 ##
@@ -167,7 +167,7 @@ test-packages:
 	docker pull $(BUILD_IMAGE)
 	go test -tags=packaging  ./packaging
 
-.PHONY: integration-tests
+.PHONY: integration-test
 integration-test:
 	cd integration-tests && $(GO_ENV) go run .
 
