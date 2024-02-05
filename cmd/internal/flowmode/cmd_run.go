@@ -477,7 +477,7 @@ func setMutexBlockProfiling(l log.Logger) {
 		if err == nil && rate > 0 {
 			runtime.SetBlockProfileRate(100 / rate)
 		} else {
-			level.Error(l).Log("msg", "error setting MUTEX_PROFILING_PERCENT", "err", err)
+			level.Error(l).Log("msg", "error setting BLOCK_PROFILING_PERCENT", "err", err)
 		}
 	} else {
 		runtime.SetBlockProfileRate(1000)
