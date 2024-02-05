@@ -201,7 +201,7 @@ func (t *tailer) tail(ctx context.Context, handler loki.EntryHandler) error {
 	// False positives here are acceptable, but false negatives mean that
 	// we'll have a larger spike of missing logs until we detect a rolled
 	// file.
-	if k8sComparableServerVersion.LE(semver.Version{Major: 1, Minor: 29, Patch: 1}) {
+	if k8sComparableServerVersion.LE(semver.Version{Major: 1, Minor: 29, Patch: 0}) {
 		go func() {
 			rolledFileTicker := time.NewTicker(1 * time.Second)
 			defer func() {
@@ -220,7 +220,7 @@ func (t *tailer) tail(ctx context.Context, handler loki.EntryHandler) error {
 					}
 					s := time.Since(last)
 					if s > avg*3 {
-						level.Info(t.log).Log("msg", "have not seen a log line in 3x average time between lines, closing and re-opening tailer", "rolling_average", avg, "time_since_last", s)
+						level.Debug(t.log).Log("msg", "have not seen a log line in 3x average time between lines, closing and re-opening tailer", "rolling_average", avg, "time_since_last", s)
 						return
 					}
 				}
