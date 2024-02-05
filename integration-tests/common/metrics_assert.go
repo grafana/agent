@@ -6,9 +6,10 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
-const promURL = "http://localhost:9009/prometheus/api/v1/query?query="
+const promURL = "http://localhost:9009/prometheus/api/v1/"
 
 // Default metrics list according to what the prom-gen app is generating.
 var PromDefaultMetrics = []string{
@@ -39,13 +40,19 @@ var OtelDefaultHistogramMetrics = []string{
 	"example_exponential_float_histogram",
 }
 
-// MetricQuery returns a formatted Prometheus metric query with a given metricName and a given label.
+// MetricQuery returns a formatted Prometheus metric query with a given metricName and the given test_name label.
 func MetricQuery(metricName string, testName string) string {
-	return fmt.Sprintf("%s%s{test_name='%s'}", promURL, metricName, testName)
+	return fmt.Sprintf("%squery?query=%s{test_name='%s'}", promURL, metricName, testName)
+}
+
+// MetricsQuery returns the list of available metrics matching the given test_name label.
+func MetricsQuery(testName string) string {
+	return fmt.Sprintf("%sseries?match[]={test_name='%s'}", promURL, testName)
 }
 
 // MimirMetricsTest checks that all given metrics are stored in Mimir.
 func MimirMetricsTest(t *testing.T, metrics []string, histogramMetrics []string, testName string) {
+	AssertMetricsAvailable(t, metrics, histogramMetrics, testName)
 	for _, metric := range metrics {
 		metric := metric
 		t.Run(metric, func(t *testing.T) {
@@ -60,6 +67,40 @@ func MimirMetricsTest(t *testing.T, metrics []string, histogramMetrics []string,
 			AssertHistogramData(t, MetricQuery(metric, testName), metric, testName)
 		})
 	}
+}
+
+// AssertMetricsAvailable performs a Prometheus query and expect the result to eventually contain the list of expected metrics.
+func AssertMetricsAvailable(t *testing.T, metrics []string, histogramMetrics []string, testName string) {
+	var missingMetrics []string
+	expectedMetrics := append(metrics, histogramMetrics...)
+	query := MetricsQuery(testName)
+	require.EventuallyWithT(t, func(c *assert.CollectT) {
+		var metricsResponse MetricsResponse
+		err := FetchDataFromURL(query, &metricsResponse)
+		assert.NoError(c, err)
+		missingMetrics = checkMissingMetrics(expectedMetrics, metricsResponse.Data)
+		msg := fmt.Sprintf("Some metrics are missing: %v", missingMetrics)
+		if len(missingMetrics) == len(expectedMetrics) {
+			msg = "All metrics are missing"
+		}
+		assert.Empty(c, missingMetrics, msg)
+	}, DefaultTimeout, DefaultRetryInterval)
+}
+
+// checkMissingMetrics returns the expectedMetrics which are not contained in actualMetrics.
+func checkMissingMetrics(expectedMetrics []string, actualMetrics []Metric) []string {
+	metricSet := make(map[string]struct{}, len(actualMetrics))
+	for _, metric := range actualMetrics {
+		metricSet[metric.Name] = struct{}{}
+	}
+
+	var missingMetrics []string
+	for _, expectedMetric := range expectedMetrics {
+		if _, exists := metricSet[expectedMetric]; !exists {
+			missingMetrics = append(missingMetrics, expectedMetric)
+		}
+	}
+	return missingMetrics
 }
 
 // AssertHistogramData performs a Prometheus query and expect the result to eventually contain the expected histogram.
@@ -98,8 +139,6 @@ func AssertMetricData(t *testing.T, query, expectedMetric string, testName strin
 		if assert.NotEmpty(c, metricResponse.Data.Result) {
 			assert.Equal(c, metricResponse.Data.Result[0].Metric.Name, expectedMetric)
 			assert.Equal(c, metricResponse.Data.Result[0].Metric.TestName, testName)
-			fmt.Println(metricResponse.Data.Result[0])
-			fmt.Println(metricResponse.Data.Result[0].Value)
 			assert.NotEmpty(c, metricResponse.Data.Result[0].Value.Value)
 			assert.Nil(c, metricResponse.Data.Result[0].Histogram)
 		}
