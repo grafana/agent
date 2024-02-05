@@ -457,30 +457,30 @@ func splitPeers(s, sep string) []string {
 }
 
 func setMutexBlockProfiling(l log.Logger) {
-	mutexProfileFraction := os.Getenv("MUTEX_PROFILING_PERCENT")
+	mutexProfileFraction := os.Getenv("PPROF_MUTEX_PROFILING_PERCENT")
 	if mutexProfileFraction != "" {
 		rate, err := strconv.Atoi(mutexProfileFraction)
 		if err == nil && rate > 0 {
 			// The 100/rate is because the value is interpreted as 1/rate. So 50 would be 100/50 = 2 and become 1/2 or 50%.
 			runtime.SetMutexProfileFraction(100 / rate)
 		} else {
-			level.Error(l).Log("msg", "error setting MUTEX_PROFILING_PERCENT", "err", err, "value", mutexProfileFraction)
+			level.Error(l).Log("msg", "error setting PPROF_MUTEX_PROFILING_PERCENT", "err", err, "value", mutexProfileFraction)
 			runtime.SetMutexProfileFraction(1000)
 		}
 	} else {
 		// Why 1000 because that is what istio defaults to and that seemed reasonable to start with.
 		runtime.SetMutexProfileFraction(1000)
 	}
-	blockProfileFraction := os.Getenv("BLOCK_PROFILING_PERCENT")
+	blockProfileFraction := os.Getenv("PPROF_BLOCK_PROFILING_RATE")
 	if blockProfileFraction != "" {
 		rate, err := strconv.Atoi(blockProfileFraction)
 		if err == nil && rate > 0 {
-			runtime.SetBlockProfileRate(100 / rate)
+			runtime.SetBlockProfileRate(rate)
 		} else {
-			level.Error(l).Log("msg", "error setting BLOCK_PROFILING_PERCENT", "err", err, "value", blockProfileFraction)
-			runtime.SetBlockProfileRate(1000)
+			level.Error(l).Log("msg", "error setting PPROF_BLOCK_PROFILING_RATE", "err", err, "value", blockProfileFraction)
+			runtime.SetBlockProfileRate(10_000)
 		}
 	} else {
-		runtime.SetBlockProfileRate(1000)
+		runtime.SetBlockProfileRate(10_000)
 	}
 }
