@@ -298,6 +298,7 @@ type formatFunc func(string) string
 var (
 	fmtOctetCounting = func(s string) string { return fmt.Sprintf("%d %s", len(s), s) }
 	fmtNewline       = func(s string) string { return s + "\n" }
+	fmtIdentity      = func(s string) string { return s }
 )
 
 func Benchmark_SyslogTarget(b *testing.B) {
@@ -307,7 +308,7 @@ func Benchmark_SyslogTarget(b *testing.B) {
 		formatFunc formatFunc
 	}{
 		{"tcp", protocolTCP, fmtOctetCounting},
-		{"udp", protocolUDP, fmtOctetCounting},
+		{"udp", protocolUDP, fmtIdentity},
 	} {
 		tt := tt
 		b.Run(tt.name, func(b *testing.B) {
@@ -366,8 +367,7 @@ func TestSyslogTarget(t *testing.T) {
 	}{
 		{"tcp newline separated", protocolTCP, fmtNewline},
 		{"tcp octetcounting", protocolTCP, fmtOctetCounting},
-		{"udp newline separated", protocolUDP, fmtNewline},
-		{"udp octetcounting", protocolUDP, fmtOctetCounting},
+		{"udp", protocolUDP, fmtIdentity},
 	} {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
