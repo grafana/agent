@@ -152,7 +152,6 @@ type flowRun struct {
 }
 
 func (fr *flowRun) Run(configPath string) error {
-
 	var wg sync.WaitGroup
 	defer wg.Wait()
 
@@ -484,5 +483,4 @@ func setMutexBlockProfiling(l log.Logger) {
 	} else {
 		runtime.SetBlockProfileRate(1000)
 	}
-
 }
