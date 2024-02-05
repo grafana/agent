@@ -51,7 +51,7 @@ Main (unreleased)
 
 - `service_name` label is inferred from discovery meta labels in `pyroscope.java` (@korniltsev)
 
-- Changed default buckets for `agent_prometheus_fanout_latency` to `.005, .01, .05, .1, .5, 1, 5, 10, 60, 90, 600`s. (@mattdurham)
+- Changed default buckets for `agent_prometheus_fanout_latency` to `.005, .01, .05, .1, .5, 1, 5, 10, 60, 90, 300`s. (@mattdurham)
 
 ### Bugfixes
 
