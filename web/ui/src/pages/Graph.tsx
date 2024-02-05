@@ -2,10 +2,10 @@ import { faDiagramProject } from '@fortawesome/free-solid-svg-icons';
 
 import { ComponentGraph } from '../features/graph/ComponentGraph';
 import Page from '../features/layout/Page';
-import { useComponentInfo } from '../hooks/componentInfo';
+import { useAllComponentInfo } from '../hooks/componentInfo';
 
 function Graph() {
-  const [components] = useComponentInfo('');
+  const [components] = useAllComponentInfo('');
 
   return (
     <Page name="Graph" desc="Relationships between defined components" icon={faDiagramProject}>
