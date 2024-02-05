@@ -106,7 +106,6 @@ func runAllTests() {
 		}(testDir)
 	}
 	wg.Wait()
-	close(logChan)
 }
 
 func cleanUpEnvironment() {
@@ -119,6 +118,9 @@ func cleanUpEnvironment() {
 
 func reportResults() {
 	testsFailed := 0
+	// It's ok to close the channel here because all tests are finished.
+	// If the channel would not be closed, the for loop would wait forever.
+	close(logChan)
 	for log := range logChan {
 		fmt.Printf("Failure detected in %s:\n", log.TestDir)
 		fmt.Println("Test output:", log.TestOutput)
