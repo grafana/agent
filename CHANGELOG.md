@@ -69,6 +69,9 @@ Main (unreleased)
 - Fix an issue with static integrations-next marshaling where non singletons
   would cause `/-/config` to fail to marshal. (@erikbaranowski)
 
+- Fix an issue with `otelcol.connector.servicegraph` component 
+  measuring span's latency in miliseconds instead of seconds. (@hainenber) 
+
 ### Other changes
 
 - Removed support for Windows 2012 in line with Microsoft end of life. (@mattdurham)
