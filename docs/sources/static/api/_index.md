@@ -38,9 +38,11 @@ The following endpoints are exposed:
 - Delete config: [`DELETE /agent/api/v1/config/{name}`](#delete-config)
 
 {{< admonition type="note" >}}
-If you are running Grafana Agent in a Docker container, you must change the default HTTP listen address from `127.0.0.0:12345` to `0.0.0.0:12345` to expose the API outside the Docker container.
-You can change this address with the command-line flag: `-server.http.address=0.0.0.0:12345`.
+If you are running Grafana Agent in a Docker container and you want to expose the API outside the Docker container, you must change the default HTTP listen address from `127.0.0.1:12345` to a valid network interface address.
+You can change the HTTP listen address with the command-line flag: `-server.http.address=0.0.0.0:12345`.
 For more information, refer to the [Server](https://grafana.com/docs/agent/latest/static/configuration/flags/#server) command-line flag documentation.
+
+You must also publish the port in Docker. Refer to [Published ports]https://docs.docker.com/network/#published-ports in the Docker documentation for more information.
 {{< /admonition >}}
 
 ### API response
