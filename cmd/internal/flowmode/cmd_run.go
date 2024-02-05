@@ -44,6 +44,16 @@ import (
 	_ "github.com/grafana/agent/component/all"
 )
 
+var successfulReloads = prometheus.NewCounter(prometheus.CounterOpts{
+	Name: "config_reload_success_total",
+	Help: "The total number of successful reload",
+})
+
+var failedReloads = prometheus.NewCounter(prometheus.CounterOpts{
+	Name: "config_reload_fail_total",
+	Help: "The total number of failed reload",
+})
+
 func runCommand() *cobra.Command {
 	r := &flowRun{
 		inMemoryAddr:          "agent.internal:12345",
@@ -194,6 +204,7 @@ func (fr *flowRun) Run(configPath string) error {
 	// metrics are still exposed.
 	reg := prometheus.DefaultRegisterer
 	reg.MustRegister(newResourcesCollector(l))
+	reg.MustRegister(successfulReloads, failedReloads)
 
 	// There's a cyclic dependency between the definition of the Flow controller,
 	// the reload/ready functions, and the HTTP service.
@@ -272,12 +283,15 @@ func (fr *flowRun) Run(configPath string) error {
 		defer instrumentation.InstrumentLoad(err == nil)
 
 		if err != nil {
+			failedReloads.Inc()
 			return nil, fmt.Errorf("reading config path %q: %w", configPath, err)
 		}
 		if err := f.LoadSource(flowSource, nil); err != nil {
+			failedReloads.Inc()
 			return flowSource, fmt.Errorf("error during the initial grafana/agent load: %w", err)
 		}
 
+		successfulReloads.Inc()
 		return flowSource, nil
 	}
 
