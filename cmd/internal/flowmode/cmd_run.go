@@ -465,7 +465,7 @@ func setMutexBlockProfiling(l log.Logger) {
 			// The 100/rate is because the value is interpreted as 1/rate. So 50 would be 100/50 = 2 and become 1/2 or 50%.
 			runtime.SetMutexProfileFraction(100 / rate)
 		} else {
-			level.Error(l).Log("msg", "error setting MUTEX_PROFILING_PERCENT", "err", err)
+			level.Error(l).Log("msg", "error setting MUTEX_PROFILING_PERCENT", "err", err, "value", mutexProfileFraction)
 			runtime.SetMutexProfileFraction(1000)
 		}
 	} else {
@@ -478,7 +478,7 @@ func setMutexBlockProfiling(l log.Logger) {
 		if err == nil && rate > 0 {
 			runtime.SetBlockProfileRate(100 / rate)
 		} else {
-			level.Error(l).Log("msg", "error setting BLOCK_PROFILING_PERCENT", "err", err)
+			level.Error(l).Log("msg", "error setting BLOCK_PROFILING_PERCENT", "err", err, "value", blockProfileFraction)
 			runtime.SetBlockProfileRate(1000)
 		}
 	} else {
