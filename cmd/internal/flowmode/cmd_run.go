@@ -468,7 +468,7 @@ func setMutexBlockProfiling(l log.Logger) {
 			runtime.SetMutexProfileFraction(1000)
 		}
 	} else {
-		// Why 1000 because that is what istio defaults to and that seemed reasonable to start with.
+		// Why 1000 because that is what istio defaults to and that seemed reasonable to start with. This is 00.1% sampling.
 		runtime.SetMutexProfileFraction(1000)
 	}
 	blockProfileFraction := os.Getenv("PPROF_BLOCK_PROFILING_RATE")
@@ -481,6 +481,8 @@ func setMutexBlockProfiling(l log.Logger) {
 			runtime.SetBlockProfileRate(10_000)
 		}
 	} else {
+		// This should have a neglible impact. This will track anything over 10_000ns, and will randomly sample shorter durations.
+		// Default taken from https://github.com/DataDog/go-profiler-notes/blob/main/block.md
 		runtime.SetBlockProfileRate(10_000)
 	}
 }
