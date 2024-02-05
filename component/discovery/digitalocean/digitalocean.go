@@ -60,16 +60,16 @@ func (a *Arguments) Validate() error {
 		return fmt.Errorf("exactly one of bearer_token or bearer_token_file must be specified")
 	}
 
-	return nil
+	return a.ProxyConfig.Validate()
 }
 
 func (a *Arguments) Convert() *prom_discovery.SDConfig {
 	httpClientConfig := config.DefaultHTTPClientConfig
 	httpClientConfig.BearerToken = a.BearerToken
 	httpClientConfig.BearerTokenFile = a.BearerTokenFile
-	httpClientConfig.ProxyConfig.ProxyURL = a.ProxyConfig.ProxyURL
 	httpClientConfig.FollowRedirects = a.FollowRedirects
 	httpClientConfig.EnableHTTP2 = a.EnableHTTP2
+	httpClientConfig.ProxyConfig = a.ProxyConfig
 
 	return &prom_discovery.SDConfig{
 		RefreshInterval:  model.Duration(a.RefreshInterval),

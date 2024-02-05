@@ -89,21 +89,8 @@ func (h *HTTPClientConfig) Validate() error {
 			return fmt.Errorf("at most one of oauth2 client_secret & client_secret_file must be configured")
 		}
 	}
-	if h.ProxyConfig != nil {
-		if len(h.ProxyConfig.ProxyConnectHeader.Header) > 0 && (!h.ProxyConfig.ProxyFromEnvironment && (h.ProxyConfig.ProxyURL.URL == nil || h.ProxyConfig.ProxyURL.String() == "")) {
-			return fmt.Errorf("if proxy_connect_header is configured, proxy_url or proxy_from_environment must also be configured")
-		}
-		if h.ProxyConfig.ProxyFromEnvironment && h.ProxyConfig.ProxyURL.URL != nil && h.ProxyConfig.ProxyURL.String() != "" {
-			return fmt.Errorf("if proxy_from_environment is configured, proxy_url must not be configured")
-		}
-		if h.ProxyConfig.ProxyFromEnvironment && h.ProxyConfig.NoProxy != "" {
-			return fmt.Errorf("if proxy_from_environment is configured, no_proxy must not be configured")
-		}
-		if h.ProxyConfig.ProxyURL.URL == nil && h.ProxyConfig.NoProxy != "" {
-			return fmt.Errorf("if no_proxy is configured, proxy_url must also be configured")
-		}
-	}
-	return nil
+
+	return h.ProxyConfig.Validate()
 }
 
 // Convert converts HTTPClientConfig to the native Prometheus type. If h is
@@ -165,12 +152,34 @@ type ProxyConfig struct {
 }
 
 func (p *ProxyConfig) Convert() config.ProxyConfig {
+	if p == nil {
+		return config.ProxyConfig{}
+	}
+
 	return config.ProxyConfig{
 		ProxyURL:             p.ProxyURL.Convert(),
 		NoProxy:              p.NoProxy,
 		ProxyFromEnvironment: p.ProxyFromEnvironment,
 		ProxyConnectHeader:   p.ProxyConnectHeader.Convert(),
 	}
+}
+
+func (p *ProxyConfig) Validate() error {
+	if p != nil {
+		if len(p.ProxyConnectHeader.Header) > 0 && (!p.ProxyFromEnvironment && (p.ProxyURL.URL == nil || p.ProxyURL.String() == "")) {
+			return fmt.Errorf("if proxy_connect_header is configured, proxy_url or proxy_from_environment must also be configured")
+		}
+		if p.ProxyFromEnvironment && p.ProxyURL.URL != nil && p.ProxyURL.String() != "" {
+			return fmt.Errorf("if proxy_from_environment is configured, proxy_url must not be configured")
+		}
+		if p.ProxyFromEnvironment && p.NoProxy != "" {
+			return fmt.Errorf("if proxy_from_environment is configured, no_proxy must not be configured")
+		}
+		if p.ProxyURL.URL == nil && p.NoProxy != "" {
+			return fmt.Errorf("if no_proxy is configured, proxy_url must also be configured")
+		}
+	}
+	return nil
 }
 
 // URL mirrors config.URL
@@ -201,7 +210,11 @@ func (u *URL) UnmarshalText(text []byte) error {
 }
 
 // Convert converts our type to the native prometheus type
-func (u URL) Convert() config.URL {
+func (u *URL) Convert() config.URL {
+	if u == nil {
+		return config.URL{URL: nil}
+
+	}
 	return config.URL{URL: u.URL}
 }
 

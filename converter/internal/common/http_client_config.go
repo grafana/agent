@@ -78,10 +78,20 @@ func toOAuth2(oAuth2 *prom_config.OAuth2) *config.OAuth2Config {
 
 func ToProxyConfig(proxyConfig prom_config.ProxyConfig) *config.ProxyConfig {
 	return &config.ProxyConfig{
-		ProxyURL:             config.URL(proxyConfig.ProxyURL),
+		ProxyURL:             toProxyURL(proxyConfig.ProxyURL),
 		NoProxy:              proxyConfig.NoProxy,
 		ProxyFromEnvironment: proxyConfig.ProxyFromEnvironment,
 		ProxyConnectHeader:   toProxyConnectHeader(proxyConfig.ProxyConnectHeader),
+	}
+}
+
+func toProxyURL(proxyURL prom_config.URL) config.URL {
+	if proxyURL.URL == nil {
+		return config.URL{}
+	}
+
+	return config.URL{
+		URL: proxyURL.URL,
 	}
 }
 
