@@ -202,10 +202,10 @@ require (
 	go.opentelemetry.io/collector/service v0.87.0
 	go.opentelemetry.io/contrib/instrumentation/github.com/gorilla/mux/otelmux v0.45.0
 	go.opentelemetry.io/otel v1.22.0
-	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.21.0
+	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.22.0
 	go.opentelemetry.io/otel/exporters/prometheus v0.42.0
 	go.opentelemetry.io/otel/metric v1.22.0
-	go.opentelemetry.io/otel/sdk v1.21.0
+	go.opentelemetry.io/otel/sdk v1.22.0
 	go.opentelemetry.io/otel/sdk/metric v1.19.0
 	go.opentelemetry.io/otel/trace v1.22.0
 	go.opentelemetry.io/proto/otlp v1.0.0
@@ -575,7 +575,7 @@ require (
 	go.mongodb.org/mongo-driver v1.12.0 // indirect
 	go.opencensus.io v0.24.0 // indirect
 	go.opentelemetry.io/collector/config/internal v0.87.0 // indirect
-	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.46.1 // indirect
+	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.47.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.47.0 // indirect
 	go.opentelemetry.io/contrib/propagators/b3 v1.19.0 // indirect
 	go.opentelemetry.io/otel/bridge/opencensus v0.42.0 // indirect
@@ -630,7 +630,6 @@ require (
 	github.com/Workiva/go-datastructures v1.1.0 // indirect
 	github.com/aliyun/aliyun-oss-go-sdk v3.0.1+incompatible // indirect
 	github.com/apache/arrow/go/v14 v14.0.1 // indirect
-	github.com/aquasecurity/libbpfgo v0.5.1-libbpf-1.2.0.20231128112859-0f5b9c71492d // indirect
 	github.com/aws/aws-sdk-go-v2/service/secretsmanager v1.26.0 // indirect
 	github.com/baidubce/bce-sdk-go v0.9.159 // indirect
 	github.com/bits-and-blooms/bitset v1.12.0 // indirect
@@ -700,10 +699,10 @@ require (
 	go.opentelemetry.io/contrib/instrumentation/net/http/httptrace/otelhttptrace v0.47.0 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/otlpmetric v0.42.0 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc v0.42.0 // indirect
-	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.21.0 // indirect
-	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp v1.21.0 // indirect
+	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.22.0 // indirect
+	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp v1.22.0 // indirect
 	go.opentelemetry.io/otel/exporters/stdout/stdoutmetric v0.42.0 // indirect
-	go.opentelemetry.io/otel/exporters/stdout/stdouttrace v1.21.0 // indirect
+	go.opentelemetry.io/otel/exporters/stdout/stdouttrace v1.22.0 // indirect
 	k8s.io/cri-api v0.29.1 // indirect
 )
 
@@ -789,3 +788,5 @@ exclude (
 )
 
 replace github.com/github/smimesign => github.com/grafana/smimesign v0.2.1-0.20220408144937-2a5adf3481d3
+
+replace github.com/parca-dev/parca-agent => github.com/korniltsev/parca-agent v0.0.0-20240205074544-b07f766d48fb
