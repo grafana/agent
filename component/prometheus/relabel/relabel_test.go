@@ -24,18 +24,13 @@ import (
 )
 
 func TestCache(t *testing.T) {
-	lc := labelstore.New(nil, prom.DefaultRegisterer)
 	relabeller := generateRelabel(t)
 	lbls := labels.FromStrings("__address__", "localhost")
 	relabeller.relabel(0, lbls)
 	require.True(t, relabeller.cache.Len() == 1)
-	entry, found := relabeller.getFromCache(lc.GetOrAddGlobalRefID(lbls))
+	entry, found := relabeller.getFromCache(lbls.Hash())
 	require.True(t, found)
 	require.NotNil(t, entry)
-	require.True(
-		t,
-		lc.GetOrAddGlobalRefID(entry.labels) != lc.GetOrAddGlobalRefID(lbls),
-	)
 }
 
 func TestUpdateReset(t *testing.T) {
@@ -118,7 +113,7 @@ func BenchmarkCache(b *testing.B) {
 		return ref, nil
 	}))
 	var entry storage.Appendable
-	_, _ = New(component.Options{
+	c, err := New(component.Options{
 		ID:     "1",
 		Logger: util.TestFlowLogger(b),
 		OnStateChange: func(e component.Exports) {
@@ -126,7 +121,11 @@ func BenchmarkCache(b *testing.B) {
 			entry = newE.Receiver
 		},
 		Registerer: prom.NewRegistry(),
+		GetServiceData: func(name string) (interface{}, error) {
+			return ls, nil
+		},
 	}, Arguments{
+		CacheSize: 100_000,
 		ForwardTo: []storage.Appendable{fanout},
 		MetricRelabelConfigs: []*flow_relabel.Config{
 			{
@@ -138,6 +137,16 @@ func BenchmarkCache(b *testing.B) {
 			},
 		},
 	})
+	require.NoError(b, err)
+
+	ctx := context.Background()
+	ctx, cncl := context.WithTimeout(ctx, 10*time.Second)
+	go c.Run(ctx)
+	defer cncl()
+
+	require.Eventually(b, func() bool {
+		return entry != nil
+	}, 10*time.Second, 100*time.Millisecond)
 
 	lbls := labels.FromStrings("__address__", "localhost")
 	app := entry.Appender(context.Background())

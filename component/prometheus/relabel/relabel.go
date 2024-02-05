@@ -84,7 +84,6 @@ type Component struct {
 	cacheDeletes     prometheus_client.Counter
 	fanout           *prometheus.Fanout
 	exited           atomic.Bool
-	ls               labelstore.LabelStore
 
 	cacheMut sync.RWMutex
 	cache    *lru.Cache[uint64, *labelAndID]
@@ -107,7 +106,6 @@ func New(o component.Options, args Arguments) (*Component, error) {
 	c := &Component{
 		opts:  o,
 		cache: cache,
-		ls:    data.(labelstore.LabelStore),
 	}
 	c.metricsProcessed = prometheus_client.NewCounter(prometheus_client.CounterOpts{
 		Name: "agent_prometheus_relabel_metrics_processed",
@@ -140,11 +138,11 @@ func New(o component.Options, args Arguments) (*Component, error) {
 			return nil, err
 		}
 	}
-
-	c.fanout = prometheus.NewFanout(args.ForwardTo, o.ID, o.Registerer, c.ls)
+	ls := data.(labelstore.LabelStore)
+	c.fanout = prometheus.NewFanout(args.ForwardTo, o.ID, o.Registerer, ls)
 	c.receiver = prometheus.NewInterceptor(
 		c.fanout,
-		c.ls,
+		ls,
 		prometheus.WithAppendHook(func(_ storage.SeriesRef, l labels.Labels, t int64, v float64, next storage.Appender) (storage.SeriesRef, error) {
 			if c.exited.Load() {
 				return 0, fmt.Errorf("%s has exited", o.ID)
@@ -231,12 +229,12 @@ func (c *Component) relabel(val float64, lbls labels.Labels) labels.Labels {
 	c.mut.RLock()
 	defer c.mut.RUnlock()
 
-	globalRef := c.ls.GetOrAddGlobalRefID(lbls)
+	hashid := lbls.Hash()
 	var (
 		relabelled labels.Labels
 		keep       bool
 	)
-	newLbls, found := c.getFromCache(globalRef)
+	newLbls, found := c.getFromCache(hashid)
 	if found {
 		c.cacheHits.Inc()
 		// If newLbls is nil but cache entry was found then we want to keep the value nil, if it's not we want to reuse the labels
@@ -248,14 +246,14 @@ func (c *Component) relabel(val float64, lbls labels.Labels) labels.Labels {
 		// slice.
 		relabelled, keep = relabel.Process(lbls.Copy(), c.mrc...)
 		c.cacheMisses.Inc()
-		c.addToCache(globalRef, relabelled, keep)
+		c.addToCache(hashid, relabelled, keep)
 	}
 
 	// If stale remove from the cache, the reason we don't exit early is so the stale value can propagate.
 	// TODO: (@mattdurham) This caching can leak and likely needs a timed eviction at some point, but this is simple.
 	// In the future the global ref cache may have some hooks to allow notification of when caches should be evicted.
 	if value.IsStaleNaN(val) {
-		c.deleteFromCache(globalRef)
+		c.deleteFromCache(hashid)
 	}
 	// Set the cache size to the cache.len
 	// TODO(@mattdurham): Instead of setting this each time could collect on demand for better performance.
@@ -293,10 +291,10 @@ func (c *Component) addToCache(originalID uint64, lbls labels.Labels, keep bool)
 		c.cache.Add(originalID, nil)
 		return
 	}
-	newGlobal := c.ls.GetOrAddGlobalRefID(lbls)
+	newID := lbls.Hash()
 	c.cache.Add(originalID, &labelAndID{
 		labels: lbls,
-		id:     newGlobal,
+		id:     newID,
 	})
 }
 
