@@ -51,6 +51,8 @@ Main (unreleased)
 
 - `service_name` label is inferred from discovery meta labels in `pyroscope.java` (@korniltsev)
 
+- Mutex and block pprofs are now available via the pprof endpoint. (@mattdurham)
+
 ### Bugfixes
 
 - Fix an issue in `remote.s3` where the exported content of an object would be an empty string if `remote.s3` failed to fully retrieve
