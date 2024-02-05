@@ -23,9 +23,9 @@ type EnabledAware interface {
 type Logger struct {
 	inner io.Writer // Writer passed to New.
 
+	bufferMut    sync.RWMutex
 	buffer       [][]interface{} // Store logs before correctly determine the log format
 	hasLogFormat bool            // Confirmation whether log format has been determined
-	bufferMut    sync.Mutex
 
 	level   *slog.LevelVar // Current configured level.
 	format  *formatVar     // Current configured format.
@@ -98,14 +98,16 @@ func (l *Logger) Update(o Options) error {
 			return err
 		}
 	}
+	l.buffer = nil
+
 	return nil
 }
 
 // Log implements log.Logger.
 func (l *Logger) Log(kvps ...interface{}) error {
 	// Buffer logs before confirming log format is configured in `logging` block
-	l.bufferMut.Lock()
-	defer l.bufferMut.Unlock()
+	l.bufferMut.RLock()
+	defer l.bufferMut.RUnlock()
 	if !l.hasLogFormat {
 		l.buffer = append(l.buffer, kvps)
 		return nil

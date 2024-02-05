@@ -69,8 +69,8 @@ Main (unreleased)
 - Fix an issue with static integrations-next marshaling where non singletons
   would cause `/-/config` to fail to marshal. (@erikbaranowski)
 
-- Fix an issue where agent logs are emitted before correctly determine 
-  logging format. (@hainenber)
+- Fix an issue where agent logs are emitted before the logging format 
+- is correctly determined. (@hainenber)
 
 ### Other changes
 
