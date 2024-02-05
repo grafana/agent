@@ -466,6 +466,7 @@ func setMutexBlockProfiling(l log.Logger) {
 			runtime.SetMutexProfileFraction(100 / rate)
 		} else {
 			level.Error(l).Log("msg", "error setting MUTEX_PROFILING_PERCENT", "err", err)
+			runtime.SetMutexProfileFraction(1000)
 		}
 	} else {
 		// Why 1000 because that is what istio defaults to and that seemed reasonable to start with.
@@ -478,6 +479,7 @@ func setMutexBlockProfiling(l log.Logger) {
 			runtime.SetBlockProfileRate(100 / rate)
 		} else {
 			level.Error(l).Log("msg", "error setting BLOCK_PROFILING_PERCENT", "err", err)
+			runtime.SetBlockProfileRate(1000)
 		}
 	} else {
 		runtime.SetBlockProfileRate(1000)
