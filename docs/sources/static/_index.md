@@ -10,7 +10,7 @@ weight: 200
 
 # Static mode
 
-Static mode is the original mode of Grafana Agent, and is the most mature.
+Static mode is the original mode of Grafana Agent.
 Static mode is composed of different _subsystems_:
 
 * The _metrics subsystem_ wraps around Prometheus for collecting Prometheus
