@@ -266,7 +266,7 @@ func (a *Authorization) Validate() error {
 		a.Type = bearerAuth
 	}
 	if strings.ToLower(a.Type) == "basic" {
-		return fmt.Errorf(`authorization type cannot be set to "basic", use "basic_auth" instead`)
+		return fmt.Errorf(`authorization type cannot be set to "basic", use "basic_auth" block instead`)
 	}
 
 	return nil
