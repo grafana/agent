@@ -194,6 +194,72 @@ func TestDeclare(t *testing.T) {
 			`,
 			expected: 10,
 		},
+		{
+			name: "ShadowNamespace",
+			config: `
+			declare "prometheus" {
+				argument "input" {
+					optional = false
+				}
+			
+				testcomponents.passthrough "pt" {
+					input = argument.input.value
+					lag = "1ms"
+				}
+			
+				export "output" {
+					value = testcomponents.passthrough.pt.output
+				}
+			}
+			testcomponents.count "inc" {
+				frequency = "10ms"
+				max = 10
+			}
+		
+			prometheus "myModule" {
+				input = testcomponents.count.inc.count
+			}
+		
+			testcomponents.summation "sum" {
+				input = prometheus.myModule.output
+			}
+			`,
+			expected: 10,
+		},
+		{
+			name: "ShadowDeclare",
+			config: `
+			declare "a" {
+				argument "input" {
+					optional = false
+				}
+				export "output" {
+					value = argument.input.value
+				}
+			}
+
+			declare "test" {
+				// redeclare "a"
+				declare "a" {
+					export "output" {
+						value = -10
+					}
+				}
+			
+				a "default" {}
+			
+				export "output" {
+					value = a.default.output
+				}
+			}
+			test "myModule" {}
+		
+			testcomponents.summation "sum" {
+				input = test.myModule.output
+			}
+			`,
+			expected: -10,
+		},
 	}
 
 	for _, tc := range tt {
@@ -274,6 +340,43 @@ func TestDeclareError(t *testing.T) {
 			`,
 			expectedError: regexp.MustCompile(`self reference: declare\.a`),
 		},
+		{
+			name: "OutOfScopeReference",
+			config: `
+			testcomponents.count "inc" {
+				frequency = "10ms"
+				max = 10
+			}
+
+			declare "example_a" {
+				testcomponents.summation "sum" {
+					input = testcomponents.count.inc.count // invalid reference
+				}
+			}
+			example_a "test" {}
+			`,
+			expectedError: regexp.MustCompile(`component "testcomponents.count.inc.count" does not exist`),
+		},
+		{
+			name: "OutOfScopeDefinition",
+			config: `
+			declare "a" {
+				b_1 "default" { } // this should error 
+			}
+			declare "b" {
+				declare "b_1" {}
+			}
+			a "example" {}
+			`,
+			expectedError: regexp.MustCompile(`unrecognized component name "b_1"`),
+		},
+		{
+			name: "ForbiddenDeclareLabel",
+			config: `
+			declare "declare" {}
+			`,
+			expectedError: regexp.MustCompile(`'declare' is not a valid label for a declare block`),
+		},
 	}
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
@@ -291,7 +394,9 @@ func TestDeclareError(t *testing.T) {
 			require.NotNil(t, f)
 
 			err = ctrl.LoadSource(f, nil)
-			if !tc.expectedError.MatchString(err.Error()) {
+			if err == nil {
+				t.Errorf("Expected error to match regex %q, but got: nil", tc.expectedError)
+			} else if !tc.expectedError.MatchString(err.Error()) {
 				t.Errorf("Expected error to match regex %q, but got: %v", tc.expectedError, err)
 			}
 
@@ -303,6 +408,106 @@ func TestDeclareError(t *testing.T) {
 			}()
 			cancel()
 			<-done
+		})
+	}
+}
+
+type testCaseUpdateConfig struct {
+	name        string
+	config      string
+	newConfig   string
+	expected    int
+	newExpected int
+}
+
+func TestDeclareUpdateConfig(t *testing.T) {
+	tt := []testCaseUpdateConfig{
+		{
+			name: "UpdateDeclare",
+			config: `
+			declare "test" {
+				argument "input" {
+					optional = false
+				}
+			
+				testcomponents.passthrough "pt" {
+					input = argument.input.value
+					lag = "1ms"
+				}
+			
+				export "output" {
+					value = testcomponents.passthrough.pt.output
+				}
+			}
+			testcomponents.count "inc" {
+				frequency = "10ms"
+				max = 10
+			}
+		
+			test "myModule" {
+				input = testcomponents.count.inc.count
+			}
+		
+			testcomponents.summation "sum" {
+				input = test.myModule.output
+			}
+			`,
+			newConfig: `
+			declare "test" {
+				export "output" {
+					value = -10
+				}
+			}
+		
+			test "myModule" {}
+		
+			testcomponents.summation "sum" {
+				input = test.myModule.output
+			}
+			`,
+			expected:    10,
+			newExpected: -10,
+		},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			ctrl := flow.New(testOptions(t))
+			f, err := flow.ParseSource(t.Name(), []byte(tc.config))
+			require.NoError(t, err)
+			require.NotNil(t, f)
+
+			err = ctrl.LoadSource(f, nil)
+			require.NoError(t, err)
+
+			ctx, cancel := context.WithCancel(context.Background())
+			done := make(chan struct{})
+			go func() {
+				ctrl.Run(ctx)
+				close(done)
+			}()
+			defer func() {
+				cancel()
+				<-done
+			}()
+
+			require.Eventually(t, func() bool {
+				export := getExport[testcomponents.SummationExports](t, ctrl, "", "testcomponents.summation.sum")
+				return export.LastAdded == tc.expected
+			}, 3*time.Second, 10*time.Millisecond)
+
+			f, err = flow.ParseSource(t.Name(), []byte(tc.newConfig))
+			require.NoError(t, err)
+			require.NotNil(t, f)
+
+			// Reload the controller with the new config.
+			err = ctrl.LoadSource(f, nil)
+			require.NoError(t, err)
+
+			require.Eventually(t, func() bool {
+				export := getExport[testcomponents.SummationExports](t, ctrl, "", "testcomponents.summation.sum")
+				return export.LastAdded == tc.newExpected
+			}, 3*time.Second, 10*time.Millisecond)
 		})
 	}
 }
