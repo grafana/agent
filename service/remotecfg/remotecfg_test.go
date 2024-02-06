@@ -29,7 +29,7 @@ func TestOnDiskCache(t *testing.T) {
 
 	// The contents of the on-disk cache.
 	cacheContents := `loki.process "default" { forward_to = [] }`
-	cacheHash := getHash(cacheContents)
+	cacheHash := getHash([]byte(cacheContents))
 
 	// Create a new service.
 	env, err := newTestEnvironment(t)
@@ -87,7 +87,7 @@ func TestAPIResponse(t *testing.T) {
 	// As the API response was successful, verify that the service has loaded
 	// the valid response.
 	require.EventuallyWithT(t, func(c *assert.CollectT) {
-		assert.Equal(c, getHash(cfg1), env.svc.currentConfigHash)
+		assert.Equal(c, getHash([]byte(cfg1)), env.svc.currentConfigHash)
 	}, time.Second, 10*time.Millisecond)
 
 	// Update the response returned by the API.
@@ -95,7 +95,9 @@ func TestAPIResponse(t *testing.T) {
 
 	// Verify that the service has loaded the updated response.
 	require.EventuallyWithT(t, func(c *assert.CollectT) {
-		assert.Equal(c, getHash(cfg2), env.svc.currentConfigHash)
+		env.svc.mut.RLock()
+		assert.Equal(c, getHash([]byte(cfg2)), env.svc.currentConfigHash)
+		env.svc.mut.RUnlock()
 	}, time.Second, 10*time.Millisecond)
 }
 
@@ -184,15 +186,18 @@ func (ag agentClient) GetConfig(ctx context.Context, req *connect.Request[agentv
 
 	panic("getConfigFunc not set")
 }
-func (ag agentClient) GetAgent(context.Context, *connect.Request[agentv1.GetAgentRequest]) (*connect.Response[agentv1.GetAgentResponse], error) {
+func (ag agentClient) GetAgent(context.Context, *connect.Request[agentv1.GetAgentRequest]) (*connect.Response[agentv1.Agent], error) {
 	return nil, nil
 }
-func (ag agentClient) CreateAgent(context.Context, *connect.Request[agentv1.CreateAgentRequest]) (*connect.Response[agentv1.CreateAgentResponse], error) {
+func (ag agentClient) CreateAgent(context.Context, *connect.Request[agentv1.CreateAgentRequest]) (*connect.Response[agentv1.Agent], error) {
 	return nil, nil
 }
-func (ag agentClient) UpdateAgent(context.Context, *connect.Request[agentv1.UpdateAgentRequest]) (*connect.Response[agentv1.UpdateAgentResponse], error) {
+func (ag agentClient) UpdateAgent(context.Context, *connect.Request[agentv1.UpdateAgentRequest]) (*connect.Response[agentv1.Agent], error) {
 	return nil, nil
 }
 func (ag agentClient) DeleteAgent(context.Context, *connect.Request[agentv1.DeleteAgentRequest]) (*connect.Response[agentv1.DeleteAgentResponse], error) {
+	return nil, nil
+}
+func (ag agentClient) ListAgents(context.Context, *connect.Request[agentv1.ListAgentsRequest]) (*connect.Response[agentv1.Agents], error) {
 	return nil, nil
 }

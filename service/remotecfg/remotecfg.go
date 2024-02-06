@@ -3,7 +3,6 @@ package remotecfg
 import (
 	"context"
 	"fmt"
-	"hash"
 	"hash/fnv"
 	"math"
 	"os"
@@ -24,10 +23,10 @@ import (
 	commonconfig "github.com/prometheus/common/config"
 )
 
-var fnvHash hash.Hash32 = fnv.New32()
+func getHash(in []byte) string {
+	fnvHash := fnv.New32()
 
-func getHash(in string) string {
-	fnvHash.Write([]byte(in))
+	fnvHash.Write(in)
 	defer fnvHash.Reset()
 
 	return fmt.Sprintf("%x", fnvHash.Sum(nil))
@@ -92,10 +91,6 @@ func (a *Arguments) Validate() error {
 	return nil
 }
 
-// Data includes information associated with the remotecfg service.
-type Data struct {
-}
-
 // New returns a new instance of the remotecfg service.
 func New(opts Options) (*Service, error) {
 	basePath := filepath.Join(opts.StoragePath, ServiceName)
@@ -111,12 +106,9 @@ func New(opts Options) (*Service, error) {
 	}, nil
 }
 
-// Data returns an instance of [Data]. Calls to Data are cachable by the
-// caller.
-//
-// Data must only be called after parsing command-line flags.
+// Data does not expose anything for the remotecfg service during runtime.
 func (s *Service) Data() any {
-	return map[string]string{}
+	return nil
 }
 
 // Definition returns the definition of the remotecfg service.
@@ -133,105 +125,65 @@ var _ service.Service = (*Service)(nil)
 // Run implements [service.Service] and starts the remotecfg service. It will
 // run until the provided context is canceled or there is a fatal error.
 func (s *Service) Run(ctx context.Context, host service.Host) error {
+	fmt.Println("Run Start")
 	s.ctrl = host.NewController(ServiceName)
+
+	s.mut.RLock()
+
+	// Let's try to read from the API or the local cache as a fallback.
+	var b1, b2 []byte
+	b1, err := s.getAPIConfig()
+	b2, err2 := s.getCachedConfig()
+
+	if err != nil {
+		level.Debug(s.opts.Logger).Log("msg", "failed to get any configuration during startup", "apiErr", err, "cacheErr", err2)
+	}
+
+	err = s.parseAndLoad(b1)
+	if err != nil {
+		err = s.parseAndLoad(b2)
+	}
+
+	if err != nil {
+		level.Error(s.opts.Logger).Log("msg", "failed to load remote cfg during startup", "err", err)
+	}
+
+	s.mut.RUnlock()
 
 	// Run the service's own controller.
 	go func() {
 		s.ctrl.Run(ctx)
 	}()
 
-	// We're on the initial start-up of the service.
-	// Let's try to read from the API, parse and load the response contents.
-	// If either the request itself or parsing its contents fails, try to read
-	// from the on-disk cache on a best-effort basis.
-	var (
-		gcr              *connect.Response[agentv1.GetConfigResponse]
-		src              *flow.Source
-		getErr, parseErr error
-	)
-
-	s.mut.RLock()
-	req := connect.NewRequest(&agentv1.GetConfigRequest{
-		Id:       s.args.ID,
-		Metadata: s.args.Metadata,
-	})
-	gcr, err := s.asClient.GetConfig(ctx, req)
-	if err != nil {
-		return err
-	}
-	gcr, getErr = s.asClient.GetConfig(ctx, req)
-	if getErr == nil {
-		src, parseErr = flow.ParseSource(ServiceName, []byte(gcr.Msg.GetContent()))
-	}
-
-	// Reading from the API succeeded, let's try to load the contents.
-	if getErr == nil && parseErr == nil {
-		err := s.ctrl.LoadSource(src, nil)
-		if err != nil {
-			level.Error(s.opts.Logger).Log("msg", "could not load the API response contents", "err", err)
-		} else {
-			s.currentConfigHash = getHash(gcr.Msg.Content)
-		}
-	} else {
-		// Either the API call or parsing its contents failed, let's try the
-		// on-disk cache.
-		level.Info(s.opts.Logger).Log("msg", "falling back to the on-disk cache")
-		b, err := os.ReadFile(s.dataPath)
-		if err != nil {
-			level.Error(s.opts.Logger).Log("msg", "could not read from the on-disk cache", "err", err)
-		}
-		if len(b) > 0 {
-			src, err := flow.ParseSource(ServiceName, b)
-			if err != nil {
-				level.Error(s.opts.Logger).Log("msg", "could not parse the on-disk cache contents", "err", err)
-			} else {
-				err = s.ctrl.LoadSource(src, nil)
-				if err != nil {
-					level.Error(s.opts.Logger).Log("msg", "could not load the on-disk cache contents", "err", err)
-				} else {
-					s.currentConfigHash = getHash(string(b))
-				}
-			}
-		}
-	}
-	s.mut.RUnlock()
-
+	fmt.Println("Run Loop")
 	for {
 		select {
 		case <-s.ticker.C:
 			s.mut.RLock()
-			req := connect.NewRequest(&agentv1.GetConfigRequest{
-				Id:       s.args.ID,
-				Metadata: s.args.Metadata,
-			})
-			gcr, err := s.asClient.GetConfig(ctx, req)
+			b, err := s.getAPIConfig()
 			if err != nil {
 				level.Error(s.opts.Logger).Log("msg", "failed to fetch configuration from the API", "err", err)
 				continue
 			}
 
-			newConfig := []byte(gcr.Msg.Content)
-
 			// The polling loop got the same configuration, no need to reload.
-			newConfigHash := getHash(gcr.Msg.Content)
+			newConfigHash := getHash(b)
 			if s.currentConfigHash == newConfigHash {
+				level.Debug(s.opts.Logger).Log("msg", "skipping to the next polling loop")
 				continue
 			}
 
-			// The polling loop got new configuration contents.
-			src, err := flow.ParseSource(ServiceName, newConfig)
-			if err != nil {
-				level.Error(s.opts.Logger).Log("msg", "failed to parse configuration from the API", "err", err)
-				continue
-			}
-			err = s.ctrl.LoadSource(src, nil)
+			// We have a new configuration let's try to load it
+			err = s.parseAndLoad(b)
 			if err != nil {
 				level.Error(s.opts.Logger).Log("msg", "failed to load configuration from the API", "err", err)
 				continue
 			}
 
+			level.Info(s.opts.Logger).Log("msg", "new remote configuration loaded successfully")
+
 			// If successful, flush to disk and keep a copy.
-			err = os.WriteFile(s.dataPath, newConfig, 0750)
+			err = os.WriteFile(s.dataPath, b, 0750)
 			if err != nil {
 				level.Error(s.opts.Logger).Log("msg", "failed to flush remote_configuration contents the on-disk cache", "err", err)
 			}
@@ -250,6 +202,7 @@ func (s *Service) Run(ctx context.Context, host service.Host) error {
 
 // Update implements [service.Service] and applies settings.
 func (s *Service) Update(newConfig any) error {
+	fmt.Println("Update start")
 	newArgs := newConfig.(Arguments)
 
 	// We either never set the block on the first place, or recently removed
@@ -261,13 +214,14 @@ func (s *Service) Update(newConfig any) error {
 		s.asClient = noopClient{}
 		s.args.HTTPClientConfig = config.CloneDefaultHTTPClientConfig()
 		s.currentConfigHash = ""
+		fmt.Println("Update end2")
 		return nil
 	}
 
 	s.mut.Lock()
 	defer s.mut.Unlock()
 
-	s.dataPath = filepath.Join(s.opts.StoragePath, ServiceName, getHash(newArgs.URL))
+	s.dataPath = filepath.Join(s.opts.StoragePath, ServiceName, getHash([]byte(newArgs.URL)))
 	s.ticker.Reset(newArgs.PollFrequency)
 
 	if !reflect.DeepEqual(s.args.HTTPClientConfig, newArgs.HTTPClientConfig) {
@@ -282,6 +236,43 @@ func (s *Service) Update(newConfig any) error {
 	}
 
 	s.args = newArgs
+	fmt.Println("Update end")
 
 	return nil
+}
+
+func (s *Service) getAPIConfig() ([]byte, error) {
+	req := connect.NewRequest(&agentv1.GetConfigRequest{
+		Id:       s.args.ID,
+		Metadata: s.args.Metadata,
+	})
+	gcr, err := s.asClient.GetConfig(context.Background(), req)
+	if err != nil {
+		return nil, err
+	}
+
+	return []byte(gcr.Msg.GetContent()), nil
+}
+
+func (s *Service) getCachedConfig() ([]byte, error) {
+	return os.ReadFile(s.dataPath)
+}
+
+func (s *Service) parseAndLoad(b []byte) error {
+	if len(b) == 0 {
+		return nil
+	}
+	src, err := flow.ParseSource(ServiceName, b)
+	if err != nil {
+		return err
+	}
+
+	err = s.ctrl.LoadSource(src, nil)
+	if err != nil {
+		return err
+	}
+
+	s.currentConfigHash = getHash(b)
+	return nil
+
 }
