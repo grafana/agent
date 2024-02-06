@@ -42,7 +42,7 @@ If you are running Grafana Agent in a Docker container and you want to expose th
 You can change the HTTP listen address with the command-line flag: `-server.http.address=0.0.0.0:12345`.
 For more information, refer to the [Server](https://grafana.com/docs/agent/latest/static/configuration/flags/#server) command-line flag documentation.
 
-You must also publish the port in Docker. Refer to [Published ports]https://docs.docker.com/network/#published-ports in the Docker documentation for more information.
+You must also publish the port in Docker. Refer to [Published ports](https://docs.docker.com/network/#published-ports) in the Docker documentation for more information.
 {{< /admonition >}}
 
 ### API response
