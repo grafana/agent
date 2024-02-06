@@ -30,3 +30,7 @@ services:
       context: ..
     ports:
       - "9001:9001"
+  redis:
+    image: redis:6.0.9-alpine
+    ports:
+      - "6379:6379"

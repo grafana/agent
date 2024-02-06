@@ -40,7 +40,7 @@ func setupEnvironment() {
 	executeCommand("docker-compose", []string{"up", "-d"}, "Setting up environment with Docker Compose")
 }
 
-func runSingleTest(testDir string) {
+func runSingleTest(testDir string, port int) {
 	info, err := os.Stat(testDir)
 	if err != nil {
 		panic(err)
@@ -52,7 +52,7 @@ func runSingleTest(testDir string) {
 	dirName := filepath.Base(testDir)
 
 	var agentLogBuffer bytes.Buffer
-	cmd := exec.Command(agentBinaryPath, "run", "config.river")
+	cmd := exec.Command(agentBinaryPath, "run", "config.river", "--server.http.listen-addr", fmt.Sprintf("0.0.0.0:%d", port))
 	cmd.Dir = testDir
 	cmd.Stdout = &agentLogBuffer
 	cmd.Stderr = &agentLogBuffer
@@ -96,17 +96,16 @@ func runAllTests() {
 		panic(err)
 	}
 	var wg sync.WaitGroup
-
-	for _, testDir := range testDirs {
+	port := 12345
+	for i, testDir := range testDirs {
 		fmt.Println("Running", testDir)
 		wg.Add(1)
-		go func(td string) {
+		go func(td string, offset int) {
 			defer wg.Done()
-			runSingleTest(td)
-		}(testDir)
+			runSingleTest(td, port+offset)
+		}(testDir, i)
 	}
 	wg.Wait()
-	close(logChan)
 }
 
 func cleanUpEnvironment() {
@@ -119,6 +118,9 @@ func cleanUpEnvironment() {
 
 func reportResults() {
 	testsFailed := 0
+	// It's ok to close the channel here because all tests are finished.
+	// If the channel would not be closed, the for loop would wait forever.
+	close(logChan)
 	for log := range logChan {
 		fmt.Printf("Failure detected in %s:\n", log.TestDir)
 		fmt.Println("Test output:", log.TestOutput)
