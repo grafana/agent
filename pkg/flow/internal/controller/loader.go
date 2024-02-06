@@ -43,7 +43,6 @@ type Loader struct {
 	graph             *dag.Graph
 	originalGraph     *dag.Graph
 	componentNodes    []ComponentNode
-	importConfigNodes map[string]*ImportConfigNode
 	declareNodes      map[string]*DeclareNode
 	serviceNodes      []*ServiceNode
 	cache             *valueCache
@@ -458,13 +457,6 @@ func (l *Loader) populateConfigBlockNodes(args map[string]any, g *dag.Graph, con
 			continue
 		}
 
-		// TODO: this doesn't do anything for now because NewConfigNode does not return an ImportConfigNode.
-		// It's added for now to help users understand how the CustomComponentRegistry fits with the loader logic.
-		// The full implementation will come via another PR.
-		if importNode, ok := node.(*ImportConfigNode); ok {
-			l.componentNodeManager.customComponentReg.registerImport(importNode.label)
-		}
-
 		g.Add(node)
 	}
 
@@ -581,15 +573,12 @@ func (l *Loader) wireGraphEdges(g *dag.Graph) diag.Diagnostics {
 
 // wireCustomComponentNode wires a custom component to the import/declare nodes that it depends on.
 func (l *Loader) wireCustomComponentNode(g *dag.Graph, cc *CustomComponentNode) {
-	if declare, ok := l.declareNodes[cc.customComponentName]; ok {
+	if declare, ok := l.declareNodes[cc.componentName]; ok {
 		refs := l.findCustomComponentReferences(declare.Block())
 		for ref := range refs {
 			// add edges between the custom component and declare/import nodes.
 			g.AddEdge(dag.Edge{From: cc, To: ref})
 		}
-	} else if importNode, ok := l.importConfigNodes[cc.importNamespace]; ok {
-		// add an edge between the custom component and the corresponding import node.
-		g.AddEdge(dag.Edge{From: cc, To: importNode})
 	}
 }
 
@@ -656,9 +645,6 @@ func (l *Loader) EvaluateDependants(ctx context.Context, updatedNodes []*QueuedN
 		case ComponentNode:
 			// Make sure we're in-sync with the current exports of parent.
 			l.cache.CacheExports(parentNode.ID(), parentNode.Exports())
-		case *ImportConfigNode:
-			// Update the scope with the imported content.
-			l.componentNodeManager.customComponentReg.updateImportContent(parentNode)
 		}
 		// We collect all nodes directly incoming to parent.
 		_ = dag.WalkIncomingNodes(l.graph, parent.Node, func(n dag.Node) error {
@@ -794,8 +780,6 @@ func (l *Loader) postEvaluate(logger log.Logger, bn BlockNode, err error) error 
 				err = fmt.Errorf("missing required argument %q to module", c.Label())
 			}
 		}
-	case *ImportConfigNode:
-		l.componentNodeManager.customComponentReg.updateImportContent(c)
 	}
 
 	if err != nil {
@@ -830,7 +814,7 @@ func (l *Loader) findCustomComponentReferences(declare *ast.BlockStmt) map[Block
 	return uniqueReferences
 }
 
-// collectCustomComponentDependencies recursively collects references to import/declare nodes through an AST body.
+// collectCustomComponentDependencies recursively collects references to declare nodes through an AST body.
 func (l *Loader) collectCustomComponentReferences(stmts ast.Body, uniqueReferences map[BlockNode]struct{}) {
 	for _, stmt := range stmts {
 		switch stmt := stmt.(type) {
@@ -842,8 +826,6 @@ func (l *Loader) collectCustomComponentReferences(stmts ast.Body, uniqueReferenc
 			default:
 				if declareNode, ok := l.declareNodes[stmt.Name[0]]; ok {
 					uniqueReferences[declareNode] = struct{}{}
-				} else if importNode, ok := l.importConfigNodes[stmt.Name[0]]; ok {
-					uniqueReferences[importNode] = struct{}{}
 				}
 			}
 		}
