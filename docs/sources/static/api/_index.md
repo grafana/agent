@@ -23,11 +23,11 @@ API endpoints are stable unless otherwise noted.
 
 ## Config management API (Beta)
 
-Grafana Agent exposes a config management REST API for managing instance configurations when it is running in [scraping service mode][scrape].
+Grafana Agent exposes a configuration management REST API for managing instance configurations when it's running in [scraping service mode][scrape].
 
 {{< admonition type="note" >}}
-The scraping service mode is a requirement for the config management
-API, however this is not a prerequisite for the Agent API or Ready/Healthy API.
+The scraping service mode is a requirement for the configuration management
+API, however this isn't a prerequisite for the Agent API or Ready/Healthy API.
 {{< /admonition >}}
 
 The following endpoints are exposed:
@@ -36,6 +36,14 @@ The following endpoints are exposed:
 - Get config: [`GET /agent/api/v1/configs/{name}`](#get-config)
 - Update config: [`PUT /agent/api/v1/config/{name}`](#update-config)
 - Delete config: [`DELETE /agent/api/v1/config/{name}`](#delete-config)
+
+{{< admonition type="note" >}}
+If you are running Grafana Agent in a Docker container and you want to expose the API outside the Docker container, you must change the default HTTP listen address from `127.0.0.1:12345` to a valid network interface address.
+You can change the HTTP listen address with the command-line flag: `-server.http.address=0.0.0.0:12345`.
+For more information, refer to the [Server](https://grafana.com/docs/agent/latest/static/configuration/flags/#server) command-line flag documentation.
+
+You must also publish the port in Docker. Refer to [Published ports](https://docs.docker.com/network/#published-ports) in the Docker documentation for more information.
+{{< /admonition >}}
 
 ### API response
 
