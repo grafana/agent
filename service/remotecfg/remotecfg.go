@@ -125,10 +125,7 @@ var _ service.Service = (*Service)(nil)
 // Run implements [service.Service] and starts the remotecfg service. It will
 // run until the provided context is canceled or there is a fatal error.
 func (s *Service) Run(ctx context.Context, host service.Host) error {
-	fmt.Println("Run Start")
 	s.ctrl = host.NewController(ServiceName)
-
-	s.mut.RLock()
 
 	// Let's try to read from the API or the local cache as a fallback.
 	var b1, b2 []byte
@@ -148,18 +145,14 @@ func (s *Service) Run(ctx context.Context, host service.Host) error {
 		level.Error(s.opts.Logger).Log("msg", "failed to load remote cfg during startup", "err", err)
 	}
 
-	s.mut.RUnlock()
-
 	// Run the service's own controller.
 	go func() {
 		s.ctrl.Run(ctx)
 	}()
 
-	fmt.Println("Run Loop")
 	for {
 		select {
 		case <-s.ticker.C:
-			s.mut.RLock()
 			b, err := s.getAPIConfig()
 			if err != nil {
 				level.Error(s.opts.Logger).Log("msg", "failed to fetch configuration from the API", "err", err)
@@ -168,7 +161,7 @@ func (s *Service) Run(ctx context.Context, host service.Host) error {
 
 			// The polling loop got the same configuration, no need to reload.
 			newConfigHash := getHash(b)
-			if s.currentConfigHash == newConfigHash {
+			if s.getCfgHash() == newConfigHash {
 				level.Debug(s.opts.Logger).Log("msg", "skipping to the next polling loop")
 				continue
 			}
@@ -185,36 +178,30 @@ func (s *Service) Run(ctx context.Context, host service.Host) error {
 			// If successful, flush to disk and keep a copy.
 			err = os.WriteFile(s.dataPath, b, 0750)
 			if err != nil {
-				level.Error(s.opts.Logger).Log("msg", "failed to flush remote_configuration contents the on-disk cache", "err", err)
+				level.Error(s.opts.Logger).Log("msg", "failed to flush remote configuration contents the on-disk cache", "err", err)
 			}
-			s.mut.RUnlock()
-
-			s.mut.Lock()
-			s.currentConfigHash = newConfigHash
-			s.mut.Unlock()
+			s.setCfgHash(newConfigHash)
 		case <-ctx.Done():
 			s.ticker.Stop()
 			return nil
-		default:
 		}
 	}
 }
 
 // Update implements [service.Service] and applies settings.
 func (s *Service) Update(newConfig any) error {
-	fmt.Println("Update start")
 	newArgs := newConfig.(Arguments)
 
 	// We either never set the block on the first place, or recently removed
 	// it. Make sure we stop everything gracefully before returning.
 	if newArgs.URL == "" {
 		s.mut.Lock()
-		defer s.mut.Unlock()
 		s.ticker.Reset(math.MaxInt64)
 		s.asClient = noopClient{}
 		s.args.HTTPClientConfig = config.CloneDefaultHTTPClientConfig()
-		s.currentConfigHash = ""
-		fmt.Println("Update end2")
+		s.mut.Unlock()
+
+		s.setCfgHash("") // TODO(@tpaschalis) Should we clear this out?
 		return nil
 	}
 
@@ -236,17 +223,20 @@ func (s *Service) Update(newConfig any) error {
 	}
 
 	s.args = newArgs
-	fmt.Println("Update end")
 
 	return nil
 }
 
 func (s *Service) getAPIConfig() ([]byte, error) {
+	s.mut.RLock()
 	req := connect.NewRequest(&agentv1.GetConfigRequest{
 		Id:       s.args.ID,
 		Metadata: s.args.Metadata,
 	})
-	gcr, err := s.asClient.GetConfig(context.Background(), req)
+	client := s.asClient
+	s.mut.RUnlock()
+
+	gcr, err := client.GetConfig(context.Background(), req)
 	if err != nil {
 		return nil, err
 	}
@@ -255,10 +245,18 @@ func (s *Service) getAPIConfig() ([]byte, error) {
 }
 
 func (s *Service) getCachedConfig() ([]byte, error) {
-	return os.ReadFile(s.dataPath)
+	s.mut.RLock()
+	p := s.dataPath
+	s.mut.RUnlock()
+
+	return os.ReadFile(p)
 }
 
 func (s *Service) parseAndLoad(b []byte) error {
+	s.mut.RLock()
+	ctrl := s.ctrl
+	s.mut.RUnlock()
+
 	if len(b) == 0 {
 		return nil
 	}
@@ -267,12 +265,26 @@ func (s *Service) parseAndLoad(b []byte) error {
 		return err
 	}
 
-	err = s.ctrl.LoadSource(src, nil)
+	err = ctrl.LoadSource(src, nil)
 	if err != nil {
 		return err
 	}
 
-	s.currentConfigHash = getHash(b)
+	s.setCfgHash(getHash(b))
 	return nil
 
+}
+
+func (s *Service) getCfgHash() string {
+	s.mut.RLock()
+	defer s.mut.RUnlock()
+
+	return s.currentConfigHash
+}
+
+func (s *Service) setCfgHash(h string) {
+	s.mut.Lock()
+	defer s.mut.Unlock()
+
+	s.currentConfigHash = h
 }

@@ -32,8 +32,7 @@ func TestOnDiskCache(t *testing.T) {
 	cacheHash := getHash([]byte(cacheContents))
 
 	// Create a new service.
-	env, err := newTestEnvironment(t)
-	require.NoError(t, err)
+	env := newTestEnvironment(t)
 	require.NoError(t, env.ApplyConfig(fmt.Sprintf(`
 		url = "%s"
 	`, url)))
@@ -45,7 +44,7 @@ func TestOnDiskCache(t *testing.T) {
 	client.getConfigFunc = buildGetConfigHandler("unparseable river config")
 
 	// Write the cache contents, and run the service.
-	err = os.WriteFile(env.svc.dataPath, []byte(cacheContents), 0644)
+	err := os.WriteFile(env.svc.dataPath, []byte(cacheContents), 0644)
 	require.NoError(t, err)
 
 	go func() {
@@ -55,7 +54,7 @@ func TestOnDiskCache(t *testing.T) {
 	// As the API response was unparseable, verify that the service has loaded
 	// the on-disk cache contents.
 	require.EventuallyWithT(t, func(c *assert.CollectT) {
-		assert.Equal(c, cacheHash, env.svc.currentConfigHash)
+		assert.Equal(c, cacheHash, env.svc.getCfgHash())
 	}, time.Second, 10*time.Millisecond)
 }
 
@@ -66,8 +65,7 @@ func TestAPIResponse(t *testing.T) {
 	cfg2 := `loki.process "updated" { forward_to = [] }`
 
 	// Create a new service.
-	env, err := newTestEnvironment(t)
-	require.NoError(t, err)
+	env := newTestEnvironment(t)
 	require.NoError(t, env.ApplyConfig(fmt.Sprintf(`
 		url            = "%s"
 		poll_frequency = "10ms"
@@ -87,17 +85,17 @@ func TestAPIResponse(t *testing.T) {
 	// As the API response was successful, verify that the service has loaded
 	// the valid response.
 	require.EventuallyWithT(t, func(c *assert.CollectT) {
-		assert.Equal(c, getHash([]byte(cfg1)), env.svc.currentConfigHash)
+		assert.Equal(c, getHash([]byte(cfg1)), env.svc.getCfgHash())
 	}, time.Second, 10*time.Millisecond)
 
 	// Update the response returned by the API.
+	env.svc.mut.Lock()
 	client.getConfigFunc = buildGetConfigHandler(cfg2)
+	env.svc.mut.Unlock()
 
 	// Verify that the service has loaded the updated response.
 	require.EventuallyWithT(t, func(c *assert.CollectT) {
-		env.svc.mut.RLock()
-		assert.Equal(c, getHash([]byte(cfg2)), env.svc.currentConfigHash)
-		env.svc.mut.RUnlock()
+		assert.Equal(c, getHash([]byte(cfg2)), env.svc.getCfgHash())
 	}, time.Second, 10*time.Millisecond)
 }
 
@@ -117,7 +115,7 @@ type testEnvironment struct {
 	svc *Service
 }
 
-func newTestEnvironment(t *testing.T) (*testEnvironment, error) {
+func newTestEnvironment(t *testing.T) *testEnvironment {
 	svc, err := New(Options{
 		Logger:      util.TestLogger(t),
 		StoragePath: t.TempDir(),
@@ -128,7 +126,7 @@ func newTestEnvironment(t *testing.T) (*testEnvironment, error) {
 	return &testEnvironment{
 		t:   t,
 		svc: svc,
-	}, nil
+	}
 }
 
 func (env *testEnvironment) ApplyConfig(config string) error {
