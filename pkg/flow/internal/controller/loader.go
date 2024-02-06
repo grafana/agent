@@ -336,6 +336,15 @@ func (l *Loader) populateDeclareNodes(g *dag.Graph, declareBlocks []*ast.BlockSt
 	var diags diag.Diagnostics
 	l.declareNodes = map[string]*DeclareNode{}
 	for _, declareBlock := range declareBlocks {
+		if declareBlock.Label == "declare" {
+			diags.Add(diag.Diagnostic{
+				Severity: diag.SeverityLevelError,
+				Message:  "'declare' is not a valid label for a declare block",
+				StartPos: ast.StartPos(declareBlock).Position(),
+				EndPos:   ast.EndPos(declareBlock).Position(),
+			})
+			continue
+		}
 		// TODO: if node already exists in the graph, update the block
 		// instead of copying it.
 		node := NewDeclareNode(declareBlock)
