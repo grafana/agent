@@ -56,8 +56,9 @@ app.kubernetes.io/version: "vX.Y.Z"
 app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- else }}
 {{/* substr trims delimeter prefix char from grafana-agent.imageId output 
-    e.g. ':' for tags and '@' for digests. */}}
-app.kubernetes.io/version: {{ substr 1 -1 (include "grafana-agent.imageId" .) }}
+    e.g. ':' for tags and '@' for digests.
+    For digests, we crop the string to a 7-char (short) sha. */}}
+app.kubernetes.io/version: {{ (include "grafana-agent.imageId" .) | trunc 15 | trimPrefix "@sha256" | trimPrefix ":" | quote }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- end }}
 {{- end }}
@@ -103,7 +104,7 @@ Calculate name of image ID to use for "config-reloader".
 */}}
 {{- define "config-reloader.imageId" -}}
 {{- if .Values.configReloader.image.digest }}
-{{- $digest := .Values.configReloader.digest }}
+{{- $digest := .Values.configReloader.image.digest }}
 {{- if not (hasPrefix "sha256:" $digest) }}
 {{- $digest = printf "sha256:%s" $digest }}
 {{- end }}

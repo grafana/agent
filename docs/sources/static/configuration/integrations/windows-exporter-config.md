@@ -62,7 +62,7 @@ Full reference of options:
 
   # List of collectors to enable. Any non-experimental collector from the
   # embedded version of windows_exporter can be enabled here.
-  [enabled_collectors: <string> | default = "cpu,cs,logical_disk,net,os,service,system,textfile"]
+  [enabled_collectors: <string> | default = "cpu,cs,logical_disk,net,os,service,system"]
 
   # Settings for collectors which accept configuration. Settings specified here
   # are only used if the corresponding collector is enabled in
@@ -113,6 +113,16 @@ Full reference of options:
     # "WQL 'where' clause to use in WMI metrics query. Limits the response to the services you specify and reduces the size of the response.
     # Maps to collector.service.services-where in windows_exporter
     [where_clause: <string> | default=""]
+
+  # Configuration for physical disk on Windows 
+  physical_disk:
+    # Regexp of volumes to include. Disk name must both match include and not match exclude to be included.
+    # Maps to collector.logical_disk.disk-include in windows_exporter.
+    [include: <string> | default=".+"]
+
+    # Regexp of volumes to exclude. Disk name must both match include and not match exclude to be included.
+    # Maps to collector.logical_disk.disk-exclude in windows_exporter.
+    [exclude: <string> | default=".+"]
 
   # Configuration for Windows Processes
   process:

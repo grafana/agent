@@ -1,6 +1,6 @@
 # Grafana Agent Helm chart
 
-![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![Version: 0.29.0](https://img.shields.io/badge/Version-0.29.0-informational?style=flat-square) ![AppVersion: v0.38.1](https://img.shields.io/badge/AppVersion-v0.38.1-informational?style=flat-square)
+![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![Version: 0.31.1](https://img.shields.io/badge/Version-0.31.1-informational?style=flat-square) ![AppVersion: v0.39.1](https://img.shields.io/badge/AppVersion-v0.39.1-informational?style=flat-square)
 
 Helm chart for deploying [Grafana Agent][] to Kubernetes.
 
@@ -64,9 +64,9 @@ use the older mode (called "static mode"), set the `agent.mode` value to
 | configReloader.customArgs | list | `[]` | Override the args passed to the container. |
 | configReloader.enabled | bool | `true` | Enables automatically reloading when the agent config changes. |
 | configReloader.image.digest | string | `""` | SHA256 digest of image to use for config reloading (either in format "sha256:XYZ" or "XYZ"). When set, will override `configReloader.image.tag` |
-| configReloader.image.registry | string | `"docker.io"` | Config reloader image registry (defaults to docker.io) |
+| configReloader.image.registry | string | `"ghcr.io"` | Config reloader image registry (defaults to docker.io) |
 | configReloader.image.repository | string | `"jimmidyson/configmap-reload"` | Repository to get config reloader image from. |
-| configReloader.image.tag | string | `"v0.8.0"` | Tag of image to use for config reloading. |
+| configReloader.image.tag | string | `"v0.12.0"` | Tag of image to use for config reloading. |
 | configReloader.resources | object | `{"requests":{"cpu":"1m","memory":"5Mi"}}` | Resource requests and limits to apply to the config reloader container. |
 | configReloader.securityContext | object | `{}` | Security context to apply to the Grafana configReloader container. |
 | controller.affinity | object | `{}` | Affinity configuration for pods. |
@@ -78,6 +78,7 @@ use the older mode (called "static mode"), set the `agent.mode` value to
 | controller.dnsPolicy | string | `"ClusterFirst"` | Configures the DNS policy for the pod. https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/#pod-s-dns-policy |
 | controller.enableStatefulSetAutoDeletePVC | bool | `false` | Whether to enable automatic deletion of stale PVCs due to a scale down operation, when controller.type is 'statefulset'. |
 | controller.extraAnnotations | object | `{}` | Annotations to add to controller. |
+| controller.extraContainers | list | `[]` | Additional containers to run alongside the agent container and initContainers. |
 | controller.hostNetwork | bool | `false` | Configures Pods to use the host network. When set to true, the ports that will be used must be specified. |
 | controller.hostPID | bool | `false` | Configures Pods to use the host PID namespace. |
 | controller.initContainers | list | `[]` |  |
@@ -88,6 +89,7 @@ use the older mode (called "static mode"), set the `agent.mode` value to
 | controller.priorityClassName | string | `""` | priorityClassName to apply to Grafana Agent pods. |
 | controller.replicas | int | `1` | Number of pods to deploy. Ignored when controller.type is 'daemonset'. |
 | controller.tolerations | list | `[]` | Tolerations to apply to Grafana Agent pods. |
+| controller.topologySpreadConstraints | list | `[]` | Topology Spread Constraints to apply to Grafana Agent pods. |
 | controller.type | string | `"daemonset"` | Type of controller to use for deploying Grafana Agent in the cluster. Must be one of 'daemonset', 'deployment', or 'statefulset'. |
 | controller.updateStrategy | object | `{}` | Update strategy for updating deployed Pods. |
 | controller.volumeClaimTemplates | list | `[]` | volumeClaimTemplates to add when controller.type is 'statefulset'. |
@@ -118,6 +120,7 @@ use the older mode (called "static mode"), set the `agent.mode` value to
 | service.clusterIP | string | `""` | Cluster IP, can be set to None, empty "" or an IP address |
 | service.enabled | bool | `true` | Creates a Service for the controller's pods. |
 | service.type | string | `"ClusterIP"` | Service type |
+| serviceAccount.additionalLabels | object | `{}` | Additional labels to add to the created service account. |
 | serviceAccount.annotations | object | `{}` | Annotations to add to the created service account. |
 | serviceAccount.create | bool | `true` | Whether to create a service account for the Grafana Agent deployment. |
 | serviceAccount.name | string | `nil` | The name of the existing service account to use when serviceAccount.create is false. |

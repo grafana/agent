@@ -6,6 +6,13 @@ metrics:
   configs:
     - name: default
 
+logs:
+  positions_directory: /path
+  configs:
+    - name: log_config
+      clients:
+        - url: http://localhost/loki/api/v1/push
+
 integrations:
   app_agent_receiver_configs:
     - instance: "default"
@@ -14,4 +21,8 @@ integrations:
         host: "localhost"
         port: 55678
   eventhandler:
-    cache_path: "/etc/eventhandler/eventhandler.cache"
+    cache_path: "/etc/eventhandler/not_default.cache"
+    logs_instance: "log_config"
+    send_timeout: 30
+    informer_resync: 30
+    flush_interval: 30

@@ -21,13 +21,13 @@ The `convert` command converts a supported configuration format to {{< param "PR
 
 Usage:
 
-* `AGENT_MODE=flow grafana-agent convert [FLAG ...] FILE_NAME`
-* `grafana-agent-flow convert [FLAG ...] FILE_NAME`
+* `AGENT_MODE=flow grafana-agent convert [<FLAG> ...] <FILE_NAME>`
+* `grafana-agent-flow convert [<FLAG> ...] <FILE_NAME>`
 
    Replace the following:
 
-   * `FLAG`: One or more flags that define the input and output of the command.
-   * `FILE_NAME`: The {{< param "PRODUCT_ROOT_NAME" >}} configuration file.
+   * _`<FLAG>`_: One or more flags that define the input and output of the command.
+   * _`<FILE_NAME>`_: The {{< param "PRODUCT_ROOT_NAME" >}} configuration file.
 
 If the `FILE_NAME` argument isn't provided or if the `FILE_NAME` argument is
 equal to `-`, `convert` converts the contents of standard input. Otherwise,
@@ -70,7 +70,7 @@ where an output can still be generated. These can be bypassed using the
 
 ### Prometheus
 
-Using the `--source-format=prometheus` will convert the source config from
+Using the `--source-format=prometheus` will convert the source configuration from
 [Prometheus v2.45](https://prometheus.io/docs/prometheus/2.45/configuration/configuration/)
 to {{< param "PRODUCT_NAME" >}} configuration.
 
@@ -82,7 +82,7 @@ This includes Prometheus features such as
 and many supported *_sd_configs. Unsupported features in a source configuration result
 in [errors].
 
-Refer to [Migrate from Prometheus to {{< param "PRODUCT_NAME" >}}]({{< relref "../../getting-started/migrating-from-prometheus/" >}}) for a detailed migration guide.
+Refer to [Migrate from Prometheus to {{< param "PRODUCT_NAME" >}}]({{< relref "../../tasks/migrate/from-prometheus/" >}}) for a detailed migration guide.
 
 ### Promtail
 
@@ -96,7 +96,7 @@ are supported and can be converted to {{< param "PRODUCT_NAME" >}} configuration
 If you have unsupported features in a source configuration, you will receive [errors] when you convert to a flow configuration. The converter will
 also raise warnings for configuration options that may require your attention.
 
-Refer to [Migrate from Promtail to {{< param "PRODUCT_NAME" >}}]({{< relref "../../getting-started/migrating-from-promtail/" >}}) for a detailed migration guide.
+Refer to [Migrate from Promtail to {{< param "PRODUCT_NAME" >}}]({{< relref "../../tasks/migrate/from-promtail/" >}}) for a detailed migration guide.
 
 ### Static
 
@@ -113,4 +113,4 @@ flags with a space between each flag, for example `--extra-args="-enable-feature
 If you have unsupported features in a Static mode source configuration, you will receive [errors][] when you convert to a Flow mode configuration. The converter will
 also raise warnings for configuration options that may require your attention.
 
-Refer to [Migrate from Grafana Agent Static to {{< param "PRODUCT_NAME" >}}]({{< relref "../../getting-started/migrating-from-static/" >}}) for a detailed migration guide.
+Refer to [Migrate from Grafana Agent Static to {{< param "PRODUCT_NAME" >}}]({{< relref "../../tasks/migrate/from-static/" >}}) for a detailed migration guide.

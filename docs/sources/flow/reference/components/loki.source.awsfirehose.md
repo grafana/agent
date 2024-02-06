@@ -75,11 +75,12 @@ The component will start an HTTP server on the configured port and address with 
 
 `loki.source.awsfirehose` supports the following arguments:
 
-| Name                     | Type                 | Description                                                | Default | Required |
- |--------------------------|----------------------|------------------------------------------------------------|---------|----------|
-| `forward_to`             | `list(LogsReceiver)` | List of receivers to send log entries to.                  |         | yes      |
+| Name                     | Type                 | Description                                                    | Default | Required |
+| ------------------------ | -------------------- | -------------------------------------------------------------- | ------- | -------- |
+| `forward_to`             | `list(LogsReceiver)` | List of receivers to send log entries to.                      |         | yes      |
 | `use_incoming_timestamp` | `bool`               | Whether or not to use the timestamp received from the request. | `false` | no       |
-| `relabel_rules`          | `RelabelRules`       | Relabeling rules to apply on log entries.                  | `{}`    | no       |
+| `relabel_rules`          | `RelabelRules`       | Relabeling rules to apply on log entries.                      | `{}`    | no       |
+| `access_key`             | `secret`             | If set, require AWS Firehose to provide a matching key.        | `""`    | no       |
 
 The `relabel_rules` field can make use of the `rules` export value from a
 [`loki.relabel`][loki.relabel] component to apply one or more relabeling rules to log entries before they're forwarded
@@ -119,9 +120,9 @@ The following blocks are supported inside the definition of `loki.source.awsfire
 ## Debug metrics
 
 The following are some of the metrics that are exposed when this component is used. 
-{{% admonition type="note" %}}
+{{< admonition type="note" >}}
 The metrics include labels  such as `status_code` where relevant, which you can use to measure request success rates.
-{{%/admonition %}}
+{{< /admonition >}}
 
 - `loki_source_awsfirehose_request_errors` (counter): Count of errors while receiving a request.
 - `loki_source_awsfirehose_record_errors` (counter): Count of errors while decoding an individual record.
@@ -205,11 +206,9 @@ loki.relabel "logging_origin" {
 - Components that export [Loki `LogsReceiver`]({{< relref "../compatibility/#loki-logsreceiver-exporters" >}})
 
 
-{{% admonition type="note" %}}
-
-Connecting some components may not be sensible or components may require further configuration to make the 
-connection work correctly. Refer to the linked documentation for more details.
-
-{{% /admonition %}}
+{{< admonition type="note" >}}
+Connecting some components may not be sensible or components may require further configuration to make the connection work correctly.
+Refer to the linked documentation for more details.
+{{< /admonition >}}
 
 <!-- END GENERATED COMPATIBLE COMPONENTS -->

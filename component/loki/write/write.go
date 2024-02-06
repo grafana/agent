@@ -12,6 +12,7 @@ import (
 	"github.com/grafana/agent/component/common/loki/client"
 	"github.com/grafana/agent/component/common/loki/limit"
 	"github.com/grafana/agent/component/common/loki/wal"
+	"github.com/grafana/agent/internal/agentseed"
 )
 
 func init() {
@@ -159,6 +160,13 @@ func (c *Component) Update(args component.Arguments) error {
 	}
 
 	cfgs := newArgs.convertClientConfigs()
+	uid := agentseed.Get().UID
+	for _, cfg := range cfgs {
+		if cfg.Headers == nil {
+			cfg.Headers = map[string]string{}
+		}
+		cfg.Headers[agentseed.HeaderName] = uid
+	}
 	walCfg := wal.Config{
 		Enabled:       newArgs.WAL.Enabled,
 		MaxSegmentAge: newArgs.WAL.MaxSegmentAge,

@@ -35,6 +35,7 @@ var (
 		MinBackoff:        30 * time.Millisecond,
 		MaxBackoff:        5 * time.Second,
 		RetryOnHTTP429:    true,
+		SampleAgeLimit:    0,
 	}
 
 	DefaultMetadataOptions = MetadataOptions{
@@ -141,6 +142,7 @@ type QueueOptions struct {
 	MinBackoff        time.Duration `river:"min_backoff,attr,optional"`
 	MaxBackoff        time.Duration `river:"max_backoff,attr,optional"`
 	RetryOnHTTP429    bool          `river:"retry_on_http_429,attr,optional"`
+	SampleAgeLimit    time.Duration `river:"sample_age_limit,attr,optional"`
 }
 
 // SetToDefault implements river.Defaulter.
@@ -164,6 +166,7 @@ func (r *QueueOptions) toPrometheusType() config.QueueConfig {
 		MinBackoff:        model.Duration(r.MinBackoff),
 		MaxBackoff:        model.Duration(r.MaxBackoff),
 		RetryOnRateLimit:  r.RetryOnHTTP429,
+		SampleAgeLimit:    model.Duration(r.SampleAgeLimit),
 	}
 }
 
@@ -231,7 +234,6 @@ func convertConfigs(cfg Arguments) (*config.Config, error) {
 		if err != nil {
 			return nil, fmt.Errorf("cannot parse remote_write url %q: %w", rw.URL, err)
 		}
-
 		rwConfigs = append(rwConfigs, &config.RemoteWriteConfig{
 			URL:                  &common.URL{URL: parsedURL},
 			RemoteTimeout:        model.Duration(rw.RemoteTimeout),

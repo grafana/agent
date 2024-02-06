@@ -259,6 +259,7 @@ basic_auth | [basic_auth][] | Configure basic_auth for authenticating to the end
 authorization | [authorization][] | Configure generic authorization to the endpoint. | no
 oauth2 | [oauth2][] | Configure OAuth2 for authenticating to the endpoint. | no
 oauth2 > tls_config | [tls_config][] | Configure TLS settings for connecting to the endpoint. | no
+tls_config | [tls_config][] | Configure TLS settings for connecting to the endpoint. | no
 
 The `>` symbol indicates deeper levels of nesting. For example,
 `oauth2 > tls_config` refers to a `tls_config` block defined inside
@@ -465,10 +466,10 @@ Replace the following:
 This example limits the search to pods on the same node as this {{< param "PRODUCT_ROOT_NAME" >}}.
 This configuration could be useful if you are running {{< param "PRODUCT_ROOT_NAME" >}} as a DaemonSet.
 
-{{% admonition type="note" %}}
+{{< admonition type="note" >}}
 This example assumes you have used Helm chart to deploy {{< param "PRODUCT_NAME" >}} in Kubernetes and sets `HOSTNAME` to the Kubernetes host name.
 If you have a custom Kubernetes deployment, you must adapt this example to your configuration.
-{{% /admonition %}}
+{{< /admonition >}}
 
 ```river
 discovery.kubernetes "k8s_pods" {
@@ -509,11 +510,9 @@ Replace the following:
 
 - Components that consume [Targets]({{< relref "../compatibility/#targets-consumers" >}})
 
-{{% admonition type="note" %}}
-
-Connecting some components may not be sensible or components may require further configuration to make the 
-connection work correctly. Refer to the linked documentation for more details.
-
-{{% /admonition %}}
+{{< admonition type="note" >}}
+Connecting some components may not be sensible or components may require further configuration to make the connection work correctly.
+Refer to the linked documentation for more details.
+{{< /admonition >}}
 
 <!-- END GENERATED COMPATIBLE COMPONENTS -->

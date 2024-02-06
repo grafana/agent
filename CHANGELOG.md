@@ -12,10 +12,110 @@ Main (unreleased)
 
 ### Breaking changes
 
+- Prohibit the configuration of services within modules. (@wildum)
+
+- For `otelcol.exporter` components, change the default value of `disable_high_cardinality_metrics` to `true`. (@ptodev)
+
+### Features
+
+- A new `discovery.process` component for discovering Linux OS processes on the current host. (@korniltsev)
+
+- A new `pyroscope.java` component for profiling Java processes using async-profiler. (@korniltsev)
+
+- A new `otelcol.processor.resourcedetection` component which inserts resource attributes 
+  to OTLP telemetry based on the host on which Grafana Agent is running. (@ptodev)
+  
+- Expose track_timestamps_staleness on Prometheus scraping, to fix the issue where container metrics live for 5 minutes after the container disappears. (@ptodev)
+
+### Enhancements
+
+- Include line numbers in profiles produced by `pyrsocope.java` component. (@korniltsev)
+- Add an option to the windows static mode installer for expanding environment vars in the yaml config. (@erikbaranowski)
+- Add authentication support to `loki.source.awsfirehose` (@sberz)
+
+- Sort kubelet endpoint to reduce pressure on K8s's API server and watcher endpoints. (@hainenber)
+
+- Expose `physical_disk` collector from `windows_exporter` v0.24.0 to 
+  Flow configuration. (@hainenber)
+
+- Renamed Grafana Agent Mixin's "prometheus.remote_write" dashboard to
+  "Prometheus Components" and added charts for `prometheus.scrape` success rate
+  and duration metrics. (@thampiotr)
+
+- Removed `ClusterLamportClockDrift` and `ClusterLamportClockStuck` alerts from
+  Grafana Agent Mixin to focus on alerting on symptoms. (@thampiotr)
+
+- Increased clustering alert periods to 10 minutes to improve the
+  signal-to-noise ratio in Grafana Agent Mixin. (@thampiotr)
+  
+- `mimir.rules.kubernetes` has a new `prometheus_http_prefix` argument to configure 
+  the HTTP endpoint on which to connect to Mimir's API. (@hainenber)
+
+- `service_name` label is inferred from discovery meta labels in `pyroscope.java` (@korniltsev)
+
+- Mutex and block pprofs are now available via the pprof endpoint. (@mattdurham)
+
+### Bugfixes
+
+- Fix an issue in `remote.s3` where the exported content of an object would be an empty string if `remote.s3` failed to fully retrieve
+  the file in a single read call. (@grafana/agent-squad)
+
+- Utilize the `instance` Argument of `prometheus.exporter.kafka` when set. (@akhmatov-s)
+
+- Fix a duplicate metrics registration panic when sending metrics to an static
+  mode metric instance's write handler. (@tpaschalis)
+
+- Fix issue causing duplicate logs when a docker target is restarted. (@captncraig)
+
+- Fix an issue where blocks having the same type and the same label across
+  modules could result in missed updates. (@thampiotr)
+
+- Fix an issue with static integrations-next marshaling where non singletons
+  would cause `/-/config` to fail to marshal. (@erikbaranowski)
+
+### Other changes
+
+- Removed support for Windows 2012 in line with Microsoft end of life. (@mattdurham)
+
+- Split instance ID and component groupings into separate panels for `remote write active series by component` in the Flow mixin. (@tristanburgess)
+
+- Updated dependency to add support for Go 1.22 (@stefanb)
+
+v0.39.2 (2024-1-31)
+--------------------
+
+### Bugfixes
+
+- Fix error introduced in v0.39.0 preventing remote write to Amazon Managed Prometheus. (@captncraig)
+
+- An error will be returned in the converter from Static to Flow when `scrape_integration` is set
+  to `true` but no `remote_write` is defined. (@erikbaranowski)
+
+
+v0.39.1 (2024-01-19)
+--------------------
+
+### Security fixes
+
+- Fixes following vulnerabilities (@hainenber)
+  - [GO-2023-2409](https://github.com/advisories/GHSA-mhpq-9638-x6pw)
+  - [GO-2023-2412](https://github.com/advisories/GHSA-7ww5-4wqc-m92c)
+  - [CVE-2023-49568](https://github.com/advisories/GHSA-mw99-9chc-xw7r)
+
+### Bugfixes
+
+- Fix issue where installing the Windows Agent Flow installer would hang then crash. (@mattdurham)
+
+
+v0.39.0 (2024-01-09)
+--------------------
+
+### Breaking changes
+
 - `otelcol.receiver.prometheus` will drop all `otel_scope_info` metrics when converting them to OTLP. (@wildum)
   - If the `otel_scope_info` metric has labels `otel_scope_name` and `otel_scope_version`,
-    their values will be used to set OTLP Instrumentation Scope name and  version respectively. 
-  - Labels of `otel_scope_info` metrics other than `otel_scope_name` and `otel_scope_version` 
+    their values will be used to set OTLP Instrumentation Scope name and  version respectively.
+  - Labels of `otel_scope_info` metrics other than `otel_scope_name` and `otel_scope_version`
     are added as scope attributes with the matching name and version.
 
 - The `target` block in `prometheus.exporter.blackbox` requires a mandatory `name`
@@ -25,6 +125,12 @@ Main (unreleased)
   - This change will not break any existing configurations and you can opt in to validation via the `validate_dimensions` configuration option.
   - Before this change, pulling metrics for azure resources with variable dimensions required one configuration per metric + dimension combination to avoid an error.
   - After this change, you can include all metrics and dimensions in a single configuration and the Azure APIs will only return dimensions which are valid for the various metrics.
+  
+### Features
+
+- A new `discovery.ovhcloud` component for discovering scrape targets on OVHcloud. (@ptodev)
+
+- Allow specifying additional containers to run. (@juangom)
 
 ### Enhancements
 
@@ -53,11 +159,12 @@ Main (unreleased)
 - `otelcol.receiver.prometheus` does not drop histograms without buckets anymore. (@wildum)
 
 - Added exemplars support to `otelcol.receiver.prometheus`. (@wildum)
+
 - `mimir.rules.kubernetes` may now retry its startup on failure. (@hainenber)
 
 - Added links between compatible components in the documentation to make it
   easier to discover them. (@thampiotr)
-  
+
 - Allow defining `HTTPClientConfig` for `discovery.ec2`. (@cmbrad)
 
 - The `remote.http` component can optionally define a request body. (@tpaschalis)
@@ -71,21 +178,31 @@ Main (unreleased)
 - Added 'country' mmdb-type to log pipeline-stage geoip. (@superstes)
 
 - Azure exporter enhancements for flow and static mode, (@kgeckhart)
-  - Allows for pulling metrics at the Azure subscription level instead of resource by resource 
-  - Disable dimension validation by default to reduce the number of exporter instances needed for full dimension coverage 
+  - Allows for pulling metrics at the Azure subscription level instead of resource by resource
+  - Disable dimension validation by default to reduce the number of exporter instances needed for full dimension coverage
 
 - Add `max_cache_size` to `prometheus.relabel` to allow configurability instead of hard coded 100,000. (@mattdurham)
+
+- Add support for `http_sd_config` within a `scrape_config` for prometheus to flow config conversion. (@erikbaranowski)
+
+- `discovery.lightsail` now supports additional parameters for configuring HTTP client settings. (@ptodev)
+- Add `sample_age_limit` to remote_write config to drop samples older than a specified duration. (@marctc)
+
+- Handle paths in the Kubelet URL for `discovery.kubelet`. (@petewall)
+
+- `loki.source.docker` now deduplicates targets which report the same container
+  ID. (@tpaschalis)
 
 - Added support for NS records to `discovery.dns`. (@djcode)
 
 ### Bugfixes
 
 - Update `pyroscope.ebpf` to fix a logical bug causing to profile to many kthreads instead of regular processes https://github.com/grafana/pyroscope/pull/2778 (@korniltsev)
- 
+
 - Update `pyroscope.ebpf` to produce more optimal pprof profiles for python processes https://github.com/grafana/pyroscope/pull/2788 (@korniltsev)
 
 - In Static mode's `traces` subsystem, `spanmetrics` used to be generated prior to load balancing.
-  This could lead to inaccurate metrics. This issue only affects Agents using both `spanmetrics` and 
+  This could lead to inaccurate metrics. This issue only affects Agents using both `spanmetrics` and
   `load_balancing`, when running in a load balanced cluster with more than one Agent instance. (@ptodev)
 
 - Fixes `loki.source.docker` a behavior that synced an incomplete list of targets to the tailer manager. (@FerdinandvHagen)
@@ -94,9 +211,21 @@ Main (unreleased)
 
 - Add staleness tracking to labelstore to reduce memory usage. (@mattdurham)
 
+- Fix issue where `prometheus.exporter.kafka` would crash when configuring `sasl_password`. (@rfratto)
+
+- Fix performance issue where perf lib where clause was not being set, leading to timeouts in collecting metrics for windows_exporter. (@mattdurham)
+
+- Fix nil panic when using the process collector with the windows exporter. (@mattdurham)
+
 ### Other changes
 
 - Bump github.com/IBM/sarama from v1.41.2 to v1.42.1
+
+- Attach unique Agent ID header to remote-write requests. (@captncraig)
+
+- Update to v2.48.1 of `github.com/prometheus/prometheus`.
+  Previously, a custom fork of v2.47.2 was used. 
+  The custom fork of v2.47.2 also contained prometheus#12729 and prometheus#12677.
 
 v0.38.1 (2023-11-30)
 --------------------

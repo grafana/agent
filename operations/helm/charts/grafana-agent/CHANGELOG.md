@@ -10,9 +10,50 @@ internal API changes are not present.
 Unreleased
 ----------
 
+0.31.1 (2024-01-19)
+-------------------
+
+### Enhancements
+
+- Add `kubectl.kubernetes.io/default-container: grafana-agent` annotation to allow various tools to choose `grafana-agent` container as default target (@aerfio)
+
+- Add support for topology spread constraints in helm chart. (@etiennep)
+
+- Update Grafana Agent version to v0.39.1. (@marctc)
+
+### Bugfixes
+
+- Fix a bug preventing the `.Values.configReloader.image.digest` Helm value to be correctly retrieved. (@claudioscalzo)
+
+- Fix a bug preventing digests to be used as labels because of their length. Labels values [must be 63 characters or less](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#syntax-and-character-set). (@claudioscalzo)
+
+0.31.0 (2024-01-10)
+-------------------
+
+### Enhancements
+
+- Update Grafana Agent version to v0.39.0. (@marctc)
+
+### Bugfixes
+
+- Configure namespace for service account when RBAC resources is created. (@hainenber)
+
+### Other changes
+
+- Change config reloader image to `ghcr.io/jimmidyson/configmap-reload:v0.12.0` to reflect change in repository and version. (@berendiwema)
+
+0.30.0 (2024-01-05)
+-------------------
+
 ### Enhancements
 
 - Update `rbac` to include necessary rules for the `otelcol.processor.k8sattributes` component. (@rlankfo)
+
+- Add `serviceAccount.additionalLabels` to values.yaml to enable setting additional labels on the created service account. (@zopanix)
+
+### Bugfixes
+
+- Statefulset should use value `.controller.enableStatefulSetAutoDeletePVC` instead of just `.enableStatefulSetAutoDeletePVC`. (@captncraig)
 
 0.29.0 (2023-11-30)
 -------------------

@@ -2,6 +2,7 @@ package instance
 
 import (
 	"context"
+	"net/http"
 
 	"github.com/prometheus/prometheus/scrape"
 	"github.com/prometheus/prometheus/storage"
@@ -35,6 +36,11 @@ func (NoOpInstance) TargetsActive() map[string][]*scrape.Target {
 // StorageDirectory implements Instance.
 func (NoOpInstance) StorageDirectory() string {
 	return ""
+}
+
+// WriteHandler implements Instance.
+func (NoOpInstance) WriteHandler() http.Handler {
+	return nil
 }
 
 // Appender implements Instance

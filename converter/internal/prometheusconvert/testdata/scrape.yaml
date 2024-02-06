@@ -6,6 +6,7 @@ global:
 scrape_configs:
   - job_name: "prometheus-1"
     honor_timestamps: false
+    track_timestamps_staleness: true
     scrape_interval: 10s
     scrape_timeout: 5s
     static_configs:
@@ -16,6 +17,7 @@ scrape_configs:
       username: 'user'
       password: 'pass'
   - job_name: "prometheus2"
+    track_timestamps_staleness: false
     static_configs:
       - targets: ["localhost:9091"]
       - targets: ["localhost:9092"]

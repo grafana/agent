@@ -99,8 +99,8 @@ To try out {{< param "PRODUCT_ROOT_NAME" >}} without using Docker:
 {{% docs/reference %}}
 [prometheus.scrape]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/prometheus.scrape.md"
 [prometheus.scrape]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/components/prometheus.scrape.md"
-[attribute]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/configuration_language.md#attributes"
-[attribute]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/concepts/configuration_language.md#attributes"
+[attribute]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/config-language/#attributes"
+[attribute]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/concepts/config-language/#attributes"
 [argument]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/components"
 [argument]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/concepts/components"
 [export]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/components"

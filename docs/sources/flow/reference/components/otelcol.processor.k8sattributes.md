@@ -14,11 +14,11 @@ title: otelcol.processor.k8sattributes
 `otelcol.processor.k8sattributes` accepts telemetry data from other `otelcol`
 components and adds Kubernetes metadata to the resource attributes of spans, logs, or metrics.
 
-{{% admonition type="note" %}}
+{{< admonition type="note" >}}
 `otelcol.processor.k8sattributes` is a wrapper over the upstream OpenTelemetry
 Collector `k8sattributes` processor. If necessary, bug reports or feature requests
 will be redirected to the upstream repository.
-{{% /admonition %}}
+{{< /admonition >}}
 
 You can specify multiple `otelcol.processor.k8sattributes` components by giving them
 different labels.
@@ -422,11 +422,9 @@ prometheus.remote_write "mimir" {
 
 - Components that consume [OpenTelemetry `otelcol.Consumer`]({{< relref "../compatibility/#opentelemetry-otelcolconsumer-consumers" >}})
 
-{{% admonition type="note" %}}
-
-Connecting some components may not be sensible or components may require further configuration to make the 
-connection work correctly. Refer to the linked documentation for more details.
-
-{{% /admonition %}}
+{{< admonition type="note" >}}
+Connecting some components may not be sensible or components may require further configuration to make the connection work correctly.
+Refer to the linked documentation for more details.
+{{< /admonition >}}
 
 <!-- END GENERATED COMPATIBLE COMPONENTS -->

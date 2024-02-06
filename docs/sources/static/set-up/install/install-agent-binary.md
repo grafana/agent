@@ -19,9 +19,9 @@ Grafana Agent is distributed as a standalone binary for the following operating 
 * macOS: AMD64, (Intel),  ARM64 (Apple Silicon)
 * Windows: AMD64
 
-{{% admonition type="note" %}}
+{{< admonition type="note" >}}
 ppc64le builds are considered secondary release targets and do not have the same level of support and testing as other platforms.
-{{% /admonition %}}
+{{< /admonition >}}
 
 The binary executable will run Grafana Agent in standalone mode. If you want to run Grafana Agent as a service, refer to the installation instructions for:
 

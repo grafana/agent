@@ -75,16 +75,16 @@ func TestRunProcessor(c ProcessorRunConfig) {
 //
 
 type traceToLogSignal struct {
-	logCh              chan plog.Logs
-	inputTrace         ptrace.Traces
-	expectedOuutputLog plog.Logs
+	logCh             chan plog.Logs
+	inputTrace        ptrace.Traces
+	expectedOutputLog plog.Logs
 }
 
 func NewTraceToLogSignal(inputJson string, expectedOutputJson string) Signal {
 	return &traceToLogSignal{
-		logCh:              make(chan plog.Logs),
-		inputTrace:         CreateTestTraces(inputJson),
-		expectedOuutputLog: CreateTestLogs(expectedOutputJson),
+		logCh:             make(chan plog.Logs),
+		inputTrace:        CreateTestTraces(inputJson),
+		expectedOutputLog: CreateTestLogs(expectedOutputJson),
 	}
 }
 
@@ -101,10 +101,50 @@ func (s traceToLogSignal) CheckOutput(t *testing.T) {
 	select {
 	case <-time.After(time.Second):
 		require.FailNow(t, "failed waiting for logs")
-	case tr := <-s.logCh:
-		trStr := marshalLogs(tr)
-		expStr := marshalLogs(s.expectedOuutputLog)
-		require.JSONEq(t, expStr, trStr)
+	case actualLog := <-s.logCh:
+		CompareLogs(t, s.expectedOutputLog, actualLog)
+	}
+}
+
+//
+// Trace to Metrics
+//
+
+type traceToMetricSignal struct {
+	metricCh             chan pmetric.Metrics
+	inputTrace           ptrace.Traces
+	expectedOutputMetric pmetric.Metrics
+}
+
+// Any timestamps inside expectedOutputJson should be set to 0.
+func NewTraceToMetricSignal(inputJson string, expectedOutputJson string) Signal {
+	return &traceToMetricSignal{
+		metricCh:             make(chan pmetric.Metrics),
+		inputTrace:           CreateTestTraces(inputJson),
+		expectedOutputMetric: CreateTestMetrics(expectedOutputJson),
+	}
+}
+
+func (s traceToMetricSignal) MakeOutput() *otelcol.ConsumerArguments {
+	return makeMetricsOutput(s.metricCh)
+}
+
+func (s traceToMetricSignal) ConsumeInput(ctx context.Context, consumer otelcol.Consumer) error {
+	return consumer.ConsumeTraces(ctx, s.inputTrace)
+}
+
+// Wait for the component to finish and check its output.
+func (s traceToMetricSignal) CheckOutput(t *testing.T) {
+	// Set the timeout to a few seconds so that all components have finished.
+	// Components such as otelcol.connector.spanmetrics may need a few
+	// seconds before they output metrics.
+	timeout := time.Second * 5
+
+	select {
+	case <-time.After(timeout):
+		require.FailNow(t, "failed waiting for metrics")
+	case actualMetric := <-s.metricCh:
+		CompareMetrics(t, s.expectedOutputMetric, actualMetric)
 	}
 }
 
@@ -113,16 +153,16 @@ func (s traceToLogSignal) CheckOutput(t *testing.T) {
 //
 
 type traceSignal struct {
-	traceCh              chan ptrace.Traces
-	inputTrace           ptrace.Traces
-	expectedOuutputTrace ptrace.Traces
+	traceCh             chan ptrace.Traces
+	inputTrace          ptrace.Traces
+	expectedOutputTrace ptrace.Traces
 }
 
 func NewTraceSignal(inputJson string, expectedOutputJson string) Signal {
 	return &traceSignal{
-		traceCh:              make(chan ptrace.Traces),
-		inputTrace:           CreateTestTraces(inputJson),
-		expectedOuutputTrace: CreateTestTraces(expectedOutputJson),
+		traceCh:             make(chan ptrace.Traces),
+		inputTrace:          CreateTestTraces(inputJson),
+		expectedOutputTrace: CreateTestTraces(expectedOutputJson),
 	}
 }
 
@@ -139,10 +179,8 @@ func (s traceSignal) CheckOutput(t *testing.T) {
 	select {
 	case <-time.After(time.Second):
 		require.FailNow(t, "failed waiting for traces")
-	case tr := <-s.traceCh:
-		trStr := marshalTraces(tr)
-		expStr := marshalTraces(s.expectedOuutputTrace)
-		require.JSONEq(t, expStr, trStr)
+	case actualTrace := <-s.traceCh:
+		CompareTraces(t, s.expectedOutputTrace, actualTrace)
 	}
 }
 
@@ -155,15 +193,6 @@ func CreateTestTraces(traceJson string) ptrace.Traces {
 		panic(err)
 	}
 	return data
-}
-
-func marshalTraces(trace ptrace.Traces) string {
-	marshaler := &ptrace.JSONMarshaler{}
-	data, err := marshaler.MarshalTraces(trace)
-	if err != nil {
-		panic(err)
-	}
-	return string(data)
 }
 
 // makeTracesOutput returns ConsumerArguments which will forward traces to the
@@ -190,16 +219,16 @@ func makeTracesOutput(ch chan ptrace.Traces) *otelcol.ConsumerArguments {
 //
 
 type logSignal struct {
-	logCh              chan plog.Logs
-	inputLog           plog.Logs
-	expectedOuutputLog plog.Logs
+	logCh             chan plog.Logs
+	inputLog          plog.Logs
+	expectedOutputLog plog.Logs
 }
 
 func NewLogSignal(inputJson string, expectedOutputJson string) Signal {
 	return &logSignal{
-		logCh:              make(chan plog.Logs),
-		inputLog:           CreateTestLogs(inputJson),
-		expectedOuutputLog: CreateTestLogs(expectedOutputJson),
+		logCh:             make(chan plog.Logs),
+		inputLog:          CreateTestLogs(inputJson),
+		expectedOutputLog: CreateTestLogs(expectedOutputJson),
 	}
 }
 
@@ -216,10 +245,8 @@ func (s logSignal) CheckOutput(t *testing.T) {
 	select {
 	case <-time.After(time.Second):
 		require.FailNow(t, "failed waiting for logs")
-	case tr := <-s.logCh:
-		trStr := marshalLogs(tr)
-		expStr := marshalLogs(s.expectedOuutputLog)
-		require.JSONEq(t, expStr, trStr)
+	case actualLog := <-s.logCh:
+		CompareLogs(t, s.expectedOutputLog, actualLog)
 	}
 }
 
@@ -253,30 +280,21 @@ func CreateTestLogs(logJson string) plog.Logs {
 	return data
 }
 
-func marshalLogs(log plog.Logs) string {
-	marshaler := &plog.JSONMarshaler{}
-	data, err := marshaler.MarshalLogs(log)
-	if err != nil {
-		panic(err)
-	}
-	return string(data)
-}
-
 //
 // Metrics
 //
 
 type metricSignal struct {
-	metricCh              chan pmetric.Metrics
-	inputMetric           pmetric.Metrics
-	expectedOuutputMetric pmetric.Metrics
+	metricCh             chan pmetric.Metrics
+	inputMetric          pmetric.Metrics
+	expectedOutputMetric pmetric.Metrics
 }
 
 func NewMetricSignal(inputJson string, expectedOutputJson string) Signal {
 	return &metricSignal{
-		metricCh:              make(chan pmetric.Metrics),
-		inputMetric:           CreateTestMetrics(inputJson),
-		expectedOuutputMetric: CreateTestMetrics(expectedOutputJson),
+		metricCh:             make(chan pmetric.Metrics),
+		inputMetric:          CreateTestMetrics(inputJson),
+		expectedOutputMetric: CreateTestMetrics(expectedOutputJson),
 	}
 }
 
@@ -293,10 +311,8 @@ func (s metricSignal) CheckOutput(t *testing.T) {
 	select {
 	case <-time.After(time.Second):
 		require.FailNow(t, "failed waiting for logs")
-	case tr := <-s.metricCh:
-		trStr := marshalMetrics(tr)
-		expStr := marshalMetrics(s.expectedOuutputMetric)
-		require.JSONEq(t, expStr, trStr)
+	case actualMetric := <-s.metricCh:
+		CompareMetrics(t, s.expectedOutputMetric, actualMetric)
 	}
 }
 
@@ -328,13 +344,4 @@ func CreateTestMetrics(metricJson string) pmetric.Metrics {
 		panic(err)
 	}
 	return data
-}
-
-func marshalMetrics(metrics pmetric.Metrics) string {
-	marshaler := &pmetric.JSONMarshaler{}
-	data, err := marshaler.MarshalMetrics(metrics)
-	if err != nil {
-		panic(err)
-	}
-	return string(data)
 }

@@ -74,7 +74,7 @@ running.
 ### Apply the CRDs
 
 Generated CRDs used by the operator can be found in [the Production
-folder](../../production/operator/crds). Deploy them from the root of the
+folder](../../operations/agent-static-operator/crds). Deploy them from the root of the
 repository with:
 
 ```

@@ -10,8 +10,6 @@ discovery.azure "fun" {
 	managed_identity {
 		client_id = "client"
 	}
-	follow_redirects = true
-	enable_http2     = true
 }
 
 local.file_match "fun" {

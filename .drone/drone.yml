@@ -119,24 +119,6 @@ trigger:
 type: docker
 ---
 kind: pipeline
-name: Test manifests
-platform:
-  arch: amd64
-  os: linux
-steps:
-- commands:
-  - make generate-manifests
-  - ERR_MSG="The environment manifests are out of date. Please run 'make generate-manifests'
-    and commit changes!"
-  - if [ ! -z "$(git status --porcelain)" ]; then echo $ERR_MSG >&2; exit 1; fi
-  image: grafana/agent-build-image:0.30.4
-  name: Regenerate environment manifests
-trigger:
-  event:
-  - pull_request
-type: docker
----
-kind: pipeline
 name: Test
 platform:
   arch: amd64
@@ -1055,94 +1037,6 @@ volumes:
   name: docker
 ---
 kind: pipeline
-name: Publish Linux smoke container
-platform:
-  arch: amd64
-  os: linux
-steps:
-- commands:
-  - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-  failure: ignore
-  image: grafana/agent-build-image:0.30.4
-  name: Configure QEMU
-  volumes:
-  - name: docker
-    path: /var/run/docker.sock
-- commands:
-  - mkdir -p $HOME/.docker
-  - printenv GCR_CREDS > $HOME/.docker/config.json
-  - docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD
-  - docker buildx create --name multiarch-agent-smoke-${DRONE_COMMIT_SHA} --driver
-    docker-container --use
-  - ./tools/ci/docker-containers smoke
-  - docker buildx rm multiarch-agent-smoke-${DRONE_COMMIT_SHA}
-  environment:
-    DOCKER_LOGIN:
-      from_secret: docker_login
-    DOCKER_PASSWORD:
-      from_secret: docker_password
-    GCR_CREDS:
-      from_secret: gcr_admin
-  image: grafana/agent-build-image:0.30.4
-  name: Publish container
-  volumes:
-  - name: docker
-    path: /var/run/docker.sock
-trigger:
-  ref:
-  - refs/heads/main
-  - refs/tags/v*
-type: docker
-volumes:
-- host:
-    path: /var/run/docker.sock
-  name: docker
----
-kind: pipeline
-name: Publish Linux crow container
-platform:
-  arch: amd64
-  os: linux
-steps:
-- commands:
-  - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-  failure: ignore
-  image: grafana/agent-build-image:0.30.4
-  name: Configure QEMU
-  volumes:
-  - name: docker
-    path: /var/run/docker.sock
-- commands:
-  - mkdir -p $HOME/.docker
-  - printenv GCR_CREDS > $HOME/.docker/config.json
-  - docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD
-  - docker buildx create --name multiarch-agent-crow-${DRONE_COMMIT_SHA} --driver
-    docker-container --use
-  - ./tools/ci/docker-containers crow
-  - docker buildx rm multiarch-agent-crow-${DRONE_COMMIT_SHA}
-  environment:
-    DOCKER_LOGIN:
-      from_secret: docker_login
-    DOCKER_PASSWORD:
-      from_secret: docker_password
-    GCR_CREDS:
-      from_secret: gcr_admin
-  image: grafana/agent-build-image:0.30.4
-  name: Publish container
-  volumes:
-  - name: docker
-    path: /var/run/docker.sock
-trigger:
-  ref:
-  - refs/heads/main
-  - refs/tags/v*
-type: docker
-volumes:
-- host:
-    path: /var/run/docker.sock
-  name: docker
----
-kind: pipeline
 name: Publish Windows agent container
 platform:
   arch: amd64
@@ -1205,8 +1099,6 @@ depends_on:
 - Publish Linux agent-boringcrypto container
 - Publish Linux agentctl container
 - Publish Linux agent-operator container
-- Publish Linux smoke container
-- Publish Linux crow container
 image_pull_secrets:
 - dockerconfigjson
 kind: pipeline
@@ -1266,8 +1158,6 @@ depends_on:
 - Publish Linux agent-boringcrypto container
 - Publish Linux agentctl container
 - Publish Linux agent-operator container
-- Publish Linux smoke container
-- Publish Linux crow container
 - Publish Windows agent container
 - Publish Windows agentctl container
 image_pull_secrets:
@@ -1427,6 +1317,6 @@ kind: secret
 name: updater_private_key
 ---
 kind: signature
-hmac: 28ba52df6f22c10bf77a95386a49aff65a1c372127f7d89489ac2d3ee02ce618
+hmac: b4b3bb3578124bba1758f323695216281365054c623738d38e51cc37125277ae
 
 ...

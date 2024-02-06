@@ -4,7 +4,7 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/compatible-components/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/compatible-components/
 - /docs/grafana-cloud/send-data/agent/flow/reference/compatible-components/
-canonical: https://grafana.com/docs/agent/latest/flow/reference/compatible-components/
+canonical: https://grafana.com/docs/agent/latest/flow/reference/compatibility/
 description: Learn about which components are compatible with each other in Grafana Agent Flow
 title: Compatible components
 weight: 400
@@ -12,27 +12,23 @@ weight: 400
 
 # Compatible components
 
-This section provides an overview of _some_ of the possible connections between 
-compatible components in Grafana Agent Flow. 
+This section provides an overview of _some_ of the possible connections between compatible components in {{< param "PRODUCT_NAME" >}}.
 
-For each common data type, we provide a list of compatible components
-that can export or consume it.
+For each common data type, we provide a list of compatible components that can export or consume it.
 
-{{% admonition type="note" %}}
+{{< admonition type="note" >}}
+The type of export may not be the only requirement for chaining components together.
+The value of an attribute may matter as well as its type.
+Refer to each component's documentation for more details on what values are acceptable.
 
-> The type of export may not be the only requirement for chaining components together.
-> The value of an attribute may matter as well as its type.
-> Please refer to each component's documentation for more details on what values are acceptable.
->
-> For example:
-> * A Prometheus component may always expect an `"__address__"` label inside a list of targets.
-> * A `string` argument may only accept certain values like "traceID" or "spanID".
-
-{{% /admonition %}}
+For example:
+* A Prometheus component may always expect an `"__address__"` label inside a list of targets.
+* A `string` argument may only accept certain values like "traceID" or "spanID".
+{{< /admonition >}}
 
 ## Targets
 
-Targets are a `list(map(string))` - a [list]({{< relref "../../config-language/expressions/types_and_values/#naming-convention" >}}) of [maps]({{< relref "../../config-language/expressions/types_and_values/#naming-convention" >}}) with [string]({{< relref "../../config-language/expressions/types_and_values/#strings" >}}) values.
+Targets are a `list(map(string))` - a [list]({{< relref "../../concepts/config-language/expressions/types_and_values/#naming-convention" >}}) of [maps]({{< relref "../../concepts/config-language/expressions/types_and_values/#naming-convention" >}}) with [string]({{< relref "../../concepts/config-language/expressions/types_and_values/#strings" >}}) values.
 They can contain different key-value pairs, and you can use them with a wide range of
 components. Some components require Targets to contain specific key-value pairs
 to work correctly. It is recommended to always check component references for
@@ -68,6 +64,8 @@ The following components, grouped by namespace, _export_ Targets.
 - [discovery.nerve]({{< relref "../components/discovery.nerve.md" >}})
 - [discovery.nomad]({{< relref "../components/discovery.nomad.md" >}})
 - [discovery.openstack]({{< relref "../components/discovery.openstack.md" >}})
+- [discovery.ovhcloud]({{< relref "../components/discovery.ovhcloud.md" >}})
+- [discovery.process]({{< relref "../components/discovery.process.md" >}})
 - [discovery.puppetdb]({{< relref "../components/discovery.puppetdb.md" >}})
 - [discovery.relabel]({{< relref "../components/discovery.relabel.md" >}})
 - [discovery.scaleway]({{< relref "../components/discovery.scaleway.md" >}})
@@ -120,6 +118,7 @@ The following components, grouped by namespace, _consume_ Targets.
 <!-- START GENERATED SECTION: CONSUMERS OF Targets -->
 
 {{< collapse title="discovery" >}}
+- [discovery.process]({{< relref "../components/discovery.process.md" >}})
 - [discovery.relabel]({{< relref "../components/discovery.relabel.md" >}})
 {{< /collapse >}}
 
@@ -143,6 +142,7 @@ The following components, grouped by namespace, _consume_ Targets.
 
 {{< collapse title="pyroscope" >}}
 - [pyroscope.ebpf]({{< relref "../components/pyroscope.ebpf.md" >}})
+- [pyroscope.java]({{< relref "../components/pyroscope.java.md" >}})
 - [pyroscope.scrape]({{< relref "../components/pyroscope.scrape.md" >}})
 {{< /collapse >}}
 
@@ -151,8 +151,8 @@ The following components, grouped by namespace, _consume_ Targets.
 
 ## Prometheus `MetricsReceiver`
 
-The Prometheus metrics are sent between components using `MetricsReceiver`s. 
-`MetricsReceiver`s are [capsules]({{< relref "../../config-language/expressions/types_and_values/#capsules" >}})
+The Prometheus metrics are sent between components using `MetricsReceiver`s.
+`MetricsReceiver`s are [capsules]({{< relref "../../concepts/config-language/expressions/types_and_values/#capsules" >}})
 that are exported by components that can receive Prometheus metrics. Components that
 can consume Prometheus metrics can be passed the `MetricsReceiver` as an argument. Use the
 following components to build your Prometheus metrics pipeline:
@@ -177,7 +177,6 @@ The following components, grouped by namespace, _export_ Prometheus `MetricsRece
 <!-- NOTE: this title is used as an anchor in links. Do not change. -->
 ### Prometheus `MetricsReceiver` Consumers
 The following components, grouped by namespace, _consume_ Prometheus `MetricsReceiver`.
- 
 
 <!-- START GENERATED SECTION: CONSUMERS OF Prometheus `MetricsReceiver` -->
 
@@ -196,11 +195,9 @@ The following components, grouped by namespace, _consume_ Prometheus `MetricsRec
 
 <!-- END GENERATED SECTION: CONSUMERS OF Prometheus `MetricsReceiver` -->
 
-
-
 ## Loki `LogsReceiver`
 
-`LogsReceiver` is a [capsule]({{< relref "../../config-language/expressions/types_and_values/#capsules" >}})
+`LogsReceiver` is a [capsule]({{< relref "../../concepts/config-language/expressions/types_and_values/#capsules" >}})
 that is exported by components that can receive Loki logs. Components that
 consume `LogsReceiver` as an argument typically send logs to it. Use the
 following components to build your Loki logs pipeline:
@@ -261,11 +258,10 @@ The following components, grouped by namespace, _consume_ Loki `LogsReceiver`.
 
 <!-- END GENERATED SECTION: CONSUMERS OF Loki `LogsReceiver` -->
 
-
 ## OpenTelemetry `otelcol.Consumer`
 
 The OpenTelemetry data is sent between components using `otelcol.Consumer`s.
-`otelcol.Consumer`s are [capsules]({{< relref "../../config-language/expressions/types_and_values/#capsules" >}})
+`otelcol.Consumer`s are [capsules]({{< relref "../../concepts/config-language/expressions/types_and_values/#capsules" >}})
 that are exported by components that can receive OpenTelemetry data. Components that
 can consume OpenTelemetry data can be passed the `otelcol.Consumer` as an argument. Note that some components
 that use `otelcol.Consumer` only support a subset of telemetry signals, for example, only traces. Check the component
@@ -294,6 +290,7 @@ The following components, grouped by namespace, _export_ OpenTelemetry `otelcol.
 - [otelcol.processor.k8sattributes]({{< relref "../components/otelcol.processor.k8sattributes.md" >}})
 - [otelcol.processor.memory_limiter]({{< relref "../components/otelcol.processor.memory_limiter.md" >}})
 - [otelcol.processor.probabilistic_sampler]({{< relref "../components/otelcol.processor.probabilistic_sampler.md" >}})
+- [otelcol.processor.resourcedetection]({{< relref "../components/otelcol.processor.resourcedetection.md" >}})
 - [otelcol.processor.span]({{< relref "../components/otelcol.processor.span.md" >}})
 - [otelcol.processor.tail_sampling]({{< relref "../components/otelcol.processor.tail_sampling.md" >}})
 - [otelcol.processor.transform]({{< relref "../components/otelcol.processor.transform.md" >}})
@@ -322,6 +319,7 @@ The following components, grouped by namespace, _consume_ OpenTelemetry `otelcol
 - [otelcol.processor.k8sattributes]({{< relref "../components/otelcol.processor.k8sattributes.md" >}})
 - [otelcol.processor.memory_limiter]({{< relref "../components/otelcol.processor.memory_limiter.md" >}})
 - [otelcol.processor.probabilistic_sampler]({{< relref "../components/otelcol.processor.probabilistic_sampler.md" >}})
+- [otelcol.processor.resourcedetection]({{< relref "../components/otelcol.processor.resourcedetection.md" >}})
 - [otelcol.processor.span]({{< relref "../components/otelcol.processor.span.md" >}})
 - [otelcol.processor.tail_sampling]({{< relref "../components/otelcol.processor.tail_sampling.md" >}})
 - [otelcol.processor.transform]({{< relref "../components/otelcol.processor.transform.md" >}})
@@ -337,12 +335,10 @@ The following components, grouped by namespace, _consume_ OpenTelemetry `otelcol
 
 <!-- END GENERATED SECTION: CONSUMERS OF OpenTelemetry `otelcol.Consumer` -->
 
-
-
 ## Pyroscope `ProfilesReceiver`
 
 The Pyroscope profiles are sent between components using `ProfilesReceiver`s.
-`ProfilesReceiver`s are [capsules]({{< relref "../../config-language/expressions/types_and_values/#capsules" >}})
+`ProfilesReceiver`s are [capsules]({{< relref "../../concepts/config-language/expressions/types_and_values/#capsules" >}})
 that are exported by components that can receive Pyroscope profiles. Components that
 can consume Pyroscope profiles can be passed the `ProfilesReceiver` as an argument. Use the
 following components to build your Pyroscope profiles pipeline:
@@ -367,8 +363,8 @@ The following components, grouped by namespace, _consume_ Pyroscope `ProfilesRec
 
 {{< collapse title="pyroscope" >}}
 - [pyroscope.ebpf]({{< relref "../components/pyroscope.ebpf.md" >}})
+- [pyroscope.java]({{< relref "../components/pyroscope.java.md" >}})
 - [pyroscope.scrape]({{< relref "../components/pyroscope.scrape.md" >}})
 {{< /collapse >}}
 
 <!-- END GENERATED SECTION: CONSUMERS OF Pyroscope `ProfilesReceiver` -->
-

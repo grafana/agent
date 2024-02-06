@@ -55,6 +55,8 @@ var DefaultArguments = Arguments{
 	Environment:     azure.PublicCloud.Name,
 	Port:            80,
 	RefreshInterval: 5 * time.Minute,
+	FollowRedirects: true,
+	EnableHTTP2:     true,
 }
 
 // SetToDefault implements river.Defaulter.

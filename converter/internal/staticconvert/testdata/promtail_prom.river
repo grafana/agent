@@ -1,7 +1,5 @@
 discovery.consul "metrics_name_jobName" {
-	services         = ["myapp"]
-	follow_redirects = true
-	enable_http2     = true
+	services = ["myapp"]
 }
 
 prometheus.scrape "metrics_name_jobName" {
@@ -20,7 +18,7 @@ prometheus.scrape "metrics_name_jobName" {
 
 prometheus.remote_write "metrics_name" {
 	endpoint {
-		name = "name-8be96f"
+		name = "name-149bbd"
 		url  = "http://localhost:9009/api/prom/push"
 
 		queue_config { }
@@ -48,8 +46,6 @@ discovery.consul "logs_name_jobName" {
 		username = "toby"
 		password = "this_password_is_safe_innit?"
 	}
-	follow_redirects = true
-	enable_http2     = true
 }
 
 discovery.relabel "logs_name_jobName" {
@@ -101,8 +97,6 @@ discovery.consul "logs_name2_jobName" {
 		username = "toby"
 		password = "this_password_is_safe_innit?"
 	}
-	follow_redirects = true
-	enable_http2     = true
 }
 
 discovery.relabel "logs_name2_jobName" {

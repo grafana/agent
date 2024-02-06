@@ -22,23 +22,19 @@ The following architectures are supported:
 - macOS: AMD64 (Intel), ARM64 (Apple Silicon)
 - FreeBSD: AMD64
 
-{{% admonition type="note" %}}
+{{< admonition type="note" >}}
 ppc64le builds are considered secondary release targets and do not have the same level of support and testing as other platforms.
-{{% /admonition %}}
+{{< /admonition >}}
 
 {{< section >}}
 
-{{% admonition type="note" %}}
+{{< admonition type="note" >}}
 Installing Grafana Agent on other operating systems is possible, but is not recommended or supported.
-{{% /admonition %}}
+{{< /admonition >}}
 
 ## Grafana Cloud
 
 Use the Grafana Agent [Kubernetes configuration](/docs/grafana-cloud/monitor-infrastructure/kubernetes-monitoring/configuration/) or follow instructions for installing the Grafana Agent in the [Walkthrough](/docs/grafana-cloud/monitor-infrastructure/integrations/get-started/).
-
-## Tanka
-
-For more information, refer to the [Tanka](https://tanka.dev) configurations in the Grafana Agent [production](https://github.com/grafana/agent/tree/main/production/tanka/grafana-agent) directory on GitHub.
 
 ## Data collection
 

@@ -68,28 +68,26 @@ prometheus.remote_write "default" {
 ```
 
 
-## {{< param "PRODUCT_NAME" >}} configuration generator
+## {{% param "PRODUCT_NAME" %}} configuration generator
 
 The {{< param "PRODUCT_NAME" >}} [configuration generator](https://grafana.github.io/agent-configurator/) will help you get a head start on creating flow code.
 
-{{% admonition type="note" %}}
+{{< admonition type="note" >}}
 This feature is experimental, and it doesn't support all River components.
-{{% /admonition %}}
+{{< /admonition >}}
 
 ## Next steps
 
 * [Install][] {{< param "PRODUCT_NAME" >}}.
 * Learn about the core [Concepts][] of {{< param "PRODUCT_NAME" >}}.
-* Follow our [Getting started][] guides for {{< param "PRODUCT_NAME" >}}.
-* Follow our [Tutorials][] to get started with {{< param "PRODUCT_NAME" >}}.
-* Learn how to use the [Configuration language][].
+* Follow our [Tutorials][] for hands-on learning of {{< param "PRODUCT_NAME" >}}.
+* Consult our [Tasks][] instructions to accomplish common objectives with {{< param "PRODUCT_NAME" >}}.
 * Check out our [Reference][] documentation to find specific information you
   might be looking for.
 
-[Install]: {{< relref "./setup/install/" >}}
+[Install]: {{< relref "./get-started/install/" >}}
 [Concepts]: {{< relref "./concepts/" >}}
-[Getting started]: {{< relref "./getting-started/" >}}
+[Tasks]: {{< relref "./tasks/" >}}
 [Tutorials]: {{< relref "./tutorials/ ">}}
-[Configuration language]: {{< relref "./config-language/" >}}
 [Reference]: {{< relref "./reference" >}}
 

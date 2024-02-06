@@ -1,7 +1,6 @@
 package s3
 
 import (
-	"errors"
 	"io"
 	"sync"
 	"time"
@@ -100,10 +99,15 @@ func (w *watcher) getObject(ctx context.Context) ([]byte, error) {
 	if err != nil {
 		return []byte{}, err
 	}
+	defer output.Body.Close()
+
 	buf := make([]byte, output.ContentLength)
-	_, err = output.Body.Read(buf)
-	if !errors.Is(err, io.EOF) {
+
+	_, err = io.ReadFull(output.Body, buf)
+
+	if err != nil {
 		return []byte{}, err
 	}
+
 	return buf, nil
 }

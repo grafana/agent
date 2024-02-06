@@ -45,11 +45,12 @@ type Arguments struct {
 }
 
 var DefaultArguments = Arguments{
-	Server:          "localhost:8500",
-	TagSeparator:    ",",
-	Scheme:          "http",
-	AllowStale:      true,
-	RefreshInterval: 30 * time.Second,
+	Server:           "localhost:8500",
+	TagSeparator:     ",",
+	Scheme:           "http",
+	AllowStale:       true,
+	RefreshInterval:  30 * time.Second,
+	HTTPClientConfig: config.DefaultHTTPClientConfig,
 }
 
 // SetToDefault implements river.Defaulter.

@@ -1,10 +1,14 @@
 package spanmetrics_test
 
 import (
+	"context"
 	"testing"
 	"time"
 
 	"github.com/grafana/agent/component/otelcol/connector/spanmetrics"
+	"github.com/grafana/agent/component/otelcol/processor/processortest"
+	"github.com/grafana/agent/pkg/flow/componenttest"
+	"github.com/grafana/agent/pkg/util"
 	"github.com/grafana/river"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/connector/spanmetricsconnector"
 	"github.com/stretchr/testify/require"
@@ -328,6 +332,420 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 			require.NoError(t, actual.Validate())
 
 			require.Equal(t, tc.expected, *actual)
+		})
+	}
+}
+
+func testRunProcessor(t *testing.T, processorConfig string, testSignal processortest.Signal) {
+	ctx := componenttest.TestContext(t)
+	testRunProcessorWithContext(ctx, t, processorConfig, testSignal)
+}
+
+func testRunProcessorWithContext(ctx context.Context, t *testing.T, processorConfig string, testSignal processortest.Signal) {
+	l := util.TestLogger(t)
+
+	ctrl, err := componenttest.NewControllerFromID(l, "otelcol.connector.spanmetrics")
+	require.NoError(t, err)
+
+	var args spanmetrics.Arguments
+	require.NoError(t, river.Unmarshal([]byte(processorConfig), &args))
+
+	// Override the arguments so signals get forwarded to the test channel.
+	args.Output = testSignal.MakeOutput()
+
+	prc := processortest.ProcessorRunConfig{
+		Ctx:        ctx,
+		T:          t,
+		Args:       args,
+		TestSignal: testSignal,
+		Ctrl:       ctrl,
+		L:          l,
+	}
+	processortest.TestRunProcessor(prc)
+}
+
+func Test_ComponentIO(t *testing.T) {
+	const defaultInputTrace = `{
+		"resourceSpans": [{
+			"resource": {
+				"attributes": [{
+					"key": "service.name",
+					"value": { "stringValue": "TestSvcName" }
+				},
+				{
+					"key": "res_attribute1",
+					"value": { "intValue": "11" }
+				}]
+			},
+			"scopeSpans": [{
+				"spans": [{
+					"trace_id": "7bba9f33312b3dbb8b2c2c62bb7abe2d",
+					"span_id": "086e83747d0e381e",
+					"name": "TestSpan",
+					"attributes": [{
+						"key": "attribute1",
+						"value": { "intValue": "78" }
+					}]
+				}]
+			}]
+		},{
+			"resource": {
+				"attributes": [{
+					"key": "service.name",
+					"value": { "stringValue": "TestSvcName" }
+				},
+				{
+					"key": "res_attribute1",
+					"value": { "intValue": "11" }
+				}]
+			},
+			"scopeSpans": [{
+				"spans": [{
+					"trace_id": "7bba9f33312b3dbb8b2c2c62bb7abe2d",
+					"span_id": "086e83747d0e381b",
+					"name": "TestSpan",
+					"attributes": [{
+						"key": "attribute1",
+						"value": { "intValue": "78" }
+					}]
+				}]
+			}]
+		}]
+	}`
+
+	tests := []struct {
+		testName              string
+		cfg                   string
+		inputTraceJson        string
+		expectedOutputLogJson string
+	}{
+		{
+			testName: "Sum metric only",
+			cfg: `
+			metrics_flush_interval = "1s"
+			histogram {
+				disable = true
+				explicit {}
+			}
+
+			output {
+				// no-op: will be overridden by test code.
+			}
+		`,
+			inputTraceJson: defaultInputTrace,
+			expectedOutputLogJson: `{
+				"resourceMetrics": [{
+					"resource": {
+						"attributes": [{
+							"key": "service.name",
+							"value": { "stringValue": "TestSvcName" }
+						},
+						{
+							"key": "res_attribute1",
+							"value": { "intValue": "11" }
+						}]
+					},		
+					"scopeMetrics": [{
+						"scope": {
+							"name": "spanmetricsconnector"
+						},
+						"metrics": [{
+							"name": "calls",
+							"sum": {
+								"dataPoints": [{
+									"attributes": [{
+										"key": "service.name",
+										"value": { "stringValue": "TestSvcName" }
+									},
+									{
+										"key": "span.name",
+										"value": { "stringValue": "TestSpan" }
+									},
+									{
+										"key": "span.kind",
+										"value": { "stringValue": "SPAN_KIND_UNSPECIFIED" }
+									},
+									{
+										"key": "status.code",
+										"value": { "stringValue": "STATUS_CODE_UNSET" }
+									}],
+									"startTimeUnixNano": "0",
+									"timeUnixNano": "0",
+									"asInt": "2"
+								}],
+								"aggregationTemporality": 2,
+								"isMonotonic": true
+							}
+						}]
+					}]
+				}]
+			}`,
+		},
+		{
+			testName: "Sum metric only for two spans",
+			cfg: `
+			metrics_flush_interval = "1s"
+			histogram {
+				disable = true
+				explicit {}
+			}
+
+			output {
+				// no-op: will be overridden by test code.
+			}
+		`,
+			inputTraceJson: `{
+				"resourceSpans": [{
+					"resource": {
+						"attributes": [{
+							"key": "service.name",
+							"value": { "stringValue": "TestSvcName" }
+						},
+						{
+							"key": "k8s.pod.name",
+							"value": { "stringValue": "first" }
+						}]
+					},
+					"scopeSpans": [{
+						"spans": [{
+							"trace_id": "7bba9f33312b3dbb8b2c2c62bb7abe2d",
+							"span_id": "086e83747d0e381e",
+							"name": "TestSpan",
+							"attributes": [{
+								"key": "attribute1",
+								"value": { "intValue": "78" }
+							}]
+						}]
+					}]
+				},{
+					"resource": {
+						"attributes": [{
+							"key": "service.name",
+							"value": { "stringValue": "TestSvcName" }
+						},
+						{
+							"key": "k8s.pod.name",
+							"value": { "stringValue": "second" }
+						}]
+					},
+					"scopeSpans": [{
+						"spans": [{
+							"trace_id": "7bba9f33312b3dbb8b2c2c62bb7abe2d",
+							"span_id": "086e83747d0e381b",
+							"name": "TestSpan",
+							"attributes": [{
+								"key": "attribute1",
+								"value": { "intValue": "78" }
+							}]
+						}]
+					}]
+				}]
+			}`,
+			expectedOutputLogJson: `{
+				"resourceMetrics": [{
+					"resource": {
+						"attributes": [{
+							"key": "service.name",
+							"value": { "stringValue": "TestSvcName" }
+						},
+						{
+							"key": "k8s.pod.name",
+							"value": { "stringValue": "first" }
+						}]
+					},		
+					"scopeMetrics": [{
+						"scope": {
+							"name": "spanmetricsconnector"
+						},
+						"metrics": [{
+							"name": "calls",
+							"sum": {
+								"dataPoints": [{
+									"attributes": [{
+										"key": "service.name",
+										"value": { "stringValue": "TestSvcName" }
+									},
+									{
+										"key": "span.name",
+										"value": { "stringValue": "TestSpan" }
+									},
+									{
+										"key": "span.kind",
+										"value": { "stringValue": "SPAN_KIND_UNSPECIFIED" }
+									},
+									{
+										"key": "status.code",
+										"value": { "stringValue": "STATUS_CODE_UNSET" }
+									}],
+									"startTimeUnixNano": "0",
+									"timeUnixNano": "0",
+									"asInt": "1"
+								}],
+								"aggregationTemporality": 2,
+								"isMonotonic": true
+							}
+						}]
+					}]
+				},
+				{
+					"resource": {
+						"attributes": [{
+							"key": "service.name",
+							"value": { "stringValue": "TestSvcName" }
+						},
+						{
+							"key": "k8s.pod.name",
+							"value": { "stringValue": "second" }
+						}]
+					},		
+					"scopeMetrics": [{
+						"scope": {
+							"name": "spanmetricsconnector"
+						},
+						"metrics": [{
+							"name": "calls",
+							"sum": {
+								"dataPoints": [{
+									"attributes": [{
+										"key": "service.name",
+										"value": { "stringValue": "TestSvcName" }
+									},
+									{
+										"key": "span.name",
+										"value": { "stringValue": "TestSpan" }
+									},
+									{
+										"key": "span.kind",
+										"value": { "stringValue": "SPAN_KIND_UNSPECIFIED" }
+									},
+									{
+										"key": "status.code",
+										"value": { "stringValue": "STATUS_CODE_UNSET" }
+									}],
+									"startTimeUnixNano": "0",
+									"timeUnixNano": "0",
+									"asInt": "1"
+								}],
+								"aggregationTemporality": 2,
+								"isMonotonic": true
+							}
+						}]
+					}]
+				}]
+			}`,
+		},
+		{
+			testName: "Sum and histogram",
+			cfg: `
+			metrics_flush_interval = "1s"
+			histogram {
+				explicit {
+					buckets = ["5m", "10m", "30m"]
+				}
+			}
+
+			output {
+				// no-op: will be overridden by test code.
+			}
+		`,
+			inputTraceJson: defaultInputTrace,
+			expectedOutputLogJson: `{
+				"resourceMetrics": [{
+					"resource": {
+						"attributes": [{
+							"key": "service.name",
+							"value": { "stringValue": "TestSvcName" }
+						},
+						{
+							"key": "res_attribute1",
+							"value": { "intValue": "11" }
+						}]
+					},		
+					"scopeMetrics": [{
+						"scope": {
+							"name": "spanmetricsconnector"
+						},
+						"metrics": [{
+							"name": "calls",
+							"sum": {
+								"dataPoints": [{
+									"attributes": [{
+										"key": "service.name",
+										"value": { "stringValue": "TestSvcName" }
+									},
+									{
+										"key": "span.name",
+										"value": { "stringValue": "TestSpan" }
+									},
+									{
+										"key": "span.kind",
+										"value": { "stringValue": "SPAN_KIND_UNSPECIFIED" }
+									},
+									{
+										"key": "status.code",
+										"value": { "stringValue": "STATUS_CODE_UNSET" }
+									}],
+									"startTimeUnixNano": "0",
+									"timeUnixNano": "0",
+									"asInt": "2"
+								}],
+								"aggregationTemporality": 2,
+								"isMonotonic": true
+							}
+						},
+                        {
+                            "name": "duration",
+                            "unit": "ms",
+                            "histogram": {
+                                "dataPoints": [
+                                    {
+                                        "attributes": [
+                                            {
+                                                "key": "service.name",
+                                                "value": {
+                                                    "stringValue": "TestSvcName"
+                                                }
+                                            },
+                                            {
+                                                "key": "span.name",
+                                                "value": {
+                                                    "stringValue": "TestSpan"
+                                                }
+                                            },
+                                            {
+                                                "key": "span.kind",
+                                                "value": {
+                                                    "stringValue": "SPAN_KIND_UNSPECIFIED"
+                                                }
+                                            },
+                                            {
+                                                "key": "status.code",
+                                                "value": {
+                                                    "stringValue": "STATUS_CODE_UNSET"
+                                                }
+                                            }
+                                        ],
+                                        "count": "2",
+                                        "sum": 0,
+                                        "bucketCounts": [ "2", "0", "0", "0" ],
+                                        "explicitBounds": [ 300000, 600000, 1800000 ]
+                                    }
+                                ],
+                                "aggregationTemporality": 2
+                            }
+                        }]
+					}]
+				}]
+			}`,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.testName, func(t *testing.T) {
+			var args spanmetrics.Arguments
+			require.NoError(t, river.Unmarshal([]byte(tt.cfg), &args))
+
+			testRunProcessor(t, tt.cfg, processortest.NewTraceToMetricSignal(tt.inputTraceJson, tt.expectedOutputLogJson))
 		})
 	}
 }

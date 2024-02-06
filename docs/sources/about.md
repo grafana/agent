@@ -29,12 +29,12 @@ Grafana Agent is available in three different variants:
 [Static mode Kubernetes operator]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/operator"
 [Flow mode]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow"
 [Flow mode]: "/docs/grafana-cloud/ -> /docs/agent/<AGENT_VERSION>/flow"
-[Prometheus]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/getting-started/collect-prometheus-metrics.md"
-[Prometheus]: "/docs/grafana-cloud/ -> /docs/agent/<AGENT_VERSION>/flow/getting-started/collect-prometheus-metrics.md"
-[OTel]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/getting-started/collect-opentelemetry-data.md"
-[OTel]: "/docs/grafana-cloud/ -> /docs/agent/<AGENT_VERSION>/flow/getting-started/collect-opentelemetry-data.md"
-[Loki]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/getting-started/migrating-from-promtail.md"
-[Loki]: "/docs/grafana-cloud/ -> /docs/agent/<AGENT_VERSION>/flow/getting-started/migrating-from-promtail.md"
+[Prometheus]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/tasks/collect-prometheus-metrics.md"
+[Prometheus]: "/docs/grafana-cloud/ -> /docs/agent/<AGENT_VERSION>/flow/tasks/collect-prometheus-metrics.md"
+[OTel]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/tasks/collect-opentelemetry-data.md"
+[OTel]: "/docs/grafana-cloud/ -> /docs/agent/<AGENT_VERSION>/flow/tasks/collect-opentelemetry-data.md"
+[Loki]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/tasks/migrate/from-promtail.md"
+[Loki]: "/docs/grafana-cloud/ -> /docs/agent/<AGENT_VERSION>/flow/tasks/migrate/from-promtail.md"
 [clustering]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/clustering/_index.md"
 [clustering]: "/docs/grafana-cloud/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/clustering/_index.md"
 [rules]: "/docs/agent/ -> /docs/agent/latest/flow/reference/components/mimir.rules.kubernetes.md"
@@ -105,10 +105,10 @@ You should run Static mode when:
 
 ### Static mode Kubernetes operator
 
-{{% admonition type="note" %}}
+{{< admonition type="note" >}}
 Grafana Agent version 0.37 and newer provides Prometheus Operator compatibility in Flow mode.
 You should use Grafana Agent Flow mode for all new Grafana Agent deployments.
-{{% /admonition %}}
+{{< /admonition >}}
 
 The [Static mode Kubernetes operator][] is a variant of Grafana Agent introduced on June 17, 2021. It's currently in beta.
 

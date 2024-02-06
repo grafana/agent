@@ -79,6 +79,13 @@ func TestBuildURL(t *testing.T) {
 			url:       "http://mimir.local/apathto",
 			resultURL: "http://mimir.local/apathto/prometheus/config/v1/rules/last-char-slash%2F",
 		},
+		{
+			name:      "builds the correct URL with a customized prometheus_http_prefix",
+			path:      "/mimir/config/v1/rules",
+			method:    http.MethodPost,
+			url:       "http://mimir.local/",
+			resultURL: "http://mimir.local/mimir/config/v1/rules",
+		},
 	}
 
 	for _, tt := range tc {

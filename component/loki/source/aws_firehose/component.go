@@ -17,6 +17,7 @@ import (
 	flow_relabel "github.com/grafana/agent/component/common/relabel"
 	"github.com/grafana/agent/component/loki/source/aws_firehose/internal"
 	"github.com/grafana/agent/pkg/util"
+	"github.com/grafana/river/rivertypes"
 )
 
 func init() {
@@ -32,6 +33,7 @@ func init() {
 
 type Arguments struct {
 	Server               *fnet.ServerConfig  `river:",squash"`
+	AccessKey            rivertypes.Secret   `river:"access_key,attr,optional"`
 	UseIncomingTimestamp bool                `river:"use_incoming_timestamp,attr,optional"`
 	ForwardTo            []loki.LogsReceiver `river:"forward_to,attr"`
 	RelabelRules         flow_relabel.Rules  `river:"relabel_rules,attr,optional"`
@@ -131,6 +133,10 @@ func (c *Component) Update(args component.Arguments) error {
 		handlerNeedsUpdate = true
 	}
 
+	if c.args.AccessKey != newArgs.AccessKey {
+		handlerNeedsUpdate = true
+	}
+
 	// Since the handler is created ad-hoc for the server, and the handler depends on the relabels
 	// consider this as a cause for server restart as well. Much simpler than adding a lock on the
 	// handler and doing the relabel rules change on the fly
@@ -159,7 +165,7 @@ func (c *Component) Update(args component.Arguments) error {
 
 	if err = c.server.MountAndRun(func(router *mux.Router) {
 		// re-create handler when server is re-computed
-		handler := internal.NewHandler(c, c.logger, c.handlerMetrics, c.rbs, newArgs.UseIncomingTimestamp)
+		handler := internal.NewHandler(c, c.logger, c.handlerMetrics, c.rbs, newArgs.UseIncomingTimestamp, string(newArgs.AccessKey))
 		router.Path("/awsfirehose/api/v1/push").Methods("POST").Handler(handler)
 	}); err != nil {
 		return err

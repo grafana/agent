@@ -115,6 +115,8 @@ rbac:
 serviceAccount:
   # -- Whether to create a service account for the Grafana Agent deployment.
   create: true
+  # -- Additional labels to add to the created service account.
+  additionalLabels: {}
   # -- Annotations to add to the created service account.
   annotations: {}
   # -- The name of the existing service account to use when
@@ -127,11 +129,11 @@ configReloader:
   enabled: true
   image:
     # -- Config reloader image registry (defaults to docker.io)
-    registry: "docker.io"
+    registry: "ghcr.io"
     # -- Repository to get config reloader image from.
     repository: jimmidyson/configmap-reload
     # -- Tag of image to use for config reloading.
-    tag: v0.8.0
+    tag: v0.12.0
     # -- SHA256 digest of image to use for config reloading (either in format "sha256:XYZ" or "XYZ"). When set, will override `configReloader.image.tag`
     digest: ""
   # -- Override the args passed to the container.
@@ -177,6 +179,9 @@ controller:
   # -- Tolerations to apply to Grafana Agent pods.
   tolerations: []
 
+  # -- Topology Spread Constraints to apply to Grafana Agent pods.
+  topologySpreadConstraints: []
+
   # -- priorityClassName to apply to Grafana Agent pods.
   priorityClassName: ''
 
@@ -215,6 +220,9 @@ controller:
   ## ref: https://kubernetes.io/docs/concepts/workloads/pods/init-containers/
   ##
   initContainers: []
+
+  # -- Additional containers to run alongside the agent container and initContainers.
+  extraContainers: []
 
 service:
   # -- Creates a Service for the controller's pods.

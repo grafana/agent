@@ -3,7 +3,6 @@
 * Date: 2023-05-25
 * Author: Robert Fratto (@rfratto)
 * PR: [grafana/agent#3981](https://github.com/grafana/agent/pull/3981)
-* Status: Draft
 
 Grafana Agent has been following [semantic versioning](https://semver.org/) since its inception.
 After three years of development and 33 minor releases, the project is on trajectory to have a 1.0 release. 

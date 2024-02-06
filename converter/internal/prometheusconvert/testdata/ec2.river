@@ -3,6 +3,11 @@ discovery.ec2 "prometheus1" {
 	access_key = "YOUR_ACCESS_KEY"
 	secret_key = "YOUR_SECRET_KEY"
 	port       = 8080
+
+	authorization {
+		type             = "Bearer"
+		credentials_file = "/tmp/token.file"
+	}
 }
 
 discovery.ec2 "prometheus2" {

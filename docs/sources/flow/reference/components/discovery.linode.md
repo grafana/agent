@@ -20,9 +20,9 @@ discovery.linode "LABEL" {
 }
 ```
 
-{{% admonition type="note" %}}
+{{< admonition type="note" >}}
 The linode APIv4 Token must be created with the scopes: `linodes:read_only`, `ips:read_only`, and `events:read_only`.
-{{% /admonition %}}
+{{< /admonition >}}
 
 ## Arguments
 
@@ -54,6 +54,7 @@ Hierarchy | Block | Description | Required
 authorization | [authorization][] | Configure generic authorization to the endpoint. | no
 oauth2 | [oauth2][] | Configure OAuth2 for authenticating to the endpoint. | no
 oauth2 > tls_config | [tls_config][] | Configure TLS settings for connecting to the endpoint. | no
+tls_config | [tls_config][] | Configure TLS settings for connecting to the endpoint. | no
 
 The `>` symbol indicates deeper levels of nesting. For example,
 `oauth2 > tls_config` refers to a `tls_config` block defined inside
@@ -184,11 +185,9 @@ prometheus.remote_write "demo" {
 
 - Components that consume [Targets]({{< relref "../compatibility/#targets-consumers" >}})
 
-{{% admonition type="note" %}}
-
-Connecting some components may not be sensible or components may require further configuration to make the 
-connection work correctly. Refer to the linked documentation for more details.
-
-{{% /admonition %}}
+{{< admonition type="note" >}}
+Connecting some components may not be sensible or components may require further configuration to make the connection work correctly.
+Refer to the linked documentation for more details.
+{{< /admonition >}}
 
 <!-- END GENERATED COMPATIBLE COMPONENTS -->

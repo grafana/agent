@@ -1,9 +1,10 @@
 {{- define "grafana-agent.pod-template" -}}
 metadata:
-  {{- with .Values.controller.podAnnotations }}
   annotations:
-    {{- toYaml . | nindent 4 }}
-  {{- end }}
+    kubectl.kubernetes.io/default-container: grafana-agent
+    {{- with .Values.controller.podAnnotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
   labels:
     {{- include "grafana-agent.selectorLabels" . | nindent 4 }}
     {{- with .Values.controller.podLabels }}
@@ -32,6 +33,9 @@ spec:
   containers:
     {{- include "grafana-agent.container" . | nindent 4 }}
     {{- include "grafana-agent.watch-container" . | nindent 4 }}
+    {{- with .Values.controller.extraContainers }}
+    {{- toYaml . | nindent 4 }}
+    {{- end}}
   {{- if .Values.controller.priorityClassName }}
   priorityClassName: {{ .Values.controller.priorityClassName }}
   {{- end }}
@@ -52,6 +56,10 @@ spec:
   {{- end }}
   {{- with .Values.controller.tolerations }}
   tolerations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with .Values.controller.topologySpreadConstraints }}
+  topologySpreadConstraints:
     {{- toYaml . | nindent 4 }}
   {{- end }}
   volumes:

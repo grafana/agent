@@ -2,20 +2,14 @@ package usagestats
 
 import (
 	"context"
-	"encoding/json"
-	"errors"
 	"math"
-	"os"
-	"path/filepath"
-	"runtime"
 	"time"
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
-	"github.com/google/uuid"
+	"github.com/grafana/agent/internal/agentseed"
 	"github.com/grafana/dskit/backoff"
 	"github.com/grafana/dskit/multierror"
-	"github.com/prometheus/common/version"
 )
 
 var (
@@ -27,15 +21,8 @@ var (
 type Reporter struct {
 	logger log.Logger
 
-	agentSeed  *AgentSeed
+	agentSeed  *agentseed.AgentSeed
 	lastReport time.Time
-}
-
-// AgentSeed identifies a unique agent
-type AgentSeed struct {
-	UID       string    `json:"UID"`
-	CreatedAt time.Time `json:"created_at"`
-	Version   string    `json:"version"`
 }
 
 // NewReporter creates a Reporter that will send periodically reports to grafana.com
@@ -46,66 +33,10 @@ func NewReporter(logger log.Logger) (*Reporter, error) {
 	return r, nil
 }
 
-func (rep *Reporter) init(ctx context.Context) error {
-	path := agentSeedFileName()
-
-	if fileExists(path) {
-		seed, err := rep.readSeedFile(path)
-		rep.agentSeed = seed
-		return err
-	}
-	rep.agentSeed = &AgentSeed{
-		UID:       uuid.NewString(),
-		Version:   version.Version,
-		CreatedAt: time.Now(),
-	}
-	return rep.writeSeedFile(*rep.agentSeed, path)
-}
-
-func fileExists(path string) bool {
-	_, err := os.Stat(path)
-	return !errors.Is(err, os.ErrNotExist)
-}
-
-// readSeedFile reads the agent seed file
-func (rep *Reporter) readSeedFile(path string) (*AgentSeed, error) {
-	data, err := os.ReadFile(path)
-	if err != nil {
-		return nil, err
-	}
-	seed := &AgentSeed{}
-	err = json.Unmarshal(data, seed)
-	if err != nil {
-		return nil, err
-	}
-	return seed, nil
-}
-
-// writeSeedFile writes the agent seed file
-func (rep *Reporter) writeSeedFile(seed AgentSeed, path string) error {
-	data, err := json.Marshal(seed)
-	if err != nil {
-		return err
-	}
-	return os.WriteFile(path, data, 0644)
-}
-
-func agentSeedFileName() string {
-	if runtime.GOOS == "windows" {
-		return filepath.Join(os.Getenv("APPDATA"), "agent_seed.json")
-	}
-	// linux/mac
-	return "/tmp/agent_seed.json"
-}
-
 // Start inits the reporter seed and start sending report for every interval
 func (rep *Reporter) Start(ctx context.Context, metricsFunc func() map[string]interface{}) error {
 	level.Info(rep.logger).Log("msg", "running usage stats reporter")
-	err := rep.init(ctx)
-	if err != nil {
-		level.Info(rep.logger).Log("msg", "failed to init seed", "err", err)
-		return err
-	}
+	rep.agentSeed = agentseed.Get()
 
 	// check every minute if we should report.
 	ticker := time.NewTicker(reportCheckInterval)

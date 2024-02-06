@@ -35,7 +35,7 @@ The following arguments are supported:
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`url` | `string` | URL of the Kubelet server. | | no
+`url` | `string` | URL of the Kubelet server. | "https://localhost:10250" | no
 `bearer_token` | `secret` | Bearer token to authenticate with. | | no
 `bearer_token_file` | `string` | File containing a bearer token to authenticate with. | | no
 `refresh_interval` | `duration` | How often the Kubelet should be polled for scrape targets | `5s` | no
@@ -48,6 +48,10 @@ One of the following authentication methods must be provided if kubelet authenti
 
 The `namespaces` list limits the namespaces to discover resources in. If
 omitted, all namespaces are searched.
+
+`discovery.kubelet` appends a `/pods` path to `url` to request the available pods.
+You can have additional paths in the `url`.
+For example, if `url` is `https://kubernetes.default.svc.cluster.local:443/api/v1/nodes/cluster-node-1/proxy`, then `discovery.kubelet` sends a request on `https://kubernetes.default.svc.cluster.local:443/api/v1/nodes/cluster-node-1/proxy/pods`
 
 ## Blocks
 
@@ -202,11 +206,9 @@ Replace the following:
 
 - Components that consume [Targets]({{< relref "../compatibility/#targets-consumers" >}})
 
-{{% admonition type="note" %}}
-
-Connecting some components may not be sensible or components may require further configuration to make the 
-connection work correctly. Refer to the linked documentation for more details.
-
-{{% /admonition %}}
+{{< admonition type="note" >}}
+Connecting some components may not be sensible or components may require further configuration to make the connection work correctly.
+Refer to the linked documentation for more details.
+{{< /admonition >}}
 
 <!-- END GENERATED COMPATIBLE COMPONENTS -->

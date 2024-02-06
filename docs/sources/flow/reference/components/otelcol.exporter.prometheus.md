@@ -58,6 +58,18 @@ When `include_scope_labels` is `true`  the `otel_scope_name` and
 
 When `include_target_info` is true, OpenTelemetry Collector resources are converted into `target_info` metrics.
 
+{{< admonition type="note" >}}
+
+OTLP metrics can have a lot of resource attributes. 
+Setting `resource_to_telemetry_conversion` to `true` would convert all of them to Prometheus labels, which may not be what you want.
+Instead of using `resource_to_telemetry_conversion`, most users need to use `otelcol.processor.transform` 
+to convert OTLP resource attributes to OTLP metric datapoint attributes before using `otelcol.exporter.prometheus`. 
+See [Creating Prometheus labels from OTLP resource attributes][] for an example.
+
+[Creating Prometheus labels from OTLP resource attributes]: #creating-prometheus-labels-from-otlp-resource-attributes
+
+{{< /admonition >}}
+
 ## Exported fields
 
 The following fields are exported and can be referenced by other components:
@@ -87,6 +99,8 @@ information.
 
 ## Example
 
+## Basic usage
+
 This example accepts metrics over OTLP and forwards it using
 `prometheus.remote_write`:
 
@@ -109,6 +123,54 @@ prometheus.remote_write "mimir" {
   }
 }
 ```
+
+## Create Prometheus labels from OTLP resource attributes
+
+This example uses `otelcol.processor.transform` to add extra `key1` and `key2` OTLP metric datapoint attributes from the
+`key1` and `key2` OTLP resource attributes. 
+
+`otelcol.exporter.prometheus` then converts `key1` and `key2` to Prometheus labels along with any other OTLP metric datapoint attributes.
+
+This avoids the need to set `resource_to_telemetry_conversion` to `true`,
+which could have created too many unnecessary metric labels.
+
+```river
+otelcol.receiver.otlp "default" {
+  grpc {}
+
+  output {
+    metrics = [otelcol.processor.transform.default.input]
+  }
+}
+
+otelcol.processor.transform "default" {
+  error_mode = "ignore"
+
+  metric_statements {
+    context = "datapoint"
+
+    statements = [
+      `set(attributes["key1"], resource.attributes["key1"])`,
+      `set(attributes["key2"], resource.attributes["key2"])`,
+    ]
+  }
+
+  output {
+    metrics = [otelcol.exporter.prometheus.default.input]
+  }
+}
+
+otelcol.exporter.prometheus "default" {
+  forward_to = [prometheus.remote_write.mimir.receiver]
+}
+
+prometheus.remote_write "mimir" {
+  endpoint {
+    url = "http://mimir:9009/api/v1/push"
+  }
+}
+```
+
 <!-- START GENERATED COMPATIBLE COMPONENTS -->
 
 ## Compatible components
@@ -121,11 +183,9 @@ prometheus.remote_write "mimir" {
 
 - Components that consume [OpenTelemetry `otelcol.Consumer`]({{< relref "../compatibility/#opentelemetry-otelcolconsumer-consumers" >}})
 
-{{% admonition type="note" %}}
-
-Connecting some components may not be sensible or components may require further configuration to make the 
-connection work correctly. Refer to the linked documentation for more details.
-
-{{% /admonition %}}
+{{< admonition type="note" >}}
+Connecting some components may not be sensible or components may require further configuration to make the connection work correctly.
+Refer to the linked documentation for more details.
+{{< /admonition >}}
 
 <!-- END GENERATED COMPATIBLE COMPONENTS -->

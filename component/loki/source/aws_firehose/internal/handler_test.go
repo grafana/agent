@@ -313,7 +313,8 @@ func TestHandler(t *testing.T) {
 
 				testReceiver := &receiver{entries: make([]loki.Entry, 0)}
 				registry := prometheus.NewRegistry()
-				handler := NewHandler(testReceiver, logger, NewMetrics(registry), tc.Relabels, tc.UseIncomingTs)
+				accessKey := ""
+				handler := NewHandler(testReceiver, logger, NewMetrics(registry), tc.Relabels, tc.UseIncomingTs, accessKey)
 
 				bs := bytes.NewBuffer(nil)
 				var bodyReader io.Reader = strings.NewReader(tc.Body)
@@ -357,6 +358,71 @@ func TestHandler(t *testing.T) {
 				}
 			})
 		}
+	}
+}
+
+func TestHandlerAuth(t *testing.T) {
+	type testcase struct {
+		// AccessKey configures the key required by the handler to accept requests
+		AccessKey string
+
+		// ReqAccessKey configures the key sent in the request
+		ReqAccessKey string
+
+		// ExpectedCode is the expected HTTP status code
+		ExpectedCode int
+	}
+
+	tests := map[string]testcase{
+		"auth disabled": {
+			AccessKey:    "",
+			ReqAccessKey: "",
+			ExpectedCode: 200,
+		},
+		"auth enabled, valid key": {
+			AccessKey:    "fakekey",
+			ReqAccessKey: "fakekey",
+			ExpectedCode: 200,
+		},
+		"auth enabled, invalid key": {
+			AccessKey:    "fakekey",
+			ReqAccessKey: "badkey",
+			ExpectedCode: 401,
+		},
+		"auth enabled, no key": {
+			AccessKey:    "fakekey",
+			ReqAccessKey: "",
+			ExpectedCode: 401,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			w := log.NewSyncWriter(os.Stderr)
+			logger := log.NewLogfmtLogger(w)
+
+			testReceiver := &receiver{entries: make([]loki.Entry, 0)}
+			registry := prometheus.NewRegistry()
+			relabeling := []*relabel.Config{}
+			incommingTs := false
+			handler := NewHandler(testReceiver, logger, NewMetrics(registry), relabeling, incommingTs, tc.AccessKey)
+
+			body := strings.NewReader(readTestData(t, "testdata/direct_put.json"))
+			req, err := http.NewRequest("POST", "http://test", body)
+			req.Header.Set("X-Amz-Firehose-Request-Id", testRequestID)
+			req.Header.Set("X-Amz-Firehose-Source-Arn", testSourceARN)
+			req.Header.Set("X-Amz-Firehose-Protocol-Version", "1.0")
+			req.Header.Set("User-Agent", "Amazon Kinesis Data Firehose Agent/1.0")
+			if tc.ReqAccessKey != "" {
+				req.Header.Set("X-Amz-Firehose-Access-Key", tc.ReqAccessKey)
+			}
+			require.NoError(t, err)
+
+			recorder := httptest.NewRecorder()
+			handler.ServeHTTP(recorder, req)
+
+			require.Equal(t, tc.ExpectedCode, recorder.Code)
+		})
 	}
 }
 

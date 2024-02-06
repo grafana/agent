@@ -10,6 +10,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"net/http"
 	"os"
 	"path/filepath"
 	"sync"
@@ -17,6 +18,7 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
+	"github.com/grafana/agent/internal/agentseed"
 	"github.com/grafana/agent/internal/useragent"
 	"github.com/grafana/agent/pkg/metrics/wal"
 	"github.com/grafana/agent/pkg/util"
@@ -157,7 +159,6 @@ func (c *Config) ApplyDefaults(global GlobalConfig) error {
 	}
 
 	rwNames := map[string]struct{}{}
-
 	// If the instance remote write is not filled in, then apply the prometheus write config
 	if len(c.RemoteWrite) == 0 {
 		c.RemoteWrite = c.global.RemoteWrite
@@ -166,7 +167,6 @@ func (c *Config) ApplyDefaults(global GlobalConfig) error {
 		if cfg == nil {
 			return fmt.Errorf("empty or null remote write config section")
 		}
-
 		// Typically Prometheus ignores empty names here, but we need to assign a
 		// unique name to the config so we can pull metrics from it when running
 		// an instance.
@@ -183,7 +183,6 @@ func (c *Config) ApplyDefaults(global GlobalConfig) error {
 			cfg.Name = c.Name + "-" + hash[:6]
 			generatedName = true
 		}
-
 		if _, exists := rwNames[cfg.Name]; exists {
 			if generatedName {
 				return fmt.Errorf("found two identical remote_write configs")
@@ -245,8 +244,9 @@ type Instance struct {
 
 	logger log.Logger
 
-	reg    prometheus.Registerer
-	newWal walStorageFactory
+	reg          prometheus.Registerer
+	newWal       walStorageFactory
+	writeHandler http.Handler
 }
 
 // New creates a new Instance with a directory for storing the WAL. The instance
@@ -409,6 +409,8 @@ func (i *Instance) initialize(ctx context.Context, reg prometheus.Registerer, cf
 		return fmt.Errorf("error creating WAL: %w", err)
 	}
 
+	i.writeHandler = remote.NewWriteHandler(i.logger, i.reg, i.wal)
+
 	i.discovery, err = i.newDiscoveryManager(ctx, cfg)
 	if err != nil {
 		return fmt.Errorf("error creating discovery manager: %w", err)
@@ -419,6 +421,13 @@ func (i *Instance) initialize(ctx context.Context, reg prometheus.Registerer, cf
 	// Set up the remote storage
 	remoteLogger := log.With(i.logger, "component", "remote")
 	i.remoteStore = remote.NewStorage(remoteLogger, reg, i.wal.StartTime, i.wal.Directory(), cfg.RemoteFlushDeadline, i.readyScrapeManager)
+	uid := agentseed.Get().UID
+	for _, rw := range cfg.RemoteWrite {
+		if rw.Headers == nil {
+			rw.Headers = map[string]string{}
+		}
+		rw.Headers[agentseed.HeaderName] = uid
+	}
 	err = i.remoteStore.ApplyConfig(&config.Config{
 		GlobalConfig:       cfg.global.Prometheus,
 		RemoteWriteConfigs: cfg.RemoteWrite,
@@ -575,6 +584,12 @@ func (i *Instance) TargetsActive() map[string][]*scrape.Target {
 // and samples to for the WAL.
 func (i *Instance) StorageDirectory() string {
 	return i.wal.Directory()
+}
+
+// WriteHandler returns an HTTP handler for pushing metrics directly into the
+// instance's WAL.
+func (i *Instance) WriteHandler() http.Handler {
+	return i.writeHandler
 }
 
 // Appender returns a storage.Appender from the instance's WAL
