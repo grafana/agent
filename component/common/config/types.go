@@ -33,18 +33,24 @@ func (h *HTTPClientConfig) SetToDefault() {
 
 // Validate returns an error if h is invalid.
 func (h *HTTPClientConfig) Validate() error {
-	authCount := 0
+	if h == nil {
+		return nil
+	}
 
-	switch {
-	case h.BasicAuth != nil:
+	authCount := 0
+	if h.BasicAuth != nil {
 		authCount++
-	case h.Authorization != nil:
+	}
+	if h.Authorization != nil {
 		authCount++
-	case h.OAuth2 != nil:
+	}
+	if h.OAuth2 != nil {
 		authCount++
-	case len(h.BearerToken) > 0:
+	}
+	if len(h.BearerToken) > 0 {
 		authCount++
-	case len(h.BearerTokenFile) > 0:
+	}
+	if len(h.BearerTokenFile) > 0 {
 		authCount++
 	}
 
