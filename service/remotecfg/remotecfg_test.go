@@ -166,7 +166,7 @@ func (f fakeHost) NewController(id string) service.Controller {
 		Tracer:          nil,
 		DataPath:        "",
 		Reg:             prometheus.NewRegistry(),
-		OnExportsChange: func(map[string]interface{}) { return },
+		OnExportsChange: func(map[string]interface{}) {},
 		Services:        []service.Service{},
 	})
 

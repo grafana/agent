@@ -272,7 +272,6 @@ func (s *Service) parseAndLoad(b []byte) error {
 
 	s.setCfgHash(getHash(b))
 	return nil
-
 }
 
 func (s *Service) getCfgHash() string {
