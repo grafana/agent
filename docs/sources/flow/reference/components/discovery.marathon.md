@@ -51,7 +51,7 @@ Name                     | Type                | Description                    
 
 [arguments]: #arguments
 
-{{< docs/shared lookup="flow/reference/components/http-client-config-description.md" source="agent" version="<AGENT_VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/http-client-proxy-config-description.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ## Blocks
 

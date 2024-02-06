@@ -63,7 +63,7 @@ For example, if `url` is `https://kubernetes.default.svc.cluster.local:443/api/v
 
  [arguments]: #arguments
 
-{{< docs/shared lookup="flow/reference/components/http-client-config-description.md" source="agent" version="<AGENT_VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/http-client-proxy-config-description.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ## Blocks
 

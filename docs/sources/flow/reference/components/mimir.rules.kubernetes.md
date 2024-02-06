@@ -73,7 +73,7 @@ Name                     | Type                | Description                    
 
  [arguments]: #arguments
 
-{{< docs/shared lookup="flow/reference/components/http-client-config-description.md" source="agent" version="<AGENT_VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/http-client-proxy-config-description.md" source="agent" version="<AGENT_VERSION>" >}}
 
 If no `tenant_id` is provided, the component assumes that the Mimir instance at
 `address` is running in single-tenant mode and no `X-Scope-OrgID` header is sent.

@@ -71,7 +71,7 @@ func toOAuth2(oAuth2 *prom_config.OAuth2) *config.OAuth2Config {
 		Scopes:           oAuth2.Scopes,
 		TokenURL:         oAuth2.TokenURL,
 		EndpointParams:   oAuth2.EndpointParams,
-		ProxyURL:         config.URL(oAuth2.ProxyURL),
+		ProxyConfig:      ToProxyConfig(oAuth2.ProxyConfig),
 		TLSConfig:        ToTLSConfig(&oAuth2.TLSConfig),
 	}
 }

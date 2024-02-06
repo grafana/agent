@@ -128,7 +128,7 @@ sent to `prometheus.remote_write` are forwarded to the configured endpoint. If
 the endpoint doesn't support receiving native histogram samples, pushing
 metrics fails.
 
-{{< docs/shared lookup="flow/reference/components/http-client-config-description.md" source="agent" version="<AGENT_VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/http-client-proxy-config-description.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### basic_auth block
 

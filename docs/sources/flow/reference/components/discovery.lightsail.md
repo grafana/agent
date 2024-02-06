@@ -52,7 +52,7 @@ At most one of the following can be provided:
 
  [arguments]: #arguments
 
-{{< docs/shared lookup="flow/reference/components/http-client-config-description.md" source="agent" version="<AGENT_VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/http-client-proxy-config-description.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ## Blocks
 
