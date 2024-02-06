@@ -549,7 +549,9 @@ func (l *Loader) wireGraphEdges(g *dag.Graph) diag.Diagnostics {
 			// to detect cyclic dependencies. If a declare "a" block contains an instance
 			// of a declare "b" which contains an instance of the declare "a", both DeclareNodes
 			// will depend on each others, creating a cycle in the graph which will be detected later.
+			// Example: declare "a"{b "default"{}} declare "b"{a "default"{}}
 			// It also covers self-dependency.
+			// Example: declare "a"{a "default"{}}
 			refs := l.findCustomComponentReferences(n.Block())
 			for ref := range refs {
 				g.AddEdge(dag.Edge{From: n, To: ref})
