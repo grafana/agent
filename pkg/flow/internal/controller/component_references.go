@@ -157,7 +157,7 @@ func resolveTraversal(t Traversal, g *dag.Graph) (Reference, diag.Diagnostics) {
 
 	diags = append(diags, diag.Diagnostic{
 		Severity: diag.SeverityLevelError,
-		Message:  fmt.Sprintf("component %q does not exist", partial),
+		Message:  fmt.Sprintf("component %q does not exist or is out of scope", partial),
 		StartPos: ast.StartPos(t[0]).Position(),
 		EndPos:   ast.StartPos(t[len(t)-1]).Position(),
 	})
