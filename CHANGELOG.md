@@ -69,6 +69,8 @@ Main (unreleased)
 - Fix an issue with static integrations-next marshaling where non singletons
   would cause `/-/config` to fail to marshal. (@erikbaranowski)
 
+- Fix divide-by-zero issue when sharding targets. (@hainenber) 
+
 ### Other changes
 
 - Removed support for Windows 2012 in line with Microsoft end of life. (@mattdurham)
