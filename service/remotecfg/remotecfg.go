@@ -17,7 +17,6 @@ import (
 	"github.com/grafana/agent-remote-config/api/gen/proto/go/agent/v1/agentv1connect"
 	"github.com/grafana/agent/component/common/config"
 	"github.com/grafana/agent/internal/agentseed"
-	"github.com/grafana/agent/pkg/flow"
 	"github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/grafana/agent/service"
 	"github.com/grafana/river"
@@ -290,12 +289,8 @@ func (s *Service) parseAndLoad(b []byte) error {
 	if len(b) == 0 {
 		return nil
 	}
-	src, err := flow.ParseSource(ServiceName, b)
-	if err != nil {
-		return err
-	}
 
-	err = ctrl.LoadSource(src, nil)
+	err := ctrl.LoadSource(b, nil)
 	if err != nil {
 		return err
 	}

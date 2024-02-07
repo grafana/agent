@@ -63,7 +63,7 @@ type Host interface {
 // Controller is implemented by flow.Flow.
 type Controller interface {
 	Run(ctx context.Context)
-	LoadSource(source any, args map[string]any) error
+	LoadSource(source []byte, args map[string]any) error
 	Ready() bool
 }
 
