@@ -254,7 +254,6 @@ func (cn *CustomComponentNode) setExports(e component.Exports) {
 //
 //  1. Health from the call to Run().
 //  2. Health from the last call to Evaluate().
-//  3. Health reported from the custom component.
 func (cn *CustomComponentNode) CurrentHealth() component.Health {
 	cn.healthMut.RLock()
 	defer cn.healthMut.RUnlock()
