@@ -23,7 +23,8 @@ type ModuleController interface {
 type CustomComponent interface {
 	// LoadBody loads a River AST body into the CustomComponent. LoadBody can be called
 	// multiple times, and called prior to [CustomComponent.Run].
-	LoadBody(body ast.Body, args map[string]any, options LoadOptions) error
+	// customComponentRegistry provides custom component definitions for the loaded config.
+	LoadBody(body ast.Body, args map[string]any, customComponentRegistry *CustomComponentRegistry) error
 
 	// Run starts the CustomComponent. No components within the CustomComponent
 	// will be run until Run is called.

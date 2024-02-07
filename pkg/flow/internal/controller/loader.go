@@ -109,8 +109,15 @@ func NewLoader(opts LoaderOptions) *Loader {
 	return l
 }
 
-// LoadOptions are options that can be provided when loading a new River config.
-type LoadOptions struct {
+// ApplyOptions are options that can be provided when loading a new River config.
+type ApplyOptions struct {
+	Args map[string]any // input values of a module (nil for the root module)
+
+	// TODO: rename ComponentBlocks because it also contains services
+	ComponentBlocks []*ast.BlockStmt // pieces of config that can be used to instantiate builtin components and services
+	ConfigBlocks    []*ast.BlockStmt // pieces of config that can be used to instantiate config nodes
+	DeclareBlocks   []*ast.BlockStmt // pieces of config that can be used as templates to instantiate custom components
+
 	// CustomComponentRegistry holds custom component templates.
 	// The definition of a custom component instantiated inside of the loaded config
 	// should be passed via this field if it's not declared or imported in the config.
@@ -129,24 +136,22 @@ type LoadOptions struct {
 // The provided parentContext can be used to provide global variables and
 // functions to components. A child context will be constructed from the parent
 // to expose values of other components.
-//
-// declareBlocks are pieces of config that can be used as templates to instantiate custom components.
-func (l *Loader) Apply(args map[string]any, componentBlocks []*ast.BlockStmt, configBlocks []*ast.BlockStmt, declareBlocks []*ast.BlockStmt, options LoadOptions) diag.Diagnostics {
+func (l *Loader) Apply(options ApplyOptions) diag.Diagnostics {
 	start := time.Now()
 	l.mut.Lock()
 	defer l.mut.Unlock()
 	l.cm.controllerEvaluation.Set(1)
 	defer l.cm.controllerEvaluation.Set(0)
 
-	for key, value := range args {
+	for key, value := range options.Args {
 		l.cache.CacheModuleArgument(key, value)
 	}
-	l.cache.SyncModuleArgs(args)
+	l.cache.SyncModuleArgs(options.Args)
 
 	// Create a new CustomComponentRegistry based on the provided one.
 	// The provided one should be nil for the root config.
 	l.componentNodeManager.customComponentReg = NewCustomComponentRegistry(options.CustomComponentRegistry)
-	newGraph, diags := l.loadNewGraph(args, componentBlocks, configBlocks, declareBlocks)
+	newGraph, diags := l.loadNewGraph(options.Args, options.ComponentBlocks, options.ConfigBlocks, options.DeclareBlocks)
 	if diags.HasErrors() {
 		return diags
 	}
@@ -248,7 +253,7 @@ func (l *Loader) Apply(args map[string]any, componentBlocks []*ast.BlockStmt, co
 	l.serviceNodes = services
 	l.graph = &newGraph
 	l.cache.SyncIDs(componentIDs)
-	l.blocks = componentBlocks
+	l.blocks = options.ComponentBlocks
 	if l.globals.OnExportsChange != nil && l.cache.ExportChangeIndex() != l.moduleExportIndex {
 		l.moduleExportIndex = l.cache.ExportChangeIndex()
 		l.globals.OnExportsChange(l.cache.CreateModuleExports())

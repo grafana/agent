@@ -279,15 +279,23 @@ func (f *Flow) Run(ctx context.Context) {
 // without any configuration errors.
 // LoadSource uses default loader configuration.
 func (f *Flow) LoadSource(source *Source, args map[string]any) error {
-	return f.loadSource(source, args, controller.LoadOptions{})
+	return f.loadSource(source, args, nil)
 }
 
-// Same as above but uses provided loader configuration.
-func (f *Flow) loadSource(source *Source, args map[string]any, options controller.LoadOptions) error {
+// Same as above but with a customComponentRegistry that provides custom component definitions.
+func (f *Flow) loadSource(source *Source, args map[string]any, customComponentRegistry *controller.CustomComponentRegistry) error {
 	f.loadMut.Lock()
 	defer f.loadMut.Unlock()
 
-	diags := f.loader.Apply(args, source.components, source.configBlocks, source.declareBlocks, options)
+	applyOptions := controller.ApplyOptions{
+		Args:                    args,
+		ComponentBlocks:         source.components,
+		ConfigBlocks:            source.configBlocks,
+		DeclareBlocks:           source.declareBlocks,
+		CustomComponentRegistry: customComponentRegistry,
+	}
+
+	diags := f.loader.Apply(applyOptions)
 	if !f.loadedOnce.Load() && diags.HasErrors() {
 		// The first call to Load should not run any components if there were
 		// errors in the configuration file.

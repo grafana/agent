@@ -172,12 +172,9 @@ func (cn *CustomComponentNode) evaluate(evalScope *vm.Scope) error {
 	if err != nil {
 		return fmt.Errorf("loading custom component controller: %w", err)
 	}
-	loaderConfig := LoadOptions{
-		CustomComponentRegistry: customComponentRegistry,
-	}
 
 	// Reload the custom component with new config
-	if err := cn.managed.LoadBody(template, args, loaderConfig); err != nil {
+	if err := cn.managed.LoadBody(template, args, customComponentRegistry); err != nil {
 		return fmt.Errorf("updating custom component: %w", err)
 	}
 	return nil

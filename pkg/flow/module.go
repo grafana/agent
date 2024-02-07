@@ -161,12 +161,12 @@ func (c *module) LoadConfig(config []byte, args map[string]any) error {
 }
 
 // LoadBody loads a pre-parsed River config.
-func (c *module) LoadBody(body ast.Body, args map[string]any, options controller.LoadOptions) error {
+func (c *module) LoadBody(body ast.Body, args map[string]any, customComponentRegistry *controller.CustomComponentRegistry) error {
 	ff, err := sourceFromBody(body)
 	if err != nil {
 		return err
 	}
-	return c.f.loadSource(ff, args, options)
+	return c.f.loadSource(ff, args, customComponentRegistry)
 }
 
 // Run starts the Module. No components within the Module

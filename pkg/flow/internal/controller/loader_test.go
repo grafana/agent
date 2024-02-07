@@ -245,7 +245,13 @@ func applyFromContent(t *testing.T, l *controller.Loader, componentBytes []byte,
 		}
 	}
 
-	applyDiags := l.Apply(nil, componentBlocks, configBlocks, declareBlocks, controller.LoadOptions{})
+	applyOptions := controller.ApplyOptions{
+		ComponentBlocks: componentBlocks,
+		ConfigBlocks:    configBlocks,
+		DeclareBlocks:   declareBlocks,
+	}
+
+	applyDiags := l.Apply(applyOptions)
 	diags = append(diags, applyDiags...)
 
 	return diags
