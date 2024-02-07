@@ -132,6 +132,17 @@ func TestLoader(t *testing.T) {
 		require.ErrorContains(t, diags.ErrorOrNil(), `unrecognized component name "doesnotexist`)
 	})
 
+	t.Run("Load with component with empty label", func(t *testing.T) {
+		invalidFile := `
+			testcomponents.tick "" {
+				frequency = "1s"
+			}
+		`
+		l := controller.NewLoader(newLoaderOptions())
+		diags := applyFromContent(t, l, []byte(invalidFile), nil)
+		require.ErrorContains(t, diags.ErrorOrNil(), `component "testcomponents.tick" must have a label`)
+	})
+
 	t.Run("Partial load with invalid reference", func(t *testing.T) {
 		invalidFile := `
 			testcomponents.tick "ticker" {

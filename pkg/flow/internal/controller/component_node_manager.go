@@ -36,6 +36,9 @@ func (m *ComponentNodeManager) createComponentNode(componentName string, block *
 	if !exists {
 		return nil, fmt.Errorf("unrecognized component name %q", componentName)
 	}
+	if block.Label == "" {
+		return nil, fmt.Errorf("component %q must have a label", componentName)
+	}
 	return NewBuiltinComponentNode(m.globals, registration, block), nil
 }
 
