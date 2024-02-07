@@ -2,7 +2,6 @@ package controller
 
 import (
 	"fmt"
-	"strings"
 	"sync"
 
 	"github.com/grafana/river/ast"
@@ -30,9 +29,7 @@ func NewComponentNodeManager(globals ComponentGlobals, componentReg ComponentReg
 
 // CreateComponentNode creates a new builtin component or a new custom component.
 func (m *ComponentNodeManager) createComponentNode(componentName string, block *ast.BlockStmt) (ComponentNode, error) {
-	// firstPart may correspond either to a namespace or to a componentName for custom components
-	firstPart := strings.Split(componentName, ".")[0]
-	if isCustomComponent(m.customComponentReg, firstPart) {
+	if isCustomComponent(m.customComponentReg, block.Name[0]) {
 		return NewCustomComponentNode(m.globals, block, m.getCustomComponentConfig), nil
 	}
 	registration, exists := m.builtinComponentReg.Get(componentName)
