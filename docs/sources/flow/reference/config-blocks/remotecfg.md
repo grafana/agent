@@ -47,7 +47,7 @@ Name             | Type                 | Description                           
 `url`            | `string`             | The address of the API to poll for configuration | `""`        | no
 `id`             | `string`             | A self-reported ID                               | `see below` | no
 `metadata`       | `map(string)`        | A set of self-reported metadata                  | `{}`        | no
-`poll_frequency` | `duration`           | How often to poll the API for new configuration  | `"1m"       | no
+`poll_frequency` | `duration`           | How often to poll the API for new configuration  | `"1m"`      | no
 
 If not set, the self-reported `id` that the Agent uses is a randomly generated,
 anonymous unique ID (UUID) that is stored on the Agent's storage path as
