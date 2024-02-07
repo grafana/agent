@@ -1,6 +1,8 @@
 package flow
 
 import (
+	"context"
+
 	"github.com/grafana/agent/pkg/flow/internal/controller"
 	"github.com/grafana/agent/pkg/flow/internal/dag"
 	"github.com/grafana/agent/pkg/flow/internal/worker"
@@ -57,18 +59,30 @@ func serviceConsumersForGraph(graph *dag.Graph, serviceName string, includePeerS
 // NewController returns a new, unstarted, isolated Flow controller so that
 // services can instantiate their own components.
 func (f *Flow) NewController(id string) service.Controller {
-	return newController(controllerOptions{
-		Options: Options{
-			ControllerID:    id,
-			Logger:          f.opts.Logger,
-			Tracer:          f.opts.Tracer,
-			DataPath:        f.opts.DataPath,
-			Reg:             f.opts.Reg,
-			OnExportsChange: f.opts.OnExportsChange,
-			Services:        f.opts.Services,
-		},
-		IsModule:       true,
-		ModuleRegistry: newModuleRegistry(),
-		WorkerPool:     worker.NewDefaultWorkerPool(),
-	})
+	return serviceController{
+		f: newController(controllerOptions{
+			Options: Options{
+				ControllerID:    id,
+				Logger:          f.opts.Logger,
+				Tracer:          f.opts.Tracer,
+				DataPath:        f.opts.DataPath,
+				Reg:             f.opts.Reg,
+				OnExportsChange: f.opts.OnExportsChange,
+				Services:        f.opts.Services,
+			},
+			IsModule:       true,
+			ModuleRegistry: newModuleRegistry(),
+			WorkerPool:     worker.NewDefaultWorkerPool(),
+		}),
+	}
 }
+
+type serviceController struct {
+	f *Flow
+}
+
+func (sc serviceController) Run(ctx context.Context) { sc.f.Run(ctx) }
+func (sc serviceController) LoadSource(source any, args map[string]any) error {
+	return sc.f.LoadSource(source.(*Source), args)
+}
+func (sc serviceController) Ready() bool { return sc.f.Ready() }
