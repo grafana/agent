@@ -1,6 +1,8 @@
 package common
 
 import (
+	"reflect"
+
 	"github.com/grafana/agent/component/common/config"
 	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/river/rivertypes"
@@ -77,6 +79,11 @@ func toOAuth2(oAuth2 *prom_config.OAuth2) *config.OAuth2Config {
 }
 
 func ToProxyConfig(proxyConfig prom_config.ProxyConfig) *config.ProxyConfig {
+	// Prometheus proxy config is not a pointer so treat the default struct as nil
+	if reflect.DeepEqual(proxyConfig, prom_config.ProxyConfig{}) {
+		return nil
+	}
+
 	return &config.ProxyConfig{
 		ProxyURL:             toProxyURL(proxyConfig.ProxyURL),
 		NoProxy:              proxyConfig.NoProxy,

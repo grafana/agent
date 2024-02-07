@@ -64,8 +64,6 @@ loki.source.docker "uber_pipeline" {
 	targets       = discovery.docker.uber_pipeline.targets
 	forward_to    = [loki.process.uber_pipeline.receiver]
 	relabel_rules = discovery.relabel.uber_pipeline.rules
-
-	http_client_config { }
 }
 
 loki.write "default" {
