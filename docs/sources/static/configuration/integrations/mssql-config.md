@@ -96,6 +96,21 @@ Full reference of options:
     [- <queries> ... ]]
 ```
 
+### Authentication
+By default, the `USERNAME` and `PASSWORD` used within the `connection_string` should correspond with a SQL Server username and password.
+
+If the Grafana Agent is running in the same Windows domain as the SQL Server, then the parameter `authenticator=winsspi` can be used within the `connection_string` without any additional credentials in order to authenticate.
+
+```conn
+sqlserver://@<HOST>:<PORT>?authenticator=winsspi
+```
+
+Otherwise if you would like to use Windows credentials to authenticate (instead of SQL Server credentials), you can use the parameter `authenticator=ntlm` within the `connection_string`. The `USERNAME` and `PASSWORD` would then be the Windows username and password (domain may need to be prefixed to the username).
+
+```conn
+sqlserver://<DOMAIN\USERNAME>:<PASSWORD>@<HOST>:<PORT>?authenticator=ntlm
+```
+
 ## Custom metrics
 You can use the optional `query_config` parameter to retrieve custom Prometheus metrics for a MSSQL instance.
 
