@@ -152,6 +152,21 @@ events in each watched namespace.
 
 `loki.source.kubernetes_events` does not expose any component-specific debug metrics.
 
+## Component behavior
+
+The component uses its data path (a directory named after the domain's
+fully qualified name) to store its _positions file_. The positions file is used
+to store read offsets, so that in case of a component or Agent restart,
+`loki.source.kubernetes_events` can pick up tailing from the same spot.
+
+The data path is inside the directory configured by the `--storage.path` [command line argument][cmd-args].
+
+In the static mode's [eventhandler integration][eventhandler-integration], a `cache_path` argument was used in order to configure such a positions file.
+In Flow mode, this argument is no longer necessary.
+
+[cmd-args]: {{< relref "../cli/run.md" >}}
+[eventhandler-integration]: {{< relref "../../../static/configuration/integrations/integrations-next/eventhandler-config.md" >}}
+
 ## Example
 
 This example collects watches events in the `kube-system` namespace and
