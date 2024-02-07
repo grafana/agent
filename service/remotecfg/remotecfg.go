@@ -95,18 +95,13 @@ func (a *Arguments) Validate() error {
 	return nil
 }
 
-// Hash marshals the Arguments using their River tags and returns a
+// Hash marshals the Arguments and returns a hash representation.
 func (a *Arguments) Hash() (string, error) {
-	fnvHash := fnv.New32()
-
 	b, err := river.Marshal(a)
 	if err != nil {
 		return "", fmt.Errorf("failed to marshal arguments: %w", err)
 	}
-
-	fnvHash.Write(b)
-	return fmt.Sprintf("%x", fnvHash.Sum(nil)), nil
-
+	return getHash(b), nil
 }
 
 // New returns a new instance of the remotecfg service.
@@ -118,8 +113,7 @@ func New(opts Options) (*Service, error) {
 	}
 
 	return &Service{
-		opts: opts,
-		// asClient: noopClient{},
+		opts:   opts,
 		ticker: time.NewTicker(math.MaxInt64),
 	}, nil
 }
@@ -145,10 +139,7 @@ var _ service.Service = (*Service)(nil)
 func (s *Service) Run(ctx context.Context, host service.Host) error {
 	s.ctrl = host.NewController(ServiceName)
 
-	// TODO(@tpaschalis) This call to Update makes sure that initialFetch is
-	// ran _after_ the new controller has been spawned, which is not the case
-	// during the initial call.
-	s.Update(s.args)
+	s.fetch()
 
 	// Run the service's own controller.
 	go func() {
@@ -228,21 +219,25 @@ func (s *Service) Update(newConfig any) error {
 			newArgs.URL,
 		)
 	}
-	s.args = newArgs // Update the args for the next Update call as the last step.
+	s.args = newArgs // Update the args as the last step to avoid polluting any comparisons
 	s.mut.Unlock()
 
 	// If we've already called Run, then immediately trigger an API call with
 	// the updated Arguments, and/or fall back to the updated cache location.
 	if s.ctrl != nil && s.ctrl.Ready() {
-		s.initialFetch()
+		s.fetch()
 	}
 
 	return nil
 }
 
-// initialFetch attempts to read configuration from the API and the local cache
+// fetch attempts to read configuration from the API and the local cache
 // and then parse/load in order of preference.
-func (s *Service) initialFetch() {
+func (s *Service) fetch() {
+	if !s.isEnabled() {
+		return
+	}
+
 	var b1, b2 []byte
 	b1, err := s.getAPIConfig()
 	b2, err2 := s.getCachedConfig()
@@ -321,4 +316,8 @@ func (s *Service) setCfgHash(h string) {
 	defer s.mut.Unlock()
 
 	s.currentConfigHash = h
+}
+
+func (s *Service) isEnabled() bool {
+	return s.args.URL != "" && s.asClient != nil
 }

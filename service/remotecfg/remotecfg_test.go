@@ -170,7 +170,7 @@ func (f fakeHost) NewController(id string) service.Controller {
 		Services:        []service.Service{},
 	})
 
-	return ctrl
+	return serviceController{ctrl}
 }
 
 type agentClient struct {
@@ -199,3 +199,13 @@ func (ag agentClient) DeleteAgent(context.Context, *connect.Request[agentv1.Dele
 func (ag agentClient) ListAgents(context.Context, *connect.Request[agentv1.ListAgentsRequest]) (*connect.Response[agentv1.Agents], error) {
 	return nil, nil
 }
+
+type serviceController struct {
+	f *flow.Flow
+}
+
+func (sc serviceController) Run(ctx context.Context) { sc.f.Run(ctx) }
+func (sc serviceController) LoadSource(source any, args map[string]any) error {
+	return sc.f.LoadSource(source.(*flow.Source), args)
+}
+func (sc serviceController) Ready() bool { return sc.f.Ready() }
