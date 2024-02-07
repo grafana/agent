@@ -145,7 +145,9 @@ var _ service.Service = (*Service)(nil)
 func (s *Service) Run(ctx context.Context, host service.Host) error {
 	s.ctrl = host.NewController(ServiceName)
 
-	// TODO(@tpaschalis) Fix synchronization issue between Run and Update.
+	// TODO(@tpaschalis) This call to Update makes sure that initialFetch is
+	// ran _after_ the new controller has been spawned, which is not the case
+	// during the initial call.
 	s.Update(s.args)
 
 	// Run the service's own controller.
@@ -231,7 +233,7 @@ func (s *Service) Update(newConfig any) error {
 
 	// If we've already called Run, then immediately trigger an API call with
 	// the updated Arguments, and/or fall back to the updated cache location.
-	if s.ctrl != nil {
+	if s.ctrl != nil && s.ctrl.Ready() {
 		s.initialFetch()
 	}
 
