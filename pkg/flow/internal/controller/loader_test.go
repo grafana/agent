@@ -129,7 +129,7 @@ func TestLoader(t *testing.T) {
 		`
 		l := controller.NewLoader(newLoaderOptions())
 		diags := applyFromContent(t, l, []byte(invalidFile), nil)
-		require.ErrorContains(t, diags.ErrorOrNil(), `unrecognized component name "doesnotexist`)
+		require.ErrorContains(t, diags.ErrorOrNil(), `cannot retrieve the definition of component name "doesnotexist`)
 	})
 
 	t.Run("Load with component with empty label", func(t *testing.T) {

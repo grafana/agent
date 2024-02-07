@@ -368,7 +368,7 @@ func TestDeclareError(t *testing.T) {
 			}
 			a "example" {}
 			`,
-			expectedError: regexp.MustCompile(`unrecognized component name "b_1"`),
+			expectedError: regexp.MustCompile(`cannot retrieve the definition of component name "b_1"`),
 		},
 		{
 			name: "ForbiddenDeclareLabel",

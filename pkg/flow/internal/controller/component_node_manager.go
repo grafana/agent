@@ -34,7 +34,7 @@ func (m *ComponentNodeManager) createComponentNode(componentName string, block *
 	}
 	registration, exists := m.builtinComponentReg.Get(componentName)
 	if !exists {
-		return nil, fmt.Errorf("unrecognized component name %q", componentName)
+		return nil, fmt.Errorf("cannot retrieve the definition of component name %q", componentName)
 	}
 	if block.Label == "" {
 		return nil, fmt.Errorf("component %q must have a label", componentName)
