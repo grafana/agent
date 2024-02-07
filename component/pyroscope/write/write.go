@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/bufbuild/connect-go"
+	"connectrpc.com/connect"
 	"github.com/grafana/agent/component/pyroscope"
 	"github.com/grafana/agent/internal/agentseed"
 	"github.com/grafana/agent/internal/useragent"

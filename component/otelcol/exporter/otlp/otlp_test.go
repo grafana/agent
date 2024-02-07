@@ -143,3 +143,62 @@ func createTestTraces() ptrace.Traces {
 	}
 	return data
 }
+
+func TestDebugMetricsConfig(t *testing.T) {
+	tests := []struct {
+		testName string
+		agentCfg string
+		expected otelcol.DebugMetricsArguments
+	}{
+		{
+			testName: "default",
+			agentCfg: `
+			client {
+				endpoint = "tempo-xxx.grafana.net/tempo:443"
+			}
+			`,
+			expected: otelcol.DebugMetricsArguments{
+				DisableHighCardinalityMetrics: true,
+			},
+		},
+		{
+			testName: "explicit_false",
+			agentCfg: `
+			client {
+				endpoint = "tempo-xxx.grafana.net/tempo:443"
+			}
+			debug_metrics {
+				disable_high_cardinality_metrics = false
+			}
+			`,
+			expected: otelcol.DebugMetricsArguments{
+				DisableHighCardinalityMetrics: false,
+			},
+		},
+		{
+			testName: "explicit_true",
+			agentCfg: `
+			client {
+				endpoint = "tempo-xxx.grafana.net/tempo:443"
+			}
+			debug_metrics {
+				disable_high_cardinality_metrics = true
+			}
+			`,
+			expected: otelcol.DebugMetricsArguments{
+				DisableHighCardinalityMetrics: true,
+			},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.testName, func(t *testing.T) {
+			var args otlp.Arguments
+			require.NoError(t, river.Unmarshal([]byte(tc.agentCfg), &args))
+			_, err := args.Convert()
+			require.NoError(t, err)
+
+			require.Equal(t, tc.expected, args.DebugMetricsConfig())
+		})
+	}
+}

@@ -3,6 +3,7 @@ package instance
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"os"
 	"testing"
 
@@ -104,6 +105,7 @@ type mockInstance struct {
 	TargetsActiveFunc    func() map[string][]*scrape.Target
 	StorageDirectoryFunc func() string
 	AppenderFunc         func() storage.Appender
+	WriteHandlerFunc     func() http.Handler
 }
 
 func (m mockInstance) Run(ctx context.Context) error {
@@ -139,6 +141,13 @@ func (m mockInstance) StorageDirectory() string {
 		return m.StorageDirectoryFunc()
 	}
 	panic("StorageDirectoryFunc not provided")
+}
+
+func (m mockInstance) WriteHandler() http.Handler {
+	if m.WriteHandlerFunc != nil {
+		return m.WriteHandlerFunc()
+	}
+	panic("GetWriteHandlerFunc not provided")
 }
 
 func (m mockInstance) Appender(_ context.Context) storage.Appender {

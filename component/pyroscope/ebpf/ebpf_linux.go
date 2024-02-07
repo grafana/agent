@@ -82,7 +82,6 @@ func defaultArguments() Arguments {
 		CacheRounds:          3,
 		CollectUserProfile:   true,
 		CollectKernelProfile: true,
-		TargetsOnly:          true,
 		Demangle:             "none",
 		PythonEnabled:        true,
 	}
@@ -226,8 +225,7 @@ func targetsOptionFromArgs(args Arguments) sd.TargetsOptions {
 	}
 	return sd.TargetsOptions{
 		Targets:            targets,
-		DefaultTarget:      sd.DiscoveryTarget(args.DefaultTarget),
-		TargetsOnly:        args.TargetsOnly,
+		TargetsOnly:        true,
 		ContainerCacheSize: args.ContainerIDCacheSize,
 	}
 }

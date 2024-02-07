@@ -382,7 +382,7 @@ following key-value pair to the set of extracted data.
 username: agent
 ```
 
-{{% admonition type="note" %}}
+{{< admonition type="note" >}}
 Due to a limitation of the upstream jmespath library, you must wrap any string
 that contains a hyphen `-` in quotes so that it's not considered a numerical
 expression.
@@ -394,7 +394,7 @@ You can use one of two options to circumvent this issue:
 
 1. An escaped double quote. For example: `http_user_agent = "\"request_User-Agent\""`
 1. A backtick quote. For example: ``http_user_agent = `"request_User-Agent"` ``
-{{% /admonition %}}
+{{< /admonition >}}
 
 ### stage.label_drop block
 
@@ -581,9 +581,9 @@ The following arguments are supported:
 | `action`              | `string` | The action to take when the selector matches the log line. Supported values are `"keep"` and `"drop"` | `"keep"`        | no       |
 | `drop_counter_reason` | `string` | A custom reason to report for dropped lines.                                                          | `"match_stage"` | no       |
 
-{{% admonition type="note" %}}
+{{< admonition type="note" >}}
 The filters do not include label filter expressions such as `| label == "foobar"`.
-{{% /admonition %}}
+{{< /admonition >}}
 
 The `stage.match` block supports a number of `stage.*` inner blocks, like the top-level
 block. These are used to construct the nested set of stages to run if the
@@ -1758,11 +1758,9 @@ loki.process "local" {
 
 - Components that consume [Loki `LogsReceiver`]({{< relref "../compatibility/#loki-logsreceiver-consumers" >}})
 
-{{% admonition type="note" %}}
-
-Connecting some components may not be sensible or components may require further configuration to make the 
-connection work correctly. Refer to the linked documentation for more details.
-
-{{% /admonition %}}
+{{< admonition type="note" >}}
+Connecting some components may not be sensible or components may require further configuration to make the connection work correctly.
+Refer to the linked documentation for more details.
+{{< /admonition >}}
 
 <!-- END GENERATED COMPATIBLE COMPONENTS -->

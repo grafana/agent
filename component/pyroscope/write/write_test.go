@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/bufbuild/connect-go"
+	"connectrpc.com/connect"
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/pyroscope"
 	"github.com/grafana/agent/pkg/util"

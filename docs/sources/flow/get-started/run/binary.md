@@ -46,9 +46,9 @@ Replace the following:
 
 You can set up and manage the standalone binary for {{< param "PRODUCT_NAME" >}} as a Linux systemd service.
 
-{{% admonition type="note" %}}
+{{< admonition type="note" >}}
 These steps assume you have a default systemd and {{< param "PRODUCT_NAME" >}} configuration.
-{{% /admonition %}}
+{{< /admonition >}}
 
 1. To create a new user called `grafana-agent-flow` run the following command in a terminal window:
 

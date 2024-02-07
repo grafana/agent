@@ -3,6 +3,7 @@ package operator
 import (
 	"context"
 	"fmt"
+	"sort"
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
@@ -126,6 +127,12 @@ func getNodeAddrs(l log.Logger, nodes *core_v1.NodeList) (addrs []core_v1.Endpoi
 	if failed {
 		return nil, fmt.Errorf("failed to get the address from one or more nodes")
 	}
+
+	// Sort endpoints to reduce performance cost on endpoint watchers
+	sort.SliceStable(addrs, func(i, j int) bool {
+		return addrs[i].IP < addrs[j].IP
+	})
+
 	return
 }
 

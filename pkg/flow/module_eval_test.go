@@ -1,7 +1,7 @@
 package flow_test
 
-// This file contains tests which verify that the Flow controller correctly updates and caches modules' arguments
-// and exports in presence of multiple components.
+// This file contains tests which verify that the Flow controller correctly evaluates and updates modules, including
+// the module's arguments and exports.
 
 import (
 	"context"
@@ -138,6 +138,74 @@ func TestUpdates_ThroughModule(t *testing.T) {
 	require.Eventually(t, func() bool {
 		export := getExport[testcomponents.SummationExports](t, ctrl, "", "testcomponents.summation.sum")
 		return export.LastAdded == 10
+	}, 3*time.Second, 10*time.Millisecond)
+}
+
+func TestUpdates_TwoModules_SameCompNames(t *testing.T) {
+	// We use this module in a Flow config below.
+	module := `
+	testcomponents.count "inc" {
+		frequency = "1ms"
+		max = 100
+	}
+
+	testcomponents.passthrough "pt" {
+		input = testcomponents.count.inc.count
+		lag = "1ms"
+	}
+
+	export "output" {
+		value = testcomponents.passthrough.pt.output
+	}
+`
+
+	// We run two modules with above body, which will have the same component names, but different module IDs.
+	config := `
+	module.string "test_1" {
+		content = ` + strconv.Quote(module) + `
+	}
+
+	testcomponents.summation "sum_1" {
+		input = module.string.test_1.exports.output
+	}
+	
+	module.string "test_2" {
+		content = ` + strconv.Quote(module) + `
+	}
+
+	testcomponents.summation "sum_2" {
+		input = module.string.test_2.exports.output
+	}
+`
+
+	ctrl := flow.New(testOptions(t))
+	f, err := flow.ParseSource(t.Name(), []byte(config))
+	require.NoError(t, err)
+	require.NotNil(t, f)
+
+	err = ctrl.LoadSource(f, nil)
+	require.NoError(t, err)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	done := make(chan struct{})
+	go func() {
+		ctrl.Run(ctx)
+		close(done)
+	}()
+	defer func() {
+		cancel()
+		<-done
+	}()
+
+	// Verify updates propagated correctly.
+	require.Eventually(t, func() bool {
+		export := getExport[testcomponents.SummationExports](t, ctrl, "", "testcomponents.summation.sum_1")
+		return export.LastAdded == 100
+	}, 3*time.Second, 10*time.Millisecond)
+
+	require.Eventually(t, func() bool {
+		export := getExport[testcomponents.SummationExports](t, ctrl, "", "testcomponents.summation.sum_2")
+		return export.LastAdded == 100
 	}, 3*time.Second, 10*time.Millisecond)
 }
 

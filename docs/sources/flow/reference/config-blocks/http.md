@@ -50,12 +50,12 @@ tls > windows_certificate_filter > server | [server][]                     | Con
 
 The `tls` block configures TLS settings for the HTTP server.
 
-{{% admonition type="warning" %}}
+{{< admonition type="warning" >}}
 If you add the `tls` block and reload the configuration when {{< param "PRODUCT_NAME" >}} is running, existing connections will continue communicating over plaintext.
 Similarly, if you remove the `tls` block and reload the configuration when {{< param "PRODUCT_NAME" >}} is running, existing connections will continue communicating over TLS.
 
 To ensure all connections use TLS, configure the `tls` block before you start {{< param "PRODUCT_NAME" >}}.
-{{% /admonition %}}
+{{< /admonition >}}
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
@@ -159,12 +159,12 @@ the following TLS settings are overridden and will cause an error if defined.
 * `client_ca`
 * `client_ca_file`
 
-{{% admonition type="warning" %}}
+{{< admonition type="warning" >}}
 This feature is only available on Windows.
 
 TLS min and max may not be compatible with the certificate stored in the Windows certificate store. The `windows_certificate_filter`
 will serve the found certificate even if it is not compatible with the specified TLS version.
-{{% /admonition %}}
+{{< /admonition >}}
 
 
 ### server block

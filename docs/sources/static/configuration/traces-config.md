@@ -17,11 +17,11 @@ configures its own tracing pipeline. Having multiple configs allows you to
 configure multiple distinct pipelines, each of which collects spans and sends
 them to a different location.
 
-{{% admonition type="note" %}}
+{{< admonition type="note" >}}
 If you are using multiple configs, you must manually set port numbers for
 each receiver, otherwise they will all try to use the same port and fail to
 start.
-{{% /admonition %}}
+{{< /admonition >}}
 
 ```yaml
 configs:

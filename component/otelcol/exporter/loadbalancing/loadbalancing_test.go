@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/grafana/agent/component/otelcol"
 	"github.com/grafana/agent/component/otelcol/exporter/loadbalancing"
 	"github.com/grafana/river"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/loadbalancingexporter"
@@ -265,6 +266,86 @@ func TestConfigConversion(t *testing.T) {
 			actual, err := args.Convert()
 			require.NoError(t, err)
 			require.Equal(t, &tc.expected, actual.(*loadbalancingexporter.Config))
+		})
+	}
+}
+
+func TestDebugMetricsConfig(t *testing.T) {
+	tests := []struct {
+		testName string
+		agentCfg string
+		expected otelcol.DebugMetricsArguments
+	}{
+		{
+			testName: "default",
+			agentCfg: `
+			resolver {
+				static {
+					hostnames = ["endpoint-1"]
+				}
+			}
+			protocol {
+				otlp {
+					client {}
+				}
+			}
+			`,
+			expected: otelcol.DebugMetricsArguments{
+				DisableHighCardinalityMetrics: true,
+			},
+		},
+		{
+			testName: "explicit_false",
+			agentCfg: `
+			resolver {
+				static {
+					hostnames = ["endpoint-1"]
+				}
+			}
+			protocol {
+				otlp {
+					client {}
+				}
+			}
+			debug_metrics {
+				disable_high_cardinality_metrics = false
+			}
+			`,
+			expected: otelcol.DebugMetricsArguments{
+				DisableHighCardinalityMetrics: false,
+			},
+		},
+		{
+			testName: "explicit_true",
+			agentCfg: `
+			resolver {
+				static {
+					hostnames = ["endpoint-1"]
+				}
+			}
+			protocol {
+				otlp {
+					client {}
+				}
+			}
+			debug_metrics {
+				disable_high_cardinality_metrics = true
+			}
+			`,
+			expected: otelcol.DebugMetricsArguments{
+				DisableHighCardinalityMetrics: true,
+			},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.testName, func(t *testing.T) {
+			var args loadbalancing.Arguments
+			require.NoError(t, river.Unmarshal([]byte(tc.agentCfg), &args))
+			_, err := args.Convert()
+			require.NoError(t, err)
+
+			require.Equal(t, tc.expected, args.DebugMetricsConfig())
 		})
 	}
 }

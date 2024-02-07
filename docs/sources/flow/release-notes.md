@@ -18,7 +18,7 @@ The release notes provide information about deprecations and breaking changes in
 
 For a complete list of changes to {{< param "PRODUCT_ROOT_NAME" >}}, with links to pull requests and related issues when available, refer to the [Changelog](https://github.com/grafana/agent/blob/main/CHANGELOG.md).
 
-{{% admonition type="note" %}}
+{{< admonition type="note" >}}
 These release notes are specific to {{< param "PRODUCT_NAME" >}}.
 Other release notes for the different {{< param "PRODUCT_ROOT_NAME" >}} variants are contained on separate pages:
 
@@ -27,7 +27,19 @@ Other release notes for the different {{< param "PRODUCT_ROOT_NAME" >}} variants
 
 [release-notes-static]: {{< relref "../static/release-notes.md" >}}
 [release-notes-operator]: {{< relref "../operator/release-notes.md" >}}
-{{% /admonition %}}
+{{< /admonition >}}
+
+## v0.40
+
+### Breaking change: Prohibit the configuration of services within modules.
+
+Previously it was possible to configure the HTTP service via the [HTTP config block](https://grafana.com/docs/agent/v0.39/flow/reference/config-blocks/http/) inside of a module.
+This functionality is now only available in the main configuration.
+
+### Breaking change: Change the default value of `disable_high_cardinality_metrics` to `true`.
+
+The `disable_high_cardinality_metrics` configuration argument is used by `otelcol.exporter` components such as `otelcol.exporter.otlp`.
+If you need to see high cardinality metrics containing labels such as IP addresses and port numbers, you now have to explicitly set `disable_high_cardinality_metrics` to `false`.
 
 ## v0.39
 

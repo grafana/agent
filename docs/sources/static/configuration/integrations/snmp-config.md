@@ -14,9 +14,9 @@ The `snmp` block configures the `snmp` integration,
 which is an embedded version of
 [`snmp_exporter`](https://github.com/prometheus/snmp_exporter). This allows collection of SNMP metrics from the network devices with ease.
 
-{{% admonition type="note" %}}
+{{< admonition type="note" >}}
 `snmp config` uses the latest configuration introduced in version 0.23 of the Prometheus `snmp_exporter`.
-{{% /admonition %}}
+{{< /admonition >}}
 
 ## Quick configuration example
 

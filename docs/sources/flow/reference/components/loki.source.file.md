@@ -17,9 +17,9 @@ title: loki.source.file
 Multiple `loki.source.file` components can be specified by giving them
 different labels.
 
-{{% admonition type="note" %}}
+{{< admonition type="note" >}}
 `loki.source.file` does not handle file discovery. You can use `local.file_match` for file discovery. Refer to the [File Globbing](#file-globbing) example for more information.
-{{% /admonition %}}
+{{< /admonition >}}
 
 ## Usage
 
@@ -56,13 +56,13 @@ The following blocks are supported inside the definition of `loki.source.file`:
 
 | Hierarchy      | Name               | Description                                                       | Required |
 | -------------- | ------------------ | ----------------------------------------------------------------- | -------- |
-| decompresssion | [decompresssion][] | Configure reading logs from compressed files.                     | no       |
+| decompression  | [decompression][] | Configure reading logs from compressed files.                     | no       |
 | file_watch     | [file_watch][]     | Configure how often files should be polled from disk for changes. | no       |
 
-[decompresssion]: #decompresssion-block
+[decompression]: #decompression-block
 [file_watch]: #file_watch-block
 
-### decompresssion block
+### decompression block
 
 The `decompression` block contains configuration for reading logs from
 compressed files. The following arguments are supported:
@@ -245,11 +245,9 @@ loki.write "local" {
 - Components that export [Loki `LogsReceiver`]({{< relref "../compatibility/#loki-logsreceiver-exporters" >}})
 
 
-{{% admonition type="note" %}}
-
-Connecting some components may not be sensible or components may require further configuration to make the 
-connection work correctly. Refer to the linked documentation for more details.
-
-{{% /admonition %}}
+{{< admonition type="note" >}}
+Connecting some components may not be sensible or components may require further configuration to make the connection work correctly.
+Refer to the linked documentation for more details.
+{{< /admonition >}}
 
 <!-- END GENERATED COMPATIBLE COMPONENTS -->

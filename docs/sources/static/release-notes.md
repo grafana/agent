@@ -46,9 +46,9 @@ that supports OTLP.
 
 ### Breaking change: The default value of `retry_on_http_429` is overriden to `true` for the `queue_config` in `remote_write` in `metrics` config.
 
-{{% admonition type="note" %}}
+{{< admonition type="note" >}}
 The default set by Grafana Agent Static Mode is different than the default set by Prometheus.
-{{% /admonition %}}
+{{< /admonition >}}
 
 The Prometheus default value for `retry_on_http_429` is set to `true` for the `queue_config` in `remote_write`.
 This changed default setting allows the agent to retry sending data when it receives an HTTP 429 error and helps avoid losing data in metric pipelines.

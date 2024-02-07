@@ -179,6 +179,9 @@ controller:
   # -- Tolerations to apply to Grafana Agent pods.
   tolerations: []
 
+  # -- Topology Spread Constraints to apply to Grafana Agent pods.
+  topologySpreadConstraints: []
+
   # -- priorityClassName to apply to Grafana Agent pods.
   priorityClassName: ''
 

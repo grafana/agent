@@ -27,21 +27,21 @@
 // when evaluating the configuration for a component will always be reported as
 // unhealthy until the next successful evaluation.
 //
-// # Component Evaluation
+// # Node Evaluation
 //
-// The process of converting the River block associated with a component into
-// the appropriate Go struct is called "component evaluation."
+// The process of converting the River block associated with a node into
+// the appropriate Go struct is called "node evaluation."
 //
-// Components are only evaluated after all components they reference have been
+// Nodes are only evaluated after all nodes they reference have been
 // evaluated; cyclic dependencies are invalid.
 //
-// If a component updates its Exports at runtime, other components which directly
-// or indirectly reference the updated component will have their Arguments
+// If a node updates its Exports at runtime, other nodes which directly
+// or indirectly reference the updated node will have their Arguments
 // re-evaluated.
 //
-// The arguments and exports for a component will be left in their last valid
-// state if a component shuts down or is given an invalid config. This prevents
-// a domino effect of a single failed component taking down other components
+// The arguments and exports for a node will be left in their last valid
+// state if a node shuts down or is given an invalid config. This prevents
+// a domino effect of a single failed node taking down other node
 // which are otherwise healthy.
 package flow
 
@@ -49,6 +49,7 @@ import (
 	"context"
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/grafana/agent/pkg/flow/internal/controller"
 	"github.com/grafana/agent/pkg/flow/internal/worker"
@@ -185,9 +186,9 @@ func newController(o controllerOptions) *Flow {
 			Logger:        log,
 			TraceProvider: tracer,
 			DataPath:      o.DataPath,
-			OnComponentUpdate: func(cn *controller.ComponentNode) {
-				// Changed components should be queued for reevaluation.
-				f.updateQueue.Enqueue(cn)
+			OnBlockNodeUpdate: func(cn controller.BlockNode) {
+				// Changed node should be queued for reevaluation.
+				f.updateQueue.Enqueue(&controller.QueuedNode{Node: cn, LastUpdatedTime: time.Now()})
 			},
 			OnExportsChange: o.OnExportsChange,
 			Registerer:      o.Reg,
@@ -236,8 +237,8 @@ func (f *Flow) Run(ctx context.Context) {
 			return
 
 		case <-f.updateQueue.Chan():
-			// Evaluate all components that have been updated. Sending the entire batch together will improve
-			// throughput - it prevents the situation where two components have the same dependency, and the first time
+			// Evaluate all nodes that have been updated. Sending the entire batch together will improve
+			// throughput - it prevents the situation where two nodes have the same dependency, and the first time
 			// it's picked up by the worker pool and the second time it's enqueued again, resulting in more evaluations.
 			all := f.updateQueue.DequeueAll()
 			f.loader.EvaluateDependants(ctx, all)
@@ -276,11 +277,25 @@ func (f *Flow) Run(ctx context.Context) {
 //
 // The controller will only start running components after Load is called once
 // without any configuration errors.
+// LoadSource uses default loader configuration.
 func (f *Flow) LoadSource(source *Source, args map[string]any) error {
+	return f.loadSource(source, args, nil)
+}
+
+// Same as above but with a customComponentRegistry that provides custom component definitions.
+func (f *Flow) loadSource(source *Source, args map[string]any, customComponentRegistry *controller.CustomComponentRegistry) error {
 	f.loadMut.Lock()
 	defer f.loadMut.Unlock()
 
-	diags := f.loader.Apply(args, source.components, source.configBlocks)
+	applyOptions := controller.ApplyOptions{
+		Args:                    args,
+		ComponentBlocks:         source.components,
+		ConfigBlocks:            source.configBlocks,
+		DeclareBlocks:           source.declareBlocks,
+		CustomComponentRegistry: customComponentRegistry,
+	}
+
+	diags := f.loader.Apply(applyOptions)
 	if !f.loadedOnce.Load() && diags.HasErrors() {
 		// The first call to Load should not run any components if there were
 		// errors in the configuration file.

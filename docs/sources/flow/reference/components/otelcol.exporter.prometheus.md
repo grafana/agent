@@ -58,7 +58,7 @@ When `include_scope_labels` is `true`  the `otel_scope_name` and
 
 When `include_target_info` is true, OpenTelemetry Collector resources are converted into `target_info` metrics.
 
-{{% admonition type="note" %}}
+{{< admonition type="note" >}}
 
 OTLP metrics can have a lot of resource attributes. 
 Setting `resource_to_telemetry_conversion` to `true` would convert all of them to Prometheus labels, which may not be what you want.
@@ -68,7 +68,7 @@ See [Creating Prometheus labels from OTLP resource attributes][] for an example.
 
 [Creating Prometheus labels from OTLP resource attributes]: #creating-prometheus-labels-from-otlp-resource-attributes
 
-{{% /admonition %}}
+{{< /admonition >}}
 
 ## Exported fields
 
@@ -183,11 +183,9 @@ prometheus.remote_write "mimir" {
 
 - Components that consume [OpenTelemetry `otelcol.Consumer`]({{< relref "../compatibility/#opentelemetry-otelcolconsumer-consumers" >}})
 
-{{% admonition type="note" %}}
-
-Connecting some components may not be sensible or components may require further configuration to make the 
-connection work correctly. Refer to the linked documentation for more details.
-
-{{% /admonition %}}
+{{< admonition type="note" >}}
+Connecting some components may not be sensible or components may require further configuration to make the connection work correctly.
+Refer to the linked documentation for more details.
+{{< /admonition >}}
 
 <!-- END GENERATED COMPATIBLE COMPONENTS -->

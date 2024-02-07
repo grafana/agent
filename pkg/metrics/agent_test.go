@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
 	"sync"
 	"testing"
 	"time"
@@ -283,6 +284,10 @@ func (i *fakeInstance) TargetsActive() map[string][]*scrape.Target {
 
 func (i *fakeInstance) StorageDirectory() string {
 	return ""
+}
+
+func (i *fakeInstance) WriteHandler() http.Handler {
+	return nil
 }
 
 func (i *fakeInstance) Appender(ctx context.Context) storage.Appender {

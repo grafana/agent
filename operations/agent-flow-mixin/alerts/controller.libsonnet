@@ -14,7 +14,7 @@ alert.newGroup(
     // Unhealthy components detected.
     alert.newRule(
       'UnhealthyComponents',
-      'sum(agent_component_controller_running_components{health_type!="healthy"}) > 0',
+      'sum by (cluster, namespace) (agent_component_controller_running_components{health_type!="healthy"}) > 0',
       'Unhealthy Flow components detected.',
       '15m',
     ),

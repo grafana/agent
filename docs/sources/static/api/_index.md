@@ -23,12 +23,12 @@ API endpoints are stable unless otherwise noted.
 
 ## Config management API (Beta)
 
-Grafana Agent exposes a config management REST API for managing instance configurations when it is running in [scraping service mode][scrape].
+Grafana Agent exposes a configuration management REST API for managing instance configurations when it's running in [scraping service mode][scrape].
 
-{{% admonition type="note" %}}
-The scraping service mode is a requirement for the config management
-API, however this is not a prerequisite for the Agent API or Ready/Healthy API.
-{{% /admonition %}}
+{{< admonition type="note" >}}
+The scraping service mode is a requirement for the configuration management
+API, however this isn't a prerequisite for the Agent API or Ready/Healthy API.
+{{< /admonition >}}
 
 The following endpoints are exposed:
 
@@ -36,6 +36,14 @@ The following endpoints are exposed:
 - Get config: [`GET /agent/api/v1/configs/{name}`](#get-config)
 - Update config: [`PUT /agent/api/v1/config/{name}`](#update-config)
 - Delete config: [`DELETE /agent/api/v1/config/{name}`](#delete-config)
+
+{{< admonition type="note" >}}
+If you are running Grafana Agent in a Docker container and you want to expose the API outside the Docker container, you must change the default HTTP listen address from `127.0.0.1:12345` to a valid network interface address.
+You can change the HTTP listen address with the command-line flag: `-server.http.address=0.0.0.0:12345`.
+For more information, refer to the [Server](https://grafana.com/docs/agent/latest/static/configuration/flags/#server) command-line flag documentation.
+
+You must also publish the port in Docker. Refer to [Published ports](https://docs.docker.com/network/#published-ports) in the Docker documentation for more information.
+{{< /admonition >}}
 
 ### API response
 
@@ -127,13 +135,13 @@ defined in the Configuration Reference. The name field of the configuration is
 ignored and the name in the URL takes precedence. The request body must be
 formatted as YAML.
 
-{{% admonition type="warning" %}}
+{{< admonition type="warning" >}}
 By default, all instance configuration files that read
 credentials from a file on disk will be rejected. This prevents malicious users
 from reading the contents of arbitrary files as passwords and sending their
 contents to fake remote_write endpoints. To change the behavior, set
 `dangerous_allow_reading_files` to true in the `scraping_service` block.
-{{% /admonition %}}
+{{< /admonition >}}
 
 Status code: 201 with a new config, 200 on updated config.
 Response on success:
@@ -174,9 +182,9 @@ Response on success:
 GET /agent/api/v1/metrics/instances
 ```
 
-{{% admonition type="note" %}}
+{{< admonition type="note" >}}
 The deprecated alias is `/agent/api/v1/instances`
-{{% /admonition %}}
+{{< /admonition >}}
 
 Status code: 200 on success.
 Response on success:
@@ -196,9 +204,9 @@ Response on success:
 GET /agent/api/v1/metrics/targets
 ```
 
-{{% admonition type="note" %}}
+{{< admonition type="note" >}}
 The deprecated alias is `/agent/api/v1/targets`
-{{% /admonition %}}
+{{< /admonition >}}
 
 This endpoint collects all metrics subsystem targets known to the Agent across all
 running instances. Only targets being scraped from the local Agent will be returned. If

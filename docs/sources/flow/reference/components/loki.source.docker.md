@@ -33,7 +33,7 @@ loki.source.docker "LABEL" {
 The component starts a new reader for each of the given `targets` and fans out
 log entries to the list of receivers passed in `forward_to`.
 
-`loki.source.file` supports the following arguments:
+`loki.source.docker` supports the following arguments:
 
 Name            | Type                 | Description          | Default | Required
 --------------- | -------------------- | -------------------- | ------- | --------
@@ -172,11 +172,9 @@ loki.write "local" {
 - Components that export [Loki `LogsReceiver`]({{< relref "../compatibility/#loki-logsreceiver-exporters" >}})
 
 
-{{% admonition type="note" %}}
-
-Connecting some components may not be sensible or components may require further configuration to make the 
-connection work correctly. Refer to the linked documentation for more details.
-
-{{% /admonition %}}
+{{< admonition type="note" >}}
+Connecting some components may not be sensible or components may require further configuration to make the connection work correctly.
+Refer to the linked documentation for more details.
+{{< /admonition >}}
 
 <!-- END GENERATED COMPATIBLE COMPONENTS -->

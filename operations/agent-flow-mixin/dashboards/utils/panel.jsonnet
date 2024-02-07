@@ -127,4 +127,9 @@
       refId: refId,
     }
   ),
+
+  newRow(title='', x=0, y=0, w=24, h=1, collapsed=false):: 
+    $.new(title, 'row') 
+    + $.withPosition({x: x, y: y, w: w, h: h })
+    + {collapsed: collapsed},
 }
