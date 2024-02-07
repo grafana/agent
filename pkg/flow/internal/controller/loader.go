@@ -824,17 +824,22 @@ func (l *Loader) findCustomComponentReferences(declare *ast.BlockStmt) map[Block
 // collectCustomComponentDependencies recursively collects references to declare nodes through an AST body.
 func (l *Loader) collectCustomComponentReferences(stmts ast.Body, uniqueReferences map[BlockNode]struct{}) {
 	for _, stmt := range stmts {
-		switch stmt := stmt.(type) {
-		case *ast.BlockStmt:
-			componentName := strings.Join(stmt.Name, ".")
-			switch componentName {
-			case "declare":
-				l.collectCustomComponentReferences(stmt.Body, uniqueReferences)
-			default:
-				if declareNode, ok := l.declareNodes[stmt.Name[0]]; ok {
-					uniqueReferences[declareNode] = struct{}{}
-				}
-			}
+		blockStmt, ok := stmt.(*ast.BlockStmt)
+		if !ok {
+			continue
+		}
+
+		var (
+			componentName = strings.Join(blockStmt.Name, ".")
+
+			declareNode, foundDeclare = l.declareNodes[blockStmt.Name[0]]
+		)
+
+		switch {
+		case componentName == "declare":
+			l.collectCustomComponentReferences(blockStmt.Body, uniqueReferences)
+		case foundDeclare:
+			uniqueReferences[declareNode] = struct{}{}
 		}
 	}
 }
