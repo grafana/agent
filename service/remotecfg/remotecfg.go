@@ -248,7 +248,7 @@ func (s *Service) fetch() {
 	}
 
 	err = s.parseAndLoad(b1)
-	if err != nil {
+	if err != nil && err2 != nil {
 		err = s.parseAndLoad(b2)
 	}
 
