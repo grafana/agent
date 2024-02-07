@@ -132,9 +132,9 @@ func distributeTargets(c cluster.Cluster, targets []*kubetail.Target) []*kubetai
 	}
 
 	peerCount := len(c.Peers())
-	resCap := (len(targets) + 1) / peerCount
-	if peerCount == 0 {
-		resCap = len(targets) + 1
+	resCap := len(targets) + 1
+	if peerCount != 0 {
+		resCap = (len(targets) + 1) / peerCount
 	}
 
 	res := make([]*kubetail.Target, 0, resCap)
