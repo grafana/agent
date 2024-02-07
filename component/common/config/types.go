@@ -58,12 +58,14 @@ func (h *HTTPClientConfig) Validate() error {
 		return fmt.Errorf("at most one of basic_auth, authorization, oauth2, bearer_token & bearer_token_file must be configured")
 	}
 
+	// TODO: Validate should not be modifying the object
 	if len(h.BearerToken) > 0 {
 		h.Authorization = &Authorization{Credentials: h.BearerToken}
 		h.Authorization.Type = bearerAuth
 		h.BearerToken = ""
 	}
 
+	// TODO: Validate should not be modifying the object
 	if len(h.BearerTokenFile) > 0 {
 		h.Authorization = &Authorization{CredentialsFile: h.BearerTokenFile}
 		h.Authorization.Type = bearerAuth
@@ -261,10 +263,13 @@ func (a *Authorization) Validate() error {
 	if string(a.Credentials) != "" && a.CredentialsFile != "" {
 		return fmt.Errorf("at most one of authorization credentials & credentials_file must be configured")
 	}
+
+	// TODO: Validate should not be modifying the object
 	a.Type = strings.TrimSpace(a.Type)
 	if len(a.Type) == 0 {
 		a.Type = bearerAuth
 	}
+
 	if strings.ToLower(a.Type) == "basic" {
 		return fmt.Errorf(`authorization type cannot be set to "basic", use "basic_auth" block instead`)
 	}
