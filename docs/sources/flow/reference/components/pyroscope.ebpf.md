@@ -18,9 +18,9 @@ title: pyroscope.ebpf
 `pyroscope.ebpf` configures an ebpf profiling job for the current host. The collected performance profiles are forwarded
 to the list of receivers passed in `forward_to`.
 
-{{% admonition type="note" %}}
+{{< admonition type="note" >}}
 To use the  `pyroscope.ebpf` component you must run {{< param "PRODUCT_NAME" >}} as root and inside host pid namespace.
-{{% /admonition %}}
+{{< /admonition >}}
 
 You can specify multiple `pyroscope.ebpf` components by giving them different labels, however it is not recommended as
 it can lead to additional memory and CPU usage.
@@ -95,16 +95,20 @@ can help you pin down a profiling target.
 | `__name__`         | pyroscope metric name. Defaults to `process_cpu`.                                                                                |
 | `__container_id__` | The container ID derived from target.                                                                                            |
 
-### Container ID
+### Targets 
 
-Each collected stack trace is then associated with a specified target from the targets list, determined by a
-container ID. This association process involves checking the `__container_id__`, `__meta_docker_container_id`,
-and `__meta_kubernetes_pod_container_id` labels of a target against the `/proc/{pid}/cgroup` of a process.
+One of the following special labels _must_ be included in each target of `targets` and the label must correspond to the container or process that is profiled:
 
-If a corresponding container ID is found, the stack traces are aggregated per target based on the container ID.
-If a container ID is not found, the stack trace is associated with a `default_target`.
+* `__container_id__`: The container ID.
+* `__meta_docker_container_id`: The ID of the Docker container.
+* `__meta_kubernetes_pod_container_id`: The ID of the Kubernetes pod container.
+* `__process_pid__` : The process ID.
 
-Any stack traces not associated with a listed target are ignored.
+Each process is then associated with a specified target from the targets list, determined by a container ID or process PID. 
+
+If a process's container ID matches a target's container ID label, the stack traces are aggregated per target based on the container ID.
+If a process's PID matches a target's process PID label, the stack traces are aggregated per target based on the process PID.
+Otherwise the process is not profiled.
 
 ### Service name
 
@@ -298,11 +302,9 @@ pyroscope.ebpf "default" {
 - Components that export [Pyroscope `ProfilesReceiver`]({{< relref "../compatibility/#pyroscope-profilesreceiver-exporters" >}})
 
 
-{{% admonition type="note" %}}
-
-Connecting some components may not be sensible or components may require further configuration to make the 
-connection work correctly. Refer to the linked documentation for more details.
-
-{{% /admonition %}}
+{{< admonition type="note" >}}
+Connecting some components may not be sensible or components may require further configuration to make the connection work correctly.
+Refer to the linked documentation for more details.
+{{< /admonition >}}
 
 <!-- END GENERATED COMPATIBLE COMPONENTS -->

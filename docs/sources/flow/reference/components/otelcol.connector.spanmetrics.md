@@ -751,13 +751,13 @@ The example below uses the [merge_maps][] OTTL function.
 If the resource attributes are not treated in either of the ways described above, an error such as this one could be logged by `prometheus.remote_write`:
 `the sample has been rejected because another sample with the same timestamp, but a different value, has already been ingested (err-mimir-sample-duplicate-timestamp)`.
 
-{{% admonition type="note" %}}
+{{< admonition type="note" >}}
 In order for a Prometheus `target_info` metric to be generated, the incoming spans resource scope
 attributes must contain `service.name` and `service.instance.id` attributes.
 
 The `target_info` metric will be generated for each resource scope, while OpenTelemetry
 metric names and attributes will be normalized to be compliant with Prometheus naming rules.
-{{% /admonition %}}
+{{< /admonition >}}
 
 [merge_maps]: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/{{< param "OTEL_VERSION" >}}/pkg/ottl/ottlfuncs/README.md#merge_maps
 [prom-data-model]: https://prometheus.io/docs/concepts/data_model/
@@ -774,11 +774,9 @@ metric names and attributes will be normalized to be compliant with Prometheus n
 
 - Components that consume [OpenTelemetry `otelcol.Consumer`]({{< relref "../compatibility/#opentelemetry-otelcolconsumer-consumers" >}})
 
-{{% admonition type="note" %}}
-
-Connecting some components may not be sensible or components may require further configuration to make the 
-connection work correctly. Refer to the linked documentation for more details.
-
-{{% /admonition %}}
+{{< admonition type="note" >}}
+Connecting some components may not be sensible or components may require further configuration to make the connection work correctly.
+Refer to the linked documentation for more details.
+{{< /admonition >}}
 
 <!-- END GENERATED COMPATIBLE COMPONENTS -->

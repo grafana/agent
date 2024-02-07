@@ -14,6 +14,8 @@ Main (unreleased)
 
 - Prohibit the configuration of services within modules. (@wildum)
 
+- For `otelcol.exporter` components, change the default value of `disable_high_cardinality_metrics` to `true`. (@ptodev)
+
 ### Features
 
 - A new `discovery.process` component for discovering Linux OS processes on the current host. (@korniltsev)
@@ -23,6 +25,8 @@ Main (unreleased)
 - A new `otelcol.processor.resourcedetection` component which inserts resource attributes 
   to OTLP telemetry based on the host on which Grafana Agent is running. (@ptodev)
   
+- Expose track_timestamps_staleness on Prometheus scraping, to fix the issue where container metrics live for 5 minutes after the container disappears. (@ptodev)
+
 ### Enhancements
 
 - Include line numbers in profiles produced by `pyrsocope.java` component. (@korniltsev)
@@ -43,6 +47,13 @@ Main (unreleased)
 
 - Increased clustering alert periods to 10 minutes to improve the
   signal-to-noise ratio in Grafana Agent Mixin. (@thampiotr)
+  
+- `mimir.rules.kubernetes` has a new `prometheus_http_prefix` argument to configure 
+  the HTTP endpoint on which to connect to Mimir's API. (@hainenber)
+
+- `service_name` label is inferred from discovery meta labels in `pyroscope.java` (@korniltsev)
+
+- Mutex and block pprofs are now available via the pprof endpoint. (@mattdurham)
 
 ### Bugfixes
 
@@ -59,6 +70,9 @@ Main (unreleased)
 - Fix an issue where blocks having the same type and the same label across
   modules could result in missed updates. (@thampiotr)
 
+- Fix an issue with static integrations-next marshaling where non singletons
+  would cause `/-/config` to fail to marshal. (@erikbaranowski)
+
 ### Other changes
 
 - Removed support for Windows 2012 in line with Microsoft end of life. (@mattdurham)
@@ -66,6 +80,17 @@ Main (unreleased)
 - Split instance ID and component groupings into separate panels for `remote write active series by component` in the Flow mixin. (@tristanburgess)
 
 - Updated dependency to add support for Go 1.22 (@stefanb)
+
+v0.39.2 (2024-1-31)
+--------------------
+
+### Bugfixes
+
+- Fix error introduced in v0.39.0 preventing remote write to Amazon Managed Prometheus. (@captncraig)
+
+- An error will be returned in the converter from Static to Flow when `scrape_integration` is set
+  to `true` but no `remote_write` is defined. (@erikbaranowski)
+
 
 v0.39.1 (2024-01-19)
 --------------------

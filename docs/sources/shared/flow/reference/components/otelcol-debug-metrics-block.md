@@ -16,7 +16,7 @@ The following arguments are supported:
 
 Name                               | Type      | Description                                          | Default | Required
 -----------------------------------|-----------|------------------------------------------------------|---------|---------
-`disable_high_cardinality_metrics` | `boolean` | Whether to disable certain high cardinality metrics. | `false` | no
+`disable_high_cardinality_metrics` | `boolean` | Whether to disable certain high cardinality metrics. | `true`  | no
 
 `disable_high_cardinality_metrics` is the Grafana Agent equivalent to the `telemetry.disableHighCardinalityMetrics` feature gate in the OpenTelemetry Collector.
 It removes attributes that could cause high cardinality metrics.

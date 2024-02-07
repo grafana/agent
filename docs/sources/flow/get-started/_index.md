@@ -20,6 +20,6 @@ weight: 50
 # Get started with {{% param "PRODUCT_NAME" %}}
 
 This section covers topics that help you get started with {{< param "PRODUCT_NAME" >}},
-including installation, running the agent, overview of deployment topologies, and more.
+including installation, running {{< param "PRODUCT_NAME" >}}, overview of deployment topologies, and more.
 
 {{< section >}}

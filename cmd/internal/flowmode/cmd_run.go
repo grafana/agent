@@ -8,6 +8,8 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
+	"runtime"
+	"strconv"
 	"strings"
 	"sync"
 	"syscall"
@@ -176,6 +178,9 @@ func (fr *flowRun) Run(configPath string) error {
 	otel.SetTracerProvider(t)
 
 	level.Info(l).Log("boringcrypto enabled", boringcrypto.Enabled)
+
+	// Enable the profiling.
+	setMutexBlockProfiling(l)
 
 	// Immediately start the tracer.
 	go func() {
@@ -449,4 +454,35 @@ func splitPeers(s, sep string) []string {
 		return []string{}
 	}
 	return strings.Split(s, sep)
+}
+
+func setMutexBlockProfiling(l log.Logger) {
+	mutexPercent := os.Getenv("PPROF_MUTEX_PROFILING_PERCENT")
+	if mutexPercent != "" {
+		rate, err := strconv.Atoi(mutexPercent)
+		if err == nil && rate > 0 {
+			// The 100/rate is because the value is interpreted as 1/rate. So 50 would be 100/50 = 2 and become 1/2 or 50%.
+			runtime.SetMutexProfileFraction(100 / rate)
+		} else {
+			level.Error(l).Log("msg", "error setting PPROF_MUTEX_PROFILING_PERCENT", "err", err, "value", mutexPercent)
+			runtime.SetMutexProfileFraction(1000)
+		}
+	} else {
+		// Why 1000 because that is what istio defaults to and that seemed reasonable to start with. This is 00.1% sampling.
+		runtime.SetMutexProfileFraction(1000)
+	}
+	blockRate := os.Getenv("PPROF_BLOCK_PROFILING_RATE")
+	if blockRate != "" {
+		rate, err := strconv.Atoi(blockRate)
+		if err == nil && rate > 0 {
+			runtime.SetBlockProfileRate(rate)
+		} else {
+			level.Error(l).Log("msg", "error setting PPROF_BLOCK_PROFILING_RATE", "err", err, "value", blockRate)
+			runtime.SetBlockProfileRate(10_000)
+		}
+	} else {
+		// This should have a negligible impact. This will track anything over 10_000ns, and will randomly sample shorter durations.
+		// Default taken from https://github.com/DataDog/go-profiler-notes/blob/main/block.md
+		runtime.SetBlockProfileRate(10_000)
+	}
 }

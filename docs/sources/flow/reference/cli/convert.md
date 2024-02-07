@@ -21,13 +21,13 @@ The `convert` command converts a supported configuration format to {{< param "PR
 
 Usage:
 
-* `AGENT_MODE=flow grafana-agent convert [FLAG ...] FILE_NAME`
-* `grafana-agent-flow convert [FLAG ...] FILE_NAME`
+* `AGENT_MODE=flow grafana-agent convert [<FLAG> ...] <FILE_NAME>`
+* `grafana-agent-flow convert [<FLAG> ...] <FILE_NAME>`
 
    Replace the following:
 
-   * `FLAG`: One or more flags that define the input and output of the command.
-   * `FILE_NAME`: The {{< param "PRODUCT_ROOT_NAME" >}} configuration file.
+   * _`<FLAG>`_: One or more flags that define the input and output of the command.
+   * _`<FILE_NAME>`_: The {{< param "PRODUCT_ROOT_NAME" >}} configuration file.
 
 If the `FILE_NAME` argument isn't provided or if the `FILE_NAME` argument is
 equal to `-`, `convert` converts the contents of standard input. Otherwise,
@@ -70,7 +70,7 @@ where an output can still be generated. These can be bypassed using the
 
 ### Prometheus
 
-Using the `--source-format=prometheus` will convert the source config from
+Using the `--source-format=prometheus` will convert the source configuration from
 [Prometheus v2.45](https://prometheus.io/docs/prometheus/2.45/configuration/configuration/)
 to {{< param "PRODUCT_NAME" >}} configuration.
 

@@ -16,9 +16,9 @@ title: pyroscope.java
 `pyroscope.java` continuously profiles Java processes running on the local Linux OS
 using [async-profiler](https://github.com/async-profiler/async-profiler).
 
-{{% admonition type="note" %}}
+{{< admonition type="note" >}}
 To use the  `pyroscope.java` component you must run {{< param "PRODUCT_NAME" >}} as root and inside host PID namespace.
-{{% /admonition %}}
+{{< /admonition >}}
 
 ## Usage
 
@@ -57,11 +57,29 @@ async-profiler binaries for both glibc and musl into the directory with the foll
 After process profiling startup, the component detects libc type and copies according `libAsyncProfiler.so` into the
 target process file system at the exact same path.
 
-{{% admonition type="note" %}}
+{{< admonition type="note" >}}
 The `asprof` binary runs with root permissions.
 If you change the `tmp_dir` configuration to something other than `/tmp`, then you must ensure that the
 directory is only writable by root.
-{{% /admonition %}}
+{{< /admonition >}}
+
+#### `targets` argument
+
+The special `__process_pid__` label _must always_ be present and corresponds to the
+process PID that is used for profiling.
+
+Labels starting with a double underscore (`__`) are treated as _internal_, and are removed prior to scraping.
+
+The special label `service_name` is required and must always be present.
+If it is not specified, `pyroscope.scrape` will attempt to infer it from
+either of the following sources, in this order:
+1. `__meta_kubernetes_pod_annotation_pyroscope_io_service_name` which is a `pyroscope.io/service_name` pod annotation.
+2. `__meta_kubernetes_namespace` and `__meta_kubernetes_pod_container_name`
+3. `__meta_docker_container_name`
+4. `__meta_dockerswarm_container_label_service_name` or `__meta_dockerswarm_service_name`
+
+If `service_name` is not specified and could not be inferred, then it is set to `unspecified`.
+
 ## Blocks
 
 The following blocks are supported inside the definition of
@@ -163,11 +181,9 @@ pyroscope.java "java" {
 - Components that export [Pyroscope `ProfilesReceiver`]({{< relref "../compatibility/#pyroscope-profilesreceiver-exporters" >}})
 
 
-{{% admonition type="note" %}}
-
-Connecting some components may not be sensible or components may require further configuration to make the 
-connection work correctly. Refer to the linked documentation for more details.
-
-{{% /admonition %}}
+{{< admonition type="note" >}}
+Connecting some components may not be sensible or components may require further configuration to make the connection work correctly.
+Refer to the linked documentation for more details.
+{{< /admonition >}}
 
 <!-- END GENERATED COMPATIBLE COMPONENTS -->

@@ -8,7 +8,8 @@ title: prometheus.exporter.agent
 ---
 
 # prometheus.exporter.agent
-The `prometheus.exporter.agent` component collects and exposes metrics about the agent itself.
+
+The `prometheus.exporter.agent` component collects and exposes metrics about {{< param "PRODUCT_NAME" >}} itself.
 
 ## Usage
 
@@ -18,6 +19,7 @@ prometheus.exporter.agent "agent" {
 ```
 
 ## Arguments
+
 `prometheus.exporter.agent` accepts no arguments.
 
 ## Exported fields
@@ -31,12 +33,12 @@ an invalid configuration.
 
 ## Debug information
 
-`prometheus.exporter.agent` does not expose any component-specific
+`prometheus.exporter.agent` doesn't expose any component-specific
 debug information.
 
 ## Debug metrics
 
-`prometheus.exporter.agent` does not expose any component-specific
+`prometheus.exporter.agent` doesn't expose any component-specific
 debug metrics.
 
 ## Example
@@ -80,11 +82,9 @@ Replace the following:
 
 - Components that consume [Targets]({{< relref "../compatibility/#targets-consumers" >}})
 
-{{% admonition type="note" %}}
-
-Connecting some components may not be sensible or components may require further configuration to make the 
-connection work correctly. Refer to the linked documentation for more details.
-
-{{% /admonition %}}
+{{< admonition type="note" >}}
+Connecting some components may not be sensible or components may require further configuration to make the connection work correctly.
+Refer to the linked documentation for more details.
+{{< /admonition >}}
 
 <!-- END GENERATED COMPATIBLE COMPONENTS -->

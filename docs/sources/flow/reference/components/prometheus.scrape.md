@@ -51,6 +51,7 @@ Name | Type | Description | Default | Required
 `enable_protobuf_negotiation` | `bool`     | Whether to enable protobuf negotiation with the client. | `false` | no
 `honor_labels`                | `bool`     | Indicator whether the scraped metrics should remain unmodified. | `false` | no
 `honor_timestamps`            | `bool`     | Indicator whether the scraped timestamps should be respected. | `true` | no
+`track_timestamps_staleness`  | `bool`     | Indicator whether to track the staleness of the scraped timestamps. | `false` | no
 `params`                      | `map(list(string))` | A set of query parameters with which the target is scraped. | | no
 `scrape_classic_histograms`   | `bool`     | Whether to scrape a classic histogram that is also exposed as a native histogram. | `false` | no
 `scrape_interval`             | `duration` | How frequently to scrape the targets of this scrape configuration. | `"60s"` | no
@@ -75,6 +76,20 @@ Name | Type | Description | Default | Required
  - [`basic_auth` block][basic_auth].
  - [`authorization` block][authorization].
  - [`oauth2` block][oauth2].
+
+`track_timestamps_staleness` controls whether Prometheus tracks [staleness][prom-staleness] of metrics which with an explicit timestamp present in scraped data.
+* An "explicit timestamp" is an optional timestamp in the [Prometheus metrics exposition format][prom-text-exposition-format]. For example, this sample has a timestamp of `1395066363000`:
+  ```
+  http_requests_total{method="post",code="200"} 1027 1395066363000
+  ```
+* If `track_timestamps_staleness` is set to `true`, a staleness marker will be inserted when a metric is no longer present or the target is down.
+* A "staleness marker" is just a {{< term "sample" >}}sample{{< /term >}} with a specific NaN value which is reserved for internal use by Prometheus.
+* It is recommended to set `track_timestamps_staleness` to `true` if the database where metrics are written to has enabled [out of order ingestion][mimir-ooo].
+* If `track_timestamps_staleness` is set to `false`, samples with explicit timestamps will only be labeled as stale after a certain time period, which in Prometheus is 5 minutes by default.
+
+[prom-text-exposition-format]: https://prometheus.io/docs/instrumenting/exposition_formats/#text-based-format
+[prom-staleness]: https://prometheus.io/docs/prometheus/latest/querying/basics/#staleness
+[mimir-ooo]: https://grafana.com/docs/mimir/latest/configure/configure-out-of-order-samples-ingestion/
 
 ## Blocks
 
@@ -298,11 +313,9 @@ Special labels added after a scrape
 - Components that export [Prometheus `MetricsReceiver`]({{< relref "../compatibility/#prometheus-metricsreceiver-exporters" >}})
 
 
-{{% admonition type="note" %}}
-
-Connecting some components may not be sensible or components may require further configuration to make the 
-connection work correctly. Refer to the linked documentation for more details.
-
-{{% /admonition %}}
+{{< admonition type="note" >}}
+Connecting some components may not be sensible or components may require further configuration to make the connection work correctly.
+Refer to the linked documentation for more details.
+{{< /admonition >}}
 
 <!-- END GENERATED COMPATIBLE COMPONENTS -->
