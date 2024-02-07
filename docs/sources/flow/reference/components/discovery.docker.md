@@ -38,11 +38,11 @@ Name                     | Type                | Description                    
 `enable_http2`           | `bool`              | Whether HTTP2 is supported for requests.                      | `true`  | no
 `follow_redirects`       | `bool`              | Whether redirects returned by the server should be followed.  | `true`  | no
 `proxy_url`              | `string`            | HTTP proxy to send requests through.                          |         | no
-`no_proxy`               | `string`            | Comma-separated list to exclude from proxying.                |         | no
-`proxy_from_environment` | `bool`              | Use proxy URL indicated by environment variables.             | `false` | no
+`no_proxy`               | `string`            | Comma-separated list of IP addresses, CIDR notations, and domain names to exclude from proxying. | | no
+`proxy_from_environment` | `bool`              | Use the proxy URL indicated by environment variables.         | `false` | no
 `proxy_connect_header`   | `map(list(secret))` | Specifies headers to send to proxies during CONNECT requests. |         | no
 
- At most one of the following can be provided:
+ At most, one of the following can be provided:
  - [`bearer_token` argument](#arguments).
  - [`bearer_token_file` argument](#arguments).
  - [`basic_auth` block][basic_auth].

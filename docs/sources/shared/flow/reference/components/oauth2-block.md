@@ -17,8 +17,8 @@ Name                     | Type                | Description                    
 `client_secret`          | `secret`            | OAuth2 client secret.                                         |         | no
 `endpoint_params`        | `map(string)`       | Optional parameters to append to the token URL.               |         | no
 `proxy_url`              | `string`            | HTTP proxy to send requests through.                          |         | no
-`no_proxy`               | `string`            | Comma-separated list to exclude from proxying.                |         | no
-`proxy_from_environment` | `bool`              | Use proxy URL indicated by environment variables.             | `false` | no
+`no_proxy`               | `string`            | Comma-separated list of IP addresses, CIDR notations, and domain names to exclude from proxying. | | no
+`proxy_from_environment` | `bool`              | Use the proxy URL indicated by environment variables.         | `false` | no
 `proxy_connect_header`   | `map(list(secret))` | Specifies headers to send to proxies during CONNECT requests. |         | no
 `scopes`                 | `list(string)`      | List of scopes to authenticate with.                          |         | no
 `token_url`              | `string`            | URL to fetch the token from.                                  |         | no
