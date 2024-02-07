@@ -355,7 +355,7 @@ func TestDeclareError(t *testing.T) {
 			}
 			example_a "test" {}
 			`,
-			expectedError: regexp.MustCompile(`component "testcomponents.count.inc.count" does not exist`),
+			expectedError: regexp.MustCompile(`component "testcomponents.count.inc.count" does not exist or is out of scope`),
 		},
 		{
 			name: "OutOfScopeDefinition",
