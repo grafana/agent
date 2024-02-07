@@ -43,7 +43,7 @@ func runIntegrationTests(cmd *cobra.Command, args []string) {
 			specificTest = "./tests/" + specificTest
 		}
 		logChan = make(chan TestLog, 1)
-		runSingleTest(specificTest)
+		runSingleTest(specificTest, 12345)
 	} else {
 		testDirs, err := filepath.Glob("./tests/*")
 		if err != nil {

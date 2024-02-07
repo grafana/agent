@@ -25,6 +25,8 @@ Main (unreleased)
 - A new `otelcol.processor.resourcedetection` component which inserts resource attributes 
   to OTLP telemetry based on the host on which Grafana Agent is running. (@ptodev)
   
+- Expose track_timestamps_staleness on Prometheus scraping, to fix the issue where container metrics live for 5 minutes after the container disappears. (@ptodev)
+
 ### Enhancements
 
 - Include line numbers in profiles produced by `pyrsocope.java` component. (@korniltsev)
@@ -51,6 +53,8 @@ Main (unreleased)
 
 - `service_name` label is inferred from discovery meta labels in `pyroscope.java` (@korniltsev)
 
+- Mutex and block pprofs are now available via the pprof endpoint. (@mattdurham)
+
 ### Bugfixes
 
 - Fix an issue in `remote.s3` where the exported content of an object would be an empty string if `remote.s3` failed to fully retrieve
@@ -65,6 +69,9 @@ Main (unreleased)
 
 - Fix an issue where blocks having the same type and the same label across
   modules could result in missed updates. (@thampiotr)
+
+- Fix an issue with static integrations-next marshaling where non singletons
+  would cause `/-/config` to fail to marshal. (@erikbaranowski)
 
 ### Other changes
 

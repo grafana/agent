@@ -25,4 +25,7 @@ type ComponentNode interface {
 
 	// ID returns the component ID of the managed component from its River block.
 	ID() ComponentID
+
+	// ModuleIDs returns the current list of modules managed by the component.
+	ModuleIDs() []string
 }
