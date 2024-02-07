@@ -117,11 +117,12 @@ func (f *Flow) getComponentDetail(cn controller.ComponentNode, graph *dag.Graph,
 
 		Arguments: arguments,
 		Exports:   exports,
+
+		ModuleIDs: cn.ModuleIDs(),
 	}
 
 	if builtinComponent, ok := cn.(*controller.BuiltinComponentNode); ok {
 		componentInfo.Component = builtinComponent.Component()
-		componentInfo.ModuleIDs = builtinComponent.ModuleIDs()
 		if opts.GetDebugInfo {
 			componentInfo.DebugInfo = builtinComponent.DebugInfo()
 		}
