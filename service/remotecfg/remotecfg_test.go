@@ -205,7 +205,8 @@ type serviceController struct {
 }
 
 func (sc serviceController) Run(ctx context.Context) { sc.f.Run(ctx) }
-func (sc serviceController) LoadSource(source any, args map[string]any) error {
-	return sc.f.LoadSource(source.(*flow.Source), args)
+func (sc serviceController) LoadSource(b []byte, args map[string]any) error {
+	source, _ := flow.ParseSource("", b)
+	return sc.f.LoadSource(source, args)
 }
 func (sc serviceController) Ready() bool { return sc.f.Ready() }
