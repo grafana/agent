@@ -64,6 +64,38 @@ func New(w io.Writer, o Options) (*Logger, error) {
 		},
 	}
 
+	if err := l.Update(o); err != nil {
+		return nil, err
+	}
+
+	return l, nil
+}
+
+// NewDeferred creates a new logger with the default log level and format.
+// The logger is not updated during initialization.
+func NewDeferred(w io.Writer, o Options) (*Logger, error) {
+	var (
+		leveler slog.LevelVar
+		format  formatVar
+		writer  writerVar
+	)
+
+	l := &Logger{
+		inner: w,
+
+		buffer:       [][]interface{}{},
+		hasLogFormat: false,
+
+		level:  &leveler,
+		format: &format,
+		writer: &writer,
+		handler: &handler{
+			w:         &writer,
+			leveler:   &leveler,
+			formatter: &format,
+		},
+	}
+
 	return l, nil
 }
 

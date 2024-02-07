@@ -50,15 +50,10 @@ func newTestRecord(msg string) slog.Record {
 func getTestHandler(t *testing.T, w io.Writer) slog.Handler {
 	t.Helper()
 
-	o := Options{
+	l, err := New(w, Options{
 		Level:  LevelDebug,
 		Format: FormatLogfmt,
-	}
-
-	l, err := New(w, o)
-	require.NoError(t, err)
-
-	err = l.Update(o)
+	})
 	require.NoError(t, err)
 
 	return l.handler
