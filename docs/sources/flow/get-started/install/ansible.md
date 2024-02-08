@@ -1,6 +1,9 @@
 ---
 aliases:
 - /docs/grafana-cloud/agent/flow/get-started/install/ansible/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/get-started/install/ansible/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/get-started/install/ansible/
+- /docs/grafana-cloud/send-data/agent/flow/get-started/install/ansible/
 canonical: https://grafana.com/docs/agent/latest/flow/get-started/install/ansible/
 description: Learn how to install Grafana Agent Flow with Ansible
 menuTitle: Ansible
