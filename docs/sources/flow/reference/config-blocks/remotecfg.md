@@ -13,7 +13,7 @@ title: remotecfg block
 # remotecfg block
 
 `remotecfg` is an optional configuration block that enables {{< param "PRODUCT_NAME" >}}
-to fetch and load configuration from a remote endpoint.
+to fetch and load the configuration from a remote endpoint.
 `remotecfg` is specified without a label and can only be provided once per
 configuration file.
 
@@ -44,13 +44,13 @@ The following arguments are supported:
 
 Name             | Type                 | Description                                      | Default     | Required
 -----------------|----------------------|--------------------------------------------------|-------------|---------
-`url`            | `string`             | The address of the API to poll for configuration | `""`        | no
-`id`             | `string`             | A self-reported ID                               | `see below` | no
-`metadata`       | `map(string)`        | A set of self-reported metadata                  | `{}`        | no
-`poll_frequency` | `duration`           | How often to poll the API for new configuration  | `"1m"`      | no
+`url`            | `string`             | The address of the API to poll for configuration. | `""`        | no
+`id`             | `string`             | A self-reported ID.                               | `see below` | no
+`metadata`       | `map(string)`        | A set of self-reported metadata.                  | `{}`        | no
+`poll_frequency` | `duration`           | How often to poll the API for new configuration.  | `"1m"`      | no
 
-If not set, the self-reported `id` that the Agent uses is a randomly generated,
-anonymous unique ID (UUID) that is stored on the Agent's storage path as
+If not set, the self-reported `id` that {{< param "PRODUCT_ROOT_NAME" >}} uses is a randomly generated,
+anonymous unique ID (UUID) that is stored in {{< param "PRODUCT_ROOT_NAME" >}}'s storage path as
 `agent_seed.json` so that it can persist across restarts.
 
 ## Blocks
