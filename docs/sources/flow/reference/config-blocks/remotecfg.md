@@ -33,8 +33,8 @@ remotecfg {
 	}
 
 	id             = constants.hostname
-	metadata       = {"cluster" = "dev-us-central-0", "namespace" = "agent-otlp"}
-	poll_frequency = "10m"
+	metadata       = {"cluster" = "dev", "namespace" = "otlp-dev"}
+	poll_frequency = "5m"
 }
 ```
 
@@ -49,9 +49,11 @@ Name             | Type                 | Description                           
 `metadata`       | `map(string)`        | A set of self-reported metadata.                  | `{}`        | no
 `poll_frequency` | `duration`           | How often to poll the API for new configuration.  | `"1m"`      | no
 
-If not set, the self-reported `id` that {{< param "PRODUCT_ROOT_NAME" >}} uses is a randomly generated,
-anonymous unique ID (UUID) that is stored in {{< param "PRODUCT_ROOT_NAME" >}}'s storage path as
-`agent_seed.json` so that it can persist across restarts.
+If the `url` is not set, then the service block is a no-op.
+
+If not set, the self-reported `id` that the Agent uses is a randomly generated,
+anonymous unique ID (UUID) that is stored as an `agent_seed.json` file in the
+Agent's storage path so that it can persist across restarts.
 
 ## Blocks
 
