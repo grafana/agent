@@ -172,6 +172,8 @@ func (s *Service) Update(newConfig any) error {
 		s.asClient = noopClient{}
 		s.args.HTTPClientConfig = config.CloneDefaultHTTPClientConfig()
 		s.mut.Unlock()
+
+		s.setCfgHash("")
 		return nil
 	}
 
