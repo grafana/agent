@@ -205,15 +205,17 @@ func (arg *Arguments) SetToDefault() {
 
 // Validate implements river.Validator.
 func (arg *Arguments) Validate() error {
-	if arg.ScrapeTimeout <= 0 {
+	if arg.ScrapeTimeout.Seconds() <= 0 {
 		return fmt.Errorf("scrape_timeout must be greater than 0")
 	}
 
 	// ScrapeInterval must be at least 2 seconds, because if
 	// ProfilingTarget.Delta is true the ScrapeInterval - 1s is propagated in
 	// the `seconds` parameter and it must be >= 1.
-	if arg.ScrapeInterval <= 2 {
-		return fmt.Errorf("scrape_interval must be at least 2 seconds")
+	for _, target := range arg.ProfilingConfig.AllTargets() {
+		if target.Enabled && target.Delta && arg.ScrapeInterval.Seconds() < 2 {
+			return fmt.Errorf("scrape_interval must be at least 2 seconds when using delta profiling")
+		}
 	}
 
 	// We must explicitly Validate because HTTPClientConfig is squashed and it won't run otherwise
