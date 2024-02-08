@@ -85,6 +85,8 @@ Main (unreleased)
 
 - Use Go 1.22 for builds. (@rfratto)
 
+- Updated docs for MSSQL Integration to show additional authentication capabilities. (@StefanKurek)
+
 v0.39.2 (2024-1-31)
 --------------------
 
