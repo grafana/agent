@@ -22,9 +22,11 @@ Main (unreleased)
 
 - A new `pyroscope.java` component for profiling Java processes using async-profiler. (@korniltsev)
 
-- A new `otelcol.processor.resourcedetection` component which inserts resource attributes 
+- A new `otelcol.processor.resourcedetection` component which inserts resource attributes
   to OTLP telemetry based on the host on which Grafana Agent is running. (@ptodev)
-  
+
+- Expose track_timestamps_staleness on Prometheus scraping, to fix the issue where container metrics live for 5 minutes after the container disappears. (@ptodev)
+
 ### Enhancements
 
 - Include line numbers in profiles produced by `pyrsocope.java` component. (@korniltsev)
@@ -33,7 +35,7 @@ Main (unreleased)
 
 - Sort kubelet endpoint to reduce pressure on K8s's API server and watcher endpoints. (@hainenber)
 
-- Expose `physical_disk` collector from `windows_exporter` v0.24.0 to 
+- Expose `physical_disk` collector from `windows_exporter` v0.24.0 to
   Flow configuration. (@hainenber)
 
 - Renamed Grafana Agent Mixin's "prometheus.remote_write" dashboard to
@@ -45,11 +47,13 @@ Main (unreleased)
 
 - Increased clustering alert periods to 10 minutes to improve the
   signal-to-noise ratio in Grafana Agent Mixin. (@thampiotr)
-  
-- `mimir.rules.kubernetes` has a new `prometheus_http_prefix` argument to configure 
+
+- `mimir.rules.kubernetes` has a new `prometheus_http_prefix` argument to configure
   the HTTP endpoint on which to connect to Mimir's API. (@hainenber)
 
 - `service_name` label is inferred from discovery meta labels in `pyroscope.java` (@korniltsev)
+
+- Mutex and block pprofs are now available via the pprof endpoint. (@mattdurham)
 
 ### Bugfixes
 
@@ -69,6 +73,8 @@ Main (unreleased)
 - Fix an issue with static integrations-next marshaling where non singletons
   would cause `/-/config` to fail to marshal. (@erikbaranowski)
 
+- Fix divide-by-zero issue when sharding targets. (@hainenber) 
+
 ### Other changes
 
 - Removed support for Windows 2012 in line with Microsoft end of life. (@mattdurham)
@@ -76,6 +82,8 @@ Main (unreleased)
 - Split instance ID and component groupings into separate panels for `remote write active series by component` in the Flow mixin. (@tristanburgess)
 
 - Updated dependency to add support for Go 1.22 (@stefanb)
+
+- Use Go 1.22 for builds. (@rfratto)
 
 - Remove unused `path_prefix` argument in `pyroscope.scrape` component. (@hainenber)
 
@@ -123,7 +131,7 @@ v0.39.0 (2024-01-09)
   - This change will not break any existing configurations and you can opt in to validation via the `validate_dimensions` configuration option.
   - Before this change, pulling metrics for azure resources with variable dimensions required one configuration per metric + dimension combination to avoid an error.
   - After this change, you can include all metrics and dimensions in a single configuration and the Azure APIs will only return dimensions which are valid for the various metrics.
-  
+
 ### Features
 
 - A new `discovery.ovhcloud` component for discovering scrape targets on OVHcloud. (@ptodev)
@@ -220,7 +228,7 @@ v0.39.0 (2024-01-09)
 - Attach unique Agent ID header to remote-write requests. (@captncraig)
 
 - Update to v2.48.1 of `github.com/prometheus/prometheus`.
-  Previously, a custom fork of v2.47.2 was used. 
+  Previously, a custom fork of v2.47.2 was used.
   The custom fork of v2.47.2 also contained prometheus#12729 and prometheus#12677.
 
 v0.38.1 (2023-11-30)

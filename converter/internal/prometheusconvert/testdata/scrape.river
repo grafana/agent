@@ -9,11 +9,12 @@ prometheus.scrape "prometheus_1" {
 			app         = "foo",
 		}],
 	)
-	forward_to       = [prometheus.remote_write.default.receiver]
-	job_name         = "prometheus-1"
-	honor_timestamps = false
-	scrape_interval  = "10s"
-	scrape_timeout   = "5s"
+	forward_to                 = [prometheus.remote_write.default.receiver]
+	job_name                   = "prometheus-1"
+	honor_timestamps           = false
+	track_timestamps_staleness = true
+	scrape_interval            = "10s"
+	scrape_timeout             = "5s"
 
 	basic_auth {
 		username = "user"
