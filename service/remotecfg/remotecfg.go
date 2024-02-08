@@ -231,29 +231,29 @@ func (s *Service) Update(newConfig any) error {
 }
 
 // fetch attempts to read configuration from the API and the local cache
-// and then parse/load in order of preference.
+// and then parse/load their contents in order of preference.
 func (s *Service) fetch() {
 	if !s.isEnabled() {
 		return
 	}
 
-	var b1, b2 []byte
-	b1, err := s.getAPIConfig()
-	b2, err2 := s.getCachedConfig()
-
-	if err != nil && err2 != nil {
-		level.Debug(s.opts.Logger).Log("msg", "failed to get any configuration during startup", "apiErr", err, "cacheErr", err2)
-		return
+	b, err := s.getAPIConfig()
+	if err == nil {
+		err = s.parseAndLoad(b)
+		if err == nil {
+			return
+		}
 	}
+	level.Error(s.opts.Logger).Log("msg", "failed to load from remote endpoint, falling back to cache", "err", err)
 
-	err = s.parseAndLoad(b1)
-	if err != nil && err2 == nil {
-		err = s.parseAndLoad(b2)
+	b, err = s.getCachedConfig()
+	if err == nil {
+		err = s.parseAndLoad(b)
+		if err == nil {
+			return
+		}
 	}
-
-	if err != nil {
-		level.Error(s.opts.Logger).Log("msg", "failed to load remote cfg during startup", "err", err)
-	}
+	level.Error(s.opts.Logger).Log("msg", "failed to load from cache", "err", err)
 }
 
 func (s *Service) getAPIConfig() ([]byte, error) {
