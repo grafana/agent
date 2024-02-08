@@ -148,34 +148,10 @@ func (s *Service) Run(ctx context.Context, host service.Host) error {
 	for {
 		select {
 		case <-s.ch:
-			b, err := s.getAPIConfig()
+			err := s.fetchRemote()
 			if err != nil {
-				level.Error(s.opts.Logger).Log("msg", "failed to fetch configuration from the API", "err", err)
-				continue
+				level.Error(s.opts.Logger).Log("msg", "failed to fetch remote configuration from the API", "err", err)
 			}
-
-			// The polling loop got the same configuration, no need to reload.
-			newConfigHash := getHash(b)
-			if s.getCfgHash() == newConfigHash {
-				level.Debug(s.opts.Logger).Log("msg", "skipping to the next polling loop")
-				continue
-			}
-
-			// We have a new configuration let's try to load it
-			err = s.parseAndLoad(b)
-			if err != nil {
-				level.Error(s.opts.Logger).Log("msg", "failed to load configuration from the API", "err", err)
-				continue
-			}
-
-			level.Info(s.opts.Logger).Log("msg", "new remote configuration loaded successfully")
-
-			// If successful, flush to disk and keep a copy.
-			err = os.WriteFile(s.dataPath, b, 0750)
-			if err != nil {
-				level.Error(s.opts.Logger).Log("msg", "failed to flush remote configuration contents the on-disk cache", "err", err)
-			}
-			s.setCfgHash(newConfigHash)
 		case <-ctx.Done():
 			s.ticker.Stop()
 			return nil
@@ -233,27 +209,52 @@ func (s *Service) Update(newConfig any) error {
 // fetch attempts to read configuration from the API and the local cache
 // and then parse/load their contents in order of preference.
 func (s *Service) fetch() {
+	if err := s.fetchRemote(); err != nil {
+		s.fetchLocal()
+	}
+}
+func (s *Service) fetchRemote() error {
 	if !s.isEnabled() {
-		return
+		return nil
 	}
 
 	b, err := s.getAPIConfig()
-	if err == nil {
-		err = s.parseAndLoad(b)
-		if err == nil {
-			return
-		}
+	if err != nil {
+		return err
 	}
-	level.Error(s.opts.Logger).Log("msg", "failed to load from remote endpoint, falling back to cache", "err", err)
 
-	b, err = s.getCachedConfig()
-	if err == nil {
-		err = s.parseAndLoad(b)
-		if err == nil {
-			return
-		}
+	// API return the same configuration, no need to reload.
+	newConfigHash := getHash(b)
+	if s.getCfgHash() == newConfigHash {
+		level.Debug(s.opts.Logger).Log("msg", "skipping over API response since it contained the same hash")
+		return nil
 	}
-	level.Error(s.opts.Logger).Log("msg", "failed to load from cache", "err", err)
+
+	err = s.parseAndLoad(b)
+	if err != nil {
+		return err
+	}
+
+	// If successful, flush to disk and keep a copy.
+	err = os.WriteFile(s.dataPath, b, 0750)
+	if err != nil {
+		level.Error(s.opts.Logger).Log("msg", "failed to flush remote configuration contents the on-disk cache", "err", err)
+	}
+	s.setCfgHash(newConfigHash)
+	return nil
+}
+
+func (s *Service) fetchLocal() {
+	b, err := s.getCachedConfig()
+	if err != nil {
+		level.Error(s.opts.Logger).Log("msg", "failed to read from cache", "err", err)
+		return
+	}
+
+	err = s.parseAndLoad(b)
+	if err != nil {
+		level.Error(s.opts.Logger).Log("msg", "failed to load from cache", "err", err)
+	}
 }
 
 func (s *Service) getAPIConfig() ([]byte, error) {
