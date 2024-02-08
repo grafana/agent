@@ -185,11 +185,11 @@ func (i *Instance) ApplyConfig(c *InstanceConfig, g GlobalConfig, dryRun bool) e
 	}
 
 	uid := agentseed.Get().UID
-	for _, cfg := range c.ClientConfigs {
-		if cfg.Headers == nil {
-			cfg.Headers = map[string]string{}
+	for i := range c.ClientConfigs {
+		if c.ClientConfigs[i].Headers == nil {
+			c.ClientConfigs[i].Headers = map[string]string{}
 		}
-		cfg.Headers[agentseed.HeaderName] = uid
+		c.ClientConfigs[i].Headers[agentseed.HeaderName] = uid
 	}
 
 	clientMetrics := client.NewMetrics(i.reg)
