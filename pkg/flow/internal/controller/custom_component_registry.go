@@ -1,13 +1,21 @@
 package controller
 
 import (
+	"fmt"
+	"sync"
+
 	"github.com/grafana/river/ast"
 )
 
 // CustomComponentRegistry holds custom component definitions that are available in the context.
+// The definitions are either imported, declared locally, or declared in a parent registry.
+// Imported definitions are stored inside of the corresponding import registry.
 type CustomComponentRegistry struct {
 	parent   *CustomComponentRegistry // nil if root config
 	declares map[string]ast.Body      // customComponentName: template
+
+	mut     sync.RWMutex
+	imports map[string]*CustomComponentRegistry // importNamespace: importScope
 }
 
 // NewCustomComponentRegistry creates a new CustomComponentRegistry with a parent.
@@ -16,10 +24,70 @@ func NewCustomComponentRegistry(parent *CustomComponentRegistry) *CustomComponen
 	return &CustomComponentRegistry{
 		parent:   parent,
 		declares: make(map[string]ast.Body),
+		imports:  make(map[string]*CustomComponentRegistry),
 	}
 }
 
 // registerDeclare stores a local declare block.
 func (s *CustomComponentRegistry) registerDeclare(declare *ast.BlockStmt) {
 	s.declares[declare.Label] = declare.Body
+}
+
+// registerImport stores the import namespace.
+// The content will be added later during evaluation.
+// It's important to register it before populating the component nodes
+// (else we don't know which one exists).
+func (s *CustomComponentRegistry) registerImport(importNamespace string) {
+	s.imports[importNamespace] = nil
+}
+
+// updateImportContent updates the content of a registered import.
+// The content of an import node can contain other import blocks.
+// These are considered as "children" of the root import node.
+// Each child has its own CustomComponentRegistry which needs to be updated.
+func (s *CustomComponentRegistry) updateImportContent(importNode *ImportConfigNode) {
+	s.mut.Lock()
+	defer s.mut.Unlock()
+	if _, exist := s.imports[importNode.label]; !exist {
+		panic(fmt.Errorf("import %q was not registered", importNode.label))
+	}
+	importScope := NewCustomComponentRegistry(nil)
+	importScope.declares = importNode.ImportedDeclares()
+	importScope.updateImportContentChildren(importNode)
+	s.imports[importNode.label] = importScope
+}
+
+// updateImportContentChildren recurse through the children of an import node
+// and update their scope with the imported declare blocks.
+func (s *CustomComponentRegistry) updateImportContentChildren(importNode *ImportConfigNode) {
+	for _, child := range importNode.ImportConfigNodesChildren() {
+		childScope := NewCustomComponentRegistry(nil)
+		childScope.declares = child.ImportedDeclares()
+		childScope.updateImportContentChildren(child)
+		s.imports[child.label] = childScope
+	}
+}
+
+// deepCopy returns a deep copy of the full scope (including parents and imports).
+func (s *CustomComponentRegistry) deepCopy() *CustomComponentRegistry {
+	s.mut.Lock()
+	defer s.mut.Unlock()
+	newScope := NewCustomComponentRegistry(nil)
+
+	if s.parent != nil {
+		newScope.parent = s.parent.deepCopy()
+	}
+
+	for k, v := range s.declares {
+		if v != nil {
+			newScope.declares[k] = v
+		}
+	}
+
+	for k, v := range s.imports {
+		if v != nil {
+			newScope.imports[k] = v.deepCopy()
+		}
+	}
+	return newScope
 }
