@@ -19,8 +19,8 @@ func TestAddingMarker(t *testing.T) {
 		Name:  "__name__",
 		Value: "test",
 	})
-	globalID := mapping.GetOrAddGlobalRefID(l)
-	shouldBeSameGlobalID := mapping.GetOrAddGlobalRefID(l)
+	globalID := mapping.getOrAddGlobalRefID(l)
+	shouldBeSameGlobalID := mapping.getOrAddGlobalRefID(l)
 	require.True(t, globalID == shouldBeSameGlobalID)
 	require.Len(t, mapping.labelsHashToGlobal, 1)
 }
@@ -37,8 +37,8 @@ func TestAddingDifferentMarkers(t *testing.T) {
 		Name:  "__name__",
 		Value: "roar",
 	})
-	globalID := mapping.GetOrAddGlobalRefID(l)
-	shouldBeDifferentID := mapping.GetOrAddGlobalRefID(l2)
+	globalID := mapping.getOrAddGlobalRefID(l)
+	shouldBeDifferentID := mapping.getOrAddGlobalRefID(l2)
 	require.True(t, globalID != shouldBeDifferentID)
 	require.Len(t, mapping.labelsHashToGlobal, 2)
 }
@@ -51,7 +51,7 @@ func TestAddingLocalMapping(t *testing.T) {
 		Value: "test",
 	})
 
-	globalID := mapping.GetOrAddGlobalRefID(l)
+	globalID := mapping.getOrAddGlobalRefID(l)
 	shouldBeSameGlobalID := mapping.GetOrAddLink("1", 1, l)
 	require.True(t, globalID == shouldBeSameGlobalID)
 	require.Len(t, mapping.labelsHashToGlobal, 1)
@@ -69,7 +69,7 @@ func TestAddingLocalMappings(t *testing.T) {
 		Value: "test",
 	})
 
-	globalID := mapping.GetOrAddGlobalRefID(l)
+	globalID := mapping.getOrAddGlobalRefID(l)
 	shouldBeSameGlobalID := mapping.GetOrAddLink("1", 1, l)
 	shouldBeSameGlobalID2 := mapping.GetOrAddLink("2", 1, l)
 	require.True(t, globalID == shouldBeSameGlobalID)
@@ -129,7 +129,7 @@ func TestStaleness(t *testing.T) {
 	require.Len(t, mapping.labelsHashToGlobal, 2)
 	staleDuration = 1 * time.Millisecond
 	time.Sleep(10 * time.Millisecond)
-	mapping.CheckAndRemoveStaleMarkers()
+	mapping.checkAndRemoveStaleMarkers()
 	require.Len(t, mapping.staleGlobals, 0)
 	require.Len(t, mapping.labelsHashToGlobal, 1)
 }

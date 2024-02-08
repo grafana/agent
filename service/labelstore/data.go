@@ -11,23 +11,17 @@ import (
 )
 
 type LabelStore interface {
-	// This will convert a prometheus series to a labelstore series. Any series here must be later passed on to remove add/remove staleness markers
+	// ConvertToSeries This will convert a prometheus series to a labelstore series. Any series here must be later passed on to remove add/remove staleness markers
 	ConvertToSeries(ts int64, val float64, lbls labels.Labels) *Series
 
 	// GetOrAddLink returns the global id for the values, if none found one will be created based on the lbls.
 	GetOrAddLink(componentID string, localRefID uint64, lbls labels.Labels) uint64
 
-	// GetGlobalRefID returns the global id for a component and the local id. Returns 0 if nothing found.
-	GetGlobalRefID(componentID string, localRefID uint64) uint64
-
 	// GetLocalRefID gets the mapping from global to local id specific to a component. Returns 0 if nothing found.
 	GetLocalRefID(componentID string, globalRefID uint64) uint64
 
-	// HandleStaleMarker will remove or add staleness markers as needed.
+	// HandleStaleMarkers will remove or add staleness markers as needed.
 	HandleStaleMarkers(series []*Series)
-
-	// CheckAndRemoveStaleMarkers identifies any series with a stale marker and removes those entries from the LabelStore.
-	CheckAndRemoveStaleMarkers()
 }
 
 // Series should be treated as immutable and only created via ConvertToSeries.

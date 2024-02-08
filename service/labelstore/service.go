@@ -95,7 +95,7 @@ func (s *service) Run(ctx context.Context, host agent_service.Host) error {
 		case <-ctx.Done():
 			return nil
 		case <-staleCheck.C:
-			s.CheckAndRemoveStaleMarkers()
+			s.checkAndRemoveStaleMarkers()
 		}
 	}
 }
@@ -152,8 +152,8 @@ func (s *service) GetOrAddLink(componentID string, localRefID uint64, lbls label
 	return s.globalRefID
 }
 
-// GetOrAddGlobalRefID is used to create a global refid for a labelset
-func (s *service) GetOrAddGlobalRefID(l labels.Labels) uint64 {
+// getOrAddGlobalRefID is used to create a global refid for a labelset
+func (s *service) getOrAddGlobalRefID(l labels.Labels) uint64 {
 	s.mut.Lock()
 	defer s.mut.Unlock()
 
@@ -210,7 +210,7 @@ func (s *service) HandleStaleMarkers(series []*Series) {
 				globalID:        ser.GlobalID,
 			}
 		} else {
-			// Its easier to blindly delete than check if it exists.
+			// It iss easier to blindly delete than check if it exists.
 			delete(s.staleGlobals, ser.GlobalID)
 		}
 	}
@@ -219,8 +219,8 @@ func (s *service) HandleStaleMarkers(series []*Series) {
 // staleDuration determines how long we should wait after a stale value is received to GC that value
 var staleDuration = time.Minute * 10
 
-// CheckAndRemoveStaleMarkers is called to garbage collect and items that have grown stale over stale duration (10m)
-func (s *service) CheckAndRemoveStaleMarkers() {
+// checkAndRemoveStaleMarkers is called to garbage collect and items that have grown stale over stale duration (10m)
+func (s *service) checkAndRemoveStaleMarkers() {
 	s.mut.Lock()
 	defer s.mut.Unlock()
 
@@ -254,7 +254,7 @@ func (s *service) ConvertToSeries(ts int64, val float64, lbls labels.Labels) *Se
 		Value:    val,
 		Lbls:     lbls,
 		Hash:     lbls.Hash(),
-		GlobalID: s.GetOrAddGlobalRefID(lbls),
+		GlobalID: s.getOrAddGlobalRefID(lbls),
 	}
 }
 

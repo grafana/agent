@@ -29,12 +29,12 @@ func TestCache(t *testing.T) {
 	s := lc.ConvertToSeries(0, 0, lbls)
 	relabeller.relabel(s)
 	require.True(t, relabeller.cache.Len() == 1)
-	entry, found := relabeller.getFromCache(lc.GetOrAddGlobalRefID(lbls))
+	entry, found := relabeller.getFromCache(lc.getOrAddGlobalRefID(lbls))
 	require.True(t, found)
 	require.NotNil(t, entry)
 	require.True(
 		t,
-		lc.GetOrAddGlobalRefID(entry.Lbls) != lc.GetOrAddGlobalRefID(lbls),
+		lc.getOrAddGlobalRefID(entry.Lbls) != lc.getOrAddGlobalRefID(lbls),
 	)
 }
 
