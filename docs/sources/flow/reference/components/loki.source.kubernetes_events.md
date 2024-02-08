@@ -154,7 +154,7 @@ events in each watched namespace.
 
 ## Component behavior
 
-The component uses its data path,  a directory named after the domain's
+The component uses its data path, a directory named after the domain's
 fully qualified name, to store its _positions file_. The positions file is used
 to store read offsets, so that if a component or {{< param "PRODUCT_ROOT_NAME" >}} restarts,
 `loki.source.kubernetes_events` can pick up tailing from the same spot.
