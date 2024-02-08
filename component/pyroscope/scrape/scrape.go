@@ -94,8 +94,6 @@ type ProfilingConfig struct {
 	GoDeltaProfMutex  ProfilingTarget         `river:"profile.godeltaprof_mutex,block,optional"`
 	GoDeltaProfBlock  ProfilingTarget         `river:"profile.godeltaprof_block,block,optional"`
 	Custom            []CustomProfilingTarget `river:"profile.custom,block,optional"`
-
-	PprofPrefix string `river:"path_prefix,attr,optional"`
 }
 
 // AllTargets returns the set of all standard and custom profiling targets,

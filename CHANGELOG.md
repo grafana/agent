@@ -77,6 +77,8 @@ Main (unreleased)
 
 - Updated dependency to add support for Go 1.22 (@stefanb)
 
+- Remove unused `path_prefix` argument in `pyroscope.scrape` component. (@hainenber)
+
 v0.39.2 (2024-1-31)
 --------------------
 
