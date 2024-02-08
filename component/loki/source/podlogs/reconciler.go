@@ -147,7 +147,7 @@ func distributeTargets(c cluster.Cluster, targets []*kubetail.Target) []*kubetai
 			// back to owning the target ourselves.
 			res = append(res, target)
 		}
-		if len(peers) >= 1 && peers[0].Self {
+		if len(peers) == 0 || peers[0].Self {
 			res = append(res, target)
 		}
 	}

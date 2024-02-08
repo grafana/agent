@@ -59,7 +59,7 @@ func (t *DistributedTargets) Get() []Target {
 			// back to owning the target ourselves.
 			res = append(res, tgt)
 		}
-		if len(peers) >= 1 && peers[0].Self {
+		if len(peers) == 0 || peers[0].Self {
 			res = append(res, tgt)
 		}
 	}
