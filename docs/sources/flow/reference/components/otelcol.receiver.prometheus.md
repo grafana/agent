@@ -107,9 +107,6 @@ otelcol.exporter.otlp "default" {
 
 - Components that export [OpenTelemetry `otelcol.Consumer`]({{< relref "../compatibility/#opentelemetry-otelcolconsumer-exporters" >}})
 
-`otelcol.receiver.prometheus` has exports that can be consumed by the following components:
-
-- Components that consume [Prometheus `MetricsReceiver`]({{< relref "../compatibility/#prometheus-metricsreceiver-consumers" >}})
 
 {{< admonition type="note" >}}
 Connecting some components may not be sensible or components may require further configuration to make the connection work correctly.

@@ -1,6 +1,7 @@
 package labelstore
 
 import (
+	"math"
 	"testing"
 	"time"
 
@@ -121,7 +122,7 @@ func TestStaleness(t *testing.T) {
 		Value: "test2",
 	})
 
-	global1 := mapping.ConvertToSeries(0, float64(value.StaleNaN), l)
+	global1 := mapping.ConvertToSeries(0, math.Float64frombits(value.StaleNaN), l)
 	_ = mapping.GetOrAddLink("2", 1, l2)
 	mapping.HandleStaleMarkers([]*Series{global1})
 	require.Len(t, mapping.staleGlobals, 1)

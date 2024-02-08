@@ -163,10 +163,6 @@ The following components, grouped by namespace, _export_ Prometheus `MetricsRece
 
 <!-- START GENERATED SECTION: EXPORTERS OF Prometheus `MetricsReceiver` -->
 
-{{< collapse title="otelcol" >}}
-- [otelcol.receiver.prometheus]({{< relref "../components/otelcol.receiver.prometheus.md" >}})
-{{< /collapse >}}
-
 {{< collapse title="prometheus" >}}
 - [prometheus.relabel]({{< relref "../components/prometheus.relabel.md" >}})
 - [prometheus.remote_write]({{< relref "../components/prometheus.remote_write.md" >}})

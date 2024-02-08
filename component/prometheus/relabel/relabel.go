@@ -3,6 +3,7 @@ package relabel
 import (
 	"context"
 	"fmt"
+	"github.com/prometheus/prometheus/model/value"
 	"sync"
 
 	"go.uber.org/atomic"
@@ -21,7 +22,6 @@ import (
 	"github.com/prometheus/prometheus/model/metadata"
 
 	"github.com/prometheus/prometheus/model/relabel"
-	"github.com/prometheus/prometheus/model/value"
 )
 
 func init() {
@@ -232,9 +232,13 @@ func (c *Component) relabel(series *labelstore.Series) *labelstore.Series {
 		relabelled labels.Labels
 		keep       bool
 	)
+
 	newSeries, found := c.getFromCache(series.GlobalID)
 	if found {
 		c.cacheHits.Inc()
+		if value.IsStaleNaN(series.Value) {
+			c.deleteFromCache(series.GlobalID)
+		}
 		return newSeries
 	} else {
 		// Relabel against a copy of the labels to prevent modifying the original
@@ -244,10 +248,6 @@ func (c *Component) relabel(series *labelstore.Series) *labelstore.Series {
 		newSeries = c.ls.ConvertToSeries(series.Ts, series.Value, relabelled)
 		c.addToCache(series.GlobalID, newSeries, keep)
 	}
-
-	// If stale remove from the cache, the reason we don't exit early is so the stale value can propagate.
-	// TODO: (@mattdurham) This caching can leak and likely needs a timed eviction at some point, but this is simple.
-	// In the future the global ref cache may have some hooks to allow notification of when caches should be evicted.
 	if value.IsStaleNaN(series.Value) {
 		c.deleteFromCache(series.GlobalID)
 	}

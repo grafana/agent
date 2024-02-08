@@ -2,6 +2,7 @@ package metadata
 
 import (
 	"fmt"
+	"github.com/grafana/agent/service/labelstore"
 	"reflect"
 
 	"github.com/grafana/agent/component"
@@ -10,7 +11,6 @@ import (
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/otelcol"
 	"github.com/grafana/agent/component/pyroscope"
-	"github.com/prometheus/prometheus/storage"
 )
 
 //TODO(thampiotr): Instead of metadata package reaching into registry, we'll migrate to using a YAML schema file that
@@ -53,10 +53,10 @@ var (
 	TypePromMetricsReceiver = Type{
 		Name: "Prometheus `MetricsReceiver`",
 		existsInArgsFn: func(args component.Arguments) bool {
-			return hasFieldOfType(args, reflect.TypeOf([]storage.Appendable{}))
+			return hasFieldOfType(args, reflect.TypeOf([]labelstore.Appendable{}))
 		},
 		existsInExportsFn: func(exports component.Exports) bool {
-			var a *storage.Appendable = nil
+			var a *labelstore.Appendable = nil
 			return hasFieldOfType(exports, reflect.TypeOf(a).Elem())
 		},
 	}
