@@ -180,13 +180,13 @@ func TestServerRestarts(t *testing.T) {
 				Server: &fnet.ServerConfig{
 					HTTP: &fnet.HTTPConfig{ListenAddress: "localhost", ListenPort: port},
 				},
-				ForwardTo: []storage.Appendable{},
+				ForwardTo: []labelstore.Appendable{},
 			},
 			newArgs: Arguments{
 				Server: &fnet.ServerConfig{
 					HTTP: &fnet.HTTPConfig{ListenAddress: "localhost", ListenPort: port},
 				},
-				ForwardTo: []storage.Appendable{},
+				ForwardTo: []labelstore.Appendable{},
 			},
 			shouldRestart: false,
 		},
@@ -196,7 +196,7 @@ func TestServerRestarts(t *testing.T) {
 				Server: &fnet.ServerConfig{
 					HTTP: &fnet.HTTPConfig{ListenAddress: "localhost", ListenPort: port},
 				},
-				ForwardTo: []storage.Appendable{},
+				ForwardTo: []labelstore.Appendable{},
 			},
 			newArgs: Arguments{
 				Server: &fnet.ServerConfig{
@@ -212,7 +212,7 @@ func TestServerRestarts(t *testing.T) {
 				Server: &fnet.ServerConfig{
 					HTTP: &fnet.HTTPConfig{ListenAddress: "localhost", ListenPort: port},
 				},
-				ForwardTo: []storage.Appendable{},
+				ForwardTo: []labelstore.Appendable{},
 			},
 			newArgs: Arguments{
 				Server: &fnet.ServerConfig{
@@ -228,7 +228,7 @@ func TestServerRestarts(t *testing.T) {
 				Server: &fnet.ServerConfig{
 					HTTP: &fnet.HTTPConfig{ListenAddress: "localhost", ListenPort: port},
 				},
-				ForwardTo: []storage.Appendable{},
+				ForwardTo: []labelstore.Appendable{},
 			},
 			newArgs: Arguments{
 				Server: &fnet.ServerConfig{
@@ -335,21 +335,17 @@ func verifyExpectations(
 	}
 }
 
-func testAppendable(actualSamples chan testSample) []storage.Appendable {
+func testAppendable(actualSamples chan testSample) []labelstore.Appendable {
 	hookFn := func(
-		ref storage.SeriesRef,
-		l labels.Labels,
-		ts int64,
-		val float64,
-		next storage.Appender,
+		s *labelstore.Series,
+		next labelstore.Appender,
 	) (storage.SeriesRef, error) {
-
-		actualSamples <- testSample{ts: ts, val: val, l: l}
-		return ref, nil
+		actualSamples <- testSample{ts: s.Ts, val: s.Value, l: s.Lbls}
+		return storage.SeriesRef(s.GlobalID), nil
 	}
 
 	ls := labelstore.New(nil, prometheus.DefaultRegisterer)
-	return []storage.Appendable{agentprom.NewInterceptor(
+	return []labelstore.Appendable{agentprom.NewInterceptor(
 		nil,
 		ls,
 		agentprom.WithAppendHook(

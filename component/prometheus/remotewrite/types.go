@@ -8,6 +8,7 @@ import (
 
 	types "github.com/grafana/agent/component/common/config"
 	flow_relabel "github.com/grafana/agent/component/common/relabel"
+	"github.com/grafana/agent/service/labelstore"
 	"github.com/grafana/river/rivertypes"
 
 	"github.com/google/uuid"
@@ -16,7 +17,6 @@ import (
 	promsigv4 "github.com/prometheus/common/sigv4"
 	"github.com/prometheus/prometheus/config"
 	"github.com/prometheus/prometheus/model/labels"
-	"github.com/prometheus/prometheus/storage"
 	"github.com/prometheus/prometheus/storage/remote/azuread"
 )
 
@@ -224,7 +224,7 @@ func (o *WALOptions) Validate() error {
 // Exports are the set of fields exposed by the prometheus.remote_write
 // component.
 type Exports struct {
-	Receiver storage.Appendable `river:"receiver,attr"`
+	Receiver labelstore.Appendable `river:"receiver,attr"`
 }
 
 func convertConfigs(cfg Arguments) (*config.Config, error) {

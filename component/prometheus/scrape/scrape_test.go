@@ -24,7 +24,7 @@ import (
 )
 
 func TestRiverConfig(t *testing.T) {
-	var exampleRiverConfig = `
+	exampleRiverConfig := `
 	targets         = [{ "target1" = "target1" }]
 	forward_to      = []
 	scrape_interval = "10s"
@@ -52,7 +52,7 @@ func TestRiverConfig(t *testing.T) {
 }
 
 func TestBadRiverConfig(t *testing.T) {
-	var exampleRiverConfig = `
+	exampleRiverConfig := `
 	targets         = [{ "target1" = "target1" }]
 	forward_to      = []
 	scrape_interval = "10s"
@@ -95,7 +95,7 @@ func TestForwardingToAppendable(t *testing.T) {
 		},
 	}
 
-	nilReceivers := []storage.Appendable{nil, nil}
+	nilReceivers := []labelstore.Appendable{nil, nil}
 
 	var args Arguments
 	args.SetToDefault()
@@ -106,7 +106,9 @@ func TestForwardingToAppendable(t *testing.T) {
 
 	// Forwarding samples to the nil receivers shouldn't fail.
 	appender := s.appendable.Appender(context.Background())
-	_, err = appender.Append(0, labels.FromStrings("foo", "bar"), 0, 0)
+	ls := labelstore.New(nil, prometheus_client.DefaultRegisterer)
+	ser := ls.ConvertToSeries(0, 0, labels.FromStrings("foo", "bar"))
+	_, err = appender.Append(ser)
 	require.NoError(t, err)
 
 	err = appender.Commit()
@@ -115,14 +117,13 @@ func TestForwardingToAppendable(t *testing.T) {
 	// Update the component with a mock receiver; it should be passed along to the Appendable.
 	var receivedTs int64
 	var receivedSamples labels.Labels
-	ls := labelstore.New(nil, prometheus_client.DefaultRegisterer)
-	fanout := prometheus.NewInterceptor(nil, ls, prometheus.WithAppendHook(func(ref storage.SeriesRef, l labels.Labels, t int64, _ float64, _ storage.Appender) (storage.SeriesRef, error) {
-		receivedTs = t
-		receivedSamples = l
-		return ref, nil
+	fanout := prometheus.NewInterceptor(nil, ls, prometheus.WithAppendHook(func(ser *labelstore.Series, _ labelstore.Appender) (storage.SeriesRef, error) {
+		receivedTs = ser.Ts
+		receivedSamples = ser.Lbls
+		return storage.SeriesRef(ser.GlobalID), nil
 	}))
 	require.NoError(t, err)
-	args.ForwardTo = []storage.Appendable{fanout}
+	args.ForwardTo = []labelstore.Appendable{fanout}
 	err = s.Update(args)
 	require.NoError(t, err)
 
@@ -130,7 +131,8 @@ func TestForwardingToAppendable(t *testing.T) {
 	appender = s.appendable.Appender(context.Background())
 	timestamp := time.Now().Unix()
 	sample := labels.FromStrings("foo", "bar")
-	_, err = appender.Append(0, sample, timestamp, 42.0)
+	ser1 := ls.ConvertToSeries(timestamp, 42.0, sample)
+	_, err = appender.Append(ser1)
 	require.NoError(t, err)
 
 	err = appender.Commit()
@@ -166,7 +168,7 @@ func TestCustomDialer(t *testing.T) {
 	go srv.Serve(memLis)
 	defer srv.Shutdown(ctx)
 
-	var config = `
+	config := `
 	targets         = [{ __address__ = "inmemory:80" }]
 	forward_to      = []
 	scrape_interval = "100ms"
@@ -212,7 +214,7 @@ func TestCustomDialer(t *testing.T) {
 }
 
 func TestValidateScrapeConfig(t *testing.T) {
-	var exampleRiverConfig = `
+	exampleRiverConfig := `
 	targets         = [{ "target1" = "target1" }]
 	forward_to      = []
 	scrape_interval = "10s"

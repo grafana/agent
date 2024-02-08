@@ -14,7 +14,6 @@ import (
 	"github.com/grafana/agent/component/otelcol/internal/lazyconsumer"
 	"github.com/grafana/agent/component/prometheus"
 	"github.com/grafana/agent/service/labelstore"
-	"github.com/prometheus/prometheus/storage"
 )
 
 func init() {
@@ -31,13 +30,13 @@ func init() {
 
 // Arguments configures the otelcol.exporter.prometheus component.
 type Arguments struct {
-	IncludeTargetInfo             bool                 `river:"include_target_info,attr,optional"`
-	IncludeScopeInfo              bool                 `river:"include_scope_info,attr,optional"`
-	IncludeScopeLabels            bool                 `river:"include_scope_labels,attr,optional"`
-	GCFrequency                   time.Duration        `river:"gc_frequency,attr,optional"`
-	ForwardTo                     []storage.Appendable `river:"forward_to,attr"`
-	AddMetricSuffixes             bool                 `river:"add_metric_suffixes,attr,optional"`
-	ResourceToTelemetryConversion bool                 `river:"resource_to_telemetry_conversion,attr,optional"`
+	IncludeTargetInfo             bool                    `river:"include_target_info,attr,optional"`
+	IncludeScopeInfo              bool                    `river:"include_scope_info,attr,optional"`
+	IncludeScopeLabels            bool                    `river:"include_scope_labels,attr,optional"`
+	GCFrequency                   time.Duration           `river:"gc_frequency,attr,optional"`
+	ForwardTo                     []labelstore.Appendable `river:"forward_to,attr"`
+	AddMetricSuffixes             bool                    `river:"add_metric_suffixes,attr,optional"`
+	ResourceToTelemetryConversion bool                    `river:"resource_to_telemetry_conversion,attr,optional"`
 }
 
 // DefaultArguments holds defaults values.
@@ -86,13 +85,13 @@ func New(o component.Options, c Arguments) (*Component, error) {
 	}
 	ls := service.(labelstore.LabelStore)
 	fanout := prometheus.NewFanout(nil, o.ID, o.Registerer, ls)
+	shim := labelstore.NewShim(ls, fanout)
 
-	converter := convert.New(o.Logger, fanout, convertArgumentsToConvertOptions(c))
+	converter := convert.New(o.Logger, shim, convertArgumentsToConvertOptions(c))
 
 	res := &Component{
-		log:  o.Logger,
-		opts: o,
-
+		log:       o.Logger,
+		opts:      o,
 		fanout:    fanout,
 		converter: converter,
 	}

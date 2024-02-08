@@ -40,7 +40,7 @@ func init() {
 // component.
 type Arguments struct {
 	// Where the relabelled metrics should be forwarded to.
-	ForwardTo []storage.Appendable `river:"forward_to,attr"`
+	ForwardTo []labelstore.Appendable `river:"forward_to,attr"`
 
 	// The relabelling rules to apply to each metric before it's forwarded.
 	MetricRelabelConfigs []*flow_relabel.Config `river:"rule,block,optional"`
@@ -66,8 +66,8 @@ func (arg *Arguments) Validate() error {
 
 // Exports holds values which are exported by the prometheus.relabel component.
 type Exports struct {
-	Receiver storage.Appendable `river:"receiver,attr"`
-	Rules    flow_relabel.Rules `river:"rules,attr"`
+	Receiver labelstore.Appendable `river:"receiver,attr"`
+	Rules    flow_relabel.Rules    `river:"rules,attr"`
 }
 
 // Component implements the prometheus.relabel component.
@@ -87,16 +87,14 @@ type Component struct {
 	ls               labelstore.LabelStore
 
 	cacheMut sync.RWMutex
-	cache    *lru.Cache[uint64, *labelAndID]
+	cache    *lru.Cache[uint64, *labelstore.Series]
 }
 
-var (
-	_ component.Component = (*Component)(nil)
-)
+var _ component.Component = (*Component)(nil)
 
 // New creates a new prometheus.relabel component.
 func New(o component.Options, args Arguments) (*Component, error) {
-	cache, err := lru.New[uint64, *labelAndID](args.CacheSize)
+	cache, err := lru.New[uint64, *labelstore.Series](args.CacheSize)
 	if err != nil {
 		return nil, err
 	}
@@ -145,50 +143,49 @@ func New(o component.Options, args Arguments) (*Component, error) {
 	c.receiver = prometheus.NewInterceptor(
 		c.fanout,
 		c.ls,
-		prometheus.WithAppendHook(func(_ storage.SeriesRef, l labels.Labels, t int64, v float64, next storage.Appender) (storage.SeriesRef, error) {
+		prometheus.WithAppendHook(func(series *labelstore.Series, next labelstore.Appender) (storage.SeriesRef, error) {
 			if c.exited.Load() {
 				return 0, fmt.Errorf("%s has exited", o.ID)
 			}
 
-			newLbl := c.relabel(v, l)
-			if newLbl.IsEmpty() {
+			newseries := c.relabel(series)
+			if newseries.Lbls.IsEmpty() {
 				return 0, nil
 			}
 			c.metricsOutgoing.Inc()
-			return next.Append(0, newLbl, t, v)
+			return next.Append(newseries)
 		}),
-		prometheus.WithExemplarHook(func(_ storage.SeriesRef, l labels.Labels, e exemplar.Exemplar, next storage.Appender) (storage.SeriesRef, error) {
+		prometheus.WithExemplarHook(func(series *labelstore.Series, e exemplar.Exemplar, next labelstore.Appender) (storage.SeriesRef, error) {
 			if c.exited.Load() {
 				return 0, fmt.Errorf("%s has exited", o.ID)
 			}
 
-			newLbl := c.relabel(0, l)
-			if newLbl.IsEmpty() {
+			newseries := c.relabel(series)
+			if newseries.Lbls.IsEmpty() {
 				return 0, nil
 			}
-			return next.AppendExemplar(0, newLbl, e)
+			return next.AppendExemplar(newseries, e)
 		}),
-		prometheus.WithMetadataHook(func(_ storage.SeriesRef, l labels.Labels, m metadata.Metadata, next storage.Appender) (storage.SeriesRef, error) {
+		prometheus.WithMetadataHook(func(series *labelstore.Series, m metadata.Metadata, next labelstore.Appender) (storage.SeriesRef, error) {
 			if c.exited.Load() {
 				return 0, fmt.Errorf("%s has exited", o.ID)
 			}
-
-			newLbl := c.relabel(0, l)
-			if newLbl.IsEmpty() {
+			newseries := c.relabel(series)
+			if newseries.Lbls.IsEmpty() {
 				return 0, nil
 			}
-			return next.UpdateMetadata(0, newLbl, m)
+			return next.UpdateMetadata(newseries, m)
 		}),
-		prometheus.WithHistogramHook(func(_ storage.SeriesRef, l labels.Labels, t int64, h *histogram.Histogram, fh *histogram.FloatHistogram, next storage.Appender) (storage.SeriesRef, error) {
+		prometheus.WithHistogramHook(func(series *labelstore.Series, h *histogram.Histogram, fh *histogram.FloatHistogram, next labelstore.Appender) (storage.SeriesRef, error) {
 			if c.exited.Load() {
 				return 0, fmt.Errorf("%s has exited", o.ID)
 			}
-
-			newLbl := c.relabel(0, l)
-			if newLbl.IsEmpty() {
+			newseries := c.relabel(series)
+			if newseries.Lbls.IsEmpty() {
 				return 0, nil
 			}
-			return next.AppendHistogram(0, newLbl, t, h, fh)
+
+			return next.AppendHistogram(newseries, h, fh)
 		}),
 	)
 
@@ -227,43 +224,40 @@ func (c *Component) Update(args component.Arguments) error {
 	return nil
 }
 
-func (c *Component) relabel(val float64, lbls labels.Labels) labels.Labels {
+func (c *Component) relabel(series *labelstore.Series) *labelstore.Series {
 	c.mut.RLock()
 	defer c.mut.RUnlock()
 
-	globalRef := c.ls.GetOrAddGlobalRefID(lbls)
 	var (
 		relabelled labels.Labels
 		keep       bool
 	)
-	newLbls, found := c.getFromCache(globalRef)
+	newSeries, found := c.getFromCache(series.GlobalID)
 	if found {
 		c.cacheHits.Inc()
-		// If newLbls is nil but cache entry was found then we want to keep the value nil, if it's not we want to reuse the labels
-		if newLbls != nil {
-			relabelled = newLbls.labels
-		}
+		return newSeries
 	} else {
 		// Relabel against a copy of the labels to prevent modifying the original
 		// slice.
-		relabelled, keep = relabel.Process(lbls.Copy(), c.mrc...)
+		relabelled, keep = relabel.Process(series.Lbls.Copy(), c.mrc...)
 		c.cacheMisses.Inc()
-		c.addToCache(globalRef, relabelled, keep)
+		newSeries = c.ls.ConvertToSeries(series.Ts, series.Value, relabelled)
+		c.addToCache(series.GlobalID, newSeries, keep)
 	}
 
 	// If stale remove from the cache, the reason we don't exit early is so the stale value can propagate.
 	// TODO: (@mattdurham) This caching can leak and likely needs a timed eviction at some point, but this is simple.
 	// In the future the global ref cache may have some hooks to allow notification of when caches should be evicted.
-	if value.IsStaleNaN(val) {
-		c.deleteFromCache(globalRef)
+	if value.IsStaleNaN(series.Value) {
+		c.deleteFromCache(series.GlobalID)
 	}
 	// Set the cache size to the cache.len
 	// TODO(@mattdurham): Instead of setting this each time could collect on demand for better performance.
 	c.cacheSize.Set(float64(c.cache.Len()))
-	return relabelled
+	return newSeries
 }
 
-func (c *Component) getFromCache(id uint64) (*labelAndID, bool) {
+func (c *Component) getFromCache(id uint64) (*labelstore.Series, bool) {
 	c.cacheMut.RLock()
 	defer c.cacheMut.RUnlock()
 
@@ -281,11 +275,11 @@ func (c *Component) deleteFromCache(id uint64) {
 func (c *Component) clearCache(cacheSize int) {
 	c.cacheMut.Lock()
 	defer c.cacheMut.Unlock()
-	cache, _ := lru.New[uint64, *labelAndID](cacheSize)
+	cache, _ := lru.New[uint64, *labelstore.Series](cacheSize)
 	c.cache = cache
 }
 
-func (c *Component) addToCache(originalID uint64, lbls labels.Labels, keep bool) {
+func (c *Component) addToCache(originalID uint64, series *labelstore.Series, keep bool) {
 	c.cacheMut.Lock()
 	defer c.cacheMut.Unlock()
 
@@ -293,11 +287,7 @@ func (c *Component) addToCache(originalID uint64, lbls labels.Labels, keep bool)
 		c.cache.Add(originalID, nil)
 		return
 	}
-	newGlobal := c.ls.GetOrAddGlobalRefID(lbls)
-	c.cache.Add(originalID, &labelAndID{
-		labels: lbls,
-		id:     newGlobal,
-	})
+	c.cache.Add(originalID, series)
 }
 
 // labelAndID stores both the globalrefid for the label and the id itself. We store the id so that it doesn't have

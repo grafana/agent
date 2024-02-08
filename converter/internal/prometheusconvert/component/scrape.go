@@ -13,12 +13,12 @@ import (
 	"github.com/grafana/agent/converter/internal/common"
 	"github.com/grafana/agent/converter/internal/prometheusconvert/build"
 	"github.com/grafana/agent/service/cluster"
+	"github.com/grafana/agent/service/labelstore"
 	prom_config "github.com/prometheus/prometheus/config"
 	prom_discovery "github.com/prometheus/prometheus/discovery"
-	"github.com/prometheus/prometheus/storage"
 )
 
-func AppendPrometheusScrape(pb *build.PrometheusBlocks, scrapeConfig *prom_config.ScrapeConfig, forwardTo []storage.Appendable, targets []discovery.Target, label string) {
+func AppendPrometheusScrape(pb *build.PrometheusBlocks, scrapeConfig *prom_config.ScrapeConfig, forwardTo []labelstore.Appendable, targets []discovery.Target, label string) {
 	scrapeArgs := toScrapeArguments(scrapeConfig, forwardTo, targets)
 	name := []string{"prometheus", "scrape"}
 	block := common.NewBlockWithOverride(name, label, scrapeArgs)
@@ -41,7 +41,7 @@ func ValidatePrometheusScrape(scrapeConfig *prom_config.ScrapeConfig) diag.Diagn
 	return diags
 }
 
-func toScrapeArguments(scrapeConfig *prom_config.ScrapeConfig, forwardTo []storage.Appendable, targets []discovery.Target) *scrape.Arguments {
+func toScrapeArguments(scrapeConfig *prom_config.ScrapeConfig, forwardTo []labelstore.Appendable, targets []discovery.Target) *scrape.Arguments {
 	if scrapeConfig == nil {
 		return nil
 	}

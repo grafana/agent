@@ -2,7 +2,6 @@ package remotewrite
 
 import (
 	"context"
-	"fmt"
 	"math"
 	"os"
 	"path/filepath"
@@ -11,12 +10,6 @@ import (
 
 	"go.uber.org/atomic"
 
-	"github.com/prometheus/prometheus/model/exemplar"
-	"github.com/prometheus/prometheus/model/histogram"
-	"github.com/prometheus/prometheus/model/labels"
-	"github.com/prometheus/prometheus/model/metadata"
-
-	"github.com/grafana/agent/component/prometheus"
 	"github.com/grafana/agent/service/labelstore"
 
 	"github.com/go-kit/log"
@@ -62,7 +55,7 @@ type Component struct {
 	mut sync.RWMutex
 	cfg Arguments
 
-	receiver *prometheus.Interceptor
+	receiver labelstore.Appendable
 }
 
 // New creates a new prometheus.remote_write component.
@@ -98,65 +91,13 @@ func New(o component.Options, c Arguments) (*Component, error) {
 		remoteStore: remoteStore,
 		storage:     storage.NewFanout(o.Logger, walStorage, remoteStore),
 	}
-	res.receiver = prometheus.NewInterceptor(
-		res.storage,
-		ls,
 
-		// In the methods below, conversion is needed because remote_writes assume
-		// they are responsible for generating ref IDs. This means two
-		// remote_writes may return the same ref ID for two different series. We
-		// treat the remote_write ID as a "local ID" and translate it to a "global
-		// ID" to ensure Flow compatibility.
-
-		prometheus.WithAppendHook(func(globalRef storage.SeriesRef, l labels.Labels, t int64, v float64, next storage.Appender) (storage.SeriesRef, error) {
-			if res.exited.Load() {
-				return 0, fmt.Errorf("%s has exited", o.ID)
-			}
-
-			localID := ls.GetLocalRefID(res.opts.ID, uint64(globalRef))
-			newRef, nextErr := next.Append(storage.SeriesRef(localID), l, t, v)
-			if localID == 0 {
-				ls.GetOrAddLink(res.opts.ID, uint64(newRef), l)
-			}
-			return globalRef, nextErr
-		}),
-		prometheus.WithHistogramHook(func(globalRef storage.SeriesRef, l labels.Labels, t int64, h *histogram.Histogram, fh *histogram.FloatHistogram, next storage.Appender) (storage.SeriesRef, error) {
-			if res.exited.Load() {
-				return 0, fmt.Errorf("%s has exited", o.ID)
-			}
-
-			localID := ls.GetLocalRefID(res.opts.ID, uint64(globalRef))
-			newRef, nextErr := next.AppendHistogram(storage.SeriesRef(localID), l, t, h, fh)
-			if localID == 0 {
-				ls.GetOrAddLink(res.opts.ID, uint64(newRef), l)
-			}
-			return globalRef, nextErr
-		}),
-		prometheus.WithMetadataHook(func(globalRef storage.SeriesRef, l labels.Labels, m metadata.Metadata, next storage.Appender) (storage.SeriesRef, error) {
-			if res.exited.Load() {
-				return 0, fmt.Errorf("%s has exited", o.ID)
-			}
-
-			localID := ls.GetLocalRefID(res.opts.ID, uint64(globalRef))
-			newRef, nextErr := next.UpdateMetadata(storage.SeriesRef(localID), l, m)
-			if localID == 0 {
-				ls.GetOrAddLink(res.opts.ID, uint64(newRef), l)
-			}
-			return globalRef, nextErr
-		}),
-		prometheus.WithExemplarHook(func(globalRef storage.SeriesRef, l labels.Labels, e exemplar.Exemplar, next storage.Appender) (storage.SeriesRef, error) {
-			if res.exited.Load() {
-				return 0, fmt.Errorf("%s has exited", o.ID)
-			}
-
-			localID := ls.GetLocalRefID(res.opts.ID, uint64(globalRef))
-			newRef, nextErr := next.AppendExemplar(storage.SeriesRef(localID), l, e)
-			if localID == 0 {
-				ls.GetOrAddLink(res.opts.ID, uint64(newRef), l)
-			}
-			return globalRef, nextErr
-		}),
-	)
+	shim := &shim{
+		id:   o.ID,
+		ls:   ls,
+		next: res.storage,
+	}
+	res.receiver = shim
 
 	// Immediately export the receiver which remains the same for the component
 	// lifetime.
@@ -187,7 +128,7 @@ func (c *Component) Run(ctx context.Context) error {
 
 	// Track the last timestamp we truncated for to prevent segments from getting
 	// deleted until at least some new data has been sent.
-	var lastTs = int64(math.MinInt64)
+	lastTs := int64(math.MinInt64)
 
 	for {
 		select {

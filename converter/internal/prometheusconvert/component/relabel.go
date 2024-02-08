@@ -9,11 +9,11 @@ import (
 	"github.com/grafana/agent/component/prometheus/relabel"
 	"github.com/grafana/agent/converter/internal/common"
 	"github.com/grafana/agent/converter/internal/prometheusconvert/build"
+	"github.com/grafana/agent/service/labelstore"
 	prom_relabel "github.com/prometheus/prometheus/model/relabel"
-	"github.com/prometheus/prometheus/storage"
 )
 
-func AppendPrometheusRelabel(pb *build.PrometheusBlocks, relabelConfigs []*prom_relabel.Config, forwardTo []storage.Appendable, label string) *relabel.Exports {
+func AppendPrometheusRelabel(pb *build.PrometheusBlocks, relabelConfigs []*prom_relabel.Config, forwardTo []labelstore.Appendable, label string) *relabel.Exports {
 	if len(relabelConfigs) == 0 {
 		return nil
 	}
@@ -28,7 +28,7 @@ func AppendPrometheusRelabel(pb *build.PrometheusBlocks, relabelConfigs []*prom_
 	}
 }
 
-func toRelabelArguments(relabelConfigs []*prom_relabel.Config, forwardTo []storage.Appendable) *relabel.Arguments {
+func toRelabelArguments(relabelConfigs []*prom_relabel.Config, forwardTo []labelstore.Appendable) *relabel.Arguments {
 	if len(relabelConfigs) == 0 {
 		return nil
 	}

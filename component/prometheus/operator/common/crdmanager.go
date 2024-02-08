@@ -116,8 +116,9 @@ func (c *crdManager) Run(ctx context.Context) error {
 
 	// Start prometheus scrape manager.
 	flowAppendable := prometheus.NewFanout(c.args.ForwardTo, c.opts.ID, c.opts.Registerer, c.ls)
+	shim := labelstore.NewShim(c.ls, flowAppendable)
 	opts := &scrape.Options{}
-	c.scrapeManager = scrape.NewManager(opts, c.logger, flowAppendable)
+	c.scrapeManager = scrape.NewManager(opts, c.logger, shim)
 	defer c.scrapeManager.Stop()
 	targetSetsChan := make(chan map[string][]*targetgroup.Group)
 	go func() {
@@ -433,6 +434,7 @@ func (c *crdManager) onAddPodMonitor(obj interface{}) {
 	level.Info(c.logger).Log("msg", "found pod monitor", "name", pm.Name)
 	c.addPodMonitor(pm)
 }
+
 func (c *crdManager) onUpdatePodMonitor(oldObj, newObj interface{}) {
 	pm := oldObj.(*promopv1.PodMonitor)
 	c.clearConfigs(pm.Namespace, pm.Name)
@@ -489,6 +491,7 @@ func (c *crdManager) onAddServiceMonitor(obj interface{}) {
 	level.Info(c.logger).Log("msg", "found service monitor", "name", pm.Name)
 	c.addServiceMonitor(pm)
 }
+
 func (c *crdManager) onUpdateServiceMonitor(oldObj, newObj interface{}) {
 	pm := oldObj.(*promopv1.ServiceMonitor)
 	c.clearConfigs(pm.Namespace, pm.Name)
@@ -536,6 +539,7 @@ func (c *crdManager) onAddProbe(obj interface{}) {
 	level.Info(c.logger).Log("msg", "found probe", "name", pm.Name)
 	c.addProbe(pm)
 }
+
 func (c *crdManager) onUpdateProbe(oldObj, newObj interface{}) {
 	pm := oldObj.(*promopv1.Probe)
 	c.clearConfigs(pm.Namespace, pm.Name)

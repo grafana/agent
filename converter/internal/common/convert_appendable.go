@@ -1,10 +1,10 @@
 package common
 
 import (
+	"github.com/grafana/agent/service/labelstore"
 	"github.com/grafana/river"
 	"github.com/grafana/river/token"
 	"github.com/grafana/river/token/builder"
-	"github.com/prometheus/prometheus/storage"
 )
 
 // ConvertAppendable implements both the [builder.Tokenizer] and
@@ -12,14 +12,16 @@ import (
 // that leverage [storage.Appendable] with an implementation that can be
 // tokenized as a specific string.
 type ConvertAppendable struct {
-	storage.Appendable
+	labelstore.Appendable
 
 	Expr string // The specific string to return during tokenization.
 }
 
-var _ storage.Appendable = (*ConvertAppendable)(nil)
-var _ builder.Tokenizer = ConvertAppendable{}
-var _ river.Capsule = ConvertAppendable{}
+var (
+	_ labelstore.Appendable = (*ConvertAppendable)(nil)
+	_ builder.Tokenizer     = ConvertAppendable{}
+	_ river.Capsule         = ConvertAppendable{}
+)
 
 func (f ConvertAppendable) RiverCapsule() {}
 func (f ConvertAppendable) RiverTokenize() []builder.Token {

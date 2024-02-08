@@ -8,18 +8,17 @@ import (
 	flow_relabel "github.com/grafana/agent/component/common/relabel"
 	"github.com/grafana/agent/component/prometheus/scrape"
 	"github.com/grafana/agent/service/cluster"
+	"github.com/grafana/agent/service/labelstore"
 	"github.com/prometheus/common/model"
 	promconfig "github.com/prometheus/prometheus/config"
-	"github.com/prometheus/prometheus/storage"
 	apiv1 "k8s.io/api/core/v1"
 )
 
 type Arguments struct {
-
 	// Client settings to connect to Kubernetes.
 	Client kubernetes.ClientArguments `river:"client,block,optional"`
 
-	ForwardTo []storage.Appendable `river:"forward_to,attr"`
+	ForwardTo []labelstore.Appendable `river:"forward_to,attr"`
 
 	// Namespaces to search for monitor resources. Empty implies All namespaces
 	Namespaces []string `river:"namespaces,attr,optional"`

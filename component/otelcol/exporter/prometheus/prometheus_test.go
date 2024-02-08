@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"github.com/grafana/agent/component/otelcol/exporter/prometheus"
+	"github.com/grafana/agent/service/labelstore"
 	"github.com/grafana/river"
-	"github.com/prometheus/prometheus/storage"
 	"github.com/stretchr/testify/require"
 )
 
@@ -28,7 +28,7 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 				IncludeScopeLabels:            true,
 				GCFrequency:                   5 * time.Minute,
 				AddMetricSuffixes:             true,
-				ForwardTo:                     []storage.Appendable{},
+				ForwardTo:                     []labelstore.Appendable{},
 				ResourceToTelemetryConversion: false,
 			},
 		},
@@ -49,7 +49,7 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 				IncludeScopeLabels:            false,
 				GCFrequency:                   1 * time.Second,
 				AddMetricSuffixes:             false,
-				ForwardTo:                     []storage.Appendable{},
+				ForwardTo:                     []labelstore.Appendable{},
 				ResourceToTelemetryConversion: true,
 			},
 		},

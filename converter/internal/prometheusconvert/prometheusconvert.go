@@ -11,9 +11,9 @@ import (
 	"github.com/grafana/agent/converter/internal/common"
 	"github.com/grafana/agent/converter/internal/prometheusconvert/build"
 	"github.com/grafana/agent/converter/internal/prometheusconvert/component"
+	"github.com/grafana/agent/service/labelstore"
 	prom_config "github.com/prometheus/prometheus/config"
 	prom_discover "github.com/prometheus/prometheus/discovery"
-	"github.com/prometheus/prometheus/storage"
 
 	"github.com/grafana/river/token/builder"
 	_ "github.com/prometheus/prometheus/discovery/install" // Register Prometheus SDs
@@ -82,7 +82,7 @@ func AppendAllNested(f *builder.File, promConfig *prom_config.Config, jobNameToC
 		}
 		remoteWriteExports = component.AppendPrometheusRemoteWrite(pb, promConfig.GlobalConfig, promConfig.RemoteWriteConfigs, labelPrefix)
 	}
-	remoteWriteForwardTo := []storage.Appendable{remoteWriteExports.Receiver}
+	remoteWriteForwardTo := []labelstore.Appendable{remoteWriteExports.Receiver}
 
 	for _, scrapeConfig := range promConfig.ScrapeConfigs {
 		scrapeForwardTo := remoteWriteForwardTo
@@ -94,7 +94,7 @@ func AppendAllNested(f *builder.File, promConfig *prom_config.Config, jobNameToC
 
 		promMetricsRelabelExports := component.AppendPrometheusRelabel(pb, scrapeConfig.MetricRelabelConfigs, remoteWriteForwardTo, label)
 		if promMetricsRelabelExports != nil {
-			scrapeForwardTo = []storage.Appendable{promMetricsRelabelExports.Receiver}
+			scrapeForwardTo = []labelstore.Appendable{promMetricsRelabelExports.Receiver}
 		}
 
 		scrapeTargets := AppendServiceDiscoveryConfigs(pb, scrapeConfig.ServiceDiscoveryConfigs, label)

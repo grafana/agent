@@ -1,14 +1,21 @@
 package labelstore
 
-import "github.com/prometheus/prometheus/model/labels"
+import (
+	"context"
+
+	"github.com/prometheus/prometheus/model/exemplar"
+	"github.com/prometheus/prometheus/model/histogram"
+	"github.com/prometheus/prometheus/model/labels"
+	"github.com/prometheus/prometheus/model/metadata"
+	"github.com/prometheus/prometheus/storage"
+)
 
 type LabelStore interface {
+	// This will convert a prometheus series to a labelstore series. Any series here must be later passed on to remove add/remove staleness markers
+	ConvertToSeries(ts int64, val float64, lbls labels.Labels) *Series
 
 	// GetOrAddLink returns the global id for the values, if none found one will be created based on the lbls.
 	GetOrAddLink(componentID string, localRefID uint64, lbls labels.Labels) uint64
-
-	// GetOrAddGlobalRefID finds or adds a global id for the given label map.
-	GetOrAddGlobalRefID(l labels.Labels) uint64
 
 	// GetGlobalRefID returns the global id for a component and the local id. Returns 0 if nothing found.
 	GetGlobalRefID(componentID string, localRefID uint64) uint64
@@ -16,12 +23,29 @@ type LabelStore interface {
 	// GetLocalRefID gets the mapping from global to local id specific to a component. Returns 0 if nothing found.
 	GetLocalRefID(componentID string, globalRefID uint64) uint64
 
-	// AddStaleMarker adds a stale marker to a reference, that reference will then get removed on the next check.
-	AddStaleMarker(globalRefID uint64, l labels.Labels)
-
-	// RemoveStaleMarker removes the stale marker for a reference, keeping it around.
-	RemoveStaleMarker(globalRefID uint64)
+	// HandleStaleMarker will remove or add staleness markers as needed.
+	HandleStaleMarkers(series []*Series)
 
 	// CheckAndRemoveStaleMarkers identifies any series with a stale marker and removes those entries from the LabelStore.
 	CheckAndRemoveStaleMarkers()
+}
+
+// Series should be treated as immutable and only created via ConvertToSeries.
+type Series struct {
+	GlobalID uint64
+	Lbls     labels.Labels
+	Hash     uint64
+	Ts       int64
+	Value    float64
+}
+type Appendable interface {
+	Appender(ctx context.Context) Appender
+}
+type Appender interface {
+	Append(s *Series) (storage.SeriesRef, error)
+	AppendHistogram(s *Series, h *histogram.Histogram, fh *histogram.FloatHistogram) (storage.SeriesRef, error)
+	UpdateMetadata(s *Series, m metadata.Metadata) (storage.SeriesRef, error)
+	AppendExemplar(s *Series, e exemplar.Exemplar) (storage.SeriesRef, error)
+	Commit() error
+	Rollback() error
 }

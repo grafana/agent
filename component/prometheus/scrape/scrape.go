@@ -23,7 +23,6 @@ import (
 	"github.com/prometheus/prometheus/config"
 	"github.com/prometheus/prometheus/discovery/targetgroup"
 	"github.com/prometheus/prometheus/scrape"
-	"github.com/prometheus/prometheus/storage"
 )
 
 func init() {
@@ -42,8 +41,8 @@ func init() {
 // Arguments holds values which are used to configure the prometheus.scrape
 // component.
 type Arguments struct {
-	Targets   []discovery.Target   `river:"targets,attr"`
-	ForwardTo []storage.Appendable `river:"forward_to,attr"`
+	Targets   []discovery.Target      `river:"targets,attr"`
+	ForwardTo []labelstore.Appendable `river:"forward_to,attr"`
 
 	// The job name to override the job label with.
 	JobName string `river:"job_name,attr,optional"`
@@ -131,9 +130,7 @@ type Component struct {
 	targetsGauge client_prometheus.Gauge
 }
 
-var (
-	_ component.Component = (*Component)(nil)
-)
+var _ component.Component = (*Component)(nil)
 
 // New creates a new prometheus.scrape component.
 func New(o component.Options, args Arguments) (*Component, error) {
@@ -156,6 +153,7 @@ func New(o component.Options, args Arguments) (*Component, error) {
 	ls := service.(labelstore.LabelStore)
 
 	flowAppendable := prometheus.NewFanout(args.ForwardTo, o.ID, o.Registerer, ls)
+	shim := labelstore.NewShim(ls, flowAppendable)
 	scrapeOptions := &scrape.Options{
 		ExtraMetrics: args.ExtraMetrics,
 		HTTPClientOptions: []config_util.HTTPClientOption{
@@ -163,11 +161,12 @@ func New(o component.Options, args Arguments) (*Component, error) {
 		},
 		EnableProtobufNegotiation: args.EnableProtobufNegotiation,
 	}
-	scraper := scrape.NewManager(scrapeOptions, o.Logger, flowAppendable)
+	scraper := scrape.NewManager(scrapeOptions, o.Logger, shim)
 
 	targetsGauge := client_prometheus.NewGauge(client_prometheus.GaugeOpts{
 		Name: "agent_prometheus_scrape_targets_gauge",
-		Help: "Number of targets this component is configured to scrape"})
+		Help: "Number of targets this component is configured to scrape",
+	})
 	err = o.Registerer.Register(targetsGauge)
 	if err != nil {
 		return nil, err

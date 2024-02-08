@@ -11,7 +11,9 @@ import (
 	"github.com/grafana/agent/component/prometheus/remotewrite"
 	"github.com/grafana/agent/pkg/flow/componenttest"
 	"github.com/grafana/agent/pkg/util"
+	"github.com/grafana/agent/service/labelstore"
 	"github.com/grafana/river"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/prometheus/model/labels"
 	"github.com/prometheus/prometheus/prompb"
 	"github.com/prometheus/prometheus/storage/remote"
@@ -22,6 +24,7 @@ import (
 // a prometheus.remote_write component and forwarded to a
 // remote_write-compatible server.
 func Test(t *testing.T) {
+	ls := labelstore.New(nil, prometheus.DefaultRegisterer)
 	writeResult := make(chan *prompb.WriteRequest)
 
 	// Create a remote_write server which forwards any received payloads to the
@@ -60,8 +63,8 @@ func Test(t *testing.T) {
 
 	// Send metrics to our component. These will be written to the WAL and
 	// subsequently written to our HTTP server.
-	sendMetric(t, tc, labels.FromStrings("foo", "bar"), sampleTimestamp, 12)
-	sendMetric(t, tc, labels.FromStrings("fizz", "buzz"), sampleTimestamp, 34)
+	sendMetric(t, tc, labels.FromStrings("foo", "bar"), sampleTimestamp, 12, ls)
+	sendMetric(t, tc, labels.FromStrings("fizz", "buzz"), sampleTimestamp, 34, ls)
 
 	expect := []prompb.TimeSeries{{
 		Labels: []prompb.Label{
@@ -90,6 +93,7 @@ func Test(t *testing.T) {
 }
 
 func TestUpdate(t *testing.T) {
+	ls := labelstore.New(nil, prometheus.DefaultRegisterer)
 	writeResult := make(chan *prompb.WriteRequest)
 
 	// Create a remote_write server which forwards any received payloads to the
@@ -124,7 +128,7 @@ func TestUpdate(t *testing.T) {
 	sample1Time := time.Now().Add(time.Minute).UnixMilli()
 
 	// Send a metric and assert its received
-	sendMetric(t, tc, labels.FromStrings("foo", "bar"), sample1Time, 12)
+	sendMetric(t, tc, labels.FromStrings("foo", "bar"), sample1Time, 12, ls)
 	assertReceived(t, writeResult, []prompb.TimeSeries{{
 		Labels: []prompb.Label{
 			{Name: "cluster", Value: "local"},
@@ -160,7 +164,7 @@ func TestUpdate(t *testing.T) {
 
 	// Send another metric after update
 	sample2Time := time.Now().Add(2 * time.Minute).UnixMilli()
-	sendMetric(t, tc, labels.FromStrings("fizz", "buzz"), sample2Time, 34)
+	sendMetric(t, tc, labels.FromStrings("fizz", "buzz"), sample2Time, 34, ls)
 	assertReceived(t, writeResult, []prompb.TimeSeries{{
 		Labels: []prompb.Label{
 			{Name: "cluster", Value: "another-local"},
@@ -169,7 +173,8 @@ func TestUpdate(t *testing.T) {
 		},
 		Samples: []prompb.Sample{
 			{Timestamp: sample1Time, Value: 12},
-		}}, {
+		},
+	}, {
 		Labels: []prompb.Label{
 			{Name: "cluster", Value: "another-local"},
 			{Name: "fizz", Value: "buzz"},
@@ -212,11 +217,12 @@ func sendMetric(
 	labels labels.Labels,
 	time int64,
 	value float64,
+	ls labelstore.LabelStore,
 ) {
-
 	rwExports := tc.Exports().(remotewrite.Exports)
 	appender := rwExports.Receiver.Appender(context.Background())
-	_, err := appender.Append(0, labels, time, value)
+	s := ls.ConvertToSeries(time, value, labels)
+	_, err := appender.Append(s)
 	require.NoError(t, err)
 	require.NoError(t, appender.Commit())
 }

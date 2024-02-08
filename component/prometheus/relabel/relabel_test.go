@@ -1,12 +1,11 @@
 package relabel
 
 import (
+	"context"
 	"math"
 	"strconv"
 	"testing"
 	"time"
-
-	"context"
 
 	"github.com/grafana/agent/component"
 	flow_relabel "github.com/grafana/agent/component/common/relabel"
@@ -27,21 +26,24 @@ func TestCache(t *testing.T) {
 	lc := labelstore.New(nil, prom.DefaultRegisterer)
 	relabeller := generateRelabel(t)
 	lbls := labels.FromStrings("__address__", "localhost")
-	relabeller.relabel(0, lbls)
+	s := lc.ConvertToSeries(0, 0, lbls)
+	relabeller.relabel(s)
 	require.True(t, relabeller.cache.Len() == 1)
 	entry, found := relabeller.getFromCache(lc.GetOrAddGlobalRefID(lbls))
 	require.True(t, found)
 	require.NotNil(t, entry)
 	require.True(
 		t,
-		lc.GetOrAddGlobalRefID(entry.labels) != lc.GetOrAddGlobalRefID(lbls),
+		lc.GetOrAddGlobalRefID(entry.Lbls) != lc.GetOrAddGlobalRefID(lbls),
 	)
 }
 
 func TestUpdateReset(t *testing.T) {
+	ls := labelstore.New(nil, prom.DefaultRegisterer)
 	relabeller := generateRelabel(t)
 	lbls := labels.FromStrings("__address__", "localhost")
-	relabeller.relabel(0, lbls)
+	s := ls.ConvertToSeries(0, 0, lbls)
+	relabeller.relabel(s)
 	require.True(t, relabeller.cache.Len() == 1)
 	_ = relabeller.Update(Arguments{
 		CacheSize:            100000,
@@ -62,9 +64,9 @@ func TestValidator(t *testing.T) {
 
 func TestNil(t *testing.T) {
 	ls := labelstore.New(nil, prom.DefaultRegisterer)
-	fanout := prometheus.NewInterceptor(nil, ls, prometheus.WithAppendHook(func(ref storage.SeriesRef, _ labels.Labels, _ int64, _ float64, _ storage.Appender) (storage.SeriesRef, error) {
+	fanout := prometheus.NewInterceptor(nil, ls, prometheus.WithAppendHook(func(s *labelstore.Series, _ labelstore.Appender) (storage.SeriesRef, error) {
 		require.True(t, false)
-		return ref, nil
+		return storage.SeriesRef(s.GlobalID), nil
 	}))
 	relabeller, err := New(component.Options{
 		ID:            "1",
@@ -75,7 +77,7 @@ func TestNil(t *testing.T) {
 			return labelstore.New(nil, prom.DefaultRegisterer), nil
 		},
 	}, Arguments{
-		ForwardTo: []storage.Appendable{fanout},
+		ForwardTo: []labelstore.Appendable{fanout},
 		MetricRelabelConfigs: []*flow_relabel.Config{
 			{
 				SourceLabels: []string{"__address__"},
@@ -89,35 +91,39 @@ func TestNil(t *testing.T) {
 	require.NoError(t, err)
 
 	lbls := labels.FromStrings("__address__", "localhost")
-	relabeller.relabel(0, lbls)
+	s := ls.ConvertToSeries(0, 0, lbls)
+	relabeller.relabel(s)
 }
 
 func TestLRU(t *testing.T) {
 	relabeller := generateRelabel(t)
-
+	ls := labelstore.New(nil, prom.DefaultRegisterer)
 	for i := 0; i < 600_000; i++ {
 		lbls := labels.FromStrings("__address__", "localhost", "inc", strconv.Itoa(i))
-		relabeller.relabel(0, lbls)
+		s := ls.ConvertToSeries(0, 0, lbls)
+		relabeller.relabel(s)
 	}
 	require.True(t, relabeller.cache.Len() == 100_000)
 }
 
 func TestLRUNaN(t *testing.T) {
+	ls := labelstore.New(nil, prom.DefaultRegisterer)
 	relabeller := generateRelabel(t)
 	lbls := labels.FromStrings("__address__", "localhost")
-	relabeller.relabel(0, lbls)
+	relabeller.relabel(ls.ConvertToSeries(0, 0, lbls))
 	require.True(t, relabeller.cache.Len() == 1)
-	relabeller.relabel(math.Float64frombits(value.StaleNaN), lbls)
+	nan := ls.ConvertToSeries(0, math.Float64frombits(value.StaleNaN), lbls)
+	relabeller.relabel(nan)
 	require.True(t, relabeller.cache.Len() == 0)
 }
 
 func BenchmarkCache(b *testing.B) {
 	ls := labelstore.New(nil, prom.DefaultRegisterer)
-	fanout := prometheus.NewInterceptor(nil, ls, prometheus.WithAppendHook(func(ref storage.SeriesRef, l labels.Labels, _ int64, _ float64, _ storage.Appender) (storage.SeriesRef, error) {
-		require.True(b, l.Has("new_label"))
-		return ref, nil
+	fanout := prometheus.NewInterceptor(nil, ls, prometheus.WithAppendHook(func(s *labelstore.Series, _ labelstore.Appender) (storage.SeriesRef, error) {
+		require.True(b, s.Lbls.Has("new_label"))
+		return storage.SeriesRef(s.GlobalID), nil
 	}))
-	var entry storage.Appendable
+	var entry labelstore.Appendable
 	_, _ = New(component.Options{
 		ID:     "1",
 		Logger: util.TestFlowLogger(b),
@@ -127,7 +133,7 @@ func BenchmarkCache(b *testing.B) {
 		},
 		Registerer: prom.NewRegistry(),
 	}, Arguments{
-		ForwardTo: []storage.Appendable{fanout},
+		ForwardTo: []labelstore.Appendable{fanout},
 		MetricRelabelConfigs: []*flow_relabel.Config{
 			{
 				SourceLabels: []string{"__address__"},
@@ -142,16 +148,17 @@ func BenchmarkCache(b *testing.B) {
 	lbls := labels.FromStrings("__address__", "localhost")
 	app := entry.Appender(context.Background())
 	for i := 0; i < b.N; i++ {
-		app.Append(0, lbls, time.Now().UnixMilli(), 0)
+		s := ls.ConvertToSeries(time.Now().UnixMilli(), 0, lbls)
+		app.Append(s)
 	}
 	app.Commit()
 }
 
 func generateRelabel(t *testing.T) *Component {
 	ls := labelstore.New(nil, prom.DefaultRegisterer)
-	fanout := prometheus.NewInterceptor(nil, ls, prometheus.WithAppendHook(func(ref storage.SeriesRef, l labels.Labels, _ int64, _ float64, _ storage.Appender) (storage.SeriesRef, error) {
-		require.True(t, l.Has("new_label"))
-		return ref, nil
+	fanout := prometheus.NewInterceptor(nil, ls, prometheus.WithAppendHook(func(s *labelstore.Series, _ labelstore.Appender) (storage.SeriesRef, error) {
+		require.True(t, s.Lbls.Has("new_label"))
+		return storage.SeriesRef(s.GlobalID), nil
 	}))
 	relabeller, err := New(component.Options{
 		ID:            "1",
@@ -162,7 +169,7 @@ func generateRelabel(t *testing.T) *Component {
 			return labelstore.New(nil, prom.DefaultRegisterer), nil
 		},
 	}, Arguments{
-		ForwardTo: []storage.Appendable{fanout},
+		ForwardTo: []labelstore.Appendable{fanout},
 		MetricRelabelConfigs: []*flow_relabel.Config{
 			{
 				SourceLabels: []string{"__address__"},

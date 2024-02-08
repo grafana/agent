@@ -10,20 +10,18 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/prometheus/model/exemplar"
 	"github.com/prometheus/prometheus/model/histogram"
-	"github.com/prometheus/prometheus/model/labels"
 	"github.com/prometheus/prometheus/model/metadata"
-	"github.com/prometheus/prometheus/model/value"
 	"github.com/prometheus/prometheus/scrape"
 	"github.com/prometheus/prometheus/storage"
 )
 
-var _ storage.Appendable = (*Fanout)(nil)
+var _ labelstore.Appendable = (*Fanout)(nil)
 
 // Fanout supports the default Flow style of appendables since it can go to multiple outputs. It also allows the intercepting of appends.
 type Fanout struct {
 	mut sync.RWMutex
 	// children is where to fan out.
-	children []storage.Appendable
+	children []labelstore.Appendable
 	// ComponentID is what component this belongs to.
 	componentID    string
 	writeLatency   prometheus.Histogram
@@ -32,7 +30,7 @@ type Fanout struct {
 }
 
 // NewFanout creates a fanout appendable.
-func NewFanout(children []storage.Appendable, componentID string, register prometheus.Registerer, ls labelstore.LabelStore) *Fanout {
+func NewFanout(children []labelstore.Appendable, componentID string, register prometheus.Registerer, ls labelstore.LabelStore) *Fanout {
 	wl := prometheus.NewHistogram(prometheus.HistogramOpts{
 		Name: "agent_prometheus_fanout_latency",
 		Help: "Write latency for sending to direct and indirect components",
@@ -55,14 +53,14 @@ func NewFanout(children []storage.Appendable, componentID string, register prome
 }
 
 // UpdateChildren allows changing of the children of the fanout.
-func (f *Fanout) UpdateChildren(children []storage.Appendable) {
+func (f *Fanout) UpdateChildren(children []labelstore.Appendable) {
 	f.mut.Lock()
 	defer f.mut.Unlock()
 	f.children = children
 }
 
 // Appender satisfies the Appendable interface.
-func (f *Fanout) Appender(ctx context.Context) storage.Appender {
+func (f *Fanout) Appender(ctx context.Context) labelstore.Appender {
 	f.mut.RLock()
 	defer f.mut.RUnlock()
 
@@ -75,11 +73,12 @@ func (f *Fanout) Appender(ctx context.Context) storage.Appender {
 	ctx = scrape.ContextWithMetricMetadataStore(ctx, NoopMetadataStore{})
 
 	app := &appender{
-		children:       make([]storage.Appender, 0),
+		children:       make([]labelstore.Appender, 0),
 		componentID:    f.componentID,
 		writeLatency:   f.writeLatency,
 		samplesCounter: f.samplesCounter,
 		ls:             f.ls,
+		series:         make([]*labelstore.Series, 0),
 	}
 
 	for _, x := range f.children {
@@ -92,34 +91,29 @@ func (f *Fanout) Appender(ctx context.Context) storage.Appender {
 }
 
 type appender struct {
-	children       []storage.Appender
+	children       []labelstore.Appender
 	componentID    string
 	writeLatency   prometheus.Histogram
 	samplesCounter prometheus.Counter
 	start          time.Time
 	ls             labelstore.LabelStore
+	// series are tracked as the come in, since series can be created via a variety of methods
+	// its easier to gather them here on and then check for stalemarkers on commit/rollback.
+	series []*labelstore.Series
 }
 
-var _ storage.Appender = (*appender)(nil)
+var _ labelstore.Appender = (*appender)(nil)
 
 // Append satisfies the Appender interface.
-func (a *appender) Append(ref storage.SeriesRef, l labels.Labels, t int64, v float64) (storage.SeriesRef, error) {
+func (a *appender) Append(s *labelstore.Series) (storage.SeriesRef, error) {
 	if a.start.IsZero() {
 		a.start = time.Now()
 	}
-	if ref == 0 {
-		ref = storage.SeriesRef(a.ls.GetOrAddGlobalRefID(l))
-	}
-	if value.IsStaleNaN(v) {
-		a.ls.AddStaleMarker(uint64(ref), l)
-	} else {
-		// Tested this to ensure it had no cpu impact, since it is called so often.
-		a.ls.RemoveStaleMarker(uint64(ref))
-	}
+	a.series = append(a.series, s)
 	var multiErr error
 	updated := false
 	for _, x := range a.children {
-		_, err := x.Append(ref, l, t, v)
+		_, err := x.Append(s)
 		if err != nil {
 			multiErr = multierror.Append(multiErr, err)
 		} else {
@@ -129,13 +123,14 @@ func (a *appender) Append(ref storage.SeriesRef, l labels.Labels, t int64, v flo
 	if updated {
 		a.samplesCounter.Inc()
 	}
-	return ref, multiErr
+	return storage.SeriesRef(s.GlobalID), multiErr
 }
 
 // Commit satisfies the Appender interface.
 func (a *appender) Commit() error {
 	defer a.recordLatency()
 	var multiErr error
+	a.ls.HandleStaleMarkers(a.series)
 	for _, x := range a.children {
 		err := x.Commit()
 		if err != nil {
@@ -149,6 +144,7 @@ func (a *appender) Commit() error {
 func (a *appender) Rollback() error {
 	defer a.recordLatency()
 	var multiErr error
+	a.ls.HandleStaleMarkers(a.series)
 	for _, x := range a.children {
 		err := x.Rollback()
 		if err != nil {
@@ -167,56 +163,50 @@ func (a *appender) recordLatency() {
 }
 
 // AppendExemplar satisfies the Appender interface.
-func (a *appender) AppendExemplar(ref storage.SeriesRef, l labels.Labels, e exemplar.Exemplar) (storage.SeriesRef, error) {
+func (a *appender) AppendExemplar(s *labelstore.Series, e exemplar.Exemplar) (storage.SeriesRef, error) {
 	if a.start.IsZero() {
 		a.start = time.Now()
 	}
-	if ref == 0 {
-		ref = storage.SeriesRef(a.ls.GetOrAddGlobalRefID(l))
-	}
+	a.series = append(a.series, s)
 	var multiErr error
 	for _, x := range a.children {
-		_, err := x.AppendExemplar(ref, l, e)
+		_, err := x.AppendExemplar(s, e)
 		if err != nil {
 			multiErr = multierror.Append(multiErr, err)
 		}
 	}
-	return ref, multiErr
+	return storage.SeriesRef(s.GlobalID), multiErr
 }
 
 // UpdateMetadata satisfies the Appender interface.
-func (a *appender) UpdateMetadata(ref storage.SeriesRef, l labels.Labels, m metadata.Metadata) (storage.SeriesRef, error) {
+func (a *appender) UpdateMetadata(s *labelstore.Series, m metadata.Metadata) (storage.SeriesRef, error) {
 	if a.start.IsZero() {
 		a.start = time.Now()
 	}
-	if ref == 0 {
-		ref = storage.SeriesRef(a.ls.GetOrAddGlobalRefID(l))
-	}
+	a.series = append(a.series, s)
 	var multiErr error
 	for _, x := range a.children {
-		_, err := x.UpdateMetadata(ref, l, m)
+		_, err := x.UpdateMetadata(s, m)
 		if err != nil {
 			multiErr = multierror.Append(multiErr, err)
 		}
 	}
-	return ref, multiErr
+	return storage.SeriesRef(s.GlobalID), multiErr
 }
 
-func (a *appender) AppendHistogram(ref storage.SeriesRef, l labels.Labels, t int64, h *histogram.Histogram, fh *histogram.FloatHistogram) (storage.SeriesRef, error) {
+func (a *appender) AppendHistogram(s *labelstore.Series, h *histogram.Histogram, fh *histogram.FloatHistogram) (storage.SeriesRef, error) {
 	if a.start.IsZero() {
 		a.start = time.Now()
 	}
-	if ref == 0 {
-		ref = storage.SeriesRef(a.ls.GetOrAddGlobalRefID(l))
-	}
 	var multiErr error
+	a.series = append(a.series, s)
 	for _, x := range a.children {
-		_, err := x.AppendHistogram(ref, l, t, h, fh)
+		_, err := x.AppendHistogram(s, h, fh)
 		if err != nil {
 			multiErr = multierror.Append(multiErr, err)
 		}
 	}
-	return ref, multiErr
+	return storage.SeriesRef(s.GlobalID), multiErr
 }
 
 // NoopMetadataStore implements the MetricMetadataStore interface.

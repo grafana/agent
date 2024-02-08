@@ -15,7 +15,6 @@ import (
 	"github.com/grafana/agent/pkg/util"
 	"github.com/grafana/agent/service/labelstore"
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/prometheus/storage"
 	"github.com/prometheus/prometheus/storage/remote"
 )
 
@@ -31,8 +30,8 @@ func init() {
 }
 
 type Arguments struct {
-	Server    *fnet.ServerConfig   `river:",squash"`
-	ForwardTo []storage.Appendable `river:"forward_to,attr"`
+	Server    *fnet.ServerConfig      `river:",squash"`
+	ForwardTo []labelstore.Appendable `river:"forward_to,attr"`
 }
 
 // SetToDefault implements river.Defaulter.
@@ -60,13 +59,13 @@ func New(opts component.Options, args Arguments) (*Component, error) {
 	}
 	ls := service.(labelstore.LabelStore)
 	fanout := agentprom.NewFanout(args.ForwardTo, opts.ID, opts.Registerer, ls)
-
+	shim := labelstore.NewShim(ls, fanout)
 	uncheckedCollector := util.NewUncheckedCollector(nil)
 	opts.Registerer.MustRegister(uncheckedCollector)
 
 	c := &Component{
 		opts:               opts,
-		handler:            remote.NewWriteHandler(opts.Logger, opts.Registerer, fanout),
+		handler:            remote.NewWriteHandler(opts.Logger, opts.Registerer, shim),
 		fanout:             fanout,
 		uncheckedCollector: uncheckedCollector,
 	}

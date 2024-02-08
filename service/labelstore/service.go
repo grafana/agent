@@ -11,6 +11,7 @@ import (
 	flow_service "github.com/grafana/agent/service"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/prometheus/model/labels"
+	"github.com/prometheus/prometheus/model/value"
 )
 
 const ServiceName = "labelstore"
@@ -73,6 +74,7 @@ func (s *service) Describe(m chan<- *prometheus.Desc) {
 	m <- s.totalIDs
 	m <- s.idsInRemoteWrapping
 }
+
 func (s *service) Collect(m chan<- prometheus.Metric) {
 	s.mut.Lock()
 	defer s.mut.Unlock()
@@ -196,24 +198,22 @@ func (s *service) GetLocalRefID(componentID string, globalRefID uint64) uint64 {
 	return local
 }
 
-// AddStaleMarker adds a stale marker
-func (s *service) AddStaleMarker(globalRefID uint64, l labels.Labels) {
+func (s *service) HandleStaleMarkers(series []*Series) {
 	s.mut.Lock()
 	defer s.mut.Unlock()
 
-	s.staleGlobals[globalRefID] = &staleMarker{
-		lastMarkedStale: time.Now(),
-		labelHash:       l.Hash(),
-		globalID:        globalRefID,
+	for _, ser := range series {
+		if value.IsStaleNaN(ser.Value) {
+			s.staleGlobals[ser.GlobalID] = &staleMarker{
+				lastMarkedStale: time.Now(),
+				labelHash:       ser.Hash,
+				globalID:        ser.GlobalID,
+			}
+		} else {
+			// Its easier to blindly delete than check if it exists.
+			delete(s.staleGlobals, ser.GlobalID)
+		}
 	}
-}
-
-// RemoveStaleMarker removes a stale marker
-func (s *service) RemoveStaleMarker(globalRefID uint64) {
-	s.mut.Lock()
-	defer s.mut.Unlock()
-
-	delete(s.staleGlobals, globalRefID)
 }
 
 // staleDuration determines how long we should wait after a stale value is received to GC that value
@@ -245,6 +245,16 @@ func (s *service) CheckAndRemoveStaleMarkers() {
 		for _, mapping := range s.mappings {
 			mapping.deleteStaleIDs(marker.globalID)
 		}
+	}
+}
+
+func (s *service) ConvertToSeries(ts int64, val float64, lbls labels.Labels) *Series {
+	return &Series{
+		Ts:       ts,
+		Value:    val,
+		Lbls:     lbls,
+		Hash:     lbls.Hash(),
+		GlobalID: s.GetOrAddGlobalRefID(lbls),
 	}
 }
 
