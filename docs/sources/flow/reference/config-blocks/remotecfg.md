@@ -28,8 +28,8 @@ The [API definition][] for managing and fetching configuration that the
 remotecfg {
 	url = "SERVICE_URL"
 	basic_auth {
-		username      = USERNAME
-		password_file = PASSWORD_FILE
+		username      = "USERNAME"
+		password_file = "PASSWORD_FILE"
 	}
 
 	id             = constants.hostname
@@ -42,8 +42,8 @@ remotecfg {
 
 The following arguments are supported:
 
-Name             | Type                 | Description                                      | Default     | Required
------------------|----------------------|--------------------------------------------------|-------------|---------
+Name             | Type                 | Description                                       | Default     | Required
+-----------------|----------------------|---------------------------------------------------|-------------|---------
 `url`            | `string`             | The address of the API to poll for configuration. | `""`        | no
 `id`             | `string`             | A self-reported ID.                               | `see below` | no
 `metadata`       | `map(string)`        | A set of self-reported metadata.                  | `{}`        | no
@@ -54,6 +54,9 @@ If the `url` is not set, then the service block is a no-op.
 If not set, the self-reported `id` that the Agent uses is a randomly generated,
 anonymous unique ID (UUID) that is stored as an `agent_seed.json` file in the
 Agent's storage path so that it can persist across restarts.
+
+The `id` and `metadata` fields are used in the periodic request sent to the
+remote endpoint so that the API can decide what configuration to serve.
 
 ## Blocks
 
