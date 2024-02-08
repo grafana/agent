@@ -12,12 +12,12 @@ import (
 	"strings"
 
 	log "github.com/go-kit/log"
+	"github.com/grafana/agent/pkg/loki/client/internal"
+	"github.com/grafana/dskit/instrument"
+	"github.com/grafana/dskit/user"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/config"
 	"github.com/prometheus/prometheus/model/rulefmt"
-	weaveworksClient "github.com/weaveworks/common/http/client"
-	"github.com/weaveworks/common/instrument"
-	"github.com/weaveworks/common/user"
 )
 
 const (
@@ -49,7 +49,7 @@ type LokiClient struct {
 	id string
 
 	endpoint *url.URL
-	client   weaveworksClient.Requester
+	client   internal.Requester
 	apiPath  string
 	logger   log.Logger
 }
@@ -71,7 +71,7 @@ func New(logger log.Logger, cfg Config, timingHistogram *prometheus.HistogramVec
 	}
 
 	collector := instrument.NewHistogramCollector(timingHistogram)
-	timedClient := weaveworksClient.NewTimedClient(client, collector)
+	timedClient := internal.NewTimedClient(client, collector)
 
 	return &LokiClient{
 		id:       cfg.ID,
@@ -153,7 +153,7 @@ func buildRequest(op, p, m string, endpoint url.URL, payload []byte) (*http.Requ
 	if err != nil {
 		return nil, err
 	}
-	r = r.WithContext(context.WithValue(r.Context(), weaveworksClient.OperationNameContextKey, op))
+	r = r.WithContext(context.WithValue(r.Context(), internal.OperationNameContextKey, op))
 
 	return r, nil
 }
