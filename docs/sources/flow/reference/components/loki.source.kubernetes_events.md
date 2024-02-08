@@ -154,14 +154,14 @@ events in each watched namespace.
 
 ## Component behavior
 
-The component uses its data path (a directory named after the domain's
-fully qualified name) to store its _positions file_. The positions file is used
-to store read offsets, so that in case of a component or Agent restart,
+The component uses its data path,  a directory named after the domain's
+fully qualified name, to store its _positions file_. The positions file is used
+to store read offsets, so that if a component or {{< param "PRODUCT_ROOT_NAME" >}} restarts,
 `loki.source.kubernetes_events` can pick up tailing from the same spot.
 
 The data path is inside the directory configured by the `--storage.path` [command line argument][cmd-args].
 
-In the static mode's [eventhandler integration][eventhandler-integration], a `cache_path` argument was used in order to configure such a positions file.
+In the Static mode's [eventhandler integration][eventhandler-integration], a `cache_path` argument is used to configure a positions file.
 In Flow mode, this argument is no longer necessary.
 
 [cmd-args]: {{< relref "../cli/run.md" >}}
