@@ -48,9 +48,10 @@ var _ exporter.Arguments = Arguments{}
 
 // DefaultArguments holds default values for Arguments.
 var DefaultArguments = Arguments{
-	Queue:  otelcol.DefaultQueueArguments,
-	Retry:  otelcol.DefaultRetryArguments,
-	Client: DefaultHTTPClientArguments,
+	Queue:        otelcol.DefaultQueueArguments,
+	Retry:        otelcol.DefaultRetryArguments,
+	Client:       DefaultHTTPClientArguments,
+	DebugMetrics: otelcol.DefaultDebugMetricsArguments,
 }
 
 // SetToDefault implements river.Defaulter.

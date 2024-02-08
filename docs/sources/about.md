@@ -105,10 +105,10 @@ You should run Static mode when:
 
 ### Static mode Kubernetes operator
 
-{{% admonition type="note" %}}
+{{< admonition type="note" >}}
 Grafana Agent version 0.37 and newer provides Prometheus Operator compatibility in Flow mode.
 You should use Grafana Agent Flow mode for all new Grafana Agent deployments.
-{{% /admonition %}}
+{{< /admonition >}}
 
 The [Static mode Kubernetes operator][] is a variant of Grafana Agent introduced on June 17, 2021. It's currently in beta.
 

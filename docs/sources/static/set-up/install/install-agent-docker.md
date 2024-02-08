@@ -41,9 +41,9 @@ docker run \
 
 Replace `CONFIG_FILE_PATH` with the configuration file path on your Linux host system.
 
-{{% admonition type="note" %}}
+{{< admonition type="note" >}}
 For the flags to work correctly, you must expose the paths on your Linux host to the Docker container through a bind mount.
-{{%/admonition %}}
+{{< /admonition >}}
 
 ## Run a Windows Docker container
 
@@ -61,9 +61,9 @@ Replace the following:
 * `CONFIG_FILE_PATH`: The configuration file path on your Windows host system.
 * `WAL_DATA_DIRECTORY`: the directory used to store your metrics before sending them to Prometheus. Old WAL data is cleaned up every hour and is used for recovery if the process crashes.
 
-{{% admonition type="note" %}}
+{{< admonition type="note" >}}
 For the flags to work correctly, you must expose the paths on your Windows host to the Docker container through a bind mount.
-{{%/admonition %}}
+{{< /admonition >}}
 
 ## Next steps
 

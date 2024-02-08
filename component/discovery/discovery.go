@@ -45,7 +45,13 @@ func (t *DistributedTargets) Get() []Target {
 		return t.targets
 	}
 
-	res := make([]Target, 0, (len(t.targets)+1)/len(t.cluster.Peers()))
+	peerCount := len(t.cluster.Peers())
+	resCap := (len(t.targets) + 1)
+	if peerCount != 0 {
+		resCap = (len(t.targets) + 1) / peerCount
+	}
+
+	res := make([]Target, 0, resCap)
 
 	for _, tgt := range t.targets {
 		peers, err := t.cluster.Lookup(shard.StringKey(tgt.NonMetaLabels().String()), 1, shard.OpReadWrite)
@@ -55,7 +61,7 @@ func (t *DistributedTargets) Get() []Target {
 			// back to owning the target ourselves.
 			res = append(res, tgt)
 		}
-		if peers[0].Self {
+		if len(peers) == 0 || peers[0].Self {
 			res = append(res, tgt)
 		}
 	}

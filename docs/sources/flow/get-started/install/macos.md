@@ -22,9 +22,9 @@ weight: 400
 
 You can install {{< param "PRODUCT_NAME" >}} on macOS with Homebrew .
 
-{{% admonition type="note" %}}
+{{< admonition type="note" >}}
 The default prefix for Homebrew on Intel is `/usr/local`. The default prefix for Homebrew on Apple Silicon is `/opt/Homebrew`. To verify the default prefix for Homebrew on your computer, open a terminal window and type `brew --prefix`.
-{{% /admonition %}}
+{{< /admonition >}}
 
 ## Before you begin
 

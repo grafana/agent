@@ -1,6 +1,6 @@
 # Grafana Agent Helm chart
 
-![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![Version: 0.31.0](https://img.shields.io/badge/Version-0.31.0-informational?style=flat-square) ![AppVersion: v0.39.0](https://img.shields.io/badge/AppVersion-v0.39.0-informational?style=flat-square)
+![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![Version: 0.31.1](https://img.shields.io/badge/Version-0.31.1-informational?style=flat-square) ![AppVersion: v0.39.1](https://img.shields.io/badge/AppVersion-v0.39.1-informational?style=flat-square)
 
 Helm chart for deploying [Grafana Agent][] to Kubernetes.
 
@@ -89,6 +89,7 @@ use the older mode (called "static mode"), set the `agent.mode` value to
 | controller.priorityClassName | string | `""` | priorityClassName to apply to Grafana Agent pods. |
 | controller.replicas | int | `1` | Number of pods to deploy. Ignored when controller.type is 'daemonset'. |
 | controller.tolerations | list | `[]` | Tolerations to apply to Grafana Agent pods. |
+| controller.topologySpreadConstraints | list | `[]` | Topology Spread Constraints to apply to Grafana Agent pods. |
 | controller.type | string | `"daemonset"` | Type of controller to use for deploying Grafana Agent in the cluster. Must be one of 'daemonset', 'deployment', or 'statefulset'. |
 | controller.updateStrategy | object | `{}` | Update strategy for updating deployed Pods. |
 | controller.volumeClaimTemplates | list | `[]` | volumeClaimTemplates to add when controller.type is 'statefulset'. |

@@ -42,7 +42,7 @@ there is also a set of metrics-only functions:
   * `end_time_unix_nano - start_time_unix_nano`
   * `sum([1, 2, 3, 4]) + (10 / 1) - 1`
 
-{{% admonition type="note" %}}
+{{< admonition type="note" >}}
 There are two ways of inputting strings in River configuration files:
 * Using quotation marks ([normal River strings][river-strings]). Characters such as `\` and
   `"` must be escaped by preceding them with a `\` character.
@@ -57,17 +57,17 @@ Raw strings are generally more convenient for writing OTTL statements.
 
 [river-strings]: {{< relref "../../concepts/config-language/expressions/types_and_values.md/#strings" >}}
 [river-raw-strings]: {{< relref "../../concepts/config-language/expressions/types_and_values.md/#raw-strings" >}}
-{{% /admonition %}}
+{{< /admonition >}}
 
-{{% admonition type="note" %}}
+{{< admonition type="note" >}}
 `otelcol.processor.transform` is a wrapper over the upstream
 OpenTelemetry Collector `transform` processor. If necessary, bug reports or feature requests
 will be redirected to the upstream repository.
-{{% /admonition %}}
+{{< /admonition >}}
 
 You can specify multiple `otelcol.processor.transform` components by giving them different labels.
 
-{{% admonition type="warning" %}}
+{{< admonition type="warning" >}}
 `otelcol.processor.transform` allows you to modify all aspects of your telemetry. Some specific risks are given below, 
 but this is not an exhaustive list. It is important to understand your data before using this processor.  
 
@@ -88,7 +88,7 @@ to a new metric data type or can be used to create new metrics.
 [Orphaned Telemetry]: https://github.com/open-telemetry/opentelemetry-collector/blob/{{< param "OTEL_VERSION" >}}/docs/standard-warnings.md#orphaned-telemetry
 [no-op]: https://en.wikipedia.org/wiki/NOP_(code)
 [metrics data model]: https://github.com/open-telemetry/opentelemetry-specification/blob/main//specification/metrics/data-model.md
-{{% /admonition %}}
+{{< /admonition >}}
 
 ## Usage
 
@@ -602,11 +602,9 @@ each `"` with a `\"`, and each `\` with a `\\` inside a [normal][river-strings] 
 
 - Components that consume [OpenTelemetry `otelcol.Consumer`]({{< relref "../compatibility/#opentelemetry-otelcolconsumer-consumers" >}})
 
-{{% admonition type="note" %}}
-
-Connecting some components may not be sensible or components may require further configuration to make the 
-connection work correctly. Refer to the linked documentation for more details.
-
-{{% /admonition %}}
+{{< admonition type="note" >}}
+Connecting some components may not be sensible or components may require further configuration to make the connection work correctly.
+Refer to the linked documentation for more details.
+{{< /admonition >}}
 
 <!-- END GENERATED COMPATIBLE COMPONENTS -->

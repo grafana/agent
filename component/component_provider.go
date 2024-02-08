@@ -93,8 +93,8 @@ type Info struct {
 	// this component depends on, or is depended on by, respectively.
 	References, ReferencedBy []string
 
-	Registration Registration // Component registration.
-	Health       Health       // Current component health.
+	ComponentName string // Name of the component.
+	Health        Health // Current component health.
 
 	Arguments Arguments   // Current arguments value of the component.
 	Exports   Exports     // Current exports value of the component.
@@ -157,7 +157,7 @@ func (info *Info) MarshalJSON() ([]byte, error) {
 	}
 
 	return json.Marshal(&componentDetailJSON{
-		Name:         info.Registration.Name,
+		Name:         info.ComponentName,
 		Type:         "block",
 		ModuleID:     info.ID.ModuleID,
 		LocalID:      info.ID.LocalID,

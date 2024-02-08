@@ -12,6 +12,7 @@ import (
 	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/grafana/agent/pkg/flow/tracing"
+	"github.com/grafana/river/ast"
 	"github.com/grafana/river/scanner"
 	"github.com/prometheus/client_golang/prometheus"
 	"golang.org/x/exp/maps"
@@ -39,6 +40,29 @@ func newModuleController(o *moduleControllerOptions) controller.ModuleController
 func (m *moduleController) NewModule(id string, export component.ExportFunc) (component.Module, error) {
 	if id != "" && !scanner.IsValidIdentifier(id) {
 		return nil, fmt.Errorf("module ID %q is not a valid River identifier", id)
+	}
+
+	m.mut.Lock()
+	defer m.mut.Unlock()
+	fullPath := m.o.ID
+	if id != "" {
+		fullPath = path.Join(fullPath, id)
+	}
+
+	mod := newModule(&moduleOptions{
+		ID:                      fullPath,
+		export:                  export,
+		moduleControllerOptions: m.o,
+		parent:                  m,
+	})
+
+	return mod, nil
+}
+
+// NewCustomComponent creates a new, unstarted CustomComponent.
+func (m *moduleController) NewCustomComponent(id string, export component.ExportFunc) (controller.CustomComponent, error) {
+	if id != "" && !scanner.IsValidIdentifier(id) {
+		return nil, fmt.Errorf("customComponent ID %q is not a valid River identifier", id)
 	}
 
 	m.mut.Lock()
@@ -134,6 +158,15 @@ func (c *module) LoadConfig(config []byte, args map[string]any) error {
 		return err
 	}
 	return c.f.LoadSource(ff, args)
+}
+
+// LoadBody loads a pre-parsed River config.
+func (c *module) LoadBody(body ast.Body, args map[string]any, customComponentRegistry *controller.CustomComponentRegistry) error {
+	ff, err := sourceFromBody(body)
+	if err != nil {
+		return err
+	}
+	return c.f.loadSource(ff, args, customComponentRegistry)
 }
 
 // Run starts the Module. No components within the Module

@@ -39,9 +39,9 @@ Module loader components are responsible for the following functions:
 
 Module loaders are typically called `module.LOADER_NAME`.
 
-{{% admonition type="note" %}}
+{{< admonition type="note" >}}
 Some module loaders may not support running modules with arguments or exports.
-{{% /admonition %}}
+{{< /admonition >}}
 
 Refer to [Components][] for more information about the module loader components.
 

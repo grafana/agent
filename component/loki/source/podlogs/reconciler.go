@@ -131,7 +131,13 @@ func distributeTargets(c cluster.Cluster, targets []*kubetail.Target) []*kubetai
 		return targets
 	}
 
-	res := make([]*kubetail.Target, 0, (len(targets)+1)/len(c.Peers()))
+	peerCount := len(c.Peers())
+	resCap := len(targets) + 1
+	if peerCount != 0 {
+		resCap = (len(targets) + 1) / peerCount
+	}
+
+	res := make([]*kubetail.Target, 0, resCap)
 
 	for _, target := range targets {
 		peers, err := c.Lookup(shard.StringKey(target.Labels().String()), 1, shard.OpReadWrite)
@@ -141,7 +147,7 @@ func distributeTargets(c cluster.Cluster, targets []*kubetail.Target) []*kubetai
 			// back to owning the target ourselves.
 			res = append(res, target)
 		}
-		if peers[0].Self {
+		if len(peers) == 0 || peers[0].Self {
 			res = append(res, target)
 		}
 	}

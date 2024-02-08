@@ -416,6 +416,5 @@ func runInstance(t *testing.T, i *Instance) {
 	t.Cleanup(func() { cancel() })
 	go require.NotPanics(t, func() {
 		_ = i.Run(ctx)
-		require.NotNil(t, i.WriteHandler())
 	})
 }

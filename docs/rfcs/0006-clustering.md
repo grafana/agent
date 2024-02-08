@@ -3,7 +3,6 @@
 * Date: 2023-03-02
 * Author: Paschalis Tsilias (@tpaschalis)
 * PR: [grafana/agent#3151](https://github.com/grafana/agent/pull/3151)
-* Status: Draft
 
 ## Summary - Background
 We routinely run agents with 1-10 million active series; we regularly see
@@ -98,7 +97,7 @@ presented in the next section.
 ## Use cases
 In the first iteration of agent clustering, we would like to start with the
 following use-cases. These two are distinct in the way that they make use of
-scheduling. 
+scheduling.
 
 The first one makes sure that we have a way of notifying components of cluster
 changes and calling their Update method and continuously re-evaluate ownership
@@ -112,9 +111,9 @@ it is scraping/reading logs from. Components that use the Flow concept of a
 “target” as their Arguments should be able to distribute the target load
 between themselves. To do that we can introduce a layer of abstraction over
 the Targets definition that can interact with the Sharder provided by the
-clusterer and provide a simple API, for example: 
+clusterer and provide a simple API, for example:
 ```go
-type Targets interface { 
+type Targets interface {
     Get() []Target
 }
 ```
@@ -136,9 +135,9 @@ I propose that we start with the following set of components that make use of
 this functionality: prometheus.scrape, loki.source.file,
 loki.source.kubernetes, and pyroscope.scrape.
 
-Here’s how the configuration for a component could look like: 
+Here’s how the configuration for a component could look like:
 ```river
-prometheus.scrape "pods" { 
+prometheus.scrape "pods" {
     clustering {
         node_updates = true
     }
@@ -200,7 +199,7 @@ information.
 On a more practical note, we’ll have to choose how components might use to
 opt-in to the component scheduling.
 
-For example, we could implement either: 
+For example, we could implement either:
 * Implicitly adding a new Argument block that is implicitly present by default on
 _all_ components:
 ```

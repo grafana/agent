@@ -25,17 +25,17 @@ telemetry collection:
 * Prometheus Operator [Probe][] resources for collecting metrics from Kubernetes [Ingresses][].
 * Custom [PodLogs][] resources for collecting logs.
 
-{{% admonition type="note" %}}
+{{< admonition type="note" >}}
 Grafana Agent Operator does not collect traces.
-{{% /admonition %}}
+{{< /admonition >}}
 
 Grafana Agent Operator is currently in [Beta][], and is subject to change or
 being removed with functionality which covers the same use case.
 
-{{% admonition type="note" %}}
+{{< admonition type="note" >}}
 If you are shipping your data to Grafana Cloud, use [Kubernetes Monitoring](/docs/grafana-cloud/kubernetes-monitoring/) to set up Agent Operator.
 Kubernetes Monitoring provides a simplified approach and preconfigured dashboards and alerts.
-{{% /admonition %}}
+{{< /admonition >}}
 
 Grafana Agent Operator uses additional custom resources to manage the deployment
 and configuration of Grafana Agents running in static mode. In addition to the
