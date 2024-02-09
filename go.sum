@@ -1044,6 +1044,8 @@ github.com/gorilla/websocket v1.5.0/go.mod h1:YR8l580nyteQvAITg2hZ9XVh4b55+EU/ad
 github.com/gosnmp/gosnmp v1.36.0 h1:1Si+MImHcKIqFc3/kJEs2LOULP1nlFKlzPFyrMOk5Qk=
 github.com/gosnmp/gosnmp v1.36.0/go.mod h1:iLcZxN2MxKhH0jPQDVMZaSNypw1ykqVi27O79koQj6w=
 github.com/gotestyourself/gotestyourself v2.2.0+incompatible/go.mod h1:zZKM6oeNM8k+FRljX1mnzVYeS8wiGgQyvST1/GafPbY=
+github.com/grafana/agent-remote-config v0.0.2 h1:s3FKgVzfY5Ij+xG0wVKgVvtDrh/Bz0ZvB3D5MM7LJxU=
+github.com/grafana/agent-remote-config v0.0.2/go.mod h1:amyG3pVNXKcMo+kNN46yhnAXAz/m/9Ew9MRf53n7XBg=
 github.com/grafana/cadvisor v0.0.0-20231110094609-5f7917925dea h1:Q5f5/nJJ0SbusZjA6F6XkJuHDbl2/PqdTGw6wHsuccA=
 github.com/grafana/cadvisor v0.0.0-20231110094609-5f7917925dea/go.mod h1:XjiOCFjmxXIWwauV5p39Mr2Yxlpyk72uKQH1UZvd4fQ=
 github.com/grafana/ckit v0.0.0-20230906125525-c046c99a5c04 h1:tG8Qxq4dN1WqakMmsPaxaH4+OQhYg5HVsarw5acLBX8=
