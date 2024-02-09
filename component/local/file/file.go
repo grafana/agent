@@ -107,7 +107,8 @@ func New(o component.Options, args Arguments) (*Component, error) {
 	}
 	// Perform an update which will immediately set our exports to the initial
 	// contents of the file.
-	if err = c.Update(args); err != nil {
+	// UpdateArgs instead of Update to prevent starting goroutines if Run() is not called.
+	if err = c.UpdateArgs(args); err != nil {
 		return nil, err
 	}
 	return c, nil
@@ -184,8 +185,7 @@ func (c *Component) readFile() error {
 	return nil
 }
 
-// Update implements component.Component.
-func (c *Component) Update(args component.Arguments) error {
+func (c *Component) UpdateArgs(args component.Arguments) error {
 	newArgs := args.(Arguments)
 
 	if newArgs.PollFrequency <= 0 {
@@ -199,6 +199,16 @@ func (c *Component) Update(args component.Arguments) error {
 	// Force an immediate read of the file to report any potential errors early.
 	if err := c.readFile(); err != nil {
 		return fmt.Errorf("failed to read file: %w", err)
+	}
+	return nil
+}
+
+// Update implements component.Component.
+func (c *Component) Update(args component.Arguments) error {
+
+	err := c.UpdateArgs(args)
+	if err != nil {
+		return err
 	}
 
 	// Each detector is dedicated to a single file path. We'll naively shut down
