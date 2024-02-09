@@ -281,7 +281,7 @@ func (s *Service) getCachedConfig() ([]byte, error) {
 	return os.ReadFile(p)
 }
 
-func (s *Service) setCachedConfig(b []byte) error {
+func (s *Service) setCachedConfig(b []byte) {
 	s.mut.RLock()
 	p := s.dataPath
 	s.mut.RUnlock()
@@ -290,7 +290,6 @@ func (s *Service) setCachedConfig(b []byte) error {
 	if err != nil {
 		level.Error(s.opts.Logger).Log("msg", "failed to flush remote configuration contents the on-disk cache", "err", err)
 	}
-	return nil
 }
 
 func (s *Service) parseAndLoad(b []byte) error {
