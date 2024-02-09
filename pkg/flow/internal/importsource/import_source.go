@@ -10,8 +10,6 @@ import (
 
 type SourceType int
 
-// TODO: add other import sources
-
 const (
 	File SourceType = iota
 	String
@@ -22,15 +20,16 @@ const (
 	BlockImportString = "import.string"
 )
 
+// ImportSource is a generic representation of a component that retrieves a module.
 type ImportSource interface {
+	// Evaluate updates the arguments for the managed component.
 	Evaluate(scope *vm.Scope) error
+	// Run the managed component.
 	Run(ctx context.Context) error
-	Component() component.Component
-	CurrentHealth() component.Health
-	DebugInfo() interface{}
-	Arguments() component.Arguments
 }
 
+// NewImportSource creates a new ImportSource depending on the type.
+// onContentChange is used by the source when it receives new content.
 func NewImportSource(sourceType SourceType, managedOpts component.Options, eval *vm.Evaluator, onContentChange func(string)) ImportSource {
 	switch sourceType {
 	case File:
@@ -38,10 +37,10 @@ func NewImportSource(sourceType SourceType, managedOpts component.Options, eval 
 	case String:
 		return NewImportString(eval, onContentChange)
 	}
-	// This is a programming error, not a config error so this is ok to panic.
 	panic(fmt.Errorf("unsupported source type: %v", sourceType))
 }
 
+// GetSourceType returns a SourceType matching a source name.
 func GetSourceType(fullName string) SourceType {
 	switch fullName {
 	case BlockImportFile:
@@ -49,6 +48,5 @@ func GetSourceType(fullName string) SourceType {
 	case BlockImportString:
 		return String
 	}
-	// This is a programming error, not a config error so this is ok to panic.
 	panic(fmt.Errorf("name does not map to a know source type: %v", fullName))
 }

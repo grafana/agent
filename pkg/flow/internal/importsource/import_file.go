@@ -10,6 +10,7 @@ import (
 	"github.com/grafana/river/vm"
 )
 
+// ImportFile imports a module from a file.
 type ImportFile struct {
 	fileComponent *file.Component
 	arguments     component.Arguments
@@ -61,26 +62,10 @@ func (im *ImportFile) Evaluate(scope *vm.Scope) error {
 	if err := im.fileComponent.Update(arguments); err != nil {
 		return fmt.Errorf("updating component: %w", err)
 	}
+	im.arguments = arguments
 	return nil
 }
 
 func (im *ImportFile) Run(ctx context.Context) error {
 	return im.fileComponent.Run(ctx)
-}
-
-func (im *ImportFile) Arguments() component.Arguments {
-	return im.arguments
-}
-
-func (im *ImportFile) Component() component.Component {
-	return im.fileComponent
-}
-
-func (im *ImportFile) CurrentHealth() component.Health {
-	return im.fileComponent.CurrentHealth()
-}
-
-// DebugInfo() is not implemented by the file component.
-func (im *ImportFile) DebugInfo() interface{} {
-	return nil
 }

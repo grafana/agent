@@ -10,6 +10,7 @@ import (
 	"github.com/grafana/river/vm"
 )
 
+// ImportString imports a module from a string.
 type ImportString struct {
 	arguments       component.Arguments
 	eval            *vm.Evaluator
@@ -40,6 +41,7 @@ func (im *ImportString) Evaluate(scope *vm.Scope) error {
 	}
 	im.arguments = arguments
 
+	// notifies that the content has changed
 	im.onContentChange(arguments.Content.Value)
 
 	return nil
@@ -47,23 +49,5 @@ func (im *ImportString) Evaluate(scope *vm.Scope) error {
 
 func (im *ImportString) Run(ctx context.Context) error {
 	<-ctx.Done()
-	return nil
-}
-
-func (im *ImportString) Arguments() component.Arguments {
-	return im.arguments
-}
-
-func (im *ImportString) Component() component.Component {
-	return nil
-}
-
-func (im *ImportString) CurrentHealth() component.Health {
-	return component.Health{
-		Health: component.HealthTypeHealthy,
-	}
-}
-
-func (im *ImportString) DebugInfo() interface{} {
 	return nil
 }
