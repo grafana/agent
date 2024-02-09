@@ -33,7 +33,6 @@ func (f *Flow) GetService(name string) (service.Service, bool) {
 		}
 	}
 	return nil, false
-
 }
 
 func serviceConsumersForGraph(graph *dag.Graph, serviceName string, includePeerServices bool) []service.Consumer {
