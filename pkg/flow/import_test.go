@@ -3,6 +3,7 @@ package flow_test
 import (
 	"context"
 	"os"
+	"strconv"
 	"testing"
 	"time"
 
@@ -14,6 +15,78 @@ import (
 
 	_ "github.com/grafana/agent/component/module/string"
 )
+
+func TestImportString(t *testing.T) {
+	declare := `
+        declare "test" {
+            argument "input" {}
+
+            testcomponents.passthrough "pt" {
+                input = argument.input.value
+                lag = "1ms"
+            }
+
+            export "testOutput" {
+                value = testcomponents.passthrough.pt.output
+            }
+        }
+    `
+	testCases := []struct {
+		name   string
+		config string
+	}{
+		{
+			name: "Import declare and instantiate at the root",
+			config: `
+                testcomponents.count "inc" {
+                    frequency = "10ms"
+                    max = 10
+                }
+
+                import.string "testImport" {
+                    content = ` + strconv.Quote(declare) + `
+                }
+
+                testImport.test "myModule" {
+                    input = testcomponents.count.inc.count
+                }
+
+                testcomponents.summation "sum" {
+                    input = testImport.test.myModule.testOutput
+                }
+            `,
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			defer verifyNoGoroutineLeaks(t)
+			ctrl := flow.New(testOptions(t))
+			f, err := flow.ParseSource(t.Name(), []byte(tc.config))
+			require.NoError(t, err)
+			require.NotNil(t, f)
+
+			err = ctrl.LoadSource(f, nil)
+			require.NoError(t, err)
+
+			ctx, cancel := context.WithCancel(context.Background())
+			done := make(chan struct{})
+			go func() {
+				ctrl.Run(ctx)
+				close(done)
+			}()
+			defer func() {
+				cancel()
+				<-done
+			}()
+
+			// Check for initial condition
+			require.Eventually(t, func() bool {
+				export := getExport[testcomponents.SummationExports](t, ctrl, "", "testcomponents.summation.sum")
+				return export.LastAdded == 10
+			}, 3*time.Second, 10*time.Millisecond)
+		})
+	}
+}
 
 func TestImport(t *testing.T) {
 	const defaultModuleUpdate = `
@@ -617,19 +690,26 @@ func TestImport(t *testing.T) {
 }
 
 func TestImportError(t *testing.T) {
+	declareBadCC := `
+        declare "test" {
+            cantAccessThis "default" {}
+        }
+    `
+	emptyDeclare := `
+        declare "cantAccessThis" {}
+    `
+	importEmptyDeclare := `
+        import.string "testImport" {
+            content = ` + strconv.Quote(emptyDeclare) + `
+        }
+    `
 	testCases := []struct {
 		name          string
-		module        string
-		otherModule   string
 		config        string
 		expectedError string
 	}{
 		{
 			name: "Imported declare tries accessing declare at the root",
-			module: `
-                declare "test" {
-                    cantAccessThis "default" {}
-                }`,
 			config: `
                 declare "cantAccessThis" {
                     export "output" {
@@ -637,8 +717,8 @@ func TestImportError(t *testing.T) {
                     }
                 }
 
-                import.file "testImport" {
-                    filename = "module"
+                import.string "testImport" {
+                    content = ` + strconv.Quote(declareBadCC) + `
                 }
 
                 testImport.test "myModule" {}
@@ -647,19 +727,9 @@ func TestImportError(t *testing.T) {
 		},
 		{
 			name: "Root tries accessing declare in nested import",
-			module: `
-				import.file "testImport" {
-					filename = "other_module"
-				}`,
-			otherModule: `
-				declare "cantAccessThis" {
-					export "output" {
-						value = -1
-					}
-				}`,
 			config: `
-                import.file "testImport" {
-                    filename = "module"
+                import.string "testImport" {
+                    content = ` + strconv.Quote(importEmptyDeclare) + `
                 }
 
                 testImport.cantAccessThis "myModule" {}
@@ -671,16 +741,6 @@ func TestImportError(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			defer verifyNoGoroutineLeaks(t)
-			filename := "module"
-			require.NoError(t, os.WriteFile(filename, []byte(tc.module), 0664))
-			defer os.Remove(filename)
-
-			otherFilename := "other_module"
-			if tc.otherModule != "" {
-				require.NoError(t, os.WriteFile(otherFilename, []byte(tc.otherModule), 0664))
-				defer os.Remove(otherFilename)
-			}
-
 			s, err := logging.New(os.Stderr, logging.DefaultOptions)
 			require.NoError(t, err)
 			ctrl := flow.New(flow.Options{

@@ -27,7 +27,7 @@ func NewConfigNode(block *ast.BlockStmt, globals ComponentGlobals) (BlockNode, d
 		return NewLoggingConfigNode(block, globals), nil
 	case tracingBlockID:
 		return NewTracingConfigNode(block, globals), nil
-	case importsource.BlockImportFile: // TODO: add other import sources
+	case importsource.BlockImportFile, importsource.BlockImportString: // TODO: add other import sources
 		return NewImportConfigNode(block, globals, importsource.GetSourceType(block.GetBlockName())), nil
 	default:
 		var diags diag.Diagnostics

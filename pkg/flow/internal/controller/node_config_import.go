@@ -149,7 +149,7 @@ func (cn *ImportConfigNode) processNodeBody(node *ast.File, content string) {
 			switch fullName {
 			case "declare":
 				cn.processDeclareBlock(stmt, content)
-			case importsource.BlockImportFile: // TODO: add other import sources
+			case importsource.BlockImportFile, importsource.BlockImportString: // TODO: add other import sources
 				cn.processImportBlock(stmt, fullName)
 			default:
 				level.Error(cn.logger).Log("msg", "only declare and import blocks are allowed in a module", "forbidden", fullName)

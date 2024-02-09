@@ -14,10 +14,12 @@ type SourceType int
 
 const (
 	File SourceType = iota
+	String
 )
 
 const (
-	BlockImportFile = "import.file"
+	BlockImportFile   = "import.file"
+	BlockImportString = "import.string"
 )
 
 type ImportSource interface {
@@ -33,6 +35,8 @@ func NewImportSource(sourceType SourceType, managedOpts component.Options, eval 
 	switch sourceType {
 	case File:
 		return NewImportFile(managedOpts, eval, onContentChange)
+	case String:
+		return NewImportString(eval, onContentChange)
 	}
 	// This is a programming error, not a config error so this is ok to panic.
 	panic(fmt.Errorf("unsupported source type: %v", sourceType))
@@ -42,6 +46,8 @@ func GetSourceType(fullName string) SourceType {
 	switch fullName {
 	case BlockImportFile:
 		return File
+	case BlockImportString:
+		return String
 	}
 	// This is a programming error, not a config error so this is ok to panic.
 	panic(fmt.Errorf("name does not map to a know source type: %v", fullName))
