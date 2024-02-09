@@ -1,0 +1,42 @@
+otelcol.receiver.otlp "otlp" {
+  http {}
+  grpc {}
+
+  output {
+    metrics = [otelcol.processor.resourcedetection.otlp_resources.input]
+    traces = [otelcol.processor.resourcedetection.otlp_resources.input]
+  }
+}
+
+otelcol.processor.resourcedetection "otlp_resources" {
+  detectors = ["env", "system"]
+
+  output {
+    metrics = [otelcol.exporter.prometheus.otlp_metrics.input]
+    traces = [otelcol.connector.spanhostmetrics.host_metrics.input]
+  }
+}
+
+otelcol.connector.spanhostmetrics "host_metrics" {
+  output {
+    metrics = [otelcol.exporter.prometheus.otlp_metrics.input]
+  }
+}
+
+otelcol.exporter.prometheus "otlp_metrics" {
+  forward_to = [prometheus.remote_write.default.receiver]
+}
+
+local.file "token" {
+  filename = "key-prod.txt"
+}
+
+prometheus.remote_write "default" {
+  endpoint {
+    url = "https://prometheus-prod-01-eu-west-0.grafana.net/api/prom/push"
+    basic_auth {
+      username = <redacted>
+      password = local.file.token.content
+    }
+  }
+}
