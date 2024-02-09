@@ -238,10 +238,7 @@ func (s *Service) fetchRemote() error {
 	}
 
 	// If successful, flush to disk and keep a copy.
-	err = os.WriteFile(s.dataPath, b, 0750)
-	if err != nil {
-		level.Error(s.opts.Logger).Log("msg", "failed to flush remote configuration contents the on-disk cache", "err", err)
-	}
+	s.setCachedConfig(b)
 	s.setCfgHash(newConfigHash)
 	return nil
 }
@@ -284,6 +281,18 @@ func (s *Service) getCachedConfig() ([]byte, error) {
 	return os.ReadFile(p)
 }
 
+func (s *Service) setCachedConfig(b []byte) error {
+	s.mut.RLock()
+	p := s.dataPath
+	s.mut.RUnlock()
+
+	err := os.WriteFile(p, b, 0750)
+	if err != nil {
+		level.Error(s.opts.Logger).Log("msg", "failed to flush remote configuration contents the on-disk cache", "err", err)
+	}
+	return nil
+}
+
 func (s *Service) parseAndLoad(b []byte) error {
 	s.mut.RLock()
 	ctrl := s.ctrl
@@ -317,5 +326,8 @@ func (s *Service) setCfgHash(h string) {
 }
 
 func (s *Service) isEnabled() bool {
+	s.mut.RLock()
+	defer s.mut.RUnlock()
+
 	return s.args.URL != "" && s.asClient != nil
 }
