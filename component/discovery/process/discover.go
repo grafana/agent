@@ -73,8 +73,10 @@ func convertProcess(p Process) discovery.Target {
 	if p.uid != "" {
 		t[labelProcessUID] = p.uid
 	}
-	for k, v := range p.Analysis.Labels {
-		t[k] = v
+	if p.Analysis != nil {
+		for k, v := range p.Analysis.Labels {
+			t[k] = v
+		}
 	}
 
 	return t
