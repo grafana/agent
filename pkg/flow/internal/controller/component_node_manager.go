@@ -61,7 +61,8 @@ func (m *ComponentNodeManager) getCustomComponentConfig(namespace string, compon
 	if customComponentRegistry == nil || template == nil {
 		return nil, nil, fmt.Errorf("custom component config not found in the registry, namespace: %s, componentName: %s", namespace, componentName)
 	}
-	return template, customComponentRegistry.deepCopy(), nil
+	// The registry is passed as a pointer to the custom component config.
+	return template, customComponentRegistry, nil
 }
 
 // isCustomComponent returns true if the name matches a declare in the provided custom component registry.

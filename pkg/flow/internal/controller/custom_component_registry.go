@@ -67,27 +67,3 @@ func (s *CustomComponentRegistry) updateImportContentChildren(importNode *Import
 		s.imports[child.label] = childScope
 	}
 }
-
-// deepCopy returns a deep copy of the full scope (including parents and imports).
-func (s *CustomComponentRegistry) deepCopy() *CustomComponentRegistry {
-	s.mut.Lock()
-	defer s.mut.Unlock()
-	newScope := NewCustomComponentRegistry(nil)
-
-	if s.parent != nil {
-		newScope.parent = s.parent.deepCopy()
-	}
-
-	for k, v := range s.declares {
-		if v != nil {
-			newScope.declares[k] = v
-		}
-	}
-
-	for k, v := range s.imports {
-		if v != nil {
-			newScope.imports[k] = v.deepCopy()
-		}
-	}
-	return newScope
-}
