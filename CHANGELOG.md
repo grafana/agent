@@ -52,6 +52,7 @@ Main (unreleased)
   the HTTP endpoint on which to connect to Mimir's API. (@hainenber)
 
 - `service_name` label is inferred from discovery meta labels in `pyroscope.java` (@korniltsev)
+- Performance improvements for `pyroscope.ebpf` component profiling python processes (@korniltsev)
 
 - Mutex and block pprofs are now available via the pprof endpoint. (@mattdurham)
 
