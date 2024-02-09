@@ -26,6 +26,16 @@ func (f *Flow) GetServiceConsumers(serviceName string) []service.Consumer {
 	return consumers
 }
 
+func (f *Flow) GetService(name string) (service.Service, bool) {
+	for _, svc := range f.opts.Services {
+		if svc.Definition().Name == name {
+			return svc, true
+		}
+	}
+	return nil, false
+
+}
+
 func serviceConsumersForGraph(graph *dag.Graph, serviceName string, includePeerServices bool) []service.Consumer {
 	serviceNode, _ := graph.GetByID(serviceName).(*controller.ServiceNode)
 	if serviceNode == nil {
