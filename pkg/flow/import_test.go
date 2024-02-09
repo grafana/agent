@@ -767,3 +767,127 @@ func TestImportError(t *testing.T) {
 		})
 	}
 }
+
+type testCaseImportUpdateConfig struct {
+	name        string
+	module      string
+	otherModule string
+	config      string
+	newConfig   string
+}
+
+func TestImportUpdateConfig(t *testing.T) {
+	tt := []testCaseImportUpdateConfig{
+		{
+			name: "Import an import block and a declare that has a cc that refers to the import, and instantiate cc at the root. Then apply a new config that import the nested module directly.",
+			module: `
+                import.file "otherModule" {
+                    filename = "other_module"
+                }
+                declare "anotherModule" {
+                    testcomponents.count "inc" {
+                        frequency = "10ms"
+                        max = 10
+                    }
+
+                    otherModule.test "default" {
+                        input = testcomponents.count.inc.count
+                    }
+
+                    export "anotherModuleOutput" {
+                        value = otherModule.test.default.testOutput
+                    }
+                }
+            `,
+			otherModule: `
+                declare "test" {
+					argument "input" {}
+
+                    testcomponents.passthrough "pt" {
+                        input = argument.input.value
+                        lag = "1ms"
+                    }
+
+                    export "testOutput" {
+                        value = testcomponents.passthrough.pt.output
+                    }
+                }
+            `,
+			config: `
+                import.file "testImport" {
+                    filename = "module"
+                }
+
+                testImport.anotherModule "myOtherModule" {}
+
+                testcomponents.summation "sum" {
+                    input = testImport.anotherModule.myOtherModule.anotherModuleOutput
+                }
+            `,
+			newConfig: `
+                import.file "otherModule" {
+                    filename = "other_module"
+                }
+
+                otherModule.test "myOtherModule" {
+                    input = -10
+                }
+
+                testcomponents.summation "sum" {
+                    input = otherModule.test.myOtherModule.testOutput
+                }
+            `,
+		},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			defer verifyNoGoroutineLeaks(t)
+			filename := "module"
+			require.NoError(t, os.WriteFile(filename, []byte(tc.module), 0664))
+			defer os.Remove(filename)
+
+			otherFilename := "other_module"
+			if tc.otherModule != "" {
+				require.NoError(t, os.WriteFile(otherFilename, []byte(tc.otherModule), 0664))
+				defer os.Remove(otherFilename)
+			}
+			ctrl := flow.New(testOptions(t))
+			f, err := flow.ParseSource(t.Name(), []byte(tc.config))
+			require.NoError(t, err)
+			require.NotNil(t, f)
+
+			err = ctrl.LoadSource(f, nil)
+			require.NoError(t, err)
+
+			ctx, cancel := context.WithCancel(context.Background())
+			done := make(chan struct{})
+			go func() {
+				ctrl.Run(ctx)
+				close(done)
+			}()
+			defer func() {
+				cancel()
+				<-done
+			}()
+
+			require.Eventually(t, func() bool {
+				export := getExport[testcomponents.SummationExports](t, ctrl, "", "testcomponents.summation.sum")
+				return export.LastAdded == 10
+			}, 3*time.Second, 10*time.Millisecond)
+
+			f, err = flow.ParseSource(t.Name(), []byte(tc.newConfig))
+			require.NoError(t, err)
+			require.NotNil(t, f)
+
+			// Reload the controller with the new config.
+			err = ctrl.LoadSource(f, nil)
+			require.NoError(t, err)
+
+			require.Eventually(t, func() bool {
+				export := getExport[testcomponents.SummationExports](t, ctrl, "", "testcomponents.summation.sum")
+				return export.LastAdded == -10
+			}, 3*time.Second, 10*time.Millisecond)
+		})
+	}
+}
