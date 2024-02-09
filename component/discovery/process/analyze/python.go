@@ -34,7 +34,7 @@ func analyzePython(input Input, a *Results) error {
 	if pythonVersion == "" {
 		return nil
 	}
-	m[LabelPython] = "true"
+	m[LabelPython] = labelValueTrue
 	m[LabelPythonVersion] = pythonVersion
 
 	return nil

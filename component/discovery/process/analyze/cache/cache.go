@@ -64,7 +64,6 @@ func (c *Cache) AnalyzePID(pid string) (*analyze.Results, error) {
 	return c.AnalyzePIDPath(uint32(ipid), pid, exePath)
 }
 func (c *Cache) AnalyzePIDPath(pid uint32, pidS string, exePath string) (*analyze.Results, error) {
-
 	e := c.GetPID(pid)
 	if e != nil {
 		return e.Results, nil

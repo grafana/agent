@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
-	"golang.org/x/sys/unix"
 	"os"
 	"os/signal"
 	"strconv"
@@ -13,6 +12,7 @@ import (
 	"time"
 
 	"github.com/prometheus/procfs"
+	"golang.org/x/sys/unix"
 )
 
 const (
@@ -68,7 +68,7 @@ func analyzeJava(input Input, a *Results) error {
 		return nil
 	}
 
-	m[labelJava] = "true"
+	m[labelJava] = labelValueTrue
 	jInfo, err := getInfoFromJcmd(int(input.PID))
 	if err != nil {
 		return nil
@@ -141,12 +141,21 @@ func attachAndRunJcmdCommand(pid int, cmd string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	enterNS(pid, "net")
-	enterNS(pid, "ipc")
-	enterNS(pid, "mnt")
 
-	if (agentGid != targetGid && syscall.Setegid(int(targetGid)) != nil) ||
-		(agentUid != targetUid && syscall.Seteuid(int(targetUid)) != nil) {
+	err = enterNS(pid, "net")
+	if err != nil {
+		return "", err
+	}
+	err = enterNS(pid, "ipc")
+	if err != nil {
+		return "", err
+	}
+	err = enterNS(pid, "mnt")
+	if err != nil {
+		return "", err
+	}
+
+	if (agentGid != targetGid && syscall.Setegid(int(targetGid)) != nil) || (agentUid != targetUid && syscall.Seteuid(int(targetUid)) != nil) {
 		return "", errors.New("failed to change credentials to match the target process")
 	}
 
@@ -212,7 +221,7 @@ func getProcessInfo(pid int) (uid, gid uint32, nspid int, err error) {
 	return uid, gid, nspid, nil
 }
 
-func enterNS(pid int, nsType string) bool {
+func enterNS(pid int, nsType string) error {
 	path := fmt.Sprintf("/proc/%d/ns/%s", pid, nsType)
 	selfPath := fmt.Sprintf("/proc/self/ns/%s", nsType)
 
@@ -223,12 +232,12 @@ func enterNS(pid int, nsType string) bool {
 				newNS, err := syscall.Open(path, syscall.O_RDONLY, 0)
 				_ = syscall.Close(newNS)
 				if err != nil {
-					return false
+					return err
 				}
 			}
 		}
 	}
-	return true
+	return nil
 }
 
 func getTmpPath(pid int) (path string, err error) {

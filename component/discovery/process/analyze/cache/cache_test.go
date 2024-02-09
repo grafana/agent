@@ -91,5 +91,4 @@ func TestCache(t *testing.T) {
 	require.Equal(t, 0, len(c.pids))
 	require.Equal(t, 0, len(c.stats))
 	require.Equal(t, 0, len(c.buildIDs))
-
 }

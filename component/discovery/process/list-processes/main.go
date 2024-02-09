@@ -28,7 +28,6 @@ func run() error {
 	)
 
 	for _, p := range processes {
-
 		attributes = attributes[:4]
 		attributes[0] = "msg"
 		attributes[1] = "found process"

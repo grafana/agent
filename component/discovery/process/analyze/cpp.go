@@ -22,21 +22,21 @@ func analyzeBinary(input Input, a *Results) error {
 
 	for _, lib := range libs {
 		if strings.Contains(lib, "libc++") || strings.Contains(lib, "libstdc++") {
-			m[LabelCPP] = "true"
+			m[LabelCPP] = labelValueTrue
 			break
 		}
 	}
 
 	m[LabelCompiler] = ainur.Compiler(input.ElfFile)
 	if ainur.Static(input.ElfFile) {
-		m[LabelStatic] = "true"
+		m[LabelStatic] = labelValueTrue
 	} else {
-		m[LabelStatic] = "false"
+		m[LabelStatic] = labelValueFalse
 	}
 	if ainur.Stripped(input.ElfFile) {
-		m[LabelStripped] = "true"
+		m[LabelStripped] = labelValueTrue
 	} else {
-		m[LabelStripped] = "false"
+		m[LabelStripped] = labelValueFalse
 	}
 
 	return nil

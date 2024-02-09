@@ -72,7 +72,7 @@ func analyzeDotNet(input Input, a *Results) error {
 		return err
 	}
 
-	m[LabelDotNet] = "true"
+	m[LabelDotNet] = labelValueTrue
 	m[LabelDotNetCommandLine] = info.CommandLine
 	m[LabelDotNetOS] = info.OS
 	m[LabelDotNetArch] = info.Arch

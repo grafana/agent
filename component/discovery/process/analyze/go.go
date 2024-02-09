@@ -32,7 +32,7 @@ func analyzeGo(input Input, a *Results) error {
 		return err
 	}
 
-	m[LabelGo] = "true"
+	m[LabelGo] = labelValueTrue
 
 	if info.GoVersion != "" {
 		m[LabelGoVersion] = info.GoVersion
@@ -52,10 +52,10 @@ func analyzeGo(input Input, a *Results) error {
 	for _, dep := range info.Deps {
 		switch dep.Path {
 		case goSdkModule:
-			m[LabelGoSdk] = "true"
+			m[LabelGoSdk] = labelValueTrue
 			m[LabelGoSdkVersion] = dep.Version
 		case godeltaprofModule:
-			m[LabelGoDeltaProf] = "true"
+			m[LabelGoDeltaProf] = labelValueTrue
 			m[LabelGoDeltaProfVersion] = dep.Version
 		default:
 			//todo should we optionally/configurable include all deps?

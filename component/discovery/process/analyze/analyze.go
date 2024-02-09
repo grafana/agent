@@ -8,6 +8,11 @@ import (
 	"github.com/go-kit/log/level"
 )
 
+const (
+	labelValueTrue  = "true"
+	labelValueFalse = "false"
+)
+
 type Results struct {
 	Labels map[string]string
 }
