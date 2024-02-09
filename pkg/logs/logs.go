@@ -186,6 +186,7 @@ func (i *Instance) ApplyConfig(c *InstanceConfig, g GlobalConfig, dryRun bool) e
 
 	uid := agentseed.Get().UID
 	for i := range c.ClientConfigs {
+		// ClientConfigs is a slice of struct, so we set values with the index
 		if c.ClientConfigs[i].Headers == nil {
 			c.ClientConfigs[i].Headers = map[string]string{}
 		}

@@ -160,8 +160,10 @@ func (c *Component) Update(args component.Arguments) error {
 	}
 
 	cfgs := newArgs.convertClientConfigs()
+
 	uid := agentseed.Get().UID
 	for i := range cfgs {
+		//cfgs is slice of struct values, so we set by index
 		if cfgs[i].Headers == nil {
 			cfgs[i].Headers = map[string]string{}
 		}
