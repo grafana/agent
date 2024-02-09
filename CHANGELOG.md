@@ -73,6 +73,8 @@ Main (unreleased)
 - Fix an issue with static integrations-next marshaling where non singletons
   would cause `/-/config` to fail to marshal. (@erikbaranowski)
 
+- Fix divide-by-zero issue when sharding targets. (@hainenber) 
+
 ### Other changes
 
 - Removed support for Windows 2012 in line with Microsoft end of life. (@mattdurham)
@@ -82,6 +84,8 @@ Main (unreleased)
 - Updated dependency to add support for Go 1.22 (@stefanb)
 
 - Use Go 1.22 for builds. (@rfratto)
+
+- Updated docs for MSSQL Integration to show additional authentication capabilities. (@StefanKurek)
 
 v0.39.2 (2024-1-31)
 --------------------
