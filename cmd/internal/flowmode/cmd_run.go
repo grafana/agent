@@ -33,6 +33,7 @@ import (
 	httpservice "github.com/grafana/agent/service/http"
 	"github.com/grafana/agent/service/labelstore"
 	otel_service "github.com/grafana/agent/service/otel"
+	remotecfgservice "github.com/grafana/agent/service/remotecfg"
 	uiservice "github.com/grafana/agent/service/ui"
 	"github.com/grafana/ckit/advertise"
 	"github.com/grafana/ckit/peer"
@@ -243,6 +244,14 @@ func (fr *flowRun) Run(configPath string) error {
 		EnablePProf:      fr.enablePprof,
 	})
 
+	remoteCfgService, err := remotecfgservice.New(remotecfgservice.Options{
+		Logger:      log.With(l, "service", "remotecfg"),
+		StoragePath: fr.storagePath,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to create the remotecfg service: %w", err)
+	}
+
 	uiService := uiservice.New(uiservice.Options{
 		UIPrefix: fr.uiPrefix,
 		Cluster:  clusterService.Data().(cluster.Cluster),
@@ -267,6 +276,7 @@ func (fr *flowRun) Run(configPath string) error {
 			clusterService,
 			otelService,
 			labelService,
+			remoteCfgService,
 		},
 	})
 

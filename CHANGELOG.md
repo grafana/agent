@@ -27,6 +27,9 @@ Main (unreleased)
 
 - Expose track_timestamps_staleness on Prometheus scraping, to fix the issue where container metrics live for 5 minutes after the container disappears. (@ptodev)
 
+- Introduce the `remotecfg` service that enables loading configuration from a
+  remote endpoint. (@tpaschalis) 
+  
 ### Enhancements
 
 - Include line numbers in profiles produced by `pyrsocope.java` component. (@korniltsev)
