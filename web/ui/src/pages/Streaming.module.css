@@ -1,0 +1,146 @@
+.streamingData {
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.xrayLink {
+  display: inline-block;
+  margin-left: 10px;
+  margin-bottom: 5px;
+}
+
+.xrayLink button {
+  font-size: .8em;
+  line-height: 24px;
+  margin-left: auto;
+  padding: 0 15px;
+  text-decoration: none;
+  background: none;
+  background-color: #3885dc;
+  border: 1px solid #3885dc;
+  border-radius: 3px;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.xrayLink button:focus {
+  outline: none;
+  box-shadow: 0 0 0 0.2rem rgba(220, 220, 220, 0.5);
+}
+
+.xrayLink .stopButton {
+  background-color: #dc3545;
+  color: #ffffff;
+  border-color: #bd2130;
+}
+
+.xrayLink .stopButton:hover {
+  background-color: #bd2130;
+  border-color: #7a1c21;
+}
+
+.xrayLink .clearButton {
+  background-color: #6c757d;
+  color: #ffffff;
+  border-color: #5a6268;
+}
+
+.xrayLink .clearButton:hover {
+  background-color: #5a6268;
+  border-color: #545b62;
+}
+
+.xrayLink .resumeButton {
+  background-color: #28a745;
+  color: #ffffff;
+  border-color: #1e7e34;
+}
+
+.xrayLink .resumeButton:hover {
+  background-color: #1e7e34;
+  border-color: #155724;
+}
+
+.xrayLink .downloadButton {
+  background-color: #ffb01e;
+  color: #ffffff;
+  border-color: #e69500;
+}
+
+.xrayLink .downloadButton:hover {
+  background-color: #e69500;
+  border-color: #cc8400;
+}
+
+.sliderContainer {
+  font-family: Arial, sans-serif;
+  color: #333;
+}
+
+.slider {
+  -webkit-appearance: none;
+  height: 5px;
+  border-radius: 5px;
+  outline: none;
+  opacity: 0.7;
+  -webkit-transition: .2s;
+  transition: opacity .2s;
+  margin-left: 10px;
+  background-color: #24292ebf;
+  vertical-align: middle;
+}
+
+.slider:hover {
+  opacity: 1;
+}
+
+input[type=search] {
+  padding:5px;
+  border-radius:3px;
+  font-size: .8em;
+  border: none;
+  outline: none;
+  flex-grow: 1;
+  min-width: 300px;
+}
+
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: #ffb01e;
+  cursor: pointer;
+}
+
+.slider::-moz-range-thumb {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #ffb01e;
+  cursor: pointer;
+}
+
+.sliderLabel {
+  display: inline-block;
+  margin-left: 10px;
+}
+
+.logLine {
+  white-space: pre-wrap;
+  color: #24292e;
+}
+
+.autoScroll .logLine:nth-child(odd) {
+  background-color: white;
+}
+
+.autoScroll .logLine:nth-child(even) {
+  background-color: rgb(250, 250, 250);
+}

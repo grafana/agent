@@ -17,11 +17,16 @@ import (
 	"github.com/grafana/agent/service/cluster"
 	"github.com/grafana/agent/service/http"
 	"github.com/grafana/agent/service/labelstore"
+	"github.com/grafana/agent/service/xray"
 	client_prometheus "github.com/prometheus/client_golang/prometheus"
 	config_util "github.com/prometheus/common/config"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/config"
 	"github.com/prometheus/prometheus/discovery/targetgroup"
+	"github.com/prometheus/prometheus/model/exemplar"
+	"github.com/prometheus/prometheus/model/histogram"
+	"github.com/prometheus/prometheus/model/labels"
+	"github.com/prometheus/prometheus/model/metadata"
 	"github.com/prometheus/prometheus/scrape"
 	"github.com/prometheus/prometheus/storage"
 )
@@ -155,6 +160,12 @@ func New(o component.Options, args Arguments) (*Component, error) {
 	}
 	ls := service.(labelstore.LabelStore)
 
+	data, err = o.GetServiceData(xray.ServiceName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get information about X-Ray service: %w", err)
+	}
+	xray := data.(*xray.Service)
+
 	flowAppendable := prometheus.NewFanout(args.ForwardTo, o.ID, o.Registerer, ls)
 	scrapeOptions := &scrape.Options{
 		ExtraMetrics: args.ExtraMetrics,
@@ -163,7 +174,6 @@ func New(o component.Options, args Arguments) (*Component, error) {
 		},
 		EnableProtobufNegotiation: args.EnableProtobufNegotiation,
 	}
-	scraper := scrape.NewManager(scrapeOptions, o.Logger, flowAppendable)
 
 	targetsGauge := client_prometheus.NewGauge(client_prometheus.GaugeOpts{
 		Name: "agent_prometheus_scrape_targets_gauge",
@@ -177,10 +187,52 @@ func New(o component.Options, args Arguments) (*Component, error) {
 		opts:          o,
 		cluster:       clusterData,
 		reloadTargets: make(chan struct{}, 1),
-		scraper:       scraper,
 		appendable:    flowAppendable,
 		targetsGauge:  targetsGauge,
 	}
+
+	interceptor := prometheus.NewInterceptor(flowAppendable, ls,
+		prometheus.WithAppendHook(func(globalRef storage.SeriesRef, l labels.Labels, t int64, v float64, next storage.Appender) (storage.SeriesRef, error) {
+			localID := ls.GetLocalRefID(c.opts.ID, uint64(globalRef))
+			_, nextErr := next.Append(storage.SeriesRef(localID), l, t, v)
+			if ds := xray.GetDebugStream(o.ID); ds != nil {
+				ds(fmt.Sprintf("ts=%d, labels=%s, value=%f", t, l, v))
+			}
+			return globalRef, nextErr
+		}),
+		prometheus.WithHistogramHook(func(globalRef storage.SeriesRef, l labels.Labels, t int64, h *histogram.Histogram, fh *histogram.FloatHistogram, next storage.Appender) (storage.SeriesRef, error) {
+			localID := ls.GetLocalRefID(c.opts.ID, uint64(globalRef))
+			_, nextErr := next.AppendHistogram(storage.SeriesRef(localID), l, t, h, fh)
+			if ds := xray.GetDebugStream(o.ID); ds != nil {
+				if h != nil {
+					ds(fmt.Sprintf("ts=%d, labels=%s, histogram=%s", t, l, h.String()))
+				} else if fh != nil {
+					ds(fmt.Sprintf("ts=%d, labels=%s, float_histogram=%s", t, l, fh.String()))
+				} else {
+					ds(fmt.Sprintf("ts=%d, labels=%s, no_value", t, l))
+				}
+			}
+			return globalRef, nextErr
+		}),
+		prometheus.WithMetadataHook(func(globalRef storage.SeriesRef, l labels.Labels, m metadata.Metadata, next storage.Appender) (storage.SeriesRef, error) {
+			localID := ls.GetLocalRefID(c.opts.ID, uint64(globalRef))
+			_, nextErr := next.UpdateMetadata(storage.SeriesRef(localID), l, m)
+			if ds := xray.GetDebugStream(o.ID); ds != nil {
+				ds(fmt.Sprintf("labels=%s, type=%s, unit=%s, help=%s", l, m.Type, m.Unit, m.Help))
+			}
+			return globalRef, nextErr
+		}),
+		prometheus.WithExemplarHook(func(globalRef storage.SeriesRef, l labels.Labels, e exemplar.Exemplar, next storage.Appender) (storage.SeriesRef, error) {
+			localID := ls.GetLocalRefID(c.opts.ID, uint64(globalRef))
+			_, nextErr := next.AppendExemplar(storage.SeriesRef(localID), l, e)
+			if ds := xray.GetDebugStream(o.ID); ds != nil {
+				ds(fmt.Sprintf("ts=%d, labels=%s, exemplar_labels=%s, value=%f", e.Ts, l, e.Labels, e.Value))
+			}
+			return globalRef, nextErr
+		}),
+	)
+
+	c.scraper = scrape.NewManager(scrapeOptions, o.Logger, interceptor)
 
 	// Call to Update() to set the receivers and targets once at the start.
 	if err := c.Update(args); err != nil {

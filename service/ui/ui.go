@@ -11,6 +11,7 @@ import (
 	"github.com/grafana/agent/service"
 	"github.com/grafana/agent/service/cluster"
 	http_service "github.com/grafana/agent/service/http"
+	"github.com/grafana/agent/service/xray"
 	"github.com/grafana/agent/web/api"
 	"github.com/grafana/agent/web/ui"
 )
@@ -22,6 +23,7 @@ const ServiceName = "ui"
 // lifetime of the UI service.
 type Options struct {
 	Cluster  cluster.Cluster
+	Xray     *xray.Service
 	UIPrefix string // Path prefix to host the UI at.
 }
 
@@ -47,7 +49,7 @@ func (s *Service) Definition() service.Definition {
 	return service.Definition{
 		Name:       ServiceName,
 		ConfigType: nil, // ui does not accept configuration
-		DependsOn:  []string{http_service.ServiceName},
+		DependsOn:  []string{http_service.ServiceName, xray.ServiceName},
 	}
 }
 
@@ -77,7 +79,7 @@ func (s *Service) ServiceHandler(host service.Host) (base string, handler http.H
 
 	// TODO(rfratto): allow service.Host to return services so we don't have to
 	// pass the clustering service in Options.
-	fa := api.NewFlowAPI(host, s.opts.Cluster)
+	fa := api.NewFlowAPI(host, s.opts.Cluster, s.opts.Xray)
 	fa.RegisterRoutes(path.Join(s.opts.UIPrefix, "/api/v0/web"), r)
 	ui.RegisterRoutes(s.opts.UIPrefix, r)
 

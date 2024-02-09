@@ -18,6 +18,7 @@ import (
 
 	"github.com/grafana/agent/component/prometheus"
 	"github.com/grafana/agent/service/labelstore"
+	"github.com/grafana/agent/service/xray"
 
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/component"
@@ -91,6 +92,12 @@ func New(o component.Options, c Arguments) (*Component, error) {
 	}
 	ls := service.(labelstore.LabelStore)
 
+	data, err := o.GetServiceData(xray.ServiceName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get information about X-Ray service: %w", err)
+	}
+	xray := data.(*xray.Service)
+
 	res := &Component{
 		log:         o.Logger,
 		opts:        o,
@@ -118,6 +125,10 @@ func New(o component.Options, c Arguments) (*Component, error) {
 			if localID == 0 {
 				ls.GetOrAddLink(res.opts.ID, uint64(newRef), l)
 			}
+			if ds := xray.GetDebugStream(o.ID); ds != nil {
+				ds(fmt.Sprintf("ts=%d, labels=%s, value=%f", t, l, v))
+			}
+
 			return globalRef, nextErr
 		}),
 		prometheus.WithHistogramHook(func(globalRef storage.SeriesRef, l labels.Labels, t int64, h *histogram.Histogram, fh *histogram.FloatHistogram, next storage.Appender) (storage.SeriesRef, error) {
@@ -129,6 +140,15 @@ func New(o component.Options, c Arguments) (*Component, error) {
 			newRef, nextErr := next.AppendHistogram(storage.SeriesRef(localID), l, t, h, fh)
 			if localID == 0 {
 				ls.GetOrAddLink(res.opts.ID, uint64(newRef), l)
+			}
+			if ds := xray.GetDebugStream(o.ID); ds != nil {
+				if h != nil {
+					ds(fmt.Sprintf("ts=%d, labels=%s, histogram=%s", t, l, h.String()))
+				} else if fh != nil {
+					ds(fmt.Sprintf("ts=%d, labels=%s, float_histogram=%s", t, l, fh.String()))
+				} else {
+					ds(fmt.Sprintf("ts=%d, labels=%s, no_value", t, l))
+				}
 			}
 			return globalRef, nextErr
 		}),
@@ -142,6 +162,9 @@ func New(o component.Options, c Arguments) (*Component, error) {
 			if localID == 0 {
 				ls.GetOrAddLink(res.opts.ID, uint64(newRef), l)
 			}
+			if ds := xray.GetDebugStream(o.ID); ds != nil {
+				ds(fmt.Sprintf("labels=%s, type=%s, unit=%s, help=%s", l, m.Type, m.Unit, m.Help))
+			}
 			return globalRef, nextErr
 		}),
 		prometheus.WithExemplarHook(func(globalRef storage.SeriesRef, l labels.Labels, e exemplar.Exemplar, next storage.Appender) (storage.SeriesRef, error) {
@@ -153,6 +176,9 @@ func New(o component.Options, c Arguments) (*Component, error) {
 			newRef, nextErr := next.AppendExemplar(storage.SeriesRef(localID), l, e)
 			if localID == 0 {
 				ls.GetOrAddLink(res.opts.ID, uint64(newRef), l)
+			}
+			if ds := xray.GetDebugStream(o.ID); ds != nil {
+				ds(fmt.Sprintf("ts=%d, labels=%s, exemplar_labels=%s, value=%f", e.Ts, l, e.Labels, e.Value))
 			}
 			return globalRef, nextErr
 		}),

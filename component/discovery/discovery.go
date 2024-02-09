@@ -2,6 +2,7 @@ package discovery
 
 import (
 	"context"
+	"fmt"
 	"sort"
 	"strings"
 	"sync"
@@ -9,6 +10,7 @@ import (
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/service/cluster"
+	"github.com/grafana/agent/service/xray"
 	"github.com/grafana/ckit/shard"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/discovery"
@@ -108,17 +110,25 @@ type Component struct {
 	discMut       sync.Mutex
 	latestDisc    discovery.Discoverer
 	newDiscoverer chan struct{}
+	xray          *xray.Service
 
 	creator Creator
 }
 
 // New creates a discovery component given arguments and a concrete Discovery implementation function.
 func New(o component.Options, args component.Arguments, creator Creator) (*Component, error) {
+	data, err := o.GetServiceData(xray.ServiceName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get information about X-Ray service: %w", err)
+	}
+	xray := data.(*xray.Service)
+
 	c := &Component{
 		opts:    o,
 		creator: creator,
 		// buffered to avoid deadlock from the first immediate update
 		newDiscoverer: make(chan struct{}, 1),
+		xray:          xray,
 	}
 	return c, c.Update(args)
 }
@@ -197,6 +207,10 @@ func (c *Component) runDiscovery(ctx context.Context, d Discoverer) {
 				}
 				allTargets = append(allTargets, labels)
 			}
+		}
+
+		if ds := c.xray.GetDebugStream(c.opts.ID); ds != nil {
+			ds(fmt.Sprintf("%s", allTargets))
 		}
 		c.opts.OnStateChange(Exports{Targets: allTargets})
 	}

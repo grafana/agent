@@ -3,6 +3,8 @@ package loki
 
 import (
 	"context"
+	"fmt"
+	"time"
 
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/component"
@@ -10,6 +12,7 @@ import (
 	"github.com/grafana/agent/component/otelcol"
 	"github.com/grafana/agent/component/otelcol/exporter/loki/internal/convert"
 	"github.com/grafana/agent/component/otelcol/internal/lazyconsumer"
+	"github.com/grafana/agent/service/xray"
 )
 
 func init() {
@@ -34,20 +37,34 @@ type Component struct {
 	log  log.Logger
 	opts component.Options
 
-	converter *convert.Converter
+	converter               *convert.Converter
+	logsReceiverStreamDebug *logsReceiverStreamDebug
+	xray                    *xray.Service
 }
 
-var _ component.Component = (*Component)(nil)
+var (
+	_ component.Component = (*Component)(nil)
+)
 
 // New creates a new otelcol.exporter.loki component.
 func New(o component.Options, c Arguments) (*Component, error) {
 	converter := convert.New(o.Logger, o.Registerer, c.ForwardTo)
+
+	data, err := o.GetServiceData(xray.ServiceName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get information about X-Ray service: %w", err)
+	}
+	xray := data.(*xray.Service)
 
 	res := &Component{
 		log:  o.Logger,
 		opts: o,
 
 		converter: converter,
+		logsReceiverStreamDebug: &logsReceiverStreamDebug{
+			entries: make(chan loki.Entry),
+		},
+		xray: xray,
 	}
 	if err := res.Update(c); err != nil {
 		return nil, err
@@ -65,13 +82,29 @@ func New(o component.Options, c Arguments) (*Component, error) {
 
 // Run implements Component.
 func (c *Component) Run(ctx context.Context) error {
-	<-ctx.Done()
-	return nil
+	for {
+		select {
+		case <-ctx.Done():
+			return nil
+		case entry := <-c.logsReceiverStreamDebug.Chan():
+			if ds := c.xray.GetDebugStream(c.opts.ID); ds != nil {
+				ds(fmt.Sprintf("ts=%s, labels=%s, entry=%s", entry.Timestamp.Format(time.RFC3339Nano), entry.Labels.String(), entry.Line))
+			}
+		}
+	}
 }
 
 // Update implements Component.
 func (c *Component) Update(newConfig component.Arguments) error {
 	cfg := newConfig.(Arguments)
-	c.converter.UpdateFanout(cfg.ForwardTo)
+	c.converter.UpdateFanout(append(cfg.ForwardTo, c.logsReceiverStreamDebug))
 	return nil
+}
+
+type logsReceiverStreamDebug struct {
+	entries chan loki.Entry
+}
+
+func (l *logsReceiverStreamDebug) Chan() chan loki.Entry {
+	return l.entries
 }

@@ -6,12 +6,15 @@ package api
 
 import (
 	"encoding/json"
+	"math/rand"
 	"net/http"
 	"path"
+	"strconv"
 
 	"github.com/gorilla/mux"
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/service/cluster"
+	"github.com/grafana/agent/service/xray"
 	"github.com/prometheus/prometheus/util/httputil"
 )
 
@@ -19,11 +22,12 @@ import (
 type FlowAPI struct {
 	flow    component.Provider
 	cluster cluster.Cluster
+	xray    *xray.Service
 }
 
 // NewFlowAPI instantiates a new Flow API.
-func NewFlowAPI(flow component.Provider, cluster cluster.Cluster) *FlowAPI {
-	return &FlowAPI{flow: flow, cluster: cluster}
+func NewFlowAPI(flow component.Provider, cluster cluster.Cluster, xray *xray.Service) *FlowAPI {
+	return &FlowAPI{flow: flow, cluster: cluster, xray: xray}
 }
 
 // RegisterRoutes registers all the API's routes.
@@ -36,6 +40,7 @@ func (f *FlowAPI) RegisterRoutes(urlPrefix string, r *mux.Router) {
 	r.Handle(path.Join(urlPrefix, "/components"), httputil.CompressionHandler{Handler: f.listComponentsHandler()})
 	r.Handle(path.Join(urlPrefix, "/components/{id:.+}"), httputil.CompressionHandler{Handler: f.getComponentHandler()})
 	r.Handle(path.Join(urlPrefix, "/peers"), httputil.CompressionHandler{Handler: f.getClusteringPeersHandler()})
+	r.Handle(path.Join(urlPrefix, "/debugStream/{id:.+}"), f.startDebugStream())
 }
 
 func (f *FlowAPI) listComponentsHandler() http.HandlerFunc {
@@ -100,5 +105,61 @@ func (f *FlowAPI) getClusteringPeersHandler() http.HandlerFunc {
 			return
 		}
 		_, _ = w.Write(bb)
+	}
+}
+
+func (f *FlowAPI) startDebugStream() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		componentID := vars["id"]
+
+		dataCh := make(chan string, 1000) // Define the size of the channel, is 1000 ok?
+		ctx := r.Context()
+
+		sampleProbParam := r.URL.Query().Get("sampleProb")
+		sampleProb := 1.0
+		if sampleProbParam != "" {
+			var err error
+			sampleProb, err = strconv.ParseFloat(sampleProbParam, 64)
+			if err != nil || sampleProb < 0 || sampleProb > 1 {
+				http.Error(w, "Invalid sample probability", http.StatusBadRequest)
+				return
+			}
+		}
+
+		f.xray.SetDebugStream(componentID, func(data string) {
+			select {
+			case <-ctx.Done():
+				return
+			default:
+				if sampleProb < 1 && rand.Float64() > sampleProb {
+					return
+				}
+				// Avoid blocking the channel when the channel is full
+				select {
+				case dataCh <- data:
+				default:
+				}
+			}
+		})
+		stopStreaming := func() {
+			close(dataCh)
+			f.xray.DeleteDebugStream(componentID)
+		}
+
+		for {
+			select {
+			case data := <-dataCh:
+				_, writeErr := w.Write([]byte(data + "|xray|"))
+				if writeErr != nil {
+					stopStreaming()
+					return
+				}
+				w.(http.Flusher).Flush()
+			case <-ctx.Done():
+				stopStreaming()
+				return
+			}
+		}
 	}
 }

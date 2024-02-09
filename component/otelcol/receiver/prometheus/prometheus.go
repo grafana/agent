@@ -3,6 +3,7 @@ package prometheus
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"regexp"
 	"sync"
@@ -11,10 +12,12 @@ import (
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/otelcol"
+	debugstreamconsumer "github.com/grafana/agent/component/otelcol/internal/debugStreamConsumer"
 	"github.com/grafana/agent/component/otelcol/internal/fanoutconsumer"
 	"github.com/grafana/agent/component/otelcol/receiver/prometheus/internal"
 	"github.com/grafana/agent/pkg/build"
 	"github.com/grafana/agent/pkg/util/zapadapter"
+	"github.com/grafana/agent/service/xray"
 	"github.com/prometheus/prometheus/model/labels"
 	"github.com/prometheus/prometheus/storage"
 	otelcomponent "go.opentelemetry.io/collector/component"
@@ -52,18 +55,31 @@ type Component struct {
 	log  log.Logger
 	opts component.Options
 
-	mut        sync.RWMutex
-	cfg        Arguments
-	appendable storage.Appendable
+	mut                 sync.RWMutex
+	cfg                 Arguments
+	appendable          storage.Appendable
+	debugStreamConsumer *debugstreamconsumer.Consumer
 }
 
-var _ component.Component = (*Component)(nil)
+var (
+	_ component.Component = (*Component)(nil)
+)
 
 // New creates a new otelcol.receiver.prometheus component.
 func New(o component.Options, c Arguments) (*Component, error) {
+	data, err := o.GetServiceData(xray.ServiceName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get information about X-Ray service: %w", err)
+	}
+	xray := data.(*xray.Service)
+	debugStreamCallback := func() func(string) {
+		return xray.GetDebugStream(o.ID)
+	}
+
 	res := &Component{
-		log:  o.Logger,
-		opts: o,
+		log:                 o.Logger,
+		opts:                o,
+		debugStreamConsumer: debugstreamconsumer.New(debugStreamCallback),
 	}
 
 	if err := res.Update(c); err != nil {
@@ -132,7 +148,7 @@ func (c *Component) Update(newConfig component.Arguments) error {
 			Version:     build.Version,
 		},
 	}
-	metricsSink := fanoutconsumer.Metrics(cfg.Output.Metrics)
+	metricsSink := fanoutconsumer.Metrics(append(cfg.Output.Metrics, c.debugStreamConsumer))
 
 	appendable, err := internal.NewAppendable(
 		metricsSink,

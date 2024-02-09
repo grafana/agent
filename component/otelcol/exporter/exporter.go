@@ -5,16 +5,18 @@ package exporter
 import (
 	"context"
 	"errors"
+	"fmt"
 	"os"
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/otelcol"
 	"github.com/grafana/agent/component/otelcol/internal/lazycollector"
-	"github.com/grafana/agent/component/otelcol/internal/lazyconsumer"
+	"github.com/grafana/agent/component/otelcol/internal/lazyexporterconsumer"
 	"github.com/grafana/agent/component/otelcol/internal/scheduler"
 	"github.com/grafana/agent/component/otelcol/internal/views"
 	"github.com/grafana/agent/pkg/build"
 	"github.com/grafana/agent/pkg/util/zapadapter"
+	"github.com/grafana/agent/service/xray"
 	"github.com/prometheus/client_golang/prometheus"
 	otelcomponent "go.opentelemetry.io/collector/component"
 	otelexporter "go.opentelemetry.io/collector/exporter"
@@ -79,7 +81,7 @@ type Exporter struct {
 
 	opts     component.Options
 	factory  otelexporter.Factory
-	consumer *lazyconsumer.Consumer
+	consumer *lazyexporterconsumer.Consumer
 
 	sched     *scheduler.Scheduler
 	collector *lazycollector.Collector
@@ -101,9 +103,18 @@ var (
 // The registered component must be registered to export the
 // otelcol.ConsumerExports type, otherwise New will panic.
 func New(opts component.Options, f otelexporter.Factory, args Arguments, supportedSignals TypeSignal) (*Exporter, error) {
+	data, err := opts.GetServiceData(xray.ServiceName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get information about X-Ray service: %w", err)
+	}
+	xray := data.(*xray.Service)
+	debugStreamCallback := func() func(string) {
+		return xray.GetDebugStream(opts.ID)
+	}
+
 	ctx, cancel := context.WithCancel(context.Background())
 
-	consumer := lazyconsumer.New(ctx)
+	consumer := lazyexporterconsumer.New(ctx, debugStreamCallback)
 
 	// Create a lazy collector where metrics from the upstream component will be
 	// forwarded.

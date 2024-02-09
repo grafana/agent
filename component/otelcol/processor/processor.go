@@ -5,16 +5,19 @@ package processor
 import (
 	"context"
 	"errors"
+	"fmt"
 	"os"
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/otelcol"
+	debugstreamconsumer "github.com/grafana/agent/component/otelcol/internal/debugStreamConsumer"
 	"github.com/grafana/agent/component/otelcol/internal/fanoutconsumer"
 	"github.com/grafana/agent/component/otelcol/internal/lazycollector"
 	"github.com/grafana/agent/component/otelcol/internal/lazyconsumer"
 	"github.com/grafana/agent/component/otelcol/internal/scheduler"
 	"github.com/grafana/agent/pkg/build"
 	"github.com/grafana/agent/pkg/util/zapadapter"
+	"github.com/grafana/agent/service/xray"
 	"github.com/prometheus/client_golang/prometheus"
 	otelcomponent "go.opentelemetry.io/collector/component"
 	otelextension "go.opentelemetry.io/collector/extension"
@@ -56,6 +59,8 @@ type Processor struct {
 
 	sched     *scheduler.Scheduler
 	collector *lazycollector.Collector
+
+	debugStreamConsumer *debugstreamconsumer.Consumer
 }
 
 var (
@@ -70,6 +75,15 @@ var (
 // The registered component must be registered to export the
 // otelcol.ConsumerExports type, otherwise New will panic.
 func New(opts component.Options, f otelprocessor.Factory, args Arguments) (*Processor, error) {
+	data, err := opts.GetServiceData(xray.ServiceName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get information about X-Ray service: %w", err)
+	}
+	xray := data.(*xray.Service)
+	debugStreamCallback := func() func(string) {
+		return xray.GetDebugStream(opts.ID)
+	}
+
 	ctx, cancel := context.WithCancel(context.Background())
 
 	consumer := lazyconsumer.New(ctx)
@@ -94,8 +108,9 @@ func New(opts component.Options, f otelprocessor.Factory, args Arguments) (*Proc
 		factory:  f,
 		consumer: consumer,
 
-		sched:     scheduler.New(opts.Logger),
-		collector: collector,
+		sched:               scheduler.New(opts.Logger),
+		collector:           collector,
+		debugStreamConsumer: debugstreamconsumer.New(debugStreamCallback),
 	}
 	if err := p.Update(args); err != nil {
 		return nil, err
@@ -155,9 +170,9 @@ func (p *Processor) Update(args component.Arguments) error {
 
 	var (
 		next        = pargs.NextConsumers()
-		nextTraces  = fanoutconsumer.Traces(next.Traces)
-		nextMetrics = fanoutconsumer.Metrics(next.Metrics)
-		nextLogs    = fanoutconsumer.Logs(next.Logs)
+		nextTraces  = fanoutconsumer.Traces(append(next.Traces, p.debugStreamConsumer))
+		nextMetrics = fanoutconsumer.Metrics(append(next.Metrics, p.debugStreamConsumer))
+		nextLogs    = fanoutconsumer.Logs(append(next.Logs, p.debugStreamConsumer))
 	)
 
 	// Create instances of the processor from our factory for each of our

@@ -9,10 +9,12 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/otelcol"
+	debugstreamconsumer "github.com/grafana/agent/component/otelcol/internal/debugStreamConsumer"
 	"github.com/grafana/agent/component/otelcol/internal/fanoutconsumer"
 	"github.com/grafana/agent/component/otelcol/internal/lazyconsumer"
 	"github.com/grafana/agent/pkg/flow/logging/level"
 	promsdconsumer "github.com/grafana/agent/pkg/traces/promsdprocessor/consumer"
+	"github.com/grafana/agent/service/xray"
 	"github.com/grafana/river"
 )
 
@@ -77,8 +79,9 @@ func (args *Arguments) Validate() error {
 
 // Component is the otelcol.exporter.discovery component.
 type Component struct {
-	consumer *promsdconsumer.Consumer
-	logger   log.Logger
+	consumer            *promsdconsumer.Consumer
+	logger              log.Logger
+	debugStreamConsumer *debugstreamconsumer.Consumer
 }
 
 var _ component.Component = (*Component)(nil)
@@ -89,7 +92,17 @@ func New(o component.Options, c Arguments) (*Component, error) {
 		level.Warn(o.Logger).Log("msg", "non-trace output detected; this component only works for traces")
 	}
 
-	nextTraces := fanoutconsumer.Traces(c.Output.Traces)
+	data, err := o.GetServiceData(xray.ServiceName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get information about X-Ray service: %w", err)
+	}
+	xray := data.(*xray.Service)
+	debugStreamCallback := func() func(string) {
+		return xray.GetDebugStream(o.ID)
+	}
+	debugStreamConsumer := debugstreamconsumer.New(debugStreamCallback)
+
+	nextTraces := fanoutconsumer.Traces(append(c.Output.Traces, debugStreamConsumer))
 
 	consumerOpts := promsdconsumer.Options{
 		// Don't bother setting up labels - this will be done by the Update() function.
@@ -104,8 +117,9 @@ func New(o component.Options, c Arguments) (*Component, error) {
 	}
 
 	res := &Component{
-		consumer: consumer,
-		logger:   o.Logger,
+		consumer:            consumer,
+		logger:              o.Logger,
+		debugStreamConsumer: debugStreamConsumer,
 	}
 
 	if err := res.Update(c); err != nil {

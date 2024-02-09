@@ -5,16 +5,19 @@ package receiver
 import (
 	"context"
 	"errors"
+	"fmt"
 	"os"
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/otelcol"
+	debugstreamconsumer "github.com/grafana/agent/component/otelcol/internal/debugStreamConsumer"
 	"github.com/grafana/agent/component/otelcol/internal/fanoutconsumer"
 	"github.com/grafana/agent/component/otelcol/internal/lazycollector"
 	"github.com/grafana/agent/component/otelcol/internal/scheduler"
 	"github.com/grafana/agent/component/otelcol/internal/views"
 	"github.com/grafana/agent/pkg/build"
 	"github.com/grafana/agent/pkg/util/zapadapter"
+	"github.com/grafana/agent/service/xray"
 	"github.com/prometheus/client_golang/prometheus"
 	otelcomponent "go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/extension"
@@ -56,8 +59,9 @@ type Receiver struct {
 	opts    component.Options
 	factory otelreceiver.Factory
 
-	sched     *scheduler.Scheduler
-	collector *lazycollector.Collector
+	sched               *scheduler.Scheduler
+	collector           *lazycollector.Collector
+	debugStreamConsumer *debugstreamconsumer.Consumer
 }
 
 var (
@@ -73,6 +77,15 @@ var (
 // responsibility of the caller to export values when needed; the Receiver
 // component never exports any values.
 func New(opts component.Options, f otelreceiver.Factory, args Arguments) (*Receiver, error) {
+	data, err := opts.GetServiceData(xray.ServiceName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get information about X-Ray service: %w", err)
+	}
+	xray := data.(*xray.Service)
+	debugStreamCallback := func() func(string) {
+		return xray.GetDebugStream(opts.ID)
+	}
+
 	ctx, cancel := context.WithCancel(context.Background())
 
 	// Create a lazy collector where metrics from the upstream component will be
@@ -87,8 +100,9 @@ func New(opts component.Options, f otelreceiver.Factory, args Arguments) (*Recei
 		opts:    opts,
 		factory: f,
 
-		sched:     scheduler.New(opts.Logger),
-		collector: collector,
+		sched:               scheduler.New(opts.Logger),
+		collector:           collector,
+		debugStreamConsumer: debugstreamconsumer.New(debugStreamCallback),
 	}
 	if err := r.Update(args); err != nil {
 		return nil, err
@@ -153,9 +167,9 @@ func (r *Receiver) Update(args component.Arguments) error {
 
 	var (
 		next        = rargs.NextConsumers()
-		nextTraces  = fanoutconsumer.Traces(next.Traces)
-		nextMetrics = fanoutconsumer.Metrics(next.Metrics)
-		nextLogs    = fanoutconsumer.Logs(next.Logs)
+		nextTraces  = fanoutconsumer.Traces(append(next.Traces, r.debugStreamConsumer))
+		nextMetrics = fanoutconsumer.Metrics(append(next.Metrics, r.debugStreamConsumer))
+		nextLogs    = fanoutconsumer.Logs(append(next.Logs, r.debugStreamConsumer))
 	)
 
 	// Create instances of the receiver from our factory for each of our

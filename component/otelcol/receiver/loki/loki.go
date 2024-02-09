@@ -3,6 +3,7 @@ package loki
 
 import (
 	"context"
+	"fmt"
 	"path"
 	"strings"
 	"sync"
@@ -11,8 +12,10 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/common/loki"
 	"github.com/grafana/agent/component/otelcol"
+	debugstreamconsumer "github.com/grafana/agent/component/otelcol/internal/debugStreamConsumer"
 	"github.com/grafana/agent/component/otelcol/internal/fanoutconsumer"
 	"github.com/grafana/agent/pkg/flow/logging/level"
+	"github.com/grafana/agent/service/xray"
 	loki_translator "github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/loki"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/pdata/plog"
@@ -49,9 +52,10 @@ type Component struct {
 	log  log.Logger
 	opts component.Options
 
-	mut      sync.RWMutex
-	receiver loki.LogsReceiver
-	logsSink consumer.Logs
+	mut                 sync.RWMutex
+	receiver            loki.LogsReceiver
+	logsSink            consumer.Logs
+	debugStreamConsumer *debugstreamconsumer.Consumer
 }
 
 var _ component.Component = (*Component)(nil)
@@ -60,9 +64,20 @@ var _ component.Component = (*Component)(nil)
 func New(o component.Options, c Arguments) (*Component, error) {
 	// TODO(@tpaschalis) Create a metrics struct to count
 	// total/successful/errored log entries?
+
+	data, err := o.GetServiceData(xray.ServiceName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get information about X-Ray service: %w", err)
+	}
+	xray := data.(*xray.Service)
+	debugStreamCallback := func() func(string) {
+		return xray.GetDebugStream(o.ID)
+	}
+
 	res := &Component{
-		log:  o.Logger,
-		opts: o,
+		log:                 o.Logger,
+		opts:                o,
+		debugStreamConsumer: debugstreamconsumer.New(debugStreamCallback),
 	}
 
 	// Create and immediately export the receiver which remains the same for
@@ -101,7 +116,7 @@ func (c *Component) Update(newConfig component.Arguments) error {
 	defer c.mut.Unlock()
 
 	cfg := newConfig.(Arguments)
-	c.logsSink = fanoutconsumer.Logs(cfg.Output.Logs)
+	c.logsSink = fanoutconsumer.Logs(append(cfg.Output.Logs, c.debugStreamConsumer))
 
 	return nil
 }
