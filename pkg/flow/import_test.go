@@ -18,9 +18,7 @@ import (
 func TestImport(t *testing.T) {
 	const defaultModuleUpdate = `
     declare "test" {
-        argument "input" {
-            optional = false
-        }
+        argument "input" {}
 
         export "testOutput" {
             value = -10
@@ -36,12 +34,10 @@ func TestImport(t *testing.T) {
 		updateFile   string
 	}{
 		{
-			name: "Basic",
+			name: "Import a declare and instantiate cc at the root",
 			module: `
                 declare "test" {
-                    argument "input" {
-                        optional = false
-                    }
+					argument "input" {}
 
                     testcomponents.passthrough "pt" {
                         input = argument.input.value
@@ -76,11 +72,13 @@ func TestImport(t *testing.T) {
 			updateFile: "module",
 		},
 		{
-			name: "NoArgs",
+			name: "Import a declare inside of a declare and instantiate cc in the declare",
 			module: `
                 declare "test" {
+					argument "input" {}
+
                     testcomponents.passthrough "pt" {
-                        input = 10
+                        input = argument.input.value
                         lag = "1ms"
                     }
 
@@ -89,40 +87,41 @@ func TestImport(t *testing.T) {
                     }
                 }`,
 			config: `
-                import.file "testImport" {
-                    filename = "module"
-                }
+				declare "a" {
+					testcomponents.count "inc" {
+						frequency = "10ms"
+						max = 10
+					}
+	
+					import.file "testImport" {
+						filename = "module"
+					}
+	
+					testImport.test "myModule" {
+						input = testcomponents.count.inc.count
+					}
 
-                testImport.test "myModule" {
-                }
+					export "testOutput" {
+                        value = testImport.test.myModule.testOutput
+                    }
+				}
+
+				a "bla" {} 
 
                 testcomponents.summation "sum" {
-                    input = testImport.test.myModule.testOutput
+                    input = a.bla.testOutput
                 }
             `,
 			updateModule: func(filename string) string {
-				return `
-                    declare "test" {
-                        testcomponents.passthrough "pt" {
-                            input = -10
-                            lag = "1ms"
-                        }
-
-                        export "testOutput" {
-                            value = testcomponents.passthrough.pt.output
-                        }
-                    }
-                `
+				return defaultModuleUpdate
 			},
 			updateFile: "module",
 		},
 		{
-			name: "InstantiatedDepth1",
+			name: "Import a declare and instantiate cc in a declare",
 			module: `
                 declare "test" {
-                    argument "input" {
-                        optional = false
-                    }
+					argument "input" {}
 
                     testcomponents.passthrough "pt" {
                         input = argument.input.value
@@ -135,11 +134,6 @@ func TestImport(t *testing.T) {
                 }
             `,
 			config: `
-                testcomponents.count "inc" {
-                    frequency = "10ms"
-                    max = 10
-                }
-
                 import.file "testImport" {
                     filename = "module"
                 }
@@ -171,12 +165,10 @@ func TestImport(t *testing.T) {
 			updateFile: "module",
 		},
 		{
-			name: "InstantiatedDepth2",
+			name: "Import a declare and instantiate cc in a declare nested inside of another declare",
 			module: `
                 declare "test" {
-                    argument "input" {
-                        optional = false
-                    }
+					argument "input" {}
 
                     export "testOutput" {
                         value = argument.input.value
@@ -184,11 +176,6 @@ func TestImport(t *testing.T) {
                 }
             `,
 			config: `
-                testcomponents.count "inc" {
-                    frequency = "10ms"
-                    max = 10
-                }
-
                 import.file "testImport" {
                     filename = "module"
                 }
@@ -232,7 +219,7 @@ func TestImport(t *testing.T) {
 			updateFile: "module",
 		},
 		{
-			name: "ImportBlockInImportedContentDepth1",
+			name: "Import an import block and a declare that has a cc that refers to the import, and instantiate cc at the root",
 			module: `
                 import.file "otherModule" {
                     filename = "other_module"
@@ -254,9 +241,7 @@ func TestImport(t *testing.T) {
             `,
 			otherModule: `
                 declare "test" {
-                    argument "input" {
-                        optional = false
-                    }
+					argument "input" {}
 
                     testcomponents.passthrough "pt" {
                         input = argument.input.value
@@ -285,7 +270,7 @@ func TestImport(t *testing.T) {
 			updateFile: "other_module",
 		},
 		{
-			name: "ImportBlockInImportedContentDepth2",
+			name: "Import an import block and a declare that has a cc in a nested declare that refers to the import, and instantiate cc at the root",
 			module: `
                 import.file "default" {
                     filename = "other_module"
@@ -333,24 +318,22 @@ func TestImport(t *testing.T) {
             }
             `,
 			config: `
-                    import.file "testImport" {
-                        filename = "module"
-                    }
-    
-                    testImport.anotherModule "myOtherModule" {}
-    
-                    testcomponents.summation "sum" {
-                        input = testImport.anotherModule.myOtherModule.anotherModuleOutput
-                    }
-                `,
+				import.file "testImport" {
+					filename = "module"
+				}
+
+				testImport.anotherModule "myOtherModule" {}
+
+				testcomponents.summation "sum" {
+					input = testImport.anotherModule.myOtherModule.anotherModuleOutput
+				}
+			`,
 		},
 		{
-			name: "ImportedContentUseLocalDeclare",
+			name: "Import two declares with one used inside of the other via a cc and instantiate a cc at the root",
 			module: `
                 declare "other_test" {
-                    argument "input" {
-                        optional = false
-                    }
+					argument "input" {}
 
                     testcomponents.passthrough "pt" {
                         input = argument.input.value
@@ -363,9 +346,7 @@ func TestImport(t *testing.T) {
                 }
 
                 declare "test" {
-                    argument "input" {
-                        optional = false
-                    }
+					argument "input" {}
 
                     other_test "default" {
                         input = argument.input.value
@@ -377,11 +358,6 @@ func TestImport(t *testing.T) {
                 }
             `,
 			config: `
-                testcomponents.count "inc" {
-                    frequency = "10ms"
-                    max = 10
-                }
-
                 import.file "testImport" {
                     filename = "module"
                 }
@@ -410,18 +386,15 @@ func TestImport(t *testing.T) {
 			updateModule: func(filename string) string {
 				return `
                 declare "other_test" {
-                    argument "input" {
-                        optional = false
-                    }
+					argument "input" {}
+	
                     export "output" {
                         value = -10
                     }
                 }
 
                 declare "test" {
-                    argument "input" {
-                        optional = false
-                    }
+					argument "input" {}
 
                     other_test "default" {
                         input = argument.input.value
@@ -436,15 +409,13 @@ func TestImport(t *testing.T) {
 			updateFile: "module",
 		},
 		{
-			name: "ComplexScenario",
+			name: "Import an import and a cc using the import and instantiate cc in a declare",
 			module: `
                 import.file "importOtherTest" {
                     filename = "other_module"
                 }
                 declare "test" {
-                    argument "input" {
-                        optional = false
-                    }
+					argument "input" {}
 
                     importOtherTest.other_test "default" {
                         input = argument.input.value
@@ -471,11 +442,6 @@ func TestImport(t *testing.T) {
                 }
             }`,
 			config: `
-                testcomponents.count "inc" {
-                    frequency = "10ms"
-                    max = 10
-                }
-
                 import.file "testImport" {
                     filename = "module"
                 }
@@ -504,9 +470,7 @@ func TestImport(t *testing.T) {
 			updateModule: func(filename string) string {
 				return `
                 declare "other_test" {
-                    argument "input" {
-                        optional = false
-                    }
+					argument "input" {}
                     export "other_testOutput" {
                         value = -10
                     }
@@ -516,15 +480,13 @@ func TestImport(t *testing.T) {
 			updateFile: "other_module",
 		},
 		{
-			name: "ComplexScenario2",
+			name: "Import an import and a cc using the import in a nested declare and instantiate cc in a declare",
 			module: `
                 import.file "importOtherTest" {
                     filename = "other_module"
                 }
                 declare "test" {
-                    argument "input" {
-                        optional = false
-                    }
+					argument "input" {}
 
                     declare "anotherOne" {
                         argument "input" {
@@ -563,11 +525,6 @@ func TestImport(t *testing.T) {
                 }
             }`,
 			config: `
-                testcomponents.count "inc" {
-                    frequency = "10ms"
-                    max = 10
-                }
-
                 import.file "testImport" {
                     filename = "module"
                 }
@@ -596,9 +553,7 @@ func TestImport(t *testing.T) {
 			updateModule: func(filename string) string {
 				return `
                 declare "other_test" {
-                    argument "input" {
-                        optional = false
-                    }
+					argument "input" {}
                     export "other_testOutput" {
                         value = -10
                     }
@@ -611,7 +566,7 @@ func TestImport(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			//defer verifyNoGoroutineLeaks(t)
+			defer verifyNoGoroutineLeaks(t)
 			filename := "module"
 			require.NoError(t, os.WriteFile(filename, []byte(tc.module), 0664))
 			defer os.Remove(filename)
@@ -661,7 +616,7 @@ func TestImport(t *testing.T) {
 	}
 }
 
-func TestModuleError(t *testing.T) {
+func TestImportError(t *testing.T) {
 	testCases := []struct {
 		name          string
 		module        string
@@ -670,23 +625,10 @@ func TestModuleError(t *testing.T) {
 		expectedError string
 	}{
 		{
-			name: "TestImportedModuleTriesAccessingDeclareOnRoot",
+			name: "Imported declare tries accessing declare at the root",
 			module: `
                 declare "test" {
-                    argument "input" {
-                        optional = false
-                    }
-
                     cantAccessThis "default" {}
-
-                    testcomponents.passthrough "pt" {
-                        input = argument.input.value
-                        lag = "1ms"
-                    }
-
-                    export "output" {
-                        value = testcomponents.passthrough.pt.output
-                    }
                 }`,
 			config: `
                 declare "cantAccessThis" {
@@ -694,30 +636,41 @@ func TestModuleError(t *testing.T) {
                         value = -1
                     }
                 }
-                testcomponents.count "inc" {
-                    frequency = "10ms"
-                    max = 10
-                }
 
                 import.file "testImport" {
                     filename = "module"
                 }
 
-                testImport.test "myModule" {
-                    input = testcomponents.count.inc.count
+                testImport.test "myModule" {}
+            `,
+			expectedError: `cannot retrieve the definition of component name "cantAccessThis"`,
+		},
+		{
+			name: "Root tries accessing declare in nested import",
+			module: `
+				import.file "testImport" {
+					filename = "other_module"
+				}`,
+			otherModule: `
+				declare "cantAccessThis" {
+					export "output" {
+						value = -1
+					}
+				}`,
+			config: `
+                import.file "testImport" {
+                    filename = "module"
                 }
 
-                testcomponents.summation "sum" {
-                    input = testImport.test.myModule.output
-                }
+                testImport.cantAccessThis "myModule" {}
             `,
-			expectedError: `unrecognized component name "cantAccessThis"`,
-		}, // TODO: add more tests
+			expectedError: `Failed to build component: loading custom component controller: custom component config not found in the registry, namespace: testImport, componentName: cantAccessThis`,
+		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			//defer verifyNoGoroutineLeaks(t)
+			defer verifyNoGoroutineLeaks(t)
 			filename := "module"
 			require.NoError(t, os.WriteFile(filename, []byte(tc.module), 0664))
 			defer os.Remove(filename)

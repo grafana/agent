@@ -334,21 +334,21 @@ func (cn *ImportConfigNode) Run(ctx context.Context) error {
 		return ErrUnevaluated
 	}
 
-	ctx, cancel := context.WithCancel(ctx)
+	newCtx, cancel := context.WithCancel(ctx)
 	defer cancel() // This will stop the children and the managed component.
 
 	errChan := make(chan error, 1)
 
 	if importChildren > 0 {
 		go func() {
-			errChan <- cn.runChildren(ctx)
+			errChan <- cn.runChildren(newCtx)
 		}()
 	}
 
 	cn.setRunHealth(component.HealthTypeHealthy, "started component")
 
 	go func() {
-		errChan <- cn.source.Run(ctx)
+		errChan <- cn.source.Run(newCtx)
 	}()
 
 	err := <-errChan
