@@ -29,21 +29,26 @@ discovery.digitalocean "LABEL" {
 
 The following arguments are supported:
 
-Name                | Type       | Description                                                                      | Default | Required
-------------------- | ---------- | ---------------------------------------------------------------------- | ------- | --------
-`port`              | `number`   | Port to be appended to the `__address__` label for each Droplet.       | `80`    | no
-`refresh_interval`  | `duration` | Frequency to refresh list of Droplets.                                 | `"1m"`  | no
-`bearer_token`      | `secret`   | Bearer token to authenticate with.                                     |         | no
-`bearer_token_file` | `string`   | File containing a bearer token to authenticate with.                   |         | no
-`proxy_url`         | `string`   | HTTP proxy to proxy requests through.                                  |         | no
-`follow_redirects`  | `bool`     | Whether redirects returned by the server should be followed.           | `true`  | no
-`enable_http2`      | `bool`     | Whether HTTP2 is supported for requests.                               | `true`  | no
+Name                     | Type                | Description                                                   | Default | Required
+------------------------ | ------------------- | ------------------------------------------------------------- | ------- | --------
+`port`                   | `number`            | Port to be appended to the `__address__` label for each Droplet. | `80` | no
+`refresh_interval`       | `duration`          | Frequency to refresh list of Droplets.                        | `"1m"`  | no
+`bearer_token`           | `secret`            | Bearer token to authenticate with.                            |         | no
+`bearer_token_file`      | `string`            | File containing a bearer token to authenticate with.          |         | no
+`proxy_url`              | `string`            | HTTP proxy to send requests through.                          |         | no
+`no_proxy`               | `string`            | Comma-separated list of IP addresses, CIDR notations, and domain names to exclude from proxying. | | no
+`proxy_from_environment` | `bool`              | Use the proxy URL indicated by environment variables.         | `false` | no
+`proxy_connect_header`   | `map(list(secret))` | Specifies headers to send to proxies during CONNECT requests. |         | no
+`follow_redirects`       | `bool`              | Whether redirects returned by the server should be followed.  | `true`  | no
+`enable_http2`           | `bool`              | Whether HTTP2 is supported for requests.                      | `true`  | no
 
 The DigitalOcean API uses bearer tokens for authentication, see more about it in the [DigitalOcean API documentation](https://docs.digitalocean.com/reference/api/api-reference/#section/Authentication).
 
 Exactly one of the [`bearer_token`](#arguments) and [`bearer_token_file`](#arguments) arguments must be specified to authenticate against DigitalOcean.
 
 [arguments]: #arguments
+
+{{< docs/shared lookup="flow/reference/components/http-client-proxy-config-description.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ## Blocks
 The `discovery.digitalocean` component does not support any blocks, and is configured fully through arguments.

@@ -42,7 +42,7 @@ func TestRiverUnmarshal(t *testing.T) {
 	assert.Equal(t, "clientsecret", string(args.OAuth.ClientSecret))
 	assert.Equal(t, true, args.EnableHTTP2)
 	assert.Equal(t, false, args.FollowRedirects)
-	assert.Equal(t, "http://example:8080", args.ProxyURL.String())
+	assert.Equal(t, "http://example:8080", args.ProxyConfig.ProxyURL.String())
 }
 
 func TestRiverUnmarshal_OAuthRequiredFields(t *testing.T) {
@@ -123,8 +123,10 @@ func TestConvert(t *testing.T) {
 		},
 		FollowRedirects: false,
 		EnableHTTP2:     false,
-		ProxyURL: config.URL{
-			URL: proxyUrl,
+		ProxyConfig: &config.ProxyConfig{
+			ProxyURL: config.URL{
+				URL: proxyUrl,
+			},
 		},
 	}
 
@@ -152,8 +154,10 @@ func TestConvert(t *testing.T) {
 		},
 		FollowRedirects: true,
 		EnableHTTP2:     true,
-		ProxyURL: config.URL{
-			URL: proxyUrl,
+		ProxyConfig: &config.ProxyConfig{
+			ProxyURL: config.URL{
+				URL: proxyUrl,
+			},
 		},
 	}
 
