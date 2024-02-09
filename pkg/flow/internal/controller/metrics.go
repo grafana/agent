@@ -109,6 +109,7 @@ func newControllerCollector(l *Loader, id string) *controllerCollector {
 func (cc *controllerCollector) Collect(ch chan<- prometheus.Metric) {
 	componentsByHealth := make(map[string]int)
 
+	// Should we also collect metrics from components running in import config nodes?
 	for _, component := range cc.l.Components() {
 		health := component.CurrentHealth().Health.String()
 		componentsByHealth[health]++
