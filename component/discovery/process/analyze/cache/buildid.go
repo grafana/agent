@@ -10,26 +10,6 @@ import (
 
 // copypaste from https://github.com/grafana/pyroscope/blob/8a7fe2b80c219bfda9be685ff27ca1dee4218a42/ebpf/symtab/elf/buildid.go#L31
 
-//type BuildID struct {
-//	ID  string
-//	Typ string
-//}
-//
-//func GNUBuildID(s string) BuildID {
-//	return BuildID{ID: s, Typ: "gnu"}
-//}
-//func GoBuildID(s string) BuildID {
-//	return BuildID{ID: s, Typ: "go"}
-//}
-//
-//func (b *BuildID) Empty() bool {
-//	return b.ID == "" || b.Typ == ""
-//}
-//
-//func (b *BuildID) GNU() bool {
-//	return b.Typ == "gnu"
-//}
-
 var (
 	ErrNoBuildIDSection = fmt.Errorf("build ID section not found")
 )
