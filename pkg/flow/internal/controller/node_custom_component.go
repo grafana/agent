@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"path"
 	"reflect"
+	"strings"
 	"sync"
 	"time"
 
@@ -16,7 +17,7 @@ import (
 )
 
 // getCustomComponentConfig is used by the custom component to retrieve its template and the customComponentRegistry associated with it.
-type getCustomComponentConfig func(componentName string) (ast.Body, *CustomComponentRegistry, error)
+type getCustomComponentConfig func(namespace string, componentName string) (ast.Body, *CustomComponentRegistry, error)
 
 // CustomComponentNode is a controller node which manages a custom component.
 //
@@ -31,6 +32,9 @@ type CustomComponentNode struct {
 	moduleController  ModuleController
 	OnBlockNodeUpdate func(cn BlockNode) // Informs controller that we need to reevaluate
 	logger            log.Logger
+
+	importNamespace     string
+	customComponentName string
 
 	getConfig getCustomComponentConfig // Retrieve the custom component config.
 
@@ -53,6 +57,29 @@ type CustomComponentNode struct {
 }
 
 var _ ComponentNode = (*CustomComponentNode)(nil)
+
+// ExtractImportAndDeclare extracts an importNamespace and a customComponentName from a componentName.
+// TODO: this function assumes that CustomComponentNames and ImportNamespaces don't contain "."
+// In other words, there are two possible scenarios:
+// - [customComponentName] LABEL ->  instance of a local declare
+// - [importNamespace].[customComponentName] LABEL -> instance of an imported declare
+// To address this limitation in the future, we will need to find a different approach to
+// identify the importNamespaces and CustomComponentNames.
+func ExtractImportAndDeclare(componentName string) (string, string) {
+	parts := strings.Split(componentName, ".")
+	if len(parts) == 0 {
+		return "", ""
+	}
+	// If this is a local declare.
+	importNamespace := ""
+	customComponentName := parts[0]
+	// If this is an imported declare.
+	if len(parts) > 1 {
+		importNamespace = parts[0]
+		customComponentName = parts[1]
+	}
+	return importNamespace, customComponentName
+}
 
 // NewCustomComponentNode creates a new CustomComponentNode from an initial ast.BlockStmt.
 // The underlying managed custom component isn't created until Evaluate is called.
@@ -79,17 +106,20 @@ func NewCustomComponentNode(globals ComponentGlobals, b *ast.BlockStmt, getConfi
 	}
 
 	componentName := b.GetBlockName()
+	importNamespace, customComponentName := ExtractImportAndDeclare(componentName)
 
 	cn := &CustomComponentNode{
-		id:                id,
-		globalID:          globalID,
-		label:             b.Label,
-		nodeID:            nodeID,
-		componentName:     componentName,
-		moduleController:  globals.NewModuleController(globalID),
-		OnBlockNodeUpdate: globals.OnBlockNodeUpdate,
-		logger:            log.With(globals.Logger, "component", globalID),
-		getConfig:         getConfig,
+		id:                  id,
+		globalID:            globalID,
+		label:               b.Label,
+		nodeID:              nodeID,
+		componentName:       componentName,
+		importNamespace:     importNamespace,
+		customComponentName: customComponentName,
+		moduleController:    globals.NewModuleController(globalID),
+		OnBlockNodeUpdate:   globals.OnBlockNodeUpdate,
+		logger:              log.With(globals.Logger, "component", globalID),
+		getConfig:           getConfig,
 
 		block: b,
 		eval:  vm.New(b.Body),
@@ -130,7 +160,7 @@ func (cn *CustomComponentNode) UpdateBlock(b *ast.BlockStmt) {
 }
 
 // Evaluate implements BlockNode and updates the arguments by re-evaluating its River block with the provided scope and the custom component by
-// retrieving the component definition from the corresponding declare node.
+// retrieving the component definition from the corresponding import or declare node.
 // The managed custom component will be built the first time Evaluate is called.
 //
 // Evaluate will return an error if the River block cannot be evaluated, if
@@ -168,7 +198,7 @@ func (cn *CustomComponentNode) evaluate(evalScope *vm.Scope) error {
 		cn.managed = mod
 	}
 
-	template, customComponentRegistry, err := cn.getConfig(cn.componentName)
+	template, customComponentRegistry, err := cn.getConfig(cn.importNamespace, cn.customComponentName)
 	if err != nil {
 		return fmt.Errorf("loading custom component controller: %w", err)
 	}
