@@ -32,15 +32,16 @@ You can deploy {{< param "PRODUCT_ROOT_NAME" >}} either in static mode or flow m
 We recommend using our dedicated guides for each telemetry signal to deploy a 
 production-ready {{< param "PRODUCT_NAME" >}} on Kubernetes:
 
-* For metrics, follow our dedicated [collect Prometheus metrics on Kubernetes][collect-prometheus] guide.
-* For logs, follow our dedicated [collect logs on Kubernetes][collect-logs] guide.
+* For Prometheus metrics, follow our dedicated [collect Prometheus metrics on Kubernetes][collect-prometheus] guide.
+* For Loki logs, follow our dedicated [collect Loki logs on Kubernetes][collect-logs] guide.
 * For anything else, follow the [generic Helm installation](#generic-helm-installation) instructions below.
 
 [collect-prometheus]: {{< relref "../../tasks/kubernetes/collect-prometheus.md" >}}
 [collect-logs]: {{< relref "../../tasks/kubernetes/collect-logs.md" >}}
 
 If you want to collect multiple types of telemetry, we recommend deploying separate  
-{{< param "PRODUCT_NAME" >}} workloads for each telemetry type.
+{{< param "PRODUCT_NAME" >}} workloads for each telemetry type to maintain
+separation of concerns.
 
 ## Generic Helm installation
 

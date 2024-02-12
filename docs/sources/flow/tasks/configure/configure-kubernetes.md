@@ -78,5 +78,78 @@ configMapGenerator:
       disableNameSuffixHash: true
 ```
 
+## Configure the {{< param "PRODUCT_NAME" >}}
+
+This section describes how to modify the {{< param "PRODUCT_NAME" >}}
+configuration which is stored in a ConfigMap in the Kubernetes cluster. There
+are two methods to perform this task.
+
+### Method 1: Modify the configuration in the values.yaml file
+Use this method if you prefer to embed your {{< param "PRODUCT_NAME" >}} configuration in the Helm chart's `values.yaml` file.
+
+1. Modify the configuration file contents directly in the `values.yaml` file:
+
+   ```yaml
+   agent:
+     configMap:
+       content: |-
+         // Write your Agent config here:
+         logging {
+           level = "info"
+           format = "logfmt"
+         }
+   ```
+
+1. Run the following command in a terminal to upgrade your {{< param "PRODUCT_NAME" >}} installation:
+
+   ```shell
+   helm upgrade --namespace <NAMESPACE> <RELEASE_NAME> grafana/grafana-agent -f <VALUES_PATH>
+   ```
+   Replace the following:
+   - _`<NAMESPACE>`_: The namespace you used for your {{< param "PRODUCT_NAME" >}} installation.
+   - _`<RELEASE_NAME>`_: The name you used for your {{< param "PRODUCT_NAME" >}} installation.
+   - _`<VALUES_PATH>`_: The path to your copy of `values.yaml` to use.
+
+### Method 2: Create a separate ConfigMap from a file
+Use this method if you prefer to write your {{< param "PRODUCT_NAME" >}} configuration in a separate file.
+
+1. Write your configuration to a file, for example, `config.river`.
+
+   ```river
+   // Write your Agent config here:
+   logging {
+     level = "info"
+     format = "logfmt"
+   }
+   ```
+
+1. Create a ConfigMap called `agent-config` from the above file:
+
+   ```shell
+   kubectl create configmap --namespace <NAMESPACE> agent-config "--from-file=config.river=./config.river"
+   ```
+   Replace the following:
+   - _`<NAMESPACE>`_: The namespace you used for your {{< param "PRODUCT_NAME" >}} installation.
+
+1. Modify Helm Chart's configuration in your `values.yaml` to use the existing ConfigMap:
+
+   ```yaml
+     agent:
+     configMap:
+       create: false
+       name: agent-config
+       key: config.river
+   ```
+
+1. Run the following command in a terminal to upgrade your {{< param "PRODUCT_NAME" >}} installation:
+
+   ```shell
+   helm upgrade --namespace <NAMESPACE> <RELEASE_NAME> grafana/grafana-agent -f <VALUES_PATH>
+   ```
+   Replace the following:
+   - _`<NAMESPACE>`_: The namespace you used for your {{< param "PRODUCT_NAME" >}} installation.
+   - _`<RELEASE_NAME>`_: The name you used for your {{< param "PRODUCT_NAME" >}} installation.
+   - _`<VALUES_PATH>`_: The path to your copy of `values.yaml` to use.
+
 [Helm chart]: https://github.com/grafana/agent/tree/main/operations/helm/charts/grafana-agent
 [Kustomize]: https://kubernetes.io/docs/tasks/manage-kubernetes-objects/kustomization/

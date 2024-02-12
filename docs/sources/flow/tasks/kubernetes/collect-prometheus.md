@@ -8,7 +8,7 @@ canonical: https://grafana.com/docs/agent/latest/flow/tasks/kubernetes/collect-p
 description: Learn how to configure Grafana Agent Flow to collect Prometheus metrics on Kubernetes
 menuTitle: Collect Prometheus metrics
 title: Collect Prometheus metrics on Kubernetes
-weight: 200
+weight: 100
 ---
 
 # Collect Prometheus metrics on Kubernetes

@@ -5,13 +5,13 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/tasks/kubernetes/collect-logs/
 - /docs/grafana-cloud/send-data/agent/flow/tasks/kubernetes/collect-logs/
 canonical: https://grafana.com/docs/agent/latest/flow/tasks/kubernetes/collect-logs/
-description: Learn how to configure Grafana Agent Flow to collect logs on Kubernetes
-menuTitle: Collect logs
-title: Collect logs on Kubernetes
+description: Learn how to configure Grafana Agent Flow to collect Loki logs on Kubernetes
+menuTitle: Collect Loki logs
+title: Collect Loki logs on Kubernetes
 weight: 200
 ---
 
-# Collect logs on Kubernetes
+# Collect Loki logs on Kubernetes
 
 TODO:
 - Installing Helm chart as a DaemonSet with all the required modifications for Logs collection
