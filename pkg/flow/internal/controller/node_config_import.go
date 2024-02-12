@@ -3,6 +3,7 @@ package controller
 import (
 	"context"
 	"fmt"
+	"hash/fnv"
 	"path"
 	"path/filepath"
 	"strings"
@@ -15,6 +16,7 @@ import (
 	"github.com/grafana/agent/pkg/flow/internal/importsource"
 	"github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/grafana/agent/pkg/flow/tracing"
+	"github.com/grafana/agent/pkg/runner"
 	"github.com/grafana/river/ast"
 	"github.com/grafana/river/parser"
 	"github.com/grafana/river/vm"
@@ -70,7 +72,7 @@ func NewImportConfigNode(block *ast.BlockStmt, globals ComponentGlobals, sourceT
 		globals:                  globals,
 		block:                    block,
 		OnBlockNodeUpdate:        globals.OnBlockNodeUpdate,
-		importChildrenUpdateChan: make(chan struct{}),
+		importChildrenUpdateChan: make(chan struct{}, 1),
 	}
 	managedOpts := getImportManagedOptions(globals, cn)
 	cn.logger = managedOpts.Logger
@@ -211,9 +213,6 @@ func (cn *ImportConfigNode) onChildrenContentUpdate(child BlockNode) {
 // Run will immediately return ErrUnevaluated if Evaluate has never been called
 // successfully. Otherwise, Run will return nil.
 func (cn *ImportConfigNode) Run(ctx context.Context) error {
-	cn.mut.Lock()
-	importChildrenCount := len(cn.importConfigNodesChildren)
-	cn.mut.Unlock()
 	if cn.source == nil {
 		return ErrUnevaluated
 	}
@@ -223,17 +222,32 @@ func (cn *ImportConfigNode) Run(ctx context.Context) error {
 
 	errChan := make(chan error, 1)
 
-	if importChildrenCount > 0 {
-		go func() {
-			errChan <- cn.runChildren(newCtx)
-		}()
+	runner := runner.New(func(node *ImportConfigNode) runner.Worker {
+		return &childRunner{
+			node:    node,
+			errChan: errChan,
+		}
+	})
+
+	updateTasks := func() error {
+		cn.mut.Lock()
+		defer cn.mut.Unlock()
+		cn.importChildrenRunning = true
+		var tasks []*ImportConfigNode
+		for _, value := range cn.importConfigNodesChildren {
+			tasks = append(tasks, value)
+		}
+
+		return runner.ApplyTasks(newCtx, tasks)
 	}
+
+	updateTasks()
 
 	go func() {
 		errChan <- cn.source.Run(newCtx)
 	}()
 
-	err := <-errChan
+	err := cn.run(errChan, updateTasks)
 
 	if err != nil {
 		level.Error(cn.logger).Log("msg", "import exited with error", "err", err)
@@ -243,64 +257,16 @@ func (cn *ImportConfigNode) Run(ctx context.Context) error {
 	return err
 }
 
-// runChildren run the import nodes managed by this import node.
-// The children list can be updated by onContentUpdate. In this case we need to stop the running children and run the new set of children.
-func (cn *ImportConfigNode) runChildren(parentCtx context.Context) error {
-	errChildrenChan := make(chan error)
-	var wg sync.WaitGroup
-	var ctx context.Context
-	var cancel context.CancelFunc
-
-	startChildren := func(ctx context.Context, children map[string]*ImportConfigNode, wg *sync.WaitGroup) {
-		for _, child := range children {
-			wg.Add(1)
-			go func(child *ImportConfigNode) {
-				defer wg.Done()
-				if err := child.Run(ctx); err != nil {
-					errChildrenChan <- err
-				}
-			}(child)
-		}
-	}
-
-	childrenDone := func(wg *sync.WaitGroup, doneChan chan struct{}) {
-		wg.Wait()
-		close(doneChan)
-	}
-
-	ctx, cancel = context.WithCancel(parentCtx)
-	cn.mut.Lock()
-	startChildren(ctx, cn.importConfigNodesChildren, &wg) // initial start of children
-	cn.importChildrenRunning = true
-	cn.mut.Unlock()
-
-	doneChan := make(chan struct{})
-	go childrenDone(&wg, doneChan) // start goroutine to cover the case when all children finish
-
+func (cn *ImportConfigNode) run(errChan chan error, updateTasks func() error) error {
 	for {
 		select {
 		case <-cn.importChildrenUpdateChan:
-			cancel()   // cancel all running children
-			<-doneChan // wait for the children to finish
-
-			wg = sync.WaitGroup{}
-			errChildrenChan = make(chan error)
-
-			ctx, cancel = context.WithCancel(parentCtx) // create a new context
-			cn.mut.Lock()
-			startChildren(ctx, cn.importConfigNodesChildren, &wg) // start the new set of children
-			cn.mut.Unlock()
-
-			doneChan = make(chan struct{})
-			go childrenDone(&wg, doneChan) // start goroutine to cover the case when all children finish
-		case err := <-errChildrenChan:
-			// one child stopped because of an error.
-			cancel()
+			err := updateTasks()
+			if err != nil {
+				return err
+			}
+		case err := <-errChan:
 			return err
-		case <-doneChan:
-			// all children stopped without error.
-			cancel()
-			return nil
 		}
 	}
 }
@@ -325,4 +291,36 @@ func (cn *ImportConfigNode) ImportConfigNodesChildren() map[string]*ImportConfig
 	cn.mut.Lock()
 	defer cn.mut.Unlock()
 	return cn.importConfigNodesChildren
+}
+
+type childRunner struct {
+	node    *ImportConfigNode
+	errChan chan error
+}
+
+func (cr *childRunner) Run(ctx context.Context) {
+	fmt.Println("Run child")
+	err := cr.node.Run(ctx)
+	fmt.Println("Child has stopped") // never called
+	if err != nil {
+		cr.errChan <- err
+	}
+}
+
+// TODO: is nodeID enough?
+func (cn *ImportConfigNode) Hash() uint64 {
+	fnvHash := fnv.New64a()
+	fnvHash.Write([]byte(cn.NodeID()))
+	return fnvHash.Sum64()
+}
+
+// TODO: is nodeID enough?
+func (cn *ImportConfigNode) Equals(other runner.Task) bool {
+	otherTask := other.(*ImportConfigNode)
+
+	if cn == otherTask {
+		return true
+	}
+
+	return cn.NodeID() == otherTask.NodeID()
 }
