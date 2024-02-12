@@ -11,6 +11,7 @@ import (
 	flow_service "github.com/grafana/agent/service"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/prometheus/model/labels"
+	"github.com/prometheus/prometheus/model/value"
 )
 
 const ServiceName = "labelstore"
@@ -73,6 +74,7 @@ func (s *service) Describe(m chan<- *prometheus.Desc) {
 	m <- s.totalIDs
 	m <- s.idsInRemoteWrapping
 }
+
 func (s *service) Collect(m chan<- prometheus.Metric) {
 	s.mut.Lock()
 	defer s.mut.Unlock()
@@ -196,24 +198,21 @@ func (s *service) GetLocalRefID(componentID string, globalRefID uint64) uint64 {
 	return local
 }
 
-// AddStaleMarker adds a stale marker
-func (s *service) AddStaleMarker(globalRefID uint64, l labels.Labels) {
+func (s *service) TrackStaleness(ids []StalenessTracker) {
 	s.mut.Lock()
 	defer s.mut.Unlock()
 
-	s.staleGlobals[globalRefID] = &staleMarker{
-		lastMarkedStale: time.Now(),
-		labelHash:       l.Hash(),
-		globalID:        globalRefID,
+	for _, id := range ids {
+		if value.IsStaleNaN(id.Value) {
+			s.staleGlobals[id.GlobalRefID] = &staleMarker{
+				lastMarkedStale: time.Now(),
+				labelHash:       id.Labels.Hash(),
+				globalID:        id.GlobalRefID,
+			}
+		} else {
+			delete(s.staleGlobals, id.GlobalRefID)
+		}
 	}
-}
-
-// RemoveStaleMarker removes a stale marker
-func (s *service) RemoveStaleMarker(globalRefID uint64) {
-	s.mut.Lock()
-	defer s.mut.Unlock()
-
-	delete(s.staleGlobals, globalRefID)
 }
 
 // staleDuration determines how long we should wait after a stale value is received to GC that value
