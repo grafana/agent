@@ -1,7 +1,6 @@
 package labelstore
 
 import (
-	"github.com/prometheus/prometheus/model/value"
 	"math"
 	"testing"
 	"time"
@@ -9,6 +8,7 @@ import (
 	"github.com/go-kit/log"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/prometheus/model/labels"
+	"github.com/prometheus/prometheus/model/value"
 	"github.com/stretchr/testify/require"
 )
 

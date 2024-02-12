@@ -142,6 +142,7 @@ func (a *interceptappender) AppendExemplar(
 	l labels.Labels,
 	e exemplar.Exemplar,
 ) (storage.SeriesRef, error) {
+
 	if ref == 0 {
 		ref = storage.SeriesRef(a.ls.GetOrAddGlobalRefID(l))
 	}
@@ -161,6 +162,7 @@ func (a *interceptappender) UpdateMetadata(
 	l labels.Labels,
 	m metadata.Metadata,
 ) (storage.SeriesRef, error) {
+
 	if ref == 0 {
 		ref = storage.SeriesRef(a.ls.GetOrAddGlobalRefID(l))
 	}
@@ -181,6 +183,7 @@ func (a *interceptappender) AppendHistogram(
 	h *histogram.Histogram,
 	fh *histogram.FloatHistogram,
 ) (storage.SeriesRef, error) {
+
 	if ref == 0 {
 		ref = storage.SeriesRef(a.ls.GetOrAddGlobalRefID(l))
 	}
