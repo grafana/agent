@@ -20,9 +20,15 @@ func (b *IntegrationsConfigBuilder) appendEventHandlerV2(config *eventhandler_v2
 	}
 
 	b.diags.AddAll(common.ValidateSupported(common.NotDeepEquals, config.SendTimeout, eventhandler_v2.DefaultConfig.SendTimeout, "eventhandler send_timeout", "this field is not configurable in flow mode"))
-	b.diags.AddAll(common.ValidateSupported(common.NotDeepEquals, config.CachePath, eventhandler_v2.DefaultConfig.CachePath, "eventhandler cache_path", "this field is not configurable in flow mode"))
 	b.diags.AddAll(common.ValidateSupported(common.NotDeepEquals, config.InformerResync, eventhandler_v2.DefaultConfig.InformerResync, "eventhandler informer_resync", "this field is not configurable in flow mode"))
 	b.diags.AddAll(common.ValidateSupported(common.NotDeepEquals, config.FlushInterval, eventhandler_v2.DefaultConfig.FlushInterval, "eventhandler flush_interval", "this field is not configurable in flow mode"))
+
+	if config.CachePath != eventhandler_v2.DefaultConfig.CachePath {
+		b.diags.Add(
+			diag.SeverityLevelWarn,
+			"The eventhandler cache_path is unnecessary in flow mode because the storage path is governed by the --storage.path cmd argument and is always local to the component.",
+		)
+	}
 
 	receiver := getLogsReceiver(config)
 	if len(config.ExtraLabels) > 0 {
