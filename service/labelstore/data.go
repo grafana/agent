@@ -15,7 +15,8 @@ type LabelStore interface {
 	// GetLocalRefID gets the mapping from global to local id specific to a component. Returns 0 if nothing found.
 	GetLocalRefID(componentID string, globalRefID uint64) uint64
 
-	// TrackStaleness adds a stale marker if NaN, then that reference will be removed on the next check.
+	// TrackStaleness adds a stale marker if NaN, then that reference will be removed on the next check. If not a NaN
+	// then if tracked will remove it.
 	TrackStaleness(ids []StalenessTracker)
 
 	// CheckAndRemoveStaleMarkers identifies any series with a stale marker and removes those entries from the LabelStore.
