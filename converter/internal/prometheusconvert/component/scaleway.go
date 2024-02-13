@@ -3,7 +3,6 @@ package component
 import (
 	"time"
 
-	"github.com/grafana/agent/component/common/config"
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/discovery/scaleway"
 	"github.com/grafana/agent/converter/diag"
@@ -42,7 +41,7 @@ func toDiscoveryScaleway(sdConfig *prom_scaleway.SDConfig) *scaleway.Arguments {
 		TagsFilter:      sdConfig.TagsFilter,
 		RefreshInterval: time.Duration(sdConfig.RefreshInterval),
 		Port:            sdConfig.Port,
-		ProxyURL:        config.URL(sdConfig.HTTPClientConfig.ProxyURL),
+		ProxyConfig:     common.ToProxyConfig(sdConfig.HTTPClientConfig.ProxyConfig),
 		TLSConfig:       *common.ToTLSConfig(&sdConfig.HTTPClientConfig.TLSConfig),
 		FollowRedirects: sdConfig.HTTPClientConfig.FollowRedirects,
 		EnableHTTP2:     sdConfig.HTTPClientConfig.EnableHTTP2,

@@ -169,7 +169,7 @@ func TestUnmarshalConfig(t *testing.T) {
 			bearer_token = "token"
 			bearer_token_file = "/path/to/file.token"
 			`,
-			expectedErr: "at most one of bearer_token & bearer_token_file must be configured",
+			expectedErr: "at most one of basic_auth, authorization, oauth2, bearer_token & bearer_token_file must be configured",
 		},
 	} {
 		tt := tt

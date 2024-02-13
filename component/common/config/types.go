@@ -20,7 +20,7 @@ type HTTPClientConfig struct {
 	OAuth2          *OAuth2Config     `river:"oauth2,block,optional"`
 	BearerToken     rivertypes.Secret `river:"bearer_token,attr,optional"`
 	BearerTokenFile string            `river:"bearer_token_file,attr,optional"`
-	ProxyURL        URL               `river:"proxy_url,attr,optional"`
+	ProxyConfig     *ProxyConfig      `river:",squash"`
 	TLSConfig       TLSConfig         `river:"tls_config,block,optional"`
 	FollowRedirects bool              `river:"follow_redirects,attr,optional"`
 	EnableHTTP2     bool              `river:"enable_http2,attr,optional"`
@@ -33,63 +33,46 @@ func (h *HTTPClientConfig) SetToDefault() {
 
 // Validate returns an error if h is invalid.
 func (h *HTTPClientConfig) Validate() error {
-	// Backwards compatibility with the bearer_token field.
-	if len(h.BearerToken) > 0 && len(h.BearerTokenFile) > 0 {
-		return fmt.Errorf("at most one of bearer_token & bearer_token_file must be configured")
+	if h == nil {
+		return nil
 	}
-	if (h.BasicAuth != nil || h.OAuth2 != nil) && (len(h.BearerToken) > 0 || len(h.BearerTokenFile) > 0) {
-		return fmt.Errorf("at most one of basic_auth, oauth2, bearer_token & bearer_token_file must be configured")
-	}
-	if h.BasicAuth != nil && (string(h.BasicAuth.Password) != "" && h.BasicAuth.PasswordFile != "") {
-		return fmt.Errorf("at most one of basic_auth password & password_file must be configured")
+
+	authCount := 0
+	if h.BasicAuth != nil {
+		authCount++
 	}
 	if h.Authorization != nil {
-		if len(h.BearerToken) > 0 || len(h.BearerTokenFile) > 0 {
-			return fmt.Errorf("authorization is not compatible with bearer_token & bearer_token_file")
-		}
-		if string(h.Authorization.Credentials) != "" && h.Authorization.CredentialsFile != "" {
-			return fmt.Errorf("at most one of authorization credentials & credentials_file must be configured")
-		}
-		h.Authorization.Type = strings.TrimSpace(h.Authorization.Type)
-		if len(h.Authorization.Type) == 0 {
-			h.Authorization.Type = bearerAuth
-		}
-		if strings.ToLower(h.Authorization.Type) == "basic" {
-			return fmt.Errorf(`authorization type cannot be set to "basic", use "basic_auth" instead`)
-		}
-		if h.BasicAuth != nil || h.OAuth2 != nil {
-			return fmt.Errorf("at most one of basic_auth, oauth2 & authorization must be configured")
-		}
-	} else {
-		if len(h.BearerToken) > 0 {
-			h.Authorization = &Authorization{Credentials: h.BearerToken}
-			h.Authorization.Type = bearerAuth
-			h.BearerToken = ""
-		}
-		if len(h.BearerTokenFile) > 0 {
-			h.Authorization = &Authorization{CredentialsFile: h.BearerTokenFile}
-			h.Authorization.Type = bearerAuth
-			h.BearerTokenFile = ""
-		}
+		authCount++
 	}
 	if h.OAuth2 != nil {
-		if h.BasicAuth != nil {
-			return fmt.Errorf("at most one of basic_auth, oauth2 & authorization must be configured")
-		}
-		if len(h.OAuth2.ClientID) == 0 {
-			return fmt.Errorf("oauth2 client_id must be configured")
-		}
-		if len(h.OAuth2.ClientSecret) == 0 && len(h.OAuth2.ClientSecretFile) == 0 {
-			return fmt.Errorf("either oauth2 client_secret or client_secret_file must be configured")
-		}
-		if len(h.OAuth2.TokenURL) == 0 {
-			return fmt.Errorf("oauth2 token_url must be configured")
-		}
-		if len(h.OAuth2.ClientSecret) > 0 && len(h.OAuth2.ClientSecretFile) > 0 {
-			return fmt.Errorf("at most one of oauth2 client_secret & client_secret_file must be configured")
-		}
+		authCount++
 	}
-	return nil
+	if len(h.BearerToken) > 0 {
+		authCount++
+	}
+	if len(h.BearerTokenFile) > 0 {
+		authCount++
+	}
+
+	if authCount > 1 {
+		return fmt.Errorf("at most one of basic_auth, authorization, oauth2, bearer_token & bearer_token_file must be configured")
+	}
+
+	// TODO: Validate should not be modifying the object
+	if len(h.BearerToken) > 0 {
+		h.Authorization = &Authorization{Credentials: h.BearerToken}
+		h.Authorization.Type = bearerAuth
+		h.BearerToken = ""
+	}
+
+	// TODO: Validate should not be modifying the object
+	if len(h.BearerTokenFile) > 0 {
+		h.Authorization = &Authorization{CredentialsFile: h.BearerTokenFile}
+		h.Authorization.Type = bearerAuth
+		h.BearerTokenFile = ""
+	}
+
+	return h.ProxyConfig.Validate()
 }
 
 // Convert converts HTTPClientConfig to the native Prometheus type. If h is
@@ -108,9 +91,7 @@ func (h *HTTPClientConfig) Convert() *config.HTTPClientConfig {
 		TLSConfig:       *h.TLSConfig.Convert(),
 		FollowRedirects: h.FollowRedirects,
 		EnableHTTP2:     h.EnableHTTP2,
-		ProxyConfig: config.ProxyConfig{
-			ProxyURL: h.ProxyURL.Convert(),
-		},
+		ProxyConfig:     h.ProxyConfig.Convert(),
 	}
 }
 
@@ -145,6 +126,59 @@ func (b *BasicAuth) Convert() *config.BasicAuth {
 	}
 }
 
+func (b *BasicAuth) Validate() error {
+	if b == nil {
+		return nil
+	}
+
+	if string(b.Password) != "" && b.PasswordFile != "" {
+		return fmt.Errorf("at most one of basic_auth password & password_file must be configured")
+	}
+
+	return nil
+}
+
+type ProxyConfig struct {
+	ProxyURL             URL    `river:"proxy_url,attr,optional"`
+	NoProxy              string `river:"no_proxy,attr,optional"`
+	ProxyFromEnvironment bool   `river:"proxy_from_environment,attr,optional"`
+	ProxyConnectHeader   Header `river:",squash"`
+}
+
+func (p *ProxyConfig) Convert() config.ProxyConfig {
+	if p == nil {
+		return config.ProxyConfig{}
+	}
+
+	return config.ProxyConfig{
+		ProxyURL:             p.ProxyURL.Convert(),
+		NoProxy:              p.NoProxy,
+		ProxyFromEnvironment: p.ProxyFromEnvironment,
+		ProxyConnectHeader:   p.ProxyConnectHeader.Convert(),
+	}
+}
+
+func (p *ProxyConfig) Validate() error {
+	if p == nil {
+		return nil
+	}
+
+	if len(p.ProxyConnectHeader.Header) > 0 && (!p.ProxyFromEnvironment && (p.ProxyURL.URL == nil || p.ProxyURL.String() == "")) {
+		return fmt.Errorf("if proxy_connect_header is configured, proxy_url or proxy_from_environment must also be configured")
+	}
+	if p.ProxyFromEnvironment && p.ProxyURL.URL != nil && p.ProxyURL.String() != "" {
+		return fmt.Errorf("if proxy_from_environment is configured, proxy_url must not be configured")
+	}
+	if p.ProxyFromEnvironment && p.NoProxy != "" {
+		return fmt.Errorf("if proxy_from_environment is configured, no_proxy must not be configured")
+	}
+	if p.ProxyURL.URL == nil && p.NoProxy != "" {
+		return fmt.Errorf("if no_proxy is configured, proxy_url must also be configured")
+	}
+
+	return nil
+}
+
 // URL mirrors config.URL
 type URL struct {
 	*url.URL
@@ -173,8 +207,33 @@ func (u *URL) UnmarshalText(text []byte) error {
 }
 
 // Convert converts our type to the native prometheus type
-func (u URL) Convert() config.URL {
+func (u *URL) Convert() config.URL {
+	if u == nil {
+		return config.URL{URL: nil}
+	}
 	return config.URL{URL: u.URL}
+}
+
+type Header struct {
+	Header map[string][]rivertypes.Secret `river:"proxy_connect_header,attr,optional"`
+}
+
+func (h *Header) Convert() config.Header {
+	if h == nil {
+		return nil
+	}
+	header := make(config.Header)
+	for name, values := range h.Header {
+		var s []config.Secret
+		if values != nil {
+			s = make([]config.Secret, 0, len(values))
+			for _, value := range values {
+				s = append(s, config.Secret(value))
+			}
+		}
+		header[name] = s
+	}
+	return header
 }
 
 // Authorization sets up HTTP authorization credentials.
@@ -194,6 +253,28 @@ func (a *Authorization) Convert() *config.Authorization {
 		Credentials:     config.Secret(a.Credentials),
 		CredentialsFile: a.CredentialsFile,
 	}
+}
+
+func (a *Authorization) Validate() error {
+	if a == nil {
+		return nil
+	}
+
+	if string(a.Credentials) != "" && a.CredentialsFile != "" {
+		return fmt.Errorf("at most one of authorization credentials & credentials_file must be configured")
+	}
+
+	// TODO: Validate should not be modifying the object
+	a.Type = strings.TrimSpace(a.Type)
+	if len(a.Type) == 0 {
+		a.Type = bearerAuth
+	}
+
+	if strings.ToLower(a.Type) == "basic" {
+		return fmt.Errorf(`authorization type cannot be set to "basic", use "basic_auth" block instead`)
+	}
+
+	return nil
 }
 
 // TLSVersion mirrors config.TLSVersion
@@ -283,7 +364,7 @@ type OAuth2Config struct {
 	Scopes           []string          `river:"scopes,attr,optional"`
 	TokenURL         string            `river:"token_url,attr,optional"`
 	EndpointParams   map[string]string `river:"endpoint_params,attr,optional"`
-	ProxyURL         URL               `river:"proxy_url,attr,optional"`
+	ProxyConfig      *ProxyConfig      `river:",squash"`
 	TLSConfig        *TLSConfig        `river:"tls_config,block,optional"`
 }
 
@@ -299,12 +380,31 @@ func (o *OAuth2Config) Convert() *config.OAuth2 {
 		Scopes:           o.Scopes,
 		TokenURL:         o.TokenURL,
 		EndpointParams:   o.EndpointParams,
-		ProxyConfig: config.ProxyConfig{
-			ProxyURL: o.ProxyURL.Convert(),
-		},
+		ProxyConfig:      o.ProxyConfig.Convert(),
 	}
 	if o.TLSConfig != nil {
 		oa.TLSConfig = *o.TLSConfig.Convert()
 	}
 	return oa
+}
+
+func (o *OAuth2Config) Validate() error {
+	if o == nil {
+		return nil
+	}
+
+	if len(o.ClientID) == 0 {
+		return fmt.Errorf("oauth2 client_id must be configured")
+	}
+	if len(o.ClientSecret) == 0 && len(o.ClientSecretFile) == 0 {
+		return fmt.Errorf("either oauth2 client_secret or client_secret_file must be configured")
+	}
+	if len(o.TokenURL) == 0 {
+		return fmt.Errorf("oauth2 token_url must be configured")
+	}
+	if len(o.ClientSecret) > 0 && len(o.ClientSecretFile) > 0 {
+		return fmt.Errorf("at most one of oauth2 client_secret & client_secret_file must be configured")
+	}
+
+	return o.ProxyConfig.Validate()
 }
