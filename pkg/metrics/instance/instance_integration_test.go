@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -73,14 +74,16 @@ remote_write: []
 	require.NoError(t, err)
 
 	instCtx, cancel := context.WithCancel(context.Background())
-	done := make(chan struct{})
+	var wg sync.WaitGroup
 	defer func() {
 		cancel()
-		<-done
+		wg.Wait()
 	}()
+
+	wg.Add(1)
 	go func() {
+		defer wg.Done()
 		err := inst.Run(instCtx)
-		close(done)
 		require.NoError(t, err)
 	}()
 
@@ -147,14 +150,16 @@ remote_write: []
 	require.NoError(t, err)
 
 	instCtx, cancel := context.WithCancel(context.Background())
-	done := make(chan struct{})
+	var wg sync.WaitGroup
 	defer func() {
 		cancel()
-		<-done
+		wg.Wait()
 	}()
+
+	wg.Add(1)
 	go func() {
+		defer wg.Done()
 		err := inst.Run(instCtx)
-		close(done)
 		require.NoError(t, err)
 	}()
 
@@ -203,14 +208,16 @@ remote_write: []
 	require.NoError(t, err)
 
 	instCtx, cancel := context.WithCancel(context.Background())
-	done := make(chan struct{})
+	var wg sync.WaitGroup
 	defer func() {
 		cancel()
-		<-done
+		wg.Wait()
 	}()
+
+	wg.Add(1)
 	go func() {
+		defer wg.Done()
 		err := inst.Run(instCtx)
-		close(done)
 		require.NoError(t, err)
 	}()
 
