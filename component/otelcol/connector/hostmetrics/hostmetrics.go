@@ -1,5 +1,5 @@
-// Package spanhostmetrics provides an otelcol.connector.spanhostmetrics component.
-package spanhostmetrics
+// Package hostmetrics provides an otelcol.connector.hostmetrics component.
+package hostmetrics
 
 import (
 	"fmt"
@@ -15,7 +15,7 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name:    "otelcol.connector.spanhostmetrics",
+		Name:    "otelcol.connector.hostmetrics",
 		Args:    Arguments{},
 		Exports: otelcol.ConsumerExports{},
 
@@ -44,7 +44,7 @@ var (
 // DefaultArguments holds default settings for Arguments.
 var DefaultArguments = Arguments{
 	AttributeNames:       []string{"k8s.node.name", "host.name"},
-	MetricsFlushInterval: 1 * time.Second,
+	MetricsFlushInterval: 60 * time.Second,
 }
 
 // SetToDefault implements river.Defaulter.
@@ -57,6 +57,11 @@ func (args *Arguments) Validate() error {
 	if len(args.AttributeNames) == 0 {
 		return fmt.Errorf("attribute_names must not be empty")
 	}
+
+	if args.MetricsFlushInterval <= 0 {
+		return fmt.Errorf("metrics_flush_interval must be greater than 0")
+	}
+
 	return nil
 }
 
@@ -64,7 +69,8 @@ func (args *Arguments) Validate() error {
 func (args Arguments) Convert() (otelcomponent.Config, error) {
 
 	return &Config{
-		AttributeNames: args.AttributeNames,
+		AttributeNames:       args.AttributeNames,
+		MetricsFlushInterval: args.MetricsFlushInterval,
 	}, nil
 }
 

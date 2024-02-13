@@ -1,7 +1,9 @@
-package spanhostmetrics
+package hostmetrics
 
 import (
 	"context"
+	"fmt"
+	"sync"
 	"time"
 
 	"go.uber.org/zap"
@@ -17,14 +19,42 @@ import (
 // --- Config
 
 type Config struct {
-	AttributeNames []string `mapstructure:"attribute_names"`
+	AttributeNames       []string      `mapstructure:"attribute_names"`
+	MetricsFlushInterval time.Duration `mapstructure:"metrics_flush_interval"`
+}
+
+// Host Map
+type HostMap struct {
+	hostMetrics map[string]*pmetric.Metrics
+	mutex       sync.RWMutex
+}
+
+func (h *HostMap) AddHostMetric(hostName string, metric *pmetric.Metrics) {
+	h.mutex.Lock()
+	defer h.mutex.Unlock()
+	if h.hostMetrics[hostName] == nil {
+		h.hostMetrics[hostName] = metric
+	}
+}
+
+func (h *HostMap) Flush() []*pmetric.Metrics {
+	h.mutex.Lock()
+	defer h.mutex.Unlock()
+
+	metrics := make([]*pmetric.Metrics, 0, len(h.hostMetrics))
+	for _, metric := range h.hostMetrics {
+		metrics = append(metrics, metric)
+	}
+
+	h.hostMetrics = make(map[string]*pmetric.Metrics)
+	return metrics
 }
 
 // --- Factory
 
 const (
 	// this is the name used to refer to the connector in the config.yaml
-	typeStr = "hostspanmetrics"
+	typeStr = "hostmetrics"
 )
 
 // NewFactory creates a factory for example connector.
@@ -39,18 +69,43 @@ func NewFactory() connector.Factory {
 
 func createDefaultConfig() component.Config {
 	return &Config{
-		AttributeNames: []string{"k8s.node.name", "host.name"},
+		AttributeNames:       []string{"k8s.node.name", "host.name"},
+		MetricsFlushInterval: 60 * time.Second,
 	}
 }
 
 // createTracesToMetricsConnector defines the consumer type of the connector
 // We want to consume traces and export metrics, therefore, define nextConsumer as metrics, since consumer is the next component in the pipeline
 func createTracesToMetricsConnector(ctx context.Context, params connector.CreateSettings, cfg component.Config, nextConsumer consumer.Metrics) (connector.Traces, error) {
-	c, err := newConnector(params.Logger, cfg)
+	hostMap := &HostMap{
+		hostMetrics: make(map[string]*pmetric.Metrics),
+	}
+
+	c, err := newConnector(params.Logger, cfg, hostMap)
 	if err != nil {
 		return nil, err
 	}
 	c.metricsConsumer = nextConsumer
+
+	ticker := time.NewTicker(c.config.MetricsFlushInterval)
+	go func() {
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case <-ticker.C:
+				metrics := hostMap.Flush()
+				params.Logger.Info(fmt.Sprintf("Flushing host metrics for %v hosts", len(metrics)))
+				for _, m := range metrics {
+					err := c.metricsConsumer.ConsumeMetrics(ctx, *m)
+					if err != nil {
+						params.Logger.Error("Error consuming host metrics", zap.Error(err))
+					}
+				}
+			}
+		}
+	}()
+
 	return c, nil
 }
 
@@ -60,6 +115,7 @@ func createTracesToMetricsConnector(ctx context.Context, params connector.Create
 type connectorImp struct {
 	config          Config
 	metricsConsumer consumer.Metrics
+	hostMap         *HostMap
 	logger          *zap.Logger
 	// Include these parameters if a specific implementation for the Start and Shutdown function are not needed
 	component.StartFunc
@@ -67,13 +123,14 @@ type connectorImp struct {
 }
 
 // newConnector is a function to create a new connector
-func newConnector(logger *zap.Logger, config component.Config) (*connectorImp, error) {
-	logger.Info("Building spanhostmetrics connector")
+func newConnector(logger *zap.Logger, config component.Config, hostMap *HostMap) (*connectorImp, error) {
+	logger.Info("Building hostmetrics connector")
 	cfg := config.(*Config)
 
 	return &connectorImp{
-		config: *cfg,
-		logger: logger,
+		config:  *cfg,
+		logger:  logger,
+		hostMap: hostMap,
 	}, nil
 }
 
@@ -98,7 +155,7 @@ func (c *connectorImp) ConsumeTraces(ctx context.Context, td ptrace.Traces) erro
 						// create metric only if span of trace has one of the specific attributes
 						metrics := pmetric.NewMetrics()
 						ilm := metrics.ResourceMetrics().AppendEmpty().ScopeMetrics().AppendEmpty()
-						ilm.Scope().SetName("spanhostmetricsconnector")
+						ilm.Scope().SetName("hostmetricsconnector")
 						m := ilm.Metrics().AppendEmpty()
 						m.SetName("span_host_info")
 						m.SetEmptyGauge()
@@ -111,11 +168,7 @@ func (c *connectorImp) ConsumeTraces(ctx context.Context, td ptrace.Traces) erro
 						dpCalls.Attributes().PutStr("hostname", v.(string))
 						dpCalls.SetIntValue(int64(1))
 
-						// TODO: store the metric in a map and flush it after a certain time instead of on every span
-						err := c.metricsConsumer.ConsumeMetrics(ctx, metrics)
-						if err != nil {
-							return err
-						}
+						c.hostMap.AddHostMetric(key, &metrics)
 						break
 					}
 				}

@@ -13,11 +13,12 @@ otelcol.processor.resourcedetection "otlp_resources" {
 
   output {
     metrics = [otelcol.exporter.prometheus.otlp_metrics.input]
-    traces = [otelcol.connector.spanhostmetrics.host_metrics.input]
+    traces = [otelcol.connector.hostmetrics.host_metrics.input]
   }
 }
 
-otelcol.connector.spanhostmetrics "host_metrics" {
+otelcol.connector.hostmetrics "host_metrics" {
+  metrics_flush_interval = "10s"
   output {
     metrics = [otelcol.exporter.prometheus.otlp_metrics.input]
   }

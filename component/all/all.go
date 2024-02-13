@@ -65,8 +65,8 @@ import (
 	_ "github.com/grafana/agent/component/otelcol/auth/headers"                     // Import otelcol.auth.headers
 	_ "github.com/grafana/agent/component/otelcol/auth/oauth2"                      // Import otelcol.auth.oauth2
 	_ "github.com/grafana/agent/component/otelcol/auth/sigv4"                       // Import otelcol.auth.sigv4
+	_ "github.com/grafana/agent/component/otelcol/connector/hostmetrics"            // Import otelcol.connector.hostmetrics
 	_ "github.com/grafana/agent/component/otelcol/connector/servicegraph"           // Import otelcol.connector.servicegraph
-	_ "github.com/grafana/agent/component/otelcol/connector/spanhostmetrics"        // Import otelcol.connector.spanhostmetrics
 	_ "github.com/grafana/agent/component/otelcol/connector/spanlogs"               // Import otelcol.connector.spanlogs
 	_ "github.com/grafana/agent/component/otelcol/connector/spanmetrics"            // Import otelcol.connector.spanmetrics
 	_ "github.com/grafana/agent/component/otelcol/exporter/loadbalancing"           // Import otelcol.exporter.loadbalancing
