@@ -75,6 +75,8 @@ Main (unreleased)
 
 - Fix divide-by-zero issue when sharding targets. (@hainenber) 
 
+- Fix `ResolveEndpointV2 not found` for AWS-related components. (@hainenber)
+
 ### Other changes
 
 - Removed support for Windows 2012 in line with Microsoft end of life. (@mattdurham)
