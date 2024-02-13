@@ -228,6 +228,7 @@ func (cn *ImportConfigNode) Run(ctx context.Context) error {
 			errChan: errChan,
 		}
 	})
+	defer runner.Stop()
 
 	updateTasks := func() error {
 		cn.mut.Lock()
