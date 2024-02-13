@@ -14,9 +14,9 @@ require (
 	github.com/alecthomas/kingpin/v2 v2.4.0
 	github.com/alecthomas/units v0.0.0-20211218093645-b94a6e3cc137
 	github.com/aws/aws-sdk-go v1.45.25
-	github.com/aws/aws-sdk-go-v2 v1.24.0
-	github.com/aws/aws-sdk-go-v2/config v1.26.2
-	github.com/aws/aws-sdk-go-v2/service/s3 v1.34.1
+	github.com/aws/aws-sdk-go-v2 v1.24.1
+	github.com/aws/aws-sdk-go-v2/config v1.26.6
+	github.com/aws/aws-sdk-go-v2/service/s3 v1.48.1
 	github.com/bmatcuk/doublestar v1.3.4
 	github.com/buger/jsonparser v1.1.1
 	github.com/burningalchemist/sql_exporter v0.0.0-20240103092044-466b38b6abc4
@@ -282,21 +282,21 @@ require (
 	github.com/armon/go-metrics v0.4.1 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 // indirect
 	github.com/avvmoto/buf-readerat v0.0.0-20171115124131-a17c8cb89270 // indirect
-	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.4.10 // indirect
-	github.com/aws/aws-sdk-go-v2/credentials v1.16.13 // indirect
-	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.14.10 // indirect
-	github.com/aws/aws-sdk-go-v2/feature/s3/manager v1.11.69 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/configsources v1.2.9 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.5.9 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/ini v1.7.2 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/v4a v1.0.26 // indirect
+	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.5.4 // indirect
+	github.com/aws/aws-sdk-go-v2/credentials v1.16.16 // indirect
+	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.14.11 // indirect
+	github.com/aws/aws-sdk-go-v2/feature/s3/manager v1.15.15 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/configsources v1.2.10 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.5.10 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/ini v1.7.3 // indirect
+	github.com/aws/aws-sdk-go-v2/internal/v4a v1.2.10 // indirect
 	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.10.4 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/checksum v1.1.29 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.10.9 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.14.3 // indirect
-	github.com/aws/aws-sdk-go-v2/service/sso v1.18.5 // indirect
-	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.21.5 // indirect
-	github.com/aws/aws-sdk-go-v2/service/sts v1.26.6 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/checksum v1.2.10 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.10.10 // indirect
+	github.com/aws/aws-sdk-go-v2/service/internal/s3shared v1.16.10 // indirect
+	github.com/aws/aws-sdk-go-v2/service/sso v1.18.7 // indirect
+	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.21.7 // indirect
+	github.com/aws/aws-sdk-go-v2/service/sts v1.26.7 // indirect
 	github.com/aws/smithy-go v1.19.0 // indirect
 	github.com/beevik/ntp v1.3.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
@@ -626,7 +626,16 @@ require (
 	github.com/Shopify/sarama v1.38.1 // indirect
 	github.com/Showmax/go-fqdn v1.0.0 // indirect
 	github.com/Workiva/go-datastructures v1.1.0 // indirect
-	github.com/aws/aws-sdk-go-v2/service/secretsmanager v1.26.0 // indirect
+	github.com/aws/aws-sdk-go-v2/service/amp v1.22.2 // indirect
+	github.com/aws/aws-sdk-go-v2/service/apigateway v1.21.7 // indirect
+	github.com/aws/aws-sdk-go-v2/service/apigatewayv2 v1.18.7 // indirect
+	github.com/aws/aws-sdk-go-v2/service/autoscaling v1.37.0 // indirect
+	github.com/aws/aws-sdk-go-v2/service/databasemigrationservice v1.35.7 // indirect
+	github.com/aws/aws-sdk-go-v2/service/ec2 v1.146.0 // indirect
+	github.com/aws/aws-sdk-go-v2/service/resourcegroupstaggingapi v1.19.7 // indirect
+	github.com/aws/aws-sdk-go-v2/service/secretsmanager v1.26.2 // indirect
+	github.com/aws/aws-sdk-go-v2/service/shield v1.23.6 // indirect
+	github.com/aws/aws-sdk-go-v2/service/storagegateway v1.25.0 // indirect
 	github.com/channelmeter/iso8601duration v0.0.0-20150204201828-8da3af7a2a61 // indirect
 	github.com/cloudflare/circl v1.3.7 // indirect
 	github.com/containerd/log v0.1.0 // indirect
