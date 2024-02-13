@@ -29,7 +29,6 @@ import (
 	"github.com/grafana/agent/pkg/flow/tracing"
 	"github.com/grafana/agent/pkg/usagestats"
 	"github.com/grafana/agent/service"
-	"github.com/grafana/agent/service/cluster"
 	httpservice "github.com/grafana/agent/service/http"
 	"github.com/grafana/agent/service/labelstore"
 	otel_service "github.com/grafana/agent/service/otel"
@@ -254,7 +253,6 @@ func (fr *flowRun) Run(configPath string) error {
 
 	uiService := uiservice.New(uiservice.Options{
 		UIPrefix: fr.uiPrefix,
-		Cluster:  clusterService.Data().(cluster.Cluster),
 	})
 
 	otelService := otel_service.New(l)
