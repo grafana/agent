@@ -12,10 +12,7 @@ title: otelcol.exporter.debug
 # otelcol.exporter.debug
 
 `otelcol.exporter.debug` accepts telemetry data from other `otelcol` components
-and writes them to the console.
-
-This component writes logs at the info level. The [logging config block][] must be
-configured to write logs at the info level.
+and writes them to the console (stderr). The verbosity of the logs can also be controlled.
 
 > **NOTE**: `otelcol.exporter.debug` is a wrapper over the upstream
 > OpenTelemetry Collector `debug` exporter. Bug reports or feature requests will
