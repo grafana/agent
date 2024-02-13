@@ -81,7 +81,7 @@ Main (unreleased)
 
 - Fix divide-by-zero issue when sharding targets. (@hainenber) 
 
-- Fix bug where headers were not actually being set in loki client. (@captncraig)
+- Fix bug where custom headers were not actually being set in loki client. (@captncraig)
 
 ### Other changes
 
