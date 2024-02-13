@@ -37,12 +37,6 @@ type Definition struct {
 	DependsOn []string
 }
 
-// A Provider exposes information around services.
-type Provider interface {
-	// GetService looks up a running service using its name.
-	GetService(name string) (Service, bool)
-}
-
 // Host is a controller for services and Flow components.
 type Host interface {
 	// GetComponent gets a running component by ID.

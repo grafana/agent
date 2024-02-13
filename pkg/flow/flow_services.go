@@ -26,6 +26,8 @@ func (f *Flow) GetServiceConsumers(serviceName string) []service.Consumer {
 	return consumers
 }
 
+// GetService implements [service.Host]. It looks up a [service.Service] by
+// name.
 func (f *Flow) GetService(name string) (service.Service, bool) {
 	for _, svc := range f.opts.Services {
 		if svc.Definition().Name == name {

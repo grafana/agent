@@ -18,16 +18,11 @@ import (
 
 // FlowAPI is a wrapper around the component API.
 type FlowAPI struct {
-	flow Provider
-}
-
-type Provider interface {
-	component.Provider
-	service.Provider
+	flow service.Host
 }
 
 // NewFlowAPI instantiates a new Flow API.
-func NewFlowAPI(flow Provider) *FlowAPI {
+func NewFlowAPI(flow service.Host) *FlowAPI {
 	return &FlowAPI{flow: flow}
 }
 
