@@ -124,7 +124,11 @@ func (cn *ImportConfigNode) onContentUpdate(importedContent string) {
 	}
 
 	// populate importedDeclares and importConfigNodesChildren
-	cn.processImportedContent(parsedImportedContent)
+	err = cn.processImportedContent(parsedImportedContent)
+	if err != nil {
+		level.Error(cn.logger).Log("msg", "failed to process imported content", "err", err)
+		return
+	}
 
 	// evaluate the importConfigNodesChildren that have been created
 	err = cn.evaluateChildren()
@@ -135,30 +139,38 @@ func (cn *ImportConfigNode) onContentUpdate(importedContent string) {
 
 	// trigger to stop previous children from running and to start running the new ones.
 	if cn.importChildrenRunning {
-		cn.importChildrenUpdateChan <- struct{}{}
+		select {
+		case cn.importChildrenUpdateChan <- struct{}{}: // queued trigger
+		default: // trigger already queued; no-op
+		}
 	}
 
 	cn.OnBlockNodeUpdate(cn)
 }
 
 // processImportedContent processes declare and import blocks of the provided ast content.
-func (cn *ImportConfigNode) processImportedContent(content *ast.File) {
+func (cn *ImportConfigNode) processImportedContent(content *ast.File) error {
 	for _, stmt := range content.Body {
-		switch stmt := stmt.(type) {
-		case *ast.BlockStmt:
-			fullName := strings.Join(stmt.Name, ".")
-			switch fullName {
-			case "declare":
-				cn.processDeclareBlock(stmt)
-			case importsource.BlockImportFile, importsource.BlockImportString: // TODO: add other import sources
-				cn.processImportBlock(stmt, fullName)
-			default:
-				level.Error(cn.logger).Log("msg", "only declare and import blocks are allowed in a module", "forbidden", fullName)
+		blockStmt, ok := stmt.(*ast.BlockStmt)
+		if !ok {
+			level.Error(cn.logger).Log("msg", "only declare and import blocks are allowed in a module")
+			continue
+		}
+
+		componentName := strings.Join(blockStmt.Name, ".")
+		switch componentName {
+		case "declare":
+			cn.processDeclareBlock(blockStmt)
+		case importsource.BlockImportFile, importsource.BlockImportString: // TODO: add other import sources
+			err := cn.processImportBlock(blockStmt, componentName)
+			if err != nil {
+				return err
 			}
 		default:
-			level.Error(cn.logger).Log("msg", "only declare and import blocks are allowed in a module")
+			level.Error(cn.logger).Log("msg", "only declare and import blocks are allowed in a module", "forbidden", componentName)
 		}
 	}
+	return nil
 }
 
 // processDeclareBlock stores the declare definition in the importedDeclares.
@@ -171,16 +183,16 @@ func (cn *ImportConfigNode) processDeclareBlock(stmt *ast.BlockStmt) {
 }
 
 // processDeclareBlock creates an ImportConfigNode child from the provided import block.
-func (cn *ImportConfigNode) processImportBlock(stmt *ast.BlockStmt, fullName string) {
+func (cn *ImportConfigNode) processImportBlock(stmt *ast.BlockStmt, fullName string) error {
 	sourceType := importsource.GetSourceType(fullName)
 	if _, ok := cn.importConfigNodesChildren[stmt.Label]; ok {
-		level.Error(cn.logger).Log("msg", "import block redefined", "name", stmt.Label)
-		return
+		return fmt.Errorf("import block redefined %s", stmt.Label)
 	}
 	childGlobals := cn.globals
 	// Children have a special OnBlockNodeUpdate function which notifies the parent when its content changes.
 	childGlobals.OnBlockNodeUpdate = cn.onChildrenContentUpdate
 	cn.importConfigNodesChildren[stmt.Label] = NewImportConfigNode(stmt, childGlobals, sourceType)
+	return nil
 }
 
 // evaluateChildren evaluates the import nodes managed by this import node.

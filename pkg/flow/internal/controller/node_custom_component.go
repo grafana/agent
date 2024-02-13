@@ -66,7 +66,7 @@ var _ ComponentNode = (*CustomComponentNode)(nil)
 // To address this limitation in the future, we will need to find a different approach to
 // identify the importNamespaces and CustomComponentNames.
 func ExtractImportAndDeclare(componentName string) (string, string) {
-	parts := strings.Split(componentName, ".")
+	parts := strings.SplitN(componentName, ".", 2)
 	if len(parts) == 0 {
 		return "", ""
 	}
