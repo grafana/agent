@@ -156,7 +156,8 @@ func (fakeHost) ListComponents(moduleID string, opts component.InfoOptions) ([]*
 	return nil, fmt.Errorf("no such module %q", moduleID)
 }
 
-func (fakeHost) GetServiceConsumers(serviceName string) []service.Consumer { return nil }
+func (fakeHost) GetServiceConsumers(_ string) []service.Consumer { return nil }
+func (fakeHost) GetService(_ string) (service.Service, bool)     { return nil, false }
 
 func (f fakeHost) NewController(id string) service.Controller {
 	logger, _ := logging.New(io.Discard, logging.DefaultOptions)
