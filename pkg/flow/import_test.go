@@ -401,6 +401,10 @@ func TestImport(t *testing.T) {
 					input = testImport.anotherModule.myOtherModule.anotherModuleOutput
 				}
 			`,
+			updateModule: func(filename string) string {
+				return defaultModuleUpdate
+			},
+			updateFile: "other_module",
 		},
 		{
 			name: "Import two declares with one used inside of the other via a cc and instantiate a cc at the root",
