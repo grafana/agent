@@ -81,6 +81,8 @@ Main (unreleased)
 
 - Fix divide-by-zero issue when sharding targets. (@hainenber) 
 
+- Fix bug where custom headers were not actually being set in loki client. (@captncraig)
+
 ### Other changes
 
 - Removed support for Windows 2012 in line with Microsoft end of life. (@mattdurham)
