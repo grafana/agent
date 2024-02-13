@@ -51,3 +51,10 @@ func (im *ImportString) Run(ctx context.Context) error {
 	<-ctx.Done()
 	return nil
 }
+
+// ImportString is always healthy
+func (im *ImportString) CurrentHealth() component.Health {
+	return component.Health{
+		Health: component.HealthTypeHealthy,
+	}
+}

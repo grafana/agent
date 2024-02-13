@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"time"
 
 	"go.uber.org/atomic"
 
@@ -37,6 +38,7 @@ type ImportConfigNode struct {
 	globals       ComponentGlobals          // Need a copy of the globals to create other import nodes
 	block         *ast.BlockStmt            // Current River blocks to derive config from
 	source        importsource.ImportSource // source retrieves the module content
+	registry      *prometheus.Registry
 
 	OnBlockNodeUpdate func(cn BlockNode) // notifies the controller or the parent for reevaluation
 	logger            log.Logger
@@ -48,6 +50,11 @@ type ImportConfigNode struct {
 	importConfigNodesChildren map[string]*ImportConfigNode
 	importChildrenRunning     bool
 	importedDeclares          map[string]ast.Body
+
+	healthMut     sync.RWMutex
+	evalHealth    component.Health // Health of the last source evaluation
+	runHealth     component.Health // Health of running
+	contentHealth component.Health // Health of the last content update
 
 	inContentUpdate atomic.Bool
 }
@@ -81,12 +88,13 @@ func NewImportConfigNode(block *ast.BlockStmt, globals ComponentGlobals, sourceT
 }
 
 func getImportManagedOptions(globals ComponentGlobals, cn *ImportConfigNode) component.Options {
+	cn.registry = prometheus.NewRegistry()
 	return component.Options{
 		ID:     cn.globalID,
 		Logger: log.With(globals.Logger, "config", cn.globalID),
 		Registerer: prometheus.WrapRegistererWith(prometheus.Labels{
 			"config_id": cn.globalID,
-		}, prometheus.NewRegistry()),
+		}, cn.registry),
 		Tracer:   tracing.WrapTracer(globals.TraceProvider, cn.globalID),
 		DataPath: filepath.Join(globals.DataPath, cn.globalID),
 		GetServiceData: func(name string) (interface{}, error) {
@@ -95,9 +103,76 @@ func getImportManagedOptions(globals ComponentGlobals, cn *ImportConfigNode) com
 	}
 }
 
+// setEvalHealth sets the internal health from a call to Evaluate. See Health
+// for information on how overall health is calculated.
+func (cn *ImportConfigNode) setEvalHealth(t component.HealthType, msg string) {
+	cn.healthMut.Lock()
+	defer cn.healthMut.Unlock()
+
+	cn.evalHealth = component.Health{
+		Health:     t,
+		Message:    msg,
+		UpdateTime: time.Now(),
+	}
+}
+
+// setRunHealth sets the internal health from a call to Run. See Health for
+// information on how overall health is calculated.
+func (cn *ImportConfigNode) setRunHealth(t component.HealthType, msg string) {
+	cn.healthMut.Lock()
+	defer cn.healthMut.Unlock()
+
+	cn.runHealth = component.Health{
+		Health:     t,
+		Message:    msg,
+		UpdateTime: time.Now(),
+	}
+}
+
+// setContentHealth sets the internal health from a call to OnContentUpdate. See Health
+// for information on how overall health is calculated.
+func (cn *ImportConfigNode) setContentHealth(t component.HealthType, msg string) {
+	cn.healthMut.Lock()
+	defer cn.healthMut.Unlock()
+
+	cn.contentHealth = component.Health{
+		Health:     t,
+		Message:    msg,
+		UpdateTime: time.Now(),
+	}
+}
+
+// CurrentHealth returns the current health of the ImportConfigNode.
+//
+// The health of a ImportConfigNode is determined by combining:
+//
+//  1. Health from the call to Run().
+//  2. Health from the last call to Evaluate().
+//  3. Health from the last call to OnContentChange().
+//  4. Health reported from the source.
+func (cn *ImportConfigNode) CurrentHealth() component.Health {
+	cn.healthMut.RLock()
+	defer cn.healthMut.RUnlock()
+
+	return component.LeastHealthy(
+		cn.runHealth,
+		cn.evalHealth,
+		cn.contentHealth,
+		cn.source.CurrentHealth(),
+	)
+}
+
 // Evaluate implements BlockNode and evaluates the import source.
 func (cn *ImportConfigNode) Evaluate(scope *vm.Scope) error {
-	return cn.source.Evaluate(scope)
+	err := cn.source.Evaluate(scope)
+	switch err {
+	case nil:
+		cn.setEvalHealth(component.HealthTypeHealthy, "source evaluated")
+	default:
+		msg := fmt.Sprintf("source evaluation failed: %s", err)
+		cn.setEvalHealth(component.HealthTypeUnhealthy, msg)
+	}
+	return err
 }
 
 // onContentUpdate is triggered every time the managed import source has new content.
@@ -120,6 +195,7 @@ func (cn *ImportConfigNode) onContentUpdate(importedContent string) {
 	parsedImportedContent, err := parser.ParseFile(cn.label, []byte(importedContent))
 	if err != nil {
 		level.Error(cn.logger).Log("msg", "failed to parse file on update", "err", err)
+		cn.setContentHealth(component.HealthTypeUnhealthy, fmt.Sprintf("imported content cannot be parsed: %s", err))
 		return
 	}
 
@@ -127,6 +203,7 @@ func (cn *ImportConfigNode) onContentUpdate(importedContent string) {
 	err = cn.processImportedContent(parsedImportedContent)
 	if err != nil {
 		level.Error(cn.logger).Log("msg", "failed to process imported content", "err", err)
+		cn.setContentHealth(component.HealthTypeUnhealthy, fmt.Sprintf("imported content is invalid: %s", err))
 		return
 	}
 
@@ -134,6 +211,7 @@ func (cn *ImportConfigNode) onContentUpdate(importedContent string) {
 	err = cn.evaluateChildren()
 	if err != nil {
 		level.Error(cn.logger).Log("msg", "failed to evaluate nested import", "err", err)
+		cn.setContentHealth(component.HealthTypeUnhealthy, fmt.Sprintf("nested import block failed to evaluate: %s", err))
 		return
 	}
 
@@ -145,6 +223,7 @@ func (cn *ImportConfigNode) onContentUpdate(importedContent string) {
 		}
 	}
 
+	cn.setContentHealth(component.HealthTypeHealthy, "content updated")
 	cn.OnBlockNodeUpdate(cn)
 }
 
@@ -153,8 +232,7 @@ func (cn *ImportConfigNode) processImportedContent(content *ast.File) error {
 	for _, stmt := range content.Body {
 		blockStmt, ok := stmt.(*ast.BlockStmt)
 		if !ok {
-			level.Error(cn.logger).Log("msg", "only declare and import blocks are allowed in a module")
-			continue
+			return fmt.Errorf("only declare and import blocks are allowed in a module")
 		}
 
 		componentName := strings.Join(blockStmt.Name, ".")
@@ -167,7 +245,7 @@ func (cn *ImportConfigNode) processImportedContent(content *ast.File) error {
 				return err
 			}
 		default:
-			level.Error(cn.logger).Log("msg", "only declare and import blocks are allowed in a module", "forbidden", componentName)
+			return fmt.Errorf("only declare and import blocks are allowed in a module, got %s", componentName)
 		}
 	}
 	return nil
@@ -260,13 +338,18 @@ func (cn *ImportConfigNode) Run(ctx context.Context) error {
 		errChan <- cn.source.Run(newCtx)
 	}()
 
+	cn.setRunHealth(component.HealthTypeHealthy, "started import")
 	err := cn.run(errChan, updateTasks)
 
+	var exitMsg string
 	if err != nil {
 		level.Error(cn.logger).Log("msg", "import exited with error", "err", err)
+		exitMsg = fmt.Sprintf("import shut down with error: %s", err)
 	} else {
 		level.Info(cn.logger).Log("msg", "import exited")
+		exitMsg = "import shut down normally"
 	}
+	cn.setRunHealth(component.HealthTypeExited, exitMsg)
 	return err
 }
 
@@ -312,9 +395,7 @@ type childRunner struct {
 }
 
 func (cr *childRunner) Run(ctx context.Context) {
-	fmt.Println("Run child")
 	err := cr.node.Run(ctx)
-	fmt.Println("Child has stopped") // never called
 	if err != nil {
 		cr.errChan <- err
 	}

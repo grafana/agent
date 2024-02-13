@@ -69,3 +69,8 @@ func (im *ImportFile) Evaluate(scope *vm.Scope) error {
 func (im *ImportFile) Run(ctx context.Context) error {
 	return im.fileComponent.Run(ctx)
 }
+
+// CurrentHealth returns the health of the file component.
+func (im *ImportFile) CurrentHealth() component.Health {
+	return im.fileComponent.CurrentHealth()
+}

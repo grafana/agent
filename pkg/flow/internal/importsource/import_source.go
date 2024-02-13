@@ -24,8 +24,10 @@ const (
 type ImportSource interface {
 	// Evaluate updates the arguments provided via the River block.
 	Evaluate(scope *vm.Scope) error
-	// Run the underlying component to be updated when the content of the source changes.
+	// Run the underlying source to be updated when the content changes.
 	Run(ctx context.Context) error
+	// CurrentHealth returns the current Health status of the running source.
+	CurrentHealth() component.Health
 }
 
 // NewImportSource creates a new ImportSource depending on the type.
