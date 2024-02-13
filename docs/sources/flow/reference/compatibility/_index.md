@@ -79,7 +79,7 @@ The following components, grouped by namespace, _export_ Targets.
 {{< /collapse >}}
 
 {{< collapse title="prometheus" >}}
-- [prometheus.exporter.agent]({{< relref "../components/prometheus.exporter.agent.md" >}})
+- [prometheus.exporter.self]({{< relref "../components/prometheus.exporter.self.md" >}})
 - [prometheus.exporter.apache]({{< relref "../components/prometheus.exporter.apache.md" >}})
 - [prometheus.exporter.azure]({{< relref "../components/prometheus.exporter.azure.md" >}})
 - [prometheus.exporter.blackbox]({{< relref "../components/prometheus.exporter.blackbox.md" >}})
