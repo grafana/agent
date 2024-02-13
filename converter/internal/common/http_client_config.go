@@ -1,6 +1,8 @@
 package common
 
 import (
+	"reflect"
+
 	"github.com/grafana/agent/component/common/config"
 	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/river/rivertypes"
@@ -18,7 +20,7 @@ func ToHttpClientConfig(httpClientConfig *prom_config.HTTPClientConfig) *config.
 		OAuth2:          toOAuth2(httpClientConfig.OAuth2),
 		BearerToken:     rivertypes.Secret(httpClientConfig.BearerToken),
 		BearerTokenFile: httpClientConfig.BearerTokenFile,
-		ProxyURL:        config.URL(httpClientConfig.ProxyURL),
+		ProxyConfig:     ToProxyConfig(httpClientConfig.ProxyConfig),
 		TLSConfig:       *ToTLSConfig(&httpClientConfig.TLSConfig),
 		FollowRedirects: httpClientConfig.FollowRedirects,
 		EnableHTTP2:     httpClientConfig.EnableHTTP2,
@@ -30,9 +32,6 @@ func ToHttpClientConfig(httpClientConfig *prom_config.HTTPClientConfig) *config.
 func ValidateHttpClientConfig(httpClientConfig *prom_config.HTTPClientConfig) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	diags.AddAll(ValidateSupported(NotEquals, httpClientConfig.NoProxy, "", "HTTP Client no_proxy", ""))
-	diags.AddAll(ValidateSupported(Equals, httpClientConfig.ProxyFromEnvironment, true, "HTTP Client proxy_from_environment", ""))
-	diags.AddAll(ValidateSupported(Equals, len(httpClientConfig.ProxyConnectHeader) > 0, true, "HTTP Client proxy_connect_header", ""))
 	diags.AddAll(ValidateSupported(NotEquals, httpClientConfig.TLSConfig.MaxVersion, prom_config.TLSVersion(0), "HTTP Client max_version", ""))
 
 	return diags
@@ -74,9 +73,54 @@ func toOAuth2(oAuth2 *prom_config.OAuth2) *config.OAuth2Config {
 		Scopes:           oAuth2.Scopes,
 		TokenURL:         oAuth2.TokenURL,
 		EndpointParams:   oAuth2.EndpointParams,
-		ProxyURL:         config.URL(oAuth2.ProxyURL),
+		ProxyConfig:      ToProxyConfig(oAuth2.ProxyConfig),
 		TLSConfig:        ToTLSConfig(&oAuth2.TLSConfig),
 	}
+}
+
+func ToProxyConfig(proxyConfig prom_config.ProxyConfig) *config.ProxyConfig {
+	// Prometheus proxy config is not a pointer so treat the default struct as nil
+	if reflect.DeepEqual(proxyConfig, prom_config.ProxyConfig{}) {
+		return nil
+	}
+
+	return &config.ProxyConfig{
+		ProxyURL:             toProxyURL(proxyConfig.ProxyURL),
+		NoProxy:              proxyConfig.NoProxy,
+		ProxyFromEnvironment: proxyConfig.ProxyFromEnvironment,
+		ProxyConnectHeader:   toProxyConnectHeader(proxyConfig.ProxyConnectHeader),
+	}
+}
+
+func toProxyURL(proxyURL prom_config.URL) config.URL {
+	if proxyURL.URL == nil {
+		return config.URL{}
+	}
+
+	return config.URL{
+		URL: proxyURL.URL,
+	}
+}
+
+func toProxyConnectHeader(proxyConnectHeader prom_config.Header) config.Header {
+	if proxyConnectHeader == nil {
+		return config.Header{}
+	}
+
+	header := config.Header{
+		Header: make(map[string][]rivertypes.Secret),
+	}
+	for name, values := range proxyConnectHeader {
+		var s []rivertypes.Secret
+		if values != nil {
+			s = make([]rivertypes.Secret, 0, len(values))
+			for _, value := range values {
+				s = append(s, rivertypes.Secret(value))
+			}
+		}
+		header.Header[name] = s
+	}
+	return header
 }
 
 func ToTLSConfig(tlsConfig *prom_config.TLSConfig) *config.TLSConfig {

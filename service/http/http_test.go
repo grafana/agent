@@ -215,3 +215,7 @@ func (fakeHost) ListComponents(moduleID string, opts component.InfoOptions) ([]*
 }
 
 func (fakeHost) GetServiceConsumers(serviceName string) []service.Consumer { return nil }
+
+func (fakeHost) NewController(id string) service.Controller { return nil }
+
+func (fakeHost) GetService(_ string) (service.Service, bool) { return nil, false }

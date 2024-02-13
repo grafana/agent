@@ -1,6 +1,6 @@
 (Error) The converter does not support converting the provided eventhandler send_timeout config: this field is not configurable in flow mode
-(Error) The converter does not support converting the provided eventhandler cache_path config: this field is not configurable in flow mode
 (Error) The converter does not support converting the provided eventhandler informer_resync config: this field is not configurable in flow mode
 (Error) The converter does not support converting the provided eventhandler flush_interval config: this field is not configurable in flow mode
+(Warning) The eventhandler cache_path is unnecessary in flow mode because the storage path is governed by the --storage.path cmd argument and is always local to the component.
 (Warning) Please review your agent command line flags and ensure they are set in your Flow mode config file where necessary.
 (Error) The converter does not support converting the provided app_agent_receiver traces_instance config.
