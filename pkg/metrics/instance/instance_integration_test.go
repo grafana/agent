@@ -73,9 +73,14 @@ remote_write: []
 	require.NoError(t, err)
 
 	instCtx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	done := make(chan struct{})
+	defer func() {
+		cancel()
+		<-done
+	}()
 	go func() {
 		err := inst.Run(instCtx)
+		close(done)
 		require.NoError(t, err)
 	}()
 
@@ -142,9 +147,14 @@ remote_write: []
 	require.NoError(t, err)
 
 	instCtx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	done := make(chan struct{})
+	defer func() {
+		cancel()
+		<-done
+	}()
 	go func() {
 		err := inst.Run(instCtx)
+		close(done)
 		require.NoError(t, err)
 	}()
 
