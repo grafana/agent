@@ -40,6 +40,29 @@ local locals = {
       host: { path: '/var/run/docker.sock' },
     }],
   },
+  pipelines.linux('Create Linux build image for boringcrypto') {
+    trigger: locals.on_build_image_tag,
+    steps: [{
+      name: 'Build',
+      image: 'docker',
+      volumes: [{
+        name: 'docker',
+        path: '/var/run/docker.sock',
+      }],
+      environment: locals.docker_environment,
+      commands: [
+        'export IMAGE_TAG=${DRONE_TAG##build-image/v}-boringcrypto',
+        'docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD',
+        'docker run --rm --privileged multiarch/qemu-user-static --reset -p yes',
+        'docker buildx create --name multiarch --driver docker-container --use',
+        'docker buildx build --push --platform linux/amd64,linux/arm64 -t grafana/agent-build-image:$IMAGE_TAG ./build-image/boringcrypto',
+      ],
+    }],
+    volumes: [{
+      name: 'docker',
+      host: { path: '/var/run/docker.sock' },
+    }],
+   },
 
   pipelines.windows('Create Windows build image') {
     trigger: locals.on_build_image_tag,

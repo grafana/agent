@@ -34,6 +34,40 @@ volumes:
   name: docker
 ---
 kind: pipeline
+name: Create Linux build image for boringcrypto
+platform:
+  arch: amd64
+  os: linux
+steps:
+- commands:
+  - export IMAGE_TAG=${DRONE_TAG##build-image/v}-boringcrypto
+  - docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD
+  - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+  - docker buildx create --name multiarch --driver docker-container --use
+  - docker buildx build --push --platform linux/amd64,linux/arm64 -t grafana/agent-build-image:$IMAGE_TAG
+    ./build-image/boringcrypto
+  environment:
+    DOCKER_LOGIN:
+      from_secret: docker_login
+    DOCKER_PASSWORD:
+      from_secret: docker_password
+  image: docker
+  name: Build
+  volumes:
+  - name: docker
+    path: /var/run/docker.sock
+trigger:
+  event:
+  - tag
+  ref:
+  - refs/tags/build-image/v*
+type: docker
+volumes:
+- host:
+    path: /var/run/docker.sock
+  name: docker
+---
+kind: pipeline
 name: Create Windows build image
 platform:
   arch: amd64
@@ -1317,6 +1351,6 @@ kind: secret
 name: updater_private_key
 ---
 kind: signature
-hmac: a77b4f7b2708cc4417edd42fae39c307abcaec2c4f0f6176212665133bd20d5d
+hmac: d66a28c3489b7a19b64e82590630ceed4fc71789a76b3da8564c2aae604253ad
 
 ...
