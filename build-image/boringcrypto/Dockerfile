@@ -1,5 +1,8 @@
 # syntax=docker/dockerfile:1.4
 
+# NOTE: The main difference in this file vs the parent Dockerfile is using mcr.microsoft.com/oss/go/microsoft/golang:1.22-bullseye which is a microsoft
+# fork of go that allows using windows crypto instead of boring crypto. Details at https://github.com/microsoft/go/tree/microsoft/main/eng/doc/fips
+
 # NOTE: This Dockerfile can only be built using BuildKit. BuildKit is used by
 # default when running `docker buildx build` or when DOCKER_BUILDKIT=1 is set
 # in environment variables.
