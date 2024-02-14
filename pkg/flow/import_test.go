@@ -3,7 +3,8 @@ package flow_test
 import (
 	"context"
 	"os"
-	"strconv"
+	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -12,886 +13,330 @@ import (
 	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/grafana/agent/service"
 	"github.com/stretchr/testify/require"
+	"golang.org/x/tools/txtar"
 
 	_ "github.com/grafana/agent/component/module/string"
 )
 
-func TestImportString(t *testing.T) {
-	declare := `
-        declare "test" {
-            argument "input" {}
-
-            testcomponents.passthrough "pt" {
-                input = argument.input.value
-                lag = "1ms"
-            }
-
-            export "testOutput" {
-                value = testcomponents.passthrough.pt.output
-            }
-        }
-    `
-	testCases := []struct {
-		name   string
-		config string
-	}{
-		{
-			name: "Import declare and instantiate at the root",
-			config: `
-                testcomponents.count "inc" {
-                    frequency = "10ms"
-                    max = 10
-                }
-
-                import.string "testImport" {
-                    content = ` + strconv.Quote(declare) + `
-                }
-
-                testImport.test "myModule" {
-                    input = testcomponents.count.inc.count
-                }
-
-                testcomponents.summation "sum" {
-                    input = testImport.test.myModule.testOutput
-                }
-            `,
-		},
-	}
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			defer verifyNoGoroutineLeaks(t)
-			ctrl := flow.New(testOptions(t))
-			f, err := flow.ParseSource(t.Name(), []byte(tc.config))
-			require.NoError(t, err)
-			require.NotNil(t, f)
-
-			err = ctrl.LoadSource(f, nil)
-			require.NoError(t, err)
-
-			ctx, cancel := context.WithCancel(context.Background())
-			done := make(chan struct{})
-			go func() {
-				ctrl.Run(ctx)
-				close(done)
-			}()
-			defer func() {
-				cancel()
-				<-done
-			}()
-
-			// Check for initial condition
-			require.Eventually(t, func() bool {
-				export := getExport[testcomponents.SummationExports](t, ctrl, "", "testcomponents.summation.sum")
-				return export.LastAdded == 10
-			}, 3*time.Second, 10*time.Millisecond)
-		})
-	}
+// updateFile is used to change the content of a file used by a module
+type updateFile struct {
+	name         string   // name of the file which should be updated (module | nested_module)
+	updateConfig []string // new module config which should be used
 }
 
 func TestImport(t *testing.T) {
-	const defaultModuleUpdate = `
-    declare "test" {
-        argument "input" {}
-
-        export "testOutput" {
-            value = -10
-        }
-    }
-`
+	modules := loadModules(t)
 	testCases := []struct {
 		name         string
-		module       string
-		otherModule  string
-		config       string
-		updateModule func(filename string) string
-		updateFile   string
+		config       []string    // root config that the controller should load
+		module       []string    // module (file) that the root config can import
+		nestedModule []string    // module (file) that the module can import
+		update       *updateFile // update can update the module or the nested_module file with new content
 	}{
 		{
-			name: "Import a declare and instantiate cc at the root",
-			module: `
-                declare "test" {
-					argument "input" {}
-
-                    testcomponents.passthrough "pt" {
-                        input = argument.input.value
-                        lag = "1ms"
-                    }
-
-                    export "testOutput" {
-                        value = testcomponents.passthrough.pt.output
-                    }
-                }`,
-			config: `
-                testcomponents.count "inc" {
-                    frequency = "10ms"
-                    max = 10
-                }
-
-                import.file "testImport" {
-                    filename = "module"
-                }
-
-                testImport.test "myModule" {
-                    input = testcomponents.count.inc.count
-                }
-
-                testcomponents.summation "sum" {
-                    input = testImport.test.myModule.testOutput
-                }
-            `,
-			updateModule: func(filename string) string {
-				return defaultModuleUpdate
+			name:   "Import passthrough module.",
+			config: []string{"root_import_a"},
+			module: []string{"declare_passthrough"},
+			update: &updateFile{
+				name:         "module",
+				updateConfig: []string{"declare_negative_passthrough"},
 			},
-			updateFile: "module",
 		},
 		{
-			name: "Import a declare inside of a declare and instantiate cc in the declare",
-			module: `
-                declare "test" {
-					argument "input" {}
-
-                    testcomponents.passthrough "pt" {
-                        input = argument.input.value
-                        lag = "1ms"
-                    }
-
-                    export "testOutput" {
-                        value = testcomponents.passthrough.pt.output
-                    }
-                }`,
-			config: `
-				declare "a" {
-					testcomponents.count "inc" {
-						frequency = "10ms"
-						max = 10
-					}
-	
-					import.file "testImport" {
-						filename = "module"
-					}
-	
-					testImport.test "myModule" {
-						input = testcomponents.count.inc.count
-					}
-
-					export "testOutput" {
-                        value = testImport.test.myModule.testOutput
-                    }
-				}
-
-				a "bla" {} 
-
-                testcomponents.summation "sum" {
-                    input = a.bla.testOutput
-                }
-            `,
-			updateModule: func(filename string) string {
-				return defaultModuleUpdate
+			name:   "Import passthrough module in a declare.",
+			config: []string{"root_import_a_in_declare_b"},
+			module: []string{"declare_passthrough"},
+			update: &updateFile{
+				name:         "module",
+				updateConfig: []string{"declare_negative_passthrough"},
 			},
-			updateFile: "module",
 		},
 		{
-			name: "Import a declare and instantiate cc in a declare",
-			module: `
-                declare "test" {
-					argument "input" {}
-
-                    testcomponents.passthrough "pt" {
-                        input = argument.input.value
-                        lag = "1ms"
-                    }
-
-                    export "testOutput" {
-                        value = testcomponents.passthrough.pt.output
-                    }
-                }
-            `,
-			config: `
-                import.file "testImport" {
-                    filename = "module"
-                }
-
-                declare "anotherModule" {
-                    testcomponents.count "inc" {
-                        frequency = "10ms"
-                        max = 10
-                    }
-
-                    testImport.test "myModule" {
-                        input = testcomponents.count.inc.count
-                    }
-
-                    export "anotherModuleOutput" {
-                        value = testImport.test.myModule.testOutput
-                    }
-                }
-
-                anotherModule "myOtherModule" {}
-
-                testcomponents.summation "sum" {
-                    input = anotherModule.myOtherModule.anotherModuleOutput
-                }
-            `,
-			updateModule: func(filename string) string {
-				return defaultModuleUpdate
+			name:   "Import passthrough module; instantiate imported declare in a declare.",
+			config: []string{"root_import_a_used_in_declare_b"},
+			module: []string{"declare_passthrough"},
+			update: &updateFile{
+				name:         "module",
+				updateConfig: []string{"declare_negative_passthrough"},
 			},
-			updateFile: "module",
 		},
 		{
-			name: "Import a declare and instantiate cc in a declare nested inside of another declare",
-			module: `
-                declare "test" {
-					argument "input" {}
-
-                    export "testOutput" {
-                        value = argument.input.value
-                    }
-                }
-            `,
-			config: `
-                import.file "testImport" {
-                    filename = "module"
-                }
-
-                declare "yetAgainAnotherModule" {
-                    declare "anotherModule" {
-                        testcomponents.count "inc" {
-                            frequency = "10ms"
-                            max = 10
-                        }
-
-                        testcomponents.passthrough "pt" {
-                            input = testcomponents.count.inc.count
-                            lag = "1ms"
-                        }
-    
-                        testImport.test "myModule" {
-                            input = testcomponents.passthrough.pt.output
-                        }
-    
-                        export "anotherModuleOutput" {
-                            value = testImport.test.myModule.testOutput
-                        }
-                    }
-                    anotherModule "myOtherModule" {}
-
-                    export "yetAgainAnotherModuleOutput" {
-                        value = anotherModule.myOtherModule.anotherModuleOutput
-                    }
-                }
-
-                yetAgainAnotherModule "default" {}
-
-                testcomponents.summation "sum" {
-                    input = yetAgainAnotherModule.default.yetAgainAnotherModuleOutput
-                }
-            `,
-			updateModule: func(filename string) string {
-				return defaultModuleUpdate
+			name:   "Import passthrough module; instantiate imported declare in a nested declare.",
+			config: []string{"root_import_a_used_in_declare_c_within_declare_b"},
+			module: []string{"declare_passthrough"},
+			update: &updateFile{
+				name:         "module",
+				updateConfig: []string{"declare_negative_passthrough"},
 			},
-			updateFile: "module",
 		},
 		{
-			name: "Import an import block and a declare that has a cc that refers to the import, and instantiate cc at the root",
-			module: `
-                import.file "otherModule" {
-                    filename = "other_module"
-                }
-                declare "anotherModule" {
-                    testcomponents.count "inc" {
-                        frequency = "10ms"
-                        max = 10
-                    }
-
-                    otherModule.test "default" {
-                        input = testcomponents.count.inc.count
-                    }
-
-                    export "anotherModuleOutput" {
-                        value = otherModule.test.default.testOutput
-                    }
-                }
-            `,
-			otherModule: `
-                declare "test" {
-					argument "input" {}
-
-                    testcomponents.passthrough "pt" {
-                        input = argument.input.value
-                        lag = "1ms"
-                    }
-
-                    export "testOutput" {
-                        value = testcomponents.passthrough.pt.output
-                    }
-                }
-            `,
-			config: `
-                import.file "testImport" {
-                    filename = "module"
-                }
-
-                testImport.anotherModule "myOtherModule" {}
-
-                testcomponents.summation "sum" {
-                    input = testImport.anotherModule.myOtherModule.anotherModuleOutput
-                }
-            `,
-			updateModule: func(filename string) string {
-				return defaultModuleUpdate
+			name:         "Import passthrough module which also imports a passthrough module; update nested module.",
+			config:       []string{"root_import_a"},
+			module:       []string{"declare_passthrough_import_a"},
+			nestedModule: []string{"declare_passthrough"},
+			update: &updateFile{
+				name:         "nested_module",
+				updateConfig: []string{"declare_negative_passthrough"},
 			},
-			updateFile: "other_module",
 		},
 		{
-			name: "Import an import block and a declare that has a cc in a nested declare that refers to the import, and instantiate cc at the root",
-			module: `
-                import.file "default" {
-                    filename = "other_module"
-                }
-                declare "anotherModule" {
-                    testcomponents.count "inc" {
-                        frequency = "10ms"
-                        max = 10
-                    }
-
-                    declare "blabla" {
-                        argument "input" {}
-                        default.test "default" {
-                            input = argument.input.value
-                        }
-
-                        export "blablaOutput" {
-                            value = default.test.default.testOutput
-                        }
-                    }
-
-                    blabla "default" {
-                        input = testcomponents.count.inc.count
-                    }
-
-                    export "anotherModuleOutput" {
-                        value = blabla.default.blablaOutput
-                    }
-                }
-                `,
-			otherModule: `
-            declare "test" {
-                argument "input" {
-                    optional = false
-                }
-
-                testcomponents.passthrough "pt" {
-                    input = argument.input.value
-                    lag = "1ms"
-                }
-
-                export "testOutput" {
-                    value = testcomponents.passthrough.pt.output
-                }
-            }
-            `,
-			config: `
-				import.file "testImport" {
-					filename = "module"
-				}
-
-				testImport.anotherModule "myOtherModule" {}
-
-				testcomponents.summation "sum" {
-					input = testImport.anotherModule.myOtherModule.anotherModuleOutput
-				}
-			`,
-			updateModule: func(filename string) string {
-				return defaultModuleUpdate
+			name:         "Import passthrough module which also imports a passthrough module; update module.",
+			config:       []string{"root_import_a"},
+			module:       []string{"declare_passthrough_import_a"},
+			nestedModule: []string{"declare_passthrough"},
+			update: &updateFile{
+				name:         "module",
+				updateConfig: []string{"declare_negative_passthrough"},
 			},
-			updateFile: "other_module",
 		},
 		{
-			name: "Import two declares with one used inside of the other via a cc and instantiate a cc at the root",
-			module: `
-                declare "other_test" {
-					argument "input" {}
-
-                    testcomponents.passthrough "pt" {
-                        input = argument.input.value
-                        lag = "1ms"
-                    }
-
-                    export "other_testOutput" {
-                        value = testcomponents.passthrough.pt.output
-                    }
-                }
-
-                declare "test" {
-					argument "input" {}
-
-                    other_test "default" {
-                        input = argument.input.value
-                    }
-
-                    export "testOutput" {
-                        value = other_test.default.other_testOutput
-                    }
-                }
-            `,
-			config: `
-                import.file "testImport" {
-                    filename = "module"
-                }
-
-                declare "anotherModule" {
-                    testcomponents.count "inc" {
-                        frequency = "10ms"
-                        max = 10
-                    }
-
-                    testImport.test "myModule" {
-                        input = testcomponents.count.inc.count
-                    }
-
-                    export "anotherModuleOutput" {
-                        value = testImport.test.myModule.testOutput
-                    }
-                }
-
-                anotherModule "myOtherModule" {}
-
-                testcomponents.summation "sum" {
-                    input = anotherModule.myOtherModule.anotherModuleOutput
-                }
-            `,
-			updateModule: func(filename string) string {
-				return `
-                declare "other_test" {
-					argument "input" {}
-	
-                    export "output" {
-                        value = -10
-                    }
-                }
-
-                declare "test" {
-					argument "input" {}
-
-                    other_test "default" {
-                        input = argument.input.value
-                    }
-
-                    export "testOutput" {
-                        value = other_test.default.output
-                    }
-                }
-                `
+			name:         "Import passthrough module which also imports a passthrough module and uses it inside of a nested declare.",
+			config:       []string{"root_import_a"},
+			module:       []string{"declare_passthrough_import_a_used_in_declare_b"},
+			nestedModule: []string{"declare_passthrough"},
+			update: &updateFile{
+				name:         "nested_module",
+				updateConfig: []string{"declare_negative_passthrough"},
 			},
-			updateFile: "module",
 		},
 		{
-			name: "Import an import and a cc using the import and instantiate cc in a declare",
-			module: `
-                import.file "importOtherTest" {
-                    filename = "other_module"
-                }
-                declare "test" {
-					argument "input" {}
-
-                    importOtherTest.other_test "default" {
-                        input = argument.input.value
-                    }
-
-                    export "testOutput" {
-                        value = importOtherTest.other_test.default.other_testOutput
-                    }
-                }
-            `,
-			otherModule: `
-            declare "other_test" {
-                argument "input" {
-                    optional = false
-                }
-
-                testcomponents.passthrough "pt" {
-                    input = argument.input.value
-                    lag = "1ms"
-                }
-
-                export "other_testOutput" {
-                    value = testcomponents.passthrough.pt.output
-                }
-            }`,
-			config: `
-                import.file "testImport" {
-                    filename = "module"
-                }
-
-                declare "anotherModule" {
-                    testcomponents.count "inc" {
-                        frequency = "10ms"
-                        max = 10
-                    }
-
-                    testImport.test "myModule" {
-                        input = testcomponents.count.inc.count
-                    }
-
-                    export "anotherModuleOutput" {
-                        value = testImport.test.myModule.testOutput
-                    }
-                }
-
-                anotherModule "myOtherModule" {}
-
-                testcomponents.summation "sum" {
-                    input = anotherModule.myOtherModule.anotherModuleOutput
-                }
-            `,
-			updateModule: func(filename string) string {
-				return `
-                declare "other_test" {
-					argument "input" {}
-                    export "other_testOutput" {
-                        value = -10
-                    }
-                }
-                `
+			name:   "Import module with two declares; one used in the other one.",
+			config: []string{"root_import_b"},
+			module: []string{"declare_passthrough", "declare_instantiates_declare_passthrough"},
+			update: &updateFile{
+				name:         "module",
+				updateConfig: []string{"declare_negative_passthrough", "declare_instantiates_declare_passthrough"},
 			},
-			updateFile: "other_module",
 		},
 		{
-			name: "Import an import and a cc using the import in a nested declare and instantiate cc in a declare",
-			module: `
-                import.file "importOtherTest" {
-                    filename = "other_module"
-                }
-                declare "test" {
-					argument "input" {}
-
-                    declare "anotherOne" {
-                        argument "input" {
-                            optional = false
-                        }
-                        importOtherTest.other_test "default" {
-                            input = argument.input.value
-                        }
-                        export "anotherOneOutput" {
-                            value = importOtherTest.other_test.default.other_testOutput
-                        }
-                    }
-
-                    anotherOne "default" {
-                        input = argument.input.value
-                    }
-
-                    export "testOutput" {
-                        value = anotherOne.default.anotherOneOutput
-                    }
-                }
-            `,
-			otherModule: `
-            declare "other_test" {
-                argument "input" {
-                    optional = false
-                }
-
-                testcomponents.passthrough "pt" {
-                    input = argument.input.value
-                    lag = "5ms"
-                }
-
-                export "other_testOutput" {
-                    value = testcomponents.passthrough.pt.output
-                }
-            }`,
-			config: `
-                import.file "testImport" {
-                    filename = "module"
-                }
-
-                declare "anotherModule" {
-                    testcomponents.count "inc" {
-                        frequency = "10ms"
-                        max = 10
-                    }
-
-                    testImport.test "myModule" {
-                        input = testcomponents.count.inc.count
-                    }
-
-                    export "anotherModuleOutput" {
-                        value = testImport.test.myModule.testOutput
-                    }
-                }
-
-                anotherModule "myOtherModule" {}
-
-                testcomponents.summation "sum" {
-                    input = anotherModule.myOtherModule.anotherModuleOutput
-                }
-            `,
-			updateModule: func(filename string) string {
-				return `
-                declare "other_test" {
-					argument "input" {}
-                    export "other_testOutput" {
-                        value = -10
-                    }
-                }
-                `
+			name:         "Import passthrough module and instantiate it in a declare. The imported module has a nested declare that uses an imported passthrough.",
+			config:       []string{"root_import_a_in_declare_b"},
+			module:       []string{"declare_passthrough_import_a_used_in_declare_b"},
+			nestedModule: []string{"declare_passthrough"},
+			update: &updateFile{
+				name:         "nested_module",
+				updateConfig: []string{"declare_negative_passthrough"},
 			},
-			updateFile: "other_module",
 		},
 	}
-
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			defer verifyNoGoroutineLeaks(t)
-			filename := "module"
-			require.NoError(t, os.WriteFile(filename, []byte(tc.module), 0664))
-			defer os.Remove(filename)
-
-			otherFilename := "other_module"
-			if tc.otherModule != "" {
-				require.NoError(t, os.WriteFile(otherFilename, []byte(tc.otherModule), 0664))
-				defer os.Remove(otherFilename)
+			defer os.Remove("module")
+			require.NoError(t, os.WriteFile("module", []byte(concatModules(t, modules, tc.module)), 0664))
+			if tc.nestedModule != nil {
+				defer os.Remove("nested_module")
+				require.NoError(t, os.WriteFile("nested_module", []byte(concatModules(t, modules, tc.nestedModule)), 0664))
 			}
 
-			ctrl := flow.New(testOptions(t))
-			f, err := flow.ParseSource(t.Name(), []byte(tc.config))
-			require.NoError(t, err)
-			require.NotNil(t, f)
-
-			err = ctrl.LoadSource(f, nil)
-			require.NoError(t, err)
-
-			ctx, cancel := context.WithCancel(context.Background())
-			done := make(chan struct{})
-			go func() {
-				ctrl.Run(ctx)
-				close(done)
-			}()
-			defer func() {
-				cancel()
-				<-done
-			}()
-
-			// Check for initial condition
-			require.Eventually(t, func() bool {
-				export := getExport[testcomponents.SummationExports](t, ctrl, "", "testcomponents.summation.sum")
-				return export.LastAdded == 10
-			}, 3*time.Second, 10*time.Millisecond)
-
-			// Update module if needed
-			if tc.updateModule != nil {
-				newModule := tc.updateModule(tc.updateFile)
-				require.NoError(t, os.WriteFile(tc.updateFile, []byte(newModule), 0664))
-
-				require.Eventually(t, func() bool {
-					export := getExport[testcomponents.SummationExports](t, ctrl, "", "testcomponents.summation.sum")
-					return export.LastAdded == -10
-				}, 3*time.Second, 10*time.Millisecond)
+			if tc.update != nil {
+				testConfig(t, concatModules(t, modules, tc.config), func() {
+					require.NoError(t, os.WriteFile(tc.update.name, []byte(concatModules(t, modules, tc.update.updateConfig)), 0664))
+				})
+			} else {
+				testConfig(t, concatModules(t, modules, tc.config), nil)
 			}
 		})
 	}
 }
 
 func TestImportError(t *testing.T) {
-	declareBadCC := `
-        declare "test" {
-            cantAccessThis "default" {}
-        }
-    `
-	emptyDeclare := `
-        declare "cantAccessThis" {}
-    `
-	importEmptyDeclare := `
-        import.string "testImport" {
-            content = ` + strconv.Quote(emptyDeclare) + `
-        }
-    `
+	modules := loadModules(t)
 	testCases := []struct {
 		name          string
 		config        string
 		expectedError string
 	}{
 		{
-			name: "Imported declare tries accessing declare at the root",
-			config: `
-                declare "cantAccessThis" {
-                    export "output" {
-                        value = -1
-                    }
-                }
-
-                import.string "testImport" {
-                    content = ` + strconv.Quote(declareBadCC) + `
-                }
-
-                testImport.test "myModule" {}
-            `,
+			name:          "Imported declare tries to access declare at the root.",
+			config:        "import_use_out_of_scope_declare",
 			expectedError: `cannot retrieve the definition of component name "cantAccessThis"`,
 		},
 		{
-			name: "Root tries accessing declare in nested import",
-			config: `
-                import.string "testImport" {
-                    content = ` + strconv.Quote(importEmptyDeclare) + `
-                }
-
-                testImport.cantAccessThis "myModule" {}
-            `,
+			name:          "Root tries to access declare in nested import.",
+			config:        "root_use_out_of_scope_declare",
 			expectedError: `Failed to build component: loading custom component controller: custom component config not found in the registry, namespace: testImport, componentName: cantAccessThis`,
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			defer verifyNoGoroutineLeaks(t)
-			s, err := logging.New(os.Stderr, logging.DefaultOptions)
-			require.NoError(t, err)
-			ctrl := flow.New(flow.Options{
-				Logger:   s,
-				DataPath: t.TempDir(),
-				Reg:      nil,
-				Services: []service.Service{},
-			})
-			f, err := flow.ParseSource(t.Name(), []byte(tc.config))
-			require.NoError(t, err)
-			require.NotNil(t, f)
-
-			err = ctrl.LoadSource(f, nil)
-			require.ErrorContains(t, err, tc.expectedError)
-
-			ctx, cancel := context.WithCancel(context.Background())
-			done := make(chan struct{})
-			go func() {
-				ctrl.Run(ctx)
-				close(done)
-			}()
-			cancel()
-			<-done
+			testConfigError(t, modules[tc.config], tc.expectedError)
 		})
 	}
 }
 
-type testCaseImportUpdateConfig struct {
-	name        string
-	module      string
-	otherModule string
-	config      string
-	newConfig   string
-}
-
-func TestImportUpdateConfig(t *testing.T) {
-	tt := []testCaseImportUpdateConfig{
+func TestImportReload(t *testing.T) {
+	modules := loadModules(t)
+	testCases := []struct {
+		name         string
+		config       []string
+		module       []string
+		nestedModule []string
+		newConfig    []string
+	}{
 		{
-			name: "Import an import block and a declare that has a cc that refers to the import, and instantiate cc at the root. Then apply a new config that import the nested module directly.",
-			module: `
-                import.file "otherModule" {
-                    filename = "other_module"
-                }
-                declare "anotherModule" {
-                    testcomponents.count "inc" {
-                        frequency = "10ms"
-                        max = 10
-                    }
-
-                    otherModule.test "default" {
-                        input = testcomponents.count.inc.count
-                    }
-
-                    export "anotherModuleOutput" {
-                        value = otherModule.test.default.testOutput
-                    }
-                }
-            `,
-			otherModule: `
-                declare "test" {
-					argument "input" {}
-
-                    testcomponents.passthrough "pt" {
-                        input = argument.input.value
-                        lag = "1ms"
-                    }
-
-                    export "testOutput" {
-                        value = testcomponents.passthrough.pt.output
-                    }
-                }
-            `,
-			config: `
-                import.file "testImport" {
-                    filename = "module"
-                }
-
-                testImport.anotherModule "myOtherModule" {}
-
-                testcomponents.summation "sum" {
-                    input = testImport.anotherModule.myOtherModule.anotherModuleOutput
-                }
-            `,
-			newConfig: `
-                import.file "otherModule" {
-                    filename = "other_module"
-                }
-
-                otherModule.test "myOtherModule" {
-                    input = -10
-                }
-
-                testcomponents.summation "sum" {
-                    input = otherModule.test.myOtherModule.testOutput
-                }
-            `,
+			name:         "Import passthrough module and instantiate it in a declare. The imported module has a nested declare that uses an imported passthrough.",
+			config:       []string{"root_import_a_in_declare_b"},
+			module:       []string{"declare_passthrough_import_a_used_in_declare_b"},
+			nestedModule: []string{"declare_passthrough"},
+			newConfig:    []string{"root_import_a_negative_input"},
 		},
 	}
-
-	for _, tc := range tt {
+	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			defer verifyNoGoroutineLeaks(t)
-			filename := "module"
-			require.NoError(t, os.WriteFile(filename, []byte(tc.module), 0664))
-			defer os.Remove(filename)
-
-			otherFilename := "other_module"
-			if tc.otherModule != "" {
-				require.NoError(t, os.WriteFile(otherFilename, []byte(tc.otherModule), 0664))
-				defer os.Remove(otherFilename)
+			defer os.Remove("module")
+			require.NoError(t, os.WriteFile("module", []byte(concatModules(t, modules, tc.module)), 0664))
+			if tc.nestedModule != nil {
+				defer os.Remove("nested_module")
+				require.NoError(t, os.WriteFile("nested_module", []byte(concatModules(t, modules, tc.nestedModule)), 0664))
 			}
-			ctrl := flow.New(testOptions(t))
-			f, err := flow.ParseSource(t.Name(), []byte(tc.config))
-			require.NoError(t, err)
-			require.NotNil(t, f)
-
-			err = ctrl.LoadSource(f, nil)
-			require.NoError(t, err)
-
-			ctx, cancel := context.WithCancel(context.Background())
-			done := make(chan struct{})
-			go func() {
-				ctrl.Run(ctx)
-				close(done)
-			}()
-			defer func() {
-				cancel()
-				<-done
-			}()
-
-			require.Eventually(t, func() bool {
-				export := getExport[testcomponents.SummationExports](t, ctrl, "", "testcomponents.summation.sum")
-				return export.LastAdded == 10
-			}, 3*time.Second, 10*time.Millisecond)
-
-			f, err = flow.ParseSource(t.Name(), []byte(tc.newConfig))
-			require.NoError(t, err)
-			require.NotNil(t, f)
-
-			// Reload the controller with the new config.
-			err = ctrl.LoadSource(f, nil)
-			require.NoError(t, err)
-
-			require.Eventually(t, func() bool {
-				export := getExport[testcomponents.SummationExports](t, ctrl, "", "testcomponents.summation.sum")
-				return export.LastAdded == -10
-			}, 3*time.Second, 10*time.Millisecond)
+			testConfigReload(t, concatModules(t, modules, tc.config), concatModules(t, modules, tc.newConfig))
 		})
 	}
+}
+
+func TestImportString(t *testing.T) {
+	modules := loadModules(t)
+	t.Run("Import a declare and instantiate a declare from it", func(t *testing.T) {
+		defer verifyNoGoroutineLeaks(t)
+		testConfig(t, modules["import_string_declare_passthrough"], nil)
+	})
+}
+
+func testConfig(t *testing.T, config string, update func()) {
+	defer verifyNoGoroutineLeaks(t)
+	ctrl := flow.New(testOptions(t))
+	f, err := flow.ParseSource(t.Name(), []byte(config))
+	require.NoError(t, err)
+	require.NotNil(t, f)
+
+	err = ctrl.LoadSource(f, nil)
+	require.NoError(t, err)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	var wg sync.WaitGroup
+	defer func() {
+		cancel()
+		wg.Wait()
+	}()
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		ctrl.Run(ctx)
+	}()
+
+	// Check for initial condition
+	require.Eventually(t, func() bool {
+		export := getExport[testcomponents.SummationExports](t, ctrl, "", "testcomponents.summation.sum")
+		return export.LastAdded == 10
+	}, 3*time.Second, 10*time.Millisecond)
+
+	if update != nil {
+		update()
+
+		// Export should be -10 after update
+		require.Eventually(t, func() bool {
+			export := getExport[testcomponents.SummationExports](t, ctrl, "", "testcomponents.summation.sum")
+			return export.LastAdded == -10
+		}, 3*time.Second, 10*time.Millisecond)
+	}
+}
+
+func testConfigReload(t *testing.T, config string, newConfig string) {
+	defer verifyNoGoroutineLeaks(t)
+	ctrl := flow.New(testOptions(t))
+	f, err := flow.ParseSource(t.Name(), []byte(config))
+	require.NoError(t, err)
+	require.NotNil(t, f)
+
+	err = ctrl.LoadSource(f, nil)
+	require.NoError(t, err)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	var wg sync.WaitGroup
+	defer func() {
+		cancel()
+		wg.Wait()
+	}()
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		ctrl.Run(ctx)
+	}()
+
+	// Check for initial condition
+	require.Eventually(t, func() bool {
+		export := getExport[testcomponents.SummationExports](t, ctrl, "", "testcomponents.summation.sum")
+		return export.LastAdded == 10
+	}, 3*time.Second, 10*time.Millisecond)
+
+	f, err = flow.ParseSource(t.Name(), []byte(newConfig))
+	require.NoError(t, err)
+	require.NotNil(t, f)
+
+	// Reload the controller with the new config.
+	err = ctrl.LoadSource(f, nil)
+	require.NoError(t, err)
+
+	// Export should be -10 after update
+	require.Eventually(t, func() bool {
+		export := getExport[testcomponents.SummationExports](t, ctrl, "", "testcomponents.summation.sum")
+		return export.LastAdded == -10
+	}, 3*time.Second, 10*time.Millisecond)
+}
+
+func testConfigError(t *testing.T, config string, expectedError string) {
+	defer verifyNoGoroutineLeaks(t)
+	s, err := logging.New(os.Stderr, logging.DefaultOptions)
+	require.NoError(t, err)
+	ctrl := flow.New(flow.Options{
+		Logger:   s,
+		DataPath: t.TempDir(),
+		Reg:      nil,
+		Services: []service.Service{},
+	})
+	f, err := flow.ParseSource(t.Name(), []byte(config))
+	require.NoError(t, err)
+	require.NotNil(t, f)
+
+	err = ctrl.LoadSource(f, nil)
+	require.ErrorContains(t, err, expectedError)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	var wg sync.WaitGroup
+	defer func() {
+		cancel()
+		wg.Wait()
+	}()
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		ctrl.Run(ctx)
+	}()
+}
+
+// loadModules load river configs from a txtar file to a map
+func loadModules(t *testing.T) map[string]string {
+	archive, err := txtar.ParseFile("import_test.txtar")
+	require.NoError(t, err)
+
+	modules := make(map[string]string)
+	for _, file := range archive.Files {
+		modules[file.Name] = string(file.Data)
+	}
+	return modules
+}
+
+// concatModules concatenates modules into one module
+func concatModules(t *testing.T, modules map[string]string, files []string) string {
+	m := make([]string, len(files))
+	for i, f := range files {
+		mod, found := modules[f]
+		require.True(t, found, f)
+		m[i] = mod
+	}
+	return strings.Join(m, "\n")
 }
