@@ -29,6 +29,7 @@ func TestRiverConfig(t *testing.T) {
 	forward_to      = []
 	scrape_interval = "10s"
 	job_name        = "local"
+	track_timestamps_staleness = true
 
 	bearer_token = "token"
 	proxy_url = "http://0.0.0.0:11111"
@@ -67,7 +68,7 @@ func TestBadRiverConfig(t *testing.T) {
 	// Make sure the squashed HTTPClientConfig Validate function is being utilized correctly
 	var args Arguments
 	err := river.Unmarshal([]byte(exampleRiverConfig), &args)
-	require.ErrorContains(t, err, "at most one of bearer_token & bearer_token_file must be configured")
+	require.ErrorContains(t, err, "at most one of basic_auth, authorization, oauth2, bearer_token & bearer_token_file must be configured")
 }
 
 func TestForwardingToAppendable(t *testing.T) {

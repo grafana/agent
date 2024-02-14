@@ -126,9 +126,9 @@ configuration.
 * `loki_source_docker_target_parsing_errors_total` (gauge): Total number of parsing errors while receiving Docker messages.
 
 ## Component behavior
-The component uses its data path (a directory named after the domain's
-fully qualified name) to store its _positions file_. The positions file
-stores the read offsets so that if there is a component or Agent restart,
+The component uses its data path, a directory named after the domain's
+fully qualified name, to store its _positions file_. The positions file is used
+to store read offsets, so that if a component or {{< param "PRODUCT_ROOT_NAME" >}} restarts,
 `loki.source.docker` can pick up tailing from the same spot.
 
 If the target's argument contains multiple entries with the same container

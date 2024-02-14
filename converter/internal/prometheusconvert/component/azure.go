@@ -3,7 +3,6 @@ package component
 import (
 	"time"
 
-	"github.com/grafana/agent/component/common/config"
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/discovery/azure"
 	"github.com/grafana/agent/converter/diag"
@@ -34,7 +33,7 @@ func toDiscoveryAzure(sdConfig *prom_azure.SDConfig) *azure.Arguments {
 		ManagedIdentity: toManagedIdentity(sdConfig),
 		RefreshInterval: time.Duration(sdConfig.RefreshInterval),
 		ResourceGroup:   sdConfig.ResourceGroup,
-		ProxyURL:        config.URL(sdConfig.HTTPClientConfig.ProxyURL),
+		ProxyConfig:     common.ToProxyConfig(sdConfig.HTTPClientConfig.ProxyConfig),
 		FollowRedirects: sdConfig.HTTPClientConfig.FollowRedirects,
 		EnableHTTP2:     sdConfig.HTTPClientConfig.EnableHTTP2,
 		TLSConfig:       *common.ToTLSConfig(&sdConfig.HTTPClientConfig.TLSConfig),

@@ -19,8 +19,9 @@ type Source struct {
 
 	// Components holds the list of raw River AST blocks describing components.
 	// The Flow controller can interpret them.
-	components   []*ast.BlockStmt
-	configBlocks []*ast.BlockStmt
+	components    []*ast.BlockStmt
+	configBlocks  []*ast.BlockStmt
+	declareBlocks []*ast.BlockStmt
 }
 
 // ParseSource parses the River file specified by bb into a File. name should be
@@ -36,7 +37,18 @@ func ParseSource(name string, bb []byte) (*Source, error) {
 	if err != nil {
 		return nil, err
 	}
+	source, err := sourceFromBody(node.Body)
+	if err != nil {
+		return nil, err
+	}
+	source.sourceMap = map[string][]byte{name: bb}
+	source.hash = sha256.Sum256(bb)
+	return source, nil
+}
 
+// sourceFromBody creates a Source from an existing AST. This must only be used
+// internally as there will be no sourceMap or hash.
+func sourceFromBody(body ast.Body) (*Source, error) {
 	// Look for predefined non-components blocks (i.e., logging), and store
 	// everything else into a list of components.
 	//
@@ -45,9 +57,10 @@ func ParseSource(name string, bb []byte) (*Source, error) {
 	var (
 		components []*ast.BlockStmt
 		configs    []*ast.BlockStmt
+		declares   []*ast.BlockStmt
 	)
 
-	for _, stmt := range node.Body {
+	for _, stmt := range body {
 		switch stmt := stmt.(type) {
 		case *ast.AttributeStmt:
 			return nil, diag.Diagnostic{
@@ -60,6 +73,8 @@ func ParseSource(name string, bb []byte) (*Source, error) {
 		case *ast.BlockStmt:
 			fullName := strings.Join(stmt.Name, ".")
 			switch fullName {
+			case "declare":
+				declares = append(declares, stmt)
 			case "logging", "tracing", "argument", "export":
 				configs = append(configs, stmt)
 			default:
@@ -77,10 +92,9 @@ func ParseSource(name string, bb []byte) (*Source, error) {
 	}
 
 	return &Source{
-		components:   components,
-		configBlocks: configs,
-		sourceMap:    map[string][]byte{name: bb},
-		hash:         sha256.Sum256(bb),
+		components:    components,
+		configBlocks:  configs,
+		declareBlocks: declares,
 	}, nil
 }
 
@@ -120,6 +134,7 @@ func ParseSources(sources map[string][]byte) (*Source, error) {
 
 		mergedSource.components = append(mergedSource.components, sourceFragment.components...)
 		mergedSource.configBlocks = append(mergedSource.configBlocks, sourceFragment.configBlocks...)
+		mergedSource.declareBlocks = append(mergedSource.declareBlocks, sourceFragment.declareBlocks...)
 	}
 
 	mergedSource.hash = [32]byte(hash.Sum(nil))

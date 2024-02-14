@@ -51,6 +51,8 @@ type Arguments struct {
 	HonorLabels bool `river:"honor_labels,attr,optional"`
 	// Indicator whether the scraped timestamps should be respected.
 	HonorTimestamps bool `river:"honor_timestamps,attr,optional"`
+	// Indicator whether to track the staleness of the scraped timestamps.
+	TrackTimestampsStaleness bool `river:"track_timestamps_staleness,attr,optional"`
 	// A set of query parameters with which the target is scraped.
 	Params url.Values `river:"params,attr,optional"`
 	// Whether to scrape a classic histogram that is also exposed as a native histogram.
@@ -94,13 +96,14 @@ type Arguments struct {
 // SetToDefault implements river.Defaulter.
 func (arg *Arguments) SetToDefault() {
 	*arg = Arguments{
-		MetricsPath:      "/metrics",
-		Scheme:           "http",
-		HonorLabels:      false,
-		HonorTimestamps:  true,
-		HTTPClientConfig: component_config.DefaultHTTPClientConfig,
-		ScrapeInterval:   1 * time.Minute,  // From config.DefaultGlobalConfig
-		ScrapeTimeout:    10 * time.Second, // From config.DefaultGlobalConfig
+		MetricsPath:              "/metrics",
+		Scheme:                   "http",
+		HonorLabels:              false,
+		HonorTimestamps:          true,
+		TrackTimestampsStaleness: false,
+		HTTPClientConfig:         component_config.DefaultHTTPClientConfig,
+		ScrapeInterval:           1 * time.Minute,  // From config.DefaultGlobalConfig
+		ScrapeTimeout:            10 * time.Second, // From config.DefaultGlobalConfig
 	}
 }
 
@@ -287,6 +290,7 @@ func getPromScrapeConfigs(jobName string, c Arguments) *config.ScrapeConfig {
 	}
 	dec.HonorLabels = c.HonorLabels
 	dec.HonorTimestamps = c.HonorTimestamps
+	dec.TrackTimestampsStaleness = c.TrackTimestampsStaleness
 	dec.Params = c.Params
 	dec.ScrapeClassicHistograms = c.ScrapeClassicHistograms
 	dec.ScrapeInterval = model.Duration(c.ScrapeInterval)

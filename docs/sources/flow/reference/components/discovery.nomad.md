@@ -24,21 +24,24 @@ discovery.nomad "LABEL" {
 
 The following arguments are supported:
 
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`server` | `string` | Address of nomad server. | `http://localhost:4646` | no
-`namespace` | `string` | Nomad namespace to use. | `default` | no
-`region` | `string` | Nomad region to use. | `global` | no
-`allow_stale` | `bool` | Allow reading from non-leader nomad instances. | `true` | no
-`tag_separator` | `string` | Seperator to join nomad tags into Prometheus labels. | `,` | no
-`refresh_interval` | `duration` | Frequency to refresh list of containers. | `"30s"` | no
-`bearer_token` | `secret` | Bearer token to authenticate with. | | no
-`bearer_token_file` | `string` | File containing a bearer token to authenticate with. | | no
-`proxy_url` | `string` | HTTP proxy to proxy requests through. | | no
-`follow_redirects` | `bool` | Whether redirects returned by the server should be followed. | `true` | no
-`enable_http2` | `bool` | Whether HTTP2 is supported for requests. | `true` | no
+Name                     | Type                | Description                                                   | Default                 | Required
+------------------------ | ------------------- | ------------------------------------------------------------- | ----------------------- | --------
+`server`                 | `string`            | Address of nomad server.                                      | `http://localhost:4646` | no
+`namespace`              | `string`            | Nomad namespace to use.                                       | `default`               | no
+`region`                 | `string`            | Nomad region to use.                                          | `global`                | no
+`allow_stale`            | `bool`              | Allow reading from non-leader nomad instances.                | `true`                  | no
+`tag_separator`          | `string`            | Seperator to join nomad tags into Prometheus labels.          | `,`                     | no
+`refresh_interval`       | `duration`          | Frequency to refresh list of containers.                      | `"30s"`                 | no
+`bearer_token_file`      | `string`            | File containing a bearer token to authenticate with.          |                         | no
+`bearer_token`           | `secret`            | Bearer token to authenticate with.                            |                         | no
+`enable_http2`           | `bool`              | Whether HTTP2 is supported for requests.                      | `true`                  | no
+`follow_redirects`       | `bool`              | Whether redirects returned by the server should be followed.  | `true`                  | no
+`proxy_url`              | `string`            | HTTP proxy to send requests through.                          |                         | no
+`no_proxy`               | `string`            | Comma-separated list of IP addresses, CIDR notations, and domain names to exclude from proxying. | | no
+`proxy_from_environment` | `bool`              | Use the proxy URL indicated by environment variables.         | `false`                 | no
+`proxy_connect_header`   | `map(list(secret))` | Specifies headers to send to proxies during CONNECT requests. |                         | no
 
- You can provide one of the following arguments for authentication:
+ At most, one of the following can be provided:
  - [`bearer_token` argument](#arguments).
  - [`bearer_token_file` argument](#arguments). 
  - [`basic_auth` block][basic_auth].
@@ -46,6 +49,8 @@ Name | Type | Description | Default | Required
  - [`oauth2` block][oauth2].
 
 [arguments]: #arguments
+
+{{< docs/shared lookup="flow/reference/components/http-client-proxy-config-description.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ## Blocks
 
