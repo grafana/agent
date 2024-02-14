@@ -1,0 +1,84 @@
+---
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/config-blocks/import.file/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/config-blocks/import.file/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/config-blocks/import.file/
+- /docs/grafana-cloud/send-data/agent/flow/reference/config-blocks/import.file/
+canonical: https://grafana.com/docs/agent/latest/flow/reference/config-blocks/import.file/
+description: Learn about the import.file configuration block
+labels:
+  stage: beta
+title: import.file
+---
+
+# import.file
+
+{{< docs/shared lookup="flow/stability/beta.md" source="agent" version="<AGENT_VERSION>" >}}
+
+`import.file` retrieves a module from a file.
+
+[module]: {{< relref "../../concepts/modules.md" >}}
+
+## Usage
+
+```river
+import.file "LABEL" {
+  filename = FILENAME
+}
+```
+
+## Arguments
+
+The following arguments are supported:
+
+Name | Type | Description | Default | Required
+---- | ---- | ----------- | ------- | --------
+`filename`       | `string`   | Path of the file on disk to watch | | yes
+`detector`       | `string`   | Which file change detector to use (fsnotify, poll) | `"fsnotify"` | no
+`poll_frequency` | `duration` | How often to poll for file changes | `"1m"` | no
+`is_secret`      | `bool`     | Marks the file as containing a [secret][] | `false` | no
+
+[secret]: {{< relref "../../concepts/config-language/expressions/types_and_values.md#secrets" >}}
+
+{{< docs/shared lookup="flow/reference/components/local-file-arguments-text.md" source="agent" version="<AGENT_VERSION>" >}}
+
+## Component health
+
+`import.file` is reported as healthy if the most recent load of the module was successful.
+If the module is not loaded successfully, the current health displays as unhealthy and the health includes the error from loading the module.
+
+## Debug information
+
+`import.file` does not expose any component-specific debug information.
+
+## Debug metrics
+
+`import.file` does not expose any component-specific debug metrics.
+
+## Example
+
+This example imports a module from a file and instantiates a custom component from an imported declare to that adds two numbers:
+
+Main configuration:
+
+```river
+import.file "math" {
+  filename = "/path/to/math.river"
+}
+math.add "default" {
+  a = 15
+  b = 45
+}
+```
+
+Module:
+
+```river
+declare "add" {
+    argument "a" {}
+    argument "b" {}
+    export "sum" {
+        value = argument.a.value + argument.b.value
+    }
+}
+```

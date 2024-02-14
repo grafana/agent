@@ -11,6 +11,54 @@ title: Modules
 weight: 300
 ---
 
+# Custom Components
+
+_Custom Components_ are {{< param "PRODUCT_NAME" >}} configurations that you can define and instantiate to create reusable pipelines.
+
+A _Custom Components_ may contain:
+
+* _Arguments_: Settings that configures the custom component.
+* _Exports_: Named values that a a custom component exposes to its consumers.
+* _Components_: {{< param "PRODUCT_NAME" >}} components to run when the custom component is running.
+
+You use a [Declare][] to define a Custom Component.
+
+# Declare
+
+_Declare_ is a labeled block which defines a new _Custom Component_.
+
+The label of the _Declare_ is used as component name for the corresponding _Custom Components_.
+
+```
+declare "add" {
+	argument "a" { }
+	argument "b" { }
+	export "sum" {
+		value = argument.a.value + argument.b.value 
+	}
+}
+add "example" {
+	a = 15 
+	b = 17
+}
+// add.example.sum == 32 
+```
+
+_Declare_ can be defined in the main river config file, but they can also be imported via [Import][]
+
+# Import
+
+_Import_ is a labeled block which retrieves a module from a specific origin.
+
+Imported modules must only use import and declare blocks, otherwise the import will fail.
+
+_Declares_ are imported into the namespace as specified by the _Import_ block's label. The namespace must be unique across the module, even across _Imports_ of a different kind. 
+
+Only _Declares_ defined inside of the imported module can be used to instantiate _Custom Components_; _Declare_ from transitive imports are not exposed. 
+
+If the _Import_ namespace collides with an existing namespace, the existing namespace is shadowed by the _Import_. This keeps forward compatibility in case new "core" namespaces are introduced which collide with an import.
+
+{{< collapse title="Old modules" >}}
 # Modules
 
 You use _Modules_ to create {{< param "PRODUCT_NAME" >}} configurations that you can load as a component.
@@ -145,3 +193,4 @@ loki.write "default" {
 [Components]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components"
 [Components]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/components"
 {{% /docs/reference %}}
+{{< /collapse >}}

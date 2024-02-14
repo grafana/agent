@@ -1,0 +1,173 @@
+---
+aliases:
+- /docs/grafana-cloud/agent/flow/reference/config-blocks/import.git/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/config-blocks/import.git/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/config-blocks/import.git/
+- /docs/grafana-cloud/send-data/agent/flow/reference/config-blocks/import.git/
+canonical: https://grafana.com/docs/agent/latest/flow/reference/config-blocks/import.git/
+description: Learn about the import.git configuration block
+labels:
+  stage: beta
+title: import.git
+---
+
+# import.git
+
+{{< docs/shared lookup="flow/stability/beta.md" source="agent" version="<AGENT_VERSION>" >}}
+
+`import.git` retrieves a module from a file in a Git repository.
+
+[module]: {{< relref "../../concepts/modules.md" >}}
+
+## Usage
+
+```river
+import.git "LABEL" {
+  repository = "GIT_REPOSTORY"
+  path       = "PATH_TO_MODULE"
+}
+```
+
+## Arguments
+
+The following arguments are supported:
+
+Name | Type | Description | Default | Required
+---- | ---- | ----------- | ------- | --------
+`repository` | `string` | The Git repository address to retrieve the module from. | | yes
+`revision` | `string` | The Git revision to retrieve the module from. | `"HEAD"` | no
+`path` | `string` | The path in the repository where the module is stored. | | yes
+`pull_frequency` | `duration` | The frequency to pull the repository for updates. | `"60s"` | no
+
+The `repository` attribute must be set to a repository address that would be
+recognized by Git with a `git clone REPOSITORY_ADDRESS` command, such as
+`https://github.com/grafana/agent.git`.
+
+You must set the `repository` attribute to a repository address that Git would recognize
+with a `git clone REPOSITORY_ADDRESS` command, such as `https://github.com/grafana/agent.git`.
+
+When provided, the `revision` attribute must be set to a valid branch, tag, or
+commit SHA within the repository.
+
+You must set the `path` attribute to a path accessible from the repository's root,
+such as `FILE_NAME.river` or `FOLDER_NAME/FILE_NAME.river`.
+
+If `pull_frequency` is not `"0s"`, the Git repository is pulled for
+updates at the frequency specified. If it is set to `"0s"`, the Git repository is pulled once on init.
+
+{{% admonition type="warning" %}}
+Pulling hosted Git repositories too often can result in throttling.
+{{% /admonition %}}
+
+## Blocks
+
+The following blocks are supported inside the definition of `import.git`:
+
+Hierarchy        | Block      | Description | Required
+---------------- | ---------- | ----------- | --------
+basic_auth | [basic_auth][] | Configure basic_auth for authenticating to the repo. | no
+ssh_key | [ssh_key][] | Configure a SSH Key for authenticating to the repo. | no
+
+[basic_auth]: #basic_auth-block
+[ssh_key]: #ssh_key-block
+
+### basic_auth block
+
+{{< docs/shared lookup="flow/reference/components/basic-auth-block.md" source="agent" version="<AGENT_VERSION>" >}}
+
+### ssh_key block
+
+Name | Type | Description | Default | Required
+---- | ---- | ----------- | ------- | --------
+`username`  | `string` | SSH username. | | yes
+`key`       | `secret` | SSH private key | | no
+`key_file`  | `string` | SSH private key path. | | no
+`passphrase` | `secret` | Passphrase for SSH key if needed. | | no
+
+## Component health
+
+`import.git` is reported as healthy if the repository was cloned successfully
+and most recent load of the module was successful.
+
+## Debug information
+
+`import.git` includes debug information for:
+
+* The full SHA of the currently checked out revision.
+* The most recent error when trying to fetch the repository, if any.
+
+## Debug metrics
+
+`import.git` does not expose any component-specific debug metrics.
+
+## Examples
+
+This example imports a module from a Git repository and instantiates a custom component from an imported declare to that adds two numbers:
+
+```river
+import.git "math" {
+  repository = "https://github.com/wildum/module.git"
+  revision   = "master"
+  path       = "math.river"
+}
+math.add "default" {
+  a = 15
+  b = 45
+}
+```
+
+The same example as above using basic auth:
+
+```river
+import.git "math" {
+  repository = "https://github.com/wildum/module.git"
+  revision   = "master"
+  path       = "math.river"
+  basic_auth {
+    username = "USERNAME"
+    password = "PASSWORD"
+  }
+}
+math.add "default" {
+  a = 15
+  b = 45
+}
+```
+
+Using SSH Key from another component:
+```river
+local.file "ssh_key" {
+  filename = "PATH/TO/SSH.KEY"
+  is_secret = true
+}
+import.git "math" {
+  repository = "https://github.com/wildum/module.git"
+  revision   = "master"
+  path       = "math.river"
+  ssh_key {
+    username = "git"
+    key = local.file.ssh_key.content
+  }
+}
+math.add "default" {
+  a = 15
+  b = 45
+}
+```
+
+The same example as above using SSH Key auth:
+```river
+import.git "math" {
+  repository = "https://github.com/wildum/module.git"
+  revision   = "master"
+  path       = "math.river"
+  ssh_key {
+    username = "git"
+    key_file = "PATH/TO/SSH.KEY"
+  }
+}
+math.add "default" {
+  a = 15
+  b = 45
+}
+```
