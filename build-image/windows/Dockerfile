@@ -1,4 +1,5 @@
-FROM library/golang:1.22.0-windowsservercore-1809
+# This includes the fips item as a runtime flag via GOFIPS=1.
+FROM mcr.microsoft.com/oss/go/microsoft/golang:1.22-windowsservercore-1809
 
 SHELL ["powershell", "-command"]
 

@@ -407,7 +407,7 @@ steps:
 - commands:
   - make generate-ui
   - GO_TAGS="builtinassets" GOOS=windows GOARCH=amd64 GOARM= make agent
-  image: grafana/agent-build-image:0.31.0
+  image: mrdgrafana/agent-build-image:x-windows
   name: Build
 trigger:
   event:
@@ -1116,32 +1116,17 @@ steps:
 - image: us.gcr.io/kubernetes-dev/drone/plugins/updater
   name: Update deployment_tools
   settings:
-    config_json: |
-      {
-        "git_committer_name": "updater-for-ci[bot]",
-        "git_author_name": "updater-for-ci[bot]",
-        "git_committer_email": "119986603+updater-for-ci[bot]@users.noreply.github.com",
-        "git_author_email": "119986603+updater-for-ci[bot]@users.noreply.github.com",
-        "destination_branch": "master",
-        "repo_name": "deployment_tools",
-        "update_jsonnet_attribute_configs": [
-          {
-            "file_path": "ksonnet/environments/kowalski/dev-us-central-0.kowalski-dev/main.jsonnet",
-            "jsonnet_key": "agent_image",
-            "jsonnet_value_file": ".image-tag"
-          },
-          {
-            "file_path": "ksonnet/environments/grafana-agent/waves/agent.libsonnet",
-            "jsonnet_key": "dev_canary",
-            "jsonnet_value_file": ".image-tag"
-          },
-          {
-            "file_path": "ksonnet/environments/pyroscope-ebpf/waves/ebpf.libsonnet",
-            "jsonnet_key": "dev_canary",
-            "jsonnet_value_file": ".image-tag"
-          }
-        ]
-      }
+    config_json: "{\r\n  \"git_committer_name\": \"updater-for-ci[bot]\",\r\n  \"git_author_name\":
+      \"updater-for-ci[bot]\",\r\n  \"git_committer_email\": \"119986603+updater-for-ci[bot]@users.noreply.github.com\",\r\n
+      \ \"git_author_email\": \"119986603+updater-for-ci[bot]@users.noreply.github.com\",\r\n
+      \ \"destination_branch\": \"master\",\r\n  \"repo_name\": \"deployment_tools\",\r\n
+      \ \"update_jsonnet_attribute_configs\": [\r\n    {\r\n      \"file_path\": \"ksonnet/environments/kowalski/dev-us-central-0.kowalski-dev/main.jsonnet\",\r\n
+      \     \"jsonnet_key\": \"agent_image\",\r\n      \"jsonnet_value_file\": \".image-tag\"\r\n
+      \   },\r\n    {\r\n      \"file_path\": \"ksonnet/environments/grafana-agent/waves/agent.libsonnet\",\r\n
+      \     \"jsonnet_key\": \"dev_canary\",\r\n      \"jsonnet_value_file\": \".image-tag\"\r\n
+      \   },\r\n    {\r\n      \"file_path\": \"ksonnet/environments/pyroscope-ebpf/waves/ebpf.libsonnet\",\r\n
+      \     \"jsonnet_key\": \"dev_canary\",\r\n      \"jsonnet_value_file\": \".image-tag\"\r\n
+      \   }\r\n  ]\r\n}\r\n"
     github_app_id:
       from_secret: updater_app_id
     github_app_installation_id:
@@ -1183,8 +1168,8 @@ steps:
   - export GITHUB_TOKEN=$(cat /drone/src/gh-token.txt)
   - docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD
   - make -j4 RELEASE_BUILD=1 VERSION=${DRONE_TAG} dist
-  - |
-    VERSION=${DRONE_TAG} RELEASE_DOC_TAG=$(echo ${DRONE_TAG} | awk -F '.' '{print $1"."$2}') ./tools/release
+  - "VERSION=${DRONE_TAG} RELEASE_DOC_TAG=$(echo ${DRONE_TAG} | awk -F '.' '{print
+    $1\".\"$2}') ./tools/release\r\n"
   environment:
     DOCKER_LOGIN:
       from_secret: docker_login
@@ -1317,6 +1302,6 @@ kind: secret
 name: updater_private_key
 ---
 kind: signature
-hmac: a77b4f7b2708cc4417edd42fae39c307abcaec2c4f0f6176212665133bd20d5d
+hmac: 35a85c0d9116c44da50c4ef5cbc504c6cd631534d83d82c9bad73911bce4d2e8
 
 ...
