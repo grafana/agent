@@ -2,6 +2,8 @@ package labelstore
 
 import (
 	"math"
+	"strconv"
+	"sync"
 	"testing"
 	"time"
 
@@ -167,4 +169,36 @@ func TestRemovingStaleness(t *testing.T) {
 		},
 	})
 	require.Len(t, mapping.staleGlobals, 0)
+}
+
+func BenchmarkStaleness(b *testing.B) {
+	b.StopTimer()
+	ls := New(log.NewNopLogger(), prometheus.DefaultRegisterer)
+
+	tracking := make([]StalenessTracker, 100_000)
+	for i := 0; i < 100_000; i++ {
+		l := labels.FromStrings("id", strconv.Itoa(i))
+		gid := ls.GetOrAddGlobalRefID(l)
+		var val float64
+		if i%2 == 0 {
+			val = float64(i)
+		} else {
+			val = math.Float64frombits(value.StaleNaN)
+		}
+		tracking[i] = StalenessTracker{
+			GlobalRefID: gid,
+			Value:       val,
+			Labels:      l,
+		}
+	}
+	b.StartTimer()
+	var wg sync.WaitGroup
+	for i := 0; i < b.N; i++ {
+		wg.Add(1)
+		go func() {
+			ls.TrackStaleness(tracking)
+			wg.Done()
+		}()
+	}
+	wg.Wait()
 }

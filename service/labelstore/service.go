@@ -199,19 +199,32 @@ func (s *service) GetLocalRefID(componentID string, globalRefID uint64) uint64 {
 }
 
 func (s *service) TrackStaleness(ids []StalenessTracker) {
-	s.mut.Lock()
-	defer s.mut.Unlock()
+	var (
+		toAdd    = make([]*staleMarker, 0)
+		toRemove = make([]uint64, 0)
+		now      = time.Now()
+	)
 
 	for _, id := range ids {
 		if value.IsStaleNaN(id.Value) {
-			s.staleGlobals[id.GlobalRefID] = &staleMarker{
-				lastMarkedStale: time.Now(),
-				labelHash:       id.Labels.Hash(),
+			toAdd = append(toAdd, &staleMarker{
 				globalID:        id.GlobalRefID,
-			}
+				lastMarkedStale: now,
+				labelHash:       id.Labels.Hash(),
+			})
 		} else {
-			delete(s.staleGlobals, id.GlobalRefID)
+			toRemove = append(toRemove, id.GlobalRefID)
 		}
+	}
+
+	s.mut.Lock()
+	defer s.mut.Unlock()
+
+	for _, marker := range toAdd {
+		s.staleGlobals[marker.globalID] = marker
+	}
+	for _, id := range toRemove {
+		delete(s.staleGlobals, id)
 	}
 }
 
