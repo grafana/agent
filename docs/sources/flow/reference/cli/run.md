@@ -189,6 +189,20 @@ original configuration.
 Include `--config.extra-args` to pass additional command line flags from the original format to the converter.
 Refer to [grafana-agent-flow convert][] for more details on how `extra-args` work.
 
+## Boringcrypto mode (beta)
+
+Only bare executables are provided with boringcrypto. Services and installers are not available with boringcrypto enabled.
+
+#### Linux
+
+Boringcrypto can be enabled by using the boringcrypto release for Linux.
+
+#### Windows
+
+Using the `grafana-agent-windows-amd64` release and setting the `GOFIPS` environment variable to 1. Additional details can
+be found on [Microsoft's][] page on FIPS.
+
 [grafana-agent-flow convert]: {{< relref "./convert.md" >}}
 [clustering]:  {{< relref "../../concepts/clustering.md" >}}
 [go-discover]: https://github.com/hashicorp/go-discover
+[Microsoft's]: https://github.com/microsoft/go/tree/microsoft/main/eng/doc/fips

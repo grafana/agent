@@ -21,13 +21,14 @@
 ##
 ## Targets for building binaries:
 ##
-##   binaries                Compiles all binaries.
-##   agent                   Compiles cmd/grafana-agent to $(AGENT_BINARY)
-##   agent-boringcrypto      Compiles cmd/grafana-agent with GOEXPERIMENT=boringcrypto to $(AGENT_BORINGCRYPTO_BINARY)
-##   agent-flow              Compiles cmd/grafana-agent-flow to $(FLOW_BINARY)
-##   agent-service           Compiles cmd/grafana-agent-service to $(SERVICE_BINARY)
-##   agentctl                Compiles cmd/grafana-agentctl to $(AGENTCTL_BINARY)
-##   operator                Compiles cmd/grafana-agent-operator to $(OPERATOR_BINARY)
+##   binaries                    Compiles all binaries.
+##   agent                       Compiles cmd/grafana-agent to $(AGENT_BINARY)
+##   agent-boringcrypto          Compiles cmd/grafana-agent with GOEXPERIMENT=boringcrypto to $(AGENT_BORINGCRYPTO_BINARY)
+##   agent-boringcrypto-windows  Compiles cmd/grafana-agent with GOEXPERIMENT=cngcrytpo to $(AGENT_BORINGCRYPTO_BINARY)
+##   agent-flow                  Compiles cmd/grafana-agent-flow to $(FLOW_BINARY)
+##   agent-service               Compiles cmd/grafana-agent-service to $(SERVICE_BINARY)
+##   agentctl                    Compiles cmd/grafana-agentctl to $(AGENTCTL_BINARY)
+##   operator                    Compiles cmd/grafana-agent-operator to $(OPERATOR_BINARY)
 ##
 ## Targets for building Docker images:
 ##
@@ -99,6 +100,7 @@ OPERATOR_IMAGE                          ?= grafana/agent-operator:latest
 AGENT_BINARY                            ?= build/grafana-agent
 AGENT_BORINGCRYPTO_BINARY               ?= build/grafana-agent-boringcrypto
 FLOW_BINARY                             ?= build/grafana-agent-flow
+AGENT_FLOW_WINDOWS_BORINGCRYPTO_BINARY  ?= build/grafana-agent-flow-windows-boringcrypto
 SERVICE_BINARY                          ?= build/grafana-agent-service
 AGENTCTL_BINARY                         ?= build/grafana-agentctl
 OPERATOR_BINARY                         ?= build/grafana-agent-operator
@@ -115,7 +117,7 @@ GOEXPERIMENT                            ?= $(shell go env GOEXPERIMENT)
 PROPAGATE_VARS := \
     AGENT_IMAGE AGENTCTL_IMAGE OPERATOR_IMAGE \
     BUILD_IMAGE GOOS GOARCH GOARM CGO_ENABLED RELEASE_BUILD \
-    AGENT_BINARY AGENT_BORINGCRYPTO_BINARY FLOW_BINARY AGENTCTL_BINARY OPERATOR_BINARY \
+    AGENT_BINARY AGENT_BORINGCRYPTO_BINARY AGENT_FLOW_WINDOWS_BORINGCRYPTO_BINARY FLOW_BINARY AGENTCTL_BINARY OPERATOR_BINARY \
     VERSION GO_TAGS GOEXPERIMENT
 
 #
@@ -175,8 +177,8 @@ integration-test:
 # Targets for building binaries
 #
 
-.PHONY: binaries agent agent-boringcrypto agent-flow agentctl operator
-binaries: agent agent-boringcrypto agent-flow agentctl operator
+.PHONY: binaries agent agent-boringcrypto agent-boringcrypto-windows agent-flow agentctl operator
+binaries: agent agent-boringcrypto agent-boringcrypto-windows agent-flow agentctl operator
 
 agent:
 ifeq ($(USE_CONTAINER),1)
@@ -191,6 +193,14 @@ ifeq ($(USE_CONTAINER),1)
 else
 	GOEXPERIMENT=boringcrypto $(GO_ENV) go build $(GO_FLAGS) -o $(AGENT_BORINGCRYPTO_BINARY) ./cmd/grafana-agent
 endif
+
+agent-boringcrypto-windows:
+ifeq ($(USE_CONTAINER),1)
+	$(RERUN_IN_CONTAINER)
+else
+	GOEXPERIMENT=cngcrypto $(GO_ENV) go build $(GO_FLAGS) -o $(AGENT_FLOW_WINDOWS_BORINGCRYPTO_BINARY) ./cmd/grafana-agent-flow
+endif
+
 
 
 agent-flow:

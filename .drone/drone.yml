@@ -407,7 +407,7 @@ steps:
 - commands:
   - make generate-ui
   - GO_TAGS="builtinassets" GOOS=windows GOARCH=amd64 GOARM= make agent
-  image: mrdgrafana/agent-build-image:x-windows
+  image: grafana/agent-build-image:0.31.0
   name: Build
 trigger:
   event:
@@ -861,6 +861,23 @@ trigger:
 type: docker
 ---
 kind: pipeline
+name: Build agent-boringcrypto-windows (Windows amd64)
+platform:
+  arch: amd64
+  os: linux
+steps:
+- commands:
+  - make generate-ui
+  - GO_TAGS="builtinassets" GOOS=windows GOARCH=amd64 GOARM= GOEXPERIMENT=cngcrypto
+    make agent-boringcrypto-windows
+  image: mrdgrafana/agent-build-image:x-windows
+  name: Build
+trigger:
+  event:
+  - pull_request
+type: docker
+---
+kind: pipeline
 name: Publish Linux agent container
 platform:
   arch: amd64
@@ -1302,6 +1319,6 @@ kind: secret
 name: updater_private_key
 ---
 kind: signature
-hmac: 35a85c0d9116c44da50c4ef5cbc504c6cd631534d83d82c9bad73911bce4d2e8
+hmac: 24aff961876f8eba758a85ba98db21b0dbdff13f3b370b27423161aa673f0778
 
 ...
