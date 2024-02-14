@@ -6,6 +6,8 @@ aliases:
 - /docs/grafana-cloud/send-data/agent/flow/reference/components/otelcol.exporter.debug/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.exporter.debug/
 description: Learn about otelcol.exporter.debug
+labels:
+  stage: experimental
 title: otelcol.exporter.debug
 ---
 
