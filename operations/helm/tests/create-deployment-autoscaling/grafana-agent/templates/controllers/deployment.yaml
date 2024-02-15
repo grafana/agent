@@ -51,7 +51,7 @@ spec:
             httpGet:
               path: /-/ready
               port: 80
-              scheme: http
+              scheme: HTTP
             initialDelaySeconds: 10
             timeoutSeconds: 1
           resources:
