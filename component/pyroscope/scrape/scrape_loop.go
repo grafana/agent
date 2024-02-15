@@ -174,6 +174,13 @@ type scrapeLoop struct {
 }
 
 func newScrapeLoop(t *Target, scrapeClient *http.Client, appendable pyroscope.Appendable, interval, timeout time.Duration, logger log.Logger) *scrapeLoop {
+	// if the URL parameter have a seconds parameter, then the collection will
+	// take at least scrape_duration - 1 second, as the HTTP request will block
+	// until the profile is collected.
+	if t.Params().Has("seconds") {
+		timeout += interval - time.Second
+	}
+
 	return &scrapeLoop{
 		Target:       t,
 		logger:       logger,

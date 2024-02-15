@@ -5,6 +5,11 @@ import (
 	"fmt"
 )
 
+type MetricsResponse struct {
+	Status string   `json:"status"`
+	Data   []Metric `json:"data"`
+}
+
 type MetricResponse struct {
 	Status string     `json:"status"`
 	Data   MetricData `json:"data"`
@@ -50,6 +55,10 @@ type Metric struct {
 }
 
 func (m *MetricResponse) Unmarshal(data []byte) error {
+	return json.Unmarshal(data, m)
+}
+
+func (m *MetricsResponse) Unmarshal(data []byte) error {
 	return json.Unmarshal(data, m)
 }
 

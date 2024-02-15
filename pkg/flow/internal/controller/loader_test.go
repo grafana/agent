@@ -129,7 +129,18 @@ func TestLoader(t *testing.T) {
 		`
 		l := controller.NewLoader(newLoaderOptions())
 		diags := applyFromContent(t, l, []byte(invalidFile), nil)
-		require.ErrorContains(t, diags.ErrorOrNil(), `Unrecognized component name "doesnotexist`)
+		require.ErrorContains(t, diags.ErrorOrNil(), `cannot retrieve the definition of component name "doesnotexist`)
+	})
+
+	t.Run("Load with component with empty label", func(t *testing.T) {
+		invalidFile := `
+			testcomponents.tick "" {
+				frequency = "1s"
+			}
+		`
+		l := controller.NewLoader(newLoaderOptions())
+		diags := applyFromContent(t, l, []byte(invalidFile), nil)
+		require.ErrorContains(t, diags.ErrorOrNil(), `component "testcomponents.tick" must have a label`)
 	})
 
 	t.Run("Partial load with invalid reference", func(t *testing.T) {
@@ -230,6 +241,7 @@ func applyFromContent(t *testing.T, l *controller.Loader, componentBytes []byte,
 		diags           diag.Diagnostics
 		componentBlocks []*ast.BlockStmt
 		configBlocks    []*ast.BlockStmt = nil
+		declareBlocks   []*ast.BlockStmt = nil
 	)
 
 	componentBlocks, diags = fileToBlock(t, componentBytes)
@@ -244,7 +256,13 @@ func applyFromContent(t *testing.T, l *controller.Loader, componentBytes []byte,
 		}
 	}
 
-	applyDiags := l.Apply(nil, componentBlocks, configBlocks)
+	applyOptions := controller.ApplyOptions{
+		ComponentBlocks: componentBlocks,
+		ConfigBlocks:    configBlocks,
+		DeclareBlocks:   declareBlocks,
+	}
+
+	applyDiags := l.Apply(applyOptions)
 	diags = append(diags, applyDiags...)
 
 	return diags
@@ -317,4 +335,8 @@ func (f fakeModuleController) ModuleIDs() []string {
 }
 
 func (f fakeModuleController) ClearModuleIDs() {
+}
+
+func (f fakeModuleController) NewCustomComponent(id string, export component.ExportFunc) (controller.CustomComponent, error) {
+	return nil, nil
 }
