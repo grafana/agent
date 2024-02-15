@@ -23,7 +23,7 @@ A custom component is composed of:
 
 ## Creating custom components
 
-A new custom component is created using the `declare` configuration block, where the label of the block determines the name of the custom component.
+A new custom component is created using [the `declare` configuration block][declare], where the label of the block determines the name of the custom component.
 
 Inside of a `declare` block, the following custom configuration blocks can be used:
 
@@ -32,6 +32,7 @@ Inside of a `declare` block, the following custom configuration blocks can be us
 
 Custom components are useful for reusing a common pipeline multiple times. To learn how to share custom components across multiple files, refer to [Modules][].
 
+[declare]: {{< relref "../reference/config-blocks/declare.md" >}}
 [argument]: {{< relref "../reference/config-blocks/argument.md" >}}
 [export]: {{< relref "../reference/config-blocks/export.md" >}}
 [Modules]: {{< relref "./modules.md" >}}
