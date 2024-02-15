@@ -10,6 +10,11 @@ internal API changes are not present.
 Unreleased
 ----------
 
+### Enhancements
+
+- Allow setting scheme for readiness checks when using tls. (@captncraig)
+
+
 0.31.1 (2024-01-19)
 -------------------
 
