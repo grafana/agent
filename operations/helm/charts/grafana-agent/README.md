@@ -53,6 +53,7 @@ use the older mode (called "static mode"), set the `agent.mode` value to
 | agent.extraPorts | list | `[]` | Extra ports to expose on the Agent |
 | agent.listenAddr | string | `"0.0.0.0"` | Address to listen for traffic on. 0.0.0.0 exposes the UI to other containers. |
 | agent.listenPort | int | `80` | Port to listen for traffic on. |
+| agent.listenScheme | string | `"http"` | Scheme is needed for readiness probes. If enabling tls in your configs, set to "https" |
 | agent.mode | string | `"flow"` | Mode to run Grafana Agent in. Can be "flow" or "static". |
 | agent.mounts.dockercontainers | bool | `false` | Mount /var/lib/docker/containers from the host into the container for log collection. |
 | agent.mounts.extra | list | `[]` | Extra volume mounts to add into the Grafana Agent container. Does not affect the watch container. |

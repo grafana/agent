@@ -53,6 +53,9 @@ agent:
   # -- Port to listen for traffic on.
   listenPort: 80
 
+  # -- Scheme is needed for readiness probes. If enabling tls in your configs, set to "https"
+  listenScheme: http
+
   # --  Base path where the UI is exposed.
   uiPathPrefix: /
 
