@@ -83,6 +83,10 @@ Main (unreleased)
 
 - Fix `ResolveEndpointV2 not found` for AWS-related components. (@hainenber)
 
+- Fix bug where custom headers were not actually being set in loki client. (@captncraig)
+
+- Fix `ResolveEndpointV2 not found` for AWS-related components. (@hainenber)
+
 ### Other changes
 
 - Removed support for Windows 2012 in line with Microsoft end of life. (@mattdurham)
