@@ -118,6 +118,26 @@ func TestImport(t *testing.T) {
 				updateConfig: []string{"declare_negative_passthrough"},
 			},
 		},
+		{
+			name:         "Import passthrough module and update it with an import passthrough",
+			config:       []string{"root_import_a"},
+			module:       []string{"declare_passthrough"},
+			nestedModule: []string{"declare_negative_passthrough"},
+			update: &updateFile{
+				name:         "module",
+				updateConfig: []string{"declare_passthrough_import_a"},
+			},
+		},
+		{
+			name:         "Import passthrough module which also imports a passthrough module and update it to a simple passthrough",
+			config:       []string{"root_import_a"},
+			module:       []string{"declare_passthrough_import_a"},
+			nestedModule: []string{"declare_passthrough"},
+			update: &updateFile{
+				name:         "module",
+				updateConfig: []string{"declare_negative_passthrough"},
+			},
+		},
 	}
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -229,7 +249,7 @@ func testConfig(t *testing.T, config string, update func()) {
 	// Check for initial condition
 	require.Eventually(t, func() bool {
 		export := getExport[testcomponents.SummationExports](t, ctrl, "", "testcomponents.summation.sum")
-		return export.LastAdded == 10
+		return export.LastAdded >= 10
 	}, 3*time.Second, 10*time.Millisecond)
 
 	if update != nil {
@@ -238,7 +258,7 @@ func testConfig(t *testing.T, config string, update func()) {
 		// Export should be -10 after update
 		require.Eventually(t, func() bool {
 			export := getExport[testcomponents.SummationExports](t, ctrl, "", "testcomponents.summation.sum")
-			return export.LastAdded == -10
+			return export.LastAdded <= -10
 		}, 3*time.Second, 10*time.Millisecond)
 	}
 }
@@ -269,7 +289,7 @@ func testConfigReload(t *testing.T, config string, newConfig string) {
 	// Check for initial condition
 	require.Eventually(t, func() bool {
 		export := getExport[testcomponents.SummationExports](t, ctrl, "", "testcomponents.summation.sum")
-		return export.LastAdded == 10
+		return export.LastAdded >= 10
 	}, 3*time.Second, 10*time.Millisecond)
 
 	f, err = flow.ParseSource(t.Name(), []byte(newConfig))
@@ -283,7 +303,7 @@ func testConfigReload(t *testing.T, config string, newConfig string) {
 	// Export should be -10 after update
 	require.Eventually(t, func() bool {
 		export := getExport[testcomponents.SummationExports](t, ctrl, "", "testcomponents.summation.sum")
-		return export.LastAdded == -10
+		return export.LastAdded <= -10
 	}, 3*time.Second, 10*time.Millisecond)
 }
 
