@@ -143,14 +143,18 @@ the component reads. All other labels starting with a double underscore are
 considered _internal_ and are removed from the log entries before they're
 passed to other `loki.*` components.
 
-The component uses its data path (a directory named after the domain's
-fully qualified name) to store its _positions file_. The positions file is used
-to store read offsets, so that in case of a component or Agent restart,
+The component uses its data path, a directory named after the domain's
+fully qualified name, to store its _positions file_. The positions file is used
+to store read offsets, so that if a component or {{< param "PRODUCT_ROOT_NAME" >}} restarts,
 `loki.source.file` can pick up tailing from the same spot.
+
+The data path is inside the directory configured by the `--storage.path` [command line argument][cmd-args].
 
 If a file is removed from the `targets` list, its positions file entry is also
 removed. When it's added back on, `loki.source.file` starts reading it from the
 beginning.
+
+[cmd-args]: {{< relref "../cli/run.md" >}}
 
 ## Examples
 
