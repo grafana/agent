@@ -201,7 +201,7 @@ func (t *tailer) tail(ctx context.Context, handler loki.EntryHandler) error {
 	// False positives here are acceptable, but false negatives mean that
 	// we'll have a larger spike of missing logs until we detect a rolled
 	// file.
-	if k8sComparableServerVersion.LE(semver.Version{Major: 1, Minor: 29, Patch: 0}) {
+	if k8sComparableServerVersion.LT(semver.Version{Major: 1, Minor: 29, Patch: 0}) {
 		go func() {
 			rolledFileTicker := time.NewTicker(1 * time.Second)
 			defer func() {
