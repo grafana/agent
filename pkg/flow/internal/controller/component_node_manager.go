@@ -74,3 +74,10 @@ func findLocalDeclare(reg *CustomComponentRegistry, componentName string) (ast.B
 	}
 	return nil, nil
 }
+
+func (m *ComponentNodeManager) SetCustomComponentRegistry(reg *CustomComponentRegistry) {
+	m.mut.Lock()
+	defer m.mut.Unlock()
+
+	m.customComponentReg = reg
+}
