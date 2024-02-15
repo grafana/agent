@@ -161,7 +161,7 @@ func (fr *flowRun) Run(configPath string) error {
 	}
 
 	// Buffer logs until log format has been determined
-	l, err := logging.NewDeferred(os.Stderr, logging.DefaultOptions)
+	l, err := logging.NewDeferred(os.Stderr)
 	if err != nil {
 		return fmt.Errorf("building logger: %w", err)
 	}

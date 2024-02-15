@@ -73,7 +73,7 @@ func New(w io.Writer, o Options) (*Logger, error) {
 
 // NewDeferred creates a new logger with the default log level and format.
 // The logger is not updated during initialization.
-func NewDeferred(w io.Writer, o Options) (*Logger, error) {
+func NewDeferred(w io.Writer) (*Logger, error) {
 	var (
 		leveler slog.LevelVar
 		format  formatVar
