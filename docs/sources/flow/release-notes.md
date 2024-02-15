@@ -43,8 +43,8 @@ If you need to see high cardinality metrics containing labels such as IP address
 
 ### Breaking change: Rename component `prometheus.exporter.agent` to `prometheus.exporter.self`
 
-The name `prometheus.exporter.agent` is potentially ambiguous and can be misinterpreted as an exporter for Prometheus agent.
-The new name reflects the component's true purpose, that is exporter of process's own metrics
+The name `prometheus.exporter.agent` is potentially ambiguous and can be misinterpreted as an exporter for Prometheus Agent.
+The new name reflects the component's true purpose as an exporter of the process's own metrics.
 
 ## v0.39
 
