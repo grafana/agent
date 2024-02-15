@@ -12,14 +12,19 @@ title: argument block
 
 # argument block
 
-`argument` is an optional configuration block used to specify parameterized
-input to a [Module][Modules]. `argument` blocks must be given a label which
-determines the name of the argument.
+`argument` is an optional configuration block used to specify parameterized input to a [custom component][].
+`argument` blocks must be given a label which determines the name of the argument.
 
-The `argument` block may not be specified in the main configuration file given
-to {{< param "PRODUCT_NAME" >}}.
+The `argument` block may only be specified inside the definition of [a `declare` block][declare].
 
-[Modules]: {{< relref "../../concepts/modules.md" >}}
+{{% admonition type="note" %}}
+In [classic modules][], the `argument` block is valid as a top-level block in a classic module. Classic modules are deprecated and scheduled to be removed in the release after v0.40.
+
+[classic modules]: {{< relref "../../concepts/modules.md#classic-modules-deprecated" >}}
+{{% /admonition %}}
+
+[custom component]: {{< relref "../../concepts/custom_components.md" >}}
+[declare]: {{< relref "./declare.md" >}}
 
 ## Example
 
@@ -53,26 +58,27 @@ Name | Type | Description
 ---- | ---- | -----------
 `value` | `any` | The current value of the argument.
 
-The module loader is responsible for determining the values for arguments.
-Components in a module may use `argument.ARGUMENT_NAME.value` to retrieve the
-value provided by the module loader.
+The user of a custom component is responsible for determining the values for arguments.
+Other expressions within a custom component may use `argument.ARGUMENT_NAME.value` to retrieve the
+value provided by the user.
 
 ## Example
 
-This example creates a module where {{< param "PRODUCT_NAME" >}} metrics are collected. Collected
-metrics are then forwarded to the argument specified by the loader:
+This example creates a custom component that self-collects process metrics and forwards them to an argument specified by the user of the custom component:
 
 ```river
-argument "metrics_output" {
-  optional = false
-  comment  = "Where to send collected metrics."
-}
+declare "self_collect" {
+  argument "metrics_output" {
+    optional = false
+    comment  = "Where to send collected metrics."
+  }
 
-prometheus.scrape "selfmonitor" {
-  targets = [{
-    __address__ = "127.0.0.1:12345",
-  }]
+  prometheus.scrape "selfmonitor" {
+    targets = [{
+      __address__ = "127.0.0.1:12345",
+    }]
 
-  forward_to = [argument.metrics_output.value]
+    forward_to = [argument.metrics_output.value]
+  }
 }
 ```
