@@ -296,3 +296,14 @@ ingress:
   #  - secretName: chart-example-tls
   #    hosts:
   #      - chart-example.local
+
+# -- Add dynamic manifests via values.
+extraObjects: []
+  # extraObjects:
+  # - kind: ConfigMap
+  #   apiVersion: v1
+  #   metadata:
+  #     name: extra-cm-{{ .Release.Name }}
+  #   data: |
+  #     extra.yml: "extra-config: true"
+  

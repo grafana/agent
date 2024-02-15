@@ -10,6 +10,10 @@ internal API changes are not present.
 Unreleased
 ----------
 
+### Enhancements
+
+- Add support for `extraObjects` to define additional manifests. (@timtalbot)
+
 0.31.1 (2024-01-19)
 -------------------
 

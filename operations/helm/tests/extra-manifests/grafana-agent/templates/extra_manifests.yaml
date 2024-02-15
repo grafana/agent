@@ -1,0 +1,8 @@
+---
+# Source: grafana-agent/templates/extra_manifests.yaml
+apiVersion: v1
+data: |
+  extra.yml: "extra-config: true"
+kind: ConfigMap
+metadata:
+  name: extra-cm-grafana-agent
