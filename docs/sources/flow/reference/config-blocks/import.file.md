@@ -15,14 +15,14 @@ title: import.file
 
 {{< docs/shared lookup="flow/stability/beta.md" source="agent" version="<AGENT_VERSION>" >}}
 
-`import.file` retrieves a module from a file.
+The `import.file` block imports custom components from a file and exposes them to the importer. `import.file` blocks must be given a label which determines the namespace where custom components are exposed.
 
 [module]: {{< relref "../../concepts/modules.md" >}}
 
 ## Usage
 
 ```river
-import.file "LABEL" {
+import.file "NAMESPACE" {
   filename = FILENAME
 }
 ```
@@ -42,43 +42,32 @@ Name | Type | Description | Default | Required
 
 {{< docs/shared lookup="flow/reference/components/local-file-arguments-text.md" source="agent" version="<AGENT_VERSION>" >}}
 
-## Component health
-
-`import.file` is reported as healthy if the most recent load of the module was successful.
-If the module is not loaded successfully, the current health displays as unhealthy and the health includes the error from loading the module.
-
-## Debug information
-
-`import.file` does not expose any component-specific debug information.
-
-## Debug metrics
-
-`import.file` does not expose any component-specific debug metrics.
-
 ## Example
 
 This example imports a module from a file and instantiates a custom component from an imported declare to that adds two numbers:
 
-Main configuration:
+{{< collapse title="module.river" >}}
+```river
+declare "add" {
+  argument "a" {}
+  argument "b" {}
 
+  export "sum" {
+    value = argument.a.value + argument.b.value
+  }
+}
+```
+{{< /collapse >}}
+
+{{< collapse title="importer.river" >}}
 ```river
 import.file "math" {
-  filename = "/path/to/math.river"
+  filename = "module.river"
 }
+
 math.add "default" {
   a = 15
   b = 45
 }
 ```
-
-Module:
-
-```river
-declare "add" {
-    argument "a" {}
-    argument "b" {}
-    export "sum" {
-        value = argument.a.value + argument.b.value
-    }
-}
-```
+{{< /collapse >}}

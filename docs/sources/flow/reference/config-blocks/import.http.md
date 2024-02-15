@@ -42,43 +42,33 @@ Name | Type | Description | Default | Required
 
 [secret]: {{< relref "../../concepts/config-language/expressions/types_and_values.md#secrets" >}}
 
-## Component health
-
-`module.http` is reported as healthy if the most recent load of the module was successful.
-If the module is not loaded successfully, the current health displays as unhealthy, and the health includes the error from loading the module.
-
-## Debug information
-
-`import.http` does not expose any component-specific debug information.
-
-## Debug metrics
-
-`import.http` does not expose any component-specific debug metrics.
-
 ## Example
 
-This example imports a module from a HTTP server and instantiates a custom component from an imported declare to that adds two numbers:
+This example imports custom components from an HTTP response and instantiates a custom component for adding two numbers:
 
-Main configuration:
+{{< collapse title="HTTP response" >}}
+```river
+declare "add" {
+  argument "a" {}
+  argument "b" {}
 
+  export "sum" {
+    value = argument.a.value + argument.b.value
+  }
+}
+```
+{{< /collapse >}}
+
+{{< collapse title="importer.river" >}}
 ```river
 import.http "math" {
-  filename = "/path/to/math.river"
+  url = SERVER_URL
 }
+
 math.add "default" {
   a = 15
   b = 45
 }
 ```
+{{< /collapse >}}
 
-Module:
-
-```river
-declare "add" {
-    argument "a" {}
-    argument "b" {}
-    export "sum" {
-        value = argument.a.value + argument.b.value
-    }
-}
-```

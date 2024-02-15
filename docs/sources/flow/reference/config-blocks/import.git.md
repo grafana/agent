@@ -15,14 +15,14 @@ title: import.git
 
 {{< docs/shared lookup="flow/stability/beta.md" source="agent" version="<AGENT_VERSION>" >}}
 
-`import.git` retrieves a module from a file in a Git repository.
+The `import.git` block imports custom components from a Git repository and exposes them to the importer. `import.git` blocks must be given a label which determines the namespace where custom components are exposed.
 
 [module]: {{< relref "../../concepts/modules.md" >}}
 
 ## Usage
 
 ```river
-import.git "LABEL" {
+import.git "NAMESPACE" {
   repository = "GIT_REPOSTORY"
   path       = "PATH_TO_MODULE"
 }
@@ -84,25 +84,9 @@ Name | Type | Description | Default | Required
 `key_file`  | `string` | SSH private key path. | | no
 `passphrase` | `secret` | Passphrase for SSH key if needed. | | no
 
-## Component health
-
-`import.git` is reported as healthy if the repository was cloned successfully
-and most recent load of the module was successful.
-
-## Debug information
-
-`import.git` includes debug information for:
-
-* The full SHA of the currently checked out revision.
-* The most recent error when trying to fetch the repository, if any.
-
-## Debug metrics
-
-`import.git` does not expose any component-specific debug metrics.
-
 ## Examples
 
-This example imports a module from a Git repository and instantiates a custom component from an imported declare to that adds two numbers:
+This example imports custom components from a Git repository and uses a custom compnoent to add two numbers:
 
 ```river
 import.git "math" {
@@ -110,62 +94,7 @@ import.git "math" {
   revision   = "master"
   path       = "math.river"
 }
-math.add "default" {
-  a = 15
-  b = 45
-}
-```
 
-The same example as above using basic auth:
-
-```river
-import.git "math" {
-  repository = "https://github.com/wildum/module.git"
-  revision   = "master"
-  path       = "math.river"
-  basic_auth {
-    username = "USERNAME"
-    password = "PASSWORD"
-  }
-}
-math.add "default" {
-  a = 15
-  b = 45
-}
-```
-
-Using SSH Key from another component:
-```river
-local.file "ssh_key" {
-  filename = "PATH/TO/SSH.KEY"
-  is_secret = true
-}
-import.git "math" {
-  repository = "https://github.com/wildum/module.git"
-  revision   = "master"
-  path       = "math.river"
-  ssh_key {
-    username = "git"
-    key = local.file.ssh_key.content
-  }
-}
-math.add "default" {
-  a = 15
-  b = 45
-}
-```
-
-The same example as above using SSH Key auth:
-```river
-import.git "math" {
-  repository = "https://github.com/wildum/module.git"
-  revision   = "master"
-  path       = "math.river"
-  ssh_key {
-    username = "git"
-    key_file = "PATH/TO/SSH.KEY"
-  }
-}
 math.add "default" {
   a = 15
   b = 45
