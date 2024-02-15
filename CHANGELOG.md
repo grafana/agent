@@ -81,8 +81,6 @@ Main (unreleased)
 
 - Fix divide-by-zero issue when sharding targets. (@hainenber) 
 
-- Fix `ResolveEndpointV2 not found` for AWS-related components. (@hainenber)
-
 - Fix bug where custom headers were not actually being set in loki client. (@captncraig)
 
 - Fix `ResolveEndpointV2 not found` for AWS-related components. (@hainenber)
