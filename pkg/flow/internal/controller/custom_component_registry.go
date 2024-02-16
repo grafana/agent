@@ -40,6 +40,8 @@ func (s *CustomComponentRegistry) registerDeclare(declare *ast.BlockStmt) {
 // It's important to register it before populating the component nodes
 // (else we don't know which one exists).
 func (s *CustomComponentRegistry) registerImport(importNamespace string) {
+	s.mut.Lock()
+	defer s.mut.Unlock()
 	s.imports[importNamespace] = nil
 }
 
