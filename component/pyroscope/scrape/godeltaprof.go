@@ -36,15 +36,6 @@ func godeltaprofProbes(profileType string, path string) []godeltaprofProbe {
 	}
 }
 
-func newAppender(probe godeltaprofProbe, t *scrapeLoop) pyroscope.Appender {
-	appender := t.appendable.Appender()
-	if probe.trySwitchToGodeltaprof {
-		return newGodeltaprofAppender(appender)
-	} else {
-		return NewDeltaAppender(appender, t.allLabels)
-	}
-}
-
 type godeltaprofAppender struct {
 	appender pyroscope.Appender
 }

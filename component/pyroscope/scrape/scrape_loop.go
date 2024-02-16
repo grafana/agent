@@ -247,7 +247,11 @@ func (t *scrapeLoop) scrape() {
 		req.Header.Set("User-Agent", userAgentHeader)
 		var appender pyroscope.Appender
 		for _, probe := range godeltaprofProbes(profileType, req.URL.Path) {
-			appender = newAppender(probe, t)
+			if probe.trySwitchToGodeltaprof {
+				appender = newGodeltaprofAppender(t.appendable.Appender())
+			} else {
+				appender = NewDeltaAppender(t.appendable.Appender(), t.allLabels)
+			}
 			req.URL.Path = probe.path
 			buf, err = t.fetchProfile(scrapeCtx, profileType, req)
 			if err != nil {
