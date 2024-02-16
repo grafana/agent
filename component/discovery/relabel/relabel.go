@@ -93,11 +93,11 @@ func (c *Component) Update(args component.Arguments) error {
 
 	for _, t := range newArgs.Targets {
 		key := t.GetHash()
-
-		if newT, ok := c.cache[key]; ok {
+		if newT, ok := cache[key]; ok {
 			if newT != nil {
 				targets = append(targets, *newT)
 			}
+			nextCache[key] = newT
 			continue
 		}
 		lset := t.Labels()
@@ -106,9 +106,9 @@ func (c *Component) Update(args component.Arguments) error {
 			targ := promLabelsToComponent(lset)
 			targ.ResetHash()
 			targets = append(targets, targ)
-			c.cache[key] = &targ
+			nextCache[key] = &targ
 		} else {
-			c.cache[key] = nil
+			nextCache[key] = nil
 		}
 	}
 
