@@ -68,13 +68,13 @@ prometheus.remote_write "default" {
 ```
 
 
-## {{< param "PRODUCT_NAME" >}} configuration generator
+## {{% param "PRODUCT_NAME" %}} configuration generator
 
 The {{< param "PRODUCT_NAME" >}} [configuration generator](https://grafana.github.io/agent-configurator/) will help you get a head start on creating flow code.
 
-{{% admonition type="note" %}}
+{{< admonition type="note" >}}
 This feature is experimental, and it doesn't support all River components.
-{{% /admonition %}}
+{{< /admonition >}}
 
 ## Next steps
 

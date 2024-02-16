@@ -3,7 +3,6 @@
 * Date: 2022-08-17
 * Author: Craig Peterson (@captncraig)
 * PR: [grafana/agent#2046](https://github.com/grafana/agent/pull/2046)
-* Status: Draft
 
 ## Summary
 
@@ -31,6 +30,6 @@ The operator is a fairly complex piece of code, and has been slower than some ot
 
 ## Beta status
 
-The Grafana Agent Operator is still considered beta software. It has received a better reception than anticipated, and is now an important part of the Agent project. We are committed to supporting the Operator into the future, but are going to leave the beta designation in place while making larger refactorings as described above. We make efforts to avoid breaking changes, and hope that custom resource definitions will remain compatible, but it is possible some changes will be necessary. We will make every effort to justify and communicate such scenarios as they arise. 
+The Grafana Agent Operator is still considered beta software. It has received a better reception than anticipated, and is now an important part of the Agent project. We are committed to supporting the Operator into the future, but are going to leave the beta designation in place while making larger refactorings as described above. We make efforts to avoid breaking changes, and hope that custom resource definitions will remain compatible, but it is possible some changes will be necessary. We will make every effort to justify and communicate such scenarios as they arise.
 
 Once we are confident we have an Operator we are happy with and that the resource definitions are stable, we will revisit the beta status as soon as we can.

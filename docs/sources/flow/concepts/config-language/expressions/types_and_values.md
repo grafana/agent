@@ -167,7 +167,7 @@ If the key isn't a valid identifier, you must wrap it in double quotes like a st
 }
 ```
 
-{{% admonition type="note" %}}
+{{< admonition type="note" >}}
 Don't confuse objects with blocks.
 
 * An _object_ is a value assigned to an [Attribute][]. You **must** use commas between key-value pairs on separate lines.
@@ -175,7 +175,7 @@ Don't confuse objects with blocks.
 
 [Attribute]: {{< relref "../syntax.md#Attributes" >}}
 [Block]: {{< relref "../syntax.md#Blocks" >}}
-{{% /admonition %}}
+{{< /admonition >}}
 
 ## Functions
 

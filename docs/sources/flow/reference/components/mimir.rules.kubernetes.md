@@ -47,20 +47,24 @@ mimir.rules.kubernetes "LABEL" {
 
 `mimir.rules.kubernetes` supports the following arguments:
 
-Name                     | Type       | Description                                                                     | Default | Required
--------------------------|------------|---------------------------------------------------------------------------------|---------|---------
-`address`                | `string`   | URL of the Mimir ruler.                                                         |         | yes
-`tenant_id`              | `string`   | Mimir tenant ID.                                                                |         | no
-`use_legacy_routes`      | `bool`     | Whether to use deprecated ruler API endpoints.                                  | false   | no
-`sync_interval`          | `duration` | Amount of time between reconciliations with Mimir.                              | "30s"   | no
-`mimir_namespace_prefix` | `string`   | Prefix used to differentiate multiple {{< param "PRODUCT_NAME" >}} deployments. | "agent" | no
-`bearer_token`           | `secret`   | Bearer token to authenticate with.                                              |         | no
-`bearer_token_file`      | `string`   | File containing a bearer token to authenticate with.                            |         | no
-`proxy_url`              | `string`   | HTTP proxy to proxy requests through.                                           |         | no
-`follow_redirects`       | `bool`     | Whether redirects returned by the server should be followed.                    | `true`  | no
-`enable_http2`           | `bool`     | Whether HTTP2 is supported for requests.                                        | `true`  | no
+Name                     | Type                | Description                                                     | Default       | Required
+------------------------ | ------------------- | --------------------------------------------------------------- | ------------- | --------
+`address`                | `string`            | URL of the Mimir ruler.                                         |               | yes
+`tenant_id`              | `string`            | Mimir tenant ID.                                                |               | no
+`use_legacy_routes`      | `bool`              | Whether to use [deprecated][gem-2_2] ruler API endpoints.       | false         | no
+`prometheus_http_prefix` | `string`            | Path prefix for [Mimir's Prometheus endpoint][gem-path-prefix]. | `/prometheus` | no
+`sync_interval`          | `duration`          | Amount of time between reconciliations with Mimir.              | "30s"         | no
+`mimir_namespace_prefix` | `string`            | Prefix used to differentiate multiple {{< param "PRODUCT_NAME" >}} deployments. | "agent" | no
+`bearer_token_file`      | `string`            | File containing a bearer token to authenticate with.            |               | no
+`bearer_token`           | `secret`            | Bearer token to authenticate with.                              |               | no
+`enable_http2`           | `bool`              | Whether HTTP2 is supported for requests.                        | `true`        | no
+`follow_redirects`       | `bool`              | Whether redirects returned by the server should be followed.    | `true`        | no
+`proxy_url`              | `string`            | HTTP proxy to send requests through.                            |               | no
+`no_proxy`               | `string`            | Comma-separated list of IP addresses, CIDR notations, and domain names to exclude from proxying. | | no
+`proxy_from_environment` | `bool`              | Use the proxy URL indicated by environment variables.         | `false` | no
+`proxy_connect_header`   | `map(list(secret))` | Specifies headers to send to proxies during CONNECT requests. |         | no
 
- At most one of the following can be provided:
+ At most, one of the following can be provided:
  - [`bearer_token` argument](#arguments).
  - [`bearer_token_file` argument](#arguments).
  - [`basic_auth` block][basic_auth].
@@ -68,6 +72,8 @@ Name                     | Type       | Description                             
  - [`oauth2` block][oauth2].
 
  [arguments]: #arguments
+
+{{< docs/shared lookup="flow/reference/components/http-client-proxy-config-description.md" source="agent" version="<AGENT_VERSION>" >}}
 
 If no `tenant_id` is provided, the component assumes that the Mimir instance at
 `address` is running in single-tenant mode and no `X-Scope-OrgID` header is sent.
@@ -80,6 +86,13 @@ according to the informer pattern.
 The `mimir_namespace_prefix` argument can be used to separate the rules managed
 by multiple {{< param "PRODUCT_NAME" >}} deployments across your infrastructure. It should be set to a
 unique value for each deployment.
+
+If `use_legacy_routes` is set to `true`, `mimir.rules.kubernetes` contacts Mimir on a `/api/v1/rules` endpoint.
+
+If `prometheus_http_prefix` is set to `/mimir`, `mimir.rules.kubernetes` contacts Mimir on a `/mimir/config/v1/rules` endpoint. 
+This is useful if you configure Mimir to use a different [prefix][gem-path-prefix] for its Prometheus endpoints than the default one.
+
+`prometheus_http_prefix` is ignored if `use_legacy_routes` is set to `true`.
 
 ## Blocks
 

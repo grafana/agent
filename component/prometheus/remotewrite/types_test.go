@@ -256,7 +256,7 @@ func TestRiverConfig(t *testing.T) {
 					batch_send_deadline = "100ms"
 				}
 			}`,
-			errorMsg: "at most one of bearer_token & bearer_token_file must be configured",
+			errorMsg: "at most one of basic_auth, authorization, oauth2, bearer_token & bearer_token_file must be configured",
 		},
 	}
 

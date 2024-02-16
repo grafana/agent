@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/grafana/agent/pkg/flow/componenttest"
+	"github.com/grafana/agent/pkg/flow/internal/controller"
 	"github.com/stretchr/testify/require"
 )
 
@@ -23,7 +24,7 @@ func TestIDRemovalIfFailedToLoad(t *testing.T) {
 	go f.Run(ctx)
 	var t1 *componenttest.TestFailModule
 	require.Eventually(t, func() bool {
-		t1 = f.loader.Components()[0].Component().(*componenttest.TestFailModule)
+		t1 = f.loader.Components()[0].(*controller.BuiltinComponentNode).Component().(*componenttest.TestFailModule)
 		return t1 != nil
 	}, 10*time.Second, 100*time.Millisecond)
 	require.Eventually(t, func() bool {

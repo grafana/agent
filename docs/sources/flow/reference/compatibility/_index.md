@@ -4,7 +4,7 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/compatible-components/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/compatible-components/
 - /docs/grafana-cloud/send-data/agent/flow/reference/compatible-components/
-canonical: https://grafana.com/docs/agent/latest/flow/reference/compatible-components/
+canonical: https://grafana.com/docs/agent/latest/flow/reference/compatibility/
 description: Learn about which components are compatible with each other in Grafana Agent Flow
 title: Compatible components
 weight: 400
@@ -12,23 +12,19 @@ weight: 400
 
 # Compatible components
 
-This section provides an overview of _some_ of the possible connections between 
-compatible components in Grafana Agent Flow. 
+This section provides an overview of _some_ of the possible connections between compatible components in {{< param "PRODUCT_NAME" >}}.
 
-For each common data type, we provide a list of compatible components
-that can export or consume it.
+For each common data type, we provide a list of compatible components that can export or consume it.
 
-{{% admonition type="note" %}}
-
+{{< admonition type="note" >}}
 The type of export may not be the only requirement for chaining components together.
 The value of an attribute may matter as well as its type.
-Please refer to each component's documentation for more details on what values are acceptable.
+Refer to each component's documentation for more details on what values are acceptable.
 
 For example:
 * A Prometheus component may always expect an `"__address__"` label inside a list of targets.
 * A `string` argument may only accept certain values like "traceID" or "spanID".
-
-{{% /admonition %}}
+{{< /admonition >}}
 
 ## Targets
 
@@ -155,7 +151,7 @@ The following components, grouped by namespace, _consume_ Targets.
 
 ## Prometheus `MetricsReceiver`
 
-The Prometheus metrics are sent between components using `MetricsReceiver`s. 
+The Prometheus metrics are sent between components using `MetricsReceiver`s.
 `MetricsReceiver`s are [capsules]({{< relref "../../concepts/config-language/expressions/types_and_values/#capsules" >}})
 that are exported by components that can receive Prometheus metrics. Components that
 can consume Prometheus metrics can be passed the `MetricsReceiver` as an argument. Use the
@@ -181,7 +177,6 @@ The following components, grouped by namespace, _export_ Prometheus `MetricsRece
 <!-- NOTE: this title is used as an anchor in links. Do not change. -->
 ### Prometheus `MetricsReceiver` Consumers
 The following components, grouped by namespace, _consume_ Prometheus `MetricsReceiver`.
- 
 
 <!-- START GENERATED SECTION: CONSUMERS OF Prometheus `MetricsReceiver` -->
 
@@ -199,8 +194,6 @@ The following components, grouped by namespace, _consume_ Prometheus `MetricsRec
 {{< /collapse >}}
 
 <!-- END GENERATED SECTION: CONSUMERS OF Prometheus `MetricsReceiver` -->
-
-
 
 ## Loki `LogsReceiver`
 
@@ -265,7 +258,6 @@ The following components, grouped by namespace, _consume_ Loki `LogsReceiver`.
 
 <!-- END GENERATED SECTION: CONSUMERS OF Loki `LogsReceiver` -->
 
-
 ## OpenTelemetry `otelcol.Consumer`
 
 The OpenTelemetry data is sent between components using `otelcol.Consumer`s.
@@ -298,6 +290,7 @@ The following components, grouped by namespace, _export_ OpenTelemetry `otelcol.
 - [otelcol.processor.k8sattributes]({{< relref "../components/otelcol.processor.k8sattributes.md" >}})
 - [otelcol.processor.memory_limiter]({{< relref "../components/otelcol.processor.memory_limiter.md" >}})
 - [otelcol.processor.probabilistic_sampler]({{< relref "../components/otelcol.processor.probabilistic_sampler.md" >}})
+- [otelcol.processor.resourcedetection]({{< relref "../components/otelcol.processor.resourcedetection.md" >}})
 - [otelcol.processor.span]({{< relref "../components/otelcol.processor.span.md" >}})
 - [otelcol.processor.tail_sampling]({{< relref "../components/otelcol.processor.tail_sampling.md" >}})
 - [otelcol.processor.transform]({{< relref "../components/otelcol.processor.transform.md" >}})
@@ -326,6 +319,7 @@ The following components, grouped by namespace, _consume_ OpenTelemetry `otelcol
 - [otelcol.processor.k8sattributes]({{< relref "../components/otelcol.processor.k8sattributes.md" >}})
 - [otelcol.processor.memory_limiter]({{< relref "../components/otelcol.processor.memory_limiter.md" >}})
 - [otelcol.processor.probabilistic_sampler]({{< relref "../components/otelcol.processor.probabilistic_sampler.md" >}})
+- [otelcol.processor.resourcedetection]({{< relref "../components/otelcol.processor.resourcedetection.md" >}})
 - [otelcol.processor.span]({{< relref "../components/otelcol.processor.span.md" >}})
 - [otelcol.processor.tail_sampling]({{< relref "../components/otelcol.processor.tail_sampling.md" >}})
 - [otelcol.processor.transform]({{< relref "../components/otelcol.processor.transform.md" >}})
@@ -340,8 +334,6 @@ The following components, grouped by namespace, _consume_ OpenTelemetry `otelcol
 {{< /collapse >}}
 
 <!-- END GENERATED SECTION: CONSUMERS OF OpenTelemetry `otelcol.Consumer` -->
-
-
 
 ## Pyroscope `ProfilesReceiver`
 
@@ -376,4 +368,3 @@ The following components, grouped by namespace, _consume_ Pyroscope `ProfilesRec
 {{< /collapse >}}
 
 <!-- END GENERATED SECTION: CONSUMERS OF Pyroscope `ProfilesReceiver` -->
-

@@ -17,9 +17,9 @@ title: loki.source.file
 Multiple `loki.source.file` components can be specified by giving them
 different labels.
 
-{{% admonition type="note" %}}
+{{< admonition type="note" >}}
 `loki.source.file` does not handle file discovery. You can use `local.file_match` for file discovery. Refer to the [File Globbing](#file-globbing) example for more information.
-{{% /admonition %}}
+{{< /admonition >}}
 
 ## Usage
 
@@ -143,14 +143,18 @@ the component reads. All other labels starting with a double underscore are
 considered _internal_ and are removed from the log entries before they're
 passed to other `loki.*` components.
 
-The component uses its data path (a directory named after the domain's
-fully qualified name) to store its _positions file_. The positions file is used
-to store read offsets, so that in case of a component or Agent restart,
+The component uses its data path, a directory named after the domain's
+fully qualified name, to store its _positions file_. The positions file is used
+to store read offsets, so that if a component or {{< param "PRODUCT_ROOT_NAME" >}} restarts,
 `loki.source.file` can pick up tailing from the same spot.
+
+The data path is inside the directory configured by the `--storage.path` [command line argument][cmd-args].
 
 If a file is removed from the `targets` list, its positions file entry is also
 removed. When it's added back on, `loki.source.file` starts reading it from the
 beginning.
+
+[cmd-args]: {{< relref "../cli/run.md" >}}
 
 ## Examples
 
@@ -245,11 +249,9 @@ loki.write "local" {
 - Components that export [Loki `LogsReceiver`]({{< relref "../compatibility/#loki-logsreceiver-exporters" >}})
 
 
-{{% admonition type="note" %}}
-
-Connecting some components may not be sensible or components may require further configuration to make the 
-connection work correctly. Refer to the linked documentation for more details.
-
-{{% /admonition %}}
+{{< admonition type="note" >}}
+Connecting some components may not be sensible or components may require further configuration to make the connection work correctly.
+Refer to the linked documentation for more details.
+{{< /admonition >}}
 
 <!-- END GENERATED COMPATIBLE COMPONENTS -->

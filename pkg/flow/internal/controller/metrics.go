@@ -112,7 +112,9 @@ func (cc *controllerCollector) Collect(ch chan<- prometheus.Metric) {
 	for _, component := range cc.l.Components() {
 		health := component.CurrentHealth().Health.String()
 		componentsByHealth[health]++
-		component.registry.Collect(ch)
+		if builtinComponent, ok := component.(*BuiltinComponentNode); ok {
+			builtinComponent.registry.Collect(ch)
+		}
 	}
 
 	for health, count := range componentsByHealth {

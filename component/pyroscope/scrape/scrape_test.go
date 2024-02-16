@@ -142,34 +142,44 @@ func TestUnmarshalConfig(t *testing.T) {
 				return r
 			},
 		},
-		"invalid cpu timeout": {
+		"invalid cpu scrape_interval": {
 			in: `
 			targets    = []
 			forward_to = null
 			scrape_timeout = "1s"
 			scrape_interval = "0.5s"
 			`,
-			expectedErr: "process_cpu scrape_timeout must be at least 2 seconds",
+			expectedErr: "scrape_interval must be at least 2 seconds when using delta profiling",
 		},
-		"invalid timeout/interval": {
+		"allow short scrape_intervals without delta": {
 			in: `
 			targets    = []
 			forward_to = null
-			scrape_timeout = "4s"
-			scrape_interval = "5s"
+			scrape_interval = "0.5s"
+			profiling_config {
+				profile.process_cpu {
+					enabled = false
+				}
+		   }
 			`,
-			expectedErr: "scrape_timeout must be greater than scrape_interval",
+			expected: func() Arguments {
+				r := NewDefaultArguments()
+				r.Targets = make([]discovery.Target, 0)
+				r.ScrapeInterval = 500 * time.Millisecond
+				r.ProfilingConfig.ProcessCPU.Enabled = false
+				return r
+			},
 		},
 		"invalid HTTPClientConfig": {
 			in: `
 			targets    = []
 			forward_to = null
 			scrape_timeout = "5s"
-			scrape_interval = "1s"
+			scrape_interval = "2s"
 			bearer_token = "token"
 			bearer_token_file = "/path/to/file.token"
 			`,
-			expectedErr: "at most one of bearer_token & bearer_token_file must be configured",
+			expectedErr: "at most one of basic_auth, authorization, oauth2, bearer_token & bearer_token_file must be configured",
 		},
 	} {
 		tt := tt

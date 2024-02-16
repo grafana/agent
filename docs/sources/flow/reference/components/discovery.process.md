@@ -15,9 +15,9 @@ title: discovery.process
 
 `discovery.process` discovers processes running on the local Linux OS.
 
-{{% admonition type="note" %}}
+{{< admonition type="note" >}}
 To use the `discovery.process` component you must run {{< param "PRODUCT_NAME" >}} as root and inside host PID namespace.
-{{% /admonition %}}
+{{< /admonition >}}
 
 ## Usage
 
@@ -207,11 +207,9 @@ discovery.process "all" {
 
 - Components that consume [Targets]({{< relref "../compatibility/#targets-consumers" >}})
 
-{{% admonition type="note" %}}
-
-Connecting some components may not be sensible or components may require further configuration to make the 
-connection work correctly. Refer to the linked documentation for more details.
-
-{{% /admonition %}}
+{{< admonition type="note" >}}
+Connecting some components may not be sensible or components may require further configuration to make the connection work correctly.
+Refer to the linked documentation for more details.
+{{< /admonition >}}
 
 <!-- END GENERATED COMPATIBLE COMPONENTS -->

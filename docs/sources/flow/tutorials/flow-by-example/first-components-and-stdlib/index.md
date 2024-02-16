@@ -5,7 +5,7 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/tutorials/flow-by-example/first-components-and-stdlib/
 - /docs/grafana-cloud/send-data/agent/flow/tutorials/first-components-and-stdlib/
 canonical: https://grafana.com/docs/agent/latest/flow/tutorials/flow-by-example/first-components-and-stdlib/
-description: Learn about the basics of River and the Flow configuration language
+description: Learn about the basics of River and the configuration language
 title: First components and introducing the standard library
 weight: 20
 ---
@@ -16,7 +16,7 @@ This tutorial covers the basics of the River language and the standard library. 
 
 ## River basics
 
-[Configuration language]: https://grafana.com/docs/agent/<AGENT_VERSION>/flow/config-language/
+[Configuration language]: https://grafana.com/docs/agent/<AGENT_VERSION>/flow/concepts/config-language/
 [Configuration language concepts]: https://grafana.com/docs/agent/<AGENT_VERSION>/flow/concepts/configuration_language/
 [Standard library documentation]: https://grafana.com/docs/agent/<AGENT_VERSION>/flow/reference/stdlib/
 
@@ -50,23 +50,23 @@ This tutorial covers the basics of the River language and the standard library. 
     }
     ```
 
-    {{% admonition type="note" %}}
+    {{< admonition type="note" >}}
 The default log level is `info` and the default log format is `logfmt`.
-    {{% /admonition %}}
+    {{< /admonition >}}
 
     Try pasting this into `config.river` and running `/path/to/agent run config.river` to see what happens.
 
     Congratulations, you've just written your first River file! You've also just written your first {{< param "PRODUCT_NAME" >}} configuration file. This configuration won't do anything, so let's add some components to it.
 
-    {{% admonition type="note" %}}
+    {{< admonition type="note" >}}
 Comments in River are prefixed with `//` and are single-line only. For example: `// This is a comment`.
-    {{% /admonition %}}
+    {{< /admonition >}}
 
 ## Components
 
 [Components]: https://grafana.com/docs/agent/<AGENT_VERSION>/flow/concepts/components/
 [Component controller]: https://grafana.com/docs/agent/<AGENT_VERSION>/flow/concepts/component_controller/
-[Components configuration language]: https://grafana.com/docs/agent/<AGENT_VERSION>/flow/config-language/components/
+[Components configuration language]: https://grafana.com/docs/agent/<AGENT_VERSION>/flow/concepts/config-language/components/
 [env]: https://grafana.com/docs/agent/<AGENT_VERSION>/flow/reference/stdlib/env/
 
 **Recommended reading**
@@ -96,11 +96,11 @@ prometheus.remote_write "local_prom" {
 }
 ```
 
-{{% admonition type="note" %}}
+{{< admonition type="note" >}}
 [Component reference]: https://grafana.com/docs/agent/<AGENT_VERSION>/flow/reference/components/
 
-A list of all available components can be found in the [Component reference][]. Each component has a link to its documentation, which contains a description of what the component does, its arguments, its exports, and Example(s).
-{{% /admonition %}}
+A list of all available components can be found in the [Component reference][]. Each component has a link to its documentation, which contains a description of what the component does, its arguments, its exports, and examples.
+{{< /admonition >}}
 
 This pipeline has two components: `local.file` and `prometheus.remote_write`. The `local.file` component is configured with a single argument, `path`, which is set by calling the [env][] standard library function to retrieve the value of the `HOME` environment variable and concatenating it with the string `"file.txt"`. The `local.file` component has a single export, `content`, which contains the contents of the file.
 
@@ -110,13 +110,13 @@ The `prometheus.remote_write` component is configured with an `endpoint` block, 
 <img src="/media/docs/agent/diagram-flow-by-example-basic-0.svg" alt="Flow of example pipeline with local.file and prometheus.remote_write components" width="200" />
 </p>
 
-{{% admonition type="note" %}}
+{{< admonition type="note" >}}
 The `local.file` component's label is set to `"example"`, so the fully qualified name of the component is `local.file.example`. The `prometheus.remote_write` component's label is set to `"local_prom"`, so the fully qualified name of the component is `prometheus.remote_write.local_prom`.
-{{% /admonition %}}
+{{< /admonition >}}
 
 This example pipeline still doesn't do anything, so let's add some more components to it.
 
-## Shipping our first metrics
+## Shipping your first metrics
 
 [prometheus.exporter.unix]: https://grafana.com/docs/agent/<AGENT_VERSION>/flow/reference/components/prometheus.exporter.unix/
 [prometheus.scrape]: https://grafana.com/docs/agent/<AGENT_VERSION>/flow/reference/components/prometheus.scrape/
@@ -128,10 +128,10 @@ This example pipeline still doesn't do anything, so let's add some more componen
 - Optional: [prometheus.scrape][]
 - Optional: [prometheus.remote_write][]
 
-Let's make a simple pipeline with a `prometheus.exporter.unix` component, a `prometheus.scrape` component to scrape it, and a `prometheus.remote_write` component to send the scraped metrics to Prometheus.
+Make a simple pipeline with a `prometheus.exporter.unix` component, a `prometheus.scrape` component to scrape it, and a `prometheus.remote_write` component to send the scraped metrics to Prometheus.
 
 ```river
-prometheus.exporter.unix "localhost" { 
+prometheus.exporter.unix "localhost" {
     // This component exposes a lot of metrics by default, so we will keep all of the default arguments.
 }
 
@@ -152,7 +152,7 @@ prometheus.remote_write "local_prom" {
 }
 ```
 
-Run the agent with:
+Run {{< param "PRODUCT_NAME" >}} with:
 
 ```bash
 /path/to/agent run config.river
@@ -166,13 +166,13 @@ Navigate to [http://localhost:3000/explore](http://localhost:3000/explore) in yo
 
 ## Visualizing the relationship between components
 
-Let's look at an example pipeline:
+The following diagram is an example pipeline:
 
 <p align="center">
 <img src="/media/docs/agent/diagram-flow-by-example-full-0.svg" alt="Flow of example pipeline with a prometheus.scrape, prometheus.exporter.unix, and prometheus.remote_write components" width="400" />
 </p>
 
-The above configuration defines three components:
+The preceding configuration defines three components:
 
 - `prometheus.scrape` - A component that scrapes metrics from components that export targets.
 - `prometheus.exporter.unix` - A component that exports metrics from the host, built around [node_exporter](https://github.com/prometheus/node_exporter).
@@ -180,7 +180,7 @@ The above configuration defines three components:
 
 The `prometheus.scrape` component references the `prometheus.exporter.unix` component's targets export, which is a list of scrape targets. The `prometheus.scrape` component then forwards the scraped metrics to the `prometheus.remote_write` component.
 
-One rule is that components cannot form a cycle. This means that a component cannot reference itself directly or indirectly. This is to prevent infinite loops from forming in the pipeline.
+One rule is that components can't form a cycle. This means that a component can't reference itself directly or indirectly. This is to prevent infinite loops from forming in the pipeline.
 
 ## Exercise for the reader
 
@@ -190,13 +190,13 @@ One rule is that components cannot form a cycle. This means that a component can
 
 - Optional: [prometheus.exporter.redis][]
 
-Let's start a container running Redis and configure the agent to scrape metrics from it.
+Let's start a container running Redis and configure {{< param "PRODUCT_NAME" >}} to scrape metrics from it.
 
 ```bash
 docker container run -d --name flow-redis -p 6379:6379 --rm redis
 ```
 
-Try modifying the above pipeline to scrape metrics from the Redis exporter. You can refer to the [prometheus.exporter.redis][] component documentation for more information on how to configure it.
+Try modifying the pipeline to scrape metrics from the Redis exporter. You can refer to the [prometheus.exporter.redis][] component documentation for more information on how to configure it.
 
 To give a visual hint, you want to create a pipeline that looks like this:
 
@@ -204,19 +204,19 @@ To give a visual hint, you want to create a pipeline that looks like this:
 <img src="/media/docs/agent/diagram-flow-by-example-exercise-0.svg" alt="Flow of exercise pipeline, with a scrape, unix_exporter, redis_exporter, and remote_write component" width="600" />
 </p>
 
-{{% admonition type="note" %}}
+{{< admonition type="note" >}}
 [concat]: https://grafana.com/docs/agent/<AGENT_VERSION>/flow/reference/stdlib/concat/
 
 You may find the [concat][] standard library function useful.
-{{% /admonition %}}
+{{< /admonition >}}
 
-You can run the agent with the new config file by running:
+You can run {{< param "PRODUCT_NAME" >}} with the new configuration file by running:
 
 ```bash
 /path/to/agent run config.river
 ```
 
-Navigate to [http://localhost:3000/explore](http://localhost:3000/explore) in your browser. After the first scrape, you should be able to query for `redis` metrics as well as `node` metrics!
+Navigate to [http://localhost:3000/explore](http://localhost:3000/explore) in your browser. After the first scrape, you should be able to query for `redis` metrics as well as `node` metrics.
 
 To shut down the Redis container, run:
 
@@ -228,7 +228,7 @@ If you get stuck, you can always view a solution here:
 {{< collapse title="Solution" >}}
 
 ```river
-// Configure your first components, learn about the standard library, and learn how to run the Agent!
+// Configure your first components, learn about the standard library, and learn how to run Grafana Agent
 
 // prometheus.exporter.redis collects information about Redis and exposes
 // targets for other components to use
@@ -267,8 +267,8 @@ prometheus.remote_write "local_prom" {
 
 ## Finishing up and next steps
 
-You might have noticed that running the agent with the above configurations created a directory called `data-agent` in the directory you ran the agent from. This directory is where components can store data, such as the `prometheus.exporter.unix` component storing its WAL (Write Ahead Log). If you look in the directory, do you notice anything interesting? The directory for each component is the fully-qualified name!
+You might have noticed that running {{< param "PRODUCT_NAME" >}} with the configurations created a directory called `data-agent` in the directory you ran {{< param "PRODUCT_NAME" >}} from. This directory is where components can store data, such as the `prometheus.exporter.unix` component storing its WAL (Write Ahead Log). If you look in the directory, do you notice anything interesting? The directory for each component is the fully qualified name.
 
-If you'd like to store the data elsewhere, you can specify a different directory by supplying the `--storage.path` flag to the agent's run command, for example, `/path/to/agent run config.river --storage.path /etc/grafana-agent`. Generally, you will want to use a persistent directory for this, as some components may use the data stored in this directory to perform their function.
+If you'd like to store the data elsewhere, you can specify a different directory by supplying the `--storage.path` flag to {{< param "PRODUCT_ROOT_NAME" >}}'s run command, for example, `/path/to/agent run config.river --storage.path /etc/grafana-agent`. Generally, you can use a persistent directory for this, as some components may use the data stored in this directory to perform their function.
 
-In the next tutorial, we will look at how to configure the agent to collect logs from a file and send them to Loki. We will also look at using different components to process metrics and logs before sending them.
+In the next tutorial, you will look at how to configure {{< param "PRODUCT_NAME" >}} to collect logs from a file and send them to Loki. You will also look at using different components to process metrics and logs before sending them.

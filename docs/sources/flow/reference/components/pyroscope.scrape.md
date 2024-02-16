@@ -77,13 +77,16 @@ Name                | Type                     | Description                    
 `scrape_interval`   | `duration`               | How frequently to scrape the targets of this scrape configuration. | `"15s"`        | no
 `scrape_timeout`    | `duration`               | The timeout for scraping targets of this configuration. Must be larger than `scrape_interval`. | `"18s"`        | no
 `scheme`            | `string`                 | The URL scheme with which to fetch metrics from targets.           | `"http"`       | no
-`bearer_token`      | `secret`                 | Bearer token to authenticate with.                                 |                | no
 `bearer_token_file` | `string`                 | File containing a bearer token to authenticate with.               |                | no
-`proxy_url`         | `string`                 | HTTP proxy to proxy requests through.                              |                | no
-`follow_redirects`  | `bool`                   | Whether redirects returned by the server should be followed.       | `true`         | no
+`bearer_token`      | `secret`                 | Bearer token to authenticate with.                                 |                | no
 `enable_http2`      | `bool`                   | Whether HTTP2 is supported for requests.                           | `true`         | no
+`follow_redirects`  | `bool`                   | Whether redirects returned by the server should be followed.       | `true`         | no
+`proxy_url`         | `string`                 | HTTP proxy to send requests through.                               |                | no
+`no_proxy`               | `string`            | Comma-separated list of IP addresses, CIDR notations, and domain names to exclude from proxying. | | no
+`proxy_from_environment` | `bool`              | Use the proxy URL indicated by environment variables.              | `false`        | no
+`proxy_connect_header`   | `map(list(secret))` | Specifies headers to send to proxies during CONNECT requests.      |                | no
 
-At most one of the following authentication mechanisms can be provided:
+ At most, one of the following can be provided:
  - [`bearer_token` argument](#arguments).
  - [`bearer_token_file` argument](#arguments).
  - [`basic_auth` block][basic_auth].
@@ -91,6 +94,8 @@ At most one of the following authentication mechanisms can be provided:
  - [`oauth2` block][oauth2].
 
 [arguments]: #arguments
+
+{{< docs/shared lookup="flow/reference/components/http-client-proxy-config-description.md" source="agent" version="<AGENT_VERSION>" >}}
 
 #### `job_name` argument
 
@@ -114,6 +119,7 @@ either of the following sources, in this order:
 1. `__meta_kubernetes_pod_annotation_pyroscope_io_service_name` which is a `pyroscope.io/service_name` pod annotation.
 2. `__meta_kubernetes_namespace` and `__meta_kubernetes_pod_container_name`
 3. `__meta_docker_container_name`
+4. `__meta_dockerswarm_container_label_service_name` or `__meta_dockerswarm_service_name`
 
 If `service_name` is not specified and could not be inferred, then it is set to `unspecified`.
 
@@ -522,11 +528,10 @@ discovery.http "dynamic_targets" {
 }
 
 pyroscope.scrape "local" {
-  targets = [
-    {"__address__" = "localhost:4100", "service_name"="pyroscope"},
+  targets = concat([
+    {"__address__" = "localhost:4040", "service_name"="pyroscope"},
     {"__address__" = "localhost:12345", "service_name"="agent"},
-    discovery.http.dynamic_targets.targets,
-  ]
+  ], discovery.http.dynamic_targets.targets)
 
   forward_to = [pyroscope.write.local.receiver]
 }
@@ -589,11 +594,9 @@ http://localhost:12345/debug/pprof/mutex
 - Components that export [Pyroscope `ProfilesReceiver`]({{< relref "../compatibility/#pyroscope-profilesreceiver-exporters" >}})
 
 
-{{% admonition type="note" %}}
-
-Connecting some components may not be sensible or components may require further configuration to make the 
-connection work correctly. Refer to the linked documentation for more details.
-
-{{% /admonition %}}
+{{< admonition type="note" >}}
+Connecting some components may not be sensible or components may require further configuration to make the connection work correctly.
+Refer to the linked documentation for more details.
+{{< /admonition >}}
 
 <!-- END GENERATED COMPATIBLE COMPONENTS -->

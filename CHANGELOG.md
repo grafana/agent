@@ -10,12 +10,11 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
-### Security fixes
+### Breaking changes
 
-- Fixes following vulnerabilities (@hainenber)
-  - [GO-2023-2409](https://github.com/advisories/GHSA-mhpq-9638-x6pw)
-  - [GO-2023-2412](https://github.com/advisories/GHSA-7ww5-4wqc-m92c)
-  - [CVE-2023-49568](https://github.com/advisories/GHSA-mw99-9chc-xw7r)
+- Prohibit the configuration of services within modules. (@wildum)
+
+- For `otelcol.exporter` components, change the default value of `disable_high_cardinality_metrics` to `true`. (@ptodev)
 
 ### Features
 
@@ -23,15 +22,44 @@ Main (unreleased)
 
 - A new `pyroscope.java` component for profiling Java processes using async-profiler. (@korniltsev)
 
+- A new `otelcol.processor.resourcedetection` component which inserts resource attributes
+  to OTLP telemetry based on the host on which Grafana Agent is running. (@ptodev)
+
+- Expose track_timestamps_staleness on Prometheus scraping, to fix the issue where container metrics live for 5 minutes after the container disappears. (@ptodev)
+
+- Introduce the `remotecfg` service that enables loading configuration from a
+  remote endpoint. (@tpaschalis) 
+  
 ### Enhancements
 
+- Include line numbers in profiles produced by `pyrsocope.java` component. (@korniltsev)
 - Add an option to the windows static mode installer for expanding environment vars in the yaml config. (@erikbaranowski)
 - Add authentication support to `loki.source.awsfirehose` (@sberz)
 
 - Sort kubelet endpoint to reduce pressure on K8s's API server and watcher endpoints. (@hainenber)
 
-- Expose `physical_disk` collector from `windows_exporter` v0.24.0 to 
+- Expose `physical_disk` collector from `windows_exporter` v0.24.0 to
   Flow configuration. (@hainenber)
+
+- Renamed Grafana Agent Mixin's "prometheus.remote_write" dashboard to
+  "Prometheus Components" and added charts for `prometheus.scrape` success rate
+  and duration metrics. (@thampiotr)
+
+- Removed `ClusterLamportClockDrift` and `ClusterLamportClockStuck` alerts from
+  Grafana Agent Mixin to focus on alerting on symptoms. (@thampiotr)
+
+- Increased clustering alert periods to 10 minutes to improve the
+  signal-to-noise ratio in Grafana Agent Mixin. (@thampiotr)
+
+- `mimir.rules.kubernetes` has a new `prometheus_http_prefix` argument to configure
+  the HTTP endpoint on which to connect to Mimir's API. (@hainenber)
+
+- `service_name` label is inferred from discovery meta labels in `pyroscope.java` (@korniltsev)
+
+- Mutex and block pprofs are now available via the pprof endpoint. (@mattdurham)
+
+- Added additional http client proxy configurations to components for
+  `no_proxy`, `proxy_from_environment`, and `proxy_connect_header`. (@erikbaranowski)
 
 ### Bugfixes
 
@@ -43,6 +71,18 @@ Main (unreleased)
 - Fix a duplicate metrics registration panic when sending metrics to an static
   mode metric instance's write handler. (@tpaschalis)
 
+- Fix issue causing duplicate logs when a docker target is restarted. (@captncraig)
+
+- Fix an issue where blocks having the same type and the same label across
+  modules could result in missed updates. (@thampiotr)
+
+- Fix an issue with static integrations-next marshaling where non singletons
+  would cause `/-/config` to fail to marshal. (@erikbaranowski)
+
+- Fix divide-by-zero issue when sharding targets. (@hainenber) 
+
+- Fix bug where custom headers were not actually being set in loki client. (@captncraig)
+
 - Fix OTEL metrics not getting collected after reload. (@hainenber)
 
 ### Other changes
@@ -52,6 +92,39 @@ Main (unreleased)
 - Split instance ID and component groupings into separate panels for `remote write active series by component` in the Flow mixin. (@tristanburgess)
 
 - Updated dependency to add support for Go 1.22 (@stefanb)
+
+- Use Go 1.22 for builds. (@rfratto)
+
+- Updated docs for MSSQL Integration to show additional authentication capabilities. (@StefanKurek)
+
+- `grafana-agent` and `grafana-agent-flow` fallback to default X.509 trusted root certificates
+  when the `GODEBUG=x509usefallbackroots=1` environment variable is set. (@hainenber)
+
+v0.39.2 (2024-1-31)
+--------------------
+
+### Bugfixes
+
+- Fix error introduced in v0.39.0 preventing remote write to Amazon Managed Prometheus. (@captncraig)
+
+- An error will be returned in the converter from Static to Flow when `scrape_integration` is set
+  to `true` but no `remote_write` is defined. (@erikbaranowski)
+
+
+v0.39.1 (2024-01-19)
+--------------------
+
+### Security fixes
+
+- Fixes following vulnerabilities (@hainenber)
+  - [GO-2023-2409](https://github.com/advisories/GHSA-mhpq-9638-x6pw)
+  - [GO-2023-2412](https://github.com/advisories/GHSA-7ww5-4wqc-m92c)
+  - [CVE-2023-49568](https://github.com/advisories/GHSA-mw99-9chc-xw7r)
+
+### Bugfixes
+
+- Fix issue where installing the Windows Agent Flow installer would hang then crash. (@mattdurham)
+
 
 v0.39.0 (2024-01-09)
 --------------------
@@ -71,7 +144,7 @@ v0.39.0 (2024-01-09)
   - This change will not break any existing configurations and you can opt in to validation via the `validate_dimensions` configuration option.
   - Before this change, pulling metrics for azure resources with variable dimensions required one configuration per metric + dimension combination to avoid an error.
   - After this change, you can include all metrics and dimensions in a single configuration and the Azure APIs will only return dimensions which are valid for the various metrics.
-  
+
 ### Features
 
 - A new `discovery.ovhcloud` component for discovering scrape targets on OVHcloud. (@ptodev)
@@ -168,7 +241,7 @@ v0.39.0 (2024-01-09)
 - Attach unique Agent ID header to remote-write requests. (@captncraig)
 
 - Update to v2.48.1 of `github.com/prometheus/prometheus`.
-  Previously, a custom fork of v2.47.2 was used. 
+  Previously, a custom fork of v2.47.2 was used.
   The custom fork of v2.47.2 also contained prometheus#12729 and prometheus#12677.
 
 v0.38.1 (2023-11-30)

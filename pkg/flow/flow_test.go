@@ -59,7 +59,7 @@ func getFields(t *testing.T, g *dag.Graph, nodeID string) (component.Arguments, 
 	n := g.GetByID(nodeID)
 	require.NotNil(t, n, "couldn't find node %q in graph", nodeID)
 
-	uc := n.(*controller.ComponentNode)
+	uc := n.(*controller.BuiltinComponentNode)
 	return uc.Arguments(), uc.Exports()
 }
 

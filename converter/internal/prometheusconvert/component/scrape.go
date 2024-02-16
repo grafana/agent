@@ -52,6 +52,7 @@ func toScrapeArguments(scrapeConfig *prom_config.ScrapeConfig, forwardTo []stora
 		JobName:                   scrapeConfig.JobName,
 		HonorLabels:               scrapeConfig.HonorLabels,
 		HonorTimestamps:           scrapeConfig.HonorTimestamps,
+		TrackTimestampsStaleness:  scrapeConfig.TrackTimestampsStaleness,
 		Params:                    scrapeConfig.Params,
 		ScrapeClassicHistograms:   scrapeConfig.ScrapeClassicHistograms,
 		ScrapeInterval:            time.Duration(scrapeConfig.ScrapeInterval),
