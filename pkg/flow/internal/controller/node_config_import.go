@@ -237,7 +237,7 @@ func (cn *ImportConfigNode) processImportedContent(content *ast.File) error {
 
 		componentName := strings.Join(blockStmt.Name, ".")
 		switch componentName {
-		case "declare":
+		case declareType:
 			cn.processDeclareBlock(blockStmt)
 		case importsource.BlockImportFile, importsource.BlockImportString: // TODO: add other import sources
 			err := cn.processImportBlock(blockStmt, componentName)
@@ -332,14 +332,19 @@ func (cn *ImportConfigNode) Run(ctx context.Context) error {
 		return runner.ApplyTasks(newCtx, tasks)
 	}
 
-	updateTasks()
+	err := updateTasks()
+	if err != nil {
+		level.Error(cn.logger).Log("msg", "import failed to run nested imports", "err", err)
+		cn.setRunHealth(component.HealthTypeExited, fmt.Sprintf("import shut down while trying to run nested imports with error: %s", err))
+		return err
+	}
 
 	go func() {
 		errChan <- cn.source.Run(newCtx)
 	}()
 
 	cn.setRunHealth(component.HealthTypeHealthy, "started import")
-	err := cn.run(errChan, updateTasks)
+	err = cn.run(errChan, updateTasks)
 
 	var exitMsg string
 	if err != nil {
