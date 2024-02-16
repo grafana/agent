@@ -10,8 +10,8 @@ steps:
   - docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD
   - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
   - docker buildx create --name multiarch --driver docker-container --use
-  - docker buildx build --push --platform linux/amd64,linux/arm64 -t grafana/agent-build-image:$IMAGE_TAG
-    ./build-image
+  - docker buildx build --build-arg="GO_RUNTIME=golang:1.22.0-bullseye" --push --platform
+    linux/amd64,linux/arm64 -t grafana/agent-build-image:$IMAGE_TAG ./build-image
   environment:
     DOCKER_LOGIN:
       from_secret: docker_login
@@ -1350,3 +1350,8 @@ get:
   path: infra/data/ci/github/updater-app
 kind: secret
 name: updater_private_key
+---
+kind: signature
+hmac: 2e439110a89f33a78d745a71635d47f9b1a99de6028bb84c258a0be9c09840f2
+
+...

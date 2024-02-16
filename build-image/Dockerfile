@@ -6,7 +6,7 @@
 
 # NOTE: The GO_RUNTIME is used to switch between the default google go runtime and  mcr.microsoft.com/oss/go/microsoft/golang:1.22-bullseye which is a microsoft
 # fork of go that allows using windows crypto instead of boring crypto. Details at https://github.com/microsoft/go/tree/microsoft/main/eng/doc/fips
-ARG GO_RUNTIME=golang:1.22.0-bullseye
+ARG GO_RUNTIME=mustoverride
 
 #
 # Dependencies
