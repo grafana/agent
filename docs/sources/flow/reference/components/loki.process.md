@@ -961,7 +961,7 @@ The following arguments are supported:
 | Name               | Type           | Description                                                                     | Default | Required |
 | ------------------ | -------------- | ------------------------------------------------------------------------------- | ------- | -------- |
 | `labels`           | `list(string)` | The values from the extracted data and labels to pack with the log entry.       |         | yes      |
-| `ingest_timestamp` | `bool`         | Whether to replace the log entry timestamp with the time the `pack` stage runs. | `true   | no       |
+| `ingest_timestamp` | `bool`         | Whether to replace the log entry timestamp with the time the `pack` stage runs. | `true`  | no       |
 
 This stage lets you embed extracted values and labels together with the log
 line, by packing them into a JSON object. The original message is stored under
@@ -1458,6 +1458,11 @@ The following arguments are supported:
 | `fallback_formats`  | `list(string)` | Fallback formats to try if the `format` field fails.        | `[]`      | no       |
 | `location`          | `string`       | IANA Timezone Database location to use when parsing.        | `""`      | no       |
 | `action_on_failure` | `string`       | What to do when the timestamp can't be extracted or parsed. | `"fudge"` | no       |
+
+{{< admonition type="note" >}}
+Be careful with further stages which may also override the timestamp.
+For example, a `stage.pack` with `ingest_timestamp` set to `true` could replace the timestamp which `stage.timestamp` had set earlier in the pipeline.
+{{< /admonition >}}
 
 The `source` field defines which value from the shared map of extracted values
 the stage should attempt to parse as a timestamp.
