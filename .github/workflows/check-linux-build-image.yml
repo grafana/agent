@@ -24,3 +24,5 @@ jobs:
           context: ./build-image
           push: false
           tags: grafana/agent-build-image:latest
+          build-args: |
+            GO_RUNTIME=mcr.microsoft.com/oss/go/microsoft/golang:1.22-bullseye
