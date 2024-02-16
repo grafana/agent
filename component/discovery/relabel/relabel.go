@@ -44,13 +44,19 @@ type Component struct {
 
 	mut sync.RWMutex
 	rcs []*relabel.Config
+
+	// todo: limit cache size. rotate out old entries, etc.
+	cache map[string]*discovery.Target
 }
 
 var _ component.Component = (*Component)(nil)
 
 // New creates a new discovery.relabel component.
 func New(o component.Options, args Arguments) (*Component, error) {
-	c := &Component{opts: o}
+	c := &Component{
+		opts:  o,
+		cache: map[string]*discovery.Target{},
+	}
 
 	// Call to Update() to set the output once at the start
 	if err := c.Update(args); err != nil {
@@ -73,15 +79,29 @@ func (c *Component) Update(args component.Arguments) error {
 
 	newArgs := args.(Arguments)
 
+	// todo: if rules change, purge cache
 	targets := make([]discovery.Target, 0, len(newArgs.Targets))
+
 	relabelConfigs := flow_relabel.ComponentToPromRelabelConfigs(newArgs.RelabelConfigs)
 	c.rcs = relabelConfigs
 
 	for _, t := range newArgs.Targets {
-		lset := componentMapToPromLabels(t)
+		key := t.GetHash()
+		if newT, ok := c.cache[key]; ok {
+			if newT != nil {
+				targets = append(targets, *newT)
+			}
+			continue
+		}
+		lset := t.Labels()
 		lset, keep := relabel.Process(lset, relabelConfigs...)
 		if keep {
-			targets = append(targets, promLabelsToComponent(lset))
+			targ := promLabelsToComponent(lset)
+			targ.ResetHash()
+			targets = append(targets, targ)
+			c.cache[key] = &targ
+		} else {
+			c.cache[key] = nil
 		}
 	}
 
@@ -91,15 +111,6 @@ func (c *Component) Update(args component.Arguments) error {
 	})
 
 	return nil
-}
-
-func componentMapToPromLabels(ls discovery.Target) labels.Labels {
-	res := make([]labels.Label, 0, len(ls))
-	for k, v := range ls {
-		res = append(res, labels.Label{Name: k, Value: v})
-	}
-
-	return res
 }
 
 func promLabelsToComponent(ls labels.Labels) discovery.Target {

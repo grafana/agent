@@ -2,6 +2,7 @@ package discovery
 
 import (
 	"context"
+	"fmt"
 	"sort"
 	"strings"
 	"sync"
@@ -19,6 +20,18 @@ import (
 // Target refers to a singular discovered endpoint found by a discovery
 // component.
 type Target map[string]string
+
+func (t Target) ResetHash() {
+	delete(t, LabelHashKey)
+	t[LabelHashKey] = t.GetHash()
+}
+
+func (t Target) GetHash() string {
+	if v, ok := t[LabelHashKey]; ok {
+		return v
+	}
+	return fmt.Sprint(t.Labels().Hash())
+}
 
 // DistributedTargets uses the node's Lookup method to distribute discovery
 // targets when a Flow component runs in a cluster.
@@ -168,6 +181,10 @@ func (c *Component) Update(args component.Arguments) error {
 	return nil
 }
 
+// LabelHashKey is a label added to each label set to be used as a cache key.
+// any time a label set changes, this should be recalculated with Labels.Hash()
+const LabelHashKey = "__meta_agent_hash"
+
 // MaxUpdateFrequency is the minimum time to wait between updating targets.
 // Prometheus uses a static threshold. Do not recommend changing this, except for tests.
 var MaxUpdateFrequency = 5 * time.Second
@@ -186,7 +203,7 @@ func (c *Component) runDiscovery(ctx context.Context, d Discoverer) {
 		allTargets := []Target{}
 		for _, group := range cache {
 			for _, target := range group.Targets {
-				labels := map[string]string{}
+				labels := Target{}
 				// first add the group labels, and then the
 				// target labels, so that target labels take precedence.
 				for k, v := range group.Labels {
@@ -195,6 +212,7 @@ func (c *Component) runDiscovery(ctx context.Context, d Discoverer) {
 				for k, v := range target {
 					labels[string(k)] = string(v)
 				}
+				labels.ResetHash()
 				allTargets = append(allTargets, labels)
 			}
 		}
