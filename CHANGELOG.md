@@ -61,6 +61,8 @@ Main (unreleased)
 - Added additional http client proxy configurations to components for
   `no_proxy`, `proxy_from_environment`, and `proxy_connect_header`. (@erikbaranowski)
 
+- Batch staleness tracking to reduce mutex contention and increase performance. (@mattdurham)
+
 ### Bugfixes
 
 - Fix an issue in `remote.s3` where the exported content of an object would be an empty string if `remote.s3` failed to fully retrieve
