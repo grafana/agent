@@ -44,8 +44,9 @@ steps:
   - docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD
   - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
   - docker buildx create --name multiarch --driver docker-container --use
-  - docker buildx build --push --platform linux/amd64,linux/arm64 -t grafana/agent-build-image:$IMAGE_TAG
-    ./build-image/boringcrypto
+  - docker buildx build --build-arg="GO_RUNTIME=mcr.microsoft.com/oss/go/microsoft/golang:1.22-bullseye"
+    --push --platform linux/amd64,linux/arm64 -t grafana/agent-build-image:$IMAGE_TAG
+    ./build-image
   environment:
     DOCKER_LOGIN:
       from_secret: docker_login
@@ -1349,8 +1350,3 @@ get:
   path: infra/data/ci/github/updater-app
 kind: secret
 name: updater_private_key
----
-kind: signature
-hmac: d66a28c3489b7a19b64e82590630ceed4fc71789a76b3da8564c2aae604253ad
-
-...
