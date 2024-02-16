@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/grafana/river"
-	yaceConf "github.com/nerdswords/yet-another-cloudwatch-exporter/pkg/config"
 	yaceModel "github.com/nerdswords/yet-another-cloudwatch-exporter/pkg/model"
 	"github.com/stretchr/testify/require"
 )
@@ -54,7 +53,7 @@ static "super_ec2_instance_id" {
 const discoveryJobConfig = `
 sts_region = "us-east-2"
 debug = true
-discovery_exported_tags = { "ec2" = ["name"] }
+discovery_exported_tags = { "sqs" = ["name"] }
 discovery {
 	type = "sqs"
 	regions = ["us-east-2"]
@@ -144,7 +143,7 @@ static "super_ec2_instance_id" {
 const discoveryJobNilToZeroConfig = `
 sts_region = "us-east-2"
 debug = true
-discovery_exported_tags = { "ec2" = ["name"] }
+discovery_exported_tags = { "sqs" = ["name"] }
 discovery {
 	type = "sqs"
 	regions = ["us-east-2"]
@@ -171,7 +170,7 @@ discovery {
 func TestCloudwatchComponentConfig(t *testing.T) {
 	type testcase struct {
 		raw                 string
-		expected            yaceConf.ScrapeConf
+		expected            yaceModel.JobsConfig
 		expectUnmarshallErr bool
 		expectConvertErr    bool
 	}
@@ -191,26 +190,24 @@ func TestCloudwatchComponentConfig(t *testing.T) {
 		},
 		"single static job config": {
 			raw: singleStaticJobConfig,
-			expected: yaceConf.ScrapeConf{
-				APIVersion: "v1alpha1",
-				StsRegion:  "us-east-2",
-				Discovery:  yaceConf.Discovery{},
-				Static: []*yaceConf.Static{
+			expected: yaceModel.JobsConfig{
+				StsRegion: "us-east-2",
+				StaticJobs: []yaceModel.StaticJob{
 					{
 						Name: "super_ec2_instance_id",
 						// assert an empty role is used as default. IMPORTANT since this
 						// is what YACE looks for delegating to the environment role
-						Roles:      []yaceConf.Role{{}},
+						Roles:      []yaceModel.Role{{}},
 						Regions:    []string{"us-east-2"},
 						Namespace:  "AWS/EC2",
 						CustomTags: []yaceModel.Tag{},
-						Dimensions: []yaceConf.Dimension{
+						Dimensions: []yaceModel.Dimension{
 							{
 								Name:  "InstanceId",
 								Value: "i01u29u12ue1u2c",
 							},
 						},
-						Metrics: []*yaceConf.Metric{{
+						Metrics: []*yaceModel.MetricConfig{{
 							Name:                   "CPUUsage",
 							Statistics:             []string{"Sum", "Average"},
 							Period:                 60,
@@ -225,136 +222,130 @@ func TestCloudwatchComponentConfig(t *testing.T) {
 		},
 		"single discovery job config": {
 			raw: discoveryJobConfig,
-			expected: yaceConf.ScrapeConf{
-				APIVersion: "v1alpha1",
-				StsRegion:  "us-east-2",
-				Discovery: yaceConf.Discovery{
-					ExportedTagsOnMetrics: yaceModel.ExportedTagsOnMetrics{
-						"ec2": []string{"name"},
+			expected: yaceModel.JobsConfig{
+				StsRegion: "us-east-2",
+				DiscoveryJobs: []yaceModel.DiscoveryJob{{
+					Regions: []string{"us-east-2"},
+					// assert an empty role is used as default. IMPORTANT since this
+					// is what YACE looks for delegating to the environment role
+					Roles: []yaceModel.Role{{}},
+					Type:  "sqs",
+					SearchTags: []yaceModel.Tag{{
+						Key: "scrape", Value: "true",
+					}},
+					CustomTags: []yaceModel.Tag{},
+					Metrics: []*yaceModel.MetricConfig{
+						{
+							Name:                   "NumberOfMessagesSent",
+							Statistics:             []string{"Sum", "Average"},
+							Period:                 60,
+							Length:                 60,
+							Delay:                  0,
+							NilToZero:              &defaultNilToZero,
+							AddCloudwatchTimestamp: &addCloudwatchTimestamp,
+						},
+						{
+							Name:                   "NumberOfMessagesReceived",
+							Statistics:             []string{"Sum", "Average"},
+							Period:                 60,
+							Length:                 60,
+							Delay:                  0,
+							NilToZero:              &defaultNilToZero,
+							AddCloudwatchTimestamp: &addCloudwatchTimestamp,
+						},
 					},
-					Jobs: []*yaceConf.Job{
-						{
-							Regions: []string{"us-east-2"},
-							// assert an empty role is used as default. IMPORTANT since this
-							// is what YACE looks for delegating to the environment role
-							Roles: []yaceConf.Role{{}},
-							Type:  "sqs",
-							SearchTags: []yaceModel.Tag{{
-								Key: "scrape", Value: "true",
-							}},
-							CustomTags: []yaceModel.Tag{},
-							Metrics: []*yaceConf.Metric{
-								{
-									Name:                   "NumberOfMessagesSent",
-									Statistics:             []string{"Sum", "Average"},
-									Period:                 60,
-									Length:                 60,
-									Delay:                  0,
-									NilToZero:              &defaultNilToZero,
-									AddCloudwatchTimestamp: &addCloudwatchTimestamp,
-								},
-								{
-									Name:                   "NumberOfMessagesReceived",
-									Statistics:             []string{"Sum", "Average"},
-									Period:                 60,
-									Length:                 60,
-									Delay:                  0,
-									NilToZero:              &defaultNilToZero,
-									AddCloudwatchTimestamp: &addCloudwatchTimestamp,
-								},
-							},
-							RoundingPeriod: nil,
-							JobLevelMetricFields: yaceConf.JobLevelMetricFields{
-								Period:                 0,
-								Length:                 0,
+					RoundingPeriod: nil,
+					JobLevelMetricFields: yaceModel.JobLevelMetricFields{
+						Period:                 0,
+						Length:                 0,
+						Delay:                  0,
+						AddCloudwatchTimestamp: &falsePtr,
+						NilToZero:              &defaultNilToZero,
+					},
+					ExportedTagsOnMetrics: []string{"name"},
+				},
+					{
+						Regions: []string{"us-east-1"},
+						Roles: []yaceModel.Role{{
+							RoleArn: "arn:aws:iam::878167871295:role/yace_testing",
+						}},
+						Type:       "AWS/ECS",
+						SearchTags: []yaceModel.Tag{},
+						CustomTags: []yaceModel.Tag{},
+						Metrics: []*yaceModel.MetricConfig{
+							{
+								Name:                   "CPUUtilization",
+								Statistics:             []string{"Sum", "Maximum"},
+								Period:                 60,
+								Length:                 60,
 								Delay:                  0,
-								AddCloudwatchTimestamp: &falsePtr,
 								NilToZero:              &defaultNilToZero,
+								AddCloudwatchTimestamp: &addCloudwatchTimestamp,
 							},
 						},
-						{
-							Regions: []string{"us-east-1"},
-							Roles: []yaceConf.Role{{
-								RoleArn: "arn:aws:iam::878167871295:role/yace_testing",
-							}},
-							Type:       "AWS/ECS",
-							SearchTags: []yaceModel.Tag{},
-							CustomTags: []yaceModel.Tag{},
-							Metrics: []*yaceConf.Metric{
-								{
-									Name:                   "CPUUtilization",
-									Statistics:             []string{"Sum", "Maximum"},
-									Period:                 60,
-									Length:                 60,
-									Delay:                  0,
-									NilToZero:              &defaultNilToZero,
-									AddCloudwatchTimestamp: &addCloudwatchTimestamp,
-								},
-							},
-							RoundingPeriod: nil,
-							JobLevelMetricFields: yaceConf.JobLevelMetricFields{
-								Period:                 0,
-								Length:                 0,
+						RoundingPeriod: nil,
+						JobLevelMetricFields: yaceModel.JobLevelMetricFields{
+							Period:                 0,
+							Length:                 0,
+							Delay:                  0,
+							AddCloudwatchTimestamp: &falsePtr,
+							NilToZero:              &defaultNilToZero,
+						},
+						ExportedTagsOnMetrics: []string{},
+					},
+					{
+						Regions: []string{"us-east-1"},
+						Roles: []yaceModel.Role{{
+							RoleArn: "arn:aws:iam::878167871295:role/yace_testing",
+						}},
+						Type:                      "s3",
+						SearchTags:                []yaceModel.Tag{},
+						CustomTags:                []yaceModel.Tag{},
+						DimensionNameRequirements: []string{"BucketName"},
+						Metrics: []*yaceModel.MetricConfig{
+							{
+								Name:                   "BucketSizeBytes",
+								Statistics:             []string{"Sum"},
+								Period:                 60,
+								Length:                 3600,
 								Delay:                  0,
-								AddCloudwatchTimestamp: &falsePtr,
 								NilToZero:              &defaultNilToZero,
+								AddCloudwatchTimestamp: &addCloudwatchTimestamp,
 							},
 						},
-						{
-							Regions: []string{"us-east-1"},
-							Roles: []yaceConf.Role{{
-								RoleArn: "arn:aws:iam::878167871295:role/yace_testing",
-							}},
-							Type:                      "s3",
-							SearchTags:                []yaceModel.Tag{},
-							CustomTags:                []yaceModel.Tag{},
-							DimensionNameRequirements: []string{"BucketName"},
-							Metrics: []*yaceConf.Metric{
-								{
-									Name:                   "BucketSizeBytes",
-									Statistics:             []string{"Sum"},
-									Period:                 60,
-									Length:                 3600,
-									Delay:                  0,
-									NilToZero:              &defaultNilToZero,
-									AddCloudwatchTimestamp: &addCloudwatchTimestamp,
-								},
-							},
-							RoundingPeriod: nil,
-							JobLevelMetricFields: yaceConf.JobLevelMetricFields{
-								Period:                 0,
-								Length:                 0,
-								Delay:                  0,
-								AddCloudwatchTimestamp: &falsePtr,
-								NilToZero:              &defaultNilToZero,
-							},
+						RoundingPeriod: nil,
+						JobLevelMetricFields: yaceModel.JobLevelMetricFields{
+							Period:                 0,
+							Length:                 0,
+							Delay:                  0,
+							AddCloudwatchTimestamp: &falsePtr,
+							NilToZero:              &defaultNilToZero,
 						},
+						ExportedTagsOnMetrics: []string{},
 					},
 				},
 			},
 		},
 		"static job nil to zero": {
 			raw: staticJobNilToZeroConfig,
-			expected: yaceConf.ScrapeConf{
-				APIVersion: "v1alpha1",
-				StsRegion:  "us-east-2",
-				Discovery:  yaceConf.Discovery{},
-				Static: []*yaceConf.Static{
+			expected: yaceModel.JobsConfig{
+				StsRegion: "us-east-2",
+				StaticJobs: []yaceModel.StaticJob{
 					{
 						Name: "super_ec2_instance_id",
 						// assert an empty role is used as default. IMPORTANT since this
 						// is what YACE looks for delegating to the environment role
-						Roles:      []yaceConf.Role{{}},
+						Roles:      []yaceModel.Role{{}},
 						Regions:    []string{"us-east-2"},
 						Namespace:  "AWS/EC2",
 						CustomTags: []yaceModel.Tag{},
-						Dimensions: []yaceConf.Dimension{
+						Dimensions: []yaceModel.Dimension{
 							{
 								Name:  "InstanceId",
 								Value: "i01u29u12ue1u2c",
 							},
 						},
-						Metrics: []*yaceConf.Metric{{
+						Metrics: []*yaceModel.MetricConfig{{
 							Name:                   "CPUUsage",
 							Statistics:             []string{"Sum", "Average"},
 							Period:                 60,
@@ -369,26 +360,24 @@ func TestCloudwatchComponentConfig(t *testing.T) {
 		},
 		"static job nil to zero metric": {
 			raw: staticJobNilToZeroMetricConfig,
-			expected: yaceConf.ScrapeConf{
-				APIVersion: "v1alpha1",
-				StsRegion:  "us-east-2",
-				Discovery:  yaceConf.Discovery{},
-				Static: []*yaceConf.Static{
+			expected: yaceModel.JobsConfig{
+				StsRegion: "us-east-2",
+				StaticJobs: []yaceModel.StaticJob{
 					{
 						Name: "super_ec2_instance_id",
 						// assert an empty role is used as default. IMPORTANT since this
 						// is what YACE looks for delegating to the environment role
-						Roles:      []yaceConf.Role{{}},
+						Roles:      []yaceModel.Role{{}},
 						Regions:    []string{"us-east-2"},
 						Namespace:  "AWS/EC2",
 						CustomTags: []yaceModel.Tag{},
-						Dimensions: []yaceConf.Dimension{
+						Dimensions: []yaceModel.Dimension{
 							{
 								Name:  "InstanceId",
 								Value: "i01u29u12ue1u2c",
 							},
 						},
-						Metrics: []*yaceConf.Metric{{
+						Metrics: []*yaceModel.MetricConfig{{
 							Name:                   "CPUUsage",
 							Statistics:             []string{"Sum", "Average"},
 							Period:                 60,
@@ -403,53 +392,48 @@ func TestCloudwatchComponentConfig(t *testing.T) {
 		},
 		"discovery job nil to zero config": {
 			raw: discoveryJobNilToZeroConfig,
-			expected: yaceConf.ScrapeConf{
-				APIVersion: "v1alpha1",
-				StsRegion:  "us-east-2",
-				Discovery: yaceConf.Discovery{
-					ExportedTagsOnMetrics: yaceModel.ExportedTagsOnMetrics{
-						"ec2": []string{"name"},
-					},
-					Jobs: []*yaceConf.Job{
-						{
-							Regions: []string{"us-east-2"},
-							// assert an empty role is used as default. IMPORTANT since this
-							// is what YACE looks for delegating to the environment role
-							Roles: []yaceConf.Role{{}},
-							Type:  "sqs",
-							SearchTags: []yaceModel.Tag{{
-								Key: "scrape", Value: "true",
-							}},
-							CustomTags: []yaceModel.Tag{},
-							Metrics: []*yaceConf.Metric{
-								{
-									Name:                   "NumberOfMessagesSent",
-									Statistics:             []string{"Sum", "Average"},
-									Period:                 60,
-									Length:                 60,
-									Delay:                  0,
-									NilToZero:              &falsePtr,
-									AddCloudwatchTimestamp: &addCloudwatchTimestamp,
-								},
-								{
-									Name:                   "NumberOfMessagesReceived",
-									Statistics:             []string{"Sum", "Average"},
-									Period:                 60,
-									Length:                 60,
-									Delay:                  0,
-									NilToZero:              &truePtr,
-									AddCloudwatchTimestamp: &addCloudwatchTimestamp,
-								},
-							},
-							RoundingPeriod: nil,
-							JobLevelMetricFields: yaceConf.JobLevelMetricFields{
-								Period:                 0,
-								Length:                 0,
+			expected: yaceModel.JobsConfig{
+				StsRegion: "us-east-2",
+				DiscoveryJobs: []yaceModel.DiscoveryJob{
+					{
+						Regions: []string{"us-east-2"},
+						// assert an empty role is used as default. IMPORTANT since this
+						// is what YACE looks for delegating to the environment role
+						Roles: []yaceModel.Role{{}},
+						Type:  "sqs",
+						SearchTags: []yaceModel.Tag{{
+							Key: "scrape", Value: "true",
+						}},
+						CustomTags: []yaceModel.Tag{},
+						Metrics: []*yaceModel.MetricConfig{
+							{
+								Name:                   "NumberOfMessagesSent",
+								Statistics:             []string{"Sum", "Average"},
+								Period:                 60,
+								Length:                 60,
 								Delay:                  0,
-								AddCloudwatchTimestamp: &falsePtr,
 								NilToZero:              &falsePtr,
+								AddCloudwatchTimestamp: &addCloudwatchTimestamp,
+							},
+							{
+								Name:                   "NumberOfMessagesReceived",
+								Statistics:             []string{"Sum", "Average"},
+								Period:                 60,
+								Length:                 60,
+								Delay:                  0,
+								NilToZero:              &truePtr,
+								AddCloudwatchTimestamp: &addCloudwatchTimestamp,
 							},
 						},
+						RoundingPeriod: nil,
+						JobLevelMetricFields: yaceModel.JobLevelMetricFields{
+							Period:                 0,
+							Length:                 0,
+							Delay:                  0,
+							AddCloudwatchTimestamp: &falsePtr,
+							NilToZero:              &falsePtr,
+						},
+						ExportedTagsOnMetrics: []string{"name"},
 					},
 				},
 			},

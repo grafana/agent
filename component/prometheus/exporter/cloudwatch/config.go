@@ -5,10 +5,11 @@ import (
 	"encoding/hex"
 	"time"
 
-	"github.com/grafana/agent/pkg/integrations/cloudwatch_exporter"
 	"github.com/grafana/river"
 	yaceConf "github.com/nerdswords/yet-another-cloudwatch-exporter/pkg/config"
 	yaceModel "github.com/nerdswords/yet-another-cloudwatch-exporter/pkg/model"
+
+	"github.com/grafana/agent/pkg/integrations/cloudwatch_exporter"
 )
 
 // Since we are gathering metrics from CloudWatch and writing them in prometheus during each scrape, the timestamp
@@ -106,7 +107,7 @@ func (a *Arguments) SetToDefault() {
 // ConvertToYACE converts the river config into YACE config model. Note that the conversion is
 // not direct, some values have been opinionated to simplify the config model the agent exposes
 // for this integration.
-func ConvertToYACE(a Arguments) (yaceConf.ScrapeConf, error) {
+func ConvertToYACE(a Arguments) (yaceModel.JobsConfig, error) {
 	var discoveryJobs []*yaceConf.Job
 	for _, job := range a.Discovery {
 		discoveryJobs = append(discoveryJobs, toYACEDiscoveryJob(job))
@@ -119,7 +120,7 @@ func ConvertToYACE(a Arguments) (yaceConf.ScrapeConf, error) {
 		APIVersion: "v1alpha1",
 		StsRegion:  a.STSRegion,
 		Discovery: yaceConf.Discovery{
-			ExportedTagsOnMetrics: yaceModel.ExportedTagsOnMetrics(a.DiscoveryExportedTags),
+			ExportedTagsOnMetrics: yaceConf.ExportedTagsOnMetrics(a.DiscoveryExportedTags),
 			Jobs:                  discoveryJobs,
 		},
 		Static: staticJobs,
@@ -127,18 +128,19 @@ func ConvertToYACE(a Arguments) (yaceConf.ScrapeConf, error) {
 
 	// Run the exporter's config validation. Between other things, it will check that the service for which a discovery
 	// job is instantiated, it's supported.
-	if err := conf.Validate(); err != nil {
-		return yaceConf.ScrapeConf{}, err
+	modelConf, err := conf.Validate()
+	if err != nil {
+		return yaceModel.JobsConfig{}, err
 	}
-	cloudwatch_exporter.PatchYACEDefaults(&conf)
+	cloudwatch_exporter.PatchYACEDefaults(&modelConf)
 
-	return conf, nil
+	return modelConf, nil
 }
 
-func (tags Tags) toYACE() []yaceModel.Tag {
-	yaceTags := []yaceModel.Tag{}
+func (tags Tags) toYACE() []yaceConf.Tag {
+	yaceTags := []yaceConf.Tag{}
 	for key, value := range tags {
-		yaceTags = append(yaceTags, yaceModel.Tag{Key: key, Value: value})
+		yaceTags = append(yaceTags, yaceConf.Tag{Key: key, Value: value})
 	}
 	return yaceTags
 }

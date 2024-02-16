@@ -29,8 +29,10 @@ func createExporter(opts component.Options, args component.Arguments, defaultIns
 	fipsEnabled := !a.FIPSDisabled
 
 	if a.DecoupledScrape.Enabled {
-		return cloudwatch_exporter.NewDecoupledCloudwatchExporter(opts.ID, opts.Logger, exporterConfig, a.DecoupledScrape.ScrapeInterval, fipsEnabled, a.Debug), getHash(a), nil
+		exp, err := cloudwatch_exporter.NewDecoupledCloudwatchExporter(opts.ID, opts.Logger, exporterConfig, a.DecoupledScrape.ScrapeInterval, fipsEnabled, a.Debug)
+		return exp, getHash(a), err
 	}
 
-	return cloudwatch_exporter.NewCloudwatchExporter(opts.ID, opts.Logger, exporterConfig, fipsEnabled, a.Debug), getHash(a), nil
+	exp, err := cloudwatch_exporter.NewCloudwatchExporter(opts.ID, opts.Logger, exporterConfig, fipsEnabled, a.Debug)
+	return exp, getHash(a), err
 }
