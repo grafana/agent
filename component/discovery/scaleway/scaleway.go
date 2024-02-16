@@ -42,10 +42,10 @@ type Arguments struct {
 	RefreshInterval time.Duration     `river:"refresh_interval,attr,optional"`
 	Port            int               `river:"port,attr,optional"`
 
-	ProxyURL        config.URL       `river:"proxy_url,attr,optional"`
-	TLSConfig       config.TLSConfig `river:"tls_config,block,optional"`
-	FollowRedirects bool             `river:"follow_redirects,attr,optional"`
-	EnableHTTP2     bool             `river:"enable_http2,attr,optional"`
+	ProxyConfig     *config.ProxyConfig `river:",squash"`
+	TLSConfig       config.TLSConfig    `river:"tls_config,block,optional"`
+	FollowRedirects bool                `river:"follow_redirects,attr,optional"`
+	EnableHTTP2     bool                `river:"enable_http2,attr,optional"`
 }
 
 var DefaultArguments = Arguments{
@@ -77,6 +77,10 @@ func (args *Arguments) Validate() error {
 
 	if args.AccessKey == "" {
 		return fmt.Errorf("access_key must not be empty")
+	}
+
+	if err := args.ProxyConfig.Validate(); err != nil {
+		return err
 	}
 
 	// Test UnmarshalYAML against the upstream type which has custom validations.
@@ -113,9 +117,7 @@ func (args *Arguments) Convert() *prom_discovery.SDConfig {
 		TagsFilter:    args.TagsFilter,
 
 		HTTPClientConfig: prom_config.HTTPClientConfig{
-			ProxyConfig: prom_config.ProxyConfig{
-				ProxyURL: args.ProxyURL.Convert(),
-			},
+			ProxyConfig:     args.ProxyConfig.Convert(),
 			TLSConfig:       *args.TLSConfig.Convert(),
 			FollowRedirects: args.FollowRedirects,
 			EnableHTTP2:     args.EnableHTTP2,

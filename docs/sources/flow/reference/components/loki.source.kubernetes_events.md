@@ -101,22 +101,27 @@ used.
 
 The following arguments are supported:
 
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`api_server` | `string` | URL of the Kubernetes API server. | | no
-`kubeconfig_file` | `string` | Path of the `kubeconfig` file to use for connecting to Kubernetes. | | no
-`bearer_token` | `secret` | Bearer token to authenticate with. | | no
-`bearer_token_file` | `string` | File containing a bearer token to authenticate with. | | no
-`proxy_url` | `string` | HTTP proxy to proxy requests through. | | no
-`follow_redirects` | `bool` | Whether redirects returned by the server should be followed. | `true` | no
-`enable_http2` | `bool` | Whether HTTP2 is supported for requests. | `true` | no
+Name                     | Type                | Description                                                   | Default | Required
+------------------------ | ------------------- | ------------------------------------------------------------- | ------- | --------
+`api_server`             | `string`            | URL of the Kubernetes API server.                             |         | no
+`kubeconfig_file`        | `string`            | Path of the `kubeconfig` file to use for connecting to Kubernetes. |    | no
+`bearer_token_file`      | `string`            | File containing a bearer token to authenticate with.          |         | no
+`bearer_token`           | `secret`            | Bearer token to authenticate with.                            |         | no
+`enable_http2`           | `bool`              | Whether HTTP2 is supported for requests.                      | `true`  | no
+`follow_redirects`       | `bool`              | Whether redirects returned by the server should be followed.  | `true`  | no
+`proxy_url`              | `string`            | HTTP proxy to send requests through.                          |         | no
+`no_proxy`               | `string`            | Comma-separated list of IP addresses, CIDR notations, and domain names to exclude from proxying. | | no
+`proxy_from_environment` | `bool`              | Use the proxy URL indicated by environment variables.         | `false` | no
+`proxy_connect_header`   | `map(list(secret))` | Specifies headers to send to proxies during CONNECT requests. |         | no
 
- At most one of the following can be provided:
+ At most, one of the following can be provided:
  - [`bearer_token` argument][client].
  - [`bearer_token_file` argument][client].
  - [`basic_auth` block][basic_auth].
  - [`authorization` block][authorization].
  - [`oauth2` block][oauth2].
+
+{{< docs/shared lookup="flow/reference/components/http-client-proxy-config-description.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### basic_auth block
 
@@ -151,6 +156,21 @@ events in each watched namespace.
 ## Debug metrics
 
 `loki.source.kubernetes_events` does not expose any component-specific debug metrics.
+
+## Component behavior
+
+The component uses its data path, a directory named after the domain's
+fully qualified name, to store its _positions file_. The positions file is used
+to store read offsets, so that if a component or {{< param "PRODUCT_ROOT_NAME" >}} restarts,
+`loki.source.kubernetes_events` can pick up tailing from the same spot.
+
+The data path is inside the directory configured by the `--storage.path` [command line argument][cmd-args].
+
+In the Static mode's [eventhandler integration][eventhandler-integration], a `cache_path` argument is used to configure a positions file.
+In Flow mode, this argument is no longer necessary.
+
+[cmd-args]: {{< relref "../cli/run.md" >}}
+[eventhandler-integration]: {{< relref "../../../static/configuration/integrations/integrations-next/eventhandler-config.md" >}}
 
 ## Example
 

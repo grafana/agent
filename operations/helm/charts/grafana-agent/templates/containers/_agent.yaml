@@ -55,6 +55,7 @@
     httpGet:
       path: /-/ready
       port: {{ .Values.agent.listenPort }}
+      scheme: {{ .Values.agent.listenScheme }}
     initialDelaySeconds: 10
     timeoutSeconds: 1
   {{- with .Values.agent.resources }}

@@ -14,7 +14,11 @@ func TestConvert(t *testing.T) {
 	u, err := url.Parse("http://example:8080")
 	require.NoError(t, err)
 	httpClientConfig := config.DefaultHTTPClientConfig
-	httpClientConfig.ProxyURL = config.URL{URL: u}
+	httpClientConfig.ProxyConfig = &config.ProxyConfig{
+		ProxyURL: config.URL{
+			URL: u,
+		},
+	}
 
 	// example configuration
 	riverArgs := EC2Arguments{

@@ -4,6 +4,11 @@ global:
 scrape_configs:
   - job_name: netbox_snmp
     metrics_path: /snmp
+    proxy_url: "localhost:1000"
+    no_proxy: "localhost:1001"
+    proxy_connect_header:
+      Authorization: ["something", "something else"]
+      Host: ["localhost"]
     http_sd_configs:
       - url: http://netbox:8080/api/plugins/prometheus-sd/devices?status=active&cf_prometheus_job=netbox_snmp
         refresh_interval: 15s
@@ -31,4 +36,5 @@ scrape_configs:
 
 remote_write:
   - name: "remote1"
+    proxy_from_environment: true
     url: "http://remote-write-url1"
