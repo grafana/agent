@@ -236,6 +236,8 @@ service:
   clusterIP: ''
   annotations: {}
     # cloud.google.com/load-balancer-type: Internal
+  # -- Extra service labels to add.
+  serviceLabels: {}
 
 serviceMonitor:
   enabled: false

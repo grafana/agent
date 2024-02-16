@@ -57,6 +57,7 @@ Unreleased
 ### Enhancements
 
 - Update `rbac` to include necessary rules for the `otelcol.processor.k8sattributes` component. (@rlankfo)
+- Update `service` to set extra serviceLables. (@m4r1u2)
 
 - Add `serviceAccount.additionalLabels` to values.yaml to enable setting additional labels on the created service account. (@zopanix)
 
