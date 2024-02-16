@@ -99,3 +99,10 @@ func findImportedDeclare(reg *CustomComponentRegistry, namespace string, compone
 	}
 	return nil, nil
 }
+
+func (m *ComponentNodeManager) setCustomComponentRegistry(reg *CustomComponentRegistry) {
+	m.mut.Lock()
+	defer m.mut.Unlock()
+
+	m.customComponentReg = reg
+}

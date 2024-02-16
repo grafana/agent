@@ -147,7 +147,12 @@ func TestScrapePool(t *testing.T) {
 	args.ScrapeInterval = 2 * time.Second
 	p.reload(args)
 	for _, ta := range p.activeTargets {
-		require.Equal(t, 1*time.Second, ta.timeout)
+		if paramsSeconds := ta.params.Get("seconds"); paramsSeconds != "" {
+			// if the param is set timeout includes interval - 1s
+			require.Equal(t, 2*time.Second, ta.timeout)
+		} else {
+			require.Equal(t, 1*time.Second, ta.timeout)
+		}
 		require.Equal(t, 2*time.Second, ta.interval)
 	}
 }

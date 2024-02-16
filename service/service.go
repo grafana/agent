@@ -51,9 +51,23 @@ type Host interface {
 	// exist.
 	ListComponents(moduleID string, opts component.InfoOptions) ([]*component.Info, error)
 
+	// GetService gets a running service using its name.
+	GetService(name string) (Service, bool)
+
 	// GetServiceConsumers gets the list of services which depend on a service by
 	// name.
 	GetServiceConsumers(serviceName string) []Consumer
+
+	// NewController returns an unstarted, isolated Controller that a Service
+	// can use to instantiate its own components.
+	NewController(id string) Controller
+}
+
+// Controller is implemented by flow.Flow.
+type Controller interface {
+	Run(ctx context.Context)
+	LoadSource(source []byte, args map[string]any) error
+	Ready() bool
 }
 
 type Consumer struct {

@@ -11,11 +11,11 @@ import (
 // The definitions are either imported, declared locally, or declared in a parent registry.
 // Imported definitions are stored inside of the corresponding import registry.
 type CustomComponentRegistry struct {
-	parent   *CustomComponentRegistry // nil if root config
-	declares map[string]ast.Body      // customComponentName: template
+	parent *CustomComponentRegistry // nil if root config
 
-	mut     sync.RWMutex
-	imports map[string]*CustomComponentRegistry // importNamespace: importScope
+	mut      sync.RWMutex
+	imports  map[string]*CustomComponentRegistry // importNamespace: importScope
+	declares map[string]ast.Body                 // customComponentName: template
 }
 
 // NewCustomComponentRegistry creates a new CustomComponentRegistry with a parent.
@@ -30,6 +30,8 @@ func NewCustomComponentRegistry(parent *CustomComponentRegistry) *CustomComponen
 
 // registerDeclare stores a local declare block.
 func (s *CustomComponentRegistry) registerDeclare(declare *ast.BlockStmt) {
+	s.mut.Lock()
+	defer s.mut.Unlock()
 	s.declares[declare.Label] = declare.Body
 }
 

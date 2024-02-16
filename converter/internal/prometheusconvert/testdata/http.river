@@ -54,16 +54,23 @@ discovery.relabel "netbox_snmp" {
 }
 
 prometheus.scrape "netbox_snmp" {
-	targets      = discovery.relabel.netbox_snmp.output
-	forward_to   = [prometheus.remote_write.default.receiver]
-	job_name     = "netbox_snmp"
-	metrics_path = "/snmp"
+	targets              = discovery.relabel.netbox_snmp.output
+	forward_to           = [prometheus.remote_write.default.receiver]
+	job_name             = "netbox_snmp"
+	metrics_path         = "/snmp"
+	proxy_url            = "localhost:1000"
+	no_proxy             = "localhost:1001"
+	proxy_connect_header = {
+		Authorization = ["something", "something else"],
+		Host          = ["localhost"],
+	}
 }
 
 prometheus.remote_write "default" {
 	endpoint {
-		name = "remote1"
-		url  = "http://remote-write-url1"
+		name                   = "remote1"
+		url                    = "http://remote-write-url1"
+		proxy_from_environment = true
 
 		queue_config { }
 
