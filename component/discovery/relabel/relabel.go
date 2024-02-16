@@ -47,17 +47,17 @@ type Component struct {
 	rcs []*relabel.Config
 
 	// todo: limit cache size. rotate out old entries, etc.
-	cache     *lru.Cache[string, *discovery.Target]
+	cache     *lru.Cache[uint64, *discovery.Target]
 	cacheSize int
 }
 
-const initialCacheSize = 500
+const initialCacheSize = 200
 
 var _ component.Component = (*Component)(nil)
 
 // New creates a new discovery.relabel component.
 func New(o component.Options, args Arguments) (*Component, error) {
-	cache, err := lru.New[string, *discovery.Target](initialCacheSize)
+	cache, err := lru.New[uint64, *discovery.Target](initialCacheSize)
 	if err != nil {
 		return nil, err
 	}

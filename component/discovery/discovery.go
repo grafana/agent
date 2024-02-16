@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"sort"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -23,14 +24,16 @@ type Target map[string]string
 
 func (t Target) ResetHash() {
 	delete(t, LabelHashKey)
-	t[LabelHashKey] = t.GetHash()
+	t[LabelHashKey] = fmt.Sprint(t.Labels().Hash())
 }
 
-func (t Target) GetHash() string {
+func (t Target) GetHash() uint64 {
 	if v, ok := t[LabelHashKey]; ok {
-		return v
+		if i, err := strconv.ParseUint(v, 10, 64); err == nil {
+			return i
+		}
 	}
-	return fmt.Sprint(t.Labels().Hash())
+	return t.Labels().Hash()
 }
 
 // DistributedTargets uses the node's Lookup method to distribute discovery
