@@ -32,7 +32,7 @@ spec:
         - name: global-cred
       containers:
         - name: grafana-agent
-          image: docker.io/grafana/agent:v0.39.1
+          image: docker.io/grafana/agent:v0.39.2
           imagePullPolicy: IfNotPresent
           args:
             - run
@@ -56,6 +56,7 @@ spec:
             httpGet:
               path: /-/ready
               port: 80
+              scheme: HTTP
             initialDelaySeconds: 10
             timeoutSeconds: 1
           volumeMounts:

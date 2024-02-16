@@ -63,6 +63,8 @@ Main (unreleased)
 - Added additional http client proxy configurations to components for
   `no_proxy`, `proxy_from_environment`, and `proxy_connect_header`. (@erikbaranowski)
 
+- Batch staleness tracking to reduce mutex contention and increase performance. (@mattdurham)
+
 ### Bugfixes
 
 - Fix an issue in `remote.s3` where the exported content of an object would be an empty string if `remote.s3` failed to fully retrieve
@@ -96,6 +98,9 @@ Main (unreleased)
 - Use Go 1.22 for builds. (@rfratto)
 
 - Updated docs for MSSQL Integration to show additional authentication capabilities. (@StefanKurek)
+
+- `grafana-agent` and `grafana-agent-flow` fallback to default X.509 trusted root certificates
+  when the `GODEBUG=x509usefallbackroots=1` environment variable is set. (@hainenber)
 
 v0.39.2 (2024-1-31)
 --------------------
