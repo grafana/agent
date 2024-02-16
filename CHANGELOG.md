@@ -97,6 +97,9 @@ Main (unreleased)
 
 - Updated docs for MSSQL Integration to show additional authentication capabilities. (@StefanKurek)
 
+- `grafana-agent` and `grafana-agent-flow` fallback to default X.509 trusted root certificates
+  when the `GODEBUG=x509usefallbackroots=1` environment variable is set. (@hainenber)
+
 v0.39.2 (2024-1-31)
 --------------------
 
