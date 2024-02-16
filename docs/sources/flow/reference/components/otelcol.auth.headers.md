@@ -72,9 +72,9 @@ block.
 The `value` attribute sets the value of the header directly.
 Alternatively, `from_context` can be used to dynamically retrieve the header value from request metadata.
 
-In order for `from_context` to work, other components in the pipeline also need to be configured appropriately:
+For `from_context` to work, other components in the pipeline also need to be configured appropriately:
 * If an `otelcol.processor.batch` is present in the pipeline, it must be configured to preserve client metadata. 
-  Do this by adding the value which `from_context` needs to the `metadata_keys` of the batch processor.
+  Do this by adding the value that `from_context` needs to the `metadata_keys` of the batch processor.
 * `otelcol` receivers must be configured with `include_metadata` set to `true` so that metadata keys are available to the pipeline.
 
 ## Exported fields
