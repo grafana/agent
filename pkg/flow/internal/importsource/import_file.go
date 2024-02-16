@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"reflect"
+	"time"
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/local/file"
@@ -31,13 +32,28 @@ func NewImportFile(managedOpts component.Options, eval *vm.Evaluator, onContentC
 	}
 }
 
+// Arguments holds values which are used to configure the local.file component.
+type Arguments struct {
+	// Filename indicates the file to watch.
+	Filename string `river:"filename,attr"`
+	// Type indicates how to detect changes to the file.
+	Type file.Detector `river:"detector,attr,optional"`
+	// PollFrequency determines the frequency to check for changes when Type is Poll.
+	PollFrequency time.Duration `river:"poll_frequency,attr,optional"`
+}
+
+var DefaultArguments = Arguments{
+	Type:          file.DetectorFSNotify,
+	PollFrequency: time.Minute,
+}
+
 type importFileConfigBlock struct {
-	LocalFileArguments file.Arguments `river:",squash"`
+	LocalFileArguments Arguments `river:",squash"`
 }
 
 // SetToDefault implements river.Defaulter.
 func (a *importFileConfigBlock) SetToDefault() {
-	a.LocalFileArguments = file.DefaultArguments
+	a.LocalFileArguments = DefaultArguments
 }
 
 func (im *ImportFile) Evaluate(scope *vm.Scope) error {
@@ -47,7 +63,13 @@ func (im *ImportFile) Evaluate(scope *vm.Scope) error {
 	}
 	if im.fileComponent == nil {
 		var err error
-		im.fileComponent, err = file.New(im.managedOpts, arguments.LocalFileArguments)
+		im.fileComponent, err = file.New(im.managedOpts, file.Arguments{
+			Filename:      arguments.LocalFileArguments.Filename,
+			Type:          arguments.LocalFileArguments.Type,
+			PollFrequency: arguments.LocalFileArguments.PollFrequency,
+			// isSecret is only used for exported values; modules are not exported
+			IsSecret: false,
+		})
 		if err != nil {
 			return fmt.Errorf("creating file component: %w", err)
 		}
