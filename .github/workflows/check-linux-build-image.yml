@@ -26,6 +26,7 @@ jobs:
           tags: grafana/agent-build-image:latest
           build-args: |
             GO_RUNTIME=golang:1.22.0-bullseyes
+
       - name: Create test Linux build image for boring crypto
         uses: docker/build-push-action@v5
         with:
