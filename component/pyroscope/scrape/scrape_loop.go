@@ -238,12 +238,11 @@ func (t *scrapeLoop) scrape() {
 			return
 		}
 		req.Header.Set("User-Agent", userAgentHeader)
-		t.req = req
-
+		var appender pyroscope.Appender
 		for _, probe := range godeltaprofProbes(profileType, req.URL.Path) {
-			t.appender = newAppender(probe, t)
-			t.req.URL.Path = probe.path
-			buf, err = t.fetchProfile(scrapeCtx, profileType, t.req)
+			appender = newAppender(probe, t)
+			req.URL.Path = probe.path
+			buf, err = t.fetchProfile(scrapeCtx, profileType, req)
 			if err != nil {
 				level.Error(t.logger).Log("msg", "fetch profile failed", "target", t.Labels().String(), "err", err)
 				t.updateTargetStatus(start, err)
@@ -255,6 +254,8 @@ func (t *scrapeLoop) scrape() {
 		if buf == nil {
 			return
 		}
+		t.req = req
+		t.appender = appender
 	} else {
 		buf, err = t.fetchProfile(scrapeCtx, profileType, t.req)
 		if err != nil {

@@ -8,8 +8,8 @@ import (
 )
 
 type godeltaprofProbe struct {
-	godeltaprof bool
-	path        string
+	trySwitchToGodeltaprof bool
+	path                   string
 }
 
 func godeltaprofProbes(profileType string, path string) []godeltaprofProbe {
@@ -38,7 +38,7 @@ func godeltaprofProbes(profileType string, path string) []godeltaprofProbe {
 
 func newAppender(probe godeltaprofProbe, t *scrapeLoop) pyroscope.Appender {
 	appender := t.appendable.Appender()
-	if probe.godeltaprof {
+	if probe.trySwitchToGodeltaprof {
 		return newGodeltaprofAppender(appender)
 	} else {
 		return NewDeltaAppender(appender, t.allLabels)

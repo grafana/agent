@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/http"
 	"net/http/httptest"
-	"net/http/pprof"
+	_ "net/http/pprof" // Register pprof handler
 	"net/url"
 	"sort"
 	"strings"
@@ -16,6 +16,7 @@ import (
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/pyroscope"
 	"github.com/grafana/agent/pkg/util"
+	_ "github.com/grafana/pyroscope-go/godeltaprof/http/pprof" // Register godeltaprof handler
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/discovery/targetgroup"
 	"github.com/prometheus/prometheus/model/labels"
@@ -281,8 +282,8 @@ func TestLoopDeltaProbingSuccess(t *testing.T) {
 		server.Client(),
 		pyroscope.AppendableFunc(func(_ context.Context, labels labels.Labels, samples []*pyroscope.RawSample) error {
 			m.Lock()
+			defer m.Unlock()
 			appends = append(appends, labels)
-			m.Unlock()
 			return nil
 		}),
 		200*time.Millisecond, time.Minute, util.TestLogger(t))
@@ -295,8 +296,8 @@ func TestLoopDeltaProbingSuccess(t *testing.T) {
 		assert.Equal(t, appends[0].Get(pyroscope.LabelNameDelta), "false")
 		require.Equal(t, 1, len(requests))
 		require.Contains(t, requests[0], "delta_heap")
-		_, isDeltaAppender := loop.appender.(*deltaAppender)
-		assert.False(t, isDeltaAppender)
+		_, isGodeltaprofAppender := loop.appender.(*godeltaprofAppender)
+		assert.True(t, isGodeltaprofAppender)
 	}()
 }
 
@@ -312,7 +313,7 @@ func TestLoopDeltaProbingFailure(t *testing.T) {
 			w.WriteHeader(http.StatusNotFound)
 			w.Write([]byte("fail"))
 		} else {
-			pprof.Index(w, r)
+			serveProfile(w, r)
 		}
 		requests = append(requests, r.URL.Path)
 	}))
@@ -329,8 +330,8 @@ func TestLoopDeltaProbingFailure(t *testing.T) {
 		server.Client(),
 		pyroscope.AppendableFunc(func(_ context.Context, labels labels.Labels, samples []*pyroscope.RawSample) error {
 			m.Lock()
+			defer m.Unlock()
 			appends = append(appends, labels)
-			m.Unlock()
 			return nil
 		}),
 		200*time.Millisecond, time.Minute, util.TestLogger(t))
@@ -351,6 +352,63 @@ func TestLoopDeltaProbingFailure(t *testing.T) {
 	}()
 }
 
-func TestTestLoopDeltaProbingFailureTwiceAndRecover(t *testing.T) {
-	t.Fail()
+func TestLoopDeltaProbingFailureTwiceAndRecover(t *testing.T) {
+	m := new(sync.Mutex)
+	var requests []string
+	var appends []labels.Labels
+	var reqCnt = 0
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		httpServerTestFix()
+		m.Lock()
+		defer m.Unlock()
+		reqCnt += 1
+		if reqCnt < 5 {
+			w.WriteHeader(http.StatusNotFound)
+			w.Write([]byte("fail"))
+		} else {
+			serveProfile(w, r)
+		}
+		requests = append(requests, r.URL.Path)
+	}))
+	defer server.Close()
+
+	loop := newScrapeLoop(
+		NewTarget(
+			labels.FromStrings(
+				model.MetricNameLabel, pprofMemory,
+				model.SchemeLabel, "http",
+				model.AddressLabel, strings.TrimPrefix(server.URL, "http://"),
+				ProfilePath, "/debug/pprof/allocs",
+			), labels.FromStrings(), url.Values{}),
+		server.Client(),
+		pyroscope.AppendableFunc(func(_ context.Context, labels labels.Labels, samples []*pyroscope.RawSample) error {
+			m.Lock()
+			defer m.Unlock()
+			appends = append(appends, labels)
+			return nil
+		}),
+		200*time.Millisecond, time.Minute, util.TestLogger(t))
+
+	loop.scrape()
+	loop.scrape()
+	loop.scrape()
+	func() {
+		m.Lock()
+		defer m.Unlock()
+		require.Equal(t, 1, len(appends))
+		assert.Equal(t, appends[0].Get(pyroscope.LabelNameDelta), "false")
+		require.Equal(t, 5, len(requests))
+		assert.Contains(t, requests[0], "/delta_heap")
+		assert.Contains(t, requests[1], "/allocs")
+		assert.Contains(t, requests[2], "/delta_heap")
+		assert.Contains(t, requests[3], "/allocs")
+		assert.Contains(t, requests[4], "/delta_heap")
+
+		_, isGodeltaprofAppender := loop.appender.(*godeltaprofAppender)
+		assert.True(t, isGodeltaprofAppender)
+	}()
+}
+
+func serveProfile(w http.ResponseWriter, r *http.Request) {
+	http.DefaultServeMux.ServeHTTP(w, r)
 }
