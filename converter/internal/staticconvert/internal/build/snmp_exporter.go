@@ -3,7 +3,6 @@ package build
 import (
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/prometheus/exporter/snmp"
-	"github.com/grafana/agent/converter/internal/common"
 	"github.com/grafana/agent/pkg/integrations/snmp_exporter"
 	snmp_exporter_v2 "github.com/grafana/agent/pkg/integrations/v2/snmp_exporter"
 	"github.com/grafana/river/rivertypes"
@@ -19,7 +18,7 @@ func toSnmpExporter(config *snmp_exporter.Config) *snmp.Arguments {
 	targets := make([]snmp.SNMPTarget, len(config.SnmpTargets))
 	for i, t := range config.SnmpTargets {
 		targets[i] = snmp.SNMPTarget{
-			Name:       common.SanitizeIdentifierPanics(t.Name),
+			Name:       t.Name,
 			Target:     t.Target,
 			Module:     t.Module,
 			Auth:       t.Auth,
@@ -36,7 +35,7 @@ func toSnmpExporter(config *snmp_exporter.Config) *snmp.Arguments {
 		}
 
 		walkParams[index] = snmp.WalkParam{
-			Name:                    common.SanitizeIdentifierPanics(name),
+			Name:                    name,
 			MaxRepetitions:          p.MaxRepetitions,
 			Retries:                 retries,
 			Timeout:                 p.Timeout,
@@ -67,7 +66,7 @@ func toSnmpExporterV2(config *snmp_exporter_v2.Config) *snmp.Arguments {
 	targets := make([]snmp.SNMPTarget, len(config.SnmpTargets))
 	for i, t := range config.SnmpTargets {
 		targets[i] = snmp.SNMPTarget{
-			Name:       common.SanitizeIdentifierPanics(t.Name),
+			Name:       t.Name,
 			Target:     t.Target,
 			Module:     t.Module,
 			Auth:       t.Auth,
@@ -84,7 +83,7 @@ func toSnmpExporterV2(config *snmp_exporter_v2.Config) *snmp.Arguments {
 		}
 
 		walkParams[index] = snmp.WalkParam{
-			Name:                    common.SanitizeIdentifierPanics(name),
+			Name:                    name,
 			MaxRepetitions:          p.MaxRepetitions,
 			Retries:                 retries,
 			Timeout:                 p.Timeout,
