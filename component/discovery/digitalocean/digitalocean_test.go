@@ -40,7 +40,7 @@ func TestRiverUnmarshal(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, 3*time.Minute, args.RefreshInterval)
 	assert.Equal(t, 9119, args.Port)
-	assert.Equal(t, "http://proxy:8080", args.ProxyURL.String())
+	assert.Equal(t, "http://proxy:8080", args.ProxyConfig.ProxyURL.String())
 	assert.Equal(t, true, args.FollowRedirects)
 	assert.Equal(t, false, args.EnableHTTP2)
 }
@@ -72,8 +72,10 @@ func TestConvert(t *testing.T) {
 		RefreshInterval: 5 * time.Minute,
 		Port:            8181,
 		BearerToken:     "token",
-		ProxyURL: config.URL{
-			URL: proxyUrl,
+		ProxyConfig: &config.ProxyConfig{
+			ProxyURL: config.URL{
+				URL: proxyUrl,
+			},
 		},
 		FollowRedirects: false,
 		EnableHTTP2:     false,

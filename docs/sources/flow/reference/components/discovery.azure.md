@@ -26,15 +26,20 @@ discovery.azure "LABEL" {
 
 The following arguments are supported:
 
-Name                | Type       | Description                                                            | Default              | Required
-------------------- | ---------- | ---------------------------------------------------------------------- | -------------------- | --------
-`environment`       | `string`   | Azure environment.                                                     | `"AzurePublicCloud"` | no
-`port`              | `number`   | Port to be appended to the `__address__` label for each target.        | `80`                 | no
-`subscription_id`   | `string`   | Azure subscription ID.                                                 |                      | no
-`refresh_interval`  | `duration` | Interval at which to refresh the list of targets.                      | `5m`                 | no
-`proxy_url`         | `string`   | HTTP proxy to proxy requests through.                                  |                      | no
-`follow_redirects`  | `bool`     | Whether redirects returned by the server should be followed.           | `true`               | no
-`enable_http2`      | `bool`     | Whether HTTP2 is supported for requests.                               | `true`               | no
+Name                     | Type                | Description                                                            | Default              | Required
+------------------------ | ----------          | ---------------------------------------------------------------------- | -------------------- | --------
+`environment`            | `string`            | Azure environment.                                                     | `"AzurePublicCloud"` | no
+`port`                   | `number`            | Port to be appended to the `__address__` label for each target.        | `80`                 | no
+`subscription_id`        | `string`            | Azure subscription ID.                                                 |                      | no
+`refresh_interval`       | `duration`          | Interval at which to refresh the list of targets.                      | `5m`                 | no
+`proxy_url`              | `string`            | HTTP proxy to send requests through.                                   |                      | no
+`no_proxy`               | `string`            | Comma-separated list of IP addresses, CIDR notations, and domain names to exclude from proxying. | | no
+`proxy_from_environment` | `bool`              | Use the proxy URL indicated by environment variables.                  | `false`              | no
+`proxy_connect_header`   | `map(list(secret))` | Specifies headers to send to proxies during CONNECT requests.          |                      | no
+`follow_redirects`       | `bool`              | Whether redirects returned by the server should be followed.           | `true`               | no
+`enable_http2`           | `bool`              | Whether HTTP2 is supported for requests.                               | `true`               | no
+
+{{< docs/shared lookup="flow/reference/components/http-client-proxy-config-description.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ## Blocks
 The following blocks are supported inside the definition of

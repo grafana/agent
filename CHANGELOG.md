@@ -27,6 +27,9 @@ Main (unreleased)
 
 - Expose track_timestamps_staleness on Prometheus scraping, to fix the issue where container metrics live for 5 minutes after the container disappears. (@ptodev)
 
+- Introduce the `remotecfg` service that enables loading configuration from a
+  remote endpoint. (@tpaschalis) 
+  
 ### Enhancements
 
 - Include line numbers in profiles produced by `pyrsocope.java` component. (@korniltsev)
@@ -55,6 +58,11 @@ Main (unreleased)
 
 - Mutex and block pprofs are now available via the pprof endpoint. (@mattdurham)
 
+- Added additional http client proxy configurations to components for
+  `no_proxy`, `proxy_from_environment`, and `proxy_connect_header`. (@erikbaranowski)
+
+- Batch staleness tracking to reduce mutex contention and increase performance. (@mattdurham)
+
 ### Bugfixes
 
 - Fix an issue in `remote.s3` where the exported content of an object would be an empty string if `remote.s3` failed to fully retrieve
@@ -75,6 +83,8 @@ Main (unreleased)
 
 - Fix divide-by-zero issue when sharding targets. (@hainenber) 
 
+- Fix bug where custom headers were not actually being set in loki client. (@captncraig)
+
 ### Other changes
 
 - Removed support for Windows 2012 in line with Microsoft end of life. (@mattdurham)
@@ -89,6 +99,9 @@ Main (unreleased)
 
 - Updated docs for MSSQL Integration to show additional authentication capabilities. (@StefanKurek)
 
+- `grafana-agent` and `grafana-agent-flow` fallback to default X.509 trusted root certificates
+  when the `GODEBUG=x509usefallbackroots=1` environment variable is set. (@hainenber)
+  
 - Remove unused `path_prefix` argument in `pyroscope.scrape` component. (@hainenber)
 
 v0.39.2 (2024-1-31)
