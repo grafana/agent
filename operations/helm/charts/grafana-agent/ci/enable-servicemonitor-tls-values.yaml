@@ -5,3 +5,5 @@ service:
   enabled: true
 serviceMonitor:
   enabled: true
+  tlsConfig:
+    insecureSkipVerify: true

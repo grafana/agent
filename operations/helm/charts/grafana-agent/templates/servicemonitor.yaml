@@ -25,7 +25,8 @@ spec:
     {{ tpl (toYaml .Values.serviceMonitor.relabelings | nindent 6) . }}
     {{- end }}
     {{- with .Values.serviceMonitor.tlsConfig }}
-    {{- toYaml . | nindent 4 }}
+    tlsConfig:
+    {{- toYaml . | nindent 6 }}
     {{- end }}
   selector:
     matchLabels:
