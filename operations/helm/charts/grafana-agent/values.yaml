@@ -259,6 +259,9 @@ serviceMonitor:
   #   targetLabel: nodename
   #   replacement: $1
   #   action: replace
+  
+  # -- Customize tls parameters for the service monitor
+  tlsConfig: {}
 
 ingress:
   # -- Enables ingress for the agent (faro port)

@@ -24,6 +24,9 @@ spec:
     relabelings:
     {{ tpl (toYaml .Values.serviceMonitor.relabelings | nindent 6) . }}
     {{- end }}
+    {{- with .Values.serviceMonitor.tlsConfig }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
   selector:
     matchLabels:
       {{- include "grafana-agent.selectorLabels" . | nindent 6 }}
