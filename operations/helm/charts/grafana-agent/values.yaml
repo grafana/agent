@@ -261,7 +261,7 @@ serviceMonitor:
   #   replacement: $1
   #   action: replace
   relabelings: []
- 
+
   # -- Customize tls parameters for the service monitor
   tlsConfig: {}
 
