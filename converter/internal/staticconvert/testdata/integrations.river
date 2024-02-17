@@ -98,7 +98,7 @@ prometheus.exporter.snmp "integrations_snmp" {
 	}
 
 	target {
-		name        = "network_router_2"
+		name        = "network-router-2"
 		address     = "192.168.1.3"
 		module      = "mikrotik"
 		auth        = "private"
