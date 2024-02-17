@@ -95,8 +95,6 @@ Main (unreleased)
 
 - Use Go 1.22 for builds. (@rfratto)
 
-- Remove unused `path_prefix` argument in `pyroscope.scrape` component. (@hainenber)
-
 - Updated docs for MSSQL Integration to show additional authentication capabilities. (@StefanKurek)
 
 - `grafana-agent` and `grafana-agent-flow` fallback to default X.509 trusted root certificates
