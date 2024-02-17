@@ -182,7 +182,7 @@ type CustomProfilingTarget struct {
 	Enabled bool   `river:"enabled,attr"`
 	Path    string `river:"path,attr"`
 	Delta   bool   `river:"delta,attr,optional"`
-	Name    string `river:",label"`
+	Name    string `river:"name,attr"`
 }
 
 var DefaultArguments = NewDefaultArguments()

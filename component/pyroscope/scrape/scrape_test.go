@@ -112,8 +112,9 @@ func TestUnmarshalConfig(t *testing.T) {
 					enabled = false
 				}
 
-				profile.custom "something" {
+				profile.custom {
 					enabled = true
+					name 	= "something"
 					path    = "/debug/fgprof"
 					delta   = true
 				}

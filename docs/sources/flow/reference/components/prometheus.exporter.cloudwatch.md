@@ -217,7 +217,8 @@ For example, if you want to scrape the same metrics in the discovery example, bu
 prometheus.exporter.cloudwatch "static_instances" {
 	sts_region = "us-east-2"
 
-	static "instances" {
+	static {
+		name       = "instances"
 		regions    = ["us-east-2"]
 		namespace  = "AWS/EC2"
 		dimensions = {
@@ -233,11 +234,12 @@ prometheus.exporter.cloudwatch "static_instances" {
 }
 ```
 
-As shown above, `static` blocks must be specified with a label, which will translate to the `name` label in the exported
+As shown above, `static` blocks must be specified with a `name` attribute, which will translate to the `name` label in the exported
 metric.
 
 ```river
-static "LABEL" {
+static {
+	name 	   = "LABEL"
     regions    = ["us-east-2"]
     namespace  = "AWS/EC2"
     // ...
@@ -249,6 +251,7 @@ You can configure the `static` block one or multiple times to scrape metrics wit
 | Name          | Type           | Description                                                                                                                                                  | Default | Required |
 | ------------- | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------- | -------- |
 | `regions`     | `list(string)` | List of AWS regions.                                                                                                                                         |         | yes      |
+| `name`        | `string` 		 | Name to define current batch of scrapped CloudWatch metrics.                                                                                                                                         |         | yes      |
 | `namespace`   | `string`       | CloudWatch metric namespace.                                                                                                                                 |         | yes      |
 | `dimensions`  | `map(string)`  | CloudWatch metric dimensions as a list of name / value pairs. Must uniquely define all metrics in this job.                                                  |         | yes      |
 | `custom_tags` | `map(string)`  | Custom tags to be added as a list of key / value pairs. When exported to Prometheus format, the label name follows the following format: `custom_tag_{key}`. | `{}`    | no       |

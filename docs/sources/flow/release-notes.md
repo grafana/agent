@@ -41,6 +41,149 @@ This functionality is now only available in the main configuration.
 The `disable_high_cardinality_metrics` configuration argument is used by `otelcol.exporter` components such as `otelcol.exporter.otlp`.
 If you need to see high cardinality metrics containing labels such as IP addresses and port numbers, you now have to explicitly set `disable_high_cardinality_metrics` to `false`.
 
+### Breaking change: Label for children blocks of `prometheus.exporter.cloudwatch`, `prometheus.exporter.snmp` and `pyroscope.scrape` are removed.
+
+Previously in aforementioned components, there are children blocks that requires labels which would be used for naming. 
+More information in the following table.
+
+| Component                        | Affected blocks        |
+|--------------------------------- | ---------------------- |
+| `prometheus.exporter.cloudwatch` | `static`               |
+| `prometheus.exporter.snmp`       | `target`, `walk_param` |
+| `pyroscrope.scrape`              | `profile.custom`       |
+
+In the new version, user needs to be specify `name` attribute instead, which allow less restrictive naming.
+
+Old configuration example:
+```river
+prometheus.exporter.cloudwatch "static_instances" {
+	sts_region = "us-east-2"
+
+	static "instances" {
+		regions    = ["us-east-2"]
+		namespace  = "AWS/EC2"
+		dimensions = {
+			"InstanceId" = "i01u29u12ue1u2c",
+		}
+
+		metric {
+			name       = "CPUUsage"
+			statistics = ["Sum", "Average"]
+			period     = "1m"
+		}
+	}
+}
+
+prometheus.exporter.snmp "example" {
+    config_file = "snmp_modules.yml"
+
+    target "network_switch_1" {
+        address     = "192.168.1.2"
+        module      = "if_mib"
+        walk_params = "public"
+    }
+
+    target "network_router_2" {
+        address     = "192.168.1.3"
+        module      = "mikrotik"
+        walk_params = "private"
+    }
+
+    walk_param "private" {
+        retries = "2"
+    }
+
+    walk_param "public" {
+        retries = "2"
+    }
+}
+
+pyroscope.scrape "local" {
+  targets    = [
+    {"__address__" = "localhost:4100", "service_name"="pyroscope"},
+    {"__address__" = "localhost:12345", "service_name"="agent"},
+  ]
+  profiling_config {
+    profile.block {
+      enabled = false
+    }
+    profile.custom "example" {
+      enabled = true
+      path    = "/debug/fgprof"
+      delta   = true
+    }
+  }
+}
+```
+
+New configuration example:
+```river
+prometheus.exporter.cloudwatch "static_instances" {
+	sts_region = "us-east-2"
+
+	static {
+		name       = "instances"
+		regions    = ["us-east-2"]
+		namespace  = "AWS/EC2"
+		dimensions = {
+			"InstanceId" = "i01u29u12ue1u2c",
+		}
+
+		metric {
+			name       = "CPUUsage"
+			statistics = ["Sum", "Average"]
+			period     = "1m"
+		}
+	}
+}
+
+prometheus.exporter.snmp "example" {
+    config_file = "snmp_modules.yml"
+
+    target {
+        name        = "network_switch_1"
+        address     = "192.168.1.2"
+        module      = "if_mib"
+        walk_params = "public"
+    }
+
+    target {
+        name        = "network_router_2"
+        address     = "192.168.1.3"
+        module      = "mikrotik"
+        walk_params = "private"
+    }
+
+    walk_param {
+        name    = "private"
+        retries = "2"
+    }
+
+    walk_param {
+        name    = "public"
+        retries = "2"
+    }
+}
+
+pyroscope.scrape "local" {
+  targets    = [
+    {"__address__" = "localhost:4100", "service_name"="pyroscope"},
+    {"__address__" = "localhost:12345", "service_name"="agent"},
+  ]
+  profiling_config {
+    profile.block {
+      enabled = false
+    }
+    profile.custom {
+      enabled = true
+      name    = "example"
+      path    = "/debug/fgprof"
+      delta   = true
+    }
+  }
+}
+```
+
 ## v0.39
 
 ### Breaking change: `otelcol.receiver.prometheus` will drop all `otel_scope_info` metrics when converting them to OTLP

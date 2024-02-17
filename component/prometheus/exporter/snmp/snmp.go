@@ -61,7 +61,7 @@ func buildSNMPTargets(baseTarget discovery.Target, args component.Arguments) []d
 
 // SNMPTarget defines a target to be used by the exporter.
 type SNMPTarget struct {
-	Name       string `river:",label"`
+	Name       string `river:"name,attr"`
 	Target     string `river:"address,attr"`
 	Module     string `river:"module,attr,optional"`
 	Auth       string `river:"auth,attr,optional"`
@@ -86,7 +86,7 @@ func (t TargetBlock) Convert() []snmp_exporter.SNMPTarget {
 }
 
 type WalkParam struct {
-	Name                    string        `river:",label"`
+	Name                    string        `river:"name,attr"`
 	MaxRepetitions          uint32        `river:"max_repetitions,attr,optional"`
 	Retries                 int           `river:"retries,attr,optional"`
 	Timeout                 time.Duration `river:"timeout,attr,optional"`

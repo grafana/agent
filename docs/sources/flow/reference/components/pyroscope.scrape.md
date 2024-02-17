@@ -366,25 +366,27 @@ The following arguments are supported:
 ### profile.custom block
 
 The `profile.custom` block allows for collecting profiles from custom
-endpoints. Blocks must be specified with a label:
+endpoints. Blocks must be specified with `name` attribute:
 
 ```river
-profile.custom "PROFILE_TYPE" {
+profile.custom {
+  name    = "PROFILE_TYPE"
   enabled = true
   path    = "PROFILE_PATH"
 }
 ```
 
-Multiple `profile.custom` blocks can be specified. Labels assigned to
+Multiple `profile.custom` blocks can be specified. `name` attribute assigned to
 `profile.custom` blocks must be unique across the component.
 
 The following arguments are supported:
 
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`enabled` | `boolean` | Enable this profile type to be scraped. | | yes
-`path` | `string` | The path to the profile type on the target. | | yes
-`delta` | `boolean` | Whether to scrape the profile as a delta. | `false` | no
+Name      | Type      | Description                                 | Default | Required
+--------- | --------- | ------------------------------------------- | ------- | --------
+`enabled` | `boolean` | Enable this profile type to be scraped.     |         | yes
+`name`    | `string`  | Name of this profile.                       |         | yes
+`path`    | `string`  | The path to the profile type on the target. |         | yes
+`delta`   | `boolean` | Whether to scrape the profile as a delta.   | `false` | no
 
 When the `delta` argument is `true`, a `seconds` query parameter is
 automatically added to requests. The `seconds` used will be equal to `scrape_interval - 1`.

@@ -16,21 +16,25 @@ import (
 func TestUnmarshalRiver(t *testing.T) {
 	riverCfg := `
 		config_file = "modules.yml"
-		target "network_switch_1" {
+		target {
+			name = "network_switch_1"
 			address = "192.168.1.2"
 			module = "if_mib"
 			walk_params = "public"
 			auth = "public_v2"
 		}
-		target "network_router_2" {
+		target {
+			name = "network-router-2"
 			address = "192.168.1.3"
 			module = "mikrotik"
 			walk_params = "private"
 		}
-		walk_param "private" {
+		walk_param {
+			name = "private"
 			retries = 1
 		}
-		walk_param "public" {
+		walk_param {
+			name = "public"
 			retries = 2
 		}		
 `
@@ -46,7 +50,7 @@ func TestUnmarshalRiver(t *testing.T) {
 	require.Contains(t, "public", args.Targets[0].WalkParams)
 	require.Contains(t, "public_v2", args.Targets[0].Auth)
 
-	require.Contains(t, "network_router_2", args.Targets[1].Name)
+	require.Contains(t, "network-router-2", args.Targets[1].Name)
 	require.Contains(t, "192.168.1.3", args.Targets[1].Target)
 	require.Contains(t, "mikrotik", args.Targets[1].Module)
 	require.Contains(t, "private", args.Targets[1].WalkParams)
@@ -149,13 +153,15 @@ func TestUnmarshalRiverWithInlineConfig(t *testing.T) {
 	riverCfg := `
 		config = "{ modules: {if_mib: {walk: [1.3.6.1.2.1.2], get: [1.3.6.1.2.1.1.3.0], metrics: [{name: sysUpTime, oid: 1.3.6.1.2.1.1.3, type: gauge}]}}, auths: { public_v1: { community: public, security_level: noAuthNoPriv, auth_protocol: MD5, priv_protocol: DES, version: 1 } } }"
 
-		target "network_switch_1" {
+		target {
+			name = "network_switch_1"
 			address = "192.168.1.2"
 			module = "if_mib"
 			walk_params = "public"
 			auth = "public_v1"
 		}
-		target "network_router_2" {
+		target {
+			name = "network-router-2"
 			address = "192.168.1.3"
 			module = "if_mib"
 			walk_params = "private"
@@ -184,7 +190,7 @@ func TestUnmarshalRiverWithInlineConfig(t *testing.T) {
 	require.Contains(t, "public", args.Targets[0].WalkParams)
 	require.Contains(t, "public_v1", args.Targets[0].Auth)
 
-	require.Contains(t, "network_router_2", args.Targets[1].Name)
+	require.Contains(t, "network-router-2", args.Targets[1].Name)
 	require.Contains(t, "192.168.1.3", args.Targets[1].Target)
 	require.Contains(t, "if_mib", args.Targets[1].Module)
 	require.Contains(t, "private", args.Targets[1].WalkParams)
@@ -202,7 +208,8 @@ func TestUnmarshalRiverWithInvalidInlineConfig(t *testing.T) {
 			config = "{ auth: { public_v1: { community: public, version: 1 } }"
 
 
-			target "network_switch_1" {
+			target {
+				name = "network_switch_1"
 				address = "192.168.1.2"
 				module = "if_mib"
 				walk_params = "public"
@@ -216,7 +223,8 @@ func TestUnmarshalRiverWithInvalidInlineConfig(t *testing.T) {
 			`
 			config = "{ auths: { public_v1: { community: public, versions: 1 } } }"
 
-			target "network_switch_1" {
+			target {
+				name = "network_switch_1"
 				address = "192.168.1.2"
 				module = "if_mib"
 				walk_params = "public"
@@ -231,7 +239,8 @@ func TestUnmarshalRiverWithInvalidInlineConfig(t *testing.T) {
 			config_file = "config"
 			config = "{ auths: { public_v1: { community: public, version: 1 } } }"
 
-			target "network_switch_1" {
+			target {
+				name = "network_switch_1"
 				address = "192.168.1.2"
 				module = "if_mib"
 				walk_params = "public"

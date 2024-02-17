@@ -24,7 +24,8 @@ The `prometheus.exporter.snmp` component embeds
 prometheus.exporter.snmp "LABEL" {
   config_file = SNMP_CONFIG_FILE_PATH
 
-  target "TARGET_NAME" {
+  target {
+    name    = "TARGET_NAME"
     address = TARGET_ADDRESS
   }
 }
@@ -66,11 +67,12 @@ The following blocks are supported inside the definition of
 ### target block
 
 The `target` block defines an individual SNMP target.
-The `target` block may be specified multiple times to define multiple targets. The label of the block is required and will be used in the target's `job` label.
+The `target` block may be specified multiple times to define multiple targets. `name` attribute is required and will be used in the target's `job` label.
 
 | Name          | Type     | Description                         | Default | Required |
 | ------------- | -------- | ----------------------------------- | ------- | -------- |
 | `address`     | `string` | The address of SNMP device.         |         | yes      |
+| `name`        | `string` | The name of the target.             |         | yes      |
 | `module`      | `string` | SNMP module to use for polling.     | `""`    | no       |
 | `auth`        | `string` | SNMP authentication profile to use. | `""`    | no       |
 | `walk_params` | `string` | Config to use for this target.      | `""`    | no       |
@@ -79,10 +81,11 @@ The `target` block may be specified multiple times to define multiple targets. T
 
 The `walk_param` block defines an individual SNMP connection profile that can be used to override default SNMP settings.
 The `walk_param` block may be specified multiple times to define multiple SNMP connection profiles.
+`name` attribute for the block is required.
 
 | Name              | Type       | Description                                   | Default | Required |
 | ----------------- | ---------- | --------------------------------------------- | ------- | -------- |
-| `name`            | `string`   | Name of the module to override.               |         | no       |
+| `name`            | `string`   | Name of the module to override.               |         | yes      |
 | `max_repetitions` | `int`      | How many objects to request with GET/GETBULK. | `25`    | no       |
 | `retries`         | `int`      | How many times to retry a failed request.     | `3`     | no       |
 | `timeout`         | `duration` | Timeout for each individual SNMP request.     |         | no       |
@@ -116,23 +119,27 @@ from `prometheus.exporter.snmp`:
 prometheus.exporter.snmp "example" {
     config_file = "snmp_modules.yml"
 
-    target "network_switch_1" {
+    target {
+        name        = "network_switch_1"
         address     = "192.168.1.2"
         module      = "if_mib"
         walk_params = "public"
     }
 
-    target "network_router_2" {
+    target {
+        name        = "network_router_2"
         address     = "192.168.1.3"
         module      = "mikrotik"
         walk_params = "private"
     }
 
-    walk_param "private" {
+    walk_param {
+        name    = "private"
         retries = "2"
     }
 
-    walk_param "public" {
+    walk_param {
+        name    = "public"
         retries = "2"
     }
 }
@@ -155,22 +162,26 @@ prometheus.exporter.snmp "example" {
     config = local.file.snmp_config.content
 
     target "network_switch_1" {
+        name        = "network_switch_1"
         address     = "192.168.1.2"
         module      = "if_mib"
         walk_params = "public"
     }
 
     target "network_router_2" {
+        name        = "network_router_2"
         address     = "192.168.1.3"
         module      = "mikrotik"
         walk_params = "private"
     }
 
-    walk_param "private" {
+    walk_param {
+        name    = "private"
         retries = "2"
     }
 
-    walk_param "public" {
+    walk_param {
+        name    = "public"
         retries = "2"
     }
 }

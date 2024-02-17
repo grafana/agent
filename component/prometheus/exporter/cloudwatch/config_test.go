@@ -37,7 +37,8 @@ debug = true
 const singleStaticJobConfig = `
 sts_region = "us-east-2"
 debug = true
-static "super_ec2_instance_id" {
+static {
+	name = "super_ec2_instance_id"
 	regions = ["us-east-2"]
 	namespace = "AWS/EC2"
 	dimensions = {
@@ -106,7 +107,8 @@ discovery {
 const staticJobNilToZeroConfig = `
 sts_region = "us-east-2"
 debug = true
-static "super_ec2_instance_id" {
+static {
+	name = "super_ec2_instance_id"
 	regions = ["us-east-2"]
 	namespace = "AWS/EC2"
 	dimensions = {
@@ -125,7 +127,8 @@ static "super_ec2_instance_id" {
 const staticJobNilToZeroMetricConfig = `
 sts_region = "us-east-2"
 debug = true
-static "super_ec2_instance_id" {
+static {
+	name = "super_ec2_instance_id"
 	regions = ["us-east-2"]
 	namespace = "AWS/EC2"
 	dimensions = {

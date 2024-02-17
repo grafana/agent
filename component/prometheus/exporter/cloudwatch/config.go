@@ -65,7 +65,7 @@ type Tags map[string]string
 
 // StaticJob will scrape metrics that match all defined dimensions.
 type StaticJob struct {
-	Name       string         `river:",label"`
+	Name       string         `river:"name,attr"`
 	Auth       RegionAndRoles `river:",squash"`
 	CustomTags Tags           `river:"custom_tags,attr,optional"`
 	Namespace  string         `river:"namespace,attr"`

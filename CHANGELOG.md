@@ -16,6 +16,12 @@ Main (unreleased)
 
 - For `otelcol.exporter` components, change the default value of `disable_high_cardinality_metrics` to `true`. (@ptodev)
 
+- The children blocks in following components requires a mandatory `name`
+  argument instead of a block label. (@hainenber)
+  - `static` block in `prometheus.exporter.cloudwatch`
+  - `target` and `walk_param` block in `prometheus.exporter.snmp`
+  - `profile.custom` block in `pyrosope.scrape`
+
 ### Features
 
 - A new `discovery.process` component for discovering Linux OS processes on the current host. (@korniltsev)

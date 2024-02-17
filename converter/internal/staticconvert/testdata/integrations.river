@@ -89,14 +89,16 @@ prometheus.scrape "integrations_blackbox" {
 }
 
 prometheus.exporter.snmp "integrations_snmp" {
-	target "network_switch_1" {
+	target {
+		name        = "network_switch_1"
 		address     = "192.168.1.2"
 		module      = "if_mib"
 		auth        = "public"
 		walk_params = "public"
 	}
 
-	target "network_router_2" {
+	target {
+		name        = "network_router_2"
 		address     = "192.168.1.3"
 		module      = "mikrotik"
 		auth        = "private"
@@ -200,7 +202,8 @@ prometheus.exporter.cloudwatch "integrations_cloudwatch_exporter" {
 		nil_to_zero = true
 	}
 
-	static "single_ec2_instance" {
+	static {
+		name        = "single_ec2_instance"
 		regions     = ["us-east-2"]
 		custom_tags = {}
 		namespace   = "AWS/EC2"
