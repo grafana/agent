@@ -161,6 +161,16 @@ func (c *Component) Run(ctx context.Context) error {
 					c.setHealth(err)
 					level.Error(c.log).Log("msg", "failed to apply event watchers", "err", err)
 				}
+
+				// Check on bubbled up errors encountered by the workers when running applied tasks
+				// and set component health accordingly
+				appliedTaskErrorString := ""
+				for _, err := range c.runner.GetWorkerErrors() {
+					appliedTaskErrorString += err.Error() + "\n"
+				}
+				if appliedTaskErrorString != "" {
+					c.setHealth(fmt.Errorf(appliedTaskErrorString))
+				}
 			}
 		}
 	}, func(_ error) {
