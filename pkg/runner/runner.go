@@ -32,7 +32,7 @@ type Worker interface {
 	// Run starts a Worker, blocking until the provided ctx is canceled or a
 	// fatal error occurs. Run is guaranteed to be called exactly once for any
 	// given Worker.
-	Run(ctx context.Context)
+	Run(ctx context.Context) error
 }
 
 // The Runner manages a set of running Workers based on an active set of tasks.

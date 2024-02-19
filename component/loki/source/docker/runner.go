@@ -94,7 +94,7 @@ func newTailer(l log.Logger, task *tailerTask) *tailer {
 	}
 }
 
-func (t *tailer) Run(ctx context.Context) {
+func (t *tailer) Run(ctx context.Context) error {
 	ch, chErr := t.opts.client.ContainerWait(ctx, t.target.Name(), container.WaitConditionNextExit)
 
 	t.target.StartIfNotRunning()
@@ -108,10 +108,10 @@ func (t *tailer) Run(ctx context.Context) {
 		// refresh.
 		level.Error(t.log).Log("msg", "could not set up a wait request to the Docker client", "error", err)
 		t.target.Stop()
-		return
+		return err
 	case <-ch:
 		t.target.Stop()
-		return
+		return nil
 	}
 }
 

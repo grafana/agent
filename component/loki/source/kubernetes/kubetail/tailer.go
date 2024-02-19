@@ -89,7 +89,7 @@ var retailBackoff = backoff.Config{
 	MaxBackoff: time.Minute,
 }
 
-func (t *tailer) Run(ctx context.Context) {
+func (t *tailer) Run(ctx context.Context) error {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
@@ -111,18 +111,22 @@ func (t *tailer) Run(ctx context.Context) {
 			terminated, err := t.containerTerminated(ctx)
 			if terminated {
 				// The container shut down and won't come back; we can stop tailing it.
-				return
+				return nil
 			} else if err != nil {
 				level.Warn(t.log).Log("msg", "could not determine if container terminated; will retry tailing", "err", err)
+				return err
 			}
 		}
 
 		if err != nil {
 			t.target.Report(time.Now().UTC(), err)
 			level.Warn(t.log).Log("msg", "tailer stopped; will retry", "err", err)
+			return err
 		}
 		bo.Wait()
 	}
+
+	return nil
 }
 
 func (t *tailer) tail(ctx context.Context, handler loki.EntryHandler) error {

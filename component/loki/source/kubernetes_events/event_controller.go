@@ -79,7 +79,7 @@ func newEventController(task eventControllerTask) *eventController {
 	}
 }
 
-func (ctrl *eventController) Run(ctx context.Context) {
+func (ctrl *eventController) Run(ctx context.Context) error {
 	defer ctrl.handler.Stop()
 
 	level.Info(ctrl.log).Log("msg", "watching events for namespace", "namespace", ctrl.task.Namespace)
@@ -87,7 +87,10 @@ func (ctrl *eventController) Run(ctx context.Context) {
 
 	if err := ctrl.runError(ctx); err != nil {
 		level.Error(ctrl.log).Log("msg", "event watcher exited with error", "err", err)
+		return err
 	}
+
+	return nil
 }
 
 func (ctrl *eventController) runError(ctx context.Context) error {
