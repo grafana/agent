@@ -419,20 +419,14 @@ func (cr *childRunner) Run(ctx context.Context) {
 	}
 }
 
-// TODO: is nodeID enough?
 func (cn *ImportConfigNode) Hash() uint64 {
 	fnvHash := fnv.New64a()
 	fnvHash.Write([]byte(cn.NodeID()))
 	return fnvHash.Sum64()
 }
 
-// TODO: is nodeID enough?
+// We don't want to reuse previous running tasks.
+// On every updates, the previous workers should be stopped and new ones should spawn.
 func (cn *ImportConfigNode) Equals(other runner.Task) bool {
-	otherTask := other.(*ImportConfigNode)
-
-	if cn == otherTask {
-		return true
-	}
-
-	return cn.NodeID() == otherTask.NodeID()
+	return false
 }

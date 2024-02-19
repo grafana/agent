@@ -223,6 +223,52 @@ func TestImportString(t *testing.T) {
 	})
 }
 
+func TestImportChangeModuleFileTarget(t *testing.T) {
+	modules := loadModules(t)
+	t.Run("Import module with an import block and update the import block to point to another file", func(t *testing.T) {
+		defer verifyNoGoroutineLeaks(t)
+		defer os.Remove("module")
+		require.NoError(t, os.WriteFile("module", []byte(modules["declare_passthrough_import_a"]), 0664))
+		defer os.Remove("nested_module")
+		require.NoError(t, os.WriteFile("nested_module", []byte(modules["declare_passthrough"]), 0664))
+		defer os.Remove("other_nested_module")
+		require.NoError(t, os.WriteFile("other_nested_module", []byte(modules["declare_negative_passthrough"]), 0664))
+
+		ctrl := flow.New(testOptions(t))
+		f, err := flow.ParseSource(t.Name(), []byte(modules["root_import_a"]))
+		require.NoError(t, err)
+		require.NotNil(t, f)
+
+		err = ctrl.LoadSource(f, nil)
+		require.NoError(t, err)
+
+		ctx, cancel := context.WithCancel(context.Background())
+		var wg sync.WaitGroup
+		defer func() {
+			cancel()
+			wg.Wait()
+		}()
+
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			ctrl.Run(ctx)
+		}()
+
+		require.Eventually(t, func() bool {
+			export := getExport[testcomponents.SummationExports](t, ctrl, "", "testcomponents.summation.sum")
+			return export.LastAdded >= 10
+		}, 3*time.Second, 10*time.Millisecond)
+
+		require.NoError(t, os.WriteFile("module", []byte(modules["declare_passthrough_import_a_(other_nested_module)"]), 0664))
+
+		require.Eventually(t, func() bool {
+			export := getExport[testcomponents.SummationExports](t, ctrl, "", "testcomponents.summation.sum")
+			return export.LastAdded <= -10
+		}, 3*time.Second, 10*time.Millisecond)
+	})
+}
+
 func testConfig(t *testing.T, config string, update func()) {
 	defer verifyNoGoroutineLeaks(t)
 	ctrl := flow.New(testOptions(t))

@@ -224,6 +224,24 @@ testcomponents.summation "sum" {
 	input = b.cc.output
 }
 
+-- declare_passthrough_import_a_(other_nested_module) --
+
+import.file "testImport" {
+	filename = "other_nested_module"
+}
+
+declare "a" {
+	argument "input" {}
+
+	testImport.a "cc" {
+		input = argument.input.value
+	}
+
+	export "output" {
+		value = testImport.a.cc.output
+	}
+}
+
 -- import_string_declare_passthrough --
 
 testcomponents.count "inc" {
