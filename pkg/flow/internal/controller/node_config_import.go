@@ -150,16 +150,25 @@ func (cn *ImportConfigNode) setContentHealth(t component.HealthType, msg string)
 //  2. Health from the last call to Evaluate().
 //  3. Health from the last call to OnContentChange().
 //  4. Health reported from the source.
+//  5. Health reported from the nested imports.
 func (cn *ImportConfigNode) CurrentHealth() component.Health {
 	cn.healthMut.RLock()
 	defer cn.healthMut.RUnlock()
+	cn.mut.RLock()
+	defer cn.mut.RUnlock()
 
-	return component.LeastHealthy(
+	health := component.LeastHealthy(
 		cn.runHealth,
 		cn.evalHealth,
 		cn.contentHealth,
 		cn.source.CurrentHealth(),
 	)
+
+	for _, child := range cn.importConfigNodesChildren {
+		health = component.LeastHealthy(health, child.CurrentHealth())
+	}
+
+	return health
 }
 
 // Evaluate implements BlockNode and evaluates the import source.
@@ -314,8 +323,7 @@ func (cn *ImportConfigNode) Run(ctx context.Context) error {
 
 	runner := runner.New(func(node *ImportConfigNode) runner.Worker {
 		return &childRunner{
-			node:    node,
-			errChan: errChan,
+			node: node,
 		}
 	})
 	defer runner.Stop()
@@ -332,18 +340,19 @@ func (cn *ImportConfigNode) Run(ctx context.Context) error {
 		return runner.ApplyTasks(newCtx, tasks)
 	}
 
+	cn.setRunHealth(component.HealthTypeHealthy, "started import")
+
 	err := updateTasks()
 	if err != nil {
 		level.Error(cn.logger).Log("msg", "import failed to run nested imports", "err", err)
-		cn.setRunHealth(component.HealthTypeExited, fmt.Sprintf("import shut down while trying to run nested imports with error: %s", err))
-		return err
+		cn.setRunHealth(component.HealthTypeUnhealthy, fmt.Sprintf("error encountered while running nested import blocks: %s", err))
+		// the error is not fatal, the node can still run in unhealthy mode
 	}
 
 	go func() {
 		errChan <- cn.source.Run(newCtx)
 	}()
 
-	cn.setRunHealth(component.HealthTypeHealthy, "started import")
 	err = cn.run(errChan, updateTasks)
 
 	var exitMsg string
@@ -364,7 +373,11 @@ func (cn *ImportConfigNode) run(errChan chan error, updateTasks func() error) er
 		case <-cn.importChildrenUpdateChan:
 			err := updateTasks()
 			if err != nil {
-				return err
+				level.Error(cn.logger).Log("msg", "error encountered while updating nested import blocks", "err", err)
+				cn.setRunHealth(component.HealthTypeUnhealthy, fmt.Sprintf("error encountered while updating nested import blocks: %s", err))
+				// the error is not fatal, the node can still run in unhealthy mode
+			} else {
+				cn.setRunHealth(component.HealthTypeHealthy, "nested imports updated successfully")
 			}
 		case err := <-errChan:
 			return err
@@ -395,14 +408,14 @@ func (cn *ImportConfigNode) ImportConfigNodesChildren() map[string]*ImportConfig
 }
 
 type childRunner struct {
-	node    *ImportConfigNode
-	errChan chan error
+	node *ImportConfigNode
 }
 
 func (cr *childRunner) Run(ctx context.Context) {
 	err := cr.node.Run(ctx)
 	if err != nil {
-		cr.errChan <- err
+		level.Error(cr.node.logger).Log("msg", "nested import stopped running", "err", err)
+		cr.node.setRunHealth(component.HealthTypeUnhealthy, fmt.Sprintf("nested import stopped running: %s", err))
 	}
 }
 
