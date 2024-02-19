@@ -85,6 +85,8 @@ Main (unreleased)
 
 - Fix bug where custom headers were not actually being set in loki client. (@captncraig)
 
+- Fix bug in `pyroscope.ebpf` component when elf's PT_LOAD section is not page aligned . [PR](https://github.com/grafana/pyroscope/pull/2983)  (@korniltsev)
+
 ### Other changes
 
 - Removed support for Windows 2012 in line with Microsoft end of life. (@mattdurham)

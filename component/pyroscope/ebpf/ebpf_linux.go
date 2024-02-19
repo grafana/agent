@@ -14,11 +14,10 @@ import (
 	"github.com/grafana/agent/component/pyroscope"
 	"github.com/grafana/agent/pkg/flow/logging/level"
 	ebpfspy "github.com/grafana/pyroscope/ebpf"
+	demangle2 "github.com/grafana/pyroscope/ebpf/cpp/demangle"
 	"github.com/grafana/pyroscope/ebpf/pprof"
 	"github.com/grafana/pyroscope/ebpf/sd"
 	"github.com/grafana/pyroscope/ebpf/symtab"
-	"github.com/grafana/pyroscope/ebpf/symtab/elf"
-	"github.com/ianlancetaylor/demangle"
 	"github.com/oklog/run"
 )
 
@@ -160,16 +159,11 @@ func (c *Component) collectProfiles() error {
 	c.metrics.profilingSessionsTotal.Inc()
 	level.Debug(c.options.Logger).Log("msg", "ebpf  collectProfiles")
 	args := c.args
-	builders := pprof.NewProfileBuilders(int64(args.SampleRate))
-	err := c.session.CollectProfiles(func(target *sd.Target, stack []string, value uint64, pid uint32, aggregation ebpfspy.SampleAggregation) {
-		labelsHash, labels := target.Labels()
-		builder := builders.BuilderForTarget(labelsHash, labels)
-		if aggregation == ebpfspy.SampleAggregated {
-			builder.CreateSample(stack, value)
-		} else {
-			builder.CreateSampleOrAddValue(stack, value)
-		}
+	builders := pprof.NewProfileBuilders(pprof.BuildersOptions{
+		SampleRate:    int64(args.SampleRate),
+		PerPIDProfile: true,
 	})
+	err := pprof.Collect(builders, c.session)
 
 	if err != nil {
 		return fmt.Errorf("ebpf session collectProfiles %w", err)
@@ -237,11 +231,11 @@ func convertSessionOptions(args Arguments, ms *metrics) ebpfspy.SessionOptions {
 		SampleRate:    args.SampleRate,
 		PythonEnabled: args.PythonEnabled,
 		Metrics:       ms.ebpfMetrics,
+		SymbolOptions: symtab.SymbolOptions{
+			GoTableFallback: false,
+			DemangleOptions: demangle2.ConvertDemangleOptions(args.Demangle),
+		},
 		CacheOptions: symtab.CacheOptions{
-			SymbolOptions: symtab.SymbolOptions{
-				GoTableFallback: false,
-				DemangleOptions: convertDemangleOptions(args.Demangle),
-			},
 			PidCacheOptions: symtab.GCacheOptions{
 				Size:       args.PidCacheSize,
 				KeepRounds: args.CacheRounds,
@@ -255,20 +249,5 @@ func convertSessionOptions(args Arguments, ms *metrics) ebpfspy.SessionOptions {
 				KeepRounds: args.CacheRounds,
 			},
 		},
-	}
-}
-
-func convertDemangleOptions(o string) []demangle.Option {
-	switch o {
-	case "none":
-		return elf.DemangleNone
-	case "simplified":
-		return elf.DemangleSimplified
-	case "templates":
-		return elf.DemangleTemplates
-	case "full":
-		return elf.DemangleFull
-	default:
-		return elf.DemangleNone
 	}
 }
