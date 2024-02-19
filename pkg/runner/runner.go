@@ -42,8 +42,10 @@ type Runner[TaskType Task] struct {
 	ctx    context.Context
 	cancel context.CancelFunc
 
-	running sync.WaitGroup
-	workers *hashMap
+	running      sync.WaitGroup
+	workers      *hashMap
+	workerErrs   []error
+	workerErrMut sync.RWMutex
 }
 
 // Internal types used to implement the Runner.
@@ -163,7 +165,12 @@ func (s *Runner[TaskType]) ApplyTasks(ctx context.Context, tt []TaskType) error 
 		go func() {
 			defer s.running.Done()
 			defer close(newWorker.Exited)
-			newWorker.Worker.Run(workerCtx)
+			// Gather error encountered by worker when running
+			if err := newWorker.Worker.Run(workerCtx); err != nil {
+				s.workerErrMut.Lock()
+				s.workerErrs = append(s.workerErrs, err)
+				s.workerErrMut.Unlock()
+			}
 		}()
 
 		_ = s.workers.Add(newTask)
@@ -202,4 +209,11 @@ func (s *Runner[TaskType]) Workers() []Worker {
 func (s *Runner[TaskType]) Stop() {
 	s.cancel()
 	s.running.Wait()
+}
+
+// GetWorkerErrors returns errors encountered by workers when they run assigned tasks
+func (s *Runner[TaskType]) GetWorkerErrors() []error {
+	s.workerErrMut.RLock()
+	defer s.workerErrMut.RUnlock()
+	return s.workerErrs
 }
