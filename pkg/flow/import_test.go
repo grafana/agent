@@ -2,6 +2,7 @@ package flow_test
 
 import (
 	"context"
+	"io/fs"
 	"os"
 	"strings"
 	"sync"
@@ -18,265 +19,132 @@ import (
 	_ "github.com/grafana/agent/component/module/string"
 )
 
-// updateFile is used to change the content of a file used by a module
-type updateFile struct {
-	name         string   // name of the file which should be updated (module | nested_module)
-	updateConfig []string // new module config which should be used
+// The tests are using the .txtar files stored in the testdata folder.
+
+type testImportFile struct {
+	description       string      // description at the top of the txtar file
+	main              string      // root config that the controller should load
+	module            string      // module imported by the root config
+	nestedModule      string      // nested module that can be imported by the module
+	reloadConfig      string      // root config that the controller should apply on reload
+	otherNestedModule string      // another nested module
+	update            *updateFile // update can be used to update the content of a file at runtime
 }
 
-func TestImport(t *testing.T) {
-	modules := loadModules(t)
-	testCases := []struct {
-		name         string
-		config       []string    // root config that the controller should load
-		module       []string    // module (file) that the root config can import
-		nestedModule []string    // module (file) that the module can import
-		update       *updateFile // update can update the module or the nested_module file with new content
-	}{
-		{
-			name:   "Import passthrough module.",
-			config: []string{"root_import_a"},
-			module: []string{"declare_passthrough"},
-			update: &updateFile{
-				name:         "module",
-				updateConfig: []string{"declare_negative_passthrough"},
-			},
-		},
-		{
-			name:   "Import passthrough module in a declare.",
-			config: []string{"root_import_a_in_declare_b"},
-			module: []string{"declare_passthrough"},
-			update: &updateFile{
-				name:         "module",
-				updateConfig: []string{"declare_negative_passthrough"},
-			},
-		},
-		{
-			name:   "Import passthrough module; instantiate imported declare in a declare.",
-			config: []string{"root_import_a_used_in_declare_b"},
-			module: []string{"declare_passthrough"},
-			update: &updateFile{
-				name:         "module",
-				updateConfig: []string{"declare_negative_passthrough"},
-			},
-		},
-		{
-			name:   "Import passthrough module; instantiate imported declare in a nested declare.",
-			config: []string{"root_import_a_used_in_declare_c_within_declare_b"},
-			module: []string{"declare_passthrough"},
-			update: &updateFile{
-				name:         "module",
-				updateConfig: []string{"declare_negative_passthrough"},
-			},
-		},
-		{
-			name:         "Import passthrough module which also imports a passthrough module; update nested module.",
-			config:       []string{"root_import_a"},
-			module:       []string{"declare_passthrough_import_a"},
-			nestedModule: []string{"declare_passthrough"},
-			update: &updateFile{
-				name:         "nested_module",
-				updateConfig: []string{"declare_negative_passthrough"},
-			},
-		},
-		{
-			name:         "Import passthrough module which also imports a passthrough module; update module.",
-			config:       []string{"root_import_a"},
-			module:       []string{"declare_passthrough_import_a"},
-			nestedModule: []string{"declare_passthrough"},
-			update: &updateFile{
-				name:         "module",
-				updateConfig: []string{"declare_negative_passthrough"},
-			},
-		},
-		{
-			name:         "Import passthrough module which also imports a passthrough module and uses it inside of a nested declare.",
-			config:       []string{"root_import_a"},
-			module:       []string{"declare_passthrough_import_a_used_in_declare_b"},
-			nestedModule: []string{"declare_passthrough"},
-			update: &updateFile{
-				name:         "nested_module",
-				updateConfig: []string{"declare_negative_passthrough"},
-			},
-		},
-		{
-			name:   "Import module with two declares; one used in the other one.",
-			config: []string{"root_import_b"},
-			module: []string{"declare_passthrough", "declare_instantiates_declare_passthrough"},
-			update: &updateFile{
-				name:         "module",
-				updateConfig: []string{"declare_negative_passthrough", "declare_instantiates_declare_passthrough"},
-			},
-		},
-		{
-			name:         "Import passthrough module and instantiate it in a declare. The imported module has a nested declare that uses an imported passthrough.",
-			config:       []string{"root_import_a_in_declare_b"},
-			module:       []string{"declare_passthrough_import_a_used_in_declare_b"},
-			nestedModule: []string{"declare_passthrough"},
-			update: &updateFile{
-				name:         "nested_module",
-				updateConfig: []string{"declare_negative_passthrough"},
-			},
-		},
-		{
-			name:         "Import passthrough module and update it with an import passthrough",
-			config:       []string{"root_import_a"},
-			module:       []string{"declare_passthrough"},
-			nestedModule: []string{"declare_negative_passthrough"},
-			update: &updateFile{
-				name:         "module",
-				updateConfig: []string{"declare_passthrough_import_a"},
-			},
-		},
-		{
-			name:         "Import passthrough module which also imports a passthrough module and update it to a simple passthrough",
-			config:       []string{"root_import_a"},
-			module:       []string{"declare_passthrough_import_a"},
-			nestedModule: []string{"declare_passthrough"},
-			update: &updateFile{
-				name:         "module",
-				updateConfig: []string{"declare_negative_passthrough"},
-			},
-		},
+type updateFile struct {
+	name         string // name of the file which should be updated
+	updateConfig string // new module config which should be used
+}
+
+func buildTestImportFile(t *testing.T, filename string) testImportFile {
+	archive, err := txtar.ParseFile(filename)
+	require.NoError(t, err)
+	var tc testImportFile
+	tc.description = string(archive.Comment)
+	for _, riverConfig := range archive.Files {
+		switch riverConfig.Name {
+		case "main.river":
+			tc.main = string(riverConfig.Data)
+		case "module.river":
+			tc.module = string(riverConfig.Data)
+		case "nested_module.river":
+			tc.nestedModule = string(riverConfig.Data)
+		case "update/module.river":
+			require.Nil(t, tc.update)
+			tc.update = &updateFile{
+				name:         "module.river",
+				updateConfig: string(riverConfig.Data),
+			}
+		case "update/nested_module.river":
+			require.Nil(t, tc.update)
+			tc.update = &updateFile{
+				name:         "nested_module.river",
+				updateConfig: string(riverConfig.Data),
+			}
+		case "reload_config.river":
+			tc.reloadConfig = string(riverConfig.Data)
+		case "other_nested_module.river":
+			tc.otherNestedModule = string(riverConfig.Data)
+		}
 	}
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			defer os.Remove("module")
-			require.NoError(t, os.WriteFile("module", []byte(concatModules(t, modules, tc.module)), 0664))
-			if tc.nestedModule != nil {
-				defer os.Remove("nested_module")
-				require.NoError(t, os.WriteFile("nested_module", []byte(concatModules(t, modules, tc.nestedModule)), 0664))
+	return tc
+}
+
+func TestImportFile(t *testing.T) {
+	directory := "./testdata/import_file"
+	for _, file := range getTestFiles(directory, t) {
+		tc := buildTestImportFile(t, directory+"/"+file.Name())
+		t.Run(tc.description, func(t *testing.T) {
+			defer os.Remove("module.river")
+			require.NoError(t, os.WriteFile("module.river", []byte(tc.module), 0664))
+			if tc.nestedModule != "" {
+				defer os.Remove("nested_module.river")
+				require.NoError(t, os.WriteFile("nested_module.river", []byte(tc.nestedModule), 0664))
+			}
+			if tc.otherNestedModule != "" {
+				defer os.Remove("other_nested_module.river")
+				require.NoError(t, os.WriteFile("other_nested_module.river", []byte(tc.otherNestedModule), 0664))
 			}
 
 			if tc.update != nil {
-				testConfig(t, concatModules(t, modules, tc.config), func() {
-					require.NoError(t, os.WriteFile(tc.update.name, []byte(concatModules(t, modules, tc.update.updateConfig)), 0664))
+				testConfig(t, tc.main, tc.reloadConfig, func() {
+					require.NoError(t, os.WriteFile(tc.update.name, []byte(tc.update.updateConfig), 0664))
 				})
 			} else {
-				testConfig(t, concatModules(t, modules, tc.config), nil)
+				testConfig(t, tc.main, tc.reloadConfig, nil)
 			}
-		})
-	}
-}
-
-func TestImportError(t *testing.T) {
-	modules := loadModules(t)
-	testCases := []struct {
-		name          string
-		config        string
-		expectedError string
-	}{
-		{
-			name:          "Imported declare tries to access declare at the root.",
-			config:        "import_use_out_of_scope_declare",
-			expectedError: `cannot retrieve the definition of component name "cantAccessThis"`,
-		},
-		{
-			name:          "Root tries to access declare in nested import.",
-			config:        "root_use_out_of_scope_declare",
-			expectedError: `Failed to build component: loading custom component controller: custom component config not found in the registry, namespace: "testImport", componentName: "cantAccessThis"`,
-		},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			testConfigError(t, modules[tc.config], tc.expectedError)
-		})
-	}
-}
-
-func TestImportReload(t *testing.T) {
-	modules := loadModules(t)
-	testCases := []struct {
-		name         string
-		config       []string
-		module       []string
-		nestedModule []string
-		newConfig    []string
-	}{
-		{
-			name:         "Import passthrough module and instantiate it in a declare. The imported module has a nested declare that uses an imported passthrough.",
-			config:       []string{"root_import_a_in_declare_b"},
-			module:       []string{"declare_passthrough_import_a_used_in_declare_b"},
-			nestedModule: []string{"declare_passthrough"},
-			newConfig:    []string{"root_import_a_negative_input"},
-		},
-	}
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			defer os.Remove("module")
-			require.NoError(t, os.WriteFile("module", []byte(concatModules(t, modules, tc.module)), 0664))
-			if tc.nestedModule != nil {
-				defer os.Remove("nested_module")
-				require.NoError(t, os.WriteFile("nested_module", []byte(concatModules(t, modules, tc.nestedModule)), 0664))
-			}
-			testConfigReload(t, concatModules(t, modules, tc.config), concatModules(t, modules, tc.newConfig))
 		})
 	}
 }
 
 func TestImportString(t *testing.T) {
-	modules := loadModules(t)
-	t.Run("Import a declare and instantiate a declare from it", func(t *testing.T) {
-		defer verifyNoGoroutineLeaks(t)
-		testConfig(t, modules["import_string_declare_passthrough"], nil)
-	})
+	directory := "./testdata/import_string"
+	for _, file := range getTestFiles(directory, t) {
+		archive, err := txtar.ParseFile(directory + "/" + file.Name())
+		require.NoError(t, err)
+		t.Run(archive.Files[0].Name, func(t *testing.T) {
+			testConfig(t, string(archive.Files[0].Data), "", nil)
+		})
+	}
 }
 
-func TestImportChangeModuleFileTarget(t *testing.T) {
-	modules := loadModules(t)
-	t.Run("Import module with an import block and update the import block to point to another file", func(t *testing.T) {
-		defer verifyNoGoroutineLeaks(t)
-		defer os.Remove("module")
-		require.NoError(t, os.WriteFile("module", []byte(modules["declare_passthrough_import_a"]), 0664))
-		defer os.Remove("nested_module")
-		require.NoError(t, os.WriteFile("nested_module", []byte(modules["declare_passthrough"]), 0664))
-		defer os.Remove("other_nested_module")
-		require.NoError(t, os.WriteFile("other_nested_module", []byte(modules["declare_negative_passthrough"]), 0664))
-
-		ctrl := flow.New(testOptions(t))
-		f, err := flow.ParseSource(t.Name(), []byte(modules["root_import_a"]))
-		require.NoError(t, err)
-		require.NotNil(t, f)
-
-		err = ctrl.LoadSource(f, nil)
-		require.NoError(t, err)
-
-		ctx, cancel := context.WithCancel(context.Background())
-		var wg sync.WaitGroup
-		defer func() {
-			cancel()
-			wg.Wait()
-		}()
-
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			ctrl.Run(ctx)
-		}()
-
-		require.Eventually(t, func() bool {
-			export := getExport[testcomponents.SummationExports](t, ctrl, "", "testcomponents.summation.sum")
-			return export.LastAdded >= 10
-		}, 3*time.Second, 10*time.Millisecond)
-
-		require.NoError(t, os.WriteFile("module", []byte(modules["declare_passthrough_import_a_(other_nested_module)"]), 0664))
-
-		require.Eventually(t, func() bool {
-			export := getExport[testcomponents.SummationExports](t, ctrl, "", "testcomponents.summation.sum")
-			return export.LastAdded <= -10
-		}, 3*time.Second, 10*time.Millisecond)
-	})
+type testImportError struct {
+	description   string
+	main          string
+	expectedError string
 }
 
-func testConfig(t *testing.T, config string, update func()) {
-	defer verifyNoGoroutineLeaks(t)
-	ctrl := flow.New(testOptions(t))
-	f, err := flow.ParseSource(t.Name(), []byte(config))
+func buildTestImportError(t *testing.T, filename string) testImportError {
+	archive, err := txtar.ParseFile(filename)
 	require.NoError(t, err)
-	require.NotNil(t, f)
+	var tc testImportError
+	tc.description = string(archive.Comment)
+	for _, riverConfig := range archive.Files {
+		switch riverConfig.Name {
+		case "main.river":
+			tc.main = string(riverConfig.Data)
+		case "error":
+			tc.expectedError = string(riverConfig.Data)
+		}
+	}
+	return tc
+}
 
-	err = ctrl.LoadSource(f, nil)
+func TestImportError(t *testing.T) {
+	directory := "./testdata/import_error"
+	for _, file := range getTestFiles(directory, t) {
+		tc := buildTestImportError(t, directory+"/"+file.Name())
+		t.Run(tc.description, func(t *testing.T) {
+			testConfigError(t, tc.main, strings.TrimRight(tc.expectedError, "\n"))
+		})
+	}
+}
+
+func testConfig(t *testing.T, config string, reloadConfig string, update func()) {
+	defer verifyNoGoroutineLeaks(t)
+	ctrl, f := setup(t, config)
+
+	err := ctrl.LoadSource(f, nil)
 	require.NoError(t, err)
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -307,18 +175,29 @@ func testConfig(t *testing.T, config string, update func()) {
 			return export.LastAdded <= -10
 		}, 3*time.Second, 10*time.Millisecond)
 	}
+
+	if reloadConfig != "" {
+		f, err = flow.ParseSource(t.Name(), []byte(reloadConfig))
+		require.NoError(t, err)
+		require.NotNil(t, f)
+
+		// Reload the controller with the new config.
+		err = ctrl.LoadSource(f, nil)
+		require.NoError(t, err)
+
+		// Export should be -10 after update
+		require.Eventually(t, func() bool {
+			export := getExport[testcomponents.SummationExports](t, ctrl, "", "testcomponents.summation.sum")
+			return export.LastAdded <= -10
+		}, 3*time.Second, 10*time.Millisecond)
+	}
 }
 
-func testConfigReload(t *testing.T, config string, newConfig string) {
+func testConfigError(t *testing.T, config string, expectedError string) {
 	defer verifyNoGoroutineLeaks(t)
-	ctrl := flow.New(testOptions(t))
-	f, err := flow.ParseSource(t.Name(), []byte(config))
-	require.NoError(t, err)
-	require.NotNil(t, f)
-
-	err = ctrl.LoadSource(f, nil)
-	require.NoError(t, err)
-
+	ctrl, f := setup(t, config)
+	err := ctrl.LoadSource(f, nil)
+	require.ErrorContains(t, err, expectedError)
 	ctx, cancel := context.WithCancel(context.Background())
 	var wg sync.WaitGroup
 	defer func() {
@@ -331,30 +210,9 @@ func testConfigReload(t *testing.T, config string, newConfig string) {
 		defer wg.Done()
 		ctrl.Run(ctx)
 	}()
-
-	// Check for initial condition
-	require.Eventually(t, func() bool {
-		export := getExport[testcomponents.SummationExports](t, ctrl, "", "testcomponents.summation.sum")
-		return export.LastAdded >= 10
-	}, 3*time.Second, 10*time.Millisecond)
-
-	f, err = flow.ParseSource(t.Name(), []byte(newConfig))
-	require.NoError(t, err)
-	require.NotNil(t, f)
-
-	// Reload the controller with the new config.
-	err = ctrl.LoadSource(f, nil)
-	require.NoError(t, err)
-
-	// Export should be -10 after update
-	require.Eventually(t, func() bool {
-		export := getExport[testcomponents.SummationExports](t, ctrl, "", "testcomponents.summation.sum")
-		return export.LastAdded <= -10
-	}, 3*time.Second, 10*time.Millisecond)
 }
 
-func testConfigError(t *testing.T, config string, expectedError string) {
-	defer verifyNoGoroutineLeaks(t)
+func setup(t *testing.T, config string) (*flow.Flow, *flow.Source) {
 	s, err := logging.New(os.Stderr, logging.DefaultOptions)
 	require.NoError(t, err)
 	ctrl := flow.New(flow.Options{
@@ -366,43 +224,16 @@ func testConfigError(t *testing.T, config string, expectedError string) {
 	f, err := flow.ParseSource(t.Name(), []byte(config))
 	require.NoError(t, err)
 	require.NotNil(t, f)
-
-	err = ctrl.LoadSource(f, nil)
-	require.ErrorContains(t, err, expectedError)
-
-	ctx, cancel := context.WithCancel(context.Background())
-	var wg sync.WaitGroup
-	defer func() {
-		cancel()
-		wg.Wait()
-	}()
-
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		ctrl.Run(ctx)
-	}()
+	return ctrl, f
 }
 
-// loadModules load river configs from a txtar file to a map
-func loadModules(t *testing.T) map[string]string {
-	archive, err := txtar.ParseFile("import_test.txtar")
+func getTestFiles(directory string, t *testing.T) []fs.FileInfo {
+	dir, err := os.Open(directory)
+	require.NoError(t, err)
+	defer dir.Close()
+
+	files, err := dir.Readdir(-1)
 	require.NoError(t, err)
 
-	modules := make(map[string]string)
-	for _, file := range archive.Files {
-		modules[file.Name] = string(file.Data)
-	}
-	return modules
-}
-
-// concatModules concatenates modules into one module
-func concatModules(t *testing.T, modules map[string]string, files []string) string {
-	m := make([]string, len(files))
-	for i, f := range files {
-		mod, found := modules[f]
-		require.True(t, found, f)
-		m[i] = mod
-	}
-	return strings.Join(m, "\n")
+	return files
 }
