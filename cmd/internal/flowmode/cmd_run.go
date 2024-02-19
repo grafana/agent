@@ -18,8 +18,6 @@ import (
 	"github.com/fatih/color"
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/component"
-	"github.com/grafana/agent/converter"
-	convert_diag "github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/internal/agentseed"
 	"github.com/grafana/agent/pkg/boringcrypto"
 	"github.com/grafana/agent/pkg/config/instrumentation"
@@ -124,7 +122,6 @@ depending on the nature of the reload error.
 		StringVar(&r.clusterName, "cluster.name", r.clusterName, "The name of the cluster to join")
 	cmd.Flags().
 		BoolVar(&r.disableReporting, "disable-reporting", r.disableReporting, "Disable reporting of enabled components to Grafana.")
-	cmd.Flags().StringVar(&r.configFormat, "config.format", r.configFormat, fmt.Sprintf("The format of the source file. Supported formats: %s.", supportedFormatsList()))
 	cmd.Flags().BoolVar(&r.configBypassConversionErrors, "config.bypass-conversion-errors", r.configBypassConversionErrors, "Enable bypassing errors when converting")
 	cmd.Flags().StringVar(&r.configExtraArgs, "config.extra-args", r.configExtraArgs, "Extra arguments from the original format used by the converter. Multiple arguments can be passed by separating them with a space.")
 	return cmd
@@ -417,20 +414,6 @@ func loadFlowSource(path string, converterSourceFormat string, converterBypassEr
 	bb, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
-	}
-	if converterSourceFormat != "flow" {
-		var diags convert_diag.Diagnostics
-		ea, err := parseExtraArgs(configExtraArgs)
-		if err != nil {
-			return nil, err
-		}
-
-		bb, diags = converter.Convert(bb, converter.Input(converterSourceFormat), ea)
-		hasError := hasErrorLevel(diags, convert_diag.SeverityLevelError)
-		hasCritical := hasErrorLevel(diags, convert_diag.SeverityLevelCritical)
-		if hasCritical || (!converterBypassErrors && hasError) {
-			return nil, diags
-		}
 	}
 
 	instrumentation.InstrumentConfig(bb)
