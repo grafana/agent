@@ -47,7 +47,7 @@ func newController(l log.Logger, reconciler *reconciler) *controller {
 	}
 }
 
-func (ctrl *controller) UpdateConfig(cfg *rest.Config) error {
+func (ctrl *controller) UpdateConfig(cfg *rest.Config, namespaces []string) error {
 	scheme := runtime.NewScheme()
 	for _, add := range []func(*runtime.Scheme) error{
 		corev1.AddToScheme,
@@ -58,7 +58,18 @@ func (ctrl *controller) UpdateConfig(cfg *rest.Config) error {
 		}
 	}
 
-	cache, err := cache.New(cfg, cache.Options{Scheme: scheme})
+	defaultNamespaces := map[string]cache.Config{}
+	for _, ns := range namespaces {
+		defaultNamespaces[ns] = cache.Config{}
+	}
+
+	cache, err := cache.New(
+		cfg,
+		cache.Options{
+			Scheme:            scheme,
+			DefaultNamespaces: defaultNamespaces,
+		},
+	)
 	if err != nil {
 		return err
 	}
