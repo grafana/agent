@@ -174,7 +174,7 @@ func TestImportError(t *testing.T) {
 		{
 			name:          "Root tries to access declare in nested import.",
 			config:        "root_use_out_of_scope_declare",
-			expectedError: `Failed to build component: loading custom component controller: custom component config not found in the registry, namespace: testImport, componentName: cantAccessThis`,
+			expectedError: `Failed to build component: loading custom component controller: custom component config not found in the registry, namespace: "testImport", componentName: "cantAccessThis"`,
 		},
 	}
 
