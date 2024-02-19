@@ -65,19 +65,16 @@ var _ ComponentNode = (*CustomComponentNode)(nil)
 // - [importNamespace].[customComponentName] LABEL -> instance of an imported declare
 // To address this limitation in the future, we will need to find a different approach to
 // identify the importNamespaces and CustomComponentNames.
-func ExtractImportAndDeclare(componentName string) (string, string) {
+func ExtractImportAndDeclare(componentName string) (importNamespace, customComponentName string) {
 	parts := strings.SplitN(componentName, ".", 2)
-	if len(parts) == 0 {
-		return "", ""
-	}
-	// If this is a local declare.
-	importNamespace := ""
-	customComponentName := parts[0]
-	// If this is an imported declare.
-	if len(parts) > 1 {
+	switch len(parts) {
+	case 1: // [customComponentName]
+		customComponentName = parts[0]
+	case 2: // [importNamespace].[customComponentName]
 		importNamespace = parts[0]
 		customComponentName = parts[1]
 	}
+
 	return importNamespace, customComponentName
 }
 
