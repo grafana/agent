@@ -47,7 +47,7 @@ func Convert(in []byte, extraArgs []string) ([]byte, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
 	if len(extraArgs) > 0 {
-		diags.Add(diag.SeverityLevelCritical, fmt.Sprintf("extra arguments are not supported for the prometheus converter: %s", extraArgs))
+		diags.Add(diag.SeverityLevelCritical, fmt.Sprintf("extra arguments are not supported for the otelcol converter: %s", extraArgs))
 		return nil, diags
 	}
 

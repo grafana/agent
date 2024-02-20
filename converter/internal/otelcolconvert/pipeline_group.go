@@ -19,6 +19,37 @@ type pipelineGroup struct {
 	Traces  *pipelines.PipelineConfig
 }
 
+// createPipelineGroups groups pipelines of different telemetry types together
+// by the user-specified pipeline name. For example, the following
+// configuration creates two groups:
+//
+//	# (component definitions are omitted for brevity)
+//
+//	pipelines:
+//	  metrics: # ID: metrics/<empty>
+//	    receivers: [otlp]
+//	    exporters: [otlp]
+//	  logs: # ID: logs/<empty
+//	    receivers: [otlp]
+//	    exporters: [otlp]
+//	  metrics/2: # ID: metrics/2
+//	    receivers: [otlp/2]
+//	    exporters: [otlp/2]
+//	  traces/2: # ID: traces/2
+//	    receivers: [otlp/2]
+//	    exporters: [otlp/2]
+//
+// Here, the two groups are [metrics/<empty> logs/<empty>] and [metrics/2
+// traces/2]. The key used for grouping is the name of the pipeline, so that
+// pipelines with matching names belong to the same group.
+//
+// This allows us to emit a Flow-native pipeline, where one component is
+// responsible for multiple telemetry types, as opposed as to creating the
+// otlp/2 receiver two separate times (once for metrics and once for traces).
+//
+// Note that OpenTelemetry guaratees that the pipeline name is unique, so there
+// can't be two pipelines called metrics/2; any given pipeline group is
+// guaranteed to contain at most one pipeline of each telemetry type.
 func createPipelineGroups(cfg pipelines.Config) ([]pipelineGroup, error) {
 	groups := map[string]pipelineGroup{}
 
@@ -40,7 +71,7 @@ func createPipelineGroups(cfg pipelines.Config) ([]pipelineGroup, error) {
 			group.Logs = config
 		case component.DataTypeTraces:
 			if group.Traces != nil {
-				return nil, fmt.Errorf("duplicate logs pipeline for pipeline named %q", name)
+				return nil, fmt.Errorf("duplicate traces pipeline for pipeline named %q", name)
 			}
 			group.Traces = config
 		default:

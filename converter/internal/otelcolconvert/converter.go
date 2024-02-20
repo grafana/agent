@@ -17,7 +17,7 @@ type componentConverter interface {
 	// component.
 	Factory() component.Factory
 
-	// InputComponentName should return the name of the Flow compnoent where
+	// InputComponentName should return the name of the Flow component where
 	// other Flow components forward OpenTelemetry data to.
 	//
 	// For example, a converter which emits a chain of components
@@ -25,21 +25,15 @@ type componentConverter interface {
 	// "otelcol.receiver.prometheus", which is the first component that receives
 	// OpenTelemetry data in the chain.
 	//
-	// Converters which emit components that do not receive input must return an
-	// empty string.
+	// Converters which emit components that do not receive data from other
+	// components must return an empty string.
 	InputComponentName() string
 
-	// ConvertAndAppend should Convert the provided OpenTelemetry Collector
+	// ConvertAndAppend should convert the provided OpenTelemetry Collector
 	// component configuration into Flow configuration and append the result to
-	// [state.Body].
-	//
-	// Implementations should use the following:
-	//
-	// * Use [state.FlowComponentLabel] to get a unique Flow label for the component
-	//   being generated.
-	//
-	// Implementations of componentConverter should use [state.FlowComponentLabel]
-	// to retrieve a unique Flow label for the component being converted.
+	// [state.Body]. Implementations are expected to append configuration where
+	// all required arguments are set and all optional arguments are set to the
+	// values from the input configuration or the Flow mode default.
 	//
 	// ConvertAndAppend may be called more than once with the same component used
 	// in different pipelines. Use [state.FlowComponentLabel] to get a guaranteed
