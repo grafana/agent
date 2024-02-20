@@ -33,7 +33,7 @@ func NewImportFile(managedOpts component.Options, eval *vm.Evaluator, onContentC
 }
 
 // Arguments holds values which are used to configure the local.file component.
-type Arguments struct {
+type FileArguments struct {
 	// Filename indicates the file to watch.
 	Filename string `river:"filename,attr"`
 	// Type indicates how to detect changes to the file.
@@ -42,18 +42,18 @@ type Arguments struct {
 	PollFrequency time.Duration `river:"poll_frequency,attr,optional"`
 }
 
-var DefaultArguments = Arguments{
+var DefaultFileArguments = FileArguments{
 	Type:          file.DetectorFSNotify,
 	PollFrequency: time.Minute,
 }
 
 type importFileConfigBlock struct {
-	LocalFileArguments Arguments `river:",squash"`
+	LocalFileArguments FileArguments `river:",squash"`
 }
 
 // SetToDefault implements river.Defaulter.
 func (a *importFileConfigBlock) SetToDefault() {
-	a.LocalFileArguments = DefaultArguments
+	a.LocalFileArguments = DefaultFileArguments
 }
 
 func (im *ImportFile) Evaluate(scope *vm.Scope) error {
