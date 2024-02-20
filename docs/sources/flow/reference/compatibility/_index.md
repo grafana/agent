@@ -323,6 +323,7 @@ The following components, grouped by namespace, _consume_ OpenTelemetry `otelcol
 - [otelcol.processor.span]({{< relref "../components/otelcol.processor.span.md" >}})
 - [otelcol.processor.tail_sampling]({{< relref "../components/otelcol.processor.tail_sampling.md" >}})
 - [otelcol.processor.transform]({{< relref "../components/otelcol.processor.transform.md" >}})
+- [otelcol.receiver.aws_firehose]({{< relref "../components/otelcol.receiver.aws_firehose.md" >}})
 - [otelcol.receiver.jaeger]({{< relref "../components/otelcol.receiver.jaeger.md" >}})
 - [otelcol.receiver.kafka]({{< relref "../components/otelcol.receiver.kafka.md" >}})
 - [otelcol.receiver.loki]({{< relref "../components/otelcol.receiver.loki.md" >}})

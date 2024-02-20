@@ -1,17 +1,17 @@
 ---
 aliases:
-- /docs/grafana-cloud/agent/flow/reference/components/loki.source.awsfirehose/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/loki.source.awsfirehose/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/loki.source.awsfirehose/
-- /docs/grafana-cloud/send-data/agent/flow/reference/components/loki.source.awsfirehose/
-canonical: https://grafana.com/docs/agent/latest/flow/reference/components/loki.source.awsfirehose/
-description: Learn about loki.source.awsfirehose
-title: loki.source.awsfirehose
+- /docs/grafana-cloud/agent/flow/reference/components/loki.source.aws_firehose/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/loki.source.aws_firehose/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/loki.source.aws_firehose/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/loki.source.aws_firehose/
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/loki.source.aws_firehose/
+description: Learn about loki.source.aws_firehose
+title: loki.source.aws_firehose
 ---
 
-# loki.source.awsfirehose
+# loki.source.aws_firehose
 
-`loki.source.awsfirehose` receives log entries over HTTP
+`loki.source.aws_firehose` receives log entries over HTTP
 from [AWS Firehose](https://docs.aws.amazon.com/firehose/latest/dev/what-is-this-service.html)
 and forwards them to other `loki.*` components.
 
@@ -57,7 +57,7 @@ See [Examples](#example) for a full example configuration showing how to enrich 
 ## Usage
 
 ```river
-loki.source.awsfirehose "LABEL" {
+loki.source.aws_firehose "LABEL" {
     http {
         listen_address = "LISTEN_ADDRESS"
         listen_port = PORT 
@@ -68,12 +68,12 @@ loki.source.awsfirehose "LABEL" {
 
 The component will start an HTTP server on the configured port and address with the following endpoints:
 
-- `/awsfirehose/api/v1/push` - accepting `POST` requests compatible
+- `/aws_firehose/api/v1/push` - accepting `POST` requests compatible
   with [AWS Firehose HTTP Specifications](https://docs.aws.amazon.com/firehose/latest/dev/httpdeliveryrequestresponse.html).
 
 ## Arguments
 
-`loki.source.awsfirehose` supports the following arguments:
+`loki.source.aws_firehose` supports the following arguments:
 
 | Name                     | Type                 | Description                                                    | Default | Required |
 | ------------------------ | -------------------- | -------------------------------------------------------------- | ------- | -------- |
@@ -90,7 +90,7 @@ to the list of receivers in `forward_to`.
 
 ## Blocks
 
-The following blocks are supported inside the definition of `loki.source.awsfirehose`:
+The following blocks are supported inside the definition of `loki.source.aws_firehose`:
 
 | Hierarchy | Name     | Description                                        | Required |
  |-----------|----------|----------------------------------------------------|----------|
@@ -111,11 +111,11 @@ The following blocks are supported inside the definition of `loki.source.awsfire
 
 ## Exported fields
 
-`loki.source.awsfirehose` does not export any fields.
+`loki.source.aws_firehose` does not export any fields.
 
 ## Component health
 
-`loki.source.awsfirehose` is only reported as unhealthy if given an invalid configuration.
+`loki.source.aws_firehose` is only reported as unhealthy if given an invalid configuration.
 
 ## Debug metrics
 
@@ -124,10 +124,10 @@ The following are some of the metrics that are exposed when this component is us
 The metrics include labels  such as `status_code` where relevant, which you can use to measure request success rates.
 {{< /admonition >}}
 
-- `loki_source_awsfirehose_request_errors` (counter): Count of errors while receiving a request.
-- `loki_source_awsfirehose_record_errors` (counter): Count of errors while decoding an individual record.
-- `loki_source_awsfirehose_records_received` (counter): Count of records received.
-- `loki_source_awsfirehose_batch_size` (histogram): Size (in units) of the number of records received per request.
+- `loki_source_aws_firehose_request_errors` (counter): Count of errors while receiving a request.
+- `loki_source_aws_firehose_record_errors` (counter): Count of errors while decoding an individual record.
+- `loki_source_aws_firehose_records_received` (counter): Count of records received.
+- `loki_source_aws_firehose_batch_size` (histogram): Size (in units) of the number of records received per request.
 
 ## Example
 
@@ -146,7 +146,7 @@ loki.write "local" {
     }
 }
 
-loki.source.awsfirehose "loki_fh_receiver" {
+loki.source.aws_firehose "loki_fh_receiver" {
     http {
         listen_address = "0.0.0.0"
         listen_port = 9999
@@ -172,7 +172,7 @@ loki.write "local" {
     }
 }
 
-loki.source.awsfirehose "loki_fh_receiver" {
+loki.source.aws_firehose "loki_fh_receiver" {
     http {
         listen_address = "0.0.0.0"
         listen_port = 9999

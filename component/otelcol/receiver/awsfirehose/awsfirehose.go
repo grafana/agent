@@ -1,10 +1,11 @@
-// Package awsfirehose provides an otelcol.receiver.awsfirehose component.
+// Package awsfirehose provides an otelcol.receiver.aws_firehose component.
 package awsfirehose
 
 import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/otelcol"
 	"github.com/grafana/agent/component/otelcol/receiver"
+	"github.com/grafana/river/rivertypes"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/awsfirehosereceiver"
 	otelcomponent "go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config/configopaque"
@@ -13,7 +14,7 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name: "otelcol.receiver.awsfirehose",
+		Name: "otelcol.receiver.aws_firehose",
 		Args: Arguments{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
@@ -31,7 +32,7 @@ type Arguments struct {
 	RecordType string `river:"record_type,attr,optional"`
 
 	// The access key to be checked on each request received.
-	AccessKey string `river:"access_key,attr,optional"`
+	AccessKey rivertypes.Secret `river:"access_key,attr,optional"`
 
 	HTTPServer otelcol.HTTPServerArguments `river:",squash"`
 

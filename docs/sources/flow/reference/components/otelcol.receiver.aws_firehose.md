@@ -39,7 +39,7 @@ otelcol.receiver.awsfirehose "LABEL" {
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `record_type` | `string` | The type of record received from the delivery stream. | `cwmetrics` | no
-`access_key` | `string` | The access key to be checked on each request received. | | no
+`access_key` | `secret` | The access key to be checked on each request received. | | no
 `endpoint` | `string` | `host:port` to listen for traffic on. | `"0.0.0.0:4433"` | no
 `max_request_body_size` | `string` | Maximum request body size the HTTP server will allow. No limit when unset. | | no
 `include_metadata` | `boolean` | Propagate incoming connection metadata to downstream consumers. | | no
@@ -151,16 +151,14 @@ otelcol.exporter.otlp "default" {
 
 ## Compatible components
 
-`otelcol.receiver.awsfirehose` can accept arguments from the following components:
+`otelcol.receiver.aws_firehose` can accept arguments from the following components:
 
 - Components that export [OpenTelemetry `otelcol.Consumer`]({{< relref "../compatibility/#opentelemetry-otelcolconsumer-exporters" >}})
 
 
-{{% admonition type="note" %}}
-
-Connecting some components may not be sensible or components may require further configuration to make the 
-connection work correctly. Refer to the linked documentation for more details.
-
-{{% /admonition %}}
+{{< admonition type="note" >}}
+Connecting some components may not be sensible or components may require further configuration to make the connection work correctly.
+Refer to the linked documentation for more details.
+{{< /admonition >}}
 
 <!-- END GENERATED COMPATIBLE COMPONENTS -->
