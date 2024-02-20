@@ -186,14 +186,16 @@ func (s *Service) Run(ctx context.Context, host service.Host) error {
 	if s.opts.ReloadFunc != nil {
 		r.HandleFunc("/-/reload", func(w http.ResponseWriter, _ *http.Request) {
 			level.Info(s.log).Log("msg", "reload requested via /-/reload endpoint")
-			defer level.Info(s.log).Log("msg", "config reloaded")
 
 			_, err := s.opts.ReloadFunc()
 			if err != nil {
+				level.Error(s.log).Log("msg", "failed to reload config", "err", err.Error())
 				http.Error(w, err.Error(), http.StatusBadRequest)
 				return
 			}
-			fmt.Fprintln(w, "config reloaded")
+
+			level.Info(s.log).Log("msg", "config reloaded")
+			_, _ = fmt.Fprintln(w, "config reloaded")
 		}).Methods(http.MethodGet, http.MethodPost)
 	}
 

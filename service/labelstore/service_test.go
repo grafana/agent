@@ -1,12 +1,16 @@
 package labelstore
 
 import (
+	"math"
+	"strconv"
+	"sync"
 	"testing"
 	"time"
 
 	"github.com/go-kit/log"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/prometheus/model/labels"
+	"github.com/prometheus/prometheus/model/value"
 	"github.com/stretchr/testify/require"
 )
 
@@ -122,7 +126,13 @@ func TestStaleness(t *testing.T) {
 
 	global1 := mapping.GetOrAddLink("1", 1, l)
 	_ = mapping.GetOrAddLink("2", 1, l2)
-	mapping.AddStaleMarker(global1, l)
+	mapping.TrackStaleness([]StalenessTracker{
+		{
+			GlobalRefID: global1,
+			Value:       math.Float64frombits(value.StaleNaN),
+			Labels:      l,
+		},
+	})
 	require.Len(t, mapping.staleGlobals, 1)
 	require.Len(t, mapping.labelsHashToGlobal, 2)
 	staleDuration = 1 * time.Millisecond
@@ -141,8 +151,54 @@ func TestRemovingStaleness(t *testing.T) {
 	})
 
 	global1 := mapping.GetOrAddLink("1", 1, l)
-	mapping.AddStaleMarker(global1, l)
+	mapping.TrackStaleness([]StalenessTracker{
+		{
+			GlobalRefID: global1,
+			Value:       math.Float64frombits(value.StaleNaN),
+			Labels:      l,
+		},
+	})
+
 	require.Len(t, mapping.staleGlobals, 1)
-	mapping.RemoveStaleMarker(global1)
+	// This should remove it from staleness tracking.
+	mapping.TrackStaleness([]StalenessTracker{
+		{
+			GlobalRefID: global1,
+			Value:       1,
+			Labels:      l,
+		},
+	})
 	require.Len(t, mapping.staleGlobals, 0)
+}
+
+func BenchmarkStaleness(b *testing.B) {
+	b.StopTimer()
+	ls := New(log.NewNopLogger(), prometheus.DefaultRegisterer)
+
+	tracking := make([]StalenessTracker, 100_000)
+	for i := 0; i < 100_000; i++ {
+		l := labels.FromStrings("id", strconv.Itoa(i))
+		gid := ls.GetOrAddGlobalRefID(l)
+		var val float64
+		if i%2 == 0 {
+			val = float64(i)
+		} else {
+			val = math.Float64frombits(value.StaleNaN)
+		}
+		tracking[i] = StalenessTracker{
+			GlobalRefID: gid,
+			Value:       val,
+			Labels:      l,
+		}
+	}
+	b.StartTimer()
+	var wg sync.WaitGroup
+	for i := 0; i < b.N; i++ {
+		wg.Add(1)
+		go func() {
+			ls.TrackStaleness(tracking)
+			wg.Done()
+		}()
+	}
+	wg.Wait()
 }
