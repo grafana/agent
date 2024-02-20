@@ -10,6 +10,11 @@ internal API changes are not present.
 Unreleased
 ----------
 
+### Enhancements
+
+- Allow setting tlsConfig for serviceMonitor (@captncraig)
+- Allow setting internalTrafficPolicy for service (@captncraig)
+
 0.32.0 (2024-02-15)
 -------------------
 

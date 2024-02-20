@@ -11,6 +11,7 @@ metadata:
 spec:
   endpoints:
   - port: http-metrics
+    scheme: {{ .Values.agent.listenScheme | lower }}
     honorLabels: true
     {{- if .Values.serviceMonitor.interval }}
     interval: {{ .Values.serviceMonitor.interval }}
@@ -22,6 +23,10 @@ spec:
     {{- if .Values.serviceMonitor.relabelings }}
     relabelings:
     {{ tpl (toYaml .Values.serviceMonitor.relabelings | nindent 6) . }}
+    {{- end }}
+    {{- with .Values.serviceMonitor.tlsConfig }}
+    tlsConfig:
+    {{- toYaml . | nindent 6 }}
     {{- end }}
   selector:
     matchLabels:

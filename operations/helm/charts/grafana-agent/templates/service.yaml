@@ -16,6 +16,7 @@ spec:
   {{- end }}
   selector:
     {{- include "grafana-agent.selectorLabels" . | nindent 4 }}
+  internalTrafficPolicy: {{.Values.service.internalTrafficPolicy}}
   ports:
     - name: http-metrics
       port: {{ .Values.agent.listenPort }}

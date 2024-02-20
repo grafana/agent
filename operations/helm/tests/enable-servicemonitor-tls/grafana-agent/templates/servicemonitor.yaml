@@ -13,8 +13,10 @@ metadata:
 spec:
   endpoints:
   - port: http-metrics
-    scheme: http
+    scheme: https
     honorLabels: true
+    tlsConfig:
+      insecureSkipVerify: true
   selector:
     matchLabels:
       app.kubernetes.io/name: grafana-agent
