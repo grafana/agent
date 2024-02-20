@@ -13,11 +13,13 @@ type SourceType int
 const (
 	File SourceType = iota
 	String
+	Git
 )
 
 const (
 	BlockImportFile   = "import.file"
 	BlockImportString = "import.string"
+	BlockImportGit    = "import.git"
 )
 
 // ImportSource retrieves a module from a source.
@@ -38,6 +40,8 @@ func NewImportSource(sourceType SourceType, managedOpts component.Options, eval 
 		return NewImportFile(managedOpts, eval, onContentChange)
 	case String:
 		return NewImportString(eval, onContentChange)
+	case Git:
+		return NewImportGit(managedOpts, eval, onContentChange)
 	}
 	panic(fmt.Errorf("unsupported source type: %v", sourceType))
 }
@@ -49,6 +53,8 @@ func GetSourceType(fullName string) SourceType {
 		return File
 	case BlockImportString:
 		return String
+	case BlockImportGit:
+		return Git
 	}
 	panic(fmt.Errorf("name does not map to a known source type: %v", fullName))
 }

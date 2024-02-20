@@ -248,7 +248,7 @@ func (cn *ImportConfigNode) processImportedContent(content *ast.File) error {
 		switch componentName {
 		case declareType:
 			cn.processDeclareBlock(blockStmt)
-		case importsource.BlockImportFile, importsource.BlockImportString: // TODO: add other import sources
+		case importsource.BlockImportFile, importsource.BlockImportString, importsource.BlockImportGit:
 			err := cn.processImportBlock(blockStmt, componentName)
 			if err != nil {
 				return err
