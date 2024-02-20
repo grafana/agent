@@ -35,7 +35,7 @@ func Test(t *testing.T) {
 
 		{
 			testName: "validConfig",
-			args:` 
+			args: ` 
 				verbosity = "detailed"
 				sampling_initial = 5
 				sampling_thereafter = 20
@@ -63,15 +63,15 @@ func Test(t *testing.T) {
 			var args debug.Arguments
 			err := river.Unmarshal([]byte(tc.args), &args)
 			require.NoError(t, err)
-			
+
 			actualPtr, err := args.Convert()
 			if tc.errorMsg != "" {
 				require.ErrorContains(t, err, tc.errorMsg)
 				return
-			} 
-			
+			}
+
 			require.NoError(t, err)
-		
+
 			actual := actualPtr.(*debugexporter.Config)
 			fmt.Printf("Passed conversion")
 
@@ -80,5 +80,4 @@ func Test(t *testing.T) {
 			require.Equal(t, tc.expectedReturn, *actual)
 		})
 	}
-
 }
