@@ -99,7 +99,7 @@ func TestExportLogs(t *testing.T) {
 		prommodel.LabelName("app"):  prommodel.LabelValue("frontend"),
 		prommodel.LabelName("kind"): prommodel.LabelValue("measurement"),
 	}, inst.Entries[3].Labels)
-	expectedLine = "timestamp=\"2021-09-30 10:46:17.68 +0000 UTC\" kind=measurement ttfb=14.000000 ttfcp=22.120000 ttfp=20.120000 traceID=abcd spanID=def context_hello=world sdk_name=grafana-frontend-agent sdk_version=1.0.0 app_name=testapp app_release=0.8.2 app_version=abcdefg app_environment=production user_email=geralt@kaermorhen.org user_id=123 user_username=domasx2 user_attr_foo=bar session_id=abcd session_attr_time_elapsed=100s page_url=https://example.com/page browser_name=chrome browser_version=88.12.1 browser_os=linux browser_mobile=false view_name=foobar"
+	expectedLine = "timestamp=\"2021-09-30 10:46:17.68 +0000 UTC\" kind=measurement type=foobar ttfb=14.000000 ttfcp=22.120000 ttfp=20.120000 traceID=abcd spanID=def context_hello=world sdk_name=grafana-frontend-agent sdk_version=1.0.0 app_name=testapp app_release=0.8.2 app_version=abcdefg app_environment=production user_email=geralt@kaermorhen.org user_id=123 user_username=domasx2 user_attr_foo=bar session_id=abcd session_attr_time_elapsed=100s page_url=https://example.com/page browser_name=chrome browser_version=88.12.1 browser_os=linux browser_mobile=false view_name=foobar"
 	require.Equal(t, expectedLine, inst.Entries[3].Line)
 
 	// event 1

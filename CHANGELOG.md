@@ -89,6 +89,8 @@ Main (unreleased)
 
 - Fix bug where custom headers were not actually being set in loki client. (@captncraig)
 
+- Fix missing measurement type field in the KeyVal() conversion function for measurments. @vanugrah)
+
 - Fix `ResolveEndpointV2 not found` for AWS-related components. (@hainenber)
 
 - Fix OTEL metrics not getting collected after reload. (@hainenber)
