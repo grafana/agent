@@ -28,26 +28,30 @@ spec:
   behavior:
     {{- with .scaleDown }}
     scaleDown:
+      {{- if .policies }}
       policies:
-      {{- range $policy := .policies }}
-      - type: {{ $policy.type }}
-        value: {{ $policy.value }}
-        periodSeconds: {{ $policy.periodSeconds }}
-      {{- end }}
+        {{- range .policies }}
+        - type: {{ .type }}
+          value: {{ .value }}
+          periodSeconds: {{ .periodSeconds }}
+        {{- end }}
       selectPolicy: {{ .selectPolicy }}
+      {{- end }}
       stabilizationWindowSeconds: {{ .stabilizationWindowSeconds }}
-    {{- end }}  # This ends the scaleDown block
+    {{- end }}
     {{- with .scaleUp }}
     scaleUp:
+      {{- if .policies }}
       policies:
-      {{- range $policy := .policies }}
-      - type: {{ $policy.type }}
-        value: {{ $policy.value }}
-        periodSeconds: {{ $policy.periodSeconds }}
-      {{- end }}
+        {{- range .policies }}
+        - type: {{ .type }}
+          value: {{ .value }}
+          periodSeconds: {{ .periodSeconds }}
+        {{- end }}
       selectPolicy: {{ .selectPolicy }}
+      {{- end }}
       stabilizationWindowSeconds: {{ .stabilizationWindowSeconds }}
-    {{- end }} 
+    {{- end }}
   metrics:
     # Changing the order of the metrics will cause ArgoCD to go into a sync loop
     # memory needs to be first.
