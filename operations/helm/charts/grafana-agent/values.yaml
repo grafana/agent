@@ -219,7 +219,7 @@ controller:
       selectPolicy: Max
       # -- The duration that the autoscaling mechanism should look back on to make decisions about scaling down.
       stabilizationWindowSeconds: 300
-    
+
     scaleUp:
       # -- List of policies to determine the scale-up behavior.
       policies: []
