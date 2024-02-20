@@ -15,6 +15,8 @@ type DeclareNode struct {
 
 var _ BlockNode = (*DeclareNode)(nil)
 
+const declareType = "declare"
+
 // NewDeclareNode creates a new declare node with a content which will be loaded by custom components.
 func NewDeclareNode(block *ast.BlockStmt) *DeclareNode {
 	return &DeclareNode{
