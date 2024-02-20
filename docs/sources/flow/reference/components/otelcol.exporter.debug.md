@@ -16,12 +16,12 @@ title: otelcol.exporter.debug
 `otelcol.exporter.debug` accepts telemetry data from other `otelcol` components
 and writes them to the console (stderr). The verbosity of the logs can also be controlled.
 
-> **NOTE**: `otelcol.exporter.debug` is a wrapper over the upstream
-> OpenTelemetry Collector `debug` exporter. Bug reports or feature requests will
-> be redirected to the upstream repository, if necessary.
+{{< admonition type="note" >}}
+`otelcol.exporter.debug` is a wrapper over the upstream OpenTelemetry Collector `debug` exporter. 
+If necessary, bug reports or feature requests are redirected to the upstream repository.
+{{< /admonition >}}
 
-Multiple `otelcol.exporter.debug` components can be specified by giving them
-different labels.
+You can specify multiple `otelcol.exporter.debug` components by giving them different labels.
 
 ## Usage
 
@@ -49,22 +49,19 @@ Name | Type | Description
 ---- | ---- | -----------
 `input` | `otelcol.Consumer` | A value that other components can use to send telemetry data to.
 
-`input` accepts `otelcol.Consumer` data for any telemetry signal (metrics,
-logs, or traces).
+`input` accepts `otelcol.Consumer` data for any telemetry signal (metrics, logs, or traces).
 
 ## Component health
 
-`otelcol.exporter.debug` is only reported as unhealthy if given an invalid
-configuration.
+`otelcol.exporter.debug` is only reported as unhealthy if given an invalid configuration.
 
 ## Debug information
 
-`otelcol.exporter.debug` does not expose any component-specific debug
-information.
+`otelcol.exporter.debug` does not expose any component-specific debug information.
 
 ## Example
 
-This example scrapes prometheus unix metrics and writes them to the console:
+This example scrapes Prometheus UNIX metrics and writes them to the console:
 
 ```river
 prometheus.exporter.unix "default" { }
