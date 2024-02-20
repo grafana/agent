@@ -228,5 +228,5 @@ func TestHTTPClientBadConfig(t *testing.T) {
 
 	var httpClientConfig HTTPClientConfig
 	err := river.Unmarshal([]byte(exampleRiverConfig), &httpClientConfig)
-	require.ErrorContains(t, err, "at most one of bearer_token & bearer_token_file must be configured")
+	require.ErrorContains(t, err, "at most one of basic_auth password & password_file must be configured")
 }

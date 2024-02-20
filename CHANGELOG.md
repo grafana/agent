@@ -16,6 +16,8 @@ Main (unreleased)
 
 - For `otelcol.exporter` components, change the default value of `disable_high_cardinality_metrics` to `true`. (@ptodev)
 
+- Rename component `prometheus.exporter.agent` to `prometheus.exporter.self` to clear up ambiguity. (@hainenber)
+
 ### Features
 
 - A new `discovery.process` component for discovering Linux OS processes on the current host. (@korniltsev)
@@ -27,6 +29,9 @@ Main (unreleased)
 
 - Expose track_timestamps_staleness on Prometheus scraping, to fix the issue where container metrics live for 5 minutes after the container disappears. (@ptodev)
 
+- Introduce the `remotecfg` service that enables loading configuration from a
+  remote endpoint. (@tpaschalis) 
+  
 ### Enhancements
 
 - Include line numbers in profiles produced by `pyrsocope.java` component. (@korniltsev)
@@ -57,6 +62,11 @@ Main (unreleased)
 
 - Added an error log when the config fails to reload. (@kurczynski)
 
+- Added additional http client proxy configurations to components for
+  `no_proxy`, `proxy_from_environment`, and `proxy_connect_header`. (@erikbaranowski)
+
+- Batch staleness tracking to reduce mutex contention and increase performance. (@mattdurham)
+
 ### Bugfixes
 
 - Fix an issue in `remote.s3` where the exported content of an object would be an empty string if `remote.s3` failed to fully retrieve
@@ -77,6 +87,14 @@ Main (unreleased)
 
 - Fix divide-by-zero issue when sharding targets. (@hainenber) 
 
+- Fix bug where custom headers were not actually being set in loki client. (@captncraig)
+
+- Fix `ResolveEndpointV2 not found` for AWS-related components. (@hainenber)
+
+- Fix OTEL metrics not getting collected after reload. (@hainenber)
+
+- Fix bug in `pyroscope.ebpf` component when elf's PT_LOAD section is not page aligned . [PR](https://github.com/grafana/pyroscope/pull/2983)  (@korniltsev)
+
 ### Other changes
 
 - Removed support for Windows 2012 in line with Microsoft end of life. (@mattdurham)
@@ -86,6 +104,11 @@ Main (unreleased)
 - Updated dependency to add support for Go 1.22 (@stefanb)
 
 - Use Go 1.22 for builds. (@rfratto)
+
+- Updated docs for MSSQL Integration to show additional authentication capabilities. (@StefanKurek)
+
+- `grafana-agent` and `grafana-agent-flow` fallback to default X.509 trusted root certificates
+  when the `GODEBUG=x509usefallbackroots=1` environment variable is set. (@hainenber)
 
 v0.39.2 (2024-1-31)
 --------------------

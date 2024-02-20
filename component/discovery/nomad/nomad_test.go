@@ -34,7 +34,7 @@ func TestRiverUnmarshal(t *testing.T) {
 	assert.Equal(t, ";", args.TagSeparator)
 	assert.Equal(t, true, args.HTTPClientConfig.EnableHTTP2)
 	assert.Equal(t, false, args.HTTPClientConfig.FollowRedirects)
-	assert.Equal(t, "http://example:8080", args.HTTPClientConfig.ProxyURL.String())
+	assert.Equal(t, "http://example:8080", args.HTTPClientConfig.ProxyConfig.ProxyURL.String())
 }
 
 func TestConvert(t *testing.T) {

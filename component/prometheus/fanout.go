@@ -12,7 +12,6 @@ import (
 	"github.com/prometheus/prometheus/model/histogram"
 	"github.com/prometheus/prometheus/model/labels"
 	"github.com/prometheus/prometheus/model/metadata"
-	"github.com/prometheus/prometheus/model/value"
 	"github.com/prometheus/prometheus/scrape"
 	"github.com/prometheus/prometheus/storage"
 )
@@ -75,11 +74,12 @@ func (f *Fanout) Appender(ctx context.Context) storage.Appender {
 	ctx = scrape.ContextWithMetricMetadataStore(ctx, NoopMetadataStore{})
 
 	app := &appender{
-		children:       make([]storage.Appender, 0),
-		componentID:    f.componentID,
-		writeLatency:   f.writeLatency,
-		samplesCounter: f.samplesCounter,
-		ls:             f.ls,
+		children:          make([]storage.Appender, 0),
+		componentID:       f.componentID,
+		writeLatency:      f.writeLatency,
+		samplesCounter:    f.samplesCounter,
+		ls:                f.ls,
+		stalenessTrackers: make([]labelstore.StalenessTracker, 0),
 	}
 
 	for _, x := range f.children {
@@ -92,12 +92,13 @@ func (f *Fanout) Appender(ctx context.Context) storage.Appender {
 }
 
 type appender struct {
-	children       []storage.Appender
-	componentID    string
-	writeLatency   prometheus.Histogram
-	samplesCounter prometheus.Counter
-	start          time.Time
-	ls             labelstore.LabelStore
+	children          []storage.Appender
+	componentID       string
+	writeLatency      prometheus.Histogram
+	samplesCounter    prometheus.Counter
+	start             time.Time
+	ls                labelstore.LabelStore
+	stalenessTrackers []labelstore.StalenessTracker
 }
 
 var _ storage.Appender = (*appender)(nil)
@@ -110,12 +111,11 @@ func (a *appender) Append(ref storage.SeriesRef, l labels.Labels, t int64, v flo
 	if ref == 0 {
 		ref = storage.SeriesRef(a.ls.GetOrAddGlobalRefID(l))
 	}
-	if value.IsStaleNaN(v) {
-		a.ls.AddStaleMarker(uint64(ref), l)
-	} else {
-		// Tested this to ensure it had no cpu impact, since it is called so often.
-		a.ls.RemoveStaleMarker(uint64(ref))
-	}
+	a.stalenessTrackers = append(a.stalenessTrackers, labelstore.StalenessTracker{
+		GlobalRefID: uint64(ref),
+		Labels:      l,
+		Value:       v,
+	})
 	var multiErr error
 	updated := false
 	for _, x := range a.children {
@@ -136,6 +136,7 @@ func (a *appender) Append(ref storage.SeriesRef, l labels.Labels, t int64, v flo
 func (a *appender) Commit() error {
 	defer a.recordLatency()
 	var multiErr error
+	a.ls.TrackStaleness(a.stalenessTrackers)
 	for _, x := range a.children {
 		err := x.Commit()
 		if err != nil {
@@ -148,6 +149,7 @@ func (a *appender) Commit() error {
 // Rollback satisfies the Appender interface.
 func (a *appender) Rollback() error {
 	defer a.recordLatency()
+	a.ls.TrackStaleness(a.stalenessTrackers)
 	var multiErr error
 	for _, x := range a.children {
 		err := x.Rollback()

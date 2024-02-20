@@ -32,8 +32,6 @@ scrape_configs:
     scrape_timeout: 5s
     static_configs:
       - targets: ["localhost:9090"]
-    proxy_url: "localhost:1000"
-    no_proxy: "localhost:1001"
     basic_auth:
       username: 'user'
       password: 'pass'
@@ -49,7 +47,6 @@ scrape_configs:
 remote_write:
   - name: "remote1"
     url: "http://remote-write-url1"
-    proxy_from_environment: true
     tls_config:
       max_version: TLS13
   - name: "remote2"
