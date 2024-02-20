@@ -17,6 +17,11 @@ spec:
     name: grafana-agent
   minReplicas: 1
   maxReplicas: 5
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300
+    scaleUp:
+      stabilizationWindowSeconds: 0
   metrics:
     # Changing the order of the metrics will cause ArgoCD to go into a sync loop
     # memory needs to be first.
