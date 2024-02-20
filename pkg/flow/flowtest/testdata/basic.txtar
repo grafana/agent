@@ -1,0 +1,15 @@
+# This file performs a basic test of loading a component and asserting its
+# health.
+
+controller.load main.river
+controller.start &
+
+assert.health local.file.example healthy
+
+-- main.river --
+local.file "example" {
+  filename = "./hello.txt"
+}
+
+-- hello.txt --
+Hello, world!

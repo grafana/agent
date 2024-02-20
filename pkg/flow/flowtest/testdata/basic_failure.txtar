@@ -1,0 +1,14 @@
+# This file performs a basic test of loading a component which fails to
+# evaluate.
+#
+# We start the controller first to allow us to probe for component health.
+
+controller.start &
+! controller.load main.river
+
+assert.health local.file.example unhealthy
+
+-- main.river --
+local.file "example" {
+  filename = "does-not-exist.txt"
+}

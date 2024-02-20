@@ -583,7 +583,7 @@ require (
 	golang.org/x/mod v0.14.0 // indirect
 	golang.org/x/sync v0.5.0 // indirect
 	golang.org/x/term v0.16.0 // indirect
-	golang.org/x/tools v0.15.0 // indirect
+	golang.org/x/tools v0.15.0
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.4.0 // indirect
 	gonum.org/v1/gonum v0.14.0 // indirect
@@ -603,7 +603,7 @@ require (
 	sigs.k8s.io/structured-merge-diff/v4 v4.3.0 // indirect
 )
 
-require github.com/ianlancetaylor/demangle v0.0.0-20230524184225-eabc099b10ab
+require github.com/ianlancetaylor/demangle v0.0.0-20230524184225-eabc099b10ab // indirect
 
 require (
 	connectrpc.com/connect v1.14.0
@@ -618,6 +618,7 @@ require (
 	go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp v0.42.0
 	golang.org/x/crypto/x509roots/fallback v0.0.0-20240208163226-62c9f1799c91
 	k8s.io/apimachinery v0.28.3
+	rsc.io/script v0.0.2-0.20231205190631-334f6c18cff3
 )
 
 require (
