@@ -149,11 +149,15 @@ func Discover(l log.Logger, cfg *DiscoverConfig, cache *analCache.Cache) ([]Proc
 				continue
 			}
 		}
-		m, err := cache.AnalyzePID(spid)
-		if err != nil {
-			level.Error(l).Log("msg", "error analyzing process", "pid", spid, "err", err)
-			continue
+		var ar *analyze.Results
+		if cfg.AnalyzeExecutable {
+			ar, err = cache.AnalyzePID(spid)
+			if err != nil {
+				level.Error(l).Log("msg", "error analyzing process", "pid", spid, "err", err)
+				continue
+			}
 		}
+
 		res = append(res, Process{
 			PID:         spid,
 			exe:         exe,
@@ -162,7 +166,7 @@ func Discover(l log.Logger, cfg *DiscoverConfig, cache *analCache.Cache) ([]Proc
 			containerID: containerID,
 			username:    username,
 			uid:         uid,
-			Analysis:    m,
+			Analysis:    ar,
 		})
 		active[uint32(p.Pid)] = struct{}{}
 	}

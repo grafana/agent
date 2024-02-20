@@ -13,22 +13,24 @@ type Arguments struct {
 }
 
 type DiscoverConfig struct {
-	Cwd         bool `river:"cwd,attr,optional"`
-	Exe         bool `river:"exe,attr,optional"`
-	Commandline bool `river:"commandline,attr,optional"`
-	Username    bool `river:"username,attr,optional"`
-	UID         bool `river:"uid,attr,optional"`
-	ContainerID bool `river:"container_id,attr,optional"`
+	Cwd               bool `river:"cwd,attr,optional"`
+	Exe               bool `river:"exe,attr,optional"`
+	Commandline       bool `river:"commandline,attr,optional"`
+	Username          bool `river:"username,attr,optional"`
+	UID               bool `river:"uid,attr,optional"`
+	ContainerID       bool `river:"container_id,attr,optional"`
+	AnalyzeExecutable bool `river:"analyze_executable,attr,optional"`
 }
 
 var DefaultConfig = Arguments{
 	Join:            nil,
 	RefreshInterval: 60 * time.Second,
 	DiscoverConfig: DiscoverConfig{
-		Cwd:         true,
-		Exe:         true,
-		Commandline: true,
-		ContainerID: true,
+		Cwd:               true,
+		Exe:               true,
+		Commandline:       true,
+		ContainerID:       true,
+		AnalyzeExecutable: false,
 	},
 }
 
