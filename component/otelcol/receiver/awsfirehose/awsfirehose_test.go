@@ -20,7 +20,7 @@ func TestRun(t *testing.T) {
 	ctx := componenttest.TestContext(t)
 	l := util.TestLogger(t)
 
-	ctrl, err := componenttest.NewControllerFromID(l, "otelcol.receiver.awsfirehose")
+	ctrl, err := componenttest.NewControllerFromID(l, "otelcol.receiver.aws_firehose")
 	require.NoError(t, err)
 
 	cfg := fmt.Sprintf(`
