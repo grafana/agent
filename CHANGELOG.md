@@ -27,6 +27,9 @@ Main (unreleased)
 - A new `otelcol.processor.resourcedetection` component which inserts resource attributes
   to OTLP telemetry based on the host on which Grafana Agent is running. (@ptodev)
 
+- A new `otelcol.receiver.aws_firehose` component which receives log entries
+  from AWS Firehose. (@Obito1903)
+
 - Expose track_timestamps_staleness on Prometheus scraping, to fix the issue where container metrics live for 5 minutes after the container disappears. (@ptodev)
 
 - Introduce the `remotecfg` service that enables loading configuration from a
