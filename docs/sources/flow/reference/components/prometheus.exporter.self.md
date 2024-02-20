@@ -2,25 +2,26 @@
 aliases:
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/prometheus.exporter.agent/
 - /docs/grafana-cloud/send-data/agent/flow/reference/components/prometheus.exporter.agent/
-canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.agent/
-description: Learn about prometheus.exporter.agen
-title: prometheus.exporter.agent
+- ./prometheus.exporter.agent/
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.self/
+description: Learn about prometheus.exporter.self
+title: prometheus.exporter.self
 ---
 
-# prometheus.exporter.agent
+# prometheus.exporter.self
 
-The `prometheus.exporter.agent` component collects and exposes metrics about {{< param "PRODUCT_NAME" >}} itself.
+The `prometheus.exporter.self` component collects and exposes metrics about {{< param "PRODUCT_NAME" >}} itself.
 
 ## Usage
 
 ```river
-prometheus.exporter.agent "agent" {
+prometheus.exporter.self "agent" {
 }
 ```
 
 ## Arguments
 
-`prometheus.exporter.agent` accepts no arguments.
+`prometheus.exporter.self` accepts no arguments.
 
 ## Exported fields
 
@@ -28,30 +29,30 @@ prometheus.exporter.agent "agent" {
 
 ## Component health
 
-`prometheus.exporter.agent` is only reported as unhealthy if given
+`prometheus.exporter.self` is only reported as unhealthy if given
 an invalid configuration.
 
 ## Debug information
 
-`prometheus.exporter.agent` doesn't expose any component-specific
+`prometheus.exporter.self` doesn't expose any component-specific
 debug information.
 
 ## Debug metrics
 
-`prometheus.exporter.agent` doesn't expose any component-specific
+`prometheus.exporter.self` doesn't expose any component-specific
 debug metrics.
 
 ## Example
 
 This example uses a [`prometheus.scrape` component][scrape] to collect metrics
-from `prometheus.exporter.agent`:
+from `prometheus.exporter.self`:
 
 ```river
-prometheus.exporter.agent "example" {}
+prometheus.exporter.self "example" {}
 
 // Configure a prometheus.scrape component to collect agent metrics.
 prometheus.scrape "demo" {
-  targets    = prometheus.exporter.agent.example.targets
+  targets    = prometheus.exporter.self.example.targets
   forward_to = [prometheus.remote_write.demo.receiver]
 }
 
@@ -78,7 +79,7 @@ Replace the following:
 
 ## Compatible components
 
-`prometheus.exporter.agent` has exports that can be consumed by the following components:
+`prometheus.exporter.self` has exports that can be consumed by the following components:
 
 - Components that consume [Targets]({{< relref "../compatibility/#targets-consumers" >}})
 
