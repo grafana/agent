@@ -16,6 +16,10 @@ func TestRiverConfig(t *testing.T) {
 	refresh_interval = "10s"
 	port = 8080
 	tag_separator = ";"
+	basic_auth {
+		username = "test"
+		password = "pass"
+	}
 `
 	var args Arguments
 	err := river.Unmarshal([]byte(exampleRiverConfig), &args)
@@ -29,6 +33,10 @@ func TestConvert(t *testing.T) {
 		TagSeparator:    ";",
 		HTTPClientConfig: config.HTTPClientConfig{
 			BearerToken: "FOO",
+			BasicAuth: &config.BasicAuth{
+				Username: "test",
+				Password: "pass",
+			},
 		},
 	}
 
@@ -37,6 +45,8 @@ func TestConvert(t *testing.T) {
 	require.Equal(t, model.Duration(15*time.Second), promArgs.RefreshInterval)
 	require.Equal(t, ";", promArgs.TagSeparator)
 	require.Equal(t, promconfig.Secret("FOO"), promArgs.HTTPClientConfig.BearerToken)
+	require.Equal(t, "test", promArgs.HTTPClientConfig.BasicAuth.Username)
+	require.Equal(t, "pass", string(promArgs.HTTPClientConfig.BasicAuth.Password))
 }
 
 func TestValidate(t *testing.T) {

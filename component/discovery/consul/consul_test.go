@@ -25,12 +25,15 @@ func TestBadRiverConfig(t *testing.T) {
 	var exampleRiverConfig = `
 	server = "consul.example.com:8500"
 	services = ["my-service"]
-	bearer_token = "token"
-	bearer_token_file = "/path/to/file.token"
+	basic_auth {
+		username = "user"
+		password = "pass"
+		password_file = "/somewhere.txt"
+	}
 `
 
 	// Make sure the squashed HTTPClientConfig Validate function is being utilized correctly
 	var args Arguments
 	err := river.Unmarshal([]byte(exampleRiverConfig), &args)
-	require.ErrorContains(t, err, "at most one of bearer_token & bearer_token_file must be configured")
+	require.ErrorContains(t, err, "at most one of basic_auth password & password_file must be configured")
 }

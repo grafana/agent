@@ -58,6 +58,7 @@ discovery.kubernetes "fun_5" {
 
 		tls_config { }
 	}
+	proxy_from_environment = true
 }
 
 local.file_match "fun" {

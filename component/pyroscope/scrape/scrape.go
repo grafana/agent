@@ -193,7 +193,7 @@ func NewDefaultArguments() Arguments {
 		Scheme:           "http",
 		HTTPClientConfig: component_config.DefaultHTTPClientConfig,
 		ScrapeInterval:   15 * time.Second,
-		ScrapeTimeout:    15*time.Second + (3 * time.Second),
+		ScrapeTimeout:    10 * time.Second,
 		ProfilingConfig:  DefaultProfilingConfig,
 	}
 }
@@ -205,16 +205,16 @@ func (arg *Arguments) SetToDefault() {
 
 // Validate implements river.Validator.
 func (arg *Arguments) Validate() error {
-	if arg.ScrapeTimeout <= 0 {
+	if arg.ScrapeTimeout.Seconds() <= 0 {
 		return fmt.Errorf("scrape_timeout must be greater than 0")
 	}
-	if arg.ScrapeTimeout <= arg.ScrapeInterval {
-		return fmt.Errorf("scrape_timeout must be greater than scrape_interval")
-	}
 
-	if cfg, ok := arg.ProfilingConfig.ProcessCPU, true; ok {
-		if cfg.Enabled && arg.ScrapeTimeout < time.Second*2 {
-			return fmt.Errorf("%v scrape_timeout must be at least 2 seconds", pprofProcessCPU)
+	// ScrapeInterval must be at least 2 seconds, because if
+	// ProfilingTarget.Delta is true the ScrapeInterval - 1s is propagated in
+	// the `seconds` parameter and it must be >= 1.
+	for _, target := range arg.ProfilingConfig.AllTargets() {
+		if target.Enabled && target.Delta && arg.ScrapeInterval.Seconds() < 2 {
+			return fmt.Errorf("scrape_interval must be at least 2 seconds when using delta profiling")
 		}
 	}
 
