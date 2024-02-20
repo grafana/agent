@@ -81,6 +81,20 @@ func createPipelineGroups(cfg pipelines.Config) ([]pipelineGroup, error) {
 		groups[name] = group
 	}
 
+	// Initialize created groups.
+	for key, group := range groups {
+		if group.Metrics == nil {
+			group.Metrics = &pipelines.PipelineConfig{}
+		}
+		if group.Logs == nil {
+			group.Logs = &pipelines.PipelineConfig{}
+		}
+		if group.Traces == nil {
+			group.Traces = &pipelines.PipelineConfig{}
+		}
+		groups[key] = group
+	}
+
 	return maps.Values(groups), nil
 }
 

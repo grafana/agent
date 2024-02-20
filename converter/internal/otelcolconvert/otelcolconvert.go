@@ -57,7 +57,7 @@ func Convert(in []byte, extraArgs []string) ([]byte, diag.Diagnostics) {
 		return nil, diags
 	}
 	if err := cfg.Validate(); err != nil {
-		diags.Add(diag.SeverityLevelError, fmt.Sprintf("failed to validate config: %s", err))
+		diags.Add(diag.SeverityLevelCritical, fmt.Sprintf("failed to validate config: %s", err))
 		return nil, diags
 	}
 
@@ -220,7 +220,7 @@ func validateNoDuplicateReceivers(groups []pipelineGroup) diag.Diagnostics {
 		for _, receiver := range group.Receivers() {
 			if _, found := usedReceivers[receiver]; found {
 				diags.Add(diag.SeverityLevelCritical, fmt.Sprintf(
-					"the configuration is unsupported because the receiver %q is used across multiple pipelines of the same telemetry type",
+					"the configuration is unsupported because the receiver %q is used across multiple pipelines with distinct names",
 					receiver.String(),
 				))
 			}

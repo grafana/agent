@@ -10,8 +10,6 @@ import (
 	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/converter/internal/common"
 	"github.com/grafana/river/rivertypes"
-	"github.com/grafana/river/token"
-	"github.com/grafana/river/token/builder"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config/configgrpc"
 	"go.opentelemetry.io/collector/config/confighttp"
@@ -203,19 +201,4 @@ func toCORSArguments(cfg *confighttp.CORSSettings) *otelcol.CORSArguments {
 
 		MaxAge: cfg.MaxAge,
 	}
-}
-
-type tokenizedConsumer struct {
-	otelcol.Consumer
-
-	Expr string // Expr is the string to return during tokenization.
-}
-
-func (tc tokenizedConsumer) RiverCapsule() {}
-
-func (tc tokenizedConsumer) RiverTokenize() []builder.Token {
-	return []builder.Token{{
-		Tok: token.STRING,
-		Lit: tc.Expr,
-	}}
 }
