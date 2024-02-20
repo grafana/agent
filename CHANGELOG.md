@@ -60,6 +60,8 @@ Main (unreleased)
 
 - Mutex and block pprofs are now available via the pprof endpoint. (@mattdurham)
 
+- Added an error log when the config fails to reload. (@kurczynski)
+
 - Added additional http client proxy configurations to components for
   `no_proxy`, `proxy_from_environment`, and `proxy_connect_header`. (@erikbaranowski)
 
