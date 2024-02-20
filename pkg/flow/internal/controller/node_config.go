@@ -3,6 +3,7 @@ package controller
 import (
 	"fmt"
 
+	"github.com/grafana/agent/pkg/flow/internal/importsource"
 	"github.com/grafana/river/ast"
 	"github.com/grafana/river/diag"
 )
@@ -26,6 +27,8 @@ func NewConfigNode(block *ast.BlockStmt, globals ComponentGlobals) (BlockNode, d
 		return NewLoggingConfigNode(block, globals), nil
 	case tracingBlockID:
 		return NewTracingConfigNode(block, globals), nil
+	case importsource.BlockImportFile, importsource.BlockImportString:
+		return NewImportConfigNode(block, globals, importsource.GetSourceType(block.GetBlockName())), nil
 	default:
 		var diags diag.Diagnostics
 		diags.Add(diag.Diagnostic{
@@ -46,6 +49,7 @@ type ConfigNodeMap struct {
 	tracing     *TracingConfigNode
 	argumentMap map[string]*ArgumentConfigNode
 	exportMap   map[string]*ExportConfigNode
+	importMap   map[string]*ImportConfigNode
 }
 
 // NewConfigNodeMap will create an initial ConfigNodeMap. Append must be called
@@ -56,6 +60,7 @@ func NewConfigNodeMap() *ConfigNodeMap {
 		tracing:     nil,
 		argumentMap: map[string]*ArgumentConfigNode{},
 		exportMap:   map[string]*ExportConfigNode{},
+		importMap:   map[string]*ImportConfigNode{},
 	}
 }
 
@@ -73,6 +78,8 @@ func (nodeMap *ConfigNodeMap) Append(configNode BlockNode) diag.Diagnostics {
 		nodeMap.logging = n
 	case *TracingConfigNode:
 		nodeMap.tracing = n
+	case *ImportConfigNode:
+		nodeMap.importMap[n.Label()] = n
 	default:
 		diags.Add(diag.Diagnostic{
 			Severity: diag.SeverityLevelError,
