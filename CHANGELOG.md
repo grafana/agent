@@ -85,6 +85,8 @@ Main (unreleased)
 
 - Fix bug where custom headers were not actually being set in loki client. (@captncraig)
 
+- Fix OTEL metrics not getting collected after reload. (@hainenber)
+
 - Fix bug in `pyroscope.ebpf` component when elf's PT_LOAD section is not page aligned . [PR](https://github.com/grafana/pyroscope/pull/2983)  (@korniltsev)
 
 ### Other changes
