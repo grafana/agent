@@ -30,8 +30,8 @@ different labels.
 ```river
 loki.source.heroku "LABEL" {
     http {
-        address = "LISTEN_ADDRESS"
-        port    = LISTEN_PORT
+        listen_address = "LISTEN_ADDRESS"
+        listen_port    = LISTEN_PORT
     }
     forward_to = RECEIVER_LIST
 }
@@ -113,8 +113,8 @@ This example listens for Heroku messages over TCP in the specified port and forw
 ```river
 loki.source.heroku "local" {
     http {
-        address = "0.0.0.0"
-        port    = 4040
+        listen_address = "0.0.0.0"
+        listen_port    = 4040
     }
     use_incoming_timestamp = true
     labels                 = {component = "loki.source.heroku"}
