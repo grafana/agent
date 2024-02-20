@@ -428,5 +428,7 @@ func (cn *ImportConfigNode) Hash() uint64 {
 // We don't want to reuse previous running tasks.
 // On every updates, the previous workers should be stopped and new ones should spawn.
 func (cn *ImportConfigNode) Equals(other runner.Task) bool {
-	return false
+	// pointers are exactly the same.
+	// TODO: if possible we could find a way to safely reuse previous nodes
+	return cn == other.(*ImportConfigNode)
 }
