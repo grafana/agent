@@ -10,6 +10,9 @@ internal API changes are not present.
 Unreleased
 ----------
 
+0.33.0 (2024-02-20)
+-------------------
+
 ### Features
 
 - Add HPA behavior support for scaling up and down. (@wildum)
