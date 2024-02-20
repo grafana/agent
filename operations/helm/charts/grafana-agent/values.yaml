@@ -256,6 +256,8 @@ service:
   type: ClusterIP
   # -- Cluster IP, can be set to None, empty "" or an IP address
   clusterIP: ''
+  # -- Value for internal traffic policy. 'Cluster' or 'Local'
+  internalTrafficPolicy: Cluster
   annotations: {}
     # cloud.google.com/load-balancer-type: Internal
 
@@ -272,6 +274,9 @@ serviceMonitor:
   #   regex: 'kube_(daemonset|deployment|pod|namespace|node|statefulset).+'
   #   sourceLabels: [__name__]
 
+  # -- Customize tls parameters for the service monitor
+  tlsConfig: {}
+
   # -- RelabelConfigs to apply to samples before scraping
   # ref: https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#relabelconfig
   relabelings: []
@@ -281,7 +286,6 @@ serviceMonitor:
   #   targetLabel: nodename
   #   replacement: $1
   #   action: replace
-
 ingress:
   # -- Enables ingress for the agent (faro port)
   enabled: false

@@ -17,6 +17,11 @@ Unreleased
 
 - Add HPA behavior support for scaling up and down. (@wildum)
 
+### Enhancements
+
+- Allow setting tlsConfig for serviceMonitor (@captncraig)
+- Allow setting internalTrafficPolicy for service (@captncraig)
+
 0.32.0 (2024-02-15)
 -------------------
 
