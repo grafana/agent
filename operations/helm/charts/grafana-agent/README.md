@@ -75,6 +75,12 @@ use the older mode (called "static mode"), set the `agent.mode` value to
 | controller.autoscaling.minReplicas | int | `1` | The lower limit for the number of replicas to which the autoscaler can scale down. |
 | controller.autoscaling.targetCPUUtilizationPercentage | int | `0` | Average CPU utilization across all relevant pods, a percentage of the requested value of the resource for the pods. Setting `targetCPUUtilizationPercentage` to 0 will disable CPU scaling. |
 | controller.autoscaling.targetMemoryUtilizationPercentage | int | `80` | Average Memory utilization across all relevant pods, a percentage of the requested value of the resource for the pods. Setting `targetMemoryUtilizationPercentage` to 0 will disable Memory scaling. |
+| controller.autoscaling.scaleDown.policies | list | `[]` | List of policies to determine the scale-down behavior. |
+| controller.autoscaling.scaleDown.selectPolicy | string | `Max` | Determines which of the provided scaling-down policies to apply if multiple are specified. |
+| controller.autoscaling.scaleDown.stabilizationWindowSeconds | int | `300` | The duration that the autoscaling mechanism should look back on to make decisions about scaling down. |
+| controller.autoscaling.scaleUp.policies | list | `[]` | List of policies to determine the scale-up behavior. |
+| controller.autoscaling.scaleUp.selectPolicy | string | `Max` | Determines which of the provided scaling-up policies to apply if multiple are specified. |
+| controller.autoscaling.scaleUp.stabilizationWindowSeconds | int | `0` | The duration that the autoscaling mechanism should look back on to make decisions about scaling up. |
 | controller.dnsPolicy | string | `"ClusterFirst"` | Configures the DNS policy for the pod. https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/#pod-s-dns-policy |
 | controller.enableStatefulSetAutoDeletePVC | bool | `false` | Whether to enable automatic deletion of stale PVCs due to a scale down operation, when controller.type is 'statefulset'. |
 | controller.extraAnnotations | object | `{}` | Annotations to add to controller. |
