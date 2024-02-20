@@ -1,6 +1,6 @@
 # Grafana Agent Helm chart
 
-![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![Version: 0.33.0](https://img.shields.io/badge/Version-0.33.0-informational?style=flat-square) ![AppVersion: v0.39.2](https://img.shields.io/badge/AppVersion-v0.39.2-informational?style=flat-square)
+![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![Version: 0.32.0](https://img.shields.io/badge/Version-0.32.0-informational?style=flat-square) ![AppVersion: v0.39.2](https://img.shields.io/badge/AppVersion-v0.39.2-informational?style=flat-square)
 
 Helm chart for deploying [Grafana Agent][] to Kubernetes.
 
@@ -130,7 +130,7 @@ use the older mode (called "static mode"), set the `agent.mode` value to
 | serviceMonitor.enabled | bool | `false` |  |
 | serviceMonitor.interval | string | `""` | Scrape interval. If not set, the Prometheus default scrape interval is used. |
 | serviceMonitor.metricRelabelings | list | `[]` | MetricRelabelConfigs to apply to samples after scraping, but before ingestion. ref: https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#relabelconfig |
-| serviceMonitor.relabelings | list | `[]` | RelabelConfigs to apply to samples before scraping ref: https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#relabelconfig - sourceLabels: [__meta_kubernetes_pod_node_name]   separator: ;   regex: ^(.*)$   targetLabel: nodename   replacement: $1   action: replace |
+| serviceMonitor.relabelings | list | `[]` | RelabelConfigs to apply to samples before scraping ref: https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#relabelconfig |
 | serviceMonitor.tlsConfig | object | `{}` | Customize tls parameters for the service monitor |
 
 ### agent.extraArgs
