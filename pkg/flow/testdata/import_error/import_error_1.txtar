@@ -1,0 +1,19 @@
+Imported declare tries to access declare at the root.
+
+-- main.river --
+declare "cantAccessThis" {
+	export "output" {
+		value = -1
+	}
+}
+
+import.string "testImport" {
+	content = ` declare "a" {
+		cantAccessThis "default" {}
+	}`
+}
+
+testImport.a "cc" {}
+
+-- error --
+cannot retrieve the definition of component name "cantAccessThis"
