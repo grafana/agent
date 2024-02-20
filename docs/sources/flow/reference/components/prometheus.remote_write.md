@@ -201,7 +201,7 @@ Name | Type | Description | Default | Required
 
 ### write_relabel_config block
 
-{{< docs/shared lookup="flow/reference/components/rule-block.md" source="agent" version="<AGENT VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/write_relabel_config.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### wal block
 
