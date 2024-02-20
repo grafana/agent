@@ -145,6 +145,7 @@ func (l *Logger) Log(kvps ...interface{}) error {
 		// Check hasLogFormat again; could have changed since the unlock.
 		if !l.hasLogFormat {
 			l.buffer = append(l.buffer, kvps)
+			l.bufferMut.Unlock()
 			return nil
 		}
 		l.bufferMut.Unlock()
