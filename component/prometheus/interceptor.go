@@ -8,7 +8,6 @@ import (
 	"github.com/prometheus/prometheus/model/histogram"
 	"github.com/prometheus/prometheus/model/labels"
 	"github.com/prometheus/prometheus/model/metadata"
-	"github.com/prometheus/prometheus/model/value"
 	"github.com/prometheus/prometheus/storage"
 )
 
@@ -80,8 +79,9 @@ func WithHistogramHook(f func(ref storage.SeriesRef, l labels.Labels, t int64, h
 // Appender satisfies the Appendable interface.
 func (f *Interceptor) Appender(ctx context.Context) storage.Appender {
 	app := &interceptappender{
-		interceptor: f,
-		ls:          f.ls,
+		interceptor:       f,
+		ls:                f.ls,
+		stalenessTrackers: make([]labelstore.StalenessTracker, 0),
 	}
 	if f.next != nil {
 		app.child = f.next.Appender(ctx)
@@ -90,9 +90,10 @@ func (f *Interceptor) Appender(ctx context.Context) storage.Appender {
 }
 
 type interceptappender struct {
-	interceptor *Interceptor
-	child       storage.Appender
-	ls          labelstore.LabelStore
+	interceptor       *Interceptor
+	child             storage.Appender
+	ls                labelstore.LabelStore
+	stalenessTrackers []labelstore.StalenessTracker
 }
 
 var _ storage.Appender = (*interceptappender)(nil)
@@ -102,13 +103,11 @@ func (a *interceptappender) Append(ref storage.SeriesRef, l labels.Labels, t int
 	if ref == 0 {
 		ref = storage.SeriesRef(a.ls.GetOrAddGlobalRefID(l))
 	}
-
-	if value.IsStaleNaN(v) {
-		a.ls.AddStaleMarker(uint64(ref), l)
-	} else {
-		// Tested this to ensure it had no cpu impact, since it is called so often.
-		a.ls.RemoveStaleMarker(uint64(ref))
-	}
+	a.stalenessTrackers = append(a.stalenessTrackers, labelstore.StalenessTracker{
+		GlobalRefID: uint64(ref),
+		Labels:      l,
+		Value:       v,
+	})
 
 	if a.interceptor.onAppend != nil {
 		return a.interceptor.onAppend(ref, l, t, v, a.child)
@@ -121,6 +120,7 @@ func (a *interceptappender) Append(ref storage.SeriesRef, l labels.Labels, t int
 
 // Commit satisfies the Appender interface.
 func (a *interceptappender) Commit() error {
+	a.ls.TrackStaleness(a.stalenessTrackers)
 	if a.child == nil {
 		return nil
 	}
@@ -129,6 +129,7 @@ func (a *interceptappender) Commit() error {
 
 // Rollback satisfies the Appender interface.
 func (a *interceptappender) Rollback() error {
+	a.ls.TrackStaleness(a.stalenessTrackers)
 	if a.child == nil {
 		return nil
 	}

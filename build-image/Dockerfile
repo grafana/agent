@@ -4,6 +4,10 @@
 # default when running `docker buildx build` or when DOCKER_BUILDKIT=1 is set
 # in environment variables.
 
+# NOTE: The GO_RUNTIME is used to switch between the default google go runtime and  mcr.microsoft.com/oss/go/microsoft/golang:1.22-bullseye which is a microsoft
+# fork of go that allows using windows crypto instead of boring crypto. Details at https://github.com/microsoft/go/tree/microsoft/main/eng/doc/fips
+ARG GO_RUNTIME=mustoverride
+
 #
 # Dependencies
 #
@@ -23,7 +27,7 @@ FROM alpine:3.17 as helm
 RUN apk add --no-cache helm
 
 # Dependency: Go and Go dependencies
-FROM golang:1.22.0-bullseye as golang
+FROM ${GO_RUNTIME} as golang
 
 # Keep in sync with cmd/grafana-agent-operator/DEVELOPERS.md
 ENV CONTROLLER_GEN_VERSION v0.9.2

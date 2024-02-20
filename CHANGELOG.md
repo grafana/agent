@@ -61,6 +61,8 @@ Main (unreleased)
 - Added additional http client proxy configurations to components for
   `no_proxy`, `proxy_from_environment`, and `proxy_connect_header`. (@erikbaranowski)
 
+- Batch staleness tracking to reduce mutex contention and increase performance. (@mattdurham)
+
 ### Bugfixes
 
 - Fix an issue in `remote.s3` where the exported content of an object would be an empty string if `remote.s3` failed to fully retrieve
@@ -84,6 +86,10 @@ Main (unreleased)
 - Fix bug where custom headers were not actually being set in loki client. (@captncraig)
 
 - Fix `ResolveEndpointV2 not found` for AWS-related components. (@hainenber)
+
+- Fix OTEL metrics not getting collected after reload. (@hainenber)
+
+- Fix bug in `pyroscope.ebpf` component when elf's PT_LOAD section is not page aligned . [PR](https://github.com/grafana/pyroscope/pull/2983)  (@korniltsev)
 
 ### Other changes
 
