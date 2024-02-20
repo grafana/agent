@@ -20,7 +20,7 @@ loads them into a Loki instance.
 
 {{% admonition type="note" %}}
 This component requires [Role-based access control (RBAC)][] to be set up
-in Kubernetes for the Agent to access it via the Kubernetes REST API.
+in Kubernetes for {{< param "PRODUCT_ROOT_NAME" >}} to access it via the Kubernetes REST API.
 {{% /admonition %}}
 
 [Kubernetes label selectors]: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#label-selectors
@@ -46,7 +46,7 @@ Name                     | Type       | Description                             
 `tenant_id`              | `string`   | Loki tenant ID.                                         |         | no
 `use_legacy_routes`      | `bool`     | Whether to use deprecated ruler API endpoints.           | false   | no
 `sync_interval`          | `duration` | Amount of time between reconciliations with Loki.       | "30s"   | no
-`loki_namespace_prefix` | `string`   | Prefix used to differentiate multiple agent deployments. | "agent" | no
+`loki_namespace_prefix` | `string`   | Prefix used to differentiate multiple {{< param "PRODUCT_ROOT_NAME" >}} deployments. | "agent" | no
 `bearer_token`           | `secret`   | Bearer token to authenticate with.                       |         | no
 `bearer_token_file`      | `string`   | File containing a bearer token to authenticate with.     |         | no
 `proxy_url`              | `string`   | HTTP proxy to proxy requests through.                    |         | no
@@ -71,7 +71,7 @@ differently. Updates are processed as events from the Kubernetes API server
 according to the informer pattern.
 
 You can use the `loki_namespace_prefix` argument to separate the rules managed
-by multiple agent deployments across your infrastructure. You should set the prefix to a
+by multiple {{< param "PRODUCT_ROOT_NAME" >}} deployments across your infrastructure. You should set the prefix to a
 unique value for each deployment.
 
 ## Blocks
@@ -223,7 +223,7 @@ loki.rules.kubernetes "default" {
 }
 ```
 
-The following example is an RBAC configuration for Kubernetes. It authorizes the Agent to query the Kubernetes REST API:
+The following example is an RBAC configuration for Kubernetes. It authorizes {{< param "PRODUCT_ROOT_NAME" >}} to query the Kubernetes REST API:
 
 ```yaml
 apiVersion: v1
