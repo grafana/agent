@@ -41,6 +41,11 @@ This functionality is now only available in the main configuration.
 The `disable_high_cardinality_metrics` configuration argument is used by `otelcol.exporter` components such as `otelcol.exporter.otlp`.
 If you need to see high cardinality metrics containing labels such as IP addresses and port numbers, you now have to explicitly set `disable_high_cardinality_metrics` to `false`.
 
+### Breaking change: Rename component `prometheus.exporter.agent` to `prometheus.exporter.self`
+
+The name `prometheus.exporter.agent` is potentially ambiguous and can be misinterpreted as an exporter for Prometheus Agent.
+The new name reflects the component's true purpose as an exporter of the process's own metrics.
+
 ## v0.39
 
 ### Breaking change: `otelcol.receiver.prometheus` will drop all `otel_scope_info` metrics when converting them to OTLP

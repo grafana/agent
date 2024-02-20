@@ -16,6 +16,8 @@ Main (unreleased)
 
 - For `otelcol.exporter` components, change the default value of `disable_high_cardinality_metrics` to `true`. (@ptodev)
 
+- Rename component `prometheus.exporter.agent` to `prometheus.exporter.self` to clear up ambiguity. (@hainenber)
+
 ### Features
 
 - A new `discovery.process` component for discovering Linux OS processes on the current host. (@korniltsev)
@@ -57,6 +59,8 @@ Main (unreleased)
 - `service_name` label is inferred from discovery meta labels in `pyroscope.java` (@korniltsev)
 
 - Mutex and block pprofs are now available via the pprof endpoint. (@mattdurham)
+
+- Added an error log when the config fails to reload. (@kurczynski)
 
 - Added additional http client proxy configurations to components for
   `no_proxy`, `proxy_from_environment`, and `proxy_connect_header`. (@erikbaranowski)
