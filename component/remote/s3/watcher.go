@@ -101,7 +101,7 @@ func (w *watcher) getObject(ctx context.Context) ([]byte, error) {
 	}
 	defer output.Body.Close()
 
-	buf := make([]byte, output.ContentLength)
+	buf := make([]byte, *output.ContentLength)
 
 	_, err = io.ReadFull(output.Body, buf)
 
