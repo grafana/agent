@@ -264,7 +264,6 @@ serviceMonitor:
   #   targetLabel: nodename
   #   replacement: $1
   #   action: replace
-  
 ingress:
   # -- Enables ingress for the agent (faro port)
   enabled: false
