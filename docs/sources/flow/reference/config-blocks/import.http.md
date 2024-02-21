@@ -15,7 +15,7 @@ title: import.http
 
 {{< docs/shared lookup="flow/stability/beta.md" source="agent" version="<AGENT_VERSION>" >}}
 
-`import.http` retrieves a module from a HTTP server.
+`import.http` retrieves a module from an HTTP server.
 
 [module]: {{< relref "../../concepts/modules.md" >}}
 
