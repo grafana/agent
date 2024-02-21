@@ -109,11 +109,10 @@ func TestImportString(t *testing.T) {
 	}
 }
 
-// TODO: fix goroutine leak Goroutine 59 in state IO wait, with internal/poll.runtime_pollWait on top of the stack: goroutine 59 [IO wait]: internal/poll.runtime_pollWait(0x10321a3a0, 0x72)
 func TestImportGit(t *testing.T) {
 	directory := "./testdata/import_git"
 	for _, file := range getTestFiles(directory, t) {
-		archive, err := txtar.ParseFile(directory + "/" + file.Name())
+		archive, err := txtar.ParseFile(path.Join(directory, file.Name()))
 		require.NoError(t, err)
 		t.Run(archive.Files[0].Name, func(t *testing.T) {
 			testConfig(t, string(archive.Files[0].Data), "", nil)
