@@ -15,7 +15,8 @@ title: import.file
 
 {{< docs/shared lookup="flow/stability/beta.md" source="agent" version="<AGENT_VERSION>" >}}
 
-The `import.file` block imports custom components from a file and exposes them to the importer. `import.file` blocks must be given a label which determines the namespace where custom components are exposed.
+The `import.file` block imports custom components from a file and exposes them to the importer.
+`import.file` blocks must be given a label that determines the namespace where custom components are exposed.
 
 [module]: {{< relref "../../concepts/modules.md" >}}
 
