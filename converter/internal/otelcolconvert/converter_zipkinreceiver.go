@@ -47,6 +47,8 @@ func toZipkinReceiver(state *state, id component.InstanceID, cfg *zipkinreceiver
 		ParseStringTags: cfg.ParseStringTags,
 		HTTPServer:      *toHTTPServerArguments(&cfg.HTTPServerSettings),
 
+		DebugMetrics: common.DefaultValue[zipkin.Arguments]().DebugMetrics,
+
 		Output: &otelcol.ConsumerArguments{
 			Traces: toTokenizedConsumers(nextTraces),
 		},

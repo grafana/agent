@@ -54,6 +54,8 @@ func toJaegerReceiver(state *state, id component.InstanceID, cfg *jaegerreceiver
 			ThriftCompact: toJaegerThriftCompactArguments(cfg.ThriftCompact),
 		},
 
+		DebugMetrics: common.DefaultValue[jaeger.Arguments]().DebugMetrics,
+
 		Output: &otelcol.ConsumerArguments{
 			Traces: toTokenizedConsumers(nextTraces),
 		},

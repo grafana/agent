@@ -65,6 +65,8 @@ func toKafkaReceiver(state *state, id component.InstanceID, cfg *kafkareceiver.C
 		MessageMarking:   toKafkaMessageMarking(cfg.MessageMarking),
 		HeaderExtraction: toKafkaHeaderExtraction(cfg.HeaderExtraction),
 
+		DebugMetrics: common.DefaultValue[kafka.Arguments]().DebugMetrics,
+
 		Output: &otelcol.ConsumerArguments{
 			Metrics: toTokenizedConsumers(nextMetrics),
 			Logs:    toTokenizedConsumers(nextLogs),
