@@ -117,6 +117,12 @@ func (cc *controllerCollector) Collect(ch chan<- prometheus.Metric) {
 		}
 	}
 
+	for _, im := range cc.l.Imports() {
+		health := im.CurrentHealth().Health.String()
+		componentsByHealth[health]++
+		im.registry.Collect(ch)
+	}
+
 	for health, count := range componentsByHealth {
 		ch <- prometheus.MustNewConstMetric(cc.runningComponentsTotal, prometheus.GaugeValue, float64(count), health)
 	}

@@ -1,4 +1,4 @@
-package agent
+package self
 
 import (
 	"github.com/grafana/agent/component"
@@ -9,7 +9,7 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name:    "prometheus.exporter.agent",
+		Name:    "prometheus.exporter.self",
 		Args:    Arguments{},
 		Exports: exporter.Exports{},
 
@@ -22,10 +22,10 @@ func createExporter(opts component.Options, args component.Arguments, defaultIns
 	return integrations.NewIntegrationWithInstanceKey(opts.Logger, a.Convert(), defaultInstanceKey)
 }
 
-// Arguments holds values which are used to configured the prometheus.exporter.agent component.
+// Arguments holds values which are used to configured the prometheus.exporter.self component.
 type Arguments struct{}
 
-// Exports holds the values exported by the prometheus.exporter.agent component.
+// Exports holds the values exported by the prometheus.exporter.self component.
 type Exports struct{}
 
 // DefaultArguments defines the default settings

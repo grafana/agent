@@ -12,6 +12,8 @@ Execute the integration tests using the following command:
 
 `go run .`
 
+**_NOTE:_** The tests don't run on Windows. If you want to run the tests on Linux, you need to set the environment variable OTEL_EXPORTER_ENDPOINT=172.17.0.1:4318.
+
 ### Flags
 
 * `--skip-build`: Run the integration tests without building the agent (default: `false`)
