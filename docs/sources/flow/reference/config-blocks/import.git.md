@@ -86,7 +86,7 @@ Name | Type | Description | Default | Required
 
 ## Examples
 
-This example imports custom components from a Git repository and uses a custom compnoent to add two numbers:
+This example imports custom components from a Git repository and uses a custom component to add two numbers:
 
 ```river
 import.git "math" {
