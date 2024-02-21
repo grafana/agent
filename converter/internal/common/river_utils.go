@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/grafana/river"
 	"github.com/grafana/river/parser"
 	"github.com/grafana/river/printer"
 	"github.com/grafana/river/scanner"
@@ -123,4 +124,17 @@ func SanitizeIdentifierPanics(in string) string {
 		panic(err)
 	}
 	return out
+}
+
+// DefaultValue returns the default value for a given type. If *T implements
+// river.Defaulter, a value will be returned with defaults applied. If *T does
+// not implement river.Defaulter, the zero value of T is returned.
+//
+// T must not be a pointer type.
+func DefaultValue[T any]() T {
+	var val T
+	if defaulter, ok := any(&val).(river.Defaulter); ok {
+		defaulter.SetToDefault()
+	}
+	return val
 }

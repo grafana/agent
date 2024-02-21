@@ -54,6 +54,8 @@ func toOtelcolReceiverOTLP(state *state, id component.InstanceID, cfg *otlprecei
 		GRPC: (*otlp.GRPCServerArguments)(toGRPCServerArguments(cfg.GRPC)),
 		HTTP: toHTTPConfigArguments(cfg.HTTP),
 
+		DebugMetrics: common.DefaultValue[otlp.Arguments]().DebugMetrics,
+
 		Output: &otelcol.ConsumerArguments{
 			Metrics: toTokenizedConsumers(nextMetrics),
 			Logs:    toTokenizedConsumers(nextLogs),
