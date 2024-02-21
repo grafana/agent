@@ -45,7 +45,7 @@ Name | Type | Description | Default | Required
 
 ## Example
 
-This example imports a module from a file and instantiates a custom component from an imported declare to that adds two numbers:
+This example imports a module from a file and instantiates a custom component from an imported declare that adds two numbers:
 
 {{< collapse title="module.river" >}}
 ```river

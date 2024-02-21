@@ -35,7 +35,7 @@ Modules can be imported from multiple locations using one of the `import` config
 [import.http]: {{< relref "../reference/config-blocks/import.http.md" >}}
 
 {{< admonition type="warning" >}}
-It's invalid to import a module which contains top-level blocks other than `declare` or `import`.
+You can't import a module that contains top-level blocks other than `declare` or `import`.
 {{< /admonition >}}
 
 Modules are imported into a _namespace_ where the top-level custom components of the imported module are exposed to the importing module.
