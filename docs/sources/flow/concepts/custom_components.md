@@ -26,7 +26,7 @@ A custom component is composed of:
 You can create a new custom component using [the `declare` configuration block][declare]. 
 The label of the block determines the name of the custom component.
 
-Inside of a `declare` block, the following custom configuration blocks can be used:
+The following custom configuration blocks can be used inside a `declare` block:
 
 * [argument][]: Create a new named argument, whose current value can be referenced using the expression `argument.NAME.value`. Argument values are determined by the user of a custom component.
 * [export][]: Expose a new named value to custom component users.
