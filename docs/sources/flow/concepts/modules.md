@@ -113,7 +113,7 @@ loki.write "default" {
 # Classic modules (deprecated)
 
 {{< admonition type="caution" >}}
-Modules were redesigned in v0.40 to simplify concepts. This section outlines the original modules design prior to v0.40. Classic modules are scheduled to be removed in the release after v0.40.
+Modules were redesigned in v0.40 to simplify concepts. This section outlines the design of the original modules prior to v0.40. Classic modules are scheduled to be removed in the release after v0.40.
 {{< /admonition >}}
 
 
