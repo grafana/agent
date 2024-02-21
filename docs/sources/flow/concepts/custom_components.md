@@ -17,8 +17,8 @@ _Custom components_ are a way to create new components from a pipeline of built-
 
 A custom component is composed of:
 
-* _Arguments_: settings that configure the custom component.
-* _Exports_: values that a custom component exposes to its consumers.
+* _Arguments_: Settings that configure the custom component.
+* _Exports_: Values that a custom component exposes to its consumers.
 * _Components_: Built-in and custom components that are run as part of the custom component.
 
 ## Creating custom components
