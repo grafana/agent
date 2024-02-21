@@ -20,7 +20,7 @@ Main (unreleased)
 
 ### Deprecations
 
-- Classic modules have been deprecated and will be removed in v1.0. (@wildum)
+- Module components have been deprecated in favor of import and declare configuration blocks. These deprecated components will be removed in the next release. (@wildum)
 
 ### Features
 
