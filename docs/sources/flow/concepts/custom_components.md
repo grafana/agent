@@ -40,8 +40,7 @@ Custom components are useful for reusing a common pipeline multiple times. To le
 
 ## Example
 
-This example creates a new custom component called `add` which exports the sum
-of two arguments:
+This example creates a new custom component called `add`, which exports the sum of two arguments:
 
 ```river
 declare "add" {
