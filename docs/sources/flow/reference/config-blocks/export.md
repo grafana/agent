@@ -43,7 +43,7 @@ Name    | Type  | Description      | Default | Required
 `value` | `any` | Value to export. |         | yes
 
 The `value` argument determines what the value of the export will be.
-To expose an exported field of another component, set `value` to an expression which references that exported value.
+To expose an exported field of another component, set `value` to an expression that references that exported value.
 
 ## Exported fields
 
