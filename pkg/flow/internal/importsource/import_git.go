@@ -99,6 +99,7 @@ func (im *ImportGit) Run(ctx context.Context) error {
 	for {
 		select {
 		case <-ctx.Done():
+			// TODO: should we stope the ticker here?
 			return nil
 
 		case <-im.argsChanged:
