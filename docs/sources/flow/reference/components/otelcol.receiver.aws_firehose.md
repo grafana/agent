@@ -1,30 +1,32 @@
 ---
 aliases:
-- /docs/grafana-cloud/agent/flow/reference/components/otelcol.receiver.awsfirehose/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/otelcol.receiver.awsfirehose/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/otelcol.receiver.awsfirehose/
-- /docs/grafana-cloud/send-data/agent/flow/reference/components/otelcol.receiver.awsfirehose/
-canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.receiver.awsfirehose/
-description: Learn about otelcol.receiver.awsfirehose
-title: otelcol.receiver.awsfirehose
+- /docs/grafana-cloud/agent/flow/reference/components/otelcol.receiver.aws_firehose/
+- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/otelcol.receiver.aws_firehose/
+- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/otelcol.receiver.aws_firehose/
+- /docs/grafana-cloud/send-data/agent/flow/reference/components/otelcol.receiver.aws_firehose/
+canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.receiver.aws_firehose/
+description: Learn about otelcol.receiver.aws_firehose
+label:
+  stage: experimental
+title: otelcol.receiver.aws_firehose
 ---
 
-# otelcol.receiver.awsfirehose
+# otelcol.receiver.aws_firehose
 
-`otelcol.receiver.awsfirehose` receives metrics from [Cloudwatch Metrics Streams](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-Metric-Streams.html) using AWS Kinesis Data Firehose and forwards it to other `otelcol.*` components.
+`otelcol.receiver.aws_firehose` receives metrics from [Cloudwatch Metrics Streams](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-Metric-Streams.html) using AWS Kinesis Data Firehose and forwards it to other `otelcol.*` components.
 
 Set the output format of the Metrics Stream to JSON. Make sure the receiver is accessible by AWS on port 443. You can set the output format with a load balancer.
 
 {{% admonition type="note" %}}
-`otelcol.receiver.awsfirehose` is a wrapper over the upstream OpenTelemetry Collector `awsfirehose` receiver. If necessary, bug reports or feature requests are redirected to the upstream repository.
+`otelcol.receiver.aws_firehose` is a wrapper over the upstream OpenTelemetry Collector `awsfirehose` receiver. If necessary, bug reports or feature requests are redirected to the upstream repository.
 {{% /admonition %}}
 
-You can specify multiple `otelcol.receiver.awsfirehose` components by giving them different labels.
+You can specify multiple `otelcol.receiver.aws_firehose` components by giving them different labels.
 
 ## Usage
 
 ```river
-otelcol.receiver.awsfirehose "LABEL" {
+otelcol.receiver.aws_firehose "LABEL" {
   endpoint = "HOST:PORT"
   output {
     metrics = [...]
@@ -34,7 +36,7 @@ otelcol.receiver.awsfirehose "LABEL" {
 
 ## Arguments
 
-`otelcol.receiver.awsfirehose` supports the following arguments:
+`otelcol.receiver.aws_firehose` supports the following arguments:
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
@@ -52,7 +54,7 @@ The supported values for `record_type`  are:
 ## Blocks
 
 The following blocks are supported inside the definition of
-`otelcol.receiver.awsfirehose`:
+`otelcol.receiver.aws_firehose`:
 
 Hierarchy | Block | Description | Required
 --------- | ----- | ----------- | --------
@@ -108,16 +110,16 @@ If `allowed_headers` includes `"*"`, all headers are permitted.
 
 ## Exported fields
 
-`otelcol.receiver.awsfirehose` does not export any fields.
+`otelcol.receiver.aws_firehose` does not export any fields.
 
 ## Component health
 
-`otelcol.receiver.awsfirehose` is only reported as unhealthy if given an invalid
+`otelcol.receiver.aws_firehose` is only reported as unhealthy if given an invalid
 configuration.
 
 ## Debug information
 
-`otelcol.receiver.awsfirehose` does not expose any component-specific debug
+`otelcol.receiver.aws_firehose` does not expose any component-specific debug
 information.
 
 ## Example
@@ -126,7 +128,7 @@ This example forwards received metrics through a batch processor before finally
 sending it to an OTLP-capable endpoint:
 
 ```river
-otelcol.receiver.awsfirehose "default" {
+otelcol.receiver.aws_firehose "default" {
   endpoint = "0.0.0.0:4433"
   output {
     metrics = [otelcol.processor.batch.default.input]
