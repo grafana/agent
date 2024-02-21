@@ -79,6 +79,13 @@ export const ComponentView: FC<ComponentViewProps> = (props) => {
               </Link>
             </li>
           )}
+          {props.component.localID.startsWith('module') && (
+            <li>
+              <Link to={`/graph/${props.component.localID}`} target="_top">
+                Graph
+              </Link>
+            </li>
+          )}
         </ul>
       </nav>
 

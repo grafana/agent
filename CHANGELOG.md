@@ -31,6 +31,8 @@ Main (unreleased)
 
 - Introduce the `remotecfg` service that enables loading configuration from a
   remote endpoint. (@tpaschalis) 
+
+- Flow UI: Display graph for components defined in module. (@hainenber)
   
 ### Enhancements
 

@@ -33,3 +33,5 @@ export const useComponentInfo = (
 
   return [components, setComponents];
 };
+
+export default useComponentInfo;
