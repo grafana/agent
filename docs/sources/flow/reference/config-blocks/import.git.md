@@ -80,7 +80,7 @@ ssh_key | [ssh_key][] | Configure a SSH Key for authenticating to the repo. | no
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `username`  | `string` | SSH username. | | yes
-`key`       | `secret` | SSH private key | | no
+`key`       | `secret` | SSH private key. | | no
 `key_file`  | `string` | SSH private key path. | | no
 `passphrase` | `secret` | Passphrase for SSH key if needed. | | no
 
