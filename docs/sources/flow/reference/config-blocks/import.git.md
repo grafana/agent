@@ -66,7 +66,7 @@ The following blocks are supported inside the definition of `import.git`:
 
 Hierarchy        | Block      | Description | Required
 ---------------- | ---------- | ----------- | --------
-basic_auth | [basic_auth][] | Configure basic_auth for authenticating to the repo. | no
+basic_auth | [basic_auth][] | Configure basic_auth for authenticating to the repository. | no
 ssh_key | [ssh_key][] | Configure an SSH Key for authenticating to the repository. | no
 
 [basic_auth]: #basic_auth-block
