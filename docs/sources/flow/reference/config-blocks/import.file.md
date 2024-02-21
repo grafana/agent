@@ -36,10 +36,7 @@ Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `filename`       | `string`   | Path of the file on disk to watch. | | yes
 `detector`       | `string`   | Which file change detector to use (fsnotify, poll). | `"fsnotify"` | no
-`poll_frequency` | `duration` | How often to poll for file changes | `"1m"`. | no
-`is_secret`      | `bool`     | Marks the file as containing a [secret][] | `false`. | no
-
-[secret]: {{< relref "../../concepts/config-language/expressions/types_and_values.md#secrets" >}}
+`poll_frequency` | `duration` | How often to poll for file changes. | `"1m"` | no
 
 {{< docs/shared lookup="flow/reference/components/local-file-arguments-text.md" source="agent" version="<AGENT_VERSION>" >}}
 
