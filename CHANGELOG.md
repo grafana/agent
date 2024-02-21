@@ -147,6 +147,8 @@ v0.40.0 (2024-02-27)
 
 - Fix issue where registry was not being properly deleted. (@mattdurham)
 
+- Add retry when attempting to run `prometheus.operator` flow components. (@onematchfox)
+
 ### Other changes
 
 - Removed support for Windows 2012 in line with Microsoft end of life. (@mattdurham)
