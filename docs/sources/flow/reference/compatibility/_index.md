@@ -274,6 +274,7 @@ The following components, grouped by namespace, _export_ OpenTelemetry `otelcol.
 <!-- START GENERATED SECTION: EXPORTERS OF OpenTelemetry `otelcol.Consumer` -->
 
 {{< collapse title="otelcol" >}}
+- [otelcol.connector.host_info]({{< relref "../components/otelcol.connector.host_info.md" >}})
 - [otelcol.connector.servicegraph]({{< relref "../components/otelcol.connector.servicegraph.md" >}})
 - [otelcol.connector.spanlogs]({{< relref "../components/otelcol.connector.spanlogs.md" >}})
 - [otelcol.connector.spanmetrics]({{< relref "../components/otelcol.connector.spanmetrics.md" >}})
@@ -309,6 +310,7 @@ The following components, grouped by namespace, _consume_ OpenTelemetry `otelcol
 {{< /collapse >}}
 
 {{< collapse title="otelcol" >}}
+- [otelcol.connector.host_info]({{< relref "../components/otelcol.connector.host_info.md" >}})
 - [otelcol.connector.servicegraph]({{< relref "../components/otelcol.connector.servicegraph.md" >}})
 - [otelcol.connector.spanlogs]({{< relref "../components/otelcol.connector.spanlogs.md" >}})
 - [otelcol.connector.spanmetrics]({{< relref "../components/otelcol.connector.spanmetrics.md" >}})
