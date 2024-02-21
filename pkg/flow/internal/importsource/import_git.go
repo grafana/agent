@@ -18,7 +18,7 @@ import (
 )
 
 // ImportGit imports a module from a git repository.
-// There are currently no git component, the logic is implemented here.
+// There are currently no remote.git component, the logic is implemented here.
 type ImportGit struct {
 	opts            component.Options
 	log             log.Logger
