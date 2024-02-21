@@ -1,6 +1,9 @@
 package otelcolconvert
 
 import (
+	"fmt"
+	"strings"
+
 	"github.com/grafana/agent/component/otelcol"
 	"github.com/grafana/river/token"
 	"github.com/grafana/river/token/builder"
@@ -24,4 +27,16 @@ func (tc tokenizedConsumer) RiverTokenize() []builder.Token {
 		Tok: token.STRING,
 		Lit: tc.Expr,
 	}}
+}
+
+func toTokenizedConsumers(components []componentID) []otelcol.Consumer {
+	res := make([]otelcol.Consumer, 0, len(components))
+
+	for _, component := range components {
+		res = append(res, tokenizedConsumer{
+			Expr: fmt.Sprintf("%s.%s.input", strings.Join(component.Name, "."), component.Label),
+		})
+	}
+
+	return res
 }
