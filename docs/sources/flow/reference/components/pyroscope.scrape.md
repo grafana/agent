@@ -366,7 +366,7 @@ The following arguments are supported:
 ### profile.custom block
 
 The `profile.custom` block allows for collecting profiles from custom
-endpoints. Blocks must be specified with `name` attribute:
+endpoints. Blocks must be specified with a `name` attribute:
 
 ```river
 profile.custom {
@@ -376,7 +376,7 @@ profile.custom {
 }
 ```
 
-Multiple `profile.custom` blocks can be specified. `name` attribute assigned to
+Multiple `profile.custom` blocks can be specified. The `name` attribute assigned to
 `profile.custom` blocks must be unique across the component.
 
 The following arguments are supported:

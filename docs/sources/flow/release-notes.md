@@ -46,15 +46,16 @@ If you need to see high cardinality metrics containing labels such as IP address
 Previously in aforementioned components, there are children blocks that requires labels which would be used for naming. 
 More information in the following table.
 
-| Component                        | Affected blocks        |
+| Component                        | Child blocks        |
 |--------------------------------- | ---------------------- |
 | `prometheus.exporter.cloudwatch` | `static`               |
 | `prometheus.exporter.snmp`       | `target`, `walk_param` |
 | `pyroscrope.scrape`              | `profile.custom`       |
 
-In the new version, user needs to be specify `name` attribute instead, which allow less restrictive naming.
+Now, you must specify a `name` attribute. This new attribute allows less restrictive naming.
 
 Old configuration example:
+
 ```river
 prometheus.exporter.cloudwatch "static_instances" {
 	sts_region = "us-east-2"
@@ -117,6 +118,7 @@ pyroscope.scrape "local" {
 ```
 
 New configuration example:
+
 ```river
 prometheus.exporter.cloudwatch "static_instances" {
 	sts_region = "us-east-2"

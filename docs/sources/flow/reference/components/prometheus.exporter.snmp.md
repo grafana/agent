@@ -67,7 +67,7 @@ The following blocks are supported inside the definition of
 ### target block
 
 The `target` block defines an individual SNMP target.
-The `target` block may be specified multiple times to define multiple targets. `name` attribute is required and will be used in the target's `job` label.
+You can specify the `target` block multiple times to define multiple targets. The `name` attribute is required and is used in the target's `job` label.
 
 | Name          | Type     | Description                         | Default | Required |
 | ------------- | -------- | ----------------------------------- | ------- | -------- |
