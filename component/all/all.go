@@ -94,7 +94,6 @@ import (
 	_ "github.com/grafana/agent/component/otelcol/receiver/prometheus"              // Import otelcol.receiver.prometheus
 	_ "github.com/grafana/agent/component/otelcol/receiver/vcenter"                 // Import otelcol.receiver.vcenter
 	_ "github.com/grafana/agent/component/otelcol/receiver/zipkin"                  // Import otelcol.receiver.zipkin
-	_ "github.com/grafana/agent/component/prometheus/exporter/agent"                // Import prometheus.exporter.agent
 	_ "github.com/grafana/agent/component/prometheus/exporter/apache"               // Import prometheus.exporter.apache
 	_ "github.com/grafana/agent/component/prometheus/exporter/azure"                // Import prometheus.exporter.azure
 	_ "github.com/grafana/agent/component/prometheus/exporter/blackbox"             // Import prometheus.exporter.blackbox
@@ -114,6 +113,7 @@ import (
 	_ "github.com/grafana/agent/component/prometheus/exporter/postgres"             // Import prometheus.exporter.postgres
 	_ "github.com/grafana/agent/component/prometheus/exporter/process"              // Import prometheus.exporter.process
 	_ "github.com/grafana/agent/component/prometheus/exporter/redis"                // Import prometheus.exporter.redis
+	_ "github.com/grafana/agent/component/prometheus/exporter/self"                 // Import prometheus.exporter.self
 	_ "github.com/grafana/agent/component/prometheus/exporter/snmp"                 // Import prometheus.exporter.snmp
 	_ "github.com/grafana/agent/component/prometheus/exporter/snowflake"            // Import prometheus.exporter.snowflake
 	_ "github.com/grafana/agent/component/prometheus/exporter/squid"                // Import prometheus.exporter.squid

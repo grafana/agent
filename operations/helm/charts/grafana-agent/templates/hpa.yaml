@@ -25,6 +25,33 @@ spec:
   {{- with .Values.controller.autoscaling }}
   minReplicas: {{ .minReplicas }}
   maxReplicas: {{ .maxReplicas }}
+  behavior:
+    {{- with .scaleDown }}
+    scaleDown:
+      {{- if .policies }}
+      policies:
+        {{- range .policies }}
+        - type: {{ .type }}
+          value: {{ .value }}
+          periodSeconds: {{ .periodSeconds }}
+        {{- end }}
+      selectPolicy: {{ .selectPolicy }}
+      {{- end }}
+      stabilizationWindowSeconds: {{ .stabilizationWindowSeconds }}
+    {{- end }}
+    {{- with .scaleUp }}
+    scaleUp:
+      {{- if .policies }}
+      policies:
+        {{- range .policies }}
+        - type: {{ .type }}
+          value: {{ .value }}
+          periodSeconds: {{ .periodSeconds }}
+        {{- end }}
+      selectPolicy: {{ .selectPolicy }}
+      {{- end }}
+      stabilizationWindowSeconds: {{ .stabilizationWindowSeconds }}
+    {{- end }}
   metrics:
     # Changing the order of the metrics will cause ArgoCD to go into a sync loop
     # memory needs to be first.

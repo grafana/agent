@@ -186,6 +186,12 @@ pyroscope.scrape "local" {
 }
 ```
 
+### Breaking change: Rename component `prometheus.exporter.agent` to `prometheus.exporter.self`
+
+The name `prometheus.exporter.agent` is potentially ambiguous and can be misinterpreted as an exporter for Prometheus Agent.
+The new name reflects the component's true purpose as an exporter of the process's own metrics.
+
+
 ## v0.39
 
 ### Breaking change: `otelcol.receiver.prometheus` will drop all `otel_scope_info` metrics when converting them to OTLP

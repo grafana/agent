@@ -22,6 +22,8 @@ Main (unreleased)
   - `target` and `walk_param` block in `prometheus.exporter.snmp`
   - `profile.custom` block in `pyrosope.scrape`
 
+- Rename component `prometheus.exporter.agent` to `prometheus.exporter.self` to clear up ambiguity. (@hainenber)
+
 ### Features
 
 - A new `discovery.process` component for discovering Linux OS processes on the current host. (@korniltsev)
@@ -64,6 +66,8 @@ Main (unreleased)
 
 - Mutex and block pprofs are now available via the pprof endpoint. (@mattdurham)
 
+- Added an error log when the config fails to reload. (@kurczynski)
+
 - Added additional http client proxy configurations to components for
   `no_proxy`, `proxy_from_environment`, and `proxy_connect_header`. (@erikbaranowski)
 
@@ -87,9 +91,20 @@ Main (unreleased)
 - Fix an issue with static integrations-next marshaling where non singletons
   would cause `/-/config` to fail to marshal. (@erikbaranowski)
 
+- Fix an issue where agent logs are emitted before the logging format
+  is correctly determined. (@hainenber)
+
 - Fix divide-by-zero issue when sharding targets. (@hainenber) 
 
 - Fix bug where custom headers were not actually being set in loki client. (@captncraig)
+
+- Fix missing measurement type field in the KeyVal() conversion function for measurments. @vanugrah)
+
+- Fix `ResolveEndpointV2 not found` for AWS-related components. (@hainenber)
+
+- Fix OTEL metrics not getting collected after reload. (@hainenber)
+
+- Fix bug in `pyroscope.ebpf` component when elf's PT_LOAD section is not page aligned . [PR](https://github.com/grafana/pyroscope/pull/2983)  (@korniltsev)
 
 ### Other changes
 

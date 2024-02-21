@@ -13,6 +13,7 @@ import (
 	"github.com/grafana/agent/component/pyroscope"
 	"github.com/grafana/agent/pkg/util"
 	ebpfspy "github.com/grafana/pyroscope/ebpf"
+	"github.com/grafana/pyroscope/ebpf/pprof"
 	"github.com/grafana/pyroscope/ebpf/sd"
 	"github.com/grafana/river"
 	"github.com/oklog/run"
@@ -45,13 +46,22 @@ func (m *mockSession) UpdateTargets(_ sd.TargetsOptions) {
 
 }
 
-func (m *mockSession) CollectProfiles(f ebpfspy.CollectProfilesCallback) error {
+func (m *mockSession) CollectProfiles(f pprof.CollectProfilesCallback) error {
 	m.collected++
 	if m.collectError != nil {
 		return m.collectError
 	}
 	for _, stack := range m.data {
-		f(m.dataTarget, stack, 1, 1, ebpfspy.SampleNotAggregated)
+		f(
+			pprof.ProfileSample{
+				Target:      m.dataTarget,
+				Pid:         0,
+				SampleType:  pprof.SampleTypeCpu,
+				Aggregation: pprof.SampleNotAggregated,
+				Stack:       stack,
+				Value:       1,
+				Value2:      0,
+			})
 	}
 	return nil
 }

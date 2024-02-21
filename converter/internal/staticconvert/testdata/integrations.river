@@ -1,7 +1,7 @@
-prometheus.exporter.agent "integrations_agent" { }
+prometheus.exporter.self "integrations_agent" { }
 
 discovery.relabel "integrations_agent" {
-	targets = prometheus.exporter.agent.integrations_agent.targets
+	targets = prometheus.exporter.self.integrations_agent.targets
 
 	rule {
 		target_label = "job"
