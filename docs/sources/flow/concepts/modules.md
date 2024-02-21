@@ -13,7 +13,8 @@ weight: 400
 
 # Modules
 
-A _Module_ is a unit of {{< param "PRODUCT_NAME" >}} configuration which combines all the other concepts, containing a mix of configuration blocks, instantiated components, and custom component definitions. The module passed as an argument to [the `run` command][run] is called the _main configuration_.
+A _Module_ is a unit of {{< param "PRODUCT_NAME" >}} configuration, which combines all the other concepts, containing a mix of configuration blocks, instantiated components, and custom component definitions.
+The module passed as an argument to [the `run` command][run] is called the _main configuration_.
 
 Modules can be [imported](#importing-modules) to enable the reuse of [custom components][] defined by that module.
 
