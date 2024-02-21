@@ -85,6 +85,9 @@ Main (unreleased)
 - Fix an issue with static integrations-next marshaling where non singletons
   would cause `/-/config` to fail to marshal. (@erikbaranowski)
 
+- Fix an issue where agent logs are emitted before the logging format
+  is correctly determined. (@hainenber)
+
 - Fix divide-by-zero issue when sharding targets. (@hainenber) 
 
 - Fix bug where custom headers were not actually being set in loki client. (@captncraig)
