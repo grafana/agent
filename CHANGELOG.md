@@ -18,7 +18,14 @@ Main (unreleased)
 
 - Rename component `prometheus.exporter.agent` to `prometheus.exporter.self` to clear up ambiguity. (@hainenber)
 
+### Deprecations
+
+- Classic modules have been deprecated and will be removed in v1.0. (@wildum)
+
 ### Features
+
+- Modules have been redesigned to split the import logic from the instantiation. 
+  You can now define custom components via the `declare` config block and import modules via `import.git`, `import.http`, `import.string`, `import.file`. (@wildum)
 
 - A new `discovery.process` component for discovering Linux OS processes on the current host. (@korniltsev)
 
