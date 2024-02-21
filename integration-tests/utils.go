@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"sync"
 )
 
@@ -122,6 +123,10 @@ func reportResults() {
 	// If the channel would not be closed, the for loop would wait forever.
 	close(logChan)
 	for log := range logChan {
+		if strings.Contains(log.TestOutput, "build constraints exclude all Go files") {
+			fmt.Printf("Test %q is not applicable for this OS, ignoring\n", log.TestDir)
+			continue
+		}
 		fmt.Printf("Failure detected in %s:\n", log.TestDir)
 		fmt.Println("Test output:", log.TestOutput)
 		fmt.Println("Agent logs:", log.AgentLog)
