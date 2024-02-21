@@ -38,8 +38,8 @@ in records coming from any source.
 
 | Name                        | Description                                                                                                                                                                                         | Example                                                                  |
 |-----------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------|
-| `__awsfirehose_request_id` | Firehose request ID.                                                                                                                                                                                | `a1af4300-6c09-4916-ba8f-12f336176246`                                   |
-| `__awsfirehose_source_arn` | Firehose delivery stream ARN.                                                                                                                                                                       | `arn:aws:firehose:us-east-2:123:deliverystream/awsfirehose_test_stream` |
+| `__aws_firehose_request_id` | Firehose request ID.                                                                                                                                                                                | `a1af4300-6c09-4916-ba8f-12f336176246`                                   |
+| `__aws_firehose_source_arn` | Firehose delivery stream ARN.                                                                                                                                                                       | `arn:aws:firehose:us-east-2:123:deliverystream/aws_firehose_test_stream` |
 
 If the source of the Firehose record is CloudWatch logs, the request is further decoded and enriched with even more labels,
 exposed as follows:
