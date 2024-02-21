@@ -45,7 +45,7 @@ Name | Type | Description | Default | Required
 
 ## Example
 
-This example imports a module from the content of a file stored in a s3 bucket and instantiates a custom component from an imported declare that adds two numbers:
+This example imports a module from the content of a file stored in an S3 bucket and instantiates a custom component from the import that adds two numbers:
 
 ```river
 remote.s3 "module" {
