@@ -32,7 +32,7 @@ func NewImportFile(managedOpts component.Options, eval *vm.Evaluator, onContentC
 	}
 }
 
-// Arguments holds values which are used to configure the local.file component.
+// FileArguments holds values which are used to configure the local.file component.
 type FileArguments struct {
 	// Filename indicates the file to watch.
 	Filename string `river:"filename,attr"`

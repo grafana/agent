@@ -120,6 +120,17 @@ func TestImportGit(t *testing.T) {
 	}
 }
 
+func TestImportHTTP(t *testing.T) {
+	directory := "./testdata/import_http"
+	for _, file := range getTestFiles(directory, t) {
+		archive, err := txtar.ParseFile(filepath.Join(directory, file.Name()))
+		require.NoError(t, err)
+		t.Run(archive.Files[0].Name, func(t *testing.T) {
+			testConfig(t, string(archive.Files[0].Data), "", nil)
+		})
+	}
+}
+
 type testImportError struct {
 	description   string
 	main          string

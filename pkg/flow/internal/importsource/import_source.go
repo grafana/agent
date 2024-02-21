@@ -14,11 +14,13 @@ const (
 	File SourceType = iota
 	String
 	Git
+	HTTP
 )
 
 const (
 	BlockImportFile   = "import.file"
 	BlockImportString = "import.string"
+	BlockImportHTTP   = "import.http"
 	BlockImportGit    = "import.git"
 )
 
@@ -40,6 +42,8 @@ func NewImportSource(sourceType SourceType, managedOpts component.Options, eval 
 		return NewImportFile(managedOpts, eval, onContentChange)
 	case String:
 		return NewImportString(eval, onContentChange)
+	case HTTP:
+		return NewImportHTTP(managedOpts, eval, onContentChange)
 	case Git:
 		return NewImportGit(managedOpts, eval, onContentChange)
 	}
@@ -53,6 +57,8 @@ func GetSourceType(fullName string) SourceType {
 		return File
 	case BlockImportString:
 		return String
+	case BlockImportHTTP:
+		return HTTP
 	case BlockImportGit:
 		return Git
 	}
