@@ -29,10 +29,12 @@ Modules can be imported from multiple locations using one of the `import` config
 * [import.file]: Imports a module from a file on disk.
 * [import.git]: Imports a module from a file located in a Git repository.
 * [import.http]: Imports a module from the response of an HTTP request.
+* [import.string]: Imports a module from a string.
 
 [import.file]: {{< relref "../reference/config-blocks/import.file.md" >}}
 [import.git]: {{< relref "../reference/config-blocks/import.git.md" >}}
 [import.http]: {{< relref "../reference/config-blocks/import.http.md" >}}
+[import.string]: {{< relref "../reference/config-blocks/import.string.md" >}}
 
 {{< admonition type="warning" >}}
 You can't import a module that contains top-level blocks other than `declare` or `import`.
