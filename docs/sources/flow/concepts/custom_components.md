@@ -23,7 +23,8 @@ A custom component is composed of:
 
 ## Creating custom components
 
-A new custom component is created using [the `declare` configuration block][declare], where the label of the block determines the name of the custom component.
+You can create a new custom component using [the `declare` configuration block][declare]. 
+The label of the block determines the name of the custom component.
 
 Inside of a `declare` block, the following custom configuration blocks can be used:
 
