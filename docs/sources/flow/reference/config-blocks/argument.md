@@ -58,9 +58,9 @@ Name | Type | Description
 ---- | ---- | -----------
 `value` | `any` | The current value of the argument.
 
-The user of a custom component is responsible for determining the values for arguments.
+If you use a custom component, you are responsible for determining the values for arguments.
 Other expressions within a custom component may use `argument.ARGUMENT_NAME.value` to retrieve the
-value provided by the user.
+value you provide.
 
 ## Example
 
