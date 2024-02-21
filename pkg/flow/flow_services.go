@@ -70,6 +70,15 @@ func serviceConsumersForGraph(graph *dag.Graph, serviceName string, includePeerS
 // NewController returns a new, unstarted, isolated Flow controller so that
 // services can instantiate their own components.
 func (f *Flow) NewController(id string) service.Controller {
+	// Don't include the remotecfg service in the isolated controller.
+	// This service should only be run once.
+	services := []service.Service{}
+	for _, svc := range f.opts.Services {
+		if svc.Definition().Name != "remotecfg" {
+			services = append(services, svc)
+		}
+	}
+
 	return serviceController{
 		f: newController(controllerOptions{
 			Options: Options{
@@ -78,7 +87,7 @@ func (f *Flow) NewController(id string) service.Controller {
 				Tracer:          f.opts.Tracer,
 				DataPath:        f.opts.DataPath,
 				Reg:             f.opts.Reg,
-				Services:        f.opts.Services,
+				Services:        services,
 				OnExportsChange: nil, // NOTE(@tpaschalis, @wildum) The isolated controller shouldn't be able to export any values.
 			},
 			IsModule:       true,
