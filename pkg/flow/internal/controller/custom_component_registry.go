@@ -28,6 +28,20 @@ func NewCustomComponentRegistry(parent *CustomComponentRegistry) *CustomComponen
 	}
 }
 
+func (s *CustomComponentRegistry) getDeclare(name string) (ast.Body, bool) {
+	s.mut.Lock()
+	defer s.mut.Unlock()
+	declare, ok := s.declares[name]
+	return declare, ok
+}
+
+func (s *CustomComponentRegistry) getImport(name string) (*CustomComponentRegistry, bool) {
+	s.mut.Lock()
+	defer s.mut.Unlock()
+	im, ok := s.imports[name]
+	return im, ok
+}
+
 // registerDeclare stores a local declare block.
 func (s *CustomComponentRegistry) registerDeclare(declare *ast.BlockStmt) {
 	s.mut.Lock()
