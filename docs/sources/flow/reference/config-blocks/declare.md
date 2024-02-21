@@ -13,7 +13,7 @@ title: declare block
 # declare block
 
 `declare` is an optional configuration block used to define a new [custom component][].
-`declare` blocks must be given a label which determines the name of the custom component.
+`declare` blocks must be given a label that determines the name of the custom component.
 
 [custom component]: {{< relref "../../concepts/custom_components.md" >}}
 
