@@ -81,7 +81,7 @@ declare "log_filter" {
 }
 ```
 
-This module can be saved to a file called `helpers.river` and imported:
+You can save this module to a file called `helpers.river` and import it:
 
 ```river
 // Import our helpers.river module, exposing its custom components as
