@@ -2,7 +2,6 @@ package otelcolconvert
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/alecthomas/units"
 	"github.com/grafana/agent/component/otelcol"
@@ -61,18 +60,6 @@ func toOtelcolReceiverOTLP(state *state, id component.InstanceID, cfg *otlprecei
 			Traces:  toTokenizedConsumers(nextTraces),
 		},
 	}
-}
-
-func toTokenizedConsumers(components []componentID) []otelcol.Consumer {
-	res := make([]otelcol.Consumer, 0, len(components))
-
-	for _, component := range components {
-		res = append(res, tokenizedConsumer{
-			Expr: fmt.Sprintf("%s.%s.input", strings.Join(component.Name, "."), component.Label),
-		})
-	}
-
-	return res
 }
 
 func toGRPCServerArguments(cfg *configgrpc.GRPCServerSettings) *otelcol.GRPCServerArguments {
