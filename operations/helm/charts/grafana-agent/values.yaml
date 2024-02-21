@@ -209,6 +209,28 @@ controller:
     # -- Average Memory utilization across all relevant pods, a percentage of the requested value of the resource for the pods. Setting `targetMemoryUtilizationPercentage` to 0 will disable Memory scaling.
     targetMemoryUtilizationPercentage: 80
 
+    scaleDown:
+      # -- List of policies to determine the scale-down behavior.
+      policies: []
+        # - type: Pods
+        #   value: 4
+        #   periodSeconds: 60
+      # -- Determines which of the provided scaling-down policies to apply if multiple are specified.
+      selectPolicy: Max
+      # -- The duration that the autoscaling mechanism should look back on to make decisions about scaling down.
+      stabilizationWindowSeconds: 300
+
+    scaleUp:
+      # -- List of policies to determine the scale-up behavior.
+      policies: []
+        # - type: Pods
+        #   value: 4
+        #   periodSeconds: 60
+      # -- Determines which of the provided scaling-up policies to apply if multiple are specified.
+      selectPolicy: Max
+      # -- The duration that the autoscaling mechanism should look back on to make decisions about scaling up.
+      stabilizationWindowSeconds: 0
+
   # -- Affinity configuration for pods.
   affinity: {}
 

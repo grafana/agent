@@ -162,7 +162,8 @@ func (fr *flowRun) Run(configPath string) error {
 		return fmt.Errorf("path argument not provided")
 	}
 
-	l, err := logging.New(os.Stderr, logging.DefaultOptions)
+	// Buffer logs until log format has been determined
+	l, err := logging.NewDeferred(os.Stderr)
 	if err != nil {
 		return fmt.Errorf("building logger: %w", err)
 	}
