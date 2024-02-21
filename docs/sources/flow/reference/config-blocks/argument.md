@@ -17,11 +17,11 @@ title: argument block
 
 The `argument` block may only be specified inside the definition of [a `declare` block][declare].
 
-{{% admonition type="note" %}}
+{{< admonition type="note" >}}
 In [classic modules][], the `argument` block is valid as a top-level block in a classic module. Classic modules are deprecated and scheduled to be removed in the release after v0.40.
 
 [classic modules]: {{< relref "../../concepts/modules.md#classic-modules-deprecated" >}}
-{{% /admonition %}}
+{{< /admonition >}}
 
 [custom component]: {{< relref "../../concepts/custom_components.md" >}}
 [declare]: {{< relref "./declare.md" >}}
