@@ -373,6 +373,10 @@ func (l *Loader) populateServiceNodes(g *dag.Graph, serviceBlocks []*ast.BlockSt
 
 	// First, build the services.
 	for _, svc := range l.services {
+		if !l.isRootController() {
+			break
+		}
+
 		id := svc.Definition().Name
 
 		if g.GetByID(id) != nil {
@@ -402,7 +406,7 @@ func (l *Loader) populateServiceNodes(g *dag.Graph, serviceBlocks []*ast.BlockSt
 	for _, block := range serviceBlocks {
 		blockID := BlockComponentID(block).String()
 
-		if l.isModule() {
+		if !l.isRootController() {
 			diags.Add(diag.Diagnostic{
 				Severity: diag.SeverityLevelError,
 				Message:  fmt.Sprintf("service blocks not allowed inside a module: %q", blockID),
@@ -470,17 +474,17 @@ func (l *Loader) populateConfigBlockNodes(args map[string]any, g *dag.Graph, con
 		g.Add(node)
 	}
 
-	validateDiags := nodeMap.Validate(l.isModule(), args)
+	validateDiags := nodeMap.Validate(!l.isRootController(), args)
 	diags = append(diags, validateDiags...)
 
 	// If a logging config block is not provided, we create an empty node which uses defaults.
-	if nodeMap.logging == nil && !l.isModule() {
+	if nodeMap.logging == nil && l.isRootController() {
 		c := NewDefaultLoggingConfigNode(l.globals)
 		g.Add(c)
 	}
 
 	// If a tracing config block is not provided, we create an empty node which uses defaults.
-	if nodeMap.tracing == nil && !l.isModule() {
+	if nodeMap.tracing == nil && l.isRootController() {
 		c := NewDefaulTracingConfigNode(l.globals)
 		g.Add(c)
 	}
@@ -828,10 +832,9 @@ func multierrToDiags(errors error) diag.Diagnostics {
 	return diags
 }
 
-// If the definition of a module ever changes, update this.
-func (l *Loader) isModule() bool {
-	// Either 1 of these checks is technically sufficient but let's be extra careful.
-	return l.globals.OnExportsChange != nil && l.globals.ControllerID != ""
+// isRootController returns true if the loader is for the root flow controller.
+func (l *Loader) isRootController() bool {
+	return l.globals.ControllerID == ""
 }
 
 // findCustomComponentReferences returns references to import/declare nodes in a declare block.
