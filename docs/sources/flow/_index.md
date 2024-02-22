@@ -70,7 +70,7 @@ prometheus.remote_write "default" {
 
 ## {{% param "PRODUCT_NAME" %}} configuration generator
 
-The {{< param "PRODUCT_NAME" >}} [configuration generator](https://grafana.github.io/agent-configurator/) will help you get a head start on creating flow code.
+The {{< param "PRODUCT_NAME" >}} [configuration generator](https://grafana.github.io/agent-configurator/) helps you get a head start on creating flow code.
 
 {{< admonition type="note" >}}
 This feature is experimental, and it doesn't support all River components.
@@ -80,10 +80,9 @@ This feature is experimental, and it doesn't support all River components.
 
 * [Install][] {{< param "PRODUCT_NAME" >}}.
 * Learn about the core [Concepts][] of {{< param "PRODUCT_NAME" >}}.
-* Follow our [Tutorials][] for hands-on learning of {{< param "PRODUCT_NAME" >}}.
-* Consult our [Tasks][] instructions to accomplish common objectives with {{< param "PRODUCT_NAME" >}}.
-* Check out our [Reference][] documentation to find specific information you
-  might be looking for.
+* Follow the [Tutorials][] for hands-on learning of {{< param "PRODUCT_NAME" >}}.
+* Consult the [Tasks][] instructions to accomplish common objectives with {{< param "PRODUCT_NAME" >}}.
+* Check out the [Reference][] documentation to find specific information you might be looking for.
 
 {{% docs/reference %}}
 [Install]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/get-started/install/"
