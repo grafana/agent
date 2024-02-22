@@ -53,3 +53,19 @@ func encodeMapstruct(v any) map[string]any {
 	}
 	return res
 }
+
+func encodeMapslice(v any) []map[string]any {
+	var res []map[string]any
+	if err := mapstructure.Decode(v, &res); err != nil {
+		panic(err)
+	}
+	return res
+}
+
+func encodeString(v any) string {
+	var res string
+	if err := mapstructure.Decode(v, &res); err != nil {
+		panic(err)
+	}
+	return res
+}
