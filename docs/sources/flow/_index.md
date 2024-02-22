@@ -85,9 +85,15 @@ This feature is experimental, and it doesn't support all River components.
 * Check out our [Reference][] documentation to find specific information you
   might be looking for.
 
-[Install]: {{< relref "./get-started/install/" >}}
-[Concepts]: {{< relref "./concepts/" >}}
-[Tasks]: {{< relref "./tasks/" >}}
-[Tutorials]: {{< relref "./tutorials/ ">}}
-[Reference]: {{< relref "./reference" >}}
-
+{{% docs/reference %}}
+[Install]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/get-started/install/"
+[Install]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/get-started/install/"
+[Concepts]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/"
+[Concepts]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/concepts/"
+[Tasks]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/tasks/"
+[Tasks]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/tasks/"
+[Tutorials]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/tutorials/"
+[Tutorials]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/tutorials/
+[Reference]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/"
+[Reference]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/
+{{% /docs/reference %}}
