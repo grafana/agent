@@ -31,7 +31,9 @@ Main (unreleased)
 
 - Introduce the `remotecfg` service that enables loading configuration from a
   remote endpoint. (@tpaschalis) 
-  
+
+- Add `otelcol.connector.host_info` component to gather usage metrics for cloud users. (@rlankfo, @jcreixell)
+
 ### Enhancements
 
 - Include line numbers in profiles produced by `pyrsocope.java` component. (@korniltsev)
