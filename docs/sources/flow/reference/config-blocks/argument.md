@@ -20,11 +20,8 @@ The `argument` block may only be specified inside the definition of [a `declare`
 {{< admonition type="note" >}}
 In [classic modules][], the `argument` block is valid as a top-level block in a classic module. Classic modules are deprecated and scheduled to be removed in the release after v0.40.
 
-[classic modules]: {{< relref "../../concepts/modules.md#classic-modules-deprecated" >}}
+[classic modules]: https://grafana.com/docs/agent/<AGENT_VERSION>/flow/concepts/modules/#classic-modules-deprecated
 {{< /admonition >}}
-
-[custom component]: {{< relref "../../concepts/custom_components.md" >}}
-[declare]: {{< relref "./declare.md" >}}
 
 ## Example
 
@@ -34,9 +31,10 @@ argument "ARGUMENT_NAME" {}
 
 ## Arguments
 
-> **NOTE**: For clarity, "argument" in this section refers to arguments which
-> can be given to the argument block. "Module argument" refers to the argument
-> being defined for a module, determined by the label of the argument block.
+{{< admonition type="note" >}}
+For clarity, "argument" in this section refers to arguments which can be given to the argument block.
+"Module argument" refers to the argument being defined for a module, determined by the label of the argument block.
+{{< /admonition >}}
 
 The following arguments are supported:
 
@@ -46,21 +44,20 @@ Name       | Type     | Description                          | Default | Require
 `default`  | `any`    | Default value for the argument.      | `null`  | no
 `optional` | `bool`   | Whether the argument may be omitted. | `false` | no
 
-By default, all module arguments are required. The `optional` argument can be
-used to mark the module argument as optional. When `optional` is `true`, the
-initial value for the module argument is specified by `default`.
+By default, all module arguments are required.
+The `optional` argument can be used to mark the module argument as optional.
+When `optional` is `true`, the initial value for the module argument is specified by `default`.
 
 ## Exported fields
 
 The following fields are exported and can be referenced by other components:
 
-Name | Type | Description
----- | ---- | -----------
+Name    | Type  | Description
+--------|-------|-----------------------------------
 `value` | `any` | The current value of the argument.
 
 If you use a custom component, you are responsible for determining the values for arguments.
-Other expressions within a custom component may use `argument.ARGUMENT_NAME.value` to retrieve the
-value you provide.
+Other expressions within a custom component may use `argument.ARGUMENT_NAME.value` to retrieve the value you provide.
 
 ## Example
 
@@ -82,3 +79,10 @@ declare "self_collect" {
   }
 }
 ```
+
+{{% docs/reference %}}
+[custom component]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/custom_components"
+[custom component]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/concepts/custom_components"
+[declare]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/config-blocks/declare"
+[declare]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/config-blocks/declare"
+{{% /docs/reference %}}
