@@ -12,7 +12,6 @@ otelcol.receiver.otlp "default" {
 
 otelcol.processor.memory_limiter "default" {
 	check_interval = "1s"
-	limit          = "147MiB"
 
 	output {
 		metrics = [otelcol.exporter.otlp.default.input]

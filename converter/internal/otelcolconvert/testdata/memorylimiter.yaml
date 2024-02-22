@@ -16,7 +16,6 @@ exporters:
 processors:
   memory_limiter:
     check_interval: 1s
-    limit_mib: 147
 
 
 service:
