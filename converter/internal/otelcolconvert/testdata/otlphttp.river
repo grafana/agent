@@ -1,0 +1,17 @@
+otelcol.receiver.otlp "default" {
+	grpc { }
+
+	http { }
+
+	output {
+		metrics = [otelcol.exporter.otlphttp.default.input]
+		logs    = [otelcol.exporter.otlphttp.default.input]
+		traces  = [otelcol.exporter.otlphttp.default.input]
+	}
+}
+
+otelcol.exporter.otlphttp "default" {
+	client {
+		endpoint = "database:4318"
+	}
+}
