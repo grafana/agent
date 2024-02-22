@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/grafana/agent/component/otelcol"
 	"github.com/grafana/agent/component/otelcol/receiver/kafka"
 	"github.com/grafana/river"
 	"github.com/mitchellh/mapstructure"
@@ -370,6 +371,65 @@ func TestArguments_Auth(t *testing.T) {
 			require.NoError(t, err)
 
 			require.Equal(t, expected, *actual)
+		})
+	}
+}
+
+func TestDebugMetricsConfig(t *testing.T) {
+	tests := []struct {
+		testName string
+		agentCfg string
+		expected otelcol.DebugMetricsArguments
+	}{
+		{
+			testName: "default",
+			agentCfg: `
+			brokers = ["10.10.10.10:9092"]
+			protocol_version = "2.0.0"
+			output {}
+			`,
+			expected: otelcol.DebugMetricsArguments{
+				DisableHighCardinalityMetrics: true,
+			},
+		},
+		{
+			testName: "explicit_false",
+			agentCfg: `
+			brokers = ["10.10.10.10:9092"]
+			protocol_version = "2.0.0"
+			debug_metrics {
+				disable_high_cardinality_metrics = false
+			}
+			output {}
+			`,
+			expected: otelcol.DebugMetricsArguments{
+				DisableHighCardinalityMetrics: false,
+			},
+		},
+		{
+			testName: "explicit_true",
+			agentCfg: `
+			brokers = ["10.10.10.10:9092"]
+			protocol_version = "2.0.0"
+			debug_metrics {
+				disable_high_cardinality_metrics = true
+			}
+			output {}
+			`,
+			expected: otelcol.DebugMetricsArguments{
+				DisableHighCardinalityMetrics: true,
+			},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.testName, func(t *testing.T) {
+			var args kafka.Arguments
+			require.NoError(t, river.Unmarshal([]byte(tc.agentCfg), &args))
+			_, err := args.Convert()
+			require.NoError(t, err)
+
+			require.Equal(t, tc.expected, args.DebugMetricsConfig())
 		})
 	}
 }
