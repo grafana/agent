@@ -1,0 +1,34 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+
+exporters:
+  loadbalancing:
+    routing_key: "service"
+    protocol:
+      otlp:
+        balancer_name: pick_first
+        sending_queue:
+          queue_size: 5000
+    resolver:
+      static:
+        hostnames:
+          - backend-1:4317
+          - backend-2:4317
+          - backend-3:4317
+
+service:
+  pipelines:
+    metrics:
+      receivers: [otlp]
+      processors: []
+      exporters: [loadbalancing]
+    logs:
+      receivers: [otlp]
+      processors: []
+      exporters: [loadbalancing]
+    traces:
+      receivers: [otlp]
+      processors: []
+      exporters: [loadbalancing]
