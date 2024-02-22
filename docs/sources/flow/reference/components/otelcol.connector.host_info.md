@@ -34,6 +34,21 @@ otelcol.connector.host_info "LABEL" {
 | `host_identifiers`       | `list(string)` | Ordered list of resource attributes used to identify unique hosts. | `["host.id"]` | no       |
 | `metrics_flush_interval` | `duration`     | How often to flush generated metrics.                              | `"60s"`       | no       |
 
+## Blocks
+
+The following blocks are supported inside the definition of
+`otelcol.connector.host_info`:
+
+| Hierarchy | Block      | Description                                       | Required |
+| --------- | ---------- | ------------------------------------------------- | -------- |
+| output    | [output][] | Configures where to send received telemetry data. | yes      |
+
+[output]: #output-block
+
+### output block
+
+{{< docs/shared lookup="flow/reference/components/output-block-metrics.md" source="agent" version="<AGENT_VERSION>" >}}
+
 ## Exported fields
 
 The following fields are exported and can be referenced by other components:
