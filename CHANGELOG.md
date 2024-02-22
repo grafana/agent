@@ -100,7 +100,7 @@ Main (unreleased)
 
 - Fix bug in `pyroscope.ebpf` component when elf's PT_LOAD section is not page aligned . [PR](https://github.com/grafana/pyroscope/pull/2983)  (@korniltsev)
 
-- Fix an issue where services were included in the graph and updated in a child flow controller. (@erikbaranowski)
+- Fix an issue where the configuration of the `http` and `remotecfg` blocks get ignored after loading a module. (@erikbaranowski)
 
 ### Other changes
 
