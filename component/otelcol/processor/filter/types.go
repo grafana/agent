@@ -1,19 +1,19 @@
 package filter
 
-type traceConfig struct {
+type TraceConfig struct {
 	Span      []string `river:"span,attr,optional"`
 	SpanEvent []string `river:"spanevent,attr,optional"`
 }
 
-type metricConfig struct {
+type MetricConfig struct {
 	Metric    []string `river:"metric,attr,optional"`
 	Datapoint []string `river:"datapoint,attr,optional"`
 }
-type logConfig struct {
+type LogConfig struct {
 	LogRecord []string `river:"log_record,attr,optional"`
 }
 
-func (args *traceConfig) convert() map[string]interface{} {
+func (args *TraceConfig) convert() map[string]interface{} {
 	if args == nil {
 		return nil
 	}
@@ -29,7 +29,7 @@ func (args *traceConfig) convert() map[string]interface{} {
 	return result
 }
 
-func (args *metricConfig) convert() map[string]interface{} {
+func (args *MetricConfig) convert() map[string]interface{} {
 	if args == nil {
 		return nil
 	}
@@ -45,7 +45,7 @@ func (args *metricConfig) convert() map[string]interface{} {
 	return result
 }
 
-func (args *logConfig) convert() map[string]interface{} {
+func (args *LogConfig) convert() map[string]interface{} {
 	if args == nil {
 		return nil
 	}
