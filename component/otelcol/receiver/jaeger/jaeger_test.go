@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/grafana/agent/component/otelcol"
 	"github.com/grafana/agent/component/otelcol/receiver/jaeger"
 	"github.com/grafana/agent/pkg/flow/componenttest"
 	"github.com/grafana/agent/pkg/util"
@@ -129,4 +130,60 @@ func getFreeAddr(t *testing.T) string {
 	require.NoError(t, err)
 
 	return fmt.Sprintf("localhost:%d", portNumber)
+}
+
+func TestDebugMetricsConfig(t *testing.T) {
+	tests := []struct {
+		testName string
+		agentCfg string
+		expected otelcol.DebugMetricsArguments
+	}{
+		{
+			testName: "default",
+			agentCfg: `
+			protocols { thrift_compact {} }
+			output {}
+			`,
+			expected: otelcol.DebugMetricsArguments{
+				DisableHighCardinalityMetrics: true,
+			},
+		},
+		{
+			testName: "explicit_false",
+			agentCfg: `
+			protocols { thrift_compact {} }
+			debug_metrics {
+				disable_high_cardinality_metrics = false
+			}
+			output {}
+			`,
+			expected: otelcol.DebugMetricsArguments{
+				DisableHighCardinalityMetrics: false,
+			},
+		},
+		{
+			testName: "explicit_true",
+			agentCfg: `
+			protocols { thrift_compact {} }
+			debug_metrics {
+				disable_high_cardinality_metrics = true
+			}
+			output {}
+			`,
+			expected: otelcol.DebugMetricsArguments{
+				DisableHighCardinalityMetrics: true,
+			},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.testName, func(t *testing.T) {
+			var args jaeger.Arguments
+			require.NoError(t, river.Unmarshal([]byte(tc.agentCfg), &args))
+			_, err := args.Convert()
+			require.NoError(t, err)
+
+			require.Equal(t, tc.expected, args.DebugMetricsConfig())
+		})
+	}
 }

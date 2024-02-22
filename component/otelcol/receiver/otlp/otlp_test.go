@@ -173,3 +173,65 @@ func TestUnmarshalHttpUrls(t *testing.T) {
 	assert.Equal(t, "custom/metrics", args.HTTP.MetricsURLPath)
 	assert.Equal(t, "custom/traces", args.HTTP.TracesURLPath)
 }
+
+func TestDebugMetricsConfig(t *testing.T) {
+	tests := []struct {
+		testName string
+		agentCfg string
+		expected otelcol.DebugMetricsArguments
+	}{
+		{
+			testName: "default",
+			agentCfg: `
+			grpc {
+				endpoint = "/v1/traces"
+			}
+			output {}
+			`,
+			expected: otelcol.DebugMetricsArguments{
+				DisableHighCardinalityMetrics: true,
+			},
+		},
+		{
+			testName: "explicit_false",
+			agentCfg: `
+			grpc {
+				endpoint = "/v1/traces"
+			}
+			debug_metrics {
+				disable_high_cardinality_metrics = false
+			}
+			output {}
+			`,
+			expected: otelcol.DebugMetricsArguments{
+				DisableHighCardinalityMetrics: false,
+			},
+		},
+		{
+			testName: "explicit_true",
+			agentCfg: `
+			grpc {
+				endpoint = "/v1/traces"
+			}
+			debug_metrics {
+				disable_high_cardinality_metrics = true
+			}
+			output {}
+			`,
+			expected: otelcol.DebugMetricsArguments{
+				DisableHighCardinalityMetrics: true,
+			},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.testName, func(t *testing.T) {
+			var args otlp.Arguments
+			require.NoError(t, river.Unmarshal([]byte(tc.agentCfg), &args))
+			_, err := args.Convert()
+			require.NoError(t, err)
+
+			require.Equal(t, tc.expected, args.DebugMetricsConfig())
+		})
+	}
+}

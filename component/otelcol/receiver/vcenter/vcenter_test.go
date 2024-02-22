@@ -1,9 +1,11 @@
-package vcenter
+package vcenter_test
 
 import (
 	"testing"
 	"time"
 
+	"github.com/grafana/agent/component/otelcol"
+	"github.com/grafana/agent/component/otelcol/receiver/vcenter"
 	"github.com/grafana/river"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/vcenterreceiver"
 	"github.com/stretchr/testify/require"
@@ -157,7 +159,7 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 		output { /* no-op */ }
 	`
 
-	var args Arguments
+	var args vcenter.Arguments
 	require.NoError(t, river.Unmarshal([]byte(in), &args))
 	args.Convert()
 	ext, err := args.Convert()
@@ -223,4 +225,71 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 	require.True(t, otelArgs.Metrics.VcenterVMNetworkPacketCount.Enabled)
 	require.True(t, otelArgs.Metrics.VcenterVMNetworkThroughput.Enabled)
 	require.True(t, otelArgs.Metrics.VcenterVMNetworkUsage.Enabled)
+}
+
+func TestDebugMetricsConfig(t *testing.T) {
+	tests := []struct {
+		testName string
+		agentCfg string
+		expected otelcol.DebugMetricsArguments
+	}{
+		{
+			testName: "default",
+			agentCfg: `
+			endpoint = "http://localhost:1234"
+			username = "user"
+			password = "pass"
+
+			output {}
+			`,
+			expected: otelcol.DebugMetricsArguments{
+				DisableHighCardinalityMetrics: true,
+			},
+		},
+		{
+			testName: "explicit_false",
+			agentCfg: `
+			endpoint = "http://localhost:1234"
+			username = "user"
+			password = "pass"
+
+			debug_metrics {
+				disable_high_cardinality_metrics = false
+			}
+
+			output {}
+			`,
+			expected: otelcol.DebugMetricsArguments{
+				DisableHighCardinalityMetrics: false,
+			},
+		},
+		{
+			testName: "explicit_true",
+			agentCfg: `
+			endpoint = "http://localhost:1234"
+			username = "user"
+			password = "pass"
+
+			debug_metrics {
+				disable_high_cardinality_metrics = true
+			}
+
+			output {}
+			`,
+			expected: otelcol.DebugMetricsArguments{
+				DisableHighCardinalityMetrics: true,
+			},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.testName, func(t *testing.T) {
+			var args vcenter.Arguments
+			require.NoError(t, river.Unmarshal([]byte(tc.agentCfg), &args))
+			_, err := args.Convert()
+			require.NoError(t, err)
+
+			require.Equal(t, tc.expected, args.DebugMetricsConfig())
+		})
+	}
 }
