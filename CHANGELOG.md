@@ -10,6 +10,9 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+v0.40.0-rc.0 (2024-02-22)
+-------------------------
+
 ### Breaking changes
 
 - Prohibit the configuration of services within modules. (@wildum)
