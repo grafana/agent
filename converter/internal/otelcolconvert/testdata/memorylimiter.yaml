@@ -1,0 +1,35 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+      http:
+
+exporters:
+  otlp:
+    # Our defaults have drifted from upstream, so we explicitly set our
+    # defaults below (balancer_name and queue_size).
+    endpoint: database:4317
+    balancer_name: pick_first
+    sending_queue:
+      queue_size: 5000
+
+processors:
+  memory_limiter:
+    check_interval: 1s
+    limit_mib: 147
+
+
+service:
+  pipelines:
+    metrics:
+      receivers: [otlp]
+      processors: [memory_limiter]
+      exporters: [otlp]
+    logs:
+      receivers: [otlp]
+      processors: [memory_limiter]
+      exporters: [otlp]
+    traces:
+      receivers: [otlp]
+      processors: [memory_limiter]
+      exporters: [otlp]
