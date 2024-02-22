@@ -100,6 +100,8 @@ Main (unreleased)
 
 - Fix bug in `pyroscope.ebpf` component when elf's PT_LOAD section is not page aligned . [PR](https://github.com/grafana/pyroscope/pull/2983)  (@korniltsev)
 
+- Fix an issue where services were included in the graph and updated in a child flow controller. (@erikbaranowski)
+
 ### Other changes
 
 - Removed support for Windows 2012 in line with Microsoft end of life. (@mattdurham)
