@@ -18,8 +18,6 @@ title: import.file
 The `import.file` block imports custom components from a file and exposes them to the importer.
 `import.file` blocks must be given a label that determines the namespace where custom components are exposed.
 
-[module]: {{< relref "../../concepts/modules.md" >}}
-
 ## Usage
 
 ```river
@@ -69,3 +67,8 @@ math.add "default" {
 }
 ```
 {{< /collapse >}}
+
+{{% docs/reference %}}
+[module]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/modules"
+[module]:"/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/concepts/modules"
+{{% /docs/reference %}}

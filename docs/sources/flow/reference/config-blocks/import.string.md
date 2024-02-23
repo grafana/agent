@@ -18,8 +18,6 @@ title: import.string
 The `import.string` block imports custom components from a string and exposes them to the importer.
 `import.string` blocks must be given a label that determines the namespace where custom components are exposed.
 
-[module]: {{< relref "../../concepts/modules.md" >}}
-
 ## Usage
 
 ```river
@@ -32,9 +30,9 @@ import.string "NAMESPACE" {
 
 The following arguments are supported:
 
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`content`   | `secret` or `string` | The contents of the module to import as a secret or string. | | yes
+Name      | Type                 | Description                                                 | Default | Required
+----------|----------------------|-------------------------------------------------------------|---------|---------
+`content` | `secret` or `string` | The contents of the module to import as a secret or string. |         | yes
 
 `content` is a string that contains the configuration of the module to import.
 `content` is typically loaded by using the exports of another component. For example,
@@ -61,3 +59,8 @@ math.add "default" {
   b = 45
 }
 ```
+
+{{% docs/reference %}}
+[module]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/modules"
+[module]:"/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/concepts/modules"
+{{% /docs/reference %}}
