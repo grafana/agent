@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/grafana/agent/component/common/loki"
 	"github.com/grafana/agent/component/otelcol"
 	"github.com/grafana/river/token"
 	"github.com/grafana/river/token/builder"
@@ -51,5 +52,32 @@ func encodeMapstruct(v any) map[string]any {
 	if err := mapstructure.Decode(v, &res); err != nil {
 		panic(err)
 	}
+	return res
+}
+
+type tokenizedLogsReceiver struct {
+	loki.LogsReceiver
+
+	Expr string // Expr is the string to return during tokenization.
+}
+
+func (tl tokenizedLogsReceiver) RiverCapsule() {}
+
+func (tl tokenizedLogsReceiver) RiverTokenize() []builder.Token {
+	return []builder.Token{{
+		Tok: token.STRING,
+		Lit: tl.Expr,
+	}}
+}
+
+func toTokenizedLogsReceivers(components []componentID) []loki.LogsReceiver {
+	res := make([]loki.LogsReceiver, 0, len(components))
+
+	for _, component := range components {
+		res = append(res, tokenizedLogsReceiver{
+			Expr: fmt.Sprintf("%s.%s.receiver", strings.Join(component.Name, "."), component.Label),
+		})
+	}
+
 	return res
 }

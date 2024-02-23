@@ -1720,6 +1720,8 @@ github.com/open-telemetry/opentelemetry-collector-contrib/exporter/kafkaexporter
 github.com/open-telemetry/opentelemetry-collector-contrib/exporter/kafkaexporter v0.87.0/go.mod h1:WKjmyVi+Xhhvuvj2J+1Z0fXvY38MKRbREe2aR5UPOIw=
 github.com/open-telemetry/opentelemetry-collector-contrib/exporter/loadbalancingexporter v0.87.0 h1:+apdZt5DPPIxjBrayu1muKbvUK3zqsfgb+3fMh6Hnyo=
 github.com/open-telemetry/opentelemetry-collector-contrib/exporter/loadbalancingexporter v0.87.0/go.mod h1:JXVmcuySy3xyo3JjoU+CrNWy/C12Fw6JB1HWXf26HwQ=
+github.com/open-telemetry/opentelemetry-collector-contrib/exporter/lokiexporter v0.87.0 h1:Ftwnj5cMgoz1gJZZA02mIdCieDVNTJ2IG7stygy86X8=
+github.com/open-telemetry/opentelemetry-collector-contrib/exporter/lokiexporter v0.87.0/go.mod h1:VApNeWq4DLUuVSotuVV8NCSpGdyVnNRDfVIGN2Le/X8=
 github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusexporter v0.87.0 h1:5LmBAlLycadwA3AHI2rqPuDjx1HFb/PSn3946Eyp3Jw=
 github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusexporter v0.87.0/go.mod h1:lgOFfu/GLf6LbvZwlumkUv3iBLqRdtBentZKcrrqb3Y=
 github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusremotewriteexporter v0.87.0 h1:52+RVfmzj+JePVJuD07gfppdzF9fsKASIRGzTC05QIg=
