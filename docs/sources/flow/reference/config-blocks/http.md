@@ -57,19 +57,19 @@ Similarly, if you remove the `tls` block and reload the configuration when {{< p
 To ensure all connections use TLS, configure the `tls` block before you start {{< param "PRODUCT_NAME" >}}.
 {{< /admonition >}}
 
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`cert_pem` | `string` | PEM data of the server TLS certificate. | `""` | conditionally
-`cert_file` | `string` | Path to the server TLS certificate on disk. | `""` | conditionally
-`key_pem` | `string` | PEM data of the server TLS key. | `""` | conditionally
-`key_file` | `string` | Path to the server TLS key on disk. | `""` | conditionally
-`client_ca_pem` | `string` | PEM data of the client CA to validate requests against. | `""` | no
-`client_ca_file` | `string` | Path to the client CA file on disk to validate requests against. | `""` | no
-`client_auth_type` | `string` | Client authentication to use. | `"NoClientCert"` | no
-`cipher_suites` | `list(string)` | Set of cipher suites to use. | `[]` | no
-`curve_preferences` | `list(string)` | Set of elliptic curves to use in a handshake. | `[]` | no
-`min_version` | `string` | Oldest TLS version to accept from clients. | `""` | no
-`max_version` | `string` | Newest TLS version to accept from clients. | `""` | no
+Name                | Type           | Description                                                      | Default          | Required
+--------------------|----------------|------------------------------------------------------------------|------------------|--------------
+`cert_pem`          | `string`       | PEM data of the server TLS certificate.                          | `""`             | conditionally
+`cert_file`         | `string`       | Path to the server TLS certificate on disk.                      | `""`             | conditionally
+`key_pem`           | `string`       | PEM data of the server TLS key.                                  | `""`             | conditionally
+`key_file`          | `string`       | Path to the server TLS key on disk.                              | `""`             | conditionally
+`client_ca_pem`     | `string`       | PEM data of the client CA to validate requests against.          | `""`             | no
+`client_ca_file`    | `string`       | Path to the client CA file on disk to validate requests against. | `""`             | no
+`client_auth_type`  | `string`       | Client authentication to use.                                    | `"NoClientCert"` | no
+`cipher_suites`     | `list(string)` | Set of cipher suites to use.                                     | `[]`             | no
+`curve_preferences` | `list(string)` | Set of elliptic curves to use in a handshake.                    | `[]`             | no
+`min_version`       | `string`       | Oldest TLS version to accept from clients.                       | `""`             | no
+`max_version`       | `string`       | Newest TLS version to accept from clients.                       | `""`             | no
 
 When the `tls` block is specified, arguments for the TLS certificate (using
 `cert_pem` or `cert_file`) and for the TLS key (using `key_pem` or `key_file`)
@@ -163,7 +163,7 @@ the following TLS settings are overridden and will cause an error if defined.
 This feature is only available on Windows.
 
 TLS min and max may not be compatible with the certificate stored in the Windows certificate store. The `windows_certificate_filter`
-will serve the found certificate even if it is not compatible with the specified TLS version.
+will serve the found certificate even if it isn't compatible with the specified TLS version.
 {{< /admonition >}}
 
 
