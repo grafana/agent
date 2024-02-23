@@ -86,7 +86,6 @@ func toExclude(cfg k8sattributesprocessor.ExcludeConfig) k8sattributes.ExcludeCo
 	}
 
 	return res
-
 }
 
 func toPodAssociations(cfg []k8sattributesprocessor.PodAssociationConfig) []k8sattributes.PodAssociation {
