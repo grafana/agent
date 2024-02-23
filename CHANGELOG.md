@@ -10,6 +10,13 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+### Enhancements
+
+- Add support for importing folders as single module to `import.file`. (@wildum)
+
+v0.40.0 (2024-2-22)
+--------------------
+
 ### Breaking changes
 
 - Prohibit the configuration of services within modules. (@wildum)
