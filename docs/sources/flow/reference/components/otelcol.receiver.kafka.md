@@ -336,7 +336,7 @@ otelcol.exporter.otlp "default" {
 
 `otelcol.receiver.kafka` can accept arguments from the following components:
 
-- Components that export [OpenTelemetry `otelcol.Consumer`]({{< relref "../compatibility/#opentelemetry-otelcolconsumer-exporters" >}})
+- Components that export [OpenTelemetry `otelcol.Consumer`](https://grafana.com/docs/agent/<AGENT_VERSION>/flow/reference/compatibility#opentelemetry-otelcolconsumer-exporters)
 
 
 {{< admonition type="note" >}}

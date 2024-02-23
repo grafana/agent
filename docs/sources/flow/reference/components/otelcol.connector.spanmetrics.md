@@ -768,11 +768,11 @@ metric names and attributes will be normalized to be compliant with Prometheus n
 
 `otelcol.connector.spanmetrics` can accept arguments from the following components:
 
-- Components that export [OpenTelemetry `otelcol.Consumer`]({{< relref "../compatibility/#opentelemetry-otelcolconsumer-exporters" >}})
+- Components that export [OpenTelemetry `otelcol.Consumer`](https://grafana.com/docs/agent/<AGENT_VERSION>/flow/reference/compatibility#opentelemetry-otelcolconsumer-exporters)
 
 `otelcol.connector.spanmetrics` has exports that can be consumed by the following components:
 
-- Components that consume [OpenTelemetry `otelcol.Consumer`]({{< relref "../compatibility/#opentelemetry-otelcolconsumer-consumers" >}})
+- Components that consume [OpenTelemetry `otelcol.Consumer`](https://grafana.com/docs/agent/<AGENT_VERSION>/flow/reference/compatibility#opentelemetry-otelcolconsumer-consumers)
 
 {{< admonition type="note" >}}
 Connecting some components may not be sensible or components may require further configuration to make the connection work correctly.

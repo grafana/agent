@@ -590,8 +590,8 @@ http://localhost:12345/debug/pprof/mutex
 
 `pyroscope.scrape` can accept arguments from the following components:
 
-- Components that export [Targets]({{< relref "../compatibility/#targets-exporters" >}})
-- Components that export [Pyroscope `ProfilesReceiver`]({{< relref "../compatibility/#pyroscope-profilesreceiver-exporters" >}})
+- Components that export [Targets](https://grafana.com/docs/agent/<AGENT_VERSION>/flow/reference/compatibility#targets-exporters)
+- Components that export [Pyroscope `ProfilesReceiver`](https://grafana.com/docs/agent/<AGENT_VERSION>/flow/reference/compatibility#pyroscope-profilesreceiver-exporters)
 
 
 {{< admonition type="note" >}}

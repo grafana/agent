@@ -211,8 +211,8 @@ loki.write "local" {
 
 `loki.source.kubernetes` can accept arguments from the following components:
 
-- Components that export [Targets]({{< relref "../compatibility/#targets-exporters" >}})
-- Components that export [Loki `LogsReceiver`]({{< relref "../compatibility/#loki-logsreceiver-exporters" >}})
+- Components that export [Targets](https://grafana.com/docs/agent/<AGENT_VERSION>/flow/reference/compatibility#targets-exporters)
+- Components that export [Loki `LogsReceiver`](https://grafana.com/docs/agent/<AGENT_VERSION>/flow/reference/compatibility#loki-logsreceiver-exporters)
 
 
 {{< admonition type="note" >}}

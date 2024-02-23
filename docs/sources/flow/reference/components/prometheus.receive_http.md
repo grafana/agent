@@ -135,7 +135,7 @@ prometheus.remote_write "local" {
 
 `prometheus.receive_http` can accept arguments from the following components:
 
-- Components that export [Prometheus `MetricsReceiver`]({{< relref "../compatibility/#prometheus-metricsreceiver-exporters" >}})
+- Components that export [Prometheus `MetricsReceiver`](https://grafana.com/docs/agent/<AGENT_VERSION>/flow/reference/compatibility#prometheus-metricsreceiver-exporters)
 
 
 {{< admonition type="note" >}}

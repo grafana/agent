@@ -81,7 +81,7 @@ loki.write "endpoint" {
 
 `loki.source.windowsevent` can accept arguments from the following components:
 
-- Components that export [Loki `LogsReceiver`]({{< relref "../compatibility/#loki-logsreceiver-exporters" >}})
+- Components that export [Loki `LogsReceiver`](https://grafana.com/docs/agent/<AGENT_VERSION>/flow/reference/compatibility#loki-logsreceiver-exporters)
 
 
 {{< admonition type="note" >}}

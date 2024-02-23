@@ -314,8 +314,8 @@ Special labels added after a scrape
 
 `prometheus.scrape` can accept arguments from the following components:
 
-- Components that export [Targets]({{< relref "../compatibility/#targets-exporters" >}})
-- Components that export [Prometheus `MetricsReceiver`]({{< relref "../compatibility/#prometheus-metricsreceiver-exporters" >}})
+- Components that export [Targets](https://grafana.com/docs/agent/<AGENT_VERSION>/flow/reference/compatibility#targets-exporters)
+- Components that export [Prometheus `MetricsReceiver`](https://grafana.com/docs/agent/<AGENT_VERSION>/flow/reference/compatibility#prometheus-metricsreceiver-exporters)
 
 
 {{< admonition type="note" >}}

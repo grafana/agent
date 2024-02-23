@@ -274,8 +274,8 @@ Replace the following:
 
 `faro.receiver` can accept arguments from the following components:
 
-- Components that export [Loki `LogsReceiver`]({{< relref "../compatibility/#loki-logsreceiver-exporters" >}})
-- Components that export [OpenTelemetry `otelcol.Consumer`]({{< relref "../compatibility/#opentelemetry-otelcolconsumer-exporters" >}})
+- Components that export [Loki `LogsReceiver`](https://grafana.com/docs/agent/<AGENT_VERSION>/flow/reference/compatibility#loki-logsreceiver-exporters)
+- Components that export [OpenTelemetry `otelcol.Consumer`](https://grafana.com/docs/agent/<AGENT_VERSION>/flow/reference/compatibility#opentelemetry-otelcolconsumer-exporters)
 
 
 {{< admonition type="note" >}}

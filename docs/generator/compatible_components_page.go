@@ -94,7 +94,7 @@ func listOfLinksToComponents(components []string) string {
 	for _, namespace := range sortedNamespaces {
 		str += fmt.Sprintf("\n{{< collapse title=%q >}}\n", namespace)
 		for _, component := range groups[namespace] {
-			str += fmt.Sprintf("- [%[1]s]({{< relref \"../components/%[1]s.md\" >}})\n", component)
+			str += fmt.Sprintf("- [%[1]s](https://grafana.com/docs/agent/<AGENT_VERSION>/flow/reference/components/%[1]s)\n", component)
 		}
 		str += "{{< /collapse >}}\n"
 	}

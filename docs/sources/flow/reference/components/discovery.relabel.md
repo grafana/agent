@@ -129,11 +129,11 @@ discovery.relabel "keep_backend_only" {
 
 `discovery.relabel` can accept arguments from the following components:
 
-- Components that export [Targets]({{< relref "../compatibility/#targets-exporters" >}})
+- Components that export [Targets](https://grafana.com/docs/agent/<AGENT_VERSION>/flow/reference/compatibility#targets-exporters)
 
 `discovery.relabel` has exports that can be consumed by the following components:
 
-- Components that consume [Targets]({{< relref "../compatibility/#targets-consumers" >}})
+- Components that consume [Targets](https://grafana.com/docs/agent/<AGENT_VERSION>/flow/reference/compatibility#targets-consumers)
 
 {{< admonition type="note" >}}
 Connecting some components may not be sensible or components may require further configuration to make the connection work correctly.
