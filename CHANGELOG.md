@@ -8,6 +8,10 @@ changes that impact end-user behavior are listed; changes to documentation or
 internal API changes are not present.
 
 
+### Bugfixes
+
+- Fix an issue where changing the configuration of `loki.write` would cause a panic. (@rfratto)
+
 v0.40.0-rc.1 (2024-02-23)
 -------------------------
 
@@ -25,7 +29,7 @@ v0.40.0-rc.1 (2024-02-23)
 
 ### Features
 
-- Modules have been redesigned to split the import logic from the instantiation. 
+- Modules have been redesigned to split the import logic from the instantiation.
   You can now define custom components via the `declare` config block and import modules via `import.git`, `import.http`, `import.string`, `import.file`. (@wildum)
 
 - A new `discovery.process` component for discovering Linux OS processes on the current host. (@korniltsev)
@@ -38,7 +42,7 @@ v0.40.0-rc.1 (2024-02-23)
 - Expose track_timestamps_staleness on Prometheus scraping, to fix the issue where container metrics live for 5 minutes after the container disappears. (@ptodev)
 
 - Introduce the `remotecfg` service that enables loading configuration from a
-  remote endpoint. (@tpaschalis) 
+  remote endpoint. (@tpaschalis)
 
 - Add `otelcol.connector.host_info` component to gather usage metrics for cloud users. (@rlankfo, @jcreixell)
 
@@ -98,7 +102,7 @@ v0.40.0-rc.1 (2024-02-23)
 - Fix an issue where agent logs are emitted before the logging format
   is correctly determined. (@hainenber)
 
-- Fix divide-by-zero issue when sharding targets. (@hainenber) 
+- Fix divide-by-zero issue when sharding targets. (@hainenber)
 
 - Fix bug where custom headers were not actually being set in loki client. (@captncraig)
 
