@@ -17,8 +17,6 @@ title: import.http
 
 `import.http` retrieves a module from an HTTP server.
 
-[module]: {{< relref "../../concepts/modules.md" >}}
-
 ## Usage
 
 ```river
@@ -31,13 +29,13 @@ import.http "LABEL" {
 
 The following arguments are supported:
 
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`url` | `string` | URL to poll. | | yes
-`method` | `string` | Define the HTTP method for the request. | `"GET"` | no
-`headers` | `map(string)` | Custom headers for the request. | `{}` | no
-`poll_frequency` | `duration` | Frequency to poll the URL. | `"1m"` | no
-`poll_timeout` | `duration` | Timeout when polling the URL. | `"10s"` | no
+Name             | Type          | Description                             | Default | Required
+-----------------|---------------|-----------------------------------------|---------|---------
+`url`            | `string`      | URL to poll.                            |         | yes
+`method`         | `string`      | Define the HTTP method for the request. | `"GET"` | no
+`headers`        | `map(string)` | Custom headers for the request.         | `{}`    | no
+`poll_frequency` | `duration`    | Frequency to poll the URL.              | `"1m"`  | no
+`poll_timeout`   | `duration`    | Timeout when polling the URL.           | `"10s"` | no
 
 ## Example
 
@@ -68,4 +66,3 @@ math.add "default" {
 }
 ```
 {{< /collapse >}}
-
