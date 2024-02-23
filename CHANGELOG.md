@@ -79,6 +79,8 @@ v0.40.0-rc.1 (2024-02-23)
 
 - Batch staleness tracking to reduce mutex contention and increase performance. (@mattdurham)
 
+- Python profiling using eBPF is now aggregated now by kernel space. [PR](https://github.com/grafana/pyroscope/pull/2996) (@korniltsev)
+
 ### Bugfixes
 
 - Fix an issue in `remote.s3` where the exported content of an object would be an empty string if `remote.s3` failed to fully retrieve
@@ -110,7 +112,9 @@ v0.40.0-rc.1 (2024-02-23)
 
 - Fix OTEL metrics not getting collected after reload. (@hainenber)
 
-- Fix bug in `pyroscope.ebpf` component when elf's PT_LOAD section is not page aligned . [PR](https://github.com/grafana/pyroscope/pull/2983)  (@korniltsev)
+- Fix bug in `pyroscope.ebpf` component when elf's PT_LOAD section is not page aligned. [PR](https://github.com/grafana/pyroscope/pull/2983)  (@korniltsev)
+
+- Pyroscope eBPF profiling now respects the PID namespace Grafana Agent is running in. [PR](https://github.com/grafana/pyroscope/pull/3008) (@simonswine)
 
 - Fix an issue where the configuration of the `http` and `remotecfg` blocks get ignored after loading a module. (@erikbaranowski)
 
