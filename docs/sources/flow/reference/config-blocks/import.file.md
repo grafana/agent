@@ -24,7 +24,7 @@ The `import.file` block imports custom components from a file and exposes them t
 
 ```river
 import.file "NAMESPACE" {
-  filename = FILENAME
+  filename = PATH_NAME
 }
 ```
 
