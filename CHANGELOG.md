@@ -10,7 +10,7 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
-v0.40.0-rc.0 (2024-02-22)
+v0.40.0-rc.1 (2024-02-23)
 -------------------------
 
 ### Breaking changes
