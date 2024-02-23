@@ -36,11 +36,11 @@ func (h *hostMetrics) metrics() (*pmetric.Metrics, int) {
 	defer h.mutex.RUnlock()
 
 	count := len(h.hosts)
-	var m *pmetric.Metrics
+	var pm *pmetric.Metrics
 
 	if count > 0 {
 		metrics := pmetric.NewMetrics()
-		m = &metrics
+		pm = &metrics
 
 		ilm := metrics.ResourceMetrics().AppendEmpty().ScopeMetrics().AppendEmpty()
 		ilm.Scope().SetName(typeStr)
@@ -60,7 +60,7 @@ func (h *hostMetrics) metrics() (*pmetric.Metrics, int) {
 		}
 	}
 
-	return m, count
+	return pm, count
 }
 
 func (h *hostMetrics) reset() {
