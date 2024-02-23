@@ -51,8 +51,8 @@ commit SHA within the repository.
 You must set the `path` attribute to a path accessible from the repository's root,
 such as `FILE_NAME.river` or `FOLDER_NAME/FILE_NAME.river`.
 
-If `pull_frequency` isn't `"0s"`, the Git repository is pulled for
-updates at the frequency specified. If it's set to `"0s"`, the Git repository is pulled once on init.
+If `pull_frequency` isn't `"0s"`, the Git repository is pulled for updates at the frequency specified.
+If it's set to `"0s"`, the Git repository is pulled once on init.
 
 {{< admonition type="warning" >}}
 Pulling hosted Git repositories too often can result in throttling.

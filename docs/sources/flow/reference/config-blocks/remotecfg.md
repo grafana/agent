@@ -12,12 +12,10 @@ title: remotecfg block
 
 # remotecfg block (beta)
 
-`remotecfg` is an optional configuration block that enables {{< param "PRODUCT_NAME" >}}
-to fetch and load the configuration from a remote endpoint.
+`remotecfg` is an optional configuration block that enables {{< param "PRODUCT_NAME" >}} to fetch and load the configuration from a remote endpoint.
 `remotecfg` is specified without a label and can only be provided once per configuration file.
 
-The [API definition][] for managing and fetching configuration that the
-`remotecfg` block uses is available under the Apache 2.0 license.
+The [API definition][] for managing and fetching configuration that the `remotecfg` block uses is available under the Apache 2.0 license.
 
 > **BETA**: The `remotecfg` enables [beta][] functionality.
 > Beta features are subject to breaking changes, and may be replaced with
