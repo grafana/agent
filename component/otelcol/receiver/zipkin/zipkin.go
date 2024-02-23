@@ -42,6 +42,7 @@ var DefaultArguments = Arguments{
 	HTTPServer: otelcol.HTTPServerArguments{
 		Endpoint: "0.0.0.0:9411",
 	},
+	DebugMetrics: otelcol.DefaultDebugMetricsArguments,
 }
 
 // SetToDefault implements river.Defaulter.

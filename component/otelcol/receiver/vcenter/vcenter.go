@@ -267,6 +267,7 @@ var (
 				VcenterVMName:                    ResourceAttributeConfig{Enabled: true},
 			},
 		},
+		DebugMetrics: otelcol.DefaultDebugMetricsArguments,
 	}
 )
 

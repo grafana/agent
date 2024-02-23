@@ -29,10 +29,10 @@ import (
 	"github.com/grafana/agent/pkg/flow/tracing"
 	"github.com/grafana/agent/pkg/usagestats"
 	"github.com/grafana/agent/service"
-	"github.com/grafana/agent/service/cluster"
 	httpservice "github.com/grafana/agent/service/http"
 	"github.com/grafana/agent/service/labelstore"
 	otel_service "github.com/grafana/agent/service/otel"
+	remotecfgservice "github.com/grafana/agent/service/remotecfg"
 	uiservice "github.com/grafana/agent/service/ui"
 	"github.com/grafana/ckit/advertise"
 	"github.com/grafana/ckit/peer"
@@ -162,7 +162,8 @@ func (fr *flowRun) Run(configPath string) error {
 		return fmt.Errorf("path argument not provided")
 	}
 
-	l, err := logging.New(os.Stderr, logging.DefaultOptions)
+	// Buffer logs until log format has been determined
+	l, err := logging.NewDeferred(os.Stderr)
 	if err != nil {
 		return fmt.Errorf("building logger: %w", err)
 	}
@@ -243,9 +244,16 @@ func (fr *flowRun) Run(configPath string) error {
 		EnablePProf:      fr.enablePprof,
 	})
 
+	remoteCfgService, err := remotecfgservice.New(remotecfgservice.Options{
+		Logger:      log.With(l, "service", "remotecfg"),
+		StoragePath: fr.storagePath,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to create the remotecfg service: %w", err)
+	}
+
 	uiService := uiservice.New(uiservice.Options{
 		UIPrefix: fr.uiPrefix,
-		Cluster:  clusterService.Data().(cluster.Cluster),
 	})
 
 	otelService := otel_service.New(l)
@@ -267,6 +275,7 @@ func (fr *flowRun) Run(configPath string) error {
 			clusterService,
 			otelService,
 			labelService,
+			remoteCfgService,
 		},
 	})
 

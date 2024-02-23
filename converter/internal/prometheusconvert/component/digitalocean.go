@@ -3,7 +3,6 @@ package component
 import (
 	"time"
 
-	"github.com/grafana/agent/component/common/config"
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/discovery/digitalocean"
 	"github.com/grafana/agent/converter/diag"
@@ -49,7 +48,7 @@ func toDiscoveryDigitalOcean(sdConfig *prom_digitalocean.SDConfig) *digitalocean
 		Port:            sdConfig.Port,
 		BearerToken:     rivertypes.Secret(sdConfig.HTTPClientConfig.BearerToken),
 		BearerTokenFile: sdConfig.HTTPClientConfig.BearerTokenFile,
-		ProxyURL:        config.URL(sdConfig.HTTPClientConfig.ProxyURL),
+		ProxyConfig:     common.ToProxyConfig(sdConfig.HTTPClientConfig.ProxyConfig),
 		FollowRedirects: sdConfig.HTTPClientConfig.FollowRedirects,
 		EnableHTTP2:     sdConfig.HTTPClientConfig.EnableHTTP2,
 	}

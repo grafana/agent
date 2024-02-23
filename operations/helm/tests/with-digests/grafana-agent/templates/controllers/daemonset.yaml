@@ -51,6 +51,7 @@ spec:
             httpGet:
               path: /-/ready
               port: 80
+              scheme: HTTP
             initialDelaySeconds: 10
             timeoutSeconds: 1
           volumeMounts:

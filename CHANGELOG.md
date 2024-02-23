@@ -10,13 +10,25 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+v0.40.0-rc.0 (2024-02-22)
+-------------------------
+
 ### Breaking changes
 
 - Prohibit the configuration of services within modules. (@wildum)
 
 - For `otelcol.exporter` components, change the default value of `disable_high_cardinality_metrics` to `true`. (@ptodev)
 
+- Rename component `prometheus.exporter.agent` to `prometheus.exporter.self` to clear up ambiguity. (@hainenber)
+
+### Deprecations
+
+- Module components have been deprecated in favor of import and declare configuration blocks. These deprecated components will be removed in the next release. (@wildum)
+
 ### Features
+
+- Modules have been redesigned to split the import logic from the instantiation. 
+  You can now define custom components via the `declare` config block and import modules via `import.git`, `import.http`, `import.string`, `import.file`. (@wildum)
 
 - A new `discovery.process` component for discovering Linux OS processes on the current host. (@korniltsev)
 
@@ -26,6 +38,11 @@ Main (unreleased)
   to OTLP telemetry based on the host on which Grafana Agent is running. (@ptodev)
 
 - Expose track_timestamps_staleness on Prometheus scraping, to fix the issue where container metrics live for 5 minutes after the container disappears. (@ptodev)
+
+- Introduce the `remotecfg` service that enables loading configuration from a
+  remote endpoint. (@tpaschalis) 
+
+- Add `otelcol.connector.host_info` component to gather usage metrics for cloud users. (@rlankfo, @jcreixell)
 
 ### Enhancements
 
@@ -55,6 +72,13 @@ Main (unreleased)
 
 - Mutex and block pprofs are now available via the pprof endpoint. (@mattdurham)
 
+- Added an error log when the config fails to reload. (@kurczynski)
+
+- Added additional http client proxy configurations to components for
+  `no_proxy`, `proxy_from_environment`, and `proxy_connect_header`. (@erikbaranowski)
+
+- Batch staleness tracking to reduce mutex contention and increase performance. (@mattdurham)
+
 ### Bugfixes
 
 - Fix an issue in `remote.s3` where the exported content of an object would be an empty string if `remote.s3` failed to fully retrieve
@@ -73,7 +97,22 @@ Main (unreleased)
 - Fix an issue with static integrations-next marshaling where non singletons
   would cause `/-/config` to fail to marshal. (@erikbaranowski)
 
+- Fix an issue where agent logs are emitted before the logging format
+  is correctly determined. (@hainenber)
+
 - Fix divide-by-zero issue when sharding targets. (@hainenber) 
+
+- Fix bug where custom headers were not actually being set in loki client. (@captncraig)
+
+- Fix missing measurement type field in the KeyVal() conversion function for measurments. @vanugrah)
+
+- Fix `ResolveEndpointV2 not found` for AWS-related components. (@hainenber)
+
+- Fix OTEL metrics not getting collected after reload. (@hainenber)
+
+- Fix bug in `pyroscope.ebpf` component when elf's PT_LOAD section is not page aligned . [PR](https://github.com/grafana/pyroscope/pull/2983)  (@korniltsev)
+
+- Fix an issue where the configuration of the `http` and `remotecfg` blocks get ignored after loading a module. (@erikbaranowski)
 
 ### Other changes
 
@@ -86,6 +125,9 @@ Main (unreleased)
 - Use Go 1.22 for builds. (@rfratto)
 
 - Updated docs for MSSQL Integration to show additional authentication capabilities. (@StefanKurek)
+
+- `grafana-agent` and `grafana-agent-flow` fallback to default X.509 trusted root certificates
+  when the `GODEBUG=x509usefallbackroots=1` environment variable is set. (@hainenber)
 
 v0.39.2 (2024-1-31)
 --------------------

@@ -27,17 +27,16 @@ func init() {
 }
 
 type Arguments struct {
-	Server          string            `river:"server,attr"`
-	Username        string            `river:"username,attr"`
-	Password        rivertypes.Secret `river:"password,attr"`
-	Entitlement     string            `river:"entitlement,attr,optional"`
-	Separator       string            `river:"separator,attr,optional"`
-	RefreshInterval time.Duration     `river:"refresh_interval,attr,optional"`
-
-	ProxyURL        config.URL       `river:"proxy_url,attr,optional"`
-	TLSConfig       config.TLSConfig `river:"tls_config,block,optional"`
-	FollowRedirects bool             `river:"follow_redirects,attr,optional"`
-	EnableHTTP2     bool             `river:"enable_http2,attr,optional"`
+	Server          string              `river:"server,attr"`
+	Username        string              `river:"username,attr"`
+	Password        rivertypes.Secret   `river:"password,attr"`
+	Entitlement     string              `river:"entitlement,attr,optional"`
+	Separator       string              `river:"separator,attr,optional"`
+	RefreshInterval time.Duration       `river:"refresh_interval,attr,optional"`
+	ProxyConfig     *config.ProxyConfig `river:",squash"`
+	TLSConfig       config.TLSConfig    `river:"tls_config,block,optional"`
+	FollowRedirects bool                `river:"follow_redirects,attr,optional"`
+	EnableHTTP2     bool                `river:"enable_http2,attr,optional"`
 }
 
 var DefaultArguments = Arguments{
@@ -60,7 +59,12 @@ func (a *Arguments) Validate() error {
 	if err != nil {
 		return fmt.Errorf("invalid server URL: %w", err)
 	}
-	return a.TLSConfig.Validate()
+
+	if err = a.TLSConfig.Validate(); err != nil {
+		return err
+	}
+
+	return a.ProxyConfig.Validate()
 }
 
 func (a *Arguments) Convert() *prom_discovery.SDConfig {
@@ -73,9 +77,7 @@ func (a *Arguments) Convert() *prom_discovery.SDConfig {
 		RefreshInterval: model.Duration(a.RefreshInterval),
 
 		HTTPClientConfig: promcfg.HTTPClientConfig{
-			ProxyConfig: promcfg.ProxyConfig{
-				ProxyURL: a.ProxyURL.Convert(),
-			},
+			ProxyConfig:     a.ProxyConfig.Convert(),
 			TLSConfig:       *a.TLSConfig.Convert(),
 			FollowRedirects: a.FollowRedirects,
 			EnableHTTP2:     a.EnableHTTP2,

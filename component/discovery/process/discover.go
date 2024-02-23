@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"os/user"
 	"path"
 	"runtime"
 
@@ -126,16 +127,15 @@ func Discover(l log.Logger, cfg *DiscoverConfig, cache *analCache.Cache) ([]Proc
 		}
 		if cfg.Username {
 			username, err = p.Username()
-			if err != nil {
+			var uerr user.UnknownUserIdError
+			if err != nil && !errors.As(err, &uerr) {
 				loge(int(p.Pid), err)
-				continue
 			}
 		}
 		if cfg.UID {
 			uids, err := p.Uids()
 			if err != nil {
 				loge(int(p.Pid), err)
-				continue
 			}
 			if len(uids) > 0 {
 				uid = fmt.Sprintf("%d", uids[0])

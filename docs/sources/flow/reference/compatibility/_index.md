@@ -79,7 +79,6 @@ The following components, grouped by namespace, _export_ Targets.
 {{< /collapse >}}
 
 {{< collapse title="prometheus" >}}
-- [prometheus.exporter.agent]({{< relref "../components/prometheus.exporter.agent.md" >}})
 - [prometheus.exporter.apache]({{< relref "../components/prometheus.exporter.apache.md" >}})
 - [prometheus.exporter.azure]({{< relref "../components/prometheus.exporter.azure.md" >}})
 - [prometheus.exporter.blackbox]({{< relref "../components/prometheus.exporter.blackbox.md" >}})
@@ -99,6 +98,7 @@ The following components, grouped by namespace, _export_ Targets.
 - [prometheus.exporter.postgres]({{< relref "../components/prometheus.exporter.postgres.md" >}})
 - [prometheus.exporter.process]({{< relref "../components/prometheus.exporter.process.md" >}})
 - [prometheus.exporter.redis]({{< relref "../components/prometheus.exporter.redis.md" >}})
+- [prometheus.exporter.self]({{< relref "../components/prometheus.exporter.self.md" >}})
 - [prometheus.exporter.snmp]({{< relref "../components/prometheus.exporter.snmp.md" >}})
 - [prometheus.exporter.snowflake]({{< relref "../components/prometheus.exporter.snowflake.md" >}})
 - [prometheus.exporter.squid]({{< relref "../components/prometheus.exporter.squid.md" >}})
@@ -274,6 +274,7 @@ The following components, grouped by namespace, _export_ OpenTelemetry `otelcol.
 <!-- START GENERATED SECTION: EXPORTERS OF OpenTelemetry `otelcol.Consumer` -->
 
 {{< collapse title="otelcol" >}}
+- [otelcol.connector.host_info]({{< relref "../components/otelcol.connector.host_info.md" >}})
 - [otelcol.connector.servicegraph]({{< relref "../components/otelcol.connector.servicegraph.md" >}})
 - [otelcol.connector.spanlogs]({{< relref "../components/otelcol.connector.spanlogs.md" >}})
 - [otelcol.connector.spanmetrics]({{< relref "../components/otelcol.connector.spanmetrics.md" >}})
@@ -309,6 +310,7 @@ The following components, grouped by namespace, _consume_ OpenTelemetry `otelcol
 {{< /collapse >}}
 
 {{< collapse title="otelcol" >}}
+- [otelcol.connector.host_info]({{< relref "../components/otelcol.connector.host_info.md" >}})
 - [otelcol.connector.servicegraph]({{< relref "../components/otelcol.connector.servicegraph.md" >}})
 - [otelcol.connector.spanlogs]({{< relref "../components/otelcol.connector.spanlogs.md" >}})
 - [otelcol.connector.spanmetrics]({{< relref "../components/otelcol.connector.spanmetrics.md" >}})
