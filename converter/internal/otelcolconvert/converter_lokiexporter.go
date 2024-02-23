@@ -63,7 +63,7 @@ func (lokiExporterConverter) ConvertAndAppend(state *state, id component.Instanc
 	)
 	diags.Add(
 		diag.SeverityLevelInfo,
-		fmt.Sprintf("Created a loki.write block with a best-effort conversion of the lokiexporter's confighttp, retry and queue configuration settings. You may want to double check the converted configuration as most fields do not have a 1:1 match"),
+		"Created a loki.write block with a best-effort conversion of the lokiexporter's confighttp, retry and queue configuration settings. You may want to double check the converted configuration as most fields do not have a 1:1 match",
 	)
 
 	state.Body().AppendBlock(block1)
