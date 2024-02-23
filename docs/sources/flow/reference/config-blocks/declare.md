@@ -15,8 +15,6 @@ title: declare block
 `declare` is an optional configuration block used to define a new [custom component][].
 `declare` blocks must be given a label that determines the name of the custom component.
 
-[custom component]: {{< relref "../../concepts/custom_components.md" >}}
-
 ## Example
 
 ```river
@@ -27,8 +25,9 @@ declare "COMPONENT_NAME" {
 
 ## Arguments
 
-The `declare` block has no predefined schema for its arguments; the body of the
-`declare` block is used as the component definition. The body may contain:
+The `declare` block has no predefined schema for its arguments.
+The body of the `declare` block is used as the component definition.
+The body can contain the following:
 
 * [argument][] blocks
 * [export][] blocks
@@ -36,19 +35,12 @@ The `declare` block has no predefined schema for its arguments; the body of the
 * [import][] blocks
 * Component definitions (either built-in or custom components)
 
-The `declare` block may not contain any configuration blocks that are not
-listed above.
-
-[argument]: {{< relref "./argument.md" >}}
-[export]: {{< relref "./export.md" >}}
-[declare]: {{< relref "./declare.md" >}}
-[import]: {{< relref "../../concepts/modules.md#importing-modules" >}}
+The `declare` block may not contain any configuration blocks that aren't listed above.
 
 ## Exported fields
 
-The `declare` block has no predefined schema for its exports; the fields
-exported by the `declare` block are determined by the [export blocks][export]
-found in its definition.
+The `declare` block has no predefined schema for its exports.
+The fields exported by the `declare` block are determined by the [export blocks][export] found in its definition.
 
 ## Example
 
@@ -80,3 +72,14 @@ prometheus.remote_write "example" {
   }
 }
 ```
+
+{{% docs/reference %}}
+[argument]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/config-blocks/argument"
+[argument]:"/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/config-blocks/argument"
+[export]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/config-blocks/export"
+[export]:"/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/config-blocks/export"
+[declare]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/config-blocks/declare"
+[declare]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/config-blocks/declare"
+[import]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/modules#importing-modules"
+[import]:"/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/concepts/modules#importing-modules"
+{{% /docs/reference %}}
