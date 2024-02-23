@@ -603,7 +603,7 @@ require (
 	sigs.k8s.io/structured-merge-diff/v4 v4.3.0 // indirect
 )
 
-require github.com/ianlancetaylor/demangle v0.0.0-20230524184225-eabc099b10ab
+require github.com/ianlancetaylor/demangle v0.0.0-20230524184225-eabc099b10ab // indirect
 
 require (
 	connectrpc.com/connect v1.14.0
@@ -646,16 +646,9 @@ require (
 	github.com/go-jose/go-jose/v3 v3.0.1 // indirect
 	github.com/golang-jwt/jwt/v5 v5.0.0 // indirect
 	github.com/google/gnostic-models v0.6.8 // indirect
-<<<<<<< HEAD
-<<<<<<< HEAD
 	github.com/grafana/jfr-parser v0.8.0 // indirect
-	github.com/hetznercloud/hcloud-go/v2 v2.4.0 // indirect
-=======
 	github.com/hashicorp/go-version v1.6.0 // indirect
-=======
->>>>>>> 0eeb762e8 (Revert dependency versions in go.mod)
-	github.com/hetznercloud/hcloud-go/v2 v2.0.0 // indirect
->>>>>>> 8594a755c (otelcol debug exporter)
+	github.com/hetznercloud/hcloud-go/v2 v2.4.0 // indirect
 	github.com/julienschmidt/httprouter v1.3.0 // indirect
 	github.com/knadh/koanf/v2 v2.0.1 // indirect
 	github.com/lightstep/go-expohisto v1.0.0 // indirect
