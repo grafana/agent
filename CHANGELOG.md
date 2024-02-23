@@ -8,7 +8,7 @@ changes that impact end-user behavior are listed; changes to documentation or
 internal API changes are not present.
 
 
-v0.40.0-rc.0 (2024-02-22)
+v0.40.0-rc.1 (2024-02-23)
 -------------------------
 
 ### Breaking changes
@@ -109,6 +109,8 @@ v0.40.0-rc.0 (2024-02-22)
 - Fix OTEL metrics not getting collected after reload. (@hainenber)
 
 - Fix bug in `pyroscope.ebpf` component when elf's PT_LOAD section is not page aligned . [PR](https://github.com/grafana/pyroscope/pull/2983)  (@korniltsev)
+
+- Fix an issue where the configuration of the `http` and `remotecfg` blocks get ignored after loading a module. (@erikbaranowski)
 
 ### Other changes
 
