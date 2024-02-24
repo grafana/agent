@@ -11,6 +11,7 @@ import (
 	"github.com/grafana/agent/pkg/integrations/v2"
 	"github.com/grafana/agent/pkg/integrations/v2/metricsutils"
 	"github.com/grafana/agent/pkg/traces/pushreceiver"
+	"github.com/grafana/agent/pkg/util"
 	"github.com/grafana/dskit/instrument"
 	"github.com/grafana/dskit/middleware"
 	"github.com/prometheus/client_golang/prometheus"
@@ -111,27 +112,28 @@ func (c *Config) NewIntegration(l log.Logger, globals integrations.Globals) (int
 		Help:    "Time (in seconds) spent serving HTTP requests.",
 		Buckets: instrument.DefBuckets,
 	}, []string{"method", "route", "status_code", "ws"})
-	reg.MustRegister(requestDurationCollector)
 
 	receivedMessageSizeCollector := prometheus.NewHistogramVec(prometheus.HistogramOpts{
 		Name:    "app_agent_receiver_request_message_bytes",
 		Help:    "Size (in bytes) of messages received in the request.",
 		Buckets: middleware.BodySizeBuckets,
 	}, []string{"method", "route"})
-	reg.MustRegister(receivedMessageSizeCollector)
 
 	sentMessageSizeCollector := prometheus.NewHistogramVec(prometheus.HistogramOpts{
 		Name:    "app_agent_receiver_response_message_bytes",
 		Help:    "Size (in bytes) of messages sent in response.",
 		Buckets: middleware.BodySizeBuckets,
 	}, []string{"method", "route"})
-	reg.MustRegister(sentMessageSizeCollector)
 
 	inflightRequestsCollector := prometheus.NewGaugeVec(prometheus.GaugeOpts{
 		Name: "app_agent_receiver_inflight_requests",
 		Help: "Current number of inflight requests.",
 	}, []string{"method", "route"})
-	reg.MustRegister(inflightRequestsCollector)
+
+	requestDurationCollector = util.MustRegisterOrGet(reg, requestDurationCollector).(*prometheus.HistogramVec)
+	receivedMessageSizeCollector = util.MustRegisterOrGet(reg, receivedMessageSizeCollector).(*prometheus.HistogramVec)
+	sentMessageSizeCollector = util.MustRegisterOrGet(reg, sentMessageSizeCollector).(*prometheus.HistogramVec)
+	inflightRequestsCollector = util.MustRegisterOrGet(reg, inflightRequestsCollector).(*prometheus.GaugeVec)
 
 	return &appAgentReceiverIntegration{
 		MetricsIntegration:      metricsIntegration,

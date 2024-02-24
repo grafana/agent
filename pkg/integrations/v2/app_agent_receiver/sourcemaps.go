@@ -17,6 +17,7 @@ import (
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/go-sourcemap/sourcemap"
+	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/vincent-petithory/dataurl"
 )
@@ -106,7 +107,12 @@ func NewSourceMapStore(l log.Logger, config SourceMapConfig, reg prometheus.Regi
 			Help: "source map file reads from file system, by origin and status",
 		}, []string{"origin", "status"}),
 	}
-	reg.MustRegister(metrics.cacheSize, metrics.downloads, metrics.fileReads)
+
+	if reg != nil {
+		metrics.cacheSize = util.MustRegisterOrGet(reg, metrics.cacheSize).(*prometheus.CounterVec)
+		metrics.downloads = util.MustRegisterOrGet(reg, metrics.downloads).(*prometheus.CounterVec)
+		metrics.fileReads = util.MustRegisterOrGet(reg, metrics.fileReads).(*prometheus.CounterVec)
+	}
 
 	fileLocations := []*sourcemapFileLocation{}
 

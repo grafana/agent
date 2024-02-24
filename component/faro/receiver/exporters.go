@@ -54,8 +54,9 @@ func newMetricsExporter(reg prometheus.Registerer) *metricsExporter {
 			Help: "Total number of ingested events",
 		}),
 	}
-
-	reg.MustRegister(exp.totalLogs, exp.totalExceptions, exp.totalMeasurements, exp.totalEvents)
+	if reg != nil {
+		reg.MustRegister(exp.totalLogs, exp.totalExceptions, exp.totalMeasurements, exp.totalEvents)
+	}
 
 	return exp
 }

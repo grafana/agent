@@ -10,6 +10,7 @@ import (
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/component/faro/receiver/internal/payload"
 	"github.com/grafana/agent/pkg/flow/logging/level"
+	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/rs/cors"
 	"golang.org/x/time/rate"
@@ -35,7 +36,10 @@ func newHandler(l log.Logger, reg prometheus.Registerer, exporters []exporter) *
 		Name: "faro_receiver_exporter_errors_total",
 		Help: "Total number of errors produced by a receiver exporter",
 	}, []string{"exporter"})
-	reg.MustRegister(errorsTotal)
+
+	if reg != nil {
+		errorsTotal = util.MustRegisterOrGet(reg, errorsTotal).(*prometheus.CounterVec)
+	}
 
 	return &handler{
 		log:         l,

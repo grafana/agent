@@ -18,6 +18,7 @@ import (
 	"github.com/go-sourcemap/sourcemap"
 	"github.com/grafana/agent/component/faro/receiver/internal/payload"
 	"github.com/grafana/agent/pkg/flow/logging/level"
+	"github.com/grafana/agent/pkg/util"
 	"github.com/grafana/agent/pkg/util/wildcard"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/vincent-petithory/dataurl"
@@ -68,7 +69,12 @@ func newSourceMapMetrics(reg prometheus.Registerer) *sourceMapMetrics {
 		}, []string{"origin", "status"}),
 	}
 
-	reg.MustRegister(m.cacheSize, m.downloads, m.fileReads)
+	if reg != nil {
+		m.cacheSize = util.MustRegisterOrGet(reg, m.cacheSize).(*prometheus.CounterVec)
+		m.downloads = util.MustRegisterOrGet(reg, m.downloads).(*prometheus.CounterVec)
+		m.fileReads = util.MustRegisterOrGet(reg, m.fileReads).(*prometheus.CounterVec)
+	}
+
 	return m
 }
 

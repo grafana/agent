@@ -10,6 +10,7 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
+	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/rs/cors"
 	"golang.org/x/time/rate"
@@ -51,7 +52,9 @@ func NewAppAgentReceiverHandler(conf *Config, exporters []AppAgentReceiverExport
 		Help: "Total number of errors produced by a receiver exporter",
 	}, []string{"exporter"})
 
-	reg.MustRegister(exporterErrorsCollector)
+	if reg != nil {
+		exporterErrorsCollector = util.MustRegisterOrGet(reg, exporterErrorsCollector).(*prometheus.CounterVec)
+	}
 
 	return AppAgentReceiverHandler{
 		exporters:               exporters,

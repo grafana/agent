@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/client_golang/prometheus"
 )
 
@@ -34,12 +35,10 @@ func NewMetrics(reg prometheus.Registerer) *Metrics {
 	}, nil)
 
 	if reg != nil {
-		reg.MustRegister(
-			m.errorsAPIRequest,
-			m.recordsReceived,
-			m.errorsRecord,
-			m.batchSize,
-		)
+		m.errorsAPIRequest = util.MustRegisterOrGet(reg, m.errorsAPIRequest).(*prometheus.CounterVec)
+		m.errorsRecord = util.MustRegisterOrGet(reg, m.errorsRecord).(*prometheus.CounterVec)
+		m.recordsReceived = util.MustRegisterOrGet(reg, m.recordsReceived).(*prometheus.CounterVec)
+		m.batchSize = util.MustRegisterOrGet(reg, m.batchSize).(*prometheus.HistogramVec)
 	}
 
 	return &m

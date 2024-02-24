@@ -122,6 +122,8 @@ v0.40.0-rc.1 (2024-02-23)
 
 - Fix an issue where the configuration of the `http` and `remotecfg` blocks get ignored after loading a module. (@erikbaranowski)
 
+- Fix duplication metrics registration panic for components with potential error surface. (@hainenber)
+
 ### Other changes
 
 - Removed support for Windows 2012 in line with Microsoft end of life. (@mattdurham)
