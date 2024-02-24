@@ -47,6 +47,7 @@ var DefaultArguments = Arguments{
 		ReadBufferSize: 512 * units.Kibibyte,
 		// We almost write 0 bytes, so no need to tune WriteBufferSize.
 	},
+	DebugMetrics: otelcol.DefaultDebugMetricsArguments,
 }
 
 // SetToDefault implements river.Defaulter.

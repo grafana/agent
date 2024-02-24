@@ -70,14 +70,14 @@ func isCustomComponent(reg *CustomComponentRegistry, name string) bool {
 	if reg == nil {
 		return false
 	}
-	_, declareExists := reg.declares[name]
-	_, importExists := reg.imports[name]
+	_, declareExists := reg.getDeclare(name)
+	_, importExists := reg.getImport(name)
 	return declareExists || importExists || isCustomComponent(reg.parent, name)
 }
 
 // findLocalDeclare recursively searches for a declare definition in the custom component registry.
 func findLocalDeclare(reg *CustomComponentRegistry, componentName string) (ast.Body, *CustomComponentRegistry) {
-	if declare, ok := reg.declares[componentName]; ok {
+	if declare, ok := reg.getDeclare(componentName); ok {
 		return declare, reg
 	}
 	if reg.parent != nil {
@@ -89,8 +89,8 @@ func findLocalDeclare(reg *CustomComponentRegistry, componentName string) (ast.B
 // findImportedDeclare recursively searches for an import matching the provided namespace.
 // When the import is found, it will search for a declare matching the componentName within the custom registry of the import.
 func findImportedDeclare(reg *CustomComponentRegistry, namespace string, componentName string) (ast.Body, *CustomComponentRegistry) {
-	if imported, ok := reg.imports[namespace]; ok {
-		if declare, ok := imported.declares[componentName]; ok {
+	if imported, ok := reg.getImport(namespace); ok {
+		if declare, ok := imported.getDeclare(componentName); ok {
 			return declare, imported
 		}
 	}

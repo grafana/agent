@@ -83,6 +83,7 @@ var DefaultArguments = Arguments{
 		ExtractHeaders: false,
 		Headers:        []string{},
 	},
+	DebugMetrics: otelcol.DefaultDebugMetricsArguments,
 }
 
 // SetToDefault implements river.Defaulter.
