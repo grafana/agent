@@ -66,6 +66,7 @@ Name | Type | Description | Default | Required
 `cors_allowed_origins` | `list(string)` | Origins for which cross-origin requests are permitted. | `[]` | no
 `api_key` | `secret` | Optional API key to validate client requests with. | `""` | no
 `max_allowed_payload_size` | `string` | Maximum size (in bytes) for client requests. | `"5MiB"` | no
+`include_metadata` | `boolean` | Propagate incoming connection metadata to downstream consumers. | | no
 
 By default, telemetry data is only accepted from applications on the same local
 network as the browser. To accept telemetry data from a wider set of clients,
