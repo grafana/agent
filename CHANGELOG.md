@@ -82,6 +82,8 @@ v0.40.0-rc.2 (2024-02-26)
 
 - Python profiling using eBPF is now aggregated now by kernel space. [PR](https://github.com/grafana/pyroscope/pull/2996) (@korniltsev)
 
+- Add support for setting GOMEMLIMIT based on cgroup setting. (@mattdurham)
+
 ### Bugfixes
 
 - Fix an issue in `remote.s3` where the exported content of an object would be an empty string if `remote.s3` failed to fully retrieve
