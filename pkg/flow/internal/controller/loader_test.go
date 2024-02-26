@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/internal/featuregate"
 	"github.com/grafana/agent/pkg/flow/internal/controller"
 	"github.com/grafana/agent/pkg/flow/internal/dag"
 	"github.com/grafana/agent/pkg/flow/logging"
@@ -73,6 +74,7 @@ func TestLoader(t *testing.T) {
 				Logger:            l,
 				TraceProvider:     noop.NewTracerProvider(),
 				DataPath:          t.TempDir(),
+				MinStability:      featuregate.StabilityStable,
 				OnBlockNodeUpdate: func(cn controller.BlockNode) { /* no-op */ },
 				Registerer:        prometheus.NewRegistry(),
 				NewModuleController: func(id string) controller.ModuleController {
@@ -218,6 +220,7 @@ func TestScopeWithFailingComponent(t *testing.T) {
 				Logger:            l,
 				TraceProvider:     noop.NewTracerProvider(),
 				DataPath:          t.TempDir(),
+				MinStability:      featuregate.StabilityStable,
 				OnBlockNodeUpdate: func(cn controller.BlockNode) { /* no-op */ },
 				Registerer:        prometheus.NewRegistry(),
 				NewModuleController: func(id string) controller.ModuleController {

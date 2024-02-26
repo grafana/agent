@@ -6,14 +6,16 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/internal/featuregate"
 	"github.com/grafana/agent/pkg/flow/logging/level"
 )
 
 func init() {
 	component.Register(component.Registration{
-		Name:    "testcomponents.passthrough",
-		Args:    PassthroughConfig{},
-		Exports: PassthroughExports{},
+		Name:      "testcomponents.passthrough",
+		Stability: featuregate.StabilityStable,
+		Args:      PassthroughConfig{},
+		Exports:   PassthroughExports{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			return NewPassthrough(opts, args.(PassthroughConfig))

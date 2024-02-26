@@ -10,6 +10,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/grafana/agent/internal/featuregate"
 	"github.com/grafana/agent/pkg/flow"
 	"github.com/grafana/agent/pkg/flow/internal/testcomponents"
 	"github.com/grafana/agent/pkg/flow/logging"
@@ -239,10 +240,11 @@ func setup(t *testing.T, config string) (*flow.Flow, *flow.Source) {
 	s, err := logging.New(os.Stderr, logging.DefaultOptions)
 	require.NoError(t, err)
 	ctrl := flow.New(flow.Options{
-		Logger:   s,
-		DataPath: t.TempDir(),
-		Reg:      nil,
-		Services: []service.Service{},
+		Logger:       s,
+		DataPath:     t.TempDir(),
+		MinStability: featuregate.StabilityStable,
+		Reg:          nil,
+		Services:     []service.Service{},
 	})
 	f, err := flow.ParseSource(t.Name(), []byte(config))
 	require.NoError(t, err)

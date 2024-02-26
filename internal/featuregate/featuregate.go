@@ -24,7 +24,7 @@ const (
 )
 
 func CheckAllowed(stability Stability, minStability Stability, featureName string) error {
-	if stability == StabilityUndefined || minStability == StabilityUndefined {
+	if stability == StabilityUndefined {
 		return fmt.Errorf(
 			"stability levels must be defined: got %s as stability of %s and %s as the minimum stability level",
 			stability,

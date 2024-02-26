@@ -266,6 +266,7 @@ func testModuleControllerOptions(t *testing.T) *moduleControllerOptions {
 	return &moduleControllerOptions{
 		Logger:         s,
 		DataPath:       t.TempDir(),
+		MinStability:   featuregate.StabilityStable,
 		Reg:            prometheus.NewRegistry(),
 		ModuleRegistry: newModuleRegistry(),
 		WorkerPool:     worker.NewFixedWorkerPool(1, 100),
