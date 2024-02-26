@@ -10,11 +10,8 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
-### Bugfixes
 
-- Fix an issue where changing the configuration of `loki.write` would cause a panic. (@rfratto)
-
-v0.40.0-rc.1 (2024-02-23)
+v0.40.0-rc.2 (2024-02-26)
 -------------------------
 
 ### Breaking changes
@@ -121,6 +118,8 @@ v0.40.0-rc.1 (2024-02-23)
 - Pyroscope eBPF profiling now respects the PID namespace Grafana Agent is running in. [PR](https://github.com/grafana/pyroscope/pull/3008) (@simonswine)
 
 - Fix an issue where the configuration of the `http` and `remotecfg` blocks get ignored after loading a module. (@erikbaranowski)
+
+- Fix an issue where changing the configuration of `loki.write` would cause a panic. (@rfratto)
 
 ### Other changes
 
