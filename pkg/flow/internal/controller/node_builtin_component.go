@@ -14,6 +14,7 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/internal/featuregate"
 	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/grafana/agent/pkg/flow/tracing"
@@ -65,6 +66,7 @@ type ComponentGlobals struct {
 	Logger              *logging.Logger                        // Logger shared between all managed components.
 	TraceProvider       trace.TracerProvider                   // Tracer shared between all managed components.
 	DataPath            string                                 // Shared directory where component data may be stored
+	MinStability        featuregate.Stability                  // Minimum allowed stability level for features
 	OnBlockNodeUpdate   func(cn BlockNode)                     // Informs controller that we need to reevaluate
 	OnExportsChange     func(exports map[string]any)           // Invoked when the managed component updated its exports
 	Registerer          prometheus.Registerer                  // Registerer for serving agent and component metrics

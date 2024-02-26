@@ -8,14 +8,16 @@ import (
 	"github.com/grafana/agent/component/otelcol"
 	"github.com/grafana/agent/component/otelcol/extension"
 	"github.com/grafana/agent/component/otelcol/extension/jaeger_remote_sampling/internal/jaegerremotesampling"
+	"github.com/grafana/agent/internal/featuregate"
 	otelcomponent "go.opentelemetry.io/collector/component"
 	otelextension "go.opentelemetry.io/collector/extension"
 )
 
 func init() {
 	component.Register(component.Registration{
-		Name: "otelcol.extension.jaeger_remote_sampling",
-		Args: Arguments{},
+		Name:      "otelcol.extension.jaeger_remote_sampling",
+		Stability: featuregate.StabilityStable,
+		Args:      Arguments{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			fact := jaegerremotesampling.NewFactory()

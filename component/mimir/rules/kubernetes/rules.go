@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/internal/featuregate"
 	"github.com/grafana/agent/pkg/flow/logging/level"
 	mimirClient "github.com/grafana/agent/pkg/mimir/client"
 	"github.com/grafana/dskit/backoff"
@@ -30,9 +31,10 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name:    "mimir.rules.kubernetes",
-		Args:    Arguments{},
-		Exports: nil,
+		Name:      "mimir.rules.kubernetes",
+		Stability: featuregate.StabilityStable,
+		Args:      Arguments{},
+		Exports:   nil,
 		Build: func(o component.Options, c component.Arguments) (component.Component, error) {
 			return New(o, c.(Arguments))
 		},

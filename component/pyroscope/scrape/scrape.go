@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/grafana/agent/component/pyroscope"
+	"github.com/grafana/agent/internal/featuregate"
 	"github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/grafana/agent/service/cluster"
 	"github.com/prometheus/common/model"
@@ -33,8 +34,9 @@ const (
 
 func init() {
 	component.Register(component.Registration{
-		Name: "pyroscope.scrape",
-		Args: Arguments{},
+		Name:      "pyroscope.scrape",
+		Stability: featuregate.StabilityStable,
+		Args:      Arguments{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			return New(opts, args.(Arguments))

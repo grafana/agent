@@ -17,6 +17,7 @@ import (
 	"github.com/grafana/agent/component/common/loki/positions"
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/loki/source/kubernetes/kubetail"
+	"github.com/grafana/agent/internal/featuregate"
 	"github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/grafana/agent/service/cluster"
 	"k8s.io/client-go/kubernetes"
@@ -24,8 +25,9 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name: "loki.source.kubernetes",
-		Args: Arguments{},
+		Name:      "loki.source.kubernetes",
+		Stability: featuregate.StabilityStable,
+		Args:      Arguments{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			return New(opts, args.(Arguments))

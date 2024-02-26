@@ -1,27 +1,55 @@
 package controller
 
-import "github.com/grafana/agent/component"
+import (
+	"fmt"
+
+	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/internal/featuregate"
+)
 
 // ComponentRegistry is a collection of registered components.
 type ComponentRegistry interface {
-	// Get looks up a component by name.
-	Get(name string) (component.Registration, bool)
+	// Get looks up a component by name. It returns an error if the component does not exist or its usage is restricted,
+	// for example, because of the component's stability level.
+	Get(name string) (component.Registration, error)
 }
 
-// DefaultComponentRegistry is the default [ComponentRegistry] which gets
-// components registered to github.com/grafana/agent/component.
-type DefaultComponentRegistry struct{}
+type defaultComponentRegistry struct {
+	minStability featuregate.Stability
+}
 
-// Get retrieves a component using [component.Get].
-func (reg DefaultComponentRegistry) Get(name string) (component.Registration, bool) {
-	return component.Get(name)
+// NewDefaultComponentRegistry creates a new [ComponentRegistry] which gets
+// components registered to github.com/grafana/agent/component.
+func NewDefaultComponentRegistry(minStability featuregate.Stability) ComponentRegistry {
+	return defaultComponentRegistry{
+		minStability: minStability,
+	}
+}
+
+// Get retrieves a component using [component.Get]. It returns an error if the component does not exist,
+// or if the component's stability is below the minimum required stability level.
+func (reg defaultComponentRegistry) Get(name string) (component.Registration, error) {
+	cr, exists := component.Get(name)
+	if !exists {
+		return component.Registration{}, fmt.Errorf("cannot find the definition of component name %q", name)
+	}
+	if err := featuregate.CheckAllowed(cr.Stability, reg.minStability, fmt.Sprintf("component %q", name)); err != nil {
+		return component.Registration{}, err
+	}
+	return cr, nil
 }
 
 // RegistryMap is a map which implements [ComponentRegistry].
+// Currently, it is only used in tests.
 type RegistryMap map[string]component.Registration
 
+var _ ComponentRegistry = (*RegistryMap)(nil)
+
 // Get retrieves a component using [component.Get].
-func (m RegistryMap) Get(name string) (component.Registration, bool) {
+func (m RegistryMap) Get(name string) (component.Registration, error) {
 	reg, ok := m[name]
-	return reg, ok
+	if !ok {
+		return component.Registration{}, fmt.Errorf("cannot find the definition of component name %q", name)
+	}
+	return reg, nil
 }

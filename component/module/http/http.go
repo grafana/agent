@@ -9,14 +9,16 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/module"
 	remote_http "github.com/grafana/agent/component/remote/http"
+	"github.com/grafana/agent/internal/featuregate"
 	"github.com/grafana/river/rivertypes"
 )
 
 func init() {
 	component.Register(component.Registration{
-		Name:    "module.http",
-		Args:    Arguments{},
-		Exports: module.Exports{},
+		Name:      "module.http",
+		Stability: featuregate.StabilityStable,
+		Args:      Arguments{},
+		Exports:   module.Exports{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			return New(opts, args.(Arguments))

@@ -8,6 +8,7 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/otelcol"
 	"github.com/grafana/agent/component/otelcol/processor"
+	"github.com/grafana/agent/internal/featuregate"
 	tsp "github.com/open-telemetry/opentelemetry-collector-contrib/processor/tailsamplingprocessor"
 	otelcomponent "go.opentelemetry.io/collector/component"
 	otelextension "go.opentelemetry.io/collector/extension"
@@ -15,9 +16,10 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name:    "otelcol.processor.tail_sampling",
-		Args:    Arguments{},
-		Exports: otelcol.ConsumerExports{},
+		Name:      "otelcol.processor.tail_sampling",
+		Stability: featuregate.StabilityStable,
+		Args:      Arguments{},
+		Exports:   otelcol.ConsumerExports{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			fact := tsp.NewFactory()

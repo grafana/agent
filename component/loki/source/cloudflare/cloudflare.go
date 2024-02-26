@@ -17,6 +17,7 @@ import (
 	"github.com/grafana/agent/component/common/loki"
 	"github.com/grafana/agent/component/common/loki/positions"
 	cft "github.com/grafana/agent/component/loki/source/cloudflare/internal/cloudflaretarget"
+	"github.com/grafana/agent/internal/featuregate"
 	"github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/grafana/river/rivertypes"
 	"github.com/prometheus/common/model"
@@ -24,8 +25,9 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name: "loki.source.cloudflare",
-		Args: Arguments{},
+		Name:      "loki.source.cloudflare",
+		Stability: featuregate.StabilityStable,
+		Args:      Arguments{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			return New(opts, args.(Arguments))

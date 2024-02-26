@@ -13,6 +13,7 @@ import (
 	"github.com/grafana/agent/component/otelcol"
 	"github.com/grafana/agent/component/otelcol/internal/fanoutconsumer"
 	"github.com/grafana/agent/component/otelcol/receiver/prometheus/internal"
+	"github.com/grafana/agent/internal/featuregate"
 	"github.com/grafana/agent/pkg/build"
 	"github.com/grafana/agent/pkg/util/zapadapter"
 	"github.com/prometheus/prometheus/model/labels"
@@ -25,9 +26,10 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name:    "otelcol.receiver.prometheus",
-		Args:    Arguments{},
-		Exports: Exports{},
+		Name:      "otelcol.receiver.prometheus",
+		Stability: featuregate.StabilityStable,
+		Args:      Arguments{},
+		Exports:   Exports{},
 
 		Build: func(o component.Options, a component.Arguments) (component.Component, error) {
 			return New(o, a.(Arguments))

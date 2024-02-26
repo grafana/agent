@@ -12,15 +12,17 @@ import (
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/module"
+	"github.com/grafana/agent/internal/featuregate"
 	"github.com/grafana/agent/internal/vcs"
 	"github.com/grafana/agent/pkg/flow/logging/level"
 )
 
 func init() {
 	component.Register(component.Registration{
-		Name:    "module.git",
-		Args:    Arguments{},
-		Exports: module.Exports{},
+		Name:      "module.git",
+		Stability: featuregate.StabilityStable,
+		Args:      Arguments{},
+		Exports:   module.Exports{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			return New(opts, args.(Arguments))

@@ -6,14 +6,16 @@ import (
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/common/loki"
+	"github.com/grafana/agent/internal/featuregate"
 	"github.com/grafana/agent/pkg/flow/logging/level"
 )
 
 func init() {
 	component.Register(component.Registration{
-		Name:    "loki.echo",
-		Args:    Arguments{},
-		Exports: Exports{},
+		Name:      "loki.echo",
+		Stability: featuregate.StabilityStable,
+		Args:      Arguments{},
+		Exports:   Exports{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			return New(opts, args.(Arguments))

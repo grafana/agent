@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/internal/featuregate"
 	"github.com/grafana/agent/pkg/flow/internal/controller"
 	"github.com/grafana/agent/pkg/flow/internal/worker"
 	"github.com/grafana/agent/pkg/flow/logging"
@@ -274,9 +275,10 @@ func testModuleControllerOptions(t *testing.T) *moduleControllerOptions {
 
 func init() {
 	component.Register(component.Registration{
-		Name:    "test.module",
-		Args:    TestArguments{},
-		Exports: TestExports{},
+		Name:      "test.module",
+		Stability: featuregate.StabilityStable,
+		Args:      TestArguments{},
+		Exports:   TestExports{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			return &testModule{

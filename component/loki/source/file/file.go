@@ -13,6 +13,7 @@ import (
 	"github.com/grafana/agent/component/common/loki"
 	"github.com/grafana/agent/component/common/loki/positions"
 	"github.com/grafana/agent/component/discovery"
+	"github.com/grafana/agent/internal/featuregate"
 	"github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/grafana/tail/watch"
 	"github.com/prometheus/common/model"
@@ -20,8 +21,9 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name: "loki.source.file",
-		Args: Arguments{},
+		Name:      "loki.source.file",
+		Stability: featuregate.StabilityStable,
+		Args:      Arguments{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			return New(opts, args.(Arguments))

@@ -9,6 +9,7 @@ import (
 	"connectrpc.com/connect"
 	"github.com/grafana/agent/component/pyroscope"
 	"github.com/grafana/agent/internal/agentseed"
+	"github.com/grafana/agent/internal/featuregate"
 	"github.com/grafana/agent/internal/useragent"
 	"github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/oklog/run"
@@ -35,9 +36,10 @@ var (
 
 func init() {
 	component.Register(component.Registration{
-		Name:    "pyroscope.write",
-		Args:    Arguments{},
-		Exports: Exports{},
+		Name:      "pyroscope.write",
+		Stability: featuregate.StabilityStable,
+		Args:      Arguments{},
+		Exports:   Exports{},
 		Build: func(o component.Options, c component.Arguments) (component.Component, error) {
 			return New(o, c.(Arguments))
 		},

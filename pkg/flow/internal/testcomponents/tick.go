@@ -8,14 +8,16 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/internal/featuregate"
 	"github.com/grafana/agent/pkg/flow/logging/level"
 )
 
 func init() {
 	component.Register(component.Registration{
-		Name:    "testcomponents.tick",
-		Args:    TickConfig{},
-		Exports: TickExports{},
+		Name:      "testcomponents.tick",
+		Stability: featuregate.StabilityStable,
+		Args:      TickConfig{},
+		Exports:   TickExports{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			return NewTick(opts, args.(TickConfig))

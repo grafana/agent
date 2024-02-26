@@ -6,13 +6,15 @@ import (
 	"context"
 
 	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/internal/featuregate"
 	"github.com/grafana/agent/pkg/flow/logging/level"
 )
 
 func init() {
 	component.Register(component.Registration{
-		Name: "pyroscope.ebpf",
-		Args: Arguments{},
+		Name:      "pyroscope.ebpf",
+		Stability: featuregate.StabilityStable,
+		Args:      Arguments{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			arguments := args.(Arguments)

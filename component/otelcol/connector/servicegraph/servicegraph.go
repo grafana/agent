@@ -7,6 +7,7 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/otelcol"
 	"github.com/grafana/agent/component/otelcol/connector"
+	"github.com/grafana/agent/internal/featuregate"
 	"github.com/grafana/river"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/connector/servicegraphconnector"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/servicegraphprocessor"
@@ -16,9 +17,10 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name:    "otelcol.connector.servicegraph",
-		Args:    Arguments{},
-		Exports: otelcol.ConsumerExports{},
+		Name:      "otelcol.connector.servicegraph",
+		Stability: featuregate.StabilityStable,
+		Args:      Arguments{},
+		Exports:   otelcol.ConsumerExports{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			fact := servicegraphconnector.NewFactory()
