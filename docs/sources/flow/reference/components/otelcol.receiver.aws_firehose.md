@@ -107,7 +107,7 @@ If `allowed_headers` includes `"*"`, all headers are permitted.
 
 ### output block
 
-{{< docs/shared lookup="flow/reference/components/output-block.md" source="agent" version="<AGENT_VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/output-block-metrics.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ## Exported fields
 
