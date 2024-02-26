@@ -44,20 +44,20 @@ func toSpanProcessor(state *state, id component.InstanceID, cfg *spanprocessor.C
 		nextTraces = state.Next(id, component.DataTypeTraces)
 	)
 
-	setStatus := &span.Status{}
-	if cfg.SetStatus == nil {
-		setStatus = nil
-	} else {
-		setStatus.Code = cfg.SetStatus.Code
-		setStatus.Description = cfg.SetStatus.Description
+	var setStatus *span.Status
+	if cfg.SetStatus != nil {
+		setStatus = &span.Status{
+			Code:        cfg.SetStatus.Code,
+			Description: cfg.SetStatus.Description,
+		}
 	}
 
-	toAttributes := &span.ToAttributes{}
-	if cfg.Rename.ToAttributes == nil {
-		toAttributes = nil
-	} else {
-		toAttributes.Rules = cfg.Rename.ToAttributes.Rules
-		toAttributes.BreakAfterMatch = cfg.Rename.ToAttributes.BreakAfterMatch
+	var toAttributes *span.ToAttributes
+	if cfg.Rename.ToAttributes != nil {
+		toAttributes = &span.ToAttributes{
+			Rules:           cfg.Rename.ToAttributes.Rules,
+			BreakAfterMatch: cfg.Rename.ToAttributes.BreakAfterMatch,
+		}
 	}
 
 	return &span.Arguments{
