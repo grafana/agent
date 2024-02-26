@@ -9,6 +9,7 @@ import (
 	"github.com/grafana/agent/converter/internal/common"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanprocessor"
 	"go.opentelemetry.io/collector/component"
+	"go.opentelemetry.io/collector/pdata/plog"
 )
 
 func init() {
@@ -43,16 +44,18 @@ func toSpanProcessor(state *state, id component.InstanceID, cfg *spanprocessor.C
 		nextTraces = state.Next(id, component.DataTypeTraces)
 	)
 
-	var setStatus *span.Status
-	if cfg.SetStatus != nil {
-		setStatus := &span.Status{}
+	setStatus := &span.Status{}
+	if cfg.SetStatus == nil {
+		setStatus = nil
+	} else {
 		setStatus.Code = cfg.SetStatus.Code
 		setStatus.Description = cfg.SetStatus.Description
 	}
 
-	var toAttributes *span.ToAttributes
-	if cfg.Rename.ToAttributes != nil {
-		toAttributes := &span.ToAttributes{}
+	toAttributes := &span.ToAttributes{}
+	if cfg.Rename.ToAttributes == nil {
+		toAttributes = nil
+	} else {
 		toAttributes.Rules = cfg.Rename.ToAttributes.Rules
 		toAttributes.BreakAfterMatch = cfg.Rename.ToAttributes.BreakAfterMatch
 	}
@@ -79,37 +82,19 @@ func toMatchProperties(cfg map[string]any) *otelcol.MatchProperties {
 		return nil
 	}
 
-	var regexpConfig *otelcol.RegexpConfig
-	if cfg["regexp_config"] != nil {
-		regexpConfig.CacheEnabled = cfg["regexp_config"].(map[string]any)["cache_enabled"].(bool)
-		regexpConfig.CacheMaxNumEntries = cfg["regexp_config"].(map[string]any)["cache_max_num_entries"].(int)
-	}
-
-	var ls *otelcol.LogSeverityNumberMatchProperties
-	if cfg["log_severity"] != nil {
-		ls.Min = otelcol.SeverityLevel(cfg["log_severity"].(map[string]any)["min"].(string))
-		ls.MatchUndefined = cfg["log_severity"].(map[string]any)["match_undefined"].(bool)
-	}
-	a := cfg["attributes"]
-	attributes := toOtelcolAttributes(encodeMapslice(a))
-	r := cfg["resources"]
-	resources := toOtelcolAttributes(encodeMapslice(r))
-	l := cfg["libraries"]
-	libraries := toOtelcolInstrumentationLibrary(encodeMapslice(l))
-
 	return &otelcol.MatchProperties{
 		MatchType:        encodeString(cfg["match_type"]),
-		RegexpConfig:     regexpConfig,
+		RegexpConfig:     toRegexpConfig(cfg),
+		LogSeverity:      toLogSeverity(cfg),
 		Services:         cfg["services"].([]string),
 		SpanNames:        cfg["span_names"].([]string),
 		LogBodies:        cfg["log_bodies"].([]string),
 		LogSeverityTexts: cfg["log_severity_texts"].([]string),
-		LogSeverity:      ls,
 		MetricNames:      cfg["metric_names"].([]string),
-		Attributes:       attributes,
-		Resources:        resources,
-		Libraries:        libraries,
 		SpanKinds:        cfg["span_kinds"].([]string),
+		Attributes:       toOtelcolAttributes(encodeMapslice(cfg["attributes"])),
+		Resources:        toOtelcolAttributes(encodeMapslice(cfg["resources"])),
+		Libraries:        toOtelcolInstrumentationLibrary(encodeMapslice(cfg["libraries"])),
 	}
 }
 
@@ -136,4 +121,40 @@ func toOtelcolInstrumentationLibrary(in []map[string]any) []otelcol.Instrumentat
 		})
 	}
 	return res
+}
+
+func toRegexpConfig(cfg map[string]any) *otelcol.RegexpConfig {
+	if cfg["regexp_config"] == nil {
+		return nil
+	}
+
+	rc := cfg["regexp_config"].(map[string]any)
+
+	return &otelcol.RegexpConfig{
+		CacheEnabled:       rc["cache_enabled"].(bool),
+		CacheMaxNumEntries: rc["cache_max_num_entries"].(int),
+	}
+}
+func toLogSeverity(cfg map[string]any) *otelcol.LogSeverityNumberMatchProperties {
+	if cfg["log_severity_number"] == nil {
+		return nil
+	}
+
+	// Theres's a nested type, so we have to re-encode the field.
+	ls := encodeMapstruct(cfg["log_severity_number"])
+	if ls == nil {
+		return nil
+	}
+
+	// This should never error out, but there's no 'unknown' severity level to
+	// return in case it did.
+	sn, err := otelcol.LookupSeverityNumber(ls["min"].(plog.SeverityNumber))
+	if err != nil {
+		panic(err)
+	}
+
+	return &otelcol.LogSeverityNumberMatchProperties{
+		Min:            sn,
+		MatchUndefined: ls["match_undefined"].(bool),
+	}
 }

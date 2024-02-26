@@ -269,6 +269,33 @@ var severityLevels = map[SeverityLevel]plog.SeverityNumber{
 	"FATAL4": 24,
 }
 
+var severityNumbers = map[plog.SeverityNumber]SeverityLevel{
+	1:  "TRACE",
+	2:  "TRACE2",
+	3:  "TRACE3",
+	4:  "TRACE4",
+	5:  "DEBUG",
+	6:  "DEBUG2",
+	7:  "DEBUG3",
+	8:  "DEBUG4",
+	9:  "INFO",
+	10: "INFO2",
+	11: "INFO3",
+	12: "INFO4",
+	13: "WARN",
+	14: "WARN2",
+	15: "WARN3",
+	16: "WARN4",
+	17: "ERROR",
+	18: "ERROR2",
+	19: "ERROR3",
+	20: "ERROR4",
+	21: "FATAL",
+	22: "FATAL2",
+	23: "FATAL3",
+	24: "FATAL4",
+}
+
 // UnmarshalText implements encoding.TextUnmarshaler for SeverityLevel.
 func (sl *SeverityLevel) UnmarshalText(text []byte) error {
 	agentSevLevelStr := SeverityLevel(text)
@@ -277,4 +304,12 @@ func (sl *SeverityLevel) UnmarshalText(text []byte) error {
 		return nil
 	}
 	return fmt.Errorf("unrecognized severity level %q", string(text))
+}
+
+func LookupSeverityNumber(num plog.SeverityNumber) (SeverityLevel, error) {
+	if lvl, exists := severityNumbers[num]; exists {
+		return lvl, nil
+	}
+
+	return "", fmt.Errorf("unrecognized severity number %q", num)
 }
