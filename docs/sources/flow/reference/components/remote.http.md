@@ -68,6 +68,7 @@ client > authorization | [authorization][] | Configure generic authorization to 
 client > oauth2 | [oauth2][] | Configure OAuth2 for authenticating to the endpoint. | no
 client > oauth2 > tls_config | [tls_config][] | Configure TLS settings for connecting to the endpoint. | no
 client > tls_config | [tls_config][] | Configure TLS settings for connecting to the endpoint. | no
+fallback_cache | [fallback_cache][] | A local cache that is used as a fallback if the remote endpoint is unavailable or returns an error. | no 
 
 The `>` symbol indicates deeper levels of nesting. For example, `client >
 basic_auth` refers to an `basic_auth` block defined inside a `client` block.
@@ -77,6 +78,7 @@ basic_auth` refers to an `basic_auth` block defined inside a `client` block.
 [authorization]: #authorization-block
 [oauth2]: #oauth2-block
 [tls_config]: #tls_config-block
+[fallback_cache]: #fallback_cache-experimental
 
 ### client block
 
@@ -112,6 +114,10 @@ The `tls_config` block configures TLS settings for connecting to HTTPS servers.
 
 {{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
+### fallback_cache (experimental)
+
+{{< docs/shared lookup="flow/reference/components/remote-http-fallback-cache-block.md" source="agent" version="<AGENT VERSION>" >}}
+
 ## Exported fields
 
 The following field is exported and can be referenced by other components:
@@ -129,7 +135,9 @@ request of the specified URL succeeds.
 
 ## Debug information
 
-`remote.http` does not expose any component-specific debug information.
+`remote.http` exposes the following debug information:
+
+* (Relevant only when [fallback_cache][] is enabled) The total number of fallbacks to the local cache and the total number of failed fallbacks.
 
 ## Debug metrics
 

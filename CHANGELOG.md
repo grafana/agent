@@ -368,6 +368,11 @@ v0.38.0 (2023-11-21)
 
 - Agent Management: Introduce support for remotely managed external labels for logs. (@jcreixell)
 
+- Add `fallback_cache` to `remote.http` and `module.http`, which allows for
+  caching the response of a request to a remote HTTP endpoint. Also adds DebugInfo
+  for both components, including the last poll timestamp and the time until the next
+  poll. (@spartan0x117)
+
 ### Enhancements
 
 - The `loki.write` WAL now has snappy compression enabled by default. (@thepalbi)

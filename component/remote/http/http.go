@@ -3,9 +3,13 @@ package http
 
 import (
 	"context"
+	"crypto/sha1"
+	"encoding/hex"
 	"fmt"
 	"io"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strings"
 	"sync"
 	"time"
@@ -16,6 +20,7 @@ import (
 	"github.com/grafana/agent/internal/useragent"
 	"github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/grafana/river/rivertypes"
+	"github.com/prometheus/client_golang/prometheus"
 	prom_config "github.com/prometheus/common/config"
 )
 
@@ -39,11 +44,17 @@ type Arguments struct {
 	PollTimeout   time.Duration `river:"poll_timeout,attr,optional"`
 	IsSecret      bool          `river:"is_secret,attr,optional"`
 
+	FallbackCache FallbackCache `river:"fallback_cache,block,optional"`
+
 	Method  string            `river:"method,attr,optional"`
 	Headers map[string]string `river:"headers,attr,optional"`
 	Body    string            `river:"body,attr,optional"`
 
 	Client common_config.HTTPClientConfig `river:"client,block,optional"`
+}
+
+type FallbackCache struct {
+	Enabled bool `river:"enabled,attr,optional"`
 }
 
 // DefaultArguments holds default settings for Arguments.
@@ -52,6 +63,10 @@ var DefaultArguments = Arguments{
 	PollTimeout:   10 * time.Second,
 	Client:        common_config.DefaultHTTPClientConfig,
 	Method:        http.MethodGet,
+
+	FallbackCache: FallbackCache{
+		Enabled: false,
+	},
 }
 
 // SetToDefault implements river.Defaulter.
@@ -74,7 +89,6 @@ func (args *Arguments) Validate() error {
 	if _, err := http.NewRequest(args.Method, args.URL, nil); err != nil {
 		return err
 	}
-
 	return nil
 }
 
@@ -88,17 +102,25 @@ type Component struct {
 	log  log.Logger
 	opts component.Options
 
-	mut         sync.Mutex
-	args        Arguments
-	cli         *http.Client
-	lastPoll    time.Time
-	lastExports Exports // Used for determining whether exports should be updated
+	metrics *metrics
+
+	mut            sync.Mutex
+	args           Arguments
+	cli            *http.Client
+	lastPoll       time.Time
+	lastExports    Exports // Used for determining whether exports should be updated
+	lastCacheWrite time.Time
 
 	// Updated is written to whenever args updates.
 	updated chan struct{}
 
 	healthMut sync.RWMutex
 	health    component.Health
+}
+
+type metrics struct {
+	cacheFallbacks         prometheus.Counter
+	cacheFallbacksFailures prometheus.Counter
 }
 
 var (
@@ -119,6 +141,23 @@ func New(opts component.Options, args Arguments) (*Component, error) {
 			Message:    "component started",
 			UpdateTime: time.Now(),
 		},
+	}
+
+	c.metrics = &metrics{
+		cacheFallbacks: prometheus.NewCounter(prometheus.CounterOpts{
+			Name: "remote_http_fallbacks_total",
+			Help: "The total number of fallbacks to local cache",
+		}),
+		cacheFallbacksFailures: prometheus.NewCounter(prometheus.CounterOpts{
+			Name: "remote_http_fallbacks_failed_total",
+			Help: "The total number of fallbacks to local cache that failed",
+		}),
+	}
+
+	for _, m := range []prometheus.Collector{c.metrics.cacheFallbacks, c.metrics.cacheFallbacksFailures} {
+		if err := opts.Registerer.Register(m); err != nil {
+			return nil, err
+		}
 	}
 
 	if err := c.Update(args); err != nil {
@@ -212,20 +251,41 @@ func (c *Component) pollError() error {
 	resp, err := c.cli.Do(req)
 	if err != nil {
 		level.Error(c.log).Log("msg", "failed to perform request", "err", err)
+		if c.args.FallbackCache.Enabled {
+			return c.fallbackToCache()
+		}
 		return fmt.Errorf("performing request: %w", err)
 	}
 
 	bb, err := io.ReadAll(resp.Body)
 	if err != nil {
 		level.Error(c.log).Log("msg", "failed to read response", "err", err)
+		if c.args.FallbackCache.Enabled {
+			return c.fallbackToCache()
+		}
 		return fmt.Errorf("reading response: %w", err)
 	}
 
 	if resp.StatusCode != http.StatusOK {
 		level.Error(c.log).Log("msg", "unexpected status code from response", "status", resp.Status)
+		if c.args.FallbackCache.Enabled {
+			return c.fallbackToCache()
+		}
 		return fmt.Errorf("unexpected status code %s", resp.Status)
 	}
 
+	c.updateExports(bb)
+	if c.args.FallbackCache.Enabled {
+		if err := c.writeCache(bb); err != nil {
+			level.Error(c.log).Log("msg", "failed to write cache", "err", err)
+		} else {
+			c.lastCacheWrite = time.Now()
+		}
+	}
+	return nil
+}
+
+func (c *Component) updateExports(bb []byte) {
 	stringContent := strings.TrimSpace(string(bb))
 
 	newExports := Exports{
@@ -241,6 +301,50 @@ func (c *Component) pollError() error {
 		c.opts.OnStateChange(newExports)
 	}
 	c.lastExports = newExports
+}
+
+func (c *Component) fallbackToCache() error {
+	// If we have a local cache, we can still return the cached value.
+	// This is useful for when the remote endpoint is down.
+	level.Warn(c.log).Log("msg", "polling failed, using local cache")
+	c.metrics.cacheFallbacks.Inc()
+	cacheContents, err := c.readCache()
+	if err != nil {
+		level.Error(c.log).Log("msg", "failed to read cache", "err", err)
+		c.metrics.cacheFallbacksFailures.Inc()
+		return fmt.Errorf("reading cache: %w", err)
+	}
+	c.updateExports(cacheContents)
+	return nil
+}
+
+func (c *Component) urlHash() string {
+	hasher := sha1.New()
+	hasher.Write([]byte(c.args.URL))
+	return hex.EncodeToString(hasher.Sum(nil))
+}
+
+func (c *Component) getCachePath() string {
+	return filepath.Join(c.opts.DataPath, c.urlHash())
+}
+
+func (c *Component) readCache() ([]byte, error) {
+	return os.ReadFile(c.getCachePath())
+}
+
+func (c *Component) writeCache(contents []byte) error {
+	err := os.MkdirAll(c.opts.DataPath, 0755)
+	if err != nil {
+		return err
+	}
+	path := c.getCachePath()
+	// 600 because the contents may be a secret. It's possible to have separate permissions
+	// depending on is_secret, but adds complexity for little benefit (since this is intended
+	// to only be used by the agent).
+	err = os.WriteFile(path, contents, 0600)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -296,4 +400,36 @@ func (c *Component) CurrentHealth() component.Health {
 	c.healthMut.RLock()
 	defer c.healthMut.RUnlock()
 	return c.health
+}
+
+// DebugInfo returns information about the remote http component.
+func (c *Component) DebugInfo() interface{} {
+	di := debugInfo{
+		LastPoll:          c.lastPoll,
+		TimeUntilNextPoll: c.nextPoll(),
+	}
+	if c.args.FallbackCache.Enabled {
+		lastUpdate := "never"
+		if !c.lastCacheWrite.IsZero() {
+			lastUpdate = time.Since(c.lastCacheWrite).String() + " ago"
+		}
+
+		di.CacheDebugInfo = &cacheDebugInfo{
+			CachePath:  c.getCachePath(),
+			LastUpdate: lastUpdate,
+		}
+	}
+	return di
+}
+
+type debugInfo struct {
+	LastPoll          time.Time     `river:"last_poll,attr"`
+	TimeUntilNextPoll time.Duration `river:"time_until_next_poll,attr"`
+
+	CacheDebugInfo *cacheDebugInfo `river:"fallback_cache,block"`
+}
+
+type cacheDebugInfo struct {
+	CachePath  string `river:"path,attr"`
+	LastUpdate string `river:"last_update,attr"`
 }

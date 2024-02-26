@@ -61,8 +61,10 @@ The following blocks are supported inside the definition of `module.http`:
 Hierarchy        | Block      | Description | Required
 ---------------- | ---------- | ----------- | --------
 arguments | [arguments][] | Arguments to pass to the module. | no
+fallback_cache | [fallback_cache][] | A local cache that is used as a fallback if the remote endpoint is unavailable or returns an error. | no 
 
 [arguments]: #arguments-block
+[fallback_cache]: #fallback_cache-experimental
 
 ### arguments block
 
@@ -79,6 +81,10 @@ The attributes provided in the `arguments` block are validated based on the
   they are not defined in the module source.
 
 [argument blocks]: {{< relref "../config-blocks/argument.md" >}}
+
+### fallback_cache (experimental)
+
+{{< docs/shared lookup="flow/reference/components/remote-http-fallback-cache-block.md" source="agent" version="<AGENT VERSION>" >}}
 
 ## Exported fields
 
@@ -108,7 +114,9 @@ unhealthy, and the health includes the error from loading the module.
 
 ## Debug information
 
-`module.http` does not expose any component-specific debug information.
+`module.http` exposes the following debug information:
+
+* (Relevant only when [fallback_cache][] is enabled) The total number of fallbacks to the local cache and the total number of failed fallbacks.
 
 ## Debug metrics
 
