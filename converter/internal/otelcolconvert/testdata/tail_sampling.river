@@ -216,9 +216,7 @@ otelcol.processor.tail_sampling "default" {
 	expected_new_traces_per_sec = 10
 
 	output {
-		metrics = [otelcol.exporter.otlp.default.input]
-		logs    = [otelcol.exporter.otlp.default.input]
-		traces  = [otelcol.exporter.otlp.default.input]
+		traces = [otelcol.exporter.otlp.default.input]
 	}
 }
 
