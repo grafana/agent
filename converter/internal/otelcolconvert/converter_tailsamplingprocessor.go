@@ -45,9 +45,7 @@ func (tailSamplingProcessorConverter) ConvertAndAppend(state *state, id componen
 
 func toTailSamplingProcessor(state *state, id component.InstanceID, cfg *tailsamplingprocessor.Config) *tail_sampling.Arguments {
 	var (
-		nextMetrics = state.Next(id, component.DataTypeMetrics)
-		nextTraces  = state.Next(id, component.DataTypeTraces)
-		nextLogs    = state.Next(id, component.DataTypeLogs)
+		nextTraces = state.Next(id, component.DataTypeTraces)
 	)
 
 	testEncode := encodeMapstruct(cfg.PolicyCfgs[0])
@@ -59,9 +57,7 @@ func toTailSamplingProcessor(state *state, id component.InstanceID, cfg *tailsam
 		NumTraces:               cfg.NumTraces,
 		ExpectedNewTracesPerSec: cfg.ExpectedNewTracesPerSec,
 		Output: &otelcol.ConsumerArguments{
-			Metrics: toTokenizedConsumers(nextMetrics),
-			Logs:    toTokenizedConsumers(nextLogs),
-			Traces:  toTokenizedConsumers(nextTraces),
+			Traces: toTokenizedConsumers(nextTraces),
 		},
 	}
 }
