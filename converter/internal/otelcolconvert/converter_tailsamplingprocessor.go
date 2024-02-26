@@ -54,7 +54,7 @@ func toTailSamplingProcessor(state *state, id component.InstanceID, cfg *tailsam
 	spew.Dump(testEncode)
 
 	return &tail_sampling.Arguments{
-		PolicyCfgs:              toPolicyCfgs(cfg.PolicyCfgs, state),
+		PolicyCfgs:              toPolicyCfgs(cfg.PolicyCfgs),
 		DecisionWait:            cfg.DecisionWait,
 		NumTraces:               cfg.NumTraces,
 		ExpectedNewTracesPerSec: cfg.ExpectedNewTracesPerSec,
@@ -66,7 +66,7 @@ func toTailSamplingProcessor(state *state, id component.InstanceID, cfg *tailsam
 	}
 }
 
-func toPolicyCfgs(cfgs []tailsamplingprocessor.PolicyCfg, state *state) []tail_sampling.PolicyConfig {
+func toPolicyCfgs(cfgs []tailsamplingprocessor.PolicyCfg) []tail_sampling.PolicyConfig {
 	var out []tail_sampling.PolicyConfig
 	for _, cfg := range cfgs {
 		out = append(out, tail_sampling.PolicyConfig{
