@@ -18,7 +18,7 @@ import (
 func init() {
 	component.Register(component.Registration{
 		Name:      "otelcol.connector.servicegraph",
-		Stability: featuregate.StabilityStable,
+		Stability: featuregate.StabilityExperimental,
 		Args:      Arguments{},
 		Exports:   otelcol.ConsumerExports{},
 

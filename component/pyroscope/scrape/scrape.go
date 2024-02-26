@@ -35,7 +35,7 @@ const (
 func init() {
 	component.Register(component.Registration{
 		Name:      "pyroscope.scrape",
-		Stability: featuregate.StabilityStable,
+		Stability: featuregate.StabilityBeta,
 		Args:      Arguments{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {

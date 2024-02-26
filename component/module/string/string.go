@@ -12,7 +12,7 @@ import (
 func init() {
 	component.Register(component.Registration{
 		Name:      "module.string",
-		Stability: featuregate.StabilityStable,
+		Stability: featuregate.StabilityBeta,
 		Args:      Arguments{},
 		Exports:   module.Exports{},
 

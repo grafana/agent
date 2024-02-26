@@ -22,7 +22,7 @@ import (
 func init() {
 	component.Register(component.Registration{
 		Name:      "otelcol.receiver.loki",
-		Stability: featuregate.StabilityStable,
+		Stability: featuregate.StabilityBeta,
 		Args:      Arguments{},
 		Exports:   Exports{},
 

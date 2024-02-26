@@ -20,7 +20,7 @@ import (
 func init() {
 	component.Register(component.Registration{
 		Name:      "otelcol.receiver.vcenter",
-		Stability: featuregate.StabilityStable,
+		Stability: featuregate.StabilityExperimental,
 		Args:      Arguments{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
