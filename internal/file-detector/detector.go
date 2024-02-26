@@ -1,4 +1,4 @@
-package file
+package filedetector
 
 import (
 	"context"
@@ -65,7 +65,7 @@ func (ut *Detector) UnmarshalText(text []byte) error {
 }
 
 type fsNotify struct {
-	opts   fsNotifyOptions
+	opts   FsNotifyOptions
 	cancel context.CancelFunc
 
 	// watcherMut is needed to prevent race conditions on Windows. This can be
@@ -75,7 +75,7 @@ type fsNotify struct {
 	watcher    *fsnotify.Watcher
 }
 
-type fsNotifyOptions struct {
+type FsNotifyOptions struct {
 	Logger        log.Logger
 	Filename      string
 	ReloadFile    func()        // Callback to request file reload.
@@ -84,7 +84,7 @@ type fsNotifyOptions struct {
 
 // newFSNotify creates a new fsnotify detector which uses filesystem events to
 // detect that a file has changed.
-func newFSNotify(opts fsNotifyOptions) (*fsNotify, error) {
+func NewFSNotify(opts FsNotifyOptions) (*fsNotify, error) {
 	w, err := fsnotify.NewWatcher()
 	if err != nil {
 		return nil, err
@@ -159,18 +159,18 @@ func (fsn *fsNotify) Close() error {
 }
 
 type poller struct {
-	opts   pollerOptions
+	opts   PollerOptions
 	cancel context.CancelFunc
 }
 
-type pollerOptions struct {
+type PollerOptions struct {
 	Filename      string
 	ReloadFile    func() // Callback to request file reload.
 	PollFrequency time.Duration
 }
 
 // newPoller creates a new poll-based file update detector.
-func newPoller(opts pollerOptions) *poller {
+func NewPoller(opts PollerOptions) *poller {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	pw := &poller{
