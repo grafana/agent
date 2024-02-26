@@ -270,7 +270,7 @@ prometheus.operator.probes "probes" {
 
 `prometheus.operator.probes` can accept arguments from the following components:
 
-- Components that export [Prometheus `MetricsReceiver`](https://grafana.com/docs/agent/<AGENT_VERSION>/flow/reference/compatibility#prometheus-metricsreceiver-exporters)
+- Components that export [Prometheus `MetricsReceiver`](../compatibility#prometheus-metricsreceiver-exporters)
 
 
 {{< admonition type="note" >}}
