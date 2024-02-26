@@ -14,7 +14,7 @@ Main (unreleased)
 
 - Add support for importing folders as single module to `import.file`. (@wildum)
 
-v0.40.0 (2024-2-22)
+v0.40.0-rc.2 (2024-02-26)
 --------------------
 
 ### Breaking changes
@@ -31,7 +31,7 @@ v0.40.0 (2024-2-22)
 
 ### Features
 
-- Modules have been redesigned to split the import logic from the instantiation. 
+- Modules have been redesigned to split the import logic from the instantiation.
   You can now define custom components via the `declare` config block and import modules via `import.git`, `import.http`, `import.string`, `import.file`. (@wildum)
 
 - A new `discovery.process` component for discovering Linux OS processes on the current host. (@korniltsev)
@@ -44,7 +44,7 @@ v0.40.0 (2024-2-22)
 - Expose track_timestamps_staleness on Prometheus scraping, to fix the issue where container metrics live for 5 minutes after the container disappears. (@ptodev)
 
 - Introduce the `remotecfg` service that enables loading configuration from a
-  remote endpoint. (@tpaschalis) 
+  remote endpoint. (@tpaschalis)
 
 - Add `otelcol.connector.host_info` component to gather usage metrics for cloud users. (@rlankfo, @jcreixell)
 
@@ -83,6 +83,8 @@ v0.40.0 (2024-2-22)
 
 - Batch staleness tracking to reduce mutex contention and increase performance. (@mattdurham)
 
+- Python profiling using eBPF is now aggregated now by kernel space. [PR](https://github.com/grafana/pyroscope/pull/2996) (@korniltsev)
+
 ### Bugfixes
 
 - Fix an issue in `remote.s3` where the exported content of an object would be an empty string if `remote.s3` failed to fully retrieve
@@ -104,7 +106,7 @@ v0.40.0 (2024-2-22)
 - Fix an issue where agent logs are emitted before the logging format
   is correctly determined. (@hainenber)
 
-- Fix divide-by-zero issue when sharding targets. (@hainenber) 
+- Fix divide-by-zero issue when sharding targets. (@hainenber)
 
 - Fix bug where custom headers were not actually being set in loki client. (@captncraig)
 
@@ -114,7 +116,13 @@ v0.40.0 (2024-2-22)
 
 - Fix OTEL metrics not getting collected after reload. (@hainenber)
 
-- Fix bug in `pyroscope.ebpf` component when elf's PT_LOAD section is not page aligned . [PR](https://github.com/grafana/pyroscope/pull/2983)  (@korniltsev)
+- Fix bug in `pyroscope.ebpf` component when elf's PT_LOAD section is not page aligned. [PR](https://github.com/grafana/pyroscope/pull/2983)  (@korniltsev)
+
+- Pyroscope eBPF profiling now respects the PID namespace Grafana Agent is running in. [PR](https://github.com/grafana/pyroscope/pull/3008) (@simonswine)
+
+- Fix an issue where the configuration of the `http` and `remotecfg` blocks get ignored after loading a module. (@erikbaranowski)
+
+- Fix an issue where changing the configuration of `loki.write` would cause a panic. (@rfratto)
 
 ### Other changes
 

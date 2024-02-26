@@ -1,9 +1,9 @@
 ---
 aliases:
-- /docs/grafana-cloud/agent/flow/reference/config-blocks/import.file/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/config-blocks/import.file/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/config-blocks/import.file/
-- /docs/grafana-cloud/send-data/agent/flow/reference/config-blocks/import.file/
+  - /docs/grafana-cloud/agent/flow/reference/config-blocks/import.file/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/config-blocks/import.file/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/config-blocks/import.file/
+  - /docs/grafana-cloud/send-data/agent/flow/reference/config-blocks/import.file/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/config-blocks/import.file/
 description: Learn about the import.file configuration block
 labels:
@@ -36,11 +36,11 @@ import.file "NAMESPACE" {
 
 The following arguments are supported:
 
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`filename`       | `string`   | Path of the file or the folder on disk to watch. | | yes
-`detector`       | `string`   | Which file change detector to use (fsnotify, poll). | `"fsnotify"` | no
-`poll_frequency` | `duration` | How often to poll for file/folder changes. | `"1m"` | no
+| Name             | Type       | Description                                         | Default      | Required |
+| ---------------- | ---------- | --------------------------------------------------- | ------------ | -------- |
+| `filename`       | `string`   | Path of the file or folder on disk to watch.        |              | yes      |
+| `detector`       | `string`   | Which file change detector to use (fsnotify, poll). | `"fsnotify"` | no       |
+| `poll_frequency` | `duration` | How often to poll for file changes.                 | `"1m"`       | no       |
 
 {{< docs/shared lookup="flow/reference/components/local-file-arguments-text.md" source="agent" version="<AGENT_VERSION>" >}}
 
@@ -49,6 +49,7 @@ Name | Type | Description | Default | Required
 This example imports a module from a file and instantiates a custom component from the import that adds two numbers:
 
 {{< collapse title="module.river" >}}
+
 ```river
 declare "add" {
   argument "a" {}
@@ -59,9 +60,11 @@ declare "add" {
   }
 }
 ```
+
 {{< /collapse >}}
 
 {{< collapse title="importer.river" >}}
+
 ```river
 import.file "math" {
   filename = "module.river"
@@ -72,4 +75,10 @@ math.add "default" {
   b = 45
 }
 ```
+
 {{< /collapse >}}
+
+{{% docs/reference %}}
+[module]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/modules"
+[module]:"/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/concepts/modules"
+{{% /docs/reference %}}

@@ -40,6 +40,13 @@ type Arguments struct {
 
 var _ receiver.Arguments = Arguments{}
 
+// SetToDefault implements river.Defaulter.
+func (args *Arguments) SetToDefault() {
+	*args = Arguments{
+		DebugMetrics: otelcol.DefaultDebugMetricsArguments,
+	}
+}
+
 // Validate implements river.Validator.
 func (args *Arguments) Validate() error {
 	if args.Protocols.GRPC == nil &&

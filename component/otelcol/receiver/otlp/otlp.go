@@ -67,6 +67,13 @@ func (args *HTTPConfigArguments) Convert() *otlpreceiver.HTTPConfig {
 
 var _ receiver.Arguments = Arguments{}
 
+// SetToDefault implements river.Defaulter.
+func (args *Arguments) SetToDefault() {
+	*args = Arguments{
+		DebugMetrics: otelcol.DefaultDebugMetricsArguments,
+	}
+}
+
 // Convert implements receiver.Arguments.
 func (args Arguments) Convert() (otelcomponent.Config, error) {
 	return &otlpreceiver.Config{
