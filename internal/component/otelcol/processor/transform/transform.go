@@ -53,9 +53,9 @@ func (c *ContextID) UnmarshalText(text []byte) error {
 	}
 }
 
-type contextStatementsSlice []contextStatements
+type contextStatementsSlice []ContextStatements
 
-type contextStatements struct {
+type ContextStatements struct {
 	Context    ContextID `river:"context,attr"`
 	Statements []string  `river:"statements,attr"`
 }
@@ -112,7 +112,7 @@ func (stmts *contextStatementsSlice) convert() []interface{} {
 	return res
 }
 
-func (args *contextStatements) convert() map[string]interface{} {
+func (args *ContextStatements) convert() map[string]interface{} {
 	if args == nil {
 		return nil
 	}
