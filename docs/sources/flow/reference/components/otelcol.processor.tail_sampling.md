@@ -163,11 +163,12 @@ The `numeric_attribute` block configures a policy of type `numeric_attribute`. T
 
 The following arguments are supported:
 
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`key`       | `string` | Tag that the filter is matched against. | | yes
-`min_value` | `number` | The minimum value of the attribute to be considered a match. | | yes
-`max_value` | `number` | The maximum value of the attribute to be considered a match. | | yes
+Name | Type    | Description | Default | Required
+---- | ------- | ----------- | ------- | --------
+`key`          | `string` | Tag that the filter is matched against. | | yes
+`min_value`    | `number` | The minimum value of the attribute to be considered a match. | | yes
+`max_value`    | `number` | The maximum value of the attribute to be considered a match. | | yes
+`invert_match` | `bool`   | Indicates that values must not match against attribute values. | `false` | no
 
 ### probabilistic block
 
@@ -229,6 +230,9 @@ The following arguments are supported:
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `min_spans` | `number` | Minimum number of spans in a trace. | | yes
+`max_spans` | `number` | Maximum number of spans in a trace. | `0` | no
+
+The `max_spans` can be set to 0 to indicate max spans should not be considered.
 
 ### boolean_attribute block
 

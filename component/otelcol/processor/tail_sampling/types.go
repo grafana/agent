@@ -86,15 +86,20 @@ type NumericAttributeConfig struct {
 	MinValue int64 `river:"min_value,attr"`
 	// MaxValue is the maximum value of the attribute to be considered a match.
 	MaxValue int64 `river:"max_value,attr"`
+	// InvertMatch indicates that values must not match against attribute values.
+	// If InvertMatch is true and Values is equal to '123', all other values will be sampled except '123'.
+	// Also, if the specified Key does not match any resource or span attributes, data will be sampled.
+	InvertMatch bool `river:"invert_match,attr,optional"`
 }
 
 func (numericAttributeConfig NumericAttributeConfig) Convert() tsp.NumericAttributeCfg {
 	var otelConfig tsp.NumericAttributeCfg
 
 	mustDecodeMapStructure(map[string]interface{}{
-		"key":       numericAttributeConfig.Key,
-		"min_value": numericAttributeConfig.MinValue,
-		"max_value": numericAttributeConfig.MaxValue,
+		"key":          numericAttributeConfig.Key,
+		"min_value":    numericAttributeConfig.MinValue,
+		"max_value":    numericAttributeConfig.MaxValue,
+		"invert_match": numericAttributeConfig.InvertMatch,
 	}, &otelConfig)
 
 	return otelConfig
@@ -195,6 +200,7 @@ func (rateLimitingConfig RateLimitingConfig) Convert() tsp.RateLimitingCfg {
 type SpanCountConfig struct {
 	// Minimum number of spans in a Trace
 	MinSpans int32 `river:"min_spans,attr"`
+	MaxSpans int32 `river:"max_spans,attr"`
 }
 
 func (spanCountConfig SpanCountConfig) Convert() tsp.SpanCountCfg {
@@ -202,6 +208,7 @@ func (spanCountConfig SpanCountConfig) Convert() tsp.SpanCountCfg {
 
 	mustDecodeMapStructure(map[string]interface{}{
 		"min_spans": spanCountConfig.MinSpans,
+		"max_spans": spanCountConfig.MaxSpans,
 	}, &otelConfig)
 
 	return otelConfig
@@ -448,7 +455,8 @@ func (andSubPolicyConfig AndSubPolicyConfig) Convert() tsp.AndSubPolicyCfg {
 	return otelConfig
 }
 
-// TODO: Why do we do this? Can we not just create the Otel types directly?
+// mustDecodeMapStructure decodes a map into a structure. It panics if it fails.
+// This is necessary for otel types that have private fields such as sharedPolicyCfg.
 func mustDecodeMapStructure(source map[string]interface{}, otelConfig interface{}) {
 	err := mapstructure.Decode(source, otelConfig)
 
