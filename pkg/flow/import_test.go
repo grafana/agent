@@ -20,8 +20,10 @@ import (
 	_ "github.com/grafana/agent/component/module/string"
 )
 
-// The tests are using the .txtar files stored in the testdata folder.
+// use const to avoid lint error
+const mainFile = "main.river"
 
+// The tests are using the .txtar files stored in the testdata folder.
 type testImportFile struct {
 	description       string      // description at the top of the txtar file
 	main              string      // root config that the controller should load
@@ -44,7 +46,7 @@ func buildTestImportFile(t *testing.T, filename string) testImportFile {
 	tc.description = string(archive.Comment)
 	for _, riverConfig := range archive.Files {
 		switch riverConfig.Name {
-		case "main.river":
+		case mainFile:
 			tc.main = string(riverConfig.Data)
 		case "module.river":
 			tc.module = string(riverConfig.Data)
@@ -148,7 +150,7 @@ func buildTestImportFileFolder(t *testing.T, filename string) testImportFileFold
 	tc.description = string(archive.Comment)
 	for _, riverConfig := range archive.Files {
 		switch riverConfig.Name {
-		case "main.river":
+		case mainFile:
 			tc.main = string(riverConfig.Data)
 		case "module1.river":
 			tc.module1 = string(riverConfig.Data)
@@ -228,7 +230,7 @@ func buildTestImportError(t *testing.T, filename string) testImportError {
 	tc.description = string(archive.Comment)
 	for _, riverConfig := range archive.Files {
 		switch riverConfig.Name {
-		case "main.river":
+		case mainFile:
 			tc.main = string(riverConfig.Data)
 		case "error":
 			tc.expectedError = string(riverConfig.Data)
