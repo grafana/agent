@@ -4,9 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
 	"path/filepath"
 	"reflect"
+	"strings"
 	"sync"
+	"syscall"
 	"time"
 
 	"github.com/go-kit/log"
@@ -28,8 +31,6 @@ type ImportGit struct {
 	repoOpts        vcs.GitRepoOptions
 	args            GitArguments
 	onContentChange func(map[string]string)
-
-	lastContent string
 
 	argsChanged chan struct{}
 
@@ -235,17 +236,42 @@ func (im *ImportGit) pollFile(ctx context.Context, args GitArguments) error {
 		return err
 	}
 
-	// Finally, configure our controller.
-	bb, err := im.repo.ReadFile(args.Path)
+	// try to read as a directory
+	filesInfo, err := im.repo.ReadDir(args.Path)
+	if err != nil {
+		var pathErr *os.PathError
+		// if it's not a directory, then try to read as a file
+		if errors.As(err, &pathErr) && errors.Is(pathErr.Err, syscall.ENOTDIR) {
+			return im.handleFile(args.Path)
+		}
+		return err
+	}
+
+	return im.handleDirectory(args.Path, filesInfo)
+}
+
+func (im *ImportGit) handleDirectory(path string, filesInfo []os.FileInfo) error {
+	content := make(map[string]string)
+	for _, fi := range filesInfo {
+		if fi.IsDir() || !strings.HasSuffix(fi.Name(), ".river") {
+			continue
+		}
+		bb, err := im.repo.ReadFile(filepath.Join(path, fi.Name()))
+		if err != nil {
+			return err
+		}
+		content[fi.Name()] = string(bb)
+	}
+	im.onContentChange(content)
+	return nil
+}
+
+func (im *ImportGit) handleFile(path string) error {
+	bb, err := im.repo.ReadFile(path)
 	if err != nil {
 		return err
 	}
-	content := string(bb)
-	if im.lastContent != content {
-		// TODO: change when adding support to import folders
-		im.onContentChange(map[string]string{"import_git": content})
-		im.lastContent = content
-	}
+	im.onContentChange(map[string]string{path: string(bb)})
 	return nil
 }
 

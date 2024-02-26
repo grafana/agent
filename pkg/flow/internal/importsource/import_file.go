@@ -21,10 +21,10 @@ type ImportFile struct {
 
 var _ ImportSource = (*ImportFile)(nil)
 
-func NewImportFile(managedOpts component.Options, eval *vm.Evaluator, onContentChange func(string)) *ImportFile {
+func NewImportFile(managedOpts component.Options, eval *vm.Evaluator, onContentChange func(map[string]string)) *ImportFile {
 	opts := managedOpts
 	opts.OnStateChange = func(e component.Exports) {
-		onContentChange(e.(file.Exports).Content.Value)
+		//onContentChange(e.(file.Exports).Content.Value)
 	}
 	return &ImportFile{
 		managedOpts: opts,
