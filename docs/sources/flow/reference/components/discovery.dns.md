@@ -31,7 +31,7 @@ Name | Type | Description | Default | Required
 `names` | `list(string)` | DNS names to look up. | | yes
 `port` | `number` | Port to use for collecting metrics. Not used for SRV records. | `0` | no
 `refresh_interval` | `duration` | How often to query DNS for updates. | `"30s"` | no
-`type` | `string` | Type of DNS record to query. Must be one of SRV, A, AAAA, or MX. | `"SRV"` | no
+`type` | `string` | Type of DNS record to query. Must be one of SRV, A, AAAA, MX, or NS. | `"SRV"` | no
 
 ## Exported fields
 
@@ -47,7 +47,7 @@ Each target includes the following labels:
 * `__meta_dns_srv_record_target`: Target field of the SRV record.
 * `__meta_dns_srv_record_port`: Port field of the SRV record.
 * `__meta_dns_mx_record_target`: Target field of the MX record.
-
+* `__meta_dns_ns_record_target`: Target field of the NS record.
 
 ## Component health
 

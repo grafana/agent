@@ -248,6 +248,8 @@ v0.39.0 (2024-01-09)
 - `loki.source.docker` now deduplicates targets which report the same container
   ID. (@tpaschalis)
 
+- Added support for NS records to `discovery.dns`. (@djcode)
+
 ### Bugfixes
 
 - Update `pyroscope.ebpf` to fix a logical bug causing to profile to many kthreads instead of regular processes https://github.com/grafana/pyroscope/pull/2778 (@korniltsev)
