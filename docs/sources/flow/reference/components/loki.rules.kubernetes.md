@@ -28,7 +28,6 @@ Role-based access control (RBAC)]: https://kubernetes.io/docs/reference/access-a
 [Kubernetes label selectors]: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#label-selectors
 [prometheus-operator]: https://prometheus-operator.dev/
 [within a Pod]: https://kubernetes.io/docs/tasks/run-application/access-api-from-pod/
-[Role-based access control (RBAC)]: https://kubernetes.io/docs/reference/access-authn-authz/rbac/
 
 ## Usage
 
