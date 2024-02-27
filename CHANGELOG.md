@@ -10,6 +10,11 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+### Bugfixes
+
+- Set permissions on the `Grafana Agent [Flow]` folder when installing via the
+  windows installer rather than relying on the parent folder permissions. (@erikbaranowski)
+
 v0.40.0-rc.0 (2024-02-22)
 -------------------------
 
@@ -3866,7 +3871,7 @@ v0.1.0 (2020-03-16)
 
 > First release!
 
-### Features
+### Featuresgit status
 
 - Support for scraping Prometheus metrics and sharding the agent through the
   presence of a `host_filter` flag within the Agent configuration file.
