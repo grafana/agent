@@ -24,7 +24,8 @@ var _ ImportSource = (*ImportFile)(nil)
 func NewImportFile(managedOpts component.Options, eval *vm.Evaluator, onContentChange func(map[string]string)) *ImportFile {
 	opts := managedOpts
 	opts.OnStateChange = func(e component.Exports) {
-		//onContentChange(e.(file.Exports).Content.Value)
+		// todo: update this when adding dir support
+		onContentChange(map[string]string{"import_file": e.(file.Exports).Content.Value})
 	}
 	return &ImportFile{
 		managedOpts: opts,
