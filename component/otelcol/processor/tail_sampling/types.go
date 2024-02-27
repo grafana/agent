@@ -68,13 +68,9 @@ type LatencyConfig struct {
 }
 
 func (latencyConfig LatencyConfig) Convert() tsp.LatencyCfg {
-	otelConfig := tsp.LatencyCfg{}
-
-	mustDecodeMapStructure(map[string]interface{}{
-		"threshold_ms": latencyConfig.ThresholdMs,
-	}, &otelConfig)
-
-	return otelConfig
+	return tsp.LatencyCfg{
+		ThresholdMs: latencyConfig.ThresholdMs,
+	}
 }
 
 // NumericAttributeConfig holds the configurable settings to create a numeric attribute filter
@@ -86,18 +82,19 @@ type NumericAttributeConfig struct {
 	MinValue int64 `river:"min_value,attr"`
 	// MaxValue is the maximum value of the attribute to be considered a match.
 	MaxValue int64 `river:"max_value,attr"`
+	// InvertMatch indicates that values must not match against attribute values.
+	// If InvertMatch is true and Values is equal to '123', all other values will be sampled except '123'.
+	// Also, if the specified Key does not match any resource or span attributes, data will be sampled.
+	InvertMatch bool `river:"invert_match,attr,optional"`
 }
 
 func (numericAttributeConfig NumericAttributeConfig) Convert() tsp.NumericAttributeCfg {
-	var otelConfig tsp.NumericAttributeCfg
-
-	mustDecodeMapStructure(map[string]interface{}{
-		"key":       numericAttributeConfig.Key,
-		"min_value": numericAttributeConfig.MinValue,
-		"max_value": numericAttributeConfig.MaxValue,
-	}, &otelConfig)
-
-	return otelConfig
+	return tsp.NumericAttributeCfg{
+		Key:         numericAttributeConfig.Key,
+		MinValue:    numericAttributeConfig.MinValue,
+		MaxValue:    numericAttributeConfig.MaxValue,
+		InvertMatch: numericAttributeConfig.InvertMatch,
+	}
 }
 
 // ProbabilisticConfig holds the configurable settings to create a probabilistic
@@ -113,14 +110,10 @@ type ProbabilisticConfig struct {
 }
 
 func (probabilisticConfig ProbabilisticConfig) Convert() tsp.ProbabilisticCfg {
-	var otelConfig tsp.ProbabilisticCfg
-
-	mustDecodeMapStructure(map[string]interface{}{
-		"hash_salt":           probabilisticConfig.HashSalt,
-		"sampling_percentage": probabilisticConfig.SamplingPercentage,
-	}, &otelConfig)
-
-	return otelConfig
+	return tsp.ProbabilisticCfg{
+		HashSalt:           probabilisticConfig.HashSalt,
+		SamplingPercentage: probabilisticConfig.SamplingPercentage,
+	}
 }
 
 // StatusCodeConfig holds the configurable settings to create a status code filter sampling
@@ -130,13 +123,9 @@ type StatusCodeConfig struct {
 }
 
 func (statusCodeConfig StatusCodeConfig) Convert() tsp.StatusCodeCfg {
-	var otelConfig tsp.StatusCodeCfg
-
-	mustDecodeMapStructure(map[string]interface{}{
-		"status_codes": statusCodeConfig.StatusCodes,
-	}, &otelConfig)
-
-	return otelConfig
+	return tsp.StatusCodeCfg{
+		StatusCodes: statusCodeConfig.StatusCodes,
+	}
 }
 
 // StringAttributeConfig holds the configurable settings to create a string attribute filter
@@ -160,17 +149,13 @@ type StringAttributeConfig struct {
 }
 
 func (stringAttributeConfig StringAttributeConfig) Convert() tsp.StringAttributeCfg {
-	var otelConfig tsp.StringAttributeCfg
-
-	mustDecodeMapStructure(map[string]interface{}{
-		"key":                    stringAttributeConfig.Key,
-		"values":                 stringAttributeConfig.Values,
-		"enabled_regex_matching": stringAttributeConfig.EnabledRegexMatching,
-		"cache_max_size":         stringAttributeConfig.CacheMaxSize,
-		"invert_match":           stringAttributeConfig.InvertMatch,
-	}, &otelConfig)
-
-	return otelConfig
+	return tsp.StringAttributeCfg{
+		Key:                  stringAttributeConfig.Key,
+		Values:               stringAttributeConfig.Values,
+		EnabledRegexMatching: stringAttributeConfig.EnabledRegexMatching,
+		CacheMaxSize:         stringAttributeConfig.CacheMaxSize,
+		InvertMatch:          stringAttributeConfig.InvertMatch,
+	}
 }
 
 // RateLimitingConfig holds the configurable settings to create a rate limiting
@@ -181,13 +166,9 @@ type RateLimitingConfig struct {
 }
 
 func (rateLimitingConfig RateLimitingConfig) Convert() tsp.RateLimitingCfg {
-	var otelConfig tsp.RateLimitingCfg
-
-	mustDecodeMapStructure(map[string]interface{}{
-		"spans_per_second": rateLimitingConfig.SpansPerSecond,
-	}, &otelConfig)
-
-	return otelConfig
+	return tsp.RateLimitingCfg{
+		SpansPerSecond: rateLimitingConfig.SpansPerSecond,
+	}
 }
 
 // SpanCountConfig holds the configurable settings to create a Span Count filter sampling policy
@@ -195,16 +176,14 @@ func (rateLimitingConfig RateLimitingConfig) Convert() tsp.RateLimitingCfg {
 type SpanCountConfig struct {
 	// Minimum number of spans in a Trace
 	MinSpans int32 `river:"min_spans,attr"`
+	MaxSpans int32 `river:"max_spans,attr,optional"`
 }
 
 func (spanCountConfig SpanCountConfig) Convert() tsp.SpanCountCfg {
-	var otelConfig tsp.SpanCountCfg
-
-	mustDecodeMapStructure(map[string]interface{}{
-		"min_spans": spanCountConfig.MinSpans,
-	}, &otelConfig)
-
-	return otelConfig
+	return tsp.SpanCountCfg{
+		MinSpans: spanCountConfig.MinSpans,
+		MaxSpans: spanCountConfig.MaxSpans,
+	}
 }
 
 // BooleanAttributeConfig holds the configurable settings to create a boolean attribute filter
@@ -218,14 +197,10 @@ type BooleanAttributeConfig struct {
 }
 
 func (booleanAttributeConfig BooleanAttributeConfig) Convert() tsp.BooleanAttributeCfg {
-	var otelConfig tsp.BooleanAttributeCfg
-
-	mustDecodeMapStructure(map[string]interface{}{
-		"key":   booleanAttributeConfig.Key,
-		"value": booleanAttributeConfig.Value,
-	}, &otelConfig)
-
-	return otelConfig
+	return tsp.BooleanAttributeCfg{
+		Key:   booleanAttributeConfig.Key,
+		Value: booleanAttributeConfig.Value,
+	}
 }
 
 // The error mode determines whether to ignore or propagate
@@ -295,15 +270,11 @@ type OttlConditionConfig struct {
 }
 
 func (ottlConditionConfig OttlConditionConfig) Convert() tsp.OTTLConditionCfg {
-	var otelConfig tsp.OTTLConditionCfg
-
-	mustDecodeMapStructure(map[string]interface{}{
-		"error_mode": ottlConditionConfig.ErrorMode.Convert(),
-		"span":       ottlConditionConfig.SpanConditions,
-		"spanevent":  ottlConditionConfig.SpanEventConditions,
-	}, &otelConfig)
-
-	return otelConfig
+	return tsp.OTTLConditionCfg{
+		ErrorMode:           ottlConditionConfig.ErrorMode.Convert(),
+		SpanConditions:      ottlConditionConfig.SpanConditions,
+		SpanEventConditions: ottlConditionConfig.SpanEventConditions,
+	}
 }
 
 type TraceStateConfig struct {
@@ -314,14 +285,10 @@ type TraceStateConfig struct {
 }
 
 func (traceStateConfig TraceStateConfig) Convert() tsp.TraceStateCfg {
-	var otelConfig tsp.TraceStateCfg
-
-	mustDecodeMapStructure(map[string]interface{}{
-		"key":    traceStateConfig.Key,
-		"values": traceStateConfig.Values,
-	}, &otelConfig)
-
-	return otelConfig
+	return tsp.TraceStateCfg{
+		Key:    traceStateConfig.Key,
+		Values: traceStateConfig.Values,
+	}
 }
 
 // CompositeConfig holds the configurable settings to create a composite
@@ -334,8 +301,6 @@ type CompositeConfig struct {
 }
 
 func (compositeConfig CompositeConfig) Convert() tsp.CompositeCfg {
-	var otelConfig tsp.CompositeCfg
-
 	var otelCompositeSubPolicyCfg []tsp.CompositeSubPolicyCfg
 	for _, subPolicyCfg := range compositeConfig.SubPolicyCfg {
 		otelCompositeSubPolicyCfg = append(otelCompositeSubPolicyCfg, subPolicyCfg.Convert())
@@ -346,14 +311,12 @@ func (compositeConfig CompositeConfig) Convert() tsp.CompositeCfg {
 		otelRateAllocationCfg = append(otelRateAllocationCfg, rateAllocation.Convert())
 	}
 
-	mustDecodeMapStructure(map[string]interface{}{
-		"max_total_spans_per_second": compositeConfig.MaxTotalSpansPerSecond,
-		"policy_order":               compositeConfig.PolicyOrder,
-		"composite_sub_policy":       otelCompositeSubPolicyCfg,
-		"rate_allocation":            otelRateAllocationCfg,
-	}, &otelConfig)
-
-	return otelConfig
+	return tsp.CompositeCfg{
+		MaxTotalSpansPerSecond: compositeConfig.MaxTotalSpansPerSecond,
+		PolicyOrder:            compositeConfig.PolicyOrder,
+		SubPolicyCfg:           otelCompositeSubPolicyCfg,
+		RateAllocation:         otelRateAllocationCfg,
+	}
 }
 
 // CompositeSubPolicyConfig holds the common configuration to all policies under composite policy.
@@ -393,14 +356,10 @@ type RateAllocationConfig struct {
 }
 
 func (rateAllocationConfig RateAllocationConfig) Convert() tsp.RateAllocationCfg {
-	var otelConfig tsp.RateAllocationCfg
-
-	mustDecodeMapStructure(map[string]interface{}{
-		"policy":  rateAllocationConfig.Policy,
-		"percent": rateAllocationConfig.Percent,
-	}, &otelConfig)
-
-	return otelConfig
+	return tsp.RateAllocationCfg{
+		Policy:  rateAllocationConfig.Policy,
+		Percent: rateAllocationConfig.Percent,
+	}
 }
 
 type AndConfig struct {
@@ -408,18 +367,14 @@ type AndConfig struct {
 }
 
 func (andConfig AndConfig) Convert() tsp.AndCfg {
-	var otelConfig tsp.AndCfg
-
 	var otelPolicyCfgs []tsp.AndSubPolicyCfg
 	for _, subPolicyCfg := range andConfig.SubPolicyConfig {
 		otelPolicyCfgs = append(otelPolicyCfgs, subPolicyCfg.Convert())
 	}
 
-	mustDecodeMapStructure(map[string]interface{}{
-		"and_sub_policy": otelPolicyCfgs,
-	}, &otelConfig)
-
-	return otelConfig
+	return tsp.AndCfg{
+		SubPolicyCfg: otelPolicyCfgs,
+	}
 }
 
 // AndSubPolicyConfig holds the common configuration to all policies under and policy.
@@ -448,7 +403,8 @@ func (andSubPolicyConfig AndSubPolicyConfig) Convert() tsp.AndSubPolicyCfg {
 	return otelConfig
 }
 
-// TODO: Why do we do this? Can we not just create the Otel types directly?
+// mustDecodeMapStructure decodes a map into a structure. It panics if it fails.
+// This is necessary for otel types that have private fields such as sharedPolicyCfg.
 func mustDecodeMapStructure(source map[string]interface{}, otelConfig interface{}) {
 	err := mapstructure.Decode(source, otelConfig)
 
