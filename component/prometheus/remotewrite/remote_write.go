@@ -9,25 +9,23 @@ import (
 	"sync"
 	"time"
 
-	"go.uber.org/atomic"
-
+	"github.com/go-kit/log"
+	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/component/prometheus"
+	"github.com/grafana/agent/internal/agentseed"
+	"github.com/grafana/agent/internal/featuregate"
+	"github.com/grafana/agent/internal/useragent"
+	"github.com/grafana/agent/pkg/flow/logging/level"
+	"github.com/grafana/agent/pkg/metrics/wal"
+	"github.com/grafana/agent/service/labelstore"
 	"github.com/prometheus/prometheus/model/exemplar"
 	"github.com/prometheus/prometheus/model/histogram"
 	"github.com/prometheus/prometheus/model/labels"
 	"github.com/prometheus/prometheus/model/metadata"
-
-	"github.com/grafana/agent/component/prometheus"
-	"github.com/grafana/agent/service/labelstore"
-
-	"github.com/go-kit/log"
-	"github.com/grafana/agent/component"
-	"github.com/grafana/agent/internal/agentseed"
-	"github.com/grafana/agent/internal/useragent"
-	"github.com/grafana/agent/pkg/flow/logging/level"
-	"github.com/grafana/agent/pkg/metrics/wal"
 	"github.com/prometheus/prometheus/model/timestamp"
 	"github.com/prometheus/prometheus/storage"
 	"github.com/prometheus/prometheus/storage/remote"
+	"go.uber.org/atomic"
 )
 
 // Options.
@@ -39,9 +37,10 @@ func init() {
 	remote.UserAgent = useragent.Get()
 
 	component.Register(component.Registration{
-		Name:    "prometheus.remote_write",
-		Args:    Arguments{},
-		Exports: Exports{},
+		Name:      "prometheus.remote_write",
+		Stability: featuregate.StabilityStable,
+		Args:      Arguments{},
+		Exports:   Exports{},
 
 		Build: func(o component.Options, c component.Arguments) (component.Component, error) {
 			return New(o, c.(Arguments))

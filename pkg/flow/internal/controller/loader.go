@@ -75,7 +75,7 @@ func NewLoader(opts LoaderOptions) *Loader {
 	)
 
 	if reg == nil {
-		reg = DefaultComponentRegistry{}
+		reg = NewDefaultComponentRegistry(opts.ComponentGlobals.MinStability)
 	}
 
 	l := &Loader{

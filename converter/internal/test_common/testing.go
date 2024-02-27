@@ -13,6 +13,7 @@ import (
 	"testing"
 
 	"github.com/grafana/agent/converter/diag"
+	"github.com/grafana/agent/internal/featuregate"
 	"github.com/grafana/agent/pkg/flow"
 	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/grafana/agent/service"
@@ -193,8 +194,9 @@ func attemptLoadingFlowConfig(t *testing.T, river []byte) {
 	require.NoError(t, err)
 
 	f := flow.New(flow.Options{
-		Logger:   logger,
-		DataPath: t.TempDir(),
+		Logger:       logger,
+		DataPath:     t.TempDir(),
+		MinStability: featuregate.StabilityExperimental,
 		Services: []service.Service{
 			// The services here aren't used, but we still need to provide an
 			// implementations so that components which rely on the services load

@@ -5,6 +5,7 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/otelcol"
 	"github.com/grafana/agent/component/otelcol/receiver"
+	"github.com/grafana/agent/internal/featuregate"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/zipkinreceiver"
 	otelcomponent "go.opentelemetry.io/collector/component"
 	otelextension "go.opentelemetry.io/collector/extension"
@@ -12,8 +13,9 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name: "otelcol.receiver.zipkin",
-		Args: Arguments{},
+		Name:      "otelcol.receiver.zipkin",
+		Stability: featuregate.StabilityStable,
+		Args:      Arguments{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			fact := zipkinreceiver.NewFactory()
