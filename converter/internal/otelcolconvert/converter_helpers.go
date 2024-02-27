@@ -48,7 +48,14 @@ func toTokenizedConsumers(components []componentID) []otelcol.Consumer {
 // in an internal package.
 func encodeMapstruct(v any) map[string]any {
 	var res map[string]any
-	if err := mapstructure.Decode(v, &res); err != nil {
+	var decoderConfig mapstructure.DecoderConfig = mapstructure.DecoderConfig{Squash: true, Result: &res}
+	decoder, err := mapstructure.NewDecoder(&decoderConfig)
+	if err != nil {
+		panic(err)
+	}
+
+	err = decoder.Decode(v)
+	if err != nil {
 		panic(err)
 	}
 	return res

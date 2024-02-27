@@ -6,15 +6,17 @@ import (
 	"github.com/grafana/agent/component"
 	commonCfg "github.com/grafana/agent/component/common/config"
 	"github.com/grafana/agent/component/prometheus/exporter"
+	"github.com/grafana/agent/internal/featuregate"
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/integrations/elasticsearch_exporter"
 )
 
 func init() {
 	component.Register(component.Registration{
-		Name:    "prometheus.exporter.elasticsearch",
-		Args:    Arguments{},
-		Exports: exporter.Exports{},
+		Name:      "prometheus.exporter.elasticsearch",
+		Stability: featuregate.StabilityStable,
+		Args:      Arguments{},
+		Exports:   exporter.Exports{},
 
 		Build: exporter.New(createExporter, "elasticsearch"),
 	})

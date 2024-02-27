@@ -7,6 +7,7 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/prometheus/exporter"
+	"github.com/grafana/agent/internal/featuregate"
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/integrations/kafka_exporter"
 	"github.com/grafana/river/rivertypes"
@@ -51,9 +52,10 @@ type Arguments struct {
 
 func init() {
 	component.Register(component.Registration{
-		Name:    "prometheus.exporter.kafka",
-		Args:    Arguments{},
-		Exports: exporter.Exports{},
+		Name:      "prometheus.exporter.kafka",
+		Stability: featuregate.StabilityStable,
+		Args:      Arguments{},
+		Exports:   exporter.Exports{},
 
 		Build: exporter.NewWithTargetBuilder(createExporter, "kafka", customizeTarget),
 	})

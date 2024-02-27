@@ -11,6 +11,7 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/common/loki"
 	"github.com/grafana/agent/component/loki/process/stages"
+	"github.com/grafana/agent/internal/featuregate"
 )
 
 // TODO(thampiotr): We should reconsider which parts of this component should be exported and which should
@@ -20,9 +21,10 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name:    "loki.process",
-		Args:    Arguments{},
-		Exports: Exports{},
+		Name:      "loki.process",
+		Stability: featuregate.StabilityStable,
+		Args:      Arguments{},
+		Exports:   Exports{},
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			return New(opts, args.(Arguments))
 		},

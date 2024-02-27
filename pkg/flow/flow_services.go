@@ -77,6 +77,7 @@ func (f *Flow) NewController(id string) service.Controller {
 				Logger:          f.opts.Logger,
 				Tracer:          f.opts.Tracer,
 				DataPath:        f.opts.DataPath,
+				MinStability:    f.opts.MinStability,
 				Reg:             f.opts.Reg,
 				Services:        f.opts.Services,
 				OnExportsChange: nil, // NOTE(@tpaschalis, @wildum) The isolated controller shouldn't be able to export any values.

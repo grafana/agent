@@ -10,6 +10,11 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+### Features
+
+- Added a new CLI flag `--stability.level` which defines the minimum stability
+  level required for the features that the agent is allowed to use. Default is `experimental`. (@thampiotr)
+
 
 v0.40.0 (2024-02-27)
 --------------------

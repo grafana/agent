@@ -6,13 +6,15 @@ import (
 
 	"github.com/grafana/agent/component"
 	mod "github.com/grafana/agent/component/module"
+	"github.com/grafana/agent/internal/featuregate"
 )
 
 func init() {
 	component.Register(component.Registration{
-		Name:    "test.fail.module",
-		Args:    TestFailArguments{},
-		Exports: mod.Exports{},
+		Name:      "test.fail.module",
+		Stability: featuregate.StabilityStable,
+		Args:      TestFailArguments{},
+		Exports:   mod.Exports{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			m, err := mod.NewModuleComponent(opts)

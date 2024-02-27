@@ -32,9 +32,9 @@ func (m *ComponentNodeManager) createComponentNode(componentName string, block *
 	if isCustomComponent(m.customComponentReg, block.Name[0]) {
 		return NewCustomComponentNode(m.globals, block, m.getCustomComponentConfig), nil
 	}
-	registration, exists := m.builtinComponentReg.Get(componentName)
-	if !exists {
-		return nil, fmt.Errorf("cannot retrieve the definition of component name %q", componentName)
+	registration, err := m.builtinComponentReg.Get(componentName)
+	if err != nil {
+		return nil, err
 	}
 	if block.Label == "" {
 		return nil, fmt.Errorf("component %q must have a label", componentName)

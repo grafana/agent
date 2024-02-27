@@ -5,15 +5,16 @@ package windowsevent
 import (
 	"context"
 
-	"github.com/grafana/agent/pkg/flow/logging/level"
-
 	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/internal/featuregate"
+	"github.com/grafana/agent/pkg/flow/logging/level"
 )
 
 func init() {
 	component.Register(component.Registration{
-		Name: "loki.source.windowsevent",
-		Args: Arguments{},
+		Name:      "loki.source.windowsevent",
+		Stability: featuregate.StabilityStable,
+		Args:      Arguments{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			level.Info(opts.Logger).Log("msg", "loki.source.windowsevent only works on windows platforms")

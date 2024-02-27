@@ -27,7 +27,7 @@ spec:
       serviceAccountName: grafana-agent
       containers:
         - name: grafana-agent
-          image: quay.io/grafana/agent:v0.39.2
+          image: quay.io/grafana/agent:v0.40.0
           imagePullPolicy: IfNotPresent
           args:
             - run

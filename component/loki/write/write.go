@@ -13,13 +13,15 @@ import (
 	"github.com/grafana/agent/component/common/loki/limit"
 	"github.com/grafana/agent/component/common/loki/wal"
 	"github.com/grafana/agent/internal/agentseed"
+	"github.com/grafana/agent/internal/featuregate"
 )
 
 func init() {
 	component.Register(component.Registration{
-		Name:    "loki.write",
-		Args:    Arguments{},
-		Exports: Exports{},
+		Name:      "loki.write",
+		Stability: featuregate.StabilityStable,
+		Args:      Arguments{},
+		Exports:   Exports{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			return New(opts, args.(Arguments))

@@ -9,14 +9,16 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/local/file"
 	"github.com/grafana/agent/component/module"
+	"github.com/grafana/agent/internal/featuregate"
 	"github.com/grafana/river/rivertypes"
 )
 
 func init() {
 	component.Register(component.Registration{
-		Name:    "module.file",
-		Args:    Arguments{},
-		Exports: module.Exports{},
+		Name:      "module.file",
+		Stability: featuregate.StabilityBeta,
+		Args:      Arguments{},
+		Exports:   module.Exports{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			return New(opts, args.(Arguments))

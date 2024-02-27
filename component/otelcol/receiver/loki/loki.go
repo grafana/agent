@@ -12,6 +12,7 @@ import (
 	"github.com/grafana/agent/component/common/loki"
 	"github.com/grafana/agent/component/otelcol"
 	"github.com/grafana/agent/component/otelcol/internal/fanoutconsumer"
+	"github.com/grafana/agent/internal/featuregate"
 	"github.com/grafana/agent/pkg/flow/logging/level"
 	loki_translator "github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/loki"
 	"go.opentelemetry.io/collector/consumer"
@@ -20,9 +21,10 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name:    "otelcol.receiver.loki",
-		Args:    Arguments{},
-		Exports: Exports{},
+		Name:      "otelcol.receiver.loki",
+		Stability: featuregate.StabilityBeta,
+		Args:      Arguments{},
+		Exports:   Exports{},
 
 		Build: func(o component.Options, a component.Arguments) (component.Component, error) {
 			return New(o, a.(Arguments))

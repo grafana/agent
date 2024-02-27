@@ -7,6 +7,7 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/otelcol"
 	"github.com/grafana/agent/component/otelcol/processor"
+	"github.com/grafana/agent/internal/featuregate"
 	"github.com/mitchellh/mapstructure"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/attributesprocessor"
 	otelcomponent "go.opentelemetry.io/collector/component"
@@ -15,9 +16,10 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name:    "otelcol.processor.attributes",
-		Args:    Arguments{},
-		Exports: otelcol.ConsumerExports{},
+		Name:      "otelcol.processor.attributes",
+		Stability: featuregate.StabilityStable,
+		Args:      Arguments{},
+		Exports:   otelcol.ConsumerExports{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			fact := attributesprocessor.NewFactory()
