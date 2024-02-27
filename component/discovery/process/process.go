@@ -9,6 +9,7 @@ import (
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/discovery"
+	analCache "github.com/grafana/agent/component/discovery/process/analyze/cache"
 )
 
 func init() {
@@ -29,6 +30,7 @@ func New(opts component.Options, args Arguments) (*Component, error) {
 		onStateChange: opts.OnStateChange,
 		argsUpdates:   make(chan Arguments),
 		args:          args,
+		analCache:     analCache.New(opts.Logger),
 	}
 	return c, nil
 }
@@ -39,11 +41,12 @@ type Component struct {
 	processes     []discovery.Target
 	argsUpdates   chan Arguments
 	args          Arguments
+	analCache     *analCache.Cache
 }
 
 func (c *Component) Run(ctx context.Context) error {
 	doDiscover := func() error {
-		processes, err := discover(c.l, &c.args.DiscoverConfig)
+		processes, err := Discover(c.l, &c.args.DiscoverConfig, c.analCache)
 		if err != nil {
 			return err
 		}
