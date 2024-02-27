@@ -48,8 +48,10 @@ with a `git clone REPOSITORY_ADDRESS` command, such as `https://github.com/grafa
 When provided, the `revision` attribute must be set to a valid branch, tag, or
 commit SHA within the repository.
 
-You must set the `path` attribute to a path accessible from the repository's root,
-such as `FILE_NAME.river` or `FOLDER_NAME/FILE_NAME.river`.
+You must set the `path` attribute to a path accessible from the repository's root.
+It can either be a river file such as `FILE_NAME.river` or `DIR_NAME/FILE_NAME.river` or
+a directory containing river files such as `DIR_NAME` or `.` if the river files are stored at the root
+of the repository.
 
 If `pull_frequency` isn't `"0s"`, the Git repository is pulled for updates at the frequency specified.
 If it's set to `"0s"`, the Git repository is pulled once on init.
@@ -89,6 +91,21 @@ import.git "math" {
   repository = "https://github.com/wildum/module.git"
   revision   = "master"
   path       = "math.river"
+}
+
+math.add "default" {
+  a = 15
+  b = 45
+}
+```
+
+This example imports custom components from a directory in a Git repository and uses a custom component to add two numbers:
+
+```river
+import.git "math" {
+  repository = "https://github.com/wildum/module.git"
+  revision   = "master"
+  path       = "modules"
 }
 
 math.add "default" {

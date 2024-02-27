@@ -10,6 +10,9 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+### Enhancements
+
+- Add support for importing directories as single module to `import.git`. (@wildum)
 
 v0.40.0-rc.2 (2024-02-26)
 -------------------------
