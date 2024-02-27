@@ -84,11 +84,7 @@ func (h *handler) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	// Propagate request headers as metadata
 	if h.args.IncludeMetadata {
 		cl := client.FromContext(req.Context())
-		md := req.Header.Clone()
-		for k := range md {
-			md.Add(k, md.Get(k))
-		}
-		cl.Metadata = client.NewMetadata(md)
+		cl.Metadata = client.NewMetadata(req.Header.Clone())
 		req = req.WithContext(client.NewContext(req.Context(), cl))
 	}
 
