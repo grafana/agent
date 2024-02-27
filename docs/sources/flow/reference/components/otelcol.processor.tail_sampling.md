@@ -232,7 +232,7 @@ Name | Type | Description | Default | Required
 `min_spans` | `number` | Minimum number of spans in a trace. | | yes
 `max_spans` | `number` | Maximum number of spans in a trace. | `0` | no
 
-The `max_spans` can be set to 0 to indicate max spans should not be considered.
+Set `max_spans` to `0`, if you do not want to limit the policy samples based on the maximum number of spans in a trace.
 
 ### boolean_attribute block
 
