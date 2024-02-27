@@ -1,4 +1,4 @@
-//go:build !(fips || boringcrypto)
+//go:build !(fips || boringcrypto || cngcrypto)
 
 package boringcrypto
 

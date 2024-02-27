@@ -22,6 +22,7 @@ local os_arch_tuples = [
   // Windows
   { name: 'Windows amd64', os: 'windows', arch: 'amd64' },
 
+
   // FreeBSD
   { name: 'FreeBSD amd64', os: 'freebsd', arch: 'amd64' },
 ];
@@ -37,13 +38,20 @@ local targets = [
 local targets_boringcrypto = [
   'agent-boringcrypto',
 ];
+local targets_boringcrypto_windows = [
+  'agent-flow-windows-boringcrypto',
+];
+
 
 local os_arch_types_boringcrypto = [
   // Linux boringcrypto
   { name: 'Linux amd64 boringcrypto', os: 'linux', arch: 'amd64', experiment: 'boringcrypto' },
   { name: 'Linux arm64 boringcrypto', os: 'linux', arch: 'arm64', experiment: 'boringcrypto' },
 ];
-
+local windows_os_arch_types_boringcrypto = [
+  // Windows boringcrypto
+  { name: 'Windows amd64', os: 'windows', arch: 'amd64', experiment: 'cngcrypto' },
+];
 
 std.flatMap(function(target) (
   std.map(function(platform) (
@@ -99,4 +107,33 @@ std.flatMap(function(target) (
       }],
     }
   ), os_arch_types_boringcrypto)
-), targets_boringcrypto)
+), targets_boringcrypto) +
+std.flatMap(function(target) (
+  std.map(function(platform) (
+    pipelines.linux('Build %s (%s)' % [target, platform.name]) {
+      local env = {
+        GOOS: platform.os,
+        GOARCH: platform.arch,
+        GOARM: if 'arm' in platform then platform.arm else '',
+        GOEXPERIMENT: platform.experiment,
+
+        target: target,
+
+        tags: go_tags[platform.os],
+      },
+
+      trigger: {
+        event: ['pull_request'],
+      },
+      steps: [{
+        name: 'Build',
+        image: build_image.boringcrypto,
+        commands: [
+          'make generate-ui',
+          'GO_TAGS="%(tags)s" GOOS=%(GOOS)s GOARCH=%(GOARCH)s GOARM=%(GOARM)s GOEXPERIMENT=%(GOEXPERIMENT)s make %(target)s' % env,
+        ],
+      }],
+    }
+  ), windows_os_arch_types_boringcrypto)
+), targets_boringcrypto_windows)
+
