@@ -9,6 +9,7 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/common/config"
 	"github.com/grafana/agent/component/discovery"
+	"github.com/grafana/agent/internal/featuregate"
 	"github.com/grafana/river/rivertypes"
 	promcfg "github.com/prometheus/common/config"
 	"github.com/prometheus/common/model"
@@ -17,9 +18,10 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name:    "discovery.ec2",
-		Args:    EC2Arguments{},
-		Exports: discovery.Exports{},
+		Name:      "discovery.ec2",
+		Stability: featuregate.StabilityStable,
+		Args:      EC2Arguments{},
+		Exports:   discovery.Exports{},
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			return NewEC2(opts, args.(EC2Arguments))
 		},

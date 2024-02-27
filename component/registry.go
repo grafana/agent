@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/go-kit/log"
+	"github.com/grafana/agent/internal/featuregate"
 	"github.com/grafana/regexp"
 	"github.com/prometheus/client_golang/prometheus"
 	"go.opentelemetry.io/otel/trace"
@@ -119,6 +120,13 @@ type Registration struct {
 	// any number of underscores or alphanumeric ASCII characters.
 	Name string
 
+	// Stability is the overall stability level of the component. This is used to make
+	// sure the user is not accidentally using a component that is not yet stable - users
+	// need to explicitly enable less-than-stable components via, for example, a command-line flag.
+	// If a component is not stable enough, an attempt to create it via the controller will fail.
+	// The default stability level is Experimental.
+	Stability featuregate.Stability
+
 	// An example Arguments value that the registered component expects to
 	// receive as input. Components should provide the zero value of their
 	// Arguments type here.
@@ -138,12 +146,19 @@ func (r Registration) CloneArguments() Arguments {
 	return reflect.New(reflect.TypeOf(r.Args)).Interface()
 }
 
-// Register registers a component. Register will panic if the name is in use by
-// another component, if the name is invalid, or if the component name has a
-// suffix length mismatch with an existing component.
+// Register registers a component. Register will panic if:
+//   - the name is in use by another component,
+//   - the name is invalid,
+//   - the component name has a suffix length mismatch with an existing component,
+//   - the component's stability level is not defined.
+//
+// NOTE: the above panics will trigger during the integration tests if the registrations are invalid.
 func Register(r Registration) {
 	if _, exist := registered[r.Name]; exist {
 		panic(fmt.Sprintf("Component name %q already registered", r.Name))
+	}
+	if r.Stability == featuregate.StabilityUndefined {
+		panic(fmt.Sprintf("Component %q has an undefined stability level - please provide stability level when registering the component", r.Name))
 	}
 
 	parsed, err := parseComponentName(r.Name)

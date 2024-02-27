@@ -51,6 +51,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/grafana/agent/internal/featuregate"
 	"github.com/grafana/agent/pkg/flow/internal/controller"
 	"github.com/grafana/agent/pkg/flow/internal/worker"
 	"github.com/grafana/agent/pkg/flow/logging"
@@ -89,6 +90,10 @@ type Options struct {
 
 	// Reg is the prometheus register to use
 	Reg prometheus.Registerer
+
+	// MinStability is the minimum stability level of features that can be used by the collector. It is defined by
+	// the user, for example, via command-line flags.
+	MinStability featuregate.Stability
 
 	// OnExportsChange is called when the exports of the controller change.
 	// Exports are controlled by "export" configuration blocks. If
@@ -186,6 +191,7 @@ func newController(o controllerOptions) *Flow {
 			Logger:        log,
 			TraceProvider: tracer,
 			DataPath:      o.DataPath,
+			MinStability:  o.MinStability,
 			OnBlockNodeUpdate: func(cn controller.BlockNode) {
 				// Changed node should be queued for reevaluation.
 				f.updateQueue.Enqueue(&controller.QueuedNode{Node: cn, LastUpdatedTime: time.Now()})
@@ -201,6 +207,7 @@ func newController(o controllerOptions) *Flow {
 					Tracer:            tracer,
 					Reg:               o.Reg,
 					DataPath:          o.DataPath,
+					MinStability:      o.MinStability,
 					ID:                id,
 					ServiceMap:        serviceMap,
 					WorkerPool:        workerPool,

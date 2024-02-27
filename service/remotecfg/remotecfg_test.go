@@ -12,6 +12,7 @@ import (
 	agentv1 "github.com/grafana/agent-remote-config/api/gen/proto/go/agent/v1"
 	"github.com/grafana/agent/component"
 	_ "github.com/grafana/agent/component/loki/process"
+	"github.com/grafana/agent/internal/featuregate"
 	"github.com/grafana/agent/pkg/flow"
 	"github.com/grafana/agent/pkg/flow/componenttest"
 	"github.com/grafana/agent/pkg/flow/logging"
@@ -166,6 +167,7 @@ func (f fakeHost) NewController(id string) service.Controller {
 		Logger:          logger,
 		Tracer:          nil,
 		DataPath:        "",
+		MinStability:    featuregate.StabilityStable,
 		Reg:             prometheus.NewRegistry(),
 		OnExportsChange: func(map[string]interface{}) {},
 		Services:        []service.Service{},

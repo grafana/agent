@@ -8,15 +8,17 @@ import (
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/discovery"
+	"github.com/grafana/agent/internal/featuregate"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/discovery/dns"
 )
 
 func init() {
 	component.Register(component.Registration{
-		Name:    "discovery.dns",
-		Args:    Arguments{},
-		Exports: discovery.Exports{},
+		Name:      "discovery.dns",
+		Stability: featuregate.StabilityStable,
+		Args:      Arguments{},
+		Exports:   discovery.Exports{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			return New(opts, args.(Arguments))

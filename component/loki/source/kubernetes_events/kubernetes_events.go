@@ -16,6 +16,7 @@ import (
 	"github.com/grafana/agent/component/common/kubernetes"
 	"github.com/grafana/agent/component/common/loki"
 	"github.com/grafana/agent/component/common/loki/positions"
+	"github.com/grafana/agent/internal/featuregate"
 	"github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/grafana/agent/pkg/runner"
 	"github.com/oklog/run"
@@ -27,8 +28,9 @@ const informerSyncTimeout = 10 * time.Second
 
 func init() {
 	component.Register(component.Registration{
-		Name: "loki.source.kubernetes_events",
-		Args: Arguments{},
+		Name:      "loki.source.kubernetes_events",
+		Stability: featuregate.StabilityStable,
+		Args:      Arguments{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			return New(opts, args.(Arguments))

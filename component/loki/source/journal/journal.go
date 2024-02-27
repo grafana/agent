@@ -13,6 +13,7 @@ import (
 	"github.com/grafana/agent/component/common/loki/positions"
 	flow_relabel "github.com/grafana/agent/component/common/relabel"
 	"github.com/grafana/agent/component/loki/source/journal/internal/target"
+	"github.com/grafana/agent/internal/featuregate"
 	"github.com/grafana/loki/clients/pkg/promtail/scrapeconfig"
 	"github.com/prometheus/common/model"
 
@@ -21,8 +22,9 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name: "loki.source.journal",
-		Args: Arguments{},
+		Name:      "loki.source.journal",
+		Stability: featuregate.StabilityStable,
+		Args:      Arguments{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			return New(opts, args.(Arguments))
