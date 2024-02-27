@@ -36,6 +36,28 @@ var (
 	metrics    = NewMetrics(prometheus.DefaultRegisterer)
 )
 
+// TestManager_NoDuplicateMetricsPanic ensures that creating two managers does
+// not lead to duplicate metrics registration.
+func TestManager_NoDuplicateMetricsPanic(t *testing.T) {
+	var (
+		host, _ = url.Parse("http://localhost:3100")
+
+		reg     = prometheus.NewRegistry()
+		metrics = NewMetrics(reg)
+	)
+
+	require.NotPanics(t, func() {
+		for i := 0; i < 2; i++ {
+			_, err := NewManager(metrics, log.NewLogfmtLogger(os.Stdout), testLimitsConfig, reg, wal.Config{
+				WatchConfig: wal.DefaultWatchConfig,
+			}, NilNotifier, Config{
+				URL: flagext.URLValue{URL: host},
+			})
+			require.NoError(t, err)
+		}
+	})
+}
+
 func TestManager_ErrorCreatingWhenNoClientConfigsProvided(t *testing.T) {
 	for _, walEnabled := range []bool{true, false} {
 		t.Run(fmt.Sprintf("wal-enabled = %t", walEnabled), func(t *testing.T) {

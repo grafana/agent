@@ -57,7 +57,7 @@ func (m *mockSession) CollectProfiles(f pprof.CollectProfilesCallback) error {
 				Target:      m.dataTarget,
 				Pid:         0,
 				SampleType:  pprof.SampleTypeCpu,
-				Aggregation: pprof.SampleNotAggregated,
+				Aggregation: pprof.SampleAggregation(false),
 				Stack:       stack,
 				Value:       1,
 				Value2:      0,

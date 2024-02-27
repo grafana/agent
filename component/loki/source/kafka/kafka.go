@@ -10,6 +10,7 @@ import (
 	"github.com/grafana/agent/component/common/loki"
 	flow_relabel "github.com/grafana/agent/component/common/relabel"
 	kt "github.com/grafana/agent/component/loki/source/internal/kafkatarget"
+	"github.com/grafana/agent/internal/featuregate"
 	"github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/grafana/dskit/flagext"
 	"github.com/grafana/river/rivertypes"
@@ -18,8 +19,9 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name: "loki.source.kafka",
-		Args: Arguments{},
+		Name:      "loki.source.kafka",
+		Stability: featuregate.StabilityStable,
+		Args:      Arguments{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			return New(opts, args.(Arguments))

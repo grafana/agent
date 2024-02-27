@@ -5,13 +5,10 @@ import (
 	"fmt"
 	"sync"
 
-	"go.uber.org/atomic"
-
-	"github.com/prometheus/prometheus/storage"
-
 	"github.com/grafana/agent/component"
 	flow_relabel "github.com/grafana/agent/component/common/relabel"
 	"github.com/grafana/agent/component/prometheus"
+	"github.com/grafana/agent/internal/featuregate"
 	"github.com/grafana/agent/service/labelstore"
 	lru "github.com/hashicorp/golang-lru/v2"
 	prometheus_client "github.com/prometheus/client_golang/prometheus"
@@ -19,16 +16,18 @@ import (
 	"github.com/prometheus/prometheus/model/histogram"
 	"github.com/prometheus/prometheus/model/labels"
 	"github.com/prometheus/prometheus/model/metadata"
-
 	"github.com/prometheus/prometheus/model/relabel"
 	"github.com/prometheus/prometheus/model/value"
+	"github.com/prometheus/prometheus/storage"
+	"go.uber.org/atomic"
 )
 
 func init() {
 	component.Register(component.Registration{
-		Name:    "prometheus.relabel",
-		Args:    Arguments{},
-		Exports: Exports{},
+		Name:      "prometheus.relabel",
+		Stability: featuregate.StabilityStable,
+		Args:      Arguments{},
+		Exports:   Exports{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			return New(opts, args.(Arguments))

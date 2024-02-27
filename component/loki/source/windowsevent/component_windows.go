@@ -9,14 +9,16 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/common/loki"
 	"github.com/grafana/agent/component/common/loki/utils"
+	"github.com/grafana/agent/internal/featuregate"
 	"github.com/grafana/loki/clients/pkg/promtail/api"
 	"github.com/grafana/loki/clients/pkg/promtail/scrapeconfig"
 )
 
 func init() {
 	component.Register(component.Registration{
-		Name: "loki.source.windowsevent",
-		Args: Arguments{},
+		Name:      "loki.source.windowsevent",
+		Stability: featuregate.StabilityStable,
+		Args:      Arguments{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			return New(opts, args.(Arguments))

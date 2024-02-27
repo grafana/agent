@@ -20,11 +20,8 @@ The `export` block may only be specified inside the definition of [a `declare` b
 {{< admonition type="note" >}}
 In [classic modules][], the `export` block is valid as a top-level block in a classic module. Classic modules are deprecated and scheduled to be removed in the release after v0.40.
 
-[classic modules]: {{< relref "../../concepts/modules.md#classic-modules-deprecated" >}}
+[classic modules]: https://grafana.com/docs/agent/<AGENT_VERSION>/flow/concepts/modules/#classic-modules-deprecated
 {{< /admonition >}}
-
-[custom component]: {{< relref "../../concepts/custom_components.md" >}}
-[declare]: {{< relref "./declare.md" >}}
 
 ## Example
 
@@ -42,7 +39,7 @@ Name    | Type  | Description      | Default | Required
 --------|-------|------------------|---------|---------
 `value` | `any` | Value to export. |         | yes
 
-The `value` argument determines what the value of the export will be.
+The `value` argument determines what the value of the export is.
 To expose an exported field of another component, set `value` to an expression that references that exported value.
 
 ## Exported fields
@@ -71,3 +68,10 @@ declare "pods_and_nodes" {
   }
 }
 ```
+
+{{% docs/reference %}}
+[custom component]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/custom_components"
+[custom component]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/concepts/custom_components"
+[declare]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/config-blocks/declare"
+[declare]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/config-blocks/declare"
+{{% /docs/reference %}}

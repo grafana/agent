@@ -9,14 +9,16 @@ import (
 	"github.com/grafana/agent/component/common/loki"
 	flow_relabel "github.com/grafana/agent/component/common/relabel"
 	st "github.com/grafana/agent/component/loki/source/syslog/internal/syslogtarget"
+	"github.com/grafana/agent/internal/featuregate"
 	"github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/prometheus/prometheus/model/relabel"
 )
 
 func init() {
 	component.Register(component.Registration{
-		Name: "loki.source.syslog",
-		Args: Arguments{},
+		Name:      "loki.source.syslog",
+		Stability: featuregate.StabilityStable,
+		Args:      Arguments{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			return New(opts, args.(Arguments))

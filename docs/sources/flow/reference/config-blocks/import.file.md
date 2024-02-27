@@ -18,8 +18,6 @@ title: import.file
 The `import.file` block imports custom components from a file and exposes them to the importer.
 `import.file` blocks must be given a label that determines the namespace where custom components are exposed.
 
-[module]: {{< relref "../../concepts/modules.md" >}}
-
 ## Usage
 
 ```river
@@ -32,11 +30,11 @@ import.file "NAMESPACE" {
 
 The following arguments are supported:
 
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`filename`       | `string`   | Path of the file on disk to watch. | | yes
+Name             | Type       | Description                                         | Default      | Required
+-----------------|------------|-----------------------------------------------------|--------------|---------
+`filename`       | `string`   | Path of the file on disk to watch.                  |              | yes
 `detector`       | `string`   | Which file change detector to use (fsnotify, poll). | `"fsnotify"` | no
-`poll_frequency` | `duration` | How often to poll for file changes. | `"1m"` | no
+`poll_frequency` | `duration` | How often to poll for file changes.                 | `"1m"`       | no
 
 {{< docs/shared lookup="flow/reference/components/local-file-arguments-text.md" source="agent" version="<AGENT_VERSION>" >}}
 
@@ -69,3 +67,8 @@ math.add "default" {
 }
 ```
 {{< /collapse >}}
+
+{{% docs/reference %}}
+[module]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/modules"
+[module]:"/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/concepts/modules"
+{{% /docs/reference %}}

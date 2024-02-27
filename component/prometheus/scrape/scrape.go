@@ -12,6 +12,7 @@ import (
 	component_config "github.com/grafana/agent/component/common/config"
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/prometheus"
+	"github.com/grafana/agent/internal/featuregate"
 	"github.com/grafana/agent/internal/useragent"
 	"github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/grafana/agent/service/cluster"
@@ -30,8 +31,9 @@ func init() {
 	scrape.UserAgent = useragent.Get()
 
 	component.Register(component.Registration{
-		Name: "prometheus.scrape",
-		Args: Arguments{},
+		Name:      "prometheus.scrape",
+		Stability: featuregate.StabilityStable,
+		Args:      Arguments{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			return New(opts, args.(Arguments))

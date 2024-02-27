@@ -7,15 +7,17 @@ import (
 	"github.com/grafana/agent/component"
 	flow_relabel "github.com/grafana/agent/component/common/relabel"
 	"github.com/grafana/agent/component/discovery"
+	"github.com/grafana/agent/internal/featuregate"
 	"github.com/prometheus/prometheus/model/labels"
 	"github.com/prometheus/prometheus/model/relabel"
 )
 
 func init() {
 	component.Register(component.Registration{
-		Name:    "discovery.relabel",
-		Args:    Arguments{},
-		Exports: Exports{},
+		Name:      "discovery.relabel",
+		Stability: featuregate.StabilityStable,
+		Args:      Arguments{},
+		Exports:   Exports{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			return New(opts, args.(Arguments))

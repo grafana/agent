@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/internal/featuregate"
 	"github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/grafana/river/rivertypes"
 	"github.com/oklog/run"
@@ -17,9 +18,10 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name:    "remote.vault",
-		Args:    Arguments{},
-		Exports: Exports{},
+		Name:      "remote.vault",
+		Stability: featuregate.StabilityStable,
+		Args:      Arguments{},
+		Exports:   Exports{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			return New(opts, args.(Arguments))
