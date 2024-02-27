@@ -3882,7 +3882,7 @@ v0.1.0 (2020-03-16)
 
 > First release!
 
-### Featuresgit status
+### Features
 
 - Support for scraping Prometheus metrics and sharding the agent through the
   presence of a `host_filter` flag within the Agent configuration file.
