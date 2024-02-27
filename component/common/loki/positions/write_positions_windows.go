@@ -8,6 +8,7 @@ package positions
 
 import (
 	"bytes"
+
 	"github.com/natefinch/atomic"
 	yaml "gopkg.in/yaml.v2"
 )

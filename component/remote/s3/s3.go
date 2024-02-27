@@ -1,6 +1,7 @@
 package s3
 
 import (
+	"context"
 	"crypto/tls"
 	"fmt"
 	"net/http"
@@ -8,21 +9,21 @@ import (
 	"sync"
 	"time"
 
-	"context"
-
 	"github.com/aws/aws-sdk-go-v2/aws"
 	aws_config "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/internal/featuregate"
 	"github.com/grafana/river/rivertypes"
 	"github.com/prometheus/client_golang/prometheus"
 )
 
 func init() {
 	component.Register(component.Registration{
-		Name:    "remote.s3",
-		Args:    Arguments{},
-		Exports: Exports{},
+		Name:      "remote.s3",
+		Stability: featuregate.StabilityStable,
+		Args:      Arguments{},
+		Exports:   Exports{},
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			return New(opts, args.(Arguments))
 		},

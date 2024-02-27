@@ -13,15 +13,17 @@ import (
 	"github.com/grafana/agent/component/otelcol/exporter/prometheus/internal/convert"
 	"github.com/grafana/agent/component/otelcol/internal/lazyconsumer"
 	"github.com/grafana/agent/component/prometheus"
+	"github.com/grafana/agent/internal/featuregate"
 	"github.com/grafana/agent/service/labelstore"
 	"github.com/prometheus/prometheus/storage"
 )
 
 func init() {
 	component.Register(component.Registration{
-		Name:    "otelcol.exporter.prometheus",
-		Args:    Arguments{},
-		Exports: otelcol.ConsumerExports{},
+		Name:      "otelcol.exporter.prometheus",
+		Stability: featuregate.StabilityStable,
+		Args:      Arguments{},
+		Exports:   otelcol.ConsumerExports{},
 
 		Build: func(o component.Options, a component.Arguments) (component.Component, error) {
 			return New(o, a.(Arguments))

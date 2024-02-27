@@ -3,14 +3,16 @@ package statsd
 import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/prometheus/exporter"
+	"github.com/grafana/agent/internal/featuregate"
 	"github.com/grafana/agent/pkg/integrations"
 )
 
 func init() {
 	component.Register(component.Registration{
-		Name:    "prometheus.exporter.statsd",
-		Args:    Arguments{},
-		Exports: exporter.Exports{},
+		Name:      "prometheus.exporter.statsd",
+		Stability: featuregate.StabilityStable,
+		Args:      Arguments{},
+		Exports:   exporter.Exports{},
 
 		Build: exporter.New(createExporter, "statsd"),
 	})

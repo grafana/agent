@@ -22,6 +22,7 @@ import (
 	flow_relabel "github.com/grafana/agent/component/common/relabel"
 	"github.com/grafana/agent/component/discovery"
 	dt "github.com/grafana/agent/component/loki/source/docker/internal/dockertarget"
+	"github.com/grafana/agent/internal/featuregate"
 	"github.com/grafana/agent/internal/useragent"
 	"github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/prometheus/common/config"
@@ -31,8 +32,9 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name: "loki.source.docker",
-		Args: Arguments{},
+		Name:      "loki.source.docker",
+		Stability: featuregate.StabilityStable,
+		Args:      Arguments{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			return New(opts, args.(Arguments))

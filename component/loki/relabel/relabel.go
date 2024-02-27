@@ -8,6 +8,7 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/common/loki"
 	flow_relabel "github.com/grafana/agent/component/common/relabel"
+	"github.com/grafana/agent/internal/featuregate"
 	"github.com/grafana/agent/pkg/flow/logging/level"
 	lru "github.com/hashicorp/golang-lru"
 	"github.com/prometheus/common/model"
@@ -17,9 +18,10 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name:    "loki.relabel",
-		Args:    Arguments{},
-		Exports: Exports{},
+		Name:      "loki.relabel",
+		Stability: featuregate.StabilityStable,
+		Args:      Arguments{},
+		Exports:   Exports{},
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			return New(opts, args.(Arguments))
 		},
