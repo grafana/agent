@@ -67,14 +67,14 @@ func TestLoader(t *testing.T) {
 		},
 	}
 
-	newLoaderOptions := func() controller.LoaderOptions {
+	newLoaderOptionsWithStability := func(stability featuregate.Stability) controller.LoaderOptions {
 		l, _ := logging.New(os.Stderr, logging.DefaultOptions)
 		return controller.LoaderOptions{
 			ComponentGlobals: controller.ComponentGlobals{
 				Logger:            l,
 				TraceProvider:     noop.NewTracerProvider(),
 				DataPath:          t.TempDir(),
-				MinStability:      featuregate.StabilityStable,
+				MinStability:      stability,
 				OnBlockNodeUpdate: func(cn controller.BlockNode) { /* no-op */ },
 				Registerer:        prometheus.NewRegistry(),
 				NewModuleController: func(id string) controller.ModuleController {
@@ -82,6 +82,10 @@ func TestLoader(t *testing.T) {
 				},
 			},
 		}
+	}
+
+	newLoaderOptions := func() controller.LoaderOptions {
+		return newLoaderOptionsWithStability(featuregate.StabilityBeta)
 	}
 
 	t.Run("New Graph", func(t *testing.T) {
@@ -143,6 +147,39 @@ func TestLoader(t *testing.T) {
 		l := controller.NewLoader(newLoaderOptions())
 		diags := applyFromContent(t, l, []byte(invalidFile), nil)
 		require.ErrorContains(t, diags.ErrorOrNil(), `component "testcomponents.tick" must have a label`)
+	})
+
+	t.Run("Load with correct stability level", func(t *testing.T) {
+		invalidFile := `
+			testcomponents.tick "test" {
+				frequency = "1s"
+			}
+		`
+		l := controller.NewLoader(newLoaderOptionsWithStability(featuregate.StabilityBeta))
+		diags := applyFromContent(t, l, []byte(invalidFile), nil)
+		require.NoError(t, diags.ErrorOrNil())
+	})
+
+	t.Run("Load with below minimum stability level", func(t *testing.T) {
+		invalidFile := `
+			testcomponents.tick "test" {
+				frequency = "1s"
+			}
+		`
+		l := controller.NewLoader(newLoaderOptionsWithStability(featuregate.StabilityStable))
+		diags := applyFromContent(t, l, []byte(invalidFile), nil)
+		require.ErrorContains(t, diags.ErrorOrNil(), "component \"testcomponents.tick\" is at stability level \"beta\", which is below the minimum allowed stability level \"stable\"")
+	})
+
+	t.Run("Load with undefined minimum stability level", func(t *testing.T) {
+		invalidFile := `
+			testcomponents.tick "test" {
+				frequency = "1s"
+			}
+		`
+		l := controller.NewLoader(newLoaderOptionsWithStability(featuregate.StabilityUndefined))
+		diags := applyFromContent(t, l, []byte(invalidFile), nil)
+		require.ErrorContains(t, diags.ErrorOrNil(), "stability levels must be defined: got \"beta\" as stability of component \"testcomponents.tick\" and <invalid_stability_level> as the minimum stability level")
 	})
 
 	t.Run("Partial load with invalid reference", func(t *testing.T) {
@@ -220,7 +257,7 @@ func TestScopeWithFailingComponent(t *testing.T) {
 				Logger:            l,
 				TraceProvider:     noop.NewTracerProvider(),
 				DataPath:          t.TempDir(),
-				MinStability:      featuregate.StabilityStable,
+				MinStability:      featuregate.StabilityBeta,
 				OnBlockNodeUpdate: func(cn controller.BlockNode) { /* no-op */ },
 				Registerer:        prometheus.NewRegistry(),
 				NewModuleController: func(id string) controller.ModuleController {

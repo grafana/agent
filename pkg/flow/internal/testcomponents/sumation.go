@@ -13,7 +13,7 @@ import (
 func init() {
 	component.Register(component.Registration{
 		Name:      "testcomponents.summation",
-		Stability: featuregate.StabilityStable,
+		Stability: featuregate.StabilityBeta,
 		Args:      SummationConfig{},
 		Exports:   SummationExports{},
 

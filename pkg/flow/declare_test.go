@@ -387,7 +387,7 @@ func TestDeclareError(t *testing.T) {
 			ctrl := flow.New(flow.Options{
 				Logger:       s,
 				DataPath:     t.TempDir(),
-				MinStability: featuregate.StabilityStable,
+				MinStability: featuregate.StabilityBeta,
 				Reg:          nil,
 				Services:     []service.Service{},
 			})

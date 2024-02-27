@@ -15,16 +15,16 @@ type Stability int
 const (
 	// StabilityUndefined is the default value for Stability, which indicates an error and should never be used.
 	StabilityUndefined Stability = iota
-	// StabilityExperimental is the default value for Stability, used to designate experimental features.
+	// StabilityExperimental is used to designate experimental features.
 	StabilityExperimental
-	// StabilityBeta is used to designate alpha features.
+	// StabilityBeta is used to designate beta features.
 	StabilityBeta
-	// StabilityStable is used to designate beta features.
+	// StabilityStable is used to designate stable features.
 	StabilityStable
 )
 
 func CheckAllowed(stability Stability, minStability Stability, featureName string) error {
-	if stability == StabilityUndefined {
+	if stability == StabilityUndefined || minStability == StabilityUndefined {
 		return fmt.Errorf(
 			"stability levels must be defined: got %s as stability of %s and %s as the minimum stability level",
 			stability,

@@ -266,7 +266,7 @@ func testModuleControllerOptions(t *testing.T) *moduleControllerOptions {
 	return &moduleControllerOptions{
 		Logger:         s,
 		DataPath:       t.TempDir(),
-		MinStability:   featuregate.StabilityStable,
+		MinStability:   featuregate.StabilityBeta,
 		Reg:            prometheus.NewRegistry(),
 		ModuleRegistry: newModuleRegistry(),
 		WorkerPool:     worker.NewFixedWorkerPool(1, 100),
@@ -277,7 +277,7 @@ func testModuleControllerOptions(t *testing.T) *moduleControllerOptions {
 func init() {
 	component.Register(component.Registration{
 		Name:      "test.module",
-		Stability: featuregate.StabilityStable,
+		Stability: featuregate.StabilityBeta,
 		Args:      TestArguments{},
 		Exports:   TestExports{},
 

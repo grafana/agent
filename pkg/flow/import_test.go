@@ -242,7 +242,7 @@ func setup(t *testing.T, config string) (*flow.Flow, *flow.Source) {
 	ctrl := flow.New(flow.Options{
 		Logger:       s,
 		DataPath:     t.TempDir(),
-		MinStability: featuregate.StabilityStable,
+		MinStability: featuregate.StabilityBeta,
 		Reg:          nil,
 		Services:     []service.Service{},
 	})

@@ -13,7 +13,7 @@ import (
 func init() {
 	component.Register(component.Registration{
 		Name:      "testcomponents.passthrough",
-		Stability: featuregate.StabilityStable,
+		Stability: featuregate.StabilityBeta,
 		Args:      PassthroughConfig{},
 		Exports:   PassthroughExports{},
 
