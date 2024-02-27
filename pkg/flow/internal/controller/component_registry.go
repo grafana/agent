@@ -39,17 +39,32 @@ func (reg defaultComponentRegistry) Get(name string) (component.Registration, er
 	return cr, nil
 }
 
-// RegistryMap is a map which implements [ComponentRegistry].
-// Currently, it is only used in tests.
-type RegistryMap map[string]component.Registration
+type registryMap struct {
+	registrations map[string]component.Registration
+	minStability  featuregate.Stability
+}
 
-var _ ComponentRegistry = (*RegistryMap)(nil)
+// NewRegistryMap creates a new [ComponentRegistry] which uses a map to store components.
+// Currently, it is only used in tests.
+func NewRegistryMap(
+	minStability featuregate.Stability,
+	registrations map[string]component.Registration,
+) ComponentRegistry {
+
+	return &registryMap{
+		registrations: registrations,
+		minStability:  minStability,
+	}
+}
 
 // Get retrieves a component using [component.Get].
-func (m RegistryMap) Get(name string) (component.Registration, error) {
-	reg, ok := m[name]
+func (m registryMap) Get(name string) (component.Registration, error) {
+	reg, ok := m.registrations[name]
 	if !ok {
 		return component.Registration{}, fmt.Errorf("cannot find the definition of component name %q", name)
+	}
+	if err := featuregate.CheckAllowed(reg.Stability, m.minStability, fmt.Sprintf("component %q", name)); err != nil {
+		return component.Registration{}, err
 	}
 	return reg, nil
 }
