@@ -104,6 +104,7 @@ func toSubPolicyConfig(cfgs []tailsamplingprocessor.CompositeSubPolicyCfg) []tai
 	var out []tail_sampling.CompositeSubPolicyConfig
 	for _, cfg := range cfgs {
 		out = append(out, tail_sampling.CompositeSubPolicyConfig{
+			AndConfig: toAndConfig(cfg.AndCfg),
 			SharedPolicyConfig: tail_sampling.SharedPolicyConfig{
 				Name:                   cfg.Name,
 				Type:                   string(cfg.Type),
