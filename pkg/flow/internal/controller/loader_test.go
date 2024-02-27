@@ -150,35 +150,20 @@ func TestLoader(t *testing.T) {
 	})
 
 	t.Run("Load with correct stability level", func(t *testing.T) {
-		invalidFile := `
-			testcomponents.tick "test" {
-				frequency = "1s"
-			}
-		`
 		l := controller.NewLoader(newLoaderOptionsWithStability(featuregate.StabilityBeta))
-		diags := applyFromContent(t, l, []byte(invalidFile), nil)
+		diags := applyFromContent(t, l, []byte(testFile), nil)
 		require.NoError(t, diags.ErrorOrNil())
 	})
 
 	t.Run("Load with below minimum stability level", func(t *testing.T) {
-		invalidFile := `
-			testcomponents.tick "test" {
-				frequency = "1s"
-			}
-		`
 		l := controller.NewLoader(newLoaderOptionsWithStability(featuregate.StabilityStable))
-		diags := applyFromContent(t, l, []byte(invalidFile), nil)
+		diags := applyFromContent(t, l, []byte(testFile), nil)
 		require.ErrorContains(t, diags.ErrorOrNil(), "component \"testcomponents.tick\" is at stability level \"beta\", which is below the minimum allowed stability level \"stable\"")
 	})
 
 	t.Run("Load with undefined minimum stability level", func(t *testing.T) {
-		invalidFile := `
-			testcomponents.tick "test" {
-				frequency = "1s"
-			}
-		`
 		l := controller.NewLoader(newLoaderOptionsWithStability(featuregate.StabilityUndefined))
-		diags := applyFromContent(t, l, []byte(invalidFile), nil)
+		diags := applyFromContent(t, l, []byte(testFile), nil)
 		require.ErrorContains(t, diags.ErrorOrNil(), "stability levels must be defined: got \"beta\" as stability of component \"testcomponents.tick\" and <invalid_stability_level> as the minimum stability level")
 	})
 
