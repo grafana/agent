@@ -9,8 +9,8 @@ internal API changes are not present.
 
 
 
-v0.40.0-rc.2 (2024-02-26)
--------------------------
+v0.40.0 (2024-02-27)
+--------------------
 
 ### Breaking changes
 
