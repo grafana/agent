@@ -12,7 +12,7 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
-	"github.com/grafana/agent/pkg/build"
+	"github.com/grafana/agent/internal/build"
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/integrations/config"
 	integrations_v2 "github.com/grafana/agent/pkg/integrations/v2"

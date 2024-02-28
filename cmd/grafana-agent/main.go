@@ -7,8 +7,8 @@ import (
 
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/internal/boringcrypto"
+	"github.com/grafana/agent/internal/build"
 	"github.com/grafana/agent/internal/flowmode"
-	"github.com/grafana/agent/pkg/build"
 	"github.com/grafana/agent/pkg/config"
 	"github.com/grafana/agent/pkg/server"
 	util_log "github.com/grafana/agent/pkg/util/log"

@@ -14,7 +14,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/grafana/agent/pkg/build"
+	"github.com/grafana/agent/internal/build"
 	"github.com/grafana/agent/pkg/server"
 	"github.com/mackerelio/go-osstat/uptime"
 	"gopkg.in/yaml.v3"

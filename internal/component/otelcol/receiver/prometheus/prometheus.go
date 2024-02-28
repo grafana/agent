@@ -9,12 +9,12 @@ import (
 	"time"
 
 	"github.com/go-kit/log"
+	"github.com/grafana/agent/internal/build"
 	"github.com/grafana/agent/internal/component"
 	"github.com/grafana/agent/internal/component/otelcol"
 	"github.com/grafana/agent/internal/component/otelcol/internal/fanoutconsumer"
 	"github.com/grafana/agent/internal/component/otelcol/receiver/prometheus/internal"
 	"github.com/grafana/agent/internal/featuregate"
-	"github.com/grafana/agent/pkg/build"
 	"github.com/grafana/agent/pkg/util/zapadapter"
 	"github.com/prometheus/prometheus/model/labels"
 	"github.com/prometheus/prometheus/storage"

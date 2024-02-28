@@ -12,8 +12,8 @@ import (
 	"strings"
 	"syscall"
 
+	"github.com/grafana/agent/internal/build"
 	"github.com/grafana/agent/internal/static/agentctl/waltools"
-	"github.com/grafana/agent/pkg/build"
 	"github.com/grafana/agent/pkg/config"
 	"github.com/grafana/agent/pkg/logs"
 	"github.com/olekukonko/tablewriter"

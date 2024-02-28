@@ -9,10 +9,10 @@ import (
 	"context"
 	"os"
 
+	"github.com/grafana/agent/internal/build"
 	"github.com/grafana/agent/internal/component"
 	"github.com/grafana/agent/internal/component/otelcol/internal/lazycollector"
 	"github.com/grafana/agent/internal/component/otelcol/internal/scheduler"
-	"github.com/grafana/agent/pkg/build"
 	"github.com/grafana/agent/pkg/util/zapadapter"
 	"github.com/grafana/river"
 	"github.com/prometheus/client_golang/prometheus"

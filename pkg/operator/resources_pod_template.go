@@ -9,7 +9,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/utils/ptr"
 
-	"github.com/grafana/agent/pkg/build"
+	"github.com/grafana/agent/internal/build"
 	gragent "github.com/grafana/agent/pkg/operator/apis/monitoring/v1alpha1"
 	"github.com/grafana/agent/pkg/operator/clientutil"
 )

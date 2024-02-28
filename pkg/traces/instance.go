@@ -17,7 +17,7 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
-	"github.com/grafana/agent/pkg/build"
+	"github.com/grafana/agent/internal/build"
 	"github.com/grafana/agent/pkg/logs"
 	"github.com/grafana/agent/pkg/metrics/instance"
 	"github.com/grafana/agent/pkg/traces/automaticloggingprocessor"

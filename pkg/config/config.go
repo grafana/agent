@@ -12,7 +12,7 @@ import (
 	"github.com/drone/envsubst/v2"
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
-	"github.com/grafana/agent/pkg/build"
+	"github.com/grafana/agent/internal/build"
 	"github.com/grafana/agent/pkg/config/encoder"
 	"github.com/grafana/agent/pkg/config/features"
 	"github.com/grafana/agent/pkg/config/instrumentation"

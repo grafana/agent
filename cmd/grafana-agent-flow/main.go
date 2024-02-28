@@ -7,8 +7,8 @@
 package main
 
 import (
+	"github.com/grafana/agent/internal/build"
 	"github.com/grafana/agent/internal/flowmode"
-	"github.com/grafana/agent/pkg/build"
 	"github.com/prometheus/client_golang/prometheus"
 
 	// Register Prometheus SD components
