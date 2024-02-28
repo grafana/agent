@@ -9,6 +9,6 @@ import (
 
 // Assets contains the UI's assets.
 func Assets() http.FileSystem {
-	assetsDir := filepath.Join(".", "web", "ui", "build")
+	assetsDir := filepath.Join(".", "internal", "web", "ui", "build")
 	return http.Dir(assetsDir)
 }
