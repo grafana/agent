@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	promsdconsumer "github.com/grafana/agent/pkg/traces/promsdprocessor/consumer"
+	promsdconsumer "github.com/grafana/agent/internal/static/traces/promsdprocessor/consumer"
 	"github.com/mitchellh/mapstructure"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/loadbalancingexporter"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusexporter"
@@ -41,12 +41,12 @@ import (
 	"gopkg.in/yaml.v2"
 
 	"github.com/grafana/agent/internal/static/logs"
-	"github.com/grafana/agent/pkg/traces/automaticloggingprocessor"
-	"github.com/grafana/agent/pkg/traces/noopreceiver"
-	"github.com/grafana/agent/pkg/traces/promsdprocessor"
-	"github.com/grafana/agent/pkg/traces/pushreceiver"
-	"github.com/grafana/agent/pkg/traces/remotewriteexporter"
-	"github.com/grafana/agent/pkg/traces/servicegraphprocessor"
+	"github.com/grafana/agent/internal/static/traces/automaticloggingprocessor"
+	"github.com/grafana/agent/internal/static/traces/noopreceiver"
+	"github.com/grafana/agent/internal/static/traces/promsdprocessor"
+	"github.com/grafana/agent/internal/static/traces/pushreceiver"
+	"github.com/grafana/agent/internal/static/traces/remotewriteexporter"
+	"github.com/grafana/agent/internal/static/traces/servicegraphprocessor"
 	"github.com/grafana/agent/pkg/util"
 )
 

@@ -12,8 +12,8 @@ import (
 
 	"github.com/grafana/agent/internal/static/integrations/v2"
 	"github.com/grafana/agent/internal/static/server"
-	"github.com/grafana/agent/pkg/traces"
-	"github.com/grafana/agent/pkg/traces/traceutils"
+	"github.com/grafana/agent/internal/static/traces"
+	"github.com/grafana/agent/internal/static/traces/traceutils"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/phayes/freeport"
 	"github.com/prometheus/client_golang/prometheus"

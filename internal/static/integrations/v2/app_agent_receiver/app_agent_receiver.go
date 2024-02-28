@@ -10,7 +10,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/grafana/agent/internal/static/integrations/v2"
 	"github.com/grafana/agent/internal/static/integrations/v2/metricsutils"
-	"github.com/grafana/agent/pkg/traces/pushreceiver"
+	"github.com/grafana/agent/internal/static/traces/pushreceiver"
 	"github.com/grafana/dskit/instrument"
 	"github.com/grafana/dskit/middleware"
 	"github.com/prometheus/client_golang/prometheus"

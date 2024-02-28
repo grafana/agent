@@ -13,7 +13,7 @@ import (
 	"github.com/grafana/agent/internal/component/otelcol/internal/lazyconsumer"
 	"github.com/grafana/agent/internal/featuregate"
 	"github.com/grafana/agent/internal/flow/logging/level"
-	promsdconsumer "github.com/grafana/agent/pkg/traces/promsdprocessor/consumer"
+	promsdconsumer "github.com/grafana/agent/internal/static/traces/promsdprocessor/consumer"
 	"github.com/grafana/river"
 )
 

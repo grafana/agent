@@ -12,7 +12,7 @@ import (
 	"github.com/go-logfmt/logfmt"
 	"github.com/grafana/agent/internal/static/logs"
 	"github.com/grafana/agent/internal/static/operator/config"
-	"github.com/grafana/agent/pkg/traces/contextkeys"
+	"github.com/grafana/agent/internal/static/traces/contextkeys"
 	util "github.com/grafana/agent/pkg/util/log"
 	"github.com/grafana/loki/clients/pkg/promtail/api"
 	"github.com/grafana/loki/pkg/logproto"

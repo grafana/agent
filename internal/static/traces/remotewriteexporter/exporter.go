@@ -11,7 +11,7 @@ import (
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/internal/static/metrics/instance"
-	"github.com/grafana/agent/pkg/traces/contextkeys"
+	"github.com/grafana/agent/internal/static/traces/contextkeys"
 	util "github.com/grafana/agent/pkg/util/log"
 	"github.com/prometheus/prometheus/model/labels"
 	"go.opentelemetry.io/collector/component"
