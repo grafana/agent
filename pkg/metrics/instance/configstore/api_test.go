@@ -14,7 +14,7 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/gorilla/mux"
-	"github.com/grafana/agent/pkg/client"
+	"github.com/grafana/agent/internal/static/client"
 	"github.com/grafana/agent/pkg/metrics/cluster/configapi"
 	"github.com/grafana/agent/pkg/metrics/instance"
 	"github.com/stretchr/testify/assert"

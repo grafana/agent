@@ -22,7 +22,7 @@ import (
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/internal/static/agentctl"
-	"github.com/grafana/agent/pkg/client"
+	"github.com/grafana/agent/internal/static/client"
 	"github.com/spf13/cobra"
 
 	// Register Prometheus SD components

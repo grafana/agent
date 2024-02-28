@@ -10,7 +10,7 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
-	"github.com/grafana/agent/pkg/client"
+	"github.com/grafana/agent/internal/static/client"
 	"github.com/grafana/agent/pkg/metrics/instance"
 )
 
