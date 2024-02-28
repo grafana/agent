@@ -3,7 +3,7 @@ package github_exporter //nolint:golint
 import (
 	"testing"
 
-	"github.com/grafana/agent/pkg/config"
+	"github.com/grafana/agent/internal/static/config"
 	// register github_exporter
 )
 

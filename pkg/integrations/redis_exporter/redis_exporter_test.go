@@ -8,7 +8,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/grafana/agent/pkg/config"
+	"github.com/grafana/agent/internal/static/config"
 	"gopkg.in/yaml.v2"
 
 	"github.com/go-kit/log"

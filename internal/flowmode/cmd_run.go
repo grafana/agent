@@ -23,7 +23,7 @@ import (
 	"github.com/grafana/agent/internal/converter"
 	convert_diag "github.com/grafana/agent/internal/converter/diag"
 	"github.com/grafana/agent/internal/featuregate"
-	"github.com/grafana/agent/pkg/config/instrumentation"
+	"github.com/grafana/agent/internal/static/config/instrumentation"
 	"github.com/grafana/agent/pkg/flow"
 	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/grafana/agent/pkg/flow/logging/level"

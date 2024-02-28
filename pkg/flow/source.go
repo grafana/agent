@@ -6,7 +6,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/grafana/agent/pkg/config/encoder"
+	"github.com/grafana/agent/internal/static/config/encoder"
 	"github.com/grafana/river/ast"
 	"github.com/grafana/river/diag"
 	"github.com/grafana/river/parser"

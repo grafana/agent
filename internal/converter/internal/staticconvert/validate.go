@@ -5,7 +5,7 @@ import (
 
 	"github.com/grafana/agent/internal/converter/diag"
 	"github.com/grafana/agent/internal/converter/internal/common"
-	"github.com/grafana/agent/pkg/config"
+	"github.com/grafana/agent/internal/static/config"
 	v1 "github.com/grafana/agent/pkg/integrations"
 	agent_exporter "github.com/grafana/agent/pkg/integrations/agent"
 	"github.com/grafana/agent/pkg/integrations/apache_http"

@@ -7,7 +7,7 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/grafana/agent/pkg/config/instrumentation"
+	"github.com/grafana/agent/internal/static/config/instrumentation"
 	"github.com/prometheus/common/config"
 )
 

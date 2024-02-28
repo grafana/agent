@@ -3,7 +3,7 @@ package mongodb_exporter //nolint:golint
 import (
 	"testing"
 
-	"github.com/grafana/agent/pkg/config"
+	"github.com/grafana/agent/internal/static/config"
 )
 
 func TestConfig_SecretMongoDB(t *testing.T) {

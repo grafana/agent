@@ -8,7 +8,7 @@ import (
 	"os"
 
 	"github.com/go-kit/log/level"
-	"github.com/grafana/agent/pkg/config"
+	"github.com/grafana/agent/internal/static/config"
 	"github.com/grafana/agent/pkg/server"
 	util_log "github.com/grafana/agent/pkg/util/log"
 

@@ -14,7 +14,7 @@ import (
 	"time"
 
 	"github.com/go-kit/log/level"
-	"github.com/grafana/agent/pkg/config/instrumentation"
+	"github.com/grafana/agent/internal/static/config/instrumentation"
 	"github.com/grafana/agent/pkg/server"
 	"github.com/prometheus/common/config"
 	"gopkg.in/yaml.v2"

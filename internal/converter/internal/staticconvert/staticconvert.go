@@ -11,7 +11,7 @@ import (
 	"github.com/grafana/agent/internal/converter/internal/prometheusconvert"
 	"github.com/grafana/agent/internal/converter/internal/promtailconvert"
 	"github.com/grafana/agent/internal/converter/internal/staticconvert/internal/build"
-	"github.com/grafana/agent/pkg/config"
+	"github.com/grafana/agent/internal/static/config"
 	"github.com/grafana/agent/pkg/logs"
 	promtail_config "github.com/grafana/loki/clients/pkg/promtail/config"
 	"github.com/grafana/loki/clients/pkg/promtail/limit"
