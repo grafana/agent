@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/grafana/agent/pkg/logs"
+	"github.com/grafana/agent/internal/static/logs"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/common/model"
 	"github.com/stretchr/testify/assert"

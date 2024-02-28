@@ -5,7 +5,7 @@ import (
 	"sync"
 
 	"github.com/go-kit/log"
-	"github.com/grafana/agent/pkg/logs"
+	"github.com/grafana/agent/internal/static/logs"
 	"github.com/grafana/agent/pkg/metrics/instance"
 	"github.com/grafana/agent/pkg/util/zapadapter"
 	prom_client "github.com/prometheus/client_golang/prometheus"

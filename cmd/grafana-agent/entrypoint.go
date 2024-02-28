@@ -19,7 +19,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/grafana/agent/internal/agentseed"
 	"github.com/grafana/agent/internal/static/config"
-	"github.com/grafana/agent/pkg/logs"
+	"github.com/grafana/agent/internal/static/logs"
 	"github.com/grafana/agent/pkg/metrics"
 	"github.com/grafana/agent/pkg/metrics/instance"
 	"github.com/grafana/agent/pkg/server"

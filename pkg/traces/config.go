@@ -40,7 +40,7 @@ import (
 	"go.uber.org/multierr"
 	"gopkg.in/yaml.v2"
 
-	"github.com/grafana/agent/pkg/logs"
+	"github.com/grafana/agent/internal/static/logs"
 	"github.com/grafana/agent/pkg/traces/automaticloggingprocessor"
 	"github.com/grafana/agent/pkg/traces/noopreceiver"
 	"github.com/grafana/agent/pkg/traces/promsdprocessor"

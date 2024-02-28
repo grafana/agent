@@ -8,7 +8,7 @@ import (
 	kitlog "github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/go-logfmt/logfmt"
-	"github.com/grafana/agent/pkg/logs"
+	"github.com/grafana/agent/internal/static/logs"
 	"github.com/grafana/loki/clients/pkg/promtail/api"
 	"github.com/grafana/loki/pkg/logproto"
 	prommodel "github.com/prometheus/common/model"

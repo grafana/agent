@@ -42,7 +42,7 @@ import (
 	snmp_exporter_v2 "github.com/grafana/agent/internal/static/integrations/v2/snmp_exporter"
 	vmware_exporter_v2 "github.com/grafana/agent/internal/static/integrations/v2/vmware_exporter"
 	"github.com/grafana/agent/internal/static/integrations/windows_exporter"
-	"github.com/grafana/agent/pkg/logs"
+	"github.com/grafana/agent/internal/static/logs"
 	"github.com/grafana/agent/pkg/metrics"
 	"github.com/grafana/agent/pkg/server"
 	"github.com/grafana/agent/pkg/traces"

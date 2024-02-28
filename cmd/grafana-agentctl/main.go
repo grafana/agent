@@ -15,7 +15,7 @@ import (
 	"github.com/grafana/agent/internal/build"
 	"github.com/grafana/agent/internal/static/agentctl/waltools"
 	"github.com/grafana/agent/internal/static/config"
-	"github.com/grafana/agent/pkg/logs"
+	"github.com/grafana/agent/internal/static/logs"
 	"github.com/olekukonko/tablewriter"
 	"github.com/prometheus/client_golang/prometheus"
 

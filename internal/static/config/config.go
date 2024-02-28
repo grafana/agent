@@ -16,7 +16,7 @@ import (
 	"github.com/grafana/agent/internal/static/config/encoder"
 	"github.com/grafana/agent/internal/static/config/features"
 	"github.com/grafana/agent/internal/static/config/instrumentation"
-	"github.com/grafana/agent/pkg/logs"
+	"github.com/grafana/agent/internal/static/logs"
 	"github.com/grafana/agent/pkg/metrics"
 	"github.com/grafana/agent/pkg/server"
 	"github.com/grafana/agent/pkg/traces"
