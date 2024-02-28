@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	agentBinaryPath = "../../../build/grafana-agent-flow"
+	agentBinaryPath = "../../../../../build/grafana-agent-flow"
 )
 
 type TestLog struct {
@@ -34,7 +34,7 @@ func executeCommand(command string, args []string, taskDescription string) {
 }
 
 func buildAgent() {
-	executeCommand("make", []string{"-C", "..", "agent-flow"}, "Building agent")
+	executeCommand("make", []string{"-C", "../../..", "agent-flow"}, "Building agent")
 }
 
 func setupEnvironment() {

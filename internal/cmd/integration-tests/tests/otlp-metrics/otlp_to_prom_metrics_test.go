@@ -5,7 +5,7 @@ package main
 import (
 	"testing"
 
-	"github.com/grafana/agent/integration-tests/common"
+	"github.com/grafana/agent/internal/cmd/integration-tests/common"
 )
 
 func TestOTLPToPromMetrics(t *testing.T) {

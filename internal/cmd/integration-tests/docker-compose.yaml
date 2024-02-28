@@ -19,15 +19,15 @@ services:
 
   otel-metrics-gen:
     build:
-      dockerfile: ./integration-tests/configs/otel-metrics-gen/Dockerfile
-      context: ..
+      dockerfile: ./internal/cmd/integration-tests/configs/otel-metrics-gen/Dockerfile
+      context: ../../..
     environment:
       - OTEL_EXPORTER_ENDPOINT=${OTEL_EXPORTER_ENDPOINT:-host.docker.internal:4318}
-  
+
   prom-gen:
     build:
-      dockerfile: ./integration-tests/configs/prom-gen/Dockerfile
-      context: ..
+      dockerfile: ./internal/cmd/integration-tests/configs/prom-gen/Dockerfile
+      context: ../../..
     ports:
       - "9001:9001"
   redis:

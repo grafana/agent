@@ -171,7 +171,7 @@ test-packages:
 
 .PHONY: integration-test
 integration-test:
-	cd integration-tests && $(GO_ENV) go run .
+	cd internal/cmd/integration-tests && $(GO_ENV) go run .
 
 #
 # Targets for building binaries
