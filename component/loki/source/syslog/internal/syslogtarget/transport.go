@@ -5,7 +5,6 @@ package syslogtarget
 // to other loki components.
 
 import (
-	"bytes"
 	"context"
 	"crypto/tls"
 	"crypto/x509"
@@ -23,6 +22,7 @@ import (
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/influxdata/go-syslog/v3"
+	"github.com/influxdata/go-syslog/v3/rfc5424"
 	"github.com/prometheus/common/config"
 	"github.com/prometheus/prometheus/model/labels"
 
@@ -444,18 +444,10 @@ func (t *UDPTransport) handleRcv(c *ConnPipe) {
 			continue
 		}
 
-		r := bytes.NewReader(datagram[:n])
-
-		err = syslogparser.ParseStream(r, func(result *syslog.Result) {
-			if err := result.Error; err != nil {
-				t.handleMessageError(err)
-			} else {
-				t.handleMessage(lbs.Copy(), result.Message)
-			}
-		}, t.maxMessageLength())
-
-		if err != nil {
-			level.Warn(t.logger).Log("msg", "error parsing syslog stream", "err", err)
+		if parsed, err := rfc5424.NewParser(rfc5424.WithBestEffort()).Parse(datagram[:n]); err != nil {
+			t.handleMessageError(err)
+		} else {
+			t.handleMessage(lbs.Copy(), parsed)
 		}
 	}
 }
