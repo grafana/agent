@@ -129,6 +129,8 @@ v0.40.0 (2024-02-27)
 
 - Fix an issue where changing the configuration of `loki.write` would cause a panic. (@rfratto)
 
+- Fix issue where registry was not being properly deleted. (@mattdurham)
+
 ### Other changes
 
 - Removed support for Windows 2012 in line with Microsoft end of life. (@mattdurham)
