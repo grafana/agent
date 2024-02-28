@@ -16,9 +16,9 @@ import (
 	"go.uber.org/atomic"
 	"google.golang.org/grpc"
 
-	"github.com/grafana/agent/pkg/metrics/cluster"
-	"github.com/grafana/agent/pkg/metrics/cluster/client"
-	"github.com/grafana/agent/pkg/metrics/instance"
+	"github.com/grafana/agent/internal/static/metrics/cluster"
+	"github.com/grafana/agent/internal/static/metrics/cluster/client"
+	"github.com/grafana/agent/internal/static/metrics/instance"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/prometheus/discovery"
 )

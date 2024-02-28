@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/grafana/agent/pkg/metrics/instance"
+	"github.com/grafana/agent/internal/static/metrics/instance"
 	"github.com/grafana/agent/pkg/traces/contextkeys"
 	"github.com/prometheus/prometheus/model/exemplar"
 	"github.com/prometheus/prometheus/model/histogram"

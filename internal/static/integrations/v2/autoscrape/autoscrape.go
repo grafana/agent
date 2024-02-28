@@ -7,8 +7,8 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
-	"github.com/grafana/agent/pkg/metrics"
-	"github.com/grafana/agent/pkg/metrics/instance"
+	"github.com/grafana/agent/internal/static/metrics"
+	"github.com/grafana/agent/internal/static/metrics/instance"
 	"github.com/grafana/agent/pkg/server"
 	"github.com/oklog/run"
 	config_util "github.com/prometheus/common/config"

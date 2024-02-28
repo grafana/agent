@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/go-kit/log"
-	"github.com/grafana/agent/pkg/metrics/instance"
+	"github.com/grafana/agent/internal/static/metrics/instance"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/grafana/dskit/kv"
 	"github.com/prometheus/client_golang/prometheus"

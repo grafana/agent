@@ -11,7 +11,7 @@ import (
 	"github.com/go-kit/log"
 	"github.com/gorilla/mux"
 	"github.com/grafana/agent/internal/static/integrations/v2/autoscrape"
-	"github.com/grafana/agent/pkg/metrics"
+	"github.com/grafana/agent/internal/static/metrics"
 	"github.com/prometheus/common/model"
 	http_sd "github.com/prometheus/prometheus/discovery/http"
 )

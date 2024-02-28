@@ -27,7 +27,7 @@ import (
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/internal/static/integrations/v2/autoscrape"
 	"github.com/grafana/agent/internal/static/logs"
-	"github.com/grafana/agent/pkg/metrics"
+	"github.com/grafana/agent/internal/static/metrics"
 	"github.com/grafana/agent/pkg/server"
 	"github.com/grafana/agent/pkg/traces"
 	"github.com/prometheus/prometheus/discovery"

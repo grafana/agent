@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/grafana/agent/pkg/metrics/cluster/client"
+	"github.com/grafana/agent/internal/static/metrics/cluster/client"
 	flagutil "github.com/grafana/agent/pkg/util"
 	util_log "github.com/grafana/agent/pkg/util/log"
 	"github.com/grafana/dskit/kv"

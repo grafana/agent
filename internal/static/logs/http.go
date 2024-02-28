@@ -6,7 +6,7 @@ import (
 
 	"github.com/go-kit/log/level"
 	"github.com/gorilla/mux"
-	"github.com/grafana/agent/pkg/metrics/cluster/configapi"
+	"github.com/grafana/agent/internal/static/metrics/cluster/configapi"
 	"github.com/grafana/loki/clients/pkg/promtail/targets/target"
 	"github.com/prometheus/common/model"
 )

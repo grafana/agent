@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/grafana/agent/pkg/metrics/instance"
-	"github.com/grafana/agent/pkg/metrics/instance/configstore"
+	"github.com/grafana/agent/internal/static/metrics/instance"
+	"github.com/grafana/agent/internal/static/metrics/instance/configstore"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"

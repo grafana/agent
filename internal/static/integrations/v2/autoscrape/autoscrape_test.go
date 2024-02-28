@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/grafana/agent/pkg/metrics/instance"
+	"github.com/grafana/agent/internal/static/metrics/instance"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/prometheus/common/model"

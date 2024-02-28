@@ -6,7 +6,7 @@ import (
 
 	"github.com/grafana/agent/internal/static/integrations"
 	"github.com/grafana/agent/internal/static/logs"
-	"github.com/grafana/agent/pkg/metrics/instance"
+	"github.com/grafana/agent/internal/static/metrics/instance"
 	"github.com/grafana/loki/clients/pkg/promtail/scrapeconfig"
 	"github.com/prometheus/common/model"
 	pc "github.com/prometheus/prometheus/config"

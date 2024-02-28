@@ -19,7 +19,7 @@ import (
 
 	"github.com/grafana/agent/internal/build"
 	"github.com/grafana/agent/internal/static/logs"
-	"github.com/grafana/agent/pkg/metrics/instance"
+	"github.com/grafana/agent/internal/static/metrics/instance"
 	"github.com/grafana/agent/pkg/traces/automaticloggingprocessor"
 	"github.com/grafana/agent/pkg/traces/contextkeys"
 	"github.com/grafana/agent/pkg/traces/servicegraphprocessor"

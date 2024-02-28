@@ -9,7 +9,7 @@ import (
 
 	"github.com/go-kit/log/level"
 	"github.com/gorilla/mux"
-	"github.com/grafana/agent/pkg/metrics/cluster/configapi"
+	"github.com/grafana/agent/internal/static/metrics/cluster/configapi"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/model/labels"
 	"github.com/prometheus/prometheus/scrape"

@@ -8,8 +8,8 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
-	"github.com/grafana/agent/pkg/metrics/instance"
-	"github.com/grafana/agent/pkg/metrics/wal"
+	"github.com/grafana/agent/internal/static/metrics/instance"
+	"github.com/grafana/agent/internal/static/metrics/wal"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	promwal "github.com/prometheus/prometheus/tsdb/wlog"

@@ -9,7 +9,7 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/internal/static/integrations/config"
-	"github.com/grafana/agent/pkg/metrics/instance"
+	"github.com/grafana/agent/internal/static/metrics/instance"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/prometheus/common/model"

@@ -3,7 +3,7 @@ package cluster
 import (
 	"fmt"
 
-	"github.com/grafana/agent/pkg/metrics/instance"
+	"github.com/grafana/agent/internal/static/metrics/instance"
 	"github.com/grafana/loki/clients/pkg/promtail/discovery/consulagent"
 	"github.com/prometheus/common/config"
 	"github.com/prometheus/prometheus/discovery"
