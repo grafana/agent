@@ -235,7 +235,7 @@ agentlint:
 ifeq ($(USE_CONTAINER),1)
 	$(RERUN_IN_CONTAINER)
 else
-	cd ./internal/cmd/agentlint && $(GO_ENV) go build $(GO_FLAGS) -o ../../$(AGENTLINT_BINARY) .
+	cd ./internal/cmd/agentlint && $(GO_ENV) go build $(GO_FLAGS) -o ../../../$(AGENTLINT_BINARY) .
 endif
 
 #
