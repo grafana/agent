@@ -6,7 +6,7 @@ labels:
 
 # loki.rules.kubernetes
 
-{{< docs/shared lookup="flow/stability/experimental.md" source="agent" >}}
+{{< docs/shared lookup="flow/stability/experimental.md" source="agent" version="<AGENT_VERSION>" >}}
 
 `loki.rules.kubernetes` discovers `PrometheusRule` Kubernetes resources and
 loads them into a Loki instance.
