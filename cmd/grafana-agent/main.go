@@ -6,7 +6,7 @@ import (
 	"os"
 
 	"github.com/go-kit/log/level"
-	"github.com/grafana/agent/cmd/internal/flowmode"
+	"github.com/grafana/agent/internal/flowmode"
 	"github.com/grafana/agent/pkg/boringcrypto"
 	"github.com/grafana/agent/pkg/build"
 	"github.com/grafana/agent/pkg/config"

@@ -7,7 +7,7 @@
 package main
 
 import (
-	"github.com/grafana/agent/cmd/internal/flowmode"
+	"github.com/grafana/agent/internal/flowmode"
 	"github.com/grafana/agent/pkg/build"
 	"github.com/prometheus/client_golang/prometheus"
 
