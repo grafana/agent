@@ -19,7 +19,7 @@ import (
 	"github.com/grafana/agent/internal/component/loki/source/kubernetes/kubetail"
 	"github.com/grafana/agent/internal/featuregate"
 	"github.com/grafana/agent/internal/flow/logging/level"
-	"github.com/grafana/agent/service/cluster"
+	"github.com/grafana/agent/internal/service/cluster"
 	"github.com/oklog/run"
 	kubeclient "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"

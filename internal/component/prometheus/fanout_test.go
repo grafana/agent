@@ -3,7 +3,7 @@ package prometheus
 import (
 	"testing"
 
-	"github.com/grafana/agent/service/labelstore"
+	"github.com/grafana/agent/internal/service/labelstore"
 	"github.com/prometheus/client_golang/prometheus"
 
 	"github.com/prometheus/prometheus/storage"

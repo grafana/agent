@@ -4,8 +4,8 @@ import (
 	"reflect"
 
 	"github.com/grafana/agent/internal/converter/internal/common"
+	"github.com/grafana/agent/internal/service/http"
 	"github.com/grafana/agent/internal/static/server"
-	"github.com/grafana/agent/service/http"
 )
 
 func (b *IntegrationsConfigBuilder) appendServer(config *server.Config) {

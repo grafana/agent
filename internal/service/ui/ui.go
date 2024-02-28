@@ -8,8 +8,8 @@ import (
 	"path"
 
 	"github.com/gorilla/mux"
-	"github.com/grafana/agent/service"
-	http_service "github.com/grafana/agent/service/http"
+	"github.com/grafana/agent/internal/service"
+	http_service "github.com/grafana/agent/internal/service/http"
 	"github.com/grafana/agent/web/api"
 	"github.com/grafana/agent/web/ui"
 )

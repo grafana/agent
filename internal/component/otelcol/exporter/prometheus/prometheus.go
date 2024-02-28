@@ -14,7 +14,7 @@ import (
 	"github.com/grafana/agent/internal/component/otelcol/internal/lazyconsumer"
 	"github.com/grafana/agent/internal/component/prometheus"
 	"github.com/grafana/agent/internal/featuregate"
-	"github.com/grafana/agent/service/labelstore"
+	"github.com/grafana/agent/internal/service/labelstore"
 	"github.com/prometheus/prometheus/storage"
 )
 

@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/grafana/agent/internal/component"
-	"github.com/grafana/agent/service"
+	"github.com/grafana/agent/internal/service"
 )
 
 // splitURLPath splits a path from a URL into two parts: a component ID and the

@@ -12,7 +12,7 @@ import (
 	"github.com/grafana/agent/internal/converter/diag"
 	"github.com/grafana/agent/internal/converter/internal/common"
 	"github.com/grafana/agent/internal/converter/internal/prometheusconvert/build"
-	"github.com/grafana/agent/service/cluster"
+	"github.com/grafana/agent/internal/service/cluster"
 	prom_config "github.com/prometheus/prometheus/config"
 	prom_discovery "github.com/prometheus/prometheus/discovery"
 	"github.com/prometheus/prometheus/storage"

@@ -11,7 +11,7 @@ import (
 	"github.com/grafana/agent/internal/flow/internal/controller"
 	"github.com/grafana/agent/internal/flow/internal/worker"
 	"github.com/grafana/agent/internal/flow/logging"
-	"github.com/grafana/agent/service"
+	"github.com/grafana/agent/internal/service"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/require"
 )

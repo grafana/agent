@@ -9,7 +9,7 @@ import (
 	flow_relabel "github.com/grafana/agent/internal/component/common/relabel"
 	"github.com/grafana/agent/internal/component/prometheus"
 	"github.com/grafana/agent/internal/featuregate"
-	"github.com/grafana/agent/service/labelstore"
+	"github.com/grafana/agent/internal/service/labelstore"
 	lru "github.com/hashicorp/golang-lru/v2"
 	prometheus_client "github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/prometheus/model/exemplar"

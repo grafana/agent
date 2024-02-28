@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/grafana/agent/internal/component"
-	"github.com/grafana/agent/service/cluster"
+	"github.com/grafana/agent/internal/service/cluster"
 	"github.com/grafana/ckit/shard"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/discovery"

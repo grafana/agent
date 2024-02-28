@@ -14,7 +14,7 @@ import (
 	"github.com/grafana/agent/internal/flow/internal/worker"
 	"github.com/grafana/agent/internal/flow/logging/level"
 	"github.com/grafana/agent/internal/flow/tracing"
-	"github.com/grafana/agent/service"
+	"github.com/grafana/agent/internal/service"
 	"github.com/grafana/dskit/backoff"
 	"github.com/grafana/river/ast"
 	"github.com/grafana/river/diag"

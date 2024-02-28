@@ -10,7 +10,7 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/internal/flow/logging/level"
-	"github.com/grafana/agent/service/cluster"
+	"github.com/grafana/agent/internal/service/cluster"
 	"github.com/grafana/ckit/advertise"
 	"github.com/hashicorp/go-discover"
 	"github.com/hashicorp/go-discover/provider/k8s"

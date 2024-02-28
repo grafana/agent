@@ -11,8 +11,8 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/grafana/agent/internal/component"
-	"github.com/grafana/agent/service"
-	"github.com/grafana/agent/service/cluster"
+	"github.com/grafana/agent/internal/service"
+	"github.com/grafana/agent/internal/service/cluster"
 	"github.com/prometheus/prometheus/util/httputil"
 )
 

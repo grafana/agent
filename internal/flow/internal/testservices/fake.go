@@ -3,7 +3,7 @@ package testservices
 import (
 	"context"
 
-	"github.com/grafana/agent/service"
+	"github.com/grafana/agent/internal/service"
 )
 
 // The Fake service allows injecting custom behavior for interface methods.

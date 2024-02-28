@@ -1,7 +1,7 @@
 package controller
 
 import (
-	"github.com/grafana/agent/service"
+	"github.com/grafana/agent/internal/service"
 	"golang.org/x/exp/maps"
 )
 

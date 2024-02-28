@@ -11,7 +11,7 @@ import (
 	"github.com/grafana/agent/internal/flow"
 	"github.com/grafana/agent/internal/flow/internal/testcomponents"
 	"github.com/grafana/agent/internal/flow/logging"
-	"github.com/grafana/agent/service"
+	"github.com/grafana/agent/internal/service"
 	"github.com/stretchr/testify/require"
 )
 

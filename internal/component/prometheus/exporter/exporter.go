@@ -12,8 +12,8 @@ import (
 	"github.com/grafana/agent/internal/component"
 	"github.com/grafana/agent/internal/component/discovery"
 	"github.com/grafana/agent/internal/flow/logging/level"
+	http_service "github.com/grafana/agent/internal/service/http"
 	"github.com/grafana/agent/internal/static/integrations"
-	http_service "github.com/grafana/agent/service/http"
 	"github.com/prometheus/common/model"
 )
 

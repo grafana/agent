@@ -7,7 +7,7 @@ import (
 	"sync"
 
 	"github.com/grafana/agent/internal/component"
-	"github.com/grafana/agent/service"
+	"github.com/grafana/agent/internal/service"
 	"github.com/grafana/river/ast"
 	"github.com/grafana/river/vm"
 )

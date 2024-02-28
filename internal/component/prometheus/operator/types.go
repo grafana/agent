@@ -7,7 +7,7 @@ import (
 	"github.com/grafana/agent/internal/component/common/kubernetes"
 	flow_relabel "github.com/grafana/agent/internal/component/common/relabel"
 	"github.com/grafana/agent/internal/component/prometheus/scrape"
-	"github.com/grafana/agent/service/cluster"
+	"github.com/grafana/agent/internal/service/cluster"
 	"github.com/prometheus/common/model"
 	promconfig "github.com/prometheus/prometheus/config"
 	"github.com/prometheus/prometheus/storage"

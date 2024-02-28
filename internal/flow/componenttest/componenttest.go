@@ -9,7 +9,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/grafana/agent/service/labelstore"
+	"github.com/grafana/agent/internal/service/labelstore"
 	"github.com/prometheus/client_golang/prometheus"
 	"go.uber.org/atomic"
 

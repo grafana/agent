@@ -12,7 +12,7 @@ import (
 	"github.com/grafana/agent/internal/component/loki/source/kubernetes/kubetail"
 	monitoringv1alpha2 "github.com/grafana/agent/internal/component/loki/source/podlogs/internal/apis/monitoring/v1alpha2"
 	"github.com/grafana/agent/internal/flow/logging/level"
-	"github.com/grafana/agent/service/cluster"
+	"github.com/grafana/agent/internal/service/cluster"
 	"github.com/grafana/ckit/shard"
 	"github.com/prometheus/common/model"
 	promlabels "github.com/prometheus/prometheus/model/labels"

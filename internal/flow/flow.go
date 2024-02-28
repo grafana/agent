@@ -57,7 +57,7 @@ import (
 	"github.com/grafana/agent/internal/flow/logging"
 	"github.com/grafana/agent/internal/flow/logging/level"
 	"github.com/grafana/agent/internal/flow/tracing"
-	"github.com/grafana/agent/service"
+	"github.com/grafana/agent/internal/service"
 	"github.com/prometheus/client_golang/prometheus"
 	"go.uber.org/atomic"
 )

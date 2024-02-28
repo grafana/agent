@@ -10,10 +10,10 @@ import (
 
 	"github.com/grafana/agent/internal/component"
 	"github.com/grafana/agent/internal/component/prometheus"
+	"github.com/grafana/agent/internal/service/cluster"
+	http_service "github.com/grafana/agent/internal/service/http"
+	"github.com/grafana/agent/internal/service/labelstore"
 	"github.com/grafana/agent/internal/util"
-	"github.com/grafana/agent/service/cluster"
-	http_service "github.com/grafana/agent/service/http"
-	"github.com/grafana/agent/service/labelstore"
 	"github.com/grafana/ckit/memconn"
 	"github.com/grafana/river"
 	prometheus_client "github.com/prometheus/client_golang/prometheus"
