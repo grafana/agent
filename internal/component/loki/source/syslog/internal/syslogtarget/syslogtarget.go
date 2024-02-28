@@ -12,7 +12,7 @@ import (
 	"time"
 
 	"github.com/go-kit/log"
-	"github.com/grafana/agent/pkg/flow/logging/level"
+	"github.com/grafana/agent/internal/flow/logging/level"
 	"github.com/influxdata/go-syslog/v3"
 	"github.com/influxdata/go-syslog/v3/rfc5424"
 	"github.com/prometheus/common/model"

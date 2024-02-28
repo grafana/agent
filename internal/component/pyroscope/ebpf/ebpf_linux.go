@@ -13,7 +13,7 @@ import (
 	"github.com/grafana/agent/internal/component"
 	"github.com/grafana/agent/internal/component/pyroscope"
 	"github.com/grafana/agent/internal/featuregate"
-	"github.com/grafana/agent/pkg/flow/logging/level"
+	"github.com/grafana/agent/internal/flow/logging/level"
 	ebpfspy "github.com/grafana/pyroscope/ebpf"
 	demangle2 "github.com/grafana/pyroscope/ebpf/cpp/demangle"
 	"github.com/grafana/pyroscope/ebpf/pprof"

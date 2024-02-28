@@ -9,7 +9,7 @@ import (
 
 	"github.com/go-kit/log"
 	monitoringv1alpha2 "github.com/grafana/agent/internal/component/loki/source/podlogs/internal/apis/monitoring/v1alpha2"
-	"github.com/grafana/agent/pkg/flow/logging/level"
+	"github.com/grafana/agent/internal/flow/logging/level"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/rest"

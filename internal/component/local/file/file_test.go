@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/grafana/agent/internal/component/local/file"
-	"github.com/grafana/agent/pkg/flow/componenttest"
+	"github.com/grafana/agent/internal/flow/componenttest"
 	"github.com/grafana/river/rivertypes"
 	"github.com/stretchr/testify/require"
 )

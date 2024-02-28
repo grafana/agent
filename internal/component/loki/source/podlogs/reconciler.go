@@ -11,7 +11,7 @@ import (
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/internal/component/loki/source/kubernetes/kubetail"
 	monitoringv1alpha2 "github.com/grafana/agent/internal/component/loki/source/podlogs/internal/apis/monitoring/v1alpha2"
-	"github.com/grafana/agent/pkg/flow/logging/level"
+	"github.com/grafana/agent/internal/flow/logging/level"
 	"github.com/grafana/agent/service/cluster"
 	"github.com/grafana/ckit/shard"
 	"github.com/prometheus/common/model"

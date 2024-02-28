@@ -8,7 +8,7 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/internal/component"
-	"github.com/grafana/agent/pkg/flow/logging/level"
+	"github.com/grafana/agent/internal/flow/logging/level"
 	vault "github.com/hashicorp/vault/api"
 	"github.com/prometheus/client_golang/prometheus"
 )

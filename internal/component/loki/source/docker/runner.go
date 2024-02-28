@@ -12,7 +12,7 @@ import (
 	"github.com/grafana/agent/internal/component/common/loki"
 	"github.com/grafana/agent/internal/component/common/loki/positions"
 	dt "github.com/grafana/agent/internal/component/loki/source/docker/internal/dockertarget"
-	"github.com/grafana/agent/pkg/flow/logging/level"
+	"github.com/grafana/agent/internal/flow/logging/level"
 	"github.com/grafana/agent/pkg/runner"
 )
 

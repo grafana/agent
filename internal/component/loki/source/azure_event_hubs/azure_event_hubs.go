@@ -13,7 +13,7 @@ import (
 	"github.com/grafana/agent/internal/component/loki/source/azure_event_hubs/internal/parser"
 	kt "github.com/grafana/agent/internal/component/loki/source/internal/kafkatarget"
 	"github.com/grafana/agent/internal/featuregate"
-	"github.com/grafana/agent/pkg/flow/logging/level"
+	"github.com/grafana/agent/internal/flow/logging/level"
 	"github.com/grafana/dskit/flagext"
 
 	"github.com/prometheus/common/model"

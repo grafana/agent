@@ -13,7 +13,7 @@ import (
 	"github.com/grafana/agent/internal/component/pyroscope"
 	"github.com/grafana/agent/internal/component/pyroscope/java/asprof"
 	"github.com/grafana/agent/internal/featuregate"
-	"github.com/grafana/agent/pkg/flow/logging/level"
+	"github.com/grafana/agent/internal/flow/logging/level"
 )
 
 const (

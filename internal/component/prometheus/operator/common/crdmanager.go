@@ -12,7 +12,7 @@ import (
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/internal/component"
 	"github.com/grafana/agent/internal/component/prometheus"
-	"github.com/grafana/agent/pkg/flow/logging/level"
+	"github.com/grafana/agent/internal/flow/logging/level"
 	"github.com/grafana/agent/service/cluster"
 	"github.com/grafana/agent/service/http"
 	"github.com/grafana/agent/service/labelstore"

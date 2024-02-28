@@ -9,7 +9,7 @@ import (
 	"github.com/grafana/agent/internal/component/common/loki"
 	flow_relabel "github.com/grafana/agent/internal/component/common/relabel"
 	"github.com/grafana/agent/internal/featuregate"
-	"github.com/grafana/agent/pkg/flow/logging/level"
+	"github.com/grafana/agent/internal/flow/logging/level"
 	lru "github.com/hashicorp/golang-lru"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/model/labels"

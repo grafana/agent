@@ -6,8 +6,8 @@ import (
 
 	"github.com/go-kit/log"
 	commoncfg "github.com/grafana/agent/internal/component/common/config"
+	"github.com/grafana/agent/internal/flow/logging/level"
 	"github.com/grafana/agent/internal/useragent"
-	"github.com/grafana/agent/pkg/flow/logging/level"
 	promconfig "github.com/prometheus/common/config"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"

@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/go-kit/log"
-	"github.com/grafana/agent/pkg/flow/logging/level"
+	"github.com/grafana/agent/internal/flow/logging/level"
 	agent_service "github.com/grafana/agent/service"
 	flow_service "github.com/grafana/agent/service"
 	"github.com/prometheus/client_golang/prometheus"

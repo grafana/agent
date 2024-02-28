@@ -13,7 +13,7 @@ import (
 	"github.com/grafana/agent/internal/component/otelcol"
 	"github.com/grafana/agent/internal/component/otelcol/internal/fanoutconsumer"
 	"github.com/grafana/agent/internal/featuregate"
-	"github.com/grafana/agent/pkg/flow/logging/level"
+	"github.com/grafana/agent/internal/flow/logging/level"
 	loki_translator "github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/loki"
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/pdata/plog"

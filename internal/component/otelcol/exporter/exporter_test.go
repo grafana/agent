@@ -9,7 +9,7 @@ import (
 	"github.com/grafana/agent/internal/component"
 	"github.com/grafana/agent/internal/component/otelcol"
 	"github.com/grafana/agent/internal/component/otelcol/exporter"
-	"github.com/grafana/agent/pkg/flow/componenttest"
+	"github.com/grafana/agent/internal/flow/componenttest"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/stretchr/testify/require"
 	otelcomponent "go.opentelemetry.io/collector/component"

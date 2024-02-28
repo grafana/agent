@@ -13,7 +13,7 @@ import (
 
 	"cloud.google.com/go/pubsub"
 	"github.com/go-kit/log"
-	"github.com/grafana/agent/pkg/flow/logging/level"
+	"github.com/grafana/agent/internal/flow/logging/level"
 	"github.com/grafana/dskit/backoff"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/model/relabel"

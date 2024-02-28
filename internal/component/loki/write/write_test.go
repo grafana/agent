@@ -14,7 +14,7 @@ import (
 	"github.com/grafana/agent/internal/component/common/loki/wal"
 	"github.com/grafana/agent/internal/component/discovery"
 	lsf "github.com/grafana/agent/internal/component/loki/source/file"
-	"github.com/grafana/agent/pkg/flow/componenttest"
+	"github.com/grafana/agent/internal/flow/componenttest"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/grafana/river"
 	"github.com/prometheus/common/model"

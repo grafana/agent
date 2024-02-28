@@ -8,7 +8,7 @@ import (
 	lokiapi "github.com/grafana/agent/internal/component/common/loki"
 	"github.com/grafana/agent/internal/component/otelcol"
 	"github.com/grafana/agent/internal/component/otelcol/internal/fakeconsumer"
-	"github.com/grafana/agent/pkg/flow/componenttest"
+	"github.com/grafana/agent/internal/flow/componenttest"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/grafana/loki/pkg/logproto"
 	"github.com/grafana/river"

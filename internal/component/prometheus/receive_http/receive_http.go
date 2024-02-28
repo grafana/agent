@@ -12,7 +12,7 @@ import (
 	fnet "github.com/grafana/agent/internal/component/common/net"
 	agentprom "github.com/grafana/agent/internal/component/prometheus"
 	"github.com/grafana/agent/internal/featuregate"
-	"github.com/grafana/agent/pkg/flow/logging/level"
+	"github.com/grafana/agent/internal/flow/logging/level"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/grafana/agent/service/labelstore"
 	"github.com/prometheus/client_golang/prometheus"

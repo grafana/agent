@@ -9,7 +9,7 @@ import (
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/internal/component"
 	"github.com/grafana/agent/internal/featuregate"
-	"github.com/grafana/agent/pkg/flow/logging/level"
+	"github.com/grafana/agent/internal/flow/logging/level"
 	lokiClient "github.com/grafana/agent/pkg/loki/client"
 	"github.com/grafana/dskit/backoff"
 	"github.com/grafana/dskit/instrument"

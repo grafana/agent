@@ -14,8 +14,8 @@ import (
 
 	"github.com/grafana/agent/internal/converter/diag"
 	"github.com/grafana/agent/internal/featuregate"
-	"github.com/grafana/agent/pkg/flow"
-	"github.com/grafana/agent/pkg/flow/logging"
+	"github.com/grafana/agent/internal/flow"
+	"github.com/grafana/agent/internal/flow/logging"
 	"github.com/grafana/agent/service"
 	cluster_service "github.com/grafana/agent/service/cluster"
 	http_service "github.com/grafana/agent/service/http"

@@ -7,7 +7,7 @@ import (
 
 	"github.com/grafana/agent/internal/component/otelcol/connector/spanmetrics"
 	"github.com/grafana/agent/internal/component/otelcol/processor/processortest"
-	"github.com/grafana/agent/pkg/flow/componenttest"
+	"github.com/grafana/agent/internal/flow/componenttest"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/grafana/river"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/connector/spanmetricsconnector"

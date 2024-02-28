@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/grafana/agent/internal/component/prometheus/remotewrite"
-	"github.com/grafana/agent/pkg/flow/componenttest"
+	"github.com/grafana/agent/internal/flow/componenttest"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/grafana/river"
 	"github.com/prometheus/prometheus/model/labels"

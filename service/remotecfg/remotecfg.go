@@ -17,7 +17,7 @@ import (
 	"github.com/grafana/agent-remote-config/api/gen/proto/go/agent/v1/agentv1connect"
 	"github.com/grafana/agent/internal/agentseed"
 	"github.com/grafana/agent/internal/component/common/config"
-	"github.com/grafana/agent/pkg/flow/logging/level"
+	"github.com/grafana/agent/internal/flow/logging/level"
 	"github.com/grafana/agent/service"
 	"github.com/grafana/river"
 	commonconfig "github.com/prometheus/common/config"

@@ -9,7 +9,7 @@ import (
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/internal/component"
 	"github.com/grafana/agent/internal/featuregate"
-	"github.com/grafana/agent/pkg/flow/logging/level"
+	"github.com/grafana/agent/internal/flow/logging/level"
 	"github.com/grafana/river/rivertypes"
 	"github.com/oklog/run"
 

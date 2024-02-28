@@ -11,7 +11,7 @@ import (
 	"github.com/IBM/sarama"
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/internal/component/common/loki"
-	"github.com/grafana/agent/pkg/flow/logging/level"
+	"github.com/grafana/agent/internal/flow/logging/level"
 	"github.com/grafana/loki/clients/pkg/promtail/targets/target"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/model/labels"

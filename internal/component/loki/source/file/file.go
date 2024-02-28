@@ -14,7 +14,7 @@ import (
 	"github.com/grafana/agent/internal/component/common/loki/positions"
 	"github.com/grafana/agent/internal/component/discovery"
 	"github.com/grafana/agent/internal/featuregate"
-	"github.com/grafana/agent/pkg/flow/logging/level"
+	"github.com/grafana/agent/internal/flow/logging/level"
 	"github.com/grafana/tail/watch"
 	"github.com/prometheus/common/model"
 )

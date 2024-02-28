@@ -14,8 +14,8 @@ import (
 	"github.com/grafana/agent/internal/component"
 	common_config "github.com/grafana/agent/internal/component/common/config"
 	"github.com/grafana/agent/internal/featuregate"
+	"github.com/grafana/agent/internal/flow/logging/level"
 	"github.com/grafana/agent/internal/useragent"
-	"github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/grafana/river/rivertypes"
 	prom_config "github.com/prometheus/common/config"
 )

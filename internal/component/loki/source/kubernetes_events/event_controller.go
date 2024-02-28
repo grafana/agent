@@ -12,7 +12,7 @@ import (
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/internal/component/common/loki"
 	"github.com/grafana/agent/internal/component/common/loki/positions"
-	"github.com/grafana/agent/pkg/flow/logging/level"
+	"github.com/grafana/agent/internal/flow/logging/level"
 	"github.com/grafana/agent/pkg/runner"
 	"github.com/grafana/loki/pkg/logproto"
 	"github.com/prometheus/common/model"

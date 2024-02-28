@@ -16,7 +16,7 @@ import (
 	"github.com/grafana/agent/internal/component/discovery"
 	"github.com/grafana/agent/internal/component/pyroscope"
 	"github.com/grafana/agent/internal/component/pyroscope/java/asprof"
-	"github.com/grafana/agent/pkg/flow/logging/level"
+	"github.com/grafana/agent/internal/flow/logging/level"
 	jfrpprof "github.com/grafana/jfr-parser/pprof"
 	jfrpprofPyroscope "github.com/grafana/jfr-parser/pprof/pyroscope"
 	"github.com/prometheus/prometheus/model/labels"

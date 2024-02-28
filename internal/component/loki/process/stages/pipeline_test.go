@@ -10,7 +10,7 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/internal/component/common/loki"
-	"github.com/grafana/agent/pkg/flow/logging/level"
+	"github.com/grafana/agent/internal/flow/logging/level"
 	"github.com/grafana/loki/pkg/logproto"
 	util_log "github.com/grafana/loki/pkg/util/log"
 	"github.com/grafana/river"

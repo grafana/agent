@@ -18,7 +18,7 @@ import (
 	"github.com/grafana/agent/internal/component/common/loki/positions"
 	cft "github.com/grafana/agent/internal/component/loki/source/cloudflare/internal/cloudflaretarget"
 	"github.com/grafana/agent/internal/featuregate"
-	"github.com/grafana/agent/pkg/flow/logging/level"
+	"github.com/grafana/agent/internal/flow/logging/level"
 	"github.com/grafana/river/rivertypes"
 	"github.com/prometheus/common/model"
 )

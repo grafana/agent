@@ -8,7 +8,7 @@ import (
 
 	"github.com/bmatcuk/doublestar"
 	"github.com/grafana/agent/internal/component/discovery"
-	"github.com/grafana/agent/pkg/flow/logging/level"
+	"github.com/grafana/agent/internal/flow/logging/level"
 )
 
 // watch handles a single discovery.target for file watching.

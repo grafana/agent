@@ -14,7 +14,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/grafana/agent/internal/component/common/loki"
 	fnet "github.com/grafana/agent/internal/component/common/net"
-	"github.com/grafana/agent/pkg/flow/logging/level"
+	"github.com/grafana/agent/internal/flow/logging/level"
 	"github.com/grafana/loki/pkg/logproto"
 	herokuEncoding "github.com/heroku/x/logplex/encoding"
 	"github.com/prometheus/client_golang/prometheus"

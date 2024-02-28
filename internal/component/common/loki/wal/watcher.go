@@ -11,7 +11,7 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/internal/component/common/loki/wal/internal"
-	"github.com/grafana/agent/pkg/flow/logging/level"
+	"github.com/grafana/agent/internal/flow/logging/level"
 	"github.com/prometheus/prometheus/tsdb/record"
 	"github.com/prometheus/prometheus/tsdb/wlog"
 

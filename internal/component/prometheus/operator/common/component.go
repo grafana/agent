@@ -10,7 +10,7 @@ import (
 
 	"github.com/grafana/agent/internal/component"
 	"github.com/grafana/agent/internal/component/prometheus/operator"
-	"github.com/grafana/agent/pkg/flow/logging/level"
+	"github.com/grafana/agent/internal/flow/logging/level"
 	"github.com/grafana/agent/service/cluster"
 	"github.com/grafana/agent/service/labelstore"
 	"gopkg.in/yaml.v3"

@@ -7,8 +7,8 @@ import (
 	"testing"
 
 	"github.com/grafana/agent/internal/component"
-	"github.com/grafana/agent/pkg/flow"
-	"github.com/grafana/agent/pkg/flow/componenttest"
+	"github.com/grafana/agent/internal/flow"
+	"github.com/grafana/agent/internal/flow/componenttest"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/grafana/agent/service"
 	"github.com/grafana/river"

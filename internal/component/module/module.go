@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/grafana/agent/internal/component"
-	"github.com/grafana/agent/pkg/flow/logging/level"
+	"github.com/grafana/agent/internal/flow/logging/level"
 )
 
 // ModuleComponent holds the common properties for module components.

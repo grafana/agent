@@ -7,7 +7,7 @@ import (
 	flow_relabel "github.com/grafana/agent/internal/component/common/relabel"
 	"github.com/grafana/agent/internal/component/discovery"
 	"github.com/grafana/agent/internal/component/discovery/relabel"
-	"github.com/grafana/agent/pkg/flow/componenttest"
+	"github.com/grafana/agent/internal/flow/componenttest"
 	"github.com/grafana/river"
 	"github.com/stretchr/testify/require"
 )

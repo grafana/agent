@@ -7,7 +7,7 @@ import (
 
 	"github.com/grafana/agent/internal/component/otelcol/processor/discovery"
 	"github.com/grafana/agent/internal/component/otelcol/processor/processortest"
-	"github.com/grafana/agent/pkg/flow/componenttest"
+	"github.com/grafana/agent/internal/flow/componenttest"
 	promsdconsumer "github.com/grafana/agent/pkg/traces/promsdprocessor/consumer"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/grafana/river"

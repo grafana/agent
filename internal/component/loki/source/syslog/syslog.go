@@ -10,7 +10,7 @@ import (
 	flow_relabel "github.com/grafana/agent/internal/component/common/relabel"
 	st "github.com/grafana/agent/internal/component/loki/source/syslog/internal/syslogtarget"
 	"github.com/grafana/agent/internal/featuregate"
-	"github.com/grafana/agent/pkg/flow/logging/level"
+	"github.com/grafana/agent/internal/flow/logging/level"
 	"github.com/prometheus/prometheus/model/relabel"
 )
 

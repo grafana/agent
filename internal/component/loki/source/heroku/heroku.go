@@ -11,7 +11,7 @@ import (
 	flow_relabel "github.com/grafana/agent/internal/component/common/relabel"
 	ht "github.com/grafana/agent/internal/component/loki/source/heroku/internal/herokutarget"
 	"github.com/grafana/agent/internal/featuregate"
-	"github.com/grafana/agent/pkg/flow/logging/level"
+	"github.com/grafana/agent/internal/flow/logging/level"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"

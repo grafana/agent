@@ -11,8 +11,8 @@ import (
 	"time"
 
 	http_component "github.com/grafana/agent/internal/component/remote/http"
-	"github.com/grafana/agent/pkg/flow/componenttest"
-	"github.com/grafana/agent/pkg/flow/logging/level"
+	"github.com/grafana/agent/internal/flow/componenttest"
+	"github.com/grafana/agent/internal/flow/logging/level"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/grafana/dskit/backoff"
 	"github.com/grafana/river"

@@ -9,7 +9,7 @@ import (
 
 	"github.com/grafana/agent/internal/component/otelcol/auth"
 	"github.com/grafana/agent/internal/component/otelcol/auth/headers"
-	"github.com/grafana/agent/pkg/flow/componenttest"
+	"github.com/grafana/agent/internal/flow/componenttest"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/grafana/river"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/headerssetterextension"

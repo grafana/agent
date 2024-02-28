@@ -18,7 +18,7 @@ import (
 	"github.com/grafana/agent/internal/component/discovery"
 	"github.com/grafana/agent/internal/component/loki/source/kubernetes/kubetail"
 	"github.com/grafana/agent/internal/featuregate"
-	"github.com/grafana/agent/pkg/flow/logging/level"
+	"github.com/grafana/agent/internal/flow/logging/level"
 	"github.com/grafana/agent/service/cluster"
 	"k8s.io/client-go/kubernetes"
 )

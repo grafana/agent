@@ -13,8 +13,8 @@ import (
 	"github.com/grafana/agent/internal/component"
 	"github.com/grafana/agent/internal/component/module"
 	"github.com/grafana/agent/internal/featuregate"
+	"github.com/grafana/agent/internal/flow/logging/level"
 	"github.com/grafana/agent/internal/vcs"
-	"github.com/grafana/agent/pkg/flow/logging/level"
 )
 
 func init() {

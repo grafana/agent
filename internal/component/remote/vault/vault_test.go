@@ -12,7 +12,7 @@ import (
 
 	"github.com/docker/go-connections/nat"
 	"github.com/go-kit/log"
-	"github.com/grafana/agent/pkg/flow/componenttest"
+	"github.com/grafana/agent/internal/flow/componenttest"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/grafana/river"
 	"github.com/grafana/river/rivertypes"

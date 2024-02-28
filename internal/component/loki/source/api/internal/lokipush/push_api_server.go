@@ -14,7 +14,7 @@ import (
 	"github.com/grafana/agent/internal/component/common/loki"
 	fnet "github.com/grafana/agent/internal/component/common/net"
 	frelabel "github.com/grafana/agent/internal/component/common/relabel"
-	"github.com/grafana/agent/pkg/flow/logging/level"
+	"github.com/grafana/agent/internal/flow/logging/level"
 	"github.com/grafana/dskit/tenant"
 	"github.com/grafana/loki/pkg/loghttp/push"
 	"github.com/grafana/loki/pkg/logproto"
