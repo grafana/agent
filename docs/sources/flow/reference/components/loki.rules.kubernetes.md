@@ -1,12 +1,12 @@
 ---
 title: loki.rules.kubernetes
 labels:
-  stage: beta
+  stage: experimental
 ---
 
 # loki.rules.kubernetes
 
-{{< docs/shared lookup="flow/stability/beta.md" source="agent" >}}
+{{< docs/shared lookup="flow/stability/experimental.md" source="agent" version="<AGENT_VERSION>" >}}
 
 `loki.rules.kubernetes` discovers `PrometheusRule` Kubernetes resources and
 loads them into a Loki instance.
