@@ -10,7 +10,7 @@ import (
 	"github.com/grafana/agent/internal/component"
 	"github.com/grafana/agent/internal/featuregate"
 	"github.com/grafana/agent/internal/flow/logging/level"
-	mimirClient "github.com/grafana/agent/pkg/mimir/client"
+	mimirClient "github.com/grafana/agent/internal/mimir/client"
 	"github.com/grafana/dskit/backoff"
 	"github.com/grafana/dskit/instrument"
 	promListers "github.com/prometheus-operator/prometheus-operator/pkg/client/listers/monitoring/v1"

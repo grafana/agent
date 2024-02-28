@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/go-kit/log"
-	mimirClient "github.com/grafana/agent/pkg/mimir/client"
+	mimirClient "github.com/grafana/agent/internal/mimir/client"
 	v1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	promListers "github.com/prometheus-operator/prometheus-operator/pkg/client/listers/monitoring/v1"
 	"github.com/prometheus/prometheus/model/rulefmt"
