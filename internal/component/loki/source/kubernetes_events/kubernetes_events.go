@@ -18,7 +18,7 @@ import (
 	"github.com/grafana/agent/internal/component/common/loki/positions"
 	"github.com/grafana/agent/internal/featuregate"
 	"github.com/grafana/agent/internal/flow/logging/level"
-	"github.com/grafana/agent/pkg/runner"
+	"github.com/grafana/agent/internal/runner"
 	"github.com/oklog/run"
 	"k8s.io/client-go/rest"
 )

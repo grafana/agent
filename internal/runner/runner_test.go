@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/cespare/xxhash/v2"
-	"github.com/grafana/agent/pkg/runner"
+	"github.com/grafana/agent/internal/runner"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/atomic"

@@ -17,7 +17,7 @@ import (
 	"github.com/grafana/agent/internal/flow/internal/importsource"
 	"github.com/grafana/agent/internal/flow/logging/level"
 	"github.com/grafana/agent/internal/flow/tracing"
-	"github.com/grafana/agent/pkg/runner"
+	"github.com/grafana/agent/internal/runner"
 	"github.com/grafana/river/ast"
 	"github.com/grafana/river/parser"
 	"github.com/grafana/river/vm"

@@ -13,7 +13,7 @@ import (
 	"github.com/grafana/agent/internal/component/common/loki"
 	"github.com/grafana/agent/internal/component/common/loki/positions"
 	"github.com/grafana/agent/internal/flow/logging/level"
-	"github.com/grafana/agent/pkg/runner"
+	"github.com/grafana/agent/internal/runner"
 	"github.com/grafana/loki/pkg/logproto"
 	"github.com/prometheus/common/model"
 	corev1 "k8s.io/api/core/v1"

@@ -13,7 +13,7 @@ import (
 	"github.com/grafana/agent/internal/component/common/loki/positions"
 	dt "github.com/grafana/agent/internal/component/loki/source/docker/internal/dockertarget"
 	"github.com/grafana/agent/internal/flow/logging/level"
-	"github.com/grafana/agent/pkg/runner"
+	"github.com/grafana/agent/internal/runner"
 )
 
 // A manager manages a set of running tailers.
