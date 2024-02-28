@@ -5,7 +5,7 @@ import (
 
 	"github.com/grafana/agent/internal/converter/internal/common"
 	"github.com/grafana/agent/internal/flow/logging"
-	"github.com/grafana/agent/pkg/server"
+	"github.com/grafana/agent/internal/static/server"
 )
 
 func (b *IntegrationsConfigBuilder) appendLogging(config *server.Config) {

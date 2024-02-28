@@ -13,7 +13,7 @@ import (
 	"github.com/grafana/agent/internal/static/config/encoder"
 	"github.com/grafana/agent/internal/static/metrics"
 	"github.com/grafana/agent/internal/static/metrics/instance"
-	"github.com/grafana/agent/pkg/server"
+	"github.com/grafana/agent/internal/static/server"
 	"github.com/grafana/agent/pkg/util"
 	commonCfg "github.com/prometheus/common/config"
 	"github.com/prometheus/common/model"

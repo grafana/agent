@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/grafana/agent/internal/static/config/features"
-	"github.com/grafana/agent/pkg/server"
+	"github.com/grafana/agent/internal/static/server"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/common/config"
 	"github.com/stretchr/testify/assert"

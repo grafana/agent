@@ -10,7 +10,7 @@ import (
 	"github.com/grafana/agent/internal/build"
 	"github.com/grafana/agent/internal/flowmode"
 	"github.com/grafana/agent/internal/static/config"
-	"github.com/grafana/agent/pkg/server"
+	"github.com/grafana/agent/internal/static/server"
 	util_log "github.com/grafana/agent/pkg/util/log"
 
 	"github.com/prometheus/client_golang/prometheus"

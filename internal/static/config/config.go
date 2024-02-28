@@ -18,7 +18,7 @@ import (
 	"github.com/grafana/agent/internal/static/config/instrumentation"
 	"github.com/grafana/agent/internal/static/logs"
 	"github.com/grafana/agent/internal/static/metrics"
-	"github.com/grafana/agent/pkg/server"
+	"github.com/grafana/agent/internal/static/server"
 	"github.com/grafana/agent/pkg/traces"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/common/config"

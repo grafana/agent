@@ -22,7 +22,7 @@ import (
 	"github.com/grafana/agent/internal/static/logs"
 	"github.com/grafana/agent/internal/static/metrics"
 	"github.com/grafana/agent/internal/static/metrics/instance"
-	"github.com/grafana/agent/pkg/server"
+	"github.com/grafana/agent/internal/static/server"
 	"github.com/grafana/agent/pkg/supportbundle"
 	"github.com/grafana/agent/pkg/traces"
 	"github.com/grafana/agent/pkg/usagestats"

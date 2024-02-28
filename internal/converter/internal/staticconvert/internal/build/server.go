@@ -4,7 +4,7 @@ import (
 	"reflect"
 
 	"github.com/grafana/agent/internal/converter/internal/common"
-	"github.com/grafana/agent/pkg/server"
+	"github.com/grafana/agent/internal/static/server"
 	"github.com/grafana/agent/service/http"
 )
 

@@ -44,7 +44,7 @@ import (
 	"github.com/grafana/agent/internal/static/integrations/windows_exporter"
 	"github.com/grafana/agent/internal/static/logs"
 	"github.com/grafana/agent/internal/static/metrics"
-	"github.com/grafana/agent/pkg/server"
+	"github.com/grafana/agent/internal/static/server"
 	"github.com/grafana/agent/pkg/traces"
 
 	_ "github.com/prometheus/prometheus/discovery/install" // Register Prometheus SDs

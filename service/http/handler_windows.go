@@ -2,7 +2,8 @@ package http
 
 import (
 	"crypto/tls"
-	"github.com/grafana/agent/pkg/server"
+
+	"github.com/grafana/agent/internal/static/server"
 )
 
 // tlsConfig generates a tls.Config from args.
