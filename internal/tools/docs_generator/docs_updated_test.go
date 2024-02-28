@@ -1,18 +1,21 @@
 //go:build !windows
 
-package docs
+package docs_generator_test
 
 import (
 	"flag"
+	"path/filepath"
 	"strings"
 	"testing"
 
-	"github.com/grafana/agent/docs/generator"
 	"github.com/grafana/agent/internal/component"
 	_ "github.com/grafana/agent/internal/component/all"
 	"github.com/grafana/agent/internal/component/metadata"
+	generator "github.com/grafana/agent/internal/tools/docs_generator"
 	"github.com/stretchr/testify/require"
 )
+
+var moduleRoot = "../../../"
 
 // Run the below generate command to automatically update the Markdown docs with generated content
 //go:generate go test -fix-tests -v
@@ -28,7 +31,7 @@ func TestLinksToTypesSectionsUpdated(t *testing.T) {
 }
 
 func TestCompatibleComponentsPageUpdated(t *testing.T) {
-	path := "sources/flow/reference/compatibility/_index.md"
+	path := filepath.Join(moduleRoot, "docs/sources/flow/reference/compatibility/_index.md")
 	for _, typ := range metadata.AllTypes {
 		t.Run(typ.Name, func(t *testing.T) {
 			t.Run("exporters", func(t *testing.T) {

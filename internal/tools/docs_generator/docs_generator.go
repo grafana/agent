@@ -1,4 +1,4 @@
-package generator
+package docs_generator
 
 import (
 	"bytes"
