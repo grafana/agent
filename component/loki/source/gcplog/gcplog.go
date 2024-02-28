@@ -6,6 +6,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/grafana/agent/internal/featuregate"
 	"github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/prometheus/model/relabel"
@@ -20,8 +21,9 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name: "loki.source.gcplog",
-		Args: Arguments{},
+		Name:      "loki.source.gcplog",
+		Stability: featuregate.StabilityStable,
+		Args:      Arguments{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			return New(opts, args.(Arguments))

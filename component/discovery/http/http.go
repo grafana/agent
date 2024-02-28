@@ -6,6 +6,7 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/common/config"
 	"github.com/grafana/agent/component/discovery"
+	"github.com/grafana/agent/internal/featuregate"
 	promcfg "github.com/prometheus/common/config"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/discovery/http"
@@ -13,9 +14,10 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name:    "discovery.http",
-		Args:    Arguments{},
-		Exports: discovery.Exports{},
+		Name:      "discovery.http",
+		Stability: featuregate.StabilityStable,
+		Args:      Arguments{},
+		Exports:   discovery.Exports{},
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			return New(opts, args.(Arguments))
 		},

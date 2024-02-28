@@ -11,6 +11,7 @@ import (
 	"github.com/grafana/agent/component"
 	fnet "github.com/grafana/agent/component/common/net"
 	agentprom "github.com/grafana/agent/component/prometheus"
+	"github.com/grafana/agent/internal/featuregate"
 	"github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/grafana/agent/service/labelstore"
@@ -21,8 +22,9 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name: "prometheus.receive_http",
-		Args: Arguments{},
+		Name:      "prometheus.receive_http",
+		Stability: featuregate.StabilityStable,
+		Args:      Arguments{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			return New(opts, args.(Arguments))

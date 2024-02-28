@@ -44,6 +44,7 @@ type Loader struct {
 	originalGraph     *dag.Graph
 	componentNodes    []ComponentNode
 	declareNodes      map[string]*DeclareNode
+	importConfigNodes map[string]*ImportConfigNode
 	serviceNodes      []*ServiceNode
 	cache             *valueCache
 	blocks            []*ast.BlockStmt // Most recently loaded blocks, used for writing
@@ -74,7 +75,7 @@ func NewLoader(opts LoaderOptions) *Loader {
 	)
 
 	if reg == nil {
-		reg = DefaultComponentRegistry{}
+		reg = NewDefaultComponentRegistry(opts.ComponentGlobals.MinStability)
 	}
 
 	l := &Loader{
@@ -340,7 +341,7 @@ func (l *Loader) populateDeclareNodes(g *dag.Graph, declareBlocks []*ast.BlockSt
 	var diags diag.Diagnostics
 	l.declareNodes = map[string]*DeclareNode{}
 	for _, declareBlock := range declareBlocks {
-		if declareBlock.Label == "declare" {
+		if declareBlock.Label == declareType {
 			diags.Add(diag.Diagnostic{
 				Severity: diag.SeverityLevelError,
 				Message:  "'declare' is not a valid label for a declare block",
@@ -372,6 +373,10 @@ func (l *Loader) populateServiceNodes(g *dag.Graph, serviceBlocks []*ast.BlockSt
 
 	// First, build the services.
 	for _, svc := range l.services {
+		if !l.isRootController() {
+			break
+		}
+
 		id := svc.Definition().Name
 
 		if g.GetByID(id) != nil {
@@ -401,7 +406,7 @@ func (l *Loader) populateServiceNodes(g *dag.Graph, serviceBlocks []*ast.BlockSt
 	for _, block := range serviceBlocks {
 		blockID := BlockComponentID(block).String()
 
-		if l.isModule() {
+		if !l.isRootController() {
 			diags.Add(diag.Diagnostic{
 				Severity: diag.SeverityLevelError,
 				Message:  fmt.Sprintf("service blocks not allowed inside a module: %q", blockID),
@@ -462,25 +467,29 @@ func (l *Loader) populateConfigBlockNodes(args map[string]any, g *dag.Graph, con
 			continue
 		}
 
+		if importNode, ok := node.(*ImportConfigNode); ok {
+			l.componentNodeManager.customComponentReg.registerImport(importNode.label)
+		}
+
 		g.Add(node)
 	}
 
-	validateDiags := nodeMap.Validate(l.isModule(), args)
+	validateDiags := nodeMap.Validate(!l.isRootController(), args)
 	diags = append(diags, validateDiags...)
 
 	// If a logging config block is not provided, we create an empty node which uses defaults.
-	if nodeMap.logging == nil && !l.isModule() {
+	if nodeMap.logging == nil && l.isRootController() {
 		c := NewDefaultLoggingConfigNode(l.globals)
 		g.Add(c)
 	}
 
 	// If a tracing config block is not provided, we create an empty node which uses defaults.
-	if nodeMap.tracing == nil && !l.isModule() {
+	if nodeMap.tracing == nil && l.isRootController() {
 		c := NewDefaulTracingConfigNode(l.globals)
 		g.Add(c)
 	}
 
-	// TODO: set import config nodes form the nodeMap to the importConfigNodes field of the loader.
+	l.importConfigNodes = nodeMap.importMap
 
 	return diags
 }
@@ -580,12 +589,15 @@ func (l *Loader) wireGraphEdges(g *dag.Graph) diag.Diagnostics {
 
 // wireCustomComponentNode wires a custom component to the import/declare nodes that it depends on.
 func (l *Loader) wireCustomComponentNode(g *dag.Graph, cc *CustomComponentNode) {
-	if declare, ok := l.declareNodes[cc.componentName]; ok {
+	if declare, ok := l.declareNodes[cc.customComponentName]; ok {
 		refs := l.findCustomComponentReferences(declare.Block())
 		for ref := range refs {
 			// add edges between the custom component and declare/import nodes.
 			g.AddEdge(dag.Edge{From: cc, To: ref})
 		}
+	} else if importNode, ok := l.importConfigNodes[cc.importNamespace]; ok {
+		// add an edge between the custom component and the corresponding import node.
+		g.AddEdge(dag.Edge{From: cc, To: importNode})
 	}
 }
 
@@ -607,6 +619,13 @@ func (l *Loader) Services() []*ServiceNode {
 	l.mut.RLock()
 	defer l.mut.RUnlock()
 	return l.serviceNodes
+}
+
+// Imports returns the current set of import nodes.
+func (l *Loader) Imports() map[string]*ImportConfigNode {
+	l.mut.RLock()
+	defer l.mut.RUnlock()
+	return l.importConfigNodes
 }
 
 // Graph returns a copy of the DAG managed by the Loader.
@@ -652,6 +671,9 @@ func (l *Loader) EvaluateDependants(ctx context.Context, updatedNodes []*QueuedN
 		case ComponentNode:
 			// Make sure we're in-sync with the current exports of parent.
 			l.cache.CacheExports(parentNode.ID(), parentNode.Exports())
+		case *ImportConfigNode:
+			// Update the scope with the imported content.
+			l.componentNodeManager.customComponentReg.updateImportContent(parentNode)
 		}
 		// We collect all nodes directly incoming to parent.
 		_ = dag.WalkIncomingNodes(l.graph, parent.Node, func(n dag.Node) error {
@@ -787,6 +809,8 @@ func (l *Loader) postEvaluate(logger log.Logger, bn BlockNode, err error) error 
 				err = fmt.Errorf("missing required argument %q to module", c.Label())
 			}
 		}
+	case *ImportConfigNode:
+		l.componentNodeManager.customComponentReg.updateImportContent(c)
 	}
 
 	if err != nil {
@@ -808,10 +832,9 @@ func multierrToDiags(errors error) diag.Diagnostics {
 	return diags
 }
 
-// If the definition of a module ever changes, update this.
-func (l *Loader) isModule() bool {
-	// Either 1 of these checks is technically sufficient but let's be extra careful.
-	return l.globals.OnExportsChange != nil && l.globals.ControllerID != ""
+// isRootController returns true if the loader is for the root flow controller.
+func (l *Loader) isRootController() bool {
+	return l.globals.ControllerID == ""
 }
 
 // findCustomComponentReferences returns references to import/declare nodes in a declare block.
@@ -821,7 +844,7 @@ func (l *Loader) findCustomComponentReferences(declare *ast.BlockStmt) map[Block
 	return uniqueReferences
 }
 
-// collectCustomComponentDependencies recursively collects references to declare nodes through an AST body.
+// collectCustomComponentDependencies recursively collects references to import/declare nodes through an AST body.
 func (l *Loader) collectCustomComponentReferences(stmts ast.Body, uniqueReferences map[BlockNode]struct{}) {
 	for _, stmt := range stmts {
 		blockStmt, ok := stmt.(*ast.BlockStmt)
@@ -833,13 +856,16 @@ func (l *Loader) collectCustomComponentReferences(stmts ast.Body, uniqueReferenc
 			componentName = strings.Join(blockStmt.Name, ".")
 
 			declareNode, foundDeclare = l.declareNodes[blockStmt.Name[0]]
+			importNode, foundImport   = l.importConfigNodes[blockStmt.Name[0]]
 		)
 
 		switch {
-		case componentName == "declare":
+		case componentName == declareType:
 			l.collectCustomComponentReferences(blockStmt.Body, uniqueReferences)
 		case foundDeclare:
 			uniqueReferences[declareNode] = struct{}{}
+		case foundImport:
+			uniqueReferences[importNode] = struct{}{}
 		}
 	}
 }

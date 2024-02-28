@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/internal/featuregate"
 	"github.com/grafana/agent/pkg/flow/internal/controller"
 	"github.com/grafana/agent/pkg/flow/internal/worker"
 	"github.com/grafana/agent/pkg/flow/logging"
@@ -140,6 +141,7 @@ func newModule(o *moduleOptions) *module {
 				Reg:          o.Reg,
 				Logger:       o.Logger,
 				DataPath:     o.DataPath,
+				MinStability: o.MinStability,
 				OnExportsChange: func(exports map[string]any) {
 					if o.export != nil {
 						o.export(exports)
@@ -202,6 +204,10 @@ type moduleControllerOptions struct {
 	// The directory may not exist when the component is created; components
 	// should create the directory if needed.
 	DataPath string
+
+	// MinStability is the minimum stability level of features that can be used by the collector. It is defined by
+	// the user, for example, via command-line flags.
+	MinStability featuregate.Stability
 
 	// ID is the attached components full ID.
 	ID string

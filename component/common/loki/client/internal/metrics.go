@@ -1,6 +1,9 @@
 package internal
 
-import "github.com/prometheus/client_golang/prometheus"
+import (
+	"github.com/grafana/agent/pkg/util"
+	"github.com/prometheus/client_golang/prometheus"
+)
 
 type MarkerMetrics struct {
 	lastMarkedSegment *prometheus.GaugeVec
@@ -19,7 +22,7 @@ func NewMarkerMetrics(reg prometheus.Registerer) *MarkerMetrics {
 		),
 	}
 	if reg != nil {
-		reg.MustRegister(m.lastMarkedSegment)
+		m.lastMarkedSegment = util.MustRegisterOrGet(reg, m.lastMarkedSegment).(*prometheus.GaugeVec)
 	}
 	return m
 }

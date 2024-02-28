@@ -9,13 +9,15 @@ import (
 	"github.com/go-kit/log"
 	"github.com/go-sourcemap/sourcemap"
 	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/internal/featuregate"
 	"github.com/grafana/agent/pkg/flow/logging/level"
 )
 
 func init() {
 	component.Register(component.Registration{
-		Name: "faro.receiver",
-		Args: Arguments{},
+		Name:      "faro.receiver",
+		Stability: featuregate.StabilityStable,
+		Args:      Arguments{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			return New(opts, args.(Arguments))
