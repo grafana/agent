@@ -10,7 +10,7 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/gorilla/mux"
-	"github.com/grafana/agent/pkg/util"
+	"github.com/grafana/agent/internal/util"
 	"github.com/stretchr/testify/require"
 )
 

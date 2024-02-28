@@ -12,8 +12,8 @@ import (
 	k8s_yaml "sigs.k8s.io/yaml"
 
 	"github.com/grafana/agent/internal/static/operator/assets"
-	"github.com/grafana/agent/pkg/util"
-	"github.com/grafana/agent/pkg/util/subset"
+	"github.com/grafana/agent/internal/util"
+	"github.com/grafana/agent/internal/util/subset"
 
 	gragent "github.com/grafana/agent/internal/static/operator/apis/monitoring/v1alpha1"
 )

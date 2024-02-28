@@ -11,7 +11,7 @@ import (
 	"github.com/grafana/agent/internal/component"
 	"github.com/grafana/agent/internal/component/common/loki"
 	flow_relabel "github.com/grafana/agent/internal/component/common/relabel"
-	"github.com/grafana/agent/pkg/util"
+	"github.com/grafana/agent/internal/util"
 	"github.com/grafana/regexp"
 	"github.com/phayes/freeport"
 	"github.com/prometheus/client_golang/prometheus"

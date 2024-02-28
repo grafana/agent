@@ -10,7 +10,7 @@ import (
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/internal/static/config"
 	"github.com/grafana/agent/internal/static/server"
-	util_log "github.com/grafana/agent/pkg/util/log"
+	util_log "github.com/grafana/agent/internal/util/log"
 
 	"golang.org/x/sys/windows/svc"
 )

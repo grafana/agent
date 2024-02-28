@@ -19,7 +19,7 @@ import (
 	"github.com/grafana/agent/internal/static/metrics/cluster"
 	"github.com/grafana/agent/internal/static/metrics/cluster/client"
 	"github.com/grafana/agent/internal/static/metrics/instance"
-	"github.com/grafana/agent/pkg/util"
+	"github.com/grafana/agent/internal/util"
 	"github.com/prometheus/prometheus/discovery"
 )
 

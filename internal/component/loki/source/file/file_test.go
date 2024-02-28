@@ -15,7 +15,7 @@ import (
 	"github.com/grafana/agent/internal/component/common/loki"
 	"github.com/grafana/agent/internal/component/discovery"
 	"github.com/grafana/agent/internal/flow/componenttest"
-	"github.com/grafana/agent/pkg/util"
+	"github.com/grafana/agent/internal/util"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
 	"github.com/stretchr/testify/require"

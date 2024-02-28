@@ -16,7 +16,7 @@ import (
 	flow_relabel "github.com/grafana/agent/internal/component/common/relabel"
 	"github.com/grafana/agent/internal/component/loki/source/gcplog/gcptypes"
 	gt "github.com/grafana/agent/internal/component/loki/source/gcplog/internal/gcplogtarget"
-	"github.com/grafana/agent/pkg/util"
+	"github.com/grafana/agent/internal/util"
 )
 
 func init() {

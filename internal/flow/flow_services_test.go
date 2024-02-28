@@ -10,7 +10,7 @@ import (
 	"github.com/grafana/agent/internal/flow/internal/controller"
 	"github.com/grafana/agent/internal/flow/internal/testcomponents"
 	"github.com/grafana/agent/internal/flow/internal/testservices"
-	"github.com/grafana/agent/pkg/util"
+	"github.com/grafana/agent/internal/util"
 	"github.com/grafana/agent/service"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/atomic"

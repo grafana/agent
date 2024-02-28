@@ -8,7 +8,7 @@ import (
 	"github.com/grafana/agent/internal/component/otelcol/connector/spanlogs"
 	"github.com/grafana/agent/internal/component/otelcol/processor/processortest"
 	"github.com/grafana/agent/internal/flow/componenttest"
-	"github.com/grafana/agent/pkg/util"
+	"github.com/grafana/agent/internal/util"
 	"github.com/grafana/river"
 	"github.com/stretchr/testify/require"
 )

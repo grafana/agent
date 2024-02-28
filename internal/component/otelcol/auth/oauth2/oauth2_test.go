@@ -11,7 +11,7 @@ import (
 	"github.com/grafana/agent/internal/component/otelcol/auth"
 	"github.com/grafana/agent/internal/component/otelcol/auth/oauth2"
 	"github.com/grafana/agent/internal/flow/componenttest"
-	"github.com/grafana/agent/pkg/util"
+	"github.com/grafana/agent/internal/util"
 	"github.com/grafana/river"
 	"github.com/stretchr/testify/require"
 	extauth "go.opentelemetry.io/collector/extension/auth"

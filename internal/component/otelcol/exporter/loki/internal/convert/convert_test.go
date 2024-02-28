@@ -9,7 +9,7 @@ import (
 	"github.com/grafana/agent/internal/component/common/loki"
 	"github.com/grafana/agent/internal/component/otelcol/exporter/loki/internal/convert"
 	"github.com/grafana/agent/internal/component/otelcol/processor/processortest"
-	"github.com/grafana/agent/pkg/util"
+	"github.com/grafana/agent/internal/util"
 	"github.com/grafana/loki/pkg/push"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"

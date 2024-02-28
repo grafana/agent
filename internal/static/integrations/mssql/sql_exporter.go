@@ -16,7 +16,7 @@ import (
 	"github.com/grafana/agent/internal/static/integrations"
 	integrations_v2 "github.com/grafana/agent/internal/static/integrations/v2"
 	"github.com/grafana/agent/internal/static/integrations/v2/metricsutils"
-	"github.com/grafana/agent/pkg/util"
+	"github.com/grafana/agent/internal/util"
 	"github.com/prometheus/common/model"
 )
 

@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	_ "github.com/grafana/agent/internal/static/integrations/install" // Install integrations for tests
-	"github.com/grafana/agent/pkg/util"
+	"github.com/grafana/agent/internal/util"
 )
 
 func TestIntegrations_v1(t *testing.T) {

@@ -8,7 +8,7 @@ import (
 	"github.com/grafana/agent/internal/component/otelcol"
 	"github.com/grafana/agent/internal/component/otelcol/receiver/jaeger"
 	"github.com/grafana/agent/internal/flow/componenttest"
-	"github.com/grafana/agent/pkg/util"
+	"github.com/grafana/agent/internal/util"
 	"github.com/grafana/river"
 	"github.com/phayes/freeport"
 	"github.com/stretchr/testify/require"

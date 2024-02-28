@@ -10,7 +10,7 @@ import (
 	"github.com/grafana/agent/internal/component/otelcol/processor/memorylimiter"
 	"github.com/grafana/agent/internal/flow/componenttest"
 	"github.com/grafana/agent/internal/flow/logging/level"
-	"github.com/grafana/agent/pkg/util"
+	"github.com/grafana/agent/internal/util"
 	"github.com/grafana/dskit/backoff"
 	"github.com/grafana/river"
 	"github.com/stretchr/testify/require"

@@ -14,7 +14,7 @@ import (
 	"github.com/grafana/agent/internal/static/server"
 	"github.com/grafana/agent/internal/static/traces"
 	"github.com/grafana/agent/internal/static/traces/traceutils"
-	"github.com/grafana/agent/pkg/util"
+	"github.com/grafana/agent/internal/util"
 	"github.com/phayes/freeport"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/assert"

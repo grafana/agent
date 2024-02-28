@@ -24,7 +24,7 @@ import (
 	"github.com/grafana/agent/internal/static/traces/contextkeys"
 	"github.com/grafana/agent/internal/static/traces/servicegraphprocessor"
 	"github.com/grafana/agent/internal/static/traces/traceutils"
-	"github.com/grafana/agent/pkg/util"
+	"github.com/grafana/agent/internal/util"
 	prom_client "github.com/prometheus/client_golang/prometheus"
 	"go.opentelemetry.io/otel/trace/noop"
 )

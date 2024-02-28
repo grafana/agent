@@ -6,8 +6,8 @@ import (
 	"testing"
 
 	"github.com/grafana/agent/internal/component/otelcol/exporter/prometheus/internal/convert"
-	"github.com/grafana/agent/pkg/util"
-	"github.com/grafana/agent/pkg/util/testappender"
+	"github.com/grafana/agent/internal/util"
+	"github.com/grafana/agent/internal/util/testappender"
 	"github.com/prometheus/prometheus/storage"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/pdata/pmetric"

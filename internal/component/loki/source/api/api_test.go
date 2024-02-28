@@ -15,7 +15,7 @@ import (
 	"github.com/grafana/agent/internal/component/common/loki/client/fake"
 	"github.com/grafana/agent/internal/component/common/net"
 	"github.com/grafana/agent/internal/component/common/relabel"
-	"github.com/grafana/agent/pkg/util"
+	"github.com/grafana/agent/internal/util"
 	"github.com/grafana/dskit/flagext"
 	"github.com/grafana/loki/pkg/logproto"
 	"github.com/grafana/regexp"

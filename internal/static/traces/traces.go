@@ -7,7 +7,7 @@ import (
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/internal/static/logs"
 	"github.com/grafana/agent/internal/static/metrics/instance"
-	"github.com/grafana/agent/pkg/util/zapadapter"
+	"github.com/grafana/agent/internal/util/zapadapter"
 	prom_client "github.com/prometheus/client_golang/prometheus"
 	"go.uber.org/zap"
 )

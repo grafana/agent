@@ -17,7 +17,7 @@ import (
 	fnet "github.com/grafana/agent/internal/component/common/net"
 	flow_relabel "github.com/grafana/agent/internal/component/common/relabel"
 	"github.com/grafana/agent/internal/component/loki/source/aws_firehose/internal"
-	"github.com/grafana/agent/pkg/util"
+	"github.com/grafana/agent/internal/util"
 	"github.com/grafana/river/rivertypes"
 )
 

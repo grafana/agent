@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/grafana/agent/internal/component/common/loki"
-	"github.com/grafana/agent/pkg/util"
+	"github.com/grafana/agent/internal/util"
 	"github.com/grafana/loki/pkg/logproto"
 	"github.com/grafana/loki/pkg/logqlmodel"
 	json "github.com/json-iterator/go"

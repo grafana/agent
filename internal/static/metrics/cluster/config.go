@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/grafana/agent/internal/static/metrics/cluster/client"
-	flagutil "github.com/grafana/agent/pkg/util"
-	util_log "github.com/grafana/agent/pkg/util/log"
+	flagutil "github.com/grafana/agent/internal/util"
+	util_log "github.com/grafana/agent/internal/util/log"
 	"github.com/grafana/dskit/kv"
 	"github.com/grafana/dskit/ring"
 )

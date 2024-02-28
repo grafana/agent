@@ -8,7 +8,7 @@ import (
 	"fmt"
 
 	"github.com/go-kit/log"
-	"github.com/grafana/agent/pkg/util"
+	"github.com/grafana/agent/internal/util"
 	"github.com/grafana/agent/service"
 )
 

@@ -15,7 +15,7 @@ import (
 
 	gragent "github.com/grafana/agent/internal/static/operator/apis/monitoring/v1alpha1"
 	"github.com/grafana/agent/internal/static/operator/assets"
-	"github.com/grafana/agent/pkg/util"
+	"github.com/grafana/agent/internal/util"
 )
 
 func TestLogsClientConfig(t *testing.T) {

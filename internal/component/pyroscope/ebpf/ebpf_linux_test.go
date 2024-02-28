@@ -11,7 +11,7 @@ import (
 
 	"github.com/grafana/agent/internal/component"
 	"github.com/grafana/agent/internal/component/pyroscope"
-	"github.com/grafana/agent/pkg/util"
+	"github.com/grafana/agent/internal/util"
 	ebpfspy "github.com/grafana/pyroscope/ebpf"
 	"github.com/grafana/pyroscope/ebpf/pprof"
 	"github.com/grafana/pyroscope/ebpf/sd"

@@ -11,9 +11,9 @@ import (
 
 	gragent "github.com/grafana/agent/internal/static/operator/apis/monitoring/v1alpha1"
 	"github.com/grafana/agent/internal/static/operator/hierarchy"
-	"github.com/grafana/agent/pkg/util"
-	"github.com/grafana/agent/pkg/util/k8s"
-	"github.com/grafana/agent/pkg/util/structwalk"
+	"github.com/grafana/agent/internal/util"
+	"github.com/grafana/agent/internal/util/k8s"
+	"github.com/grafana/agent/internal/util/structwalk"
 	prom "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	"github.com/stretchr/testify/require"
 	v1 "k8s.io/api/core/v1"

@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/grafana/agent/pkg/util"
+	"github.com/grafana/agent/internal/util"
 	"github.com/grafana/loki/clients/pkg/promtail/targets/target"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"

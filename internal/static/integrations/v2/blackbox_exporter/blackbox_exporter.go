@@ -5,7 +5,7 @@ import (
 	"github.com/grafana/agent/internal/static/integrations/blackbox_exporter"
 	integrations_v2 "github.com/grafana/agent/internal/static/integrations/v2"
 	"github.com/grafana/agent/internal/static/integrations/v2/common"
-	"github.com/grafana/agent/pkg/util"
+	"github.com/grafana/agent/internal/util"
 	blackbox_config "github.com/prometheus/blackbox_exporter/config"
 	"gopkg.in/yaml.v3"
 )

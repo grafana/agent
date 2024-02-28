@@ -19,7 +19,7 @@ import (
 	"github.com/grafana/agent/internal/component/common/loki"
 	fnet "github.com/grafana/agent/internal/component/common/net"
 	flow_relabel "github.com/grafana/agent/internal/component/common/relabel"
-	"github.com/grafana/agent/pkg/util"
+	"github.com/grafana/agent/internal/util"
 )
 
 const singleRecordRequest = `{"requestId":"a1af4300-6c09-4916-ba8f-12f336176246","timestamp":1684422829730,"records":[{"data":"eyJDSEFOR0UiOi0wLjIzLCJQUklDRSI6NC44LCJUSUNLRVJfU1lNQk9MIjoiTkdDIiwiU0VDVE9SIjoiSEVBTFRIQ0FSRSJ9"}]}`

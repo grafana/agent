@@ -13,7 +13,7 @@ import (
 	"github.com/grafana/agent/internal/static/logs"
 	"github.com/grafana/agent/internal/static/operator/config"
 	"github.com/grafana/agent/internal/static/traces/contextkeys"
-	util "github.com/grafana/agent/pkg/util/log"
+	util "github.com/grafana/agent/internal/util/log"
 	"github.com/grafana/loki/clients/pkg/promtail/api"
 	"github.com/grafana/loki/pkg/logproto"
 	"github.com/prometheus/common/model"

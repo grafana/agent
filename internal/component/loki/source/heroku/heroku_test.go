@@ -13,7 +13,7 @@ import (
 	fnet "github.com/grafana/agent/internal/component/common/net"
 	flow_relabel "github.com/grafana/agent/internal/component/common/relabel"
 	"github.com/grafana/agent/internal/component/loki/source/heroku/internal/herokutarget"
-	"github.com/grafana/agent/pkg/util"
+	"github.com/grafana/agent/internal/util"
 	"github.com/grafana/regexp"
 	"github.com/phayes/freeport"
 	"github.com/prometheus/client_golang/prometheus"

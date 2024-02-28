@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/grafana/agent/internal/static/operator/logutil"
-	"github.com/grafana/agent/pkg/util"
-	"github.com/grafana/agent/pkg/util/k8s"
+	"github.com/grafana/agent/internal/util"
+	"github.com/grafana/agent/internal/util/k8s"
 	"github.com/stretchr/testify/require"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 

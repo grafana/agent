@@ -10,7 +10,7 @@ import (
 
 	"github.com/grafana/agent/internal/static/config/features"
 	"github.com/grafana/agent/internal/static/server"
-	"github.com/grafana/agent/pkg/util"
+	"github.com/grafana/agent/internal/util"
 	"github.com/prometheus/common/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

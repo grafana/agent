@@ -4,7 +4,7 @@ import (
 	"sync"
 
 	"github.com/go-kit/log"
-	util_log "github.com/grafana/agent/pkg/util/log"
+	util_log "github.com/grafana/agent/internal/util/log"
 	dskit "github.com/grafana/dskit/log"
 )
 

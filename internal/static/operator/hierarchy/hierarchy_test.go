@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/go-kit/log"
-	"github.com/grafana/agent/pkg/util/k8s"
+	"github.com/grafana/agent/internal/util/k8s"
 	"github.com/stretchr/testify/require"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

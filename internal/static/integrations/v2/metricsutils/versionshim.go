@@ -12,7 +12,7 @@ import (
 	v1 "github.com/grafana/agent/internal/static/integrations"
 	v2 "github.com/grafana/agent/internal/static/integrations/v2"
 	"github.com/grafana/agent/internal/static/integrations/v2/common"
-	"github.com/grafana/agent/pkg/util"
+	"github.com/grafana/agent/internal/util"
 )
 
 // NewNamedShim returns a v2.UpgradeFunc which will upgrade a v1.Config to a

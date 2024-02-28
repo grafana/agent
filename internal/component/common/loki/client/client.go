@@ -21,7 +21,7 @@ import (
 	"github.com/prometheus/common/model"
 
 	"github.com/grafana/agent/internal/component/common/loki"
-	"github.com/grafana/agent/pkg/util"
+	"github.com/grafana/agent/internal/util"
 	lokiutil "github.com/grafana/loki/pkg/util"
 )
 

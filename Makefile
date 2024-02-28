@@ -150,7 +150,7 @@ endif
 # Targets for running tests
 #
 # These targets currently don't support proxying to a build container due to
-# difficulties with testing ./pkg/util/k8s and testing packages.
+# difficulties with testing ./internal/util/k8s and testing packages.
 #
 
 .PHONY: lint
@@ -163,7 +163,7 @@ lint: agentlint
 # more without -race for packages that have known race detection issues.
 test:
 	$(GO_ENV) go test $(GO_FLAGS) -race $(shell go list ./... | grep -v /integration-tests/)
-	$(GO_ENV) go test $(GO_FLAGS) ./internal/static/integrations/node_exporter ./internal/static/logs ./internal/static/operator ./pkg/util/k8s ./internal/component/otelcol/processor/tail_sampling ./internal/component/loki/source/file ./internal/component/loki/source/docker
+	$(GO_ENV) go test $(GO_FLAGS) ./internal/static/integrations/node_exporter ./internal/static/logs ./internal/static/operator ./internal/util/k8s ./internal/component/otelcol/processor/tail_sampling ./internal/component/loki/source/file ./internal/component/loki/source/docker
 
 test-packages:
 	docker pull $(BUILD_IMAGE)

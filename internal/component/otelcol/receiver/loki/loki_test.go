@@ -9,7 +9,7 @@ import (
 	"github.com/grafana/agent/internal/component/otelcol"
 	"github.com/grafana/agent/internal/component/otelcol/internal/fakeconsumer"
 	"github.com/grafana/agent/internal/flow/componenttest"
-	"github.com/grafana/agent/pkg/util"
+	"github.com/grafana/agent/internal/util"
 	"github.com/grafana/loki/pkg/logproto"
 	"github.com/grafana/river"
 	"github.com/prometheus/common/model"

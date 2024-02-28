@@ -11,7 +11,7 @@ import (
 	"github.com/grafana/agent/internal/featuregate"
 	"github.com/grafana/agent/internal/static/integrations"
 	"github.com/grafana/agent/internal/static/integrations/mssql"
-	"github.com/grafana/agent/pkg/util"
+	"github.com/grafana/agent/internal/util"
 	"github.com/grafana/river/rivertypes"
 	config_util "github.com/prometheus/common/config"
 	"gopkg.in/yaml.v2"

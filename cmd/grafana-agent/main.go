@@ -11,7 +11,7 @@ import (
 	"github.com/grafana/agent/internal/flowmode"
 	"github.com/grafana/agent/internal/static/config"
 	"github.com/grafana/agent/internal/static/server"
-	util_log "github.com/grafana/agent/pkg/util/log"
+	util_log "github.com/grafana/agent/internal/util/log"
 
 	"github.com/prometheus/client_golang/prometheus"
 

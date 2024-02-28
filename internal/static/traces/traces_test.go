@@ -8,7 +8,7 @@ import (
 
 	"github.com/grafana/agent/internal/static/server"
 	"github.com/grafana/agent/internal/static/traces/traceutils"
-	"github.com/grafana/agent/pkg/util"
+	"github.com/grafana/agent/internal/util"
 	"github.com/grafana/dskit/log"
 	"github.com/opentracing/opentracing-go"
 	"github.com/prometheus/client_golang/prometheus"

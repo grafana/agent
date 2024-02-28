@@ -19,7 +19,7 @@ import (
 	fnet "github.com/grafana/agent/internal/component/common/net"
 	flow_relabel "github.com/grafana/agent/internal/component/common/relabel"
 	"github.com/grafana/agent/internal/component/loki/source/gcplog/gcptypes"
-	"github.com/grafana/agent/pkg/util"
+	"github.com/grafana/agent/internal/util"
 )
 
 // TODO (@tpaschalis) We can't test this easily as there's no way to inject

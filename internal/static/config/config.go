@@ -20,7 +20,7 @@ import (
 	"github.com/grafana/agent/internal/static/metrics"
 	"github.com/grafana/agent/internal/static/server"
 	"github.com/grafana/agent/internal/static/traces"
-	"github.com/grafana/agent/pkg/util"
+	"github.com/grafana/agent/internal/util"
 	"github.com/prometheus/common/config"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v2"

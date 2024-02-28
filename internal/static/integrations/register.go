@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/grafana/agent/internal/static/integrations/config"
-	"github.com/grafana/agent/pkg/util"
+	"github.com/grafana/agent/internal/util"
 	"gopkg.in/yaml.v2"
 )
 

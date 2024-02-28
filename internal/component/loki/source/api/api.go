@@ -12,7 +12,7 @@ import (
 	"github.com/grafana/agent/internal/component/common/relabel"
 	"github.com/grafana/agent/internal/component/loki/source/api/internal/lokipush"
 	"github.com/grafana/agent/internal/featuregate"
-	"github.com/grafana/agent/pkg/util"
+	"github.com/grafana/agent/internal/util"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
 )

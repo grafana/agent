@@ -10,7 +10,7 @@ import (
 
 	v1 "github.com/grafana/agent/internal/static/integrations"
 	"github.com/grafana/agent/internal/static/integrations/v2/common"
-	"github.com/grafana/agent/pkg/util"
+	"github.com/grafana/agent/internal/util"
 )
 
 var (

@@ -13,7 +13,7 @@ import (
 	"github.com/go-kit/log/level"
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/grafana/agent/internal/static/agentproto"
-	"github.com/grafana/agent/pkg/util"
+	"github.com/grafana/agent/internal/util"
 	"github.com/grafana/dskit/ring"
 	"github.com/grafana/dskit/services"
 	"github.com/prometheus/client_golang/prometheus"

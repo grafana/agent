@@ -12,7 +12,7 @@ import (
 	ht "github.com/grafana/agent/internal/component/loki/source/heroku/internal/herokutarget"
 	"github.com/grafana/agent/internal/featuregate"
 	"github.com/grafana/agent/internal/flow/logging/level"
-	"github.com/grafana/agent/pkg/util"
+	"github.com/grafana/agent/internal/util"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/model/relabel"

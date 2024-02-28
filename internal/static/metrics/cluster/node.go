@@ -13,7 +13,7 @@ import (
 	"github.com/gorilla/mux"
 	pb "github.com/grafana/agent/internal/static/agentproto"
 	"github.com/grafana/agent/internal/static/metrics/cluster/client"
-	"github.com/grafana/agent/pkg/util"
+	"github.com/grafana/agent/internal/util"
 	"github.com/grafana/dskit/backoff"
 	"github.com/grafana/dskit/kv"
 	"github.com/grafana/dskit/ring"

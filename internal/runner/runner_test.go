@@ -7,7 +7,7 @@ import (
 
 	"github.com/cespare/xxhash/v2"
 	"github.com/grafana/agent/internal/runner"
-	"github.com/grafana/agent/pkg/util"
+	"github.com/grafana/agent/internal/util"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/atomic"
 )

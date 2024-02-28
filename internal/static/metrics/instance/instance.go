@@ -21,7 +21,7 @@ import (
 	"github.com/grafana/agent/internal/agentseed"
 	"github.com/grafana/agent/internal/static/metrics/wal"
 	"github.com/grafana/agent/internal/useragent"
-	"github.com/grafana/agent/pkg/util"
+	"github.com/grafana/agent/internal/util"
 	"github.com/oklog/run"
 	"github.com/prometheus/client_golang/prometheus"
 	config_util "github.com/prometheus/common/config"

@@ -12,7 +12,7 @@ import (
 	flow_relabel "github.com/grafana/agent/internal/component/common/relabel"
 	"github.com/grafana/agent/internal/component/prometheus"
 	"github.com/grafana/agent/internal/flow/componenttest"
-	"github.com/grafana/agent/pkg/util"
+	"github.com/grafana/agent/internal/util"
 	"github.com/grafana/agent/service/labelstore"
 	"github.com/grafana/river"
 	prom "github.com/prometheus/client_golang/prometheus"

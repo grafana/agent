@@ -10,7 +10,7 @@ import (
 
 	"github.com/grafana/agent/internal/component"
 	"github.com/grafana/agent/internal/component/prometheus"
-	"github.com/grafana/agent/pkg/util"
+	"github.com/grafana/agent/internal/util"
 	"github.com/grafana/agent/service/cluster"
 	http_service "github.com/grafana/agent/service/http"
 	"github.com/grafana/agent/service/labelstore"

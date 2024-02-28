@@ -9,7 +9,7 @@ import (
 
 	"github.com/grafana/agent/internal/component/common/kubernetes"
 	flow_relabel "github.com/grafana/agent/internal/component/common/relabel"
-	"github.com/grafana/agent/pkg/util"
+	"github.com/grafana/agent/internal/util"
 	promopv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	commonConfig "github.com/prometheus/common/config"
 	"github.com/prometheus/common/model"

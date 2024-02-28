@@ -10,7 +10,7 @@ import (
 	v2 "github.com/grafana/agent/internal/static/integrations/v2"
 	"github.com/grafana/agent/internal/static/metrics"
 	"github.com/grafana/agent/internal/static/server"
-	"github.com/grafana/agent/pkg/util"
+	"github.com/grafana/agent/internal/util"
 	"github.com/prometheus/statsd_exporter/pkg/level"
 	"golang.org/x/exp/maps"
 	"gopkg.in/yaml.v2"

@@ -7,7 +7,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/grafana/agent/pkg/util"
+	"github.com/grafana/agent/internal/util"
 	util_log "github.com/grafana/loki/pkg/util/log"
 )
 

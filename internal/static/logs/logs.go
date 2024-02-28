@@ -13,7 +13,7 @@ import (
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/internal/agentseed"
 	"github.com/grafana/agent/internal/useragent"
-	"github.com/grafana/agent/pkg/util"
+	"github.com/grafana/agent/internal/util"
 	"github.com/grafana/loki/clients/pkg/promtail"
 	"github.com/grafana/loki/clients/pkg/promtail/api"
 	"github.com/grafana/loki/clients/pkg/promtail/client"

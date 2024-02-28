@@ -12,7 +12,7 @@ import (
 	"connectrpc.com/connect"
 	"github.com/grafana/agent/internal/component"
 	"github.com/grafana/agent/internal/component/pyroscope"
-	"github.com/grafana/agent/pkg/util"
+	"github.com/grafana/agent/internal/util"
 	pushv1 "github.com/grafana/pyroscope/api/gen/proto/go/push/v1"
 	"github.com/grafana/pyroscope/api/gen/proto/go/push/v1/pushv1connect"
 	typesv1 "github.com/grafana/pyroscope/api/gen/proto/go/types/v1"

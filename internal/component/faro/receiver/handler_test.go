@@ -10,7 +10,7 @@ import (
 
 	"github.com/alecthomas/units"
 	"github.com/grafana/agent/internal/component/faro/receiver/internal/payload"
-	"github.com/grafana/agent/pkg/util"
+	"github.com/grafana/agent/internal/util"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

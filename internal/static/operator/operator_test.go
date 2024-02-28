@@ -13,9 +13,9 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/internal/static/operator/logutil"
-	"github.com/grafana/agent/pkg/util"
-	"github.com/grafana/agent/pkg/util/k8s"
-	"github.com/grafana/agent/pkg/util/subset"
+	"github.com/grafana/agent/internal/util"
+	"github.com/grafana/agent/internal/util/k8s"
+	"github.com/grafana/agent/internal/util/subset"
 	"github.com/stretchr/testify/require"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"sigs.k8s.io/controller-runtime/pkg/client"

@@ -13,7 +13,7 @@ import (
 	agentprom "github.com/grafana/agent/internal/component/prometheus"
 	"github.com/grafana/agent/internal/featuregate"
 	"github.com/grafana/agent/internal/flow/logging/level"
-	"github.com/grafana/agent/pkg/util"
+	"github.com/grafana/agent/internal/util"
 	"github.com/grafana/agent/service/labelstore"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/prometheus/storage"

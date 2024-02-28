@@ -15,7 +15,7 @@ import (
 	"github.com/grafana/agent/internal/component/otelcol/internal/fanoutconsumer"
 	"github.com/grafana/agent/internal/component/otelcol/receiver/prometheus/internal"
 	"github.com/grafana/agent/internal/featuregate"
-	"github.com/grafana/agent/pkg/util/zapadapter"
+	"github.com/grafana/agent/internal/util/zapadapter"
 	"github.com/prometheus/prometheus/model/labels"
 	"github.com/prometheus/prometheus/storage"
 	otelcomponent "go.opentelemetry.io/collector/component"

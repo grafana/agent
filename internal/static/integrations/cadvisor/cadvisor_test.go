@@ -6,7 +6,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/grafana/agent/pkg/util"
+	"github.com/grafana/agent/internal/util"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v3"
 )

@@ -13,7 +13,7 @@ import (
 	"github.com/grafana/agent/internal/component/otelcol/receiver/otlp"
 	"github.com/grafana/agent/internal/flow/componenttest"
 	"github.com/grafana/agent/internal/flow/logging/level"
-	"github.com/grafana/agent/pkg/util"
+	"github.com/grafana/agent/internal/util"
 	"github.com/grafana/dskit/backoff"
 	"github.com/grafana/river"
 	"github.com/phayes/freeport"

@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/grafana/agent/internal/static/logs"
-	"github.com/grafana/agent/pkg/util"
+	"github.com/grafana/agent/internal/util"
 	"github.com/prometheus/common/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
