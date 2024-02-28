@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/grafana/agent/internal/component/discovery"
-	"github.com/grafana/agent/pkg/integrations/kafka_exporter"
+	"github.com/grafana/agent/internal/static/integrations/kafka_exporter"
 	"github.com/grafana/river"
 	"github.com/stretchr/testify/require"
 )

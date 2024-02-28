@@ -9,7 +9,7 @@ import (
 	"github.com/grafana/agent/internal/component/loki/source/kubernetes_events"
 	"github.com/grafana/agent/internal/converter/diag"
 	"github.com/grafana/agent/internal/converter/internal/common"
-	eventhandler_v2 "github.com/grafana/agent/pkg/integrations/v2/eventhandler"
+	eventhandler_v2 "github.com/grafana/agent/internal/static/integrations/v2/eventhandler"
 	"github.com/grafana/river/scanner"
 )
 

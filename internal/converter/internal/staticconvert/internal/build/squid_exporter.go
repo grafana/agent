@@ -3,7 +3,7 @@ package build
 import (
 	"github.com/grafana/agent/internal/component/discovery"
 	"github.com/grafana/agent/internal/component/prometheus/exporter/squid"
-	"github.com/grafana/agent/pkg/integrations/squid_exporter"
+	"github.com/grafana/agent/internal/static/integrations/squid_exporter"
 	"github.com/grafana/river/rivertypes"
 )
 

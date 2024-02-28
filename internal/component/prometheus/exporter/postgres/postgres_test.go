@@ -3,7 +3,7 @@ package postgres
 import (
 	"testing"
 
-	"github.com/grafana/agent/pkg/integrations/postgres_exporter"
+	"github.com/grafana/agent/internal/static/integrations/postgres_exporter"
 	"github.com/grafana/river"
 	"github.com/grafana/river/rivertypes"
 	config_util "github.com/prometheus/common/config"

@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/grafana/agent/pkg/integrations/redis_exporter"
+	"github.com/grafana/agent/internal/static/integrations/redis_exporter"
 	"github.com/grafana/river"
 	"github.com/stretchr/testify/require"
 )

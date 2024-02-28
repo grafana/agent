@@ -4,8 +4,8 @@ import (
 	"github.com/grafana/agent/internal/component"
 	"github.com/grafana/agent/internal/component/prometheus/exporter"
 	"github.com/grafana/agent/internal/featuregate"
-	"github.com/grafana/agent/pkg/integrations"
-	"github.com/grafana/agent/pkg/integrations/mongodb_exporter"
+	"github.com/grafana/agent/internal/static/integrations"
+	"github.com/grafana/agent/internal/static/integrations/mongodb_exporter"
 	"github.com/grafana/river/rivertypes"
 	config_util "github.com/prometheus/common/config"
 )

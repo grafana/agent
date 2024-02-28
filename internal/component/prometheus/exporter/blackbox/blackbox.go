@@ -12,8 +12,8 @@ import (
 	"github.com/grafana/agent/internal/component/discovery"
 	"github.com/grafana/agent/internal/component/prometheus/exporter"
 	"github.com/grafana/agent/internal/featuregate"
-	"github.com/grafana/agent/pkg/integrations"
-	"github.com/grafana/agent/pkg/integrations/blackbox_exporter"
+	"github.com/grafana/agent/internal/static/integrations"
+	"github.com/grafana/agent/internal/static/integrations/blackbox_exporter"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/grafana/river/rivertypes"
 )

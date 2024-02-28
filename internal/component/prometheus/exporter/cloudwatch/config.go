@@ -5,7 +5,7 @@ import (
 	"encoding/hex"
 	"time"
 
-	"github.com/grafana/agent/pkg/integrations/cloudwatch_exporter"
+	"github.com/grafana/agent/internal/static/integrations/cloudwatch_exporter"
 	"github.com/grafana/river"
 	yaceConf "github.com/nerdswords/yet-another-cloudwatch-exporter/pkg/config"
 	yaceModel "github.com/nerdswords/yet-another-cloudwatch-exporter/pkg/model"

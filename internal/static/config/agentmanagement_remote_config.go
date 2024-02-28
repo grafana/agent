@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"text/template"
 
-	"github.com/grafana/agent/pkg/integrations"
+	"github.com/grafana/agent/internal/static/integrations"
 	"github.com/grafana/agent/pkg/logs"
 	"github.com/grafana/agent/pkg/metrics/instance"
 	"github.com/grafana/loki/clients/pkg/promtail/scrapeconfig"

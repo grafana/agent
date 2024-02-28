@@ -8,8 +8,8 @@ import (
 	"github.com/grafana/agent/internal/component/discovery"
 	"github.com/grafana/agent/internal/component/prometheus/exporter"
 	"github.com/grafana/agent/internal/featuregate"
-	"github.com/grafana/agent/pkg/integrations"
-	"github.com/grafana/agent/pkg/integrations/kafka_exporter"
+	"github.com/grafana/agent/internal/static/integrations"
+	"github.com/grafana/agent/internal/static/integrations/kafka_exporter"
 	"github.com/grafana/river/rivertypes"
 	"github.com/prometheus/common/config"
 )

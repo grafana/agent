@@ -3,7 +3,7 @@ package build
 import (
 	"github.com/grafana/agent/internal/component/discovery"
 	"github.com/grafana/agent/internal/component/prometheus/exporter/gcp"
-	"github.com/grafana/agent/pkg/integrations/gcp_exporter"
+	"github.com/grafana/agent/internal/static/integrations/gcp_exporter"
 )
 
 func (b *IntegrationsConfigBuilder) appendGcpExporter(config *gcp_exporter.Config, instanceKey *string) discovery.Exports {

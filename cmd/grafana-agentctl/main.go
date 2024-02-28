@@ -29,7 +29,7 @@ import (
 	_ "github.com/prometheus/prometheus/discovery/install"
 
 	// Register integrations
-	_ "github.com/grafana/agent/pkg/integrations/install"
+	_ "github.com/grafana/agent/internal/static/integrations/install"
 
 	// Needed for operator-detach
 	"k8s.io/apimachinery/pkg/fields"

@@ -20,7 +20,7 @@ import (
 	"github.com/grafana/river/token/builder"
 	prom_config "github.com/prometheus/prometheus/config"
 
-	_ "github.com/grafana/agent/pkg/integrations/install" // Install integrations
+	_ "github.com/grafana/agent/internal/static/integrations/install" // Install integrations
 )
 
 // Convert implements a Static config converter.

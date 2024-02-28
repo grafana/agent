@@ -5,7 +5,7 @@ import (
 
 	"github.com/grafana/agent/internal/component/discovery"
 	"github.com/grafana/agent/internal/component/prometheus/exporter/cadvisor"
-	cadvisor_integration "github.com/grafana/agent/pkg/integrations/cadvisor"
+	cadvisor_integration "github.com/grafana/agent/internal/static/integrations/cadvisor"
 )
 
 func (b *IntegrationsConfigBuilder) appendCadvisorExporter(config *cadvisor_integration.Config, instanceKey *string) discovery.Exports {

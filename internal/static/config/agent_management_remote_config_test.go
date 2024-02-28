@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	process_exporter "github.com/grafana/agent/pkg/integrations/process_exporter"
+	process_exporter "github.com/grafana/agent/internal/static/integrations/process_exporter"
 	"github.com/grafana/agent/pkg/metrics/instance"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/model/labels"

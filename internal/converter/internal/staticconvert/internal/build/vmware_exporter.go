@@ -3,7 +3,7 @@ package build
 import (
 	"github.com/grafana/agent/internal/component/discovery"
 	"github.com/grafana/agent/internal/component/prometheus/exporter/vsphere"
-	vmware_exporter_v2 "github.com/grafana/agent/pkg/integrations/v2/vmware_exporter"
+	vmware_exporter_v2 "github.com/grafana/agent/internal/static/integrations/v2/vmware_exporter"
 	"github.com/grafana/river/rivertypes"
 )
 

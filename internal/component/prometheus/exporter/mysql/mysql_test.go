@@ -3,7 +3,7 @@ package mysql
 import (
 	"testing"
 
-	"github.com/grafana/agent/pkg/integrations/mysqld_exporter"
+	"github.com/grafana/agent/internal/static/integrations/mysqld_exporter"
 	"github.com/grafana/river"
 	"github.com/grafana/river/rivertypes"
 	"github.com/stretchr/testify/require"

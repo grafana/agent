@@ -7,7 +7,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	_ "github.com/grafana/agent/pkg/integrations/install" // Install integrations for tests
+	_ "github.com/grafana/agent/internal/static/integrations/install" // Install integrations for tests
 	"github.com/grafana/agent/pkg/util"
 )
 

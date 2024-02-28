@@ -6,8 +6,8 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/gorilla/mux"
-	v1 "github.com/grafana/agent/pkg/integrations"
-	v2 "github.com/grafana/agent/pkg/integrations/v2"
+	v1 "github.com/grafana/agent/internal/static/integrations"
+	v2 "github.com/grafana/agent/internal/static/integrations/v2"
 	"github.com/grafana/agent/pkg/metrics"
 	"github.com/grafana/agent/pkg/server"
 	"github.com/grafana/agent/pkg/util"
