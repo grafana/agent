@@ -6,8 +6,8 @@ import (
 	"reflect"
 	"time"
 
-	"github.com/grafana/agent/component"
-	"github.com/grafana/agent/component/local/file"
+	"github.com/grafana/agent/internal/component"
+	"github.com/grafana/agent/internal/component/local/file"
 	"github.com/grafana/river/vm"
 )
 

@@ -5,7 +5,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/grafana/agent/component/metadata"
+	"github.com/grafana/agent/internal/component/metadata"
 )
 
 type LinksToTypesGenerator struct {

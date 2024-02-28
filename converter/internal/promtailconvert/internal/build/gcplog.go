@@ -1,11 +1,11 @@
 package build
 
 import (
-	"github.com/grafana/agent/component/common/relabel"
-	"github.com/grafana/agent/component/loki/source/gcplog"
-	"github.com/grafana/agent/component/loki/source/gcplog/gcptypes"
 	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/converter/internal/common"
+	"github.com/grafana/agent/internal/component/common/relabel"
+	"github.com/grafana/agent/internal/component/loki/source/gcplog"
+	"github.com/grafana/agent/internal/component/loki/source/gcplog/gcptypes"
 )
 
 func (s *ScrapeConfigBuilder) AppendGCPLog() {

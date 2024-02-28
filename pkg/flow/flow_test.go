@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/internal/component"
 	"github.com/grafana/agent/internal/featuregate"
 	"github.com/grafana/agent/pkg/flow/internal/controller"
 	"github.com/grafana/agent/pkg/flow/internal/dag"

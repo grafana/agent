@@ -7,11 +7,11 @@ import (
 
 	"golang.org/x/exp/maps"
 
-	"github.com/grafana/agent/component/discovery"
-	"github.com/grafana/agent/component/prometheus/scrape"
 	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/converter/internal/common"
 	"github.com/grafana/agent/converter/internal/prometheusconvert/build"
+	"github.com/grafana/agent/internal/component/discovery"
+	"github.com/grafana/agent/internal/component/prometheus/scrape"
 	"github.com/grafana/agent/service/cluster"
 	prom_config "github.com/prometheus/prometheus/config"
 	prom_discovery "github.com/prometheus/prometheus/discovery"

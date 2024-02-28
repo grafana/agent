@@ -3,10 +3,10 @@ package otelcolconvert
 import (
 	"fmt"
 
-	"github.com/grafana/agent/component/otelcol"
-	"github.com/grafana/agent/component/otelcol/processor/filter"
 	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/converter/internal/common"
+	"github.com/grafana/agent/internal/component/otelcol"
+	"github.com/grafana/agent/internal/component/otelcol/processor/filter"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/filterprocessor"
 	"go.opentelemetry.io/collector/component"
 )

@@ -3,9 +3,9 @@ package build
 import (
 	"time"
 
-	"github.com/grafana/agent/component/common/loki"
-	"github.com/grafana/agent/component/loki/source/cloudflare"
 	"github.com/grafana/agent/converter/internal/common"
+	"github.com/grafana/agent/internal/component/common/loki"
+	"github.com/grafana/agent/internal/component/loki/source/cloudflare"
 	"github.com/grafana/river/rivertypes"
 )
 

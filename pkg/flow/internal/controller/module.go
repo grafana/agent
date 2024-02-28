@@ -3,7 +3,7 @@ package controller
 import (
 	"context"
 
-	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/internal/component"
 	"github.com/grafana/river/ast"
 )
 

@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/internal/component"
 	"github.com/grafana/agent/internal/featuregate"
 	"github.com/grafana/agent/pkg/flow"
 	"github.com/grafana/agent/pkg/flow/internal/testcomponents"
@@ -24,7 +24,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.uber.org/goleak"
 
-	_ "github.com/grafana/agent/component/module/string"
+	_ "github.com/grafana/agent/internal/component/module/string"
 )
 
 func TestUpdates_EmptyModule(t *testing.T) {

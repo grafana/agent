@@ -5,10 +5,10 @@ import (
 	"flag"
 	"fmt"
 
-	"github.com/grafana/agent/component/common/loki"
 	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/converter/internal/common"
 	"github.com/grafana/agent/converter/internal/promtailconvert/internal/build"
+	"github.com/grafana/agent/internal/component/common/loki"
 	"github.com/grafana/dskit/flagext"
 	promtailcfg "github.com/grafana/loki/clients/pkg/promtail/config"
 	"github.com/grafana/loki/clients/pkg/promtail/limit"

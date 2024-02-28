@@ -3,8 +3,8 @@ package common
 import (
 	"github.com/grafana/dskit/server"
 
-	fnet "github.com/grafana/agent/component/common/net"
 	"github.com/grafana/agent/converter/diag"
+	fnet "github.com/grafana/agent/internal/component/common/net"
 )
 
 func DefaultWeaveWorksServerCfg() server.Config {

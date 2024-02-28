@@ -3,10 +3,10 @@ package component
 import (
 	"fmt"
 
-	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/converter/internal/common"
 	"github.com/grafana/agent/converter/internal/prometheusconvert/build"
+	"github.com/grafana/agent/internal/component/discovery"
 
 	prom_discover "github.com/prometheus/prometheus/discovery"
 	prom_http "github.com/prometheus/prometheus/discovery/http"

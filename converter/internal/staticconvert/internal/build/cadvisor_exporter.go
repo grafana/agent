@@ -3,8 +3,8 @@ package build
 import (
 	"time"
 
-	"github.com/grafana/agent/component/discovery"
-	"github.com/grafana/agent/component/prometheus/exporter/cadvisor"
+	"github.com/grafana/agent/internal/component/discovery"
+	"github.com/grafana/agent/internal/component/prometheus/exporter/cadvisor"
 	cadvisor_integration "github.com/grafana/agent/pkg/integrations/cadvisor"
 )
 

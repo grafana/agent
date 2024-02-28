@@ -1,7 +1,7 @@
 package controller
 
 import (
-	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/internal/component"
 	"github.com/grafana/river/ast"
 )
 

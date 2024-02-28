@@ -4,10 +4,10 @@ import (
 	"fmt"
 
 	"github.com/alecthomas/units"
-	"github.com/grafana/agent/component/otelcol"
-	"github.com/grafana/agent/component/otelcol/exporter/loadbalancing"
 	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/converter/internal/common"
+	"github.com/grafana/agent/internal/component/otelcol"
+	"github.com/grafana/agent/internal/component/otelcol/exporter/loadbalancing"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/loadbalancingexporter"
 	"go.opentelemetry.io/collector/component"
 )

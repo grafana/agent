@@ -18,7 +18,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"golang.org/x/tools/txtar"
 
-	_ "github.com/grafana/agent/component/module/string"
+	_ "github.com/grafana/agent/internal/component/module/string"
 )
 
 // The tests are using the .txtar files stored in the testdata folder.

@@ -1,12 +1,12 @@
 package component
 
 import (
-	"github.com/grafana/agent/component/common/config"
-	"github.com/grafana/agent/component/discovery"
-	"github.com/grafana/agent/component/discovery/kubernetes"
 	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/converter/internal/common"
 	"github.com/grafana/agent/converter/internal/prometheusconvert/build"
+	"github.com/grafana/agent/internal/component/common/config"
+	"github.com/grafana/agent/internal/component/discovery"
+	"github.com/grafana/agent/internal/component/discovery/kubernetes"
 	prom_kubernetes "github.com/prometheus/prometheus/discovery/kubernetes"
 )
 

@@ -1,8 +1,8 @@
 package build
 
 import (
-	"github.com/grafana/agent/component/discovery"
-	"github.com/grafana/agent/component/prometheus/exporter/mongodb"
+	"github.com/grafana/agent/internal/component/discovery"
+	"github.com/grafana/agent/internal/component/prometheus/exporter/mongodb"
 	"github.com/grafana/agent/pkg/integrations/mongodb_exporter"
 	"github.com/grafana/river/rivertypes"
 )

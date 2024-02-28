@@ -17,10 +17,10 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/go-kit/log"
-	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/converter"
 	convert_diag "github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/internal/agentseed"
+	"github.com/grafana/agent/internal/component"
 	"github.com/grafana/agent/internal/featuregate"
 	"github.com/grafana/agent/pkg/boringcrypto"
 	"github.com/grafana/agent/pkg/config/instrumentation"
@@ -44,7 +44,7 @@ import (
 	"golang.org/x/exp/maps"
 
 	// Install Components
-	_ "github.com/grafana/agent/component/all"
+	_ "github.com/grafana/agent/internal/component/all"
 )
 
 func runCommand() *cobra.Command {

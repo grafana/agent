@@ -4,10 +4,10 @@ import (
 	"fmt"
 
 	"github.com/alecthomas/units"
-	"github.com/grafana/agent/component/otelcol"
-	"github.com/grafana/agent/component/otelcol/receiver/otlp"
 	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/converter/internal/common"
+	"github.com/grafana/agent/internal/component/otelcol"
+	"github.com/grafana/agent/internal/component/otelcol/receiver/otlp"
 	"github.com/grafana/river/rivertypes"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config/configgrpc"

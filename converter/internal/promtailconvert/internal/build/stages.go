@@ -12,9 +12,9 @@ import (
 	"github.com/grafana/loki/pkg/util/flagext"
 	"github.com/mitchellh/mapstructure"
 
-	"github.com/grafana/agent/component/loki/process/metric"
-	"github.com/grafana/agent/component/loki/process/stages"
 	"github.com/grafana/agent/converter/diag"
+	"github.com/grafana/agent/internal/component/loki/process/metric"
+	"github.com/grafana/agent/internal/component/loki/process/stages"
 )
 
 func convertStage(st interface{}, diags *diag.Diagnostics) (stages.StageConfig, bool) {

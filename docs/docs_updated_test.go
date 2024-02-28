@@ -7,10 +7,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/grafana/agent/component"
-	_ "github.com/grafana/agent/component/all"
-	"github.com/grafana/agent/component/metadata"
 	"github.com/grafana/agent/docs/generator"
+	"github.com/grafana/agent/internal/component"
+	_ "github.com/grafana/agent/internal/component/all"
+	"github.com/grafana/agent/internal/component/metadata"
 	"github.com/stretchr/testify/require"
 )
 

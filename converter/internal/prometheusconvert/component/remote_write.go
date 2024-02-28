@@ -5,10 +5,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/grafana/agent/component/prometheus/remotewrite"
 	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/converter/internal/common"
 	"github.com/grafana/agent/converter/internal/prometheusconvert/build"
+	"github.com/grafana/agent/internal/component/prometheus/remotewrite"
 	"github.com/grafana/river/rivertypes"
 	"github.com/prometheus/common/sigv4"
 	prom_config "github.com/prometheus/prometheus/config"

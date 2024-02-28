@@ -5,10 +5,10 @@ import (
 	"time"
 
 	"github.com/alecthomas/units"
-	"github.com/grafana/agent/component/otelcol"
-	"github.com/grafana/agent/component/otelcol/exporter/otlphttp"
 	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/converter/internal/common"
+	"github.com/grafana/agent/internal/component/otelcol"
+	"github.com/grafana/agent/internal/component/otelcol/exporter/otlphttp"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config/confighttp"
 	"go.opentelemetry.io/collector/exporter/otlphttpexporter"

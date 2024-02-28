@@ -1,9 +1,9 @@
 package build
 
 import (
-	"github.com/grafana/agent/component/discovery"
-	"github.com/grafana/agent/component/prometheus/exporter/snmp"
 	"github.com/grafana/agent/converter/internal/common"
+	"github.com/grafana/agent/internal/component/discovery"
+	"github.com/grafana/agent/internal/component/prometheus/exporter/snmp"
 	"github.com/grafana/agent/pkg/integrations/snmp_exporter"
 	snmp_exporter_v2 "github.com/grafana/agent/pkg/integrations/v2/snmp_exporter"
 	"github.com/grafana/river/rivertypes"

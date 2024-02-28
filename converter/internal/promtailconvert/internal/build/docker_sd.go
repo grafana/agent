@@ -3,12 +3,12 @@ package build
 import (
 	"time"
 
-	"github.com/grafana/agent/component/common/loki"
-	flow_relabel "github.com/grafana/agent/component/common/relabel"
-	"github.com/grafana/agent/component/discovery"
-	"github.com/grafana/agent/component/discovery/docker"
-	loki_docker "github.com/grafana/agent/component/loki/source/docker"
 	"github.com/grafana/agent/converter/internal/common"
+	"github.com/grafana/agent/internal/component/common/loki"
+	flow_relabel "github.com/grafana/agent/internal/component/common/relabel"
+	"github.com/grafana/agent/internal/component/discovery"
+	"github.com/grafana/agent/internal/component/discovery/docker"
+	loki_docker "github.com/grafana/agent/internal/component/loki/source/docker"
 	"github.com/prometheus/prometheus/discovery/moby"
 )
 

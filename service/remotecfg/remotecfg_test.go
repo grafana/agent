@@ -10,8 +10,8 @@ import (
 
 	"connectrpc.com/connect"
 	agentv1 "github.com/grafana/agent-remote-config/api/gen/proto/go/agent/v1"
-	"github.com/grafana/agent/component"
-	_ "github.com/grafana/agent/component/loki/process"
+	"github.com/grafana/agent/internal/component"
+	_ "github.com/grafana/agent/internal/component/loki/process"
 	"github.com/grafana/agent/internal/featuregate"
 	"github.com/grafana/agent/pkg/flow"
 	"github.com/grafana/agent/pkg/flow/componenttest"

@@ -3,7 +3,7 @@ package http
 import (
 	"testing"
 
-	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/internal/component"
 	"github.com/grafana/agent/service"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

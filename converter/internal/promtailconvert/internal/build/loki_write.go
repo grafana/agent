@@ -4,10 +4,10 @@ import (
 	"fmt"
 
 	"github.com/alecthomas/units"
-	"github.com/grafana/agent/component/common/loki"
-	lokiwrite "github.com/grafana/agent/component/loki/write"
 	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/converter/internal/common"
+	"github.com/grafana/agent/internal/component/common/loki"
+	lokiwrite "github.com/grafana/agent/internal/component/loki/write"
 	"github.com/grafana/loki/clients/pkg/promtail/client"
 	lokiflag "github.com/grafana/loki/pkg/util/flagext"
 	"github.com/grafana/river/token/builder"

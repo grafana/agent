@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"time"
 
-	flowrelabel "github.com/grafana/agent/component/common/relabel"
-	"github.com/grafana/agent/component/loki/source/journal"
 	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/converter/internal/common"
+	flowrelabel "github.com/grafana/agent/internal/component/common/relabel"
+	"github.com/grafana/agent/internal/component/loki/source/journal"
 )
 
 func (s *ScrapeConfigBuilder) AppendJournalConfig() {

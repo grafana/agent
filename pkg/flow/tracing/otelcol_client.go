@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/grafana/agent/component/otelcol"
+	"github.com/grafana/agent/internal/component/otelcol"
 	"github.com/hashicorp/go-multierror"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/ptrace"

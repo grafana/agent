@@ -3,11 +3,11 @@ package component
 import (
 	"time"
 
-	"github.com/grafana/agent/component/discovery"
-	"github.com/grafana/agent/component/discovery/scaleway"
 	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/converter/internal/common"
 	"github.com/grafana/agent/converter/internal/prometheusconvert/build"
+	"github.com/grafana/agent/internal/component/discovery"
+	"github.com/grafana/agent/internal/component/discovery/scaleway"
 	"github.com/grafana/river/rivertypes"
 	prom_scaleway "github.com/prometheus/prometheus/discovery/scaleway"
 )

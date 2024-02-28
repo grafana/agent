@@ -1,9 +1,9 @@
 package build
 
 import (
-	"github.com/grafana/agent/component/common/relabel"
-	"github.com/grafana/agent/component/loki/source/syslog"
 	"github.com/grafana/agent/converter/internal/common"
+	"github.com/grafana/agent/internal/component/common/relabel"
+	"github.com/grafana/agent/internal/component/loki/source/syslog"
 )
 
 func (s *ScrapeConfigBuilder) AppendSyslogConfig() {

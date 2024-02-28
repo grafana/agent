@@ -1,9 +1,9 @@
 package build
 
 import (
-	"github.com/grafana/agent/component/common/relabel"
-	"github.com/grafana/agent/component/loki/source/kafka"
 	"github.com/grafana/agent/converter/internal/common"
+	"github.com/grafana/agent/internal/component/common/relabel"
+	"github.com/grafana/agent/internal/component/loki/source/kafka"
 	"github.com/grafana/loki/clients/pkg/promtail/scrapeconfig"
 	"github.com/grafana/river/rivertypes"
 )

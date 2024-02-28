@@ -1,9 +1,9 @@
 package build
 
 import (
-	commonCfg "github.com/grafana/agent/component/common/config"
-	"github.com/grafana/agent/component/discovery"
-	"github.com/grafana/agent/component/prometheus/exporter/elasticsearch"
+	commonCfg "github.com/grafana/agent/internal/component/common/config"
+	"github.com/grafana/agent/internal/component/discovery"
+	"github.com/grafana/agent/internal/component/prometheus/exporter/elasticsearch"
 	"github.com/grafana/agent/pkg/integrations/elasticsearch_exporter"
 	"github.com/grafana/river/rivertypes"
 )

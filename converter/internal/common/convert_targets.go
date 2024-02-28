@@ -1,7 +1,7 @@
 package common
 
 import (
-	"github.com/grafana/agent/component/discovery"
+	"github.com/grafana/agent/internal/component/discovery"
 	"github.com/grafana/river"
 	"github.com/grafana/river/token"
 	"github.com/grafana/river/token/builder"

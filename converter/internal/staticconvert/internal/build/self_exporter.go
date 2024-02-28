@@ -1,8 +1,8 @@
 package build
 
 import (
-	"github.com/grafana/agent/component/discovery"
-	"github.com/grafana/agent/component/prometheus/exporter/self"
+	"github.com/grafana/agent/internal/component/discovery"
+	"github.com/grafana/agent/internal/component/prometheus/exporter/self"
 	agent_exporter "github.com/grafana/agent/pkg/integrations/agent"
 	agent_exporter_v2 "github.com/grafana/agent/pkg/integrations/v2/agent"
 )

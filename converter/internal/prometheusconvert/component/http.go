@@ -4,12 +4,12 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/grafana/agent/component/common/config"
-	"github.com/grafana/agent/component/discovery"
-	"github.com/grafana/agent/component/discovery/http"
 	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/converter/internal/common"
 	"github.com/grafana/agent/converter/internal/prometheusconvert/build"
+	"github.com/grafana/agent/internal/component/common/config"
+	"github.com/grafana/agent/internal/component/discovery"
+	"github.com/grafana/agent/internal/component/discovery/http"
 	prom_http "github.com/prometheus/prometheus/discovery/http"
 )
 

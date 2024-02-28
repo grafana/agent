@@ -4,10 +4,10 @@ import (
 	"fmt"
 
 	"github.com/alecthomas/units"
-	"github.com/grafana/agent/component/otelcol"
-	"github.com/grafana/agent/component/otelcol/processor/memorylimiter"
 	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/converter/internal/common"
+	"github.com/grafana/agent/internal/component/otelcol"
+	"github.com/grafana/agent/internal/component/otelcol/processor/memorylimiter"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/processor/memorylimiterprocessor"
 )

@@ -3,9 +3,9 @@ package build
 import (
 	"time"
 
-	"github.com/grafana/agent/component/discovery/consulagent"
 	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/converter/internal/common"
+	"github.com/grafana/agent/internal/component/discovery/consulagent"
 	promtail_consulagent "github.com/grafana/loki/clients/pkg/promtail/discovery/consulagent"
 	"github.com/grafana/river/rivertypes"
 )

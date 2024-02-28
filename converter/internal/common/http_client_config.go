@@ -3,8 +3,8 @@ package common
 import (
 	"reflect"
 
-	"github.com/grafana/agent/component/common/config"
 	"github.com/grafana/agent/converter/diag"
+	"github.com/grafana/agent/internal/component/common/config"
 	"github.com/grafana/river/rivertypes"
 	prom_config "github.com/prometheus/common/config"
 )

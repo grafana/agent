@@ -1,9 +1,9 @@
 package build
 
 import (
-	"github.com/grafana/agent/component/discovery"
-	"github.com/grafana/agent/component/prometheus/exporter/statsd"
 	"github.com/grafana/agent/converter/diag"
+	"github.com/grafana/agent/internal/component/discovery"
+	"github.com/grafana/agent/internal/component/prometheus/exporter/statsd"
 	"github.com/grafana/agent/pkg/integrations/statsd_exporter"
 )
 

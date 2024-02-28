@@ -18,8 +18,8 @@ var Analyzer = &analysis.Analyzer{
 }
 
 var (
-	componentPattern = "./component/..."
-	checkPackage     = "github.com/grafana/agent/component/all"
+	componentPattern = "./internal/component/..."
+	checkPackage     = "github.com/grafana/agent/internal/component/all"
 )
 
 func init() {
@@ -131,7 +131,7 @@ func declaresComponent(pkg *packages.Package, file *ast.File) bool {
 			// Check to see if the ident refers to
 			// github.com/grafana/agent/component.
 			if pkgName, ok := pkg.TypesInfo.Uses[ident].(*types.PkgName); ok {
-				if pkgName.Imported().Path() == "github.com/grafana/agent/component" &&
+				if pkgName.Imported().Path() == "github.com/grafana/agent/internal/component" &&
 					sel.Sel.Name == "Register" {
 
 					foundComponentDecl = true

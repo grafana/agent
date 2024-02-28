@@ -1,8 +1,8 @@
 package build
 
 import (
-	"github.com/grafana/agent/component/discovery"
-	"github.com/grafana/agent/component/prometheus/exporter/mssql"
+	"github.com/grafana/agent/internal/component/discovery"
+	"github.com/grafana/agent/internal/component/prometheus/exporter/mssql"
 	mssql_exporter "github.com/grafana/agent/pkg/integrations/mssql"
 	"github.com/grafana/river/rivertypes"
 )

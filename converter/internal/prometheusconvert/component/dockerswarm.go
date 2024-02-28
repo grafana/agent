@@ -3,11 +3,11 @@ package component
 import (
 	"time"
 
-	"github.com/grafana/agent/component/discovery"
-	"github.com/grafana/agent/component/discovery/dockerswarm"
 	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/converter/internal/common"
 	"github.com/grafana/agent/converter/internal/prometheusconvert/build"
+	"github.com/grafana/agent/internal/component/discovery"
+	"github.com/grafana/agent/internal/component/discovery/dockerswarm"
 	prom_moby "github.com/prometheus/prometheus/discovery/moby"
 )
 

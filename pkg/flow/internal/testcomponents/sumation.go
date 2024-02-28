@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/go-kit/log"
-	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/internal/component"
 	"github.com/grafana/agent/internal/featuregate"
 	"github.com/grafana/agent/pkg/flow/logging/level"
 	"go.uber.org/atomic"

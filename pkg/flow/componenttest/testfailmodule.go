@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/grafana/agent/component"
-	mod "github.com/grafana/agent/component/module"
+	"github.com/grafana/agent/internal/component"
+	mod "github.com/grafana/agent/internal/component/module"
 	"github.com/grafana/agent/internal/featuregate"
 )
 

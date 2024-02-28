@@ -3,12 +3,12 @@ package component
 import (
 	"fmt"
 
-	flow_relabel "github.com/grafana/agent/component/common/relabel"
-	"github.com/grafana/agent/component/discovery"
-	disc_relabel "github.com/grafana/agent/component/discovery/relabel"
-	"github.com/grafana/agent/component/prometheus/relabel"
 	"github.com/grafana/agent/converter/internal/common"
 	"github.com/grafana/agent/converter/internal/prometheusconvert/build"
+	flow_relabel "github.com/grafana/agent/internal/component/common/relabel"
+	"github.com/grafana/agent/internal/component/discovery"
+	disc_relabel "github.com/grafana/agent/internal/component/discovery/relabel"
+	"github.com/grafana/agent/internal/component/prometheus/relabel"
 	prom_relabel "github.com/prometheus/prometheus/model/relabel"
 	"github.com/prometheus/prometheus/storage"
 )

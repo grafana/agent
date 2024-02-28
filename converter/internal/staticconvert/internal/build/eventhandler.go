@@ -3,12 +3,12 @@ package build
 import (
 	"fmt"
 
-	"github.com/grafana/agent/component/common/loki"
-	flow_relabel "github.com/grafana/agent/component/common/relabel"
-	"github.com/grafana/agent/component/loki/relabel"
-	"github.com/grafana/agent/component/loki/source/kubernetes_events"
 	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/converter/internal/common"
+	"github.com/grafana/agent/internal/component/common/loki"
+	flow_relabel "github.com/grafana/agent/internal/component/common/relabel"
+	"github.com/grafana/agent/internal/component/loki/relabel"
+	"github.com/grafana/agent/internal/component/loki/source/kubernetes_events"
 	eventhandler_v2 "github.com/grafana/agent/pkg/integrations/v2/eventhandler"
 	"github.com/grafana/river/scanner"
 )

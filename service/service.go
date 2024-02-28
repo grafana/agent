@@ -10,7 +10,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/internal/component"
 )
 
 // Definition describes an individual Flow service. Services have unique names

@@ -5,12 +5,12 @@ import (
 	"flag"
 	"fmt"
 
-	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/converter/internal/common"
 	"github.com/grafana/agent/converter/internal/prometheusconvert"
 	"github.com/grafana/agent/converter/internal/promtailconvert"
 	"github.com/grafana/agent/converter/internal/staticconvert/internal/build"
+	"github.com/grafana/agent/internal/component/discovery"
 	"github.com/grafana/agent/pkg/config"
 	"github.com/grafana/agent/pkg/logs"
 	promtail_config "github.com/grafana/loki/clients/pkg/promtail/config"

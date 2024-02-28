@@ -3,8 +3,8 @@ package build
 import (
 	"strings"
 
-	"github.com/grafana/agent/component/discovery"
-	"github.com/grafana/agent/component/prometheus/exporter/windows"
+	"github.com/grafana/agent/internal/component/discovery"
+	"github.com/grafana/agent/internal/component/prometheus/exporter/windows"
 	"github.com/grafana/agent/pkg/integrations/windows_exporter"
 )
 
