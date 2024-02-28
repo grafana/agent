@@ -1,7 +1,7 @@
 ---
 title: loki.rules.kubernetes
 labels:
-  stage: beta
+  stage: experimental
 ---
 
 # loki.rules.kubernetes
