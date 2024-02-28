@@ -12,7 +12,7 @@ import (
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/golang/protobuf/ptypes/empty"
-	"github.com/grafana/agent/pkg/agentproto"
+	"github.com/grafana/agent/internal/static/agentproto"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/grafana/dskit/ring"
 	"github.com/grafana/dskit/services"

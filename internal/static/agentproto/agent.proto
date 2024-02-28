@@ -1,7 +1,7 @@
 syntax = "proto3";
 
 package agentproto;
-option go_package = "github.com/grafana/agent/pkg/agentproto";
+option go_package = "github.com/grafana/agent/internal/static/agentproto";
 
 import "google/protobuf/empty.proto";
 

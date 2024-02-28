@@ -9,7 +9,7 @@ import (
 	"github.com/go-kit/log/level"
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/gorilla/mux"
-	"github.com/grafana/agent/pkg/agentproto"
+	"github.com/grafana/agent/internal/static/agentproto"
 	"github.com/grafana/agent/pkg/metrics/instance"
 	"github.com/grafana/agent/pkg/metrics/instance/configstore"
 	"github.com/grafana/agent/pkg/util"

@@ -304,7 +304,7 @@ generate-protos:
 ifeq ($(USE_CONTAINER),1)
 	$(RERUN_IN_CONTAINER)
 else
-	go generate ./pkg/agentproto/
+	go generate ./internal/static/agentproto/
 endif
 
 generate-ui:

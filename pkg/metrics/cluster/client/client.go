@@ -5,7 +5,7 @@ import (
 	"io"
 	"reflect"
 
-	"github.com/grafana/agent/pkg/agentproto"
+	"github.com/grafana/agent/internal/static/agentproto"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/grafana/dskit/grpcclient"
 	"github.com/grafana/dskit/middleware"
