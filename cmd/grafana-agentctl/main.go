@@ -12,7 +12,7 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/grafana/agent/pkg/agentctl/waltools"
+	"github.com/grafana/agent/internal/static/agentctl/waltools"
 	"github.com/grafana/agent/pkg/build"
 	"github.com/grafana/agent/pkg/config"
 	"github.com/grafana/agent/pkg/logs"
@@ -21,7 +21,7 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
-	"github.com/grafana/agent/pkg/agentctl"
+	"github.com/grafana/agent/internal/static/agentctl"
 	"github.com/grafana/agent/pkg/client"
 	"github.com/spf13/cobra"
 
