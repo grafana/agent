@@ -28,7 +28,7 @@ import (
 	"github.com/grafana/agent/internal/flow/logging/level"
 	"github.com/grafana/agent/internal/flow/tracing"
 	"github.com/grafana/agent/internal/static/config/instrumentation"
-	"github.com/grafana/agent/pkg/usagestats"
+	"github.com/grafana/agent/internal/usagestats"
 	"github.com/grafana/agent/service"
 	httpservice "github.com/grafana/agent/service/http"
 	"github.com/grafana/agent/service/labelstore"

@@ -25,7 +25,7 @@ import (
 	"github.com/grafana/agent/internal/static/server"
 	"github.com/grafana/agent/internal/static/supportbundle"
 	"github.com/grafana/agent/internal/static/traces"
-	"github.com/grafana/agent/pkg/usagestats"
+	"github.com/grafana/agent/internal/usagestats"
 	"github.com/grafana/dskit/signals"
 	"github.com/oklog/run"
 	"github.com/prometheus/client_golang/prometheus"
