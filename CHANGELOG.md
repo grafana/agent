@@ -15,6 +15,7 @@ Main (unreleased)
 - Added a new CLI flag `--stability.level` which defines the minimum stability
   level required for the features that the agent is allowed to use. Default is `experimental`. (@thampiotr)
 
+- A new `loki.rules.kubernetes` component that discovers `PrometheusRule` Kubernetes resources and loads them into a Loki Ruler instance. (@EStork09)
 
 v0.40.0 (2024-02-27)
 --------------------
@@ -44,8 +45,6 @@ v0.40.0 (2024-02-27)
   to OTLP telemetry based on the host on which Grafana Agent is running. (@ptodev)
 
 - Expose track_timestamps_staleness on Prometheus scraping, to fix the issue where container metrics live for 5 minutes after the container disappears. (@ptodev)
-
-- A new `loki.rules.kubernetes` component that discovers `PrometheusRule` Kubernetes resources and loads them into a Loki Ruler instance. (@EStork09)
 
 - Introduce the `remotecfg` service that enables loading configuration from a
   remote endpoint. (@tpaschalis)
@@ -195,8 +194,6 @@ v0.39.0 (2024-01-09)
 - Allow specifying additional containers to run. (@juangom)
 
 ### Enhancements
-
-- `loki.rules.kubernetes` discovers `PrometheusRule` Kubernetes resources and loads them into a Loki Ruler instance. (@EStork09)
 
 - Flow Windows service: Support environment variables. (@jkroepke)
 
