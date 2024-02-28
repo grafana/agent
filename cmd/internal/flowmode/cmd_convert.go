@@ -11,8 +11,8 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
-	"github.com/grafana/agent/converter"
-	convert_diag "github.com/grafana/agent/converter/diag"
+	"github.com/grafana/agent/internal/converter"
+	convert_diag "github.com/grafana/agent/internal/converter/diag"
 	"github.com/grafana/river/diag"
 )
 

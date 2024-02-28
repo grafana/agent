@@ -17,10 +17,10 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/go-kit/log"
-	"github.com/grafana/agent/converter"
-	convert_diag "github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/internal/agentseed"
 	"github.com/grafana/agent/internal/component"
+	"github.com/grafana/agent/internal/converter"
+	convert_diag "github.com/grafana/agent/internal/converter/diag"
 	"github.com/grafana/agent/internal/featuregate"
 	"github.com/grafana/agent/pkg/boringcrypto"
 	"github.com/grafana/agent/pkg/config/instrumentation"
