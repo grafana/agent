@@ -12,13 +12,13 @@ weight: 500
 ---
 # Custom Resource Definition Reference
 ## Resource Types:
-* [Deployment](#monitoring.grafana.com/v1alpha1.Deployment)
-* [GrafanaAgent](#monitoring.grafana.com/v1alpha1.GrafanaAgent)
-* [IntegrationsDeployment](#monitoring.grafana.com/v1alpha1.IntegrationsDeployment)
-* [LogsDeployment](#monitoring.grafana.com/v1alpha1.LogsDeployment)
-* [MetricsDeployment](#monitoring.grafana.com/v1alpha1.MetricsDeployment)
+* [Deployment](#monitoring.grafana.com/v1alpha1.Deployment) 
+* [GrafanaAgent](#monitoring.grafana.com/v1alpha1.GrafanaAgent) 
+* [IntegrationsDeployment](#monitoring.grafana.com/v1alpha1.IntegrationsDeployment) 
+* [LogsDeployment](#monitoring.grafana.com/v1alpha1.LogsDeployment) 
+* [MetricsDeployment](#monitoring.grafana.com/v1alpha1.MetricsDeployment) 
 ### Deployment <a name="monitoring.grafana.com/v1alpha1.Deployment"></a>
-Deployment is a set of discovered resources relative to a GrafanaAgent. The tree of resources contained in a Deployment form the resource hierarchy used for reconciling a GrafanaAgent.
+Deployment is a set of discovered resources relative to a GrafanaAgent. The tree of resources contained in a Deployment form the resource hierarchy used for reconciling a GrafanaAgent. 
 #### Fields
 |Field|Description|
 |-|-|
@@ -31,7 +31,7 @@ Deployment is a set of discovered resources relative to a GrafanaAgent. The tree
 |`Secrets`<br/>_[github.com/grafana/agent/internal/static/operator/assets.SecretStore](https://pkg.go.dev/github.com/grafana/agent/internal/static/operator/assets#SecretStore)_|  The full list of Secrets referenced by resources in the Deployment.  |
 ### GrafanaAgent <a name="monitoring.grafana.com/v1alpha1.GrafanaAgent"></a>
 (Appears on:[Deployment](#monitoring.grafana.com/v1alpha1.Deployment))
-GrafanaAgent defines a Grafana Agent deployment.
+GrafanaAgent defines a Grafana Agent deployment. 
 #### Fields
 |Field|Description|
 |-|-|
@@ -74,7 +74,7 @@ GrafanaAgent defines a Grafana Agent deployment.
 |`disableSupportBundle`<br/>_bool_|  disableSupportBundle disables the generation of support bundles. &#43;kubebuilder:default=false  |
 ### IntegrationsDeployment <a name="monitoring.grafana.com/v1alpha1.IntegrationsDeployment"></a>
 (Appears on:[Deployment](#monitoring.grafana.com/v1alpha1.Deployment))
-IntegrationsDeployment is a set of discovered resources relative to an IntegrationsDeployment.
+IntegrationsDeployment is a set of discovered resources relative to an IntegrationsDeployment. 
 #### Fields
 |Field|Description|
 |-|-|
@@ -83,7 +83,7 @@ IntegrationsDeployment is a set of discovered resources relative to an Integrati
 |`Instance`<br/>_[Integration](#monitoring.grafana.com/v1alpha1.Integration)_|    |
 ### LogsDeployment <a name="monitoring.grafana.com/v1alpha1.LogsDeployment"></a>
 (Appears on:[Deployment](#monitoring.grafana.com/v1alpha1.Deployment))
-LogsDeployment is a set of discovered resources relative to a LogsInstance.
+LogsDeployment is a set of discovered resources relative to a LogsInstance. 
 #### Fields
 |Field|Description|
 |-|-|
@@ -93,7 +93,7 @@ LogsDeployment is a set of discovered resources relative to a LogsInstance.
 |`PodLogs`<br/>_[[]PodLogs](#monitoring.grafana.com/v1alpha1.PodLogs)_|    |
 ### MetricsDeployment <a name="monitoring.grafana.com/v1alpha1.MetricsDeployment"></a>
 (Appears on:[Deployment](#monitoring.grafana.com/v1alpha1.Deployment))
-MetricsDeployment is a set of discovered resources relative to a MetricsInstance.
+MetricsDeployment is a set of discovered resources relative to a MetricsInstance. 
 #### Fields
 |Field|Description|
 |-|-|
@@ -105,13 +105,13 @@ MetricsDeployment is a set of discovered resources relative to a MetricsInstance
 |`Probes`<br/>_[[]github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1.Probe](https://prometheus-operator.dev/docs/operator/api/#monitoring.coreos.com/v1.Probe)_|    |
 ### CRIStageSpec <a name="monitoring.grafana.com/v1alpha1.CRIStageSpec"></a>
 (Appears on:[PipelineStageSpec](#monitoring.grafana.com/v1alpha1.PipelineStageSpec))
-CRIStageSpec is a parsing stage that reads log lines using the standard CRI logging format. It needs no defined fields.
+CRIStageSpec is a parsing stage that reads log lines using the standard CRI logging format. It needs no defined fields. 
 ### DockerStageSpec <a name="monitoring.grafana.com/v1alpha1.DockerStageSpec"></a>
 (Appears on:[PipelineStageSpec](#monitoring.grafana.com/v1alpha1.PipelineStageSpec))
-DockerStageSpec is a parsing stage that reads log lines using the standard Docker logging format. It needs no defined fields.
+DockerStageSpec is a parsing stage that reads log lines using the standard Docker logging format. It needs no defined fields. 
 ### DropStageSpec <a name="monitoring.grafana.com/v1alpha1.DropStageSpec"></a>
 (Appears on:[PipelineStageSpec](#monitoring.grafana.com/v1alpha1.PipelineStageSpec))
-DropStageSpec is a filtering stage that lets you drop certain logs.
+DropStageSpec is a filtering stage that lets you drop certain logs. 
 #### Fields
 |Field|Description|
 |-|-|
@@ -123,7 +123,7 @@ DropStageSpec is a filtering stage that lets you drop certain logs.
 |`dropCounterReason`<br/>_string_|  Every time a log line is dropped, the metric logentry_dropped_lines_total is incremented. A &#34;reason&#34; label is added, and can be customized by providing a custom value here. Defaults to &#34;drop_stage&#34;.  |
 ### GrafanaAgentSpec <a name="monitoring.grafana.com/v1alpha1.GrafanaAgentSpec"></a>
 (Appears on:[GrafanaAgent](#monitoring.grafana.com/v1alpha1.GrafanaAgent))
-GrafanaAgentSpec is a specification of the desired behavior of the Grafana Agent cluster.
+GrafanaAgentSpec is a specification of the desired behavior of the Grafana Agent cluster. 
 #### Fields
 |Field|Description|
 |-|-|
@@ -162,7 +162,7 @@ GrafanaAgentSpec is a specification of the desired behavior of the Grafana Agent
 |`disableSupportBundle`<br/>_bool_|  disableSupportBundle disables the generation of support bundles. &#43;kubebuilder:default=false  |
 ### Integration <a name="monitoring.grafana.com/v1alpha1.Integration"></a>
 (Appears on:[IntegrationsDeployment](#monitoring.grafana.com/v1alpha1.IntegrationsDeployment))
-Integration runs a single Grafana Agent integration. Integrations that generate telemetry must be configured to send that telemetry somewhere, such as autoscrape for exporter-based integrations.  Integrations have access to the LogsInstances and MetricsInstances in the same GrafanaAgent resource set, referenced by the &lt;namespace&gt;/&lt;name&gt; of the Instance resource.  For example, if there is a default/production MetricsInstance, you can configure a supported integration&#39;s autoscrape block with:     autoscrape:       enable: true    metrics_instance: default/production  There is currently no way for telemetry created by an Operator-managed integration to be collected from outside of the integration itself.
+Integration runs a single Grafana Agent integration. Integrations that generate telemetry must be configured to send that telemetry somewhere, such as autoscrape for exporter-based integrations.  Integrations have access to the LogsInstances and MetricsInstances in the same GrafanaAgent resource set, referenced by the &lt;namespace&gt;/&lt;name&gt; of the Instance resource.  For example, if there is a default/production MetricsInstance, you can configure a supported integration&#39;s autoscrape block with:  	autoscrape: 	  enable: true 	  metrics_instance: default/production  There is currently no way for telemetry created by an Operator-managed integration to be collected from outside of the integration itself. 
 #### Fields
 |Field|Description|
 |-|-|
@@ -177,7 +177,7 @@ Integration runs a single Grafana Agent integration. Integrations that generate 
 |`configMaps`<br/>_[[]Kubernetes core/v1.ConfigMapKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#configmapkeyselector-v1-core)_|  An extra list of keys from ConfigMaps in the same namespace as the Integration which will be mounted into the Grafana Agent pod running this Integration.  ConfigMaps are mounted at /etc/grafana-agent/integrations/configMaps/&lt;configmap_namespace&gt;/&lt;configmap_name&gt;/&lt;key&gt;.  |
 ### IntegrationSpec <a name="monitoring.grafana.com/v1alpha1.IntegrationSpec"></a>
 (Appears on:[Integration](#monitoring.grafana.com/v1alpha1.Integration))
-IntegrationSpec specifies the desired behavior of a metrics integration.
+IntegrationSpec specifies the desired behavior of a metrics integration. 
 #### Fields
 |Field|Description|
 |-|-|
@@ -190,7 +190,7 @@ IntegrationSpec specifies the desired behavior of a metrics integration.
 |`configMaps`<br/>_[[]Kubernetes core/v1.ConfigMapKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#configmapkeyselector-v1-core)_|  An extra list of keys from ConfigMaps in the same namespace as the Integration which will be mounted into the Grafana Agent pod running this Integration.  ConfigMaps are mounted at /etc/grafana-agent/integrations/configMaps/&lt;configmap_namespace&gt;/&lt;configmap_name&gt;/&lt;key&gt;.  |
 ### IntegrationType <a name="monitoring.grafana.com/v1alpha1.IntegrationType"></a>
 (Appears on:[IntegrationSpec](#monitoring.grafana.com/v1alpha1.IntegrationSpec))
-IntegrationType determines specific behaviors of a configured integration.
+IntegrationType determines specific behaviors of a configured integration. 
 #### Fields
 |Field|Description|
 |-|-|
@@ -198,7 +198,7 @@ IntegrationType determines specific behaviors of a configured integration.
 |`unique`<br/>_bool_|  Whether this integration can only be defined once for a Grafana Agent process, such as statsd_exporter. It is invalid for a GrafanaAgent to discover multiple unique Integrations with the same Integration name (i.e., a single GrafanaAgent cannot deploy two statsd_exporters).  |
 ### IntegrationsSubsystemSpec <a name="monitoring.grafana.com/v1alpha1.IntegrationsSubsystemSpec"></a>
 (Appears on:[GrafanaAgentSpec](#monitoring.grafana.com/v1alpha1.GrafanaAgentSpec))
-IntegrationsSubsystemSpec defines global settings to apply across the integrations subsystem.
+IntegrationsSubsystemSpec defines global settings to apply across the integrations subsystem. 
 #### Fields
 |Field|Description|
 |-|-|
@@ -206,7 +206,7 @@ IntegrationsSubsystemSpec defines global settings to apply across the integratio
 |`namespaceSelector`<br/>_[Kubernetes meta/v1.LabelSelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#labelselector-v1-meta)_|  Label selector for namespaces to search when discovering integration resources. If nil, integration resources are only discovered in the namespace of the GrafanaAgent resource.  Set to `{}` to search all namespaces.  |
 ### JSONStageSpec <a name="monitoring.grafana.com/v1alpha1.JSONStageSpec"></a>
 (Appears on:[PipelineStageSpec](#monitoring.grafana.com/v1alpha1.PipelineStageSpec))
-JSONStageSpec is a parsing stage that reads the log line as JSON and accepts JMESPath expressions to extract data.
+JSONStageSpec is a parsing stage that reads the log line as JSON and accepts JMESPath expressions to extract data. 
 #### Fields
 |Field|Description|
 |-|-|
@@ -214,7 +214,7 @@ JSONStageSpec is a parsing stage that reads the log line as JSON and accepts JME
 |`expressions`<br/>_map[string]string_|  Set of the key/value pairs of JMESPath expressions. The key will be the key in the extracted data while the expression will be the value, evaluated as a JMESPath from the source data.  Literal JMESPath expressions can be used by wrapping a key in double quotes, which then must be wrapped again in single quotes in YAML so they get passed to the JMESPath parser.  |
 ### LimitStageSpec <a name="monitoring.grafana.com/v1alpha1.LimitStageSpec"></a>
 (Appears on:[PipelineStageSpec](#monitoring.grafana.com/v1alpha1.PipelineStageSpec))
-The limit stage is a rate-limiting stage that throttles logs based on several options.
+The limit stage is a rate-limiting stage that throttles logs based on several options. 
 #### Fields
 |Field|Description|
 |-|-|
@@ -223,7 +223,7 @@ The limit stage is a rate-limiting stage that throttles logs based on several op
 |`drop`<br/>_bool_|  When drop is true, log lines that exceed the current rate limit are discarded. When drop is false, log lines that exceed the current rate limit wait to enter the back pressure mode.  Defaults to false.  |
 ### LogsBackoffConfigSpec <a name="monitoring.grafana.com/v1alpha1.LogsBackoffConfigSpec"></a>
 (Appears on:[LogsClientSpec](#monitoring.grafana.com/v1alpha1.LogsClientSpec))
-LogsBackoffConfigSpec configures timing for retrying failed requests.
+LogsBackoffConfigSpec configures timing for retrying failed requests. 
 #### Fields
 |Field|Description|
 |-|-|
@@ -232,7 +232,7 @@ LogsBackoffConfigSpec configures timing for retrying failed requests.
 |`maxRetries`<br/>_int_|  Maximum number of retries to perform before giving up a request.  |
 ### LogsClientSpec <a name="monitoring.grafana.com/v1alpha1.LogsClientSpec"></a>
 (Appears on:[LogsInstanceSpec](#monitoring.grafana.com/v1alpha1.LogsInstanceSpec), [LogsSubsystemSpec](#monitoring.grafana.com/v1alpha1.LogsSubsystemSpec))
-LogsClientSpec defines the client integration for logs, indicating which Loki server to send logs to.
+LogsClientSpec defines the client integration for logs, indicating which Loki server to send logs to. 
 #### Fields
 |Field|Description|
 |-|-|
@@ -251,7 +251,7 @@ LogsClientSpec defines the client integration for logs, indicating which Loki se
 |`timeout`<br/>_string_|  Maximum time to wait for a server to respond to a request.  |
 ### LogsInstance <a name="monitoring.grafana.com/v1alpha1.LogsInstance"></a>
 (Appears on:[LogsDeployment](#monitoring.grafana.com/v1alpha1.LogsDeployment))
-LogsInstance controls an individual logs instance within a Grafana Agent deployment.
+LogsInstance controls an individual logs instance within a Grafana Agent deployment. 
 #### Fields
 |Field|Description|
 |-|-|
@@ -264,7 +264,7 @@ LogsInstance controls an individual logs instance within a Grafana Agent deploym
 |`targetConfig`<br/>_[LogsTargetConfigSpec](#monitoring.grafana.com/v1alpha1.LogsTargetConfigSpec)_|  Configures how tailed targets are watched.  |
 ### LogsInstanceSpec <a name="monitoring.grafana.com/v1alpha1.LogsInstanceSpec"></a>
 (Appears on:[LogsInstance](#monitoring.grafana.com/v1alpha1.LogsInstance))
-LogsInstanceSpec controls how an individual instance will be used to discover LogMonitors.
+LogsInstanceSpec controls how an individual instance will be used to discover LogMonitors. 
 #### Fields
 |Field|Description|
 |-|-|
@@ -275,7 +275,7 @@ LogsInstanceSpec controls how an individual instance will be used to discover Lo
 |`targetConfig`<br/>_[LogsTargetConfigSpec](#monitoring.grafana.com/v1alpha1.LogsTargetConfigSpec)_|  Configures how tailed targets are watched.  |
 ### LogsSubsystemSpec <a name="monitoring.grafana.com/v1alpha1.LogsSubsystemSpec"></a>
 (Appears on:[GrafanaAgentSpec](#monitoring.grafana.com/v1alpha1.GrafanaAgentSpec))
-LogsSubsystemSpec defines global settings to apply across the logging subsystem.
+LogsSubsystemSpec defines global settings to apply across the logging subsystem. 
 #### Fields
 |Field|Description|
 |-|-|
@@ -287,14 +287,14 @@ LogsSubsystemSpec defines global settings to apply across the logging subsystem.
 |`enforcedNamespaceLabel`<br/>_string_|  EnforcedNamespaceLabel enforces adding a namespace label of origin for each metric that is user-created. The label value will always be the namespace of the object that is being created.  |
 ### LogsTargetConfigSpec <a name="monitoring.grafana.com/v1alpha1.LogsTargetConfigSpec"></a>
 (Appears on:[LogsInstanceSpec](#monitoring.grafana.com/v1alpha1.LogsInstanceSpec))
-LogsTargetConfigSpec configures how tailed targets are watched.
+LogsTargetConfigSpec configures how tailed targets are watched. 
 #### Fields
 |Field|Description|
 |-|-|
 |`syncPeriod`<br/>_string_|  Period to resync directories being watched and files being tailed to discover new ones or stop watching removed ones.  |
 ### MatchStageSpec <a name="monitoring.grafana.com/v1alpha1.MatchStageSpec"></a>
 (Appears on:[PipelineStageSpec](#monitoring.grafana.com/v1alpha1.PipelineStageSpec))
-MatchStageSpec is a filtering stage that conditionally applies a set of stages or drop entries when a log entry matches a configurable LogQL stream selector and filter expressions.
+MatchStageSpec is a filtering stage that conditionally applies a set of stages or drop entries when a log entry matches a configurable LogQL stream selector and filter expressions. 
 #### Fields
 |Field|Description|
 |-|-|
@@ -305,7 +305,7 @@ MatchStageSpec is a filtering stage that conditionally applies a set of stages o
 |`stages`<br/>_string_|  Nested set of pipeline stages to execute when action is keep and the log line matches selector.  An example value for stages may be:    stages: |     - json: {}     - labelAllow: [foo, bar]  Note that stages is a string because SIG API Machinery does not support recursive types, and so it cannot be validated for correctness. Be careful not to mistype anything.  |
 ### MetadataConfig <a name="monitoring.grafana.com/v1alpha1.MetadataConfig"></a>
 (Appears on:[RemoteWriteSpec](#monitoring.grafana.com/v1alpha1.RemoteWriteSpec))
-MetadataConfig configures the sending of series metadata to remote storage.
+MetadataConfig configures the sending of series metadata to remote storage. 
 #### Fields
 |Field|Description|
 |-|-|
@@ -313,7 +313,7 @@ MetadataConfig configures the sending of series metadata to remote storage.
 |`sendInterval`<br/>_string_|  SendInterval controls how frequently metric metadata is sent to remote storage.  |
 ### MetricsInstance <a name="monitoring.grafana.com/v1alpha1.MetricsInstance"></a>
 (Appears on:[MetricsDeployment](#monitoring.grafana.com/v1alpha1.MetricsDeployment))
-MetricsInstance controls an individual Metrics instance within a Grafana Agent deployment.
+MetricsInstance controls an individual Metrics instance within a Grafana Agent deployment. 
 #### Fields
 |Field|Description|
 |-|-|
@@ -334,7 +334,7 @@ MetricsInstance controls an individual Metrics instance within a Grafana Agent d
 |`additionalScrapeConfigs`<br/>_[Kubernetes core/v1.SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#secretkeyselector-v1-core)_|  AdditionalScrapeConfigs lets you specify a key of a Secret containing additional Grafana Agent Prometheus scrape configurations. The specified scrape configurations are appended to the configurations generated by Grafana Agent Operator. Specified job configurations must have the form specified in the official Prometheus documentation: https://prometheus.io/docs/prometheus/latest/configuration/configuration/#scrape_config. As scrape configs are appended, you must make sure the configuration is still valid. Note that it&#39;s possible that this feature will break future upgrades of Grafana Agent. Review both Grafana Agent and Prometheus release notes to ensure that no incompatible scrape configs will break Grafana Agent after the upgrade.  |
 ### MetricsInstanceSpec <a name="monitoring.grafana.com/v1alpha1.MetricsInstanceSpec"></a>
 (Appears on:[MetricsInstance](#monitoring.grafana.com/v1alpha1.MetricsInstance))
-MetricsInstanceSpec controls how an individual instance is used to discover PodMonitors.
+MetricsInstanceSpec controls how an individual instance is used to discover PodMonitors. 
 #### Fields
 |Field|Description|
 |-|-|
@@ -353,7 +353,7 @@ MetricsInstanceSpec controls how an individual instance is used to discover PodM
 |`additionalScrapeConfigs`<br/>_[Kubernetes core/v1.SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#secretkeyselector-v1-core)_|  AdditionalScrapeConfigs lets you specify a key of a Secret containing additional Grafana Agent Prometheus scrape configurations. The specified scrape configurations are appended to the configurations generated by Grafana Agent Operator. Specified job configurations must have the form specified in the official Prometheus documentation: https://prometheus.io/docs/prometheus/latest/configuration/configuration/#scrape_config. As scrape configs are appended, you must make sure the configuration is still valid. Note that it&#39;s possible that this feature will break future upgrades of Grafana Agent. Review both Grafana Agent and Prometheus release notes to ensure that no incompatible scrape configs will break Grafana Agent after the upgrade.  |
 ### MetricsStageSpec <a name="monitoring.grafana.com/v1alpha1.MetricsStageSpec"></a>
 (Appears on:[PipelineStageSpec](#monitoring.grafana.com/v1alpha1.PipelineStageSpec))
-MetricsStageSpec is an action stage that allows for defining and updating metrics based on data from the extracted map. Created metrics are not pushed to Loki or Prometheus and are instead exposed via the /metrics endpoint of the Grafana Agent pod. The Grafana Agent Operator should be configured with a MetricsInstance that discovers the logging DaemonSet to collect metrics created by this stage.
+MetricsStageSpec is an action stage that allows for defining and updating metrics based on data from the extracted map. Created metrics are not pushed to Loki or Prometheus and are instead exposed via the /metrics endpoint of the Grafana Agent pod. The Grafana Agent Operator should be configured with a MetricsInstance that discovers the logging DaemonSet to collect metrics created by this stage. 
 #### Fields
 |Field|Description|
 |-|-|
@@ -369,7 +369,7 @@ MetricsStageSpec is an action stage that allows for defining and updating metric
 |`buckets`<br/>_[]string_|  Buckets to create. Bucket values must be convertible to float64s. Extremely large or small numbers are subject to some loss of precision. Only valid for type: histogram.  |
 ### MetricsSubsystemSpec <a name="monitoring.grafana.com/v1alpha1.MetricsSubsystemSpec"></a>
 (Appears on:[GrafanaAgentSpec](#monitoring.grafana.com/v1alpha1.GrafanaAgentSpec))
-MetricsSubsystemSpec defines global settings to apply across the Metrics subsystem.
+MetricsSubsystemSpec defines global settings to apply across the Metrics subsystem. 
 #### Fields
 |Field|Description|
 |-|-|
@@ -392,7 +392,7 @@ MetricsSubsystemSpec defines global settings to apply across the Metrics subsyst
 |`instanceNamespaceSelector`<br/>_[Kubernetes meta/v1.LabelSelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#labelselector-v1-meta)_|  InstanceNamespaceSelector is the set of labels that determines which namespaces to watch for MetricsInstances. If not provided, it only checks its own namespace.  |
 ### MultilineStageSpec <a name="monitoring.grafana.com/v1alpha1.MultilineStageSpec"></a>
 (Appears on:[PipelineStageSpec](#monitoring.grafana.com/v1alpha1.PipelineStageSpec))
-MultilineStageSpec merges multiple lines into a multiline block before passing it on to the next stage in the pipeline.
+MultilineStageSpec merges multiple lines into a multiline block before passing it on to the next stage in the pipeline. 
 #### Fields
 |Field|Description|
 |-|-|
@@ -400,7 +400,7 @@ MultilineStageSpec merges multiple lines into a multiline block before passing i
 |`maxWaitTime`<br/>_string_|  Maximum time to wait before passing on the multiline block to the next stage if no new lines are received. Defaults to 3s.  |
 |`maxLines`<br/>_int_|  Maximum number of lines a block can have. A new block is started if the number of lines surpasses this value. Defaults to 128.  |
 ### ObjectSelector <a name="monitoring.grafana.com/v1alpha1.ObjectSelector"></a>
-ObjectSelector is a set of selectors to use for finding an object in the resource hierarchy. When NamespaceSelector is nil, search for objects directly in the ParentNamespace.
+ObjectSelector is a set of selectors to use for finding an object in the resource hierarchy. When NamespaceSelector is nil, search for objects directly in the ParentNamespace. 
 #### Fields
 |Field|Description|
 |-|-|
@@ -410,14 +410,14 @@ ObjectSelector is a set of selectors to use for finding an object in the resourc
 |`Labels`<br/>_[Kubernetes meta/v1.LabelSelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#labelselector-v1-meta)_|    |
 ### OutputStageSpec <a name="monitoring.grafana.com/v1alpha1.OutputStageSpec"></a>
 (Appears on:[PipelineStageSpec](#monitoring.grafana.com/v1alpha1.PipelineStageSpec))
-OutputStageSpec is an action stage that takes data from the extracted map and changes the log line that will be sent to Loki.
+OutputStageSpec is an action stage that takes data from the extracted map and changes the log line that will be sent to Loki. 
 #### Fields
 |Field|Description|
 |-|-|
 |`source`<br/>_string_|  Name from extract data to use for the log entry. Required.  |
 ### PackStageSpec <a name="monitoring.grafana.com/v1alpha1.PackStageSpec"></a>
 (Appears on:[PipelineStageSpec](#monitoring.grafana.com/v1alpha1.PipelineStageSpec))
-PackStageSpec is a transform stage that lets you embed extracted values and labels into the log line by packing the log line and labels inside of a JSON object.
+PackStageSpec is a transform stage that lets you embed extracted values and labels into the log line by packing the log line and labels inside of a JSON object. 
 #### Fields
 |Field|Description|
 |-|-|
@@ -425,7 +425,7 @@ PackStageSpec is a transform stage that lets you embed extracted values and labe
 |`ingestTimestamp`<br/>_bool_|  If the resulting log line should use any existing timestamp or use time.Now() when the line was created. Set to true when combining several log streams from different containers to avoid out of order errors.  |
 ### PipelineStageSpec <a name="monitoring.grafana.com/v1alpha1.PipelineStageSpec"></a>
 (Appears on:[PodLogsSpec](#monitoring.grafana.com/v1alpha1.PodLogsSpec))
-PipelineStageSpec defines an individual pipeline stage. Each stage type is mutually exclusive and no more than one may be set per stage.  More information on pipelines can be found in the Promtail documentation: https://grafana.com/docs/loki/latest/clients/promtail/pipelines/
+PipelineStageSpec defines an individual pipeline stage. Each stage type is mutually exclusive and no more than one may be set per stage.  More information on pipelines can be found in the Promtail documentation: https://grafana.com/docs/loki/latest/clients/promtail/pipelines/ 
 #### Fields
 |Field|Description|
 |-|-|
@@ -449,7 +449,7 @@ PipelineStageSpec defines an individual pipeline stage. Each stage type is mutua
 |`timestamp`<br/>_[TimestampStageSpec](#monitoring.grafana.com/v1alpha1.TimestampStageSpec)_|  Timestamp is an action stage that can change the timestamp of a log line before it is sent to Loki. If not present, the timestamp of a log line defaults to the time when the log line was read.  |
 ### PodLogs <a name="monitoring.grafana.com/v1alpha1.PodLogs"></a>
 (Appears on:[LogsDeployment](#monitoring.grafana.com/v1alpha1.LogsDeployment))
-PodLogs defines how to collect logs for a pod.
+PodLogs defines how to collect logs for a pod. 
 #### Fields
 |Field|Description|
 |-|-|
@@ -463,7 +463,7 @@ PodLogs defines how to collect logs for a pod.
 |`relabelings`<br/>_[[]github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1.RelabelConfig](https://prometheus-operator.dev/docs/operator/api/#monitoring.coreos.com/v1.RelabelConfig)_|  RelabelConfigs to apply to logs before delivering. Grafana Agent Operator automatically adds relabelings for a few standard Kubernetes fields and replaces original scrape job name with __tmp_logs_job_name.  More info: https://grafana.com/docs/loki/latest/clients/promtail/configuration/#relabel_configs  |
 ### PodLogsSpec <a name="monitoring.grafana.com/v1alpha1.PodLogsSpec"></a>
 (Appears on:[PodLogs](#monitoring.grafana.com/v1alpha1.PodLogs))
-PodLogsSpec defines how to collect logs for a pod.
+PodLogsSpec defines how to collect logs for a pod. 
 #### Fields
 |Field|Description|
 |-|-|
@@ -475,7 +475,7 @@ PodLogsSpec defines how to collect logs for a pod.
 |`relabelings`<br/>_[[]github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1.RelabelConfig](https://prometheus-operator.dev/docs/operator/api/#monitoring.coreos.com/v1.RelabelConfig)_|  RelabelConfigs to apply to logs before delivering. Grafana Agent Operator automatically adds relabelings for a few standard Kubernetes fields and replaces original scrape job name with __tmp_logs_job_name.  More info: https://grafana.com/docs/loki/latest/clients/promtail/configuration/#relabel_configs  |
 ### QueueConfig <a name="monitoring.grafana.com/v1alpha1.QueueConfig"></a>
 (Appears on:[RemoteWriteSpec](#monitoring.grafana.com/v1alpha1.RemoteWriteSpec))
-QueueConfig allows the tuning of remote_write queue_config parameters.
+QueueConfig allows the tuning of remote_write queue_config parameters. 
 #### Fields
 |Field|Description|
 |-|-|
@@ -490,7 +490,7 @@ QueueConfig allows the tuning of remote_write queue_config parameters.
 |`retryOnRateLimit`<br/>_bool_|  RetryOnRateLimit retries requests when encountering rate limits.  |
 ### RegexStageSpec <a name="monitoring.grafana.com/v1alpha1.RegexStageSpec"></a>
 (Appears on:[PipelineStageSpec](#monitoring.grafana.com/v1alpha1.PipelineStageSpec))
-RegexStageSpec is a parsing stage that parses a log line using a regular expression. Named capture groups in the regex allows for adding data into the extracted map.
+RegexStageSpec is a parsing stage that parses a log line using a regular expression. Named capture groups in the regex allows for adding data into the extracted map. 
 #### Fields
 |Field|Description|
 |-|-|
@@ -498,7 +498,7 @@ RegexStageSpec is a parsing stage that parses a log line using a regular express
 |`expression`<br/>_string_|  RE2 regular expression. Each capture group MUST be named. Required.  |
 ### RemoteWriteSpec <a name="monitoring.grafana.com/v1alpha1.RemoteWriteSpec"></a>
 (Appears on:[MetricsInstanceSpec](#monitoring.grafana.com/v1alpha1.MetricsInstanceSpec), [MetricsSubsystemSpec](#monitoring.grafana.com/v1alpha1.MetricsSubsystemSpec))
-RemoteWriteSpec defines the remote_write configuration for Prometheus.
+RemoteWriteSpec defines the remote_write configuration for Prometheus. 
 #### Fields
 |Field|Description|
 |-|-|
@@ -518,7 +518,7 @@ RemoteWriteSpec defines the remote_write configuration for Prometheus.
 |`metadataConfig`<br/>_[MetadataConfig](#monitoring.grafana.com/v1alpha1.MetadataConfig)_|  MetadataConfig configures the sending of series metadata to remote storage.  |
 ### ReplaceStageSpec <a name="monitoring.grafana.com/v1alpha1.ReplaceStageSpec"></a>
 (Appears on:[PipelineStageSpec](#monitoring.grafana.com/v1alpha1.PipelineStageSpec))
-ReplaceStageSpec is a parsing stage that parses a log line using a regular expression and replaces the log line. Named capture groups in the regex allows for adding data into the extracted map.
+ReplaceStageSpec is a parsing stage that parses a log line using a regular expression and replaces the log line. Named capture groups in the regex allows for adding data into the extracted map. 
 #### Fields
 |Field|Description|
 |-|-|
@@ -527,7 +527,7 @@ ReplaceStageSpec is a parsing stage that parses a log line using a regular expre
 |`replace`<br/>_string_|  Value to replace the captured group with.  |
 ### SigV4Config <a name="monitoring.grafana.com/v1alpha1.SigV4Config"></a>
 (Appears on:[RemoteWriteSpec](#monitoring.grafana.com/v1alpha1.RemoteWriteSpec))
-SigV4Config specifies configuration to perform SigV4 authentication.
+SigV4Config specifies configuration to perform SigV4 authentication. 
 #### Fields
 |Field|Description|
 |-|-|
@@ -538,7 +538,7 @@ SigV4Config specifies configuration to perform SigV4 authentication.
 |`roleARN`<br/>_string_|  RoleARN is the AWS Role ARN to use for authentication, as an alternative for using the AWS API keys.  |
 ### TemplateStageSpec <a name="monitoring.grafana.com/v1alpha1.TemplateStageSpec"></a>
 (Appears on:[PipelineStageSpec](#monitoring.grafana.com/v1alpha1.PipelineStageSpec))
-TemplateStageSpec is a transform stage that manipulates the values in the extracted map using Go&#39;s template syntax.
+TemplateStageSpec is a transform stage that manipulates the values in the extracted map using Go&#39;s template syntax. 
 #### Fields
 |Field|Description|
 |-|-|
@@ -546,7 +546,7 @@ TemplateStageSpec is a transform stage that manipulates the values in the extrac
 |`template`<br/>_string_|  Go template string to use. Required. In addition to normal template functions, ToLower, ToUpper, Replace, Trim, TrimLeft, TrimRight, TrimPrefix, and TrimSpace are also available.  |
 ### TenantStageSpec <a name="monitoring.grafana.com/v1alpha1.TenantStageSpec"></a>
 (Appears on:[PipelineStageSpec](#monitoring.grafana.com/v1alpha1.PipelineStageSpec))
-TenantStageSpec is an action stage that sets the tenant ID for the log entry picking it from a field in the extracted data map.
+TenantStageSpec is an action stage that sets the tenant ID for the log entry picking it from a field in the extracted data map. 
 #### Fields
 |Field|Description|
 |-|-|
@@ -555,7 +555,7 @@ TenantStageSpec is an action stage that sets the tenant ID for the log entry pic
 |`value`<br/>_string_|  Value to use for the template ID. Useful when this stage is used within a conditional pipeline such as match. Mutually exclusive with label and source.  |
 ### TimestampStageSpec <a name="monitoring.grafana.com/v1alpha1.TimestampStageSpec"></a>
 (Appears on:[PipelineStageSpec](#monitoring.grafana.com/v1alpha1.PipelineStageSpec))
-TimestampStageSpec is an action stage that can change the timestamp of a log line before it is sent to Loki.
+TimestampStageSpec is an action stage that can change the timestamp of a log line before it is sent to Loki. 
 #### Fields
 |Field|Description|
 |-|-|
