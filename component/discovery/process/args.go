@@ -6,6 +6,8 @@ import (
 	"github.com/grafana/agent/component/discovery"
 )
 
+const LabelProcessID = "__process_pid__"
+
 type Arguments struct {
 	Join            []discovery.Target `river:"join,attr,optional"`
 	RefreshInterval time.Duration      `river:"refresh_interval,attr,optional"`

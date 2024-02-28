@@ -10,6 +10,7 @@ import (
 	_ "github.com/grafana/agent/component/discovery/dns"                            // Import discovery.dns
 	_ "github.com/grafana/agent/component/discovery/docker"                         // Import discovery.docker
 	_ "github.com/grafana/agent/component/discovery/dockerswarm"                    // Import discovery.dockerswarm
+	_ "github.com/grafana/agent/component/discovery/dotnet"                         // Import discovery.dotnet
 	_ "github.com/grafana/agent/component/discovery/eureka"                         // Import discovery.eureka
 	_ "github.com/grafana/agent/component/discovery/file"                           // Import discovery.file
 	_ "github.com/grafana/agent/component/discovery/gce"                            // Import discovery.gce
@@ -129,6 +130,7 @@ import (
 	_ "github.com/grafana/agent/component/prometheus/relabel"                       // Import prometheus.relabel
 	_ "github.com/grafana/agent/component/prometheus/remotewrite"                   // Import prometheus.remote_write
 	_ "github.com/grafana/agent/component/prometheus/scrape"                        // Import prometheus.scrape
+	_ "github.com/grafana/agent/component/pyroscope/dotnet"                         // Import pyroscope.dotnet
 	_ "github.com/grafana/agent/component/pyroscope/ebpf"                           // Import pyroscope.ebpf
 	_ "github.com/grafana/agent/component/pyroscope/java"                           // Import pyroscope.java
 	_ "github.com/grafana/agent/component/pyroscope/scrape"                         // Import pyroscope.scrape

@@ -18,7 +18,6 @@ import (
 )
 
 const (
-	labelProcessID          = "__process_pid__"
 	labelProcessExe         = "__meta_process_exe"
 	labelProcessCwd         = "__meta_process_cwd"
 	labelProcessCommandline = "__meta_process_commandline"
@@ -52,7 +51,7 @@ func convertProcesses(ps []process) []discovery.Target {
 
 func convertProcess(p process) discovery.Target {
 	t := make(discovery.Target, 5)
-	t[labelProcessID] = p.pid
+	t[LabelProcessID] = p.pid
 	if p.exe != "" {
 		t[labelProcessExe] = p.exe
 	}
