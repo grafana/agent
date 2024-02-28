@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/go-kit/log"
-	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/pkg/flow/logging/level"
 	lokiClient "github.com/grafana/agent/pkg/loki/client"
 	"github.com/grafana/dskit/instrument"
 	promListers "github.com/prometheus-operator/prometheus-operator/pkg/client/listers/monitoring/v1"
