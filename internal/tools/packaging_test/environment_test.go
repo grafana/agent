@@ -38,7 +38,7 @@ func RPMEnvironment(t *testing.T, packageName string, pool *dockertest.Pool) Env
 		pool,
 		"testdata/centos-systemd.Dockerfile",
 		packageName+"-test-centos-systemd",
-		fmt.Sprintf("../dist/%s-0.0.0-1.%s.rpm", packageName, runtime.GOARCH),
+		fmt.Sprintf("../../../dist/%s-0.0.0-1.%s.rpm", packageName, runtime.GOARCH),
 	)
 
 	return Environment{
@@ -64,7 +64,7 @@ func DEBEnvironment(t *testing.T, packageName string, pool *dockertest.Pool) Env
 		pool,
 		"testdata/debian-systemd.Dockerfile",
 		packageName+"-test-debian-systemd",
-		fmt.Sprintf("../dist/%s-0.0.0-1.%s.deb", packageName, runtime.GOARCH),
+		fmt.Sprintf("../../../dist/%s-0.0.0-1.%s.deb", packageName, runtime.GOARCH),
 	)
 
 	return Environment{

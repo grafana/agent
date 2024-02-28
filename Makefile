@@ -167,7 +167,7 @@ test:
 
 test-packages:
 	docker pull $(BUILD_IMAGE)
-	go test -tags=packaging  ./packaging
+	go test -tags=packaging  ./internal/tools/packaging_test
 
 .PHONY: integration-test
 integration-test:
