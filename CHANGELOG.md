@@ -15,6 +15,8 @@ Main (unreleased)
 - Added a new CLI flag `--stability.level` which defines the minimum stability
   level required for the features that the agent is allowed to use. Default is `experimental`. (@thampiotr)
 
+- A new `loki.rules.kubernetes` component that discovers `PrometheusRule` Kubernetes resources and loads them into a Loki Ruler instance. (@EStork09)
+
 ### Bugfixes
 
 - Set permissions on the `Grafana Agent [Flow]` folder when installing via the
@@ -53,6 +55,8 @@ v0.40.0 (2024-02-27)
   remote endpoint. (@tpaschalis)
 
 - Add `otelcol.connector.host_info` component to gather usage metrics for cloud users. (@rlankfo, @jcreixell)
+
+- Add Windows boringcrypto build and executable. (@mattdurham)
 
 ### Enhancements
 
@@ -129,6 +133,8 @@ v0.40.0 (2024-02-27)
 - Fix an issue where the configuration of the `http` and `remotecfg` blocks get ignored after loading a module. (@erikbaranowski)
 
 - Fix an issue where changing the configuration of `loki.write` would cause a panic. (@rfratto)
+
+- Fix issue where registry was not being properly deleted. (@mattdurham)
 
 ### Other changes
 
