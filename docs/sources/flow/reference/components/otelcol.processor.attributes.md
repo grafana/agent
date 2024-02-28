@@ -147,7 +147,7 @@ The supported values for `action` are:
 
 ### include block
 
-The `include` block provides an option to include data being fed into the [action] blocks based on the properties of a span, log, or metric records.
+The `include` block provides an option to include data being fed into the[action][] blocks based on the properties of a span, log, or metric records.
 
 {{< docs/shared lookup="flow/reference/components/match-properties-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
@@ -164,7 +164,7 @@ For example, adding a `span_names` filter could cause the component to error if 
 
 ### exclude block
 
-The `exclude` block provides an option to exclude data from being fed into the [action] blocks based on the properties of a span, log, or metric records.
+The `exclude` block provides an option to exclude data from being fed into the[action][] blocks based on the properties of a span, log, or metric records.
 
 {{< admonition type="note" >}}
 Signals excluded by the `exclude` block will still be propagated to downstream components as-is.

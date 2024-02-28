@@ -35,8 +35,8 @@ there is also a set of metrics-only functions:
   * `not true`
   * `not IsMatch(name, "http_.*")`
 * [Boolean Expressions][OTTL boolean expressions] consisting of a `where` followed by one or more booleans:
-  * `set(attributes["whose_fault"], "ours") where attributes["http.status"] == 500`
-  * `set(attributes["whose_fault"], "theirs") where attributes["http.status"] == 400 or attributes["http.status"] == 404`
+  * `set(attributes["whose_fault"], "ours") where attribute["http.status"][] == 500`
+  * `set(attributes["whose_fault"], "theirs") where attribute["http.status"][] == 400 or attribute["http.status"][] == 404`
 * [Math expressions][OTTL math expressions]:
   * `1 + 1`
   * `end_time_unix_nano - start_time_unix_nano`

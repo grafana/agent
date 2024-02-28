@@ -81,7 +81,7 @@ The following blocks are supported inside the definition of `loki.source.azure_e
 
  Hierarchy      | Name             | Description                                        | Required 
 ----------------|------------------|----------------------------------------------------|----------
- authentication | [authentication] | Authentication configuration with Azure Event Hub. | yes      
+ authentication |[authentication][] | Authentication configuration with Azure Event Hub. | yes      
 
 [authentication]: #authentication-block
 

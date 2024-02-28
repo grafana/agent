@@ -14,6 +14,32 @@ canonical: https://grafana.com/docs/agent/latest/flow/tasks/collect-prometheus-m
 description: Learn how to collect and forward Prometheus metrics
 title: Collect and forward Prometheus metrics
 weight: 200
+refs:
+  components:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/concepts/components/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/concepts/components/
+  objects:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/concepts/config-language/expressions/types_and_values/#objects
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/concepts/config-language/expressions/types_and_values/#objects
+  prometheus.remote_write:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/reference/components/prometheus.remote_write/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/reference/components/prometheus.remote_write/
+  discovery.kubernetes:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/reference/components/discovery.kubernetes/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/reference/components/discovery.kubernetes/
+  prometheus.scrape:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/reference/components/prometheus.scrape/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/reference/components/prometheus.scrape/
 ---
 
 # Collect and forward Prometheus metrics
@@ -27,9 +53,9 @@ This topic describes how to:
 
 ## Components used in this topic
 
-* [discovery.kubernetes][]
-* [prometheus.remote_write][]
-* [prometheus.scrape][]
+* [discovery.kubernetes](ref:discovery.kubernetes)
+* [prometheus.remote_write](ref:prometheus.remote_write)
+* [prometheus.scrape](ref:prometheus.scrape)
 
 ## Before you begin
 
@@ -37,13 +63,13 @@ This topic describes how to:
 * Have a set of Prometheus exports or applications exposing Prometheus metrics that you want to collect metrics from.
 * Identify where you will write collected metrics.
   Metrics can be written to Prometheus or Prometheus-compatible endpoints such as Grafana Mimir, Grafana Cloud, or Grafana Enterprise Metrics.
-* Be familiar with the concept of [Components][] in {{< param "PRODUCT_NAME" >}}.
+* Be familiar with the concept of [Components](ref:components) in {{< param "PRODUCT_NAME" >}}.
 
 ## Configure metrics delivery
 
 Before components can collect Prometheus metrics, you must have a component responsible for writing those metrics somewhere.
 
-The [prometheus.remote_write][] component is responsible for delivering Prometheus metrics to one or Prometheus-compatible endpoints.
+The [prometheus.remote_write](ref:prometheus.remote_write) component is responsible for delivering Prometheus metrics to one or Prometheus-compatible endpoints.
 After a `prometheus.remote_write` component is defined, you can use other {{< param "PRODUCT_NAME" >}} components to forward metrics to it.
 
 To configure a `prometheus.remote_write` component for metrics delivery, complete the following steps:
@@ -109,7 +135,7 @@ prometheus.scrape "example" {
 }
 ```
 
-For more information on configuring metrics delivery, refer to [prometheus.remote_write][].
+For more information on configuring metrics delivery, refer to [prometheus.remote_write](ref:prometheus.remote_write).
 
 ## Collect metrics from Kubernetes Pods
 
@@ -235,7 +261,7 @@ prometheus.remote_write "default" {
 }
 ```
 
-For more information on configuring Kubernetes service delivery and collecting metrics, refer to [discovery.kubernetes][] and [prometheus.scrape][].
+For more information on configuring Kubernetes service delivery and collecting metrics, refer to [discovery.kubernetes](ref:discovery.kubernetes) and [prometheus.scrape](ref:prometheus.scrape).
 
 ## Collect metrics from Kubernetes Services
 
@@ -361,7 +387,7 @@ prometheus.remote_write "default" {
 }
 ```
 
-For more information on configuring Kubernetes service delivery and collecting metrics, refer to [discovery.kubernetes][] and [prometheus.scrape][].
+For more information on configuring Kubernetes service delivery and collecting metrics, refer to [discovery.kubernetes](ref:discovery.kubernetes) and [prometheus.scrape](ref:prometheus.scrape).
 
 ## Collect metrics from custom targets
 
@@ -384,7 +410,7 @@ To collect metrics from a custom set of targets, complete the following steps.
 
    - _`<SCRAPE_LABEL>`: The label for the component, such as `custom_targets`.
      The label you use must be unique across all `prometheus.scrape` components in the same configuration file.
-   - _`<TARGET_LIST>`_: A comma-delimited list of [Objects][] denoting the Prometheus target.
+   - _`<TARGET_LIST>`_: A comma-delimited list of [Objects](ref:objects) denoting the Prometheus target.
      Each object must conform to the following rules:
 
      * There must be an `__address__` key denoting the `HOST:PORT` of the target to collect metrics from.
@@ -437,15 +463,3 @@ prometheus.remote_write "default" {
 [Labels and Selectors]: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#set-based-requirement
 [Configure metrics delivery]: #configure-metrics-delivery
 
-{{% docs/reference %}}
-[discovery.kubernetes]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/discovery.kubernetes.md"
-[discovery.kubernetes]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/components/discovery.kubernetes.md"
-[prometheus.remote_write]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/prometheus.remote_write.md"
-[prometheus.remote_write]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/components/prometheus.remote_write.md"
-[prometheus.scrape]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/prometheus.scrape.md"
-[prometheus.scrape]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/components/prometheus.scrape.md"
-[Components]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/components.md"
-[Components]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/concepts/components.md"
-[Objects]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/config-language/expressions/types_and_values.md#objects"
-[Objects]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/concepts/config-language/expressions/types_and_values.md#objects"
-{{% /docs/reference %}}

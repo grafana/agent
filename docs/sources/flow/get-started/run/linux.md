@@ -9,11 +9,22 @@ description: Learn how to run Grafana Agent Flow on Linux
 menuTitle: Linux
 title: Run Grafana Agent Flow on Linux
 weight: 300
+refs:
+  configure:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/tasks/configure/configure-linux/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/tasks/configure/configure-linux/
+  installlinux:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/get-started/install/linux/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/flow/get-started/install/linux/
 ---
 
 # Run {{% param "PRODUCT_NAME" %}} on Linux
 
-{{< param "PRODUCT_NAME" >}} is [installed][InstallLinux] as a [systemd][] service on Linux.
+{{< param "PRODUCT_NAME" >}} is [installed](ref:installlinux) as a [systemd][] service on Linux.
 
 [systemd]: https://systemd.io/
 
@@ -65,11 +76,5 @@ sudo journalctl -u grafana-agent-flow
 
 ## Next steps
 
-- [Configure {{< param "PRODUCT_NAME" >}}][Configure]
+- [Configure {{< param "PRODUCT_NAME" >}}](ref:configure)
 
-{{% docs/reference %}}
-[InstallLinux]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/get-started/install/linux.md"
-[InstallLinux]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/flow/get-started/install/linux.md"
-[Configure]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/tasks/configure/configure-linux.md"
-[Configure]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/tasks/configure/configure-linux.md"
-{{% /docs/reference %}}

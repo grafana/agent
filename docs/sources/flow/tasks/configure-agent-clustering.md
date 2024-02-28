@@ -15,20 +15,41 @@ description: Learn how to configure Grafana Agent clustering in an existing inst
 menuTitle: Configure Grafana Agent clustering
 title: Configure Grafana Agent clustering in an existing installation
 weight: 400
+refs:
+  install-helm:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/get-started/install/kubernetes/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/get-started/install/kubernetes/
+  clustering:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/concepts/clustering/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/concepts/clustering/
+  ui:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/tasks/debug/#component-detail-page
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/tasks/debug/#component-detail-page
+  beta:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/stability/#beta
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/stability/#beta
 ---
 
 # Configure {{% param "PRODUCT_NAME" %}} clustering in an existing installation
 
-You can configure {{< param "PRODUCT_NAME" >}} to run with [clustering][] so that individual {{< param "PRODUCT_ROOT_NAME" >}}s can work together for workload distribution and high availability.
+You can configure {{< param "PRODUCT_NAME" >}} to run with [clustering](ref:clustering) so that individual {{< param "PRODUCT_ROOT_NAME" >}}s can work together for workload distribution and high availability.
 
-> **Note:** Clustering is a [beta][] feature. Beta features are subject to breaking
+> **Note:** Clustering is a [beta](ref:beta) feature. Beta features are subject to breaking
 > changes and may be replaced with equivalent functionality that covers the same use case.
 
 This topic describes how to add clustering to an existing installation.
 
 ## Configure {{% param "PRODUCT_NAME" %}} clustering with Helm Chart
 
-This section guides you through enabling clustering when {{< param "PRODUCT_NAME" >}} is installed on Kubernetes using the {{< param "PRODUCT_ROOT_NAME" >}} [Helm chart][install-helm].
+This section guides you through enabling clustering when {{< param "PRODUCT_NAME" >}} is installed on Kubernetes using the {{< param "PRODUCT_ROOT_NAME" >}} [Helm chart](ref:install-helm).
 
 ### Before you begin
 
@@ -56,19 +77,9 @@ To configure clustering:
 
    - _`<RELEASE_NAME>`_: The name of the installation you chose when you installed the Helm chart.
 
-1. Use the {{< param "PRODUCT_NAME" >}} [UI][] to verify the cluster status:
+1. Use the {{< param "PRODUCT_NAME" >}} [UI](ref:ui) to verify the cluster status:
 
    1. Click **Clustering** in the navigation bar.
 
    1. Ensure that all expected nodes appear in the resulting table.
 
-{{% docs/reference %}}
-[clustering]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/clustering.md"
-[clustering]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/concepts/clustering.md"
-[beta]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/stability.md#beta"
-[beta]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/stability.md#beta"
-[install-helm]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/get-started/install/kubernetes.md"
-[install-helm]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/get-started/install/kubernetes.md"
-[UI]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/tasks/debug.md#component-detail-page"
-[UI]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/tasks/debug.md#component-detail-page"
-{{% /docs/reference %}}

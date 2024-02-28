@@ -15,21 +15,52 @@ description: Learn how to distribute your Prometheus metrics scrape load
 menuTitle: Distribute Prometheus metrics scrape load
 title: Distribute Prometheus metrics scrape load
 weight: 500
+refs:
+  configure-prometheus-metrics-collection:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/tasks/collect-prometheus-metrics/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/tasks/collect-prometheus-metrics/
+  configure-clustering:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/tasks/configure-agent-clustering/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/tasks/configure-agent-clustering/
+  configure-grafana-agent:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/tasks/configure/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/tasks/configure/
+  ui:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/tasks/debug/#component-detail-page
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/tasks/debug/#component-detail-page
+  clustering:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/concepts/clustering/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/concepts/clustering/
+  beta:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/stability/#beta
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/stability/#beta
 ---
 
 # Distribute Prometheus metrics scrape load
 
 A good predictor for the size of an {{< param "PRODUCT_NAME" >}} deployment is the number of Prometheus targets each {{< param "PRODUCT_ROOT_NAME" >}} scrapes.
-[Clustering][] with target auto-distribution allows a fleet of {{< param "PRODUCT_ROOT_NAME" >}}s to work together to dynamically distribute their scrape load, providing high-availability.
+[Clustering](ref:clustering) with target auto-distribution allows a fleet of {{< param "PRODUCT_ROOT_NAME" >}}s to work together to dynamically distribute their scrape load, providing high-availability.
 
-> **Note:** Clustering is a [beta][] feature. Beta features are subject to breaking
+> **Note:** Clustering is a [beta](ref:beta) feature. Beta features are subject to breaking
 > changes and may be replaced with equivalent functionality that covers the same use case.
 
 ## Before you begin
 
-- Familiarize yourself with how to [configure existing {{< param "PRODUCT_NAME" >}} installations][configure-grafana-agent].
-- [Configure Prometheus metrics collection][].
-- [Configure clustering][].
+- Familiarize yourself with how to [configure existing {{< param "PRODUCT_NAME" >}} installations](ref:configure-grafana-agent).
+- [Configure Prometheus metrics collection](ref:configure-prometheus-metrics-collection).
+- [Configure clustering](ref:configure-clustering).
 - Ensure that all of your clustered {{< param "PRODUCT_ROOT_NAME" >}}s have the same configuration file.
 
 ## Steps
@@ -48,21 +79,7 @@ To distribute Prometheus metrics scrape load with clustering:
 
 1. Validate that auto-distribution is functioning:
 
-   1. Using the {{< param "PRODUCT_ROOT_NAME" >}} [UI][] on each {{< param "PRODUCT_ROOT_NAME" >}}, navigate to the details page for one of the `prometheus.scrape` components you modified.
+   1. Using the {{< param "PRODUCT_ROOT_NAME" >}} [UI](ref:ui) on each {{< param "PRODUCT_ROOT_NAME" >}}, navigate to the details page for one of the `prometheus.scrape` components you modified.
 
    1. Compare the Debug Info sections between two different {{< param "PRODUCT_ROOT_NAME" >}} to ensure that they're not scraping the same sets of targets.
 
-{{% docs/reference %}}
-[Clustering]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/clustering.md"
-[Clustering]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/concepts/clustering.md"
-[beta]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/stability.md#beta"
-[beta]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/stability.md#beta"
-[configure-grafana-agent]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/tasks/configure"
-[configure-grafana-agent]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/tasks/configure"
-[Configure Prometheus metrics collection]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/tasks/collect-prometheus-metrics.md"
-[Configure Prometheus metrics collection]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/tasks/collect-prometheus-metrics.md"
-[Configure clustering]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/tasks/configure-agent-clustering.md"
-[Configure clustering]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/tasks/configure-agent-clustering.md"
-[UI]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/tasks/debug.md#component-detail-page"
-[UI]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/tasks/debug.md#component-detail-page"
-{{% /docs/reference %}}

@@ -12,6 +12,28 @@ weight: 400
 cascade:
   PRODUCT_NAME: Grafana Agent Flow
   PRODUCT_ROOT_NAME: Grafana Agent
+refs:
+  tasks:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/tasks/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/tasks/
+  reference:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/reference/
+  concepts:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/concepts/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/concepts/
+  install:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/get-started/install/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/get-started/install/
+  tutorials:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/tutorials/
 ---
 
 # {{% param "PRODUCT_NAME" %}}
@@ -78,21 +100,9 @@ This feature is experimental, and it doesn't support all River components.
 
 ## Next steps
 
-* [Install][] {{< param "PRODUCT_NAME" >}}.
-* Learn about the core [Concepts][] of {{< param "PRODUCT_NAME" >}}.
-* Follow the [Tutorials][] for hands-on learning of {{< param "PRODUCT_NAME" >}}.
-* Consult the [Tasks][] instructions to accomplish common objectives with {{< param "PRODUCT_NAME" >}}.
-* Check out the [Reference][] documentation to find specific information you might be looking for.
+* [Install](ref:install) {{< param "PRODUCT_NAME" >}}.
+* Learn about the core [Concepts](ref:concepts) of {{< param "PRODUCT_NAME" >}}.
+* Follow the [Tutorials](ref:tutorials) for hands-on learning of {{< param "PRODUCT_NAME" >}}.
+* Consult the [Tasks](ref:tasks) instructions to accomplish common objectives with {{< param "PRODUCT_NAME" >}}.
+* Check out the [Reference](ref:reference) documentation to find specific information you might be looking for.
 
-{{% docs/reference %}}
-[Install]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/get-started/install/"
-[Install]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/get-started/install/"
-[Concepts]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/"
-[Concepts]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/concepts/"
-[Tasks]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/tasks/"
-[Tasks]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/tasks/"
-[Tutorials]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/tutorials/"
-[Tutorials]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/tutorials/
-[Reference]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/"
-[Reference]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/
-{{% /docs/reference %}}

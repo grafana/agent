@@ -132,7 +132,7 @@ kubernetes_node   | [kubernetes_node][]   |                                     
 
 ### ec2
 
-The `ec2` block reads resource information from the [EC2 instance metadata API] using the [AWS SDK for Go][].
+The `ec2` block reads resource information from the[EC2 instance metadata API][] using the [AWS SDK for Go][].
 
 The `ec2` block supports the following attributes:
 

@@ -19,8 +19,8 @@ The `run` command runs {{< param "PRODUCT_NAME" >}} in the foreground until an i
 
 Usage:
 
-* `AGENT_MODE=flow grafana-agent run [FLAG ...] PATH_NAME`
-* `grafana-agent-flow run [FLAG ...] PATH_NAME`
+* `AGENT_MODE=flow grafana-agent run[FLAG ...][] PATH_NAME`
+* `grafana-agent-flow run[FLAG ...][] PATH_NAME`
 
    Replace the following:
 
@@ -118,7 +118,7 @@ process.
 
 The `--cluster.discover-peers` command-line flag expects a list of tuples in
 the form of `provider=XXX key=val key=val ...`. Clustering uses the
-[go-discover] package to discover peers and fetch their IP addresses, based
+[go-discover][] package to discover peers and fetch their IP addresses, based
 on the chosen provider and the filtering key-values it supports. Clustering
 supports the default set of providers available in go-discover and registers
 the `k8s` provider on top.

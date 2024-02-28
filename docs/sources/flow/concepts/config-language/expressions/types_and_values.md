@@ -15,6 +15,12 @@ canonical: https://grafana.com/docs/agent/latest/flow/concepts/config-language/e
 description: Learn about the River types and values
 title: Types and values
 weight: 100
+refs:
+  type:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/reference/components/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/reference/components/
 ---
 
 # Types and values
@@ -218,7 +224,3 @@ prometheus.scrape "default" {
 }
 ```
 
-{{% docs/reference %}}
-[type]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components"
-[type]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/components"
-{{% /docs/reference %}}

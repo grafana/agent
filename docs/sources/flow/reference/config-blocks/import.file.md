@@ -9,6 +9,10 @@ description: Learn about the import.file configuration block
 labels:
   stage: beta
 title: import.file
+refs:
+  module:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/concepts/modules/
 ---
 
 # import.file
@@ -68,7 +72,3 @@ math.add "default" {
 ```
 {{< /collapse >}}
 
-{{% docs/reference %}}
-[module]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/modules"
-[module]:"/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/concepts/modules"
-{{% /docs/reference %}}
