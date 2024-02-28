@@ -15,6 +15,7 @@ Main (unreleased)
 - Added a new CLI flag `--stability.level` which defines the minimum stability
   level required for the features that the agent is allowed to use. Default is `experimental`. (@thampiotr)
 
+- A new `loki.rules.kubernetes` component that discovers `PrometheusRule` Kubernetes resources and loads them into a Loki Ruler instance. (@EStork09)
 
 v0.40.0 (2024-02-27)
 --------------------
