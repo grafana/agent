@@ -51,6 +51,8 @@ v0.40.0 (2024-02-27)
 
 - Add `otelcol.connector.host_info` component to gather usage metrics for cloud users. (@rlankfo, @jcreixell)
 
+- Add Windows boringcrypto build and executable. (@mattdurham)
+
 ### Enhancements
 
 - Include line numbers in profiles produced by `pyrsocope.java` component. (@korniltsev)
