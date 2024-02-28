@@ -53,7 +53,7 @@ local windows_os_arch_types_boringcrypto = [
   { name: 'Windows amd64', os: 'windows', arch: 'amd64', experiment: 'cngcrypto' },
 ];
 
-std.flatMap(function(target) (
+local build_environments(targets, tuples, image) = std.flatMap(function(target) (
   std.map(function(platform) (
     pipelines.linux('Build %s (%s)' % [target, platform.name]) {
       local env = {
@@ -64,76 +64,26 @@ std.flatMap(function(target) (
         target: target,
 
         tags: go_tags[platform.os],
-      },
+      } + (if 'experiment' in platform then { GOEXPERIMENT: platform.experiment } else { }),
 
       trigger: {
         event: ['pull_request'],
       },
+
       steps: [{
         name: 'Build',
-        image: build_image.linux,
+        image: image,
         commands: [
           'make generate-ui',
-          'GO_TAGS="%(tags)s" GOOS=%(GOOS)s GOARCH=%(GOARCH)s GOARM=%(GOARM)s make %(target)s' % env,
+          (if 'GOEXPERIMENT' in env 
+           then 'GO_TAGS="%(tags)s" GOOS=%(GOOS)s GOARCH=%(GOARCH)s GOARM=%(GOARM)s GOEXPERIMENT=%(GOEXPERIMENT)s make %(target)s' % env
+           else 'GO_TAGS="%(tags)s" GOOS=%(GOOS)s GOARCH=%(GOARCH)s GOARM=%(GOARM)s make %(target)s') % env,
         ],
       }],
     }
-  ), os_arch_tuples)
-), targets) +
-std.flatMap(function(target) (
-  std.map(function(platform) (
-    pipelines.linux('Build %s (%s)' % [target, platform.name]) {
-      local env = {
-        GOOS: platform.os,
-        GOARCH: platform.arch,
-        GOARM: if 'arm' in platform then platform.arm else '',
-        GOEXPERIMENT: platform.experiment,
+  ), tuples)
+), targets);
 
-        target: target,
-
-        tags: go_tags[platform.os],
-      },
-
-      trigger: {
-        event: ['pull_request'],
-      },
-      steps: [{
-        name: 'Build',
-        image: build_image.linux,
-        commands: [
-          'make generate-ui',
-          'GO_TAGS="%(tags)s" GOOS=%(GOOS)s GOARCH=%(GOARCH)s GOARM=%(GOARM)s GOEXPERIMENT=%(GOEXPERIMENT)s make %(target)s' % env,
-        ],
-      }],
-    }
-  ), os_arch_types_boringcrypto)
-), targets_boringcrypto) +
-std.flatMap(function(target) (
-  std.map(function(platform) (
-    pipelines.linux('Build %s (%s)' % [target, platform.name]) {
-      local env = {
-        GOOS: platform.os,
-        GOARCH: platform.arch,
-        GOARM: if 'arm' in platform then platform.arm else '',
-        GOEXPERIMENT: platform.experiment,
-
-        target: target,
-
-        tags: go_tags[platform.os],
-      },
-
-      trigger: {
-        event: ['pull_request'],
-      },
-      steps: [{
-        name: 'Build',
-        image: build_image.boringcrypto,
-        commands: [
-          'make generate-ui',
-          'GO_TAGS="%(tags)s" GOOS=%(GOOS)s GOARCH=%(GOARCH)s GOARM=%(GOARM)s GOEXPERIMENT=%(GOEXPERIMENT)s make %(target)s' % env,
-        ],
-      }],
-    }
-  ), windows_os_arch_types_boringcrypto)
-), targets_boringcrypto_windows)
-
+build_environments(targets, os_arch_tuples, build_image.linux) +
+build_environments(targets_boringcrypto, os_arch_types_boringcrypto, build_image.linux) +
+build_environments(targets_boringcrypto_windows, windows_os_arch_types_boringcrypto, build_image.boringcrypto)
