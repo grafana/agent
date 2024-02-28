@@ -3,7 +3,7 @@ package operator
 import (
 	"testing"
 
-	gragent "github.com/grafana/agent/pkg/operator/apis/monitoring/v1alpha1"
+	gragent "github.com/grafana/agent/internal/static/operator/apis/monitoring/v1alpha1"
 	"github.com/stretchr/testify/require"
 	core_v1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"

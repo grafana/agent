@@ -1,7 +1,7 @@
 package v1alpha1
 
 import (
-	"github.com/grafana/agent/pkg/operator/assets"
+	"github.com/grafana/agent/internal/static/operator/assets"
 	promv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 )
 

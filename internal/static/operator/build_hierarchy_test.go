@@ -9,8 +9,8 @@ import (
 	"testing"
 	"time"
 
-	gragent "github.com/grafana/agent/pkg/operator/apis/monitoring/v1alpha1"
-	"github.com/grafana/agent/pkg/operator/hierarchy"
+	gragent "github.com/grafana/agent/internal/static/operator/apis/monitoring/v1alpha1"
+	"github.com/grafana/agent/internal/static/operator/hierarchy"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/grafana/agent/pkg/util/k8s"
 	"github.com/grafana/agent/pkg/util/structwalk"

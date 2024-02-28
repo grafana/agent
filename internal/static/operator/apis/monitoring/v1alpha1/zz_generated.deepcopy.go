@@ -6,7 +6,7 @@
 package v1alpha1
 
 import (
-	"github.com/grafana/agent/pkg/operator/assets"
+	"github.com/grafana/agent/internal/static/operator/assets"
 	"github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

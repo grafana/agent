@@ -7,7 +7,7 @@ import (
 
 	"github.com/fatih/structs"
 	jsonnet "github.com/google/go-jsonnet"
-	gragent "github.com/grafana/agent/pkg/operator/apis/monitoring/v1alpha1"
+	gragent "github.com/grafana/agent/internal/static/operator/apis/monitoring/v1alpha1"
 	"sigs.k8s.io/yaml"
 )
 

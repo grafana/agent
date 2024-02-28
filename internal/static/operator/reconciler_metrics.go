@@ -19,9 +19,9 @@ import (
 	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	gragent "github.com/grafana/agent/pkg/operator/apis/monitoring/v1alpha1"
-	"github.com/grafana/agent/pkg/operator/clientutil"
-	"github.com/grafana/agent/pkg/operator/config"
+	gragent "github.com/grafana/agent/internal/static/operator/apis/monitoring/v1alpha1"
+	"github.com/grafana/agent/internal/static/operator/clientutil"
+	"github.com/grafana/agent/internal/static/operator/config"
 )
 
 // createMetricsConfigurationSecret creates the Grafana Agent metrics configuration and stores

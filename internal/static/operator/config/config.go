@@ -12,8 +12,8 @@ import (
 	"github.com/fatih/structs"
 	jsonnet "github.com/google/go-jsonnet"
 	"github.com/google/go-jsonnet/ast"
-	gragent "github.com/grafana/agent/pkg/operator/apis/monitoring/v1alpha1"
-	"github.com/grafana/agent/pkg/operator/assets"
+	gragent "github.com/grafana/agent/internal/static/operator/apis/monitoring/v1alpha1"
+	"github.com/grafana/agent/internal/static/operator/assets"
 	"gopkg.in/yaml.v3"
 )
 

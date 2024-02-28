@@ -7,8 +7,8 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
-	"github.com/grafana/agent/pkg/operator/clientutil"
-	"github.com/grafana/agent/pkg/operator/logutil"
+	"github.com/grafana/agent/internal/static/operator/clientutil"
+	"github.com/grafana/agent/internal/static/operator/logutil"
 	core_v1 "k8s.io/api/core/v1"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	controller "sigs.k8s.io/controller-runtime"

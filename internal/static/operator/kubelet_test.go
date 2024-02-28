@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/grafana/agent/pkg/operator/logutil"
+	"github.com/grafana/agent/internal/static/operator/logutil"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/grafana/agent/pkg/util/k8s"
 	"github.com/stretchr/testify/require"

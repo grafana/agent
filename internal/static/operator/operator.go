@@ -21,8 +21,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 
-	gragent "github.com/grafana/agent/pkg/operator/apis/monitoring/v1alpha1"
-	"github.com/grafana/agent/pkg/operator/hierarchy"
+	gragent "github.com/grafana/agent/internal/static/operator/apis/monitoring/v1alpha1"
+	"github.com/grafana/agent/internal/static/operator/hierarchy"
 	promop_v1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	promop "github.com/prometheus-operator/prometheus-operator/pkg/operator"
 	apps_v1 "k8s.io/api/apps/v1"

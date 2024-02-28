@@ -11,7 +11,7 @@ import (
 	"github.com/go-kit/log/level"
 	"github.com/go-logfmt/logfmt"
 	"github.com/grafana/agent/internal/static/logs"
-	"github.com/grafana/agent/pkg/operator/config"
+	"github.com/grafana/agent/internal/static/operator/config"
 	"github.com/grafana/agent/pkg/traces/contextkeys"
 	util "github.com/grafana/agent/pkg/util/log"
 	"github.com/grafana/loki/clients/pkg/promtail/api"

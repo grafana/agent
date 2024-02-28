@@ -3,7 +3,7 @@ package config
 import (
 	"testing"
 
-	gragent "github.com/grafana/agent/pkg/operator/apis/monitoring/v1alpha1"
+	gragent "github.com/grafana/agent/internal/static/operator/apis/monitoring/v1alpha1"
 	prom "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	"github.com/stretchr/testify/require"
 	corev1 "k8s.io/api/core/v1"

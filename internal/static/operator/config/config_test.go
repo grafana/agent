@@ -11,11 +11,11 @@ import (
 	"k8s.io/utils/ptr"
 	k8s_yaml "sigs.k8s.io/yaml"
 
-	"github.com/grafana/agent/pkg/operator/assets"
+	"github.com/grafana/agent/internal/static/operator/assets"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/grafana/agent/pkg/util/subset"
 
-	gragent "github.com/grafana/agent/pkg/operator/apis/monitoring/v1alpha1"
+	gragent "github.com/grafana/agent/internal/static/operator/apis/monitoring/v1alpha1"
 )
 
 func TestBuildConfigMetrics(t *testing.T) {

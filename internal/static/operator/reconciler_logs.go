@@ -6,9 +6,9 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
-	gragent "github.com/grafana/agent/pkg/operator/apis/monitoring/v1alpha1"
-	"github.com/grafana/agent/pkg/operator/clientutil"
-	"github.com/grafana/agent/pkg/operator/config"
+	gragent "github.com/grafana/agent/internal/static/operator/apis/monitoring/v1alpha1"
+	"github.com/grafana/agent/internal/static/operator/clientutil"
+	"github.com/grafana/agent/internal/static/operator/config"
 	apps_v1 "k8s.io/api/apps/v1"
 	"k8s.io/apimachinery/pkg/types"
 )
