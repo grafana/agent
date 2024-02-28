@@ -7,9 +7,6 @@ MAKEFLAGS += --no-builtin-rule
 
 include docs.mk
 
-.PHONY: docs
-docs: check-cloudwatch-integration
-
 check-cloudwatch-integration:
 	$(PODMAN) run -v $(shell git rev-parse --show-toplevel):/repo -v $(shell pwd):/docs -w /repo golang:1.21-bullseye go run pkg/integrations/cloudwatch_exporter/docs/doc.go check /docs/sources/static/configuration/integrations/cloudwatch-exporter-config.md
 	$(PODMAN) run -v $(shell git rev-parse --show-toplevel):/repo -v $(shell pwd):/docs -w /repo golang:1.21-bullseye go run pkg/integrations/cloudwatch_exporter/docs/doc.go check /docs/sources/flow/reference/components/prometheus.exporter.cloudwatch.md
