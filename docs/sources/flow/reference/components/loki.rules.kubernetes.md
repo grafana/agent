@@ -18,12 +18,12 @@ loads them into a Loki instance.
 * Compatible with the `PrometheusRule` CRD from the [prometheus-operator][].
 * This component accesses the Kubernetes REST API from [within a Pod][].
 
-{{% admonition type="note" %}}
+{{< admonition type="note" >}}
 This component requires [Role-based access control (RBAC)][] to be set up
 in Kubernetes for {{< param "PRODUCT_ROOT_NAME" >}} to access it via the Kubernetes REST API.
 
 Role-based access control (RBAC)]: https://kubernetes.io/docs/reference/access-authn-authz/rbac/
-{{% /admonition %}}
+{{< /admonition >}}
 
 [Kubernetes label selectors]: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#label-selectors
 [prometheus-operator]: https://prometheus-operator.dev/
