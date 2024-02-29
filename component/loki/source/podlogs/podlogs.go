@@ -45,6 +45,8 @@ type Arguments struct {
 	// Client settings to connect to Kubernetes.
 	Client commonk8s.ClientArguments `river:"client,block,optional"`
 
+	Namespaces []string `river:"namespaces,attr,optional"`
+
 	Selector          config.LabelSelector `river:"selector,block,optional"`
 	NamespaceSelector config.LabelSelector `river:"namespace_selector,block,optional"`
 
@@ -298,7 +300,7 @@ func (c *Component) updateController(args Arguments) error {
 	}
 	c.restConfig = cfg
 
-	return c.controller.UpdateConfig(cfg)
+	return c.controller.UpdateConfig(cfg, args.Namespaces)
 }
 
 // DebugInfo returns debug information for loki.source.podlogs.
