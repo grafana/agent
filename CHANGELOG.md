@@ -17,13 +17,15 @@ Main (unreleased)
 
 - A new `loki.rules.kubernetes` component that discovers `PrometheusRule` Kubernetes resources and loads them into a Loki Ruler instance. (@EStork09)
 
-v0.40.1 (2024-02-27)
---------------------
-
 ### Bugfixes
 
 - Set permissions on the `Grafana Agent [Flow]` folder when installing via the
   windows installer rather than relying on the parent folder permissions. (@erikbaranowski)
+
+v0.40.1 (2024-02-27)
+--------------------
+
+### Bugfixes
 
 - Fix an issues where the logging config block would trigger an error when trying to send logs to components that were not running. (@wildum)
 
