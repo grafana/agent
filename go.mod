@@ -101,6 +101,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/connector/spanmetricsconnector v0.87.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/kafkaexporter v0.87.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/loadbalancingexporter v0.87.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/lokiexporter v0.87.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusexporter v0.87.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/basicauthextension v0.87.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/bearertokenauthextension v0.87.0
