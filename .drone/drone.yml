@@ -896,6 +896,23 @@ trigger:
 type: docker
 ---
 kind: pipeline
+name: Build agent-flow-windows-boringcrypto (Windows amd64)
+platform:
+  arch: amd64
+  os: linux
+steps:
+- commands:
+  - make generate-ui
+  - GO_TAGS="builtinassets" GOOS=windows GOARCH=amd64 GOARM= GOEXPERIMENT=cngcrypto
+    make agent-flow-windows-boringcrypto
+  image: grafana/agent-build-image:0.32.0-boringcrypto
+  name: Build
+trigger:
+  event:
+  - pull_request
+type: docker
+---
+kind: pipeline
 name: Publish Linux agent container
 platform:
   arch: amd64
@@ -1352,6 +1369,6 @@ kind: secret
 name: updater_private_key
 ---
 kind: signature
-hmac: 0210d69fef5a948bce713433709936705048d9a9388a51937d693e52caaff458
+hmac: de5b1d2ea6f503ff78e6ed296cde31239b68c60c75b443cf0f06610a79013682
 
 ...
