@@ -78,6 +78,7 @@ v0.40.0 (2024-02-27)
   the HTTP endpoint on which to connect to Mimir's API. (@hainenber)
 
 - `service_name` label is inferred from discovery meta labels in `pyroscope.java` (@korniltsev)
+- `pyroscope.scrape` automatically attempts to switch to scraping godeltaprof endpoints if possible (@korniltsev)
 
 - Mutex and block pprofs are now available via the pprof endpoint. (@mattdurham)
 
