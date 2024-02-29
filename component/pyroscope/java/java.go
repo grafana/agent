@@ -12,6 +12,7 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/pyroscope"
 	"github.com/grafana/agent/component/pyroscope/java/asprof"
+	"github.com/grafana/agent/internal/featuregate"
 	"github.com/grafana/agent/pkg/flow/logging/level"
 )
 
@@ -21,8 +22,9 @@ const (
 
 func init() {
 	component.Register(component.Registration{
-		Name: "pyroscope.java",
-		Args: Arguments{},
+		Name:      "pyroscope.java",
+		Stability: featuregate.StabilityBeta,
+		Args:      Arguments{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			if os.Getuid() != 0 {

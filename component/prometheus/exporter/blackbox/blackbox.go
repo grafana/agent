@@ -11,6 +11,7 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/prometheus/exporter"
+	"github.com/grafana/agent/internal/featuregate"
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/integrations/blackbox_exporter"
 	"github.com/grafana/agent/pkg/util"
@@ -19,9 +20,10 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name:    "prometheus.exporter.blackbox",
-		Args:    Arguments{},
-		Exports: exporter.Exports{},
+		Name:      "prometheus.exporter.blackbox",
+		Stability: featuregate.StabilityStable,
+		Args:      Arguments{},
+		Exports:   exporter.Exports{},
 
 		Build: exporter.NewWithTargetBuilder(createExporter, "blackbox", buildBlackboxTargets),
 	})

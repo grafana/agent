@@ -8,6 +8,7 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/discovery"
 	"github.com/grafana/agent/component/prometheus/exporter"
+	"github.com/grafana/agent/internal/featuregate"
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/integrations/snmp_exporter"
 	"github.com/grafana/river/rivertypes"
@@ -17,9 +18,10 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name:    "prometheus.exporter.snmp",
-		Args:    Arguments{},
-		Exports: exporter.Exports{},
+		Name:      "prometheus.exporter.snmp",
+		Stability: featuregate.StabilityStable,
+		Args:      Arguments{},
+		Exports:   exporter.Exports{},
 
 		Build: exporter.NewWithTargetBuilder(createExporter, "snmp", buildSNMPTargets),
 	})

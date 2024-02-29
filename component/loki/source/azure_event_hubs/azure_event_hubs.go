@@ -12,6 +12,7 @@ import (
 	flow_relabel "github.com/grafana/agent/component/common/relabel"
 	"github.com/grafana/agent/component/loki/source/azure_event_hubs/internal/parser"
 	kt "github.com/grafana/agent/component/loki/source/internal/kafkatarget"
+	"github.com/grafana/agent/internal/featuregate"
 	"github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/grafana/dskit/flagext"
 
@@ -20,8 +21,9 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name: "loki.source.azure_event_hubs",
-		Args: Arguments{},
+		Name:      "loki.source.azure_event_hubs",
+		Stability: featuregate.StabilityStable,
+		Args:      Arguments{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			return New(opts, args.(Arguments))

@@ -5,17 +5,18 @@ import (
 	"sync"
 	"time"
 
-	"github.com/grafana/agent/component/discovery"
-
 	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/component/discovery"
+	"github.com/grafana/agent/internal/featuregate"
 	"github.com/grafana/agent/pkg/flow/logging/level"
 )
 
 func init() {
 	component.Register(component.Registration{
-		Name:    "local.file_match",
-		Args:    Arguments{},
-		Exports: discovery.Exports{},
+		Name:      "local.file_match",
+		Stability: featuregate.StabilityStable,
+		Args:      Arguments{},
+		Exports:   discovery.Exports{},
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			return New(opts, args.(Arguments))
 		},

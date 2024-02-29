@@ -8,15 +8,17 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/internal/featuregate"
 	"github.com/grafana/agent/pkg/flow/logging/level"
 	"go.uber.org/atomic"
 )
 
 func init() {
 	component.Register(component.Registration{
-		Name:    "testcomponents.count",
-		Args:    CountConfig{},
-		Exports: CountExports{},
+		Name:      "testcomponents.count",
+		Stability: featuregate.StabilityBeta,
+		Args:      CountConfig{},
+		Exports:   CountExports{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			return NewCount(opts, args.(CountConfig))

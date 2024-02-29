@@ -3,15 +3,17 @@ package azure
 import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/prometheus/exporter"
+	"github.com/grafana/agent/internal/featuregate"
 	"github.com/grafana/agent/pkg/integrations"
 	"github.com/grafana/agent/pkg/integrations/azure_exporter"
 )
 
 func init() {
 	component.Register(component.Registration{
-		Name:    "prometheus.exporter.azure",
-		Args:    Arguments{},
-		Exports: exporter.Exports{},
+		Name:      "prometheus.exporter.azure",
+		Stability: featuregate.StabilityStable,
+		Args:      Arguments{},
+		Exports:   exporter.Exports{},
 
 		Build: exporter.New(createExporter, "azure"),
 	})

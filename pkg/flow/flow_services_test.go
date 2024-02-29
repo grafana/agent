@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/internal/featuregate"
 	"github.com/grafana/agent/pkg/flow/internal/controller"
 	"github.com/grafana/agent/pkg/flow/internal/testcomponents"
 	"github.com/grafana/agent/pkg/flow/internal/testservices"
@@ -208,26 +209,29 @@ func TestComponents_Using_Services(t *testing.T) {
 			},
 		}
 
-		registry = controller.RegistryMap{
-			"service_consumer": component.Registration{
-				Name: "service_consumer",
-				Args: struct{}{},
+		registry = controller.NewRegistryMap(
+			featuregate.StabilityStable,
+			map[string]component.Registration{
+				"service_consumer": {
+					Name:      "service_consumer",
+					Stability: featuregate.StabilityStable,
+					Args:      struct{}{},
+					Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
+						// Call Trigger in a defer so we can make some extra assertions before
+						// the test exits.
+						defer componentBuilt.Trigger()
 
-				Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
-					// Call Trigger in a defer so we can make some extra assertions before
-					// the test exits.
-					defer componentBuilt.Trigger()
+						_, err := opts.GetServiceData("exists")
+						require.NoError(t, err, "component should be able to access services which exist")
 
-					_, err := opts.GetServiceData("exists")
-					require.NoError(t, err, "component should be able to access services which exist")
+						_, err = opts.GetServiceData("does_not_exist")
+						require.Error(t, err, "component should not be able to access non-existent service")
 
-					_, err = opts.GetServiceData("does_not_exist")
-					require.Error(t, err, "component should not be able to access non-existent service")
-
-					return &testcomponents.Fake{}, nil
+						return &testcomponents.Fake{}, nil
+					},
 				},
 			},
-		}
+		)
 	)
 
 	cfg := `
@@ -267,44 +271,47 @@ func TestComponents_Using_Services_In_Modules(t *testing.T) {
 			},
 		}
 
-		registry = controller.RegistryMap{
-			"module_loader": component.Registration{
-				Name: "module_loader",
-				Args: struct{}{},
+		registry = controller.NewRegistryMap(
+			featuregate.StabilityStable,
+			map[string]component.Registration{
+				"module_loader": {
+					Name:      "module_loader",
+					Args:      struct{}{},
+					Stability: featuregate.StabilityStable,
+					Build: func(opts component.Options, _ component.Arguments) (component.Component, error) {
+						mod, err := opts.ModuleController.NewModule("", nil)
+						require.NoError(t, err, "Failed to create module")
 
-				Build: func(opts component.Options, _ component.Arguments) (component.Component, error) {
-					mod, err := opts.ModuleController.NewModule("", nil)
-					require.NoError(t, err, "Failed to create module")
+						err = mod.LoadConfig([]byte(`service_consumer "example" {}`), nil)
+						require.NoError(t, err, "Failed to load module config")
 
-					err = mod.LoadConfig([]byte(`service_consumer "example" {}`), nil)
-					require.NoError(t, err, "Failed to load module config")
+						return &testcomponents.Fake{
+							RunFunc: func(ctx context.Context) error {
+								mod.Run(ctx)
+								<-ctx.Done()
+								return nil
+							},
+						}, nil
+					},
+				},
 
-					return &testcomponents.Fake{
-						RunFunc: func(ctx context.Context) error {
-							mod.Run(ctx)
-							<-ctx.Done()
-							return nil
-						},
-					}, nil
+				"service_consumer": {
+					Name:      "service_consumer",
+					Args:      struct{}{},
+					Stability: featuregate.StabilityStable,
+					Build: func(opts component.Options, _ component.Arguments) (component.Component, error) {
+						// Call Trigger in a defer so we can make some extra assertions before
+						// the test exits.
+						defer componentBuilt.Trigger()
+
+						_, err := opts.GetServiceData("exists")
+						require.NoError(t, err, "component should be able to access services which exist")
+
+						return &testcomponents.Fake{}, nil
+					},
 				},
 			},
-
-			"service_consumer": component.Registration{
-				Name: "service_consumer",
-				Args: struct{}{},
-
-				Build: func(opts component.Options, _ component.Arguments) (component.Component, error) {
-					// Call Trigger in a defer so we can make some extra assertions before
-					// the test exits.
-					defer componentBuilt.Trigger()
-
-					_, err := opts.GetServiceData("exists")
-					require.NoError(t, err, "component should be able to access services which exist")
-
-					return &testcomponents.Fake{}, nil
-				},
-			},
-		}
+		)
 	)
 
 	cfg := `module_loader "example" {}`

@@ -11,6 +11,7 @@ import (
 	fnet "github.com/grafana/agent/component/common/net"
 	"github.com/grafana/agent/component/common/relabel"
 	"github.com/grafana/agent/component/loki/source/api/internal/lokipush"
+	"github.com/grafana/agent/internal/featuregate"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
@@ -18,8 +19,9 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name: "loki.source.api",
-		Args: Arguments{},
+		Name:      "loki.source.api",
+		Stability: featuregate.StabilityStable,
+		Args:      Arguments{},
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			return New(opts, args.(Arguments))
 		},

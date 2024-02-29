@@ -8,6 +8,7 @@ import (
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/otelcol/auth"
+	"github.com/grafana/agent/internal/featuregate"
 	"github.com/grafana/river"
 	"github.com/grafana/river/rivertypes"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/headerssetterextension"
@@ -17,9 +18,10 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name:    "otelcol.auth.headers",
-		Args:    Arguments{},
-		Exports: auth.Exports{},
+		Name:      "otelcol.auth.headers",
+		Stability: featuregate.StabilityStable,
+		Args:      Arguments{},
+		Exports:   auth.Exports{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			fact := headerssetterextension.NewFactory()

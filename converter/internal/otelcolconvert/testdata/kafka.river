@@ -1,0 +1,46 @@
+otelcol.receiver.kafka "default" {
+	brokers          = ["broker:9092"]
+	protocol_version = "2.0.0"
+
+	authentication {
+		plaintext {
+			username = "fakeusername"
+			password = "fakepassword"
+		}
+
+		sasl {
+			username  = "fakeusername"
+			password  = "fakepassword"
+			mechanism = "somemechanism"
+			version   = 5
+
+			aws_msk {
+				region      = "us-east-1"
+				broker_addr = "broker:9092"
+			}
+		}
+
+		tls {
+			insecure = true
+		}
+
+		kerberos {
+			service_name = "someservice"
+			realm        = "myrealm"
+			username     = "fakeusername"
+			password     = "fakepassword"
+		}
+	}
+
+	output {
+		metrics = [otelcol.exporter.otlp.default.input]
+		logs    = [otelcol.exporter.otlp.default.input]
+		traces  = [otelcol.exporter.otlp.default.input]
+	}
+}
+
+otelcol.exporter.otlp "default" {
+	client {
+		endpoint = "database:4317"
+	}
+}

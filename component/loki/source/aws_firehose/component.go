@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/gorilla/mux"
+	"github.com/grafana/agent/internal/featuregate"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/prometheus/model/relabel"
 
@@ -22,8 +23,9 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name: "loki.source.awsfirehose",
-		Args: Arguments{},
+		Name:      "loki.source.awsfirehose",
+		Stability: featuregate.StabilityStable,
+		Args:      Arguments{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			return New(opts, args.(Arguments))

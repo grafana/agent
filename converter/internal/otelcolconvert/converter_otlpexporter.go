@@ -52,7 +52,7 @@ func toOtelcolExporterOTLP(cfg *otlpexporter.Config) *otlp.Arguments {
 		Queue: toQueueArguments(cfg.QueueSettings),
 		Retry: toRetryArguments(cfg.RetrySettings),
 
-		DebugMetrics: otelcol.DefaultDebugMetricsArguments,
+		DebugMetrics: common.DefaultValue[otlp.Arguments]().DebugMetrics,
 
 		Client: otlp.GRPCClientArguments(toGRPCClientArguments(cfg.GRPCClientSettings)),
 	}
