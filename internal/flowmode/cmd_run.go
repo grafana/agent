@@ -28,6 +28,7 @@ import (
 	"github.com/grafana/agent/internal/flow/logging/level"
 	"github.com/grafana/agent/internal/flow/tracing"
 	"github.com/grafana/agent/internal/service"
+	"github.com/grafana/agent/internal/service/debugdial"
 	httpservice "github.com/grafana/agent/internal/service/http"
 	"github.com/grafana/agent/internal/service/labelstore"
 	otel_service "github.com/grafana/agent/internal/service/otel"
@@ -267,6 +268,8 @@ func (fr *flowRun) Run(configPath string) error {
 		UIPrefix: fr.uiPrefix,
 	})
 
+	debugdial := &debugdial.Service{}
+
 	otelService := otel_service.New(l)
 	if otelService == nil {
 		return fmt.Errorf("failed to create otel service")
@@ -283,6 +286,7 @@ func (fr *flowRun) Run(configPath string) error {
 		MinStability: fr.minStability,
 		Services: []service.Service{
 			httpService,
+			debugdial,
 			uiService,
 			clusterService,
 			otelService,
