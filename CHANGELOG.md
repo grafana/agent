@@ -17,6 +17,10 @@ Main (unreleased)
 
 - A new `loki.rules.kubernetes` component that discovers `PrometheusRule` Kubernetes resources and loads them into a Loki Ruler instance. (@EStork09)
 
+### Bugfixes
+
+- Fix an issue where Loki could reject a batch of logs when structured metadata feature is used. (@thampiotr) 
+
 v0.40.0 (2024-02-27)
 --------------------
 
