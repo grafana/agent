@@ -164,6 +164,15 @@ type lokiWriter struct {
 
 func (fw *lokiWriter) Write(p []byte) (int, error) {
 	for _, receiver := range fw.f {
+		// We may have been given a nil value in rare circumstances due to
+		// misconfiguration or a component which generates exports after
+		// construction.
+		//
+		// Ignore nil values so we don't panic.
+		if receiver == nil {
+			continue
+		}
+
 		select {
 		case receiver.Chan() <- loki.Entry{
 			Labels: model.LabelSet{"component": "agent"},

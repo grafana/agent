@@ -11,6 +11,7 @@ import (
 
 	"github.com/go-kit/log"
 	gokitlevel "github.com/go-kit/log/level"
+	"github.com/grafana/agent/component/common/loki"
 	"github.com/grafana/agent/pkg/flow/logging"
 	flowlevel "github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/stretchr/testify/require"
@@ -163,6 +164,25 @@ func TestLevels(t *testing.T) {
 			}
 		})
 	}
+}
+
+// Test_lokiWriter_nil ensures that writing to a lokiWriter doesn't panic when
+// given a nil receiver.
+func Test_lokiWriter_nil(t *testing.T) {
+	logger, err := logging.New(io.Discard, debugLevel())
+	require.NoError(t, err)
+
+	err = logger.Update(logging.Options{
+		Level:  logging.LevelDebug,
+		Format: logging.FormatLogfmt,
+
+		WriteTo: []loki.LogsReceiver{nil},
+	})
+	require.NoError(t, err)
+
+	require.NotPanics(t, func() {
+		_ = logger.Log("msg", "test message")
+	})
 }
 
 func BenchmarkLogging_NoLevel_Prints(b *testing.B) {
