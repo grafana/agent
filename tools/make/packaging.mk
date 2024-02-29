@@ -390,7 +390,6 @@ else
 	cp LICENSE ./packaging/grafana-agent/windows
 	# quotes around mkdir are mandatory. ref: https://github.com/grafana/agent/pull/5664#discussion_r1378796371
 	"mkdir" -p dist
-	curl -O https://nsis.sourceforge.io/mediawiki/images/4/4a/AccessControl.zip && unzip AccessControl.zip -d /usr/share/nsis/ && cp /usr/share/nsis/Plugins/i386-unicode/AccessControl.dll /usr/share/nsis/Plugins/x86-unicode/
 	makensis -V4 -DVERSION=$(VERSION) -DOUT="../../../dist/grafana-agent-installer.exe" ./packaging/grafana-agent/windows/install_script.nsis
 endif
 
@@ -401,6 +400,5 @@ ifeq ($(USE_CONTAINER),1)
 else
 	# quotes around mkdir are mandatory. ref: https://github.com/grafana/agent/pull/5664#discussion_r1378796371
 	"mkdir" -p dist
-	curl -O https://nsis.sourceforge.io/mediawiki/images/4/4a/AccessControl.zip && unzip AccessControl.zip -d /usr/share/nsis/ && cp /usr/share/nsis/Plugins/i386-unicode/AccessControl.dll /usr/share/nsis/Plugins/x86-unicode/
 	makensis -V4 -DVERSION=$(VERSION) -DOUT="../../../dist/grafana-agent-flow-installer.exe" ./packaging/grafana-agent-flow/windows/install_script.nsis
 endif
