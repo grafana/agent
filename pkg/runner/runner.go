@@ -63,9 +63,8 @@ type (
 	// workerTask implements Task for it to be used in a hashMap; two workerTasks
 	// are equal if their underlying Tasks are equal.
 	workerTask struct {
-		Worker  *scheduledWorker
-		Task    Task
-		TaskErr error
+		Worker *scheduledWorker
+		Task   Task
 	}
 )
 
@@ -164,7 +163,6 @@ func (s *Runner[TaskType]) ApplyTasks(ctx context.Context, tt []TaskType) error 
 		go func() {
 			defer s.running.Done()
 			defer close(newWorker.Exited)
-			// Gather error encountered by worker when running the defined task.
 			newWorker.Worker.Run(workerCtx)
 		}()
 
