@@ -589,15 +589,17 @@ func (l *Loader) wireGraphEdges(g *dag.Graph) diag.Diagnostics {
 
 // wireCustomComponentNode wires a custom component to the import/declare nodes that it depends on.
 func (l *Loader) wireCustomComponentNode(g *dag.Graph, cc *CustomComponentNode) {
-	if declare, ok := l.declareNodes[cc.customComponentName]; ok {
+	// It's important to check first if the importNamespace matches an import node because there might be a
+	// local node that has the same label as an imported declare.
+	if importNode, ok := l.importConfigNodes[cc.importNamespace]; ok {
+		// add an edge between the custom component and the corresponding import node.
+		g.AddEdge(dag.Edge{From: cc, To: importNode})
+	} else if declare, ok := l.declareNodes[cc.customComponentName]; ok {
 		refs := l.findCustomComponentReferences(declare.Block())
 		for ref := range refs {
 			// add edges between the custom component and declare/import nodes.
 			g.AddEdge(dag.Edge{From: cc, To: ref})
 		}
-	} else if importNode, ok := l.importConfigNodes[cc.importNamespace]; ok {
-		// add an edge between the custom component and the corresponding import node.
-		g.AddEdge(dag.Edge{From: cc, To: importNode})
 	}
 }
 
