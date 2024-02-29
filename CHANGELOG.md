@@ -153,6 +153,8 @@ v0.40.0 (2024-02-27)
 
 - `grafana-agent` and `grafana-agent-flow` fallback to default X.509 trusted root certificates
   when the `GODEBUG=x509usefallbackroots=1` environment variable is set. (@hainenber)
+  
+- Remove unused `path_prefix` argument in `pyroscope.scrape` component. (@hainenber)
 
 v0.39.2 (2024-1-31)
 --------------------

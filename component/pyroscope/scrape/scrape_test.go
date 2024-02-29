@@ -106,8 +106,6 @@ func TestUnmarshalConfig(t *testing.T) {
 			]
 			forward_to = null
 			profiling_config {
-				path_prefix = "v1/"
-
 				profile.block {
 					enabled = false
 				}
@@ -138,7 +136,6 @@ func TestUnmarshalConfig(t *testing.T) {
 					Delta:   true,
 					Name:    "something",
 				})
-				r.ProfilingConfig.PprofPrefix = "v1/"
 				return r
 			},
 		},

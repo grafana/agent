@@ -233,17 +233,6 @@ the defaults documented in [profile.mutex][] will be used.
 
 {{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
-### profiling_config block
-
-The `profiling_config` block configures the profiling settings when scraping
-targets.
-
-The following arguments are supported:
-
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`path_prefix` | `string` | The path prefix to use when scraping targets. | | no
-
 ### profile.memory block
 
 The `profile.memory` block collects profiles on memory consumption.
