@@ -17,15 +17,29 @@ import (
 
 var DefaultConfig = Config{
 	DirectConnect: true,
+	EnableDBStats: false,
+	EnableDiagnosticData: false,
+	EnableReplicasetStatus: false,
+	EnableTopMetrics: false,
+	EnableIndexStats: false,
+	EnableCollStats: false,
 }
+
+var collectAll = true
 
 // Config controls mongodb_exporter
 type Config struct {
 	// MongoDB connection URI. example:mongodb://user:pass@127.0.0.1:27017/admin?ssl=true"
-	URI                    config_util.Secret `yaml:"mongodb_uri"`
-	DirectConnect          bool               `yaml:"direct_connect,omitempty"`
-	DiscoveringMode        bool               `yaml:"discovering_mode,omitempty"`
-	TLSBasicAuthConfigPath string             `yaml:"tls_basic_auth_config_path,omitempty"`
+	URI                      config_util.Secret `yaml:"mongodb_uri"`
+	DirectConnect            bool               `yaml:"direct_connect,omitempty"`
+	DiscoveringMode          bool               `yaml:"discovering_mode,omitempty"`
+	EnableDBStats            bool               `yaml:"enable_db_stats,omitempty"`
+	EnableDiagnosticData     bool               `yaml:"enable_diagnostic_data,omitempty"`
+	EnableReplicasetStatus   bool               `yaml:"enable_replicaset_status,omitempty"`
+	EnableTopMetrics         bool               `yaml:"enable_top_metrics,omitempty"`
+	EnableIndexStats         bool               `yaml:"enable_index_stats,omitempty"`
+	EnableCollStats          bool               `yaml:"enable_coll_stats,omitempty"`
+	TLSBasicAuthConfigPath   string             `yaml:"tls_basic_auth_config_path,omitempty"`
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler for Config
@@ -69,6 +83,25 @@ func New(logger log.Logger, c *Config) (integrations.Integration, error) {
 		}
 	}
 
+	if c.EnableDBStats || c.EnableDiagnosticData || 
+	   c.EnableReplicasetStatus || c.EnableCollStats || 
+	   c.EnableTopMetrics || c.EnableIndexStats  {
+		  collectAll = false	
+	} 
+
+	if collectAll {
+		c.EnableDBStats = true
+		c.EnableDiagnosticData = true
+		c.EnableReplicasetStatus = true
+		c.EnableTopMetrics = true
+		c.EnableIndexStats = true
+		c.EnableCollStats = true
+	}
+
+	if c.EnableIndexStats || c.EnableCollStats {
+		c.DiscoveringMode = true
+	}
+
 	exp := exporter.New(&exporter.Opts{
 		URI:                    string(c.URI),
 		Logger:                 logrusLogger,
@@ -78,10 +111,18 @@ func New(logger log.Logger, c *Config) (integrations.Integration, error) {
 		// names from mongodb_exporter <v0.20.0. Many existing dashboards rely on
 		// the old names, so we hard-code it to true now. We may wish to make this
 		// configurable in the future.
-		CompatibleMode:  true,
-		CollectAll:      true,
-		DirectConnect:   c.DirectConnect,
-		DiscoveringMode: c.DiscoveringMode,
+		CompatibleMode:           true,
+		DirectConnect:            c.DirectConnect,
+		DiscoveringMode:          c.DiscoveringMode,
+
+		CollectAll:               collectAll,
+		EnableDBStats:            c.EnableDBStats,
+		EnableDiagnosticData:     c.EnableDiagnosticData,
+		EnableReplicasetStatus:   c.EnableReplicasetStatus,
+		EnableTopMetrics:         c.EnableTopMetrics,
+		EnableIndexStats:         c.EnableIndexStats,
+		EnableCollStats:          c.EnableCollStats,
+		
 		TLSConfigPath:   c.TLSBasicAuthConfigPath,
 	})
 

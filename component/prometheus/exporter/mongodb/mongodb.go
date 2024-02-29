@@ -27,17 +27,29 @@ func createExporter(opts component.Options, args component.Arguments, defaultIns
 }
 
 type Arguments struct {
-	URI                    rivertypes.Secret `river:"mongodb_uri,attr"`
-	DirectConnect          bool              `river:"direct_connect,attr,optional"`
-	DiscoveringMode        bool              `river:"discovering_mode,attr,optional"`
-	TLSBasicAuthConfigPath string            `river:"tls_basic_auth_config_path,attr,optional"`
+	URI                      rivertypes.Secret `river:"mongodb_uri,attr"`
+	DirectConnect            bool              `river:"direct_connect,attr,optional"`
+	DiscoveringMode          bool              `river:"discovering_mode,attr,optional"`
+	TLSBasicAuthConfigPath   string            `river:"tls_basic_auth_config_path,attr,optional"`
+	EnableDBStats            bool              `river:"enable_db_stats,attr,optional"`
+	EnableDiagnosticData     bool              `river:"enable_diagnostic_data,attr,optional"`
+	EnableReplicasetStatus   bool              `river:"enable_replicaset_status,attr,optional"`
+	EnableTopMetrics         bool              `river:"enable_top_metrics,attr,optional"`
+	EnableIndexStats         bool              `river:"enable_index_stats,attr,optional"`
+	EnableCollStats          bool              `river:"enable_coll_stats,attr,optional"`
 }
 
 func (a *Arguments) Convert() *mongodb_exporter.Config {
 	return &mongodb_exporter.Config{
-		URI:                    config_util.Secret(a.URI),
-		DirectConnect:          a.DirectConnect,
-		DiscoveringMode:        a.DiscoveringMode,
-		TLSBasicAuthConfigPath: a.TLSBasicAuthConfigPath,
+		URI:                      config_util.Secret(a.URI),
+		DirectConnect:            a.DirectConnect,
+		DiscoveringMode:          a.DiscoveringMode,
+		TLSBasicAuthConfigPath:   a.TLSBasicAuthConfigPath,
+		EnableDBStats:            a.EnableDBStats,
+		EnableDiagnosticData:     a.EnableDiagnosticData,
+		EnableReplicasetStatus:   a.EnableReplicasetStatus,
+		EnableTopMetrics:         a.EnableTopMetrics,
+		EnableIndexStats:         a.EnableIndexStats,
+		EnableCollStats:          a.EnableCollStats,
 	}
 }

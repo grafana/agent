@@ -2515,6 +2515,8 @@ v0.24.0 (2022-04-07)
 
 ### Features
 
+- Adding more option to enable required mongo stats to monitor. (@Nitesh-vaidyanath)
+
 - Added config read API support to GrafanaAgent Custom Resource Definition.
   (@shamsalmon)
 
