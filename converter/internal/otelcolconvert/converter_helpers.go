@@ -60,3 +60,27 @@ func encodeMapstruct(v any) map[string]any {
 	}
 	return res
 }
+
+// encodeMapslice uses mapstruct fields to convert the given argument into a
+// []map[string]any. This is useful for being able to convert configuration
+// sections for OpenTelemetry components where the configuration type is hidden
+// in an internal package.
+func encodeMapslice(v any) []map[string]any {
+	var res []map[string]any
+	if err := mapstructure.Decode(v, &res); err != nil {
+		panic(err)
+	}
+	return res
+}
+
+// encodeString uses mapstruct fields to convert the given argument into a
+// string. This is useful for being able to convert configuration
+// sections for OpenTelemetry components where the configuration type is hidden
+// in an internal package.
+func encodeString(v any) string {
+	var res string
+	if err := mapstructure.Decode(v, &res); err != nil {
+		panic(err)
+	}
+	return res
+}
