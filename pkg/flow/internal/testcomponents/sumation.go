@@ -5,15 +5,17 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/internal/featuregate"
 	"github.com/grafana/agent/pkg/flow/logging/level"
 	"go.uber.org/atomic"
 )
 
 func init() {
 	component.Register(component.Registration{
-		Name:    "testcomponents.summation",
-		Args:    SummationConfig{},
-		Exports: SummationExports{},
+		Name:      "testcomponents.summation",
+		Stability: featuregate.StabilityBeta,
+		Args:      SummationConfig{},
+		Exports:   SummationExports{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			return NewSummation(opts, args.(SummationConfig))

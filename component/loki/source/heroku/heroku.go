@@ -10,6 +10,7 @@ import (
 	fnet "github.com/grafana/agent/component/common/net"
 	flow_relabel "github.com/grafana/agent/component/common/relabel"
 	ht "github.com/grafana/agent/component/loki/source/heroku/internal/herokutarget"
+	"github.com/grafana/agent/internal/featuregate"
 	"github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/grafana/agent/pkg/util"
 	"github.com/prometheus/client_golang/prometheus"
@@ -19,8 +20,9 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name: "loki.source.heroku",
-		Args: Arguments{},
+		Name:      "loki.source.heroku",
+		Stability: featuregate.StabilityStable,
+		Args:      Arguments{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			return New(opts, args.(Arguments))

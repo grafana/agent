@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/internal/featuregate"
 	"github.com/grafana/agent/pkg/flow"
 	"github.com/grafana/agent/pkg/flow/internal/testcomponents"
 	"github.com/grafana/agent/pkg/flow/logging"
@@ -226,9 +227,10 @@ func testOptions(t *testing.T) flow.Options {
 	require.NotNil(t, otelService)
 
 	return flow.Options{
-		Logger:   s,
-		DataPath: t.TempDir(),
-		Reg:      nil,
+		Logger:       s,
+		DataPath:     t.TempDir(),
+		MinStability: featuregate.StabilityBeta,
+		Reg:          nil,
 		Services: []service.Service{
 			http_service.New(http_service.Options{}),
 			clusterService,
@@ -259,5 +261,6 @@ func verifyNoGoroutineLeaks(t *testing.T) {
 		t,
 		goleak.IgnoreTopFunction("go.opencensus.io/stats/view.(*worker).start"),
 		goleak.IgnoreTopFunction("go.opentelemetry.io/otel/sdk/trace.(*batchSpanProcessor).processQueue"),
+		goleak.IgnoreTopFunction("internal/poll.runtime_pollWait"), // related to TCP keep alive
 	)
 }

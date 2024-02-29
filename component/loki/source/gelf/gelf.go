@@ -8,6 +8,7 @@ import (
 	"github.com/grafana/agent/component/common/loki"
 	flow_relabel "github.com/grafana/agent/component/common/relabel"
 	"github.com/grafana/agent/component/loki/source/gelf/internal/target"
+	"github.com/grafana/agent/internal/featuregate"
 	"github.com/grafana/loki/clients/pkg/promtail/scrapeconfig"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/model/relabel"
@@ -15,8 +16,9 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name: "loki.source.gelf",
-		Args: Arguments{},
+		Name:      "loki.source.gelf",
+		Stability: featuregate.StabilityStable,
+		Args:      Arguments{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			return New(opts, args.(Arguments))

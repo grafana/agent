@@ -21,6 +21,7 @@ import (
 	"github.com/grafana/agent/converter"
 	convert_diag "github.com/grafana/agent/converter/diag"
 	"github.com/grafana/agent/internal/agentseed"
+	"github.com/grafana/agent/internal/featuregate"
 	"github.com/grafana/agent/pkg/boringcrypto"
 	"github.com/grafana/agent/pkg/config/instrumentation"
 	"github.com/grafana/agent/pkg/flow"
@@ -51,6 +52,7 @@ func runCommand() *cobra.Command {
 		inMemoryAddr:          "agent.internal:12345",
 		httpListenAddr:        "127.0.0.1:12345",
 		storagePath:           "data-agent/",
+		minStability:          featuregate.StabilityExperimental,
 		uiPrefix:              "/",
 		disableReporting:      false,
 		enablePprof:           true,
@@ -97,13 +99,15 @@ depending on the nature of the reload error.
 		},
 	}
 
+	// Server flags
 	cmd.Flags().
 		StringVar(&r.httpListenAddr, "server.http.listen-addr", r.httpListenAddr, "Address to listen for HTTP traffic on")
 	cmd.Flags().StringVar(&r.inMemoryAddr, "server.http.memory-addr", r.inMemoryAddr, "Address to listen for in-memory HTTP traffic on. Change if it collides with a real address")
-	cmd.Flags().StringVar(&r.storagePath, "storage.path", r.storagePath, "Base directory where components can store data")
 	cmd.Flags().StringVar(&r.uiPrefix, "server.http.ui-path-prefix", r.uiPrefix, "Prefix to serve the HTTP UI at")
 	cmd.Flags().
 		BoolVar(&r.enablePprof, "server.http.enable-pprof", r.enablePprof, "Enable /debug/pprof profiling endpoints.")
+
+	// Cluster flags
 	cmd.Flags().
 		BoolVar(&r.clusterEnabled, "cluster.enabled", r.clusterEnabled, "Start in clustered mode")
 	cmd.Flags().
@@ -122,11 +126,17 @@ depending on the nature of the reload error.
 		IntVar(&r.ClusterMaxJoinPeers, "cluster.max-join-peers", r.ClusterMaxJoinPeers, "Number of peers to join from the discovered set")
 	cmd.Flags().
 		StringVar(&r.clusterName, "cluster.name", r.clusterName, "The name of the cluster to join")
-	cmd.Flags().
-		BoolVar(&r.disableReporting, "disable-reporting", r.disableReporting, "Disable reporting of enabled components to Grafana.")
+
+	// Config flags
 	cmd.Flags().StringVar(&r.configFormat, "config.format", r.configFormat, fmt.Sprintf("The format of the source file. Supported formats: %s.", supportedFormatsList()))
 	cmd.Flags().BoolVar(&r.configBypassConversionErrors, "config.bypass-conversion-errors", r.configBypassConversionErrors, "Enable bypassing errors when converting")
 	cmd.Flags().StringVar(&r.configExtraArgs, "config.extra-args", r.configExtraArgs, "Extra arguments from the original format used by the converter. Multiple arguments can be passed by separating them with a space.")
+
+	// Misc flags
+	cmd.Flags().
+		BoolVar(&r.disableReporting, "disable-reporting", r.disableReporting, "Disable reporting of enabled components to Grafana.")
+	cmd.Flags().StringVar(&r.storagePath, "storage.path", r.storagePath, "Base directory where components can store data")
+	cmd.Flags().Var(&r.minStability, "stability.level", fmt.Sprintf("Minimum stability level of features to enable. Supported values: %s", strings.Join(featuregate.AllowedValues(), ", ")))
 	return cmd
 }
 
@@ -134,6 +144,7 @@ type flowRun struct {
 	inMemoryAddr                 string
 	httpListenAddr               string
 	storagePath                  string
+	minStability                 featuregate.Stability
 	uiPrefix                     string
 	enablePprof                  bool
 	disableReporting             bool
@@ -162,7 +173,8 @@ func (fr *flowRun) Run(configPath string) error {
 		return fmt.Errorf("path argument not provided")
 	}
 
-	l, err := logging.New(os.Stderr, logging.DefaultOptions)
+	// Buffer logs until log format has been determined
+	l, err := logging.NewDeferred(os.Stderr)
 	if err != nil {
 		return fmt.Errorf("building logger: %w", err)
 	}
@@ -264,10 +276,11 @@ func (fr *flowRun) Run(configPath string) error {
 	agentseed.Init(fr.storagePath, l)
 
 	f := flow.New(flow.Options{
-		Logger:   l,
-		Tracer:   t,
-		DataPath: fr.storagePath,
-		Reg:      reg,
+		Logger:       l,
+		Tracer:       t,
+		DataPath:     fr.storagePath,
+		Reg:          reg,
+		MinStability: fr.minStability,
 		Services: []service.Service{
 			httpService,
 			uiService,

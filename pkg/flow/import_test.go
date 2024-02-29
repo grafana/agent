@@ -4,11 +4,13 @@ import (
 	"context"
 	"io/fs"
 	"os"
+	"path/filepath"
 	"strings"
 	"sync"
 	"testing"
 	"time"
 
+	"github.com/grafana/agent/internal/featuregate"
 	"github.com/grafana/agent/pkg/flow"
 	"github.com/grafana/agent/pkg/flow/internal/testcomponents"
 	"github.com/grafana/agent/pkg/flow/logging"
@@ -73,7 +75,7 @@ func buildTestImportFile(t *testing.T, filename string) testImportFile {
 func TestImportFile(t *testing.T) {
 	directory := "./testdata/import_file"
 	for _, file := range getTestFiles(directory, t) {
-		tc := buildTestImportFile(t, directory+"/"+file.Name())
+		tc := buildTestImportFile(t, filepath.Join(directory, file.Name()))
 		t.Run(tc.description, func(t *testing.T) {
 			defer os.Remove("module.river")
 			require.NoError(t, os.WriteFile("module.river", []byte(tc.module), 0664))
@@ -100,7 +102,29 @@ func TestImportFile(t *testing.T) {
 func TestImportString(t *testing.T) {
 	directory := "./testdata/import_string"
 	for _, file := range getTestFiles(directory, t) {
-		archive, err := txtar.ParseFile(directory + "/" + file.Name())
+		archive, err := txtar.ParseFile(filepath.Join(directory, file.Name()))
+		require.NoError(t, err)
+		t.Run(archive.Files[0].Name, func(t *testing.T) {
+			testConfig(t, string(archive.Files[0].Data), "", nil)
+		})
+	}
+}
+
+func TestImportGit(t *testing.T) {
+	directory := "./testdata/import_git"
+	for _, file := range getTestFiles(directory, t) {
+		archive, err := txtar.ParseFile(filepath.Join(directory, file.Name()))
+		require.NoError(t, err)
+		t.Run(archive.Files[0].Name, func(t *testing.T) {
+			testConfig(t, string(archive.Files[0].Data), "", nil)
+		})
+	}
+}
+
+func TestImportHTTP(t *testing.T) {
+	directory := "./testdata/import_http"
+	for _, file := range getTestFiles(directory, t) {
+		archive, err := txtar.ParseFile(filepath.Join(directory, file.Name()))
 		require.NoError(t, err)
 		t.Run(archive.Files[0].Name, func(t *testing.T) {
 			testConfig(t, string(archive.Files[0].Data), "", nil)
@@ -133,7 +157,7 @@ func buildTestImportError(t *testing.T, filename string) testImportError {
 func TestImportError(t *testing.T) {
 	directory := "./testdata/import_error"
 	for _, file := range getTestFiles(directory, t) {
-		tc := buildTestImportError(t, directory+"/"+file.Name())
+		tc := buildTestImportError(t, filepath.Join(directory, file.Name()))
 		t.Run(tc.description, func(t *testing.T) {
 			testConfigError(t, tc.main, strings.TrimRight(tc.expectedError, "\n"))
 		})
@@ -216,10 +240,11 @@ func setup(t *testing.T, config string) (*flow.Flow, *flow.Source) {
 	s, err := logging.New(os.Stderr, logging.DefaultOptions)
 	require.NoError(t, err)
 	ctrl := flow.New(flow.Options{
-		Logger:   s,
-		DataPath: t.TempDir(),
-		Reg:      nil,
-		Services: []service.Service{},
+		Logger:       s,
+		DataPath:     t.TempDir(),
+		MinStability: featuregate.StabilityBeta,
+		Reg:          nil,
+		Services:     []service.Service{},
 	})
 	f, err := flow.ParseSource(t.Name(), []byte(config))
 	require.NoError(t, err)

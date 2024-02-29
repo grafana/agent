@@ -4,6 +4,7 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/otelcol"
 	"github.com/grafana/agent/component/otelcol/processor"
+	"github.com/grafana/agent/internal/featuregate"
 	"github.com/mitchellh/mapstructure"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/ottl"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/filterprocessor"
@@ -13,9 +14,10 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name:    "otelcol.processor.filter",
-		Args:    Arguments{},
-		Exports: otelcol.ConsumerExports{},
+		Name:      "otelcol.processor.filter",
+		Stability: featuregate.StabilityExperimental,
+		Args:      Arguments{},
+		Exports:   otelcol.ConsumerExports{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			fact := filterprocessor.NewFactory()
@@ -27,9 +29,9 @@ func init() {
 type Arguments struct {
 	// ErrorMode determines how the processor reacts to errors that occur while processing a statement.
 	ErrorMode ottl.ErrorMode `river:"error_mode,attr,optional"`
-	Traces    traceConfig    `river:"traces,block,optional"`
-	Metrics   metricConfig   `river:"metrics,block,optional"`
-	Logs      logConfig      `river:"logs,block,optional"`
+	Traces    TraceConfig    `river:"traces,block,optional"`
+	Metrics   MetricConfig   `river:"metrics,block,optional"`
+	Logs      LogConfig      `river:"logs,block,optional"`
 
 	// Output configures where to send processed data. Required.
 	Output *otelcol.ConsumerArguments `river:"output,block"`

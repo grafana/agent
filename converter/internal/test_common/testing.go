@@ -1,6 +1,7 @@
 package test_common
 
 import (
+	"bufio"
 	"bytes"
 	"fmt"
 	"io/fs"
@@ -12,6 +13,7 @@ import (
 	"testing"
 
 	"github.com/grafana/agent/converter/diag"
+	"github.com/grafana/agent/internal/featuregate"
 	"github.com/grafana/agent/pkg/flow"
 	"github.com/grafana/agent/pkg/flow/logging"
 	"github.com/grafana/agent/service"
@@ -86,12 +88,17 @@ func getExpectedDiags(t *testing.T, diagsFile string) []string {
 	if _, err := os.Stat(diagsFile); err == nil {
 		errorBytes, err := os.ReadFile(diagsFile)
 		require.NoError(t, err)
-		errorsString := string(normalizeLineEndings(errorBytes))
-		expectedDiags = strings.Split(errorsString, "\n")
 
-		// Some error messages have \n in them and need this
-		for ix := range expectedDiags {
-			expectedDiags[ix] = strings.ReplaceAll(expectedDiags[ix], "\\n", "\n")
+		br := bufio.NewScanner(bytes.NewReader(errorBytes))
+		for br.Scan() {
+			// Some error messages have newlines in them; replace \n in strings with
+			// literal newlines to allow them to match.
+			sanitizedLine := strings.ReplaceAll(br.Text(), "\\n", "\n")
+			if sanitizedLine == "" {
+				// Ignore empty lines.
+				continue
+			}
+			expectedDiags = append(expectedDiags, sanitizedLine)
 		}
 	}
 
@@ -187,8 +194,9 @@ func attemptLoadingFlowConfig(t *testing.T, river []byte) {
 	require.NoError(t, err)
 
 	f := flow.New(flow.Options{
-		Logger:   logger,
-		DataPath: t.TempDir(),
+		Logger:       logger,
+		DataPath:     t.TempDir(),
+		MinStability: featuregate.StabilityExperimental,
 		Services: []service.Service{
 			// The services here aren't used, but we still need to provide an
 			// implementations so that components which rely on the services load

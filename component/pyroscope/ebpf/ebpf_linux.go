@@ -12,6 +12,7 @@ import (
 
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/pyroscope"
+	"github.com/grafana/agent/internal/featuregate"
 	"github.com/grafana/agent/pkg/flow/logging/level"
 	ebpfspy "github.com/grafana/pyroscope/ebpf"
 	demangle2 "github.com/grafana/pyroscope/ebpf/cpp/demangle"
@@ -23,8 +24,9 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name: "pyroscope.ebpf",
-		Args: Arguments{},
+		Name:      "pyroscope.ebpf",
+		Stability: featuregate.StabilityBeta,
+		Args:      Arguments{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			arguments := args.(Arguments)

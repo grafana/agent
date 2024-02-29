@@ -16,4 +16,4 @@ import.string "testImport" {
 testImport.a "cc" {}
 
 -- error --
-cannot retrieve the definition of component name "cantAccessThis"
+cannot find the definition of component name "cantAccessThis"

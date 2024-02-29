@@ -211,7 +211,7 @@ Name | Type | Description | Default | Required
 
 ### write_relabel_config block
 
-{{< docs/shared lookup="flow/reference/components/rule-block.md" source="agent" version="<AGENT_VERSION>" >}}
+{{< docs/shared lookup="flow/reference/components/write_relabel_config.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### wal block
 
@@ -421,7 +421,7 @@ Any labels that start with `__` will be removed before sending to the endpoint.
 
 `prometheus.remote_write` has exports that can be consumed by the following components:
 
-- Components that consume [Prometheus `MetricsReceiver`]({{< relref "../compatibility/#prometheus-metricsreceiver-consumers" >}})
+- Components that consume [Prometheus `MetricsReceiver`](../../compatibility/#prometheus-metricsreceiver-consumers)
 
 {{< admonition type="note" >}}
 Connecting some components may not be sensible or components may require further configuration to make the connection work correctly.

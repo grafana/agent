@@ -7,6 +7,7 @@ import (
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/otelcol"
 	"github.com/grafana/agent/component/otelcol/auth"
+	"github.com/grafana/agent/internal/featuregate"
 	"github.com/grafana/river/rivertypes"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/oauth2clientauthextension"
 	otelcomponent "go.opentelemetry.io/collector/component"
@@ -16,9 +17,10 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name:    "otelcol.auth.oauth2",
-		Args:    Arguments{},
-		Exports: auth.Exports{},
+		Name:      "otelcol.auth.oauth2",
+		Stability: featuregate.StabilityStable,
+		Args:      Arguments{},
+		Exports:   auth.Exports{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			fact := oauth2clientauthextension.NewFactory()

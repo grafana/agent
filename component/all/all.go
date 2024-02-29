@@ -38,6 +38,7 @@ import (
 	_ "github.com/grafana/agent/component/loki/echo"                                // Import loki.echo
 	_ "github.com/grafana/agent/component/loki/process"                             // Import loki.process
 	_ "github.com/grafana/agent/component/loki/relabel"                             // Import loki.relabel
+	_ "github.com/grafana/agent/component/loki/rules/kubernetes"                    // Import loki.rules.kubernetes
 	_ "github.com/grafana/agent/component/loki/source/api"                          // Import loki.source.api
 	_ "github.com/grafana/agent/component/loki/source/aws_firehose"                 // Import loki.source.awsfirehose
 	_ "github.com/grafana/agent/component/loki/source/azure_event_hubs"             // Import loki.source.azure_event_hubs
@@ -65,6 +66,7 @@ import (
 	_ "github.com/grafana/agent/component/otelcol/auth/headers"                     // Import otelcol.auth.headers
 	_ "github.com/grafana/agent/component/otelcol/auth/oauth2"                      // Import otelcol.auth.oauth2
 	_ "github.com/grafana/agent/component/otelcol/auth/sigv4"                       // Import otelcol.auth.sigv4
+	_ "github.com/grafana/agent/component/otelcol/connector/host_info"              // Import otelcol.connector.host_info
 	_ "github.com/grafana/agent/component/otelcol/connector/servicegraph"           // Import otelcol.connector.servicegraph
 	_ "github.com/grafana/agent/component/otelcol/connector/spanlogs"               // Import otelcol.connector.spanlogs
 	_ "github.com/grafana/agent/component/otelcol/connector/spanmetrics"            // Import otelcol.connector.spanmetrics

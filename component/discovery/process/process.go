@@ -9,13 +9,15 @@ import (
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/component"
 	"github.com/grafana/agent/component/discovery"
+	"github.com/grafana/agent/internal/featuregate"
 )
 
 func init() {
 	component.Register(component.Registration{
-		Name:    "discovery.process",
-		Args:    Arguments{},
-		Exports: discovery.Exports{},
+		Name:      "discovery.process",
+		Stability: featuregate.StabilityStable,
+		Args:      Arguments{},
+		Exports:   discovery.Exports{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			return New(opts, args.(Arguments))

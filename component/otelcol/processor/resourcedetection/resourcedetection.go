@@ -22,6 +22,7 @@ import (
 	kubernetes_node "github.com/grafana/agent/component/otelcol/processor/resourcedetection/internal/k8snode"
 	"github.com/grafana/agent/component/otelcol/processor/resourcedetection/internal/openshift"
 	"github.com/grafana/agent/component/otelcol/processor/resourcedetection/internal/system"
+	"github.com/grafana/agent/internal/featuregate"
 	"github.com/grafana/river"
 	"github.com/mitchellh/mapstructure"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourcedetectionprocessor"
@@ -31,9 +32,10 @@ import (
 
 func init() {
 	component.Register(component.Registration{
-		Name:    "otelcol.processor.resourcedetection",
-		Args:    Arguments{},
-		Exports: otelcol.ConsumerExports{},
+		Name:      "otelcol.processor.resourcedetection",
+		Stability: featuregate.StabilityBeta,
+		Args:      Arguments{},
+		Exports:   otelcol.ConsumerExports{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			fact := resourcedetectionprocessor.NewFactory()

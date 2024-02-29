@@ -6,13 +6,15 @@ import (
 	"context"
 
 	"github.com/grafana/agent/component"
+	"github.com/grafana/agent/internal/featuregate"
 	"github.com/grafana/agent/pkg/flow/logging/level"
 )
 
 func init() {
 	component.Register(component.Registration{
-		Name: "pyroscope.java",
-		Args: Arguments{},
+		Name:      "pyroscope.java",
+		Stability: featuregate.StabilityBeta,
+		Args:      Arguments{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			_ = level.Warn(opts.Logger).Log("msg", "the pyroscope.java component only works on linux for amd64 and arm64; enabling it otherwise will do nothing")
