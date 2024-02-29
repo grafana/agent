@@ -126,9 +126,9 @@ func (l *Logger) Update(o Options) error {
 
 	// Print out the buffered logs since we determined the log format already
 	for _, bufferedLogChunk := range l.buffer {
-		if err := slogadapter.GoKit(l.handler).Log(bufferedLogChunk...); err != nil {
-			return err
-		}
+		// the buffered logs are currently only sent to the standard output
+		// because the components with the receivers are not running yet
+		slogadapter.GoKit(l.handler).Log(bufferedLogChunk...)
 	}
 	l.buffer = nil
 

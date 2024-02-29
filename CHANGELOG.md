@@ -19,6 +19,8 @@ Main (unreleased)
 
 ### Bugfixes
 
+- Fix an issues where the logging config block would trigger an error when trying to send logs to components that were not running. (@wildum)
+
 - Fix an issue where Loki could reject a batch of logs when structured metadata feature is used. (@thampiotr) 
 
 v0.40.0 (2024-02-27)
