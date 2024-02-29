@@ -13,15 +13,15 @@ title: otelcol.exporter.debug
 
 # otelcol.exporter.debug
 
-`otelcol.exporter.debug` accepts telemetry data from other `otelcol` components
-and writes them to the console (stderr). The verbosity of the logs can also be controlled.
+`otelcol.exporter.debug` accepts telemetry data from other `otelcol` components and writes them to the console (stderr).
+You can control the verbosity of the logs.
 
-> **NOTE**: `otelcol.exporter.debug` is a wrapper over the upstream
-> OpenTelemetry Collector `debug` exporter. Bug reports or feature requests will
-> be redirected to the upstream repository, if necessary.
+{{< admonition type="note" >}}
+`otelcol.exporter.debug` is a wrapper over the upstream OpenTelemetry Collector `debug` exporter. 
+If necessary, bug reports or feature requests are redirected to the upstream repository.
+{{< /admonition >}}
 
-Multiple `otelcol.exporter.debug` components can be specified by giving them
-different labels.
+Multiple `otelcol.exporter.debug` components can be specified by giving them different labels.
 
 ## Usage
 
@@ -64,7 +64,7 @@ information.
 
 ## Example
 
-This example scrapes prometheus unix metrics and writes them to the console:
+This example scrapes Prometheus UNIX metrics and writes them to the console:
 
 ```river
 prometheus.exporter.unix "default" { }
