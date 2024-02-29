@@ -24,6 +24,8 @@ Main (unreleased)
 
 - Fix an issue where Loki could reject a batch of logs when structured metadata feature is used. (@thampiotr)
 
+- Fix an issue where JSON string array elements were not parsed correctly in `loki.source.cloudflare`. (@thampiotr)
+
 v0.40.1 (2024-02-27)
 --------------------
 
