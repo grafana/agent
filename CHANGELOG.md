@@ -13,6 +13,8 @@ internal API changes are not present.
 
 - Fix an issues where the logging config block would trigger an error when trying to send logs to components that were not running. (@wildum)
 
+- Fix an issue where a custom component might be wired to a local declare instead of an import declare when they have the same label. (@wildum)
+
 v0.40.0 (2024-02-27)
 --------------------
 
