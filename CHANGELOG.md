@@ -106,6 +106,8 @@ v0.40.0 (2024-02-27)
 
 - Python profiling using eBPF is now aggregated now by kernel space. [PR](https://github.com/grafana/pyroscope/pull/2996) (@korniltsev)
 
+- Add Luhn filter to `loki.process` to filter PCI data from log data
+
 ### Bugfixes
 
 - Fix an issue in `remote.s3` where the exported content of an object would be an empty string if `remote.s3` failed to fully retrieve

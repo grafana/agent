@@ -28,6 +28,7 @@ const (
 	StageTypeLabelDrop          = "labeldrop"
 	StageTypeLimit              = "limit"
 	StageTypeLogfmt             = "logfmt"
+	StageTypeLuhn               = "luhn"
 	StageTypeMatch              = "match"
 	StageTypeMetric             = "metrics"
 	StageTypeMultiline          = "multiline"
