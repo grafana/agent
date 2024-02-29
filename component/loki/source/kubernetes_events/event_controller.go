@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/cespare/xxhash/v2"
@@ -58,6 +59,9 @@ type eventController struct {
 
 	positionsKey  string
 	initTimestamp time.Time
+
+	taskErr    error
+	taskErrMut sync.RWMutex
 }
 
 func newEventController(task eventControllerTask) *eventController {
@@ -79,18 +83,20 @@ func newEventController(task eventControllerTask) *eventController {
 	}
 }
 
-func (ctrl *eventController) Run(ctx context.Context) error {
+func (ctrl *eventController) Run(ctx context.Context) {
 	defer ctrl.handler.Stop()
 
 	level.Info(ctrl.log).Log("msg", "watching events for namespace", "namespace", ctrl.task.Namespace)
 	defer level.Info(ctrl.log).Log("msg", "stopping watcher for events", "namespace", ctrl.task.Namespace)
 
-	if err := ctrl.runError(ctx); err != nil {
+	err := ctrl.runError(ctx)
+	if err != nil {
 		level.Error(ctrl.log).Log("msg", "event watcher exited with error", "err", err)
-		return err
 	}
 
-	return nil
+	ctrl.taskErrMut.Lock()
+	ctrl.taskErr = err
+	ctrl.taskErrMut.Unlock()
 }
 
 func (ctrl *eventController) runError(ctx context.Context) error {
@@ -344,6 +350,12 @@ func (ctrl *eventController) DebugInfo() controllerInfo {
 		Namespace:     ctrl.task.Namespace,
 		LastTimestamp: time.UnixMicro(ts),
 	}
+}
+
+func (ctrl *eventController) GetTaskError() error {
+	ctrl.taskErrMut.RLock()
+	defer ctrl.taskErrMut.RUnlock()
+	return ctrl.taskErr
 }
 
 type controllerInfo struct {

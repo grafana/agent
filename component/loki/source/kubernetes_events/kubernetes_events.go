@@ -161,15 +161,30 @@ func (c *Component) Run(ctx context.Context) error {
 					c.setHealth(err)
 					level.Error(c.log).Log("msg", "failed to apply event watchers", "err", err)
 				}
+			}
+		}
+	}, func(_ error) {
+		cancel()
+	})
 
-				// Check on bubbled up errors encountered by the workers when running applied tasks
-				// and set component health accordingly
+	// Actor to set component health through errors from applied tasks.
+	ticker := time.NewTicker(500 * time.Millisecond)
+	rg.Add(func() error {
+		for {
+			select {
+			case <-ctx.Done():
+				return nil
+			case <-ticker.C:
 				appliedTaskErrorString := ""
-				for _, err := range c.runner.GetWorkerErrors() {
-					appliedTaskErrorString += err.Error() + "\n"
+				for _, worker := range c.runner.Workers() {
+					if taskError := worker.(*eventController).GetTaskError(); taskError != nil {
+						appliedTaskErrorString += taskError.Error() + "\n"
+					}
 				}
 				if appliedTaskErrorString != "" {
 					c.setHealth(fmt.Errorf(appliedTaskErrorString))
+				} else {
+					c.setHealth(nil)
 				}
 			}
 		}
