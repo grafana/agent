@@ -176,6 +176,9 @@ func newClient(metrics *Metrics, cfg Config, maxStreams, maxLineSize int, maxLin
 	if cfg.URL.URL == nil {
 		return nil, errors.New("client needs target URL")
 	}
+	if metrics == nil {
+		return nil, errors.New("metrics must be instantiated")
+	}
 
 	ctx, cancel := context.WithCancel(context.Background())
 
