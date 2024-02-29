@@ -9,6 +9,10 @@ internal API changes are not present.
 
 
 
+### Bugfixes
+
+- Fix an issues where the logging config block would trigger an error when trying to send logs to components that were not running. (@wildum)
+
 v0.40.0 (2024-02-27)
 --------------------
 
