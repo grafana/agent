@@ -95,11 +95,15 @@ type Component struct {
 
 	receiversMut sync.RWMutex
 	receivers    []loki.LogsReceiver
+
+	healthMut sync.RWMutex
+	health    component.Health
 }
 
 var (
-	_ component.Component      = (*Component)(nil)
-	_ component.DebugComponent = (*Component)(nil)
+	_ component.Component       = (*Component)(nil)
+	_ component.DebugComponent  = (*Component)(nil)
+	_ component.HealthComponent = (*Component)(nil)
 )
 
 // New creates a new loki.source.kubernetes_events component.
@@ -154,7 +158,33 @@ func (c *Component) Run(ctx context.Context) error {
 				c.tasksMut.RUnlock()
 
 				if err := c.runner.ApplyTasks(ctx, tasks); err != nil {
+					c.setHealth(err)
 					level.Error(c.log).Log("msg", "failed to apply event watchers", "err", err)
+				}
+			}
+		}
+	}, func(_ error) {
+		cancel()
+	})
+
+	// Actor to set component health through errors from applied tasks.
+	ticker := time.NewTicker(500 * time.Millisecond)
+	rg.Add(func() error {
+		for {
+			select {
+			case <-ctx.Done():
+				return nil
+			case <-ticker.C:
+				appliedTaskErrorString := ""
+				for _, worker := range c.runner.Workers() {
+					if taskError := worker.(*eventController).GetTaskError(); taskError != nil {
+						appliedTaskErrorString += taskError.Error() + "\n"
+					}
+				}
+				if appliedTaskErrorString != "" {
+					c.setHealth(fmt.Errorf(appliedTaskErrorString))
+				} else {
+					c.setHealth(nil)
 				}
 			}
 		}
@@ -182,7 +212,10 @@ func (c *Component) Run(ctx context.Context) error {
 		cancel()
 	})
 
-	return rg.Run()
+	err := rg.Run()
+	c.setHealth(err)
+
+	return err
 }
 
 // Update implements component.Component.
@@ -256,4 +289,30 @@ func (c *Component) DebugInfo() interface{} {
 		info.Controllers = append(info.Controllers, worker.(*eventController).DebugInfo())
 	}
 	return info
+}
+
+// CurrentHealth implements component.HealthComponent
+func (c *Component) CurrentHealth() component.Health {
+	c.healthMut.RLock()
+	defer c.healthMut.RUnlock()
+	return c.health
+}
+
+func (c *Component) setHealth(err error) {
+	c.healthMut.Lock()
+	defer c.healthMut.Unlock()
+
+	if err == nil {
+		c.health = component.Health{
+			Health:     component.HealthTypeHealthy,
+			Message:    "component is ready",
+			UpdateTime: time.Now(),
+		}
+	} else {
+		c.health = component.Health{
+			Health:     component.HealthTypeUnhealthy,
+			Message:    fmt.Sprintf("component encounters error: %s", err),
+			UpdateTime: time.Now(),
+		}
+	}
 }

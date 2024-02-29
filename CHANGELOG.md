@@ -139,6 +139,9 @@ v0.40.0 (2024-02-27)
 
 - Fix issue where registry was not being properly deleted. (@mattdurham)
 
+- Fix bug where `loki.source.kubernetes_events` unable to register as unhealthy
+  when there are failures for underlying informers. (@hainenber)
+
 ### Other changes
 
 - Removed support for Windows 2012 in line with Microsoft end of life. (@mattdurham)
