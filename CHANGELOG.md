@@ -23,6 +23,8 @@ Main (unreleased)
 
 - Fix an issue where a custom component might be wired to a local declare instead of an import declare when they have the same label. (@wildum)
 
+- Fix an issue where flow mode panics if the `logging` config block is given a `null` Loki receiver to write log entries to. (@rfratto)
+
 v0.40.0 (2024-02-27)
 --------------------
 
