@@ -596,7 +596,7 @@ to parse a previously extracted value.
 The following example log line contains an approved credit card number.
 
 ```
-time=2012-11-01T22:08:41+00:00 app=loki level=WARN duration=125 message="credit card approved 4716415709052638" extra="user=foo"
+time=2012-11-01T22:08:41+00:00 app=loki level=WARN duration=125 message="credit card approved 4032032513548443" extra="user=foo"
 
 stage.luhn {
     replacement = "**DELETED**"
