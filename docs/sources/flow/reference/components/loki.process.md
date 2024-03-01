@@ -573,12 +573,12 @@ key-value pair to the set of extracted data.
 The `stage.luhn` inner block configures a processing stage that reads incoming
 log lines and redacts strings that match a Luhn algorithm.
 
-The Luhn algorithm is a simple checksum formula used to validate a variety of
+The [Luhn algorithm][] is a simple checksum formula used to validate various
 identification numbers, such as credit card numbers, IMEI numbers, National
 Provider Identifier numbers in the US, and Canadian Social Insurance Numbers.
-Many PCI environment require these numbers to be redacted.
+Many Payment Card Industry environments require these numbers to be redacted.
 
-Read more [here](https://en.wikipedia.org/wiki/Luhn_algorithm).
+[Luhn algorithm]: https://en.wikipedia.org/wiki/Luhn_algorithm
 
 The following arguments are supported:
 
@@ -593,7 +593,7 @@ The `source` field defines the source of data to search. When `source` is
 missing or empty, the stage parses the log line itself, but it can also be used
 to parse a previously extracted value.
 
-Let's see how this works on the following log line and stages.
+The following example log line contains an approved credit card number.
 
 ```
 time=2012-11-01T22:08:41+00:00 app=loki level=WARN duration=125 message="credit card approved 4716415709052638" extra="user=foo"
@@ -603,7 +603,7 @@ stage.luhn {
 }
 ```
 
-This would be replace with the following:
+The stage parses the log line, redacts the credit card number, and produces the following updated log line:
 
 ```
 time=2012-11-01T22:08:41+00:00 app=loki level=INFO duration=125 message="credit card approved **DELETED**" extra="user=foo"
