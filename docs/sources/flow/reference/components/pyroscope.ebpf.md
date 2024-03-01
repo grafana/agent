@@ -298,8 +298,8 @@ pyroscope.ebpf "default" {
 
 `pyroscope.ebpf` can accept arguments from the following components:
 
-- Components that export [Targets]({{< relref "../compatibility/#targets-exporters" >}})
-- Components that export [Pyroscope `ProfilesReceiver`]({{< relref "../compatibility/#pyroscope-profilesreceiver-exporters" >}})
+- Components that export [Targets](../../compatibility/#targets-exporters)
+- Components that export [Pyroscope `ProfilesReceiver`](../../compatibility/#pyroscope-profilesreceiver-exporters)
 
 
 {{< admonition type="note" >}}
