@@ -15,7 +15,6 @@ import (
 
 type Service struct {
 	opts Options
-	args Arguments
 
 	ctrl service.Controller
 
@@ -23,15 +22,19 @@ type Service struct {
 	asClient          agentv1connect.AgentServiceClient
 	dataPath          string
 	currentConfigHash string
-}
 
-type Arguments struct {
-	Config map[string]string
+	Config sync.Map
 }
 
 type Options struct{}
 
 const ServiceName = "debugdial"
+
+func New() *Service {
+	return &Service{
+		Config: sync.Map{},
+	}
+}
 
 // Definition returns the Definition of the Service.
 // Definition must always return the same value across all
@@ -74,7 +77,7 @@ func (s *Service) Update(newConfig any) error {
 //
 // Data may be invoked before Run.
 func (s *Service) Data() any {
-	return nil
+	return &s.Config
 }
 
 // ServiceHandler returns the base route and HTTP handlers to register for
@@ -89,8 +92,17 @@ func (s *Service) Data() any {
 func (s *Service) ServiceHandler(host service.Host) (base string, handler http.Handler) {
 	r := mux.NewRouter()
 
-	r.Handle("/api/v0/debugdial", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("Hello World"))
+	r.Handle("/api/v0/debugdial/{id:.+}", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		serviceID := vars["id"]
+		res, _ := s.Config.Load(serviceID)
+
+		if res != nil {
+			w.Write([]byte(res.(string)))
+		} else {
+			w.WriteHeader(http.StatusNotFound)
+			w.Write([]byte("Service not found"))
+		}
 	}))
 
 	return "", r
