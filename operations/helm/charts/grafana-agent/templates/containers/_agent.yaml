@@ -3,9 +3,13 @@
   image: {{ .Values.global.image.registry | default .Values.image.registry }}/{{ .Values.image.repository }}{{ include "grafana-agent.imageId" . }}
   imagePullPolicy: {{ .Values.image.pullPolicy }}
   args:
-    {{- if eq .Values.agent.mode "flow"}}
+    {{- if eq .Values.agent.mode "flow" }}
     - run
+    {{- if .Values.agent.configMap.loadFolder }}
+    - /etc/agent/
+    {{- else }}
     - /etc/agent/{{ include "grafana-agent.config-map.key" . }}
+    {{- end }}
     - --storage.path={{ .Values.agent.storagePath }}
     - --server.http.listen-addr={{ .Values.agent.listenAddr }}:{{ .Values.agent.listenPort }}
     - --server.http.ui-path-prefix={{ .Values.agent.uiPathPrefix }}
