@@ -267,7 +267,7 @@ func (fr *flowRun) Run(configPath string) error {
 	uiService := uiservice.New(uiservice.Options{
 		UIPrefix: fr.uiPrefix,
 	})
-	_ = uiService
+
 	debugdial := debugdial.New()
 
 	otelService := otel_service.New(l)
@@ -287,7 +287,7 @@ func (fr *flowRun) Run(configPath string) error {
 		Services: []service.Service{
 			httpService,
 			debugdial,
-			// uiService,
+			uiService,
 			clusterService,
 			otelService,
 			labelService,

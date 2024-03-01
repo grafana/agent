@@ -105,5 +105,5 @@ func (s *Service) ServiceHandler(host service.Host) (base string, handler http.H
 		}
 	}))
 
-	return "", r
+	return "/api/v0/debugdial", r
 }
