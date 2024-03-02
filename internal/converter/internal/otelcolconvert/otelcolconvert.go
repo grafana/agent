@@ -18,6 +18,7 @@ import (
 	"go.opentelemetry.io/collector/otelcol"
 	"go.opentelemetry.io/collector/processor"
 	"go.opentelemetry.io/collector/receiver"
+	"golang.org/x/exp/maps"
 )
 
 // This package is split into a set of [componentConverter] implementations
@@ -167,15 +168,27 @@ func appendConfig(file *builder.File, cfg *otelcol.Config) diag.Diagnostics {
 	// twice?
 	converterTable := buildConverterTable()
 
+	// Connector components are defined on the top level of the OpenTelemetry
+	// config, but inside of the pipeline definitions they act like regular
+	// receiver and exporter component IDs.
+	// Since we want to construct them individually, we'll exclude them from
+	// the list of receivers and exporters manually.
+	connectorIDs := maps.Keys(cfg.Connectors)
+
 	for _, group := range groups {
+		receiverIDs := filterIDs(group.Receivers(), connectorIDs)
+		processorIDs := group.Processors()
+		exporterIDs := filterIDs(group.Exporters(), connectorIDs)
+
 		componentSets := []struct {
 			kind         component.Kind
 			ids          []component.ID
 			configLookup map[component.ID]component.Config
 		}{
-			{component.KindReceiver, group.Receivers(), cfg.Receivers},
-			{component.KindProcessor, group.Processors(), cfg.Processors},
-			{component.KindExporter, group.Exporters(), cfg.Exporters},
+			{component.KindReceiver, receiverIDs, cfg.Receivers},
+			{component.KindProcessor, processorIDs, cfg.Processors},
+			{component.KindExporter, exporterIDs, cfg.Exporters},
+			{component.KindConnector, connectorIDs, cfg.Connectors},
 		}
 
 		for _, componentSet := range componentSets {
@@ -246,6 +259,8 @@ func buildConverterTable() map[converterKey]componentConverter {
 			table[converterKey{Kind: component.KindExporter, Type: fact.Type()}] = conv
 		case connector.Factory:
 			table[converterKey{Kind: component.KindConnector, Type: fact.Type()}] = conv
+			// We need this so the connector is available as a destination for state.Next
+			table[converterKey{Kind: component.KindExporter, Type: fact.Type()}] = conv
 		case extension.Factory:
 			table[converterKey{Kind: component.KindExtension, Type: fact.Type()}] = conv
 		}
