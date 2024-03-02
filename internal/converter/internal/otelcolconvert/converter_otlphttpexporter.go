@@ -6,6 +6,7 @@ import (
 
 	"github.com/alecthomas/units"
 	"github.com/grafana/agent/internal/component/otelcol"
+	"github.com/grafana/agent/internal/component/otelcol/auth"
 	"github.com/grafana/agent/internal/component/otelcol/exporter/otlphttp"
 	"github.com/grafana/agent/internal/converter/diag"
 	"github.com/grafana/agent/internal/converter/internal/common"
@@ -33,7 +34,7 @@ func (otlpHTTPExporterConverter) ConvertAndAppend(state *state, id component.Ins
 
 	label := state.FlowComponentLabel()
 
-	args := toOtelcolExporterOTLPHTTP(cfg.(*otlphttpexporter.Config))
+	args := toOtelcolExporterOTLPHTTP(state, cfg.(*otlphttpexporter.Config))
 	block := common.NewBlockWithOverride([]string{"otelcol", "exporter", "otlphttp"}, label, args)
 
 	diags.Add(
@@ -45,16 +46,22 @@ func (otlpHTTPExporterConverter) ConvertAndAppend(state *state, id component.Ins
 	return diags
 }
 
-func toOtelcolExporterOTLPHTTP(cfg *otlphttpexporter.Config) *otlphttp.Arguments {
+func toOtelcolExporterOTLPHTTP(state *state, cfg *otlphttpexporter.Config) *otlphttp.Arguments {
 	return &otlphttp.Arguments{
-		Client:       otlphttp.HTTPClientArguments(toHTTPClientArguments(cfg.HTTPClientSettings)),
+		Client:       otlphttp.HTTPClientArguments(toHTTPClientArguments(state, cfg.HTTPClientSettings)),
 		Queue:        toQueueArguments(cfg.QueueSettings),
 		Retry:        toRetryArguments(cfg.RetrySettings),
 		DebugMetrics: common.DefaultValue[otlphttp.Arguments]().DebugMetrics,
 	}
 }
 
-func toHTTPClientArguments(cfg confighttp.HTTPClientSettings) otelcol.HTTPClientArguments {
+func toHTTPClientArguments(state *state, cfg confighttp.HTTPClientSettings) otelcol.HTTPClientArguments {
+	var a auth.Handler
+	if cfg.Auth != nil {
+		ext := state.lookupExtension(cfg.Auth.AuthenticatorID)
+		a = toTokenizedAuthHandler(ext)
+	}
+
 	var mic *int
 	var ict *time.Duration
 	defaults := confighttp.NewDefaultHTTPClientSettings()
@@ -79,6 +86,6 @@ func toHTTPClientArguments(cfg confighttp.HTTPClientSettings) otelcol.HTTPClient
 		IdleConnTimeout:     ict,
 		DisableKeepAlives:   cfg.DisableKeepAlives,
 
-		// TODO(@tpaschalis): auth extension
+		Auth: a,
 	}
 }

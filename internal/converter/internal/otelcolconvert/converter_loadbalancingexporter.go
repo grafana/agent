@@ -5,6 +5,7 @@ import (
 
 	"github.com/alecthomas/units"
 	"github.com/grafana/agent/internal/component/otelcol"
+	"github.com/grafana/agent/internal/component/otelcol/auth"
 	"github.com/grafana/agent/internal/component/otelcol/exporter/loadbalancing"
 	"github.com/grafana/agent/internal/converter/diag"
 	"github.com/grafana/agent/internal/converter/internal/common"
@@ -31,7 +32,7 @@ func (loadbalancingExporterConverter) ConvertAndAppend(state *state, id componen
 
 	label := state.FlowComponentLabel()
 
-	args := toLoadbalancingExporter(cfg.(*loadbalancingexporter.Config))
+	args := toLoadbalancingExporter(state, cfg.(*loadbalancingexporter.Config))
 	block := common.NewBlockWithOverride([]string{"otelcol", "exporter", "loadbalancing"}, label, args)
 
 	diags.Add(
@@ -43,9 +44,9 @@ func (loadbalancingExporterConverter) ConvertAndAppend(state *state, id componen
 	return diags
 }
 
-func toLoadbalancingExporter(cfg *loadbalancingexporter.Config) *loadbalancing.Arguments {
+func toLoadbalancingExporter(state *state, cfg *loadbalancingexporter.Config) *loadbalancing.Arguments {
 	return &loadbalancing.Arguments{
-		Protocol:   toProtocol(cfg.Protocol),
+		Protocol:   toProtocol(state, cfg.Protocol),
 		Resolver:   toResolver(cfg.Resolver),
 		RoutingKey: cfg.RoutingKey,
 
@@ -53,7 +54,12 @@ func toLoadbalancingExporter(cfg *loadbalancingexporter.Config) *loadbalancing.A
 	}
 }
 
-func toProtocol(cfg loadbalancingexporter.Protocol) loadbalancing.Protocol {
+func toProtocol(state *state, cfg loadbalancingexporter.Protocol) loadbalancing.Protocol {
+	var a auth.Handler
+	if cfg.OTLP.Auth != nil {
+		ext := state.lookupExtension(cfg.OTLP.Auth.AuthenticatorID)
+		a = toTokenizedAuthHandler(ext)
+	}
 	return loadbalancing.Protocol{
 		// NOTE(rfratto): this has a lot of overlap with converting the
 		// otlpexporter, but otelcol.exporter.loadbalancing uses custom types to
@@ -75,7 +81,7 @@ func toProtocol(cfg loadbalancingexporter.Protocol) loadbalancing.Protocol {
 				BalancerName:    cfg.OTLP.BalancerName,
 				Authority:       cfg.OTLP.Authority,
 
-				// TODO(rfratto): handle auth
+				Auth: a,
 			},
 		},
 	}

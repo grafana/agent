@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/grafana/agent/internal/component/otelcol"
+	"github.com/grafana/agent/internal/component/otelcol/auth"
 	"github.com/grafana/river/token"
 	"github.com/grafana/river/token/builder"
 	"github.com/mitchellh/mapstructure"
@@ -40,6 +41,27 @@ func toTokenizedConsumers(components []componentID) []otelcol.Consumer {
 	}
 
 	return res
+}
+
+type tokenizedAuthHandler struct {
+	auth.Handler
+
+	Expr string
+}
+
+func toTokenizedAuthHandler(component componentID) auth.Handler {
+	return tokenizedAuthHandler{
+		Expr: fmt.Sprintf("%s.%s.handler", strings.Join(component.Name, "."), component.Label),
+	}
+}
+
+func (tc tokenizedAuthHandler) RiverCapsule() {}
+
+func (tc tokenizedAuthHandler) RiverTokenize() []builder.Token {
+	return []builder.Token{{
+		Tok: token.STRING,
+		Lit: tc.Expr,
+	}}
 }
 
 // encodeMapstruct uses mapstruct fields to convert the given argument into a

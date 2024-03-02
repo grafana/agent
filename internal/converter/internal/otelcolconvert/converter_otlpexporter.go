@@ -5,6 +5,7 @@ import (
 
 	"github.com/alecthomas/units"
 	"github.com/grafana/agent/internal/component/otelcol"
+	"github.com/grafana/agent/internal/component/otelcol/auth"
 	"github.com/grafana/agent/internal/component/otelcol/exporter/otlp"
 	"github.com/grafana/agent/internal/converter/diag"
 	"github.com/grafana/agent/internal/converter/internal/common"
@@ -33,7 +34,7 @@ func (otlpExporterConverter) ConvertAndAppend(state *state, id component.Instanc
 
 	label := state.FlowComponentLabel()
 
-	args := toOtelcolExporterOTLP(cfg.(*otlpexporter.Config))
+	args := toOtelcolExporterOTLP(state, cfg.(*otlpexporter.Config))
 	block := common.NewBlockWithOverride([]string{"otelcol", "exporter", "otlp"}, label, args)
 
 	diags.Add(
@@ -45,7 +46,7 @@ func (otlpExporterConverter) ConvertAndAppend(state *state, id component.Instanc
 	return diags
 }
 
-func toOtelcolExporterOTLP(cfg *otlpexporter.Config) *otlp.Arguments {
+func toOtelcolExporterOTLP(state *state, cfg *otlpexporter.Config) *otlp.Arguments {
 	return &otlp.Arguments{
 		Timeout: cfg.Timeout,
 
@@ -54,7 +55,7 @@ func toOtelcolExporterOTLP(cfg *otlpexporter.Config) *otlp.Arguments {
 
 		DebugMetrics: common.DefaultValue[otlp.Arguments]().DebugMetrics,
 
-		Client: otlp.GRPCClientArguments(toGRPCClientArguments(cfg.GRPCClientSettings)),
+		Client: otlp.GRPCClientArguments(toGRPCClientArguments(state, cfg.GRPCClientSettings)),
 	}
 }
 
@@ -77,7 +78,12 @@ func toRetryArguments(cfg exporterhelper.RetrySettings) otelcol.RetryArguments {
 	}
 }
 
-func toGRPCClientArguments(cfg configgrpc.GRPCClientSettings) otelcol.GRPCClientArguments {
+func toGRPCClientArguments(state *state, cfg configgrpc.GRPCClientSettings) otelcol.GRPCClientArguments {
+	var a auth.Handler
+	if cfg.Auth != nil {
+		ext := state.lookupExtension(cfg.Auth.AuthenticatorID)
+		a = toTokenizedAuthHandler(ext)
+	}
 	return otelcol.GRPCClientArguments{
 		Endpoint: cfg.Endpoint,
 
@@ -93,7 +99,7 @@ func toGRPCClientArguments(cfg configgrpc.GRPCClientSettings) otelcol.GRPCClient
 		BalancerName:    cfg.BalancerName,
 		Authority:       cfg.Authority,
 
-		// TODO(rfratto): auth extension
+		Auth: a,
 	}
 }
 
