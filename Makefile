@@ -129,7 +129,7 @@ GO_ENV := GOOS=$(GOOS) GOARCH=$(GOARCH) GOARM=$(GOARM) CGO_ENABLED=$(CGO_ENABLED
 VERSION      ?= $(shell bash ./tools/image-tag)
 GIT_REVISION := $(shell git rev-parse --short HEAD)
 GIT_BRANCH   := $(shell git rev-parse --abbrev-ref HEAD)
-VPREFIX      := github.com/grafana/agent/pkg/build
+VPREFIX      := github.com/grafana/agent/internal/build
 GO_LDFLAGS   := -X $(VPREFIX).Branch=$(GIT_BRANCH)                        \
                 -X $(VPREFIX).Version=$(VERSION)                          \
                 -X $(VPREFIX).Revision=$(GIT_REVISION)                    \
@@ -150,7 +150,7 @@ endif
 # Targets for running tests
 #
 # These targets currently don't support proxying to a build container due to
-# difficulties with testing ./pkg/util/k8s and testing packages.
+# difficulties with testing ./internal/util/k8s and testing packages.
 #
 
 .PHONY: lint
@@ -163,15 +163,15 @@ lint: agentlint
 # more without -race for packages that have known race detection issues.
 test:
 	$(GO_ENV) go test $(GO_FLAGS) -race $(shell go list ./... | grep -v /integration-tests/)
-	$(GO_ENV) go test $(GO_FLAGS) ./pkg/integrations/node_exporter ./pkg/logs ./pkg/operator ./pkg/util/k8s ./component/otelcol/processor/tail_sampling ./component/loki/source/file ./component/loki/source/docker
+	$(GO_ENV) go test $(GO_FLAGS) ./internal/static/integrations/node_exporter ./internal/static/logs ./internal/static/operator ./internal/util/k8s ./internal/component/otelcol/processor/tail_sampling ./internal/component/loki/source/file ./internal/component/loki/source/docker
 
 test-packages:
 	docker pull $(BUILD_IMAGE)
-	go test -tags=packaging  ./packaging
+	go test -tags=packaging  ./internal/tools/packaging_test
 
 .PHONY: integration-test
 integration-test:
-	cd integration-tests && $(GO_ENV) go run .
+	cd internal/cmd/integration-tests && $(GO_ENV) go run .
 
 #
 # Targets for building binaries
@@ -235,7 +235,7 @@ agentlint:
 ifeq ($(USE_CONTAINER),1)
 	$(RERUN_IN_CONTAINER)
 else
-	cd ./tools/agentlint && $(GO_ENV) go build $(GO_FLAGS) -o ../../$(AGENTLINT_BINARY) .
+	cd ./internal/cmd/agentlint && $(GO_ENV) go build $(GO_FLAGS) -o ../../../$(AGENTLINT_BINARY) .
 endif
 
 #
@@ -272,7 +272,7 @@ ifeq ($(USE_CONTAINER),1)
 	$(RERUN_IN_CONTAINER)
 else
 	bash ./tools/generate-crds.bash
-	gen-crd-api-reference-docs -config tools/gen-crd-docs/config.json -api-dir "github.com/grafana/agent/pkg/operator/apis/monitoring/" -out-file docs/sources/operator/api.md -template-dir tools/gen-crd-docs/template
+	gen-crd-api-reference-docs -config tools/gen-crd-docs/config.json -api-dir "github.com/grafana/agent/internal/static/operator/apis/monitoring/" -out-file docs/sources/operator/api.md -template-dir tools/gen-crd-docs/template
 endif
 
 generate-drone:
@@ -304,14 +304,14 @@ generate-protos:
 ifeq ($(USE_CONTAINER),1)
 	$(RERUN_IN_CONTAINER)
 else
-	go generate ./pkg/agentproto/
+	go generate ./internal/static/agentproto/
 endif
 
 generate-ui:
 ifeq ($(USE_CONTAINER),1)
 	$(RERUN_IN_CONTAINER)
 else
-	cd ./web/ui && yarn --network-timeout=1200000 && yarn run build
+	cd ./internal/web/ui && yarn --network-timeout=1200000 && yarn run build
 endif
 
 generate-versioned-files:
