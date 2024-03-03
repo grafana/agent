@@ -180,7 +180,7 @@ func nextInPipeline(pipeline *pipelines.PipelineConfig, fromID component.Instanc
 		// Processors should send to the next processor if one exists or to every
 		// exporter otherwise.
 		processorIndex := slices.Index(pipeline.Processors, fromID.ID)
-		if processorIndex == -1 {
+		if len(pipeline.Processors) > 0 && processorIndex == -1 {
 			panic("nextInPipeline: received processor ID not in processor list")
 		}
 
