@@ -2,6 +2,7 @@ package otelcolconvert
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/alecthomas/units"
 	"github.com/grafana/agent/internal/component/otelcol"
@@ -31,9 +32,19 @@ func (loadbalancingExporterConverter) ConvertAndAppend(state *state, id componen
 	var diags diag.Diagnostics
 
 	label := state.FlowComponentLabel()
+	overrideHook := func(val interface{}) interface{} {
+		switch val.(type) {
+		case auth.Handler:
+			if val != nil {
+				ext := state.lookupExtension(cfg.(*loadbalancingexporter.Config).Protocol.OTLP.Auth.AuthenticatorID)
+				return common.CustomTokenizer{Expr: fmt.Sprintf("%s.%s.handler", strings.Join(ext.Name, "."), ext.Label)}
+			}
+		}
+		return val
+	}
 
-	args := toLoadbalancingExporter(state, cfg.(*loadbalancingexporter.Config))
-	block := common.NewBlockWithOverride([]string{"otelcol", "exporter", "loadbalancing"}, label, args)
+	args := toLoadbalancingExporter(cfg.(*loadbalancingexporter.Config))
+	block := common.NewBlockWithOverrideFn([]string{"otelcol", "exporter", "loadbalancing"}, label, args, overrideHook)
 
 	diags.Add(
 		diag.SeverityLevelInfo,
@@ -44,9 +55,9 @@ func (loadbalancingExporterConverter) ConvertAndAppend(state *state, id componen
 	return diags
 }
 
-func toLoadbalancingExporter(state *state, cfg *loadbalancingexporter.Config) *loadbalancing.Arguments {
+func toLoadbalancingExporter(cfg *loadbalancingexporter.Config) *loadbalancing.Arguments {
 	return &loadbalancing.Arguments{
-		Protocol:   toProtocol(state, cfg.Protocol),
+		Protocol:   toProtocol(cfg.Protocol),
 		Resolver:   toResolver(cfg.Resolver),
 		RoutingKey: cfg.RoutingKey,
 
@@ -54,11 +65,10 @@ func toLoadbalancingExporter(state *state, cfg *loadbalancingexporter.Config) *l
 	}
 }
 
-func toProtocol(state *state, cfg loadbalancingexporter.Protocol) loadbalancing.Protocol {
-	var a auth.Handler
+func toProtocol(cfg loadbalancingexporter.Protocol) loadbalancing.Protocol {
+	var a *auth.Handler
 	if cfg.OTLP.Auth != nil {
-		ext := state.lookupExtension(cfg.OTLP.Auth.AuthenticatorID)
-		a = toTokenizedAuthHandler(ext)
+		a = &auth.Handler{}
 	}
 	return loadbalancing.Protocol{
 		// NOTE(rfratto): this has a lot of overlap with converting the

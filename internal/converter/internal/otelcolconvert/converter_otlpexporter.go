@@ -2,6 +2,7 @@ package otelcolconvert
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/alecthomas/units"
 	"github.com/grafana/agent/internal/component/otelcol"
@@ -33,9 +34,19 @@ func (otlpExporterConverter) ConvertAndAppend(state *state, id component.Instanc
 	var diags diag.Diagnostics
 
 	label := state.FlowComponentLabel()
+	overrideHook := func(val interface{}) interface{} {
+		switch val.(type) {
+		case auth.Handler:
+			if val != nil {
+				ext := state.lookupExtension(cfg.(*otlpexporter.Config).Auth.AuthenticatorID)
+				return common.CustomTokenizer{Expr: fmt.Sprintf("%s.%s.handler", strings.Join(ext.Name, "."), ext.Label)}
+			}
+		}
+		return val
+	}
 
-	args := toOtelcolExporterOTLP(state, cfg.(*otlpexporter.Config))
-	block := common.NewBlockWithOverride([]string{"otelcol", "exporter", "otlp"}, label, args)
+	args := toOtelcolExporterOTLP(cfg.(*otlpexporter.Config))
+	block := common.NewBlockWithOverrideFn([]string{"otelcol", "exporter", "otlp"}, label, args, overrideHook)
 
 	diags.Add(
 		diag.SeverityLevelInfo,
@@ -46,7 +57,7 @@ func (otlpExporterConverter) ConvertAndAppend(state *state, id component.Instanc
 	return diags
 }
 
-func toOtelcolExporterOTLP(state *state, cfg *otlpexporter.Config) *otlp.Arguments {
+func toOtelcolExporterOTLP(cfg *otlpexporter.Config) *otlp.Arguments {
 	return &otlp.Arguments{
 		Timeout: cfg.Timeout,
 
@@ -55,7 +66,7 @@ func toOtelcolExporterOTLP(state *state, cfg *otlpexporter.Config) *otlp.Argumen
 
 		DebugMetrics: common.DefaultValue[otlp.Arguments]().DebugMetrics,
 
-		Client: otlp.GRPCClientArguments(toGRPCClientArguments(state, cfg.GRPCClientSettings)),
+		Client: otlp.GRPCClientArguments(toGRPCClientArguments(cfg.GRPCClientSettings)),
 	}
 }
 
@@ -78,11 +89,10 @@ func toRetryArguments(cfg exporterhelper.RetrySettings) otelcol.RetryArguments {
 	}
 }
 
-func toGRPCClientArguments(state *state, cfg configgrpc.GRPCClientSettings) otelcol.GRPCClientArguments {
-	var a auth.Handler
+func toGRPCClientArguments(cfg configgrpc.GRPCClientSettings) otelcol.GRPCClientArguments {
+	var a *auth.Handler
 	if cfg.Auth != nil {
-		ext := state.lookupExtension(cfg.Auth.AuthenticatorID)
-		a = toTokenizedAuthHandler(ext)
+		a = &auth.Handler{}
 	}
 	return otelcol.GRPCClientArguments{
 		Endpoint: cfg.Endpoint,
