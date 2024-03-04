@@ -1,7 +1,13 @@
 package sdkconfig
 
-// Config defines the configuration options for the host_info connector.
+// ServiceConfig defines the SDK configuration for a service.
+type ServiceConfig struct {
+	Name   string `river:"name,attr"`
+	Config string `river:"config,attr"`
+}
+
+// Arguments defines the configuration parameters for this component.
 type Arguments struct {
 	// Configuration of the actual service
-	Config string `river:"config,attr"`
+	Service []*ServiceConfig `river:"service,block"`
 }

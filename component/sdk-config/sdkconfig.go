@@ -2,7 +2,6 @@ package sdkconfig
 
 import (
 	"context"
-	"strings"
 	"time"
 
 	"github.com/grafana/agent/component"
@@ -40,17 +39,11 @@ func New(o component.Options, args Arguments) (*Component, error) {
 		return nil, err
 	}
 
-	parts := strings.Split(o.ID, ".")
-	name := "sdkconfig"
-	if len(parts) > 0 {
-		name = parts[len(parts)-1]
-	}
-
 	c := &Component{
 		opts:             o,
+		prevArgs:         args,
 		debugDialService: ddServiceData.(configStore),
 		reloadCh:         make(chan struct{}, 1),
-		name:             name,
 	}
 
 	if err = c.Update(args); err != nil {
@@ -63,10 +56,8 @@ func New(o component.Options, args Arguments) (*Component, error) {
 type Component struct {
 	opts component.Options
 
-	name string
-
 	debugDialService configStore
-
+	prevArgs         Arguments
 	// reloadCh is a buffered channel which is written to when the watched file
 	// should be reloaded by the component.
 	reloadCh chan struct{}
@@ -87,13 +78,34 @@ func (c *Component) Run(ctx context.Context) error {
 	<-ctx.Done()
 
 	// remove the config from the config store
-	c.debugDialService.Delete(c.name)
-
+	for _, sc := range c.prevArgs.Service {
+		c.debugDialService.Delete(sc.Name)
+	}
 	return nil
 }
 
 // Update implements component.Component.
 func (c *Component) Update(args component.Arguments) error {
-	c.debugDialService.Store(c.name, args.(Arguments).Config)
+	c.syncServices(c.prevArgs, args.(Arguments))
+	c.prevArgs = args.(Arguments)
 	return nil
+}
+
+func (c *Component) syncServices(prevArgs Arguments, args Arguments) {
+	// delete removed services
+	for _, sc := range prevArgs.Service {
+		found := false
+		for _, newSc := range args.Service {
+			if sc.Name == newSc.Name {
+				found = true
+			}
+		}
+		if !found {
+			c.debugDialService.Delete(sc.Name)
+		}
+	}
+	// update or add new services
+	for _, newSc := range args.Service {
+		c.debugDialService.Store(newSc.Name, newSc.Config)
+	}
 }
