@@ -70,7 +70,9 @@ var (
 var DefaultHistogramConfig = HistogramConfig{
 	Unit:        MetricsUnitMilliseconds,
 	Exponential: nil,
-	Explicit:    nil,
+	Explicit: &ExplicitHistogramConfig{
+		Buckets: []time.Duration{2 * time.Millisecond, 4 * time.Millisecond, 6 * time.Millisecond, 8 * time.Millisecond, 10 * time.Millisecond, 50 * time.Millisecond, 100 * time.Millisecond, 200 * time.Millisecond, 400 * time.Millisecond, 800 * time.Millisecond, 1 * time.Second, 1400 * time.Millisecond, 2 * time.Second, 5 * time.Second, 10 * time.Second, 15 * time.Second},
+	},
 }
 
 func (hc *HistogramConfig) SetToDefault() {
