@@ -4,7 +4,7 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/tutorials/flow-by-example/faq/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/tutorials/flow-by-example/faq/
 - /docs/grafana-cloud/send-data/agent/flow/tutorials/flow-by-example/faq/
-canonical: https://grafana.com/docs/agent/latest/flow/tutorials/flow-by-example/faq/
+canonical: https://grafana.com/docs/agent/latest/flow/tutorials/flow-by-example/
 description: Getting started with Flow-by-Example Tutorials
 title: Get started
 weight: 10
