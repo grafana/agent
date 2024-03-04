@@ -148,24 +148,6 @@ func mergeIDs(in ...[]component.ID) []component.ID {
 	return res
 }
 
-func filterIDs(in []component.ID, rem []component.ID) []component.ID {
-	var res []component.ID
-
-	for _, set := range in {
-		exists := false
-		for _, id := range rem {
-			if set == id {
-				exists = true
-			}
-		}
-		if !exists {
-			res = append(res, set)
-		}
-	}
-
-	return res
-}
-
 // NextMetrics returns the set of components who should be sent metrics from
 // the given component ID.
 func (group pipelineGroup) NextMetrics(fromID component.InstanceID) []component.InstanceID {
