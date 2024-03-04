@@ -1,6 +1,7 @@
 package otelcolconvert
 
 import (
+	"cmp"
 	"fmt"
 
 	"go.opentelemetry.io/collector/component"
@@ -95,7 +96,12 @@ func createPipelineGroups(cfg pipelines.Config) ([]pipelineGroup, error) {
 		groups[key] = group
 	}
 
-	return maps.Values(groups), nil
+	res := maps.Values(groups)
+	slices.SortStableFunc(res, func(a, b pipelineGroup) int {
+		return cmp.Compare(a.Name, b.Name)
+	})
+
+	return res, nil
 }
 
 // Receivers returns a set of unique IDs for receivers across all telemetry
