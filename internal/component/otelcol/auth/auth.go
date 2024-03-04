@@ -55,8 +55,8 @@ type Handler interface {
 
 // Handle combines an extension with its ID.
 type Handle struct {
-	id        otelcomponent.ID
-	extension otelextension.Extension
+	Id  otelcomponent.ID
+	Ext otelextension.Extension
 }
 
 var _ river.Capsule = Handle{}
@@ -65,11 +65,11 @@ var _ river.Capsule = Handle{}
 func (Handle) RiverCapsule() {}
 
 func (h Handle) ID() otelcomponent.ID {
-	return h.id
+	return h.Id
 }
 
 func (h Handle) Extension() otelextension.Extension {
-	return h.extension
+	return h.Ext
 }
 
 // Auth is a Flow component shim which manages an OpenTelemetry Collector
@@ -183,8 +183,8 @@ func (a *Auth) Update(args component.Arguments) error {
 	// Inform listeners that our handler changed.
 	a.opts.OnStateChange(Exports{
 		Handler: Handle{
-			id:        otelcomponent.NewID(otelcomponent.Type(a.opts.ID)),
-			extension: ext,
+			Id:  otelcomponent.NewID(otelcomponent.Type(a.opts.ID)),
+			Ext: ext,
 		},
 	})
 
