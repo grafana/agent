@@ -1,7 +1,7 @@
 ---
-# Source: grafana-agent/templates/controllers/daemonset.yaml
+# Source: grafana-agent/templates/controllers/deployment.yaml
 apiVersion: apps/v1
-kind: DaemonSet
+kind: Deployment
 metadata:
   name: grafana-agent
   labels:
@@ -11,6 +11,7 @@ metadata:
     app.kubernetes.io/version: "vX.Y.Z"
     app.kubernetes.io/managed-by: Helm
 spec:
+  replicas: 1
   minReadySeconds: 10
   selector:
     matchLabels:
@@ -27,7 +28,7 @@ spec:
       serviceAccountName: grafana-agent
       containers:
         - name: grafana-agent
-          image: docker.io/grafana/agent@sha256:82575a7be3e4770e53f620298e58bcc4cdb0fd0338e01c4b206cae9e3ca46ebf
+          image: docker.io/grafana/agent:v0.40.1
           imagePullPolicy: IfNotPresent
           args:
             - run
@@ -44,6 +45,12 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: spec.nodeName
+          lifecycle:
+            preStop:
+              exec:
+                command:
+                - sleep
+                - "60"
           ports:
             - containerPort: 80
               name: http-metrics
@@ -58,7 +65,7 @@ spec:
             - name: config
               mountPath: /etc/agent
         - name: config-reloader
-          image: docker.io/jimmidyson/configmap-reload@sha256:5af9d3041d12a3e63f115125f89b66d2ba981fe82e64302ac370c5496055059c
+          image: ghcr.io/jimmidyson/configmap-reload:v0.12.0
           args:
             - --volume-dir=/etc/agent
             - --webhook-url=http://localhost:80/-/reload
@@ -70,7 +77,7 @@ spec:
               cpu: 1m
               memory: 5Mi
       dnsPolicy: ClusterFirst
-      terminationGracePeriodSeconds: 30
+      terminationGracePeriodSeconds: 300
       volumes:
         - name: config
           configMap:

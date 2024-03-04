@@ -10,6 +10,10 @@ internal API changes are not present.
 Unreleased
 ----------
 
+### Enhancements
+
+- Add support for graceful termination of agent pods using `terminationGracePeriodSeconds` and `lifecycle` hooks on agent container. (@onematchfox)
+
 0.35.0 (2024-02-27)
 -------------------
 
@@ -339,7 +343,6 @@ Unreleased
 - Add PodMonitors, ServiceMonitors, and Probes to the agent ClusterRole. (@captncraig)
 - Add podLabels values. (@therealmanny)
 
-
 0.8.1 (2023-03-06)
 ------------------
 
@@ -371,7 +374,6 @@ Unreleased
 
 - Helm chart: Add support for templates inside of configMap.content (@ts-mini)
 - Add the necessary rbac to support eventhandler integration (@nvanheuverzwijn)
-
 
 0.6.0 (2023-02-13)
 ------------------

@@ -51,6 +51,7 @@ use the older mode (called "static mode"), set the `agent.mode` value to
 | agent.extraArgs | list | `[]` | Extra args to pass to `agent run`: https://grafana.com/docs/agent/latest/flow/reference/cli/run/ |
 | agent.extraEnv | list | `[]` | Extra environment variables to pass to the agent container. |
 | agent.extraPorts | list | `[]` | Extra ports to expose on the Agent |
+| agent.lifecycle | object | `{}` | Lifecycle for the agent container |
 | agent.listenAddr | string | `"0.0.0.0"` | Address to listen for traffic on. 0.0.0.0 exposes the UI to other containers. |
 | agent.listenPort | int | `80` | Port to listen for traffic on. |
 | agent.listenScheme | string | `"HTTP"` | Scheme is needed for readiness probes. If enabling tls in your configs, set to "HTTPS" |
@@ -95,6 +96,7 @@ use the older mode (called "static mode"), set the `agent.mode` value to
 | controller.podLabels | object | `{}` | Extra pod labels to add. |
 | controller.priorityClassName | string | `""` | priorityClassName to apply to Grafana Agent pods. |
 | controller.replicas | int | `1` | Number of pods to deploy. Ignored when controller.type is 'daemonset'. |
+| controller.terminationGracePeriodSeconds | int | `30` | Grace period to allow the Grafana Agent pods to shutdown before being killed. |
 | controller.tolerations | list | `[]` | Tolerations to apply to Grafana Agent pods. |
 | controller.topologySpreadConstraints | list | `[]` | Topology Spread Constraints to apply to Grafana Agent pods. |
 | controller.type | string | `"daemonset"` | Type of controller to use for deploying Grafana Agent in the cluster. Must be one of 'daemonset', 'deployment', or 'statefulset'. |

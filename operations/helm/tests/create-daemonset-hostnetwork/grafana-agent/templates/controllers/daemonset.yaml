@@ -71,6 +71,7 @@ spec:
               memory: 5Mi
       hostNetwork: true
       dnsPolicy: ClusterFirstWithHostNet
+      terminationGracePeriodSeconds: 30
       volumes:
         - name: config
           configMap:

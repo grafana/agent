@@ -54,6 +54,7 @@ spec:
   nodeSelector:
     {{- toYaml . | nindent 4 }}
   {{- end }}
+  terminationGracePeriodSeconds: {{ .Values.controller.terminationGracePeriodSeconds }}
   {{- with .Values.controller.tolerations }}
   tolerations:
     {{- toYaml . | nindent 4 }}

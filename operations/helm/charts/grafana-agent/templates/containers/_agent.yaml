@@ -40,6 +40,10 @@
   envFrom:
     {{- toYaml .Values.agent.envFrom | nindent 4 }}
   {{- end }}
+  {{- with .Values.agent.lifecycle }}
+  lifecycle:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
   ports:
     - containerPort: {{ .Values.agent.listenPort }}
       name: http-metrics
