@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"sync"
 
@@ -11,6 +12,9 @@ import (
 	"github.com/grafana/agent-remote-config/api/gen/proto/go/agent/v1/agentv1connect"
 	"github.com/grafana/agent/internal/service"
 	agenthttp "github.com/grafana/agent/internal/service/http"
+	"google.golang.org/protobuf/proto"
+
+	opamp "github.com/open-telemetry/opamp-go/protobufs"
 )
 
 type Service struct {
@@ -92,9 +96,17 @@ func (s *Service) Data() any {
 func (s *Service) ServiceHandler(host service.Host) (base string, handler http.Handler) {
 	r := mux.NewRouter()
 
-	r.Handle("/api/v0/debugdial/{id:.+}", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	prefix := "/api/v0/debugdial"
+	r.Handle(prefix, http.HandlerFunc(s.serveOpAMP))
+	r.Handle(prefix+"/{id:.*}", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		serviceID := vars["id"]
+		if serviceID == "" {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte("No service specified in URL"))
+			return
+		}
+
 		res, _ := s.Config.Load(serviceID)
 
 		if res != nil {
@@ -105,5 +117,91 @@ func (s *Service) ServiceHandler(host service.Host) (base string, handler http.H
 		}
 	}))
 
-	return "/api/v0/debugdial", r
+	return prefix, r
+}
+
+func opAmpError(s string, badRequest bool) *opamp.ServerToAgent {
+	typ := opamp.ServerErrorResponseType_ServerErrorResponseType_Unknown
+	if badRequest {
+		typ = opamp.ServerErrorResponseType_ServerErrorResponseType_BadRequest
+	}
+
+	return &opamp.ServerToAgent{
+		ErrorResponse: &opamp.ServerErrorResponse{
+			ErrorMessage: s,
+			Type:         typ,
+		},
+	}
+}
+
+func writeOpAmp(w http.ResponseWriter, msg *opamp.ServerToAgent) {
+	responseBytes, err := proto.Marshal(msg)
+	if err != nil {
+		fmt.Fprintf(w, "Marshalling error: %q", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	_, _ = w.Write(responseBytes)
+	if msg.ErrorResponse == nil {
+		w.WriteHeader(http.StatusOK)
+	}
+}
+
+func (s *Service) serveOpAMP(w http.ResponseWriter, r *http.Request) {
+	// if no protobuf cancel
+	if r.Header.Get("content-type") != "application/x-protobuf" {
+		http.Error(w, "Only \"application/x-protobuf\" content-type supported", http.StatusBadRequest)
+		return
+	}
+
+	rawBytes, err := io.ReadAll(r.Body)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	body := &opamp.AgentToServer{}
+
+	err = proto.Unmarshal(rawBytes, body)
+	if err != nil {
+		writeOpAmp(w, opAmpError(err.Error(), true))
+		return
+	}
+
+	serviceName := ""
+
+	for _, att := range body.AgentDescription.GetIdentifyingAttributes() {
+		if att.Key != "service.name" {
+			continue
+		}
+		serviceName = att.Value.GetStringValue()
+	}
+
+	if serviceName == "" {
+		writeOpAmp(w, opAmpError("No identifying service.name attribute specified", true))
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	cfg, exists := s.Config.Load(serviceName)
+	if !exists {
+		writeOpAmp(w, opAmpError(fmt.Sprintf("No service %q found", serviceName), true))
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+
+	response := opamp.ServerToAgent{
+		RemoteConfig: &opamp.AgentRemoteConfig{
+			Config: &opamp.AgentConfigMap{
+				ConfigMap: map[string]*opamp.AgentConfigFile{
+					serviceName: {
+						Body: []byte(cfg.(string)),
+					},
+				},
+			},
+		},
+	}
+
+	writeOpAmp(w, &response)
 }
