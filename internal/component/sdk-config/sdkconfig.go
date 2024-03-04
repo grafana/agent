@@ -2,9 +2,7 @@ package sdkconfig
 
 import (
 	"context"
-	"io"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/grafana/agent/internal/component"
@@ -33,6 +31,7 @@ var (
 
 type configStore interface {
 	Store(key, value any)
+	Delete(key any)
 }
 
 func New(o component.Options, args Arguments) (*Component, error) {
@@ -41,10 +40,17 @@ func New(o component.Options, args Arguments) (*Component, error) {
 		return nil, err
 	}
 
+	parts := strings.Split(o.ID, ".")
+	name := "sdkconfig"
+	if len(parts) > 0 {
+		name = parts[len(parts)-1]
+	}
+
 	c := &Component{
 		opts:             o,
 		debugDialService: ddServiceData.(configStore),
 		reloadCh:         make(chan struct{}, 1),
+		name:             name,
 	}
 
 	if err = c.Update(args); err != nil {
@@ -57,12 +63,7 @@ func New(o component.Options, args Arguments) (*Component, error) {
 type Component struct {
 	opts component.Options
 
-	mut      sync.Mutex
-	args     Arguments
-	detector io.Closer
-
-	healthMut sync.RWMutex
-	health    component.Health
+	name string
 
 	debugDialService configStore
 
@@ -82,14 +83,17 @@ func (c *Component) CurrentHealth() component.Health {
 
 // Run implements component.Component.
 func (c *Component) Run(ctx context.Context) error {
+	// wait until context gets canceled and we should teardown this
 	<-ctx.Done()
+
+	// remove the config from the config store
+	c.debugDialService.Delete(c.name)
+
 	return nil
 }
 
 // Update implements component.Component.
 func (c *Component) Update(args component.Arguments) error {
-	parts := strings.Split(c.opts.ID, ".")
-	serviceName := parts[len(parts)-1]
-	c.debugDialService.Store(serviceName, args.(Arguments).Config)
+	c.debugDialService.Store(c.name, args.(Arguments).Config)
 	return nil
 }
