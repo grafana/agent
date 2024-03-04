@@ -93,7 +93,7 @@ type HTTPClientArguments struct {
 
 	// Auth is a binding to an otelcol.auth.* component extension which handles
 	// authentication.
-	Auth auth.Handler `river:"auth,attr,optional"`
+	Auth *auth.Handler `river:"auth,attr,optional"`
 }
 
 // Convert converts args into the upstream type.
@@ -105,7 +105,7 @@ func (args *HTTPClientArguments) Convert() *otelconfighttp.HTTPClientSettings {
 	// Configure the authentication if args.Auth is set.
 	var auth *otelconfigauth.Authentication
 	if args.Auth != nil {
-		auth = &otelconfigauth.Authentication{AuthenticatorID: args.Auth.ID()}
+		auth = &otelconfigauth.Authentication{AuthenticatorID: args.Auth.ID}
 	}
 
 	opaqueHeaders := make(map[string]configopaque.String)
@@ -138,7 +138,7 @@ func (args *HTTPClientArguments) Convert() *otelconfighttp.HTTPClientSettings {
 func (args *HTTPClientArguments) Extensions() map[otelcomponent.ID]otelextension.Extension {
 	m := make(map[otelcomponent.ID]otelextension.Extension)
 	if args.Auth != nil {
-		m[args.Auth.ID()] = args.Auth.Extension()
+		m[args.Auth.ID] = args.Auth.Extension
 	}
 	return m
 }

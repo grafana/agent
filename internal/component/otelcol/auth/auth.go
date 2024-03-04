@@ -45,32 +45,19 @@ type Arguments interface {
 type Exports struct {
 	// Handler is the managed component. Handler is updated any time the
 	// extension is updated.
-	Handler Handle `river:"handler,attr"`
+	Handler Handler `river:"handler,attr"`
 }
 
-type Handler interface {
-	ID() otelcomponent.ID
-	Extension() otelextension.Extension
+// Handler combines an extension with its ID.
+type Handler struct {
+	ID        otelcomponent.ID
+	Extension otelextension.Extension
 }
 
-// Handle combines an extension with its ID.
-type Handle struct {
-	Id  otelcomponent.ID
-	Ext otelextension.Extension
-}
-
-var _ river.Capsule = Handle{}
+var _ river.Capsule = Handler{}
 
 // RiverCapsule marks Handler as a capsule type.
-func (Handle) RiverCapsule() {}
-
-func (h Handle) ID() otelcomponent.ID {
-	return h.Id
-}
-
-func (h Handle) Extension() otelextension.Extension {
-	return h.Ext
-}
+func (Handler) RiverCapsule() {}
 
 // Auth is a Flow component shim which manages an OpenTelemetry Collector
 // authentication extension.
@@ -182,9 +169,9 @@ func (a *Auth) Update(args component.Arguments) error {
 
 	// Inform listeners that our handler changed.
 	a.opts.OnStateChange(Exports{
-		Handler: Handle{
-			Id:  otelcomponent.NewID(otelcomponent.Type(a.opts.ID)),
-			Ext: ext,
+		Handler: Handler{
+			ID:        otelcomponent.NewID(otelcomponent.Type(a.opts.ID)),
+			Extension: ext,
 		},
 	})
 
