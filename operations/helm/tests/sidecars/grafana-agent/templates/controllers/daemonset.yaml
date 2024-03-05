@@ -90,6 +90,7 @@ spec:
           - emptyDir: {}
             name: geoip
       dnsPolicy: ClusterFirst
+      terminationGracePeriodSeconds: 30
       volumes:
         - name: config
           configMap:

@@ -1,0 +1,11 @@
+agent:
+  lifecycle:
+    preStop:
+      exec:
+        command:
+          - sleep
+          - "60"
+
+controller:
+  type: deployment
+  terminationGracePeriodSeconds: 300

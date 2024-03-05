@@ -96,6 +96,9 @@ agent:
   # -- Resource requests and limits to apply to the Grafana Agent container.
   resources: {}
 
+  # -- Lifecycle for the agent container
+  lifecycle: {}
+
 image:
   # -- Grafana Agent image registry (defaults to docker.io)
   registry: "docker.io"
@@ -178,6 +181,11 @@ controller:
 
   # -- nodeSelector to apply to Grafana Agent pods.
   nodeSelector: {}
+
+  # -- Grace period to allow the Grafana Agent pods to shutdown before being
+  # killed. Useful for ensuring gracefully shutdown flushing/transferring all
+  # data prior to shutdown.
+  terminationGracePeriodSeconds: 30
 
   # -- Tolerations to apply to Grafana Agent pods.
   tolerations: []

@@ -73,6 +73,7 @@ spec:
               cpu: 1m
               memory: 5Mi
       dnsPolicy: ClusterFirst
+      terminationGracePeriodSeconds: 30
       volumes:
         - name: config
           configMap:
