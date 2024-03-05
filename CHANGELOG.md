@@ -25,9 +25,9 @@ v0.40.2 (2024-03-05)
 - Set permissions on the `Grafana Agent [Flow]` folder when installing via the
   windows installer rather than relying on the parent folder permissions. (@erikbaranowski)
 
-- Set restricted viewing permission on the `agent-config.yaml` (Static mode) or
-  `config.river` (Flow mode) when installing via the windows installer if the
-  file does not already exist. (@erikbaranowski)
+- Set restricted viewing permissions on the `agent-config.yaml` (static mode) or
+  `config.river` (flow mode) when installing via the Windows installer if the
+  configuration file does not already exist. (@erikbaranowski)
 
 - Fix an issue where the import config node would not run after a config reload. (@wildum)
 
