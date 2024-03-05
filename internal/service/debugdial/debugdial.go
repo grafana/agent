@@ -7,11 +7,13 @@ import (
 	"io"
 	"net/http"
 	"sync"
+	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/grafana/agent-remote-config/api/gen/proto/go/agent/v1/agentv1connect"
 	"github.com/grafana/agent/internal/service"
 	agenthttp "github.com/grafana/agent/internal/service/http"
+	"github.com/prometheus/client_golang/prometheus"
 	"google.golang.org/protobuf/proto"
 
 	opamp "github.com/open-telemetry/opamp-go/protobufs"
@@ -27,17 +29,24 @@ type Service struct {
 	dataPath          string
 	currentConfigHash string
 
-	Config sync.Map
+	serviceMetrics *prometheus.Desc
+
+	Config   sync.Map
+	Services sync.Map
 }
 
 type Options struct{}
 
 const ServiceName = "debugdial"
 
-func New() *Service {
-	return &Service{
-		Config: sync.Map{},
+func New(r prometheus.Registerer) *Service {
+	s := &Service{
+		Config:         sync.Map{},
+		Services:       sync.Map{},
+		serviceMetrics: prometheus.NewDesc("agent_debug_dial_services", "A metric identifying debug dial services and their attributes", []string{"service_name"}, nil),
 	}
+	_ = r.Register(s)
+	return s
 }
 
 // Definition returns the Definition of the Service.
@@ -84,6 +93,24 @@ func (s *Service) Data() any {
 	return &s.Config
 }
 
+func (s *Service) Describe(m chan<- *prometheus.Desc) {
+	m <- s.serviceMetrics
+}
+
+func (s *Service) Collect(m chan<- prometheus.Metric) {
+	s.mut.Lock()
+	defer s.mut.Unlock()
+
+	s.Services.Range(func(key, value any) bool {
+		if time.Since(value.(time.Time)) <= 1*time.Minute {
+			m <- prometheus.MustNewConstMetric(s.serviceMetrics, prometheus.GaugeValue, 1, key.(string))
+		} else {
+			s.Services.Delete(key)
+		}
+		return true
+	})
+}
+
 // ServiceHandler returns the base route and HTTP handlers to register for
 // the provided service.
 //
@@ -106,6 +133,8 @@ func (s *Service) ServiceHandler(host service.Host) (base string, handler http.H
 			w.Write([]byte("No service specified in URL"))
 			return
 		}
+
+		s.Services.Store(serviceID, time.Now())
 
 		res, _ := s.Config.Load(serviceID)
 
@@ -183,6 +212,8 @@ func (s *Service) serveOpAMP(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
+
+	s.Services.Store(serviceName, time.Now())
 
 	cfg, exists := s.Config.Load(serviceName)
 	if !exists {

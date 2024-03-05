@@ -8,12 +8,13 @@ import (
 	"testing"
 
 	opamp "github.com/open-telemetry/opamp-go/protobufs"
+	"github.com/prometheus/client_golang/prometheus"
 	"google.golang.org/protobuf/proto"
 )
 
 func TestOpAmpResposne(t *testing.T) {
 	// create service
-	service := New()
+	service := New(prometheus.DefaultRegisterer)
 	service.Config.Store("Test", "Test123")
 
 	// get router

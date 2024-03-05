@@ -268,7 +268,7 @@ func (fr *flowRun) Run(configPath string) error {
 		UIPrefix: fr.uiPrefix,
 	})
 
-	debugdial := debugdial.New()
+	debugdial := debugdial.New(reg)
 
 	otelService := otel_service.New(l)
 	if otelService == nil {
