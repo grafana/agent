@@ -288,7 +288,7 @@ local filename = 'agent-flow-controller.json';
           panel.newQuery(
             expr=|||
               sum by (le) (increase(agent_component_evaluation_seconds{cluster="$cluster", namespace="$namespace"}[$__rate_interval]))
-              or
+              or ignoring (le)
               sum by (le) (increase(agent_component_evaluation_seconds_bucket{cluster="$cluster", namespace="$namespace"}[$__rate_interval]))
             |||,
             format='heatmap',
@@ -313,7 +313,7 @@ local filename = 'agent-flow-controller.json';
           panel.newQuery(
             expr=|||
               sum by (le) (increase(agent_component_dependencies_wait_seconds{cluster="$cluster", namespace="$namespace"}[$__rate_interval]))
-              or
+              or ignoring (le)
               sum by (le) (increase(agent_component_dependencies_wait_seconds_bucket{cluster="$cluster", namespace="$namespace"}[$__rate_interval]))
             |||,
             format='heatmap',
