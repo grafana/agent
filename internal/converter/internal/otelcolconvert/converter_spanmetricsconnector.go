@@ -2,6 +2,7 @@ package otelcolconvert
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/grafana/agent/internal/component/otelcol"
 	"github.com/grafana/agent/internal/component/otelcol/connector/spanmetrics"
@@ -62,6 +63,12 @@ func toSpanmetricsConnector(state *state, id component.InstanceID, cfg *spanmetr
 		explicit = &spanmetrics.ExplicitHistogramConfig{
 			Buckets: cfg.Histogram.Explicit.Buckets,
 		}
+	}
+
+	// If none have been explicitly set, assign the upstream default.
+	if exponential == nil && explicit == nil {
+		explicit = &spanmetrics.ExplicitHistogramConfig{Buckets: []time.Duration{}}
+		explicit.SetToDefault()
 	}
 
 	var dimensions []spanmetrics.Dimension

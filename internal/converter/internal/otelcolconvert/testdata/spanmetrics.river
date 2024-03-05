@@ -17,7 +17,9 @@ otelcol.exporter.otlp "default" {
 }
 
 otelcol.connector.spanmetrics "default" {
-	histogram { }
+	histogram {
+		explicit { }
+	}
 
 	output {
 		metrics = [otelcol.exporter.otlp.default.input]

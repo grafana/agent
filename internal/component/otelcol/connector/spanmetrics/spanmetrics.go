@@ -47,7 +47,7 @@ type Arguments struct {
 
 	AggregationTemporality string `river:"aggregation_temporality,attr,optional"`
 
-	Histogram HistogramConfig `river:"histogram,block,optional"`
+	Histogram HistogramConfig `river:"histogram,block"`
 
 	// MetricsEmitInterval is the time period between when metrics are flushed or emitted to the downstream components.
 	MetricsFlushInterval time.Duration `river:"metrics_flush_interval,attr,optional"`
