@@ -22,6 +22,8 @@ Main (unreleased)
 - Set permissions on the `Grafana Agent [Flow]` folder when installing via the
   windows installer rather than relying on the parent folder permissions. (@erikbaranowski)
 
+- Fix an issue where Loki could reject a batch of logs when structured metadata feature is used. (@thampiotr)
+
 v0.40.1 (2024-02-27)
 --------------------
 
@@ -32,8 +34,6 @@ v0.40.1 (2024-02-27)
 - Fix an issue where a custom component might be wired to a local declare instead of an import declare when they have the same label. (@wildum)
 
 - Fix an issue where flow mode panics if the `logging` config block is given a `null` Loki receiver to write log entries to. (@rfratto)
-
-- Fix an issue where Loki could reject a batch of logs when structured metadata feature is used. (@thampiotr) 
 
 v0.40.0 (2024-02-27)
 --------------------
