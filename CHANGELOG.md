@@ -7,7 +7,6 @@ This document contains a historical list of changes between releases. Only
 changes that impact end-user behavior are listed; changes to documentation or
 internal API changes are not present.
 
-
 v0.40.2 (2024-03-05)
 --------------------
 
@@ -32,16 +31,11 @@ v0.40.1 (2024-02-27)
 
 ### Bugfixes
 
-- Set permissions on the `Grafana Agent [Flow]` folder when installing via the
-  windows installer rather than relying on the parent folder permissions. (@erikbaranowski)
-
 - Fix an issues where the logging config block would trigger an error when trying to send logs to components that were not running. (@wildum)
 
 - Fix an issue where a custom component might be wired to a local declare instead of an import declare when they have the same label. (@wildum)
 
 - Fix an issue where flow mode panics if the `logging` config block is given a `null` Loki receiver to write log entries to. (@rfratto)
-
-- Fix an issue where Loki could reject a batch of logs when structured metadata feature is used. (@thampiotr) 
 
 v0.40.0 (2024-02-27)
 --------------------
