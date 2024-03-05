@@ -8,6 +8,14 @@ changes that impact end-user behavior are listed; changes to documentation or
 internal API changes are not present.
 
 
+### Bugfixes
+
+- Set permissions on the `Grafana Agent [Flow]` folder when installing via the
+  windows installer rather than relying on the parent folder permissions. (@erikbaranowski)
+
+- Fix an issue where the import config node would not run after a config reload. (@wildum)
+
+- Fix an issue where Loki could reject a batch of logs when structured metadata feature is used. (@thampiotr)
 
 v0.40.1 (2024-02-27)
 --------------------
