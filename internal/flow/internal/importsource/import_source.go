@@ -32,6 +32,8 @@ type ImportSource interface {
 	Run(ctx context.Context) error
 	// CurrentHealth returns the current Health status of the running source.
 	CurrentHealth() component.Health
+	// Update evaluator
+	SetEval(eval *vm.Evaluator)
 }
 
 // NewImportSource creates a new ImportSource depending on the type.
