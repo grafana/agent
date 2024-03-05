@@ -219,7 +219,7 @@ local filename = 'agent-flow-controller.json';
         panel.withQueries([
           panel.newQuery(
             expr=|||
-              histogram_quantile(0.99, sum by (le) (rate(agent_component_evaluation_seconds{cluster="$cluster",namespace="$namespace"}[$__rate_interval])))
+              histogram_quantile(0.99, sum(rate(agent_component_evaluation_seconds{cluster="$cluster",namespace="$namespace"}[$__rate_interval])))
               or
               histogram_quantile(0.99, sum by (le) (rate(agent_component_evaluation_seconds_bucket{cluster="$cluster",namespace="$namespace"}[$__rate_interval])))
             |||,
@@ -227,7 +227,7 @@ local filename = 'agent-flow-controller.json';
           ),
           panel.newQuery(
             expr=|||
-              histogram_quantile(0.50, sum by (le) (rate(agent_component_evaluation_seconds{cluster="$cluster",namespace="$namespace"}[$__rate_interval])))
+              histogram_quantile(0.50, sum(rate(agent_component_evaluation_seconds{cluster="$cluster",namespace="$namespace"}[$__rate_interval])))
               or
               histogram_quantile(0.50, sum by (le) (rate(agent_component_evaluation_seconds_bucket{cluster="$cluster",namespace="$namespace"}[$__rate_interval])))
             |||,
@@ -287,7 +287,7 @@ local filename = 'agent-flow-controller.json';
         panel.withQueries([
           panel.newQuery(
             expr=|||
-              sum by (le) (increase(agent_component_evaluation_seconds{cluster="$cluster", namespace="$namespace"}[$__rate_interval]))
+              sum(increase(agent_component_evaluation_seconds{cluster="$cluster", namespace="$namespace"}[$__rate_interval]))
               or ignoring (le)
               sum by (le) (increase(agent_component_evaluation_seconds_bucket{cluster="$cluster", namespace="$namespace"}[$__rate_interval]))
             |||,
@@ -312,7 +312,7 @@ local filename = 'agent-flow-controller.json';
         panel.withQueries([
           panel.newQuery(
             expr=|||
-              sum by (le) (increase(agent_component_dependencies_wait_seconds{cluster="$cluster", namespace="$namespace"}[$__rate_interval]))
+              sum(increase(agent_component_dependencies_wait_seconds{cluster="$cluster", namespace="$namespace"}[$__rate_interval]))
               or ignoring (le)
               sum by (le) (increase(agent_component_dependencies_wait_seconds_bucket{cluster="$cluster", namespace="$namespace"}[$__rate_interval]))
             |||,
