@@ -286,6 +286,7 @@ local template = grafana.template;
             value: '$__all',
           },
           includeAll=true,
+          allValues='.+',
         ),
       )
       .addTemplate(
@@ -300,6 +301,7 @@ local template = grafana.template;
             value: '$__all',
           },
           includeAll=true,
+          allValues='.+',
         ),
       )
       .addTemplate(
@@ -314,6 +316,7 @@ local template = grafana.template;
             value: '$__all',
           },
           includeAll=true,
+          allValues='.+',
         ),
       )
       .addTemplate(
@@ -328,6 +331,7 @@ local template = grafana.template;
             value: '$__all',
           },
           includeAll=true,
+          allValues='.+',
         ),
       )
       .addTemplate(
@@ -337,6 +341,7 @@ local template = grafana.template;
           'label_values(prometheus_remote_storage_shards{cluster=~"$cluster", pod=~"$pod"}, url)',
           refresh='time',
           includeAll=true,
+          allValues='.+',
         )
       )
       .addRow(
@@ -537,6 +542,7 @@ local template = grafana.template;
             value: '$__all',
           },
           includeAll=true,
+          allValues='.+',
         ),
       )
       .addTemplate(
@@ -551,6 +557,7 @@ local template = grafana.template;
             value: '$__all',
           },
           includeAll=true,
+          allValues='.+',
         ),
       )
       .addTemplate(
@@ -565,6 +572,7 @@ local template = grafana.template;
             value: '$__all',
           },
           includeAll=true,
+          allValues='.+',
         ),
       )
       .addTemplate(
@@ -579,6 +587,7 @@ local template = grafana.template;
             value: '$__all',
           },
           includeAll=true,
+          allValues='.+',
         ),
       )
       .addRow(
@@ -715,6 +724,7 @@ local template = grafana.template;
             value: '$__all',
           },
           includeAll=true,
+          allValues='.+',
         ),
       )
       .addTemplate(
@@ -729,6 +739,7 @@ local template = grafana.template;
             value: '$__all',
           },
           includeAll=true,
+          allValues='.+',
         ),
       )
       .addTemplate(
@@ -743,6 +754,7 @@ local template = grafana.template;
             value: '$__all',
           },
           includeAll=true,
+          allValues='.+',
         ),
       )
       .addTemplate(
@@ -757,6 +769,7 @@ local template = grafana.template;
             value: '$__all',
           },
           includeAll=true,
+          allValues='.+',
         ),
       )
       .addTemplate(
