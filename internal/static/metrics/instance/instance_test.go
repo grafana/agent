@@ -278,7 +278,6 @@ func TestInstance_Recreate(t *testing.T) {
 
 	// Recreate the instance, no panic should happen.
 	require.NotPanics(t, func() {
-		inst, err := New(prometheus.NewRegistry(), cfg, walDir, logger)
 		require.NoError(t, err)
 		runInstance(t, inst)
 
