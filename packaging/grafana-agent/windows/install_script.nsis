@@ -188,6 +188,14 @@ Function WriteConfig
         FileWrite $9 `    enabled: true`
         ${EndIf}
         FileClose $9 # and close the file
+
+        # Set permissions on the config file
+        AccessControl::DisableFileInheritance "$INSTDIR\agent-config.yaml"
+        AccessControl::SetFileOwner "$INSTDIR\agent-config.yaml" "Administrators"
+        AccessControl::ClearOnFile  "$INSTDIR\agent-config.yaml" "Administrators" "FullAccess"
+        AccessControl::SetOnFile    "$INSTDIR\agent-config.yaml" "SYSTEM" "FullAccess"
+        AccessControl::GrantOnFile  "$INSTDIR\agent-config.yaml" "Everyone" "ListDirectory"
+        AccessControl::GrantOnFile  "$INSTDIR\agent-config.yaml" "Everyone" "ReadAttributes"
         Return
 FunctionEnd
 

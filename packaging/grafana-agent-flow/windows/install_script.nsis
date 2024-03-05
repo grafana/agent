@@ -111,6 +111,14 @@ Function CreateConfig
     Return
   CreateNewConfig:
     File "config.river"
+
+    # Set permissions on the config file
+    AccessControl::DisableFileInheritance "$INSTDIR\config.river"
+    AccessControl::SetFileOwner "$INSTDIR\config.river" "Administrators"
+    AccessControl::ClearOnFile  "$INSTDIR\config.river" "Administrators" "FullAccess"
+    AccessControl::SetOnFile    "$INSTDIR\config.river" "SYSTEM" "FullAccess"
+    AccessControl::GrantOnFile  "$INSTDIR\config.river" "Everyone" "ListDirectory"
+    AccessControl::GrantOnFile  "$INSTDIR\config.river" "Everyone" "ReadAttributes"
     Return
 FunctionEnd
 
