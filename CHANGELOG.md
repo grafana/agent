@@ -41,6 +41,8 @@ v0.40.1 (2024-02-27)
 
 - Fix an issue where flow mode panics if the `logging` config block is given a `null` Loki receiver to write log entries to. (@rfratto)
 
+- Fix an issue where Loki could reject a batch of logs when structured metadata feature is used. (@thampiotr) 
+
 v0.40.0 (2024-02-27)
 --------------------
 
