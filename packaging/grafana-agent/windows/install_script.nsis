@@ -114,7 +114,12 @@ Function Install
     nsExec::ExecToLog 'sc stop "Grafana Agent"'
     Pop $0
     # Files for the install directory - to build the installer, these should be in the same directory as the install script (this file)
-    setOutPath $INSTDIR
+    IfFileExists "$INSTDIR" Exists NotExists
+    NotExists:
+        SetOutPath "$INSTDIR"
+        Call SetFolderPermissions
+    Exists:
+        SetOutPath "$INSTDIR"
     # Files added here should be removed by the uninstaller (see section "uninstall")
     file "grafana-agent-windows-amd64.exe"
     file "logo.ico"
@@ -201,7 +206,6 @@ FunctionEnd
 
 Function SetFolderPermissions
     # Set permissions on the install directory
-    SetOutPath $INSTDIR
     AccessControl::DisableFileInheritance $INSTDIR
     AccessControl::SetFileOwner $INSTDIR "Administrators"
     AccessControl::ClearOnFile  $INSTDIR "Administrators" "FullAccess"
