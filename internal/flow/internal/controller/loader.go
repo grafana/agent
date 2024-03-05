@@ -367,19 +367,27 @@ func (l *Loader) populateDeclareNodes(g *dag.Graph, declareBlocks []*ast.BlockSt
 			node.UpdateBlock(declareBlock)
 		} else {
 			node = NewDeclareNode(declareBlock)
-			if g.GetByID(node.NodeID()) != nil {
-				diags.Add(diag.Diagnostic{
-					Severity: diag.SeverityLevelError,
-					Message:  fmt.Sprintf("cannot add declare node %q; node with same ID already exists", node.NodeID()),
-				})
-				continue
-			}
 		}
 		l.componentNodeManager.customComponentReg.registerDeclare(declareBlock)
 		l.declareNodes[node.label] = node
 		g.Add(node)
 	}
 	return diags
+}
+
+// blockAlreadyDefined returns (diag, true) if the given id is already in the provided blockMap.
+// else it adds the block to the map and returns (empty diag, false).
+func blockAlreadyDefined(blockMap map[string]*ast.BlockStmt, id string, block *ast.BlockStmt) (diag.Diagnostic, bool) {
+	if orig, redefined := blockMap[id]; redefined {
+		return diag.Diagnostic{
+			Severity: diag.SeverityLevelError,
+			Message:  fmt.Sprintf("block %s already declared at %s", id, ast.StartPos(orig).Position()),
+			StartPos: block.NamePos.Position(),
+			EndPos:   block.NamePos.Add(len(id) - 1).Position(),
+		}, true
+	}
+	blockMap[id] = block
+	return diag.Diagnostic{}, false
 }
 
 // populateServiceNodes adds service nodes to the graph.
@@ -552,21 +560,6 @@ func (l *Loader) populateComponentNodes(g *dag.Graph, componentBlocks []*ast.Blo
 	}
 
 	return diags
-}
-
-// blockAlreadyDefined returns (diag, true) if the given id is already in the provided blockMap.
-// else it adds the block to the map and returns (empty diag, false).
-func blockAlreadyDefined(blockMap map[string]*ast.BlockStmt, id string, block *ast.BlockStmt) (diag.Diagnostic, bool) {
-	if orig, redefined := blockMap[id]; redefined {
-		return diag.Diagnostic{
-			Severity: diag.SeverityLevelError,
-			Message:  fmt.Sprintf("block %s already declared at %s", id, ast.StartPos(orig).Position()),
-			StartPos: block.NamePos.Position(),
-			EndPos:   block.NamePos.Add(len(id) - 1).Position(),
-		}, true
-	}
-	blockMap[id] = block
-	return diag.Diagnostic{}, false
 }
 
 // Wire up all the related nodes
