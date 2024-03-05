@@ -38,7 +38,7 @@ func (otlpHTTPExporterConverter) ConvertAndAppend(state *state, id component.Ins
 		switch val.(type) {
 		case auth.Handler:
 			if val != nil {
-				ext := state.lookupExtension(cfg.(*otlphttpexporter.Config).Auth.AuthenticatorID)
+				ext := state.LookupExtension(cfg.(*otlphttpexporter.Config).Auth.AuthenticatorID)
 				return common.CustomTokenizer{Expr: fmt.Sprintf("%s.%s.handler", strings.Join(ext.Name, "."), ext.Label)}
 			}
 		}

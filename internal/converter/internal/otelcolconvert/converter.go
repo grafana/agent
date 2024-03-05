@@ -183,7 +183,7 @@ func (state *state) nextInstances(c component.InstanceID, dataType component.Dat
 	}
 }
 
-func (state *state) lookupExtension(id component.ID) componentID {
+func (state *state) LookupExtension(id component.ID) componentID {
 	cid, ok := state.extensionLookup[id]
 	if !ok {
 		panic(fmt.Sprintf("no component name found for extension %q", id.Name()))

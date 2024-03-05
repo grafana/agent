@@ -178,6 +178,11 @@ func appendConfig(file *builder.File, cfg *otelcol.Config) diag.Diagnostics {
 		return diags
 	}
 
+	// We build the list of extensions 'activated' (defined in the service) as
+	// Flow components and keep a mapping of their OTel IDs to the blocks we've
+	// built.
+	// Since there's no concept of multiple extensions per group or telemetry
+	// signal, we can build them before iterating over the groups.
 	extensionTable := make(map[component.ID]componentID, len(cfg.Service.Extensions))
 
 	for _, ext := range cfg.Service.Extensions {
