@@ -101,3 +101,8 @@ func (im *ImportHTTP) Run(ctx context.Context) error {
 func (im *ImportHTTP) CurrentHealth() component.Health {
 	return im.managedRemoteHTTP.CurrentHealth()
 }
+
+// Update the evaluator.
+func (im *ImportHTTP) SetEval(eval *vm.Evaluator) {
+	im.eval = eval
+}
