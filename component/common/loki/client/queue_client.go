@@ -344,7 +344,7 @@ func (c *queueClient) appendSingleEntry(segmentNum int, lbs model.LabelSet, e lo
 
 	// If adding the entry to the batch will increase the size over the max
 	// size allowed, we do send the current batch and then create a new one
-	if batch.sizeBytesAfter(e.Line) > c.cfg.BatchSize {
+	if batch.sizeBytesAfter(e) > c.cfg.BatchSize {
 		c.sendQueue.enqueue(queuedBatch{
 			TenantID: tenantID,
 			Batch:    batch,
