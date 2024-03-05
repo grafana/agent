@@ -238,10 +238,14 @@ func TestMultiLabels(t *testing.T) {
 	require.True(t, contains([]discovery.Target{foundFiles[1]}, "t1.txt"))
 }
 
+// createComponent creates a component with the given paths and labels. The paths and excluded slices are zipped together
+// to create the set of targets to pass to the component.
 func createComponent(t *testing.T, dir string, paths []string, excluded []string) *Component {
 	return createComponentWithLabels(t, dir, paths, excluded, nil)
 }
 
+// createComponentWithLabels creates a component with the given paths and labels. The paths and excluded slices are
+// zipped together to create the set of targets to pass to the component.
 func createComponentWithLabels(t *testing.T, dir string, paths []string, excluded []string, labels map[string]string) *Component {
 	tPaths := make([]discovery.Target, 0)
 	for i, p := range paths {
