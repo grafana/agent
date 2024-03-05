@@ -26,6 +26,9 @@ Main (unreleased)
 
 - Fix an issue where Loki could reject a batch of logs when structured metadata feature is used. (@thampiotr)
 
+- Fix a duplicate metrics registration panic when recreating static
+  mode metric instance's write handler. (@rfratto, @hainenber)
+
 v0.40.1 (2024-02-27)
 --------------------
 
