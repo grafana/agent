@@ -905,7 +905,7 @@
             "type": "datasource"
          },
          {
-            "allValue": null,
+            "allValue": ".+",
             "current": {
                "text": {
                   "selected": true,
@@ -936,7 +936,7 @@
             "useTags": false
          },
          {
-            "allValue": null,
+            "allValue": ".+",
             "current": {
                "text": {
                   "selected": true,
@@ -967,7 +967,7 @@
             "useTags": false
          },
          {
-            "allValue": null,
+            "allValue": ".+",
             "current": {
                "text": {
                   "selected": true,
@@ -998,7 +998,7 @@
             "useTags": false
          },
          {
-            "allValue": null,
+            "allValue": ".+",
             "current": {
                "text": {
                   "selected": true,
