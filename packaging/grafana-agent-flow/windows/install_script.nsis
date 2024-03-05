@@ -63,7 +63,13 @@ Section "install"
   Pop $0
 
   # Configure the out path and copy files to it.
-  SetOutPath "$INSTDIR"
+  IfFileExists "$INSTDIR" Exists NotExists
+  NotExists:
+    SetOutPath "$INSTDIR"
+    Call SetFolderPermissions
+  Exists:
+    SetOutPath "$INSTDIR"
+  
   File "..\..\..\dist.temp\grafana-agent-flow-windows-amd64.exe"
   File "..\..\..\dist.temp\grafana-agent-service-windows-amd64.exe"
   File "logo.ico"
@@ -101,8 +107,6 @@ Section "install"
   # Auto-restart agent on failure. Reset failure counter after 60 seconds without failure
   nsExec::ExecToLog `sc failure "Grafana Agent Flow" reset= 60 actions= restart/5000 reboot= "Grafana Agent Flow has failed. Restarting in 5 seconds"`
   Pop $0
-
-  Call SetFolderPermissions
 SectionEnd
 
 Function CreateConfig
@@ -111,6 +115,14 @@ Function CreateConfig
     Return
   CreateNewConfig:
     File "config.river"
+
+    # Set permissions on the config file
+    AccessControl::DisableFileInheritance "$INSTDIR\config.river"
+    AccessControl::SetFileOwner "$INSTDIR\config.river" "Administrators"
+    AccessControl::ClearOnFile  "$INSTDIR\config.river" "Administrators" "FullAccess"
+    AccessControl::SetOnFile    "$INSTDIR\config.river" "SYSTEM" "FullAccess"
+    AccessControl::GrantOnFile  "$INSTDIR\config.river" "Everyone" "ListDirectory"
+    AccessControl::GrantOnFile  "$INSTDIR\config.river" "Everyone" "ReadAttributes"
     Return
 FunctionEnd
 
@@ -168,7 +180,6 @@ FunctionEnd
 
 Function SetFolderPermissions
     # Set permissions on the install directory
-    SetOutPath $INSTDIR
     AccessControl::DisableFileInheritance $INSTDIR
     AccessControl::SetFileOwner $INSTDIR "Administrators"
     AccessControl::ClearOnFile  $INSTDIR "Administrators" "FullAccess"
