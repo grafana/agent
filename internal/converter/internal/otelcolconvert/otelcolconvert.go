@@ -18,6 +18,7 @@ import (
 	"go.opentelemetry.io/collector/otelcol"
 	"go.opentelemetry.io/collector/processor"
 	"go.opentelemetry.io/collector/receiver"
+	"golang.org/x/exp/maps"
 )
 
 // This package is split into a set of [componentConverter] implementations
@@ -149,6 +150,19 @@ func appendConfig(file *builder.File, cfg *otelcol.Config) diag.Diagnostics {
 		diags.Add(diag.SeverityLevelCritical, fmt.Sprintf("failed to interpret config: %s", err))
 		return diags
 	}
+	// TODO(rfratto): should this be deduplicated to avoid creating factories
+	// twice?
+	converterTable := buildConverterTable()
+
+	// Connector components are defined on the top level of the OpenTelemetry
+	// config, but inside of the pipeline definitions they act like regular
+	// receiver and exporter component IDs.
+	// Connector components instances must _always_ be used both as an exporter
+	// _and_ a receiver for the signal types they're supporting.
+	//
+	// Since we want to construct them individually, we'll exclude them from
+	// the list of receivers and exporters manually.
+	connectorIDs := maps.Keys(cfg.Connectors)
 
 	// NOTE(rfratto): here, the same component ID will be instantiated once for
 	// every group it's in. This means that converting receivers in multiple
@@ -158,24 +172,25 @@ func appendConfig(file *builder.File, cfg *otelcol.Config) diag.Diagnostics {
 	// This isn't a problem in pure OpenTelemetry Collector because it internally
 	// deduplicates receiver instances, but since Flow don't have this logic we
 	// need to reject these kinds of configs for now.
-	if duplicateDiags := validateNoDuplicateReceivers(groups); len(duplicateDiags) > 0 {
+	if duplicateDiags := validateNoDuplicateReceivers(groups, connectorIDs); len(duplicateDiags) > 0 {
 		diags.AddAll(duplicateDiags)
 		return diags
 	}
 
-	// TODO(rfratto): should this be deduplicated to avoid creating factories
-	// twice?
-	converterTable := buildConverterTable()
-
 	for _, group := range groups {
+		receiverIDs := filterIDs(group.Receivers(), connectorIDs)
+		processorIDs := group.Processors()
+		exporterIDs := filterIDs(group.Exporters(), connectorIDs)
+
 		componentSets := []struct {
 			kind         component.Kind
 			ids          []component.ID
 			configLookup map[component.ID]component.Config
 		}{
-			{component.KindReceiver, group.Receivers(), cfg.Receivers},
-			{component.KindProcessor, group.Processors(), cfg.Processors},
-			{component.KindExporter, group.Exporters(), cfg.Exporters},
+			{component.KindReceiver, receiverIDs, cfg.Receivers},
+			{component.KindProcessor, processorIDs, cfg.Processors},
+			{component.KindExporter, exporterIDs, cfg.Exporters},
+			{component.KindConnector, connectorIDs, cfg.Connectors},
 		}
 
 		for _, componentSet := range componentSets {
@@ -211,13 +226,14 @@ func appendConfig(file *builder.File, cfg *otelcol.Config) diag.Diagnostics {
 // in two different pipeline groups. This is required because Flow does not
 // allow the same receiver to be instantiated more than once, while this is
 // fine in OpenTelemetry due to internal deduplication rules.
-func validateNoDuplicateReceivers(groups []pipelineGroup) diag.Diagnostics {
+func validateNoDuplicateReceivers(groups []pipelineGroup, connectorIDs []component.ID) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	usedReceivers := make(map[component.ID]struct{})
 
 	for _, group := range groups {
-		for _, receiver := range group.Receivers() {
+		receiverIDs := filterIDs(group.Receivers(), connectorIDs)
+		for _, receiver := range receiverIDs {
 			if _, found := usedReceivers[receiver]; found {
 				diags.Add(diag.SeverityLevelCritical, fmt.Sprintf(
 					"the configuration is unsupported because the receiver %q is used across multiple pipelines with distinct names",
@@ -246,10 +262,34 @@ func buildConverterTable() map[converterKey]componentConverter {
 			table[converterKey{Kind: component.KindExporter, Type: fact.Type()}] = conv
 		case connector.Factory:
 			table[converterKey{Kind: component.KindConnector, Type: fact.Type()}] = conv
+			// We need this so the connector is available as a destination for state.Next
+			table[converterKey{Kind: component.KindExporter, Type: fact.Type()}] = conv
+			// Technically, this isn't required to be here since the entry
+			// won't be required to look up a destination for state.Next, but
+			// adding to reinforce the idea of how connectors are used.
+			table[converterKey{Kind: component.KindReceiver, Type: fact.Type()}] = conv
 		case extension.Factory:
 			table[converterKey{Kind: component.KindExtension, Type: fact.Type()}] = conv
 		}
 	}
 
 	return table
+}
+
+func filterIDs(in []component.ID, rem []component.ID) []component.ID {
+	var res []component.ID
+
+	for _, set := range in {
+		exists := false
+		for _, id := range rem {
+			if set == id {
+				exists = true
+			}
+		}
+		if !exists {
+			res = append(res, set)
+		}
+	}
+
+	return res
 }
