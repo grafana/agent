@@ -8,6 +8,9 @@ changes that impact end-user behavior are listed; changes to documentation or
 internal API changes are not present.
 
 
+v0.40.2 (2024-03-05)
+--------------------
+
 ### Bugfixes
 
 - Set permissions on the `Grafana Agent [Flow]` folder when installing via the
@@ -19,6 +22,10 @@ internal API changes are not present.
 
 - Fix a duplicate metrics registration panic when recreating static
   mode metric instance's write handler. (@rfratto, @hainenber)
+
+### Other changes
+
+- Change the Docker base image for Linux containers to `public.ecr.aws/ubuntu/ubuntu:mantic`. (@hainenber)
 
 v0.40.1 (2024-02-27)
 --------------------
