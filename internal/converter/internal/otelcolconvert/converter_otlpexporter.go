@@ -37,10 +37,8 @@ func (otlpExporterConverter) ConvertAndAppend(state *state, id component.Instanc
 	overrideHook := func(val interface{}) interface{} {
 		switch val.(type) {
 		case auth.Handler:
-			if val != nil {
-				ext := state.LookupExtension(cfg.(*otlpexporter.Config).Auth.AuthenticatorID)
-				return common.CustomTokenizer{Expr: fmt.Sprintf("%s.%s.handler", strings.Join(ext.Name, "."), ext.Label)}
-			}
+			ext := state.LookupExtension(cfg.(*otlpexporter.Config).Auth.AuthenticatorID)
+			return common.CustomTokenizer{Expr: fmt.Sprintf("%s.%s.handler", strings.Join(ext.Name, "."), ext.Label)}
 		}
 		return val
 	}
