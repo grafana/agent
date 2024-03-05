@@ -15,6 +15,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/KimMachineGun/automemlimit/memlimit"
 	"github.com/fatih/color"
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/internal/agentseed"
@@ -137,6 +138,7 @@ depending on the nature of the reload error.
 		BoolVar(&r.disableReporting, "disable-reporting", r.disableReporting, "Disable reporting of enabled components to Grafana.")
 	cmd.Flags().StringVar(&r.storagePath, "storage.path", r.storagePath, "Base directory where components can store data")
 	cmd.Flags().Var(&r.minStability, "stability.level", fmt.Sprintf("Minimum stability level of features to enable. Supported values: %s", strings.Join(featuregate.AllowedValues(), ", ")))
+	cmd.Flags().BoolVar(&r.enableAutoMem, "memory.auto-limit", true, "Enable the automatic setting of memory limit")
 	return cmd
 }
 
@@ -160,6 +162,7 @@ type flowRun struct {
 	configFormat                 string
 	configBypassConversionErrors bool
 	configExtraArgs              string
+	enableAutoMem                bool
 }
 
 func (fr *flowRun) Run(configPath string) error {
@@ -221,6 +224,10 @@ func (fr *flowRun) Run(configPath string) error {
 		reload func() (*flow.Source, error)
 		ready  func() bool
 	)
+
+	if fr.enableAutoMem {
+		memlimit.SetGoMemLimitWithEnv()
+	}
 
 	clusterService, err := buildClusterService(clusterOptions{
 		Log:     l,

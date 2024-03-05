@@ -64,6 +64,7 @@ The following flags are supported:
 * `--config.format`: The format of the source file. Supported formats: `flow`, `prometheus`, `promtail`, `static` (default `"flow"`).
 * `--config.bypass-conversion-errors`: Enable bypassing errors when converting (default `false`).
 * `--config.extra-args`: Extra arguments from the original format used by the converter.
+* `--memory.auto-limit`: Enables the automatic setting of memory limit if using cgroups (default `true`).
 
 [in-memory HTTP traffic]: {{< relref "../../concepts/component_controller.md#in-memory-traffic" >}}
 [data collection]: {{< relref "../../../data-collection" >}}

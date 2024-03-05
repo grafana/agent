@@ -9,6 +9,7 @@ import (
 	"testing"
 	"unicode"
 
+	"github.com/KimMachineGun/automemlimit/memlimit"
 	"github.com/drone/envsubst/v2"
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
@@ -442,6 +443,7 @@ func LoadFromFunc(fs *flag.FlagSet, args []string, loader loaderFunc) (*Config, 
 		configExpandEnv       bool
 		disableReporting      bool
 		disableSupportBundles bool
+		enableAutomem         bool
 	)
 
 	fs.StringVar(&file, "config.file", "", "configuration file to load")
@@ -450,6 +452,7 @@ func LoadFromFunc(fs *flag.FlagSet, args []string, loader loaderFunc) (*Config, 
 	fs.BoolVar(&configExpandEnv, "config.expand-env", false, "Expands ${var} in config according to the values of the environment variables.")
 	fs.BoolVar(&disableReporting, "disable-reporting", false, "Disable reporting of enabled feature flags to Grafana.")
 	fs.BoolVar(&disableSupportBundles, "disable-support-bundle", false, "Disable functionality for generating support bundles.")
+	fs.BoolVar(&enableAutomem, "memory.auto-limit", true, "Enable the automatic setting of memory limit")
 	cfg.RegisterFlags(fs)
 
 	features.Register(fs, allFeatures)
@@ -487,6 +490,9 @@ func LoadFromFunc(fs *flag.FlagSet, args []string, loader loaderFunc) (*Config, 
 
 	if disableSupportBundles {
 		cfg.DisableSupportBundle = true
+	}
+	if enableAutomem {
+		memlimit.SetGoMemLimitWithEnv()
 	}
 
 	// Finally, apply defaults to config that wasn't specified by file or flag

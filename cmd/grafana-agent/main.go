@@ -25,9 +25,6 @@ import (
 	// Embed a set of fallback X.509 trusted roots
 	// Allows the app to work correctly even when the OS does not provide a verifier or systems roots pool
 	_ "golang.org/x/crypto/x509roots/fallback"
-
-	// Allows an automemlimit to be setup based on cgroups, if none are available it does nothing.
-	_ "github.com/KimMachineGun/automemlimit"
 )
 
 func init() {

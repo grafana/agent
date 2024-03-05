@@ -146,6 +146,11 @@ YAML configuration when the `-server.http.tls-enabled` flag is used.
 
 * `-metrics.wal-directory`: Directory to store the metrics Write-Ahead Log in
 
+## Other
+
+* `-memory.auto-limit` This value automatically sets the memory limit if using cgroups. Does nothing if not available.
+Defaults to true.
+
 {{% docs/reference %}}
 [retrieving]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static/configuration#remote-configuration-experimental"
 [retrieving]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/static/configuration#remote-configuration-experimental"
