@@ -10,6 +10,41 @@ internal API changes are not present.
 Unreleased
 ----------
 
+0.35.0 (2024-02-27)
+-------------------
+
+### Enhancements
+
+- Update Grafana Agent version to v0.40.1. (@rfratto)
+
+0.34.0 (2024-02-27)
+-------------------
+
+### Enhancements
+
+- Update Grafana Agent version to v0.40.0. (@jcreixell)
+
+0.33.0 (2024-02-20)
+-------------------
+
+### Features
+
+- Add HPA behavior support for scaling up and down. (@wildum)
+
+### Enhancements
+
+- Allow setting tlsConfig for serviceMonitor (@captncraig)
+- Allow setting internalTrafficPolicy for service (@captncraig)
+
+0.32.0 (2024-02-15)
+-------------------
+
+### Enhancements
+
+- Allow setting scheme for readiness checks when using tls. (@captncraig)
+
+- Update Grafana Agent version to v0.39.2. (@captncraig)
+
 0.31.1 (2024-01-19)
 -------------------
 

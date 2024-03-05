@@ -155,6 +155,8 @@ Function Install
     # Auto-restart agent on failure. Reset failure counter after 60 seconds without failure
     nsExec::ExecToLog `sc failure "Grafana Agent" reset= 60 actions= restart/5000 reboot= "Grafana Agent has failed. Restarting in 5 seconds"`
     Pop $0
+
+    Call SetFolderPermissions
 FunctionEnd
 
 Function WriteConfig
@@ -187,6 +189,19 @@ Function WriteConfig
         ${EndIf}
         FileClose $9 # and close the file
         Return
+FunctionEnd
+
+Function SetFolderPermissions
+    # Set permissions on the install directory
+    SetOutPath $INSTDIR
+    AccessControl::DisableFileInheritance $INSTDIR
+    AccessControl::SetFileOwner $INSTDIR "Administrators"
+    AccessControl::ClearOnFile  $INSTDIR "Administrators" "FullAccess"
+    AccessControl::SetOnFile    $INSTDIR "SYSTEM" "FullAccess"
+    AccessControl::GrantOnFile  $INSTDIR "Everyone" "ListDirectory"
+    AccessControl::GrantOnFile  $INSTDIR "Everyone" "GenericExecute"
+    AccessControl::GrantOnFile  $INSTDIR "Everyone" "GenericRead"
+    AccessControl::GrantOnFile  $INSTDIR "Everyone" "ReadAttributes"
 FunctionEnd
 
 # Uninstaller
@@ -229,6 +244,7 @@ Section "uninstall"
 
     RMDir /r $APPDATA\grafana-agent-wal
 
-    # Remove uninstaller information from the registry
-    DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}"
+    # Remove service and uninstaller information from the registry.
+    nsExec::ExecToLog 'Reg.exe delete "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}"  /reg:64 /f'
+    Pop $0
 SectionEnd

@@ -53,6 +53,9 @@ agent:
   # -- Port to listen for traffic on.
   listenPort: 80
 
+  # -- Scheme is needed for readiness probes. If enabling tls in your configs, set to "HTTPS"
+  listenScheme: HTTP
+
   # --  Base path where the UI is exposed.
   uiPathPrefix: /
 
@@ -206,6 +209,28 @@ controller:
     # -- Average Memory utilization across all relevant pods, a percentage of the requested value of the resource for the pods. Setting `targetMemoryUtilizationPercentage` to 0 will disable Memory scaling.
     targetMemoryUtilizationPercentage: 80
 
+    scaleDown:
+      # -- List of policies to determine the scale-down behavior.
+      policies: []
+        # - type: Pods
+        #   value: 4
+        #   periodSeconds: 60
+      # -- Determines which of the provided scaling-down policies to apply if multiple are specified.
+      selectPolicy: Max
+      # -- The duration that the autoscaling mechanism should look back on to make decisions about scaling down.
+      stabilizationWindowSeconds: 300
+
+    scaleUp:
+      # -- List of policies to determine the scale-up behavior.
+      policies: []
+        # - type: Pods
+        #   value: 4
+        #   periodSeconds: 60
+      # -- Determines which of the provided scaling-up policies to apply if multiple are specified.
+      selectPolicy: Max
+      # -- The duration that the autoscaling mechanism should look back on to make decisions about scaling up.
+      stabilizationWindowSeconds: 0
+
   # -- Affinity configuration for pods.
   affinity: {}
 
@@ -231,6 +256,8 @@ service:
   type: ClusterIP
   # -- Cluster IP, can be set to None, empty "" or an IP address
   clusterIP: ''
+  # -- Value for internal traffic policy. 'Cluster' or 'Local'
+  internalTrafficPolicy: Cluster
   annotations: {}
     # cloud.google.com/load-balancer-type: Internal
 
@@ -247,6 +274,9 @@ serviceMonitor:
   #   regex: 'kube_(daemonset|deployment|pod|namespace|node|statefulset).+'
   #   sourceLabels: [__name__]
 
+  # -- Customize tls parameters for the service monitor
+  tlsConfig: {}
+
   # -- RelabelConfigs to apply to samples before scraping
   # ref: https://github.com/prometheus-operator/prometheus-operator/blob/main/Documentation/api.md#relabelconfig
   relabelings: []
@@ -256,7 +286,6 @@ serviceMonitor:
   #   targetLabel: nodename
   #   replacement: $1
   #   action: replace
-
 ingress:
   # -- Enables ingress for the agent (faro port)
   enabled: false

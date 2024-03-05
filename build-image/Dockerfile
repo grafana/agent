@@ -4,6 +4,10 @@
 # default when running `docker buildx build` or when DOCKER_BUILDKIT=1 is set
 # in environment variables.
 
+# NOTE: The GO_RUNTIME is used to switch between the default google go runtime and  mcr.microsoft.com/oss/go/microsoft/golang:1.22-bullseye which is a microsoft
+# fork of go that allows using windows crypto instead of boring crypto. Details at https://github.com/microsoft/go/tree/microsoft/main/eng/doc/fips
+ARG GO_RUNTIME=mustoverride
+
 #
 # Dependencies
 #
@@ -22,8 +26,15 @@ RUN apk add --no-cache docker-cli docker-cli-buildx
 FROM alpine:3.17 as helm
 RUN apk add --no-cache helm
 
+# Dependency: nsis (for building Windows installers)
+FROM alpine:3.17 as nsis
+RUN wget -nv https://nsis.sourceforge.io/mediawiki/images/4/4a/AccessControl.zip \
+ && unzip AccessControl.zip -d /usr/share/nsis/ \
+ && mkdir -p /usr/share/nsis/Plugins/x86-unicode \
+ && cp /usr/share/nsis/Plugins/i386-unicode/AccessControl.dll /usr/share/nsis/Plugins/x86-unicode/
+
 # Dependency: Go and Go dependencies
-FROM golang:1.21.4-bullseye as golang
+FROM ${GO_RUNTIME} as golang
 
 # Keep in sync with cmd/grafana-agent-operator/DEVELOPERS.md
 ENV CONTROLLER_GEN_VERSION v0.9.2
@@ -82,12 +93,13 @@ RUN apt-get update                                \
  && gem install --no-document fpm                 \
  && rm -rf /var/lib/apt/lists/*
 
-COPY --from=golangci /bin/golangci-lint              /usr/local/bin
-COPY --from=docker   /usr/bin/docker                 /usr/bin/docker
-COPY --from=docker   /usr/libexec/docker/cli-plugins /usr/libexec/docker/cli-plugins
-COPY --from=helm     /usr/bin/helm                   /usr/bin/helm
-COPY --from=golang   /usr/local/go                   /usr/local/go
-COPY --from=golang   /go/bin                         /go/bin
+COPY --from=golangci /bin/golangci-lint                  /usr/local/bin
+COPY --from=docker   /usr/bin/docker                     /usr/bin/docker
+COPY --from=docker   /usr/libexec/docker/cli-plugins     /usr/libexec/docker/cli-plugins
+COPY --from=helm     /usr/bin/helm                       /usr/bin/helm
+COPY --from=nsis     /usr/share/nsis/Plugins/x86-unicode /usr/share/nsis/Plugins/x86-unicode
+COPY --from=golang   /usr/local/go                       /usr/local/go
+COPY --from=golang   /go/bin                             /go/bin
 
 # Git tries to prevent misuse of repositories (CVE-2022-24765), but we don't
 # care about this for build containers, where it's expected that the repository
