@@ -160,8 +160,6 @@ Function Install
     # Auto-restart agent on failure. Reset failure counter after 60 seconds without failure
     nsExec::ExecToLog `sc failure "Grafana Agent" reset= 60 actions= restart/5000 reboot= "Grafana Agent has failed. Restarting in 5 seconds"`
     Pop $0
-
-    Call SetFolderPermissions
 FunctionEnd
 
 Function WriteConfig
