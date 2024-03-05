@@ -308,7 +308,7 @@ func (c *client) run() {
 
 			// If adding the entry to the batch will increase the size over the max
 			// size allowed, we do send the current batch and then create a new one
-			if batch.sizeBytesAfter(e.Line) > c.cfg.BatchSize {
+			if batch.sizeBytesAfter(e.Entry) > c.cfg.BatchSize {
 				c.sendBatch(tenantID, batch)
 
 				batches[tenantID] = newBatch(c.maxStreams, e)
