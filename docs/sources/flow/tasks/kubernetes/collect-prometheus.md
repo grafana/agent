@@ -14,6 +14,9 @@ weight: 100
 # Collect Prometheus metrics on Kubernetes
 
 TODO:
+- Methodology overview
+- If you want instead to write your own config, see this other link
 - Installing Helm chart as a StatefulSet with all the required modifications for metrics collection
 - Configuring the Agent to use the kubernets module for metrics collection (via annotations)
 - Enabling some basic metrics collection annotations and a linl to the full documentation of the module
+- Link to module docs for more advanced configuration
