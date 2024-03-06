@@ -27,33 +27,13 @@ These instructions show you how to install using our generic [Helm chart](https:
 You can deploy {{< param "PRODUCT_ROOT_NAME" >}} either in static mode or flow mode. The Helm chart deploys {{< param "PRODUCT_NAME" >}} by default.
 {{< /admonition >}}
 
-## Dedicated guides
-
-We recommend using our dedicated guides for each telemetry signal to deploy a 
-production-ready {{< param "PRODUCT_NAME" >}} on Kubernetes:
-
-* For Prometheus metrics, follow our dedicated [collect Prometheus metrics on Kubernetes][collect-prometheus] guide.
-* For Loki logs, follow our dedicated [collect Loki logs on Kubernetes][collect-logs] guide.
-* For anything else, follow the [generic Helm installation](#generic-helm-installation) instructions below.
-
-[collect-prometheus]: {{< relref "../../tasks/kubernetes/collect-prometheus.md" >}}
-[collect-logs]: {{< relref "../../tasks/kubernetes/collect-logs.md" >}}
-
-If you want to collect multiple types of telemetry, we recommend deploying separate  
-{{< param "PRODUCT_NAME" >}} workloads for each telemetry type to maintain
-separation of concerns.
-
-## Generic Helm installation
-
-Follow the instructions below to deploy {{< param "PRODUCT_NAME" >}} on Kubernetes using Helm.
-
-### Before you begin
+## Before you begin
 
 * Install [Helm][] on your computer.
 * Configure a Kubernetes cluster that you can use for {{< param "PRODUCT_NAME" >}}.
 * Configure your local Kubernetes context to point to the cluster.
 
-### Deploy
+## Deploy
 
 To deploy {{< param "PRODUCT_ROOT_NAME" >}} on Kubernetes using Helm, run the following commands in a terminal window:
 
@@ -104,7 +84,7 @@ You have now successfully deployed {{< param "PRODUCT_NAME" >}} on Kubernetes,
 using default Helm settings. In order to configure {{< param "PRODUCT_NAME" >}},
 see the [Configure {{< param "PRODUCT_NAME" >}} on Kubernetes][Configure] guide.
 
-### Next steps
+## Next steps
 
 - [Configure {{< param "PRODUCT_NAME" >}} on Kubernetes][Configure]
 

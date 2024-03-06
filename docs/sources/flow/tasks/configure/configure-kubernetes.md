@@ -27,9 +27,14 @@ when running on Kubernetes with the Helm chart. It assumes that:
   want to apply to your Helm chart installation.
 
 If instead you're looking for help in configuring {{< param "PRODUCT_NAME" >}} to perform a specific task,
-for example, to collect and store a specific telemetry signal, check out the [Kubernetes tasks section][k8s-tasks].
+consult the following guides instead:
+- [Collect and forward Prometheus metrics][prometheus],
+- [Collect OpenTelemetry data][otel],
+- or the [tasks section][tasks] for all the remaining configuration guides.
 
-[k8s-tasks]: {{< relref "../kubernetes/" >}}
+[prometheus]: {{< relref "../collect-prometheus-metrics.md" >}}
+[otel]: {{< relref "../collect-opentelemetry-data.md" >}}
+[tasks]: {{< relref "../" >}}
 [k8s-install]: {{< relref "../../get-started/install/kubernetes" >}}
 
 ## Configure the Helm chart
