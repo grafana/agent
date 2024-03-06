@@ -126,11 +126,6 @@ func (f *Flow) getComponentDetail(cn controller.ComponentNode, graph *dag.Graph,
 		if opts.GetDebugInfo {
 			componentInfo.DebugInfo = builtinComponent.DebugInfo()
 		}
-	} else {
-		if dc, ok := cn.(interface{ DebugInfo() interface{} }); opts.GetDebugInfo && ok {
-			componentInfo.DebugInfo = dc.DebugInfo()
-		}
-
 	}
 	return componentInfo
 }
