@@ -1089,50 +1089,6 @@ volumes:
   name: docker
 ---
 kind: pipeline
-name: Publish Linux agent-nonroot container
-platform:
-  arch: amd64
-  os: linux
-steps:
-- commands:
-  - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-  failure: ignore
-  image: grafana/agent-build-image:0.33.0
-  name: Configure QEMU
-  volumes:
-  - name: docker
-    path: /var/run/docker.sock
-- commands:
-  - mkdir -p $HOME/.docker
-  - printenv GCR_CREDS > $HOME/.docker/config.json
-  - docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD
-  - docker buildx create --name multiarch-agent-agent-nonroot-${DRONE_COMMIT_SHA}
-    --driver docker-container --use
-  - ./tools/ci/docker-containers agent-nonroot
-  - docker buildx rm multiarch-agent-agent-nonroot-${DRONE_COMMIT_SHA}
-  environment:
-    DOCKER_LOGIN:
-      from_secret: docker_login
-    DOCKER_PASSWORD:
-      from_secret: docker_password
-    GCR_CREDS:
-      from_secret: gcr_admin
-  image: grafana/agent-build-image:0.33.0
-  name: Publish container
-  volumes:
-  - name: docker
-    path: /var/run/docker.sock
-trigger:
-  ref:
-  - refs/heads/main
-  - refs/tags/v*
-type: docker
-volumes:
-- host:
-    path: /var/run/docker.sock
-  name: docker
----
-kind: pipeline
 name: Publish Windows agent container
 platform:
   arch: amd64
@@ -1195,7 +1151,6 @@ depends_on:
 - Publish Linux agent-boringcrypto container
 - Publish Linux agentctl container
 - Publish Linux agent-operator container
-- Publish Linux agent-nonroot container
 image_pull_secrets:
 - dockerconfigjson
 kind: pipeline
@@ -1255,7 +1210,6 @@ depends_on:
 - Publish Linux agent-boringcrypto container
 - Publish Linux agentctl container
 - Publish Linux agent-operator container
-- Publish Linux agent-nonroot container
 - Publish Windows agent container
 - Publish Windows agentctl container
 image_pull_secrets:
@@ -1415,6 +1369,6 @@ kind: secret
 name: updater_private_key
 ---
 kind: signature
-hmac: 84c5f0f363a993ff68d1ad340d04a1ec401509db8a138149329a08ae24c1b2b2
+hmac: 516cf024f67438d4e3b473cfebc9472b33132bfd92883b858e4a64c7959b7dbe
 
 ...

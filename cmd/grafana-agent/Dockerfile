@@ -32,6 +32,10 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
 
 FROM public.ecr.aws/ubuntu/ubuntu:mantic
 
+#Username and uid for grafana-agent user
+ARG UID=473
+ARG USERNAME="grafana-agent"
+
 LABEL org.opencontainers.image.source="https://github.com/grafana/agent"
 
 # Install dependencies needed at runtime.
@@ -44,15 +48,11 @@ EOF
 COPY --from=build /src/agent/build/grafana-agent /bin/grafana-agent
 COPY cmd/grafana-agent/agent-local-config.yaml /etc/agent/agent.yaml
 
-ARG UID=0
-ARG GF_UID=473
-ARG GF_UNAME="grafana-agent"
-
-RUN groupadd --gid $GF_UID $GF_UNAME
-RUN useradd -m -u $GF_UID -g $GF_UID $GF_UNAME
-RUN chown -R $GF_UNAME:$GF_UNAME /etc/agent
-RUN chown -R $GF_UNAME:$GF_UNAME /bin/grafana-agent
-USER $UID:$UID
+# Create grafana-agent user in container, but do not set it as default
+RUN groupadd --gid $UID $USERNAME
+RUN useradd -m -u $UID -g $UID $USERNAME
+RUN chown -R $USERNAME:$USERNAME /etc/agent
+RUN chown -R $USERNAME:$USERNAME /bin/grafana-agent
 
 ENTRYPOINT ["/bin/grafana-agent"]
 ENV AGENT_DEPLOY_MODE=docker
