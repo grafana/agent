@@ -21,6 +21,10 @@ Main (unreleased)
 
 - Fix an issue where JSON string array elements were not parsed correctly in `loki.source.cloudflare`. (@thampiotr)
 
+### Other changes
+
+- Clustering for Grafana Agent in Flow mode has graduated from beta to stable.
+
 v0.40.2 (2024-03-05)
 --------------------
 
