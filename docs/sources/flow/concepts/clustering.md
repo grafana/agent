@@ -6,14 +6,12 @@ aliases:
 - /docs/grafana-cloud/send-data/agent/flow/concepts/clustering/
 canonical: https://grafana.com/docs/agent/latest/flow/concepts/clustering/
 description: Learn about Grafana Agent clustering concepts
-labels:
-  stage: beta
 menuTitle: Clustering
-title: Clustering (beta)
+title: Clustering
 weight: 500
 ---
 
-# Clustering (beta)
+# Clustering
 
 Clustering enables a fleet of {{< param "PRODUCT_ROOT_NAME" >}}s to work together for workload distribution and high availability.
 It helps create horizontally scalable deployments with minimal resource and operational overhead.
@@ -66,8 +64,8 @@ You can use the {{< param "PRODUCT_NAME" >}} UI [clustering page][] to monitor y
 Refer to [Debugging clustering issues][debugging] for additional troubleshooting information.
 
 {{% docs/reference %}}
-[run]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/cli/run.md#clustering-beta"
-[run]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/cli/run.md#clustering-beta"
+[run]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/cli/run.md#clustering"
+[run]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/cli/run.md#clustering"
 [prometheus.scrape]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/prometheus.scrape.md#clustering-beta"
 [prometheus.scrape]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/components/prometheus.scrape.md#clustering-beta"
 [pyroscope.scrape]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/pyroscope.scrape.md#clustering-beta"
