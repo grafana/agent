@@ -19,14 +19,18 @@ weight: 200
 
 # Configure {{% param "PRODUCT_NAME" %}} on Kubernetes
 
-This page describes how to apply a new configuration to {{< param "PRODUCT_NAME" >}} 
-when running on Kubernetes with the Helm chart. It assumes that you already have a new configuration that you 
-want to apply to your Helm chart installation. 
+This page describes how to apply a new configuration to {{< param "PRODUCT_NAME" >}}
+when running on Kubernetes with the Helm chart. It assumes that:
+
+- You have [installed {{< param "PRODUCT_NAME" >}} on Kubernetes using the Helm chart][k8s-install].
+- You already have a new {{< param "PRODUCT_NAME" >}} configuration that you
+  want to apply to your Helm chart installation.
 
 If instead you're looking for help in configuring {{< param "PRODUCT_NAME" >}} to perform a specific task,
 for example, to collect and store a specific telemetry signal, check out the [Kubernetes tasks section][k8s-tasks].
 
 [k8s-tasks]: {{< relref "../kubernetes/" >}}
+[k8s-install]: {{< relref "../../get-started/install/kubernetes" >}}
 
 ## Configure the Helm chart
 
@@ -34,8 +38,8 @@ To modify {{< param "PRODUCT_NAME" >}}'s Helm chart configuration, perform the f
 
 1. Create a local `values.yaml` file with a new Helm chart configuration.
 
-   1. You can create a copy of the values file that you used previously
-      or download a copy of the default [values.yaml][].
+   1. You can use your own copy of the values file or download a copy of the
+      default [values.yaml][].
 
    1. Make changes to your `values.yaml` to customize settings for the
       Helm chart.
