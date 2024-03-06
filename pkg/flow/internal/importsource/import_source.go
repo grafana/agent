@@ -15,17 +15,13 @@ const (
 	String
 	Git
 	HTTP
-	Dir
-	K8s
 )
 
 const (
-	BlockImportFile      = "import.file"
-	BlockImportString    = "import.string"
-	BlockImportHTTP      = "import.http"
-	BlockImportGit       = "import.git"
-	BlockImportDir       = "import.dir"
-	BlockImportConfigMap = "import.k8s"
+	BlockImportFile   = "import.file"
+	BlockImportString = "import.string"
+	BlockImportHTTP   = "import.http"
+	BlockImportGit    = "import.git"
 )
 
 // ImportSource retrieves a module from a source.
@@ -50,8 +46,6 @@ func NewImportSource(sourceType SourceType, managedOpts component.Options, eval 
 		return NewImportHTTP(managedOpts, eval, onContentChange)
 	case Git:
 		return NewImportGit(managedOpts, eval, onContentChange)
-	case Dir:
-		return NewImportDir(managedOpts, eval, onContentChange)
 	}
 	panic(fmt.Errorf("unsupported source type: %v", sourceType))
 }
@@ -67,8 +61,6 @@ func GetSourceType(fullName string) SourceType {
 		return HTTP
 	case BlockImportGit:
 		return Git
-	case BlockImportDir:
-		return Dir
 	}
 	panic(fmt.Errorf("name does not map to a known source type: %v", fullName))
 }
