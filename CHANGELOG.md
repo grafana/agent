@@ -17,6 +17,10 @@ Main (unreleased)
 
 - A new `loki.rules.kubernetes` component that discovers `PrometheusRule` Kubernetes resources and loads them into a Loki Ruler instance. (@EStork09)
 
+### Bugfixes
+
+- Fix an issue where JSON string array elements were not parsed correctly in `loki.source.cloudflare`. (@thampiotr)
+
 v0.40.2 (2024-03-05)
 --------------------
 
@@ -33,6 +37,7 @@ v0.40.2 (2024-03-05)
 
 - Fix an issue where Loki could reject a batch of logs when structured metadata feature is used. (@thampiotr)
 
+=======
 - Fix a duplicate metrics registration panic when recreating static
   mode metric instance's write handler. (@rfratto, @hainenber)
 
