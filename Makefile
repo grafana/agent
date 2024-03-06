@@ -35,6 +35,7 @@
 ##   images                   Builds all Docker images.
 ##   agent-image              Builds agent Docker image.
 ##   agent-boringcrypto-image Builds agent Docker image with boringcrypto.
+##   agent-nonroot-image      Builds agent Docker image with non-root uid.
 ##   agentctl-image           Builds agentctl Docker image.
 ##   operator-image           Builds operator Docker image.
 ##
@@ -95,6 +96,7 @@ include tools/make/*.mk
 
 AGENT_IMAGE                             ?= grafana/agent:latest
 AGENT_BORINGCRYPTO_IMAGE                ?= grafana/agent-boringcrypto:latest
+AGENT_NONROOT_IMAGE                     ?= grafana/agent-nonroot:latest
 AGENTCTL_IMAGE                          ?= grafana/agentctl:latest
 OPERATOR_IMAGE                          ?= grafana/agent-operator:latest
 AGENT_BINARY                            ?= build/grafana-agent
@@ -249,7 +251,7 @@ DOCKER_FLAGS += --platform=$(DOCKER_PLATFORM)
 endif
 
 .PHONY: images agent-image agentctl-image operator-image
-images: agent-image agentctl-image operator-image
+images: agent-image agentctl-image operator-image agent-nonroot-image agent-boringcrypto-image
 
 agent-image:
 	DOCKER_BUILDKIT=1 docker build $(DOCKER_FLAGS) -t $(AGENT_IMAGE) -f cmd/grafana-agent/Dockerfile .
@@ -257,6 +259,8 @@ agentctl-image:
 	DOCKER_BUILDKIT=1 docker build $(DOCKER_FLAGS) -t $(AGENTCTL_IMAGE) -f cmd/grafana-agentctl/Dockerfile .
 agent-boringcrypto-image:
 	DOCKER_BUILDKIT=1 docker build $(DOCKER_FLAGS) --build-arg GOEXPERIMENT=boringcrypto -t $(AGENT_BORINGCRYPTO_IMAGE) -f cmd/grafana-agent/Dockerfile .
+agent-nonroot-image:
+	DOCKER_BUILDKIT=1 docker build $(DOCKER_FLAGS) --build-arg UID=473 -t $(AGENT_NONROOT_IMAGE) -f cmd/grafana-agent/Dockerfile .
 operator-image:
 	DOCKER_BUILDKIT=1 docker build $(DOCKER_FLAGS) -t $(OPERATOR_IMAGE) -f cmd/grafana-agent-operator/Dockerfile .
 

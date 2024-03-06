@@ -44,6 +44,15 @@ EOF
 COPY --from=build /src/agent/build/grafana-agent /bin/grafana-agent
 COPY cmd/grafana-agent/agent-local-config.yaml /etc/agent/agent.yaml
 
+ARG UID=0
+ARG GF_UID=473
+ARG GF_UNAME="grafana-agent"
+
+RUN groupadd --gid $GF_UID $GF_UNAME
+RUN useradd -m -u $GF_UID -g $GF_UID $GF_UNAME
+RUN chown -R $GF_UNAME:$GF_UNAME /etc/agent
+RUN chown -R $GF_UNAME:$GF_UNAME /bin/grafana-agent
+USER $UID:$UID
 
 ENTRYPOINT ["/bin/grafana-agent"]
 ENV AGENT_DEPLOY_MODE=docker
