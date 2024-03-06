@@ -58,3 +58,8 @@ func (im *ImportString) CurrentHealth() component.Health {
 		Health: component.HealthTypeHealthy,
 	}
 }
+
+// Update the evaluator.
+func (im *ImportString) SetEval(eval *vm.Evaluator) {
+	im.eval = eval
+}

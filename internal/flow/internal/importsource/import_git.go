@@ -254,3 +254,8 @@ func (im *ImportGit) CurrentHealth() component.Health {
 	defer im.healthMut.RUnlock()
 	return im.health
 }
+
+// Update the evaluator.
+func (im *ImportGit) SetEval(eval *vm.Evaluator) {
+	im.eval = eval
+}

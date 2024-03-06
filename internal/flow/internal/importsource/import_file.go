@@ -96,3 +96,8 @@ func (im *ImportFile) Run(ctx context.Context) error {
 func (im *ImportFile) CurrentHealth() component.Health {
 	return im.fileComponent.CurrentHealth()
 }
+
+// Update the evaluator.
+func (im *ImportFile) SetEval(eval *vm.Evaluator) {
+	im.eval = eval
+}
