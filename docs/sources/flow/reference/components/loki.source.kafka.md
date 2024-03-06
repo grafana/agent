@@ -80,11 +80,11 @@ The following blocks are supported inside the definition of `loki.source.kafka`:
 
  Hierarchy                                   | Name             | Description                                               | Required
 ---------------------------------------------|------------------|-----------------------------------------------------------|----------
- authentication                              | [authentication] | Optional authentication configuration with Kafka brokers. | no
- authentication > tls_config                 | [tls_config]     | Optional authentication configuration with Kafka brokers. | no
- authentication > sasl_config                | [sasl_config]    | Optional authentication configuration with Kafka brokers. | no
- authentication > sasl_config > tls_config   | [tls_config]     | Optional authentication configuration with Kafka brokers. | no
- authentication > sasl_config > oauth_config | [oauth_config]   | Optional authentication configuration with Kafka brokers. | no
+ authentication                              |[authentication][] | Optional authentication configuration with Kafka brokers. | no
+ authentication > tls_config                 |[tls_config][]     | Optional authentication configuration with Kafka brokers. | no
+ authentication > sasl_config                |[sasl_config][]    | Optional authentication configuration with Kafka brokers. | no
+ authentication > sasl_config > tls_config   |[tls_config][]     | Optional authentication configuration with Kafka brokers. | no
+ authentication > sasl_config > oauth_config |[oauth_config][]   | Optional authentication configuration with Kafka brokers. | no
 
 [authentication]: #authentication-block
 

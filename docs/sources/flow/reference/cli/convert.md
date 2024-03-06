@@ -21,8 +21,8 @@ The `convert` command converts a supported configuration format to {{< param "PR
 
 Usage:
 
-* `AGENT_MODE=flow grafana-agent convert [<FLAG> ...] <FILE_NAME>`
-* `grafana-agent-flow convert [<FLAG> ...] <FILE_NAME>`
+* `AGENT_MODE=flow grafana-agent convert[<FLAG> ...][] <FILE_NAME>`
+* `grafana-agent-flow convert[<FLAG> ...][] <FILE_NAME>`
 
    Replace the following:
 
@@ -33,7 +33,7 @@ If the `FILE_NAME` argument isn't provided or if the `FILE_NAME` argument is
 equal to `-`, `convert` converts the contents of standard input. Otherwise,
 `convert` reads and converts the file from disk specified by the argument.
 
-There are several different flags available for the `convert` command. You can use the `--output` flag to write the contents of the converted configuration to a specified path. You can use the `--report` flag to generate a diagnostic report. The `--bypass-errors` flag allows you to bypass any [errors] generated during the file conversion.
+There are several different flags available for the `convert` command. You can use the `--output` flag to write the contents of the converted configuration to a specified path. You can use the `--report` flag to generate a diagnostic report. The `--bypass-errors` flag allows you to bypass any[errors][] generated during the file conversion.
 
 The command fails if the source configuration has syntactically incorrect
 configuration or can't be converted to {{< param "PRODUCT_NAME" >}} River format.
@@ -93,7 +93,7 @@ to {{< param "PRODUCT_NAME" >}} configuration.
 Nearly all [Promtail features](/docs/loki/v2.8.x/clients/promtail/configuration/)
 are supported and can be converted to {{< param "PRODUCT_NAME" >}} configuration.
 
-If you have unsupported features in a source configuration, you will receive [errors] when you convert to a flow configuration. The converter will
+If you have unsupported features in a source configuration, you will receive[errors][] when you convert to a flow configuration. The converter will
 also raise warnings for configuration options that may require your attention.
 
 Refer to [Migrate from Promtail to {{< param "PRODUCT_NAME" >}}]({{< relref "../../tasks/migrate/from-promtail/" >}}) for a detailed migration guide.

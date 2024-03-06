@@ -15,6 +15,12 @@ description: Learn how to configure Grafana Agent Flow on macOS
 menuTitle: macOS
 title: Configure Grafana Agent Flow on macOS
 weight: 400
+refs:
+  ui:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/tasks/debug/#grafana-agent-flow-ui
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/tasks/debug/#grafana-agent-flow-ui
 ---
 
 # Configure {{% param "PRODUCT_NAME" %}} on macOS
@@ -72,7 +78,7 @@ steps:
 
 By default, {{< param "PRODUCT_NAME" >}} listens on the local network for its HTTP
 server. This prevents other machines on the network from being able to access
-the [UI for debugging][UI].
+the [UI for debugging](ref:ui).
 
 To expose the UI to other machines, complete the following steps:
 
@@ -87,7 +93,3 @@ To expose the UI to other machines, complete the following steps:
 
        To listen on all interfaces, replace `127.0.0.1` with `0.0.0.0`.
 
-{{% docs/reference %}}
-[UI]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/tasks/debug.md#grafana-agent-flow-ui"
-[UI]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/tasks/debug.md#grafana-agent-flow-ui"
-{{% /docs/reference %}}

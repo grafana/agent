@@ -15,7 +15,7 @@ title: pyroscope.scrape
 
 {{< docs/shared lookup="flow/stability/beta.md" source="agent" version="<AGENT_VERSION>" >}}
 
-`pyroscope.scrape` collects [pprof] performance profiles for a given set of HTTP `targets`. 
+`pyroscope.scrape` collects[pprof][] performance profiles for a given set of HTTP `targets`. 
 
 `pyroscope.scrape` mimcks the scraping behavior of `prometheus.scrape`.
 Similarly to how Prometheus scrapes metrics via HTTP, `pyroscope.scrape` collects profiles via HTTP requests.
@@ -30,7 +30,7 @@ The profile paths, protocol scheme, scrape interval, scrape timeout,
 query parameters, as well as any other settings can be configured within `pyroscope.scrape`.
 
 The `pyroscope.scrape` component regards a scrape as successful if it
-responded with an HTTP `200 OK` status code and returned the body of a valid [pprof] profile.
+responded with an HTTP `200 OK` status code and returned the body of a valid[pprof][] profile.
 
 If a scrape request fails, the [debug UI][] for `pyroscope.scrape` will show:
 * Detailed information about the failure.

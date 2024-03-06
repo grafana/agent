@@ -16,11 +16,22 @@ canonical: https://grafana.com/docs/agent/latest/flow/monitoring/controller_metr
 description: Learn how to monitor controller metrics
 title: Monitor controller
 weight: 100
+refs:
+  grafana-agent-run:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/reference/cli/run/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/reference/cli/run/
+  component-controller:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/concepts/component_controller/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/concepts/component_controller/
 ---
 
 # How to monitor controller
 
-The {{< param "PRODUCT_NAME" >}} [component controller][] exposes Prometheus metrics which you can use to investigate the controller state.
+The {{< param "PRODUCT_NAME" >}} [component controller](ref:component-controller) exposes Prometheus metrics which you can use to investigate the controller state.
 
 Metrics for the controller are exposed at the `/metrics` HTTP endpoint of the {{< param "PRODUCT_NAME" >}} HTTP server, which defaults to listening on `http://localhost:12345`.
 
@@ -36,9 +47,3 @@ The controller exposes the following metrics:
 * `agent_component_dependencies_wait_seconds` (Histogram): Time spent by components waiting to be evaluated after one of their dependencies is updated.
 * `agent_component_evaluation_queue_size` (Gauge): The current number of component evaluations waiting to be performed.
 
-{{% docs/reference %}}
-[component controller]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/component_controller.md"
-[component controller]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/concepts/component_controller.md"
-[grafana-agent run]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/cli/run.md"
-[grafana-agent run]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/cli/run.md"
-{{% /docs/reference %}}

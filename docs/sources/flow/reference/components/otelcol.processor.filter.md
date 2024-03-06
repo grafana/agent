@@ -41,8 +41,8 @@ the following metrics-only functions are used exclusively by the processor:
 
 {{< admonition type="note" >}}
 Raw River strings can be used to write OTTL statements.
-For example, the OTTL statement `attributes["grpc"] == true` 
-is written in River as \`attributes["grpc"] == true\`
+For example, the OTTL statement `attribute["grpc"][] == true` 
+is written in River as \`attribute["grpc"][] == true\`
 
 {{< /admonition >}}
 

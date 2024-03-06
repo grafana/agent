@@ -26,8 +26,8 @@ guarantees and may change or be removed between releases.
 
 Usage:
 
-* `AGENT_MODE=flow grafana-agent tools prometheus.remote_write sample-stats [FLAG ...] WAL_DIRECTORY`
-* `grafana-agent-flow tools prometheus.remote_write sample-stats [FLAG ...] WAL_DIRECTORY`
+* `AGENT_MODE=flow grafana-agent tools prometheus.remote_write sample-stats[FLAG ...][] WAL_DIRECTORY`
+* `grafana-agent-flow tools prometheus.remote_write sample-stats[FLAG ...][] WAL_DIRECTORY`
 
 The `sample-stats` command reads the Write-Ahead Log (WAL) specified by
 `WAL_DIRECTORY` and collects information on metric samples within it.

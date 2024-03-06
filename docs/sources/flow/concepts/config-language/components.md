@@ -15,6 +15,22 @@ canonical: https://grafana.com/docs/agent/latest/flow/concepts/config-language/c
 description: Learn about the components configuration language
 title: Components configuration language
 weight: 300
+refs:
+  controller:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/concepts/component_controller/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/concepts/component_controller/
+  components:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/reference/components/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/reference/components/
+  type:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/concepts/config-language/expressions/types_and_values/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/concepts/config-language/expressions/types_and_values/
 ---
 
 # Components configuration language
@@ -23,11 +39,11 @@ Components are the defining feature of {{< param "PRODUCT_NAME" >}}.
 Components are small, reusable pieces of business logic that perform a single task like retrieving secrets or collecting Prometheus metrics,
 and you can wire them together to form programmable pipelines of telemetry data.
 
-The [_component controller_][controller] is responsible for scheduling components, reporting their health and debug status, re-evaluating their arguments, and providing their exports.
+The [_component controller_](ref:controller) is responsible for scheduling components, reporting their health and debug status, re-evaluating their arguments, and providing their exports.
 
 ## Configuring components
 
-You create [components][] by defining a top-level River block.
+You create [components](ref:components) by defining a top-level River block.
 All components are identified by their name, describing what the component is responsible for, and a user-specified _label_.
 
 ## Arguments and exports
@@ -87,18 +103,10 @@ prometheus.scrape "default" {
 
 Each time the file contents change, the `local.file` updates its exports. The new value is sent to the `prometheus.scrape` targets field.
 
-Each argument and exported field has an underlying [type][].
+Each argument and exported field has an underlying [type](ref:type).
 River checks the expression type before assigning a value to an attribute.
-The documentation of each [component][components] provides more information about how to wire components together.
+The documentation of each [component](ref:components) provides more information about how to wire components together.
 
 In the previous example, the contents of the `local.file.targets.content` expression is evaluated to a concrete value.
 The value is type-checked and substituted into `prometheus.scrape.default`, where you can configure it.
 
-{{% docs/reference %}}
-[components]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components"
-[components]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/components"
-[controller]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/component_controller"
-[controller]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/concepts/component_controller"
-[type]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/config-language/expressions/types_and_values"
-[type]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/concepts/config-language/expressions/types_and_values"
-{{% /docs/reference %}}

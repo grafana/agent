@@ -9,11 +9,27 @@ description: Learn how to run Grafana Agent Flow on macOS
 menuTitle: macOS
 title: Run Grafana Agent Flow on macOS
 weight: 400
+refs:
+  installmacos:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/get-started/install/macos/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/flow/get-started/install/macos/
+  configureservice:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/tasks/configure/configure-macos/#configure-the-grafana-agent-flow-service
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/tasks/configure/configure-macos/#configure-the-grafana-agent-flow-service
+  configuremacos:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/tasks/configure/configure-macos/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/tasks/configure/configure-macos/
 ---
 
 # Run {{% param "PRODUCT_NAME" %}} on macOS
 
-{{< param "PRODUCT_NAME" >}} is [installed][InstallMacOS] as a launchd service on macOS.
+{{< param "PRODUCT_NAME" >}} is [installed](ref:installmacos) as a launchd service on macOS.
 
 ## Start {{% param "PRODUCT_NAME" %}}
 
@@ -52,18 +68,10 @@ brew services stop grafana-agent-flow
 By default, logs are written to `$(brew --prefix)/var/log/grafana-agent-flow.log` and
 `$(brew --prefix)/var/log/grafana-agent-flow.err.log`.
 
-If you followed [Configure the {{< param "PRODUCT_NAME" >}} service][ConfigureService] and changed the path where logs are written,
+If you followed [Configure the {{< param "PRODUCT_NAME" >}} service](ref:configureservice) and changed the path where logs are written,
 refer to your current copy of the {{< param "PRODUCT_NAME" >}} formula to locate your log files.
 
 ## Next steps
 
-- [Configure {{< param "PRODUCT_NAME" >}}][ConfigureMacOS]
+- [Configure {{< param "PRODUCT_NAME" >}}](ref:configuremacos)
 
-{{% docs/reference %}}
-[InstallMacOS]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/get-started/install/macos.md"
-[InstallMacOS]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/flow/get-started/install/macos.md"
-[ConfigureMacOS]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/tasks/configure/configure-macos.md"
-[ConfigureMacOS]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/tasks/configure/configure-macos.md"
-[ConfigureService]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/tasks/configure/configure-macos.md#configure-the-grafana-agent-flow-service"
-[ConfigureService]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/tasks/configure/configure-macos.md#configure-the-grafana-agent-flow-service"
-{{% /docs/reference %}}

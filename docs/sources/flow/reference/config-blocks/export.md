@@ -8,14 +8,25 @@ canonical: https://grafana.com/docs/agent/latest/flow/reference/config-blocks/ex
 description: Learn about the export configuration block
 menuTitle: export
 title: export block
+refs:
+  custom-component:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/concepts/custom_components/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/concepts/custom_components/
+  declare:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/reference/config-blocks/declare/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/reference/config-blocks/declare/
 ---
 
 # export block
 
-`export` is an optional configuration block used to specify an emitted value of a [custom component][].
+`export` is an optional configuration block used to specify an emitted value of a [custom component](ref:custom-component).
 `export` blocks must be given a label which determine the name of the export.
 
-The `export` block may only be specified inside the definition of [a `declare` block][declare].
+The `export` block may only be specified inside the definition of [a `declare` block](ref:declare).
 
 {{< admonition type="note" >}}
 In [classic modules][], the `export` block is valid as a top-level block in a classic module. Classic modules are deprecated and scheduled to be removed in the release after v0.40.
@@ -69,9 +80,3 @@ declare "pods_and_nodes" {
 }
 ```
 
-{{% docs/reference %}}
-[custom component]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/custom_components"
-[custom component]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/concepts/custom_components"
-[declare]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/config-blocks/declare"
-[declare]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/config-blocks/declare"
-{{% /docs/reference %}}

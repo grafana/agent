@@ -9,6 +9,12 @@ description: Learn how to install Grafana Agent Flow with Ansible
 menuTitle: Ansible
 title: Install Grafana Agent Flow with Ansible
 weight: 550
+refs:
+  configure:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/tasks/configure/configure-linux/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/tasks/configure/configure-linux/
 ---
 
 # Install or uninstall {{% param "PRODUCT_NAME" %}} using Ansible
@@ -78,9 +84,5 @@ Main PID: 3176 (agent-linux-amd)
 
 ## Next steps
 
-- [Configure {{< param "PRODUCT_NAME" >}}][Configure]
+- [Configure {{< param "PRODUCT_NAME" >}}](ref:configure)
 
-{{% docs/reference %}}
-[Configure]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/tasks/configure/configure-linux.md"
-[Configure]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/tasks/configure/configure-linux.md"
-{{% /docs/reference %}}

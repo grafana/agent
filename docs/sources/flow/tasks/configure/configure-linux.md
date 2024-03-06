@@ -15,6 +15,17 @@ description: Learn how to configure Grafana Agent Flow on Linux
 menuTitle: Linux
 title: Configure Grafana Agent Flow on Linux
 weight: 300
+refs:
+  run:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/reference/cli/run/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/reference/cli/run/
+  ui:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/tasks/debug/#grafana-agent-flow-ui
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/tasks/debug/#grafana-agent-flow-ui
 ---
 
 # Configure {{% param "PRODUCT_NAME" %}} on Linux
@@ -47,7 +58,7 @@ To change the configuration file used by the service, perform the following step
 
 ## Pass additional command-line flags
 
-By default, the {{< param "PRODUCT_NAME" >}} service launches with the [run][]
+By default, the {{< param "PRODUCT_NAME" >}} service launches with the [run](ref:run)
 command, passing the following flags:
 
 * `--storage.path=/var/lib/grafana-agent-flow`
@@ -70,13 +81,13 @@ the following steps:
    ```
 
 To see the list of valid command-line flags that can be passed to the service,
-refer to the documentation for the [run][] command.
+refer to the documentation for the [run](ref:run) command.
 
 ## Expose the UI to other machines
 
 By default, {{< param "PRODUCT_NAME" >}} listens on the local network for its HTTP
 server. This prevents other machines on the network from being able to access
-the [UI for debugging][UI].
+the [UI for debugging](ref:ui).
 
 To expose the UI to other machines, complete the following steps:
 
@@ -96,9 +107,3 @@ To expose the UI to other machines, complete the following steps:
 
        To listen on all interfaces, replace `LISTEN_ADDR` with `0.0.0.0`.
 
-{{% docs/reference %}}
-[run]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/cli/run.md"
-[run]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/cli/run.md"
-[UI]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/tasks/debug.md#grafana-agent-flow-ui"
-[UI]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/tasks/debug.md#grafana-agent-flow-ui"
-{{% /docs/reference %}}

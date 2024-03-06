@@ -10,6 +10,32 @@ description: Learn how to collect Prometheus metrics
 menuTitle: Collect Prometheus metrics
 title: Collect Prometheus metrics
 weight: 200
+refs:
+  prometheus.remote_write:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/reference/components/prometheus.remote_write/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/reference/components/prometheus.remote_write/
+  export:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/concepts/components/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/concepts/components/
+  argument:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/concepts/components/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/concepts/components/
+  prometheus.scrape:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/reference/components/prometheus.scrape/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/reference/components/prometheus.scrape/
+  attribute:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/concepts/config-language/#attributes
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/concepts/config-language/#attributes
 ---
 
 # Collect Prometheus metrics
@@ -51,7 +77,7 @@ Click the nodes to navigate to the associated component page. There, you can vie
 
 ## Scraping component
 
-The [`prometheus.scrape`][prometheus.scrape] component is responsible for scraping the metrics of a particular endpoint and passing them on to another component.
+The [`prometheus.scrape`](ref:prometheus.scrape) component is responsible for scraping the metrics of a particular endpoint and passing them on to another component.
 
 ```river
 // prometheus.scrape is the name of the component and "default" is its label.
@@ -69,13 +95,13 @@ prometheus.scrape "default" {
 
 The `prometheus.scrape "default"` annotation indicates the name of the component, `prometheus.scrape`, and its label, `default`. All components must have a unique combination of name and if applicable label.
 
-The `targets` [attribute][] is an [argument][]. `targets` is a list of labels that specify the target via the special key `__address__`. The scraper is targeting the {{< param "PRODUCT_NAME" >}} `/metrics` endpoint. Both `http` and `/metrics` are implied but can be overridden.
+The `targets` [attribute](ref:attribute) is an [argument](ref:argument). `targets` is a list of labels that specify the target via the special key `__address__`. The scraper is targeting the {{< param "PRODUCT_NAME" >}} `/metrics` endpoint. Both `http` and `/metrics` are implied but can be overridden.
 
-The `forward_to` attribute is an argument that references the [export][] of the `prometheus.remote_write.prom` component. This is where the scraper will send the metrics for further processing.
+The `forward_to` attribute is an argument that references the [export](ref:export) of the `prometheus.remote_write.prom` component. This is where the scraper will send the metrics for further processing.
 
 ## Remote Write component
 
-The [`prometheus.remote_write`][prometheus.remote_write] component is responsible for writing the metrics to a Prometheus-compatible endpoint (Mimir).
+The [`prometheus.remote_write`](ref:prometheus.remote_write) component is responsible for writing the metrics to a Prometheus-compatible endpoint (Mimir).
 
 ```river
 prometheus.remote_write "prom" {
@@ -96,15 +122,3 @@ To try out {{< param "PRODUCT_ROOT_NAME" >}} without using Docker:
 [Docker]: https://www.docker.com/products/docker-desktop
 [Grafana]: http://localhost:3000/explore?orgId=1&left=%5B%22now-1h%22,%22now%22,%22Mimir%22,%7B%22refId%22:%22A%22,%22instant%22:true,%22range%22:true,%22exemplar%22:true,%22expr%22:%22agent_build_info%7B%7D%22%7D%5D
 
-{{% docs/reference %}}
-[prometheus.scrape]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/prometheus.scrape.md"
-[prometheus.scrape]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/components/prometheus.scrape.md"
-[attribute]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/config-language/#attributes"
-[attribute]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/concepts/config-language/#attributes"
-[argument]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/components"
-[argument]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/concepts/components"
-[export]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/components"
-[export]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/concepts/components"
-[prometheus.remote_write]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/prometheus.remote_write.md"
-[prometheus.remote_write]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/components/prometheus.remote_write.md"
-{{% /docs/reference %}}

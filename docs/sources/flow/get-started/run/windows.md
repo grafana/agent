@@ -9,11 +9,22 @@ description: Learn how to run Grafana Agent Flow on Windows
 menuTitle: Windows
 title: Run Grafana Agent Flow on Windows
 weight: 500
+refs:
+  configure:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/tasks/configure/configure-windows/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/tasks/configure/configure-windows/
+  installwindows:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/get-started/install/windows/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/flow/get-started/install/windows/
 ---
 
 # Run {{% param "PRODUCT_NAME" %}} on Windows
 
-{{< param "PRODUCT_NAME" >}} is [installed][InstallWindows] as a Windows Service. The service is configured to automatically run on startup.
+{{< param "PRODUCT_NAME" >}} is [installed](ref:installwindows) as a Windows Service. The service is configured to automatically run on startup.
 
 To verify that {{< param "PRODUCT_NAME" >}} is running as a Windows Service:
 
@@ -44,11 +55,5 @@ To view the logs, perform the following steps:
 
 ## Next steps
 
-- [Configure {{< param "PRODUCT_NAME" >}}][Configure]
+- [Configure {{< param "PRODUCT_NAME" >}}](ref:configure)
 
-{{% docs/reference %}}
-[InstallWindows]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/get-started/install/windows.md"
-[InstallWindows]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/flow/get-started/install/windows.md"
-[Configure]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/tasks/configure/configure-windows.md"
-[Configure]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/tasks/configure/configure-windows.md"
-{{% /docs/reference %}}

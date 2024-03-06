@@ -361,7 +361,7 @@ debug metrics.
 
 ## Example
 
-See the examples described under each [discovery][] and [static] sections.
+See the examples described under each [discovery][] and[static][] sections.
 
 [discovery]: #discovery-block
 [static]: #static-block
