@@ -291,6 +291,7 @@ func (l *Loader) loadNewGraph(args map[string]any, componentBlocks []*ast.BlockS
 
 	// Fill our graph with config blocks.
 	configBlockDiags := l.populateConfigBlockNodes(args, &g, configBlocks)
+
 	diags = append(diags, configBlockDiags...)
 
 	// Fill our graph with components.
@@ -448,7 +449,6 @@ func (l *Loader) populateConfigBlockNodes(args map[string]any, g *dag.Graph, con
 	for _, block := range configBlocks {
 		node, newConfigNodeDiags := NewConfigNode(block, l.globals)
 		diags = append(diags, newConfigNodeDiags...)
-
 		if g.GetByID(node.NodeID()) != nil {
 			configBlockStartPos := ast.StartPos(block).Position()
 			diags.Add(diag.Diagnostic{
