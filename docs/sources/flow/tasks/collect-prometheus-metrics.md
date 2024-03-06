@@ -111,12 +111,6 @@ prometheus.scrape "example" {
 
 For more information on configuring metrics delivery, refer to [prometheus.remote_write][].
 
-
-    TODO: We should integrate the below instructions somehow with the new content.
-    This is probably a good guide for someone who wants to write their own config.
-    We should let them know that there is a full guide to collecting Prometheus 
-    metrics on Kubernetes using the kubernetes module and annotations as our recommended alternative.
-
 ## Collect metrics from Kubernetes Pods
 
 {{< param "PRODUCT_NAME" >}} can be configured to collect metrics from Kubernetes Pods by:
