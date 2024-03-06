@@ -385,6 +385,22 @@ func (cn *ImportConfigNode) run(errChan chan error, updateTasks func() error) er
 	}
 }
 
+// UpdateBlock updates the River block used to construct arguments.
+// The new block isn't used until the next time Evaluate is invoked.
+//
+// UpdateBlock will panic if the block does not match the component ID of the
+// ImportConfigNode.
+func (cn *ImportConfigNode) UpdateBlock(b *ast.BlockStmt) {
+	if !BlockComponentID(b).Equals(strings.Split(cn.nodeID, ".")) {
+		panic("UpdateBlock called with an River block with a different ID")
+	}
+
+	cn.mut.Lock()
+	defer cn.mut.Unlock()
+	cn.block = b
+	cn.source.SetEval(vm.New(b.Body))
+}
+
 func (cn *ImportConfigNode) Label() string { return cn.label }
 
 // Block implements BlockNode and returns the current block of the managed config node.

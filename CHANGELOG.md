@@ -17,10 +17,28 @@ Main (unreleased)
 
 - A new `loki.rules.kubernetes` component that discovers `PrometheusRule` Kubernetes resources and loads them into a Loki Ruler instance. (@EStork09)
 
+v0.40.2 (2024-03-05)
+--------------------
+
 ### Bugfixes
 
 - Set permissions on the `Grafana Agent [Flow]` folder when installing via the
   windows installer rather than relying on the parent folder permissions. (@erikbaranowski)
+
+- Set restricted viewing permissions on the `agent-config.yaml` (static mode) or
+  `config.river` (flow mode) when installing via the Windows installer if the
+  configuration file does not already exist. (@erikbaranowski)
+
+- Fix an issue where the import config node would not run after a config reload. (@wildum)
+
+- Fix an issue where Loki could reject a batch of logs when structured metadata feature is used. (@thampiotr)
+
+- Fix a duplicate metrics registration panic when recreating static
+  mode metric instance's write handler. (@rfratto, @hainenber)
+
+### Other changes
+
+- Change the Docker base image for Linux containers to `public.ecr.aws/ubuntu/ubuntu:mantic`. (@hainenber)
 
 v0.40.1 (2024-02-27)
 --------------------
