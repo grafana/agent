@@ -610,6 +610,7 @@ require (
 	github.com/grafana/agent-remote-config v0.0.2
 	github.com/grafana/jfr-parser/pprof v0.0.0-20240126072739-986e71dc0361
 	github.com/natefinch/atomic v1.0.1
+	github.com/open-telemetry/opentelemetry-collector-contrib/connector/countconnector v0.87.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusremotewriteexporter v0.87.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/filterprocessor v0.87.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusreceiver v0.87.0

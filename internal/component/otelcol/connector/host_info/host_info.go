@@ -91,6 +91,6 @@ func (args Arguments) NextConsumers() *otelcol.ConsumerArguments {
 }
 
 // ConnectorType() int implements connector.Arguments.
-func (Arguments) ConnectorType() int {
+func (Arguments) ConnectorType() connector.Type {
 	return connector.ConnectorTracesToMetrics
 }
