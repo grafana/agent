@@ -10,6 +10,10 @@ internal API changes are not present.
 Unreleased
 ----------
 
+### Features
+
+- Allow setting nodePort for service. (@ryayon)
+
 0.36.0 (2024-02-27)
 -------------------
 
