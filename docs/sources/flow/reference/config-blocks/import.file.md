@@ -22,8 +22,6 @@ Imported directories are treated as single modules to support composability.
 That means that you can define a custom component in one file and use it in another custom component in another file
 in the same directory.
 
-[module]: {{< relref "../../concepts/modules.md" >}}
-
 ## Usage
 
 ```river
