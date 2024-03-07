@@ -137,6 +137,11 @@ func New(logger log.Logger, jobName *string, cfg StageConfig, registerer prometh
 		if err != nil {
 			return nil, err
 		}
+	case cfg.LuhnFilterConfig != nil:
+		s, err = newLuhnFilterStage(*cfg.LuhnFilterConfig)
+		if err != nil {
+			return nil, err
+		}
 	case cfg.MetricsConfig != nil:
 		s, err = newMetricStage(logger, *cfg.MetricsConfig, registerer)
 		if err != nil {

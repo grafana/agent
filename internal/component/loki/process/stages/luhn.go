@@ -6,8 +6,6 @@ import (
 	"time"
 	"unicode"
 
-	"github.com/go-kit/log"
-	"github.com/mitchellh/mapstructure"
 	"github.com/prometheus/common/model"
 )
 
@@ -32,31 +30,19 @@ func validateLuhnFilterConfig(c LuhnFilterConfig) error {
 	return nil
 }
 
-// luhnFilterStage applies Luhn algorithm filtering to log entries.
-type luhnFilterStage struct {
-	config *LuhnFilterConfig
-	logger log.Logger
-}
-
 // newLuhnFilterStage creates a new LuhnFilterStage.
-func newLuhnFilterStage(logger log.Logger, config LuhnFilterConfig) (Stage, error) {
+func newLuhnFilterStage(config LuhnFilterConfig) (Stage, error) {
 	if err := validateLuhnFilterConfig(config); err != nil {
 		return nil, err
 	}
 	return toStage(&luhnFilterStage{
 		config: &config,
-		logger: logger,
 	}), nil
 }
 
-// parseLuhnFilterConfig processes an incoming configuration into a LuhnFilterConfig.
-func parseLuhnFilterConfig(config interface{}) (*LuhnFilterConfig, error) {
-	cfg := &LuhnFilterConfig{}
-	err := mapstructure.Decode(config, cfg)
-	if err != nil {
-		return nil, err
-	}
-	return cfg, nil
+// luhnFilterStage applies Luhn algorithm filtering to log entries.
+type luhnFilterStage struct {
+	config *LuhnFilterConfig
 }
 
 // Process implements Stage.
