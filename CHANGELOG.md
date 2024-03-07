@@ -15,7 +15,7 @@ Main (unreleased)
 - Add support for importing folders as single module to `import.file`. (@wildum)
 
 v0.40.0-rc.2 (2024-02-26)
---------------------
+-------------------------
 
 ### Breaking changes
 
