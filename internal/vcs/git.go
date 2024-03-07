@@ -152,6 +152,15 @@ func (repo *GitRepo) ReadFile(path string) ([]byte, error) {
 	return io.ReadAll(f)
 }
 
+// Stat returns info from the repository specified by path.
+func (repo *GitRepo) Stat(path string) (fs.FileInfo, error) {
+	f, err := repo.workTree.Filesystem.Stat(path)
+	if err != nil {
+		return nil, err
+	}
+	return f, nil
+}
+
 // ReadDir returns info about the content of the directory in the repository.
 func (repo *GitRepo) ReadDir(path string) ([]fs.FileInfo, error) {
 	f, err := repo.workTree.Filesystem.ReadDir(path)

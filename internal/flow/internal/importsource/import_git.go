@@ -4,12 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"os"
 	"path/filepath"
 	"reflect"
 	"strings"
 	"sync"
-	"syscall"
 	"time"
 
 	"github.com/go-kit/log"
@@ -236,21 +234,24 @@ func (im *ImportGit) pollFile(ctx context.Context, args GitArguments) error {
 		return err
 	}
 
-	// try to read as a directory
-	filesInfo, err := im.repo.ReadDir(args.Path)
+	info, err := im.repo.Stat(args.Path)
 	if err != nil {
-		var pathErr *os.PathError
-		// if it's not a directory, then try to read as a file
-		if errors.As(err, &pathErr) && errors.Is(pathErr.Err, syscall.ENOTDIR) {
-			return im.handleFile(args.Path)
-		}
 		return err
 	}
 
-	return im.handleDirectory(args.Path, filesInfo)
+	if info.IsDir() {
+		return im.handleDirectory(args.Path)
+	}
+
+	return im.handleFile(args.Path)
 }
 
-func (im *ImportGit) handleDirectory(path string, filesInfo []os.FileInfo) error {
+func (im *ImportGit) handleDirectory(path string) error {
+	filesInfo, err := im.repo.ReadDir(path)
+	if err != nil {
+		return err
+	}
+
 	content := make(map[string]string)
 	for _, fi := range filesInfo {
 		if fi.IsDir() || !strings.HasSuffix(fi.Name(), ".river") {
