@@ -243,7 +243,7 @@ func (c *Component) configureDetector() error {
 			PollFrequency: c.args.PollFrequency,
 		})
 	case filedetector.DetectorFSNotify:
-		c.detector, err = filedetector.NewFSNotify(filedetector.FsNotifyOptions{
+		c.detector, err = filedetector.NewFSNotify(filedetector.FSNotifyOptions{
 			Logger:        c.opts.Logger,
 			Filename:      c.args.Filename,
 			ReloadFile:    reloadFile,

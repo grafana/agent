@@ -107,7 +107,7 @@ func (im *ImportFile) Evaluate(scope *vm.Scope) error {
 			PollFrequency: im.args.PollFrequency,
 		})
 	case filedetector.DetectorFSNotify:
-		im.detector, err = filedetector.NewFSNotify(filedetector.FsNotifyOptions{
+		im.detector, err = filedetector.NewFSNotify(filedetector.FSNotifyOptions{
 			Logger:        im.managedOpts.Logger,
 			Filename:      im.args.Filename,
 			ReloadFile:    reloadFile,
