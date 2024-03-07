@@ -26,9 +26,8 @@ type ImportFile struct {
 	onContentChange func(map[string]string)
 	logger          log.Logger
 
-	reloadCh  chan struct{}
-	args      FileArguments
-	importDir bool
+	reloadCh chan struct{}
+	args     FileArguments
 
 	mut      sync.RWMutex
 	detector io.Closer
