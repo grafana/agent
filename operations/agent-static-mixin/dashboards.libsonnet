@@ -286,6 +286,7 @@ local template = grafana.template;
             value: '$__all',
           },
           includeAll=true,
+          allValues='.+',
         ),
       )
       .addTemplate(
@@ -300,6 +301,7 @@ local template = grafana.template;
             value: '$__all',
           },
           includeAll=true,
+          allValues='.+',
         ),
       )
       .addTemplate(
@@ -314,6 +316,7 @@ local template = grafana.template;
             value: '$__all',
           },
           includeAll=true,
+          allValues='.+',
         ),
       )
       .addTemplate(
@@ -328,6 +331,7 @@ local template = grafana.template;
             value: '$__all',
           },
           includeAll=true,
+          allValues='.+',
         ),
       )
       .addTemplate(
@@ -337,6 +341,7 @@ local template = grafana.template;
           'label_values(prometheus_remote_storage_shards{cluster=~"$cluster", pod=~"$pod"}, url)',
           refresh='time',
           includeAll=true,
+          allValues='.+',
         )
       )
       .addRow(
@@ -385,7 +390,7 @@ local template = grafana.template;
         )
         .addTarget(prometheus.target(
           |||
-            rate(traces_receiver_accepted_spans{cluster=~"$cluster",namespace=~"$namespace",container=~"$container",pod=~"$pod",receiver!="otlp/lb"}[$__rate_interval])
+            rate(traces_receiver_accepted_spans_total{cluster=~"$cluster",namespace=~"$namespace",container=~"$container",pod=~"$pod",receiver!="otlp/lb"}[$__rate_interval])
           |||,
           legendFormat='{{ pod }} - {{ receiver }}/{{ transport }}',
         ));
@@ -401,7 +406,7 @@ local template = grafana.template;
         )
         .addTarget(prometheus.target(
           |||
-            rate(traces_receiver_refused_spans{cluster=~"$cluster",namespace=~"$namespace",container=~"$container",pod=~"$pod",receiver!="otlp/lb"}[$__rate_interval])
+            rate(traces_receiver_refused_spans_total{cluster=~"$cluster",namespace=~"$namespace",container=~"$container",pod=~"$pod",receiver!="otlp/lb"}[$__rate_interval])
           |||,
           legendFormat='{{ pod }} - {{ receiver }}/{{ transport }}',
         ));
@@ -417,7 +422,7 @@ local template = grafana.template;
         )
         .addTarget(prometheus.target(
           |||
-            rate(traces_exporter_sent_spans{cluster=~"$cluster",namespace=~"$namespace",container=~"$container",pod=~"$pod",exporter!="otlp"}[$__rate_interval])
+            rate(traces_exporter_sent_spans_total{cluster=~"$cluster",namespace=~"$namespace",container=~"$container",pod=~"$pod",exporter!="otlp"}[$__rate_interval])
           |||,
           legendFormat='{{ pod }} - {{ exporter }}',
         ));
@@ -433,7 +438,7 @@ local template = grafana.template;
         )
         .addTarget(prometheus.target(
           |||
-            rate(traces_exporter_send_failed_spans{cluster=~"$cluster",namespace=~"$namespace",container=~"$container",pod=~"$pod",exporter!="otlp"}[$__rate_interval])
+            rate(traces_exporter_send_failed_spans_total{cluster=~"$cluster",namespace=~"$namespace",container=~"$container",pod=~"$pod",exporter!="otlp"}[$__rate_interval])
           |||,
           legendFormat='{{ pod }} - {{ exporter }}',
         ));
@@ -448,13 +453,13 @@ local template = grafana.template;
         )
         .addTarget(prometheus.target(
           |||
-            sum(rate(traces_receiver_accepted_spans{cluster=~"$cluster",namespace=~"$namespace",container=~"$container",pod=~"$pod",%s}[$__rate_interval]))
+            sum(rate(traces_receiver_accepted_spans_total{cluster=~"$cluster",namespace=~"$namespace",container=~"$container",pod=~"$pod",%s}[$__rate_interval]))
           ||| % receiverFilter,
           legendFormat='Accepted',
         ))
         .addTarget(prometheus.target(
           |||
-            sum(rate(traces_receiver_refused_spans{cluster=~"$cluster",namespace=~"$namespace",container=~"$container",pod=~"$pod",%s}[$__rate_interval]))
+            sum(rate(traces_receiver_refused_spans_total{cluster=~"$cluster",namespace=~"$namespace",container=~"$container",pod=~"$pod",%s}[$__rate_interval]))
           ||| % receiverFilter,
           legendFormat='Refused',
         ));
@@ -469,13 +474,13 @@ local template = grafana.template;
         )
         .addTarget(prometheus.target(
           |||
-            sum(rate(traces_exporter_sent_spans{cluster=~"$cluster",namespace=~"$namespace",container=~"$container",pod=~"$pod",%s}[$__rate_interval]))
+            sum(rate(traces_exporter_sent_spans_total{cluster=~"$cluster",namespace=~"$namespace",container=~"$container",pod=~"$pod",%s}[$__rate_interval]))
           ||| % exporterFilter,
           legendFormat='Sent',
         ))
         .addTarget(prometheus.target(
           |||
-            sum(rate(traces_exporter_send_failed_spans{cluster=~"$cluster",namespace=~"$namespace",container=~"$container",pod=~"$pod",%s}[$__rate_interval]))
+            sum(rate(traces_exporter_send_failed_spans_total{cluster=~"$cluster",namespace=~"$namespace",container=~"$container",pod=~"$pod",%s}[$__rate_interval]))
           ||| % exporterFilter,
           legendFormat='Send failed',
         ));
@@ -537,6 +542,7 @@ local template = grafana.template;
             value: '$__all',
           },
           includeAll=true,
+          allValues='.+',
         ),
       )
       .addTemplate(
@@ -551,6 +557,7 @@ local template = grafana.template;
             value: '$__all',
           },
           includeAll=true,
+          allValues='.+',
         ),
       )
       .addTemplate(
@@ -565,6 +572,7 @@ local template = grafana.template;
             value: '$__all',
           },
           includeAll=true,
+          allValues='.+',
         ),
       )
       .addTemplate(
@@ -579,6 +587,7 @@ local template = grafana.template;
             value: '$__all',
           },
           includeAll=true,
+          allValues='.+',
         ),
       )
       .addRow(
@@ -589,14 +598,16 @@ local template = grafana.template;
         .addPanel(exportedFailedSpans)
         .addPanel(receivedSpans('receiver!="otlp/lb"', 6))
         .addPanel(exportedSpans('exporter!="otlp"', 6))
-      )
-      .addRow(
-        row.new('Load balancing')
-        .addPanel(loadBalancedSpans)
-        .addPanel(peersNum)
-        .addPanel(receivedSpans('receiver="otlp/lb"', 3))
-        .addPanel(exportedSpans('exporter="otlp"', 3))
       ),
+      // TODO(ptodev): Uncomment this when Collector has instrumeneted LB exporter using OTel:
+      // https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/29867
+      // .addRow(
+      //   row.new('Load balancing')
+      //   .addPanel(loadBalancedSpans)
+      //   .addPanel(peersNum)
+      //   .addPanel(receivedSpans('receiver="otlp/lb"', 3))
+      //   .addPanel(exportedSpans('exporter="otlp"', 3))
+      // ),
 
     'agent-logs-pipeline.json':
       local sumByPodRateCounter(title, metric, format='short') =
@@ -715,6 +726,7 @@ local template = grafana.template;
             value: '$__all',
           },
           includeAll=true,
+          allValues='.+',
         ),
       )
       .addTemplate(
@@ -729,6 +741,7 @@ local template = grafana.template;
             value: '$__all',
           },
           includeAll=true,
+          allValues='.+',
         ),
       )
       .addTemplate(
@@ -743,6 +756,7 @@ local template = grafana.template;
             value: '$__all',
           },
           includeAll=true,
+          allValues='.+',
         ),
       )
       .addTemplate(
@@ -757,6 +771,7 @@ local template = grafana.template;
             value: '$__all',
           },
           includeAll=true,
+          allValues='.+',
         ),
       )
       .addTemplate(
