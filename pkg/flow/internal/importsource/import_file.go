@@ -28,8 +28,10 @@ type ImportFile struct {
 
 	reloadCh  chan struct{}
 	args      FileArguments
-	detector  io.Closer
 	importDir bool
+
+	mut      sync.RWMutex
+	detector io.Closer
 
 	healthMut sync.RWMutex
 	health    component.Health
@@ -74,6 +76,9 @@ func (a *FileArguments) SetToDefault() {
 }
 
 func (im *ImportFile) Evaluate(scope *vm.Scope) error {
+	im.mut.Lock()
+	defer im.mut.Unlock()
+
 	var arguments FileArguments
 	if err := im.eval.Evaluate(scope, &arguments); err != nil {
 		return fmt.Errorf("decoding River: %w", err)
@@ -95,6 +100,13 @@ func (im *ImportFile) Evaluate(scope *vm.Scope) error {
 		default:
 			// no-op: a reload is already queued so we don't need to queue a second
 			// one.
+		}
+	}
+
+	if im.detector != nil {
+		if err := im.detector.Close(); err != nil {
+			level.Error(im.managedOpts.Logger).Log("msg", "failed to shut down detector during eval", "err", err)
+			// We don't return the error here because it's just a memory leak.
 		}
 	}
 
@@ -120,6 +132,8 @@ func (im *ImportFile) Evaluate(scope *vm.Scope) error {
 
 func (im *ImportFile) Run(ctx context.Context) error {
 	defer func() {
+		im.mut.Lock()
+		defer im.mut.Unlock()
 		if err := im.detector.Close(); err != nil {
 			level.Error(im.managedOpts.Logger).Log("msg", "failed to shut down detector", "err", err)
 		}
