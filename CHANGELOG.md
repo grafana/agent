@@ -10,6 +10,10 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+### Enhancements
+
+- Add support for importing folders as single module to `import.file`. (@wildum)
+
 ### Features
 
 - Added a new CLI flag `--stability.level` which defines the minimum stability

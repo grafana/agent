@@ -27,7 +27,7 @@ type ImportGit struct {
 	repo            *vcs.GitRepo
 	repoOpts        vcs.GitRepoOptions
 	args            GitArguments
-	onContentChange func(string)
+	onContentChange func(map[string]string)
 
 	lastContent string
 
@@ -61,7 +61,7 @@ func (args *GitArguments) SetToDefault() {
 	*args = DefaultGitArguments
 }
 
-func NewImportGit(managedOpts component.Options, eval *vm.Evaluator, onContentChange func(string)) *ImportGit {
+func NewImportGit(managedOpts component.Options, eval *vm.Evaluator, onContentChange func(map[string]string)) *ImportGit {
 	return &ImportGit{
 		opts:            managedOpts,
 		log:             managedOpts.Logger,
@@ -242,7 +242,8 @@ func (im *ImportGit) pollFile(ctx context.Context, args GitArguments) error {
 	}
 	content := string(bb)
 	if im.lastContent != content {
-		im.onContentChange(content)
+		// TODO: change when adding support to import folders
+		im.onContentChange(map[string]string{"import_git": content})
 		im.lastContent = content
 	}
 	return nil
