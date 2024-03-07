@@ -17,15 +17,15 @@ of labels for each discovered target.
 `otelcol.processor.discovery` adds resource attributes to spans which have a hostname
 matching the one in the `__address__` label provided by the `discovery.*` component.
 
-{{% admonition type="note" %}}
+{{< admonition type="note" >}}
 `otelcol.processor.discovery` is a custom component unrelated to any
 processors from the OpenTelemetry Collector.
-{{% /admonition %}}
+{{< /admonition >}}
 
 Multiple `otelcol.processor.discovery` components can be specified by giving them
 different labels.
 
-{{% admonition type="note" %}}
+{{< admonition type="note" >}}
 It can be difficult to follow [OpenTelemetry semantic conventions][OTEL sem conv] when
 adding resource attributes via `otelcol.processor.discovery`:
 * `discovery.relabel` and most `discovery.*` processes such as `discovery.kubernetes`
@@ -47,7 +47,7 @@ from Static mode's `prom_sd_operation_type`/`prom_sd_pod_associations` [configur
 [Prometheus data model]: https://prometheus.io/docs/concepts/data_model/#metric-names-and-labels
 [OTEL sem conv]: https://github.com/open-telemetry/semantic-conventions/blob/main/docs/README.md
 [Traces]: {{< relref "../../../static/configuration/traces-config.md" >}}
-{{% /admonition %}}
+{{< /admonition >}}
 
 ## Usage
 
@@ -198,18 +198,16 @@ otelcol.processor.discovery "default" {
 
 `otelcol.processor.discovery` can accept arguments from the following components:
 
-- Components that export [Targets]({{< relref "../compatibility/#targets-exporters" >}})
-- Components that export [OpenTelemetry `otelcol.Consumer`]({{< relref "../compatibility/#opentelemetry-otelcolconsumer-exporters" >}})
+- Components that export [Targets](../../compatibility/#targets-exporters)
+- Components that export [OpenTelemetry `otelcol.Consumer`](../../compatibility/#opentelemetry-otelcolconsumer-exporters)
 
 `otelcol.processor.discovery` has exports that can be consumed by the following components:
 
-- Components that consume [OpenTelemetry `otelcol.Consumer`]({{< relref "../compatibility/#opentelemetry-otelcolconsumer-consumers" >}})
+- Components that consume [OpenTelemetry `otelcol.Consumer`](../../compatibility/#opentelemetry-otelcolconsumer-consumers)
 
-{{% admonition type="note" %}}
-
-Connecting some components may not be sensible or components may require further configuration to make the 
-connection work correctly. Refer to the linked documentation for more details.
-
-{{% /admonition %}}
+{{< admonition type="note" >}}
+Connecting some components may not be sensible or components may require further configuration to make the connection work correctly.
+Refer to the linked documentation for more details.
+{{< /admonition >}}
 
 <!-- END GENERATED COMPATIBLE COMPONENTS -->

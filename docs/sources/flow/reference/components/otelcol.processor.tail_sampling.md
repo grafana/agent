@@ -163,11 +163,12 @@ The `numeric_attribute` block configures a policy of type `numeric_attribute`. T
 
 The following arguments are supported:
 
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`key`       | `string` | Tag that the filter is matched against. | | yes
-`min_value` | `number` | The minimum value of the attribute to be considered a match. | | yes
-`max_value` | `number` | The maximum value of the attribute to be considered a match. | | yes
+Name | Type    | Description | Default | Required
+---- | ------- | ----------- | ------- | --------
+`key`          | `string` | Tag that the filter is matched against. | | yes
+`min_value`    | `number` | The minimum value of the attribute to be considered a match. | | yes
+`max_value`    | `number` | The maximum value of the attribute to be considered a match. | | yes
+`invert_match` | `bool`   | Indicates that values must not match against attribute values. | `false` | no
 
 ### probabilistic block
 
@@ -229,6 +230,9 @@ The following arguments are supported:
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `min_spans` | `number` | Minimum number of spans in a trace. | | yes
+`max_spans` | `number` | Maximum number of spans in a trace. | `0` | no
+
+Set `max_spans` to `0`, if you do not want to limit the policy samples based on the maximum number of spans in a trace.
 
 ### boolean_attribute block
 
@@ -559,17 +563,15 @@ otelcol.exporter.otlp "production" {
 
 `otelcol.processor.tail_sampling` can accept arguments from the following components:
 
-- Components that export [OpenTelemetry `otelcol.Consumer`]({{< relref "../compatibility/#opentelemetry-otelcolconsumer-exporters" >}})
+- Components that export [OpenTelemetry `otelcol.Consumer`](../../compatibility/#opentelemetry-otelcolconsumer-exporters)
 
 `otelcol.processor.tail_sampling` has exports that can be consumed by the following components:
 
-- Components that consume [OpenTelemetry `otelcol.Consumer`]({{< relref "../compatibility/#opentelemetry-otelcolconsumer-consumers" >}})
+- Components that consume [OpenTelemetry `otelcol.Consumer`](../../compatibility/#opentelemetry-otelcolconsumer-consumers)
 
-{{% admonition type="note" %}}
-
-Connecting some components may not be sensible or components may require further configuration to make the 
-connection work correctly. Refer to the linked documentation for more details.
-
-{{% /admonition %}}
+{{< admonition type="note" >}}
+Connecting some components may not be sensible or components may require further configuration to make the connection work correctly.
+Refer to the linked documentation for more details.
+{{< /admonition >}}
 
 <!-- END GENERATED COMPATIBLE COMPONENTS -->

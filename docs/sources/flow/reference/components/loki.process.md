@@ -382,6 +382,20 @@ following key-value pair to the set of extracted data.
 username: agent
 ```
 
+{{< admonition type="note" >}}
+Due to a limitation of the upstream jmespath library, you must wrap any string
+that contains a hyphen `-` in quotes so that it's not considered a numerical
+expression.
+	
+If you don't use quotes to wrap a string that contains a hyphen, you will get
+errors like: `Unexpected token at the end of the expression: tNumber`
+
+You can use one of two options to circumvent this issue:
+
+1. An escaped double quote. For example: `http_user_agent = "\"request_User-Agent\""`
+1. A backtick quote. For example: ``http_user_agent = `"request_User-Agent"` ``
+{{< /admonition >}}
+
 ### stage.label_drop block
 
 The `stage.label_drop` inner block configures a processing stage that drops labels
@@ -567,9 +581,9 @@ The following arguments are supported:
 | `action`              | `string` | The action to take when the selector matches the log line. Supported values are `"keep"` and `"drop"` | `"keep"`        | no       |
 | `drop_counter_reason` | `string` | A custom reason to report for dropped lines.                                                          | `"match_stage"` | no       |
 
-{{% admonition type="note" %}}
+{{< admonition type="note" >}}
 The filters do not include label filter expressions such as `| label == "foobar"`.
-{{% /admonition %}}
+{{< /admonition >}}
 
 The `stage.match` block supports a number of `stage.*` inner blocks, like the top-level
 block. These are used to construct the nested set of stages to run if the
@@ -947,7 +961,7 @@ The following arguments are supported:
 | Name               | Type           | Description                                                                     | Default | Required |
 | ------------------ | -------------- | ------------------------------------------------------------------------------- | ------- | -------- |
 | `labels`           | `list(string)` | The values from the extracted data and labels to pack with the log entry.       |         | yes      |
-| `ingest_timestamp` | `bool`         | Whether to replace the log entry timestamp with the time the `pack` stage runs. | `true   | no       |
+| `ingest_timestamp` | `bool`         | Whether to replace the log entry timestamp with the time the `pack` stage runs. | `true`  | no       |
 
 This stage lets you embed extracted values and labels together with the log
 line, by packing them into a JSON object. The original message is stored under
@@ -1445,6 +1459,11 @@ The following arguments are supported:
 | `location`          | `string`       | IANA Timezone Database location to use when parsing.        | `""`      | no       |
 | `action_on_failure` | `string`       | What to do when the timestamp can't be extracted or parsed. | `"fudge"` | no       |
 
+{{< admonition type="note" >}}
+Be careful with further stages which may also override the timestamp.
+For example, a `stage.pack` with `ingest_timestamp` set to `true` could replace the timestamp which `stage.timestamp` had set earlier in the pipeline.
+{{< /admonition >}}
+
 The `source` field defines which value from the shared map of extracted values
 the stage should attempt to parse as a timestamp.
 
@@ -1738,17 +1757,15 @@ loki.process "local" {
 
 `loki.process` can accept arguments from the following components:
 
-- Components that export [Loki `LogsReceiver`]({{< relref "../compatibility/#loki-logsreceiver-exporters" >}})
+- Components that export [Loki `LogsReceiver`](../../compatibility/#loki-logsreceiver-exporters)
 
 `loki.process` has exports that can be consumed by the following components:
 
-- Components that consume [Loki `LogsReceiver`]({{< relref "../compatibility/#loki-logsreceiver-consumers" >}})
+- Components that consume [Loki `LogsReceiver`](../../compatibility/#loki-logsreceiver-consumers)
 
-{{% admonition type="note" %}}
-
-Connecting some components may not be sensible or components may require further configuration to make the 
-connection work correctly. Refer to the linked documentation for more details.
-
-{{% /admonition %}}
+{{< admonition type="note" >}}
+Connecting some components may not be sensible or components may require further configuration to make the connection work correctly.
+Refer to the linked documentation for more details.
+{{< /admonition >}}
 
 <!-- END GENERATED COMPATIBLE COMPONENTS -->

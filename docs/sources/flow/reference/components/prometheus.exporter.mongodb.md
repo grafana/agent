@@ -13,9 +13,9 @@ title: prometheus.exporter.mongodb
 
 The `prometheus.exporter.mongodb` component embeds percona's [`mongodb_exporter`](https://github.com/percona/mongodb_exporter).
 
-{{% admonition type="note" %}}
+{{< admonition type="note" >}}
 This exporter doesn't collect metrics from multiple nodes. For this integration to work properly, you must have connect each node of your MongoDB cluster to a {{< param "PRODUCT_NAME" >}} instance.
-{{% /admonition %}}
+{{< /admonition >}}
 
 We strongly recommend configuring a separate user for {{< param "PRODUCT_NAME" >}}, giving it only the strictly mandatory security privileges necessary for monitoring your node.
 Refer to the [Percona documentation](https://github.com/percona/mongodb_exporter#permissions) for more information.
@@ -95,13 +95,11 @@ prometheus.remote_write "default" {
 
 `prometheus.exporter.mongodb` has exports that can be consumed by the following components:
 
-- Components that consume [Targets]({{< relref "../compatibility/#targets-consumers" >}})
+- Components that consume [Targets](../../compatibility/#targets-consumers)
 
-{{% admonition type="note" %}}
-
-Connecting some components may not be sensible or components may require further configuration to make the 
-connection work correctly. Refer to the linked documentation for more details.
-
-{{% /admonition %}}
+{{< admonition type="note" >}}
+Connecting some components may not be sensible or components may require further configuration to make the connection work correctly.
+Refer to the linked documentation for more details.
+{{< /admonition >}}
 
 <!-- END GENERATED COMPATIBLE COMPONENTS -->

@@ -17,11 +17,11 @@ configures its own tracing pipeline. Having multiple configs allows you to
 configure multiple distinct pipelines, each of which collects spans and sends
 them to a different location.
 
-{{% admonition type="note" %}}
+{{< admonition type="note" >}}
 If you are using multiple configs, you must manually set port numbers for
 each receiver, otherwise they will all try to use the same port and fail to
 start.
-{{% /admonition %}}
+{{< /admonition >}}
 
 ```yaml
 configs:
@@ -308,30 +308,52 @@ tail_sampling:
 # It ensures that all spans of a trace are sampled in the same instance.
 # It works by exporting spans based on their traceID via consistent hashing.
 #
-# Enabling this feature is required for tail_sampling to correctly work when
-# different agent instances can receive spans for the same trace.
+# Enabling this feature is required for "tail_sampling", "spanmetrics", and "service_graphs"
+# to correctly work when spans are ingested by multiple agent instances.
 #
 # Load balancing works by layering two pipelines and consistently exporting
 # spans belonging to a trace to the same agent instance.
 # Agent instances need to be able to communicate with each other via gRPC.
 #
+# When load_balancing is enabled:
+# 1. When an Agent receives spans from the configured "receivers".
+# 2. If the "attributes" processor is configured, it will run through all the spans.
+# 3. The spans will be exported using the "load_balancing" configuration to any of the Agent instances.
+#    This may or may not be the same Agent which has already received the span.
+# 4. The Agent which received the span from the loadbalancer will run these processors, 
+#    in this order, if they are configured:
+#    1. "spanmetrics"
+#    2. "service_graphs"
+#    3. "tail_sampling"
+#    4. "automatic_logging"
+#    5. "batch"
+# 5. The spans are then remote written using the "remote_write" configuration.
+# 
 # Load balancing significantly increases CPU usage. This is because spans are
 # exported an additional time between agents.
 load_balancing:
   # resolver configures the resolution strategy for the involved backends
-  # It can be static, with a fixed list of hostnames, or DNS, with a hostname
-  # (and port) that will resolve to all IP addresses.
+  # It can be either "static", "dns" or "kubernetes".
   resolver:
     static:
+      # A fixed list of hostnames.
       hostnames:
         [ - <string> ... ]
     dns:
+      # DNS hostname from which to resolve IP addresses.
       hostname: <string>
+      # Port number to use with the resolved IP address when exporting spans.
       [ port: <int> | default = 4317 ]
       # Resolver interval
       [ interval: <duration> | default = 5s ]
       # Resolver timeout
       [ timeout: <duration> | default = 1s ]
+    # The kubernetes resolver receives IP addresses of a Kubernetes service 
+    # from the Kubernetes API. It does not require polling. The Kubernetes API
+    # notifies the Agent when a new pod is available and when an old pod has exited.
+    #
+    # For the kubernetes resolver to work, Agent must be running under
+    # a system account with "list", "watch" and "get" permissions.
     kubernetes:
       service: <string>
       [ ports: <int array> | default = 4317 ]

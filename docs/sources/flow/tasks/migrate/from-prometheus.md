@@ -9,7 +9,7 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/getting-started/migrating-from-prometheus/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/getting-started/migrating-from-prometheus/
 - /docs/grafana-cloud/send-data/agent/flow/getting-started/migrating-from-prometheus/
-- ../getting-started/migrating-from-prometheus/ # /docs/agent/latest/flow/getting-started/migrating-from-prometheus/
+- ../../getting-started/migrating-from-prometheus/ # /docs/agent/latest/flow/getting-started/migrating-from-prometheus/
 canonical: https://grafana.com/docs/agent/latest/flow/tasks/migrate/from-prometheus/
 description: Learn how to migrate from Prometheus to Grafana Agent Flow
 menuTitle: Migrate from Prometheus
@@ -64,17 +64,17 @@ This conversion will enable you to take full advantage of the many additional fe
    - _`<INPUT_CONFIG_PATH>`_: The full path to the Prometheus configuration.
    - _`<OUTPUT_CONFIG_PATH>`_: The full path to output the {{< param "PRODUCT_NAME" >}} configuration.
 
-1. [Start][] {{< param "PRODUCT_NAME" >}} using the new {{< param "PRODUCT_NAME" >}} configuration from _`<OUTPUT_CONFIG_PATH>`_:
+1. [Run][] {{< param "PRODUCT_NAME" >}} using the new {{< param "PRODUCT_NAME" >}} configuration from _`<OUTPUT_CONFIG_PATH>`_:
 
 ### Debugging
 
 1. If the `convert` command can't convert a Prometheus configuration, diagnostic information is sent to `stderr`.\
    You can bypass any non-critical issues and output the {{< param "PRODUCT_NAME" >}} configuration using a best-effort conversion by including the `--bypass-errors` flag.
 
-    {{% admonition type="caution" %}}
+    {{< admonition type="caution" >}}
     If you bypass the errors, the behavior of the converted configuration may not match the original Prometheus configuration.
     Make sure you fully test the converted configuration before using it in a production environment.
-    {{% /admonition %}}
+    {{< /admonition >}}
 
    {{< code >}}
 
@@ -131,7 +131,7 @@ This allows you to try {{< param "PRODUCT_NAME" >}} without modifying your exist
 > In this task, you will use the [run][] CLI command to run {{< param "PRODUCT_NAME" >}}
 > using a Prometheus configuration.
 
-[Start][] {{< param "PRODUCT_NAME" >}} and include the command line flag `--config.format=prometheus`.
+[Run][] {{< param "PRODUCT_NAME" >}} and include the command line flag `--config.format=prometheus`.
 Your configuration file must be a valid Prometheus configuration file rather than a {{< param "PRODUCT_NAME" >}} configuration file.
 
 ### Debugging
@@ -143,10 +143,10 @@ Your configuration file must be a valid Prometheus configuration file rather tha
 1. If your Prometheus configuration can't be converted and loaded directly into {{< param "PRODUCT_NAME" >}}, diagnostic information is sent to `stderr`.
    You can bypass any non-critical issues and start the Agent by including the `--config.bypass-conversion-errors` flag in addition to `--config.format=prometheus`.
 
-   {{% admonition type="caution" %}}
+   {{< admonition type="caution" >}}
    If you bypass the errors, the behavior of the converted configuration may not match the original Prometheus configuration.
    Do not use this flag in a production environment.
-   {{% /admonition %}}
+   {{< /admonition >}}
 
 ## Example
 
@@ -256,8 +256,8 @@ The following list is specific to the convert command and not {{< param "PRODUCT
 [convert]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/cli/convert.md"
 [run]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/cli/run.md"
 [run]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/cli/run.md"
-[Start]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/start-agent.md"
-[Start]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/setup/start-agent.md"
+[Run]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/get-started/run/"
+[Run]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/get-started/run/"
 [DebuggingUI]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/tasks/debug.md"
 [DebuggingUI]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/tasks/debug.md"
 [River]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/config-language/_index.md"

@@ -5,7 +5,7 @@ aliases:
 # Previous page aliases for backwards compatibility:
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/getting-started/migrating-from-operator/
 - /docs/grafana-cloud/send-data/agent/flow/getting-started/migrating-from-operator/
-- ../getting-started/migrating-from-operator/ # /docs/agent/latest/flow/getting-started/migrating-from-operator/
+- ../../getting-started/migrating-from-operator/ # /docs/agent/latest/flow/getting-started/migrating-from-operator/
 canonical: https://grafana.com/docs/agent/latest/flow/tasks/migrate/from-operator/
 description: Migrate from Grafana Agent Operator to Grafana Agent Flow
 menuTitle: Migrate from Operator
@@ -18,7 +18,7 @@ weight: 320
 With the release of {{< param "PRODUCT_NAME" >}}, Grafana Agent Operator is no longer the recommended way to deploy {{< param "PRODUCT_ROOT_NAME" >}} in Kubernetes.
 Some of the Operator functionality has moved into {{< param "PRODUCT_NAME" >}} itself, and the Helm Chart has replaced the remaining functionality.
 
-- The Monitor types (`PodMonitor`, `ServiceMonitor`, `Probe`, and `LogsInstance`) are all supported natively by {{< param "PRODUCT_NAME" >}}.
+- The Monitor types (`PodMonitor`, `ServiceMonitor`, `Probe`, and `PodLogs`) are all supported natively by {{< param "PRODUCT_NAME" >}}.
   You are no longer required to use the Operator to consume those CRDs for dynamic monitoring in your cluster.
 - The parts of the Operator that deploy the {{< param "PRODUCT_ROOT_NAME" >}} itself (`GrafanaAgent`, `MetricsInstance`, and `LogsInstance` CRDs) are deprecated.
   Operator users should use the {{< param "PRODUCT_ROOT_NAME" >}} [Helm Chart][] to deploy {{< param "PRODUCT_ROOT_NAME" >}} directly to your clusters.
@@ -206,6 +206,13 @@ discovery.relabel "pod_logs" {
     replacement   = "/var/log/pods/*$1/*.log"
     target_label  = "__path__"
   }
+  rule {
+    action = "replace"
+    source_labels = ["__meta_kubernetes_pod_container_id"]
+    regex = "^(\\w+):\\/\\/.+$"
+    replacement = "$1"
+    target_label = "tmp_container_runtime"
+  }
 }
 
 local.file_match "pod_logs" {
@@ -283,12 +290,12 @@ The [reference documentation][component documentation] should help convert those
 {{% docs/reference %}}
 [clustering]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/clustering"
 [clustering]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/concepts/clustering"
-[deployment guide]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/deploy-agent"
-[deployment guide]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/flow/setup/deploy-agent"
+[deployment guide]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/get-started/deploy-agent"
+[deployment guide]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/flow/get-started/deploy-agent"
 [operator guide]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/operator/deploy-agent-operator-resources.md#deploy-a-metricsinstance-resource"
 [operator guide]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/operator/deploy-agent-operator-resources.md#deploy-a-metricsinstance-resource"
-[Helm chart]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/install/kubernetes"
-[Helm chart]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/flow/setup/install/kubernetes"
+[Helm chart]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/get-started/install/kubernetes"
+[Helm chart]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/flow/get-started/install/kubernetes"
 [remote.kubernetes.secret]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/remote.kubernetes.secret.md"
 [remote.kubernetes.secret]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/flow/reference/components/remote.kubernetes.secret.md"
 [prometheus.remote_write]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/prometheus.remote_write.md"

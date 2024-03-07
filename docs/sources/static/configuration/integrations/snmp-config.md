@@ -14,9 +14,9 @@ The `snmp` block configures the `snmp` integration,
 which is an embedded version of
 [`snmp_exporter`](https://github.com/prometheus/snmp_exporter). This allows collection of SNMP metrics from the network devices with ease.
 
-{{% admonition type="note" %}}
+{{< admonition type="note" >}}
 `snmp config` uses the latest configuration introduced in version 0.23 of the Prometheus `snmp_exporter`.
-{{% /admonition %}}
+{{< /admonition >}}
 
 ## Quick configuration example
 
@@ -188,6 +188,6 @@ Full reference of options:
 
 SNMP module is the set of SNMP counters to be scraped together from the specific network device.
 
-SNMP modules available can be found in the embedded snmp.yml file [here](https://github.com/grafana/agent/blob/main/pkg/integrations/snmp_exporter/common/snmp.yml). If not specified, `if_mib` module is used.
+SNMP modules available can be found in the embedded snmp.yml file [here](https://github.com/grafana/agent/blob/main/internal/static/integrations/snmp_exporter/common/snmp.yml). If not specified, `if_mib` module is used.
 
 If you need to use custom SNMP modules, you can [generate](https://github.com/prometheus/snmp_exporter#generating-configuration) your own snmp.yml file and specify it using `config_file` parameter.

@@ -10,6 +10,76 @@ internal API changes are not present.
 Unreleased
 ----------
 
+### Features
+
+- Allow setting nodePort for service. (@ryayon)
+
+0.36.0 (2024-02-27)
+-------------------
+
+### Enhancements
+
+- Update Grafana Agent version to v0.40.2. (@rfratto)
+
+0.35.0 (2024-02-27)
+-------------------
+
+### Enhancements
+
+- Update Grafana Agent version to v0.40.1. (@rfratto)
+
+0.34.0 (2024-02-27)
+-------------------
+
+### Enhancements
+
+- Update Grafana Agent version to v0.40.0. (@jcreixell)
+
+0.33.0 (2024-02-20)
+-------------------
+
+### Features
+
+- Add HPA behavior support for scaling up and down. (@wildum)
+
+### Enhancements
+
+- Allow setting tlsConfig for serviceMonitor (@captncraig)
+- Allow setting internalTrafficPolicy for service (@captncraig)
+
+0.32.0 (2024-02-15)
+-------------------
+
+### Enhancements
+
+- Allow setting scheme for readiness checks when using tls. (@captncraig)
+
+- Update Grafana Agent version to v0.39.2. (@captncraig)
+
+0.31.1 (2024-01-19)
+-------------------
+
+### Enhancements
+
+- Add `kubectl.kubernetes.io/default-container: grafana-agent` annotation to allow various tools to choose `grafana-agent` container as default target (@aerfio)
+
+- Add support for topology spread constraints in helm chart. (@etiennep)
+
+- Update Grafana Agent version to v0.39.1. (@marctc)
+
+### Bugfixes
+
+- Fix a bug preventing the `.Values.configReloader.image.digest` Helm value to be correctly retrieved. (@claudioscalzo)
+
+- Fix a bug preventing digests to be used as labels because of their length. Labels values [must be 63 characters or less](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#syntax-and-character-set). (@claudioscalzo)
+
+0.31.0 (2024-01-10)
+-------------------
+
+### Enhancements
+
+- Update Grafana Agent version to v0.39.0. (@marctc)
+
 ### Bugfixes
 
 - Configure namespace for service account when RBAC resources is created. (@hainenber)

@@ -59,9 +59,9 @@ prometheus.exporter.gcp "pubsub" {
 You can use the following arguments to configure the exporter's behavior.
 Omitted fields take their default values.
 
-{{% admonition type="note" %}}
+{{< admonition type="note" >}}
 Please note that if you are supplying a list of strings for the `extra_filters` argument, any string values within a particular filter string must be enclosed in escaped double quotes. For example, `loadbalancing.googleapis.com:resource.labels.backend_target_name="sample-value"` must be encoded as `"loadbalancing.googleapis.com:resource.labels.backend_target_name=\"sample-value\""` in the River config.
-{{% /admonition %}}
+{{< /admonition >}}
 
 | Name                      | Type           | Description                                                                                                                                                                                                                                                               | Default | Required |
 | ------------------------- | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | -------- |
@@ -180,13 +180,11 @@ prometheus.exporter.gcp "lb_subset_with_filter" {
 
 `prometheus.exporter.gcp` has exports that can be consumed by the following components:
 
-- Components that consume [Targets]({{< relref "../compatibility/#targets-consumers" >}})
+- Components that consume [Targets](../../compatibility/#targets-consumers)
 
-{{% admonition type="note" %}}
-
-Connecting some components may not be sensible or components may require further configuration to make the 
-connection work correctly. Refer to the linked documentation for more details.
-
-{{% /admonition %}}
+{{< admonition type="note" >}}
+Connecting some components may not be sensible or components may require further configuration to make the connection work correctly.
+Refer to the linked documentation for more details.
+{{< /admonition >}}
 
 <!-- END GENERATED COMPATIBLE COMPONENTS -->

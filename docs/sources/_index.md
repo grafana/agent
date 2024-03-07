@@ -9,7 +9,7 @@ title: Grafana Agent
 description: Grafana Agent is a flexible, performant, vendor-neutral, telemetry collector
 weight: 350
 cascade:
-  AGENT_RELEASE: v0.39.0-rc.0
+  AGENT_RELEASE: v0.40.2
   OTEL_VERSION: v0.87.0
 ---
 
@@ -24,11 +24,11 @@ Grafana Agent is based around **components**. Components are wired together to
 form programmable observability **pipelines** for telemetry collection,
 processing, and delivery.
 
-{{% admonition type="note" %}}
+{{< admonition type="note" >}}
 This page focuses mainly on [Flow mode](https://grafana.com/docs/agent/<AGENT_VERSION>/flow/), the Terraform-inspired variant of Grafana Agent.
 
 For information on other variants of Grafana Agent, refer to [Introduction to Grafana Agent]({{< relref "./about.md" >}}).
-{{% /admonition %}}
+{{< /admonition >}}
 
 Grafana Agent can collect, transform, and send data to:
 
@@ -77,7 +77,7 @@ Grafana Agent can collect, transform, and send data to:
 
 * Windows
 
-  * Minimum version: Windows Server 2012 or later, or Windows 10 or later.
+  * Minimum version: Windows Server 2016 or later, or Windows 10 or later.
   * Architectures: AMD64
 
 * macOS
@@ -96,9 +96,14 @@ A new minor release is planned every six weeks for the entire Grafana Agent
 project, including Static mode, the Static mode Kubernetes operator, and Flow
 mode.
 
-The release cadence is best-effort: releases may be moved forwards or backwards
-if needed. The planned release dates for future minor releases do not change if
-one minor release is moved.
+The release cadence is best-effort: if necessary, releases may be performed
+outside of this cadence, or a scheduled release date can be moved forwards or
+backwards.
+
+Minor releases published on cadence include updating dependencies for upstream
+OpenTelemetry Collector code if new versions are available. Minor releases
+published outside of the release cadence may not include these dependency
+updates.
 
 Patch and security releases may be created at any time.
 

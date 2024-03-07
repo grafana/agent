@@ -24,17 +24,19 @@ outFile "${OUT}"
 LicenseData LICENSE
 
 # Everything must be global Vars
+Var EnableOptionsDialog
+Var PassedInParameters
 Var EnableExporterCheck
 Var EnableExporterValue
-Var EnableExporterDialog
-Var PassedInParameters
 Var Url
 Var Username
 Var Password
+Var ExpandEnvCheck
+Var ExpandEnvValue
 
 Page license
 Page directory
-Page custom enableWindowsExporter enableWindowsExporterLeave
+Page custom enableOptions enableOptionsLeave
 Page instfiles
 
 # Annoyingly macros need to be defined before use
@@ -61,17 +63,18 @@ Section "install"
         ${GetOptions} $PassedInParameters "/Url" $Url
         ${GetOptions} $PassedInParameters "/Username" $Username
         ${GetOptions} $PassedInParameters "/Password" $Password
+        ${GetOptions} $PassedInParameters "/ExpandEnv" $ExpandEnvValue
         Call Install
         Return
     RunInstaller:
         Call Install
 SectionEnd
 
-Function enableWindowsExporter
+Function enableOptions
     nsDialogs::Create 1018
-    Pop $EnableExporterDialog
+    Pop $EnableOptionsDialog
 
-    ${If} $EnableExporterDialog == error
+    ${If} $EnableOptionsDialog == error
         Abort
     ${EndIf}
 
@@ -81,15 +84,28 @@ Function enableWindowsExporter
     ${NSD_CreateCheckBox} 0 13u 100% 12u ""
     Pop $EnableExporterCheck
 
+    ${NSD_CreateLabel} 0 26u 100% 12u "Expand Environment Variables"
+    Pop $0
+
+    ${NSD_CreateCheckBox} 0 39u 100% 12u ""
+    Pop $ExpandEnvCheck
+
     nsDialogs::Show
 FunctionEnd
 
-Function enableWindowsExporterLeave
+Function enableOptionsLeave
     ${NSD_GetState} $EnableExporterCheck $EnableExporterValue
     ${If} $EnableExporterValue == ${BST_CHECKED}
         StrCpy $EnableExporterValue "true"
     ${Else}
         StrCpy $EnableExporterValue "false"
+    ${EndIf}
+
+    ${NSD_GetState} $ExpandEnvCheck $ExpandEnvValue
+    ${If} $ExpandEnvValue == ${BST_CHECKED}
+        StrCpy $ExpandEnvValue "true"
+    ${Else}
+        StrCpy $ExpandEnvValue "false"
     ${EndIf}
 FunctionEnd
 
@@ -98,7 +114,12 @@ Function Install
     nsExec::ExecToLog 'sc stop "Grafana Agent"'
     Pop $0
     # Files for the install directory - to build the installer, these should be in the same directory as the install script (this file)
-    setOutPath $INSTDIR
+    IfFileExists "$INSTDIR" Exists NotExists
+    NotExists:
+        SetOutPath "$INSTDIR"
+        Call SetFolderPermissions
+    Exists:
+        SetOutPath "$INSTDIR"
     # Files added here should be removed by the uninstaller (see section "uninstall")
     file "grafana-agent-windows-amd64.exe"
     file "logo.ico"
@@ -128,7 +149,11 @@ Function Install
     nsExec::ExecToLog 'sc create "Grafana Agent" binpath= "\"$INSTDIR\grafana-agent-windows-amd64.exe\""'
     Pop $0
     # These separate create and config commands are needed, on the config the binpath is required
-    nsExec::ExecToLog 'sc config "Grafana Agent" start= auto binpath= "\"$INSTDIR\grafana-agent-windows-amd64.exe\" -config.file=\"$INSTDIR\agent-config.yaml\""'
+    ${If} $ExpandEnvValue == "true"
+        nsExec::ExecToLog 'sc config "Grafana Agent" start= auto binpath= "\"$INSTDIR\grafana-agent-windows-amd64.exe\" -config.expand-env -config.file=\"$INSTDIR\agent-config.yaml\""'
+    ${Else}
+        nsExec::ExecToLog 'sc config "Grafana Agent" start= auto binpath= "\"$INSTDIR\grafana-agent-windows-amd64.exe\" -config.file=\"$INSTDIR\agent-config.yaml\""'
+    ${EndIf}
     Pop $0
     nsExec::ExecToLog `sc start "Grafana Agent"`
     Pop $0
@@ -166,7 +191,27 @@ Function WriteConfig
         FileWrite $9 `    enabled: true`
         ${EndIf}
         FileClose $9 # and close the file
+
+        # Set permissions on the config file
+        AccessControl::DisableFileInheritance "$INSTDIR\agent-config.yaml"
+        AccessControl::SetFileOwner "$INSTDIR\agent-config.yaml" "Administrators"
+        AccessControl::ClearOnFile  "$INSTDIR\agent-config.yaml" "Administrators" "FullAccess"
+        AccessControl::SetOnFile    "$INSTDIR\agent-config.yaml" "SYSTEM" "FullAccess"
+        AccessControl::GrantOnFile  "$INSTDIR\agent-config.yaml" "Everyone" "ListDirectory"
+        AccessControl::GrantOnFile  "$INSTDIR\agent-config.yaml" "Everyone" "ReadAttributes"
         Return
+FunctionEnd
+
+Function SetFolderPermissions
+    # Set permissions on the install directory
+    AccessControl::DisableFileInheritance $INSTDIR
+    AccessControl::SetFileOwner $INSTDIR "Administrators"
+    AccessControl::ClearOnFile  $INSTDIR "Administrators" "FullAccess"
+    AccessControl::SetOnFile    $INSTDIR "SYSTEM" "FullAccess"
+    AccessControl::GrantOnFile  $INSTDIR "Everyone" "ListDirectory"
+    AccessControl::GrantOnFile  $INSTDIR "Everyone" "GenericExecute"
+    AccessControl::GrantOnFile  $INSTDIR "Everyone" "GenericRead"
+    AccessControl::GrantOnFile  $INSTDIR "Everyone" "ReadAttributes"
 FunctionEnd
 
 # Uninstaller
@@ -209,6 +254,7 @@ Section "uninstall"
 
     RMDir /r $APPDATA\grafana-agent-wal
 
-    # Remove uninstaller information from the registry
-    DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}"
+    # Remove service and uninstaller information from the registry.
+    nsExec::ExecToLog 'Reg.exe delete "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\${APPNAME}"  /reg:64 /f'
+    Pop $0
 SectionEnd

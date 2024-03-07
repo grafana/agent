@@ -31,8 +31,8 @@ different labels.
 ```river
 loki.source.heroku "LABEL" {
     http {
-        address = "LISTEN_ADDRESS"
-        port    = LISTEN_PORT
+        listen_address = "LISTEN_ADDRESS"
+        listen_port    = LISTEN_PORT
     }
     forward_to = RECEIVER_LIST
 }
@@ -42,13 +42,13 @@ loki.source.heroku "LABEL" {
 
 `loki.source.heroku` supports the following arguments:
 
-Name                     | Type                   | Description                                                                        | Default | Required
------------------------- | ---------------------- |------------------------------------------------------------------------------------| ------- | --------
-`use_incoming_timestamp` | `bool`                 | Whether or not to use the timestamp received from Heroku.                          | `false` | no
-`labels`                 | `map(string)`          | The labels to associate with each received Heroku record.                          | `{}`    | no
-`forward_to`             | `list(LogsReceiver)`   | List of receivers to send log entries to.                                          |         | yes
-`relabel_rules`          | `RelabelRules`         | Relabeling rules to apply on log entries.                                          | `{}`    | no
-`graceful_shutdown_timeout` | `duration` | Timeout for servers graceful shutdown. If configured, should be greater than zero. | "30s"    | no
+Name                        | Type                 | Description                                                                        | Default | Required
+----------------------------|----------------------|------------------------------------------------------------------------------------|---------|---------
+`use_incoming_timestamp`    | `bool`               | Whether or not to use the timestamp received from Heroku.                          | `false` | no
+`labels`                    | `map(string)`        | The labels to associate with each received Heroku record.                          | `{}`    | no
+`forward_to`                | `list(LogsReceiver)` | List of receivers to send log entries to.                                          |         | yes
+`relabel_rules`             | `RelabelRules`       | Relabeling rules to apply on log entries.                                          | `{}`    | no
+`graceful_shutdown_timeout` | `duration`           | Timeout for servers graceful shutdown. If configured, should be greater than zero. | "30s"   | no
 
 The `relabel_rules` field can make use of the `rules` export value from a
 `loki.relabel` component to apply one or more relabeling rules to log entries
@@ -58,10 +58,10 @@ before they're forwarded to the list of receivers in `forward_to`.
 
 The following blocks are supported inside the definition of `loki.source.heroku`:
 
- Hierarchy | Name     | Description                                        | Required 
------------|----------|----------------------------------------------------|----------
- `http`    | [http][] | Configures the HTTP server that receives requests. | no       
- `grpc`    | [grpc][] | Configures the gRPC server that receives requests. | no       
+Hierarchy | Name     | Description                                        | Required
+----------|----------|----------------------------------------------------|---------
+`http`    | [http][] | Configures the HTTP server that receives requests. | no
+`grpc`    | [grpc][] | Configures the gRPC server that receives requests. | no
 
 [http]: #http
 [grpc]: #grpc
@@ -114,8 +114,8 @@ This example listens for Heroku messages over TCP in the specified port and forw
 ```river
 loki.source.heroku "local" {
     http {
-        address = "0.0.0.0"
-        port    = 4040
+        listen_address = "0.0.0.0"
+        listen_port    = 4040
     }
     use_incoming_timestamp = true
     labels                 = {component = "loki.source.heroku"}
@@ -150,14 +150,12 @@ loki.write "local" {
 
 `loki.source.heroku` can accept arguments from the following components:
 
-- Components that export [Loki `LogsReceiver`]({{< relref "../compatibility/#loki-logsreceiver-exporters" >}})
+- Components that export [Loki `LogsReceiver`](../../compatibility/#loki-logsreceiver-exporters)
 
 
-{{% admonition type="note" %}}
-
-Connecting some components may not be sensible or components may require further configuration to make the 
-connection work correctly. Refer to the linked documentation for more details.
-
-{{% /admonition %}}
+{{< admonition type="note" >}}
+Connecting some components may not be sensible or components may require further configuration to make the connection work correctly.
+Refer to the linked documentation for more details.
+{{< /admonition >}}
 
 <!-- END GENERATED COMPATIBLE COMPONENTS -->

@@ -205,7 +205,7 @@ You can create an `otlp` exporter that sends your data to a managed service, for
 ```river
 otelcol.exporter.otlp "grafana_cloud_tempo" {
     client {
-        endpoint = "https://tempo-xxx.grafana.net/tempo"
+        endpoint = "tempo-xxx.grafana.net/tempo:443"
         auth     = otelcol.auth.basic.grafana_cloud_tempo.handler
     }
 }
@@ -220,13 +220,11 @@ otelcol.auth.basic "grafana_cloud_tempo" {
 
 `otelcol.exporter.otlp` has exports that can be consumed by the following components:
 
-- Components that consume [OpenTelemetry `otelcol.Consumer`]({{< relref "../compatibility/#opentelemetry-otelcolconsumer-consumers" >}})
+- Components that consume [OpenTelemetry `otelcol.Consumer`](../../compatibility/#opentelemetry-otelcolconsumer-consumers)
 
-{{% admonition type="note" %}}
-
-Connecting some components may not be sensible or components may require further configuration to make the 
-connection work correctly. Refer to the linked documentation for more details.
-
-{{% /admonition %}}
+{{< admonition type="note" >}}
+Connecting some components may not be sensible or components may require further configuration to make the connection work correctly.
+Refer to the linked documentation for more details.
+{{< /admonition >}}
 
 <!-- END GENERATED COMPATIBLE COMPONENTS -->

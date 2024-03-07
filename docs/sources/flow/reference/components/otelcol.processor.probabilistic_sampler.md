@@ -15,11 +15,11 @@ title: otelcol.processor.probabilistic_sampler
 
 `otelcol.processor.probabilistic_sampler` accepts logs and traces data from other otelcol components and applies probabilistic sampling based on configuration options.
 
-{{% admonition type="note" %}}
+{{< admonition type="note" >}}
 `otelcol.processor.probabilistic_sampler` is a wrapper over the upstream
 OpenTelemetry Collector Contrib `probabilistic_sampler` processor. If necessary, 
 bug reports or feature requests will be redirected to the upstream repository.
-{{% /admonition %}}
+{{< /admonition >}}
 
 You can specify multiple `otelcol.processor.probabilistic_sampler` components by giving them
 different labels.
@@ -151,17 +151,15 @@ otelcol.processor.probabilistic_sampler "default" {
 
 `otelcol.processor.probabilistic_sampler` can accept arguments from the following components:
 
-- Components that export [OpenTelemetry `otelcol.Consumer`]({{< relref "../compatibility/#opentelemetry-otelcolconsumer-exporters" >}})
+- Components that export [OpenTelemetry `otelcol.Consumer`](../../compatibility/#opentelemetry-otelcolconsumer-exporters)
 
 `otelcol.processor.probabilistic_sampler` has exports that can be consumed by the following components:
 
-- Components that consume [OpenTelemetry `otelcol.Consumer`]({{< relref "../compatibility/#opentelemetry-otelcolconsumer-consumers" >}})
+- Components that consume [OpenTelemetry `otelcol.Consumer`](../../compatibility/#opentelemetry-otelcolconsumer-consumers)
 
-{{% admonition type="note" %}}
-
-Connecting some components may not be sensible or components may require further configuration to make the 
-connection work correctly. Refer to the linked documentation for more details.
-
-{{% /admonition %}}
+{{< admonition type="note" >}}
+Connecting some components may not be sensible or components may require further configuration to make the connection work correctly.
+Refer to the linked documentation for more details.
+{{< /admonition >}}
 
 <!-- END GENERATED COMPATIBLE COMPONENTS -->

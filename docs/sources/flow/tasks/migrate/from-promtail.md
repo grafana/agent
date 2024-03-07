@@ -9,7 +9,7 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/getting-started/migrating-from-promtail/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/getting-started/migrating-from-promtail/
 - /docs/grafana-cloud/send-data/agent/flow/getting-started/migrating-from-promtail/
-- ../getting-started/migrating-from-promtail/ # /docs/agent/latest/flow/getting-started/migrating-from-promtail/
+- ../../getting-started/migrating-from-promtail/ # /docs/agent/latest/flow/getting-started/migrating-from-promtail/
 canonical: https://grafana.com/docs/agent/latest/flow/tasks/migrate/from-promtail/
 description: Learn how to migrate from Promtail to Grafana Agent Flow
 menuTitle: Migrate from Promtail
@@ -64,17 +64,17 @@ This conversion will enable you to take full advantage of the many additional fe
     * _`<INPUT_CONFIG_PATH>`_: The full path to the Promtail configuration.
     * _`<OUTPUT_CONFIG_PATH>`_: The full path to output the {{< param "PRODUCT_NAME" >}} configuration.
 
-1. [Start][] {{< param "PRODUCT_NAME" >}} using the new configuration from _`<OUTPUT_CONFIG_PATH>`_:
+1. [Run][] {{< param "PRODUCT_NAME" >}} using the new configuration from _`<OUTPUT_CONFIG_PATH>`_:
 
 ### Debugging
 
 1. If the convert command can't convert a Promtail configuration, diagnostic information is sent to `stderr`.
    You can bypass any non-critical issues and output the {{< param "PRODUCT_NAME" >}} configuration using a best-effort conversion by including the `--bypass-errors` flag.
 
-   {{% admonition type="caution" %}}
+   {{< admonition type="caution" >}}
    If you bypass the errors, the behavior of the converted configuration may not match the original Promtail configuration.
    Make sure you fully test the converted configuration before using it in a production environment.
-   {{% /admonition %}}
+   {{< /admonition >}}
 
    {{< code >}}
 
@@ -127,7 +127,7 @@ This allows you to try {{< param "PRODUCT_NAME" >}} without modifying your exist
 
 > In this task, you will use the [run][] CLI command to run {{< param "PRODUCT_NAME" >}} using a Promtail configuration.
 
-[Start][] {{< param "PRODUCT_NAME" >}} and include the command line flag `--config.format=promtail`.
+[Run][] {{< param "PRODUCT_NAME" >}} and include the command line flag `--config.format=promtail`.
 Your configuration file must be a valid Promtail configuration file rather than a {{< param "PRODUCT_NAME" >}} configuration file.
 
 ### Debugging
@@ -139,10 +139,10 @@ Your configuration file must be a valid Promtail configuration file rather than 
 1. If your Promtail configuration can't be converted and loaded directly into {{< param "PRODUCT_ROOT_NAME" >}}, diagnostic information is sent to `stderr`.
    You can bypass any non-critical issues and start {{< param "PRODUCT_ROOT_NAME" >}} by including the `--config.bypass-conversion-errors` flag in addition to `--config.format=promtail`.
 
-   {{% admonition type="caution" %}}
+   {{< admonition type="caution" >}}
    If you bypass the errors, the behavior of the converted configuration may not match the original Promtail configuration.
    Do not use this flag in a production environment.
-   {{%/admonition %}}
+   {{< /admonition >}}
 
 ## Example
 
@@ -213,7 +213,7 @@ After the configuration is converted, review the {{< param "PRODUCT_NAME" >}} co
 The following list is specific to the convert command and not {{< param "PRODUCT_NAME" >}}:
 
 * Check if you are using any extra command line arguments with Promtail that aren't present in your configuration file. For example, `-max-line-size`.
-* Check if you are setting any environment variables, whether [expanded in the config file][] itself or consumed directly by Promtail, such as `JAEGER_AGENT_HOST`.
+* Check if you are setting any environment variables, whether [expanded in the configuration file][] itself or consumed directly by Promtail, such as `JAEGER_AGENT_HOST`.
 * In {{< param "PRODUCT_NAME" >}}, the positions file is saved at a different location.
   Refer to the [loki.source.file][] documentation for more details.
   Check if you have any existing setup, for example, a Kubernetes Persistent Volume, that you must update to use the new positions file path.
@@ -224,7 +224,7 @@ The following list is specific to the convert command and not {{< param "PRODUCT
 
 [Promtail]: https://www.grafana.com/docs/loki/<LOKI_VERSION>/clients/promtail/
 [debugging]: #debugging
-[expanded in the config file]: https://www.grafana.com/docs/loki/<LOKI_VERSION>/clients/promtail/configuration/#use-environment-variables-in-the-configuration
+[expanded in the configuration file]: https://www.grafana.com/docs/loki/<LOKI_VERSION>/clients/promtail/configuration/#use-environment-variables-in-the-configuration
 
 {{% docs/reference %}}
 [local.file_match]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/local.file_match.md"
@@ -239,8 +239,8 @@ The following list is specific to the convert command and not {{< param "PRODUCT
 [convert]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/cli/convert.md"
 [run]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/cli/run.md"
 [run]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/cli/run.md"
-[Start]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/start-agent.md"
-[Start]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/setup/start-agent.md"
+[Run]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/get-started/run/"
+[Run]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/get-started/run/"
 [DebuggingUI]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/tasks/debug.md"
 [DebuggingUI]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/tasks/debug.md"
 [River]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/config-language/_index.md"

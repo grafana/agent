@@ -3,7 +3,6 @@
 * Date: 2022-01-04
 * Author: Robert Fratto (@rfratto)
 * PR: [grafana/agent#1224](https://github.com/grafana/agent/pull/1224)
-* Status: Draft
 
 ## Background
 

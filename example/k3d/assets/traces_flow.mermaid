@@ -1,8 +1,0 @@
-sequenceDiagram
-    Vulture ->>+ Agent: Emits traces
-    Agent ->>+ Tempo: Pushes traces (remote_write)
-    Vulture ->>+ Tempo: Checks that traces are valid
-    Vulture ->>+ Vulture: Exposes validate metrics (/metrics)
-    Agent ->>+ Vulture: Scrapes /metrics
-    Agent ->>+ Prometheus: Send validate metrics
-    Prometheus ->>+ Prometheus: Check alerts
