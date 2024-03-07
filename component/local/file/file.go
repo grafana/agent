@@ -11,7 +11,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 
 	"github.com/grafana/agent/component"
-	filedetector "github.com/grafana/agent/internal/file-detector"
+	filedetector "github.com/grafana/agent/internal/filedetector"
 	"github.com/grafana/agent/pkg/flow/logging/level"
 	"github.com/grafana/river/rivertypes"
 )

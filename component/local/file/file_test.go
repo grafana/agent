@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/grafana/agent/component/local/file"
-	filedetector "github.com/grafana/agent/internal/file-detector"
+	filedetector "github.com/grafana/agent/internal/filedetector"
 	"github.com/grafana/agent/pkg/flow/componenttest"
 	"github.com/grafana/river/rivertypes"
 	"github.com/stretchr/testify/require"
