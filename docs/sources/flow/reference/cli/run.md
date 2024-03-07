@@ -87,7 +87,7 @@ reloading.
 
 [component controller]: {{< relref "../../concepts/component_controller.md" >}}
 
-## Clustering (beta)
+## Clustering
 
 The `--cluster.enabled` command-line argument starts {{< param "PRODUCT_ROOT_NAME" >}} in
 [clustering][] mode. The rest of the `--cluster.*` command-line flags can be

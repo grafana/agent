@@ -55,7 +55,7 @@
                "steppedLine": false,
                "targets": [
                   {
-                     "expr": "rate(traces_receiver_accepted_spans{cluster=~\"$cluster\",namespace=~\"$namespace\",container=~\"$container\",pod=~\"$pod\",receiver!=\"otlp/lb\"}[$__rate_interval])\n",
+                     "expr": "rate(traces_receiver_accepted_spans_total{cluster=~\"$cluster\",namespace=~\"$namespace\",container=~\"$container\",pod=~\"$pod\",receiver!=\"otlp/lb\"}[$__rate_interval])\n",
                      "format": "time_series",
                      "intervalFactor": 2,
                      "legendFormat": "{{ pod }} - {{ receiver }}/{{ transport }}",
@@ -137,7 +137,7 @@
                "steppedLine": false,
                "targets": [
                   {
-                     "expr": "rate(traces_receiver_refused_spans{cluster=~\"$cluster\",namespace=~\"$namespace\",container=~\"$container\",pod=~\"$pod\",receiver!=\"otlp/lb\"}[$__rate_interval])\n",
+                     "expr": "rate(traces_receiver_refused_spans_total{cluster=~\"$cluster\",namespace=~\"$namespace\",container=~\"$container\",pod=~\"$pod\",receiver!=\"otlp/lb\"}[$__rate_interval])\n",
                      "format": "time_series",
                      "intervalFactor": 2,
                      "legendFormat": "{{ pod }} - {{ receiver }}/{{ transport }}",
@@ -219,7 +219,7 @@
                "steppedLine": false,
                "targets": [
                   {
-                     "expr": "rate(traces_exporter_sent_spans{cluster=~\"$cluster\",namespace=~\"$namespace\",container=~\"$container\",pod=~\"$pod\",exporter!=\"otlp\"}[$__rate_interval])\n",
+                     "expr": "rate(traces_exporter_sent_spans_total{cluster=~\"$cluster\",namespace=~\"$namespace\",container=~\"$container\",pod=~\"$pod\",exporter!=\"otlp\"}[$__rate_interval])\n",
                      "format": "time_series",
                      "intervalFactor": 2,
                      "legendFormat": "{{ pod }} - {{ exporter }}",
@@ -301,7 +301,7 @@
                "steppedLine": false,
                "targets": [
                   {
-                     "expr": "rate(traces_exporter_send_failed_spans{cluster=~\"$cluster\",namespace=~\"$namespace\",container=~\"$container\",pod=~\"$pod\",exporter!=\"otlp\"}[$__rate_interval])\n",
+                     "expr": "rate(traces_exporter_send_failed_spans_total{cluster=~\"$cluster\",namespace=~\"$namespace\",container=~\"$container\",pod=~\"$pod\",exporter!=\"otlp\"}[$__rate_interval])\n",
                      "format": "time_series",
                      "intervalFactor": 2,
                      "legendFormat": "{{ pod }} - {{ exporter }}",
@@ -383,14 +383,14 @@
                "steppedLine": false,
                "targets": [
                   {
-                     "expr": "sum(rate(traces_receiver_accepted_spans{cluster=~\"$cluster\",namespace=~\"$namespace\",container=~\"$container\",pod=~\"$pod\",receiver!=\"otlp/lb\"}[$__rate_interval]))\n",
+                     "expr": "sum(rate(traces_receiver_accepted_spans_total{cluster=~\"$cluster\",namespace=~\"$namespace\",container=~\"$container\",pod=~\"$pod\",receiver!=\"otlp/lb\"}[$__rate_interval]))\n",
                      "format": "time_series",
                      "intervalFactor": 2,
                      "legendFormat": "Accepted",
                      "refId": "A"
                   },
                   {
-                     "expr": "sum(rate(traces_receiver_refused_spans{cluster=~\"$cluster\",namespace=~\"$namespace\",container=~\"$container\",pod=~\"$pod\",receiver!=\"otlp/lb\"}[$__rate_interval]))\n",
+                     "expr": "sum(rate(traces_receiver_refused_spans_total{cluster=~\"$cluster\",namespace=~\"$namespace\",container=~\"$container\",pod=~\"$pod\",receiver!=\"otlp/lb\"}[$__rate_interval]))\n",
                      "format": "time_series",
                      "intervalFactor": 2,
                      "legendFormat": "Refused",
@@ -472,14 +472,14 @@
                "steppedLine": false,
                "targets": [
                   {
-                     "expr": "sum(rate(traces_exporter_sent_spans{cluster=~\"$cluster\",namespace=~\"$namespace\",container=~\"$container\",pod=~\"$pod\",exporter!=\"otlp\"}[$__rate_interval]))\n",
+                     "expr": "sum(rate(traces_exporter_sent_spans_total{cluster=~\"$cluster\",namespace=~\"$namespace\",container=~\"$container\",pod=~\"$pod\",exporter!=\"otlp\"}[$__rate_interval]))\n",
                      "format": "time_series",
                      "intervalFactor": 2,
                      "legendFormat": "Sent",
                      "refId": "A"
                   },
                   {
-                     "expr": "sum(rate(traces_exporter_send_failed_spans{cluster=~\"$cluster\",namespace=~\"$namespace\",container=~\"$container\",pod=~\"$pod\",exporter!=\"otlp\"}[$__rate_interval]))\n",
+                     "expr": "sum(rate(traces_exporter_send_failed_spans_total{cluster=~\"$cluster\",namespace=~\"$namespace\",container=~\"$container\",pod=~\"$pod\",exporter!=\"otlp\"}[$__rate_interval]))\n",
                      "format": "time_series",
                      "intervalFactor": 2,
                      "legendFormat": "Send failed",
@@ -528,361 +528,6 @@
          "repeatRowId": null,
          "showTitle": true,
          "title": "Write / Read",
-         "titleSize": "h6",
-         "type": "row"
-      },
-      {
-         "collapse": false,
-         "collapsed": false,
-         "panels": [
-            {
-               "aliasColors": { },
-               "bars": false,
-               "dashLength": 10,
-               "dashes": false,
-               "datasource": "$datasource",
-               "fill": 1,
-               "fillGradient": 0,
-               "gridPos": { },
-               "id": 8,
-               "interval": "1m",
-               "legend": {
-                  "alignAsTable": false,
-                  "avg": false,
-                  "current": false,
-                  "max": false,
-                  "min": false,
-                  "rightSide": false,
-                  "show": true,
-                  "sideWidth": null,
-                  "total": false,
-                  "values": false
-               },
-               "lines": true,
-               "linewidth": 1,
-               "links": [ ],
-               "nullPointMode": "null",
-               "percentage": false,
-               "pointradius": 5,
-               "points": false,
-               "renderer": "flot",
-               "repeat": null,
-               "seriesOverrides": [ ],
-               "spaceLength": 10,
-               "span": 3,
-               "stack": true,
-               "steppedLine": false,
-               "targets": [
-                  {
-                     "expr": "rate(traces_loadbalancer_backend_outcome{cluster=~\"$cluster\",namespace=~\"$namespace\",success=\"true\",container=~\"$container\",pod=~\"$pod\"}[$__rate_interval])\n",
-                     "format": "time_series",
-                     "intervalFactor": 2,
-                     "legendFormat": "{{ pod }}",
-                     "refId": "A"
-                  }
-               ],
-               "thresholds": [ ],
-               "timeFrom": null,
-               "timeShift": null,
-               "title": "Load-balanced spans",
-               "tooltip": {
-                  "shared": true,
-                  "sort": 0,
-                  "value_type": "individual"
-               },
-               "type": "graph",
-               "xaxis": {
-                  "buckets": null,
-                  "mode": "time",
-                  "name": null,
-                  "show": true,
-                  "values": [ ]
-               },
-               "yaxes": [
-                  {
-                     "format": "short",
-                     "label": null,
-                     "logBase": 1,
-                     "max": null,
-                     "min": null,
-                     "show": true
-                  },
-                  {
-                     "format": "short",
-                     "label": null,
-                     "logBase": 1,
-                     "max": null,
-                     "min": null,
-                     "show": true
-                  }
-               ]
-            },
-            {
-               "aliasColors": { },
-               "bars": false,
-               "dashLength": 10,
-               "dashes": false,
-               "datasource": "$datasource",
-               "fill": 0,
-               "fillGradient": 0,
-               "gridPos": { },
-               "id": 9,
-               "interval": "1m",
-               "legend": {
-                  "alignAsTable": false,
-                  "avg": false,
-                  "current": false,
-                  "max": false,
-                  "min": false,
-                  "rightSide": false,
-                  "show": false,
-                  "sideWidth": null,
-                  "total": false,
-                  "values": false
-               },
-               "lines": true,
-               "linewidth": 1,
-               "links": [ ],
-               "nullPointMode": "null",
-               "percentage": false,
-               "pointradius": 5,
-               "points": false,
-               "renderer": "flot",
-               "repeat": null,
-               "seriesOverrides": [ ],
-               "spaceLength": 10,
-               "span": 3,
-               "stack": false,
-               "steppedLine": false,
-               "targets": [
-                  {
-                     "expr": "traces_loadbalancer_num_backends{cluster=~\"$cluster\",namespace=~\"$namespace\",container=~\"$container\",pod=~\"$pod\"}\n",
-                     "format": "time_series",
-                     "intervalFactor": 2,
-                     "legendFormat": "{{ pod }}",
-                     "refId": "A"
-                  }
-               ],
-               "thresholds": [ ],
-               "timeFrom": null,
-               "timeShift": null,
-               "title": "Number of peers",
-               "tooltip": {
-                  "shared": true,
-                  "sort": 0,
-                  "value_type": "individual"
-               },
-               "type": "graph",
-               "xaxis": {
-                  "buckets": null,
-                  "mode": "time",
-                  "name": null,
-                  "show": true,
-                  "values": [ ]
-               },
-               "yaxes": [
-                  {
-                     "format": "short",
-                     "label": null,
-                     "logBase": 1,
-                     "max": null,
-                     "min": null,
-                     "show": true
-                  },
-                  {
-                     "format": "short",
-                     "label": null,
-                     "logBase": 1,
-                     "max": null,
-                     "min": null,
-                     "show": true
-                  }
-               ]
-            },
-            {
-               "aliasColors": { },
-               "bars": false,
-               "dashLength": 10,
-               "dashes": false,
-               "datasource": "$datasource",
-               "fill": 1,
-               "fillGradient": 0,
-               "gridPos": { },
-               "id": 10,
-               "interval": "1m",
-               "legend": {
-                  "alignAsTable": false,
-                  "avg": false,
-                  "current": false,
-                  "max": false,
-                  "min": false,
-                  "rightSide": false,
-                  "show": true,
-                  "sideWidth": null,
-                  "total": false,
-                  "values": false
-               },
-               "lines": true,
-               "linewidth": 1,
-               "links": [ ],
-               "nullPointMode": "null",
-               "percentage": false,
-               "pointradius": 5,
-               "points": false,
-               "renderer": "flot",
-               "repeat": null,
-               "seriesOverrides": [ ],
-               "spaceLength": 10,
-               "span": 3,
-               "stack": false,
-               "steppedLine": false,
-               "targets": [
-                  {
-                     "expr": "sum(rate(traces_receiver_accepted_spans{cluster=~\"$cluster\",namespace=~\"$namespace\",container=~\"$container\",pod=~\"$pod\",receiver=\"otlp/lb\"}[$__rate_interval]))\n",
-                     "format": "time_series",
-                     "intervalFactor": 2,
-                     "legendFormat": "Accepted",
-                     "refId": "A"
-                  },
-                  {
-                     "expr": "sum(rate(traces_receiver_refused_spans{cluster=~\"$cluster\",namespace=~\"$namespace\",container=~\"$container\",pod=~\"$pod\",receiver=\"otlp/lb\"}[$__rate_interval]))\n",
-                     "format": "time_series",
-                     "intervalFactor": 2,
-                     "legendFormat": "Refused",
-                     "refId": "B"
-                  }
-               ],
-               "thresholds": [ ],
-               "timeFrom": null,
-               "timeShift": null,
-               "title": "Received spans",
-               "tooltip": {
-                  "shared": true,
-                  "sort": 0,
-                  "value_type": "individual"
-               },
-               "type": "graph",
-               "xaxis": {
-                  "buckets": null,
-                  "mode": "time",
-                  "name": null,
-                  "show": true,
-                  "values": [ ]
-               },
-               "yaxes": [
-                  {
-                     "format": "short",
-                     "label": null,
-                     "logBase": 1,
-                     "max": null,
-                     "min": null,
-                     "show": true
-                  },
-                  {
-                     "format": "short",
-                     "label": null,
-                     "logBase": 1,
-                     "max": null,
-                     "min": null,
-                     "show": true
-                  }
-               ]
-            },
-            {
-               "aliasColors": { },
-               "bars": false,
-               "dashLength": 10,
-               "dashes": false,
-               "datasource": "$datasource",
-               "fill": 1,
-               "fillGradient": 0,
-               "gridPos": { },
-               "id": 11,
-               "interval": "1m",
-               "legend": {
-                  "alignAsTable": false,
-                  "avg": false,
-                  "current": false,
-                  "max": false,
-                  "min": false,
-                  "rightSide": false,
-                  "show": true,
-                  "sideWidth": null,
-                  "total": false,
-                  "values": false
-               },
-               "lines": true,
-               "linewidth": 1,
-               "links": [ ],
-               "nullPointMode": "null",
-               "percentage": false,
-               "pointradius": 5,
-               "points": false,
-               "renderer": "flot",
-               "repeat": null,
-               "seriesOverrides": [ ],
-               "spaceLength": 10,
-               "span": 3,
-               "stack": false,
-               "steppedLine": false,
-               "targets": [
-                  {
-                     "expr": "sum(rate(traces_exporter_sent_spans{cluster=~\"$cluster\",namespace=~\"$namespace\",container=~\"$container\",pod=~\"$pod\",exporter=\"otlp\"}[$__rate_interval]))\n",
-                     "format": "time_series",
-                     "intervalFactor": 2,
-                     "legendFormat": "Sent",
-                     "refId": "A"
-                  },
-                  {
-                     "expr": "sum(rate(traces_exporter_send_failed_spans{cluster=~\"$cluster\",namespace=~\"$namespace\",container=~\"$container\",pod=~\"$pod\",exporter=\"otlp\"}[$__rate_interval]))\n",
-                     "format": "time_series",
-                     "intervalFactor": 2,
-                     "legendFormat": "Send failed",
-                     "refId": "B"
-                  }
-               ],
-               "thresholds": [ ],
-               "timeFrom": null,
-               "timeShift": null,
-               "title": "Exported spans",
-               "tooltip": {
-                  "shared": true,
-                  "sort": 0,
-                  "value_type": "individual"
-               },
-               "type": "graph",
-               "xaxis": {
-                  "buckets": null,
-                  "mode": "time",
-                  "name": null,
-                  "show": true,
-                  "values": [ ]
-               },
-               "yaxes": [
-                  {
-                     "format": "short",
-                     "label": null,
-                     "logBase": 1,
-                     "max": null,
-                     "min": null,
-                     "show": true
-                  },
-                  {
-                     "format": "short",
-                     "label": null,
-                     "logBase": 1,
-                     "max": null,
-                     "min": null,
-                     "show": true
-                  }
-               ]
-            }
-         ],
-         "repeat": null,
-         "repeatIteration": null,
-         "repeatRowId": null,
-         "showTitle": true,
-         "title": "Load balancing",
          "titleSize": "h6",
          "type": "row"
       }
