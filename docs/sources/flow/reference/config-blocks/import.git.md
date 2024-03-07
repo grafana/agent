@@ -49,8 +49,8 @@ When provided, the `revision` attribute must be set to a valid branch, tag, or
 commit SHA within the repository.
 
 You must set the `path` attribute to a path accessible from the repository's root.
-It can either be a river file such as `FILE_NAME.river` or `DIR_NAME/FILE_NAME.river` or
-a directory containing river files such as `DIR_NAME` or `.` if the river files are stored at the root
+It can either be a River file such as `FILE_NAME.river` or `DIR_NAME/FILE_NAME.river` or
+a directory containing River files such as `DIR_NAME` or `.` if the River files are stored at the root
 of the repository.
 
 If `pull_frequency` isn't `"0s"`, the Git repository is pulled for updates at the frequency specified.
