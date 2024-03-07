@@ -33,6 +33,17 @@ Components allow for reusability, composability, and focus on a single task.
 * Use expressions to bind components together to build a programmable pipeline.
 * Includes a UI for debugging the state of a pipeline.
 
+{{< param "PRODUCT_NAME" >}} is a [distribution][] of the OpenTelemetry
+Collector by Grafana Labs.
+Each distribution offers a different collection of components and capabilities.
+{{< param "PRODUCT_NAME" >}} is a distribution that includes dozens of
+OpenTelemetry-native [components][] from the OpenTelemetry project and
+introduces new capabilities such as programmable pipelines, clustering support,
+and the capability of sharing pipelines around the world.
+In addition to being an OpenTelemetry Collector distribution,
+{{< param "PRODUCT_NAME" >}} also includes first-class support for the
+Prometheus and Loki ecosystems, enabling pipelines to mix-and-match as needed.
+
 ## Example
 
 ```river
@@ -94,5 +105,8 @@ This feature is experimental, and it doesn't support all River components.
 [Tutorials]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/tutorials/"
 [Tutorials]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/tutorials/
 [Reference]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/"
-[Reference]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/
+[Reference]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/"
+[components]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/"
+[components]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/components"
+[distribution]: "https://opentelemetry.io/ecosystem/distributions/"
 {{% /docs/reference %}}
