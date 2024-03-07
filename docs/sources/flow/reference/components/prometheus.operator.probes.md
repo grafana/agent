@@ -193,7 +193,7 @@ fully consistent like hashmod sharding is).
 If {{< param "PRODUCT_NAME" >}} is _not_ running in clustered mode, then the block is a no-op, and
 `prometheus.operator.probes` scrapes every target it receives in its arguments.
 
-[clustered mode]: {{< relref "../cli/run.md#clustering-beta" >}}
+[clustered mode]: {{< relref "../cli/run.md#clustering" >}}
 
 ## Exported fields
 
@@ -270,7 +270,7 @@ prometheus.operator.probes "probes" {
 
 `prometheus.operator.probes` can accept arguments from the following components:
 
-- Components that export [Prometheus `MetricsReceiver`]({{< relref "../compatibility/#prometheus-metricsreceiver-exporters" >}})
+- Components that export [Prometheus `MetricsReceiver`](../../compatibility/#prometheus-metricsreceiver-exporters)
 
 
 {{< admonition type="note" >}}

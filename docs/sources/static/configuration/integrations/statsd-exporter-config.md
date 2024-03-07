@@ -121,7 +121,7 @@ Full reference of options:
   # specifies the destination to forward your metrics.
 
   # Note that it must be a UDP endpoint in the format 'host:port'.
-  [relay_address: <string>]
+  [relay_addr: <string>]
 
   # Maximum relay output packet length to avoid fragmentation.
   [relay_packet_length: <int> | default = 1400]
