@@ -10,6 +10,12 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+### Enhancements
+
+- Add support for importing folders as single module to `import.file`. (@wildum)
+
+- Add support for importing directories as single module to `import.git`. (@wildum)
+
 ### Features
 
 - Added a new CLI flag `--stability.level` which defines the minimum stability
@@ -19,8 +25,35 @@ Main (unreleased)
 
 ### Bugfixes
 
+- Fix an issue where JSON string array elements were not parsed correctly in `loki.source.cloudflare`. (@thampiotr)
+
+### Other changes
+
+- Clustering for Grafana Agent in Flow mode has graduated from beta to stable.
+
+v0.40.2 (2024-03-05)
+--------------------
+
+### Bugfixes
+
 - Set permissions on the `Grafana Agent [Flow]` folder when installing via the
   windows installer rather than relying on the parent folder permissions. (@erikbaranowski)
+
+- Set restricted viewing permissions on the `agent-config.yaml` (static mode) or
+  `config.river` (flow mode) when installing via the Windows installer if the
+  configuration file does not already exist. (@erikbaranowski)
+
+- Fix an issue where the import config node would not run after a config reload. (@wildum)
+
+- Fix an issue where Loki could reject a batch of logs when structured metadata feature is used. (@thampiotr)
+
+=======
+- Fix a duplicate metrics registration panic when recreating static
+  mode metric instance's write handler. (@rfratto, @hainenber)
+
+### Other changes
+
+- Change the Docker base image for Linux containers to `public.ecr.aws/ubuntu/ubuntu:mantic`. (@hainenber)
 
 v0.40.1 (2024-02-27)
 --------------------
@@ -164,6 +197,8 @@ v0.40.0 (2024-02-27)
 - `grafana-agent` and `grafana-agent-flow` fallback to default X.509 trusted root certificates
   when the `GODEBUG=x509usefallbackroots=1` environment variable is set. (@hainenber)
 
+- Migrate away from EoL'ed `github.com/aws-sdk-go` v1. (@hainenber)
+
 v0.39.2 (2024-1-31)
 --------------------
 
@@ -173,7 +208,6 @@ v0.39.2 (2024-1-31)
 
 - An error will be returned in the converter from Static to Flow when `scrape_integration` is set
   to `true` but no `remote_write` is defined. (@erikbaranowski)
-
 
 v0.39.1 (2024-01-19)
 --------------------
@@ -188,7 +222,6 @@ v0.39.1 (2024-01-19)
 ### Bugfixes
 
 - Fix issue where installing the Windows Agent Flow installer would hang then crash. (@mattdurham)
-
 
 v0.39.0 (2024-01-09)
 --------------------
