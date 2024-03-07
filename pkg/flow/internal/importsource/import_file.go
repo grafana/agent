@@ -154,7 +154,7 @@ func (im *ImportFile) Run(ctx context.Context) error {
 }
 
 func (im *ImportFile) readFile() error {
-	files, err := im.collectFiles()
+	files, dir, err := im.collectFiles()
 	if err != nil {
 		im.setHealth(component.Health{
 			Health:     component.HealthTypeUnhealthy,
@@ -167,7 +167,7 @@ func (im *ImportFile) readFile() error {
 	fileContents := make(map[string]string)
 	for _, f := range files {
 		fpath := f
-		if im.importDir {
+		if dir {
 			fpath = filepath.Join(im.args.Filename, fpath)
 		}
 		bb, err := os.ReadFile(fpath)
@@ -204,24 +204,24 @@ func (im *ImportFile) setHealth(h component.Health) {
 	im.health = h
 }
 
-func (im *ImportFile) collectFiles() ([]string, error) {
+func (im *ImportFile) collectFiles() (content []string, dir bool, err error) {
 	fpath := im.args.Filename
 	fi, err := os.Stat(fpath)
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 
 	files := make([]string, 0)
-	im.importDir = fi.IsDir()
-	if im.importDir {
+	dir = fi.IsDir()
+	if dir {
 		files, err = collectFilesFromDir(fpath)
 		if err != nil {
-			return nil, err
+			return nil, true, err
 		}
 	} else {
 		files = append(files, fpath)
 	}
-	return files, nil
+	return files, dir, nil
 }
 
 func collectFilesFromDir(path string) ([]string, error) {
