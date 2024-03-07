@@ -14,6 +14,8 @@ Main (unreleased)
 
 - Add support for importing folders as single module to `import.file`. (@wildum)
 
+- Add support for importing directories as single module to `import.git`. (@wildum)
+
 ### Features
 
 - Added a new CLI flag `--stability.level` which defines the minimum stability
