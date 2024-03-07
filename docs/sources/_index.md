@@ -96,9 +96,9 @@ A new minor release is planned every six weeks for the entire Grafana Agent
 project, including Static mode, the Static mode Kubernetes operator, and Flow
 mode.
 
-The release cadence is best-effort: releases may be moved forwards or backwards
-if needed. The planned release dates for future minor releases do not change if
-one minor release is moved.
+The release cadence is best-effort: if necessary, releases may be performed
+outside of this cadence, or a scheduled release date can be moved forwards or
+backwards.
 
 Patch and security releases may be created at any time.
 
