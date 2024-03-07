@@ -26,7 +26,7 @@ Modules can be [imported](#importing-modules) to enable the reuse of [custom com
 A module can be _imported_, allowing the custom components defined by that module to be used by other modules, called the _importing module_.
 Modules can be imported from multiple locations using one of the `import` configuration blocks:
 
-* [import.file]: Imports a module from a file or a folder on disk.
+* [import.file]: Imports a module from a file or a directory on disk.
 * [import.git]: Imports a module from a file located in a Git repository.
 * [import.http]: Imports a module from the response of an HTTP request.
 * [import.string]: Imports a module from a string.

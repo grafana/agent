@@ -15,12 +15,12 @@ title: import.file
 
 {{< docs/shared lookup="flow/stability/beta.md" source="agent" version="<AGENT_VERSION>" >}}
 
-The `import.file` block imports custom components from a file or a folder and exposes them to the importer.
+The `import.file` block imports custom components from a file or a directory and exposes them to the importer.
 `import.file` blocks must be given a label that determines the namespace where custom components are exposed.
 
-Imported folders are treated as single modules to support composability.
+Imported directories are treated as single modules to support composability.
 That means that you can define a custom component in one file and use it in another custom component in another file
-in the same folder.
+in the same directory.
 
 [module]: {{< relref "../../concepts/modules.md" >}}
 
@@ -38,7 +38,7 @@ The following arguments are supported:
 
 | Name             | Type       | Description                                         | Default      | Required |
 | ---------------- | ---------- | --------------------------------------------------- | ------------ | -------- |
-| `filename`       | `string`   | Path of the file or folder on disk to watch.        |              | yes      |
+| `filename`       | `string`   | Path of the file or directory on disk to watch.     |              | yes      |
 | `detector`       | `string`   | Which file change detector to use (fsnotify, poll). | `"fsnotify"` | no       |
 | `poll_frequency` | `duration` | How often to poll for file changes.                 | `"1m"`       | no       |
 
