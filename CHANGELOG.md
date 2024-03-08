@@ -27,6 +27,9 @@ Main (unreleased)
 
 - Fix an issue where JSON string array elements were not parsed correctly in `loki.source.cloudflare`. (@thampiotr)
 
+- Flow: Fix an issue where `faro.receiver`'s `extra_log_labels` with empty value don't
+  map existing value in log line. (@hainenber)
+
 ### Other changes
 
 - Clustering for Grafana Agent in Flow mode has graduated from beta to stable.
