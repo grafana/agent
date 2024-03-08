@@ -10,6 +10,10 @@ internal API changes are not present.
 Unreleased
 ----------
 
+### Enhancements
+
+- Helm chart: Add `extraLabels: {}` value for adding extra labels to common labels.
+
 ### Features
 
 - Allow setting nodePort for service. (@ryayon)
