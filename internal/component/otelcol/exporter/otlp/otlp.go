@@ -94,7 +94,7 @@ var DefaultGRPCClientArguments = GRPCClientArguments{
 	Headers:         map[string]string{},
 	Compression:     otelcol.CompressionTypeGzip,
 	WriteBufferSize: 512 * 1024,
-	BalancerName:    "pick_first",
+	BalancerName:    otelcol.DEFAULT_BALANCER_NAME,
 }
 
 // SetToDefault implements river.Defaulter.
