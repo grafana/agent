@@ -3,6 +3,7 @@ package cloudwatch
 import (
 	"testing"
 
+	"github.com/grafana/regexp"
 	"github.com/grafana/river"
 	yaceModel "github.com/nerdswords/yet-another-cloudwatch-exporter/pkg/model"
 	"github.com/stretchr/testify/require"
@@ -213,8 +214,8 @@ func TestCloudwatchComponentConfig(t *testing.T) {
 							Period:                 60,
 							Length:                 60,
 							Delay:                  0,
-							NilToZero:              &defaultNilToZero,
-							AddCloudwatchTimestamp: &addCloudwatchTimestamp,
+							NilToZero:              defaultNilToZero,
+							AddCloudwatchTimestamp: addCloudwatchTimestamp,
 						}},
 					},
 				},
@@ -224,53 +225,60 @@ func TestCloudwatchComponentConfig(t *testing.T) {
 			raw: discoveryJobConfig,
 			expected: yaceModel.JobsConfig{
 				StsRegion: "us-east-2",
-				DiscoveryJobs: []yaceModel.DiscoveryJob{{
-					Regions: []string{"us-east-2"},
-					// assert an empty role is used as default. IMPORTANT since this
-					// is what YACE looks for delegating to the environment role
-					Roles: []yaceModel.Role{{}},
-					Type:  "sqs",
-					SearchTags: []yaceModel.Tag{{
-						Key: "scrape", Value: "true",
-					}},
-					CustomTags: []yaceModel.Tag{},
-					Metrics: []*yaceModel.MetricConfig{
-						{
-							Name:                   "NumberOfMessagesSent",
-							Statistics:             []string{"Sum", "Average"},
-							Period:                 60,
-							Length:                 60,
-							Delay:                  0,
-							NilToZero:              &defaultNilToZero,
-							AddCloudwatchTimestamp: &addCloudwatchTimestamp,
+				DiscoveryJobs: []yaceModel.DiscoveryJob{
+					{
+						Regions: []string{"us-east-2"},
+						// assert an empty role is used as default. IMPORTANT since this
+						// is what YACE looks for delegating to the environment role
+						Roles: []yaceModel.Role{{}},
+						Type:  "sqs",
+						SearchTags: []yaceModel.SearchTag{{
+							Key: "scrape", Value: regexp.MustCompile("true"),
+						}},
+						CustomTags: []yaceModel.Tag{},
+						Metrics: []*yaceModel.MetricConfig{
+							{
+								Name:                   "NumberOfMessagesSent",
+								Statistics:             []string{"Sum", "Average"},
+								Period:                 60,
+								Length:                 60,
+								Delay:                  0,
+								NilToZero:              defaultNilToZero,
+								AddCloudwatchTimestamp: addCloudwatchTimestamp,
+							},
+							{
+								Name:                   "NumberOfMessagesReceived",
+								Statistics:             []string{"Sum", "Average"},
+								Period:                 60,
+								Length:                 60,
+								Delay:                  0,
+								NilToZero:              defaultNilToZero,
+								AddCloudwatchTimestamp: addCloudwatchTimestamp,
+							},
 						},
-						{
-							Name:                   "NumberOfMessagesReceived",
-							Statistics:             []string{"Sum", "Average"},
-							Period:                 60,
-							Length:                 60,
+						RoundingPeriod: nil,
+						JobLevelMetricFields: yaceModel.JobLevelMetricFields{
+							Period:                 0,
+							Length:                 0,
 							Delay:                  0,
+							AddCloudwatchTimestamp: &falsePtr,
 							NilToZero:              &defaultNilToZero,
-							AddCloudwatchTimestamp: &addCloudwatchTimestamp,
+						},
+						ExportedTagsOnMetrics: []string{"name"},
+						DimensionsRegexps: []yaceModel.DimensionsRegexp{
+							{
+								Regexp:          regexp.MustCompile("(?P<QueueName>[^:]+)$"),
+								DimensionsNames: []string{"QueueName"},
+							},
 						},
 					},
-					RoundingPeriod: nil,
-					JobLevelMetricFields: yaceModel.JobLevelMetricFields{
-						Period:                 0,
-						Length:                 0,
-						Delay:                  0,
-						AddCloudwatchTimestamp: &falsePtr,
-						NilToZero:              &defaultNilToZero,
-					},
-					ExportedTagsOnMetrics: []string{"name"},
-				},
 					{
 						Regions: []string{"us-east-1"},
 						Roles: []yaceModel.Role{{
 							RoleArn: "arn:aws:iam::878167871295:role/yace_testing",
 						}},
 						Type:       "AWS/ECS",
-						SearchTags: []yaceModel.Tag{},
+						SearchTags: []yaceModel.SearchTag{},
 						CustomTags: []yaceModel.Tag{},
 						Metrics: []*yaceModel.MetricConfig{
 							{
@@ -279,8 +287,8 @@ func TestCloudwatchComponentConfig(t *testing.T) {
 								Period:                 60,
 								Length:                 60,
 								Delay:                  0,
-								NilToZero:              &defaultNilToZero,
-								AddCloudwatchTimestamp: &addCloudwatchTimestamp,
+								NilToZero:              defaultNilToZero,
+								AddCloudwatchTimestamp: addCloudwatchTimestamp,
 							},
 						},
 						RoundingPeriod: nil,
@@ -292,6 +300,16 @@ func TestCloudwatchComponentConfig(t *testing.T) {
 							NilToZero:              &defaultNilToZero,
 						},
 						ExportedTagsOnMetrics: []string{},
+						DimensionsRegexps: []yaceModel.DimensionsRegexp{
+							{
+								Regexp:          regexp.MustCompile(":cluster/(?P<ClusterName>[^/]+)$"),
+								DimensionsNames: []string{"ClusterName"},
+							},
+							{
+								Regexp:          regexp.MustCompile(":service/(?P<ClusterName>[^/]+)/(?P<ServiceName>[^/]+)$"),
+								DimensionsNames: []string{"ClusterName", "ServiceName"},
+							},
+						},
 					},
 					{
 						Regions: []string{"us-east-1"},
@@ -299,7 +317,7 @@ func TestCloudwatchComponentConfig(t *testing.T) {
 							RoleArn: "arn:aws:iam::878167871295:role/yace_testing",
 						}},
 						Type:                      "s3",
-						SearchTags:                []yaceModel.Tag{},
+						SearchTags:                []yaceModel.SearchTag{},
 						CustomTags:                []yaceModel.Tag{},
 						DimensionNameRequirements: []string{"BucketName"},
 						Metrics: []*yaceModel.MetricConfig{
@@ -309,8 +327,8 @@ func TestCloudwatchComponentConfig(t *testing.T) {
 								Period:                 60,
 								Length:                 3600,
 								Delay:                  0,
-								NilToZero:              &defaultNilToZero,
-								AddCloudwatchTimestamp: &addCloudwatchTimestamp,
+								NilToZero:              defaultNilToZero,
+								AddCloudwatchTimestamp: addCloudwatchTimestamp,
 							},
 						},
 						RoundingPeriod: nil,
@@ -322,6 +340,12 @@ func TestCloudwatchComponentConfig(t *testing.T) {
 							NilToZero:              &defaultNilToZero,
 						},
 						ExportedTagsOnMetrics: []string{},
+						DimensionsRegexps: []yaceModel.DimensionsRegexp{
+							{
+								Regexp:          regexp.MustCompile("(?P<BucketName>[^:]+)$"),
+								DimensionsNames: []string{"BucketName"},
+							},
+						},
 					},
 				},
 			},
@@ -351,8 +375,8 @@ func TestCloudwatchComponentConfig(t *testing.T) {
 							Period:                 60,
 							Length:                 60,
 							Delay:                  0,
-							NilToZero:              &falsePtr,
-							AddCloudwatchTimestamp: &addCloudwatchTimestamp,
+							NilToZero:              falsePtr,
+							AddCloudwatchTimestamp: addCloudwatchTimestamp,
 						}},
 					},
 				},
@@ -383,8 +407,8 @@ func TestCloudwatchComponentConfig(t *testing.T) {
 							Period:                 60,
 							Length:                 60,
 							Delay:                  0,
-							NilToZero:              &falsePtr,
-							AddCloudwatchTimestamp: &addCloudwatchTimestamp,
+							NilToZero:              falsePtr,
+							AddCloudwatchTimestamp: addCloudwatchTimestamp,
 						}},
 					},
 				},
@@ -401,8 +425,8 @@ func TestCloudwatchComponentConfig(t *testing.T) {
 						// is what YACE looks for delegating to the environment role
 						Roles: []yaceModel.Role{{}},
 						Type:  "sqs",
-						SearchTags: []yaceModel.Tag{{
-							Key: "scrape", Value: "true",
+						SearchTags: []yaceModel.SearchTag{{
+							Key: "scrape", Value: regexp.MustCompile("true"),
 						}},
 						CustomTags: []yaceModel.Tag{},
 						Metrics: []*yaceModel.MetricConfig{
@@ -412,8 +436,8 @@ func TestCloudwatchComponentConfig(t *testing.T) {
 								Period:                 60,
 								Length:                 60,
 								Delay:                  0,
-								NilToZero:              &falsePtr,
-								AddCloudwatchTimestamp: &addCloudwatchTimestamp,
+								NilToZero:              falsePtr,
+								AddCloudwatchTimestamp: addCloudwatchTimestamp,
 							},
 							{
 								Name:                   "NumberOfMessagesReceived",
@@ -421,8 +445,8 @@ func TestCloudwatchComponentConfig(t *testing.T) {
 								Period:                 60,
 								Length:                 60,
 								Delay:                  0,
-								NilToZero:              &truePtr,
-								AddCloudwatchTimestamp: &addCloudwatchTimestamp,
+								NilToZero:              truePtr,
+								AddCloudwatchTimestamp: addCloudwatchTimestamp,
 							},
 						},
 						RoundingPeriod: nil,
@@ -434,6 +458,12 @@ func TestCloudwatchComponentConfig(t *testing.T) {
 							NilToZero:              &falsePtr,
 						},
 						ExportedTagsOnMetrics: []string{"name"},
+						DimensionsRegexps: []yaceModel.DimensionsRegexp{
+							{
+								Regexp:          regexp.MustCompile("(?P<QueueName>[^:]+)$"),
+								DimensionsNames: []string{"QueueName"},
+							},
+						},
 					},
 				},
 			},
