@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"hash/fnv"
+	"maps"
 	"path"
 	"path/filepath"
 	"strings"
@@ -46,7 +47,7 @@ type ImportConfigNode struct {
 	importChildrenUpdateChan chan struct{} // used to trigger an update of the running children
 
 	mut                       sync.RWMutex
-	importedContent           string
+	importedContent           map[string]string
 	importConfigNodesChildren map[string]*ImportConfigNode
 	importChildrenRunning     bool
 	importedDeclares          map[string]ast.Body
@@ -185,7 +186,7 @@ func (cn *ImportConfigNode) Evaluate(scope *vm.Scope) error {
 }
 
 // onContentUpdate is triggered every time the managed import source has new content.
-func (cn *ImportConfigNode) onContentUpdate(importedContent string) {
+func (cn *ImportConfigNode) onContentUpdate(importedContent map[string]string) {
 	cn.mut.Lock()
 	defer cn.mut.Unlock()
 
@@ -193,31 +194,36 @@ func (cn *ImportConfigNode) onContentUpdate(importedContent string) {
 	defer cn.inContentUpdate.Store(false)
 
 	// If the source sent the same content, there is no need to reload.
-	if cn.importedContent == importedContent {
+	if maps.Equal(cn.importedContent, importedContent) {
 		return
 	}
 
-	cn.importedContent = importedContent
+	cn.importedContent = make(map[string]string)
+	for k, v := range importedContent {
+		cn.importedContent[k] = v
+	}
 	cn.importedDeclares = make(map[string]ast.Body)
 	cn.importConfigNodesChildren = make(map[string]*ImportConfigNode)
 
-	parsedImportedContent, err := parser.ParseFile(cn.label, []byte(importedContent))
-	if err != nil {
-		level.Error(cn.logger).Log("msg", "failed to parse file on update", "err", err)
-		cn.setContentHealth(component.HealthTypeUnhealthy, fmt.Sprintf("imported content cannot be parsed: %s", err))
-		return
-	}
+	for f, ic := range importedContent {
+		parsedImportedContent, err := parser.ParseFile(cn.label, []byte(ic))
+		if err != nil {
+			level.Error(cn.logger).Log("msg", "failed to parse file on update", "file", f, "err", err)
+			cn.setContentHealth(component.HealthTypeUnhealthy, fmt.Sprintf("imported content from %q cannot be parsed: %s", f, err))
+			return
+		}
 
-	// populate importedDeclares and importConfigNodesChildren
-	err = cn.processImportedContent(parsedImportedContent)
-	if err != nil {
-		level.Error(cn.logger).Log("msg", "failed to process imported content", "err", err)
-		cn.setContentHealth(component.HealthTypeUnhealthy, fmt.Sprintf("imported content is invalid: %s", err))
-		return
+		// populate importedDeclares and importConfigNodesChildren
+		err = cn.processImportedContent(parsedImportedContent)
+		if err != nil {
+			level.Error(cn.logger).Log("msg", "failed to process imported content", "file", f, "err", err)
+			cn.setContentHealth(component.HealthTypeUnhealthy, fmt.Sprintf("imported content from %q is invalid: %s", f, err))
+			return
+		}
 	}
 
 	// evaluate the importConfigNodesChildren that have been created
-	err = cn.evaluateChildren()
+	err := cn.evaluateChildren()
 	if err != nil {
 		level.Error(cn.logger).Log("msg", "failed to evaluate nested import", "err", err)
 		cn.setContentHealth(component.HealthTypeUnhealthy, fmt.Sprintf("nested import block failed to evaluate: %s", err))

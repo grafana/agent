@@ -21,9 +21,6 @@ weight: 400
 
 You can configure {{< param "PRODUCT_NAME" >}} to run with [clustering][] so that individual {{< param "PRODUCT_ROOT_NAME" >}}s can work together for workload distribution and high availability.
 
-> **Note:** Clustering is a [beta][] feature. Beta features are subject to breaking
-> changes and may be replaced with equivalent functionality that covers the same use case.
-
 This topic describes how to add clustering to an existing installation.
 
 ## Configure {{% param "PRODUCT_NAME" %}} clustering with Helm Chart
@@ -65,8 +62,6 @@ To configure clustering:
 {{% docs/reference %}}
 [clustering]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/clustering.md"
 [clustering]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/concepts/clustering.md"
-[beta]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/stability.md#beta"
-[beta]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/stability.md#beta"
 [install-helm]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/get-started/install/kubernetes.md"
 [install-helm]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/get-started/install/kubernetes.md"
 [UI]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/tasks/debug.md#component-detail-page"
