@@ -6,14 +6,10 @@ aliases:
 - /docs/grafana-cloud/send-data/agent/flow/reference/config-blocks/import.git/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/config-blocks/import.git/
 description: Learn about the import.git configuration block
-labels:
-  stage: beta
 title: import.git
 ---
 
 # import.git
-
-{{< docs/shared lookup="flow/stability/beta.md" source="agent" version="<AGENT_VERSION>" >}}
 
 The `import.git` block imports custom components from a Git repository and exposes them to the importer.
 `import.git` blocks must be given a label that determines the namespace where custom components are exposed.
