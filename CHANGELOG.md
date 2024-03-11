@@ -10,6 +10,12 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+### Enhancements
+
+- Add support for importing folders as single module to `import.file`. (@wildum)
+
+- Add support for importing directories as single module to `import.git`. (@wildum)
+
 ### Features
 
 - Added a new CLI flag `--stability.level` which defines the minimum stability
@@ -20,6 +26,10 @@ Main (unreleased)
 ### Bugfixes
 
 - Fix an issue where JSON string array elements were not parsed correctly in `loki.source.cloudflare`. (@thampiotr)
+
+### Other changes
+
+- Clustering for Grafana Agent in Flow mode has graduated from beta to stable.
 
 v0.40.2 (2024-03-05)
 --------------------
