@@ -6,10 +6,7 @@ receivers:
 
 exporters:
   otlphttp:
-    # Ensure these defaults are synced with latest configs in upstream
     endpoint: database:4318
-    sending_queue:
-      queue_size: 1000
 
 service:
   pipelines:

@@ -6,11 +6,7 @@ receivers:
 
 exporters:
   otlp:
-    # Ensure these defaults are synced with latest configs in upstream
     endpoint: database:4317
-    balancer_name: pick_first
-    sending_queue:
-      queue_size: 1000
 
 service:
   pipelines:
