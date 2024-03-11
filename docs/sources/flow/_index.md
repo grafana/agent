@@ -34,7 +34,7 @@ Components allow for reusability, composability, and focus on a single task.
 * Includes a UI for debugging the state of a pipeline.
 
 {{< param "PRODUCT_NAME" >}} is a [distribution][] of the OpenTelemetry
-Collector by Grafana Labs.
+Collector.
 
 Each distribution offers a different collection of components and capabilities.
 As a distribution, {{< param "PRODUCT_NAME" >}} includes dozens of
