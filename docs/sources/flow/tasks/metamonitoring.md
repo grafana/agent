@@ -105,9 +105,9 @@ logging {
 }
 
 loki.write "default" {
-    endpoint {
-        url = "http://loki:3100/loki/api/v1/push"
-    }
+  endpoint {
+    url = "http://loki:3100/loki/api/v1/push"
+  }
 }
 
 ```
