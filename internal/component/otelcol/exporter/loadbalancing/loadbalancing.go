@@ -285,6 +285,11 @@ func (args *GRPCClientArguments) Convert() *otelconfiggrpc.GRPCClientSettings {
 		auth = &otelconfigauth.Authentication{AuthenticatorID: args.Auth.ID}
 	}
 
+	balancerName := args.BalancerName
+	if balancerName == "" {
+		balancerName = otelcol.DEFAULT_BALANCER_NAME
+	}
+
 	return &otelconfiggrpc.GRPCClientSettings{
 		Compression: args.Compression.Convert(),
 
@@ -295,7 +300,7 @@ func (args *GRPCClientArguments) Convert() *otelconfiggrpc.GRPCClientSettings {
 		WriteBufferSize: int(args.WriteBufferSize),
 		WaitForReady:    args.WaitForReady,
 		Headers:         opaqueHeaders,
-		BalancerName:    args.BalancerName,
+		BalancerName:    balancerName,
 		Authority:       args.Authority,
 
 		Auth: auth,
