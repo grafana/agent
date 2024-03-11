@@ -110,18 +110,30 @@ func (c *Component) Update(args component.Arguments) error {
 		newArgs.BookmarkPath = path.Join(c.opts.DataPath, "bookmark.xml")
 	}
 
-	// Create the bookmark file and parent folders if they don't exist.
+	// Check to see if we need to move the legacy bookmark path.
 	_, err := os.Stat(newArgs.BookmarkPath)
+
+	// Create the bookmark file and parent folders if they don't exist.
 	if os.IsNotExist(err) {
-		err := os.MkdirAll(path.Dir(newArgs.BookmarkPath), 644)
+		err = os.MkdirAll(path.Dir(newArgs.BookmarkPath), 644)
 		if err != nil {
 			return err
 		}
-		f, err := os.Create(newArgs.BookmarkPath)
-		if err != nil {
-			return err
+		// Check to see if we need to convert the legacy bookmark to a new one.
+		// This will only trigger if the new bookmark path does not exist and legacy does.
+		_, legacyErr := os.Stat(newArgs.LegacyBookmarkPath)
+		if legacyErr == nil {
+			bb, readErr := os.ReadFile(newArgs.LegacyBookmarkPath)
+			if readErr == nil {
+				_ = os.WriteFile(newArgs.BookmarkPath, bb, 644)
+			}
+		} else {
+			f, err := os.Create(newArgs.BookmarkPath)
+			if err != nil {
+				return err
+			}
+			_ = f.Close()
 		}
-		_ = f.Close()
 	}
 
 	winTarget, err := NewTarget(c.opts.Logger, c.handle, nil, convertConfig(newArgs))

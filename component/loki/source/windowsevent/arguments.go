@@ -24,6 +24,7 @@ type Arguments struct {
 	UseIncomingTimestamp bool                `river:"use_incoming_timestamp,attr,optional"`
 	ForwardTo            []loki.LogsReceiver `river:"forward_to,attr"`
 	Labels               map[string]string   `river:"labels,attr,optional"`
+	LegacyBookmarkPath   string              `river:"legacy_bookmark_path,attr,optional"`
 }
 
 func defaultArgs() Arguments {
