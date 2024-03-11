@@ -170,6 +170,12 @@ func (args *GRPCClientArguments) Convert() *otelconfiggrpc.GRPCClientSettings {
 		auth = &otelconfigauth.Authentication{AuthenticatorID: args.Auth.ID}
 	}
 
+	// Set default value for `balancer_name` to sync up with upstream's
+	balancerName := args.BalancerName
+	if balancerName == "" {
+		balancerName = DEFAULT_BALANCER_NAME
+	}
+
 	return &otelconfiggrpc.GRPCClientSettings{
 		Endpoint: args.Endpoint,
 
