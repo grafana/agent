@@ -166,10 +166,4 @@ Full reference of options:
     # Maps to collector.logical_disk.volume-blacklist in windows_exporter
     [blacklist: <string> | default=".+"]
 
-  # Configuration for Windows Task Scheduler
-  scheduled_task:
-    # Regexp of tasks to include.
-    [include: <string> | default ".+"]
-    #Regexp of tasks to exclude.
-    [exclude: <string> | default ""]
 ```

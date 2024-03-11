@@ -58,7 +58,6 @@ msmq           | [msmq][]           | Configures the msmq collector.           |
 mssql          | [mssql][]          | Configures the mssql collector.          | no
 network        | [network][]        | Configures the network collector.        | no
 process        | [process][]        | Configures the process collector.        | no
-scheduled_task | [scheduled_task][] | Configures the scheduled_task collector. | no
 service        | [service][]        | Configures the service collector.        | no
 smtp           | [smtp][]           | Configures the smtp collector.           | no
 text_file      | [text_file][]      | Configures the text_file collector.      | no
@@ -71,7 +70,6 @@ text_file      | [text_file][]      | Configures the text_file collector.      |
 [mssql]: #mssql-block
 [network]: #network-block
 [process]: #process-block
-[scheduled_task]: #scheduledtask-block
 [service]: #service-block
 [smtp]: #smtp-block
 [text_file]: #textfile-block
@@ -158,17 +156,6 @@ Name      | Type     | Description                                 | Default | R
 `include` | `string` | Regular expression of processes to include. | `".*"`  | no
 
 Processes must match the regular expression specified by `include` and must _not_ match the regular expression specified by `exclude` to be included.
-
-
-### scheduled_task block
-
-Name      | Type     | Description                 | Default | Required
-----------|----------|-----------------------------|---------|---------
-`exclude` | `string` | Regexp of tasks to exclude. | `""`    | no
-`include` | `string` | Regexp of tasks to include. | `".+"`  | no
-
-For a server name to be included, it must match the regular expression specified by `include` and must _not_ match the regular expression specified by `exclude`.
-
 
 ### service block
 
@@ -271,7 +258,6 @@ Name     | Description | Enabled by default
 [physical_disk](https://github.com/prometheus-community/windows_exporter/blob/master/docs/collector.physical_disk.md) | Physical disks | &#10003;
 [process](https://github.com/prometheus-community/windows_exporter/blob/master/docs/collector.process.md) | Per-process metrics |
 [remote_fx](https://github.com/prometheus-community/windows_exporter/blob/master/docs/collector.remote_fx.md) | RemoteFX protocol (RDP) metrics |
-[scheduled_task](https://github.com/prometheus-community/windows_exporter/blob/master/docs/collector.scheduled_task.md) | Scheduled Tasks metrics |
 [service](https://github.com/prometheus-community/windows_exporter/blob/master/docs/collector.service.md) | Service state metrics | &#10003;
 [smtp](https://github.com/prometheus-community/windows_exporter/blob/master/docs/collector.smtp.md) | IIS SMTP Server |
 [system](https://github.com/prometheus-community/windows_exporter/blob/master/docs/collector.system.md) | System calls | &#10003;
@@ -288,7 +274,7 @@ Refer to the linked documentation on each collector for more information on repo
 
 {{< admonition type="caution" >}}
 Certain collectors will cause {{< param "PRODUCT_ROOT_NAME" >}} to crash if those collectors are used and the required infrastructure isn't installed.
-These include but aren't limited to mscluster_*, vmware, nps, dns, msmq, teradici_pcoip, ad, hyperv, and scheduled_task.
+These include but aren't limited to mscluster_*, vmware, nps, dns, msmq, teradici_pcoip, ad, and hyperv.
 {{< /admonition >}}
 
 ## Example

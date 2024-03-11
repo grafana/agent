@@ -17,19 +17,19 @@ func init() {
 type Config struct {
 	EnabledCollectors string `yaml:"enabled_collectors"`
 
-	Dfsr          DfsrConfig          `yaml:"dfsr,omitempty"`
-	Exchange      ExchangeConfig      `yaml:"exchange,omitempty"`
-	IIS           IISConfig           `yaml:"iis,omitempty"`
-	TextFile      TextFileConfig      `yaml:"text_file,omitempty"`
-	SMTP          SMTPConfig          `yaml:"smtp,omitempty"`
-	Service       ServiceConfig       `yaml:"service,omitempty"`
-	PhysicalDisk  PhysicalDiskConfig  `yaml:"physical_disk,omitempty"`
-	Process       ProcessConfig       `yaml:"process,omitempty"`
-	Network       NetworkConfig       `yaml:"network,omitempty"`
-	MSSQL         MSSQLConfig         `yaml:"mssql,omitempty"`
-	MSMQ          MSMQConfig          `yaml:"msmq,omitempty"`
-	LogicalDisk   LogicalDiskConfig   `yaml:"logical_disk,omitempty"`
-	ScheduledTask ScheduledTaskConfig `yaml:"scheduled_task,omitempty"`
+	Dfsr         DfsrConfig         `yaml:"dfsr,omitempty"`
+	Exchange     ExchangeConfig     `yaml:"exchange,omitempty"`
+	IIS          IISConfig          `yaml:"iis,omitempty"`
+	TextFile     TextFileConfig     `yaml:"text_file,omitempty"`
+	SMTP         SMTPConfig         `yaml:"smtp,omitempty"`
+	Service      ServiceConfig      `yaml:"service,omitempty"`
+	PhysicalDisk PhysicalDiskConfig `yaml:"physical_disk,omitempty"`
+	Process      ProcessConfig      `yaml:"process,omitempty"`
+	Network      NetworkConfig      `yaml:"network,omitempty"`
+	MSSQL        MSSQLConfig        `yaml:"mssql,omitempty"`
+	MSMQ         MSMQConfig         `yaml:"msmq,omitempty"`
+	LogicalDisk  LogicalDiskConfig  `yaml:"logical_disk,omitempty"`
+	//ScheduledTask ScheduledTaskConfig `yaml:"scheduled_task,omitempty"`
 }
 
 // Name returns the name used, "windows_explorer"

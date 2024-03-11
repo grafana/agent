@@ -38,8 +38,9 @@ func (c *Config) ToWindowsExporterConfig() collector.Config {
 	cfg.LogicalDisk.VolumeInclude = coalesceString(c.LogicalDisk.Include, c.LogicalDisk.WhiteList)
 	cfg.LogicalDisk.VolumeExclude = coalesceString(c.LogicalDisk.Exclude, c.LogicalDisk.BlackList)
 
-	cfg.ScheduledTask.TaskInclude = c.ScheduledTask.Include
-	cfg.ScheduledTask.TaskExclude = c.ScheduledTask.Exclude
+	// This is disabled until https://github.com/prometheus-community/windows_exporter/issues/1425 is resolved.
+	//cfg.ScheduledTask.TaskInclude = c.ScheduledTask.Include
+	//cfg.ScheduledTask.TaskExclude = c.ScheduledTask.Exclude
 
 	return cfg
 }

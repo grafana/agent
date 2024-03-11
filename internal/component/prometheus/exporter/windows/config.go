@@ -12,19 +12,19 @@ type Arguments struct {
 	EnabledCollectors []string `river:"enabled_collectors,attr,optional"`
 
 	// Collector-specific config options
-	Dfsr          DfsrConfig          `river:"dfsr,block,optional"`
-	Exchange      ExchangeConfig      `river:"exchange,block,optional"`
-	IIS           IISConfig           `river:"iis,block,optional"`
-	LogicalDisk   LogicalDiskConfig   `river:"logical_disk,block,optional"`
-	MSMQ          MSMQConfig          `river:"msmq,block,optional"`
-	MSSQL         MSSQLConfig         `river:"mssql,block,optional"`
-	Network       NetworkConfig       `river:"network,block,optional"`
-	PhysicalDisk  PhysicalDiskConfig  `river:"physical_disk,block,optional"`
-	Process       ProcessConfig       `river:"process,block,optional"`
-	ScheduledTask ScheduledTaskConfig `river:"scheduled_task,block,optional"`
-	Service       ServiceConfig       `river:"service,block,optional"`
-	SMTP          SMTPConfig          `river:"smtp,block,optional"`
-	TextFile      TextFileConfig      `river:"text_file,block,optional"`
+	Dfsr         DfsrConfig         `river:"dfsr,block,optional"`
+	Exchange     ExchangeConfig     `river:"exchange,block,optional"`
+	IIS          IISConfig          `river:"iis,block,optional"`
+	LogicalDisk  LogicalDiskConfig  `river:"logical_disk,block,optional"`
+	MSMQ         MSMQConfig         `river:"msmq,block,optional"`
+	MSSQL        MSSQLConfig        `river:"mssql,block,optional"`
+	Network      NetworkConfig      `river:"network,block,optional"`
+	PhysicalDisk PhysicalDiskConfig `river:"physical_disk,block,optional"`
+	Process      ProcessConfig      `river:"process,block,optional"`
+	//ScheduledTask ScheduledTaskConfig `river:"scheduled_task,block,optional"`
+	Service  ServiceConfig  `river:"service,block,optional"`
+	SMTP     SMTPConfig     `river:"smtp,block,optional"`
+	TextFile TextFileConfig `river:"text_file,block,optional"`
 }
 
 // Convert converts the component's Arguments to the integration's Config.
@@ -40,10 +40,10 @@ func (a *Arguments) Convert() *windows_integration.Config {
 		Network:           a.Network.Convert(),
 		Process:           a.Process.Convert(),
 		PhysicalDisk:      a.PhysicalDisk.Convert(),
-		ScheduledTask:     a.ScheduledTask.Convert(),
-		Service:           a.Service.Convert(),
-		SMTP:              a.SMTP.Convert(),
-		TextFile:          a.TextFile.Convert(),
+		//ScheduledTask:     a.ScheduledTask.Convert(),
+		Service:  a.Service.Convert(),
+		SMTP:     a.SMTP.Convert(),
+		TextFile: a.TextFile.Convert(),
 	}
 }
 
