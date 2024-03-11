@@ -1,15 +1,4 @@
 ---
-aliases:
-- /docs/grafana-cloud/agent/flow/tasks/setup-metamonitoring/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/tasks/setup-metamonitoring/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/tasks/setup-metamonitoring/
-- /docs/grafana-cloud/send-data/agent/flow/tasks/setup-metamonitoring/
-# Previous page aliases for backwards compatibility:
-- /docs/grafana-cloud/agent/flow/getting-started/setup-metamonitoring/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/getting-started/setup-metamonitoring/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/getting-started/setup-metamonitoring/
-- /docs/grafana-cloud/send-data/agent/flow/getting-started/setup-metamonitoring/
-- ../getting-started/setup-metamonitoring/ # /docs/agent/latest/flow/getting-started/setup-metamonitoring/
 canonical: https://grafana.com/docs/agent/latest/flow/tasks/setup-metamonitoring/
 description: Learn how to set up meta-monitoring for Grafana Agent Flow
 title: Set up meta-monitoring
@@ -18,11 +7,9 @@ weight: 200
 
 # Set up meta-monitoring
 
-{{< param "PRODUCT_NAME" >}} can be configured to collect its own telemetry and forward it to the backend of your choosing.
+You can configure {{< param "PRODUCT_NAME" >}} to collect its own telemetry and forward it to the backend of your choosing.
 
-This topic describes how to:
-
-* Collect and forward the Agent's own metrics, logs and traces data.
+This topic describes how to collect and forward {{< param "PRODUCT_NAME" >}}'s metrics, logs and traces data.
 
 ## Components and configuration blocks used in this topic
 
@@ -33,7 +20,7 @@ This topic describes how to:
 
 ## Before you begin
 
-* Identify where {{< param "PRODUCT_NAME" >}} writes its own telemetry data.
+* Identify where to send {{< param "PRODUCT_NAME" >}}'s telemetry data.
 * Be familiar with the concept of [Components][] in {{< param "PRODUCT_NAME" >}}.
 
 ## Meta-monitoring metrics
@@ -59,9 +46,10 @@ In this task, you will use the [prometheus.exporter.self][] and [prometheus.scra
 
    Replace the following:
    - _`<SELF_LABEL>`_: The label for the component such as `default` or `metamonitoring`. The label must be unique across all `prometheus.exporter.self` components in the same configuration file.
-   - _`<SCRAPE_LABEL>`_: The label for the scrape component such as `default`. Again, the label you use must be unique across all `prometheus.scrape` components in the same configuration file.
+   - _`<SCRAPE_LABEL>`_: The label for the scrape component such as `default`. The label must be unique across all `prometheus.scrape` components in the same configuration file.
    - _`<METRICS_RECEIVER_LIST>`_: A comma-delimited list of component receivers to forward metrics to.
-     For example, to send to an existing remote write component use `prometheus.remote_write.WRITE_LABEL.receiver`. Similarly, to send data to an existing relabeling component, use `prometheus.relabel.PROCESS_LABEL.receiver`.
+     For example, to send to an existing remote write component, use `prometheus.remote_write.WRITE_LABEL.receiver`.
+     Similarly, to send data to an existing relabeling component, use `prometheus.relabel.PROCESS_LABEL.receiver`.
      To use data in the OTLP format, you can send data to an existing converter component like `otelcol.receiver.prometheus.OTEL.receiver`.
 
 The following example demonstrates configuring a possible sequence of components.
@@ -86,9 +74,10 @@ prometheus.remote_write "default" {
 
 The [logging][] block defines the logging behavior of {{< param "PRODUCT_NAME" >}}.
 
-In this task you will use the [logging][] block to forward {{< param "PRODUCT_NAME" >}}'s own logs to a compatible component. The block is specified without a label and can only be provided once per configuration file.
+In this task, you will use the [logging][] block to forward {{< param "PRODUCT_NAME" >}}'s logs to a compatible component.
+The block is specified without a label and can only be provided once per configuration file.
 
-1. Add the following `logging` configuration block to the top-level of your configuration file.
+1. Add the following `logging` configuration block to the top level of your configuration file.
 
    ```river
    logging {
@@ -99,13 +88,14 @@ In this task you will use the [logging][] block to forward {{< param "PRODUCT_NA
    ```
 
    Replace the following:
-   - _`<LOG_LEVEL>`_: The log level to use for {{< param "PRODUCT_NAME" >}}'s own logs. If the attribute is not set, it defaults to `info`.
-   - _`<LOG_FORMAT>`_: The log format to use for {{< param "PRODUCT_NAME" >}}'s own logs. If the attribute is not set, it defaults to `logfmt`.
+   - _`<LOG_LEVEL>`_: The log level to use for {{< param "PRODUCT_NAME" >}}'s logs. If the attribute isn't set, it defaults to `info`.
+   - _`<LOG_FORMAT>`_: The log format to use for {{< param "PRODUCT_NAME" >}}'s logs. If the attribute isn't set, it defaults to `logfmt`.
    - _`<LOGS_RECEIVER_LIST>`_: A comma-delimited list of component receivers to forward logs to.
-     For example, to send to an existing processing component use `loki.process.PROCESS_LABEL.receiver`. Similarly, to send data to an existing relabeling component, use `loki.relabel.PROCESS_LABEL.receiver`.
+     For example, to send to an existing processing component, use `loki.process.PROCESS_LABEL.receiver`.
+     Similarly, to send data to an existing relabeling component, use `loki.relabel.PROCESS_LABEL.receiver`.
      To use data in the OTLP format, you can send data to an existing converter component like `otelcol.receiver.loki.OTEL.receiver`.
 
-The following example demonstrates configuring the config block and sending to a compatible component.
+The following example demonstrates configuring the logging block and sending to a compatible component.
 
 ```river
 logging {
@@ -128,7 +118,7 @@ The [tracing][] block defines the tracing behavior of {{< param "PRODUCT_NAME" >
 
 In this task you will use the [tracing][] block to forward {{< param "PRODUCT_NAME" >}} internal traces to a compatible component. The block is specified without a label and can only be provided once per configuration file.
 
-1. Add the following `tracing` configuration block to the top-level of your configuration file.
+1. Add the following `tracing` configuration block to the top level of your configuration file.
 
    ```river
    tracing {
@@ -138,11 +128,11 @@ In this task you will use the [tracing][] block to forward {{< param "PRODUCT_NA
    ```
 
    Replace the following:
-   - _`<SAMPLING_FRACTION>`_: The fraction of traces to keep. If the attribute is not set, it defaults to `0.1`.
+   - _`<SAMPLING_FRACTION>`_: The fraction of traces to keep. If the attribute isn't set, it defaults to `0.1`.
    - _`<TRACES_RECEIVER_LIST>`_: A comma-delimited list of component receivers to forward traces to.
      For example, to send to an existing OpenTelemetry exporter component use `otelcol.exporter.otlp.EXPORT_LABEL.input`.
 
-The following example demonstrates configuring the config block and sending to a compatible component.
+The following example demonstrates configuring the tracing block and sending to a compatible component.
 
 ```river
 tracing {
