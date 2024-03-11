@@ -103,6 +103,9 @@ filesystem:
 ## sourcemap_file_location
 
 ```yaml
+# Grafana Faro Web SDK will send filename in stacktrace, when any exception is being captured.
+# That filename will be the source url. e.g. https://my-app.dev/static/foo.js
+#
 # Source URL prefix. If a minified source URL matches this prefix,
 # a filepath is constructed by removing the prefix, prepending path below and appending ".map".
 #

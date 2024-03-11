@@ -30,7 +30,7 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
     GOEXPERIMENT=${GOEXPERIMENT} \
     make agent
 
-FROM ubuntu:mantic
+FROM public.ecr.aws/ubuntu/ubuntu:mantic
 
 LABEL org.opencontainers.image.source="https://github.com/grafana/agent"
 
