@@ -249,7 +249,7 @@ DOCKER_FLAGS += --platform=$(DOCKER_PLATFORM)
 endif
 
 .PHONY: images agent-image agentctl-image operator-image
-images: agent-image agentctl-image operator-image
+images: agent-image agentctl-image operator-image agent-boringcrypto-image
 
 agent-image:
 	DOCKER_BUILDKIT=1 docker build $(DOCKER_FLAGS) -t $(AGENT_IMAGE) -f cmd/grafana-agent/Dockerfile .
