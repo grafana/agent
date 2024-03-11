@@ -50,7 +50,7 @@ In this task, you will use the [prometheus.exporter.self][] and [prometheus.scra
    - _`<METRICS_RECEIVER_LIST>`_: A comma-delimited list of component receivers to forward metrics to.
      For example, to send to an existing remote write component, use `prometheus.remote_write.WRITE_LABEL.receiver`.
      Similarly, to send data to an existing relabeling component, use `prometheus.relabel.PROCESS_LABEL.receiver`.
-     To use data in the OTLP format, you can send data to an existing converter component like `otelcol.receiver.prometheus.OTEL.receiver`.
+     To use data in the OTLP format, you can send data to an existing converter component, like `otelcol.receiver.prometheus.OTEL.receiver`.
 
 The following example demonstrates configuring a possible sequence of components.
 
@@ -93,7 +93,7 @@ The block is specified without a label and can only be provided once per configu
    - _`<LOGS_RECEIVER_LIST>`_: A comma-delimited list of component receivers to forward logs to.
      For example, to send to an existing processing component, use `loki.process.PROCESS_LABEL.receiver`.
      Similarly, to send data to an existing relabeling component, use `loki.relabel.PROCESS_LABEL.receiver`.
-     To use data in the OTLP format, you can send data to an existing converter component like `otelcol.receiver.loki.OTEL.receiver`.
+     To use data in the OTLP format, you can send data to an existing converter component, like `otelcol.receiver.loki.OTEL.receiver`.
 
 The following example demonstrates configuring the logging block and sending to a compatible component.
 
