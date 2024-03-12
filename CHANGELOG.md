@@ -14,6 +14,10 @@ v0.40.3 (2024-03-14)
 
 - Fix a bug where structured metadata and parsed field are not passed further in `loki.source.api` (@marchellodev)
 
+### Other changes
+
+- Upgrade to Go 1.22.1 (@thampiotr)
+
 v0.40.2 (2024-03-05)
 --------------------
 
