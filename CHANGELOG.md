@@ -33,6 +33,8 @@ Main (unreleased)
 
 - Clustering for Grafana Agent in Flow mode has graduated from beta to stable.
 
+- Upgrade to Go 1.22.1 (@thampiotr)
+
 v0.40.2 (2024-03-05)
 --------------------
 
