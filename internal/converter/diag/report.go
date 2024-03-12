@@ -8,11 +8,11 @@ const Text = ".txt"
 
 const criticalErrorFooter = `
 
-A configuration file was not generated due to critical issues. Review the diagnostics above.`
+A configuration file was not generated due to critical issues. Refer to the critical messages for more information.`
 
 const errorFooter = `
 
-Grafana Agent couldn't generate a configuration file. Refer to the error message for more information.
+A configuration file was not generated due to errors. Refer to the error messages for more information.
 
 You can bypass the errors by using the --bypass-errors flag. Bypassing errors isn't recommended for production environments.`
 
