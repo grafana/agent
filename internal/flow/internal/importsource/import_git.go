@@ -51,8 +51,7 @@ type GitArguments struct {
 }
 
 var DefaultGitArguments = GitArguments{
-	// Because we are using fetch, it does not update HEAD but instead updates FETCH_HEAD.
-	Revision:      "FETCH_HEAD",
+	Revision:      "HEAD",
 	PullFrequency: time.Minute,
 }
 

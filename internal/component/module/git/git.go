@@ -43,8 +43,7 @@ type Arguments struct {
 
 // DefaultArguments holds default settings for Arguments.
 var DefaultArguments = Arguments{
-	// Because we are using fetch, it does not update HEAD but instead updates FETCH_HEAD.
-	Revision:      "FETCH_HEAD",
+	Revision:      "HEAD",
 	PullFrequency: time.Minute,
 }
 
