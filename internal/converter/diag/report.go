@@ -12,9 +12,9 @@ A configuration file was not generated due to critical issues. Review the diagno
 
 const errorFooter = `
 
-A configuration file was not generated due to errors. Review the diagnostics above.
+Grafana Agent couldn't generate a configuration file. Refer to the error message for more information.
 
-These may be bypassed which is not recommended for production use.`
+You can bypass the errors by using the --bypass-errors flag. Bypassing errors isn't recommended for production environments.`
 
 const successFooter = `
 
