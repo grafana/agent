@@ -3,8 +3,9 @@ package kubernetes
 import (
 	"bytes"
 
-	"github.com/prometheus/prometheus/model/rulefmt"
 	"gopkg.in/yaml.v3" // Used for prometheus rulefmt compatibility instead of gopkg.in/yaml.v2
+
+	mimirClient "github.com/grafana/agent/internal/mimir/client"
 )
 
 type RuleGroupDiffKind string
@@ -17,11 +18,11 @@ const (
 
 type RuleGroupDiff struct {
 	Kind    RuleGroupDiffKind
-	Actual  rulefmt.RuleGroup
-	Desired rulefmt.RuleGroup
+	Actual  mimirClient.RuleGroup
+	Desired mimirClient.RuleGroup
 }
 
-type RuleGroupsByNamespace map[string][]rulefmt.RuleGroup
+type RuleGroupsByNamespace map[string][]mimirClient.RuleGroup
 type RuleGroupDiffsByNamespace map[string][]RuleGroupDiff
 
 func DiffRuleState(desired, actual RuleGroupsByNamespace) RuleGroupDiffsByNamespace {
@@ -55,7 +56,7 @@ func DiffRuleState(desired, actual RuleGroupsByNamespace) RuleGroupDiffsByNamesp
 	return diff
 }
 
-func diffRuleNamespaceState(desired []rulefmt.RuleGroup, actual []rulefmt.RuleGroup) []RuleGroupDiff {
+func diffRuleNamespaceState(desired []mimirClient.RuleGroup, actual []mimirClient.RuleGroup) []RuleGroupDiff {
 	var diff []RuleGroupDiff
 
 	seenGroups := map[string]bool{}
@@ -99,7 +100,7 @@ desiredGroups:
 	return diff
 }
 
-func equalRuleGroups(a, b rulefmt.RuleGroup) bool {
+func equalRuleGroups(a, b mimirClient.RuleGroup) bool {
 	aBuf, err := yaml.Marshal(a)
 	if err != nil {
 		return false

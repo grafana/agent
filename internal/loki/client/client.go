@@ -13,11 +13,11 @@ import (
 
 	log "github.com/go-kit/log"
 	"github.com/grafana/agent/internal/loki/client/internal"
+	mimirClient "github.com/grafana/agent/internal/mimir/client"
 	"github.com/grafana/dskit/instrument"
 	"github.com/grafana/dskit/user"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/config"
-	"github.com/prometheus/prometheus/model/rulefmt"
 )
 
 const (
@@ -39,9 +39,9 @@ type Config struct {
 }
 
 type Interface interface {
-	CreateRuleGroup(ctx context.Context, namespace string, rg rulefmt.RuleGroup) error
+	CreateRuleGroup(ctx context.Context, namespace string, rg mimirClient.RuleGroup) error
 	DeleteRuleGroup(ctx context.Context, namespace, groupName string) error
-	ListRules(ctx context.Context, namespace string) (map[string][]rulefmt.RuleGroup, error)
+	ListRules(ctx context.Context, namespace string) (map[string][]mimirClient.RuleGroup, error)
 }
 
 // LokiClient is a client to the Loki API.
