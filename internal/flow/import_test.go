@@ -251,7 +251,15 @@ func TestImportError(t *testing.T) {
 	}
 }
 
-func TestFetchVsFetchHead(t *testing.T) {
+func TestPullUpdating(t *testing.T) {
+	// Previously we used fetch instead of pull, which would set the FETCH_HEAD but not HEAD
+	// This caused changes not to propogate if there were changes, since HEAD was pinned to whatever it was on the initial download.
+	// Switching to pull removes this problem at the expense of network bandwidth.
+	// Tried switching to FETCH_HEAD but FETCH_HEAD is only set on fetch and not initial repo clone so we would need to
+	// remember to always call fetch after clone.
+	//
+	// This test ensures we can pull the correct values down if they update no matter what, it works by creating a local
+	// file based git repo then committing a file, running the component, then updating the file in the repo.
 	testRepo := t.TempDir()
 
 	contents := `declare "add" {
