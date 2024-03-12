@@ -253,7 +253,7 @@ func TestImportError(t *testing.T) {
 
 func TestPullUpdating(t *testing.T) {
 	// Previously we used fetch instead of pull, which would set the FETCH_HEAD but not HEAD
-	// This caused changes not to propogate if there were changes, since HEAD was pinned to whatever it was on the initial download.
+	// This caused changes not to propagate if there were changes, since HEAD was pinned to whatever it was on the initial download.
 	// Switching to pull removes this problem at the expense of network bandwidth.
 	// Tried switching to FETCH_HEAD but FETCH_HEAD is only set on fetch and not initial repo clone so we would need to
 	// remember to always call fetch after clone.
@@ -330,6 +330,7 @@ testImport.add "cc" {
     }
 }`
 	err = os.WriteFile(math, []byte(contentsMore), 0666)
+	require.NoError(t, err)
 	add2 := exec.Command("git", "add", ".")
 	add2.Dir = testRepo
 	add2.Run()
