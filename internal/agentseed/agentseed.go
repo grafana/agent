@@ -113,9 +113,9 @@ func readSeedFile(path string, logger log.Logger) (*AgentSeed, error) {
 		level.Error(logger).Log("msg", "Decoding seed file", "err", err)
 		return nil, err
 	}
-
 	if seed.UID == "" {
 		level.Error(logger).Log("msg", "Seed file has empty uid")
+		return nil, err
 	}
 	return seed, nil
 }
