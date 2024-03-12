@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/internal/flow/logging/level"
+	mimirClient "github.com/grafana/agent/internal/mimir/client"
 	"github.com/hashicorp/go-multierror"
 	promv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	"github.com/prometheus/prometheus/model/rulefmt"
@@ -190,6 +191,16 @@ func (c *Component) loadStateFromK8s() (ruleGroupsByNamespace, error) {
 				return nil, fmt.Errorf("failed to convert rule group: %w", err)
 			}
 
+			var sourceTenants []string
+			if pr.ObjectMeta.Annotations[AnnotationsSourceTenants] != "" {
+				sourceTenants = regexp.MustCompile(`\s*,\s*`).
+					Split(pr.ObjectMeta.Annotations[AnnotationsSourceTenants], -1)
+			}
+
+			for i := range groups {
+				groups[i].SourceTenants = sourceTenants
+			}
+
 			desiredState[mimirNs] = groups
 		}
 	}
@@ -197,7 +208,7 @@ func (c *Component) loadStateFromK8s() (ruleGroupsByNamespace, error) {
 	return desiredState, nil
 }
 
-func convertCRDRuleGroupToRuleGroup(crd promv1.PrometheusRuleSpec) ([]rulefmt.RuleGroup, error) {
+func convertCRDRuleGroupToRuleGroup(crd promv1.PrometheusRuleSpec) ([]mimirClient.RuleGroup, error) {
 	buf, err := yaml.Marshal(crd)
 	if err != nil {
 		return nil, err
@@ -208,7 +219,14 @@ func convertCRDRuleGroupToRuleGroup(crd promv1.PrometheusRuleSpec) ([]rulefmt.Ru
 		return nil, multierror.Append(nil, errs...)
 	}
 
-	return groups.Groups, nil
+	mimirGroups := make([]mimirClient.RuleGroup, 0)
+	for _, group := range groups.Groups {
+		mimirGroups = append(mimirGroups, mimirClient.RuleGroup{
+			RuleGroup: group,
+		})
+	}
+
+	return mimirGroups, nil
 }
 
 func (c *Component) applyChanges(ctx context.Context, namespace string, diffs []ruleGroupDiff) error {
