@@ -1,11 +1,7 @@
 otelcol.extension.jaeger_remote_sampling "default" {
-	grpc {
-		endpoint = ":14250"
-	}
+	grpc { }
 
-	http {
-		endpoint = ":5778"
-	}
+	http { }
 
 	source {
 		remote {

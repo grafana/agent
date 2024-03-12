@@ -1,5 +1,11 @@
 extensions:
   jaegerremotesampling:
+    # Our defaults have drifted from upstream so we explicitly set our defaults
+    # below by adding the 0.0.0.0 prefix for http.endpoint and grpc.endpoint.
+    http:
+      endpoint: "0.0.0.0:5778"
+    grpc:
+      endpoint: "0.0.0.0:14250"
     source:
       reload_interval: 30s
       remote:
