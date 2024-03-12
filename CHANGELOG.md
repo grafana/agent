@@ -72,11 +72,6 @@ v0.40.1 (2024-02-27)
 
 - Fix an issue where flow mode panics if the `logging` config block is given a `null` Loki receiver to write log entries to. (@rfratto)
 
-### Enhancements
-
-- Improve converter diagnostic output by including a Footer and removing lower
-  level diagnostics when a configuration fails to generate. (@erikbaranowski)
-
 v0.40.0 (2024-02-27)
 --------------------
 
