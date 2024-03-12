@@ -44,7 +44,7 @@ and the ability to share pipelines around the world.
 
 In addition to being an OpenTelemetry Collector distribution,
 {{< param "PRODUCT_NAME" >}} also includes first-class support for the
-Prometheus and Loki ecosystems, enabling pipelines to mix-and-match as needed.
+Prometheus and Loki ecosystems, allowing you to mix-and-match your pipelines.
 
 ## Example
 
