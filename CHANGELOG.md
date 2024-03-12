@@ -29,6 +29,8 @@ Main (unreleased)
 
 - Fix a bug where structured metadata and parsed field are not passed further in `loki.source.api` (@marchellodev)
 
+- Git operations used `HEAD` which could lead to incorrect pulls since it uses fetch and not pull, it now uses `FETCH_HEAD` by default. (@mattdurham)
+
 ### Other changes
 
 - Clustering for Grafana Agent in Flow mode has graduated from beta to stable.
