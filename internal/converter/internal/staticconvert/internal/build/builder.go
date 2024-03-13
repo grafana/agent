@@ -63,7 +63,7 @@ type ConfigBuilder struct {
 	globalCtx *GlobalContext
 }
 
-func NewIntegrationsConfigBuilder(f *builder.File, diags *diag.Diagnostics, cfg *config.Config, globalCtx *GlobalContext) *ConfigBuilder {
+func NewConfigBuilder(f *builder.File, diags *diag.Diagnostics, cfg *config.Config, globalCtx *GlobalContext) *ConfigBuilder {
 	return &ConfigBuilder{
 		f:         f,
 		diags:     diags,
