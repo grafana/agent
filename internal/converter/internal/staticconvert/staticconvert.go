@@ -13,6 +13,7 @@ import (
 	"github.com/grafana/agent/internal/converter/internal/staticconvert/internal/build"
 	"github.com/grafana/agent/internal/static/config"
 	"github.com/grafana/agent/internal/static/logs"
+	"github.com/grafana/agent/internal/static/traces"
 	promtail_config "github.com/grafana/loki/clients/pkg/promtail/config"
 	"github.com/grafana/loki/clients/pkg/promtail/limit"
 	"github.com/grafana/loki/clients/pkg/promtail/targets/file"
@@ -167,8 +168,16 @@ func appendStaticPromtail(f *builder.File, staticConfig *config.Config) diag.Dia
 func appendStaticIntegrations(f *builder.File, staticConfig *config.Config) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	b := build.NewIntegrationsConfigBuilder(f, &diags, staticConfig, &build.GlobalContext{LabelPrefix: "integrations"})
+	b := build.NewIntegrationsConfigBuilder(f, &diags, staticConfig, &build.GlobalContext{IntegrationsLabelPrefix: "integrations"})
 	b.Build()
+
+	return diags
+}
+
+func appendTraces(f *builder.File, traces *traces.Config) diag.Diagnostics {
+	var diags diag.Diagnostics
+
+	// TODO
 
 	return diags
 }
