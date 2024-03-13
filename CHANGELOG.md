@@ -32,7 +32,7 @@ Main (unreleased)
 
 - Fix a bug where structured metadata and parsed field are not passed further in `loki.source.api` (@marchellodev)
 
-- Git operations used fetch which updated `FETCH_HEAD` which could lead to incorrect pulls since the default is `HEAD` switched to pull for better compatibility. (@mattdurham)
+- Change `import.git` to use Git pulls rather than fetches to fix scenarios where the local code did not get updated. (@mattdurham)
 
 ### Other changes
 
