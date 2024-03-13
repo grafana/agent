@@ -1,16 +1,5 @@
 // Copyright The OpenTelemetry Authors
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//       http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// SPDX-License-Identifier: Apache-2.0
 
 package internal // import "github.com/open-telemetry/opentelemetry-collector-contrib/extension/jaegerremotesampling/internal"
 
@@ -41,10 +30,9 @@ type grpcRemoteStrategyStore struct {
 // for service-specific outbound GetSamplingStrategy calls.
 func NewRemoteStrategyStore(
 	conn *grpc.ClientConn,
-	grpcClientSettings *configgrpc.GRPCClientSettings,
+	grpcClientSettings *configgrpc.ClientConfig,
 	reloadInterval time.Duration,
 ) (strategystore.StrategyStore, io.Closer) {
-
 	cache := newNoopStrategyCache()
 	if reloadInterval > 0 {
 		cache = newServiceStrategyCache(reloadInterval)
@@ -61,7 +49,6 @@ func (g *grpcRemoteStrategyStore) GetSamplingStrategy(
 	ctx context.Context,
 	serviceName string,
 ) (*api_v2.SamplingStrategyResponse, error) {
-
 	if cachedResponse, ok := g.cache.get(ctx, serviceName); ok {
 		return cachedResponse, nil
 	}

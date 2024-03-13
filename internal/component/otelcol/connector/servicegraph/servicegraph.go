@@ -54,6 +54,10 @@ type Arguments struct {
 	// the "processor.servicegraph.virtualNode" feature gate.
 	// VirtualNodePeerAttributes []string `river:"virtual_node_peer_attributes,attr,optional"`
 
+	// MetricsFlushInterval is the interval at which metrics are flushed to the exporter.
+	// If set to 0, metrics are flushed on every received batch of traces.
+	MetricsFlushInterval time.Duration `river:"metrics_flush_interval,attr,optional"`
+
 	// Output configures where to send processed data. Required.
 	Output *otelcol.ConsumerArguments `river:"output,block"`
 }
@@ -156,6 +160,7 @@ func (args Arguments) Convert() (otelcomponent.Config, error) {
 		//TODO: Add VirtualNodePeerAttributes when it's no longer controlled by
 		// the "processor.servicegraph.virtualNode" feature gate.
 		// VirtualNodePeerAttributes: args.VirtualNodePeerAttributes,
+		MetricsFlushInterval: args.MetricsFlushInterval,
 	}, nil
 }
 

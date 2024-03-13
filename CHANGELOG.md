@@ -65,6 +65,123 @@ v0.40.3 (2024-03-14)
 
 - Upgrade to Go 1.22.1 (@thampiotr)
 
+- Upgrade from OpenTelemetry Collector v0.87.0 to v0.96.0:
+  * [ottl]: Fix bug where named parameters needed a space after the equal sign (`=`) 
+https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/28511
+  * [exporters] Additional enqueue_failed metrics 
+https://github.com/open-telemetry/opentelemetry-collector/issues/8673
+  * [otelcol.receiver.kafka]: Fix issue where counting number of logs emitted could cause panic
+  * [otelcol.processor.k8sattributes]: The time format of k8s.pod.start_time attribute value migrated to RFC3339:
+Before: 2023-07-10 12:34:39.740638 -0700 PDT m=+0.020184946
+After: 2023-07-10T12:39:53.112485-07:00
+https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/28817
+  * [otelcol.processor.tail_sampling] A new `upper_threshold_ms` argument for the `latency` policy.
+https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/26115
+  * [otelcol.connector.spanmetrics] Add a new `events` metric.
+https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/27451
+  * [otelcol.connector.spanmetrics] A new `max_per_data_point` argument for exemplar generation.
+  * https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/22620
+  * [ottl] Add IsBool Converter 
+https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/27897
+  * [otelcol.processor.tail_sampling] Optimize memory performance of tailsamplingprocessor 
+https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/27889
+  * [otelcol.connector.servicegraph] Add a `metrics_flush_interval` argument.
+https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/27679
+  * [ottl] Add IsDouble Converter
+https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/27895
+  * [ottl] Add new `silent` ErrorMode
+https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/29710
+  * [otelcol.connector.spanmetrics] A new `resource_metrics_cache_size` argument.
+https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/27654
+  * [ottl] Add IsInt Converter
+https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/27894
+  * [ottl] Validate that all path elements are used
+https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/30042
+  * [ottl] Validate Keys are used
+https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/30162
+  * [otelcol.receiver.vcenter] Add statement of support for version 8 of ESXi and vCenter
+https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/30274
+  * [ottl] Add Hour converter
+https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/29468
+  * [otelcol.connector.spanmetrics] A new `resource_metrics_key_attributes` argument to fix broken spanmetrics counters 
+  after a span producing service restart, when resource attributes contain dynamic/ephemeral values (e.g. process id).
+https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/29711
+  * [ottl] Issue with the hash value of a match group in the replace_pattern editors
+https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/29409
+  * [ottl] Fix bug where IsBool wasn't usable
+https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/30151
+  * [ottl] Add flatten function
+https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/30455
+  * [ottl] Fix bugs with parsing of string escapes in OTTL
+https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/23238
+  * [ottl]: Add functions for parsing CSV
+https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/30921
+  * [ottl] Allow users to specify the format of the hashed replacement string in the `replace_pattern` editors
+https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/27820
+  * [ottl] Add ParseKeyValue function
+https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/30998
+  * [otelcol.receiver.opencensus] Fix memory leak on shutdown
+https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/31152
+  * [otelcol.processor.memory_limiter] Fix leaking goroutine
+https://github.com/open-telemetry/opentelemetry-collector/issues/9099
+  * Additional `http2_read_idle_timeout` and `http2_ping_timeout` arguments for HTTP clients
+https://github.com/open-telemetry/opentelemetry-collector/pull/9022
+  * [otelcol.auth.bearer] Fix for "401 Unauthorized" on HTTP connections
+https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/24656
+* Update to OTLP 1.1
+https://github.com/open-telemetry/opentelemetry-collector/pull/9588
+  * [otelcol.auth.basic] Accept empty usernames.
+https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/30470
+  * [exporters] Do not re-enqueue failed batches, rely on the `retry_on_failure` strategy instead.
+https://github.com/open-telemetry/opentelemetry-collector/issues/8382
+  * [otelcol.exporter.otlphttp] A `Host` header is added automatically.
+https://github.com/open-telemetry/opentelemetry-collector/issues/9395
+  * [exporters] PartialSuccess is treated as success, logged as warning.
+https://github.com/open-telemetry/opentelemetry-collector/issues/9243
+  * [otelcol.exporter.otlphttp] Supports JSON encoding through an additional `encoding` argument.
+https://github.com/open-telemetry/opentelemetry-collector/issues/6945
+  * [exporters] A new `include_system_ca_certs_pool` argument for TLS config.
+https://github.com/open-telemetry/opentelemetry-collector/issues/7774
+  * [otelcol.receiver.vcenter] The receiver emits vCenter performance metrics with object metric label dimension.
+https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/30615
+  * [otelcol.processor.transform] Add copy_metric function
+https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/30846
+  * [otelcol.exporter.loadbalancing] Optimized CPU performance
+https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/30141
+  * [otelcol.processor.k8sattributes] Set attributes from namespace/node labels or annotations even if node/namespaces attribute are not set.
+https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/28837
+  * [otelcol.receiver.kafka] An additional `resolve_canonical_bootstrap_servers_only` argument
+https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/26022
+  * [otelcol.receiver.kafka] Add Azure Resource Log Support
+https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/18210
+  * [otelcol.processor.resourcedetection] Add a `k8s.cluster.name` resource attribute for AKS and EKS.
+https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/26794
+  * [otelcol.processor.resourcedetection] Add detection of `host.ip` to system detector.
+https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/24450
+  * [otelcol.processor.resourcedetection] Add detection of `host.mac` to system detector.
+https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/29587
+  * [otelcol.processor.resourcedetection] Change type of `host.cpu.model.id` and `host.cpu.model.family` to string.
+https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/29025
+  * [otelcol.processor.resourcedetection] Add a `aws.ecs.task.id` attribute
+https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/8274
+  * [otelcol.exporter.otlp] Additional RPC debug metrics such as `rpc_client_duration_milliseconds`.
+  * [otelcol.receiver.otlp] Additional RPC debug metrics such as `rpc_server_duration_milliseconds`.
+
+  * [otelcol.connector.servicegraph] Additional debug metrics
+  <!-- TODO: Document those metrics -->
+https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/29917
+  * [otelcol.processor.filter] Additional debug metrics
+  <!-- TODO: Document those metrics -->
+https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/30736
+  * Scope name for all generated Meter/Tracer funcs now includes full package name
+  <!-- TODO: Does this affect the Agent's metrics and logs? -->
+https://github.com/open-telemetry/opentelemetry-collector/issues/9494
+  * [otelcol.connector.servicegraph] Measure latency in seconds instead of milliseconds
+  <!-- TODO: This is a breaking change for Static mode? -->
+  <!-- TODO: Is this a breaking change for Flow? -->
+https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/27488
+
+
 v0.40.2 (2024-03-05)
 --------------------
 

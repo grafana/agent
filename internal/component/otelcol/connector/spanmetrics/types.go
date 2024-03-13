@@ -123,12 +123,14 @@ func (hc HistogramConfig) Convert() (*spanmetricsconnector.HistogramConfig, erro
 }
 
 type ExemplarsConfig struct {
-	Enabled bool `river:"enabled,attr,optional"`
+	Enabled         bool `river:"enabled,attr,optional"`
+	MaxPerDataPoint *int `river:"max_per_data_point,attr,optional"`
 }
 
 func (ec ExemplarsConfig) Convert() *spanmetricsconnector.ExemplarsConfig {
 	return &spanmetricsconnector.ExemplarsConfig{
-		Enabled: ec.Enabled,
+		Enabled:         ec.Enabled,
+		MaxPerDataPoint: ec.MaxPerDataPoint,
 	}
 }
 
@@ -195,5 +197,24 @@ func (hc ExplicitHistogramConfig) Convert() *spanmetricsconnector.ExplicitHistog
 	// Copy the values in the buckets slice so that we don't mutate the original.
 	return &spanmetricsconnector.ExplicitHistogramConfig{
 		Buckets: append([]time.Duration{}, hc.Buckets...),
+	}
+}
+
+type EventsConfig struct {
+	// Enabled is a flag to enable events.
+	Enabled bool `river:"enabled,attr,optional"`
+	// Dimensions defines the list of dimensions to add to the events metric.
+	Dimensions []Dimension `river:"dimensions,block,optional"`
+}
+
+func (ec EventsConfig) Convert() spanmetricsconnector.EventsConfig {
+	dimensions := make([]spanmetricsconnector.Dimension, 0, len(ec.Dimensions))
+	for _, d := range ec.Dimensions {
+		dimensions = append(dimensions, d.Convert())
+	}
+
+	return spanmetricsconnector.EventsConfig{
+		Enabled:    ec.Enabled,
+		Dimensions: dimensions,
 	}
 }

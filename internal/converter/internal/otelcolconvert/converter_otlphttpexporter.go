@@ -57,14 +57,14 @@ func (otlpHTTPExporterConverter) ConvertAndAppend(state *state, id component.Ins
 
 func toOtelcolExporterOTLPHTTP(cfg *otlphttpexporter.Config) *otlphttp.Arguments {
 	return &otlphttp.Arguments{
-		Client:       otlphttp.HTTPClientArguments(toHTTPClientArguments(cfg.HTTPClientSettings)),
-		Queue:        toQueueArguments(cfg.QueueSettings),
-		Retry:        toRetryArguments(cfg.RetrySettings),
+		Client:       otlphttp.HTTPClientArguments(toHTTPClientArguments(cfg.ClientConfig)),
+		Queue:        toQueueArguments(cfg.QueueConfig),
+		Retry:        toRetryArguments(cfg.RetryConfig),
 		DebugMetrics: common.DefaultValue[otlphttp.Arguments]().DebugMetrics,
 	}
 }
 
-func toHTTPClientArguments(cfg confighttp.HTTPClientSettings) otelcol.HTTPClientArguments {
+func toHTTPClientArguments(cfg confighttp.ClientConfig) otelcol.HTTPClientArguments {
 	var a *auth.Handler
 	if cfg.Auth != nil {
 		a = &auth.Handler{}
@@ -72,7 +72,7 @@ func toHTTPClientArguments(cfg confighttp.HTTPClientSettings) otelcol.HTTPClient
 
 	var mic *int
 	var ict *time.Duration
-	defaults := confighttp.NewDefaultHTTPClientSettings()
+	defaults := confighttp.NewDefaultClientConfig()
 	if mic = cfg.MaxIdleConns; mic == nil {
 		mic = defaults.MaxIdleConns
 	}

@@ -64,7 +64,7 @@ func toOtelcolReceiverOTLP(state *state, id component.InstanceID, cfg *otlprecei
 	}
 }
 
-func toGRPCServerArguments(cfg *configgrpc.GRPCServerSettings) *otelcol.GRPCServerArguments {
+func toGRPCServerArguments(cfg *configgrpc.ServerConfig) *otelcol.GRPCServerArguments {
 	if cfg == nil {
 		return nil
 	}
@@ -154,7 +154,7 @@ func toHTTPConfigArguments(cfg *otlpreceiver.HTTPConfig) *otlp.HTTPConfigArgumen
 	}
 
 	return &otlp.HTTPConfigArguments{
-		HTTPServerArguments: toHTTPServerArguments(cfg.HTTPServerSettings),
+		HTTPServerArguments: toHTTPServerArguments(cfg.ServerConfig),
 
 		TracesURLPath:  cfg.TracesURLPath,
 		MetricsURLPath: cfg.MetricsURLPath,
@@ -162,7 +162,7 @@ func toHTTPConfigArguments(cfg *otlpreceiver.HTTPConfig) *otlp.HTTPConfigArgumen
 	}
 }
 
-func toHTTPServerArguments(cfg *confighttp.HTTPServerSettings) *otelcol.HTTPServerArguments {
+func toHTTPServerArguments(cfg *confighttp.ServerConfig) *otelcol.HTTPServerArguments {
 	if cfg == nil {
 		return nil
 	}
@@ -179,7 +179,7 @@ func toHTTPServerArguments(cfg *confighttp.HTTPServerSettings) *otelcol.HTTPServ
 	}
 }
 
-func toCORSArguments(cfg *confighttp.CORSSettings) *otelcol.CORSArguments {
+func toCORSArguments(cfg *confighttp.CORSConfig) *otelcol.CORSArguments {
 	if cfg == nil {
 		return nil
 	}
