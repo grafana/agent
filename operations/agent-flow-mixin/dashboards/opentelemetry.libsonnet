@@ -71,7 +71,7 @@ local stackedPanelMixin = {
         ])
       ),
       (
-        panel.newNativeHistogramHeatmap('RPC server duration', 'ms') +
+        panel.newHeatmap('RPC server duration', 'ms') +
         panel.withDescription(|||
           The duration of inbound RPCs.
         |||) +
@@ -91,7 +91,7 @@ local stackedPanelMixin = {
         panel.withPosition({ h: 1, w: 24, x: 0, y: 10 })
       ),
       (
-        panel.newNativeHistogramHeatmap('Number of units in the batch', 'short') +
+        panel.newHeatmap('Number of units in the batch', 'short') +
         panel.withUnit('short') +
         panel.withDescription(|||
           Number of spans, metric datapoints, or log lines in a batch
