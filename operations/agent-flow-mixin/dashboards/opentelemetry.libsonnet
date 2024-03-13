@@ -41,6 +41,7 @@ local stackedPanelMixin = {
         panel.withDescription(|||
          Number of spans successfully pushed into the pipeline.
        |||) +
+        stackedPanelMixin +
         panel.withPosition({ x: 0, y: 0, w: 8, h: 10 }) +
         panel.withQueries([
           panel.newQuery(
@@ -58,6 +59,7 @@ local stackedPanelMixin = {
         panel.withDescription(|||
           Number of spans that could not be pushed into the pipeline.
         |||) +
+        stackedPanelMixin +
         panel.withPosition({ x: 8, y: 0, w: 8, h: 10 }) +
         panel.withQueries([
           panel.newQuery(
@@ -109,6 +111,7 @@ local stackedPanelMixin = {
           Number of distinct metadata value combinations being processed
         |||) +
         panel.withPosition({ x: 8, y: 10, w: 8, h: 10 }) +
+        stackedPanelMixin +
         panel.withQueries([
           panel.newQuery(
             expr=|||
@@ -123,6 +126,7 @@ local stackedPanelMixin = {
         panel.withDescription(|||
           Number of times the batch was sent due to a timeout trigger
         |||) +
+        stackedPanelMixin +
         panel.withPosition({ x: 16, y: 10, w: 8, h: 10 }) +
         panel.withQueries([
           panel.newQuery(
@@ -144,6 +148,7 @@ local stackedPanelMixin = {
         panel.withDescription(|||
           Number of spans successfully sent to destination.
         |||) +
+        stackedPanelMixin +
         panel.withPosition({ x: 0, y: 20, w: 8, h: 10 }) +
         panel.withQueries([
           panel.newQuery(
@@ -159,6 +164,7 @@ local stackedPanelMixin = {
         panel.withDescription(|||
           Number of spans in failed attempts to send to destination.
         |||) +
+        stackedPanelMixin +
         panel.withPosition({ x: 8, y: 20, w: 8, h: 10 }) +
         panel.withQueries([
           panel.newQuery(
