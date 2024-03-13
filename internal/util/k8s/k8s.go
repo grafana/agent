@@ -4,6 +4,7 @@ package k8s
 import (
 	"context"
 	"fmt"
+	"github.com/testcontainers/testcontainers-go"
 	"log"
 
 	gragent "github.com/grafana/agent/internal/static/operator/apis/monitoring/v1alpha1"
@@ -71,7 +72,8 @@ func NewCluster(ctx context.Context, o Options) (cluster *Cluster, err error) {
 		return nil, fmt.Errorf("failed to apply defaults to options: %w", err)
 	}
 
-	container, err := k3s.RunContainer(ctx)
+	// Keep the image version coherent with /go.mod
+	container, err := k3s.RunContainer(ctx, testcontainers.WithImage("docker.io/rancher/k3s:v1.28.7-k3s1"))
 	defer func() {
 		// We don't want to leak the cluster here, and we can't really be sure how
 		// many resources exist, even if ClusterRun fails. If we never set our

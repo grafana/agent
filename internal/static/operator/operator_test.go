@@ -140,9 +140,7 @@ func ReconcileTest(ctx context.Context, t *testing.T, inFile, outFile string) {
 // NewTestCluster creates a new testing cluster. The cluster will be removed
 // when the test completes.
 func NewTestCluster(ctx context.Context, t *testing.T, l log.Logger) *k8s.Cluster {
-	// TODO: this is broken with go 1.20.6
-	// waiting on https://github.com/testcontainers/testcontainers-go/issues/1359
-	t.Skip()
+	t.Skip("TODO: unable to retrieve the complete list of server APIs: monitoring.grafana.com/v1alpha1")
 	t.Helper()
 
 	cluster, err := k8s.NewCluster(ctx, k8s.Options{})
