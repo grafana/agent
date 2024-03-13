@@ -4,13 +4,14 @@ package flow_test
 
 import (
 	"context"
-	"github.com/stretchr/testify/require"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"sync"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestPullUpdating(t *testing.T) {
