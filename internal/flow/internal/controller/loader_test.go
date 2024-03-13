@@ -563,7 +563,3 @@ func (fs *fakeService) Data() any {
 	}
 	return nil
 }
-
-type fakeArgumentBlock struct {
-	Name string `river:"name,attr,optional"`
-}
