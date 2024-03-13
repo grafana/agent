@@ -10,6 +10,7 @@ import (
 	"github.com/grafana/agent/internal/component/prometheus/remotewrite"
 	"github.com/grafana/agent/internal/converter/diag"
 	"github.com/grafana/agent/internal/converter/internal/common"
+	"github.com/grafana/agent/internal/converter/internal/otelcolconvert"
 	"github.com/grafana/agent/internal/converter/internal/prometheusconvert"
 	"github.com/grafana/agent/internal/static/config"
 	agent_exporter "github.com/grafana/agent/internal/static/integrations/agent"
@@ -370,12 +371,20 @@ func (b *ConfigBuilder) appendExporterV2(commonConfig *common_v2.MetricsConfig, 
 	b.diags.AddAll(prometheusconvert.AppendAllNested(b.f, promConfig, jobNameToCompLabelsFunc, extraTargets, remoteWriteExports))
 }
 
-func (b *ConfigBuilder) appendTraces() diag.Diagnostics {
+func (b *ConfigBuilder) appendTraces() {
 	if reflect.DeepEqual(b.cfg.Traces, traces.Config{}) {
-		return nil
+		return
 	}
 
-	return nil
+	for _, cfg := range b.cfg.Traces.Configs {
+		otelCfg, err := cfg.OtelConfig()
+		if err != nil {
+			b.diags.Add(diag.SeverityLevelCritical, fmt.Sprintf("failed to load otelConfig from agent traces config: %s", err))
+			// TODO maybe return here instead of continue. Might be good to collect all the criticals in one place though.
+			continue
+		}
+		otelcolconvert.AppendConfig(b.f, otelCfg)
+	}
 }
 
 func splitByCommaNullOnEmpty(s string) []string {

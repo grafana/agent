@@ -65,7 +65,7 @@ func Convert(in []byte, extraArgs []string) ([]byte, diag.Diagnostics) {
 
 	f := builder.NewFile()
 
-	diags.AddAll(appendConfig(f, cfg))
+	diags.AddAll(AppendConfig(f, cfg))
 	diags.AddAll(common.ValidateNodes(f))
 
 	var buf bytes.Buffer
@@ -141,9 +141,9 @@ func getFactories() otelcol.Factories {
 	return facts
 }
 
-// appendConfig converts the provided OpenTelemetry config into an equivalent
+// AppendConfig converts the provided OpenTelemetry config into an equivalent
 // Flow config and appends the result to the provided file.
-func appendConfig(file *builder.File, cfg *otelcol.Config) diag.Diagnostics {
+func AppendConfig(file *builder.File, cfg *otelcol.Config) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	groups, err := createPipelineGroups(cfg.Service.Pipelines)
@@ -251,7 +251,9 @@ func appendConfig(file *builder.File, cfg *otelcol.Config) diag.Diagnostics {
 				key := converterKey{Kind: componentSet.kind, Type: id.Type()}
 				conv, ok := converterTable[key]
 				if !ok {
-					panic(fmt.Sprintf("otelcolconvert: no converter found for key %v", key))
+					continue
+					// TODO: push_receiver doesn't exist yet so this hack let's us still try the rest of the code
+					// panic(fmt.Sprintf("otelcolconvert: no converter found for key %v", key))
 				}
 
 				diags.AddAll(conv.ConvertAndAppend(state, componentID, componentSet.configLookup[id]))
