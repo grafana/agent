@@ -53,7 +53,7 @@ func (c *ContextID) UnmarshalText(text []byte) error {
 	}
 }
 
-type contextStatementsSlice []ContextStatements
+type ContextStatementsSlice []ContextStatements
 
 type ContextStatements struct {
 	Context    ContextID `river:"context,attr"`
@@ -64,9 +64,9 @@ type ContextStatements struct {
 type Arguments struct {
 	// ErrorMode determines how the processor reacts to errors that occur while processing a statement.
 	ErrorMode        ottl.ErrorMode         `river:"error_mode,attr,optional"`
-	TraceStatements  contextStatementsSlice `river:"trace_statements,block,optional"`
-	MetricStatements contextStatementsSlice `river:"metric_statements,block,optional"`
-	LogStatements    contextStatementsSlice `river:"log_statements,block,optional"`
+	TraceStatements  ContextStatementsSlice `river:"trace_statements,block,optional"`
+	MetricStatements ContextStatementsSlice `river:"metric_statements,block,optional"`
+	LogStatements    ContextStatementsSlice `river:"log_statements,block,optional"`
 
 	// Output configures where to send processed data. Required.
 	Output *otelcol.ConsumerArguments `river:"output,block"`
@@ -95,7 +95,7 @@ func (args *Arguments) Validate() error {
 	return otelArgs.Validate()
 }
 
-func (stmts *contextStatementsSlice) convert() []interface{} {
+func (stmts *ContextStatementsSlice) convert() []interface{} {
 	if stmts == nil {
 		return nil
 	}
