@@ -114,7 +114,6 @@ local stackedPanelMixin = {
           Number of distinct metadata value combinations being processed
         |||) +
         panel.withPosition({ x: 8, y: 10, w: 8, h: 10 }) +
-        stackedPanelMixin +
         panel.withQueries([
           panel.newQuery(
             expr=|||
@@ -129,7 +128,6 @@ local stackedPanelMixin = {
         panel.withDescription(|||
           Number of times the batch was sent due to a timeout trigger
         |||) +
-        stackedPanelMixin +
         panel.withPosition({ x: 16, y: 10, w: 8, h: 10 }) +
         panel.withQueries([
           panel.newQuery(
