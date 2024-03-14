@@ -80,11 +80,6 @@ func toExclude(cfg k8sattributesprocessor.ExcludeConfig) k8sattributes.ExcludeCo
 	}
 
 	for _, c := range cfg.Pods {
-		// These are default excludes from upstream opentelemetry-collector-contrib, we don't have to convert them.
-		// Source: https://github.com/open-telemetry/opentelemetry-collector-contrib/blame/main/processor/k8sattributesprocessor/factory.go#L21
-		if c.Name == "jaeger-agent" || c.Name == "jaeger-collector" {
-			continue
-		}
 		res.Pods = append(res.Pods, k8sattributes.ExcludePodConfig{
 			Name: c.Name,
 		})
