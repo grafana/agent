@@ -30,11 +30,21 @@ Main (unreleased)
 
 - Fix an issue where JSON string array elements were not parsed correctly in `loki.source.cloudflare`. (@thampiotr)
 
-- Fix a bug where structured metadata and parsed field are not passed further in `loki.source.api` (@marchellodev)
-
 ### Other changes
 
 - Clustering for Grafana Agent in Flow mode has graduated from beta to stable.
+
+
+v0.40.3 (2024-03-14)
+--------------------
+
+### Bugfixes
+
+- Fix a bug where structured metadata and parsed field are not passed further in `loki.source.api` (@marchellodev)
+
+- Change `import.git` to use Git pulls rather than fetches to fix scenarios where the local code did not get updated. (@mattdurham)
+
+### Other changes
 
 - Upgrade to Go 1.22.1 (@thampiotr)
 
