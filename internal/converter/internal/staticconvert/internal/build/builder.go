@@ -380,13 +380,19 @@ func (b *ConfigBuilder) appendTraces() {
 
 	for _, cfg := range b.cfg.Traces.Configs {
 		otelCfg, err := cfg.OtelConfig()
-		removeReceiver(otelCfg, "traces", "push_receiver")
-
 		if err != nil {
 			b.diags.Add(diag.SeverityLevelCritical, fmt.Sprintf("failed to load otelConfig from agent traces config: %s", err))
 			continue
 		}
-		b.diags.AddAll(otelcolconvert.AppendConfig(b.f, otelCfg, cfg.Name))
+
+		removeReceiver(otelCfg, "traces", "push_receiver")
+
+		// Let's only prefix things if we are doing more than 1 trace config
+		labelPrefix := ""
+		if len(b.cfg.Traces.Configs) > 1 {
+			labelPrefix = cfg.Name
+		}
+		b.diags.AddAll(otelcolconvert.AppendConfig(b.f, otelCfg, labelPrefix))
 	}
 }
 
