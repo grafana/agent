@@ -62,8 +62,9 @@ type state struct {
 	// extensionLookup maps OTel extensions to Flow component IDs.
 	extensionLookup map[component.ID]componentID
 
-	componentID     component.InstanceID // ID of the current component being converted.
-	componentConfig component.Config     // Config of the current component being converted.
+	componentID          component.InstanceID // ID of the current component being converted.
+	componentConfig      component.Config     // Config of the current component being converted.
+	componentLabelPrefix string               // Prefix for the label of the current component being converted.
 }
 
 type converterKey struct {
@@ -120,9 +121,13 @@ func (state *state) flowLabelForComponent(c component.InstanceID) string {
 	//
 	// Otherwise, we'll replace empty group and component names with "default"
 	// and concatenate them with an underscore.
+	unsanitizedLabel := state.componentLabelPrefix
+	if unsanitizedLabel != "" {
+		unsanitizedLabel += "_"
+	}
 	switch {
 	case groupName == "" && componentName == "":
-		return defaultLabel
+		unsanitizedLabel += defaultLabel
 
 	default:
 		if groupName == "" {
@@ -131,9 +136,10 @@ func (state *state) flowLabelForComponent(c component.InstanceID) string {
 		if componentName == "" {
 			componentName = defaultLabel
 		}
-		identifier := fmt.Sprintf("%s_%s", groupName, componentName)
-		return common.SanitizeIdentifierPanics(identifier)
+		unsanitizedLabel += fmt.Sprintf("%s_%s", groupName, componentName)
 	}
+
+	return common.SanitizeIdentifierPanics(unsanitizedLabel)
 }
 
 // Next returns the set of Flow component IDs for a given data type that the
