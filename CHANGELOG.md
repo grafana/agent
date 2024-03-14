@@ -30,6 +30,8 @@ Main (unreleased)
 
 - Fix an issue where JSON string array elements were not parsed correctly in `loki.source.cloudflare`. (@thampiotr)
 
+- Fix SSRF vulnerability in `faro.receiver` by disabling source map download. (@hainenber)
+
 ### Other changes
 
 - Clustering for Grafana Agent in Flow mode has graduated from beta to stable.
