@@ -158,19 +158,6 @@ func (args ExcludeConfig) convert() map[string]interface{} {
 		pods = append(pods, pod.convert())
 	}
 
-	// These are default excludes from upstream opentelemetry-collector-contrib
-	// Source: https://github.com/open-telemetry/opentelemetry-collector-contrib/blame/main/processor/k8sattributesprocessor/factory.go#L21
-	if len(pods) == 0 {
-		pods = append(pods,
-			map[string]interface{}{
-				"name": "jaeger-agent",
-			},
-			map[string]interface{}{
-				"name": "jaeger-collector",
-			},
-		)
-	}
-
 	result["pods"] = pods
 
 	return result
