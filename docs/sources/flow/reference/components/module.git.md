@@ -41,12 +41,12 @@ module.git "LABEL" {
 
 The following arguments are supported:
 
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`repository` | `string` | The Git repository address to retrieve the module from. | | yes
-`revision` | `string` | The Git revision to retrieve the module from. | `"HEAD"` | no
-`path` | `string` | The path in the repository where the module is stored. | | yes
-`pull_frequency` | `duration` | The frequency to pull the repository for updates. | `"60s"` | no
+Name             | Type       | Description                                             | Default  | Required
+-----------------|------------|---------------------------------------------------------|----------|---------
+`repository`     | `string`   | The Git repository address to retrieve the module from. |          | yes
+`revision`       | `string`   | The Git revision to retrieve the module from.           | `"HEAD"` | no
+`path`           | `string`   | The path in the repository where the module is stored.  |          | yes
+`pull_frequency` | `duration` | The frequency to pull the repository for updates.       | `"60s"`  | no
 
 The `repository` attribute must be set to a repository address that would be
 recognized by Git with a `git clone REPOSITORY_ADDRESS` command, such as

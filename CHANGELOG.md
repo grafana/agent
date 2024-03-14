@@ -7,6 +7,19 @@ This document contains a historical list of changes between releases. Only
 changes that impact end-user behavior are listed; changes to documentation or
 internal API changes are not present.
 
+v0.40.3 (2024-03-14)
+--------------------
+
+### Bugfixes
+
+- Fix a bug where structured metadata and parsed field are not passed further in `loki.source.api` (@marchellodev)
+
+- Change `import.git` to use Git pulls rather than fetches to fix scenarios where the local code did not get updated. (@mattdurham)
+
+### Other changes
+
+- Upgrade to Go 1.22.1 (@thampiotr)
+
 v0.40.2 (2024-03-05)
 --------------------
 
