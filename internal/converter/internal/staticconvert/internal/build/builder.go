@@ -380,36 +380,33 @@ func (b *ConfigBuilder) appendTraces() {
 
 	for _, cfg := range b.cfg.Traces.Configs {
 		otelCfg, err := cfg.OtelConfig()
-		removePushReceiver(otelCfg)
+		removeReceiver(otelCfg, "traces", "push_receiver")
 
 		if err != nil {
 			b.diags.Add(diag.SeverityLevelCritical, fmt.Sprintf("failed to load otelConfig from agent traces config: %s", err))
 			continue
 		}
+		// TODO: what prefix should each generated flow label get? each trace instance will need something unique
 		b.diags.AddAll(otelcolconvert.AppendConfig(b.f, otelCfg))
 	}
 }
 
-// removePushReceiver removes the push_receiver from the otel config. The
+// removeReceiver removes a receiver from the otel config. The
 // push_receiver is an implementation detail for static traces that is not
 // necessary for the flow configuration.
-func removePushReceiver(otelCfg *otelcol.Config) {
-	if _, ok := otelCfg.Receivers[otel_component.NewID("push_receiver")]; !ok {
+func removeReceiver(otelCfg *otelcol.Config, pipelineType otel_component.Type, receiverType otel_component.Type) {
+	if _, ok := otelCfg.Receivers[otel_component.NewID(receiverType)]; !ok {
 		return
 	}
 
-	delete(otelCfg.Receivers, otel_component.NewID("push_receiver"))
-	spr := make([]otel_component.ID, len(otelCfg.Service.Pipelines[otel_component.NewID("traces")].Receivers)-1)
-	offset := 0
-	for i, r := range otelCfg.Service.Pipelines[otel_component.NewID("traces")].Receivers {
-		if r == otel_component.NewID("push_receiver") {
-			offset = 1
-			continue
+	delete(otelCfg.Receivers, otel_component.NewID(receiverType))
+	spr := make([]otel_component.ID, 0, len(otelCfg.Service.Pipelines[otel_component.NewID(pipelineType)].Receivers)-1)
+	for _, r := range otelCfg.Service.Pipelines[otel_component.NewID(pipelineType)].Receivers {
+		if r != otel_component.NewID(receiverType) {
+			spr = append(spr, r)
 		}
-
-		spr[i-offset] = r
 	}
-	otelCfg.Service.Pipelines[otel_component.NewID("traces")].Receivers = spr
+	otelCfg.Service.Pipelines[otel_component.NewID(pipelineType)].Receivers = spr
 }
 
 func splitByCommaNullOnEmpty(s string) []string {

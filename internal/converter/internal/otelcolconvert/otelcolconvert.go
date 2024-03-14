@@ -143,8 +143,6 @@ func getFactories() otelcol.Factories {
 
 // AppendConfig converts the provided OpenTelemetry config into an equivalent
 // Flow config and appends the result to the provided file.
-//
-// TODO: what prefix should each generated flow label get? each trace instance will need something unique
 func AppendConfig(file *builder.File, cfg *otelcol.Config) diag.Diagnostics {
 	var diags diag.Diagnostics
 
