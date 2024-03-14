@@ -65,7 +65,7 @@ func Convert(in []byte, extraArgs []string) ([]byte, diag.Diagnostics) {
 
 	f := builder.NewFile()
 
-	diags.AddAll(AppendConfig(f, cfg))
+	diags.AddAll(AppendConfig(f, cfg, ""))
 	diags.AddAll(common.ValidateNodes(f))
 
 	var buf bytes.Buffer
@@ -143,7 +143,7 @@ func getFactories() otelcol.Factories {
 
 // AppendConfig converts the provided OpenTelemetry config into an equivalent
 // Flow config and appends the result to the provided file.
-func AppendConfig(file *builder.File, cfg *otelcol.Config) diag.Diagnostics {
+func AppendConfig(file *builder.File, cfg *otelcol.Config, labelPrefix string) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	groups, err := createPipelineGroups(cfg.Service.Pipelines)
@@ -198,8 +198,9 @@ func AppendConfig(file *builder.File, cfg *otelcol.Config) diag.Diagnostics {
 
 			converterLookup: converterTable,
 
-			componentConfig: cfg.Extensions,
-			componentID:     cid,
+			componentConfig:      cfg.Extensions,
+			componentID:          cid,
+			componentLabelPrefix: labelPrefix,
 		}
 
 		key := converterKey{Kind: component.KindExtension, Type: ext.Type()}
@@ -244,8 +245,9 @@ func AppendConfig(file *builder.File, cfg *otelcol.Config) diag.Diagnostics {
 					converterLookup: converterTable,
 					extensionLookup: extensionTable,
 
-					componentConfig: componentSet.configLookup[id],
-					componentID:     componentID,
+					componentConfig:      componentSet.configLookup[id],
+					componentID:          componentID,
+					componentLabelPrefix: labelPrefix,
 				}
 
 				key := converterKey{Kind: componentSet.kind, Type: id.Type()}

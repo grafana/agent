@@ -386,8 +386,7 @@ func (b *ConfigBuilder) appendTraces() {
 			b.diags.Add(diag.SeverityLevelCritical, fmt.Sprintf("failed to load otelConfig from agent traces config: %s", err))
 			continue
 		}
-		// TODO: what prefix should each generated flow label get? each trace instance will need something unique
-		b.diags.AddAll(otelcolconvert.AppendConfig(b.f, otelCfg))
+		b.diags.AddAll(otelcolconvert.AppendConfig(b.f, otelCfg, cfg.Name))
 	}
 }
 
