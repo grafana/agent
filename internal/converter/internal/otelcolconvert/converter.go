@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/grafana/agent/internal/converter/diag"
+	"github.com/grafana/agent/internal/converter/internal/common"
 	"github.com/grafana/river/token/builder"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/otelcol"
@@ -130,7 +131,8 @@ func (state *state) flowLabelForComponent(c component.InstanceID) string {
 		if componentName == "" {
 			componentName = defaultLabel
 		}
-		return fmt.Sprintf("%s_%s", groupName, componentName)
+		identifier := fmt.Sprintf("%s_%s", groupName, componentName)
+		return common.SanitizeIdentifierPanics(identifier)
 	}
 }
 

@@ -65,7 +65,7 @@ func Convert(in []byte, extraArgs []string) ([]byte, diag.Diagnostics) {
 
 	f := builder.NewFile()
 
-	diags.AddAll(appendConfig(f, cfg))
+	diags.AddAll(AppendConfig(f, cfg))
 	diags.AddAll(common.ValidateNodes(f))
 
 	var buf bytes.Buffer
@@ -141,9 +141,9 @@ func getFactories() otelcol.Factories {
 	return facts
 }
 
-// appendConfig converts the provided OpenTelemetry config into an equivalent
+// AppendConfig converts the provided OpenTelemetry config into an equivalent
 // Flow config and appends the result to the provided file.
-func appendConfig(file *builder.File, cfg *otelcol.Config) diag.Diagnostics {
+func AppendConfig(file *builder.File, cfg *otelcol.Config) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	groups, err := createPipelineGroups(cfg.Service.Pipelines)

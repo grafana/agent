@@ -9,16 +9,15 @@ title: Grafana Agent
 description: Grafana Agent is a flexible, performant, vendor-neutral, telemetry collector
 weight: 350
 cascade:
-  AGENT_RELEASE: v0.40.2
+  AGENT_RELEASE: v0.40.3
   OTEL_VERSION: v0.87.0
 ---
 
 # Grafana Agent
 
-Grafana Agent is a vendor-neutral, batteries-included telemetry collector with
-configuration inspired by [Terraform][]. It is designed to be flexible,
-performant, and compatible with multiple ecosystems such as Prometheus and
-OpenTelemetry.
+Grafana Agent is an OpenTelemetry Collector distribution with configuration
+inspired by [Terraform][]. It is designed to be flexible, performant, and
+compatible with multiple ecosystems such as Prometheus and OpenTelemetry.
 
 Grafana Agent is based around **components**. Components are wired together to
 form programmable observability **pipelines** for telemetry collection,
