@@ -21,7 +21,7 @@ exporters:
     sending_queue:
       queue_size: 5000
 
-  otlp/metrics_backend_two:
+  otlp/metrics_backend/2: 
     # Our defaults have drifted from upstream, so we explicitly set our
     # defaults below (balancer_name and queue_size).
     endpoint: database:54317
@@ -42,7 +42,7 @@ service:
     metrics:
       receivers: [spanmetrics]
       exporters: [otlp/metrics_backend]
-    metrics/foo:
+    metrics/2:
       receivers: [spanmetrics]
-      exporters: [otlp/metrics_backend_two]
+      exporters: [otlp/metrics_backend/2]
 
