@@ -55,6 +55,8 @@ import (
 	"github.com/prometheus/common/model"
 	prom_config "github.com/prometheus/prometheus/config"
 	"github.com/prometheus/prometheus/model/relabel"
+	otel_component "go.opentelemetry.io/collector/component"
+	"go.opentelemetry.io/collector/otelcol"
 )
 
 type ConfigBuilder struct {
@@ -378,13 +380,36 @@ func (b *ConfigBuilder) appendTraces() {
 
 	for _, cfg := range b.cfg.Traces.Configs {
 		otelCfg, err := cfg.OtelConfig()
+		removePushReceiver(otelCfg)
+
 		if err != nil {
 			b.diags.Add(diag.SeverityLevelCritical, fmt.Sprintf("failed to load otelConfig from agent traces config: %s", err))
-			// TODO maybe return here instead of continue. Might be good to collect all the criticals in one place though.
 			continue
 		}
-		otelcolconvert.AppendConfig(b.f, otelCfg)
+		b.diags.AddAll(otelcolconvert.AppendConfig(b.f, otelCfg))
 	}
+}
+
+// removePushReceiver removes the push_receiver from the otel config. The
+// push_receiver is an implementation detail for static traces that is not
+// necessary for the flow configuration.
+func removePushReceiver(otelCfg *otelcol.Config) {
+	if _, ok := otelCfg.Receivers[otel_component.NewID("push_receiver")]; !ok {
+		return
+	}
+
+	delete(otelCfg.Receivers, otel_component.NewID("push_receiver"))
+	spr := make([]otel_component.ID, len(otelCfg.Service.Pipelines[otel_component.NewID("traces")].Receivers)-1)
+	offset := 0
+	for i, r := range otelCfg.Service.Pipelines[otel_component.NewID("traces")].Receivers {
+		if r == otel_component.NewID("push_receiver") {
+			offset = 1
+			continue
+		}
+
+		spr[i-offset] = r
+	}
+	otelCfg.Service.Pipelines[otel_component.NewID("traces")].Receivers = spr
 }
 
 func splitByCommaNullOnEmpty(s string) []string {

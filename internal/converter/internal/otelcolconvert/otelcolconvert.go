@@ -143,6 +143,8 @@ func getFactories() otelcol.Factories {
 
 // AppendConfig converts the provided OpenTelemetry config into an equivalent
 // Flow config and appends the result to the provided file.
+//
+// TODO: what prefix should each generated flow label get? each trace instance will need something unique
 func AppendConfig(file *builder.File, cfg *otelcol.Config) diag.Diagnostics {
 	var diags diag.Diagnostics
 
@@ -251,9 +253,7 @@ func AppendConfig(file *builder.File, cfg *otelcol.Config) diag.Diagnostics {
 				key := converterKey{Kind: componentSet.kind, Type: id.Type()}
 				conv, ok := converterTable[key]
 				if !ok {
-					continue
-					// TODO: push_receiver doesn't exist yet so this hack let's us still try the rest of the code
-					// panic(fmt.Sprintf("otelcolconvert: no converter found for key %v", key))
+					panic(fmt.Sprintf("otelcolconvert: no converter found for key %v", key))
 				}
 
 				diags.AddAll(conv.ConvertAndAppend(state, componentID, componentSet.configLookup[id]))
