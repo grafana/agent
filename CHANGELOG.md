@@ -10,6 +10,11 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+### Breaking changes
+
+- The default listen port for `otelcol.receiver.opencensus` has changed from
+  4317 to 55678 to align with upstream. (@rfratto)
+
 ### Enhancements
 
 - Add support for importing folders as single module to `import.file`. (@wildum)
