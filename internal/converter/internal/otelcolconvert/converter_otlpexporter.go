@@ -96,7 +96,7 @@ func toGRPCClientArguments(cfg configgrpc.GRPCClientSettings) otelcol.GRPCClient
 	// Set default value for `balancer_name` to sync up with upstream's
 	balancerName := cfg.BalancerName
 	if balancerName == "" {
-		balancerName = otelcol.DEFAULT_BALANCER_NAME
+		balancerName = otelcol.DefaultBalancerName
 	}
 
 	return otelcol.GRPCClientArguments{

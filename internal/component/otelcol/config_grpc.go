@@ -13,7 +13,7 @@ import (
 	otelextension "go.opentelemetry.io/collector/extension"
 )
 
-const DEFAULT_BALANCER_NAME = "pick_first"
+const DefaultBalancerName = "pick_first"
 
 // GRPCServerArguments holds shared gRPC settings for components which launch
 // gRPC servers.
@@ -173,7 +173,7 @@ func (args *GRPCClientArguments) Convert() *otelconfiggrpc.GRPCClientSettings {
 	// Set default value for `balancer_name` to sync up with upstream's
 	balancerName := args.BalancerName
 	if balancerName == "" {
-		balancerName = DEFAULT_BALANCER_NAME
+		balancerName = DefaultBalancerName
 	}
 
 	return &otelconfiggrpc.GRPCClientSettings{

@@ -221,7 +221,7 @@ func TestUnmarshalUsesDefaults(t *testing.T) {
 						Headers:         map[string]string{},
 						Compression:     otelcol.CompressionTypeGzip,
 						WriteBufferSize: 512 * 1024,
-						BalancerName:    otelcol.DEFAULT_BALANCER_NAME,
+						BalancerName:    otelcol.DefaultBalancerName,
 					},
 				},
 			},

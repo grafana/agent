@@ -72,7 +72,7 @@ func toProtocol(cfg loadbalancingexporter.Protocol) loadbalancing.Protocol {
 	// Set default value for `balancer_name` to sync up with upstream's
 	balancerName := cfg.OTLP.BalancerName
 	if balancerName == "" {
-		balancerName = otelcol.DEFAULT_BALANCER_NAME
+		balancerName = otelcol.DefaultBalancerName
 	}
 
 	return loadbalancing.Protocol{

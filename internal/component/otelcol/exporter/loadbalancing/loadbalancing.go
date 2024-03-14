@@ -287,7 +287,7 @@ func (args *GRPCClientArguments) Convert() *otelconfiggrpc.GRPCClientSettings {
 
 	balancerName := args.BalancerName
 	if balancerName == "" {
-		balancerName = otelcol.DEFAULT_BALANCER_NAME
+		balancerName = otelcol.DefaultBalancerName
 	}
 
 	return &otelconfiggrpc.GRPCClientSettings{
@@ -322,7 +322,7 @@ var DefaultGRPCClientArguments = GRPCClientArguments{
 	Headers:         map[string]string{},
 	Compression:     otelcol.CompressionTypeGzip,
 	WriteBufferSize: 512 * 1024,
-	BalancerName:    otelcol.DEFAULT_BALANCER_NAME,
+	BalancerName:    otelcol.DefaultBalancerName,
 }
 
 // SetToDefault implements river.Defaulter.
