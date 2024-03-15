@@ -35,7 +35,7 @@ func (bearerTokenAuthExtensionConverter) ConvertAndAppend(state *state, id compo
 	var block *builder.Block
 
 	if bcfg.Filename == "" {
-		args := toBearerTokenAuthExtension(state, bcfg)
+		args := toBearerTokenAuthExtension(bcfg)
 		block = common.NewBlockWithOverride([]string{"otelcol", "auth", "bearer"}, label, args)
 	} else {
 		args, fileContents := toBearerTokenAuthExtensionWithFilename(state, bcfg)
@@ -59,7 +59,7 @@ func (bearerTokenAuthExtensionConverter) ConvertAndAppend(state *state, id compo
 	return diags
 }
 
-func toBearerTokenAuthExtension(state *state, cfg *bearertokenauthextension.Config) *bearer.Arguments {
+func toBearerTokenAuthExtension(cfg *bearertokenauthextension.Config) *bearer.Arguments {
 	return &bearer.Arguments{
 		Scheme: cfg.Scheme,
 		Token:  rivertypes.Secret(string(cfg.BearerToken)),
