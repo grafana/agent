@@ -14,7 +14,8 @@ title: module.string
 # module.string (deprecated)
 
 {{< admonition type="caution" >}}
-Modules were redesigned in v0.40 to simplify concepts. `module.string` has been deprecated as of v0.40 in favor of `import.string`, and will be removed in the following release.
+Starting with release v0.40, `module.string` is deprecated and is replaced by `import.string`.
+`module.string` will be removed in a future release.
 {{< /admonition >}}
 
 {{< docs/shared lookup="flow/stability/beta.md" source="agent" version="<AGENT_VERSION>" >}}

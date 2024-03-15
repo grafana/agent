@@ -14,7 +14,8 @@ title: module.http
 # module.http (deprecated)
 
 {{< admonition type="caution" >}}
-Modules were redesigned in v0.40 to simplify concepts. `module.http` has been deprecated as of v0.40 in favor of `import.http`, and will be removed in the following release.
+Starting with release v0.40, `module.http` is deprecated and is replaced by `import.http`.
+`module.http` will be removed in a future release.
 {{< /admonition >}}
 
 {{< docs/shared lookup="flow/stability/beta.md" source="agent" version="<AGENT_VERSION>" >}}
