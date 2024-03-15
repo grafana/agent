@@ -39,7 +39,9 @@ Main (unreleased)
 
 - Clustering for Grafana Agent in Flow mode has graduated from beta to stable.
 
-- Resync defaults for `otelcol.processor.k8sattributes`. (@hainenber)
+- Resync defaults for `otelcol.processor.k8sattributes` with upstream. (@hainenber)
+
+- Resync defaults for `otelcol.exporter.otlp` and `otelcol.exporter.otlphttp` with upstream. (@hainenber)
 
 v0.40.3 (2024-03-14)
 --------------------

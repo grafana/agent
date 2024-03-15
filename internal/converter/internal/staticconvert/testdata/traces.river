@@ -270,16 +270,11 @@ otelcol.processor.tail_sampling "default" {
 }
 
 otelcol.exporter.otlp "default_0" {
-	sending_queue {
-		queue_size = 1000
-	}
-
 	retry_on_failure {
 		max_elapsed_time = "1m0s"
 	}
 
 	client {
-		endpoint      = "http://localhost:1234/write"
-		balancer_name = ""
+		endpoint = "http://localhost:1234/write"
 	}
 }
