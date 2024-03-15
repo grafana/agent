@@ -7,6 +7,8 @@ import (
 	"github.com/grafana/agent/internal/component/common/config"
 )
 
+const AnnotationsSourceTenants = "monitoring.grafana.com/source_tenants"
+
 type Arguments struct {
 	Address              string                  `river:"address,attr"`
 	TenantID             string                  `river:"tenant_id,attr,optional"`

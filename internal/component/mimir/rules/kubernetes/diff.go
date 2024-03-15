@@ -3,7 +3,7 @@ package rules
 import (
 	"bytes"
 
-	"github.com/prometheus/prometheus/model/rulefmt"
+	mimirClient "github.com/grafana/agent/internal/mimir/client"
 	"gopkg.in/yaml.v3" // Used for prometheus rulefmt compatibility instead of gopkg.in/yaml.v2
 )
 
@@ -17,11 +17,11 @@ const (
 
 type ruleGroupDiff struct {
 	Kind    ruleGroupDiffKind
-	Actual  rulefmt.RuleGroup
-	Desired rulefmt.RuleGroup
+	Actual  mimirClient.RuleGroup
+	Desired mimirClient.RuleGroup
 }
 
-type ruleGroupsByNamespace map[string][]rulefmt.RuleGroup
+type ruleGroupsByNamespace map[string][]mimirClient.RuleGroup
 type ruleGroupDiffsByNamespace map[string][]ruleGroupDiff
 
 func diffRuleState(desired, actual ruleGroupsByNamespace) ruleGroupDiffsByNamespace {
@@ -55,7 +55,7 @@ func diffRuleState(desired, actual ruleGroupsByNamespace) ruleGroupDiffsByNamesp
 	return diff
 }
 
-func diffRuleNamespaceState(desired []rulefmt.RuleGroup, actual []rulefmt.RuleGroup) []ruleGroupDiff {
+func diffRuleNamespaceState(desired []mimirClient.RuleGroup, actual []mimirClient.RuleGroup) []ruleGroupDiff {
 	var diff []ruleGroupDiff
 
 	seenGroups := map[string]bool{}
@@ -99,7 +99,7 @@ desiredGroups:
 	return diff
 }
 
-func equalRuleGroups(a, b rulefmt.RuleGroup) bool {
+func equalRuleGroups(a, b mimirClient.RuleGroup) bool {
 	aBuf, err := yaml.Marshal(a)
 	if err != nil {
 		return false
