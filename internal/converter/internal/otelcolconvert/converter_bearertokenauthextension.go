@@ -9,6 +9,7 @@ import (
 	"github.com/grafana/agent/internal/converter/diag"
 	"github.com/grafana/agent/internal/converter/internal/common"
 	"github.com/grafana/river/rivertypes"
+	"github.com/grafana/river/token/builder"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/extension/bearertokenauthextension"
 	"go.opentelemetry.io/collector/component"
 )
@@ -30,8 +31,24 @@ func (bearerTokenAuthExtensionConverter) ConvertAndAppend(state *state, id compo
 
 	label := state.FlowComponentLabel()
 
-	args := toBearerTokenAuthExtension(state, cfg.(*bearertokenauthextension.Config))
-	block := common.NewBlockWithOverride([]string{"otelcol", "auth", "bearer"}, label, args)
+	bcfg := cfg.(*bearertokenauthextension.Config)
+	var block *builder.Block
+
+	if bcfg.Filename == "" {
+		args := toBearerTokenAuthExtension(state, bcfg)
+		block = common.NewBlockWithOverride([]string{"otelcol", "auth", "bearer"}, label, args)
+	} else {
+		args, fileContents := toBearerTokenAuthExtensionWithFilename(state, bcfg)
+		overrideHook := func(val interface{}) interface{} {
+			switch value := val.(type) {
+			case rivertypes.Secret:
+				return common.CustomTokenizer{Expr: fileContents}
+			default:
+				return value
+			}
+		}
+		block = common.NewBlockWithOverrideFn([]string{"otelcol", "auth", "bearer"}, label, args, overrideHook)
+	}
 
 	diags.Add(
 		diag.SeverityLevelInfo,
@@ -43,25 +60,23 @@ func (bearerTokenAuthExtensionConverter) ConvertAndAppend(state *state, id compo
 }
 
 func toBearerTokenAuthExtension(state *state, cfg *bearertokenauthextension.Config) *bearer.Arguments {
-	token := rivertypes.Secret(string(cfg.BearerToken))
-
-	// If the upstream configuration contains cfg.Token and cfg.Filename, then
-	// the cfg.Token value is ignored.
-	if cfg.Filename != "" {
-		label := state.FlowComponentLabel()
-		args := &file.Arguments{
-			Filename:      cfg.Filename,
-			Type:          file.DefaultArguments.Type, // Using the default type (fsnotify) since that's what upstream also uses.
-			PollFrequency: 60 * time.Second,           // Setting an arbitrary polling time.
-			IsSecret:      false,
-		}
-		block := common.NewBlockWithOverride([]string{"local", "file"}, label, args)
-		state.Body().AppendBlock(block)
-		token = rivertypes.Secret(fmt.Sprintf("%s.content", stringifyBlock(block)))
+	return &bearer.Arguments{
+		Scheme: cfg.Scheme,
+		Token:  rivertypes.Secret(string(cfg.BearerToken)),
 	}
+}
+func toBearerTokenAuthExtensionWithFilename(state *state, cfg *bearertokenauthextension.Config) (*bearer.Arguments, string) {
+	label := state.FlowComponentLabel()
+	args := &file.Arguments{
+		Filename:      cfg.Filename,
+		Type:          file.DefaultArguments.Type, // Using the default type (fsnotify) since that's what upstream also uses.
+		PollFrequency: 60 * time.Second,           // Setting an arbitrary polling time.
+		IsSecret:      true,
+	}
+	block := common.NewBlockWithOverride([]string{"local", "file"}, label, args)
+	state.Body().AppendBlock(block)
 
 	return &bearer.Arguments{
 		Scheme: cfg.Scheme,
-		Token:  token,
-	}
+	}, fmt.Sprintf("%s.content", stringifyBlock(block))
 }

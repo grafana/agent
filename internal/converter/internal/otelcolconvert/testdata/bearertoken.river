@@ -1,9 +1,10 @@
 local.file "default_fromfile" {
-	filename = "file-containing.token"
+	filename  = "file-containing.token"
+	is_secret = true
 }
 
 otelcol.auth.bearer "default_fromfile" {
-	token = "local.file.default_fromfile.content"
+	token = local.file.default_fromfile.content
 }
 
 otelcol.auth.bearer "default_withscheme" {
