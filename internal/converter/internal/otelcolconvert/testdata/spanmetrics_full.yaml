@@ -11,7 +11,7 @@ exporters:
   otlp/metrics_backend:
     endpoint: database:44317
 
-  otlp/metrics_backend_two:
+  otlp/metrics_backend/2:
     endpoint: database:54317
 
 connectors:
@@ -27,7 +27,7 @@ service:
     metrics:
       receivers: [spanmetrics]
       exporters: [otlp/metrics_backend]
-    metrics/foo:
+    metrics/2:
       receivers: [spanmetrics]
-      exporters: [otlp/metrics_backend_two]
+      exporters: [otlp/metrics_backend/2]
 
