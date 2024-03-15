@@ -23,7 +23,7 @@ Batches sent to the component's `input` exported field are added to the buffer a
 
 `queue_size` determines how long an endpoint outage is tolerated.
 Assuming 100 requests/second, the default queue size `1000` provides about 10 seconds of outage tolerance.
-To calculate the correct value for `queue_size`, multiply the average number of outgoing requests per second by the time in seconds that outages are tolerated. Note that a very high figure can cause unexpected Out Of Memory (OOM) kills.
+To calculate the correct value for `queue_size`, multiply the average number of outgoing requests per second by the time in seconds that outages are tolerated. A very high value can cause Out Of Memory (OOM) kills.
 
 The `num_consumers` argument controls how many readers read from the buffer and send data in parallel.
 Larger values of `num_consumers` allow data to be sent more quickly at the expense of increased network traffic.
