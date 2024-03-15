@@ -44,10 +44,6 @@ integrations:
           outcome: "$3"
           job: "${1}_server"
 
-traces:
-  configs:
-    - name: trace_config
-
 logs:
   positions_directory: /path
   global:
