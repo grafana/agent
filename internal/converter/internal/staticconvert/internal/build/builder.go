@@ -2,6 +2,7 @@ package build
 
 import (
 	"fmt"
+	"reflect"
 	"strings"
 
 	"github.com/grafana/agent/internal/component"
@@ -9,6 +10,7 @@ import (
 	"github.com/grafana/agent/internal/component/prometheus/remotewrite"
 	"github.com/grafana/agent/internal/converter/diag"
 	"github.com/grafana/agent/internal/converter/internal/common"
+	"github.com/grafana/agent/internal/converter/internal/otelcolconvert"
 	"github.com/grafana/agent/internal/converter/internal/prometheusconvert"
 	"github.com/grafana/agent/internal/static/config"
 	agent_exporter "github.com/grafana/agent/internal/static/integrations/agent"
@@ -47,22 +49,25 @@ import (
 	snmp_exporter_v2 "github.com/grafana/agent/internal/static/integrations/v2/snmp_exporter"
 	vmware_exporter_v2 "github.com/grafana/agent/internal/static/integrations/v2/vmware_exporter"
 	"github.com/grafana/agent/internal/static/integrations/windows_exporter"
+	"github.com/grafana/agent/internal/static/traces"
 	"github.com/grafana/river/scanner"
 	"github.com/grafana/river/token/builder"
 	"github.com/prometheus/common/model"
 	prom_config "github.com/prometheus/prometheus/config"
 	"github.com/prometheus/prometheus/model/relabel"
+	otel_component "go.opentelemetry.io/collector/component"
+	"go.opentelemetry.io/collector/otelcol"
 )
 
-type IntegrationsConfigBuilder struct {
+type ConfigBuilder struct {
 	f         *builder.File
 	diags     *diag.Diagnostics
 	cfg       *config.Config
 	globalCtx *GlobalContext
 }
 
-func NewIntegrationsConfigBuilder(f *builder.File, diags *diag.Diagnostics, cfg *config.Config, globalCtx *GlobalContext) *IntegrationsConfigBuilder {
-	return &IntegrationsConfigBuilder{
+func NewConfigBuilder(f *builder.File, diags *diag.Diagnostics, cfg *config.Config, globalCtx *GlobalContext) *ConfigBuilder {
+	return &ConfigBuilder{
 		f:         f,
 		diags:     diags,
 		cfg:       cfg,
@@ -70,13 +75,14 @@ func NewIntegrationsConfigBuilder(f *builder.File, diags *diag.Diagnostics, cfg 
 	}
 }
 
-func (b *IntegrationsConfigBuilder) Build() {
+func (b *ConfigBuilder) Build() {
 	b.appendLogging(b.cfg.Server)
 	b.appendServer(b.cfg.Server)
 	b.appendIntegrations()
+	b.appendTraces()
 }
 
-func (b *IntegrationsConfigBuilder) appendIntegrations() {
+func (b *ConfigBuilder) appendIntegrations() {
 	switch b.cfg.Integrations.Version {
 	case config.IntegrationsVersion1:
 		b.appendV1Integrations()
@@ -87,7 +93,7 @@ func (b *IntegrationsConfigBuilder) appendIntegrations() {
 	}
 }
 
-func (b *IntegrationsConfigBuilder) appendV1Integrations() {
+func (b *ConfigBuilder) appendV1Integrations() {
 	for _, integration := range b.cfg.Integrations.ConfigV1.Integrations {
 		if !integration.Common.Enabled {
 			continue
@@ -165,7 +171,7 @@ func (b *IntegrationsConfigBuilder) appendV1Integrations() {
 	}
 }
 
-func (b *IntegrationsConfigBuilder) appendExporter(commonConfig *int_config.Common, name string, extraTargets []discovery.Target) {
+func (b *ConfigBuilder) appendExporter(commonConfig *int_config.Common, name string, extraTargets []discovery.Target) {
 	var relabelConfigs []*relabel.Config
 	if commonConfig.InstanceKey != nil {
 		defaultConfig := relabel.DefaultRelabelConfig
@@ -212,11 +218,11 @@ func (b *IntegrationsConfigBuilder) appendExporter(commonConfig *int_config.Comm
 		return b.jobNameToCompLabel(jobName)
 	}
 
-	b.diags.AddAll(prometheusconvert.AppendAllNested(b.f, promConfig, jobNameToCompLabelsFunc, extraTargets, b.globalCtx.RemoteWriteExports))
-	b.globalCtx.InitializeRemoteWriteExports()
+	b.diags.AddAll(prometheusconvert.AppendAllNested(b.f, promConfig, jobNameToCompLabelsFunc, extraTargets, b.globalCtx.IntegrationsRemoteWriteExports))
+	b.globalCtx.InitializeIntegrationsRemoteWriteExports()
 }
 
-func (b *IntegrationsConfigBuilder) appendV2Integrations() {
+func (b *ConfigBuilder) appendV2Integrations() {
 	for _, integration := range b.cfg.Integrations.ConfigV2.Configs {
 		var exports discovery.Exports
 		var commonConfig common_v2.MetricsConfig
@@ -298,7 +304,7 @@ func (b *IntegrationsConfigBuilder) appendV2Integrations() {
 	}
 }
 
-func (b *IntegrationsConfigBuilder) appendExporterV2(commonConfig *common_v2.MetricsConfig, name string, extraTargets []discovery.Target) {
+func (b *ConfigBuilder) appendExporterV2(commonConfig *common_v2.MetricsConfig, name string, extraTargets []discovery.Target) {
 	var relabelConfigs []*relabel.Config
 
 	for _, extraLabel := range commonConfig.ExtraLabels {
@@ -367,6 +373,47 @@ func (b *IntegrationsConfigBuilder) appendExporterV2(commonConfig *common_v2.Met
 	b.diags.AddAll(prometheusconvert.AppendAllNested(b.f, promConfig, jobNameToCompLabelsFunc, extraTargets, remoteWriteExports))
 }
 
+func (b *ConfigBuilder) appendTraces() {
+	if reflect.DeepEqual(b.cfg.Traces, traces.Config{}) {
+		return
+	}
+
+	for _, cfg := range b.cfg.Traces.Configs {
+		otelCfg, err := cfg.OtelConfig()
+		if err != nil {
+			b.diags.Add(diag.SeverityLevelCritical, fmt.Sprintf("failed to load otelConfig from agent traces config: %s", err))
+			continue
+		}
+
+		removeReceiver(otelCfg, "traces", "push_receiver")
+
+		// Let's only prefix things if we are doing more than 1 trace config
+		labelPrefix := ""
+		if len(b.cfg.Traces.Configs) > 1 {
+			labelPrefix = cfg.Name
+		}
+		b.diags.AddAll(otelcolconvert.AppendConfig(b.f, otelCfg, labelPrefix))
+	}
+}
+
+// removeReceiver removes a receiver from the otel config. The
+// push_receiver is an implementation detail for static traces that is not
+// necessary for the flow configuration.
+func removeReceiver(otelCfg *otelcol.Config, pipelineType otel_component.Type, receiverType otel_component.Type) {
+	if _, ok := otelCfg.Receivers[otel_component.NewID(receiverType)]; !ok {
+		return
+	}
+
+	delete(otelCfg.Receivers, otel_component.NewID(receiverType))
+	spr := make([]otel_component.ID, 0, len(otelCfg.Service.Pipelines[otel_component.NewID(pipelineType)].Receivers)-1)
+	for _, r := range otelCfg.Service.Pipelines[otel_component.NewID(pipelineType)].Receivers {
+		if r != otel_component.NewID(receiverType) {
+			spr = append(spr, r)
+		}
+	}
+	otelCfg.Service.Pipelines[otel_component.NewID(pipelineType)].Receivers = spr
+}
+
 func splitByCommaNullOnEmpty(s string) []string {
 	if s == "" {
 		return nil
@@ -375,17 +422,17 @@ func splitByCommaNullOnEmpty(s string) []string {
 	return strings.Split(s, ",")
 }
 
-func (b *IntegrationsConfigBuilder) jobNameToCompLabel(jobName string) string {
+func (b *ConfigBuilder) jobNameToCompLabel(jobName string) string {
 	labelSuffix := strings.TrimPrefix(jobName, "integrations/")
 	if labelSuffix == "" {
-		return b.globalCtx.LabelPrefix
+		return b.globalCtx.IntegrationsLabelPrefix
 	}
 
-	return fmt.Sprintf("%s_%s", b.globalCtx.LabelPrefix, labelSuffix)
+	return fmt.Sprintf("%s_%s", b.globalCtx.IntegrationsLabelPrefix, labelSuffix)
 }
 
-func (b *IntegrationsConfigBuilder) formatJobName(name string, instanceKey *string) string {
-	jobName := b.globalCtx.LabelPrefix
+func (b *ConfigBuilder) formatJobName(name string, instanceKey *string) string {
+	jobName := b.globalCtx.IntegrationsLabelPrefix
 	if instanceKey != nil {
 		jobName = fmt.Sprintf("%s/%s", jobName, *instanceKey)
 	} else {
@@ -395,7 +442,7 @@ func (b *IntegrationsConfigBuilder) formatJobName(name string, instanceKey *stri
 	return jobName
 }
 
-func (b *IntegrationsConfigBuilder) appendExporterBlock(args component.Arguments, configName string, instanceKey *string, exporterName string) discovery.Exports {
+func (b *ConfigBuilder) appendExporterBlock(args component.Arguments, configName string, instanceKey *string, exporterName string) discovery.Exports {
 	compLabel, err := scanner.SanitizeIdentifier(b.formatJobName(configName, instanceKey))
 	if err != nil {
 		b.diags.Add(diag.SeverityLevelCritical, fmt.Sprintf("failed to sanitize job name: %s", err))
@@ -410,7 +457,7 @@ func (b *IntegrationsConfigBuilder) appendExporterBlock(args component.Arguments
 	return common.NewDiscoveryExports(fmt.Sprintf("prometheus.exporter.%s.%s.targets", exporterName, compLabel))
 }
 
-func (b *IntegrationsConfigBuilder) getJobRelabelConfig(name string, relabelConfigs []*relabel.Config) *relabel.Config {
+func (b *ConfigBuilder) getJobRelabelConfig(name string, relabelConfigs []*relabel.Config) *relabel.Config {
 	// Don't add a job relabel if that label is already targeted
 	for _, relabelConfig := range relabelConfigs {
 		if relabelConfig.TargetLabel == "job" {

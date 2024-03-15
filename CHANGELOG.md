@@ -10,11 +10,19 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+### Breaking changes
+
+- The default listen port for `otelcol.receiver.opencensus` has changed from
+  4317 to 55678 to align with upstream. (@rfratto)
+
 ### Enhancements
 
 - Add support for importing folders as single module to `import.file`. (@wildum)
 
 - Add support for importing directories as single module to `import.git`. (@wildum)
+
+- Improve converter diagnostic output by including a Footer and removing lower
+  level diagnostics when a configuration fails to generate. (@erikbaranowski)
 
 ### Features
 
@@ -30,6 +38,20 @@ Main (unreleased)
 ### Other changes
 
 - Clustering for Grafana Agent in Flow mode has graduated from beta to stable.
+
+
+v0.40.3 (2024-03-14)
+--------------------
+
+### Bugfixes
+
+- Fix a bug where structured metadata and parsed field are not passed further in `loki.source.api` (@marchellodev)
+
+- Change `import.git` to use Git pulls rather than fetches to fix scenarios where the local code did not get updated. (@mattdurham)
+
+### Other changes
+
+- Upgrade to Go 1.22.1 (@thampiotr)
 
 v0.40.2 (2024-03-05)
 --------------------
@@ -47,7 +69,6 @@ v0.40.2 (2024-03-05)
 
 - Fix an issue where Loki could reject a batch of logs when structured metadata feature is used. (@thampiotr)
 
-=======
 - Fix a duplicate metrics registration panic when recreating static
   mode metric instance's write handler. (@rfratto, @hainenber)
 
