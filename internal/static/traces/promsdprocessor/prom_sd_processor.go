@@ -148,23 +148,23 @@ func (p *promServiceDiscoProcessor) syncTargets(jobName string, group *targetgro
 	}
 
 	for _, t := range group.Targets {
-		discoveredLabels := group.Labels.Merge(t)
-
-		level.Debug(p.logger).Log("discoveredLabels", discoveredLabels)
-		var labelMap = make(map[string]string)
-		for k, v := range discoveredLabels.Clone() {
-			labelMap[string(k)] = string(v)
+		var labelSlice = make([]labels.Label, 0, len(group.Labels)+len(t))
+		for k, v := range group.Labels {
+			labelSlice = append(labelSlice, labels.Label{Name: string(k), Value: string(v)})
 		}
-		processedLabels, keep := relabel.Process(labels.FromMap(labelMap), relabelConfig...)
+		for k, v := range t {
+			labelSlice = append(labelSlice, labels.Label{Name: string(k), Value: string(v)})
+		}
+
+		level.Debug(p.logger).Log("discoveredLabels", labelSlice)
+
+		processedLabels, keep := relabel.Process(labels.New(labelSlice...), relabelConfig...)
 		level.Debug(p.logger).Log("processedLabels", processedLabels)
 		if !keep {
 			continue
 		}
 
-		var labels = make(discovery.Target)
-		for k, v := range processedLabels.Map() {
-			labels[k] = v
-		}
+		var labels discovery.Target = processedLabels.Map()
 
 		host, err := promsdconsumer.GetHostFromLabels(labels)
 		if err != nil {
