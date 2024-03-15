@@ -39,6 +39,7 @@ Main (unreleased)
 
 - Clustering for Grafana Agent in Flow mode has graduated from beta to stable.
 
+- Resync defaults for `otelcol.exporter.otlp` and `otelcol.exporter.otlphttp`. (@hainenber)
 
 v0.40.3 (2024-03-14)
 --------------------
