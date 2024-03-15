@@ -11,7 +11,12 @@ labels:
 title: module.git
 ---
 
-# module.git
+# module.git (deprecated)
+
+{{< admonition type="caution" >}}
+Starting with release v0.40, `module.git` is deprecated and is replaced by `import.git`.
+`module.git` will be removed in a future release.
+{{< /admonition >}}
 
 {{< docs/shared lookup="flow/stability/beta.md" source="agent" version="<AGENT_VERSION>" >}}
 
