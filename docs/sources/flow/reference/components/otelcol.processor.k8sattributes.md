@@ -225,7 +225,9 @@ Name | Type     | Description                                                   
 
 The `exclude` block configures which pods to exclude from the processor.
 
-> **Note**: Pods with name `jaeger-agent` and `jaeger-collector` are excluded by default.
+{{< admonition type="note" >}}
+Pods with the name `jaeger-agent` or `jaeger-collector` are excluded by default.
+{{< /admonition >}}
 
 ### pod block
 
