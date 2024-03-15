@@ -11,7 +11,11 @@ labels:
 title: module.string
 ---
 
-# module.string
+# module.string (deprecated)
+
+{{< admonition type="caution" >}}
+Modules were redesigned in v0.40 to simplify concepts. `module.string` has been deprecated as of v0.40 in favor of `import.string`, and will be removed in the following release.
+{{< /admonition >}}
 
 {{< docs/shared lookup="flow/stability/beta.md" source="agent" version="<AGENT_VERSION>" >}}
 

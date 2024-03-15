@@ -11,7 +11,11 @@ labels:
 title: module.file
 ---
 
-# module.file
+# module.file (deprecated)
+
+{{< admonition type="caution" >}}
+Modules were redesigned in v0.40 to simplify concepts. `module.file` has been deprecated as of v0.40 in favor of `import.file`, and will be removed in the following release.
+{{< /admonition >}}
 
 {{< docs/shared lookup="flow/stability/beta.md" source="agent" version="<AGENT_VERSION>" >}}
 
