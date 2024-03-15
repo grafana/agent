@@ -46,18 +46,24 @@ If you need to see high cardinality metrics containing labels such as IP address
 The name `prometheus.exporter.agent` is potentially ambiguous and can be misinterpreted as an exporter for Prometheus Agent.
 The new name reflects the component's true purpose as an exporter of the process's own metrics.
 
+### Deprecation: classic modules have been deprecated and will be removed in the next release
+
+Classic modules (the `module.git`, `module.file`, `module.http`, and `module.string` components) have been deprecated in favor of the new `import` and `declare` configuration blocks.
+
+Support for classic modules will be removed in the next release.
+
 ## v0.39
 
 ### Breaking change: `otelcol.receiver.prometheus` will drop all `otel_scope_info` metrics when converting them to OTLP
 
 * If the `otel_scope_info` metric has the `otel_scope_name` and `otel_scope_version` labels,
-  their values are used to set the OTLP Instrumentation Scope name and  version, respectively. 
-* Labels for `otel_scope_info` metrics other than `otel_scope_name` and `otel_scope_version` 
+  their values are used to set the OTLP Instrumentation Scope name and  version, respectively.
+* Labels for `otel_scope_info` metrics other than `otel_scope_name` and `otel_scope_version`
   are added as scope attributes with the matching name and version.
 
 ### Breaking change: label for `target` block in `prometheus.exporter.blackbox` is removed
 
-Previously in `prometheus.exporter.blackbox`, the `target` block requires a label which is used in job's name. 
+Previously in `prometheus.exporter.blackbox`, the `target` block requires a label which is used in job's name.
 In this version, user needs to be specify `name` attribute instead, which allow less restrictive naming.
 
 Old configuration example:
