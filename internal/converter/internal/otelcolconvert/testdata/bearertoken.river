@@ -25,10 +25,6 @@ otelcol.receiver.otlp "default" {
 }
 
 otelcol.exporter.otlp "default_withauth" {
-	sending_queue {
-		queue_size = 5000
-	}
-
 	client {
 		endpoint = "database:4317"
 		auth     = otelcol.auth.bearer.default_fromfile.handler
@@ -39,9 +35,5 @@ otelcol.exporter.otlphttp "default_withauth" {
 	client {
 		endpoint = "database:4318"
 		auth     = otelcol.auth.bearer.default_withscheme.handler
-	}
-
-	sending_queue {
-		queue_size = 5000
 	}
 }

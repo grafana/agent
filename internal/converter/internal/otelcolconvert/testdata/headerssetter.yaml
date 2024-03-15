@@ -22,13 +22,11 @@ receivers:
 exporters:
   otlp:
     # Our defaults have drifted from upstream, so we explicitly set our
-    # defaults below (balancer_name and queue_size).
+    # defaults below (balancer_name).
     endpoint: database:4317
     auth:
       authenticator: headers_setter
     balancer_name: pick_first
-    sending_queue:
-      queue_size: 5000
 
 service:
   extensions: [ headers_setter ]
