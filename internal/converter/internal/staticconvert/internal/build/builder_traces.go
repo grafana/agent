@@ -8,7 +8,10 @@ import (
 	"github.com/grafana/agent/internal/converter/internal/otelcolconvert"
 	"github.com/grafana/agent/internal/static/traces"
 	otel_component "go.opentelemetry.io/collector/component"
+	"go.opentelemetry.io/collector/config/configtelemetry"
+	"go.opentelemetry.io/collector/exporter/loggingexporter"
 	"go.opentelemetry.io/collector/otelcol"
+	"go.uber.org/zap/zapcore"
 )
 
 func (b *ConfigBuilder) appendTraces() {
@@ -40,6 +43,20 @@ func (b *ConfigBuilder) translateAutomaticLogging(otelCfg *otelcol.Config) {
 		return
 	}
 
+	// Add the logging exporter to the otel config
+	otelCfg.Exporters[otel_component.NewID("logging")] = &loggingexporter.Config{
+		LogLevel:           zapcore.InfoLevel,
+		Verbosity:          configtelemetry.LevelNormal,
+		SamplingInitial:    2,
+		SamplingThereafter: 500,
+	}
+
+	// Add the logging exporter to all pipelines
+	for _, pipeline := range otelCfg.Service.Pipelines {
+		pipeline.Exporters = append(pipeline.Exporters, otel_component.NewID("logging"))
+	}
+
+	// Remove the custom automatic_logging processor
 	removeProcessor(otelCfg, "traces", "automatic_logging")
 }
 
