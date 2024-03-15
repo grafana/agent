@@ -35,6 +35,10 @@ otelcol.receiver.otlp "default" {
 }
 
 otelcol.exporter.otlp "default" {
+	sending_queue {
+		queue_size = 5000
+	}
+
 	client {
 		endpoint = "database:4317"
 		auth     = otelcol.auth.headers.default.handler
