@@ -32,6 +32,8 @@ Main (unreleased)
 
 - Add conversion from static to flow mode for `loki.source.windowsevent` via `legacy_bookmark_path`. (@mattdurham)
 
+- Add support for FreeBSD/arm64. (@evgeni)
+
 ### Features
 
 - Added a new CLI flag `--stability.level` which defines the minimum stability
