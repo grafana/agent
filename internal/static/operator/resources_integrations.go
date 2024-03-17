@@ -81,6 +81,8 @@ func integrationsPodTemplateOptions(name string, d gragent.Deployment, daemonset
 		inst := i.Instance
 		volumePrefix := fmt.Sprintf("%s-%s-", inst.Namespace, inst.Name)
 
+		integrationOpts.HostNetwork = inst.Spec.HostNetwork
+
 		for _, v := range inst.Spec.Volumes {
 			// Prefix the key of the Integration CR so it doesn't potentially collide
 			// with other loaded Integration CRs.
@@ -230,6 +232,11 @@ func mergePodTemplateOptions(inputs ...*podTemplateOptions) podTemplateOptions {
 
 			res.ExtraEnvVars = append(res.ExtraEnvVars, ev)
 			varNames[ev.Name] = struct{}{}
+		}
+
+		if input.HostNetwork {
+			res.HostNetwork = input.HostNetwork
+			continue
 		}
 	}
 

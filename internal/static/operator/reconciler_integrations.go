@@ -100,6 +100,7 @@ func (r *reconciler) newIntegrationsDaemonSet(
 
 	name := fmt.Sprintf("%s-integrations-ds", d.Agent.Name)
 	ds, err := newIntegrationsDaemonSet(r.config, name, d)
+
 	if err != nil {
 		return fmt.Errorf("failed to generate integrations DaemonSet: %w", err)
 	}
