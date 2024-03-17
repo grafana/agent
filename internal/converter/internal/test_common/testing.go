@@ -45,7 +45,7 @@ const (
 func TestDirectory(t *testing.T, folderPath string, sourceSuffix string, loadFlowConfig bool, extraArgs []string, convert func(in []byte, extraArgs []string) ([]byte, diag.Diagnostics)) {
 	require.NoError(t, filepath.WalkDir(folderPath, func(path string, d fs.DirEntry, _ error) error {
 		if d.IsDir() {
-			return nil
+			return filepath.SkipDir
 		}
 
 		if strings.HasSuffix(path, sourceSuffix) {
