@@ -48,7 +48,7 @@ To deploy {{< param "PRODUCT_ROOT_NAME" >}} on Kubernetes using Helm, run the fo
    ```shell
    helm repo update
    ```
-1. Create a namespace for the Agent:
+1. Create a namespace for {{< param "PRODUCT_NAME" >}}:
 
    ```shell
    kubectl create namespace <NAMESPACE>
