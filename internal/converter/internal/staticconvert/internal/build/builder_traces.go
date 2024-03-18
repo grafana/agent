@@ -6,10 +6,14 @@ import (
 
 	"github.com/grafana/agent/internal/converter/diag"
 	"github.com/grafana/agent/internal/converter/internal/otelcolconvert"
+	"github.com/grafana/agent/internal/converter/internal/prometheusconvert"
 	"github.com/grafana/agent/internal/static/traces"
+	"github.com/grafana/river/scanner"
+	prom_config "github.com/prometheus/prometheus/config"
 	otel_component "go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/exporter/loggingexporter"
 	"go.opentelemetry.io/collector/otelcol"
+	"gopkg.in/yaml.v3"
 )
 
 func (b *ConfigBuilder) appendTraces() {
@@ -24,16 +28,18 @@ func (b *ConfigBuilder) appendTraces() {
 			continue
 		}
 
-		// Remove the push receiver which is an implementation detail for static mode and unnecessary for the otel config.
-		removeReceiver(otelCfg, "traces", "push_receiver")
-
-		b.translateAutomaticLogging(otelCfg, cfg)
-
 		// Only prefix component labels if we are doing more than 1 trace config.
 		labelPrefix := ""
 		if len(b.cfg.Traces.Configs) > 1 {
 			labelPrefix = cfg.Name
 		}
+
+		// Remove the push receiver which is an implementation detail for static mode and unnecessary for the otel config.
+		removeReceiver(otelCfg, "traces", "push_receiver")
+
+		b.translateAutomaticLogging(otelCfg, cfg)
+		b.translatePromSDProcessor(otelCfg, cfg, labelPrefix)
+
 		b.diags.AddAll(otelcolconvert.AppendConfig(b.f, otelCfg, labelPrefix))
 	}
 }
@@ -61,6 +67,59 @@ func (b *ConfigBuilder) translateAutomaticLogging(otelCfg *otelcol.Config, cfg t
 
 	// Remove the custom automatic_logging processor
 	removeProcessor(otelCfg, "traces", "automatic_logging")
+}
+
+func (b *ConfigBuilder) translatePromSDProcessor(otelCfg *otelcol.Config, cfg traces.InstanceConfig, labelPrefix string) {
+	if _, ok := otelCfg.Processors[otel_component.NewID("prom_sd_processor")]; !ok {
+		return
+	}
+
+	out, err := yaml.Marshal(cfg.ScrapeConfigs)
+	if err != nil {
+		b.diags.Add(diag.SeverityLevelCritical, fmt.Sprintf("unable to marshal scrapeConfigs interface{} to yaml: %s", err))
+		return
+	}
+
+	scrapeConfigs := make([]*prom_config.ScrapeConfig, 0)
+	err = yaml.Unmarshal(out, &scrapeConfigs)
+	if err != nil {
+		b.diags.Add(diag.SeverityLevelCritical, fmt.Sprintf("unable to unmarshal bytes to []*config.ScrapeConfig: %s", err))
+	}
+
+	promConfig := &prom_config.Config{
+		ScrapeConfigs: scrapeConfigs,
+	}
+
+	// Remove the prom_sd_processor processor which is an implementation detail for static mode and unnecessary for the otel config.
+	removeProcessor(otelCfg, "traces", "prom_sd_processor")
+
+	jobNameToCompLabelsFunc := func(jobName string) string {
+		name := labelPrefix
+		if jobName != "" {
+			name += fmt.Sprintf("_%s", jobName)
+		}
+
+		if name == "" {
+			name = "default"
+		}
+
+		name, err := scanner.SanitizeIdentifier(name)
+		if err != nil {
+			b.diags.Add(diag.SeverityLevelCritical, fmt.Sprintf("failed to sanitize job name: %s", err))
+		}
+
+		return name
+	}
+
+	prometheusconvert.AppendAllNested(b.f, promConfig, jobNameToCompLabelsFunc, nil, nil)
+
+	// // Add the prom_sd_processor processor to the otel config with default values
+	// otelCfg.Processors[otel_component.NewID("prom_sd_processor")] = traces.NewPromSDProcessorFactory().CreateDefaultConfig()
+
+	// // Add the prom_sd_processor processor to all pipelines
+	// for _, pipeline := range otelCfg.Service.Pipelines {
+	// 	pipeline.Processors = append(pipeline.Processors, otel_component.NewID("prom_sd_processor"))
+	// }
 }
 
 // removeReceiver removes a receiver from the otel config for a specific pipeline type.
