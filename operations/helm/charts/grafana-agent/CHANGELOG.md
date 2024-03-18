@@ -7,13 +7,17 @@ This document contains a historical list of changes between releases. Only
 changes that impact end-user behavior are listed; changes to documentation or
 internal API changes are not present.
 
-Unreleased
+0.37.0 (2024-03-14)
 ----------
 
 ### Features
 
 - Agent can load all river files located in `/etc/agent` (mounted via default or user provided configMap) instead of only one. This allows increased modularity, besides modules, and a terraform like behaviour. To enable it, set `.Values.agent.configMap.loadFolder` to `true`. (@fculpo)
 - Allow setting nodePort for service. (@ryayon)
+
+### Enhancements
+
+- Update Grafana Agent version to v0.40.3. (@thampiotr)
 
 0.36.0 (2024-02-27)
 -------------------

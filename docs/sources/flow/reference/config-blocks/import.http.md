@@ -6,14 +6,10 @@ aliases:
 - /docs/grafana-cloud/send-data/agent/flow/reference/config-blocks/import.http/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/config-blocks/import.http/
 description: Learn about the import.http configuration block
-labels:
-  stage: beta
 title: import.http
 ---
 
 # import.http
-
-{{< docs/shared lookup="flow/stability/beta.md" source="agent" version="<AGENT_VERSION>" >}}
 
 `import.http` retrieves a module from an HTTP server.
 
