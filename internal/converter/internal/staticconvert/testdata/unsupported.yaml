@@ -52,5 +52,18 @@ logs:
   configs:
     - name: log_config
 
+traces:
+  configs:
+    - name: trace_config
+      receivers:
+        otlp:
+          protocols:
+            grpc:
+            http:
+      remote_write:
+        - endpoint: http://localhost:1234/write
+      automatic_logging:
+        backend: "something else"
+
 agent_management:
   host: host_name
