@@ -8,7 +8,7 @@ canonical: https://grafana.com/docs/agent/latest/flow/tasks/migrate/
 description: How to migrate to Grafana Agent Flow
 menuTitle: Migrate
 title: Migrate to Grafana Agent Flow
-weight: 100
+weight: 80
 ---
 
 # How to migrate to {{% param "PRODUCT_NAME" %}}
