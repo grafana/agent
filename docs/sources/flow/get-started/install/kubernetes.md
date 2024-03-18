@@ -23,7 +23,7 @@ weight: 200
 You can use a Helm chart to deploy {{< param "PRODUCT_NAME" >}} on Kubernetes.
 
 {{< admonition type="note" >}}
-These instructions show you how to install using our generic [Helm chart](https://github.com/grafana/agent/tree/main/operations/helm/charts/grafana-agent) for {{< param "PRODUCT_NAME" >}}.
+These instructions show you how to install using a generic [Helm chart](https://github.com/grafana/agent/tree/main/operations/helm/charts/grafana-agent) for {{< param "PRODUCT_NAME" >}}.
 You can deploy {{< param "PRODUCT_ROOT_NAME" >}} either in static mode or flow mode. The Helm chart deploys {{< param "PRODUCT_NAME" >}} by default.
 {{< /admonition >}}
 
@@ -56,7 +56,7 @@ To deploy {{< param "PRODUCT_ROOT_NAME" >}} on Kubernetes using Helm, run the fo
 
    Replace the following:
 
-   - _`<NAMESPACE>`_: The namespace to use for your {{< param "PRODUCT_NAME" >}} 
+   - _`<NAMESPACE>`_: The namespace to use for your {{< param "PRODUCT_NAME" >}}
      installation, such as `agent`.
 
 1. Install {{< param "PRODUCT_ROOT_NAME" >}}:
@@ -80,15 +80,15 @@ To deploy {{< param "PRODUCT_ROOT_NAME" >}} on Kubernetes using Helm, run the fo
 
    - _`<NAMESPACE>`_: The namespace used in the previous step.
 
-You have now successfully deployed {{< param "PRODUCT_NAME" >}} on Kubernetes,
-using default Helm settings. In order to configure {{< param "PRODUCT_NAME" >}},
+You have successfully deployed {{< param "PRODUCT_NAME" >}} on Kubernetes,
+using default Helm settings. To configure {{< param "PRODUCT_NAME" >}},
 see the [Configure {{< param "PRODUCT_NAME" >}} on Kubernetes][Configure] guide.
 
 ## Next steps
 
 - [Configure {{< param "PRODUCT_NAME" >}} on Kubernetes][Configure]
 
-- [Check out {{< param "PRODUCT_NAME" >}} Helm chart documentation on Artifact Hub][Artifact Hub]
+- Refer to the [{{< param "PRODUCT_NAME" >}} Helm chart documentation on Artifact Hub][Artifact Hub] for more information about Helm chart.
 
 [Artifact Hub]: https://artifacthub.io/packages/helm/grafana/grafana-agent
 

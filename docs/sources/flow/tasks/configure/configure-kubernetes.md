@@ -32,10 +32,10 @@ consult the following guides instead:
 - [Collect OpenTelemetry data][otel],
 - or the [tasks section][tasks] for all the remaining configuration guides.
 
-[prometheus]: {{< relref "../collect-prometheus-metrics.md" >}}
-[otel]: {{< relref "../collect-opentelemetry-data.md" >}}
-[tasks]: {{< relref "../" >}}
-[k8s-install]: {{< relref "../../get-started/install/kubernetes" >}}
+[prometheus]: ../../collect-prometheus-metrics/
+[otel]: ../../collect-opentelemetry-data/
+[tasks]: ../
+[k8s-install]: ../../../get-started/install/kubernetes/
 
 ## Configure the Helm chart
 
@@ -89,9 +89,8 @@ configMapGenerator:
 
 ## Configure the {{< param "PRODUCT_NAME" >}}
 
-This section describes how to modify the {{< param "PRODUCT_NAME" >}}
-configuration which is stored in a ConfigMap in the Kubernetes cluster. There
-are two methods to perform this task.
+This section describes how to modify the {{< param "PRODUCT_NAME" >}} configuration, which is stored in a ConfigMap in the Kubernetes cluster.
+There are two methods to perform this task.
 
 ### Method 1: Modify the configuration in the values.yaml file
 Use this method if you prefer to embed your {{< param "PRODUCT_NAME" >}} configuration in the Helm chart's `values.yaml` file.
