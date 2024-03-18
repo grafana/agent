@@ -8,10 +8,8 @@ import (
 	"github.com/grafana/agent/internal/converter/internal/otelcolconvert"
 	"github.com/grafana/agent/internal/static/traces"
 	otel_component "go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/config/configtelemetry"
 	"go.opentelemetry.io/collector/exporter/loggingexporter"
 	"go.opentelemetry.io/collector/otelcol"
-	"go.uber.org/zap/zapcore"
 )
 
 func (b *ConfigBuilder) appendTraces() {
@@ -26,10 +24,12 @@ func (b *ConfigBuilder) appendTraces() {
 			continue
 		}
 
+		// Remove the push receiver which is an implementation detail for static mode and unnecessary for the otel config.
 		removeReceiver(otelCfg, "traces", "push_receiver")
+
 		b.translateAutomaticLogging(otelCfg, cfg)
 
-		// Let's only prefix things if we are doing more than 1 trace config
+		// Only prefix component labels if we are doing more than 1 trace config.
 		labelPrefix := ""
 		if len(b.cfg.Traces.Configs) > 1 {
 			labelPrefix = cfg.Name
@@ -48,16 +48,11 @@ func (b *ConfigBuilder) translateAutomaticLogging(otelCfg *otelcol.Config, cfg t
 			"A best effort translation has been made to otelcol.exporter.logging but the behavior will differ.")
 	} else {
 		b.diags.Add(diag.SeverityLevelError, "automatic_logging for traces has no direct flow equivalent. "+
-			"A best effort translation can be made for outputting to console instead by bypassing errors.")
+			"A best effort translation can be made which only outputs to stdout and not directly to loki by bypassing errors.")
 	}
 
 	// Add the logging exporter to the otel config with default values
-	otelCfg.Exporters[otel_component.NewID("logging")] = &loggingexporter.Config{
-		LogLevel:           zapcore.InfoLevel,
-		Verbosity:          configtelemetry.LevelNormal,
-		SamplingInitial:    2,
-		SamplingThereafter: 500,
-	}
+	otelCfg.Exporters[otel_component.NewID("logging")] = loggingexporter.NewFactory().CreateDefaultConfig()
 
 	// Add the logging exporter to all pipelines
 	for _, pipeline := range otelCfg.Service.Pipelines {
@@ -68,9 +63,7 @@ func (b *ConfigBuilder) translateAutomaticLogging(otelCfg *otelcol.Config, cfg t
 	removeProcessor(otelCfg, "traces", "automatic_logging")
 }
 
-// removeReceiver removes a receiver from the otel config. The
-// push_receiver is an implementation detail for static traces that is not
-// necessary for the flow configuration.
+// removeReceiver removes a receiver from the otel config for a specific pipeline type.
 func removeReceiver(otelCfg *otelcol.Config, pipelineType otel_component.Type, receiverType otel_component.Type) {
 	if _, ok := otelCfg.Receivers[otel_component.NewID(receiverType)]; !ok {
 		return
@@ -86,7 +79,7 @@ func removeReceiver(otelCfg *otelcol.Config, pipelineType otel_component.Type, r
 	otelCfg.Service.Pipelines[otel_component.NewID(pipelineType)].Receivers = spr
 }
 
-// removeProcessor removes a processor from the otel config.
+// removeProcessor removes a processor from the otel config for a specific pipeline type.
 func removeProcessor(otelCfg *otelcol.Config, pipelineType otel_component.Type, processorType otel_component.Type) {
 	if _, ok := otelCfg.Processors[otel_component.NewID(processorType)]; !ok {
 		return
