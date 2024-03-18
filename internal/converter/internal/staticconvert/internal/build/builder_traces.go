@@ -27,7 +27,7 @@ func (b *ConfigBuilder) appendTraces() {
 		}
 
 		removeReceiver(otelCfg, "traces", "push_receiver")
-		b.translateAutomaticLogging(otelCfg)
+		b.translateAutomaticLogging(otelCfg, cfg)
 
 		// Let's only prefix things if we are doing more than 1 trace config
 		labelPrefix := ""
@@ -38,12 +38,20 @@ func (b *ConfigBuilder) appendTraces() {
 	}
 }
 
-func (b *ConfigBuilder) translateAutomaticLogging(otelCfg *otelcol.Config) {
+func (b *ConfigBuilder) translateAutomaticLogging(otelCfg *otelcol.Config, cfg traces.InstanceConfig) {
 	if _, ok := otelCfg.Processors[otel_component.NewID("automatic_logging")]; !ok {
 		return
 	}
 
-	// Add the logging exporter to the otel config
+	if cfg.AutomaticLogging.Backend == "stdout" {
+		b.diags.Add(diag.SeverityLevelWarn, "automatic_logging for traces has no direct flow equivalent. "+
+			"A best effort translation has been made to otelcol.exporter.logging but the behavior will differ.")
+	} else {
+		b.diags.Add(diag.SeverityLevelError, "automatic_logging for traces has no direct flow equivalent. "+
+			"A best effort translation can be made for outputting to console instead by bypassing errors.")
+	}
+
+	// Add the logging exporter to the otel config with default values
 	otelCfg.Exporters[otel_component.NewID("logging")] = &loggingexporter.Config{
 		LogLevel:           zapcore.InfoLevel,
 		Verbosity:          configtelemetry.LevelNormal,
