@@ -24,6 +24,9 @@ Main (unreleased)
 - Improve converter diagnostic output by including a Footer and removing lower
   level diagnostics when a configuration fails to generate. (@erikbaranowski)
 
+- Increased the alert interval and renamed the `ClusterSplitBrain` alert to `ClusterNodeCountMismatch` in the Grafana
+  Agent Mixin to better match the alert conditions. (@thampiotr)
+
 ### Features
 
 - Added a new CLI flag `--stability.level` which defines the minimum stability
