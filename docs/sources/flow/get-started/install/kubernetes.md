@@ -20,7 +20,7 @@ weight: 200
 
 # Deploy {{% param "PRODUCT_NAME" %}} on Kubernetes
 
-You can deploy {{< param "PRODUCT_NAME" >}} on Kubernetes using our Helm chart.
+You can use a Helm chart to deploy {{< param "PRODUCT_NAME" >}} on Kubernetes.
 
 {{< admonition type="note" >}}
 These instructions show you how to install using our generic [Helm chart](https://github.com/grafana/agent/tree/main/operations/helm/charts/grafana-agent) for {{< param "PRODUCT_NAME" >}}.
