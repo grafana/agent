@@ -13,7 +13,7 @@ import (
 type LuhnFilterConfig struct {
 	Replacement string  `river:"replacement,attr,optional"`
 	Source      *string `river:"source,attr,optional"`
-	MinLength   int     `river:"minLength,attr,optional"`
+	MinLength   int     `river:"min_length,attr,optional"`
 }
 
 // validateLuhnFilterConfig validates the LuhnFilterConfig.
