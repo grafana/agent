@@ -4,12 +4,12 @@ logging {
 }
 
 // Self discover the agent
-prometheus.exporter.agent "agent" {
+prometheus.exporter.self "agent" {
 }
 
 // Add a job label
 discovery.relabel "add_job" {
-  targets = prometheus.exporter.agent.agent.targets
+  targets = prometheus.exporter.self.agent.targets
 
   rule {
     target_label  = "job"

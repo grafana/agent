@@ -8,8 +8,8 @@ import (
 
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/cmd/internal/pipelinetests/internal/framework"
-	"github.com/grafana/agent/component/common/loki"
-	"github.com/grafana/agent/component/common/loki/client"
+	"github.com/grafana/agent/internal/component/common/loki"
+	"github.com/grafana/agent/internal/component/common/loki/client"
 	"github.com/grafana/dskit/flagext"
 	"github.com/grafana/loki/pkg/logproto"
 	"github.com/phayes/freeport"
