@@ -2,9 +2,11 @@ package otelcolconvert
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/alecthomas/units"
 	"github.com/grafana/agent/internal/component/otelcol"
+	"github.com/grafana/agent/internal/component/otelcol/auth"
 	"github.com/grafana/agent/internal/component/otelcol/exporter/otlp"
 	"github.com/grafana/agent/internal/converter/diag"
 	"github.com/grafana/agent/internal/converter/internal/common"
@@ -32,9 +34,17 @@ func (otlpExporterConverter) ConvertAndAppend(state *state, id component.Instanc
 	var diags diag.Diagnostics
 
 	label := state.FlowComponentLabel()
+	overrideHook := func(val interface{}) interface{} {
+		switch val.(type) {
+		case auth.Handler:
+			ext := state.LookupExtension(cfg.(*otlpexporter.Config).Auth.AuthenticatorID)
+			return common.CustomTokenizer{Expr: fmt.Sprintf("%s.%s.handler", strings.Join(ext.Name, "."), ext.Label)}
+		}
+		return val
+	}
 
 	args := toOtelcolExporterOTLP(cfg.(*otlpexporter.Config))
-	block := common.NewBlockWithOverride([]string{"otelcol", "exporter", "otlp"}, label, args)
+	block := common.NewBlockWithOverrideFn([]string{"otelcol", "exporter", "otlp"}, label, args, overrideHook)
 
 	diags.Add(
 		diag.SeverityLevelInfo,
@@ -78,6 +88,17 @@ func toRetryArguments(cfg exporterhelper.RetrySettings) otelcol.RetryArguments {
 }
 
 func toGRPCClientArguments(cfg configgrpc.GRPCClientSettings) otelcol.GRPCClientArguments {
+	var a *auth.Handler
+	if cfg.Auth != nil {
+		a = &auth.Handler{}
+	}
+
+	// Set default value for `balancer_name` to sync up with upstream's
+	balancerName := cfg.BalancerName
+	if balancerName == "" {
+		balancerName = otelcol.DefaultBalancerName
+	}
+
 	return otelcol.GRPCClientArguments{
 		Endpoint: cfg.Endpoint,
 
@@ -90,10 +111,10 @@ func toGRPCClientArguments(cfg configgrpc.GRPCClientSettings) otelcol.GRPCClient
 		WriteBufferSize: units.Base2Bytes(cfg.WriteBufferSize),
 		WaitForReady:    cfg.WaitForReady,
 		Headers:         toHeadersMap(cfg.Headers),
-		BalancerName:    cfg.BalancerName,
+		BalancerName:    balancerName,
 		Authority:       cfg.Authority,
 
-		// TODO(rfratto): auth extension
+		Auth: a,
 	}
 }
 

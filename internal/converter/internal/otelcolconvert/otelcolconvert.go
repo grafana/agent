@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/grafana/agent/internal/converter/diag"
 	"github.com/grafana/agent/internal/converter/internal/common"
@@ -64,7 +65,7 @@ func Convert(in []byte, extraArgs []string) ([]byte, diag.Diagnostics) {
 
 	f := builder.NewFile()
 
-	diags.AddAll(appendConfig(f, cfg))
+	diags.AddAll(AppendConfig(f, cfg, ""))
 	diags.AddAll(common.ValidateNodes(f))
 
 	var buf bytes.Buffer
@@ -140,9 +141,9 @@ func getFactories() otelcol.Factories {
 	return facts
 }
 
-// appendConfig converts the provided OpenTelemetry config into an equivalent
+// AppendConfig converts the provided OpenTelemetry config into an equivalent
 // Flow config and appends the result to the provided file.
-func appendConfig(file *builder.File, cfg *otelcol.Config) diag.Diagnostics {
+func AppendConfig(file *builder.File, cfg *otelcol.Config, labelPrefix string) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	groups, err := createPipelineGroups(cfg.Service.Pipelines)
@@ -177,6 +178,45 @@ func appendConfig(file *builder.File, cfg *otelcol.Config) diag.Diagnostics {
 		return diags
 	}
 
+	// We build the list of extensions 'activated' (defined in the service) as
+	// Flow components and keep a mapping of their OTel IDs to the blocks we've
+	// built.
+	// Since there's no concept of multiple extensions per group or telemetry
+	// signal, we can build them before iterating over the groups.
+	extensionTable := make(map[component.ID]componentID, len(cfg.Service.Extensions))
+
+	for _, ext := range cfg.Service.Extensions {
+		cid := component.InstanceID{Kind: component.KindExtension, ID: ext}
+
+		state := &state{
+			cfg:  cfg,
+			file: file,
+			// We pass an empty pipelineGroup to make calls to
+			// FlowComponentLabel valid for both the converter authors and the
+			// extension table mapping.
+			group: &pipelineGroup{},
+
+			converterLookup: converterTable,
+
+			componentConfig:      cfg.Extensions,
+			componentID:          cid,
+			componentLabelPrefix: labelPrefix,
+		}
+
+		key := converterKey{Kind: component.KindExtension, Type: ext.Type()}
+		conv, ok := converterTable[key]
+		if !ok {
+			panic(fmt.Sprintf("otelcolconvert: no converter found for key %v", key))
+		}
+
+		diags.AddAll(conv.ConvertAndAppend(state, cid, cfg.Extensions[ext]))
+
+		extensionTable[ext] = componentID{
+			Name:  strings.Split(conv.InputComponentName(), "."),
+			Label: state.FlowComponentLabel(),
+		}
+	}
+
 	for _, group := range groups {
 		receiverIDs := filterIDs(group.Receivers(), connectorIDs)
 		processorIDs := group.Processors()
@@ -203,9 +243,11 @@ func appendConfig(file *builder.File, cfg *otelcol.Config) diag.Diagnostics {
 					group: &group,
 
 					converterLookup: converterTable,
+					extensionLookup: extensionTable,
 
-					componentConfig: componentSet.configLookup[id],
-					componentID:     componentID,
+					componentConfig:      componentSet.configLookup[id],
+					componentID:          componentID,
+					componentLabelPrefix: labelPrefix,
 				}
 
 				key := converterKey{Kind: componentSet.kind, Type: id.Type()}

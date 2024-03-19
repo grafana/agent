@@ -7,8 +7,23 @@ This document contains a historical list of changes between releases. Only
 changes that impact end-user behavior are listed; changes to documentation or
 internal API changes are not present.
 
-Unreleased
+0.37.0 (2024-03-14)
 ----------
+
+### Features
+
+- Allow setting nodePort for service. (@ryayon)
+
+### Enhancements
+
+- Update Grafana Agent version to v0.40.3. (@thampiotr)
+
+0.36.0 (2024-02-27)
+-------------------
+
+### Enhancements
+
+- Update Grafana Agent version to v0.40.2. (@rfratto)
 
 0.35.0 (2024-02-27)
 -------------------

@@ -1,6 +1,7 @@
 package controller_test
 
 import (
+	"context"
 	"errors"
 	"os"
 	"strings"
@@ -11,6 +12,7 @@ import (
 	"github.com/grafana/agent/internal/flow/internal/controller"
 	"github.com/grafana/agent/internal/flow/internal/dag"
 	"github.com/grafana/agent/internal/flow/logging"
+	"github.com/grafana/agent/internal/service"
 	"github.com/grafana/river/ast"
 	"github.com/grafana/river/diag"
 	"github.com/grafana/river/parser"
@@ -90,14 +92,30 @@ func TestLoader(t *testing.T) {
 
 	t.Run("New Graph", func(t *testing.T) {
 		l := controller.NewLoader(newLoaderOptions())
-		diags := applyFromContent(t, l, []byte(testFile), []byte(testConfig))
+		diags := applyFromContent(t, l, []byte(testFile), []byte(testConfig), nil)
 		require.NoError(t, diags.ErrorOrNil())
+		requireGraph(t, l.Graph(), testGraphDefinition)
+	})
+
+	t.Run("Reload Graph New Config", func(t *testing.T) {
+		l := controller.NewLoader(newLoaderOptions())
+		diags := applyFromContent(t, l, []byte(testFile), []byte(testConfig), nil)
+		require.NoError(t, diags.ErrorOrNil())
+		requireGraph(t, l.Graph(), testGraphDefinition)
+		updatedTestConfig := `
+			tracing {
+				sampling_fraction = 2
+			}
+		`
+		diags = applyFromContent(t, l, []byte(testFile), []byte(updatedTestConfig), nil)
+		require.NoError(t, diags.ErrorOrNil())
+		// Expect the same graph because tracing is still there and logging will be added by default.
 		requireGraph(t, l.Graph(), testGraphDefinition)
 	})
 
 	t.Run("New Graph No Config", func(t *testing.T) {
 		l := controller.NewLoader(newLoaderOptions())
-		diags := applyFromContent(t, l, []byte(testFile), nil)
+		diags := applyFromContent(t, l, []byte(testFile), nil, nil)
 		require.NoError(t, diags.ErrorOrNil())
 		requireGraph(t, l.Graph(), testGraphDefinition)
 	})
@@ -115,11 +133,11 @@ func TestLoader(t *testing.T) {
 			}
 		`
 		l := controller.NewLoader(newLoaderOptions())
-		diags := applyFromContent(t, l, []byte(startFile), []byte(testConfig))
+		diags := applyFromContent(t, l, []byte(startFile), []byte(testConfig), nil)
 		origGraph := l.Graph()
 		require.NoError(t, diags.ErrorOrNil())
 
-		diags = applyFromContent(t, l, []byte(testFile), []byte(testConfig))
+		diags = applyFromContent(t, l, []byte(testFile), []byte(testConfig), nil)
 		require.NoError(t, diags.ErrorOrNil())
 		newGraph := l.Graph()
 
@@ -134,7 +152,7 @@ func TestLoader(t *testing.T) {
 			}
 		`
 		l := controller.NewLoader(newLoaderOptions())
-		diags := applyFromContent(t, l, []byte(invalidFile), nil)
+		diags := applyFromContent(t, l, []byte(invalidFile), nil, nil)
 		require.ErrorContains(t, diags.ErrorOrNil(), `cannot find the definition of component name "doesnotexist`)
 	})
 
@@ -145,25 +163,25 @@ func TestLoader(t *testing.T) {
 			}
 		`
 		l := controller.NewLoader(newLoaderOptions())
-		diags := applyFromContent(t, l, []byte(invalidFile), nil)
+		diags := applyFromContent(t, l, []byte(invalidFile), nil, nil)
 		require.ErrorContains(t, diags.ErrorOrNil(), `component "testcomponents.tick" must have a label`)
 	})
 
 	t.Run("Load with correct stability level", func(t *testing.T) {
 		l := controller.NewLoader(newLoaderOptionsWithStability(featuregate.StabilityBeta))
-		diags := applyFromContent(t, l, []byte(testFile), nil)
+		diags := applyFromContent(t, l, []byte(testFile), nil, nil)
 		require.NoError(t, diags.ErrorOrNil())
 	})
 
 	t.Run("Load with below minimum stability level", func(t *testing.T) {
 		l := controller.NewLoader(newLoaderOptionsWithStability(featuregate.StabilityStable))
-		diags := applyFromContent(t, l, []byte(testFile), nil)
+		diags := applyFromContent(t, l, []byte(testFile), nil, nil)
 		require.ErrorContains(t, diags.ErrorOrNil(), "component \"testcomponents.tick\" is at stability level \"beta\", which is below the minimum allowed stability level \"stable\"")
 	})
 
 	t.Run("Load with undefined minimum stability level", func(t *testing.T) {
 		l := controller.NewLoader(newLoaderOptionsWithStability(featuregate.StabilityUndefined))
-		diags := applyFromContent(t, l, []byte(testFile), nil)
+		diags := applyFromContent(t, l, []byte(testFile), nil, nil)
 		require.ErrorContains(t, diags.ErrorOrNil(), "stability levels must be defined: got \"beta\" as stability of component \"testcomponents.tick\" and <invalid_stability_level> as the minimum stability level")
 	})
 
@@ -182,7 +200,7 @@ func TestLoader(t *testing.T) {
 			}
 		`
 		l := controller.NewLoader(newLoaderOptions())
-		diags := applyFromContent(t, l, []byte(invalidFile), nil)
+		diags := applyFromContent(t, l, []byte(invalidFile), nil, nil)
 		require.Error(t, diags.ErrorOrNil())
 
 		requireGraph(t, l.Graph(), graphDefinition{
@@ -210,8 +228,147 @@ func TestLoader(t *testing.T) {
 			}
 		`
 		l := controller.NewLoader(newLoaderOptions())
-		diags := applyFromContent(t, l, []byte(invalidFile), nil)
+		diags := applyFromContent(t, l, []byte(invalidFile), nil, nil)
 		require.Error(t, diags.ErrorOrNil())
+	})
+
+	t.Run("Config block redefined", func(t *testing.T) {
+		invalidFile := `
+			logging {}
+			logging {}
+		`
+		l := controller.NewLoader(newLoaderOptions())
+		diags := applyFromContent(t, l, nil, []byte(invalidFile), nil)
+		require.ErrorContains(t, diags.ErrorOrNil(), `block logging already declared at TestLoader/Config_block_redefined:2:4`)
+	})
+
+	t.Run("Config block redefined after reload", func(t *testing.T) {
+		file := `
+			logging {}
+		`
+		l := controller.NewLoader(newLoaderOptions())
+		diags := applyFromContent(t, l, nil, []byte(file), nil)
+		require.NoError(t, diags.ErrorOrNil())
+		invalidFile := `
+			logging {}
+			logging {}
+		`
+		diags = applyFromContent(t, l, nil, []byte(invalidFile), nil)
+		require.ErrorContains(t, diags.ErrorOrNil(), `block logging already declared at TestLoader/Config_block_redefined_after_reload:2:4`)
+	})
+
+	t.Run("Component block redefined", func(t *testing.T) {
+		invalidFile := `
+			testcomponents.tick "ticker" {
+				frequency = "1s"
+			}
+			testcomponents.tick "ticker" {
+				frequency = "1s"
+			}
+		`
+		l := controller.NewLoader(newLoaderOptions())
+		diags := applyFromContent(t, l, []byte(invalidFile), nil, nil)
+		require.ErrorContains(t, diags.ErrorOrNil(), `block testcomponents.tick.ticker already declared at TestLoader/Component_block_redefined:2:4`)
+	})
+
+	t.Run("Component block redefined after reload", func(t *testing.T) {
+		file := `
+			testcomponents.tick "ticker" {
+				frequency = "1s"
+			}
+		`
+		l := controller.NewLoader(newLoaderOptions())
+		diags := applyFromContent(t, l, []byte(file), nil, nil)
+		require.NoError(t, diags.ErrorOrNil())
+		invalidFile := `
+			testcomponents.tick "ticker" {
+				frequency = "1s"
+			}
+			testcomponents.tick "ticker" {
+				frequency = "1s"
+			}
+		`
+		diags = applyFromContent(t, l, []byte(invalidFile), nil, nil)
+		require.ErrorContains(t, diags.ErrorOrNil(), `block testcomponents.tick.ticker already declared at TestLoader/Component_block_redefined_after_reload:2:4`)
+	})
+
+	t.Run("Declare block redefined", func(t *testing.T) {
+		invalidFile := `
+			declare "a" {}
+			declare "a" {}
+		`
+		l := controller.NewLoader(newLoaderOptions())
+		diags := applyFromContent(t, l, nil, nil, []byte(invalidFile))
+		require.ErrorContains(t, diags.ErrorOrNil(), `block declare.a already declared at TestLoader/Declare_block_redefined:2:4`)
+	})
+
+	t.Run("Declare block redefined after reload", func(t *testing.T) {
+		file := `
+			declare "a" {}
+		`
+		l := controller.NewLoader(newLoaderOptions())
+		diags := applyFromContent(t, l, nil, nil, []byte(file))
+		require.NoError(t, diags.ErrorOrNil())
+		invalidFile := `
+			declare "a" {}
+			declare "a" {}
+		`
+		diags = applyFromContent(t, l, nil, nil, []byte(invalidFile))
+		require.ErrorContains(t, diags.ErrorOrNil(), `block declare.a already declared at TestLoader/Declare_block_redefined_after_reload:2:4`)
+	})
+}
+
+func TestLoader_Services(t *testing.T) {
+	testFile := `
+		testsvc { }
+	`
+
+	testService := &fakeService{
+		DefinitionFunc: func() service.Definition {
+			return service.Definition{
+				Name: "testsvc",
+				ConfigType: struct {
+					Name string `river:"name,attr,optional"`
+				}{},
+				Stability: featuregate.StabilityBeta,
+			}
+		},
+	}
+
+	newLoaderOptionsWithStability := func(stability featuregate.Stability) controller.LoaderOptions {
+		l, _ := logging.New(os.Stderr, logging.DefaultOptions)
+		return controller.LoaderOptions{
+			ComponentGlobals: controller.ComponentGlobals{
+				Logger:            l,
+				TraceProvider:     noop.NewTracerProvider(),
+				DataPath:          t.TempDir(),
+				MinStability:      stability,
+				OnBlockNodeUpdate: func(cn controller.BlockNode) { /* no-op */ },
+				Registerer:        prometheus.NewRegistry(),
+				NewModuleController: func(id string) controller.ModuleController {
+					return nil
+				},
+			},
+			Services: []service.Service{testService},
+		}
+	}
+
+	t.Run("Load with service at correct stability level", func(t *testing.T) {
+		l := controller.NewLoader(newLoaderOptionsWithStability(featuregate.StabilityBeta))
+		diags := applyFromContent(t, l, []byte(testFile), nil, nil)
+		require.NoError(t, diags.ErrorOrNil())
+	})
+
+	t.Run("Load with service below minimum stabilty level", func(t *testing.T) {
+		l := controller.NewLoader(newLoaderOptionsWithStability(featuregate.StabilityStable))
+		diags := applyFromContent(t, l, []byte(testFile), nil, nil)
+		require.ErrorContains(t, diags.ErrorOrNil(), `block "testsvc" is at stability level "beta", which is below the minimum allowed stability level "stable"`)
+	})
+
+	t.Run("Load with undefined minimum stability level", func(t *testing.T) {
+		l := controller.NewLoader(newLoaderOptionsWithStability(featuregate.StabilityUndefined))
+		diags := applyFromContent(t, l, []byte(testFile), nil, nil)
+		require.ErrorContains(t, diags.ErrorOrNil(), `stability levels must be defined: got "beta" as stability of block "testsvc" and <invalid_stability_level> as the minimum stability level`)
 	})
 }
 
@@ -253,13 +410,13 @@ func TestScopeWithFailingComponent(t *testing.T) {
 	}
 
 	l := controller.NewLoader(newLoaderOptions())
-	diags := applyFromContent(t, l, []byte(testFile), nil)
+	diags := applyFromContent(t, l, []byte(testFile), nil, nil)
 	require.Error(t, diags.ErrorOrNil())
 	require.Len(t, diags, 1)
 	require.True(t, strings.Contains(diags.Error(), `unrecognized attribute name "frequenc"`))
 }
 
-func applyFromContent(t *testing.T, l *controller.Loader, componentBytes []byte, configBytes []byte) diag.Diagnostics {
+func applyFromContent(t *testing.T, l *controller.Loader, componentBytes []byte, configBytes []byte, declareBytes []byte) diag.Diagnostics {
 	t.Helper()
 
 	var (
@@ -276,6 +433,13 @@ func applyFromContent(t *testing.T, l *controller.Loader, componentBytes []byte,
 
 	if string(configBytes) != "" {
 		configBlocks, diags = fileToBlock(t, configBytes)
+		if diags.HasErrors() {
+			return diags
+		}
+	}
+
+	if string(declareBytes) != "" {
+		declareBlocks, diags = fileToBlock(t, declareBytes)
 		if diags.HasErrors() {
 			return diags
 		}
@@ -364,4 +528,38 @@ func (f fakeModuleController) ClearModuleIDs() {
 
 func (f fakeModuleController) NewCustomComponent(id string, export component.ExportFunc) (controller.CustomComponent, error) {
 	return nil, nil
+}
+
+type fakeService struct {
+	DefinitionFunc func() service.Definition // Required.
+	RunFunc        func(ctx context.Context, host service.Host) error
+	UpdateFunc     func(newConfig any) error
+	DataFunc       func() any
+}
+
+func (fs *fakeService) Definition() service.Definition {
+	return fs.DefinitionFunc()
+}
+
+func (fs *fakeService) Run(ctx context.Context, host service.Host) error {
+	if fs.RunFunc != nil {
+		return fs.RunFunc(ctx, host)
+	}
+
+	<-ctx.Done()
+	return nil
+}
+
+func (fs *fakeService) Update(newConfig any) error {
+	if fs.UpdateFunc != nil {
+		return fs.UpdateFunc(newConfig)
+	}
+	return nil
+}
+
+func (fs *fakeService) Data() any {
+	if fs.DataFunc != nil {
+		return fs.DataFunc()
+	}
+	return nil
 }

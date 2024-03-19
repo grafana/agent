@@ -1,6 +1,12 @@
 module github.com/grafana/agent
 
-go 1.21.0
+go 1.22.1
+
+retract (
+	v1.3.191 // Published accidentally
+	v1.2.99 // Published accidentally
+	v1.2.99-rc1 // Published accidentally
+)
 
 require (
 	cloud.google.com/go/pubsub v1.33.0
@@ -10,15 +16,14 @@ require (
 	github.com/IBM/sarama v1.42.1
 	github.com/Lusitaniae/apache_exporter v0.11.1-0.20220518131644-f9522724dab4
 	github.com/Masterminds/sprig/v3 v3.2.3
-	github.com/PuerkitoBio/rehttp v1.1.0
+	github.com/PuerkitoBio/rehttp v1.3.0
 	github.com/alecthomas/kingpin/v2 v2.4.0
 	github.com/alecthomas/units v0.0.0-20211218093645-b94a6e3cc137
-	github.com/aws/aws-sdk-go v1.45.25
+	github.com/aws/aws-sdk-go v1.45.25 // indirect
 	github.com/aws/aws-sdk-go-v2 v1.25.0
 	github.com/aws/aws-sdk-go-v2/config v1.27.0
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.49.0
 	github.com/bmatcuk/doublestar v1.3.4
-	github.com/buger/jsonparser v1.1.1
 	github.com/burningalchemist/sql_exporter v0.0.0-20240103092044-466b38b6abc4
 	github.com/cespare/xxhash/v2 v2.2.0
 	github.com/cilium/ebpf v0.12.3 // indirect
@@ -212,16 +217,16 @@ require (
 	go.uber.org/goleak v1.2.1
 	go.uber.org/multierr v1.11.0
 	go.uber.org/zap v1.26.0
-	golang.org/x/crypto v0.18.0
+	golang.org/x/crypto v0.20.0
 	golang.org/x/exp v0.0.0-20231206192017-f3f8817b8deb
-	golang.org/x/net v0.20.0
+	golang.org/x/net v0.21.0
 	golang.org/x/oauth2 v0.16.0
-	golang.org/x/sys v0.16.0
+	golang.org/x/sys v0.17.0
 	golang.org/x/text v0.14.0
-	golang.org/x/time v0.3.0
-	google.golang.org/api v0.149.0
+	golang.org/x/time v0.5.0
+	google.golang.org/api v0.152.0
 	google.golang.org/grpc v1.61.0
-	google.golang.org/protobuf v1.32.0
+	google.golang.org/protobuf v1.33.0
 	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.1
 	gotest.tools v2.2.0+incompatible
@@ -283,7 +288,7 @@ require (
 	github.com/avvmoto/buf-readerat v0.0.0-20171115124131-a17c8cb89270 // indirect
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.6.0 // indirect
 	github.com/aws/aws-sdk-go-v2/credentials v1.17.0 // indirect
-	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.15.0 // indirect
+	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.15.0
 	github.com/aws/aws-sdk-go-v2/feature/s3/manager v1.16.0 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/configsources v1.3.0 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.6.0 // indirect
@@ -426,13 +431,13 @@ require (
 	github.com/influxdata/telegraf v1.16.3 // indirect
 	github.com/ionos-cloud/sdk-go/v6 v6.1.9 // indirect
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
-	github.com/jackc/pgconn v1.14.0 // indirect
+	github.com/jackc/pgconn v1.14.3 // indirect
 	github.com/jackc/pgio v1.0.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
-	github.com/jackc/pgproto3/v2 v2.3.2 // indirect
+	github.com/jackc/pgproto3/v2 v2.3.3 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20221227161230-091c0ba34f0a // indirect
 	github.com/jackc/pgtype v1.14.0 // indirect
-	github.com/jackc/pgx/v4 v4.18.1 // indirect
+	github.com/jackc/pgx/v4 v4.18.2 // indirect
 	github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 // indirect
 	github.com/jcmturner/aescts/v2 v2.0.0 // indirect
 	github.com/jcmturner/dnsutils/v2 v2.0.0 // indirect
@@ -581,7 +586,7 @@ require (
 	go4.org/netipx v0.0.0-20230125063823-8449b0a6169f // indirect
 	golang.org/x/mod v0.14.0 // indirect
 	golang.org/x/sync v0.5.0 // indirect
-	golang.org/x/term v0.16.0 // indirect
+	golang.org/x/term v0.17.0 // indirect
 	golang.org/x/tools v0.16.0
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.4.0 // indirect
@@ -609,11 +614,13 @@ require (
 	github.com/githubexporter/github-exporter v0.0.0-20231025122338-656e7dc33fe7
 	github.com/grafana/agent-remote-config v0.0.2
 	github.com/grafana/jfr-parser/pprof v0.0.0-20240126072739-986e71dc0361
+	github.com/grafana/jsonparser v0.0.0-20240209175146-098958973a2d
 	github.com/natefinch/atomic v1.0.1
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusremotewriteexporter v0.87.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/filterprocessor v0.87.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusreceiver v0.87.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/vcenterreceiver v0.87.0
+	github.com/prometheus/tsdb v0.10.0
 	go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp v0.42.0
 	golang.org/x/crypto/x509roots/fallback v0.0.0-20240208163226-62c9f1799c91
 	k8s.io/apimachinery v0.28.3
@@ -644,11 +651,10 @@ require (
 	github.com/containerd/log v0.1.0 // indirect
 	github.com/dgryski/go-metro v0.0.0-20180109044635-280f6062b5bc // indirect
 	github.com/drone/envsubst v1.0.3 // indirect
-	github.com/go-jose/go-jose/v3 v3.0.1 // indirect
+	github.com/go-jose/go-jose/v3 v3.0.3 // indirect
 	github.com/golang-jwt/jwt/v5 v5.0.0 // indirect
 	github.com/google/gnostic-models v0.6.8 // indirect
 	github.com/grafana/jfr-parser v0.8.0 // indirect
-	github.com/grafana/jsonparser v0.0.0-20240209175146-098958973a2d // indirect
 	github.com/hetznercloud/hcloud-go/v2 v2.4.0 // indirect
 	github.com/influxdata/tdigest v0.0.2-0.20210216194612-fc98d27c9e8b // indirect
 	github.com/julienschmidt/httprouter v1.3.0 // indirect
@@ -766,3 +772,7 @@ exclude (
 )
 
 replace github.com/github/smimesign => github.com/grafana/smimesign v0.2.1-0.20220408144937-2a5adf3481d3
+
+// Replacing for an internal for with a bugfix for delta histograms, https://github.com/grafana/stackdriver_exporter/pull/1
+// Moving back to upstream is being tracked in an internal issue
+replace github.com/prometheus-community/stackdriver_exporter => github.com/grafana/stackdriver_exporter v0.0.0-20240228143257-3a2c9acef5a2

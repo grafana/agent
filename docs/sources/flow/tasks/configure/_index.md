@@ -14,7 +14,7 @@ canonical: https://grafana.com/docs/agent/latest/flow/tasks/configure/
 description: Configure Grafana Agent Flow after it is installed
 menuTitle: Configure
 title: Configure Grafana Agent Flow
-weight: 90
+weight: 70
 ---
 
 # Configure {{% param "PRODUCT_NAME" %}}

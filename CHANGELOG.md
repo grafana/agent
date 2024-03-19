@@ -10,6 +10,23 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+### Breaking changes
+
+- The default listen port for `otelcol.receiver.opencensus` has changed from
+  4317 to 55678 to align with upstream. (@rfratto)
+
+### Enhancements
+
+- Add support for importing folders as single module to `import.file`. (@wildum)
+
+- Add support for importing directories as single module to `import.git`. (@wildum)
+
+- Improve converter diagnostic output by including a Footer and removing lower
+  level diagnostics when a configuration fails to generate. (@erikbaranowski)
+
+- Increased the alert interval and renamed the `ClusterSplitBrain` alert to `ClusterNodeCountMismatch` in the Grafana
+  Agent Mixin to better match the alert conditions. (@thampiotr)
+
 ### Features
 
 - Added a new CLI flag `--stability.level` which defines the minimum stability
@@ -19,10 +36,53 @@ Main (unreleased)
 
 ### Bugfixes
 
+- Fix an issue where JSON string array elements were not parsed correctly in `loki.source.cloudflare`. (@thampiotr)
+
+- Update gcp_exporter to a newer version with a patch for incorrect delta histograms (@kgeckhart)
+
+### Other changes
+
+- Clustering for Grafana Agent in Flow mode has graduated from beta to stable.
+
+- Resync defaults for `otelcol.processor.k8sattributes` with upstream. (@hainenber)
+
+- Resync defaults for `otelcol.exporter.otlp` and `otelcol.exporter.otlphttp` with upstream. (@hainenber)
+
+v0.40.3 (2024-03-14)
+--------------------
+
+### Bugfixes
+
+- Fix a bug where structured metadata and parsed field are not passed further in `loki.source.api` (@marchellodev)
+
+- Change `import.git` to use Git pulls rather than fetches to fix scenarios where the local code did not get updated. (@mattdurham)
+
+### Other changes
+
+- Upgrade to Go 1.22.1 (@thampiotr)
+
+v0.40.2 (2024-03-05)
+--------------------
+
+### Bugfixes
+
 - Set permissions on the `Grafana Agent [Flow]` folder when installing via the
   windows installer rather than relying on the parent folder permissions. (@erikbaranowski)
 
+- Set restricted viewing permissions on the `agent-config.yaml` (static mode) or
+  `config.river` (flow mode) when installing via the Windows installer if the
+  configuration file does not already exist. (@erikbaranowski)
+
+- Fix an issue where the import config node would not run after a config reload. (@wildum)
+
 - Fix an issue where Loki could reject a batch of logs when structured metadata feature is used. (@thampiotr)
+
+- Fix a duplicate metrics registration panic when recreating static
+  mode metric instance's write handler. (@rfratto, @hainenber)
+
+### Other changes
+
+- Change the Docker base image for Linux containers to `public.ecr.aws/ubuntu/ubuntu:mantic`. (@hainenber)
 
 v0.40.1 (2024-02-27)
 --------------------
@@ -164,6 +224,8 @@ v0.40.0 (2024-02-27)
 - `grafana-agent` and `grafana-agent-flow` fallback to default X.509 trusted root certificates
   when the `GODEBUG=x509usefallbackroots=1` environment variable is set. (@hainenber)
 
+- Migrate away from EoL'ed `github.com/aws-sdk-go` v1. (@hainenber)
+
 v0.39.2 (2024-1-31)
 --------------------
 
@@ -173,7 +235,6 @@ v0.39.2 (2024-1-31)
 
 - An error will be returned in the converter from Static to Flow when `scrape_integration` is set
   to `true` but no `remote_write` is defined. (@erikbaranowski)
-
 
 v0.39.1 (2024-01-19)
 --------------------
@@ -188,7 +249,6 @@ v0.39.1 (2024-01-19)
 ### Bugfixes
 
 - Fix issue where installing the Windows Agent Flow installer would hang then crash. (@mattdurham)
-
 
 v0.39.0 (2024-01-09)
 --------------------

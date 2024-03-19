@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/grafana/agent/internal/converter/diag"
+	"github.com/grafana/agent/internal/converter/internal/common"
 	"github.com/grafana/river/token/builder"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/otelcol"
@@ -58,8 +59,12 @@ type state struct {
 	// converterLookup maps a converter key to the associated converter instance.
 	converterLookup map[converterKey]componentConverter
 
-	componentID     component.InstanceID // ID of the current component being converted.
-	componentConfig component.Config     // Config of the current component being converted.
+	// extensionLookup maps OTel extensions to Flow component IDs.
+	extensionLookup map[component.ID]componentID
+
+	componentID          component.InstanceID // ID of the current component being converted.
+	componentConfig      component.Config     // Config of the current component being converted.
+	componentLabelPrefix string               // Prefix for the label of the current component being converted.
 }
 
 type converterKey struct {
@@ -98,6 +103,9 @@ func (state *state) flowLabelForComponent(c component.InstanceID) string {
 	// 3. There is no other mechanism which constructs an OpenTelemetry
 	//    receiver, processor, or exporter component.
 	//
+	// 4. Extension components are created once per service and are agnostic to
+	//    pipelines.
+	//
 	// Considering the points above, the combination of group name and component
 	// name is all that's needed to form a unique label for a single input
 	// config.
@@ -113,9 +121,13 @@ func (state *state) flowLabelForComponent(c component.InstanceID) string {
 	//
 	// Otherwise, we'll replace empty group and component names with "default"
 	// and concatenate them with an underscore.
+	unsanitizedLabel := state.componentLabelPrefix
+	if unsanitizedLabel != "" {
+		unsanitizedLabel += "_"
+	}
 	switch {
 	case groupName == "" && componentName == "":
-		return defaultLabel
+		unsanitizedLabel += defaultLabel
 
 	default:
 		if groupName == "" {
@@ -124,8 +136,10 @@ func (state *state) flowLabelForComponent(c component.InstanceID) string {
 		if componentName == "" {
 			componentName = defaultLabel
 		}
-		return fmt.Sprintf("%s_%s", groupName, componentName)
+		unsanitizedLabel += fmt.Sprintf("%s_%s", groupName, componentName)
 	}
+
+	return common.SanitizeIdentifierPanics(unsanitizedLabel)
 }
 
 // Next returns the set of Flow component IDs for a given data type that the
@@ -175,6 +189,14 @@ func (state *state) nextInstances(c component.InstanceID, dataType component.Dat
 	default:
 		panic(fmt.Sprintf("otelcolconvert: unknown data type %q", dataType))
 	}
+}
+
+func (state *state) LookupExtension(id component.ID) componentID {
+	cid, ok := state.extensionLookup[id]
+	if !ok {
+		panic(fmt.Sprintf("no component name found for extension %q", id.Name()))
+	}
+	return cid
 }
 
 type componentID struct {
