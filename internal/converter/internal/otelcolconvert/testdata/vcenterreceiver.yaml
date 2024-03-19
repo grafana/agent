@@ -8,6 +8,9 @@ receivers:
     metrics:
       vcenter.host.cpu.utilization:
         enabled: false
+    resource_attributes:
+      vcenter.cluster.name:
+        enabled: false
 
 exporters:
   otlp:
