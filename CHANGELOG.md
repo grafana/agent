@@ -24,6 +24,9 @@ Main (unreleased)
 - Improve converter diagnostic output by including a Footer and removing lower
   level diagnostics when a configuration fails to generate. (@erikbaranowski)
 
+- Increased the alert interval and renamed the `ClusterSplitBrain` alert to `ClusterNodeCountMismatch` in the Grafana
+  Agent Mixin to better match the alert conditions. (@thampiotr)
+
 ### Features
 
 - Added a new CLI flag `--stability.level` which defines the minimum stability
@@ -35,10 +38,15 @@ Main (unreleased)
 
 - Fix an issue where JSON string array elements were not parsed correctly in `loki.source.cloudflare`. (@thampiotr)
 
+- Update gcp_exporter to a newer version with a patch for incorrect delta histograms (@kgeckhart)
+
 ### Other changes
 
 - Clustering for Grafana Agent in Flow mode has graduated from beta to stable.
 
+- Resync defaults for `otelcol.processor.k8sattributes` with upstream. (@hainenber)
+
+- Resync defaults for `otelcol.exporter.otlp` and `otelcol.exporter.otlphttp` with upstream. (@hainenber)
 
 v0.40.3 (2024-03-14)
 --------------------
