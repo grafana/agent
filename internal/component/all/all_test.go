@@ -114,7 +114,10 @@ func sharePointer(a, b reflect.Value) (string, bool) {
 
 	case reflect.Slice:
 		if pointersMatch(a, b) {
-			return "", true
+			// If the slices are nil, we don't need to check for shared pointers
+			if a.Len() > 0 || b.Len() > 0 {
+				return "", true
+			}
 		}
 
 		size := min(a.Len(), b.Len())
