@@ -45,6 +45,9 @@ type Arguments struct {
 	Client commonk8s.ClientArguments `river:"client,block,optional"`
 
 	Clustering cluster.ComponentBlock `river:"clustering,block,optional"`
+
+	// DefaultInstanceLabel configures "instance" label
+	DefaultInstanceLabel string `river:"default_instance_label,attr,optional"`
 }
 
 // DefaultArguments holds default settings for loki.source.kubernetes.
@@ -193,7 +196,7 @@ func (c *Component) resyncTargets(targets []discovery.Target) {
 	tailTargets := make([]*kubetail.Target, 0, len(targets))
 	for _, target := range targets {
 		lset := target.Labels()
-		processed, err := kubetail.PrepareLabels(lset, c.opts.ID)
+		processed, err := kubetail.PrepareLabels(lset, c.opts.ID, c.args.DefaultInstanceLabel)
 		if err != nil {
 			// TODO(rfratto): should this set the health of the component?
 			level.Error(c.log).Log("msg", "failed to process input target", "target", lset.String(), "err", err)

@@ -156,7 +156,7 @@ func (t *Target) LastEntry() time.Time {
 //
 // Validation of lset fails if there is no label indicating the pod namespace,
 // pod name, or container name.
-func PrepareLabels(lset labels.Labels, defaultJob string) (res labels.Labels, err error) {
+func PrepareLabels(lset labels.Labels, defaultJob string, defaultInstanceLabel string) (res labels.Labels, err error) {
 	tailLabels := []labels.Label{
 		{Name: model.JobLabel, Value: defaultJob},
 	}
@@ -222,6 +222,9 @@ func PrepareLabels(lset labels.Labels, defaultJob string) (res labels.Labels, er
 	// Default the instance label to the target address.
 	if !lset.Has(model.InstanceLabel) {
 		defaultInstance := fmt.Sprintf("%s/%s:%s", podNamespace, podName, podContainerName)
+		if defaultInstanceLabel != "" {
+			defaultInstance = defaultInstanceLabel
+		}
 		lb.Set(model.InstanceLabel, defaultInstance)
 	}
 
