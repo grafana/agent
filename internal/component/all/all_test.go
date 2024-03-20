@@ -1,6 +1,7 @@
 package all
 
 import (
+	"fmt"
 	"reflect"
 	"testing"
 
@@ -10,9 +11,13 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// TestNoReusePointer ensures that no pointers are reused when setting default
-// values for component arguments.
-func TestNoReusePointer(t *testing.T) {
+// TestSetDefault_NoPointerReuse ensures that calls to SetDefault do not re-use
+// pointers. The test iterates through all registered components, and then
+// recursively traverses through its Arguments type to guarantee that no two
+// calls to SetDefault result in pointer reuse.
+//
+// Nested types that also implement river.Defaulter are also checked.
+func TestSetDefault_NoPointerReuse(t *testing.T) {
 	allComponents := component.AllNames()
 	for _, componentName := range allComponents {
 		reg, ok := component.Get(componentName)
@@ -40,8 +45,23 @@ func testNoReusePointer(t *testing.T, reg component.Registration) {
 	}
 
 	rv1, rv2 := reflect.ValueOf(args1), reflect.ValueOf(args2)
+	ty := rv1.Type().Elem()
+
+	// Edge case: if the component's arguments type is an empty struct, skip.
+	// Not skipping causes the test to fail, due to an optimization in
+	// reflect.New where initializing the same zero-length object results in the
+	// same pointer.
+	if rv1.Elem().NumField() == 0 {
+		return
+	}
+
 	if path, shared := sharePointer(rv1, rv2); shared {
-		assert.Fail(t, "detected pointer reuse in SetToDefault", "path %q shares pointers", path)
+		fullPath := fmt.Sprintf("%s.%s.%s", ty.PkgPath(), ty.Name(), path)
+
+		assert.Fail(t,
+			fmt.Sprintf("Detected SetToDefault pointer reuse at %s", fullPath),
+			"Types implementing river.Defaulter must not reuse pointers across multiple calls. Doing so leads to default values being changed when unmarshaling configuration files. If you're seeing this error, check the path above and ensure that copies are being made of any pointers in all instances of SetToDefault calls where that field is used.",
+		)
 	}
 }
 
