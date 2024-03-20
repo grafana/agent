@@ -10,6 +10,11 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+### Breaking changes
+
+- The default listen port for `otelcol.receiver.opencensus` has changed from
+  4317 to 55678 to align with upstream. (@rfratto)
+
 ### Enhancements
 
 - Add support for importing folders as single module to `import.file`. (@wildum)
@@ -18,6 +23,9 @@ Main (unreleased)
 
 - Improve converter diagnostic output by including a Footer and removing lower
   level diagnostics when a configuration fails to generate. (@erikbaranowski)
+
+- Increased the alert interval and renamed the `ClusterSplitBrain` alert to `ClusterNodeCountMismatch` in the Grafana
+  Agent Mixin to better match the alert conditions. (@thampiotr)
 
 ### Features
 
@@ -32,10 +40,15 @@ Main (unreleased)
 
 - Fix SSRF vulnerability in `faro.receiver` by disabling source map download. (@hainenber)
 
+- Update gcp_exporter to a newer version with a patch for incorrect delta histograms (@kgeckhart)
+
 ### Other changes
 
 - Clustering for Grafana Agent in Flow mode has graduated from beta to stable.
 
+- Resync defaults for `otelcol.processor.k8sattributes` with upstream. (@hainenber)
+
+- Resync defaults for `otelcol.exporter.otlp` and `otelcol.exporter.otlphttp` with upstream. (@hainenber)
 
 v0.40.3 (2024-03-14)
 --------------------
@@ -97,7 +110,9 @@ v0.40.0 (2024-02-27)
 
 ### Deprecations
 
-- Module components have been deprecated in favor of import and declare configuration blocks. These deprecated components will be removed in the next release. (@wildum)
+- Module components have been deprecated in favor of import and declare configuration blocks. These deprecated components will be removed in a future release. (@wildum)
+
+- `prometheus.exporter.vsphere` has been deprecated in favor of `otelcol.receiver.vcenter`. This deprecated component will be removed in a future release. (@rfratto)
 
 ### Features
 
