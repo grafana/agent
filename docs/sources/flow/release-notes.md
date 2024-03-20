@@ -46,11 +46,17 @@ If you need to see high cardinality metrics containing labels such as IP address
 The name `prometheus.exporter.agent` is potentially ambiguous and can be misinterpreted as an exporter for Prometheus Agent.
 The new name reflects the component's true purpose as an exporter of the process's own metrics.
 
-### Deprecation: classic modules have been deprecated and will be removed in the next release
+### Deprecation: classic modules have been deprecated and will be removed in a future release
 
 Classic modules (the `module.git`, `module.file`, `module.http`, and `module.string` components) have been deprecated in favor of the new `import` and `declare` configuration blocks.
 
-Support for classic modules will be removed in the next release.
+Support for classic modules will be removed in a future release.
+
+### Deprecation: `prometheus.exporter.vsphere` is deprecated and will be removed in a future release
+
+The `prometheus.exporter.vsphere` component has been deprecated in favor of `otelcol.receiver.vcenter`.
+
+Support for `prometheus.exporter.vsphere` will be removed in a future release.
 
 ## v0.39
 
