@@ -229,7 +229,7 @@ func (r *reconciler) reconcilePodLogs(ctx context.Context, cli client.Client, po
 
 			defaultJob := fmt.Sprintf("%s/%s:%s", podLogs.Namespace, podLogs.Name, container.Name)
 			// TODO: make default "instance" label for pod logs configurable.
-			finalLabels, err := kubetail.PrepareLabels(processedLabels, defaultJob, "")
+			finalLabels, err := kubetail.PrepareLabels(processedLabels, defaultJob, kubetail.DefaultInstanceLabel{Enabled: true})
 
 			if err != nil {
 				discoveredPod.Containers = append(discoveredPod.Containers, DiscoveredContainer{
