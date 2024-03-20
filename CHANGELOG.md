@@ -108,7 +108,9 @@ v0.40.0 (2024-02-27)
 
 ### Deprecations
 
-- Module components have been deprecated in favor of import and declare configuration blocks. These deprecated components will be removed in the next release. (@wildum)
+- Module components have been deprecated in favor of import and declare configuration blocks. These deprecated components will be removed in a future release. (@wildum)
+
+- `prometheus.exporter.vsphere` has been deprecated in favor of `otelcol.receiver.vcenter`. This deprecated component will be removed in a future release. (@rfratto)
 
 ### Features
 
