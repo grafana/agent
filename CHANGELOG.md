@@ -27,6 +27,8 @@ Main (unreleased)
 - Increased the alert interval and renamed the `ClusterSplitBrain` alert to `ClusterNodeCountMismatch` in the Grafana
   Agent Mixin to better match the alert conditions. (@thampiotr)
 
+- Configurable default `instance` label for logs scraped by `loki.source.kubernetes`. (@hainenber)
+
 ### Features
 
 - Added a new CLI flag `--stability.level` which defines the minimum stability

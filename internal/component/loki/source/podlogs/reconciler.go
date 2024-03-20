@@ -228,7 +228,8 @@ func (r *reconciler) reconcilePodLogs(ctx context.Context, cli client.Client, po
 			processedLabels, _ := relabel.Process(targetLabels.Copy(), relabelRules...)
 
 			defaultJob := fmt.Sprintf("%s/%s:%s", podLogs.Namespace, podLogs.Name, container.Name)
-			finalLabels, err := kubetail.PrepareLabels(processedLabels, defaultJob)
+			// TODO: make default "instance" label for pod logs configurable.
+			finalLabels, err := kubetail.PrepareLabels(processedLabels, defaultJob, "")
 
 			if err != nil {
 				discoveredPod.Containers = append(discoveredPod.Containers, DiscoveredContainer{

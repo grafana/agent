@@ -13,6 +13,7 @@ func TestRiverConfig(t *testing.T) {
 		{"__address__" = "localhost:9090", "foo" = "bar"},
 		{"__address__" = "localhost:8080", "foo" = "buzz"},
 	]
+	default_instance_label = "test"
     forward_to = []
 	client {
 		api_server = "localhost:9091"

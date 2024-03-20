@@ -51,6 +51,9 @@ Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `targets` | `list(map(string))` | List of files to read from. | | yes
 `forward_to` | `list(LogsReceiver)` | List of receivers to send log entries to. | | yes
+`default_instance_label` | `string` | Value for default `instance` label. | '' | no
+
+If `default_instance_label` is not set, the target's address is used as the default `instance` label.
 
 Each target in `targets` must have the following labels:
 
