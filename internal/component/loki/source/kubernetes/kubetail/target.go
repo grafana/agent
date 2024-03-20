@@ -41,6 +41,11 @@ type Target struct {
 	lastEntry time.Time
 }
 
+type DefaultInstanceLabel struct {
+	Enabled bool   `river:"enabled,attr,optional"`
+	Value   string `river:"value,attr,optional"`
+}
+
 // NewTarget creates a new Target which can be passed to a tailer.
 func NewTarget(origLabels labels.Labels, lset labels.Labels) *Target {
 	// Precompute some values based on labels so we don't have to continually
@@ -156,7 +161,7 @@ func (t *Target) LastEntry() time.Time {
 //
 // Validation of lset fails if there is no label indicating the pod namespace,
 // pod name, or container name.
-func PrepareLabels(lset labels.Labels, defaultJob string, defaultInstanceLabel string) (res labels.Labels, err error) {
+func PrepareLabels(lset labels.Labels, defaultJob string, defaultInstanceLabel DefaultInstanceLabel) (res labels.Labels, err error) {
 	tailLabels := []labels.Label{
 		{Name: model.JobLabel, Value: defaultJob},
 	}
@@ -220,10 +225,10 @@ func PrepareLabels(lset labels.Labels, defaultJob string, defaultInstanceLabel s
 	}
 
 	// Default the instance label to the target address.
-	if !lset.Has(model.InstanceLabel) {
+	if !lset.Has(model.InstanceLabel) && defaultInstanceLabel.Enabled {
 		defaultInstance := fmt.Sprintf("%s/%s:%s", podNamespace, podName, podContainerName)
-		if defaultInstanceLabel != "" {
-			defaultInstance = defaultInstanceLabel
+		if defaultInstanceLabel.Value != "" {
+			defaultInstance = defaultInstanceLabel.Value
 		}
 		lb.Set(model.InstanceLabel, defaultInstance)
 	}

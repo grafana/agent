@@ -47,12 +47,13 @@ type Arguments struct {
 	Clustering cluster.ComponentBlock `river:"clustering,block,optional"`
 
 	// DefaultInstanceLabel configures "instance" label
-	DefaultInstanceLabel string `river:"default_instance_label,attr,optional"`
+	DefaultInstanceLabel kubetail.DefaultInstanceLabel `river:"default_instance_label,block,optional"`
 }
 
 // DefaultArguments holds default settings for loki.source.kubernetes.
 var DefaultArguments = Arguments{
-	Client: commonk8s.DefaultClientArguments,
+	Client:               commonk8s.DefaultClientArguments,
+	DefaultInstanceLabel: kubetail.DefaultInstanceLabel{Enabled: true},
 }
 
 // SetToDefault implements river.Defaulter.

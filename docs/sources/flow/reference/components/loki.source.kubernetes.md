@@ -51,9 +51,7 @@ Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `targets` | `list(map(string))` | List of files to read from. | | yes
 `forward_to` | `list(LogsReceiver)` | List of receivers to send log entries to. | | yes
-`default_instance_label` | `string` | Value for default `instance` label. | '' | no
 
-If `default_instance_label` is not set, the target's address is used as the default `instance` label.
 
 Each target in `targets` must have the following labels:
 
@@ -98,6 +96,7 @@ inside a `client` block.
 [oauth2]: #oauth2-block
 [tls_config]: #tls_config-block
 [clustering]: #clustering-block
+[default_instance_label]: #default_instance_label-block
 
 ### client block
 
@@ -161,6 +160,19 @@ If {{< param "PRODUCT_ROOT_NAME" >}} is _not_ running in clustered mode, then th
 arguments.
 
 [using clustering]: {{< relref "../../concepts/clustering.md" >}}
+
+### default_instance_label block
+
+The `default_instance_label` block configures default "instance" label to be assigned with logs 
+scraped from inputted targets.
+If `default_instance_label` block is not provided, the target's address is used as the default `instance` label.
+
+The following arguments are supported:
+
+Name                     | Type                | Description                                                   | Default | Required
+------------------------ | ------------------- | ------------------------------------------------------------- | ------- | --------
+`enabled`                | `bool`              | Enable setting default "instance" label value.                | true    | no
+`value`                  | `string`            | Value for the label.                                          |         | no
 
 ## Exported fields
 
