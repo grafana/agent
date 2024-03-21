@@ -21,13 +21,9 @@ func Test(t *testing.T) {
 	}{
 		{
 			testName: "defaultConfig",
-			args: `
-			verbosity = "basic"
-			sampling_initial = 2
-			sampling_thereafter = 500
-			`,
+			args: ``,
 			expectedReturn: debugexporter.Config{
-				Verbosity:          configtelemetry.LevelBasic,
+				Verbosity:          configtelemetry.LevelNormal,
 				SamplingInitial:    2,
 				SamplingThereafter: 500,
 			},
