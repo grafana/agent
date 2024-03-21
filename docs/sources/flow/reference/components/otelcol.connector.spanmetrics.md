@@ -102,7 +102,7 @@ The following blocks are supported inside the definition of
 | ----------------------- | --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
 | dimension               | [dimension][]   | Dimensions to be added in addition to the default ones.                                                                                                    | no       |
 | events                  | [events][]      | Configures the events metric.                                                                                                                              | no       |
-| events > dimension      | [dimension][]   | Span event attributes to add as dimensions to the events metric, _on top of_ the default ones and the ones configured in the top-level `dimensions` block. | no       |
+| events > dimension      | [dimension][]   | Span event attributes to add as dimensions to the events metric, _on top of_ the default ones and the ones configured in the top-level `dimension` block. | no       |
 | exemplars               | [exemplars][]   | Configures how to attach exemplars to histograms.                                                                                                          | no       |
 | histogram               | [histogram][]   | Configures the histogram derived from spans durations.                                                                                                     | yes      |
 | histogram > explicit    | [explicit][]    | Configuration for a histogram with explicit buckets.                                                                                                       | no       |
@@ -161,7 +161,7 @@ The following attributes are supported:
 | --------- | ------ | -------------------------- | ------- | -------- |
 | `enabled` | `bool` | Enables all events metric. | `false` | no       |
 
-`dimensions` is required if `enabled` is set to `true`.
+At least one `dimension` block is required if `enabled` is set to `true`.
 
 [span-events]: https://opentelemetry.io/docs/concepts/signals/traces/#span-events
 

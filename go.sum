@@ -1060,10 +1060,6 @@ github.com/grafana/mysqld_exporter v0.12.2-0.20231005125903-364b9c41e595 h1:I9sR
 github.com/grafana/mysqld_exporter v0.12.2-0.20231005125903-364b9c41e595/go.mod h1:U8ifHC5pT2WuVTO7ki4KZmWLjfEKfktQiU3bh0J8scw=
 github.com/grafana/node_exporter v0.18.1-grafana-r01.0.20231004161416-702318429731 h1:vyyIYY2sLpmgFIckJ1vSO/oYkvB0thDF6UiFYp5PThM=
 github.com/grafana/node_exporter v0.18.1-grafana-r01.0.20231004161416-702318429731/go.mod h1:vOZxEzxm0nZmuNqjtIfvtmvdRtJik9POmcN5mQVLf5E=
-github.com/grafana/opentelemetry-collector/otelcol v0.0.0-20240319133026-b03cfedde704 h1:vSFZoGJ8FgNoIuwD4rnH9gTk5Uyf/X6rFY5GfweO0x8=
-github.com/grafana/opentelemetry-collector/otelcol v0.0.0-20240319133026-b03cfedde704/go.mod h1:Xo58hEmoZFLyOIs9Wk400ME9gEFV+ttxCGcls6NxbhI=
-github.com/grafana/opentelemetry-collector/service v0.0.0-20240319133026-b03cfedde704 h1:JegiYwsvsY4tpeACyVvA13ISpbUJ1ZROJQo9fC1UUyk=
-github.com/grafana/opentelemetry-collector/service v0.0.0-20240319133026-b03cfedde704/go.mod h1:9El7PPhnV+2xPXLlyileLaUa5mOE+vw6sswmcZBaUlc=
 github.com/grafana/postgres_exporter v0.8.1-0.20210722175051-db35d7c2f520 h1:HnFWqxhoSF3WC7sKAdMZ+SRXvHLVZlZ3sbQjuUlTqkw=
 github.com/grafana/postgres_exporter v0.8.1-0.20210722175051-db35d7c2f520/go.mod h1:+HPXgiOV0InDHcZ2jNijL1SOKvo0eEPege5fQA0+ICI=
 github.com/grafana/prometheus v1.8.2-0.20240130142130-51b39f24d406 h1:LVIOYe5j92m10wluP5hgeHqSkOLnZzcPxhYCkdbLXCE=
@@ -1794,8 +1790,6 @@ github.com/open-telemetry/opentelemetry-collector-contrib/processor/probabilisti
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/probabilisticsamplerprocessor v0.96.0/go.mod h1:fX0WCKzhLEF5I2CRMHzxdTAKXsveyAlorMzUBGMKptk=
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourcedetectionprocessor v0.96.0 h1:FPkPbJcV2mxIppHHkyJY4hAFAtxs2PwlmO+KeflN+Ck=
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourcedetectionprocessor v0.96.0/go.mod h1:byeQDum5hz1W6ko+rZjnQqcGWDEBgSw7o4GpgLxHmk4=
-github.com/open-telemetry/opentelemetry-collector-contrib/processor/servicegraphprocessor v0.93.0 h1:x2BnrcapxhwaeD+fRLVuZDK0rYB7d7MjSl95E3AMw4g=
-github.com/open-telemetry/opentelemetry-collector-contrib/processor/servicegraphprocessor v0.93.0/go.mod h1:VNEIb8acwxXWlbLwKlG7DvwjDa9jQk/QmP26RKH45Ho=
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanmetricsprocessor v0.95.0 h1:zL6QvBvBvP4SqC/fBwH73wYIGzrs6p/pI8oIB8MsjLk=
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanmetricsprocessor v0.95.0/go.mod h1:hlgS5QXAk0Yq07Hqho+YzfHnmVnNapbuYiWIOg8bo8k=
 github.com/open-telemetry/opentelemetry-collector-contrib/processor/spanprocessor v0.96.0 h1:xk76zUw+de12cTub55C8dFFX7LrHit6+gn7DFSXfbUA=
@@ -2417,6 +2411,8 @@ go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.4
 go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.47.0/go.mod h1:r9vWsPS/3AQItv3OSlEJ/E4mbrhUbbw18meOjArPtKQ=
 go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.49.0 h1:jq9TW8u3so/bN+JPT166wjOI6/vQPF6Xe7nMNIltagk=
 go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.49.0/go.mod h1:p8pYQP+m5XfbZm9fxtSKAbM6oIllS7s2AfxrChvc7iw=
+go.opentelemetry.io/contrib/propagators/b3 v1.24.0 h1:n4xwCdTx3pZqZs2CjS/CUZAs03y3dZcGhC/FepKtEUY=
+go.opentelemetry.io/contrib/propagators/b3 v1.24.0/go.mod h1:k5wRxKRU2uXx2F8uNJ4TaonuEO/V7/5xoz7kdsDACT8=
 go.opentelemetry.io/contrib/zpages v0.49.0 h1:Wk217PkNBxcKWnIQpwtbZZE286K4ZY9uajnM5woSeLU=
 go.opentelemetry.io/contrib/zpages v0.49.0/go.mod h1:6alLi5mmkZWbAtZMRPd1ffIgkTcsU9OTHQF2NbSOhrQ=
 go.opentelemetry.io/otel v1.24.0 h1:0LAOdjNmQeSTzGBzduGe/rU4tZhMwL5rWgtp9Ku5Jfo=

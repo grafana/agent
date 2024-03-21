@@ -4,7 +4,11 @@ import (
 	"fmt"
 
 	"go.opentelemetry.io/collector/featuregate"
-	_ "go.opentelemetry.io/collector/obsreport"
+
+	// Register the feature gates.
+	// The "service" package uses DisableHighCardinalityMetricsfeatureGate, so import "service".
+	// We cannot import DisableHighCardinalityMetricsfeatureGate directly because it's not exported.
+	_ "go.opentelemetry.io/collector/service"
 )
 
 // Enables a set of feature gates in Otel's Global Feature Gate Registry.

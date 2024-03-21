@@ -63,6 +63,7 @@ type TLSSetting struct {
 	MinVersion               string            `river:"min_version,attr,optional"`
 	MaxVersion               string            `river:"max_version,attr,optional"`
 	ReloadInterval           time.Duration     `river:"reload_interval,attr,optional"`
+	CipherSuites             []string          `river:"cipher_suites,attr,optional"`
 	IncludeSystemCACertsPool bool              `river:"include_system_ca_certs_pool,attr,optional"`
 }
 
@@ -81,6 +82,7 @@ func (args *TLSSetting) Convert() *otelconfigtls.TLSSetting {
 		MinVersion:               args.MinVersion,
 		MaxVersion:               args.MaxVersion,
 		ReloadInterval:           args.ReloadInterval,
+		CipherSuites:             args.CipherSuites,
 		IncludeSystemCACertsPool: args.IncludeSystemCACertsPool,
 	}
 }

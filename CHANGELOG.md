@@ -167,20 +167,6 @@ https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/8274
   * [otelcol.exporter.otlp] Additional RPC debug metrics such as `rpc_client_duration_milliseconds`.
   * [otelcol.receiver.otlp] Additional RPC debug metrics such as `rpc_server_duration_milliseconds`.
 
-  * [otelcol.connector.servicegraph] Additional debug metrics
-  <!-- TODO: Document those metrics -->
-https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/29917
-  * [otelcol.processor.filter] Additional debug metrics
-  <!-- TODO: Document those metrics -->
-https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/30736
-  * Scope name for all generated Meter/Tracer funcs now includes full package name
-  <!-- TODO: Does this affect the Agent's metrics and logs? -->
-https://github.com/open-telemetry/opentelemetry-collector/issues/9494
-  * [otelcol.connector.servicegraph] Measure latency in seconds instead of milliseconds
-  <!-- TODO: This is a breaking change for Static mode? -->
-  <!-- TODO: Is this a breaking change for Flow? -->
-https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/27488
-
 
 v0.40.2 (2024-03-05)
 --------------------

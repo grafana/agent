@@ -10,7 +10,6 @@ import (
 	"github.com/grafana/agent/internal/featuregate"
 	"github.com/grafana/river"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/connector/servicegraphconnector"
-	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/servicegraphprocessor"
 	otelcomponent "go.opentelemetry.io/collector/component"
 	otelextension "go.opentelemetry.io/collector/extension"
 )
@@ -144,23 +143,23 @@ func (args *Arguments) Validate() error {
 
 // Convert implements connector.Arguments.
 func (args Arguments) Convert() (otelcomponent.Config, error) {
-	return &servicegraphprocessor.Config{
+	return &servicegraphconnector.Config{
 		// Never set a metric exporter.
 		// The consumer of metrics will be set via Otel's Connector API.
 		//
 		// MetricsExporter:         "",
 		LatencyHistogramBuckets: args.LatencyHistogramBuckets,
 		Dimensions:              args.Dimensions,
-		Store: servicegraphprocessor.StoreConfig{
+		Store: servicegraphconnector.StoreConfig{
 			MaxItems: args.Store.MaxItems,
 			TTL:      args.Store.TTL,
 		},
-		CacheLoop:           args.CacheLoop,
-		StoreExpirationLoop: args.StoreExpirationLoop,
+		CacheLoop:            args.CacheLoop,
+		StoreExpirationLoop:  args.StoreExpirationLoop,
+		MetricsFlushInterval: args.MetricsFlushInterval,
 		//TODO: Add VirtualNodePeerAttributes when it's no longer controlled by
 		// the "processor.servicegraph.virtualNode" feature gate.
 		// VirtualNodePeerAttributes: args.VirtualNodePeerAttributes,
-		MetricsFlushInterval: args.MetricsFlushInterval,
 	}, nil
 }
 

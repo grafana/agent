@@ -613,7 +613,6 @@ require (
 	github.com/natefinch/atomic v1.0.1
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusremotewriteexporter v0.96.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/filterprocessor v0.96.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/processor/servicegraphprocessor v0.93.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusreceiver v0.96.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/vcenterreceiver v0.96.0
 	go.opentelemetry.io/collector/config/configretry v0.96.0
@@ -693,6 +692,7 @@ require (
 	go.opentelemetry.io/collector/confmap/provider/httpprovider v0.96.0 // indirect
 	go.opentelemetry.io/collector/confmap/provider/httpsprovider v0.96.0 // indirect
 	go.opentelemetry.io/contrib/config v0.4.0 // indirect
+	go.opentelemetry.io/contrib/propagators/b3 v1.24.0 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc v1.24.0 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.24.0 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp v1.24.0 // indirect
@@ -768,8 +768,8 @@ replace (
 // https://github.com/open-telemetry/opentelemetry-collector/pull/7696
 // https://github.com/open-telemetry/opentelemetry-collector/issues/4970
 replace (
-	go.opentelemetry.io/collector/otelcol => github.com/grafana/opentelemetry-collector/otelcol v0.0.0-20240319133026-b03cfedde704
-	go.opentelemetry.io/collector/service => github.com/grafana/opentelemetry-collector/service v0.0.0-20240319133026-b03cfedde704
+	go.opentelemetry.io/collector/otelcol => /Users/paulintodev/Documents/GitHub/opentelemetry-collector-grafana/otelcol
+	go.opentelemetry.io/collector/service => /Users/paulintodev/Documents/GitHub/opentelemetry-collector-grafana/service
 )
 
 // Required to avoid an ambiguous import with github.com/tencentcloud/tencentcloud-sdk-go

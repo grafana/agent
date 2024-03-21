@@ -76,7 +76,7 @@ The following arguments are supported:
 Name                      | Type                       | Description | Default | Required
 ------------------------- | -------------------------- | ----------- | ------- | --------
 `endpoint`                | `string`                   | The target URL to send telemetry data to. | | yes
-`encoding`                | `string`                   | The encoding to use for messages. | `"proto"` | no
+`encoding`                | `string`                   | The encoding to use for messages. Should be either `"proto"` or `"json"`. | `"proto"` | no
 `read_buffer_size`        | `string`                   | Size of the read buffer the HTTP client uses for reading server responses. | `0` | no
 `write_buffer_size`       | `string`                   | Size of the write buffer the HTTP client uses for writing requests. | `"512KiB"` | no
 `timeout`                 | `duration`                 | Time to wait before marking a request as failed. | `"30s"` | no
@@ -87,7 +87,7 @@ Name                      | Type                       | Description | Default |
 `max_conns_per_host`      | `int`                      | Limits the total (dialing,active, and idle) number of connections per host. | `0` | no
 `idle_conn_timeout`       | `duration`                 | Time to wait before an idle connection closes itself. | `"90s"` | no
 `disable_keep_alives`     | `bool`                     | Disable HTTP keep-alive. | `false` | no
-`http2_read_idle_timeout` | `duration`                 | Timeout after which a health check using ping frame will be carried out if no frame is received on the connection. | `0a` | no
+`http2_read_idle_timeout` | `duration`                 | Timeout after which a health check using ping frame will be carried out if no frame is received on the connection. | `0s` | no
 `http2_ping_timeout`      | `duration`                 | Timeout after which the connection will be closed if a response to Ping is not received. | `15s` | no
 `auth`                    | `capsule(otelcol.Handler)` | Handler from an `otelcol.auth` component to use for authenticating requests. | | no
 

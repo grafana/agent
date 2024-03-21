@@ -14,6 +14,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/grafana/agent/internal/component/otelcol/extension/jaeger_remote_sampling/internal/jaegerremotesampling/internal"
+	"github.com/grafana/agent/internal/component/otelcol/extension/jaeger_remote_sampling/internal/strategy_store"
 )
 
 var _ extension.Extension = (*jrsExtension)(nil)
@@ -71,6 +72,14 @@ func (jrse *jrsExtension) Start(ctx context.Context, host component.Host) error 
 		)
 		jrse.closers = append(jrse.closers, closer.Close)
 		jrse.samplingStore = remoteStore
+	}
+
+	if jrse.cfg.Source.Contents != "" {
+		ss, err := strategy_store.NewStrategyStore(jrse.cfg.Source.Contents, jrse.telemetry.Logger)
+		if err != nil {
+			return fmt.Errorf("error while setting up the contents sampling source: %w", err)
+		}
+		jrse.samplingStore = ss
 	}
 
 	if jrse.cfg.HTTPServerConfig != nil {
