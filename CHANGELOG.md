@@ -38,6 +38,12 @@ Main (unreleased)
 
 - Fix an issue where JSON string array elements were not parsed correctly in `loki.source.cloudflare`. (@thampiotr)
 
+- Update gcp_exporter to a newer version with a patch for incorrect delta histograms (@kgeckhart)
+
+- Fix an issue where the default values of some component's arguments change
+  whenever that argument is explicitly configured. This issue only affected a
+  small subset of arguments across 15 components. (@erikbaranowski, @rfratto)
+
 ### Other changes
 
 - Clustering for Grafana Agent in Flow mode has graduated from beta to stable.
@@ -106,7 +112,9 @@ v0.40.0 (2024-02-27)
 
 ### Deprecations
 
-- Module components have been deprecated in favor of import and declare configuration blocks. These deprecated components will be removed in the next release. (@wildum)
+- Module components have been deprecated in favor of import and declare configuration blocks. These deprecated components will be removed in a future release. (@wildum)
+
+- `prometheus.exporter.vsphere` has been deprecated in favor of `otelcol.receiver.vcenter`. This deprecated component will be removed in a future release. (@rfratto)
 
 ### Features
 
