@@ -40,6 +40,10 @@ Main (unreleased)
 
 - Update gcp_exporter to a newer version with a patch for incorrect delta histograms (@kgeckhart)
 
+- Fix an issue where the default values of some component's arguments change
+  whenever that argument is explicitly configured. This issue only affected a
+  small subset of arguments across 15 components. (@erikbaranowski, @rfratto)
+
 ### Other changes
 
 - Clustering for Grafana Agent in Flow mode has graduated from beta to stable.
