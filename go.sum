@@ -1060,6 +1060,10 @@ github.com/grafana/mysqld_exporter v0.12.2-0.20231005125903-364b9c41e595 h1:I9sR
 github.com/grafana/mysqld_exporter v0.12.2-0.20231005125903-364b9c41e595/go.mod h1:U8ifHC5pT2WuVTO7ki4KZmWLjfEKfktQiU3bh0J8scw=
 github.com/grafana/node_exporter v0.18.1-grafana-r01.0.20231004161416-702318429731 h1:vyyIYY2sLpmgFIckJ1vSO/oYkvB0thDF6UiFYp5PThM=
 github.com/grafana/node_exporter v0.18.1-grafana-r01.0.20231004161416-702318429731/go.mod h1:vOZxEzxm0nZmuNqjtIfvtmvdRtJik9POmcN5mQVLf5E=
+github.com/grafana/opentelemetry-collector/otelcol v0.0.0-20240321103955-8919a1c85cbe h1:XffwtyK11B/undScvvYBi/LSWG7ob43lzkdhxmxZkJw=
+github.com/grafana/opentelemetry-collector/otelcol v0.0.0-20240321103955-8919a1c85cbe/go.mod h1:Xo58hEmoZFLyOIs9Wk400ME9gEFV+ttxCGcls6NxbhI=
+github.com/grafana/opentelemetry-collector/service v0.0.0-20240321103955-8919a1c85cbe h1:LEmmaAnTjtp7pWCsnc8iMfuHIHzDbYIiCXnxpMTOLms=
+github.com/grafana/opentelemetry-collector/service v0.0.0-20240321103955-8919a1c85cbe/go.mod h1:9El7PPhnV+2xPXLlyileLaUa5mOE+vw6sswmcZBaUlc=
 github.com/grafana/postgres_exporter v0.8.1-0.20210722175051-db35d7c2f520 h1:HnFWqxhoSF3WC7sKAdMZ+SRXvHLVZlZ3sbQjuUlTqkw=
 github.com/grafana/postgres_exporter v0.8.1-0.20210722175051-db35d7c2f520/go.mod h1:+HPXgiOV0InDHcZ2jNijL1SOKvo0eEPege5fQA0+ICI=
 github.com/grafana/prometheus v1.8.2-0.20240130142130-51b39f24d406 h1:LVIOYe5j92m10wluP5hgeHqSkOLnZzcPxhYCkdbLXCE=

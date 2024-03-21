@@ -768,8 +768,8 @@ replace (
 // https://github.com/open-telemetry/opentelemetry-collector/pull/7696
 // https://github.com/open-telemetry/opentelemetry-collector/issues/4970
 replace (
-	go.opentelemetry.io/collector/otelcol => /Users/paulintodev/Documents/GitHub/opentelemetry-collector-grafana/otelcol
-	go.opentelemetry.io/collector/service => /Users/paulintodev/Documents/GitHub/opentelemetry-collector-grafana/service
+	go.opentelemetry.io/collector/otelcol => github.com/grafana/opentelemetry-collector/otelcol v0.0.0-20240321103955-8919a1c85cbe
+	go.opentelemetry.io/collector/service => github.com/grafana/opentelemetry-collector/service v0.0.0-20240321103955-8919a1c85cbe
 )
 
 // Required to avoid an ambiguous import with github.com/tencentcloud/tencentcloud-sdk-go
