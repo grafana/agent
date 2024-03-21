@@ -6,19 +6,19 @@ import (
 	"github.com/grafana/agent/internal/component"
 	"github.com/grafana/agent/internal/component/otelcol"
 	"github.com/grafana/agent/internal/component/otelcol/exporter"
-  "github.com/grafana/agent/internal/featuregate"
+	"github.com/grafana/agent/internal/featuregate"
 	otelcomponent "go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config/configtelemetry"
 	debugexporter "go.opentelemetry.io/collector/exporter/debugexporter"
-  otelextension "go.opentelemetry.io/collector/extension"
+	otelextension "go.opentelemetry.io/collector/extension"
 )
 
 func init() {
 	component.Register(component.Registration{
-		Name:    "otelcol.exporter.debug",
-		Args:    Arguments{},
-		Exports: otelcol.ConsumerExports{},
-    Stability: featuregate.StabilityExperimental,
+		Name:      "otelcol.exporter.debug",
+		Args:      Arguments{},
+		Exports:   otelcol.ConsumerExports{},
+		Stability: featuregate.StabilityExperimental,
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			fact := debugexporter.NewFactory()
