@@ -60,6 +60,7 @@ func toOtelcolExporterOTLPHTTP(cfg *otlphttpexporter.Config) *otlphttp.Arguments
 		Client:       otlphttp.HTTPClientArguments(toHTTPClientArguments(cfg.ClientConfig)),
 		Queue:        toQueueArguments(cfg.QueueConfig),
 		Retry:        toRetryArguments(cfg.RetryConfig),
+		Encoding:     string(cfg.Encoding),
 		DebugMetrics: common.DefaultValue[otlphttp.Arguments]().DebugMetrics,
 	}
 }
@@ -86,13 +87,15 @@ func toHTTPClientArguments(cfg confighttp.ClientConfig) otelcol.HTTPClientArgume
 		ReadBufferSize:  units.Base2Bytes(cfg.ReadBufferSize),
 		WriteBufferSize: units.Base2Bytes(cfg.WriteBufferSize),
 
-		Timeout:             cfg.Timeout,
-		Headers:             toHeadersMap(cfg.Headers),
-		MaxIdleConns:        mic,
-		MaxIdleConnsPerHost: cfg.MaxIdleConnsPerHost,
-		MaxConnsPerHost:     cfg.MaxConnsPerHost,
-		IdleConnTimeout:     ict,
-		DisableKeepAlives:   cfg.DisableKeepAlives,
+		Timeout:              cfg.Timeout,
+		Headers:              toHeadersMap(cfg.Headers),
+		MaxIdleConns:         mic,
+		MaxIdleConnsPerHost:  cfg.MaxIdleConnsPerHost,
+		MaxConnsPerHost:      cfg.MaxConnsPerHost,
+		IdleConnTimeout:      ict,
+		DisableKeepAlives:    cfg.DisableKeepAlives,
+		HTTP2PingTimeout:     cfg.HTTP2PingTimeout,
+		HTTP2ReadIdleTimeout: cfg.HTTP2ReadIdleTimeout,
 
 		Auth: a,
 	}

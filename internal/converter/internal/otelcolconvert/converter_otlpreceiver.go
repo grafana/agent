@@ -100,15 +100,18 @@ func toTLSServerArguments(cfg *configtls.TLSServerSetting) *otelcol.TLSServerArg
 
 func toTLSSetting(cfg configtls.TLSSetting) otelcol.TLSSetting {
 	return otelcol.TLSSetting{
-		CA:             string(cfg.CAPem),
-		CAFile:         cfg.CAFile,
-		Cert:           string(cfg.CertPem),
-		CertFile:       cfg.CertFile,
-		Key:            rivertypes.Secret(cfg.KeyPem),
-		KeyFile:        cfg.KeyFile,
-		MinVersion:     cfg.MinVersion,
-		MaxVersion:     cfg.MaxVersion,
-		ReloadInterval: cfg.ReloadInterval,
+		CA:                       string(cfg.CAPem),
+		CAFile:                   cfg.CAFile,
+		Cert:                     string(cfg.CertPem),
+		CertFile:                 cfg.CertFile,
+		Key:                      rivertypes.Secret(cfg.KeyPem),
+		KeyFile:                  cfg.KeyFile,
+		MinVersion:               cfg.MinVersion,
+		MaxVersion:               cfg.MaxVersion,
+		ReloadInterval:           cfg.ReloadInterval,
+		IncludeSystemCACertsPool: cfg.IncludeSystemCACertsPool,
+		//TODO(ptodev): Do we need to copy this slice?
+		CipherSuites: cfg.CipherSuites,
 	}
 }
 
