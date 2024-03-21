@@ -21,7 +21,7 @@ func Test(t *testing.T) {
 	}{
 		{
 			testName: "defaultConfig",
-			args: ``,
+			args:     ``,
 			expectedReturn: debugexporter.Config{
 				Verbosity:          configtelemetry.LevelNormal,
 				SamplingInitial:    2,
