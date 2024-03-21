@@ -20,7 +20,12 @@ weight: 200
 
 # Deploy {{% param "PRODUCT_NAME" %}} on Kubernetes
 
-{{< param "PRODUCT_NAME" >}} can be deployed on Kubernetes by using the Helm chart for {{< param "PRODUCT_ROOT_NAME" >}}.
+You can use a Helm chart to deploy {{< param "PRODUCT_NAME" >}} on Kubernetes.
+
+{{< admonition type="note" >}}
+These instructions show you how to install using a generic [Helm chart](https://github.com/grafana/agent/tree/main/operations/helm/charts/grafana-agent) for {{< param "PRODUCT_NAME" >}}.
+You can deploy {{< param "PRODUCT_ROOT_NAME" >}} either in static mode or flow mode. The Helm chart deploys {{< param "PRODUCT_NAME" >}} by default.
+{{< /admonition >}}
 
 ## Before you begin
 
@@ -29,11 +34,6 @@ weight: 200
 * Configure your local Kubernetes context to point to the cluster.
 
 ## Deploy
-
-{{< admonition type="note" >}}
-These instructions show you how to install the generic [Helm chart](https://github.com/grafana/agent/tree/main/operations/helm/charts/grafana-agent) for {{< param "PRODUCT_NAME" >}}.
-You can deploy {{< param "PRODUCT_ROOT_NAME" >}} either in static mode or flow mode. The Helm chart deploys {{< param "PRODUCT_NAME" >}} by default.
-{{< /admonition >}}
 
 To deploy {{< param "PRODUCT_ROOT_NAME" >}} on Kubernetes using Helm, run the following commands in a terminal window:
 
@@ -48,24 +48,49 @@ To deploy {{< param "PRODUCT_ROOT_NAME" >}} on Kubernetes using Helm, run the fo
    ```shell
    helm repo update
    ```
-
-1. Install {{< param "PRODUCT_ROOT_NAME" >}}:
+1. Create a namespace for {{< param "PRODUCT_NAME" >}}:
 
    ```shell
-   helm install <RELEASE_NAME> grafana/grafana-agent
+   kubectl create namespace <NAMESPACE>
    ```
 
    Replace the following:
 
-   -  _`<RELEASE_NAME>`_: The name to use for your {{< param "PRODUCT_ROOT_NAME" >}} installation, such as `grafana-agent-flow`.
+   - _`<NAMESPACE>`_: The namespace to use for your {{< param "PRODUCT_NAME" >}}
+     installation, such as `agent`.
 
-For more information on the {{< param "PRODUCT_ROOT_NAME" >}} Helm chart, refer to the Helm chart documentation on [Artifact Hub][].
+1. Install {{< param "PRODUCT_ROOT_NAME" >}}:
 
-[Artifact Hub]: https://artifacthub.io/packages/helm/grafana/grafana-agent
+   ```shell
+   helm install --namespace <NAMESPACE> <RELEASE_NAME> grafana/grafana-agent
+   ```
+
+   Replace the following:
+
+   - _`<NAMESPACE>`_: The namespace created in the previous step.
+   - _`<RELEASE_NAME>`_: The name to use for your {{< param "PRODUCT_ROOT_NAME" >}} installation, such as `grafana-agent-flow`.
+
+1. Verify that the {{< param "PRODUCT_NAME" >}} pods are running:
+
+   ```shell
+   kubectl get pods --namespace <NAMESPACE>
+   ```
+
+   Replace the following:
+
+   - _`<NAMESPACE>`_: The namespace used in the previous step.
+
+You have successfully deployed {{< param "PRODUCT_NAME" >}} on Kubernetes,
+using default Helm settings. To configure {{< param "PRODUCT_NAME" >}},
+see the [Configure {{< param "PRODUCT_NAME" >}} on Kubernetes][Configure] guide.
 
 ## Next steps
 
-- [Configure {{< param "PRODUCT_NAME" >}}][Configure]
+- [Configure {{< param "PRODUCT_NAME" >}} on Kubernetes][Configure]
+
+- Refer to the [{{< param "PRODUCT_NAME" >}} Helm chart documentation on Artifact Hub][Artifact Hub] for more information about Helm chart.
+
+[Artifact Hub]: https://artifacthub.io/packages/helm/grafana/grafana-agent
 
 [Helm]: https://helm.sh
 
