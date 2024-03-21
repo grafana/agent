@@ -616,6 +616,7 @@ require (
 	github.com/grafana/jfr-parser/pprof v0.0.0-20240126072739-986e71dc0361
 	github.com/grafana/jsonparser v0.0.0-20240209175146-098958973a2d
 	github.com/natefinch/atomic v1.0.1
+	github.com/open-telemetry/opentelemetry-collector-contrib/connector/countconnector v0.87.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusremotewriteexporter v0.87.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/filterprocessor v0.87.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusreceiver v0.87.0

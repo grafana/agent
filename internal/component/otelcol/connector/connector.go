@@ -18,15 +18,18 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	otelcomponent "go.opentelemetry.io/collector/component"
 	otelconnector "go.opentelemetry.io/collector/connector"
+	otelconsumer "go.opentelemetry.io/collector/consumer"
 	otelextension "go.opentelemetry.io/collector/extension"
 	sdkprometheus "go.opentelemetry.io/otel/exporters/prometheus"
 	"go.opentelemetry.io/otel/sdk/metric"
 )
 
+type Type uint16
+
 const (
-	ConnectorTracesToTraces = iota
-	ConnectorTracesToMetrics
-	ConnectorTracesToLogs
+	ConnectorTracesToTraces  Type = 1 << iota // 1
+	ConnectorTracesToMetrics                  // 2
+	ConnectorTracesToLogs                     // 4
 	ConnectorMetricsToTraces
 	ConnectorMetricsToMetrics
 	ConnectorMetricsToLogs
@@ -34,6 +37,22 @@ const (
 	ConnectorLogsToMetrics
 	ConnectorLogsToLogs
 )
+
+func (t Type) SupportsTracesToMetrics() bool {
+	return t&ConnectorTracesToMetrics != 0
+}
+
+func (t Type) SupportsLogsToMetrics() bool {
+	return t&ConnectorLogsToMetrics != 0
+}
+
+func (t Type) SupportsMetricsToMetrics() bool {
+	return t&ConnectorMetricsToMetrics != 0
+}
+
+func (t Type) SupportsAnyToMetrics() bool {
+	return t&(ConnectorTracesToMetrics|ConnectorMetricsToMetrics|ConnectorLogsToMetrics) != 0
+}
 
 // Arguments is an extension of component.Arguments which contains necessary
 // settings for OpenTelemetry Collector connectors.
@@ -55,7 +74,7 @@ type Arguments interface {
 	// NextConsumers returns the set of consumers to send data to.
 	NextConsumers() *otelcol.ConsumerArguments
 
-	ConnectorType() int
+	ConnectorType() Type
 }
 
 // Connector is a Flow component shim which manages an OpenTelemetry Collector
@@ -177,22 +196,44 @@ func (p *Connector) Update(args component.Arguments) error {
 	var metricsConnector otelconnector.Metrics
 	var logsConnector otelconnector.Logs
 
-	switch pargs.ConnectorType() {
-	case ConnectorTracesToMetrics:
+	ct := pargs.ConnectorType()
+	if ct.SupportsAnyToMetrics() {
 		if len(next.Traces) > 0 || len(next.Logs) > 0 {
 			return errors.New("this connector can only output metrics")
 		}
 
+		var nextMetrics otelconsumer.Metrics
 		if len(next.Metrics) > 0 {
-			nextMetrics := fanoutconsumer.Metrics(next.Metrics)
-			tracesConnector, err = p.factory.CreateTracesToMetrics(p.ctx, settings, connectorConfig, nextMetrics)
-			if err != nil && !errors.Is(err, otelcomponent.ErrDataTypeIsNotSupported) {
-				return err
-			} else if tracesConnector != nil {
-				components = append(components, tracesConnector)
+			nextMetrics = fanoutconsumer.Metrics(next.Metrics)
+		}
+
+		if nextMetrics != nil {
+			if ct.SupportsTracesToMetrics() {
+				tracesConnector, err = p.factory.CreateTracesToMetrics(p.ctx, settings, connectorConfig, nextMetrics)
+				if err != nil && !errors.Is(err, otelcomponent.ErrDataTypeIsNotSupported) {
+					return err
+				} else if tracesConnector != nil {
+					components = append(components, tracesConnector)
+				}
+			}
+			if ct.SupportsMetricsToMetrics() {
+				metricsConnector, err = p.factory.CreateMetricsToMetrics(p.ctx, settings, connectorConfig, nextMetrics)
+				if err != nil && !errors.Is(err, otelcomponent.ErrDataTypeIsNotSupported) {
+					return err
+				} else if metricsConnector != nil {
+					components = append(components, metricsConnector)
+				}
+			}
+			if ct.SupportsLogsToMetrics() {
+				logsConnector, err = p.factory.CreateLogsToMetrics(p.ctx, settings, connectorConfig, nextMetrics)
+				if err != nil && !errors.Is(err, otelcomponent.ErrDataTypeIsNotSupported) {
+					return err
+				} else if logsConnector != nil {
+					components = append(components, logsConnector)
+				}
 			}
 		}
-	default:
+	} else {
 		return errors.New("unsupported connector type")
 	}
 
