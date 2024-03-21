@@ -17,6 +17,7 @@ import (
 	"github.com/grafana/agent/internal/service/http"
 	"github.com/grafana/agent/internal/service/labelstore"
 	"github.com/grafana/ckit/shard"
+	"github.com/grafana/dskit/backoff"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/config"
 	"github.com/prometheus/prometheus/discovery"
@@ -27,6 +28,7 @@ import (
 	toolscache "k8s.io/client-go/tools/cache"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
 
 	"github.com/grafana/agent/internal/component/prometheus/operator"
 	"github.com/grafana/agent/internal/component/prometheus/operator/configgen"
@@ -38,6 +40,13 @@ import (
 
 // Generous timeout period for configuring all informers
 const informerSyncTimeout = 10 * time.Second
+
+// Retry configuration for configuring informers
+var informerBackoff = backoff.Config{
+	MinBackoff: 100 * time.Millisecond,
+	MaxBackoff: time.Second,
+	MaxRetries: 10,
+}
 
 // crdManager is all of the fields required to run a crd based component.
 // on update, this entire thing should be recreated and restarted
@@ -132,7 +141,7 @@ func (c *crdManager) Run(ctx context.Context) error {
 	if err := c.runInformers(restConfig, ctx); err != nil {
 		return err
 	}
-	level.Info(c.logger).Log("msg", "informers  started")
+	level.Info(c.logger).Log("msg", "informers started")
 
 	var cachedTargets map[string][]*targetgroup.Group
 	// Start the target discovery loop to update the scrape manager with new targets.
@@ -266,6 +275,20 @@ func (c *crdManager) runInformers(restConfig *rest.Config, ctx context.Context) 
 		if ls != labels.Nothing() {
 			opts.DefaultLabelSelector = ls
 		}
+
+		// TODO: Remove custom opts.Mapper when sigs.k8s.io/controller-runtime >= 0.17.0 as `NewDynamicRESTMapper` is the default in that version
+		var err error
+		opts.HTTPClient, err = rest.HTTPClientFor(restConfig)
+		if err != nil {
+			return err
+		}
+
+		opts.Mapper, err = apiutil.NewDynamicRESTMapper(restConfig, opts.HTTPClient)
+		if err != nil {
+			return fmt.Errorf("could not create RESTMapper from config: %w", err)
+		}
+		// TODO: end custom opts.Mapps
+
 		cache, err := cache.New(restConfig, opts)
 		if err != nil {
 			return err
@@ -305,16 +328,31 @@ func (c *crdManager) configureInformers(ctx context.Context, informers cache.Inf
 		return fmt.Errorf("unknown kind to configure Informers: %s", c.kind)
 	}
 
-	informerCtx, cancel := context.WithTimeout(ctx, informerSyncTimeout)
-	defer cancel()
+	var informer cache.Informer
+	var err error
+	bo := backoff.New(ctx, informerBackoff)
 
-	informer, err := informers.GetInformer(informerCtx, prototype)
-	if err != nil {
+	for bo.Ongoing() {
+		informerCtx, cancel := context.WithTimeout(ctx, informerSyncTimeout)
+		defer cancel()
+
+		informer, err = informers.GetInformer(informerCtx, prototype)
+		if err == nil {
+			// Successfully got the informer
+			break
+		}
+
 		if errors.Is(informerCtx.Err(), context.DeadlineExceeded) { // Check the context to prevent GetInformer returning a fake timeout
 			return fmt.Errorf("timeout exceeded while configuring informers. Check the connection"+
 				" to the Kubernetes API is stable and that the Agent has appropriate RBAC permissions for %v", prototype)
 		}
 
+		level.Warn(c.logger).Log("msg", "failed to get informer - will retry", "err", err)
+
+		bo.Wait()
+	}
+
+	if err != nil {
 		return err
 	}
 	const resync = 5 * time.Minute
