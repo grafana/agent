@@ -40,6 +40,9 @@ Main (unreleased)
 
 - Update gcp_exporter to a newer version with a patch for incorrect delta histograms (@kgeckhart)
 
+- Flow: Fix an issue where `faro.receiver`'s `extra_log_labels` with empty value don't
+  map existing value in log line. (@hainenber)
+
 ### Other changes
 
 - Clustering for Grafana Agent in Flow mode has graduated from beta to stable.
