@@ -35,7 +35,7 @@ otelcol.exporter.debug "LABEL" { }
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
-`verbosity`           | `string` | Verbosity of the generated logs. | `"basic"` | no
+`verbosity`           | `string` | Verbosity of the generated logs. | `"normal"` | no
 `sampling_initial`    | `int`    | Number of messages initially logged each second. | `2` | no
 `sampling_thereafter` | `int`    | Sampling rate after the initial messages are logged. | `500` | no
 

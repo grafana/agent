@@ -55,7 +55,7 @@ var _ exporter.Arguments = Arguments{}
 
 // DefaultArguments holds default values for Arguments.
 var DefaultArguments = Arguments{
-	Verbosity:          "basic",
+	Verbosity:          "normal",
 	SamplingInitial:    2,
 	SamplingThereafter: 500,
 }
