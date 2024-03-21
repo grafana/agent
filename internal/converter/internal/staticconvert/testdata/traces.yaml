@@ -8,6 +8,8 @@ traces:
             http:
       remote_write:
         - endpoint: http://localhost:1234/write
+      automatic_logging:
+        backend: "stdout"
       tail_sampling:
         policies:
           [

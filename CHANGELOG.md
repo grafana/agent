@@ -24,6 +24,9 @@ Main (unreleased)
 - Improve converter diagnostic output by including a Footer and removing lower
   level diagnostics when a configuration fails to generate. (@erikbaranowski)
 
+- Increased the alert interval and renamed the `ClusterSplitBrain` alert to `ClusterNodeCountMismatch` in the Grafana
+  Agent Mixin to better match the alert conditions. (@thampiotr)
+
 ### Features
 
 - Added a new CLI flag `--stability.level` which defines the minimum stability
@@ -34,6 +37,12 @@ Main (unreleased)
 ### Bugfixes
 
 - Fix an issue where JSON string array elements were not parsed correctly in `loki.source.cloudflare`. (@thampiotr)
+
+- Update gcp_exporter to a newer version with a patch for incorrect delta histograms (@kgeckhart)
+
+- Fix an issue where the default values of some component's arguments change
+  whenever that argument is explicitly configured. This issue only affected a
+  small subset of arguments across 15 components. (@erikbaranowski, @rfratto)
 
 ### Other changes
 
@@ -103,7 +112,9 @@ v0.40.0 (2024-02-27)
 
 ### Deprecations
 
-- Module components have been deprecated in favor of import and declare configuration blocks. These deprecated components will be removed in the next release. (@wildum)
+- Module components have been deprecated in favor of import and declare configuration blocks. These deprecated components will be removed in a future release. (@wildum)
+
+- `prometheus.exporter.vsphere` has been deprecated in favor of `otelcol.receiver.vcenter`. This deprecated component will be removed in a future release. (@rfratto)
 
 ### Features
 

@@ -236,6 +236,12 @@ type MetricsBuilderConfig struct {
 	ResourceAttributes ResourceAttributesConfig `river:"resource_attributes,block,optional"`
 }
 
+func (mbc *MetricsBuilderConfig) SetToDefault() {
+	*mbc = MetricsBuilderConfig{}
+	mbc.Metrics.SetToDefault()
+	mbc.ResourceAttributes.SetToDefault()
+}
+
 func (args *MetricsBuilderConfig) Convert() map[string]interface{} {
 	if args == nil {
 		return nil
@@ -273,11 +279,9 @@ var _ receiver.Arguments = Arguments{}
 func (args *Arguments) SetToDefault() {
 	*args = Arguments{
 		ScraperControllerArguments: otelcol.DefaultScraperControllerArguments,
-		DebugMetrics:               otelcol.DefaultDebugMetricsArguments,
 	}
-
-	args.MetricsBuilderConfig.Metrics.SetToDefault()
-	args.MetricsBuilderConfig.ResourceAttributes.SetToDefault()
+	args.MetricsBuilderConfig.SetToDefault()
+	args.DebugMetrics.SetToDefault()
 }
 
 // Convert implements receiver.Arguments.
