@@ -70,8 +70,8 @@ func (args Arguments) Convert() dns.SDConfig {
 
 // New returns a new instance of a discovery.dns component.
 func New(opts component.Options, args Arguments) (*discovery.Component, error) {
-	return discovery.New(opts, args, func(args component.Arguments) (discovery.Discoverer, error) {
-		conf := args.(Arguments).Convert()
-		return dns.NewDiscovery(conf, opts.Logger), nil
+	return discovery.New(opts, args, func(args component.Arguments) discovery.DiscovererConfig {
+		newArgs := args.(Arguments).Convert()
+		return &newArgs
 	})
 }

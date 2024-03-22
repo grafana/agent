@@ -101,8 +101,8 @@ func (args Arguments) Convert() moby.DockerSDConfig {
 
 // New returns a new instance of a discovery.docker component.
 func New(opts component.Options, args Arguments) (*discovery.Component, error) {
-	return discovery.New(opts, args, func(args component.Arguments) (discovery.Discoverer, error) {
-		conf := args.(Arguments).Convert()
-		return moby.NewDockerDiscovery(&conf, opts.Logger)
+	return discovery.New(opts, args, func(args component.Arguments) discovery.DiscovererConfig {
+		newArgs := args.(Arguments).Convert()
+		return &newArgs
 	})
 }

@@ -60,8 +60,8 @@ func (args Arguments) Convert() gce.SDConfig {
 
 // New returns a new instance of a discovery.gce component.
 func New(opts component.Options, args Arguments) (*discovery.Component, error) {
-	return discovery.New(opts, args, func(args component.Arguments) (discovery.Discoverer, error) {
-		conf := args.(Arguments).Convert()
-		return gce.NewDiscovery(conf, opts.Logger)
+	return discovery.New(opts, args, func(args component.Arguments) discovery.DiscovererConfig {
+		newArgs := args.(Arguments).Convert()
+		return &newArgs
 	})
 }

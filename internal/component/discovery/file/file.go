@@ -45,8 +45,8 @@ func (a *Arguments) Convert() *prom_discovery.SDConfig {
 }
 
 func New(opts component.Options, args Arguments) (*discovery.Component, error) {
-	return discovery.New(opts, args, func(args component.Arguments) (discovery.Discoverer, error) {
+	return discovery.New(opts, args, func(args component.Arguments) discovery.DiscovererConfig {
 		newArgs := args.(Arguments)
-		return prom_discovery.NewDiscovery(newArgs.Convert(), opts.Logger), nil
+		return newArgs.Convert()
 	})
 }

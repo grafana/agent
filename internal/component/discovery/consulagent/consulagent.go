@@ -80,8 +80,8 @@ func (args *Arguments) Convert() *SDConfig {
 
 // New returns a new instance of a discovery.consulagent component.
 func New(opts component.Options, args Arguments) (*discovery.Component, error) {
-	return discovery.New(opts, args, func(args component.Arguments) (discovery.Discoverer, error) {
+	return discovery.New(opts, args, func(args component.Arguments) discovery.DiscovererConfig {
 		newArgs := args.(Arguments)
-		return NewDiscovery(newArgs.Convert(), opts.Logger)
+		return newArgs.Convert()
 	})
 }

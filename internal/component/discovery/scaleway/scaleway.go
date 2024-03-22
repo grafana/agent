@@ -179,8 +179,8 @@ func (r *Role) UnmarshalText(text []byte) error {
 
 // New returns a new instance of a discovery.scaleway component.
 func New(opts component.Options, args Arguments) (*discovery.Component, error) {
-	return discovery.New(opts, args, func(args component.Arguments) (discovery.Discoverer, error) {
+	return discovery.New(opts, args, func(args component.Arguments) discovery.DiscovererConfig {
 		newArgs := args.(Arguments)
-		return prom_discovery.NewDiscovery(newArgs.Convert(), opts.Logger)
+		return newArgs.Convert()
 	})
 }

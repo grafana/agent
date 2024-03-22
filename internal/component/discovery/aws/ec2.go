@@ -108,8 +108,7 @@ func (args *EC2Arguments) Validate() error {
 
 // New creates a new discovery.ec2 component.
 func NewEC2(opts component.Options, args EC2Arguments) (component.Component, error) {
-	return discovery.New(opts, args, func(args component.Arguments) (discovery.Discoverer, error) {
-		conf := args.(EC2Arguments).Convert()
-		return promaws.NewEC2Discovery(conf, opts.Logger), nil
+	return discovery.New(opts, args, func(args component.Arguments) discovery.DiscovererConfig {
+		return args.(EC2Arguments).Convert()
 	})
 }
