@@ -186,6 +186,12 @@ func (a *appender) AppendExemplar(ref storage.SeriesRef, l labels.Labels, e exem
 	return ref, multiErr
 }
 
+// AppendCTZeroSample implements storage.Appender.
+func (a *appender) AppendCTZeroSample(ref storage.SeriesRef, l labels.Labels, t int64, ct int64) (storage.SeriesRef, error) {
+	//TODO(ptodev): implementr this later
+	return 0, nil
+}
+
 // UpdateMetadata satisfies the Appender interface.
 func (a *appender) UpdateMetadata(ref storage.SeriesRef, l labels.Labels, m metadata.Metadata) (storage.SeriesRef, error) {
 	if a.start.IsZero() {
