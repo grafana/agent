@@ -63,9 +63,7 @@ otelcol.receiver.otlp "default" {
 }
 
 otelcol.processor.discovery "default" {
-	targets = concat(
-		discovery.relabel._prometheus1.output,
-	)
+	targets          = discovery.relabel._prometheus1.output
 	pod_associations = []
 
 	output {

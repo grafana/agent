@@ -54,8 +54,8 @@ func toDiscoveryProcessor(state *state, id component.InstanceID, cfg *promsdproc
 	// Since the scrapeConfigs are of type []interface{}, we are able overload the field
 	// with []discovery.Target for the purposes of the conversion.
 	targets := make([]discovery.Target, len(cfg.ScrapeConfigs))
-	for _, scrapeConfig := range cfg.ScrapeConfigs {
-		targets = append(targets, scrapeConfig.(discovery.Target))
+	for i, scrapeConfig := range cfg.ScrapeConfigs {
+		targets[i] = scrapeConfig.(discovery.Target)
 	}
 
 	return &otelcol_discovery.Arguments{
