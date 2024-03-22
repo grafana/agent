@@ -45,7 +45,7 @@ func toZipkinReceiver(state *state, id component.InstanceID, cfg *zipkinreceiver
 
 	return &zipkin.Arguments{
 		ParseStringTags: cfg.ParseStringTags,
-		HTTPServer:      *toHTTPServerArguments(&cfg.HTTPServerSettings),
+		HTTPServer:      *toHTTPServerArguments(&cfg.ServerConfig),
 
 		DebugMetrics: common.DefaultValue[zipkin.Arguments]().DebugMetrics,
 
