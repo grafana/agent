@@ -10,6 +10,7 @@ import (
 	"github.com/grafana/agent/internal/static/metrics"
 	"github.com/grafana/agent/internal/static/metrics/instance"
 	"github.com/grafana/agent/internal/static/server"
+	"github.com/grafana/agent/internal/util/prom_global_metrics"
 	"github.com/oklog/run"
 	config_util "github.com/prometheus/common/config"
 	"github.com/prometheus/common/model"
@@ -214,16 +215,31 @@ func newInstanceScraper(
 			config_util.WithDialContextFunc(dialerFunc),
 		),
 	}
-	sd := discovery.NewManager(ctx, l, sdOpts...)
-	sm := scrape.NewManager(&scrape.Options{
-		HTTPClientOptions: []config_util.HTTPClientOption{
-			// If dialerFunc is nil, scrape.NewManager will use Go's default dialer.
-			config_util.WithDialContextFunc(dialerFunc),
+	sd := discovery.NewManager(
+		ctx,
+		l,
+		prom_global_metrics.PromDiscoveryManagerRegistry,
+		prom_global_metrics.PromSdMetrics,
+		sdOpts...,
+	)
+
+	sm, err := scrape.NewManager(
+		&scrape.Options{
+			HTTPClientOptions: []config_util.HTTPClientOption{
+				// If dialerFunc is nil, scrape.NewManager will use Go's default dialer.
+				config_util.WithDialContextFunc(dialerFunc),
+			},
 		},
-	}, l, &agentAppender{
-		inst: instanceName,
-		is:   s,
-	})
+		l,
+		&agentAppender{
+			inst: instanceName,
+			is:   s,
+		},
+		prom_global_metrics.PromScrapeManagerRegistry,
+	)
+	if err != nil {
+		panic(err)
+	}
 
 	is := &instanceScraper{
 		log: l,

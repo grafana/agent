@@ -22,6 +22,7 @@ import (
 	"github.com/grafana/agent/internal/static/metrics/wal"
 	"github.com/grafana/agent/internal/useragent"
 	"github.com/grafana/agent/internal/util"
+	"github.com/grafana/agent/internal/util/prom_global_metrics"
 	"github.com/oklog/run"
 	"github.com/prometheus/client_golang/prometheus"
 	config_util "github.com/prometheus/common/config"
@@ -617,7 +618,13 @@ func (i *Instance) newDiscoveryManager(ctx context.Context, cfg *Config) (*disco
 	ctx, cancel := context.WithCancel(ctx)
 
 	logger := log.With(i.logger, "component", "discovery manager")
-	manager := discovery.NewManager(ctx, logger, discovery.Name("scrape"))
+	manager := discovery.NewManager(
+		ctx,
+		logger,
+		prom_global_metrics.PromDiscoveryManagerRegistry,
+		prom_global_metrics.PromSdMetrics,
+		discovery.Name("scrape"),
+	)
 
 	// TODO(rfratto): refactor this to a function?
 	// TODO(rfratto): ensure job name name is unique
@@ -783,7 +790,16 @@ func newScrapeManager(o *scrape.Options, logger log.Logger, app storage.Appendab
 	// data race of modifying that global, we lock a mutex here briefly.
 	managerMtx.Lock()
 	defer managerMtx.Unlock()
-	return scrape.NewManager(o, logger, app)
+	mgr, err := scrape.NewManager(
+		o,
+		logger,
+		app,
+		prom_global_metrics.PromScrapeManagerRegistry,
+	)
+	if err != nil {
+		panic(err)
+	}
+	return mgr
 }
 
 type runGroupContext struct {

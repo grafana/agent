@@ -404,6 +404,10 @@ func (a *mockAppender) AppendHistogram(ref storage.SeriesRef, l labels.Labels, t
 	return 0, nil
 }
 
+func (a *mockAppender) AppendCTZeroSample(ref storage.SeriesRef, l labels.Labels, t int64, ct int64) (storage.SeriesRef, error) {
+	return 0, nil
+}
+
 func (a *mockAppender) Commit() error {
 	return nil
 }

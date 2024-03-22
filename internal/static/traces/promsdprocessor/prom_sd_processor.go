@@ -9,6 +9,7 @@ import (
 	"github.com/grafana/agent/internal/component/discovery"
 	promsdconsumer "github.com/grafana/agent/internal/static/traces/promsdprocessor/consumer"
 	util "github.com/grafana/agent/internal/util/log"
+	"github.com/grafana/agent/internal/util/prom_global_metrics"
 	"github.com/prometheus/prometheus/config"
 	promdiscovery "github.com/prometheus/prometheus/discovery"
 	"github.com/prometheus/prometheus/discovery/targetgroup"
@@ -36,7 +37,13 @@ func newTraceProcessor(nextConsumer consumer.Traces, operationType string, podAs
 	ctx, cancel := context.WithCancel(context.Background())
 
 	logger := log.With(util.Logger, "component", "traces service disco")
-	mgr := promdiscovery.NewManager(ctx, logger, promdiscovery.Name("traces service disco"))
+	mgr := promdiscovery.NewManager(
+		ctx,
+		logger,
+		prom_global_metrics.PromDiscoveryManagerRegistry,
+		prom_global_metrics.PromSdMetrics,
+		promdiscovery.Name("traces service disco"),
+	)
 
 	relabelConfigs := map[string][]*relabel.Config{}
 	managerConfig := map[string]promdiscovery.Configs{}
