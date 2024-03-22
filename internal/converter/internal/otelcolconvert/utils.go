@@ -57,7 +57,7 @@ func ConvertWithoutValidation(in []byte, extraArgs []string) ([]byte, diag.Diagn
 
 	f := builder.NewFile()
 
-	diags.AddAll(AppendConfig(f, cfg, ""))
+	diags.AddAll(AppendConfig(f, cfg, "", nil))
 	diags.AddAll(common.ValidateNodes(f))
 
 	var buf bytes.Buffer

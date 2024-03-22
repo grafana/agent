@@ -11,9 +11,9 @@ import (
 	"go.opentelemetry.io/collector/otelcol"
 )
 
-// componentConverter represents a converter which converts an OpenTelemetry
+// ComponentConverter represents a converter which converts an OpenTelemetry
 // Collector component into a Flow component.
-type componentConverter interface {
+type ComponentConverter interface {
 	// Factory should return the factory for the OpenTelemetry Collector
 	// component.
 	Factory() component.Factory
@@ -44,7 +44,7 @@ type componentConverter interface {
 
 // List of component converters. This slice is appended to by init functions in
 // other files.
-var converters []componentConverter
+var converters []ComponentConverter
 
 // state represents the state of the conversion. The state tracks:
 //
@@ -57,7 +57,7 @@ type state struct {
 	group *pipelineGroup  // Current pipeline group being converted.
 
 	// converterLookup maps a converter key to the associated converter instance.
-	converterLookup map[converterKey]componentConverter
+	converterLookup map[converterKey]ComponentConverter
 
 	// extensionLookup maps OTel extensions to Flow component IDs.
 	extensionLookup map[component.ID]componentID

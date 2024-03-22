@@ -4,10 +4,14 @@ import (
 	"fmt"
 	"reflect"
 
+	"github.com/grafana/agent/internal/component/discovery"
 	"github.com/grafana/agent/internal/converter/diag"
 	"github.com/grafana/agent/internal/converter/internal/otelcolconvert"
 	"github.com/grafana/agent/internal/converter/internal/prometheusconvert"
+	"github.com/grafana/agent/internal/converter/internal/prometheusconvert/build"
+	"github.com/grafana/agent/internal/converter/internal/prometheusconvert/component"
 	"github.com/grafana/agent/internal/static/traces"
+	"github.com/grafana/agent/internal/static/traces/promsdprocessor"
 	"github.com/grafana/river/scanner"
 	prom_config "github.com/prometheus/prometheus/config"
 	otel_component "go.opentelemetry.io/collector/component"
@@ -40,7 +44,8 @@ func (b *ConfigBuilder) appendTraces() {
 		b.translateAutomaticLogging(otelCfg, cfg)
 		b.translatePromSDProcessor(otelCfg, cfg, labelPrefix)
 
-		b.diags.AddAll(otelcolconvert.AppendConfig(b.f, otelCfg, labelPrefix))
+		extraConverters := []otelcolconvert.ComponentConverter{otelcolconvert.DiscoveryProcessorConverter{}}
+		b.diags.AddAll(otelcolconvert.AppendConfig(b.f, otelCfg, labelPrefix, extraConverters))
 	}
 }
 
@@ -90,36 +95,25 @@ func (b *ConfigBuilder) translatePromSDProcessor(otelCfg *otelcol.Config, cfg tr
 		ScrapeConfigs: scrapeConfigs,
 	}
 
-	// Remove the prom_sd_processor processor which is an implementation detail for static mode and unnecessary for the otel config.
-	removeProcessor(otelCfg, "traces", "prom_sd_processor")
-
-	jobNameToCompLabelsFunc := func(jobName string) string {
-		name := labelPrefix
-		if jobName != "" {
-			name += fmt.Sprintf("_%s", jobName)
+	targets := []discovery.Target{}
+	pb := build.NewPrometheusBlocks()
+	for _, scrapeConfig := range promConfig.ScrapeConfigs {
+		label, _ := scanner.SanitizeIdentifier(labelPrefix + "_" + scrapeConfig.JobName)
+		scrapeTargets := prometheusconvert.AppendServiceDiscoveryConfigs(pb, scrapeConfig.ServiceDiscoveryConfigs, label)
+		promDiscoveryRelabelExports := component.AppendDiscoveryRelabel(pb, scrapeConfig.RelabelConfigs, scrapeTargets, label)
+		if promDiscoveryRelabelExports != nil {
+			scrapeTargets = promDiscoveryRelabelExports.Output
 		}
-
-		if name == "" {
-			name = "default"
-		}
-
-		name, err := scanner.SanitizeIdentifier(name)
-		if err != nil {
-			b.diags.Add(diag.SeverityLevelCritical, fmt.Sprintf("failed to sanitize job name: %s", err))
-		}
-
-		return name
+		targets = append(targets, scrapeTargets...)
 	}
 
-	prometheusconvert.AppendAllNested(b.f, promConfig, jobNameToCompLabelsFunc, nil, nil)
+	pb.AppendToFile(b.f)
 
-	// // Add the prom_sd_processor processor to the otel config with default values
-	// otelCfg.Processors[otel_component.NewID("prom_sd_processor")] = traces.NewPromSDProcessorFactory().CreateDefaultConfig()
-
-	// // Add the prom_sd_processor processor to all pipelines
-	// for _, pipeline := range otelCfg.Service.Pipelines {
-	// 	pipeline.Processors = append(pipeline.Processors, otel_component.NewID("prom_sd_processor"))
-	// }
+	// Remap the scrapeConfigs to the list of targets. This is a hacky way to get the prom_sd_processor to work with the
+	// discovery processor during conversion.
+	for i, target := range targets {
+		otelCfg.Processors[otel_component.NewID("prom_sd_processor")].(*promsdprocessor.Config).ScrapeConfigs[i] = target
+	}
 }
 
 // removeReceiver removes a receiver from the otel config for a specific pipeline type.

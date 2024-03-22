@@ -65,7 +65,7 @@ func Convert(in []byte, extraArgs []string) ([]byte, diag.Diagnostics) {
 
 	f := builder.NewFile()
 
-	diags.AddAll(AppendConfig(f, cfg, ""))
+	diags.AddAll(AppendConfig(f, cfg, "", nil))
 	diags.AddAll(common.ValidateNodes(f))
 
 	var buf bytes.Buffer
@@ -143,7 +143,7 @@ func getFactories() otelcol.Factories {
 
 // AppendConfig converts the provided OpenTelemetry config into an equivalent
 // Flow config and appends the result to the provided file.
-func AppendConfig(file *builder.File, cfg *otelcol.Config, labelPrefix string) diag.Diagnostics {
+func AppendConfig(file *builder.File, cfg *otelcol.Config, labelPrefix string, extraConverters []ComponentConverter) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	groups, err := createPipelineGroups(cfg.Service.Pipelines)
@@ -153,7 +153,7 @@ func AppendConfig(file *builder.File, cfg *otelcol.Config, labelPrefix string) d
 	}
 	// TODO(rfratto): should this be deduplicated to avoid creating factories
 	// twice?
-	converterTable := buildConverterTable()
+	converterTable := buildConverterTable(extraConverters)
 
 	// Connector components are defined on the top level of the OpenTelemetry
 	// config, but inside of the pipeline definitions they act like regular
@@ -289,10 +289,11 @@ func validateNoDuplicateReceivers(groups []pipelineGroup, connectorIDs []compone
 	return diags
 }
 
-func buildConverterTable() map[converterKey]componentConverter {
-	table := make(map[converterKey]componentConverter)
+func buildConverterTable(extraConverters []ComponentConverter) map[converterKey]ComponentConverter {
+	table := make(map[converterKey]ComponentConverter)
+	allConverters := append(converters, extraConverters...)
 
-	for _, conv := range converters {
+	for _, conv := range allConverters {
 		fact := conv.Factory()
 
 		switch fact.(type) {

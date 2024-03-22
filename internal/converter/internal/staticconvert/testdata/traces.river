@@ -46,28 +46,6 @@ discovery.relabel "_prometheus1" {
 	}
 }
 
-prometheus.scrape "_prometheus1" {
-	targets         = discovery.relabel._prometheus1.output
-	forward_to      = [prometheus.relabel._prometheus1.receiver]
-	job_name        = "prometheus1"
-	scrape_interval = "0s"
-	scrape_timeout  = "0s"
-}
-
-prometheus.relabel "_prometheus1" {
-	forward_to = [prometheus.remote_write.default.receiver]
-
-	rule {
-		source_labels = ["__metric_address1__"]
-		target_label  = "__metric_param_target1"
-	}
-
-	rule {
-		source_labels = ["__metric_address2__"]
-		target_label  = "__metric_param_target2"
-	}
-}
-
 otelcol.receiver.otlp "default" {
 	grpc {
 		include_metadata = true
@@ -76,6 +54,19 @@ otelcol.receiver.otlp "default" {
 	http {
 		include_metadata = true
 	}
+
+	output {
+		metrics = []
+		logs    = []
+		traces  = [otelcol.processor.discovery.default.input]
+	}
+}
+
+otelcol.processor.discovery "default" {
+	targets = concat(
+		discovery.relabel._prometheus1.output,
+	)
+	pod_associations = []
 
 	output {
 		metrics = []
