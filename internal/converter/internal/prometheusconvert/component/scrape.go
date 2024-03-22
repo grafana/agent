@@ -46,6 +46,12 @@ func toScrapeArguments(scrapeConfig *prom_config.ScrapeConfig, forwardTo []stora
 		return nil
 	}
 
+	// Scrape protocols
+	scrapeProtocols := make([]string, 0, len(scrapeConfig.ScrapeProtocols))
+	for _, p := range scrapeConfig.ScrapeProtocols {
+		scrapeProtocols = append(scrapeProtocols, string(p))
+	}
+
 	return &scrape.Arguments{
 		Targets:                  targets,
 		ForwardTo:                forwardTo,
@@ -58,7 +64,7 @@ func toScrapeArguments(scrapeConfig *prom_config.ScrapeConfig, forwardTo []stora
 		ScrapeInterval:           time.Duration(scrapeConfig.ScrapeInterval),
 		ScrapeTimeout:            time.Duration(scrapeConfig.ScrapeTimeout),
 		//TODO: Do we need to deep copy the slice?
-		ScrapeProtocols:       scrapeConfig.ScrapeProtocols,
+		ScrapeProtocols:       scrapeProtocols,
 		MetricsPath:           scrapeConfig.MetricsPath,
 		Scheme:                scrapeConfig.Scheme,
 		BodySizeLimit:         scrapeConfig.BodySizeLimit,

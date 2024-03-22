@@ -16,6 +16,7 @@ import (
 	"github.com/grafana/agent/internal/service/cluster"
 	"github.com/grafana/agent/internal/service/http"
 	"github.com/grafana/agent/internal/service/labelstore"
+	"github.com/grafana/agent/internal/util"
 	"github.com/grafana/ckit/shard"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/config"
@@ -32,6 +33,7 @@ import (
 	"github.com/grafana/agent/internal/component/prometheus/operator/configgen"
 	compscrape "github.com/grafana/agent/internal/component/prometheus/scrape"
 	promopv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
+	prom_client "github.com/prometheus/client_golang/prometheus"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
 )
@@ -66,6 +68,8 @@ type crdManager struct {
 	client *kubernetes.Clientset
 
 	kind string
+
+	reg prom_client.Registerer
 }
 
 const (
@@ -92,10 +96,19 @@ func newCrdManager(opts component.Options, cluster cluster.Cluster, logger log.L
 		kind:              kind,
 		clusteringUpdated: make(chan struct{}, 1),
 		ls:                ls,
+		reg:               opts.Registerer,
 	}
 }
 
 func (c *crdManager) Run(ctx context.Context) error {
+	wrappedReg := util.WrapWithUnregisterer(c.reg)
+	defer wrappedReg.UnregisterAll()
+
+	sdMetrics, err := discovery.CreateAndRegisterSDMetrics(wrappedReg)
+	if err != nil {
+		return fmt.Errorf("creating and registering service discovery metrics: %w", err)
+	}
+
 	restConfig, err := c.args.Client.BuildRESTConfig(c.logger)
 	if err != nil {
 		return fmt.Errorf("creating rest config: %w", err)
@@ -106,7 +119,7 @@ func (c *crdManager) Run(ctx context.Context) error {
 	}
 
 	// Start prometheus service discovery manager
-	c.discoveryManager = discovery.NewManager(ctx, c.logger, discovery.Name(c.opts.ID))
+	c.discoveryManager = discovery.NewManager(ctx, c.logger, wrappedReg, sdMetrics, discovery.Name(c.opts.ID))
 	go func() {
 		err := c.discoveryManager.Run()
 		if err != nil {
@@ -117,7 +130,13 @@ func (c *crdManager) Run(ctx context.Context) error {
 	// Start prometheus scrape manager.
 	flowAppendable := prometheus.NewFanout(c.args.ForwardTo, c.opts.ID, c.opts.Registerer, c.ls)
 	opts := &scrape.Options{}
-	c.scrapeManager = scrape.NewManager(opts, c.logger, flowAppendable)
+
+	scrapeManager, err := scrape.NewManager(opts, c.logger, flowAppendable, wrappedReg)
+	if err != nil {
+		return fmt.Errorf("creating scrape manager: %w", err)
+	}
+	c.scrapeManager = scrapeManager
+
 	defer c.scrapeManager.Stop()
 	targetSetsChan := make(chan map[string][]*targetgroup.Group)
 	go func() {

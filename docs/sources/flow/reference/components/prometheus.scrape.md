@@ -48,7 +48,6 @@ Name | Type | Description | Default | Required
 `forward_to`                  | `list(MetricsReceiver)` | List of receivers to send scraped metrics to. | | yes
 `job_name`                    | `string`   | The value to use for the job label if not already set. | component name | no
 `extra_metrics`               | `bool`     | Whether extra metrics should be generated for scrape targets. | `false` | no
-`enable_protobuf_negotiation` | `bool`     | Whether to enable protobuf negotiation with the client. | `false` | no
 `honor_labels`                | `bool`     | Indicator whether the scraped metrics should remain unmodified. | `false` | no
 `honor_timestamps`            | `bool`     | Indicator whether the scraped timestamps should be respected. | `true` | no
 `track_timestamps_staleness`  | `bool`     | Indicator whether to track the staleness of the scraped timestamps. | `false` | no
@@ -56,6 +55,7 @@ Name | Type | Description | Default | Required
 `scrape_classic_histograms`   | `bool`     | Whether to scrape a classic histogram that is also exposed as a native histogram. | `false` | no
 `scrape_interval`             | `duration` | How frequently to scrape the targets of this scrape configuration. | `"60s"` | no
 `scrape_timeout`              | `duration` | The timeout for scraping targets of this configuration. | `"10s"` | no
+`scrape_protocols`            | `list(string)` | The protocols to negotiate during a scrape with the client. | __see below__ | no
 `metrics_path`                | `string`   | The HTTP resource path on which to fetch metrics from targets. | `/metrics` | no
 `scheme`                      | `string`   | The URL scheme with which to fetch metrics from targets. | | no
 `body_size_limit`             | `int`      | An uncompressed response body larger than this many bytes causes the scrape to fail. 0 means no limit. | | no
@@ -91,6 +91,21 @@ Name | Type | Description | Default | Required
 * A "staleness marker" is just a {{< term "sample" >}}sample{{< /term >}} with a specific NaN value which is reserved for internal use by Prometheus.
 * It is recommended to set `track_timestamps_staleness` to `true` if the database where metrics are written to has enabled [out of order ingestion][mimir-ooo].
 * If `track_timestamps_staleness` is set to `false`, samples with explicit timestamps will only be labeled as stale after a certain time period, which in Prometheus is 5 minutes by default.
+
+The supported values for `scrape_protocols` are:
+* `"PrometheusProto"`
+* `"PrometheusText0.0.4"`
+* `"OpenMetricsText0.0.1"`
+* `"OpenMetricsText1.0.0"`
+
+<!-- TODO: Is this true? They seem to change with native histograms settings:
+https://github.com/prometheus/prometheus/pull/12738/files#diff-17f1012e0c2fbd9bcd8dff3c23b18ff4b6676eef3beca6f8a3e72e6a36633334R64-R68
+ -->
+The default values are:
+* `"PrometheusProto"`
+* `"OpenMetricsText1.0.0"`
+* `"OpenMetricsText0.0.1"`
+* `"PrometheusText0.0.4"`
 
 [prom-text-exposition-format]: https://prometheus.io/docs/instrumenting/exposition_formats/#text-based-format
 [prom-staleness]: https://prometheus.io/docs/prometheus/latest/querying/basics/#staleness
@@ -253,11 +268,8 @@ times out while scraping, or because the samples from the target could not be
 processed. When the target is behaving normally, the `up` metric is set to
 `1`.
 
-To enable scraping of Prometheus' native histograms over gRPC, the
-`enable_protobuf_negotiation` must be set to true. The
-`scrape_classic_histograms` argument controls whether the component should also
-scrape the 'classic' histogram equivalent of a native histogram, if it is
-present.
+The `scrape_classic_histograms` argument controls whether the component should also
+scrape the 'classic' histogram equivalent of a native histogram, if it is present.
 
 [in-memory traffic]: {{< relref "../../concepts/component_controller.md#in-memory-traffic" >}}
 [run command]: {{< relref "../cli/run.md" >}}
