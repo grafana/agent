@@ -67,6 +67,7 @@ Hierarchy | Block | Description | Required
 authentication | [authentication][] | Configures authentication for connecting to Kafka brokers. | no
 authentication > plaintext | [plaintext][] | Authenticates against Kafka brokers with plaintext. | no
 authentication > sasl | [sasl][] | Authenticates against Kafka brokers with SASL. | no
+authentication > sasl > aws_msk | [aws_msk][] | Additional SASL parameters when using AWS_MSK_IAM. | no
 authentication > tls | [tls][] | Configures TLS for connecting to the Kafka brokers. | no
 authentication > kerberos | [kerberos][] | Authenticates against Kafka brokers with Kerberos. | no
 metadata | [metadata][] | Configures how to retrieve metadata from Kafka brokers. | no
@@ -128,6 +129,18 @@ The `mechanism` argument can be set to one of the following strings:
 When `mechanism` is set to `"AWS_MSK_IAM"`, the [`aws_msk` child block][aws_msk] must also be provided.
 
 The `version` argument can be set to either `0` or `1`.
+
+### aws_msk block
+
+The `aws_msk` block configures extra parameters for SASL authentication when
+using the `AWS_MSK_IAM` mechanism.
+
+The following arguments are supported:
+
+Name | Type | Description | Default | Required
+---- | ---- | ----------- | ------- | --------
+`region` | `string` | AWS region the MSK cluster is based in. | | yes
+`broker_addr` | `string` | MSK address to connect to for authentication. | | yes
 
 ### tls block
 
