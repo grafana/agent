@@ -39,6 +39,8 @@ type Arguments struct {
 	ClientID        string   `river:"client_id,attr,optional"`
 	InitialOffset   string   `river:"initial_offset,attr,optional"`
 
+	ResolveCanonicalBootstrapServersOnly bool `river:"resolve_canonical_bootstrap_servers_only,attr,optional"`
+
 	Authentication   AuthenticationArguments `river:"authentication,block,optional"`
 	Metadata         MetadataArguments       `river:"metadata,block,optional"`
 	AutoCommit       AutoCommitArguments     `river:"autocommit,block,optional"`
@@ -93,6 +95,7 @@ func (args Arguments) Convert() (otelcomponent.Config, error) {
 	result.GroupID = args.GroupID
 	result.ClientID = args.ClientID
 	result.InitialOffset = args.InitialOffset
+	result.ResolveCanonicalBootstrapServersOnly = args.ResolveCanonicalBootstrapServersOnly
 	result.Metadata = args.Metadata.Convert()
 	result.AutoCommit = args.AutoCommit.Convert()
 	result.MessageMarking = args.MessageMarking.Convert()
