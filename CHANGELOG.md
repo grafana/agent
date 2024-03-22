@@ -34,6 +34,9 @@ Main (unreleased)
 
 - A new `loki.rules.kubernetes` component that discovers `PrometheusRule` Kubernetes resources and loads them into a Loki Ruler instance. (@EStork09)
 
+- A new `otelcol.exporter.kafka` component that can forward OTLP data to one or
+  more Kafka instances. (@tpaschalis)
+
 ### Bugfixes
 
 - Fix an issue where JSON string array elements were not parsed correctly in `loki.source.cloudflare`. (@thampiotr)
