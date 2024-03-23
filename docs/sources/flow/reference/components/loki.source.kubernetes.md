@@ -165,7 +165,7 @@ arguments.
 
 The `default_instance_label` block configures default "instance" label to be assigned with logs 
 scraped from inputted targets.
-If `default_instance_label` block is not provided, the target's address is used as the default `instance` label.
+If you don't provide the `default_instance_label` block, the target's address is used as the default instance label.
 
 The following arguments are supported:
 
