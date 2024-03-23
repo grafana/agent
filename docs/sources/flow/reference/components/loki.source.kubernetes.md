@@ -171,7 +171,7 @@ The following arguments are supported:
 
 Name                     | Type                | Description                                                   | Default | Required
 ------------------------ | ------------------- | ------------------------------------------------------------- | ------- | --------
-`enabled`                | `bool`              | Enable setting default "instance" label value.                | true    | no
+`enabled`                | `bool`              | Enable setting default instance label value.                | true    | no
 `value`                  | `string`            | Value for the label.                                          |         | no
 
 ## Exported fields
