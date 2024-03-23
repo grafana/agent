@@ -64,7 +64,7 @@ func toOtelcolReceiverOTLP(state *state, id component.InstanceID, cfg *otlprecei
 	}
 }
 
-func toGRPCServerArguments(cfg *configgrpc.GRPCServerSettings) *otelcol.GRPCServerArguments {
+func toGRPCServerArguments(cfg *configgrpc.ServerConfig) *otelcol.GRPCServerArguments {
 	if cfg == nil {
 		return nil
 	}
@@ -100,15 +100,18 @@ func toTLSServerArguments(cfg *configtls.TLSServerSetting) *otelcol.TLSServerArg
 
 func toTLSSetting(cfg configtls.TLSSetting) otelcol.TLSSetting {
 	return otelcol.TLSSetting{
-		CA:             string(cfg.CAPem),
-		CAFile:         cfg.CAFile,
-		Cert:           string(cfg.CertPem),
-		CertFile:       cfg.CertFile,
-		Key:            rivertypes.Secret(cfg.KeyPem),
-		KeyFile:        cfg.KeyFile,
-		MinVersion:     cfg.MinVersion,
-		MaxVersion:     cfg.MaxVersion,
-		ReloadInterval: cfg.ReloadInterval,
+		CA:                       string(cfg.CAPem),
+		CAFile:                   cfg.CAFile,
+		Cert:                     string(cfg.CertPem),
+		CertFile:                 cfg.CertFile,
+		Key:                      rivertypes.Secret(cfg.KeyPem),
+		KeyFile:                  cfg.KeyFile,
+		MinVersion:               cfg.MinVersion,
+		MaxVersion:               cfg.MaxVersion,
+		ReloadInterval:           cfg.ReloadInterval,
+		IncludeSystemCACertsPool: cfg.IncludeSystemCACertsPool,
+		//TODO(ptodev): Do we need to copy this slice?
+		CipherSuites: cfg.CipherSuites,
 	}
 }
 
@@ -154,7 +157,7 @@ func toHTTPConfigArguments(cfg *otlpreceiver.HTTPConfig) *otlp.HTTPConfigArgumen
 	}
 
 	return &otlp.HTTPConfigArguments{
-		HTTPServerArguments: toHTTPServerArguments(cfg.HTTPServerSettings),
+		HTTPServerArguments: toHTTPServerArguments(cfg.ServerConfig),
 
 		TracesURLPath:  cfg.TracesURLPath,
 		MetricsURLPath: cfg.MetricsURLPath,
@@ -162,7 +165,7 @@ func toHTTPConfigArguments(cfg *otlpreceiver.HTTPConfig) *otlp.HTTPConfigArgumen
 	}
 }
 
-func toHTTPServerArguments(cfg *confighttp.HTTPServerSettings) *otelcol.HTTPServerArguments {
+func toHTTPServerArguments(cfg *confighttp.ServerConfig) *otelcol.HTTPServerArguments {
 	if cfg == nil {
 		return nil
 	}
@@ -179,7 +182,7 @@ func toHTTPServerArguments(cfg *confighttp.HTTPServerSettings) *otelcol.HTTPServ
 	}
 }
 
-func toCORSArguments(cfg *confighttp.CORSSettings) *otelcol.CORSArguments {
+func toCORSArguments(cfg *confighttp.CORSConfig) *otelcol.CORSArguments {
 	if cfg == nil {
 		return nil
 	}

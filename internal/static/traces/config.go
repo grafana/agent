@@ -125,15 +125,15 @@ type InstanceConfig struct {
 	RemoteWrite []RemoteWriteConfig `yaml:"remote_write,omitempty"`
 
 	// Receivers:
-	// https://github.com/open-telemetry/opentelemetry-collector/blob/v0.87.0/receiver/README.md
+	// https://github.com/open-telemetry/opentelemetry-collector/blob/v0.96.0/receiver/README.md
 	Receivers ReceiverMap `yaml:"receivers,omitempty"`
 
 	// Batch:
-	// https://github.com/open-telemetry/opentelemetry-collector/tree/v0.87.0/processor/batchprocessor
+	// https://github.com/open-telemetry/opentelemetry-collector/tree/v0.96.0/processor/batchprocessor
 	Batch map[string]interface{} `yaml:"batch,omitempty"`
 
 	// Attributes:
-	// https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/v0.87.0/processor
+	// https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/v0.96.0/processor
 	Attributes map[string]interface{} `yaml:"attributes,omitempty"`
 
 	// prom service discovery config
@@ -142,25 +142,25 @@ type InstanceConfig struct {
 	PodAssociations []string      `yaml:"prom_sd_pod_associations,omitempty"`
 
 	// SpanMetricsProcessor:
-	// https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/v0.87.0/processor/spanmetricsprocessor
+	// https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/v0.95.0/processor/spanmetricsprocessor
 	SpanMetrics *SpanMetricsConfig `yaml:"spanmetrics,omitempty"`
 
 	// AutomaticLogging
 	AutomaticLogging *automaticloggingprocessor.AutomaticLoggingConfig `yaml:"automatic_logging,omitempty"`
 
 	// TailSampling defines a sampling strategy for the pipeline
-	// https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/v0.87.0/processor/tailsamplingprocessor
+	// https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/v0.96.0/processor/tailsamplingprocessor
 	TailSampling *tailSamplingConfig `yaml:"tail_sampling,omitempty"`
 
 	// LoadBalancing is used to distribute spans of the same trace to the same agent instance
-	// https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/v0.87.0/exporter/loadbalancingexporter
+	// https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/v0.96.0/exporter/loadbalancingexporter
 	LoadBalancing *loadBalancingConfig `yaml:"load_balancing"`
 
 	// ServiceGraphs
 	ServiceGraphs *serviceGraphsConfig `yaml:"service_graphs,omitempty"`
 
 	// Jaeger's Remote Sampling extension:
-	// https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/v0.87.0/extension/jaegerremotesampling
+	// https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/v0.96.0/extension/jaegerremotesampling
 	JaegerRemoteSampling []JaegerRemoteSamplingConfig `yaml:"jaeger_remote_sampling"`
 }
 
@@ -266,18 +266,20 @@ var DefaultRemoteWriteConfig = RemoteWriteConfig{
 
 // TLSClientSetting configures the oauth2client extension TLS; compatible with configtls.TLSClientSetting
 type TLSClientSetting struct {
-	CAFile             string        `yaml:"ca_file,omitempty"`
-	CAPem              SecretString  `yaml:"ca_pem,omitempty"`
-	CertFile           string        `yaml:"cert_file,omitempty"`
-	CertPem            SecretString  `yaml:"cert_pem,omitempty"`
-	KeyFile            string        `yaml:"key_file,omitempty"`
-	KeyPem             SecretString  `yaml:"key_pem,omitempty"`
-	MinVersion         string        `yaml:"min_version,omitempty"`
-	MaxVersion         string        `yaml:"max_version,omitempty"`
-	ReloadInterval     time.Duration `yaml:"reload_interval"`
-	Insecure           bool          `yaml:"insecure"`
-	InsecureSkipVerify bool          `yaml:"insecure_skip_verify"`
-	ServerNameOverride string        `yaml:"server_name_override,omitempty"`
+	CAFile                   string        `yaml:"ca_file,omitempty"`
+	CAPem                    SecretString  `yaml:"ca_pem,omitempty"`
+	IncludeSystemCACertsPool bool          `yaml:"include_system_ca_certs_pool"`
+	CertFile                 string        `yaml:"cert_file,omitempty"`
+	CertPem                  SecretString  `yaml:"cert_pem,omitempty"`
+	KeyFile                  string        `yaml:"key_file,omitempty"`
+	KeyPem                   SecretString  `yaml:"key_pem,omitempty"`
+	MinVersion               string        `yaml:"min_version,omitempty"`
+	MaxVersion               string        `yaml:"max_version,omitempty"`
+	CipherSuites             []string      `yaml:"cipher_suites,omitempty"`
+	ReloadInterval           time.Duration `yaml:"reload_interval"`
+	Insecure                 bool          `yaml:"insecure"`
+	InsecureSkipVerify       bool          `yaml:"insecure_skip_verify"`
+	ServerNameOverride       string        `yaml:"server_name_override,omitempty"`
 }
 
 // OAuth2Config configures the oauth2client extension for a remote_write exporter
@@ -326,8 +328,8 @@ type RemoteWriteConfig struct {
 	BasicAuth          *prom_config.BasicAuth `yaml:"basic_auth,omitempty"`
 	Oauth2             *OAuth2Config          `yaml:"oauth2,omitempty"`
 	Headers            map[string]string      `yaml:"headers,omitempty"`
-	SendingQueue       map[string]interface{} `yaml:"sending_queue,omitempty"`    // https://github.com/open-telemetry/opentelemetry-collector/blob/v0.87.0/exporter/exporterhelper/queued_retry.go
-	RetryOnFailure     map[string]interface{} `yaml:"retry_on_failure,omitempty"` // https://github.com/open-telemetry/opentelemetry-collector/blob/v0.87.0/exporter/exporterhelper/queued_retry.go
+	SendingQueue       map[string]interface{} `yaml:"sending_queue,omitempty"`    // https://github.com/open-telemetry/opentelemetry-collector/blob/v0.96.0/exporter/exporterhelper/queued_retry.go
+	RetryOnFailure     map[string]interface{} `yaml:"retry_on_failure,omitempty"` // https://github.com/open-telemetry/opentelemetry-collector/blob/v0.96.0/exporter/exporterhelper/queued_retry.go
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler.
@@ -380,7 +382,7 @@ type SpanMetricsConfig struct {
 // tailSamplingConfig is the configuration for tail-based sampling
 type tailSamplingConfig struct {
 	// Policies are the strategies used for sampling. Multiple policies can be used in the same pipeline.
-	// For more information, refer to https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/v0.87.0/processor/tailsamplingprocessor
+	// For more information, refer to https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/v0.96.0/processor/tailsamplingprocessor
 	Policies []policy `yaml:"policies"`
 	// DecisionWait defines the time to wait for a complete trace before making a decision
 	DecisionWait time.Duration `yaml:"decision_wait,omitempty"`
@@ -625,7 +627,7 @@ func (c *InstanceConfig) loadBalancingExporter() (map[string]interface{}, error)
 }
 
 // formatPolicies creates sampling policies (i.e. rules) compatible with OTel's tail sampling processor
-// https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/v0.87.0/processor/tailsamplingprocessor
+// https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/v0.96.0/processor/tailsamplingprocessor
 func formatPolicies(cfg []policy) ([]map[string]interface{}, error) {
 	policies := make([]map[string]interface{}, 0, len(cfg))
 	for i, policy := range cfg {

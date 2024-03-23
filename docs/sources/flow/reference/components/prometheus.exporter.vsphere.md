@@ -9,14 +9,18 @@ title: prometheus.exporter.vsphere
 description: Learn about prometheus.exporter.vsphere
 ---
 
-# prometheus.exporter.vsphere
+# prometheus.exporter.vsphere (deprecated)
 
-The `prometheus.exporter.vsphere` component embeds [`vmware_exporter`](https://github.com/grafana/vmware_exporter) to collect vSphere metrics
+{{< admonition type="caution" >}}
+Starting with release v0.40, `prometheus.exporter.vsphere` is deprecated. Consider using `otelcol.receiver.vcenter` instead.
+`prometheus.exporter.vsphere` will be removed in a future release.
+{{< /admonition >}}
+
+The `prometheus.exporter.vsphere` component embeds [`vmware_exporter`](https://github.com/grafana/vmware_exporter) to collect vSphere metrics.
 
 > **NOTE**: We recommend to use [otelcol.receiver.vcenter][] instead.
 
 [otelcol.receiver.vcenter]: {{< relref "./otelcol.receiver.vcenter.md" >}}
-
 
 ## Usage
 
