@@ -118,7 +118,7 @@ an `oauth2` block.
 [authorization]: #authorization-block
 [oauth2]: #oauth2-block
 [tls_config]: #tls_config-block
-[clustering]: #clustering-beta
+[clustering]: #clustering-block
 
 ### basic_auth block
 
@@ -136,7 +136,7 @@ an `oauth2` block.
 
 {{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
-### clustering (beta)
+### clustering block
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------

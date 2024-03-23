@@ -65,6 +65,7 @@ Name | Type | Description | Default | Required
 `dimensions` | `list(string)` | A list of dimensions to add with the default dimensions. | `[]` | no
 `cache_loop` | `duration` | Configures how often to delete series which have not been updated. | `"1m"` | no
 `store_expiration_loop` | `duration` | The time to expire old entries from the store periodically. | `"2s"` | no
+`metrics_flush_interval` | `duration` | The interval at which metrics are flushed to downstream components. | `"0s"` | no
 
 Service graphs work by inspecting traces and looking for spans with 
 parent-children relationship that represent a request.
@@ -112,6 +113,8 @@ Additional labels can be included using the `dimensions` configuration option:
   The `server_` prefix relates to the dimensions coming from spans with a [Span Kind][] of `server`.
 * Firstly the resource attributes will be searched. If the attribute is not found, 
   the span attributes will be searched.
+
+When `metrics_flush_interval` is set to `0s`, metrics will be flushed on every received batch of traces.
 
 [Span Kind]: https://opentelemetry.io/docs/concepts/signals/traces/#span-kind
 
