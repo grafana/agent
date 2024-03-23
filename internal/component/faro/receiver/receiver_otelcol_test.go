@@ -80,6 +80,7 @@ func TestWithOtelcolConsumer(t *testing.T) {
 					InsecureSkipVerify: true,
 				},
 			}),
+			Encoding: otlphttp.EncodingJSON,
 		})
 		require.NoError(t, err)
 	}()
