@@ -44,6 +44,8 @@ Main (unreleased)
   whenever that argument is explicitly configured. This issue only affected a
   small subset of arguments across 15 components. (@erikbaranowski, @rfratto)
 
+- Fix panic when fanning out to invalid receivers. (@hainenber) 
+
 ### Other changes
 
 - Clustering for Grafana Agent in Flow mode has graduated from beta to stable.
