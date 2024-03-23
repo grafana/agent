@@ -81,8 +81,8 @@ func toProtocol(cfg loadbalancingexporter.Protocol) loadbalancing.Protocol {
 		// remove unwanted fields.
 		OTLP: loadbalancing.OtlpConfig{
 			Timeout: cfg.OTLP.Timeout,
-			Queue:   toQueueArguments(cfg.OTLP.QueueSettings),
-			Retry:   toRetryArguments(cfg.OTLP.RetrySettings),
+			Queue:   toQueueArguments(cfg.OTLP.QueueConfig),
+			Retry:   toRetryArguments(cfg.OTLP.RetryConfig),
 			Client: loadbalancing.GRPCClientArguments{
 				Compression: otelcol.CompressionType(cfg.OTLP.Compression),
 

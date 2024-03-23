@@ -47,12 +47,12 @@ func toJaegerRemoteSamplingExtension(cfg *jaegerremotesampling.Config) *jaeger_r
 	}
 
 	var grpc *jaeger_remote_sampling.GRPCServerArguments
-	if cfg.GRPCServerSettings != nil {
-		grpc = (*jaeger_remote_sampling.GRPCServerArguments)(toGRPCServerArguments(cfg.GRPCServerSettings))
+	if cfg.GRPCServerConfig != nil {
+		grpc = (*jaeger_remote_sampling.GRPCServerArguments)(toGRPCServerArguments(cfg.GRPCServerConfig))
 	}
 	var http *jaeger_remote_sampling.HTTPServerArguments
-	if cfg.HTTPServerSettings != nil {
-		http = (*jaeger_remote_sampling.HTTPServerArguments)(toHTTPServerArguments(cfg.HTTPServerSettings))
+	if cfg.HTTPServerConfig != nil {
+		http = (*jaeger_remote_sampling.HTTPServerArguments)(toHTTPServerArguments(cfg.HTTPServerConfig))
 	}
 	var remote *jaeger_remote_sampling.GRPCClientArguments
 	if cfg.Source.Remote != nil {

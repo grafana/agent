@@ -166,7 +166,8 @@ func toAndSubPolicyCfg(cfgs []tailsamplingprocessor.AndSubPolicyCfg) []tail_samp
 
 func toLatencyConfig(cfg tailsamplingprocessor.LatencyCfg) tail_sampling.LatencyConfig {
 	return tail_sampling.LatencyConfig{
-		ThresholdMs: cfg.ThresholdMs,
+		ThresholdMs:        cfg.ThresholdMs,
+		UpperThresholdmsMs: cfg.UpperThresholdmsMs,
 	}
 }
 

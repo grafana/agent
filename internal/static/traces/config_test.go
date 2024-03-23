@@ -1159,6 +1159,8 @@ remote_write:
       scopes: ["api.metrics"]
       timeout: 2s
 `,
+			//TODO(ptodev): Look into why we need to add a "cipher_suites: []" explicitly.
+			// The expected config should unmarshal it to [], but instead it sets it to nil.
 			expectedConfig: `
 receivers:
   push_receiver: {}
@@ -1172,6 +1174,8 @@ extensions:
     token_url: https://example.com/oauth2/default/v1/token
     scopes: ["api.metrics"]
     timeout: 2s
+    tls:
+      cipher_suites: []
 exporters:
   otlphttp/0:
     endpoint: example.com:12345
@@ -1217,6 +1221,8 @@ remote_write:
         min_version: 1.3
         reload_interval: 1h
 `,
+			//TODO(ptodev): Look into why we need to add a "cipher_suites: []" explicitly.
+			// The expected config should unmarshal it to [], but instead it sets it to nil.
 			expectedConfig: `
 receivers:
   push_receiver: {}
@@ -1240,6 +1246,7 @@ extensions:
       key_file: keyfile
       min_version: 1.3
       reload_interval: 1h
+      cipher_suites: []
 exporters:
   otlphttp/0:
     endpoint: example.com:12345
@@ -1285,6 +1292,8 @@ remote_write:
         max_version: 1.2
         reload_interval: 1h
 `,
+			//TODO: Look into why we need to add a "cipher_suites: []" explicitly.
+			// The expected config should unmarshal it to [], but instead it sets it to nil.
 			expectedConfig: `
 receivers:
   push_receiver: {}
@@ -1308,6 +1317,7 @@ extensions:
       key_pem: test_secret_key_pem_string
       max_version: 1.2
       reload_interval: 1h
+      cipher_suites: []
 exporters:
   otlphttp/0:
     endpoint: example.com:12345
@@ -1351,6 +1361,8 @@ remote_write:
      scopes: ["api.metrics"]
      timeout: 2s
 `,
+			//TODO: Look into why we need to add a "cipher_suites: []" explicitly.
+			// The expected config should unmarshal it to [], but instead it sets it to nil.
 			expectedConfig: `
 receivers:
  push_receiver: {}
@@ -1364,12 +1376,16 @@ extensions:
    token_url: https://example.com/oauth2/default/v1/token
    scopes: ["api.metrics"]
    timeout: 2s
+   tls:
+     cipher_suites: []
  oauth2client/otlp1:
    client_id: anotherclientid
    client_secret: anotherclientsecret
    token_url: https://example.com/oauth2/default/v1/token
    scopes: ["api.metrics"]
    timeout: 2s
+   tls:
+     cipher_suites: []
 exporters:
   otlphttp/0:
     endpoint: example.com:12345
@@ -1415,6 +1431,8 @@ remote_write:
       tls:
         insecure: true
 `,
+			//TODO: Look into why we need to add a "cipher_suites: []" explicitly.
+			// The expected config should unmarshal it to [], but instead it sets it to nil.
 			expectedConfig: `
 receivers:
   push_receiver: {}
@@ -1430,6 +1448,7 @@ extensions:
     timeout: 2s
     tls:
       insecure: true
+      cipher_suites: []
 exporters:
   otlphttp/0:
     endpoint: http://example.com:12345

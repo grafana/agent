@@ -92,7 +92,7 @@ func readOpentelemetryConfig(in []byte) (*otelcol.Config, error) {
 			Providers: map[string]confmap.Provider{
 				provider.Scheme(): provider,
 			},
-			Converters: []confmap.Converter{expandconverter.New()},
+			Converters: []confmap.Converter{expandconverter.New(confmap.ConverterSettings{})},
 		},
 	})
 	if err != nil {

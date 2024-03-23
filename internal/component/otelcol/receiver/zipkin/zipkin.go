@@ -39,24 +39,21 @@ type Arguments struct {
 
 var _ receiver.Arguments = Arguments{}
 
-// DefaultArguments holds default settings for otelcol.receiver.zipkin.
-var DefaultArguments = Arguments{
-	HTTPServer: otelcol.HTTPServerArguments{
-		Endpoint: "0.0.0.0:9411",
-	},
-	DebugMetrics: otelcol.DefaultDebugMetricsArguments,
-}
-
 // SetToDefault implements river.Defaulter.
 func (args *Arguments) SetToDefault() {
-	*args = DefaultArguments
+	*args = Arguments{
+		HTTPServer: otelcol.HTTPServerArguments{
+			Endpoint: "0.0.0.0:9411",
+		},
+	}
+	args.DebugMetrics.SetToDefault()
 }
 
 // Convert implements receiver.Arguments.
 func (args Arguments) Convert() (otelcomponent.Config, error) {
 	return &zipkinreceiver.Config{
-		ParseStringTags:    args.ParseStringTags,
-		HTTPServerSettings: *args.HTTPServer.Convert(),
+		ParseStringTags: args.ParseStringTags,
+		ServerConfig:    *args.HTTPServer.Convert(),
 	}, nil
 }
 

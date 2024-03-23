@@ -57,14 +57,15 @@ func (otlpHTTPExporterConverter) ConvertAndAppend(state *state, id component.Ins
 
 func toOtelcolExporterOTLPHTTP(cfg *otlphttpexporter.Config) *otlphttp.Arguments {
 	return &otlphttp.Arguments{
-		Client:       otlphttp.HTTPClientArguments(toHTTPClientArguments(cfg.HTTPClientSettings)),
-		Queue:        toQueueArguments(cfg.QueueSettings),
-		Retry:        toRetryArguments(cfg.RetrySettings),
+		Client:       otlphttp.HTTPClientArguments(toHTTPClientArguments(cfg.ClientConfig)),
+		Queue:        toQueueArguments(cfg.QueueConfig),
+		Retry:        toRetryArguments(cfg.RetryConfig),
+		Encoding:     string(cfg.Encoding),
 		DebugMetrics: common.DefaultValue[otlphttp.Arguments]().DebugMetrics,
 	}
 }
 
-func toHTTPClientArguments(cfg confighttp.HTTPClientSettings) otelcol.HTTPClientArguments {
+func toHTTPClientArguments(cfg confighttp.ClientConfig) otelcol.HTTPClientArguments {
 	var a *auth.Handler
 	if cfg.Auth != nil {
 		a = &auth.Handler{}
@@ -72,7 +73,7 @@ func toHTTPClientArguments(cfg confighttp.HTTPClientSettings) otelcol.HTTPClient
 
 	var mic *int
 	var ict *time.Duration
-	defaults := confighttp.NewDefaultHTTPClientSettings()
+	defaults := confighttp.NewDefaultClientConfig()
 	if mic = cfg.MaxIdleConns; mic == nil {
 		mic = defaults.MaxIdleConns
 	}
@@ -86,13 +87,15 @@ func toHTTPClientArguments(cfg confighttp.HTTPClientSettings) otelcol.HTTPClient
 		ReadBufferSize:  units.Base2Bytes(cfg.ReadBufferSize),
 		WriteBufferSize: units.Base2Bytes(cfg.WriteBufferSize),
 
-		Timeout:             cfg.Timeout,
-		Headers:             toHeadersMap(cfg.Headers),
-		MaxIdleConns:        mic,
-		MaxIdleConnsPerHost: cfg.MaxIdleConnsPerHost,
-		MaxConnsPerHost:     cfg.MaxConnsPerHost,
-		IdleConnTimeout:     ict,
-		DisableKeepAlives:   cfg.DisableKeepAlives,
+		Timeout:              cfg.Timeout,
+		Headers:              toHeadersMap(cfg.Headers),
+		MaxIdleConns:         mic,
+		MaxIdleConnsPerHost:  cfg.MaxIdleConnsPerHost,
+		MaxConnsPerHost:      cfg.MaxConnsPerHost,
+		IdleConnTimeout:      ict,
+		DisableKeepAlives:    cfg.DisableKeepAlives,
+		HTTP2PingTimeout:     cfg.HTTP2PingTimeout,
+		HTTP2ReadIdleTimeout: cfg.HTTP2ReadIdleTimeout,
 
 		Auth: a,
 	}

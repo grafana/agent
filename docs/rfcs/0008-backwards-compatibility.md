@@ -63,6 +63,8 @@ It's impossible to guarantee that full backwards compatibility is achieved. Ther
 
 - Other telemetry data: metrics, logs, and traces may change between releases. Only telemetry data which is used in official dashboards is protected under backwards compatibility.
 
+- Tagged as exempt: functionality which is explicitly marked as exempt from backwards compatibility guarantees may include breaking changes or removal between minor releases.
+
 ### Avoiding major release burnout 
 
 As a new major release implies a user must put extra effort into upgrading, it is possible to burn out users by releasing breaking changes too frequently. 

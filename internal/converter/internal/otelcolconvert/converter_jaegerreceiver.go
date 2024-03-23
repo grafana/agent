@@ -62,14 +62,14 @@ func toJaegerReceiver(state *state, id component.InstanceID, cfg *jaegerreceiver
 	}
 }
 
-func toJaegerGRPCArguments(cfg *configgrpc.GRPCServerSettings) *jaeger.GRPC {
+func toJaegerGRPCArguments(cfg *configgrpc.ServerConfig) *jaeger.GRPC {
 	if cfg == nil {
 		return nil
 	}
 	return &jaeger.GRPC{GRPCServerArguments: toGRPCServerArguments(cfg)}
 }
 
-func toJaegerThriftHTTPArguments(cfg *confighttp.HTTPServerSettings) *jaeger.ThriftHTTP {
+func toJaegerThriftHTTPArguments(cfg *confighttp.ServerConfig) *jaeger.ThriftHTTP {
 	if cfg == nil {
 		return nil
 	}

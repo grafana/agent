@@ -125,9 +125,16 @@ remote_write:
         # Maximum acceptable TLS version.
         # If not set, it is handled by crypto/tls - currently it is "1.3".
         [ max_version: <string> | default = "" ]
-        # ReloadInterval specifies the duration after which the certificate will be reloaded.
+        # The duration after which the certificate will be reloaded.
         # If not set, it will never be reloaded.
         [ reload_interval: <duration> ]
+        # If true, load system CA certificates pool in addition to the certificates
+        # configured in this struct.
+        [ include_system_ca_certs_pool: <duration> ]
+        # A list of TLS cipher suites that the TLS transport can use.
+        # If left blank, a safe default list is used.
+        # See https://go.dev/src/crypto/tls/cipher_suites.go for a list of supported cipher suites.
+        [ cipher_suites: <duration> ]
 
     # Controls TLS settings of the exporter's client:
     # https://prometheus.io/docs/prometheus/2.45/configuration/configuration/#tls_config

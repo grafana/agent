@@ -95,7 +95,7 @@ inside a `client` block.
 [authorization]: #authorization-block
 [oauth2]: #oauth2-block
 [tls_config]: #tls_config-block
-[clustering]: #clustering-beta
+[clustering]: #clustering-block
 [default_instance_label]: #default_instance_label-block
 
 ### client block
@@ -145,7 +145,7 @@ Name                     | Type                | Description                    
 
 {{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
-### clustering (beta)
+### clustering block
 
 Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------

@@ -48,7 +48,7 @@ func toOpencensusReceiver(state *state, id component.InstanceID, cfg *opencensus
 
 	return &opencensus.Arguments{
 		CorsAllowedOrigins: cfg.CorsOrigins,
-		GRPC:               *toGRPCServerArguments(&cfg.GRPCServerSettings),
+		GRPC:               *toGRPCServerArguments(&cfg.ServerConfig),
 
 		DebugMetrics: common.DefaultValue[opencensus.Arguments]().DebugMetrics,
 

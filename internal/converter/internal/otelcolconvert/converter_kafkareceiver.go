@@ -59,6 +59,8 @@ func toKafkaReceiver(state *state, id component.InstanceID, cfg *kafkareceiver.C
 		ClientID:        cfg.ClientID,
 		InitialOffset:   cfg.InitialOffset,
 
+		ResolveCanonicalBootstrapServersOnly: cfg.ResolveCanonicalBootstrapServersOnly,
+
 		Authentication:   toKafkaAuthentication(encodeMapstruct(cfg.Authentication)),
 		Metadata:         toKafkaMetadata(cfg.Metadata),
 		AutoCommit:       toKafkaAutoCommit(cfg.AutoCommit),

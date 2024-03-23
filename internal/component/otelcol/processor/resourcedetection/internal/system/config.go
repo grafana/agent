@@ -19,28 +19,28 @@ type Config struct {
 	ResourceAttributes ResourceAttributesConfig `river:"resource_attributes,block,optional"`
 }
 
-var DefaultArguments = Config{
-	HostnameSources: []string{"dns", "os"},
-	ResourceAttributes: ResourceAttributesConfig{
-		HostArch:           rac.ResourceAttributeConfig{Enabled: false},
-		HostCPUCacheL2Size: rac.ResourceAttributeConfig{Enabled: false},
-		HostCPUFamily:      rac.ResourceAttributeConfig{Enabled: false},
-		HostCPUModelID:     rac.ResourceAttributeConfig{Enabled: false},
-		HostCPUModelName:   rac.ResourceAttributeConfig{Enabled: false},
-		HostCPUStepping:    rac.ResourceAttributeConfig{Enabled: false},
-		HostCPUVendorID:    rac.ResourceAttributeConfig{Enabled: false},
-		HostID:             rac.ResourceAttributeConfig{Enabled: false},
-		HostName:           rac.ResourceAttributeConfig{Enabled: true},
-		OsDescription:      rac.ResourceAttributeConfig{Enabled: false},
-		OsType:             rac.ResourceAttributeConfig{Enabled: true},
-	},
-}
-
 var _ river.Defaulter = (*Config)(nil)
 
 // SetToDefault implements river.Defaulter.
 func (c *Config) SetToDefault() {
-	*c = DefaultArguments
+	*c = Config{
+		HostnameSources: []string{"dns", "os"},
+		ResourceAttributes: ResourceAttributesConfig{
+			HostArch:           rac.ResourceAttributeConfig{Enabled: false},
+			HostCPUCacheL2Size: rac.ResourceAttributeConfig{Enabled: false},
+			HostCPUFamily:      rac.ResourceAttributeConfig{Enabled: false},
+			HostCPUModelID:     rac.ResourceAttributeConfig{Enabled: false},
+			HostCPUModelName:   rac.ResourceAttributeConfig{Enabled: false},
+			HostCPUStepping:    rac.ResourceAttributeConfig{Enabled: false},
+			HostCPUVendorID:    rac.ResourceAttributeConfig{Enabled: false},
+			HostID:             rac.ResourceAttributeConfig{Enabled: false},
+			HostIP:             rac.ResourceAttributeConfig{Enabled: false},
+			HostMac:            rac.ResourceAttributeConfig{Enabled: false},
+			HostName:           rac.ResourceAttributeConfig{Enabled: true},
+			OsDescription:      rac.ResourceAttributeConfig{Enabled: false},
+			OsType:             rac.ResourceAttributeConfig{Enabled: true},
+		},
+	}
 }
 
 // Validate config
@@ -73,6 +73,8 @@ type ResourceAttributesConfig struct {
 	HostCPUStepping    rac.ResourceAttributeConfig `river:"host.cpu.stepping,block,optional"`
 	HostCPUVendorID    rac.ResourceAttributeConfig `river:"host.cpu.vendor.id,block,optional"`
 	HostID             rac.ResourceAttributeConfig `river:"host.id,block,optional"`
+	HostIP             rac.ResourceAttributeConfig `river:"host.ip,block,optional"`
+	HostMac            rac.ResourceAttributeConfig `river:"host.mac,block,optional"`
 	HostName           rac.ResourceAttributeConfig `river:"host.name,block,optional"`
 	OsDescription      rac.ResourceAttributeConfig `river:"os.description,block,optional"`
 	OsType             rac.ResourceAttributeConfig `river:"os.type,block,optional"`
@@ -88,6 +90,8 @@ func (r ResourceAttributesConfig) Convert() map[string]interface{} {
 		"host.cpu.stepping":      r.HostCPUStepping.Convert(),
 		"host.cpu.vendor.id":     r.HostCPUVendorID.Convert(),
 		"host.id":                r.HostID.Convert(),
+		"host.ip":                r.HostIP.Convert(),
+		"host.mac":               r.HostMac.Convert(),
 		"host.name":              r.HostName.Convert(),
 		"os.description":         r.OsDescription.Convert(),
 		"os.type":                r.OsType.Convert(),

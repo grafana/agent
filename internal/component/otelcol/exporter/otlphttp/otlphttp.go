@@ -44,32 +44,38 @@ type Arguments struct {
 	TracesEndpoint  string `river:"traces_endpoint,attr,optional"`
 	MetricsEndpoint string `river:"metrics_endpoint,attr,optional"`
 	LogsEndpoint    string `river:"logs_endpoint,attr,optional"`
+
+	Encoding string `river:"encoding,attr,optional"`
 }
 
 var _ exporter.Arguments = Arguments{}
 
-// DefaultArguments holds default values for Arguments.
-var DefaultArguments = Arguments{
-	Queue:        otelcol.DefaultQueueArguments,
-	Retry:        otelcol.DefaultRetryArguments,
-	Client:       DefaultHTTPClientArguments,
-	DebugMetrics: otelcol.DefaultDebugMetricsArguments,
-}
+const (
+	EncodingProto string = "proto"
+	EncodingJSON  string = "json"
+)
 
 // SetToDefault implements river.Defaulter.
 func (args *Arguments) SetToDefault() {
-	*args = DefaultArguments
+	*args = Arguments{
+		Encoding: EncodingProto,
+	}
+	args.Queue.SetToDefault()
+	args.Retry.SetToDefault()
+	args.Client.SetToDefault()
+	args.DebugMetrics.SetToDefault()
 }
 
 // Convert implements exporter.Arguments.
 func (args Arguments) Convert() (otelcomponent.Config, error) {
 	return &otlphttpexporter.Config{
-		HTTPClientSettings: *(*otelcol.HTTPClientArguments)(&args.Client).Convert(),
-		QueueSettings:      *args.Queue.Convert(),
-		RetrySettings:      *args.Retry.Convert(),
-		TracesEndpoint:     args.TracesEndpoint,
-		MetricsEndpoint:    args.MetricsEndpoint,
-		LogsEndpoint:       args.LogsEndpoint,
+		ClientConfig:    *(*otelcol.HTTPClientArguments)(&args.Client).Convert(),
+		QueueConfig:     *args.Queue.Convert(),
+		RetryConfig:     *args.Retry.Convert(),
+		TracesEndpoint:  args.TracesEndpoint,
+		MetricsEndpoint: args.MetricsEndpoint,
+		LogsEndpoint:    args.LogsEndpoint,
+		Encoding:        otlphttpexporter.EncodingType(args.Encoding),
 	}, nil
 }
 
@@ -93,6 +99,9 @@ func (args *Arguments) Validate() error {
 	if args.Client.Endpoint == "" && args.TracesEndpoint == "" && args.MetricsEndpoint == "" && args.LogsEndpoint == "" {
 		return errors.New("at least one endpoint must be specified")
 	}
+	if args.Encoding != EncodingProto && args.Encoding != EncodingJSON {
+		return errors.New("invalid encoding type")
+	}
 	return nil
 }
 
@@ -102,21 +111,23 @@ type HTTPClientArguments otelcol.HTTPClientArguments
 
 // Default server settings.
 var (
-	DefaultMaxIddleConns       = 100
-	DefaultIdleConnTimeout     = 90 * time.Second
-	DefaultHTTPClientArguments = HTTPClientArguments{
-		MaxIdleConns:    &DefaultMaxIddleConns,
-		IdleConnTimeout: &DefaultIdleConnTimeout,
-
-		Timeout:         30 * time.Second,
-		Headers:         map[string]string{},
-		Compression:     otelcol.CompressionTypeGzip,
-		ReadBufferSize:  0,
-		WriteBufferSize: 512 * 1024,
-	}
+	DefaultMaxIdleConns    = 100
+	DefaultIdleConnTimeout = 90 * time.Second
 )
 
 // SetToDefault implements river.Defaulter.
 func (args *HTTPClientArguments) SetToDefault() {
-	*args = DefaultHTTPClientArguments
+	maxIdleConns := DefaultMaxIdleConns
+	idleConnTimeout := DefaultIdleConnTimeout
+	*args = HTTPClientArguments{
+		MaxIdleConns:    &maxIdleConns,
+		IdleConnTimeout: &idleConnTimeout,
+
+		Timeout:          30 * time.Second,
+		Headers:          map[string]string{},
+		Compression:      otelcol.CompressionTypeGzip,
+		ReadBufferSize:   0,
+		WriteBufferSize:  512 * 1024,
+		HTTP2PingTimeout: 15 * time.Second,
+	}
 }
