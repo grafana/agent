@@ -7,7 +7,6 @@ import (
 	"context"
 	"sync"
 
-	"go.opentelemetry.io/collector/component"
 	otelcomponent "go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config/configgrpc"
 	"go.opentelemetry.io/collector/config/confighttp"
@@ -31,14 +30,14 @@ func NewFactory() extension.Factory {
 	)
 }
 
-func createDefaultConfig() component.Config {
+func createDefaultConfig() otelcomponent.Config {
 	return &Config{
 		HTTPServerConfig: &confighttp.ServerConfig{
-			Endpoint: ":5778",
+			Endpoint: "localhost:5778",
 		},
 		GRPCServerConfig: &configgrpc.ServerConfig{
 			NetAddr: confignet.AddrConfig{
-				Endpoint:  ":14250",
+				Endpoint:  "localhost:14250",
 				Transport: "tcp",
 			},
 		},
@@ -64,7 +63,7 @@ func logDeprecation(logger *zap.Logger) {
 // 	featuregate.WithRegisterToVersion("0.92.0"),
 // )
 
-func createExtension(_ context.Context, set extension.CreateSettings, cfg component.Config) (extension.Extension, error) {
+func createExtension(_ context.Context, set extension.CreateSettings, cfg otelcomponent.Config) (extension.Extension, error) {
 	logDeprecation(set.Logger)
 	return newExtension(cfg.(*Config), set.TelemetrySettings), nil
 }
