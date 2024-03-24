@@ -52,6 +52,7 @@ Main (unreleased)
     - `otelcol.processor.k8sattributes`
     - `otelcol.exporter.otlp`
     - `otelcol.exporter.otlphttp`
+    - `otelcol.extension.jaeger_remote_sampling`
 
 v0.40.3 (2024-03-14)
 --------------------
