@@ -606,6 +606,7 @@ require github.com/ianlancetaylor/demangle v0.0.0-20230524184225-eabc099b10ab //
 
 require (
 	connectrpc.com/connect v1.14.0
+	github.com/KimMachineGun/automemlimit v0.5.0
 	github.com/githubexporter/github-exporter v0.0.0-20231025122338-656e7dc33fe7
 	github.com/grafana/agent-remote-config v0.0.2
 	github.com/grafana/jfr-parser/pprof v0.0.0-20240126072739-986e71dc0361
@@ -646,6 +647,7 @@ require (
 	github.com/axiomhq/hyperloglog v0.0.0-20240124082744-24bca3a5b39b // indirect
 	github.com/channelmeter/iso8601duration v0.0.0-20150204201828-8da3af7a2a61 // indirect
 	github.com/cloudflare/circl v1.3.7 // indirect
+	github.com/containerd/cgroups/v3 v3.0.3 // indirect
 	github.com/containerd/log v0.1.0 // indirect
 	github.com/dgryski/go-metro v0.0.0-20180109044635-280f6062b5bc // indirect
 	github.com/drone/envsubst v1.0.3 // indirect
@@ -674,6 +676,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/prometheusremotewrite v0.96.0 // indirect
 	github.com/openshift/api v3.9.0+incompatible // indirect
 	github.com/openshift/client-go v0.0.0-20210521082421-73d9475a9142 // indirect
+	github.com/pbnjay/memory v0.0.0-20210728143218-7b4eea64cf58 // indirect
 	github.com/pjbgf/sha1cd v0.3.0 // indirect
 	github.com/prometheus-community/prom-label-proxy v0.6.0 // indirect
 	github.com/relvacode/iso8601 v1.4.0 // indirect
