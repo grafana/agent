@@ -80,7 +80,7 @@ func TestFileWatch(t *testing.T) {
 	defer goleak.VerifyNone(t, goleak.IgnoreTopFunction("go.opencensus.io/stats/view.(*worker).start"))
 	ctx, cancel := context.WithCancel(componenttest.TestContext(t))
 
-	// Create file to log to.positions
+	// Create file to log to.
 	f, err := os.CreateTemp(t.TempDir(), "example")
 	require.NoError(t, err)
 	defer f.Close()
