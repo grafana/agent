@@ -74,31 +74,39 @@ func (b *ConfigBuilder) translateAutomaticLogging(otelCfg *otelcol.Config, cfg t
 	removeProcessor(otelCfg, "traces", "automatic_logging")
 }
 
+// translatePromSDProcessor translates the prom_sd_processor to the otel config.
+// This is a custom otel processor for static mode and not a native otel processor.
 func (b *ConfigBuilder) translatePromSDProcessor(otelCfg *otelcol.Config, cfg traces.InstanceConfig, labelPrefix string) {
+	// If we don't have any prom_sd_processor config then do nothing.
 	if _, ok := otelCfg.Processors[otel_component.NewID("prom_sd_processor")]; !ok {
 		return
 	}
 
+	// We need to Marshal/Unmarshal the scrape configs to translate them
+	// into their actual types for the conversion.
 	out, err := yaml.Marshal(cfg.ScrapeConfigs)
 	if err != nil {
 		b.diags.Add(diag.SeverityLevelCritical, fmt.Sprintf("unable to marshal scrapeConfigs interface{} to yaml: %s", err))
 		return
 	}
-
 	scrapeConfigs := make([]*prom_config.ScrapeConfig, 0)
 	err = yaml.Unmarshal(out, &scrapeConfigs)
 	if err != nil {
 		b.diags.Add(diag.SeverityLevelCritical, fmt.Sprintf("unable to unmarshal bytes to []*config.ScrapeConfig: %s", err))
 	}
 
-	promConfig := &prom_config.Config{
-		ScrapeConfigs: scrapeConfigs,
-	}
-
+	// Append the prometheus blocks to the file. prom_sd_processor makes use of
+	// only the ServiceDiscoveryConfigs and RelabelConfigs from its ScrapeConfigs.
+	// Other fields are ignored which is poorly designed Static mode config structure
+	// but correct for the conversion.
 	targets := []discovery.Target{}
 	pb := build.NewPrometheusBlocks()
-	for _, scrapeConfig := range promConfig.ScrapeConfigs {
-		label, _ := scanner.SanitizeIdentifier(labelPrefix + "_" + scrapeConfig.JobName)
+	for _, scrapeConfig := range scrapeConfigs {
+		labelConcat := scrapeConfig.JobName
+		if labelPrefix != "" {
+			labelConcat = labelPrefix + "_" + scrapeConfig.JobName
+		}
+		label, _ := scanner.SanitizeIdentifier(labelConcat)
 		scrapeTargets := prometheusconvert.AppendServiceDiscoveryConfigs(pb, scrapeConfig.ServiceDiscoveryConfigs, label)
 		promDiscoveryRelabelExports := component.AppendDiscoveryRelabel(pb, scrapeConfig.RelabelConfigs, scrapeTargets, label)
 		if promDiscoveryRelabelExports != nil {
@@ -106,14 +114,16 @@ func (b *ConfigBuilder) translatePromSDProcessor(otelCfg *otelcol.Config, cfg tr
 		}
 		targets = append(targets, scrapeTargets...)
 	}
-
 	pb.AppendToFile(b.f)
 
-	// Remap the scrapeConfigs to the list of targets. This is a hacky way to get the prom_sd_processor to work with the
-	// discovery processor during conversion.
+	// Overload the Prometheus Scrape Configs with Discovery Targets since it is a
+	// []interface{}. The otel conversion code for prom_sd_processor anticipates
+	// this being done prior to conversion.
+	scrapeConfigsAny := make([]interface{}, len(targets))
 	for i, target := range targets {
-		otelCfg.Processors[otel_component.NewID("prom_sd_processor")].(*promsdprocessor.Config).ScrapeConfigs[i] = target
+		scrapeConfigsAny[i] = target
 	}
+	otelCfg.Processors[otel_component.NewID("prom_sd_processor")].(*promsdprocessor.Config).ScrapeConfigs = scrapeConfigsAny
 }
 
 // removeReceiver removes a receiver from the otel config for a specific pipeline type.

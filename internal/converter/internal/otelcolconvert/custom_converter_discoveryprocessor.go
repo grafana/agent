@@ -14,7 +14,7 @@ import (
 
 func init() {
 	// Do not append this to the converter because it is a custom processor
-	// from static mode and not a real otel processor.
+	// from static mode and not a native otel processor.
 }
 
 type DiscoveryProcessorConverter struct{}
