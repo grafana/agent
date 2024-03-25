@@ -1,6 +1,6 @@
 module github.com/grafana/agent
 
-go 1.22.1
+go 1.22.0
 
 retract (
 	v1.3.191 // Published accidentally

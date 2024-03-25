@@ -12,7 +12,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"sync/atomic"
 	"testing"
 	"time"
 
@@ -30,6 +29,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/atomic"
 	"go.uber.org/goleak"
 	"golang.org/x/text/encoding/unicode"
 )
@@ -425,6 +425,7 @@ configs:
 	require.NoError(t, err)
 	require.NotNil(t, c)
 	buf, err := os.ReadFile(filepath.Join(opts.DataPath, "positions.yml"))
+	require.NoError(t, err)
 	newPositions := positions.File{Positions: make(map[positions.Entry]string)}
 	err = yaml.UnmarshalStrict(buf, newPositions)
 	require.NoError(t, err)
