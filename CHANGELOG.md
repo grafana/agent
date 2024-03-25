@@ -15,6 +15,9 @@ Main (unreleased)
 - The default listen port for `otelcol.receiver.opencensus` has changed from
   4317 to 55678 to align with upstream. (@rfratto)
 
+- The default sync interval for `mimir.rules.kubernetes` has changed from `30s`
+  to `5m` to reduce load on Mimir. (@56quarters)  
+
 ### Enhancements
 
 - Add support for importing folders as single module to `import.file`. (@wildum)
