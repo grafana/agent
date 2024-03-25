@@ -94,7 +94,7 @@ func (i *Instance) stop() {
 
 func (i *Instance) buildAndStartPipeline(ctx context.Context, cfg InstanceConfig, logs *logs.Logs, instManager instance.Manager, reg prom_client.Registerer) error {
 	// create component factories
-	otelConfig, err := cfg.otelConfig()
+	otelConfig, err := cfg.OtelConfig()
 	if err != nil {
 		return fmt.Errorf("failed to load otelConfig from agent traces config: %w", err)
 	}
@@ -148,17 +148,15 @@ func (i *Instance) buildAndStartPipeline(ctx context.Context, cfg InstanceConfig
 	}
 
 	i.service, err = service.New(ctx, service.Settings{
-		BuildInfo:                appinfo,
-		Receivers:                receiver.NewBuilder(otelConfig.Receivers, i.factories.Receivers),
-		Processors:               processor.NewBuilder(otelConfig.Processors, i.factories.Processors),
-		Exporters:                otelexporter.NewBuilder(otelConfig.Exporters, i.factories.Exporters),
-		Connectors:               connector.NewBuilder(otelConfig.Connectors, i.factories.Connectors),
-		Extensions:               extension.NewBuilder(otelConfig.Extensions, i.factories.Extensions),
-		OtelMetricViews:          servicegraphprocessor.OtelMetricViews(),
-		OtelMetricReader:         promExporter,
-		DisableProcessMetrics:    true,
-		UseExternalMetricsServer: true,
-		TracerProvider:           noop.NewTracerProvider(),
+		BuildInfo:        appinfo,
+		Receivers:        receiver.NewBuilder(otelConfig.Receivers, i.factories.Receivers),
+		Processors:       processor.NewBuilder(otelConfig.Processors, i.factories.Processors),
+		Exporters:        otelexporter.NewBuilder(otelConfig.Exporters, i.factories.Exporters),
+		Connectors:       connector.NewBuilder(otelConfig.Connectors, i.factories.Connectors),
+		Extensions:       extension.NewBuilder(otelConfig.Extensions, i.factories.Extensions),
+		OtelMetricViews:  servicegraphprocessor.OtelMetricViews(),
+		OtelMetricReader: promExporter,
+		TracerProvider:   noop.NewTracerProvider(),
 		//TODO: Plug in an AsyncErrorChannel to shut down the Agent in case of a fatal event
 		LoggingOptions: []zap.Option{
 			zap.WrapCore(func(zapcore.Core) zapcore.Core {

@@ -68,14 +68,21 @@ func toProtocol(cfg loadbalancingexporter.Protocol) loadbalancing.Protocol {
 	if cfg.OTLP.Auth != nil {
 		a = &auth.Handler{}
 	}
+
+	// Set default value for `balancer_name` to sync up with upstream's
+	balancerName := cfg.OTLP.BalancerName
+	if balancerName == "" {
+		balancerName = otelcol.DefaultBalancerName
+	}
+
 	return loadbalancing.Protocol{
 		// NOTE(rfratto): this has a lot of overlap with converting the
 		// otlpexporter, but otelcol.exporter.loadbalancing uses custom types to
 		// remove unwanted fields.
 		OTLP: loadbalancing.OtlpConfig{
 			Timeout: cfg.OTLP.Timeout,
-			Queue:   toQueueArguments(cfg.OTLP.QueueSettings),
-			Retry:   toRetryArguments(cfg.OTLP.RetrySettings),
+			Queue:   toQueueArguments(cfg.OTLP.QueueConfig),
+			Retry:   toRetryArguments(cfg.OTLP.RetryConfig),
 			Client: loadbalancing.GRPCClientArguments{
 				Compression: otelcol.CompressionType(cfg.OTLP.Compression),
 
@@ -86,7 +93,7 @@ func toProtocol(cfg loadbalancingexporter.Protocol) loadbalancing.Protocol {
 				WriteBufferSize: units.Base2Bytes(cfg.OTLP.WriteBufferSize),
 				WaitForReady:    cfg.OTLP.WaitForReady,
 				Headers:         toHeadersMap(cfg.OTLP.Headers),
-				BalancerName:    cfg.OTLP.BalancerName,
+				BalancerName:    balancerName,
 				Authority:       cfg.OTLP.Authority,
 
 				Auth: a,

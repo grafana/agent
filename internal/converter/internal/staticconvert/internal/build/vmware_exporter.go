@@ -7,7 +7,7 @@ import (
 	"github.com/grafana/river/rivertypes"
 )
 
-func (b *IntegrationsConfigBuilder) appendVmwareExporterV2(config *vmware_exporter_v2.Config) discovery.Exports {
+func (b *ConfigBuilder) appendVmwareExporterV2(config *vmware_exporter_v2.Config) discovery.Exports {
 	args := toVmwareExporter(config)
 	return b.appendExporterBlock(args, config.Name(), nil, "vsphere")
 }

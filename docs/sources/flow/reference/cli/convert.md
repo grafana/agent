@@ -17,6 +17,10 @@ weight: 100
 
 The `convert` command converts a supported configuration format to {{< param "PRODUCT_NAME" >}} River format.
 
+{{< admonition type="caution" >}}
+This command has no backward compatibility guarantees and may change or be removed between releases.
+{{< /admonition >}}
+
 ## Usage
 
 Usage:
