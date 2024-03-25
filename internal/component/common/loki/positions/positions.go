@@ -136,6 +136,8 @@ func ConvertLegacyPositionsFile(legacyPath, newPath string, l log.Logger) {
 	for k, v := range legacyPositions.Positions {
 		newPositions[Entry{
 			Path: k,
+			// This is a map of labels but must be an empty map since that is what the new positions expects.
+			Labels: "{}",
 		}] = v
 	}
 	// After conversion remove the file.

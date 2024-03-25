@@ -5,16 +5,26 @@ package file
 import (
 	"context"
 	"errors"
+	"fmt"
+	"github.com/grafana/agent/internal/component/common/loki/positions"
+	"github.com/grafana/loki/pkg/loghttp/push"
+	"gopkg.in/yaml.v2"
 	"log"
+	"net"
+	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 
+	logkit "github.com/go-kit/log"
 	"github.com/grafana/agent/internal/component"
 	"github.com/grafana/agent/internal/component/common/loki"
 	"github.com/grafana/agent/internal/component/discovery"
 	"github.com/grafana/agent/internal/flow/componenttest"
+	"github.com/grafana/agent/internal/static/logs"
 	"github.com/grafana/agent/internal/util"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
@@ -313,4 +323,133 @@ func TestEncoding(t *testing.T) {
 		10*time.Millisecond,
 		"expected positions.yml file to be written eventually",
 	)
+}
+
+// TestFullConversion tests using static mode to tail a log, then converting and then writing new entries and ensuring
+// the previously tailed data does not come through.
+func TestFullConversion(t *testing.T) {
+	//
+	// Create a temporary file to tail
+	//
+	positionsDir := t.TempDir()
+
+	tmpFile, err := os.CreateTemp(os.TempDir(), "*.log")
+	require.NoError(t, err)
+	t.Cleanup(func() {
+		_ = os.RemoveAll(tmpFile.Name())
+	})
+
+	//
+	// Listen for push requests and pass them through to a channel
+	//
+
+	lis, err := net.Listen("tcp", "127.0.0.1:0")
+	require.NoError(t, err)
+	t.Cleanup(func() {
+		require.NoError(t, lis.Close())
+	})
+	var written atomic.Bool
+	go func() {
+		_ = http.Serve(lis, http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+			_, err := push.ParseRequest(logkit.NewNopLogger(), "user_id", r, nil, nil, push.ParseLokiRequest)
+			require.NoError(t, err)
+			_, _ = rw.Write(nil)
+			written.Store(true)
+		}))
+	}()
+
+	//
+	// Launch Loki so it starts tailing the file and writes to our server.
+	//
+	cfgText := util.Untab(fmt.Sprintf(`
+positions_directory: %s
+configs:
+- name: default
+  clients:
+  - url: http://%s/loki/api/v1/push
+		batchwait: 50ms
+		batchsize: 1
+  scrape_configs:
+  - job_name: system
+    static_configs:
+    - targets: [localhost]
+      labels:
+        job: test
+        __path__: %s
+	`, positionsDir, lis.Addr().String(), tmpFile.Name()))
+
+	var cfg logs.Config
+	dec := yaml.NewDecoder(strings.NewReader(cfgText))
+	dec.SetStrict(true)
+	require.NoError(t, dec.Decode(&cfg))
+	require.NoError(t, cfg.ApplyDefaults())
+	logger := logkit.NewNopLogger()
+	l, err := logs.New(prometheus.NewRegistry(), &cfg, logger, false)
+	require.NoError(t, err)
+	//
+	// Write a log line and wait for it to come through.
+	//
+	fmt.Fprintf(tmpFile, "Hello, world!\n")
+	// Ensure we have written and received the data.
+	require.Eventually(t, func() bool {
+		return written.Load()
+	}, 10*time.Second, 100*time.Millisecond)
+
+	// Stop the tailer.
+	l.Stop()
+	oldPositions, err := os.ReadFile(filepath.Join(positionsDir, "default.yml"))
+	require.NoError(t, err)
+
+	legacy := positions.LegacyFile{Positions: make(map[string]string)}
+	err = yaml.UnmarshalStrict(oldPositions, legacy)
+	require.NoError(t, err)
+
+	opts := component.Options{
+		Logger:        util.TestFlowLogger(t),
+		Registerer:    prometheus.NewRegistry(),
+		OnStateChange: func(e component.Exports) {},
+		DataPath:      t.TempDir(),
+	}
+
+	ch1 := loki.NewLogsReceiver()
+	args := Arguments{}
+	args.LegacyPositionsFile = filepath.Join(positionsDir, "default.yml")
+	args.ForwardTo = []loki.LogsReceiver{ch1}
+	args.Targets = []discovery.Target{
+		{
+			"__path__": tmpFile.Name(),
+		},
+	}
+	c, err := New(opts, args)
+	require.NoError(t, err)
+	require.NotNil(t, c)
+	buf, err := os.ReadFile(filepath.Join(opts.DataPath, "positions.yml"))
+	newPositions := positions.File{Positions: make(map[positions.Entry]string)}
+	err = yaml.UnmarshalStrict(buf, newPositions)
+	require.NoError(t, err)
+
+	require.Len(t, newPositions.Positions, 1)
+	require.Len(t, legacy.Positions, 1)
+
+	for k, v := range newPositions.Positions {
+		val, found := legacy.Positions[k.Path]
+		require.True(t, found)
+		require.True(t, val == v)
+	}
+
+	fmt.Fprintf(tmpFile, "new thing!\n")
+	ctx := context.Background()
+	ctx, cncl := context.WithTimeout(ctx, 10*time.Second)
+	defer cncl()
+	go func() {
+		runErr := c.Run(ctx)
+		require.NoError(t, runErr)
+	}()
+	require.Eventually(t, func() bool {
+		entry := <-ch1.Chan()
+		// We don't want to reread the hello world so if something went wrong then the conversion didnt work.
+		require.False(t, strings.Contains(entry.Line, "Hello, world!"))
+		return strings.Contains(entry.Line, "new thing!")
+	}, 5*time.Second, 100*time.Millisecond)
+
 }

@@ -12,7 +12,6 @@ import (
 	"time"
 
 	"github.com/go-kit/log"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v2"
 
@@ -50,22 +49,22 @@ func TestConversion(t *testing.T) {
 	// Filename and byte offset
 	legacyPositions.Positions["/tmp/random.log"] = "17623"
 	buf, err := yaml.Marshal(legacyPositions)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	err = os.WriteFile(legacy, buf, 0644)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	ConvertLegacyPositionsFile(legacy, positionsPath, log.NewNopLogger())
 	ps, err := readPositionsFile(Config{
 		PositionsFile: positionsPath,
 	}, log.NewNopLogger())
-	assert.NoError(t, err)
-	assert.Len(t, ps, 1)
+	require.NoError(t, err)
+	require.Len(t, ps, 1)
 	for k, v := range ps {
-		assert.True(t, k.Path == "/tmp/random.log")
-		assert.True(t, v == "17623")
+		require.True(t, k.Path == "/tmp/random.log")
+		require.True(t, v == "17623")
 	}
 	// Ensure old file is deleted.
 	_, err = os.Stat(legacy)
-	assert.True(t, os.IsNotExist(err))
+	require.True(t, os.IsNotExist(err))
 }
 
 func TestConversionWithNewFile(t *testing.T) {
@@ -78,26 +77,26 @@ func TestConversionWithNewFile(t *testing.T) {
 	// Filename and byte offset
 	legacyPositions.Positions["/tmp/random.log"] = "17623"
 	buf, err := yaml.Marshal(legacyPositions)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	err = os.WriteFile(legacy, buf, 0644)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// Write a new file.
 	err = writePositionFile(positionsPath, map[Entry]string{
 		{Path: "/tmp/newrandom.log", Labels: ""}: "100",
 	})
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// In this state nothing should be overwritten.
 	ConvertLegacyPositionsFile(legacy, positionsPath, log.NewNopLogger())
 	ps, err := readPositionsFile(Config{
 		PositionsFile: positionsPath,
 	}, log.NewNopLogger())
-	assert.NoError(t, err)
-	assert.Len(t, ps, 1)
+	require.NoError(t, err)
+	require.Len(t, ps, 1)
 	for k, v := range ps {
-		assert.True(t, k.Path == "/tmp/newrandom.log")
-		assert.True(t, v == "100")
+		require.True(t, k.Path == "/tmp/newrandom.log")
+		require.True(t, v == "100")
 	}
 }
 
@@ -110,17 +109,17 @@ func TestConversionWithNoLegacyFile(t *testing.T) {
 	err := writePositionFile(positionsPath, map[Entry]string{
 		{Path: "/tmp/newrandom.log", Labels: ""}: "100",
 	})
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	ConvertLegacyPositionsFile(legacy, positionsPath, log.NewNopLogger())
 	ps, err := readPositionsFile(Config{
 		PositionsFile: positionsPath,
 	}, log.NewNopLogger())
-	assert.NoError(t, err)
-	assert.Len(t, ps, 1)
+	require.NoError(t, err)
+	require.Len(t, ps, 1)
 	for k, v := range ps {
-		assert.True(t, k.Path == "/tmp/newrandom.log")
-		assert.True(t, v == "100")
+		require.True(t, k.Path == "/tmp/newrandom.log")
+		require.True(t, v == "100")
 	}
 }
 
