@@ -3,6 +3,7 @@ package remotewrite
 import (
 	"context"
 	"fmt"
+	"github.com/prometheus/prometheus/model/value"
 	"math"
 	"os"
 	"path/filepath"
@@ -112,6 +113,8 @@ func New(o component.Options, c Arguments) (*Component, error) {
 				return 0, fmt.Errorf("%s has exited", o.ID)
 			}
 
+			debugStaleness(l, v, t, o.Logger, "sample")
+
 			localID := ls.GetLocalRefID(res.opts.ID, uint64(globalRef))
 			newRef, nextErr := next.Append(storage.SeriesRef(localID), l, t, v)
 			if localID == 0 {
@@ -165,6 +168,17 @@ func New(o component.Options, c Arguments) (*Component, error) {
 		return nil, err
 	}
 	return res, nil
+}
+
+var lastLog = time.Now()
+
+func debugStaleness(l labels.Labels, v float64, t int64, logger log.Logger, s string) {
+	if time.Since(lastLog) > 5*time.Second {
+		if value.IsStaleNaN(v) {
+			level.Warn(logger).Log("msg", ">>> PUSHING STALE MARKER", "labels", l.String(), "timestamp", t, "value", v, "type", s)
+			lastLog = time.Now()
+		}
+	}
 }
 
 func startTime() (int64, error) { return 0, nil }

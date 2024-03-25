@@ -365,6 +365,7 @@ func (i *Instance) Run(ctx context.Context) error {
 				// wrong, then the instance will be relaunched.
 				if err == nil && cfg.WriteStaleOnShutdown {
 					level.Info(i.logger).Log("msg", "writing staleness markers...")
+					fmt.Printf(">>> WRITING STALENESS MARKERS ON SHUTDOWN\n")
 					err := i.wal.WriteStalenessMarkers(i.getRemoteWriteTimestamp)
 					if err != nil {
 						level.Error(i.logger).Log("msg", "error writing staleness markers", "err", err)

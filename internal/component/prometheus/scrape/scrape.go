@@ -165,6 +165,7 @@ func New(o component.Options, args Arguments) (*Component, error) {
 		},
 		EnableProtobufNegotiation: args.EnableProtobufNegotiation,
 	}
+	//scraper := scrape.NewManager(scrapeOptions, o.Logger, newDeferredStalenessAppendable(flowAppendable, o.Logger))
 	scraper := scrape.NewManager(scrapeOptions, o.Logger, flowAppendable)
 
 	targetsGauge := client_prometheus.NewGauge(client_prometheus.GaugeOpts{
@@ -223,7 +224,7 @@ func (c *Component) Run(ctx context.Context) error {
 			c.mut.RUnlock()
 
 			promTargets := c.distTargets(targets, jobName, clusteringEnabled)
-
+			level.Warn(c.opts.Logger).Log("msg", ">>> SENDING NEW TARGET SET", "distributed_targets_count", len(promTargets[jobName][0].Targets))
 			select {
 			case targetSetsChan <- promTargets:
 				level.Debug(c.opts.Logger).Log("msg", "passed new targets to scrape manager")
@@ -244,6 +245,7 @@ func (c *Component) Update(args component.Arguments) error {
 	c.appendable.UpdateChildren(newArgs.ForwardTo)
 
 	sc := getPromScrapeConfigs(c.opts.ID, newArgs)
+	level.Warn(c.opts.Logger).Log("msg", ">>> APPLYING NEW CONFIG WITH NEW TARGETS ETC", "targets_count", len(newArgs.Targets))
 	err := c.scraper.ApplyConfig(&config.Config{
 		ScrapeConfigs: []*config.ScrapeConfig{sc},
 	})
@@ -264,6 +266,8 @@ func (c *Component) Update(args component.Arguments) error {
 func (c *Component) NotifyClusterChange() {
 	c.mut.RLock()
 	defer c.mut.RUnlock()
+
+	level.Warn(c.opts.Logger).Log("msg", ">>> CLUSTER CHANGE NOTIFICATION")
 
 	if !c.args.Clustering.Enabled {
 		return // no-op
