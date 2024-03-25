@@ -163,8 +163,8 @@ arguments.
 
 ### default_instance_label block
 
-The `default_instance_label` block configures default "instance" label to be assigned with logs 
-scraped from inputted targets.
+You can use the `default_instance_label` block to explicitly define the default "instance" label assigned to the logs 
+scraped from the targets.
 If you don't provide the `default_instance_label` block, the target's address is used as the default instance label.
 
 The following arguments are supported:
