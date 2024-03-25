@@ -55,6 +55,8 @@ When set to true, only new logs will be read, ignoring the existing ones.
 {{< admonition type="note" >}}
 The `legacy_positions_file` argument is used when you are transitioning from legacy. The legacy positions file will be rewritten into the new format and at the new location.
 This operation will only occur if the new locations file does not exist and the `legacy_positions_file` is valid. Once converted successfully the `legacy_positions_file` will be deleted.
+If you add any labels before `loki.source.file` then the positions file will conversion will not work. The legacy positions file did not have a concept of labels in the positions file,
+so the conversion assumes no labels.
 {{< /admonition >}}
 
 
