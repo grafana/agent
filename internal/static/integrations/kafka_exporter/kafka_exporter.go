@@ -22,8 +22,12 @@ var DefaultConfig = Config{
 	AllowConcurrent:         true,
 	MaxOffsets:              1000,
 	PruneIntervalSeconds:    30,
+	OffsetShowAll:           true,
+	TopicWorkers:            100,
 	TopicsFilter:            ".*",
+	TopicsExclude:           "^$",
 	GroupFilter:             ".*",
+	GroupExclude:            "^$",
 }
 
 // Config controls kafka_exporter
@@ -49,8 +53,12 @@ type Config struct {
 	// The SASL SCRAM SHA algorithm sha256 or sha512 as mechanism
 	SASLMechanism string `yaml:"sasl_mechanism,omitempty"`
 
+	SASLDisablePAFXFast bool `yaml:"sasl_disable_pafx_fast,omitempty"`
+
 	// Connect using TLS
 	UseTLS bool `yaml:"use_tls,omitempty"`
+
+	TlsServerName string `yaml:"tls_server_name,omitempty"`
 
 	// The optional certificate authority file for TLS client authentication
 	CAFile string `yaml:"ca_file,omitempty"`
@@ -79,8 +87,24 @@ type Config struct {
 	// Metadata refresh interval
 	MetadataRefreshInterval string `yaml:"metadata_refresh_interval,omitempty"`
 
+	ServiceName string `yaml:"gssapi_service_name,omitempty"`
+
+	KerberosConfigPath string `yaml:"gssapi_kerberos_config_path,omitempty"`
+
+	Realm string `yaml:"gssapi_realm,omitempty"`
+
+	KeyTabPath string `yaml:"gssapi_key_tab_path,omitempty"`
+
+	KerberosAuthType string `yaml:"gssapi_kerberos_auth_type,omitempty"`
+
+	OffsetShowAll bool `yaml:"offset_show_all,omitempty"`
+
+	TopicWorkers int `yaml:"topic_workers,omitempty"`
+
 	// If true, all scrapes will trigger kafka operations otherwise, they will share results. WARN: This should be disabled on large clusters
 	AllowConcurrent bool `yaml:"allow_concurrency,omitempty"`
+
+	AllowAutoTopicCreation bool `yaml:"allow_auto_topic_creation,omitempty"`
 
 	// Maximum number of offsets to store in the interpolation table for a partition
 	MaxOffsets int `yaml:"max_offsets,omitempty"`
@@ -91,8 +115,12 @@ type Config struct {
 	// Regex filter for topics to be monitored
 	TopicsFilter string `yaml:"topics_filter_regex,omitempty"`
 
+	TopicsExclude string `yaml:"topics_exclude_regex,omitempty"`
+
 	// Regex filter for consumer groups to be monitored
 	GroupFilter string `yaml:"groups_filter_regex,omitempty"`
+
+	GroupExclude string `yaml:"groups_exclude_regex,omitempty"`
 }
 
 // UnmarshalYAML implements yaml.Unmarshaler for Config
@@ -154,7 +182,9 @@ func New(logger log.Logger, c *Config) (integrations.Integration, error) {
 		SaslUsername:             c.SASLUsername,
 		SaslPassword:             string(c.SASLPassword),
 		SaslMechanism:            c.SASLMechanism,
+		SaslDisablePAFXFast:      c.SASLDisablePAFXFast,
 		UseTLS:                   c.UseTLS,
+		TlsServerName:            c.TlsServerName,
 		TlsCAFile:                c.CAFile,
 		TlsCertFile:              c.CertFile,
 		TlsKeyFile:               c.KeyFile,
@@ -164,12 +194,20 @@ func New(logger log.Logger, c *Config) (integrations.Integration, error) {
 		UriZookeeper:             c.ZookeeperURIs,
 		Labels:                   c.ClusterName,
 		MetadataRefreshInterval:  c.MetadataRefreshInterval,
+		ServiceName:              c.ServiceName,
+		KerberosConfigPath:       c.KerberosConfigPath,
+		Realm:                    c.Realm,
+		KeyTabPath:               c.KeyTabPath,
+		KerberosAuthType:         c.KerberosAuthType,
+		OffsetShowAll:            c.OffsetShowAll,
+		TopicWorkers:             c.TopicWorkers,
 		AllowConcurrent:          c.AllowConcurrent,
+		AllowAutoTopicCreation:   c.AllowAutoTopicCreation,
 		MaxOffsets:               c.MaxOffsets,
 		PruneIntervalSeconds:     c.PruneIntervalSeconds,
 	}
 
-	newExporter, err := kafka_exporter.New(logger, options, c.TopicsFilter, c.GroupFilter)
+	newExporter, err := kafka_exporter.New(logger, options, c.TopicsFilter, c.TopicsExclude, c.GroupFilter, c.GroupExclude)
 	if err != nil {
 		return nil, fmt.Errorf("could not instantiate kafka lag exporter: %w", err)
 	}

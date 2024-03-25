@@ -560,8 +560,8 @@ require (
 	github.com/xanzy/ssh-agent v0.3.3 // indirect
 	github.com/xdg-go/pbkdf2 v1.0.0 // indirect
 	github.com/xdg-go/stringprep v1.0.4 // indirect
-	github.com/xdg/scram v0.0.0-20180814205039-7eeb5667e42c // indirect
-	github.com/xdg/stringprep v1.0.0 // indirect
+	github.com/xdg/scram v1.0.3 // indirect
+	github.com/xdg/stringprep v1.0.3 // indirect
 	github.com/xeipuuv/gojsonpointer v0.0.0-20190905194746-02993c407bfb // indirect
 	github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 // indirect
 	github.com/xeipuuv/gojsonschema v1.2.0 // indirect
@@ -787,3 +787,5 @@ replace github.com/github/smimesign => github.com/grafana/smimesign v0.2.1-0.202
 // Replacing for an internal for with a bugfix for delta histograms, https://github.com/grafana/stackdriver_exporter/pull/1
 // Moving back to upstream is being tracked in an internal issue
 replace github.com/prometheus-community/stackdriver_exporter => github.com/grafana/stackdriver_exporter v0.0.0-20240228143257-3a2c9acef5a2
+
+replace github.com/davidmparrott/kafka_exporter/v2 => /Users/williamdumont/kafka_exporter
