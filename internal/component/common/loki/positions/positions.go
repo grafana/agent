@@ -96,6 +96,58 @@ type Positions interface {
 	Stop()
 }
 
+// LegacyFile is the copied struct for the static mode positions file.
+type LegacyFile struct {
+	Positions map[string]string `yaml:"positions"`
+}
+
+// ConvertLegacyPositionsFile will convert the legacy positions file to the new format if:
+// 1. There is no file at the newpath
+// 2. There is a file at the legacy path and that it is valid yaml
+// If all the above is true then the legacy file will be deleted.
+func ConvertLegacyPositionsFile(legacyPath, newPath string, l log.Logger) {
+	oldFile, err := os.Stat(legacyPath)
+	// If the old file doesn't exist or is empty then return early.
+	if err != nil || oldFile.Size() == 0 {
+		level.Info(l).Log("msg", "no legacy positions file found", "path", legacyPath)
+		return
+	}
+	fi, err := os.Stat(newPath)
+	// If the newpath exists, then don't convert.
+	if err == nil && fi.Size() > 0 {
+		level.Info(l).Log("msg", "new positions file already exists", "path", newPath)
+		return
+	}
+
+	// Try to read and parse the legacy file.
+	clean := filepath.Clean(legacyPath)
+	buf, err := os.ReadFile(clean)
+	if err != nil {
+		level.Error(l).Log("msg", "error reading legacy positions file", "path", clean, "error", err)
+		return
+	}
+	legacyPositions := &LegacyFile{}
+	err = yaml.UnmarshalStrict(buf, legacyPositions)
+	if err != nil {
+		level.Error(l).Log("msg", "error parsing legacy positions file", "path", clean, "error", err)
+		return
+	}
+	newPositions := make(map[Entry]string)
+	for k, v := range legacyPositions.Positions {
+		newPositions[Entry{
+			Path: k,
+		}] = v
+	}
+	// After conversion remove the file.
+	err = writePositionFile(newPath, newPositions)
+	if err != nil {
+		level.Error(l).Log("msg", "error writing new positions file from legacy", "path", newPath, "error", err)
+	}
+
+	// Finally remove the old path.
+	_ = os.Remove(legacyPath)
+}
+
 // New makes a new Positions.
 func New(logger log.Logger, cfg Config) (Positions, error) {
 	positionData, err := readPositionsFile(cfg, logger)

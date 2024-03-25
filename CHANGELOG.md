@@ -16,6 +16,8 @@ Main (unreleased)
 
 - Add support for importing directories as single module to `import.git`. (@wildum)
 
+- Add ability to convert static mode positions file to `loki.source.file` compatible via `legacy_positions_file` argument. (@mattdurham)
+
 ### Features
 
 - Added a new CLI flag `--stability.level` which defines the minimum stability

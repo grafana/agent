@@ -6,12 +6,15 @@ package positions
 
 import (
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
 
 	"github.com/go-kit/log"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"gopkg.in/yaml.v2"
 
 	util_log "github.com/grafana/loki/pkg/util/log"
 )
@@ -35,6 +38,90 @@ func tempFilename(t *testing.T) string {
 	}
 
 	return name
+}
+
+func TestConversion(t *testing.T) {
+	tmpDir := t.TempDir()
+	legacy := filepath.Join(tmpDir, "legacy")
+	positionsPath := filepath.Join(tmpDir, "positions")
+	legacyPositions := LegacyFile{
+		Positions: make(map[string]string),
+	}
+	// Filename and byte offset
+	legacyPositions.Positions["/tmp/random.log"] = "17623"
+	buf, err := yaml.Marshal(legacyPositions)
+	assert.NoError(t, err)
+	err = os.WriteFile(legacy, buf, 0644)
+	assert.NoError(t, err)
+	ConvertLegacyPositionsFile(legacy, positionsPath, log.NewNopLogger())
+	ps, err := readPositionsFile(Config{
+		PositionsFile: positionsPath,
+	}, log.NewNopLogger())
+	assert.NoError(t, err)
+	assert.Len(t, ps, 1)
+	for k, v := range ps {
+		assert.True(t, k.Path == "/tmp/random.log")
+		assert.True(t, v == "17623")
+	}
+	// Ensure old file is deleted.
+	_, err = os.Stat(legacy)
+	assert.True(t, os.IsNotExist(err))
+}
+
+func TestConversionWithNewFile(t *testing.T) {
+	tmpDir := t.TempDir()
+	legacy := filepath.Join(tmpDir, "legacy")
+	positionsPath := filepath.Join(tmpDir, "positions")
+	legacyPositions := LegacyFile{
+		Positions: make(map[string]string),
+	}
+	// Filename and byte offset
+	legacyPositions.Positions["/tmp/random.log"] = "17623"
+	buf, err := yaml.Marshal(legacyPositions)
+	assert.NoError(t, err)
+	err = os.WriteFile(legacy, buf, 0644)
+	assert.NoError(t, err)
+
+	// Write a new file.
+	err = writePositionFile(positionsPath, map[Entry]string{
+		{Path: "/tmp/newrandom.log", Labels: ""}: "100",
+	})
+	assert.NoError(t, err)
+
+	// In this state nothing should be overwritten.
+	ConvertLegacyPositionsFile(legacy, positionsPath, log.NewNopLogger())
+	ps, err := readPositionsFile(Config{
+		PositionsFile: positionsPath,
+	}, log.NewNopLogger())
+	assert.NoError(t, err)
+	assert.Len(t, ps, 1)
+	for k, v := range ps {
+		assert.True(t, k.Path == "/tmp/newrandom.log")
+		assert.True(t, v == "100")
+	}
+}
+
+func TestConversionWithNoLegacyFile(t *testing.T) {
+	tmpDir := t.TempDir()
+	legacy := filepath.Join(tmpDir, "legacy")
+	positionsPath := filepath.Join(tmpDir, "positions")
+
+	// Write a new file.
+	err := writePositionFile(positionsPath, map[Entry]string{
+		{Path: "/tmp/newrandom.log", Labels: ""}: "100",
+	})
+	assert.NoError(t, err)
+
+	ConvertLegacyPositionsFile(legacy, positionsPath, log.NewNopLogger())
+	ps, err := readPositionsFile(Config{
+		PositionsFile: positionsPath,
+	}, log.NewNopLogger())
+	assert.NoError(t, err)
+	assert.Len(t, ps, 1)
+	for k, v := range ps {
+		assert.True(t, k.Path == "/tmp/newrandom.log")
+		assert.True(t, v == "100")
+	}
 }
 
 func TestReadPositionsOK(t *testing.T) {
