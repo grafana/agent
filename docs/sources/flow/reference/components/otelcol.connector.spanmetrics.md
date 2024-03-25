@@ -75,7 +75,7 @@ otelcol.connector.spanmetrics "LABEL" {
 | `metrics_flush_interval`          | `duration`     | How often to flush generated metrics.                                                      | `"15s"`        | no       |
 | `namespace`                       | `string`       | Metric namespace.                                                                          | `""`           | no       |
 | `resource_metrics_cache_size`     | `number`       | The size of the cache holding metrics for a service.                                       | `1000`         | no       |
-| `resource_metrics_key_attributes` | `list(string)` | Span resources with the same values for those resource attributes are aggregated together. | `[]`           | no       |
+| `resource_metrics_key_attributes` | `list(string)` | Limits the resource attributes used to create the metrics.                                 | `[]`           | no       |
 
 Adjusting `dimensions_cache_size` can improve the Agent process' memory usage.
 
