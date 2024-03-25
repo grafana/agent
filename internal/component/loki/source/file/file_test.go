@@ -6,9 +6,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/grafana/agent/internal/component/common/loki/positions"
-	"github.com/grafana/loki/pkg/loghttp/push"
-	"gopkg.in/yaml.v2"
 	"log"
 	"net"
 	"net/http"
@@ -18,6 +15,10 @@ import (
 	"sync/atomic"
 	"testing"
 	"time"
+
+	"github.com/grafana/agent/internal/component/common/loki/positions"
+	"github.com/grafana/loki/pkg/loghttp/push"
+	"gopkg.in/yaml.v2"
 
 	logkit "github.com/go-kit/log"
 	"github.com/grafana/agent/internal/component"
@@ -451,5 +452,4 @@ configs:
 		require.False(t, strings.Contains(entry.Line, "Hello, world!"))
 		return strings.Contains(entry.Line, "new thing!")
 	}, 5*time.Second, 100*time.Millisecond)
-
 }
