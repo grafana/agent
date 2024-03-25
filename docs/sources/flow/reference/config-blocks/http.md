@@ -104,8 +104,8 @@ The set of cipher suites specified may be from the following:
 | ----------------------------------------------- | -------------------------------- |
 | `TLS_RSA_WITH_AES_128_CBC_SHA`                  | no                               |
 | `TLS_RSA_WITH_AES_256_CBC_SHA`                  | no                               |
-| `TLS_RSA_WITH_AES_128_GCM_SHA256`               | yes                              |
-| `TLS_RSA_WITH_AES_256_GCM_SHA384`               | yes                              |
+| `TLS_RSA_WITH_AES_128_GCM_SHA256`               | no                               |
+| `TLS_RSA_WITH_AES_256_GCM_SHA384`               | no                               |
 | `TLS_AES_128_GCM_SHA256`                        | no                               |
 | `TLS_AES_256_GCM_SHA384`                        | no                               |
 | `TLS_CHACHA20_POLY1305_SHA256`                  | no                               |

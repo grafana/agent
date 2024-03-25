@@ -28,6 +28,7 @@ type StageConfig struct {
 	LabelsConfig          *LabelsConfig          `river:"labels,block,optional"`
 	LimitConfig           *LimitConfig           `river:"limit,block,optional"`
 	LogfmtConfig          *LogfmtConfig          `river:"logfmt,block,optional"`
+	LuhnFilterConfig      *LuhnFilterConfig      `river:"luhn,block,optional"`
 	MatchConfig           *MatchConfig           `river:"match,block,optional"`
 	MetricsConfig         *MetricsConfig         `river:"metrics,block,optional"`
 	MultilineConfig       *MultilineConfig       `river:"multiline,block,optional"`

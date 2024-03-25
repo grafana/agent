@@ -84,7 +84,7 @@ This includes any configuration files in the installation directory.
 
 ## Next steps
 
-- [Run {{< param "PRODUCT_NAME" >}}][Start]
+- [Run {{< param "PRODUCT_NAME" >}}][Run]
 - [Configure {{< param "PRODUCT_NAME" >}}][Configure]
 
 [latest]: https://github.com/grafana/agent/releases/latest

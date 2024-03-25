@@ -13,6 +13,8 @@ import (
 	otelextension "go.opentelemetry.io/collector/extension"
 )
 
+const DefaultBalancerName = "pick_first"
+
 // GRPCServerArguments holds shared gRPC settings for components which launch
 // gRPC servers.
 type GRPCServerArguments struct {
@@ -40,13 +42,13 @@ type GRPCServerArguments struct {
 }
 
 // Convert converts args into the upstream type.
-func (args *GRPCServerArguments) Convert() *otelconfiggrpc.GRPCServerSettings {
+func (args *GRPCServerArguments) Convert() *otelconfiggrpc.ServerConfig {
 	if args == nil {
 		return nil
 	}
 
-	return &otelconfiggrpc.GRPCServerSettings{
-		NetAddr: confignet.NetAddr{
+	return &otelconfiggrpc.ServerConfig{
+		NetAddr: confignet.AddrConfig{
 			Endpoint:  args.Endpoint,
 			Transport: args.Transport,
 		},
@@ -152,7 +154,7 @@ type GRPCClientArguments struct {
 }
 
 // Convert converts args into the upstream type.
-func (args *GRPCClientArguments) Convert() *otelconfiggrpc.GRPCClientSettings {
+func (args *GRPCClientArguments) Convert() *otelconfiggrpc.ClientConfig {
 	if args == nil {
 		return nil
 	}
@@ -168,7 +170,13 @@ func (args *GRPCClientArguments) Convert() *otelconfiggrpc.GRPCClientSettings {
 		auth = &otelconfigauth.Authentication{AuthenticatorID: args.Auth.ID}
 	}
 
-	return &otelconfiggrpc.GRPCClientSettings{
+	// Set default value for `balancer_name` to sync up with upstream's
+	balancerName := args.BalancerName
+	if balancerName == "" {
+		balancerName = DefaultBalancerName
+	}
+
+	return &otelconfiggrpc.ClientConfig{
 		Endpoint: args.Endpoint,
 
 		Compression: args.Compression.Convert(),
@@ -180,7 +188,7 @@ func (args *GRPCClientArguments) Convert() *otelconfiggrpc.GRPCClientSettings {
 		WriteBufferSize: int(args.WriteBufferSize),
 		WaitForReady:    args.WaitForReady,
 		Headers:         opaqueHeaders,
-		BalancerName:    args.BalancerName,
+		BalancerName:    balancerName,
 		Authority:       args.Authority,
 
 		Auth: auth,
