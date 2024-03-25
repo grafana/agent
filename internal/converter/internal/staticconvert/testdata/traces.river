@@ -1,31 +1,3 @@
-discovery.azure "prometheus1" {
-	subscription_id = "subscription1"
-
-	oauth {
-		client_id     = "client1"
-		tenant_id     = "tenant1"
-		client_secret = "secret1"
-	}
-
-	managed_identity {
-		client_id = "client1"
-	}
-}
-
-discovery.relabel "prometheus1" {
-	targets = discovery.azure.prometheus1.targets
-
-	rule {
-		source_labels = ["__address1__"]
-		target_label  = "__param_target1"
-	}
-
-	rule {
-		source_labels = ["__address2__"]
-		target_label  = "__param_target2"
-	}
-}
-
 otelcol.receiver.otlp "default" {
 	grpc {
 		include_metadata = true
@@ -42,8 +14,36 @@ otelcol.receiver.otlp "default" {
 	}
 }
 
+discovery.azure "default_prometheus1" {
+	subscription_id = "subscription1"
+
+	oauth {
+		client_id     = "client1"
+		tenant_id     = "tenant1"
+		client_secret = "secret1"
+	}
+
+	managed_identity {
+		client_id = "client1"
+	}
+}
+
+discovery.relabel "default_prometheus1" {
+	targets = discovery.azure.default_prometheus1.targets
+
+	rule {
+		source_labels = ["__address1__"]
+		target_label  = "__param_target1"
+	}
+
+	rule {
+		source_labels = ["__address2__"]
+		target_label  = "__param_target2"
+	}
+}
+
 otelcol.processor.discovery "default" {
-	targets          = discovery.relabel.prometheus1.output
+	targets          = discovery.relabel.default_prometheus1.output
 	pod_associations = []
 
 	output {

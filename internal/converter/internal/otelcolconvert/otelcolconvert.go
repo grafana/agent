@@ -188,7 +188,7 @@ func AppendConfig(file *builder.File, cfg *otelcol.Config, labelPrefix string, e
 	for _, ext := range cfg.Service.Extensions {
 		cid := component.InstanceID{Kind: component.KindExtension, ID: ext}
 
-		state := &state{
+		state := &State{
 			cfg:  cfg,
 			file: file,
 			// We pass an empty pipelineGroup to make calls to
@@ -237,7 +237,7 @@ func AppendConfig(file *builder.File, cfg *otelcol.Config, labelPrefix string, e
 			for _, id := range componentSet.ids {
 				componentID := component.InstanceID{Kind: componentSet.kind, ID: id}
 
-				state := &state{
+				state := &State{
 					cfg:   cfg,
 					file:  file,
 					group: &group,
