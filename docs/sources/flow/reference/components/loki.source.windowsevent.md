@@ -55,7 +55,6 @@ Name                     | Type                 | Description                   
 
 {{< admonition type="note" >}}
 `legacy_bookmark_path` is used to convert the Grafana Agent Static to a {{< param "PRODUCT_NAME" >}} bookmark, if `bookmark_path` does not exist.
-This is used when converting from yaml based configuration to {{< param "PRODUCT_NAME" >}} configuration.
 {{< /admonition >}}
 
 ## Component health
