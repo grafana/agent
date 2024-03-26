@@ -26,7 +26,7 @@ func (spanmetricsConnectorConverter) InputComponentName() string {
 	return "otelcol.connector.spanmetrics"
 }
 
-func (spanmetricsConnectorConverter) ConvertAndAppend(state *state, id component.InstanceID, cfg component.Config) diag.Diagnostics {
+func (spanmetricsConnectorConverter) ConvertAndAppend(state *State, id component.InstanceID, cfg component.Config) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	label := state.FlowComponentLabel()
@@ -36,14 +36,14 @@ func (spanmetricsConnectorConverter) ConvertAndAppend(state *state, id component
 
 	diags.Add(
 		diag.SeverityLevelInfo,
-		fmt.Sprintf("Converted %s into %s", stringifyInstanceID(id), stringifyBlock(block)),
+		fmt.Sprintf("Converted %s into %s", StringifyInstanceID(id), StringifyBlock(block)),
 	)
 
 	state.Body().AppendBlock(block)
 	return diags
 }
 
-func toSpanmetricsConnector(state *state, id component.InstanceID, cfg *spanmetricsconnector.Config) *spanmetrics.Arguments {
+func toSpanmetricsConnector(state *State, id component.InstanceID, cfg *spanmetricsconnector.Config) *spanmetrics.Arguments {
 	if cfg == nil {
 		return nil
 	}
@@ -112,7 +112,7 @@ func toSpanmetricsConnector(state *state, id component.InstanceID, cfg *spanmetr
 		},
 
 		Output: &otelcol.ConsumerArguments{
-			Metrics: toTokenizedConsumers(nextMetrics),
+			Metrics: ToTokenizedConsumers(nextMetrics),
 		},
 	}
 }

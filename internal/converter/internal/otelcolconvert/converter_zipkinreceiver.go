@@ -21,7 +21,7 @@ func (zipkinReceiverConverter) Factory() component.Factory { return zipkinreceiv
 
 func (zipkinReceiverConverter) InputComponentName() string { return "" }
 
-func (zipkinReceiverConverter) ConvertAndAppend(state *state, id component.InstanceID, cfg component.Config) diag.Diagnostics {
+func (zipkinReceiverConverter) ConvertAndAppend(state *State, id component.InstanceID, cfg component.Config) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	label := state.FlowComponentLabel()
@@ -31,14 +31,14 @@ func (zipkinReceiverConverter) ConvertAndAppend(state *state, id component.Insta
 
 	diags.Add(
 		diag.SeverityLevelInfo,
-		fmt.Sprintf("Converted %s into %s", stringifyInstanceID(id), stringifyBlock(block)),
+		fmt.Sprintf("Converted %s into %s", StringifyInstanceID(id), StringifyBlock(block)),
 	)
 
 	state.Body().AppendBlock(block)
 	return diags
 }
 
-func toZipkinReceiver(state *state, id component.InstanceID, cfg *zipkinreceiver.Config) *zipkin.Arguments {
+func toZipkinReceiver(state *State, id component.InstanceID, cfg *zipkinreceiver.Config) *zipkin.Arguments {
 	var (
 		nextTraces = state.Next(id, component.DataTypeTraces)
 	)
@@ -50,7 +50,7 @@ func toZipkinReceiver(state *state, id component.InstanceID, cfg *zipkinreceiver
 		DebugMetrics: common.DefaultValue[zipkin.Arguments]().DebugMetrics,
 
 		Output: &otelcol.ConsumerArguments{
-			Traces: toTokenizedConsumers(nextTraces),
+			Traces: ToTokenizedConsumers(nextTraces),
 		},
 	}
 }

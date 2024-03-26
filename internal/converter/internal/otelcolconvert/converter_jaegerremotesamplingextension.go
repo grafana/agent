@@ -24,7 +24,7 @@ func (jaegerRemoteSamplingExtensionConverter) InputComponentName() string {
 	return "otelcol.extension.jaeger_remote_sampling"
 }
 
-func (jaegerRemoteSamplingExtensionConverter) ConvertAndAppend(state *state, id component.InstanceID, cfg component.Config) diag.Diagnostics {
+func (jaegerRemoteSamplingExtensionConverter) ConvertAndAppend(state *State, id component.InstanceID, cfg component.Config) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	label := state.FlowComponentLabel()
@@ -34,7 +34,7 @@ func (jaegerRemoteSamplingExtensionConverter) ConvertAndAppend(state *state, id 
 
 	diags.Add(
 		diag.SeverityLevelInfo,
-		fmt.Sprintf("Converted %s into %s", stringifyInstanceID(id), stringifyBlock(block)),
+		fmt.Sprintf("Converted %s into %s", StringifyInstanceID(id), StringifyBlock(block)),
 	)
 
 	state.Body().AppendBlock(block)
