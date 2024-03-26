@@ -737,6 +737,8 @@ replace github.com/prometheus/prometheus => github.com/prometheus/prometheus v0.
 
 replace gopkg.in/yaml.v2 => github.com/rfratto/go-yaml v0.0.0-20211119180816-77389c3526dc
 
+replace go.opentelemetry.io/collector/featuregate => github.com/grafana/opentelemetry-collector/featuregate v0.0.0-20240325174506-2fd1623b2ca0
+
 // Replace directives from Loki
 replace (
 	github.com/Azure/azure-sdk-for-go => github.com/Azure/azure-sdk-for-go v36.2.0+incompatible

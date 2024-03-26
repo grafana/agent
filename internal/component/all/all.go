@@ -139,4 +139,6 @@ import (
 	_ "github.com/grafana/agent/internal/component/remote/kubernetes/secret"                 // Import remote.kubernetes.secret
 	_ "github.com/grafana/agent/internal/component/remote/s3"                                // Import remote.s3
 	_ "github.com/grafana/agent/internal/component/remote/vault"                             // Import remote.vault
+
+	_ "github.com/grafana/agent/internal/util/otelfeaturegatefix" // Gracefully handle duplicate OTEL feature gates
 )
