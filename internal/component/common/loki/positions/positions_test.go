@@ -39,10 +39,8 @@ func tempFilename(t *testing.T) string {
 	return name
 }
 
-func TestLegacyConversion(t *testing.T) {
-	tmpDir := t.TempDir()
+func writeLegacy(t *testing.T, tmpDir string) string {
 	legacy := filepath.Join(tmpDir, "legacy")
-	positionsPath := filepath.Join(tmpDir, "positions")
 	legacyPositions := LegacyFile{
 		Positions: make(map[string]string),
 	}
@@ -52,6 +50,13 @@ func TestLegacyConversion(t *testing.T) {
 	require.NoError(t, err)
 	err = os.WriteFile(legacy, buf, 0644)
 	require.NoError(t, err)
+	return legacy
+}
+
+func TestLegacyConversion(t *testing.T) {
+	tmpDir := t.TempDir()
+	legacy := writeLegacy(t, tmpDir)
+	positionsPath := filepath.Join(tmpDir, "positions")
 	ConvertLegacyPositionsFile(legacy, positionsPath, log.NewNopLogger())
 	ps, err := readPositionsFile(Config{
 		PositionsFile: positionsPath,
@@ -69,20 +74,10 @@ func TestLegacyConversion(t *testing.T) {
 
 func TestLegacyConversionWithNewFile(t *testing.T) {
 	tmpDir := t.TempDir()
-	legacy := filepath.Join(tmpDir, "legacy")
-	positionsPath := filepath.Join(tmpDir, "positions")
-	legacyPositions := LegacyFile{
-		Positions: make(map[string]string),
-	}
-	// Filename and byte offset
-	legacyPositions.Positions["/tmp/random.log"] = "17623"
-	buf, err := yaml.Marshal(legacyPositions)
-	require.NoError(t, err)
-	err = os.WriteFile(legacy, buf, 0644)
-	require.NoError(t, err)
-
+	legacy := writeLegacy(t, tmpDir)
 	// Write a new file.
-	err = writePositionFile(positionsPath, map[Entry]string{
+	positionsPath := filepath.Join(tmpDir, "positions")
+	err := writePositionFile(positionsPath, map[Entry]string{
 		{Path: "/tmp/newrandom.log", Labels: ""}: "100",
 	})
 	require.NoError(t, err)
@@ -104,7 +99,6 @@ func TestLegacyConversionWithNoLegacyFile(t *testing.T) {
 	tmpDir := t.TempDir()
 	legacy := filepath.Join(tmpDir, "legacy")
 	positionsPath := filepath.Join(tmpDir, "positions")
-
 	// Write a new file.
 	err := writePositionFile(positionsPath, map[Entry]string{
 		{Path: "/tmp/newrandom.log", Labels: ""}: "100",
