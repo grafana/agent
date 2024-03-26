@@ -12,6 +12,7 @@ import (
 	"github.com/grafana/agent/internal/featuregate"
 	"github.com/grafana/agent/internal/flow/logging/level"
 	mimirClient "github.com/grafana/agent/internal/mimir/client"
+	"github.com/grafana/agent/internal/service/cluster"
 	"github.com/grafana/dskit/backoff"
 	"github.com/grafana/dskit/instrument"
 	promListers "github.com/prometheus-operator/prometheus-operator/pkg/client/listers/monitoring/v1"
@@ -43,9 +44,10 @@ func init() {
 }
 
 type Component struct {
-	log  log.Logger
-	opts component.Options
-	args Arguments
+	log     log.Logger
+	opts    component.Options
+	args    Arguments
+	cluster cluster.Cluster
 
 	mimirClient  mimirClient.Interface
 	k8sClient    kubernetes.Interface
@@ -58,8 +60,9 @@ type Component struct {
 	informerStopChan  chan struct{}
 	ticker            *time.Ticker
 
-	queue         workqueue.RateLimitingInterface
-	configUpdates chan ConfigUpdate
+	queue          workqueue.RateLimitingInterface
+	configUpdates  chan ConfigUpdate
+	clusterUpdates chan struct{}
 
 	namespaceSelector labels.Selector
 	ruleSelector      labels.Selector
@@ -72,7 +75,8 @@ type Component struct {
 }
 
 type metrics struct {
-	configUpdatesTotal prometheus.Counter
+	configUpdatesTotal  prometheus.Counter
+	clusterUpdatesTotal prometheus.Counter
 
 	eventsTotal   *prometheus.CounterVec
 	eventsFailed  *prometheus.CounterVec
@@ -98,6 +102,11 @@ func newMetrics() *metrics {
 			Subsystem: "mimir_rules",
 			Name:      "config_updates_total",
 			Help:      "Total number of times the configuration has been updated.",
+		}),
+		clusterUpdatesTotal: prometheus.NewCounter(prometheus.CounterOpts{
+			Subsystem: "mimir_rules",
+			Name:      "cluster_updates_total",
+			Help:      "Total number of times the cluster has changed triggering an update.",
 		}),
 		eventsTotal: prometheus.NewCounterVec(prometheus.CounterOpts{
 			Subsystem: "mimir_rules",
@@ -139,13 +148,21 @@ func New(o component.Options, args Arguments) (*Component, error) {
 		return nil, fmt.Errorf("registering metrics failed: %w", err)
 	}
 
+	data, err := o.GetServiceData(cluster.ServiceName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get information about cluster: %w", err)
+	}
+	clusterData := data.(cluster.Cluster)
+
 	c := &Component{
-		log:           o.Logger,
-		opts:          o,
-		args:          args,
-		configUpdates: make(chan ConfigUpdate),
-		ticker:        time.NewTicker(args.SyncInterval),
-		metrics:       metrics,
+		log:            o.Logger,
+		opts:           o,
+		cluster:        clusterData,
+		args:           args,
+		configUpdates:  make(chan ConfigUpdate),
+		clusterUpdates: make(chan struct{}),
+		ticker:         time.NewTicker(args.SyncInterval),
+		metrics:        metrics,
 	}
 
 	err = c.init()
@@ -157,23 +174,7 @@ func New(o component.Options, args Arguments) (*Component, error) {
 }
 
 func (c *Component) Run(ctx context.Context) error {
-	startupBackoff := backoff.New(
-		ctx,
-		backoff.Config{
-			MinBackoff: 1 * time.Second,
-			MaxBackoff: 10 * time.Second,
-			MaxRetries: 0, // infinite retries
-		},
-	)
-	for {
-		if err := c.startup(ctx); err != nil {
-			level.Error(c.log).Log("msg", "starting up component failed", "err", err)
-			c.reportUnhealthy(err)
-		} else {
-			break
-		}
-		startupBackoff.Wait()
-	}
+	c.startupWithRetries(ctx)
 
 	for {
 		select {
@@ -199,6 +200,21 @@ func (c *Component) Run(ctx context.Context) error {
 			}
 
 			update.err <- nil
+		case <-c.clusterUpdates:
+			c.shutdown()
+			err := c.init()
+			if err != nil {
+				level.Error(c.log).Log("msg", "updating due to cluster changes failed", "err", err)
+				c.reportUnhealthy(err)
+				continue
+			}
+
+			err = c.startup(ctx)
+			if err != nil {
+				level.Error(c.log).Log("msg", "updating due to cluster changes failed", "err", err)
+				c.reportUnhealthy(err)
+				continue
+			}
 		case <-ctx.Done():
 			c.shutdown()
 			return nil
@@ -210,8 +226,34 @@ func (c *Component) Run(ctx context.Context) error {
 	}
 }
 
+// startupWithRetries calls startup indefinitely until it succeeds.
+func (c *Component) startupWithRetries(ctx context.Context) {
+	startupBackoff := backoff.New(
+		ctx,
+		backoff.Config{
+			MinBackoff: 1 * time.Second,
+			MaxBackoff: 10 * time.Second,
+			MaxRetries: 0, // infinite retries
+		},
+	)
+	for {
+		if err := c.startup(ctx); err != nil {
+			level.Error(c.log).Log("msg", "starting up component failed", "err", err)
+			c.reportUnhealthy(err)
+		} else {
+			break
+		}
+		startupBackoff.Wait()
+	}
+}
+
 // startup launches the informers and starts the event loop.
 func (c *Component) startup(ctx context.Context) error {
+	if !c.isLeader() {
+		level.Info(c.log).Log("msg", "not leader, skipping start up!")
+		return nil
+	}
+
 	c.queue = workqueue.NewNamedRateLimitingQueue(workqueue.DefaultControllerRateLimiter(), "mimir.rules.kubernetes")
 	c.informerStopChan = make(chan struct{})
 
@@ -229,8 +271,12 @@ func (c *Component) startup(ctx context.Context) error {
 }
 
 func (c *Component) shutdown() {
-	close(c.informerStopChan)
-	c.queue.ShutDownWithDrain()
+	if c.informerStopChan != nil {
+		close(c.informerStopChan)
+	}
+	if c.queue != nil {
+		c.queue.ShutDownWithDrain()
+	}
 }
 
 func (c *Component) Update(newConfig component.Arguments) error {
@@ -240,6 +286,16 @@ func (c *Component) Update(newConfig component.Arguments) error {
 		err:  errChan,
 	}
 	return <-errChan
+}
+
+// NotifyClusterChange implements component.ClusterComponent.
+func (c *Component) NotifyClusterChange() {
+	c.clusterUpdates <- struct{}{}
+}
+
+func (c *Component) isLeader() bool {
+	// c.cluster.LookupKey() logic goes here
+	return true
 }
 
 func (c *Component) init() error {
