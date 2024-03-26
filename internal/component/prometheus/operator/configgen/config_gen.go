@@ -173,6 +173,7 @@ func (cg *ConfigGenerator) generateDefaultScrapeConfig() *config.ScrapeConfig {
 	c := config.DefaultScrapeConfig
 	c.ScrapeInterval = config.DefaultGlobalConfig.ScrapeInterval
 	c.ScrapeTimeout = config.DefaultGlobalConfig.ScrapeTimeout
+	c.ScrapeProtocols = config.DefaultScrapeProtocols
 
 	if opt.DefaultScrapeInterval != 0 {
 		c.ScrapeInterval = model.Duration(opt.DefaultScrapeInterval)
