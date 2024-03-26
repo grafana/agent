@@ -8,7 +8,6 @@ import (
 	"github.com/grafana/agent/internal/converter/diag"
 	"github.com/grafana/agent/internal/converter/internal/common"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/connector/servicegraphconnector"
-	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/servicegraphprocessor"
 	"go.opentelemetry.io/collector/component"
 )
 
@@ -31,12 +30,7 @@ func (servicegraphConnectorConverter) ConvertAndAppend(state *State, id componen
 
 	label := state.FlowComponentLabel()
 
-	// TODO(@tpaschalis) In the version of the OpenTelemetry Collector Contrib
-	// we're depending on, the Config still hasn't moved from the
-	// servicegraphprocessor to the servicegraphconnector package. Once we
-	// update the dependency, we should update the package selector
-	// accordingly.
-	args := toServicegraphConnector(state, id, cfg.(*servicegraphprocessor.Config))
+	args := toServicegraphConnector(state, id, cfg.(*servicegraphconnector.Config))
 	block := common.NewBlockWithOverride([]string{"otelcol", "connector", "servicegraph"}, label, args)
 
 	diags.Add(
@@ -48,7 +42,7 @@ func (servicegraphConnectorConverter) ConvertAndAppend(state *State, id componen
 	return diags
 }
 
-func toServicegraphConnector(state *State, id component.InstanceID, cfg *servicegraphprocessor.Config) *servicegraph.Arguments {
+func toServicegraphConnector(state *State, id component.InstanceID, cfg *servicegraphconnector.Config) *servicegraph.Arguments {
 	if cfg == nil {
 		return nil
 	}
