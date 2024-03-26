@@ -34,8 +34,12 @@ agent:
 
     # -- Name of existing ConfigMap to use. Used when create is false.
     name: null
-    # -- Key in ConfigMap to get config from.
+    # -- Key in ConfigMap to get config from. 
+    # Ignored if loadFolder is true.
     key: null
+    # -- If true, agent will load all files in /etc/agent (mounted via the configMap).
+    # key will be ignored
+    loadFolder: false
 
   clustering:
     # -- Deploy agents in a cluster to allow for load distribution. Only

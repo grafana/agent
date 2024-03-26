@@ -12,6 +12,7 @@ internal API changes are not present.
 
 ### Features
 
+- Agent can load all river files located in `/etc/agent` (mounted via default or user provided configMap) instead of only one. This allows increased modularity, besides modules, and a terraform like behaviour. To enable it, set `.Values.agent.configMap.loadFolder` to `true`. (@fculpo)
 - Allow setting nodePort for service. (@ryayon)
 
 ### Enhancements
