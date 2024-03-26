@@ -69,7 +69,7 @@ type Arguments struct {
 	// protocol are accepted by Prometheus and with what preference (most wanted is first).
 	// Supported values (case sensitive): PrometheusProto, OpenMetricsText0.0.1,
 	// OpenMetricsText1.0.0, PrometheusText0.0.4.
-	ScrapeProtocols []string `yaml:"scrape_protocols,omitempty"`
+	ScrapeProtocols []string `river:"scrape_protocols,attr,optional"`
 	// The HTTP resource path on which to fetch metrics from targets.
 	MetricsPath string `river:"metrics_path,attr,optional"`
 	// The URL scheme with which to fetch metrics from targets.
