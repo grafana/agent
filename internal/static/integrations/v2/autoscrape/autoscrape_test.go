@@ -59,6 +59,7 @@ func TestAutoscrape(t *testing.T) {
 					Source: t.Name(),
 				}},
 			}
+			require.NoError(t, cfg.Validate(prom_config.DefaultGlobalConfig))
 			return cfg
 		}(),
 	}})

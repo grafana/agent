@@ -2,6 +2,7 @@ package config
 
 import (
 	"flag"
+	"github.com/grafana/agent/internal/static/metrics/instance"
 
 	"net/url"
 	"os"
@@ -12,7 +13,6 @@ import (
 
 	"github.com/grafana/agent/internal/static/config/encoder"
 	"github.com/grafana/agent/internal/static/metrics"
-	"github.com/grafana/agent/internal/static/metrics/instance"
 	"github.com/grafana/agent/internal/static/server"
 	"github.com/grafana/agent/internal/util"
 	commonCfg "github.com/prometheus/common/config"
@@ -79,6 +79,7 @@ metrics:
 		Prometheus: promCfg.GlobalConfig{
 			ScrapeInterval:     model.Duration(1 * time.Minute),
 			ScrapeTimeout:      model.Duration(33 * time.Second),
+			ScrapeProtocols:    promCfg.DefaultScrapeProtocols,
 			EvaluationInterval: model.Duration(1 * time.Minute),
 		},
 	}
@@ -101,6 +102,7 @@ metrics:
 		Prometheus: promCfg.GlobalConfig{
 			ScrapeInterval:     model.Duration(1 * time.Minute),
 			ScrapeTimeout:      model.Duration(33 * time.Second),
+			ScrapeProtocols:    promCfg.DefaultScrapeProtocols,
 			EvaluationInterval: model.Duration(1 * time.Minute),
 		},
 	}
