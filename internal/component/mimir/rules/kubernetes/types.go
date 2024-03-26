@@ -11,6 +11,7 @@ import (
 type Arguments struct {
 	Address              string                  `river:"address,attr"`
 	TenantID             string                  `river:"tenant_id,attr,optional"`
+	ExternalLabels       map[string]string       `river:"external_labels,attr,optional"`
 	UseLegacyRoutes      bool                    `river:"use_legacy_routes,attr,optional"`
 	PrometheusHTTPPrefix string                  `river:"prometheus_http_prefix,attr,optional"`
 	HTTPClientConfig     config.HTTPClientConfig `river:",squash"`
