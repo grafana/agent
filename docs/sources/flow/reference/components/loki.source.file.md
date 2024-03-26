@@ -60,8 +60,6 @@ If you add any labels before `loki.source.file`, then the positions file will co
 The legacy positions file did not have a concept of labels in the positions file, so the conversion assumes no labels.
 {{< /admonition >}}
 
-
-
 ## Blocks
 
 The following blocks are supported inside the definition of `loki.source.file`:
