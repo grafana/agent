@@ -411,7 +411,7 @@ configs:
 		DataPath:      t.TempDir(),
 	}
 
-	// Create the Logs reciever component which will convert the legacy positions file into the new format.
+	// Create the Logs receiver component which will convert the legacy positions file into the new format.
 	ch1 := loki.NewLogsReceiver()
 	args := Arguments{}
 	args.LegacyPositionsFile = filepath.Join(positionsDir, "default.yml")
