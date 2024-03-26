@@ -28,8 +28,18 @@ discovery.azure "default_prometheus1" {
 	}
 }
 
+discovery.lightsail "default_prometheus1" {
+	region     = "us-east-1"
+	access_key = "YOUR_ACCESS_KEY"
+	secret_key = "YOUR_SECRET_KEY"
+	port       = 8080
+}
+
 discovery.relabel "default_prometheus1" {
-	targets = discovery.azure.default_prometheus1.targets
+	targets = concat(
+		discovery.azure.default_prometheus1.targets,
+		discovery.lightsail.default_prometheus1.targets,
+	)
 
 	rule {
 		source_labels = ["__address1__"]

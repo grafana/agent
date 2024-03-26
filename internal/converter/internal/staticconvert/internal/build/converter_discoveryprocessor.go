@@ -20,8 +20,7 @@ import (
 )
 
 func init() {
-	// Do not append this to the converter because it is a custom processor
-	// from static mode and not a native otel processor.
+	converters = append(converters, discoveryProcessorConverter{})
 }
 
 type discoveryProcessorConverter struct{}
@@ -90,7 +89,7 @@ func toDiscoveryProcessor(state *otelcolconvert.State, id component.InstanceID, 
 		}
 		targets = append(targets, scrapeTargets...)
 	}
-	pb.AppendToFile(state.Body())
+	pb.AppendToBody(state.Body())
 
 	return &otelcol_discovery.Arguments{
 		Targets:         targets,

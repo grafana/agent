@@ -12,6 +12,10 @@ import (
 	"go.opentelemetry.io/collector/otelcol"
 )
 
+// List of component converters. This slice is appended to by init functions in
+// other files.
+var converters []otelcolconvert.ComponentConverter
+
 func (b *ConfigBuilder) appendTraces() {
 	if reflect.DeepEqual(b.cfg.Traces, traces.Config{}) {
 		return
@@ -35,8 +39,7 @@ func (b *ConfigBuilder) appendTraces() {
 
 		b.translateAutomaticLogging(otelCfg, cfg)
 
-		extraConverters := []otelcolconvert.ComponentConverter{discoveryProcessorConverter{}}
-		b.diags.AddAll(otelcolconvert.AppendConfig(b.f, otelCfg, labelPrefix, extraConverters))
+		b.diags.AddAll(otelcolconvert.AppendConfig(b.f, otelCfg, labelPrefix, converters))
 	}
 }
 
