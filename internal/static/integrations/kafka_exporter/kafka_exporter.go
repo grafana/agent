@@ -21,7 +21,6 @@ var DefaultConfig = Config{
 	MetadataRefreshInterval: "1m",
 	AllowConcurrent:         true,
 	MaxOffsets:              1000,
-	PruneIntervalSeconds:    30,
 	OffsetShowAll:           true,
 	TopicWorkers:            100,
 	TopicsFilter:            ".*",
@@ -108,9 +107,6 @@ type Config struct {
 
 	// Maximum number of offsets to store in the interpolation table for a partition
 	MaxOffsets int `yaml:"max_offsets,omitempty"`
-
-	// How frequently should the interpolation table be pruned, in seconds
-	PruneIntervalSeconds int `yaml:"prune_interval_seconds,omitempty"`
 
 	// Regex filter for topics to be monitored
 	TopicsFilter string `yaml:"topics_filter_regex,omitempty"`
@@ -204,7 +200,6 @@ func New(logger log.Logger, c *Config) (integrations.Integration, error) {
 		AllowConcurrent:          c.AllowConcurrent,
 		AllowAutoTopicCreation:   c.AllowAutoTopicCreation,
 		MaxOffsets:               c.MaxOffsets,
-		PruneIntervalSeconds:     c.PruneIntervalSeconds,
 	}
 
 	newExporter, err := kafka_exporter.New(logger, options, c.TopicsFilter, c.TopicsExclude, c.GroupFilter, c.GroupExclude)

@@ -34,7 +34,6 @@ func TestRiverUnmarshal(t *testing.T) {
 		MetadataRefreshInterval: "1m",
 		AllowConcurrent:         true,
 		MaxOffsets:              1000,
-		PruneIntervalSeconds:    30,
 		TopicsFilter:            ".*",
 		GroupFilter:             ".*",
 	}
@@ -77,7 +76,6 @@ func TestRiverConvert(t *testing.T) {
 		MetadataRefreshInterval: "1m",
 		AllowConcurrent:         true,
 		MaxOffsets:              1000,
-		PruneIntervalSeconds:    30,
 		TopicsFilter:            ".*",
 		GroupFilter:             ".*",
 	}
@@ -89,7 +87,6 @@ func TestRiverConvert(t *testing.T) {
 		MetadataRefreshInterval: "1m",
 		AllowConcurrent:         true,
 		MaxOffsets:              1000,
-		PruneIntervalSeconds:    30,
 		TopicsFilter:            ".*",
 		GroupFilter:             ".*",
 	}
