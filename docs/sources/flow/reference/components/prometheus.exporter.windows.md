@@ -172,13 +172,18 @@ For a server name to be included, it must match the regular expression specified
 
 ### service block
 
-Name           | Type     | Description                                           | Default | Required
----------------|----------|-------------------------------------------------------|---------|---------
-`use_api`      | `string` | Use API calls to collect service data instead of WMI. | `false` | no
-`where_clause` | `string` | WQL 'where' clause to use in WMI metrics query.       | `""`    | no
+Name           | Type     | Description                                                 | Default | Required
+---------------|----------|-------------------------------------------------------------|---------|---------
+`use_api`      | `string` | Use the Windows API to collect service data instead of WMI. | `false` | no
+`where_clause` | `string` | WQL 'where' clause to use in WMI metrics query.             | `""`    | no
 
 The `where_clause` argument can be used to limit the response to the services you specify, reducing the size of the response.
 If `use_api` is enabled, 'where_clause' won't be effective.
+
+The Windows API is more performant than WMI. Set `use_api` to `true` in situations when the WMI takes too long to get the service information.
+Setting `use_api` to `true` does have a few disadvantages compared to using WMI:
+* WMI queries in `where_clause` won't work.
+* The `status` field of the service won't be reported. Instead, use the `state` property. It has the same information, albeit formatted differently.
 
 
 ### smtp block
