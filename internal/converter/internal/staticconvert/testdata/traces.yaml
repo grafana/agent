@@ -1,0 +1,41 @@
+traces:
+  configs:
+    - name: trace_config
+      receivers:
+        otlp:
+          protocols:
+            grpc:
+            http:
+      remote_write:
+        - endpoint: http://localhost:1234/write
+      automatic_logging:
+        backend: "stdout"
+      scrape_configs:
+        - job_name: "prometheus1"
+          azure_sd_configs:
+            - subscription_id: "subscription1"
+              tenant_id: "tenant1"
+              client_id: "client1"
+              client_secret: "secret1"
+          lightsail_sd_configs:
+            - region: 'us-east-1'
+              access_key: 'YOUR_ACCESS_KEY'
+              secret_key: 'YOUR_SECRET_KEY'
+              port: 8080
+          relabel_configs:
+            - source_labels: [__address1__]
+              target_label: __param_target1
+            - source_labels: [__address2__]
+              target_label: __param_target2
+      tail_sampling:
+        policies:
+          [
+            {
+              name: test-policy-1,
+              type: always_sample
+            },
+          ]
+      attributes:
+        actions:
+          - key: db.table
+            action: delete

@@ -26,6 +26,9 @@ import (
 )
 
 func TestArguments_UnmarshalRiver(t *testing.T) {
+	var defaultArgs system.Config
+	defaultArgs.SetToDefault()
+
 	tests := []struct {
 		testName string
 		cfg      string
@@ -77,7 +80,7 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 				"docker":           docker.DefaultArguments.Convert(),
 				"gcp":              gcp.DefaultArguments.Convert(),
 				"heroku":           heroku.DefaultArguments.Convert(),
-				"system":           system.DefaultArguments.Convert(),
+				"system":           defaultArgs.Convert(),
 				"openshift":        openshift.DefaultArguments.Convert(),
 				"k8snode":          kubernetes_node.DefaultArguments.Convert(),
 			},
@@ -102,7 +105,7 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 				"docker":           docker.DefaultArguments.Convert(),
 				"gcp":              gcp.DefaultArguments.Convert(),
 				"heroku":           heroku.DefaultArguments.Convert(),
-				"system":           system.DefaultArguments.Convert(),
+				"system":           defaultArgs.Convert(),
 				"openshift":        openshift.DefaultArguments.Convert(),
 				"k8snode":          kubernetes_node.DefaultArguments.Convert(),
 			},
@@ -143,7 +146,7 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 				"docker":           docker.DefaultArguments.Convert(),
 				"gcp":              gcp.DefaultArguments.Convert(),
 				"heroku":           heroku.DefaultArguments.Convert(),
-				"system":           system.DefaultArguments.Convert(),
+				"system":           defaultArgs.Convert(),
 				"openshift":        openshift.DefaultArguments.Convert(),
 				"k8snode":          kubernetes_node.DefaultArguments.Convert(),
 			},
@@ -185,7 +188,7 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 				"docker":           docker.DefaultArguments.Convert(),
 				"gcp":              gcp.DefaultArguments.Convert(),
 				"heroku":           heroku.DefaultArguments.Convert(),
-				"system":           system.DefaultArguments.Convert(),
+				"system":           defaultArgs.Convert(),
 				"openshift":        openshift.DefaultArguments.Convert(),
 				"k8snode":          kubernetes_node.DefaultArguments.Convert(),
 			},
@@ -238,7 +241,7 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 				"docker":           docker.DefaultArguments.Convert(),
 				"gcp":              gcp.DefaultArguments.Convert(),
 				"heroku":           heroku.DefaultArguments.Convert(),
-				"system":           system.DefaultArguments.Convert(),
+				"system":           defaultArgs.Convert(),
 				"openshift":        openshift.DefaultArguments.Convert(),
 				"k8snode":          kubernetes_node.DefaultArguments.Convert(),
 			},
@@ -248,22 +251,7 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 			cfg: `
 			detectors = ["ecs"]
 			ecs {
-				resource_attributes {
-					aws.ecs.cluster.arn  { enabled = true }
-					aws.ecs.launchtype  { enabled = true }
-					aws.ecs.task.arn  { enabled = true }
-					aws.ecs.task.family  { enabled = true }
-					aws.ecs.task.revision  { enabled = true }
-					aws.log.group.arns  { enabled = true }
-					aws.log.group.names  { enabled = false }
-					// aws.log.stream.arns  { enabled = true }
-					// aws.log.stream.names  { enabled = true }
-					// cloud.account.id  { enabled = true }
-					// cloud.availability_zone  { enabled = true }
-					// cloud.platform  { enabled = true }
-					// cloud.provider  { enabled = true }
-					// cloud.region  { enabled = true }
-				}
+				resource_attributes {}
 			}
 			output {}
 			`,
@@ -278,9 +266,10 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 						"aws.ecs.launchtype":      map[string]interface{}{"enabled": true},
 						"aws.ecs.task.arn":        map[string]interface{}{"enabled": true},
 						"aws.ecs.task.family":     map[string]interface{}{"enabled": true},
+						"aws.ecs.task.id":         map[string]interface{}{"enabled": true},
 						"aws.ecs.task.revision":   map[string]interface{}{"enabled": true},
 						"aws.log.group.arns":      map[string]interface{}{"enabled": true},
-						"aws.log.group.names":     map[string]interface{}{"enabled": false},
+						"aws.log.group.names":     map[string]interface{}{"enabled": true},
 						"aws.log.stream.arns":     map[string]interface{}{"enabled": true},
 						"aws.log.stream.names":    map[string]interface{}{"enabled": true},
 						"cloud.account.id":        map[string]interface{}{"enabled": true},
@@ -300,7 +289,7 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 				"docker":           docker.DefaultArguments.Convert(),
 				"gcp":              gcp.DefaultArguments.Convert(),
 				"heroku":           heroku.DefaultArguments.Convert(),
-				"system":           system.DefaultArguments.Convert(),
+				"system":           defaultArgs.Convert(),
 				"openshift":        openshift.DefaultArguments.Convert(),
 				"k8snode":          kubernetes_node.DefaultArguments.Convert(),
 			},
@@ -315,6 +304,7 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 					aws.ecs.launchtype  { enabled = true }
 					aws.ecs.task.arn  { enabled = true }
 					aws.ecs.task.family  { enabled = true }
+					aws.ecs.task.id  { enabled = true }
 					aws.ecs.task.revision  { enabled = true }
 					aws.log.group.arns  { enabled = true }
 					aws.log.group.names  { enabled = false }
@@ -340,6 +330,7 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 						"aws.ecs.launchtype":      map[string]interface{}{"enabled": true},
 						"aws.ecs.task.arn":        map[string]interface{}{"enabled": true},
 						"aws.ecs.task.family":     map[string]interface{}{"enabled": true},
+						"aws.ecs.task.id":         map[string]interface{}{"enabled": true},
 						"aws.ecs.task.revision":   map[string]interface{}{"enabled": true},
 						"aws.log.group.arns":      map[string]interface{}{"enabled": true},
 						"aws.log.group.names":     map[string]interface{}{"enabled": false},
@@ -362,7 +353,7 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 				"docker":           docker.DefaultArguments.Convert(),
 				"gcp":              gcp.DefaultArguments.Convert(),
 				"heroku":           heroku.DefaultArguments.Convert(),
-				"system":           system.DefaultArguments.Convert(),
+				"system":           defaultArgs.Convert(),
 				"openshift":        openshift.DefaultArguments.Convert(),
 				"k8snode":          kubernetes_node.DefaultArguments.Convert(),
 			},
@@ -399,7 +390,7 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 				"docker":           docker.DefaultArguments.Convert(),
 				"gcp":              gcp.DefaultArguments.Convert(),
 				"heroku":           heroku.DefaultArguments.Convert(),
-				"system":           system.DefaultArguments.Convert(),
+				"system":           defaultArgs.Convert(),
 				"openshift":        openshift.DefaultArguments.Convert(),
 				"k8snode":          kubernetes_node.DefaultArguments.Convert(),
 			},
@@ -441,7 +432,7 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 				"docker":           docker.DefaultArguments.Convert(),
 				"gcp":              gcp.DefaultArguments.Convert(),
 				"heroku":           heroku.DefaultArguments.Convert(),
-				"system":           system.DefaultArguments.Convert(),
+				"system":           defaultArgs.Convert(),
 				"openshift":        openshift.DefaultArguments.Convert(),
 				"k8snode":          kubernetes_node.DefaultArguments.Convert(),
 			},
@@ -502,7 +493,7 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 				"docker":           docker.DefaultArguments.Convert(),
 				"gcp":              gcp.DefaultArguments.Convert(),
 				"heroku":           heroku.DefaultArguments.Convert(),
-				"system":           system.DefaultArguments.Convert(),
+				"system":           defaultArgs.Convert(),
 				"openshift":        openshift.DefaultArguments.Convert(),
 				"k8snode":          kubernetes_node.DefaultArguments.Convert(),
 			},
@@ -571,7 +562,7 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 				"docker":           docker.DefaultArguments.Convert(),
 				"gcp":              gcp.DefaultArguments.Convert(),
 				"heroku":           heroku.DefaultArguments.Convert(),
-				"system":           system.DefaultArguments.Convert(),
+				"system":           defaultArgs.Convert(),
 				"openshift":        openshift.DefaultArguments.Convert(),
 				"k8snode":          kubernetes_node.DefaultArguments.Convert(),
 			},
@@ -608,7 +599,7 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 				"docker":           docker.DefaultArguments.Convert(),
 				"gcp":              gcp.DefaultArguments.Convert(),
 				"heroku":           heroku.DefaultArguments.Convert(),
-				"system":           system.DefaultArguments.Convert(),
+				"system":           defaultArgs.Convert(),
 				"openshift":        openshift.DefaultArguments.Convert(),
 				"k8snode":          kubernetes_node.DefaultArguments.Convert(),
 			},
@@ -650,7 +641,7 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 				"docker":           docker.DefaultArguments.Convert(),
 				"gcp":              gcp.DefaultArguments.Convert(),
 				"heroku":           heroku.DefaultArguments.Convert(),
-				"system":           system.DefaultArguments.Convert(),
+				"system":           defaultArgs.Convert(),
 				"openshift":        openshift.DefaultArguments.Convert(),
 				"k8snode":          kubernetes_node.DefaultArguments.Convert(),
 			},
@@ -677,7 +668,7 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 				"docker":           docker.DefaultArguments.Convert(),
 				"gcp":              gcp.DefaultArguments.Convert(),
 				"heroku":           heroku.DefaultArguments.Convert(),
-				"system":           system.DefaultArguments.Convert(),
+				"system":           defaultArgs.Convert(),
 				"openshift":        openshift.DefaultArguments.Convert(),
 				"k8snode":          kubernetes_node.DefaultArguments.Convert(),
 			},
@@ -767,7 +758,7 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 				"consul":           consul.DefaultArguments.Convert(),
 				"docker":           docker.DefaultArguments.Convert(),
 				"heroku":           heroku.DefaultArguments.Convert(),
-				"system":           system.DefaultArguments.Convert(),
+				"system":           defaultArgs.Convert(),
 				"openshift":        openshift.DefaultArguments.Convert(),
 				"k8snode":          kubernetes_node.DefaultArguments.Convert(),
 			},
@@ -794,7 +785,7 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 				"docker":           docker.DefaultArguments.Convert(),
 				"gcp":              gcp.DefaultArguments.Convert(),
 				"heroku":           heroku.DefaultArguments.Convert(),
-				"system":           system.DefaultArguments.Convert(),
+				"system":           defaultArgs.Convert(),
 				"openshift":        openshift.DefaultArguments.Convert(),
 				"k8snode":          kubernetes_node.DefaultArguments.Convert(),
 			},
@@ -836,7 +827,7 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 				"consul":           consul.DefaultArguments.Convert(),
 				"gcp":              gcp.DefaultArguments.Convert(),
 				"heroku":           heroku.DefaultArguments.Convert(),
-				"system":           system.DefaultArguments.Convert(),
+				"system":           defaultArgs.Convert(),
 				"openshift":        openshift.DefaultArguments.Convert(),
 				"k8snode":          kubernetes_node.DefaultArguments.Convert(),
 			},
@@ -863,7 +854,7 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 				"docker":           docker.DefaultArguments.Convert(),
 				"gcp":              gcp.DefaultArguments.Convert(),
 				"heroku":           heroku.DefaultArguments.Convert(),
-				"system":           system.DefaultArguments.Convert(),
+				"system":           defaultArgs.Convert(),
 				"openshift":        openshift.DefaultArguments.Convert(),
 				"k8snode":          kubernetes_node.DefaultArguments.Convert(),
 			},
@@ -928,7 +919,7 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 				"docker":           docker.DefaultArguments.Convert(),
 				"gcp":              gcp.DefaultArguments.Convert(),
 				"heroku":           heroku.DefaultArguments.Convert(),
-				"system":           system.DefaultArguments.Convert(),
+				"system":           defaultArgs.Convert(),
 				"openshift":        openshift.DefaultArguments.Convert(),
 				"k8snode":          kubernetes_node.DefaultArguments.Convert(),
 			},
@@ -955,7 +946,7 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 				"docker":           docker.DefaultArguments.Convert(),
 				"gcp":              gcp.DefaultArguments.Convert(),
 				"heroku":           heroku.DefaultArguments.Convert(),
-				"system":           system.DefaultArguments.Convert(),
+				"system":           defaultArgs.Convert(),
 				"openshift":        openshift.DefaultArguments.Convert(),
 				"k8snode":          kubernetes_node.DefaultArguments.Convert(),
 			},
@@ -1007,7 +998,7 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 				"docker":    docker.DefaultArguments.Convert(),
 				"gcp":       gcp.DefaultArguments.Convert(),
 				"heroku":    heroku.DefaultArguments.Convert(),
-				"system":    system.DefaultArguments.Convert(),
+				"system":    defaultArgs.Convert(),
 				"openshift": openshift.DefaultArguments.Convert(),
 				"k8snode":   kubernetes_node.DefaultArguments.Convert(),
 			},
@@ -1034,7 +1025,7 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 				"docker":           docker.DefaultArguments.Convert(),
 				"gcp":              gcp.DefaultArguments.Convert(),
 				"heroku":           heroku.DefaultArguments.Convert(),
-				"system":           system.DefaultArguments.Convert(),
+				"system":           defaultArgs.Convert(),
 				"openshift":        openshift.DefaultArguments.Convert(),
 				"k8snode":          kubernetes_node.DefaultArguments.Convert(),
 			},
@@ -1088,7 +1079,7 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 				"docker":           docker.DefaultArguments.Convert(),
 				"gcp":              gcp.DefaultArguments.Convert(),
 				"heroku":           heroku.DefaultArguments.Convert(),
-				"system":           system.DefaultArguments.Convert(),
+				"system":           defaultArgs.Convert(),
 				"openshift":        openshift.DefaultArguments.Convert(),
 				"k8snode":          kubernetes_node.DefaultArguments.Convert(),
 			},
@@ -1115,7 +1106,7 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 				"docker":           docker.DefaultArguments.Convert(),
 				"gcp":              gcp.DefaultArguments.Convert(),
 				"heroku":           heroku.DefaultArguments.Convert(),
-				"system":           system.DefaultArguments.Convert(),
+				"system":           defaultArgs.Convert(),
 				"openshift":        openshift.DefaultArguments.Convert(),
 				"k8snode":          kubernetes_node.DefaultArguments.Convert(),
 			},
@@ -1178,7 +1169,7 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 				"consul":           consul.DefaultArguments.Convert(),
 				"docker":           docker.DefaultArguments.Convert(),
 				"gcp":              gcp.DefaultArguments.Convert(),
-				"system":           system.DefaultArguments.Convert(),
+				"system":           defaultArgs.Convert(),
 				"openshift":        openshift.DefaultArguments.Convert(),
 				"k8snode":          kubernetes_node.DefaultArguments.Convert(),
 			},
@@ -1205,7 +1196,7 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 				"docker":           docker.DefaultArguments.Convert(),
 				"gcp":              gcp.DefaultArguments.Convert(),
 				"heroku":           heroku.DefaultArguments.Convert(),
-				"system":           system.DefaultArguments.Convert(),
+				"system":           defaultArgs.Convert(),
 				"openshift":        openshift.DefaultArguments.Convert(),
 				"k8snode":          kubernetes_node.DefaultArguments.Convert(),
 			},
@@ -1253,7 +1244,7 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 				"docker":           docker.DefaultArguments.Convert(),
 				"gcp":              gcp.DefaultArguments.Convert(),
 				"heroku":           heroku.DefaultArguments.Convert(),
-				"system":           system.DefaultArguments.Convert(),
+				"system":           defaultArgs.Convert(),
 				"openshift":        openshift.DefaultArguments.Convert(),
 			},
 		},
@@ -1291,7 +1282,7 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 				"docker":           docker.DefaultArguments.Convert(),
 				"gcp":              gcp.DefaultArguments.Convert(),
 				"heroku":           heroku.DefaultArguments.Convert(),
-				"system":           system.DefaultArguments.Convert(),
+				"system":           defaultArgs.Convert(),
 				"openshift":        openshift.DefaultArguments.Convert(),
 				"k8snode":          kubernetes_node.DefaultArguments.Convert(),
 			},
@@ -1397,7 +1388,7 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 				"docker":           docker.DefaultArguments.Convert(),
 				"gcp":              gcp.DefaultArguments.Convert(),
 				"heroku":           heroku.DefaultArguments.Convert(),
-				"system":           system.DefaultArguments.Convert(),
+				"system":           defaultArgs.Convert(),
 				"openshift":        openshift.DefaultArguments.Convert(),
 				"k8snode":          kubernetes_node.DefaultArguments.Convert(),
 			},
@@ -1467,7 +1458,7 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 				"docker":           docker.DefaultArguments.Convert(),
 				"gcp":              gcp.DefaultArguments.Convert(),
 				"heroku":           heroku.DefaultArguments.Convert(),
-				"system":           system.DefaultArguments.Convert(),
+				"system":           defaultArgs.Convert(),
 				"k8snode":          kubernetes_node.DefaultArguments.Convert(),
 			},
 		},
@@ -1494,7 +1485,7 @@ func TestArguments_UnmarshalRiver(t *testing.T) {
 				"docker":           docker.DefaultArguments.Convert(),
 				"gcp":              gcp.DefaultArguments.Convert(),
 				"heroku":           heroku.DefaultArguments.Convert(),
-				"system":           system.DefaultArguments.Convert(),
+				"system":           defaultArgs.Convert(),
 				"openshift":        openshift.DefaultArguments.Convert(),
 				"k8snode":          kubernetes_node.DefaultArguments.Convert(),
 			},

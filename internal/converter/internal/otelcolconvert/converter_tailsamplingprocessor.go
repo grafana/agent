@@ -26,7 +26,7 @@ func (tailSamplingProcessorConverter) InputComponentName() string {
 	return "otelcol.processor.tail_sampling"
 }
 
-func (tailSamplingProcessorConverter) ConvertAndAppend(state *state, id component.InstanceID, cfg component.Config) diag.Diagnostics {
+func (tailSamplingProcessorConverter) ConvertAndAppend(state *State, id component.InstanceID, cfg component.Config) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	label := state.FlowComponentLabel()
@@ -36,14 +36,14 @@ func (tailSamplingProcessorConverter) ConvertAndAppend(state *state, id componen
 
 	diags.Add(
 		diag.SeverityLevelInfo,
-		fmt.Sprintf("Converted %s into %s", stringifyInstanceID(id), stringifyBlock(block)),
+		fmt.Sprintf("Converted %s into %s", StringifyInstanceID(id), StringifyBlock(block)),
 	)
 
 	state.Body().AppendBlock(block)
 	return diags
 }
 
-func toTailSamplingProcessor(state *state, id component.InstanceID, cfg *tailsamplingprocessor.Config) *tail_sampling.Arguments {
+func toTailSamplingProcessor(state *State, id component.InstanceID, cfg *tailsamplingprocessor.Config) *tail_sampling.Arguments {
 	var (
 		nextTraces = state.Next(id, component.DataTypeTraces)
 	)
@@ -57,7 +57,7 @@ func toTailSamplingProcessor(state *state, id component.InstanceID, cfg *tailsam
 		NumTraces:               cfg.NumTraces,
 		ExpectedNewTracesPerSec: cfg.ExpectedNewTracesPerSec,
 		Output: &otelcol.ConsumerArguments{
-			Traces: toTokenizedConsumers(nextTraces),
+			Traces: ToTokenizedConsumers(nextTraces),
 		},
 	}
 }
@@ -166,7 +166,8 @@ func toAndSubPolicyCfg(cfgs []tailsamplingprocessor.AndSubPolicyCfg) []tail_samp
 
 func toLatencyConfig(cfg tailsamplingprocessor.LatencyCfg) tail_sampling.LatencyConfig {
 	return tail_sampling.LatencyConfig{
-		ThresholdMs: cfg.ThresholdMs,
+		ThresholdMs:        cfg.ThresholdMs,
+		UpperThresholdmsMs: cfg.UpperThresholdmsMs,
 	}
 }
 

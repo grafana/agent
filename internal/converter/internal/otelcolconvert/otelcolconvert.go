@@ -65,7 +65,7 @@ func Convert(in []byte, extraArgs []string) ([]byte, diag.Diagnostics) {
 
 	f := builder.NewFile()
 
-	diags.AddAll(appendConfig(f, cfg))
+	diags.AddAll(AppendConfig(f, cfg, "", nil))
 	diags.AddAll(common.ValidateNodes(f))
 
 	var buf bytes.Buffer
@@ -92,7 +92,7 @@ func readOpentelemetryConfig(in []byte) (*otelcol.Config, error) {
 			Providers: map[string]confmap.Provider{
 				provider.Scheme(): provider,
 			},
-			Converters: []confmap.Converter{expandconverter.New()},
+			Converters: []confmap.Converter{expandconverter.New(confmap.ConverterSettings{})},
 		},
 	})
 	if err != nil {
@@ -141,9 +141,9 @@ func getFactories() otelcol.Factories {
 	return facts
 }
 
-// appendConfig converts the provided OpenTelemetry config into an equivalent
+// AppendConfig converts the provided OpenTelemetry config into an equivalent
 // Flow config and appends the result to the provided file.
-func appendConfig(file *builder.File, cfg *otelcol.Config) diag.Diagnostics {
+func AppendConfig(file *builder.File, cfg *otelcol.Config, labelPrefix string, extraConverters []ComponentConverter) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	groups, err := createPipelineGroups(cfg.Service.Pipelines)
@@ -153,7 +153,7 @@ func appendConfig(file *builder.File, cfg *otelcol.Config) diag.Diagnostics {
 	}
 	// TODO(rfratto): should this be deduplicated to avoid creating factories
 	// twice?
-	converterTable := buildConverterTable()
+	converterTable := buildConverterTable(extraConverters)
 
 	// Connector components are defined on the top level of the OpenTelemetry
 	// config, but inside of the pipeline definitions they act like regular
@@ -188,7 +188,7 @@ func appendConfig(file *builder.File, cfg *otelcol.Config) diag.Diagnostics {
 	for _, ext := range cfg.Service.Extensions {
 		cid := component.InstanceID{Kind: component.KindExtension, ID: ext}
 
-		state := &state{
+		state := &State{
 			cfg:  cfg,
 			file: file,
 			// We pass an empty pipelineGroup to make calls to
@@ -198,8 +198,9 @@ func appendConfig(file *builder.File, cfg *otelcol.Config) diag.Diagnostics {
 
 			converterLookup: converterTable,
 
-			componentConfig: cfg.Extensions,
-			componentID:     cid,
+			componentConfig:      cfg.Extensions,
+			componentID:          cid,
+			componentLabelPrefix: labelPrefix,
 		}
 
 		key := converterKey{Kind: component.KindExtension, Type: ext.Type()}
@@ -236,7 +237,7 @@ func appendConfig(file *builder.File, cfg *otelcol.Config) diag.Diagnostics {
 			for _, id := range componentSet.ids {
 				componentID := component.InstanceID{Kind: componentSet.kind, ID: id}
 
-				state := &state{
+				state := &State{
 					cfg:   cfg,
 					file:  file,
 					group: &group,
@@ -244,8 +245,9 @@ func appendConfig(file *builder.File, cfg *otelcol.Config) diag.Diagnostics {
 					converterLookup: converterTable,
 					extensionLookup: extensionTable,
 
-					componentConfig: componentSet.configLookup[id],
-					componentID:     componentID,
+					componentConfig:      componentSet.configLookup[id],
+					componentID:          componentID,
+					componentLabelPrefix: labelPrefix,
 				}
 
 				key := converterKey{Kind: componentSet.kind, Type: id.Type()}
@@ -287,10 +289,11 @@ func validateNoDuplicateReceivers(groups []pipelineGroup, connectorIDs []compone
 	return diags
 }
 
-func buildConverterTable() map[converterKey]componentConverter {
-	table := make(map[converterKey]componentConverter)
+func buildConverterTable(extraConverters []ComponentConverter) map[converterKey]ComponentConverter {
+	table := make(map[converterKey]ComponentConverter)
+	allConverters := append(converters, extraConverters...)
 
-	for _, conv := range converters {
+	for _, conv := range allConverters {
 		fact := conv.Factory()
 
 		switch fact.(type) {
