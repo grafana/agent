@@ -26,7 +26,7 @@ func (servicegraphConnectorConverter) InputComponentName() string {
 	return "otelcol.connector.servicegraph"
 }
 
-func (servicegraphConnectorConverter) ConvertAndAppend(state *state, id component.InstanceID, cfg component.Config) diag.Diagnostics {
+func (servicegraphConnectorConverter) ConvertAndAppend(state *State, id component.InstanceID, cfg component.Config) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	label := state.FlowComponentLabel()
@@ -41,14 +41,14 @@ func (servicegraphConnectorConverter) ConvertAndAppend(state *state, id componen
 
 	diags.Add(
 		diag.SeverityLevelInfo,
-		fmt.Sprintf("Converted %s into %s", stringifyInstanceID(id), stringifyBlock(block)),
+		fmt.Sprintf("Converted %s into %s", StringifyInstanceID(id), StringifyBlock(block)),
 	)
 
 	state.Body().AppendBlock(block)
 	return diags
 }
 
-func toServicegraphConnector(state *state, id component.InstanceID, cfg *servicegraphprocessor.Config) *servicegraph.Arguments {
+func toServicegraphConnector(state *State, id component.InstanceID, cfg *servicegraphprocessor.Config) *servicegraph.Arguments {
 	if cfg == nil {
 		return nil
 	}
@@ -66,7 +66,7 @@ func toServicegraphConnector(state *state, id component.InstanceID, cfg *service
 		CacheLoop:           cfg.CacheLoop,
 		StoreExpirationLoop: cfg.StoreExpirationLoop,
 		Output: &otelcol.ConsumerArguments{
-			Metrics: toTokenizedConsumers(nextMetrics),
+			Metrics: ToTokenizedConsumers(nextMetrics),
 		},
 	}
 }
