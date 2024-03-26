@@ -1024,6 +1024,8 @@ github.com/grafana/mysqld_exporter v0.12.2-0.20231005125903-364b9c41e595 h1:I9sR
 github.com/grafana/mysqld_exporter v0.12.2-0.20231005125903-364b9c41e595/go.mod h1:U8ifHC5pT2WuVTO7ki4KZmWLjfEKfktQiU3bh0J8scw=
 github.com/grafana/node_exporter v0.18.1-grafana-r01.0.20231004161416-702318429731 h1:vyyIYY2sLpmgFIckJ1vSO/oYkvB0thDF6UiFYp5PThM=
 github.com/grafana/node_exporter v0.18.1-grafana-r01.0.20231004161416-702318429731/go.mod h1:vOZxEzxm0nZmuNqjtIfvtmvdRtJik9POmcN5mQVLf5E=
+github.com/grafana/opentelemetry-collector-contrib/receiver/prometheusreceiver v0.0.0-20240326165551-1ae1b9218b1b h1:o7tJxI3dVrIwZwNd7feiMNjYRnbMvyGCQtxJGgfORQQ=
+github.com/grafana/opentelemetry-collector-contrib/receiver/prometheusreceiver v0.0.0-20240326165551-1ae1b9218b1b/go.mod h1:XVaL+FyxEWEfHkDI/X6FJgFYDA0080A1/qoOHQ43dxM=
 github.com/grafana/opentelemetry-collector/featuregate v0.0.0-20240325174506-2fd1623b2ca0 h1:i/Ne0XwoRokYj52ZcSmnvuyID3h/uA91n0Ycg/grHU8=
 github.com/grafana/opentelemetry-collector/featuregate v0.0.0-20240325174506-2fd1623b2ca0/go.mod h1:mm8+xyQfgDmqhyegZRNIQmoKsNnDTwWKFLsdMoXAb7A=
 github.com/grafana/opentelemetry-collector/otelcol v0.0.0-20240321103955-8919a1c85cbe h1:XffwtyK11B/undScvvYBi/LSWG7ob43lzkdhxmxZkJw=
@@ -1767,8 +1769,6 @@ github.com/open-telemetry/opentelemetry-collector-contrib/receiver/kafkareceiver
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/kafkareceiver v0.96.0/go.mod h1:SpDMTfNxJhLoh90tzVbFVR6jBznomtSSfv1+mKR1s9I=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/opencensusreceiver v0.96.0 h1:gK3nBuj0qhtt8HT4MuiW60KfNcnAA1hjdqnwdIbxHaU=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/opencensusreceiver v0.96.0/go.mod h1:xc2JC4VmYfGsjaH834h0O+nCTHcddAGZkt5fJxQF7LE=
-github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusreceiver v0.96.0 h1:SK1GpgAte9WhTSeY6NiO6vHB+BhFF7akPlK7fyMO+ps=
-github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusreceiver v0.96.0/go.mod h1:yrd0L+k2JKVpyVXObHpHZXUlxgWX/RlGHz5RLxEUN2Q=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/vcenterreceiver v0.96.0 h1:C7riRI0ehDu4k6lf/ei8OObT3jGJJ5PbJ7sRO/QSMMQ=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/vcenterreceiver v0.96.0/go.mod h1:OvyUlG4f37oXFVqOBXi0+KdoQjmjjPuHkASu5DTFjXw=
 github.com/open-telemetry/opentelemetry-collector-contrib/receiver/zipkinreceiver v0.96.0 h1:y9QNvhQ0XjJOJid4jNlEliJQI4+AFdEaN6weB9jMWaY=
