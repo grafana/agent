@@ -43,6 +43,8 @@ Main (unreleased)
 
 - Fix an issue where JSON string array elements were not parsed correctly in `loki.source.cloudflare`. (@thampiotr)
 
+- Fix SSRF vulnerability in `faro.receiver` by disabling source map download. (@hainenber)
+
 - Update gcp_exporter to a newer version with a patch for incorrect delta histograms (@kgeckhart)
 
 - Fix an issue where the default values of some component's arguments change
