@@ -333,12 +333,10 @@ func TestFullConversion(t *testing.T) {
 	// Create a temporary file to tail
 	//
 	positionsDir := t.TempDir()
+	tmpFileDir := t.TempDir()
 
-	tmpFile, err := os.CreateTemp(os.TempDir(), "*.log")
+	tmpFile, err := os.CreateTemp(tmpFileDir, "*.log")
 	require.NoError(t, err)
-	t.Cleanup(func() {
-		_ = os.RemoveAll(tmpFile.Name())
-	})
 
 	//
 	// Listen for push requests and pass them through to a channel
