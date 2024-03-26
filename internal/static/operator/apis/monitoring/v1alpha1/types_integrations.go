@@ -102,6 +102,10 @@ type IntegrationSpec struct {
 	// ConfigMaps are mounted at
 	// /etc/grafana-agent/integrations/configMaps/<configmap_namespace>/<configmap_name>/<key>.
 	ConfigMaps []corev1.ConfigMapKeySelector `json:"configMaps,omitempty"`
+
+	// HostNetwork indicates whether the integration should be run in the host network namespace.
+	// If set to true, the integration pods will share the network namespace with the host node.
+	HostNetwork bool `json:"hostNetwork,omitempty"`
 }
 
 // IntegrationType determines specific behaviors of a configured integration.

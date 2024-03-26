@@ -46,6 +46,8 @@ spec:
                   type: object
                   x-kubernetes-map-type: atomic
                 type: array
+              hostNetwork:
+                type: boolean
               name:
                 type: string
               secrets:

@@ -16,8 +16,9 @@ func Test_deploymentIntegrationSubset(t *testing.T) {
 				Namespace: "default",
 			},
 			Spec: gragent.IntegrationSpec{
-				Name: "node_exporter",
-				Type: gragent.IntegrationType{AllNodes: true},
+				Name:        "node_exporter",
+				Type:        gragent.IntegrationType{AllNodes: true},
+				HostNetwork: true,
 			},
 		}
 		process = &gragent.Integration{
