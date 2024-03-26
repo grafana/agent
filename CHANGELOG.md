@@ -30,6 +30,8 @@ Main (unreleased)
 - Increased the alert interval and renamed the `ClusterSplitBrain` alert to `ClusterNodeCountMismatch` in the Grafana
   Agent Mixin to better match the alert conditions. (@thampiotr)
 
+- Add conversion from static to flow mode for `loki.source.windowsevent` via `legacy_bookmark_path`. (@mattdurham)
+
 ### Features
 
 - Added a new CLI flag `--stability.level` which defines the minimum stability
