@@ -326,9 +326,9 @@ func TestEncoding(t *testing.T) {
 	)
 }
 
-// TestFullConversion tests using static mode to tail a log, then converting and then writing new entries and ensuring
+// TestFullEndToEndLegacyConversion tests using static mode to tail a log, then converting and then writing new entries and ensuring
 // the previously tailed data does not come through.
-func TestFullConversion(t *testing.T) {
+func TestFullEndToEndLegacyConversion(t *testing.T) {
 	//
 	// Create a temporary file to tail
 	//
@@ -341,7 +341,6 @@ func TestFullConversion(t *testing.T) {
 	//
 	// Listen for push requests and pass them through to a channel
 	//
-
 	lis, err := net.Listen("tcp", "127.0.0.1:0")
 	require.NoError(t, err)
 	t.Cleanup(func() {
@@ -396,6 +395,8 @@ configs:
 
 	// Stop the tailer.
 	l.Stop()
+
+	// Read the legacy file so we can ensure it is the same as the the new file logically.
 	oldPositions, err := os.ReadFile(filepath.Join(positionsDir, "default.yml"))
 	require.NoError(t, err)
 
@@ -410,6 +411,7 @@ configs:
 		DataPath:      t.TempDir(),
 	}
 
+	// Create the Logs reciever component which will convert the legacy positions file into the new format.
 	ch1 := loki.NewLogsReceiver()
 	args := Arguments{}
 	args.LegacyPositionsFile = filepath.Join(positionsDir, "default.yml")
@@ -419,9 +421,13 @@ configs:
 			"__path__": tmpFile.Name(),
 		},
 	}
+
+	// New will do the actual conversion
 	c, err := New(opts, args)
 	require.NoError(t, err)
 	require.NotNil(t, c)
+
+	// Before we actually start the component check to see if the legacy file and new file are logically the same.
 	buf, err := os.ReadFile(filepath.Join(opts.DataPath, "positions.yml"))
 	require.NoError(t, err)
 	newPositions := positions.File{Positions: make(map[positions.Entry]string)}
@@ -437,6 +443,7 @@ configs:
 		require.True(t, val == v)
 	}
 
+	// Write some data, we should see this data but not old data.
 	fmt.Fprintf(tmpFile, "new thing!\n")
 	ctx := context.Background()
 	ctx, cncl := context.WithTimeout(ctx, 10*time.Second)
@@ -445,6 +452,8 @@ configs:
 		runErr := c.Run(ctx)
 		require.NoError(t, runErr)
 	}()
+
+	// Check for the new data ensuring that we do not see the old data.
 	require.Eventually(t, func() bool {
 		entry := <-ch1.Chan()
 		// We don't want to reread the hello world so if something went wrong then the conversion didnt work.

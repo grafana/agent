@@ -39,7 +39,7 @@ func tempFilename(t *testing.T) string {
 	return name
 }
 
-func TestConversion(t *testing.T) {
+func TestLegacyConversion(t *testing.T) {
 	tmpDir := t.TempDir()
 	legacy := filepath.Join(tmpDir, "legacy")
 	positionsPath := filepath.Join(tmpDir, "positions")
@@ -67,7 +67,7 @@ func TestConversion(t *testing.T) {
 	require.True(t, os.IsNotExist(err))
 }
 
-func TestConversionWithNewFile(t *testing.T) {
+func TestLegacyConversionWithNewFile(t *testing.T) {
 	tmpDir := t.TempDir()
 	legacy := filepath.Join(tmpDir, "legacy")
 	positionsPath := filepath.Join(tmpDir, "positions")
@@ -100,7 +100,7 @@ func TestConversionWithNewFile(t *testing.T) {
 	}
 }
 
-func TestConversionWithNoLegacyFile(t *testing.T) {
+func TestLegacyConversionWithNoLegacyFile(t *testing.T) {
 	tmpDir := t.TempDir()
 	legacy := filepath.Join(tmpDir, "legacy")
 	positionsPath := filepath.Join(tmpDir, "positions")

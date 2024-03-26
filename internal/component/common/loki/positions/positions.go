@@ -106,10 +106,9 @@ type LegacyFile struct {
 // 2. There is a file at the legacy path and that it is valid yaml
 // If all the above is true then the legacy file will be deleted.
 func ConvertLegacyPositionsFile(legacyPath, newPath string, l log.Logger) {
-	oldFile, err := os.Stat(legacyPath)
-	// If the old file doesn't exist or is empty then return early.
-	if err != nil || oldFile.Size() == 0 {
-		level.Info(l).Log("msg", "no legacy positions file found", "path", legacyPath)
+	legacyPositions := readLegacyFile(legacyPath, l)
+	// LegacyPositions did not exist or was invalid so return.
+	if legacyPositions == nil {
 		return
 	}
 	fi, err := os.Stat(newPath)
@@ -119,19 +118,6 @@ func ConvertLegacyPositionsFile(legacyPath, newPath string, l log.Logger) {
 		return
 	}
 
-	// Try to read and parse the legacy file.
-	clean := filepath.Clean(legacyPath)
-	buf, err := os.ReadFile(clean)
-	if err != nil {
-		level.Error(l).Log("msg", "error reading legacy positions file", "path", clean, "error", err)
-		return
-	}
-	legacyPositions := &LegacyFile{}
-	err = yaml.UnmarshalStrict(buf, legacyPositions)
-	if err != nil {
-		level.Error(l).Log("msg", "error parsing legacy positions file", "path", clean, "error", err)
-		return
-	}
 	newPositions := make(map[Entry]string)
 	for k, v := range legacyPositions.Positions {
 		newPositions[Entry{
@@ -148,6 +134,29 @@ func ConvertLegacyPositionsFile(legacyPath, newPath string, l log.Logger) {
 
 	// Finally remove the old path.
 	_ = os.Remove(legacyPath)
+}
+
+func readLegacyFile(legacyPath string, l log.Logger) *LegacyFile {
+	oldFile, err := os.Stat(legacyPath)
+	// If the old file doesn't exist or is empty then return early.
+	if err != nil || oldFile.Size() == 0 {
+		level.Info(l).Log("msg", "no legacy positions file found", "path", legacyPath)
+		return nil
+	}
+	// Try to read and parse the legacy file.
+	clean := filepath.Clean(legacyPath)
+	buf, err := os.ReadFile(clean)
+	if err != nil {
+		level.Error(l).Log("msg", "error reading legacy positions file", "path", clean, "error", err)
+		return nil
+	}
+	legacyPositions := &LegacyFile{}
+	err = yaml.UnmarshalStrict(buf, legacyPositions)
+	if err != nil {
+		level.Error(l).Log("msg", "error parsing legacy positions file", "path", clean, "error", err)
+		return nil
+	}
+	return legacyPositions
 }
 
 // New makes a new Positions.
