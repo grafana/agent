@@ -24,7 +24,7 @@ func (jaegerReceiverConverter) Factory() component.Factory { return jaegerreceiv
 
 func (jaegerReceiverConverter) InputComponentName() string { return "" }
 
-func (jaegerReceiverConverter) ConvertAndAppend(state *state, id component.InstanceID, cfg component.Config) diag.Diagnostics {
+func (jaegerReceiverConverter) ConvertAndAppend(state *State, id component.InstanceID, cfg component.Config) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	label := state.FlowComponentLabel()
@@ -34,14 +34,14 @@ func (jaegerReceiverConverter) ConvertAndAppend(state *state, id component.Insta
 
 	diags.Add(
 		diag.SeverityLevelInfo,
-		fmt.Sprintf("Converted %s into %s", stringifyInstanceID(id), stringifyBlock(block)),
+		fmt.Sprintf("Converted %s into %s", StringifyInstanceID(id), StringifyBlock(block)),
 	)
 
 	state.Body().AppendBlock(block)
 	return diags
 }
 
-func toJaegerReceiver(state *state, id component.InstanceID, cfg *jaegerreceiver.Config) *jaeger.Arguments {
+func toJaegerReceiver(state *State, id component.InstanceID, cfg *jaegerreceiver.Config) *jaeger.Arguments {
 	var (
 		nextTraces = state.Next(id, component.DataTypeTraces)
 	)
@@ -57,7 +57,7 @@ func toJaegerReceiver(state *state, id component.InstanceID, cfg *jaegerreceiver
 		DebugMetrics: common.DefaultValue[jaeger.Arguments]().DebugMetrics,
 
 		Output: &otelcol.ConsumerArguments{
-			Traces: toTokenizedConsumers(nextTraces),
+			Traces: ToTokenizedConsumers(nextTraces),
 		},
 	}
 }
