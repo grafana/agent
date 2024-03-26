@@ -4,7 +4,7 @@ otelcol.receiver.otlp "default" {
 	http { }
 
 	output {
-		metrics = [otelcol.exporter.otlp.default.input]
+		metrics = []
 		logs    = []
 		traces  = [otelcol.connector.servicegraph.default.input]
 	}
