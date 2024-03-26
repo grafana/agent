@@ -12,6 +12,10 @@ import (
 	"go.opentelemetry.io/collector/otelcol"
 )
 
+// List of component converters. This slice is appended to by init functions in
+// other files.
+var converters []otelcolconvert.ComponentConverter
+
 func (b *ConfigBuilder) appendTraces() {
 	if reflect.DeepEqual(b.cfg.Traces, traces.Config{}) {
 		return
@@ -24,17 +28,18 @@ func (b *ConfigBuilder) appendTraces() {
 			continue
 		}
 
-		// Remove the push receiver which is an implementation detail for static mode and unnecessary for the otel config.
-		removeReceiver(otelCfg, "traces", "push_receiver")
-
-		b.translateAutomaticLogging(otelCfg, cfg)
-
 		// Only prefix component labels if we are doing more than 1 trace config.
 		labelPrefix := ""
 		if len(b.cfg.Traces.Configs) > 1 {
 			labelPrefix = cfg.Name
 		}
-		b.diags.AddAll(otelcolconvert.AppendConfig(b.f, otelCfg, labelPrefix))
+
+		// Remove the push receiver which is an implementation detail for static mode and unnecessary for the otel config.
+		removeReceiver(otelCfg, "traces", "push_receiver")
+
+		b.translateAutomaticLogging(otelCfg, cfg)
+
+		b.diags.AddAll(otelcolconvert.AppendConfig(b.f, otelCfg, labelPrefix, converters))
 	}
 }
 

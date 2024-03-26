@@ -11,11 +11,11 @@ import (
 	"go.opentelemetry.io/collector/component"
 )
 
-func stringifyInstanceID(id component.InstanceID) string {
-	return fmt.Sprintf("%s/%s", stringifyKind(id.Kind), id.ID)
+func StringifyInstanceID(id component.InstanceID) string {
+	return fmt.Sprintf("%s/%s", StringifyKind(id.Kind), id.ID)
 }
 
-func stringifyKind(k component.Kind) string {
+func StringifyKind(k component.Kind) string {
 	switch k {
 	case component.KindReceiver:
 		return "receiver"
@@ -32,7 +32,7 @@ func stringifyKind(k component.Kind) string {
 	}
 }
 
-func stringifyBlock(block *builder.Block) string {
+func StringifyBlock(block *builder.Block) string {
 	return fmt.Sprintf("%s.%s", strings.Join(block.Name, "."), block.Label)
 }
 
@@ -57,7 +57,7 @@ func ConvertWithoutValidation(in []byte, extraArgs []string) ([]byte, diag.Diagn
 
 	f := builder.NewFile()
 
-	diags.AddAll(AppendConfig(f, cfg, ""))
+	diags.AddAll(AppendConfig(f, cfg, "", nil))
 	diags.AddAll(common.ValidateNodes(f))
 
 	var buf bytes.Buffer
