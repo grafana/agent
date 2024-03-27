@@ -135,7 +135,7 @@ func cleanUpEnvironment() {
 		fmt.Println(name)
 	}
 
-	cmd = exec.Command("docker", "logs", "integration-tests-kafka-gen-1")
+	cmd = exec.Command("docker", "logs", "integration-tests_kafka-gen_1")
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	if err := cmd.Run(); err != nil {
