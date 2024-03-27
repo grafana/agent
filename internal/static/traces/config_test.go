@@ -1159,8 +1159,8 @@ remote_write:
       scopes: ["api.metrics"]
       timeout: 2s
 `,
-			//TODO(ptodev): Look into why we need to add a "cipher_suites: []" explicitly.
-			// The expected config should unmarshal it to [], but instead it sets it to nil.
+			// The tls.ciphersuites would appear that it should output nothing or nil but during the conversion otelcolConfigFromStringMap the otelcol.Unmarshal converts the nil array to a blank one []. This is specifically used
+			// in confmap.go that transforms nil arrays into [] on the zeroSliceHookFunc.
 			expectedConfig: `
 receivers:
   push_receiver: {}
@@ -1221,8 +1221,6 @@ remote_write:
         min_version: 1.3
         reload_interval: 1h
 `,
-			//TODO(ptodev): Look into why we need to add a "cipher_suites: []" explicitly.
-			// The expected config should unmarshal it to [], but instead it sets it to nil.
 			expectedConfig: `
 receivers:
   push_receiver: {}
@@ -1292,8 +1290,6 @@ remote_write:
         max_version: 1.2
         reload_interval: 1h
 `,
-			//TODO: Look into why we need to add a "cipher_suites: []" explicitly.
-			// The expected config should unmarshal it to [], but instead it sets it to nil.
 			expectedConfig: `
 receivers:
   push_receiver: {}
@@ -1361,8 +1357,6 @@ remote_write:
      scopes: ["api.metrics"]
      timeout: 2s
 `,
-			//TODO: Look into why we need to add a "cipher_suites: []" explicitly.
-			// The expected config should unmarshal it to [], but instead it sets it to nil.
 			expectedConfig: `
 receivers:
  push_receiver: {}
@@ -1431,8 +1425,6 @@ remote_write:
       tls:
         insecure: true
 `,
-			//TODO: Look into why we need to add a "cipher_suites: []" explicitly.
-			// The expected config should unmarshal it to [], but instead it sets it to nil.
 			expectedConfig: `
 receivers:
   push_receiver: {}
