@@ -13,7 +13,7 @@ import (
 	integrations_v2 "github.com/grafana/agent/internal/static/integrations/v2"
 	"github.com/grafana/agent/internal/static/integrations/v2/metricsutils"
 	"github.com/lib/pq"
-	"github.com/prometheus-community/postgres_exporter/exporter"
+	"github.com/prometheus-community/postgres_exporter/cmd/postgres_exporter"
 )
 
 // Config controls the postgres_exporter integration.
@@ -134,16 +134,15 @@ func New(log log.Logger, c *Config) (integrations.Integration, error) {
 		return nil, err
 	}
 
-	e := exporter.NewExporter(
+	e := postgres_exporter.NewExporter(
 		dsn,
-		log,
-		exporter.DisableDefaultMetrics(c.DisableDefaultMetrics),
-		exporter.WithUserQueriesPath(c.QueryPath),
-		exporter.DisableSettingsMetrics(c.DisableSettingsMetrics),
-		exporter.AutoDiscoverDatabases(c.AutodiscoverDatabases),
-		exporter.ExcludeDatabases(strings.Join(c.ExcludeDatabases, ",")),
-		exporter.IncludeDatabases(strings.Join(c.IncludeDatabases, ",")),
-		exporter.MetricPrefix("pg"),
+		postgres_exporter.DisableDefaultMetrics(c.DisableDefaultMetrics),
+		postgres_exporter.WithUserQueriesPath(c.QueryPath),
+		postgres_exporter.DisableSettingsMetrics(c.DisableSettingsMetrics),
+		postgres_exporter.AutoDiscoverDatabases(c.AutodiscoverDatabases),
+		postgres_exporter.ExcludeDatabases(c.ExcludeDatabases),
+		postgres_exporter.IncludeDatabases(strings.Join(c.IncludeDatabases, ",")),
+		postgres_exporter.WithLogger(log),
 	)
 
 	return integrations.NewCollectorIntegration(c.Name(), integrations.WithCollectors(e)), nil
