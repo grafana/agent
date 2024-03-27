@@ -114,14 +114,35 @@ func runAllTests() {
 
 func cleanUpEnvironment() {
 	// TMP tests
-	cmd := exec.Command("docker", "logs", "integration-tests-kafka-gen-1")
+	cmd := exec.Command("docker", "ps", "--format", "{{.Names}}")
+
+	// Capture the command's output.
+	output, err := cmd.Output()
+	if err != nil {
+		// If an error occurs, print it to the standard error and exit.
+		fmt.Fprintf(os.Stderr, "Failed to execute command: %s\n", err)
+		return
+	}
+	// Convert the command's output bytes to a string.
+	outputStr := string(output)
+
+	// Split the output string by new lines to get individual container names.
+	containerNames := strings.Split(strings.TrimSpace(outputStr), "\n")
+
+	// Print each container name to the terminal.
+	fmt.Println("Running containers:")
+	for _, name := range containerNames {
+		fmt.Println(name)
+	}
+
+	cmd = exec.Command("docker", "logs", "integration-tests-kafka-gen-1")
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	if err := cmd.Run(); err != nil {
 		os.Stderr.WriteString(err.Error())
 	}
 	fmt.Println("Cleaning up Docker environment...")
-	err := exec.Command("docker-compose", "down", "--volumes", "--rmi", "all").Run()
+	err = exec.Command("docker-compose", "down", "--volumes", "--rmi", "all").Run()
 	if err != nil {
 		panic(err)
 	}
