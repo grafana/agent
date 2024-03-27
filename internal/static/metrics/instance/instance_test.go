@@ -306,13 +306,12 @@ func getTestServer(t *testing.T) (addr string, closeFunc func()) {
 func getTestGlobalConfig(t *testing.T) GlobalConfig {
 	t.Helper()
 
-	return GlobalConfig{
-		Prometheus: config.GlobalConfig{
-			ScrapeInterval:     model.Duration(time.Millisecond * 50),
-			ScrapeTimeout:      model.Duration(time.Millisecond * 25),
-			EvaluationInterval: model.Duration(time.Hour),
-		},
-	}
+	var cfg = DefaultGlobalConfig
+	cfg.Prometheus.ScrapeInterval = model.Duration(time.Millisecond * 50)
+	cfg.Prometheus.ScrapeTimeout = model.Duration(time.Millisecond * 25)
+	cfg.Prometheus.EvaluationInterval = model.Duration(time.Hour)
+
+	return cfg
 }
 
 func getTestConfig(t *testing.T, global *GlobalConfig, scrapeAddr string) Config {
@@ -401,6 +400,10 @@ func (a *mockAppender) UpdateMetadata(ref storage.SeriesRef, l labels.Labels, m 
 }
 
 func (a *mockAppender) AppendHistogram(ref storage.SeriesRef, l labels.Labels, t int64, h *histogram.Histogram, fh *histogram.FloatHistogram) (storage.SeriesRef, error) {
+	return 0, nil
+}
+
+func (a *mockAppender) AppendCTZeroSample(ref storage.SeriesRef, l labels.Labels, t int64, ct int64) (storage.SeriesRef, error) {
 	return 0, nil
 }
 

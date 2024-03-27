@@ -13,6 +13,7 @@ import (
 	"github.com/grafana/agent/internal/component/common/config"
 	"github.com/grafana/agent/internal/component/discovery"
 	"github.com/grafana/river"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/atomic"
@@ -91,6 +92,7 @@ func TestComponent(t *testing.T) {
 				assert.Equal(t, 8, len(args.Targets))
 				cancel()
 			},
+			Registerer: prometheus.NewRegistry(),
 		},
 		Arguments{
 			RefreshInterval:  time.Second,

@@ -173,6 +173,9 @@ func (b *ConfigBuilder) appendExporter(commonConfig *int_config.Common, name str
 		scrapeConfig.ScrapeTimeout = b.cfg.Integrations.ConfigV1.PrometheusGlobalConfig.ScrapeTimeout
 	}
 
+	// TODO: Consider making this configurable if we add static mode support for native histograms.
+	scrapeConfig.ScrapeProtocols = prom_config.DefaultScrapeProtocols
+
 	scrapeConfigs := []*prom_config.ScrapeConfig{&scrapeConfig}
 
 	promConfig := &prom_config.Config{

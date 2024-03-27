@@ -156,6 +156,12 @@ func (a *interceptappender) AppendExemplar(
 	return a.child.AppendExemplar(ref, l, e)
 }
 
+// AppendCTZeroSample satisfies the Appender interface.
+func (a *interceptappender) AppendCTZeroSample(ref storage.SeriesRef, l labels.Labels, t int64, ct int64) (storage.SeriesRef, error) {
+	//TODO: Implement this later
+	return 0, nil
+}
+
 // UpdateMetadata satisfies the Appender interface.
 func (a *interceptappender) UpdateMetadata(
 	ref storage.SeriesRef,

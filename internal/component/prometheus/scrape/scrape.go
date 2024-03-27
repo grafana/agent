@@ -18,11 +18,13 @@ import (
 	"github.com/grafana/agent/internal/service/http"
 	"github.com/grafana/agent/internal/service/labelstore"
 	"github.com/grafana/agent/internal/useragent"
+	"github.com/grafana/agent/internal/util"
 	client_prometheus "github.com/prometheus/client_golang/prometheus"
 	config_util "github.com/prometheus/common/config"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/config"
 	"github.com/prometheus/prometheus/discovery/targetgroup"
+	"github.com/prometheus/prometheus/model/labels"
 	"github.com/prometheus/prometheus/scrape"
 	"github.com/prometheus/prometheus/storage"
 )
@@ -63,6 +65,11 @@ type Arguments struct {
 	ScrapeInterval time.Duration `river:"scrape_interval,attr,optional"`
 	// The timeout for scraping targets of this config.
 	ScrapeTimeout time.Duration `river:"scrape_timeout,attr,optional"`
+	// The protocols to negotiate during a scrape. It tells clients what
+	// protocol are accepted by Prometheus and with what preference (most wanted is first).
+	// Supported values (case sensitive): PrometheusProto, OpenMetricsText0.0.1,
+	// OpenMetricsText1.0.0, PrometheusText0.0.4.
+	ScrapeProtocols []string `river:"scrape_protocols,attr,optional"`
 	// The HTTP resource path on which to fetch metrics from targets.
 	MetricsPath string `river:"metrics_path,attr,optional"`
 	// The URL scheme with which to fetch metrics from targets.
@@ -89,10 +96,21 @@ type Arguments struct {
 	HTTPClientConfig component_config.HTTPClientConfig `river:",squash"`
 
 	// Scrape Options
-	ExtraMetrics              bool `river:"extra_metrics,attr,optional"`
-	EnableProtobufNegotiation bool `river:"enable_protobuf_negotiation,attr,optional"`
+	ExtraMetrics bool `river:"extra_metrics,attr,optional"`
 
 	Clustering cluster.ComponentBlock `river:"clustering,block,optional"`
+}
+
+var defaultScrapeProtocols = convertDefaultScrapeProtocols()
+
+func convertDefaultScrapeProtocols() []string {
+	// We use `DefaultProtoFirstScrapeProtocols` to keep the native histograms disabled by default.
+	// See https://github.com/prometheus/prometheus/pull/12738/files#diff-17f1012e0c2fbd9bcd8dff3c23b18ff4b6676eef3beca6f8a3e72e6a36633334R64-R68
+	protocols := make([]string, 0, len(config.DefaultScrapeProtocols))
+	for _, p := range config.DefaultScrapeProtocols {
+		protocols = append(protocols, string(p))
+	}
+	return protocols
 }
 
 // SetToDefault implements river.Defaulter.
@@ -106,6 +124,7 @@ func (arg *Arguments) SetToDefault() {
 		HTTPClientConfig:         component_config.DefaultHTTPClientConfig,
 		ScrapeInterval:           1 * time.Minute,  // From config.DefaultGlobalConfig
 		ScrapeTimeout:            10 * time.Second, // From config.DefaultGlobalConfig
+		ScrapeProtocols:          defaultScrapeProtocols,
 	}
 }
 
@@ -113,6 +132,19 @@ func (arg *Arguments) SetToDefault() {
 func (arg *Arguments) Validate() error {
 	if arg.ScrapeTimeout > arg.ScrapeInterval {
 		return fmt.Errorf("scrape_timeout (%s) greater than scrape_interval (%s) for scrape config with job name %q", arg.ScrapeTimeout, arg.ScrapeInterval, arg.JobName)
+	}
+
+	// Validate scrape protocols
+	existing := make(map[string]struct{})
+	for _, p := range arg.ScrapeProtocols {
+		if _, ok := existing[p]; ok {
+			return fmt.Errorf("duplicate scrape protocol %q: make sure the scrape protocols provided are unique", p)
+		}
+		promSP := config.ScrapeProtocol(p)
+		if err := promSP.Validate(); err != nil {
+			return fmt.Errorf("invalid scrape protocol %q: %w", p, err)
+		}
+		existing[p] = struct{}{}
 	}
 
 	// We must explicitly Validate because HTTPClientConfig is squashed and it won't run otherwise
@@ -131,6 +163,8 @@ type Component struct {
 	scraper      *scrape.Manager
 	appendable   *prometheus.Fanout
 	targetsGauge client_prometheus.Gauge
+
+	reg *util.Unregisterer
 }
 
 var (
@@ -163,9 +197,13 @@ func New(o component.Options, args Arguments) (*Component, error) {
 		HTTPClientOptions: []config_util.HTTPClientOption{
 			config_util.WithDialContextFunc(httpData.DialFunc),
 		},
-		EnableProtobufNegotiation: args.EnableProtobufNegotiation,
 	}
-	scraper := scrape.NewManager(scrapeOptions, o.Logger, flowAppendable)
+
+	wrappedReg := util.WrapWithUnregisterer(o.Registerer)
+	scraper, err := scrape.NewManager(scrapeOptions, o.Logger, flowAppendable, wrappedReg)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create scrape manager: %w", err)
+	}
 
 	targetsGauge := client_prometheus.NewGauge(client_prometheus.GaugeOpts{
 		Name: "agent_prometheus_scrape_targets_gauge",
@@ -182,6 +220,7 @@ func New(o component.Options, args Arguments) (*Component, error) {
 		scraper:       scraper,
 		appendable:    flowAppendable,
 		targetsGauge:  targetsGauge,
+		reg:           wrappedReg,
 	}
 
 	// Call to Update() to set the receivers and targets once at the start.
@@ -194,6 +233,7 @@ func New(o component.Options, args Arguments) (*Component, error) {
 
 // Run implements component.Component.
 func (c *Component) Run(ctx context.Context) error {
+	defer c.reg.UnregisterAll()
 	defer c.scraper.Stop()
 
 	targetSetsChan := make(chan map[string][]*targetgroup.Group)
@@ -306,6 +346,13 @@ func getPromScrapeConfigs(jobName string, c Arguments) *config.ScrapeConfig {
 	dec.LabelNameLengthLimit = c.LabelNameLengthLimit
 	dec.LabelValueLengthLimit = c.LabelValueLengthLimit
 
+	// Scrape protocols
+	scrapeProtocols := make([]config.ScrapeProtocol, 0, len(c.ScrapeProtocols))
+	for _, p := range c.ScrapeProtocols {
+		scrapeProtocols = append(scrapeProtocols, config.ScrapeProtocol(p))
+	}
+	dec.ScrapeProtocols = scrapeProtocols
+
 	// HTTP scrape client settings
 	dec.HTTPClientConfig = *c.HTTPClientConfig.Convert()
 	return &dec
@@ -345,6 +392,7 @@ type TargetStatus struct {
 func BuildTargetStatuses(targets map[string][]*scrape.Target) []TargetStatus {
 	var res []TargetStatus
 
+	b := labels.NewScratchBuilder(0)
 	for job, stt := range targets {
 		for _, st := range stt {
 			var lastError string
@@ -356,7 +404,7 @@ func BuildTargetStatuses(targets map[string][]*scrape.Target) []TargetStatus {
 					JobName:            job,
 					URL:                st.URL().String(),
 					Health:             string(st.Health()),
-					Labels:             st.Labels().Map(),
+					Labels:             st.Labels(&b).Map(),
 					LastError:          lastError,
 					LastScrape:         st.LastScrape(),
 					LastScrapeDuration: st.LastScrapeDuration(),

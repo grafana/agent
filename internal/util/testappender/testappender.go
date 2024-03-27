@@ -121,6 +121,12 @@ func (app *Appender) AppendExemplar(ref storage.SeriesRef, l labels.Labels, e ex
 	return 0, nil
 }
 
+// AppendCTZeroSample implements storage.Appender.
+func (app *Appender) AppendCTZeroSample(ref storage.SeriesRef, l labels.Labels, t int64, ct int64) (storage.SeriesRef, error) {
+	//TODO(ptodev): implementr this later
+	return 0, nil
+}
+
 // UpdateMetadata associates metadata for a given named metric. l must not be
 // empty. Only the `__name__` label is used from the label set; other labels
 // are ignored.

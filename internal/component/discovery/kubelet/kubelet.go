@@ -17,8 +17,10 @@ import (
 	"github.com/grafana/agent/internal/component/common/config"
 	"github.com/grafana/agent/internal/component/discovery"
 	"github.com/grafana/agent/internal/featuregate"
+	"github.com/prometheus/client_golang/prometheus"
 	commonConfig "github.com/prometheus/common/config"
 	"github.com/prometheus/common/model"
+	prom_discovery "github.com/prometheus/prometheus/discovery"
 	"github.com/prometheus/prometheus/discovery/refresh"
 	"github.com/prometheus/prometheus/discovery/targetgroup"
 	"github.com/prometheus/prometheus/util/strutil"
@@ -78,6 +80,49 @@ type Arguments struct {
 	Namespaces       []string                `river:"namespaces,attr,optional"`
 }
 
+type DiscoveryCreator struct {
+	args Arguments
+	opts component.Options
+}
+
+// Name implements discovery.DiscovererConfig.
+func (args *DiscoveryCreator) Name() string {
+	return "kubelet"
+}
+
+// NewDiscoverer implements discovery.DiscovererConfig.
+func (dc *DiscoveryCreator) NewDiscoverer(discOpts prom_discovery.DiscovererOptions) (prom_discovery.Discoverer, error) {
+	m, ok := discOpts.Metrics.(*kubeletMetrics)
+	if !ok {
+		return nil, fmt.Errorf("invalid discovery metrics type")
+	}
+
+	kubeletDiscovery, err := NewKubeletDiscovery(dc.args)
+	if err != nil {
+		return nil, err
+	}
+
+	interval := defaultKubeletRefreshInterval
+	if dc.args.Interval != 0 {
+		interval = dc.args.Interval
+	}
+
+	return refresh.NewDiscovery(refresh.Options{
+		Logger:              dc.opts.Logger,
+		Mech:                "kubelet",
+		Interval:            interval,
+		RefreshF:            kubeletDiscovery.Refresh,
+		MetricsInstantiator: m.refreshMetrics,
+	}), nil
+}
+
+// NewDiscovererMetrics implements discovery.DiscovererConfig.
+func (*DiscoveryCreator) NewDiscovererMetrics(_ prometheus.Registerer, rmi prom_discovery.RefreshMetricsInstantiator) prom_discovery.DiscovererMetrics {
+	return newDiscovererMetrics(rmi)
+}
+
+var _ discovery.DiscovererConfig = (*DiscoveryCreator)(nil)
+
 // SetToDefault implements river.Defaulter.
 func (args *Arguments) SetToDefault() {
 	cloneDefaultKubeletUrl := *defaultKubeletURL
@@ -97,17 +142,12 @@ func (args *Arguments) Validate() error {
 
 // New returns a new instance of a discovery.kubelet component.
 func New(opts component.Options, args Arguments) (*discovery.Component, error) {
-	return discovery.New(opts, args, func(args component.Arguments) (discovery.Discoverer, error) {
+	return discovery.New(opts, args, func(args component.Arguments) discovery.DiscovererConfig {
 		newArgs := args.(Arguments)
-		kubeletDiscovery, err := NewKubeletDiscovery(newArgs)
-		if err != nil {
-			return nil, err
+		return &DiscoveryCreator{
+			args: newArgs,
+			opts: opts,
 		}
-		interval := defaultKubeletRefreshInterval
-		if newArgs.Interval != 0 {
-			interval = newArgs.Interval
-		}
-		return refresh.NewDiscovery(opts.Logger, "kubelet", interval, kubeletDiscovery.Refresh), nil
 	})
 }
 

@@ -90,8 +90,7 @@ func (args *LightsailArguments) Validate() error {
 
 // New creates a new discovery.lightsail component.
 func NewLightsail(opts component.Options, args LightsailArguments) (component.Component, error) {
-	return discovery.New(opts, args, func(args component.Arguments) (discovery.Discoverer, error) {
-		conf := args.(LightsailArguments).Convert()
-		return promaws.NewLightsailDiscovery(conf, opts.Logger), nil
+	return discovery.New(opts, args, func(args component.Arguments) discovery.DiscovererConfig {
+		return args.(LightsailArguments).Convert()
 	})
 }

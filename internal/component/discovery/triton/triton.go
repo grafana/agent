@@ -74,8 +74,8 @@ func (args *Arguments) Convert() *prom_discovery.SDConfig {
 
 // New returns a new instance of a discovery.triton component.
 func New(opts component.Options, args Arguments) (*discovery.Component, error) {
-	return discovery.New(opts, args, func(args component.Arguments) (discovery.Discoverer, error) {
+	return discovery.New(opts, args, func(args component.Arguments) discovery.DiscovererConfig {
 		newArgs := args.(Arguments)
-		return prom_discovery.New(opts.Logger, newArgs.Convert())
+		return newArgs.Convert()
 	})
 }

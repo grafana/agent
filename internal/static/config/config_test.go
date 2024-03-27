@@ -79,6 +79,7 @@ metrics:
 		Prometheus: promCfg.GlobalConfig{
 			ScrapeInterval:     model.Duration(1 * time.Minute),
 			ScrapeTimeout:      model.Duration(33 * time.Second),
+			ScrapeProtocols:    promCfg.DefaultScrapeProtocols,
 			EvaluationInterval: model.Duration(1 * time.Minute),
 		},
 	}
@@ -101,6 +102,7 @@ metrics:
 		Prometheus: promCfg.GlobalConfig{
 			ScrapeInterval:     model.Duration(1 * time.Minute),
 			ScrapeTimeout:      model.Duration(33 * time.Second),
+			ScrapeProtocols:    promCfg.DefaultScrapeProtocols,
 			EvaluationInterval: model.Duration(1 * time.Minute),
 		},
 	}

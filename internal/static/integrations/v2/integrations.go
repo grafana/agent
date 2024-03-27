@@ -32,6 +32,8 @@ import (
 	"github.com/grafana/agent/internal/static/traces"
 	"github.com/prometheus/prometheus/discovery"
 	"github.com/prometheus/prometheus/discovery/targetgroup"
+
+	_ "github.com/grafana/agent/internal/util/otelfeaturegatefix" // Gracefully handle duplicate OTEL feature gates
 )
 
 var (

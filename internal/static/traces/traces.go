@@ -10,6 +10,8 @@ import (
 	"github.com/grafana/agent/internal/util/zapadapter"
 	prom_client "github.com/prometheus/client_golang/prometheus"
 	"go.uber.org/zap"
+
+	_ "github.com/grafana/agent/internal/util/otelfeaturegatefix" // Gracefully handle duplicate OTEL feature gates
 )
 
 // Traces wraps the OpenTelemetry collector to enable tracing pipelines

@@ -46,29 +46,36 @@ func toScrapeArguments(scrapeConfig *prom_config.ScrapeConfig, forwardTo []stora
 		return nil
 	}
 
+	// Scrape protocols
+	scrapeProtocols := make([]string, 0, len(scrapeConfig.ScrapeProtocols))
+	for _, p := range scrapeConfig.ScrapeProtocols {
+		scrapeProtocols = append(scrapeProtocols, string(p))
+	}
+
 	return &scrape.Arguments{
-		Targets:                   targets,
-		ForwardTo:                 forwardTo,
-		JobName:                   scrapeConfig.JobName,
-		HonorLabels:               scrapeConfig.HonorLabels,
-		HonorTimestamps:           scrapeConfig.HonorTimestamps,
-		TrackTimestampsStaleness:  scrapeConfig.TrackTimestampsStaleness,
-		Params:                    scrapeConfig.Params,
-		ScrapeClassicHistograms:   scrapeConfig.ScrapeClassicHistograms,
-		ScrapeInterval:            time.Duration(scrapeConfig.ScrapeInterval),
-		ScrapeTimeout:             time.Duration(scrapeConfig.ScrapeTimeout),
-		MetricsPath:               scrapeConfig.MetricsPath,
-		Scheme:                    scrapeConfig.Scheme,
-		BodySizeLimit:             scrapeConfig.BodySizeLimit,
-		SampleLimit:               scrapeConfig.SampleLimit,
-		TargetLimit:               scrapeConfig.TargetLimit,
-		LabelLimit:                scrapeConfig.LabelLimit,
-		LabelNameLengthLimit:      scrapeConfig.LabelNameLengthLimit,
-		LabelValueLengthLimit:     scrapeConfig.LabelValueLengthLimit,
-		HTTPClientConfig:          *common.ToHttpClientConfig(&scrapeConfig.HTTPClientConfig),
-		ExtraMetrics:              false,
-		EnableProtobufNegotiation: false,
-		Clustering:                cluster.ComponentBlock{Enabled: false},
+		Targets:                  targets,
+		ForwardTo:                forwardTo,
+		JobName:                  scrapeConfig.JobName,
+		HonorLabels:              scrapeConfig.HonorLabels,
+		HonorTimestamps:          scrapeConfig.HonorTimestamps,
+		TrackTimestampsStaleness: scrapeConfig.TrackTimestampsStaleness,
+		Params:                   scrapeConfig.Params,
+		ScrapeClassicHistograms:  scrapeConfig.ScrapeClassicHistograms,
+		ScrapeInterval:           time.Duration(scrapeConfig.ScrapeInterval),
+		ScrapeTimeout:            time.Duration(scrapeConfig.ScrapeTimeout),
+		//TODO: Do we need to deep copy the slice?
+		ScrapeProtocols:       scrapeProtocols,
+		MetricsPath:           scrapeConfig.MetricsPath,
+		Scheme:                scrapeConfig.Scheme,
+		BodySizeLimit:         scrapeConfig.BodySizeLimit,
+		SampleLimit:           scrapeConfig.SampleLimit,
+		TargetLimit:           scrapeConfig.TargetLimit,
+		LabelLimit:            scrapeConfig.LabelLimit,
+		LabelNameLengthLimit:  scrapeConfig.LabelNameLengthLimit,
+		LabelValueLengthLimit: scrapeConfig.LabelValueLengthLimit,
+		HTTPClientConfig:      *common.ToHttpClientConfig(&scrapeConfig.HTTPClientConfig),
+		ExtraMetrics:          false,
+		Clustering:            cluster.ComponentBlock{Enabled: false},
 	}
 }
 

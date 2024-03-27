@@ -93,12 +93,12 @@ type Exports struct {
 	Targets []Target `river:"targets,attr"`
 }
 
-// Discoverer is an alias for Prometheus' Discoverer interface, so users of this package don't need
+// DiscovererConfig is an alias for Prometheus' discovery.Config interface, so users of this package don't need
 // to import github.com/prometheus/prometheus/discover as well.
-type Discoverer discovery.Discoverer
+type DiscovererConfig discovery.Config
 
-// Creator is a function provided by an implementation to create a concrete Discoverer instance.
-type Creator func(component.Arguments) (Discoverer, error)
+// Creator is a function provided by an implementation to create a concrete DiscovererConfig instance.
+type Creator func(component.Arguments) DiscovererConfig
 
 // Component is a reusable component for any discovery implementation.
 // it will handle dynamic updates and exporting targets appropriately for a scrape implementation.
@@ -110,13 +110,36 @@ type Component struct {
 	newDiscoverer chan struct{}
 
 	creator Creator
+
+	sdMetrics      discovery.DiscovererMetrics
+	refreshMetrics discovery.DiscovererMetrics
 }
 
 // New creates a discovery component given arguments and a concrete Discovery implementation function.
 func New(o component.Options, args component.Arguments, creator Creator) (*Component, error) {
+	// The metrics stay the same, even if the config of the SD mechanism changes.
+	// This means it's ok to do the registration now, with the initial config.
+	// This is similar ot how Prometheus does it.
+	discConfig := creator(args)
+	//TODO(ptodev): Change upstream Prometheus to have NewDiscovererMetrics outside of discovery.Config,
+	// to show that it's independent of the config.
+
+	//TODO(ptodev): It looks messy to have a refresh metrics separate from the other SD metrics.
+	// Can we make this cleaner? The reason it was made like this currently,
+	// is so that metrics exposed by Prometheus executables don't change.
+	refreshMetrics := discovery.NewRefreshMetrics(o.Registerer)
+	sdMetrics := discConfig.NewDiscovererMetrics(o.Registerer, refreshMetrics)
+
+	err := sdMetrics.Register()
+	if err != nil {
+		return nil, err
+	}
+
 	c := &Component{
-		opts:    o,
-		creator: creator,
+		opts:           o,
+		creator:        creator,
+		sdMetrics:      sdMetrics,
+		refreshMetrics: refreshMetrics,
 		// buffered to avoid deadlock from the first immediate update
 		newDiscoverer: make(chan struct{}, 1),
 	}
@@ -125,6 +148,9 @@ func New(o component.Options, args component.Arguments, creator Creator) (*Compo
 
 // Run implements component.Component.
 func (c *Component) Run(ctx context.Context) error {
+	var wg sync.WaitGroup
+	defer wg.Wait()
+
 	var cancel context.CancelFunc
 	for {
 		select {
@@ -145,14 +171,25 @@ func (c *Component) Run(ctx context.Context) error {
 			c.discMut.Lock()
 			disc := c.latestDisc
 			c.discMut.Unlock()
-			go c.runDiscovery(newCtx, disc)
+			wg.Add(1)
+			go func() {
+				c.runDiscovery(newCtx, disc)
+				c.sdMetrics.Unregister()
+				c.refreshMetrics.Unregister()
+				wg.Done()
+			}()
 		}
 	}
 }
 
 // Update implements component.Component.
 func (c *Component) Update(args component.Arguments) error {
-	disc, err := c.creator(args)
+	discConfig := c.creator(args)
+
+	disc, err := discConfig.NewDiscoverer(discovery.DiscovererOptions{
+		Logger:  c.opts.Logger,
+		Metrics: c.sdMetrics,
+	})
 	if err != nil {
 		return err
 	}
@@ -174,7 +211,7 @@ var MaxUpdateFrequency = 5 * time.Second
 
 // runDiscovery is a utility for consuming and forwarding target groups from a discoverer.
 // It will handle collating targets (and clearing), as well as time based throttling of updates.
-func (c *Component) runDiscovery(ctx context.Context, d Discoverer) {
+func (c *Component) runDiscovery(ctx context.Context, d discovery.Discoverer) {
 	// all targets we have seen so far
 	cache := map[string]*targetgroup.Group{}
 

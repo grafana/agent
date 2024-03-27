@@ -23,6 +23,8 @@ import (
 	"github.com/grafana/loki/clients/pkg/promtail/wal"
 	"github.com/grafana/loki/pkg/tracing"
 	"github.com/prometheus/client_golang/prometheus"
+
+	_ "github.com/grafana/agent/internal/util/otelfeaturegatefix" // Gracefully handle duplicate OTEL feature gates
 )
 
 func init() {

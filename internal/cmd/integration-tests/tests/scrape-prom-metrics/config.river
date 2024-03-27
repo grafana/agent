@@ -4,7 +4,6 @@ prometheus.scrape "scrape_prom_metrics" {
   ]
   forward_to = [prometheus.remote_write.scrape_prom_metrics.receiver]
   scrape_classic_histograms = true
-  enable_protobuf_negotiation = true
   scrape_interval = "1s"
   scrape_timeout = "500ms"
 }

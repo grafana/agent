@@ -59,6 +59,7 @@ func ListTargetsHandler(targets map[string]TargetSet) http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, _ *http.Request) {
 		resp := ListTargetsResponse{}
 
+		b := labels.NewScratchBuilder(0)
 		for instance, tset := range targets {
 			for key, targets := range tset {
 				for _, tgt := range targets {
@@ -74,7 +75,7 @@ func ListTargetsHandler(targets map[string]TargetSet) http.Handler {
 						Endpoint:         tgt.URL().String(),
 						State:            string(tgt.Health()),
 						DiscoveredLabels: tgt.DiscoveredLabels(),
-						Labels:           tgt.Labels(),
+						Labels:           tgt.Labels(&b),
 						LastScrape:       tgt.LastScrape(),
 						ScrapeDuration:   tgt.LastScrapeDuration().Milliseconds(),
 						ScrapeError:      lastError,

@@ -78,12 +78,14 @@ func TestGenerateProbeConfig(t *testing.T) {
   replacement: foo.bar
 `),
 			expected: &config.ScrapeConfig{
-				JobName:         "probe/operator/myprobe",
-				HonorTimestamps: true,
-				ScrapeInterval:  model.Duration(time.Minute),
-				ScrapeTimeout:   model.Duration(10 * time.Second),
-				MetricsPath:     "",
-				Scheme:          "http",
+				JobName:           "probe/operator/myprobe",
+				HonorTimestamps:   true,
+				ScrapeInterval:    model.Duration(time.Minute),
+				ScrapeTimeout:     model.Duration(10 * time.Second),
+				ScrapeProtocols:   config.DefaultScrapeProtocols,
+				MetricsPath:       "",
+				Scheme:            "http",
+				EnableCompression: true,
 				HTTPClientConfig: commonConfig.HTTPClientConfig{
 					FollowRedirects: true,
 					EnableHTTP2:     true,
@@ -156,13 +158,15 @@ func TestGenerateProbeConfig(t *testing.T) {
   action: replace
 `),
 			expected: &config.ScrapeConfig{
-				JobName:         "probe/default/testprobe1",
-				HonorTimestamps: true,
-				ScrapeInterval:  model.Duration(time.Minute),
-				ScrapeTimeout:   model.Duration(10 * time.Second),
-				MetricsPath:     "/probe",
-				Scheme:          "http",
-				Params:          url.Values{"module": []string{"http_2xx"}},
+				JobName:           "probe/default/testprobe1",
+				HonorTimestamps:   true,
+				ScrapeInterval:    model.Duration(time.Minute),
+				ScrapeTimeout:     model.Duration(10 * time.Second),
+				ScrapeProtocols:   config.DefaultScrapeProtocols,
+				MetricsPath:       "/probe",
+				Scheme:            "http",
+				EnableCompression: true,
+				Params:            url.Values{"module": []string{"http_2xx"}},
 				HTTPClientConfig: commonConfig.HTTPClientConfig{
 					FollowRedirects: true,
 					EnableHTTP2:     true,

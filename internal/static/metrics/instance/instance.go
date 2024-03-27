@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 	"time"
 
@@ -22,6 +23,7 @@ import (
 	"github.com/grafana/agent/internal/static/metrics/wal"
 	"github.com/grafana/agent/internal/useragent"
 	"github.com/grafana/agent/internal/util"
+	"github.com/grafana/agent/internal/util/prom_global_metrics"
 	"github.com/oklog/run"
 	"github.com/prometheus/client_golang/prometheus"
 	config_util "github.com/prometheus/common/config"
@@ -156,6 +158,13 @@ func (c *Config) ApplyDefaults(global GlobalConfig) error {
 			return fmt.Errorf("found multiple scrape configs with job name %q", sc.JobName)
 		}
 		jobNames[sc.JobName] = struct{}{}
+
+		if sc.ScrapeProtocols == nil {
+			sc.ScrapeProtocols = c.global.Prometheus.ScrapeProtocols
+		}
+		if err := validateScrapeProtocols(sc.ScrapeProtocols); err != nil {
+			return fmt.Errorf("invalid scrape protocols provided: %w", err)
+		}
 	}
 
 	rwNames := map[string]struct{}{}
@@ -192,6 +201,24 @@ func (c *Config) ApplyDefaults(global GlobalConfig) error {
 		rwNames[cfg.Name] = struct{}{}
 	}
 
+	return nil
+}
+
+// validateScrapeProtocols return errors if we see problems with accept scrape protocols option.
+func validateScrapeProtocols(sps []config.ScrapeProtocol) error {
+	if len(sps) == 0 {
+		return errors.New("scrape_protocols cannot be empty")
+	}
+	dups := map[string]struct{}{}
+	for _, sp := range sps {
+		if _, ok := dups[strings.ToLower(string(sp))]; ok {
+			return fmt.Errorf("duplicated protocol in scrape_protocols, got %v", sps)
+		}
+		if err := sp.Validate(); err != nil {
+			return fmt.Errorf("scrape_protocols: %w", err)
+		}
+		dups[strings.ToLower(string(sp))] = struct{}{}
+	}
 	return nil
 }
 
@@ -617,7 +644,13 @@ func (i *Instance) newDiscoveryManager(ctx context.Context, cfg *Config) (*disco
 	ctx, cancel := context.WithCancel(ctx)
 
 	logger := log.With(i.logger, "component", "discovery manager")
-	manager := discovery.NewManager(ctx, logger, discovery.Name("scrape"))
+	manager := discovery.NewManager(
+		ctx,
+		logger,
+		prom_global_metrics.PromDiscoveryManagerRegistry,
+		prom_global_metrics.PromSdMetrics,
+		discovery.Name("scrape"),
+	)
 
 	// TODO(rfratto): refactor this to a function?
 	// TODO(rfratto): ensure job name name is unique
@@ -783,7 +816,16 @@ func newScrapeManager(o *scrape.Options, logger log.Logger, app storage.Appendab
 	// data race of modifying that global, we lock a mutex here briefly.
 	managerMtx.Lock()
 	defer managerMtx.Unlock()
-	return scrape.NewManager(o, logger, app)
+	mgr, err := scrape.NewManager(
+		o,
+		logger,
+		app,
+		prom_global_metrics.PromScrapeManagerRegistry,
+	)
+	if err != nil {
+		panic(err)
+	}
+	return mgr
 }
 
 type runGroupContext struct {
