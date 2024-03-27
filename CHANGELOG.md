@@ -16,7 +16,10 @@ Main (unreleased)
   4317 to 55678 to align with upstream. (@rfratto)
 
 - Remove the field `prune_interval_seconds` from the component `prometheus.exporter.kafka`. The interpolation table is now pruned
-  on `metadata_refresh_interval`. (@wildum) 
+  on `metadata_refresh_interval`. (@wildum)
+
+- The default sync interval for `mimir.rules.kubernetes` has changed from `30s`
+  to `5m` to reduce load on Mimir. (@56quarters)  
 
 ### Enhancements
 
@@ -38,6 +41,8 @@ Main (unreleased)
 
 - Increased the alert interval and renamed the `ClusterSplitBrain` alert to `ClusterNodeCountMismatch` in the Grafana
   Agent Mixin to better match the alert conditions. (@thampiotr)
+
+- Add conversion from static to flow mode for `loki.source.windowsevent` via `legacy_bookmark_path`. (@mattdurham)
 
 ### Features
 
@@ -92,7 +97,7 @@ https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/26115
   * [otelcol.connector.spanmetrics] Add a new `events` metric.
 https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/27451
   * [otelcol.connector.spanmetrics] A new `max_per_data_point` argument for exemplar generation.
-  * https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/22620
+  * https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/29242
   * [ottl] Add IsBool Converter 
 https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/27897
   * [otelcol.processor.tail_sampling] Optimize memory performance of tailsamplingprocessor 
@@ -288,6 +293,8 @@ v0.40.0 (2024-02-27)
 - Batch staleness tracking to reduce mutex contention and increase performance. (@mattdurham)
 
 - Python profiling using eBPF is now aggregated now by kernel space. [PR](https://github.com/grafana/pyroscope/pull/2996) (@korniltsev)
+
+- Add Luhn filter to `loki.process` to filter PCI data from log data
 
 ### Bugfixes
 

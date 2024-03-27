@@ -3,6 +3,7 @@ package otlphttp
 
 import (
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/grafana/agent/internal/component"
@@ -100,7 +101,7 @@ func (args *Arguments) Validate() error {
 		return errors.New("at least one endpoint must be specified")
 	}
 	if args.Encoding != EncodingProto && args.Encoding != EncodingJSON {
-		return errors.New("invalid encoding type")
+		return fmt.Errorf("invalid encoding type %s", args.Encoding)
 	}
 	return nil
 }
