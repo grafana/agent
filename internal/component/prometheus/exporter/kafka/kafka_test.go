@@ -18,7 +18,6 @@ func TestRiverUnmarshal(t *testing.T) {
 		metadata_refresh_interval = "1m"
 		allow_concurrency = true
 		max_offsets = 1000
-		prune_interval_seconds = 30
 		topics_filter_regex = ".*"
 		groups_filter_regex = ".*"
 	`
@@ -34,8 +33,12 @@ func TestRiverUnmarshal(t *testing.T) {
 		MetadataRefreshInterval: "1m",
 		AllowConcurrent:         true,
 		MaxOffsets:              1000,
+		OffsetShowAll:           true,
+		TopicWorkers:            100,
 		TopicsFilter:            ".*",
 		GroupFilter:             ".*",
+		TopicsExclude:           "^$",
+		GroupExclude:            "^$",
 	}
 	require.Equal(t, expected, args)
 }
@@ -49,7 +52,6 @@ func TestUnmarshalInvalid(t *testing.T) {
 		metadata_refresh_interval = "1m"
 		allow_concurrency = true
 		max_offsets = 1000
-		prune_interval_seconds = 30
 		topics_filter_regex = ".*"
 		groups_filter_regex = ".*"
 `
@@ -76,8 +78,12 @@ func TestRiverConvert(t *testing.T) {
 		MetadataRefreshInterval: "1m",
 		AllowConcurrent:         true,
 		MaxOffsets:              1000,
+		OffsetShowAll:           true,
+		TopicWorkers:            100,
 		TopicsFilter:            ".*",
 		GroupFilter:             ".*",
+		TopicsExclude:           "^$",
+		GroupExclude:            "^$",
 	}
 	converted := orig.Convert()
 	expected := kafka_exporter.Config{
@@ -87,8 +93,12 @@ func TestRiverConvert(t *testing.T) {
 		MetadataRefreshInterval: "1m",
 		AllowConcurrent:         true,
 		MaxOffsets:              1000,
+		OffsetShowAll:           true,
+		TopicWorkers:            100,
 		TopicsFilter:            ".*",
 		GroupFilter:             ".*",
+		TopicsExclude:           "^$",
+		GroupExclude:            "^$",
 	}
 
 	require.Equal(t, expected, *converted)
