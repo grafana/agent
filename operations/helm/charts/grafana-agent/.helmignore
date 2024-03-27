@@ -27,3 +27,4 @@ README.md.gotmpl
 
 # Don't packages the tests used for CI.
 /tests/
+/ci/

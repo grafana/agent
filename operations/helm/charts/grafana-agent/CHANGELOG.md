@@ -7,6 +7,11 @@ This document contains a historical list of changes between releases. Only
 changes that impact end-user behavior are listed; changes to documentation or
 internal API changes are not present.
 
+Unreleased
+----------
+
+- Remove `ci` directory from packaged chart. (@aerfio)
+
 0.37.0 (2024-03-14)
 ----------
 
