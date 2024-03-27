@@ -113,6 +113,13 @@ func runAllTests() {
 }
 
 func cleanUpEnvironment() {
+	// TMP tests
+	cmd := exec.Command("docker", "logs", "integration-tests-kafka-gen-1")
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	if err := cmd.Run(); err != nil {
+		os.Stderr.WriteString(err.Error())
+	}
 	fmt.Println("Cleaning up Docker environment...")
 	err := exec.Command("docker-compose", "down", "--volumes", "--rmi", "all").Run()
 	if err != nil {
