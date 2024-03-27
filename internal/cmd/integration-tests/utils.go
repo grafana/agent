@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"time"
 )
 
 const (
@@ -39,6 +40,8 @@ func buildAgent() {
 
 func setupEnvironment() {
 	executeCommand("docker-compose", []string{"up", "-d"}, "Setting up environment with Docker Compose")
+	// sleep for 5 seconds to ensure that the full env is ready
+	time.Sleep(5 * time.Second)
 }
 
 func runSingleTest(testDir string, port int) {
