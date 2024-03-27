@@ -10,9 +10,10 @@ discovery.relabel "integrations_agent" {
 }
 
 prometheus.scrape "integrations_agent" {
-	targets    = discovery.relabel.integrations_agent.output
-	forward_to = [prometheus.remote_write.integrations.receiver]
-	job_name   = "integrations/agent"
+	targets          = discovery.relabel.integrations_agent.output
+	forward_to       = [prometheus.remote_write.integrations.receiver]
+	job_name         = "integrations/agent"
+	scrape_protocols = ["OpenMetricsText1.0.0", "OpenMetricsText0.0.1", "PrometheusText0.0.4"]
 
 	tls_config {
 		ca_file   = "/something7.cert"
@@ -45,9 +46,10 @@ discovery.relabel "integrations_apache_http" {
 }
 
 prometheus.scrape "integrations_apache_http" {
-	targets    = discovery.relabel.integrations_apache_http.output
-	forward_to = [prometheus.remote_write.integrations.receiver]
-	job_name   = "integrations/apache_http"
+	targets          = discovery.relabel.integrations_apache_http.output
+	forward_to       = [prometheus.remote_write.integrations.receiver]
+	job_name         = "integrations/apache_http"
+	scrape_protocols = ["OpenMetricsText1.0.0", "OpenMetricsText0.0.1", "PrometheusText0.0.4"]
 
 	tls_config {
 		ca_file   = "/something7.cert"
@@ -77,9 +79,10 @@ discovery.relabel "integrations_blackbox" {
 }
 
 prometheus.scrape "integrations_blackbox" {
-	targets    = discovery.relabel.integrations_blackbox.output
-	forward_to = [prometheus.remote_write.integrations.receiver]
-	job_name   = "integrations/blackbox"
+	targets          = discovery.relabel.integrations_blackbox.output
+	forward_to       = [prometheus.remote_write.integrations.receiver]
+	job_name         = "integrations/blackbox"
+	scrape_protocols = ["OpenMetricsText1.0.0", "OpenMetricsText0.0.1", "PrometheusText0.0.4"]
 
 	tls_config {
 		ca_file   = "/something7.cert"
@@ -114,9 +117,10 @@ discovery.relabel "integrations_snmp" {
 }
 
 prometheus.scrape "integrations_snmp" {
-	targets    = discovery.relabel.integrations_snmp.output
-	forward_to = [prometheus.remote_write.integrations.receiver]
-	job_name   = "integrations/snmp"
+	targets          = discovery.relabel.integrations_snmp.output
+	forward_to       = [prometheus.remote_write.integrations.receiver]
+	job_name         = "integrations/snmp"
+	scrape_protocols = ["OpenMetricsText1.0.0", "OpenMetricsText0.0.1", "PrometheusText0.0.4"]
 
 	tls_config {
 		ca_file   = "/something7.cert"
@@ -141,9 +145,10 @@ discovery.relabel "integrations_azure_exporter" {
 }
 
 prometheus.scrape "integrations_azure_exporter" {
-	targets    = discovery.relabel.integrations_azure_exporter.output
-	forward_to = [prometheus.remote_write.integrations.receiver]
-	job_name   = "integrations/azure_exporter"
+	targets          = discovery.relabel.integrations_azure_exporter.output
+	forward_to       = [prometheus.remote_write.integrations.receiver]
+	job_name         = "integrations/azure_exporter"
+	scrape_protocols = ["OpenMetricsText1.0.0", "OpenMetricsText0.0.1", "PrometheusText0.0.4"]
 
 	tls_config {
 		ca_file   = "/something7.cert"
@@ -164,9 +169,10 @@ discovery.relabel "integrations_cadvisor" {
 }
 
 prometheus.scrape "integrations_cadvisor" {
-	targets    = discovery.relabel.integrations_cadvisor.output
-	forward_to = [prometheus.remote_write.integrations.receiver]
-	job_name   = "integrations/cadvisor"
+	targets          = discovery.relabel.integrations_cadvisor.output
+	forward_to       = [prometheus.remote_write.integrations.receiver]
+	job_name         = "integrations/cadvisor"
+	scrape_protocols = ["OpenMetricsText1.0.0", "OpenMetricsText0.0.1", "PrometheusText0.0.4"]
 
 	tls_config {
 		ca_file   = "/something7.cert"
@@ -236,9 +242,10 @@ discovery.relabel "integrations_cloudwatch_exporter" {
 }
 
 prometheus.scrape "integrations_cloudwatch_exporter" {
-	targets    = discovery.relabel.integrations_cloudwatch_exporter.output
-	forward_to = [prometheus.remote_write.integrations.receiver]
-	job_name   = "integrations/cloudwatch_exporter"
+	targets          = discovery.relabel.integrations_cloudwatch_exporter.output
+	forward_to       = [prometheus.remote_write.integrations.receiver]
+	job_name         = "integrations/cloudwatch_exporter"
+	scrape_protocols = ["OpenMetricsText1.0.0", "OpenMetricsText0.0.1", "PrometheusText0.0.4"]
 
 	tls_config {
 		ca_file   = "/something7.cert"
@@ -259,9 +266,10 @@ discovery.relabel "integrations_consul_exporter" {
 }
 
 prometheus.scrape "integrations_consul_exporter" {
-	targets    = discovery.relabel.integrations_consul_exporter.output
-	forward_to = [prometheus.remote_write.integrations.receiver]
-	job_name   = "integrations/consul_exporter"
+	targets          = discovery.relabel.integrations_consul_exporter.output
+	forward_to       = [prometheus.remote_write.integrations.receiver]
+	job_name         = "integrations/consul_exporter"
+	scrape_protocols = ["OpenMetricsText1.0.0", "OpenMetricsText0.0.1", "PrometheusText0.0.4"]
 
 	tls_config {
 		ca_file   = "/something7.cert"
@@ -290,9 +298,10 @@ discovery.relabel "integrations_dnsmasq_exporter" {
 }
 
 prometheus.scrape "integrations_dnsmasq_exporter" {
-	targets    = discovery.relabel.integrations_dnsmasq_exporter.output
-	forward_to = [prometheus.remote_write.integrations.receiver]
-	job_name   = "integrations/dnsmasq_exporter"
+	targets          = discovery.relabel.integrations_dnsmasq_exporter.output
+	forward_to       = [prometheus.remote_write.integrations.receiver]
+	job_name         = "integrations/dnsmasq_exporter"
+	scrape_protocols = ["OpenMetricsText1.0.0", "OpenMetricsText0.0.1", "PrometheusText0.0.4"]
 
 	tls_config {
 		ca_file   = "/something7.cert"
@@ -313,9 +322,10 @@ discovery.relabel "integrations_elasticsearch_exporter" {
 }
 
 prometheus.scrape "integrations_elasticsearch_exporter" {
-	targets    = discovery.relabel.integrations_elasticsearch_exporter.output
-	forward_to = [prometheus.remote_write.integrations.receiver]
-	job_name   = "integrations/elasticsearch_exporter"
+	targets          = discovery.relabel.integrations_elasticsearch_exporter.output
+	forward_to       = [prometheus.remote_write.integrations.receiver]
+	job_name         = "integrations/elasticsearch_exporter"
+	scrape_protocols = ["OpenMetricsText1.0.0", "OpenMetricsText0.0.1", "PrometheusText0.0.4"]
 
 	tls_config {
 		ca_file   = "/something7.cert"
@@ -340,9 +350,10 @@ discovery.relabel "integrations_gcp_exporter" {
 }
 
 prometheus.scrape "integrations_gcp_exporter" {
-	targets    = discovery.relabel.integrations_gcp_exporter.output
-	forward_to = [prometheus.remote_write.integrations.receiver]
-	job_name   = "integrations/gcp_exporter"
+	targets          = discovery.relabel.integrations_gcp_exporter.output
+	forward_to       = [prometheus.remote_write.integrations.receiver]
+	job_name         = "integrations/gcp_exporter"
+	scrape_protocols = ["OpenMetricsText1.0.0", "OpenMetricsText0.0.1", "PrometheusText0.0.4"]
 
 	tls_config {
 		ca_file   = "/something7.cert"
@@ -366,9 +377,10 @@ discovery.relabel "integrations_github_exporter" {
 }
 
 prometheus.scrape "integrations_github_exporter" {
-	targets    = discovery.relabel.integrations_github_exporter.output
-	forward_to = [prometheus.remote_write.integrations.receiver]
-	job_name   = "integrations/github_exporter"
+	targets          = discovery.relabel.integrations_github_exporter.output
+	forward_to       = [prometheus.remote_write.integrations.receiver]
+	job_name         = "integrations/github_exporter"
+	scrape_protocols = ["OpenMetricsText1.0.0", "OpenMetricsText0.0.1", "PrometheusText0.0.4"]
 
 	tls_config {
 		ca_file   = "/something7.cert"
@@ -389,9 +401,10 @@ discovery.relabel "integrations_kafka_exporter" {
 }
 
 prometheus.scrape "integrations_kafka_exporter" {
-	targets    = discovery.relabel.integrations_kafka_exporter.output
-	forward_to = [prometheus.remote_write.integrations.receiver]
-	job_name   = "integrations/kafka_exporter"
+	targets          = discovery.relabel.integrations_kafka_exporter.output
+	forward_to       = [prometheus.remote_write.integrations.receiver]
+	job_name         = "integrations/kafka_exporter"
+	scrape_protocols = ["OpenMetricsText1.0.0", "OpenMetricsText0.0.1", "PrometheusText0.0.4"]
 
 	tls_config {
 		ca_file   = "/something7.cert"
@@ -420,9 +433,10 @@ discovery.relabel "integrations_memcached_exporter" {
 }
 
 prometheus.scrape "integrations_memcached_exporter" {
-	targets    = discovery.relabel.integrations_memcached_exporter.output
-	forward_to = [prometheus.remote_write.integrations.receiver]
-	job_name   = "integrations/memcached_exporter"
+	targets          = discovery.relabel.integrations_memcached_exporter.output
+	forward_to       = [prometheus.remote_write.integrations.receiver]
+	job_name         = "integrations/memcached_exporter"
+	scrape_protocols = ["OpenMetricsText1.0.0", "OpenMetricsText0.0.1", "PrometheusText0.0.4"]
 
 	tls_config {
 		ca_file   = "/something7.cert"
@@ -463,9 +477,10 @@ discovery.relabel "integrations_mongodb_exporter" {
 }
 
 prometheus.scrape "integrations_mongodb_exporter" {
-	targets    = discovery.relabel.integrations_mongodb_exporter.output
-	forward_to = [prometheus.remote_write.integrations.receiver]
-	job_name   = "integrations/mongodb_exporter"
+	targets          = discovery.relabel.integrations_mongodb_exporter.output
+	forward_to       = [prometheus.remote_write.integrations.receiver]
+	job_name         = "integrations/mongodb_exporter"
+	scrape_protocols = ["OpenMetricsText1.0.0", "OpenMetricsText0.0.1", "PrometheusText0.0.4"]
 
 	tls_config {
 		ca_file   = "/something7.cert"
@@ -493,9 +508,10 @@ discovery.relabel "integrations_mssql" {
 }
 
 prometheus.scrape "integrations_mssql" {
-	targets    = discovery.relabel.integrations_mssql.output
-	forward_to = [prometheus.remote_write.integrations.receiver]
-	job_name   = "integrations/mssql"
+	targets          = discovery.relabel.integrations_mssql.output
+	forward_to       = [prometheus.remote_write.integrations.receiver]
+	job_name         = "integrations/mssql"
+	scrape_protocols = ["OpenMetricsText1.0.0", "OpenMetricsText0.0.1", "PrometheusText0.0.4"]
 
 	tls_config {
 		ca_file   = "/something7.cert"
@@ -524,9 +540,10 @@ discovery.relabel "integrations_mysqld_exporter" {
 }
 
 prometheus.scrape "integrations_mysqld_exporter" {
-	targets    = discovery.relabel.integrations_mysqld_exporter.output
-	forward_to = [prometheus.remote_write.integrations.receiver]
-	job_name   = "integrations/mysqld_exporter"
+	targets          = discovery.relabel.integrations_mysqld_exporter.output
+	forward_to       = [prometheus.remote_write.integrations.receiver]
+	job_name         = "integrations/mysqld_exporter"
+	scrape_protocols = ["OpenMetricsText1.0.0", "OpenMetricsText0.0.1", "PrometheusText0.0.4"]
 
 	tls_config {
 		ca_file   = "/something7.cert"
@@ -562,9 +579,10 @@ discovery.relabel "integrations_node_exporter" {
 }
 
 prometheus.scrape "integrations_node_exporter" {
-	targets    = discovery.relabel.integrations_node_exporter.output
-	forward_to = [prometheus.relabel.integrations_node_exporter.receiver]
-	job_name   = "integrations/node_exporter"
+	targets          = discovery.relabel.integrations_node_exporter.output
+	forward_to       = [prometheus.relabel.integrations_node_exporter.receiver]
+	job_name         = "integrations/node_exporter"
+	scrape_protocols = ["OpenMetricsText1.0.0", "OpenMetricsText0.0.1", "PrometheusText0.0.4"]
 
 	tls_config {
 		ca_file   = "/something7.cert"
@@ -601,10 +619,11 @@ discovery.relabel "integrations_oracledb" {
 }
 
 prometheus.scrape "integrations_oracledb" {
-	targets        = discovery.relabel.integrations_oracledb.output
-	forward_to     = [prometheus.remote_write.integrations.receiver]
-	job_name       = "integrations/oracledb"
-	scrape_timeout = "1m0s"
+	targets          = discovery.relabel.integrations_oracledb.output
+	forward_to       = [prometheus.remote_write.integrations.receiver]
+	job_name         = "integrations/oracledb"
+	scrape_timeout   = "1m0s"
+	scrape_protocols = ["OpenMetricsText1.0.0", "OpenMetricsText0.0.1", "PrometheusText0.0.4"]
 
 	tls_config {
 		ca_file   = "/something7.cert"
@@ -633,9 +652,10 @@ discovery.relabel "integrations_postgres_exporter" {
 }
 
 prometheus.scrape "integrations_postgres_exporter" {
-	targets    = discovery.relabel.integrations_postgres_exporter.output
-	forward_to = [prometheus.remote_write.integrations.receiver]
-	job_name   = "integrations/postgres_exporter"
+	targets          = discovery.relabel.integrations_postgres_exporter.output
+	forward_to       = [prometheus.remote_write.integrations.receiver]
+	job_name         = "integrations/postgres_exporter"
+	scrape_protocols = ["OpenMetricsText1.0.0", "OpenMetricsText0.0.1", "PrometheusText0.0.4"]
 
 	tls_config {
 		ca_file   = "/something7.cert"
@@ -661,9 +681,10 @@ discovery.relabel "integrations_process_exporter" {
 }
 
 prometheus.scrape "integrations_process_exporter" {
-	targets    = discovery.relabel.integrations_process_exporter.output
-	forward_to = [prometheus.remote_write.integrations.receiver]
-	job_name   = "integrations/process_exporter"
+	targets          = discovery.relabel.integrations_process_exporter.output
+	forward_to       = [prometheus.remote_write.integrations.receiver]
+	job_name         = "integrations/process_exporter"
+	scrape_protocols = ["OpenMetricsText1.0.0", "OpenMetricsText0.0.1", "PrometheusText0.0.4"]
 
 	tls_config {
 		ca_file   = "/something7.cert"
@@ -693,9 +714,10 @@ discovery.relabel "integrations_redis_exporter" {
 }
 
 prometheus.scrape "integrations_redis_exporter" {
-	targets    = discovery.relabel.integrations_redis_exporter.output
-	forward_to = [prometheus.remote_write.integrations.receiver]
-	job_name   = "integrations/redis_exporter"
+	targets          = discovery.relabel.integrations_redis_exporter.output
+	forward_to       = [prometheus.remote_write.integrations.receiver]
+	job_name         = "integrations/redis_exporter"
+	scrape_protocols = ["OpenMetricsText1.0.0", "OpenMetricsText0.0.1", "PrometheusText0.0.4"]
 
 	tls_config {
 		ca_file   = "/something7.cert"
@@ -721,9 +743,10 @@ discovery.relabel "integrations_snowflake" {
 }
 
 prometheus.scrape "integrations_snowflake" {
-	targets    = discovery.relabel.integrations_snowflake.output
-	forward_to = [prometheus.remote_write.integrations.receiver]
-	job_name   = "integrations/snowflake"
+	targets          = discovery.relabel.integrations_snowflake.output
+	forward_to       = [prometheus.remote_write.integrations.receiver]
+	job_name         = "integrations/snowflake"
+	scrape_protocols = ["OpenMetricsText1.0.0", "OpenMetricsText0.0.1", "PrometheusText0.0.4"]
 
 	tls_config {
 		ca_file   = "/something7.cert"
@@ -746,10 +769,11 @@ discovery.relabel "integrations_squid" {
 }
 
 prometheus.scrape "integrations_squid" {
-	targets        = discovery.relabel.integrations_squid.output
-	forward_to     = [prometheus.remote_write.integrations.receiver]
-	job_name       = "integrations/squid"
-	scrape_timeout = "1m0s"
+	targets          = discovery.relabel.integrations_squid.output
+	forward_to       = [prometheus.remote_write.integrations.receiver]
+	job_name         = "integrations/squid"
+	scrape_timeout   = "1m0s"
+	scrape_protocols = ["OpenMetricsText1.0.0", "OpenMetricsText0.0.1", "PrometheusText0.0.4"]
 
 	tls_config {
 		ca_file   = "/something7.cert"
@@ -770,9 +794,10 @@ discovery.relabel "integrations_statsd_exporter" {
 }
 
 prometheus.scrape "integrations_statsd_exporter" {
-	targets    = discovery.relabel.integrations_statsd_exporter.output
-	forward_to = [prometheus.remote_write.integrations.receiver]
-	job_name   = "integrations/statsd_exporter"
+	targets          = discovery.relabel.integrations_statsd_exporter.output
+	forward_to       = [prometheus.remote_write.integrations.receiver]
+	job_name         = "integrations/statsd_exporter"
+	scrape_protocols = ["OpenMetricsText1.0.0", "OpenMetricsText0.0.1", "PrometheusText0.0.4"]
 
 	tls_config {
 		ca_file   = "/something7.cert"

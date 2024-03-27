@@ -101,12 +101,17 @@ type Arguments struct {
 	Clustering cluster.ComponentBlock `river:"clustering,block,optional"`
 }
 
-var (
-	PrometheusProto      string = "PrometheusProto"
-	PrometheusText0_0_4  string = "PrometheusText0.0.4"
-	OpenMetricsText0_0_1 string = "OpenMetricsText0.0.1"
-	OpenMetricsText1_0_0 string = "OpenMetricsText1.0.0"
-)
+var defaultScrapeProtocols = convertDefaultScrapeProtocols()
+
+func convertDefaultScrapeProtocols() []string {
+	// We use `DefaultProtoFirstScrapeProtocols` to keep the native histograms disabled by default.
+	// See https://github.com/prometheus/prometheus/pull/12738/files#diff-17f1012e0c2fbd9bcd8dff3c23b18ff4b6676eef3beca6f8a3e72e6a36633334R64-R68
+	protocols := make([]string, 0, len(config.DefaultScrapeProtocols))
+	for _, p := range config.DefaultScrapeProtocols {
+		protocols = append(protocols, string(p))
+	}
+	return protocols
+}
 
 // SetToDefault implements river.Defaulter.
 func (arg *Arguments) SetToDefault() {
@@ -119,14 +124,7 @@ func (arg *Arguments) SetToDefault() {
 		HTTPClientConfig:         component_config.DefaultHTTPClientConfig,
 		ScrapeInterval:           1 * time.Minute,  // From config.DefaultGlobalConfig
 		ScrapeTimeout:            10 * time.Second, // From config.DefaultGlobalConfig
-		//TODO: I'm not sure if this is accurate. See:
-		// https://github.com/prometheus/prometheus/pull/12738/files#diff-17f1012e0c2fbd9bcd8dff3c23b18ff4b6676eef3beca6f8a3e72e6a36633334R64-R68
-		ScrapeProtocols: []string{
-			PrometheusProto,
-			OpenMetricsText1_0_0,
-			OpenMetricsText0_0_1,
-			PrometheusText0_0_4,
-		},
+		ScrapeProtocols:          defaultScrapeProtocols,
 	}
 }
 
@@ -136,12 +134,17 @@ func (arg *Arguments) Validate() error {
 		return fmt.Errorf("scrape_timeout (%s) greater than scrape_interval (%s) for scrape config with job name %q", arg.ScrapeTimeout, arg.ScrapeInterval, arg.JobName)
 	}
 
+	// Validate scrape protocols
+	existing := make(map[string]struct{})
 	for _, p := range arg.ScrapeProtocols {
-		switch p {
-		case PrometheusProto, OpenMetricsText0_0_1, OpenMetricsText1_0_0, PrometheusText0_0_4:
-		default:
-			return fmt.Errorf("unsupported scrape protocol %q", p)
+		if _, ok := existing[p]; ok {
+			return fmt.Errorf("duplicate scrape protocol %q: make sure the scrape protocols provided are unique", p)
 		}
+		promSP := config.ScrapeProtocol(p)
+		if err := promSP.Validate(); err != nil {
+			return fmt.Errorf("invalid scrape protocol %q: %w", p, err)
+		}
+		existing[p] = struct{}{}
 	}
 
 	// We must explicitly Validate because HTTPClientConfig is squashed and it won't run otherwise
