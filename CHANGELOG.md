@@ -32,6 +32,7 @@ Main (unreleased)
 
 - `mimir.rules.kubernetes` support for add extra labels (@psychomantys)
 
+- Add conversion from static to flow mode for `loki.source.windowsevent` via `legacy_bookmark_path`. (@mattdurham)
 
 ### Features
 
@@ -86,7 +87,7 @@ https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/26115
   * [otelcol.connector.spanmetrics] Add a new `events` metric.
 https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/27451
   * [otelcol.connector.spanmetrics] A new `max_per_data_point` argument for exemplar generation.
-  * https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/22620
+  * https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/29242
   * [ottl] Add IsBool Converter 
 https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/27897
   * [otelcol.processor.tail_sampling] Optimize memory performance of tailsamplingprocessor 
