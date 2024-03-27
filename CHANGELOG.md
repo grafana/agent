@@ -32,6 +32,8 @@ Main (unreleased)
 
 - Add conversion from static to flow mode for `loki.source.windowsevent` via `legacy_bookmark_path`. (@mattdurham)
 
+- Add ability to convert static mode positions file to `loki.source.file` compatible via `legacy_positions_file` argument. (@mattdurham)
+
 ### Features
 
 - Added a new CLI flag `--stability.level` which defines the minimum stability
