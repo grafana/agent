@@ -11,7 +11,7 @@ title: kafka_exporter_config
 # kafka_exporter_config
 
 The `kafka_exporter_config` block configures the `kafka_exporter`
-integration, which is an embedded version of [`kafka_exporter`](https://github.com/davidmparrott/kafka_exporter).
+integration, which is an embedded version of [`kafka_exporter`](https://github.com/wildum/kafka_exporter).
 This allows for the collection of Kafka Lag metrics and exposing them as Prometheus metrics.
 
 We strongly recommend that you configure a separate user for the Agent, and give it only the strictly mandatory
@@ -78,8 +78,14 @@ Full reference of options:
   # The SASL SCRAM SHA algorithm sha256 or sha512 as mechanism
   [sasl_mechanism: <string>]
 
+  # Configure the Kerberos client to not use PA_FX_FAST.
+  [sasl_disable_pafx_fast: <string>]
+
   # Connect using TLS
   [use_tls: <bool>]
+
+  # Used to verify the hostname on the returned certificates unless tls.insecure-skip-tls-verify is given. The kafka server's name should be given.
+  [tls_server_name: <string>]
 
   # The optional certificate authority file for TLS client authentication
   [ca_file: <string>]
@@ -108,19 +114,46 @@ Full reference of options:
   # Metadata refresh interval
   [metadata_refresh_interval: <duration> | default = "1m"]
 
+  # Service name when using kerberos Auth.
+  [gssapi_service_name: <string>]
+
+  # Kerberos config path.
+  [gssapi_kerberos_config_path: <string>]
+
+  # Kerberos realm.
+  [gssapi_realm: <string>]
+
+  # Kerberos keytab file path.
+  [gssapi_key_tab_path: <string>]
+
+  # Kerberos auth type. Either 'keytabAuth' or 'userAuth'.
+  [gssapi_kerberos_auth_type: <string>]
+
+  # Whether show the offset/lag for all consumer group, otherwise, only show connected consumer groups.
+  [offset_show_all: <bool> | default = true]
+
+  # Minimum number of topics to monitor.
+  [topic_workers: <int> | default = 100]
+
   # If true, all scrapes will trigger kafka operations otherwise, they will share results. WARN: This should be disabled on large clusters
   [allow_concurrency: <bool> | default = true]
+
+  # If true, the broker may auto-create topics that we requested which do not already exist.
+  [allow_auto_topic_creation: <bool>]
 
   # Maximum number of offsets to store in the interpolation table for a partition
   [max_offsets: <int> | default = 1000]
 
-  # How frequently should the interpolation table be pruned, in seconds
-  [prune_interval_seconds: <int> | default = 30]
-
   # Regex filter for topics to be monitored
   [topics_filter_regex: <string> | default = ".*"]
 
+  # Regex that determines which topics to exclude.
+  [topics_exclude_regex: <string> | default = "^$"]
+
   # Regex filter for consumer groups to be monitored
   [groups_filter_regex: <string> | default = ".*"]
+
+  # Regex that determines which consumer groups to exclude.
+  [groups_exclude_regex: <string> | default = "^$"]
 
 ```

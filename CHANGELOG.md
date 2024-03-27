@@ -15,7 +15,19 @@ Main (unreleased)
 - The default listen port for `otelcol.receiver.opencensus` has changed from
   4317 to 55678 to align with upstream. (@rfratto)
 
+- Remove the field `prune_interval_seconds` from the component `prometheus.exporter.kafka`. The interpolation table is now pruned
+  on `metadata_refresh_interval`. (@wildum) 
+
 ### Enhancements
+
+- Update `prometheus.exporter.kafka` with the following functionalities:
+  * GSSAPI config
+  * enable/disable PA_FX_FAST
+  * set a TLS server name
+  * show the offset/lag for all consumer group or only the connected ones
+  * set the minimum number of topics to monitor
+  * enable/disable auto-creation of requested topics if they don't already exist
+  * regex to exclude topics / groups (@wildum)
 
 - Add support for importing folders as single module to `import.file`. (@wildum)
 

@@ -52,11 +52,13 @@ type Config struct {
 	// The SASL SCRAM SHA algorithm sha256 or sha512 as mechanism
 	SASLMechanism string `yaml:"sasl_mechanism,omitempty"`
 
+	// Configure the Kerberos client to not use PA_FX_FAST.
 	SASLDisablePAFXFast bool `yaml:"sasl_disable_pafx_fast,omitempty"`
 
 	// Connect using TLS
 	UseTLS bool `yaml:"use_tls,omitempty"`
 
+	// Used to verify the hostname on the returned certificates unless tls.insecure-skip-tls-verify is given. The kafka server's name should be given.
 	TlsServerName string `yaml:"tls_server_name,omitempty"`
 
 	// The optional certificate authority file for TLS client authentication
@@ -86,23 +88,31 @@ type Config struct {
 	// Metadata refresh interval
 	MetadataRefreshInterval string `yaml:"metadata_refresh_interval,omitempty"`
 
+	// Service name when using kerberos Auth.
 	ServiceName string `yaml:"gssapi_service_name,omitempty"`
 
+	// Kerberos config path.
 	KerberosConfigPath string `yaml:"gssapi_kerberos_config_path,omitempty"`
 
+	// Kerberos realm.
 	Realm string `yaml:"gssapi_realm,omitempty"`
 
+	// Kerberos keytab file path.
 	KeyTabPath string `yaml:"gssapi_key_tab_path,omitempty"`
 
+	// Kerberos auth type. Either 'keytabAuth' or 'userAuth'.
 	KerberosAuthType string `yaml:"gssapi_kerberos_auth_type,omitempty"`
 
+	// Whether show the offset/lag for all consumer group, otherwise, only show connected consumer groups.
 	OffsetShowAll bool `yaml:"offset_show_all,omitempty"`
 
+	// Number of topic workers.
 	TopicWorkers int `yaml:"topic_workers,omitempty"`
 
 	// If true, all scrapes will trigger kafka operations otherwise, they will share results. WARN: This should be disabled on large clusters
 	AllowConcurrent bool `yaml:"allow_concurrency,omitempty"`
 
+	// If true, the broker may auto-create topics that we requested which do not already exist.
 	AllowAutoTopicCreation bool `yaml:"allow_auto_topic_creation,omitempty"`
 
 	// Maximum number of offsets to store in the interpolation table for a partition
@@ -111,11 +121,13 @@ type Config struct {
 	// Regex filter for topics to be monitored
 	TopicsFilter string `yaml:"topics_filter_regex,omitempty"`
 
+	// Regex that determines which topics to exclude.
 	TopicsExclude string `yaml:"topics_exclude_regex,omitempty"`
 
 	// Regex filter for consumer groups to be monitored
 	GroupFilter string `yaml:"groups_filter_regex,omitempty"`
 
+	// Regex that determines which consumer groups to exclude.
 	GroupExclude string `yaml:"groups_exclude_regex,omitempty"`
 }
 
