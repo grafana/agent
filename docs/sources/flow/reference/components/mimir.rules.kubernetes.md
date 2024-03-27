@@ -61,8 +61,9 @@ Name                     | Type                | Description                    
 `follow_redirects`       | `bool`              | Whether redirects returned by the server should be followed.    | `true`        | no
 `proxy_url`              | `string`            | HTTP proxy to send requests through.                            |               | no
 `no_proxy`               | `string`            | Comma-separated list of IP addresses, CIDR notations, and domain names to exclude from proxying. | | no
-`proxy_from_environment` | `bool`              | Use the proxy URL indicated by environment variables.         | `false` | no
-`proxy_connect_header`   | `map(list(secret))` | Specifies headers to send to proxies during CONNECT requests. |         | no
+`proxy_from_environment` | `bool`              | Use the proxy URL indicated by environment variables.           | `false` | no
+`proxy_connect_header`   | `map(list(secret))` | Specifies headers to send to proxies during CONNECT requests.   |         | no
+`external_labels`        | `map(string)`       | Labels to add to rules sent over the network.                   |         | no
 
  At most, one of the following can be provided:
  - [`bearer_token` argument](#arguments).
