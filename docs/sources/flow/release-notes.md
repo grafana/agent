@@ -31,6 +31,11 @@ Other release notes for the different {{< param "PRODUCT_ROOT_NAME" >}} variants
 
 ## v0.41
 
+### Breaking change: Remove the field `prune_interval_seconds` from the component `prometheus.exporter.kafka`.
+
+`prune_interval_seconds` was used to set how frequently the interpolation table used for lag metrics should be pruned.
+It is now pruned every time the client metadata are refreshed (`metadata_refresh_interval`).
+
 ### Breaking change: default `otelcol.receiver.opencensus` list port changed
 
 The default listen port for `otelcol.receiver.opencensus` has changed from 4317 to 55678 to align with the upstream defaults.
