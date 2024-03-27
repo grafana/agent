@@ -1,0 +1,40 @@
+logging {
+  level  = "debug"
+  format = "logfmt"
+}
+
+// Self discover the agent
+prometheus.exporter.self "agent" {
+}
+
+// Add a job label
+discovery.relabel "add_job" {
+  targets = prometheus.exporter.self.agent.targets
+
+  rule {
+    target_label  = "job"
+    replacement   = "agent"
+  }
+}
+
+// Scrape the agent
+prometheus.scrape "agent_self" {
+	targets    = discovery.relabel.add_job.output
+	forward_to = [prometheus.remote_write.default.receiver]
+
+  // Scrape settings for the impatient
+	scrape_interval = "250ms"
+	scrape_timeout  = "250ms"
+}
+
+// Send metrics to test server
+prometheus.remote_write "default" {
+	endpoint {
+		url = env("PROM_SERVER_URL")
+
+		// Queue settings for the impatient
+		queue_config {
+      batch_send_deadline = "250ms"
+    }
+	}
+}

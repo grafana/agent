@@ -12,6 +12,14 @@ import (
 // Run is the entrypoint to Flow mode. It is expected to be called
 // directly from the main function.
 func Run() {
+	cmd := Command()
+	if err := cmd.Execute(); err != nil {
+		os.Exit(1)
+	}
+}
+
+// Command returns the root command for Flow mode.
+func Command() *cobra.Command {
 	var cmd = &cobra.Command{
 		Use:     fmt.Sprintf("%s [global options] <subcommand>", os.Args[0]),
 		Short:   "Grafana Agent Flow",
@@ -29,8 +37,5 @@ func Run() {
 		runCommand(),
 		toolsCommand(),
 	)
-
-	if err := cmd.Execute(); err != nil {
-		os.Exit(1)
-	}
+	return cmd
 }
