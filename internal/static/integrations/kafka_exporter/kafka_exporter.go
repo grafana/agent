@@ -6,11 +6,11 @@ import (
 	config_util "github.com/prometheus/common/config"
 
 	"github.com/IBM/sarama"
-	kafka_exporter "github.com/davidmparrott/kafka_exporter/v2/exporter"
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/internal/static/integrations"
 	integrations_v2 "github.com/grafana/agent/internal/static/integrations/v2"
 	"github.com/grafana/agent/internal/static/integrations/v2/metricsutils"
+	kafka_exporter "github.com/wildum/kafka_exporter/exporter"
 )
 
 // DefaultConfig holds the default settings for the kafka_lag_exporter

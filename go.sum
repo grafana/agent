@@ -2242,6 +2242,8 @@ github.com/webdevops/azure-metrics-exporter v0.0.0-20230717202958-8701afc2b013 h
 github.com/webdevops/azure-metrics-exporter v0.0.0-20230717202958-8701afc2b013/go.mod h1:0TRsV1G8hE9GnGY7kHhHg2G5ZGAJLJxMBwHvwRgnuGM=
 github.com/webdevops/go-common v0.0.0-20231022162947-a6adfb05a7e9 h1:BMd0HsdcfJW6tYYXaXMpqPcKrJGTkmFtvZ9JV5iXwZ4=
 github.com/webdevops/go-common v0.0.0-20231022162947-a6adfb05a7e9/go.mod h1:p2uQLGTFmT2gZqRV8JE8bJU7ln5fmTAe6wOOCVBuew8=
+github.com/wildum/kafka_exporter v0.0.0-20240326161756-5cdbd0b6604f h1:NUXKVhMC/fGuoviGK6XrhvOXUE0+LtFLMUZEMRu+u1c=
+github.com/wildum/kafka_exporter v0.0.0-20240326161756-5cdbd0b6604f/go.mod h1:yijhNnJBqb9PDxMgpjf9kstqe0enbFzwDZJRXvUEov4=
 github.com/willf/bitset v1.1.11 h1:N7Z7E9UvjW+sGsEl7k/SJrvY2reP1A07MrGuCjIOjRE=
 github.com/willf/bitset v1.1.11/go.mod h1:83CECat5yLh5zVOf4P1ErAgKA5UDvKtgyUABdr3+MjI=
 github.com/willf/bloom v2.0.3+incompatible h1:QDacWdqcAUI1MPOwIQZRy9kOR7yxfyEmxX8Wdm2/JPA=
