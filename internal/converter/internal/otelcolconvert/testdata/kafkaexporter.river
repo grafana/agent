@@ -1,0 +1,15 @@
+otelcol.receiver.otlp "default" {
+	grpc { }
+
+	http { }
+
+	output {
+		metrics = [otelcol.exporter.kafka.default.input]
+		logs    = [otelcol.exporter.kafka.default.input]
+		traces  = [otelcol.exporter.kafka.default.input]
+	}
+}
+
+otelcol.exporter.kafka "default" {
+	protocol_version = "2.0.0"
+}
