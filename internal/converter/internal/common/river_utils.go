@@ -61,9 +61,15 @@ func getValueOverrideHook() builder.ValueOverrideHook {
 			return ConvertTargets{
 				Targets: value,
 			}
+		case flow_relabel.Rules:
+			if len(value) == 0 {
+				return CustomTokenizer{Expr: "null"}
+			}
 		default:
 			return val
 		}
+
+		return val
 	}
 }
 

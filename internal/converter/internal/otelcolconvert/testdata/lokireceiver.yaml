@@ -1,0 +1,21 @@
+receivers:
+  loki:
+    protocols:
+      http:
+        endpoint: 0.0.0.0:3500
+      grpc:
+        endpoint: 0.0.0.0:3600
+        dialer:
+          timeout: 10s
+    use_incoming_timestamp: true
+
+exporters:
+  otlp:
+    endpoint: database:4317
+
+service:
+  pipelines:
+    logs:
+      receivers: [loki]
+      processors: []
+      exporters: [otlp]

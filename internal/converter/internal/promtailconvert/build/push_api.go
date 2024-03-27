@@ -14,7 +14,7 @@ func (s *ScrapeConfigBuilder) AppendPushAPI() {
 		return
 	}
 	s.diags.AddAll(common.ValidateWeaveWorksServerCfg(s.cfg.PushConfig.Server))
-	args := toLokiApiArguments(s.cfg.PushConfig, s.getOrNewProcessStageReceivers())
+	args := ToLokiApiArguments(s.cfg.PushConfig, s.getOrNewProcessStageReceivers())
 	override := func(val interface{}) interface{} {
 		switch val.(type) {
 		case relabel.Rules:
@@ -32,7 +32,7 @@ func (s *ScrapeConfigBuilder) AppendPushAPI() {
 	))
 }
 
-func toLokiApiArguments(config *scrapeconfig.PushTargetConfig, forwardTo []loki.LogsReceiver) api.Arguments {
+func ToLokiApiArguments(config *scrapeconfig.PushTargetConfig, forwardTo []loki.LogsReceiver) api.Arguments {
 	return api.Arguments{
 		ForwardTo:            forwardTo,
 		RelabelRules:         make(relabel.Rules, 0),
