@@ -52,7 +52,7 @@ func (t *DistributedTargets) Get() []Target {
 	res := make([]Target, 0, resCap)
 
 	for _, tgt := range t.targets {
-		peers, err := t.cluster.Lookup(shard.StringKey(tgt.NonMetaLabels().String()), 1, shard.OpReadWrite)
+		peers, err := t.cluster.Lookup(shard.StringKey(tgt.FilteredLabels().String()), 1, shard.OpReadWrite)
 		if err != nil {
 			// This can only fail in case we ask for more owners than the
 			// available peers. This will never happen, but in any case we fall
@@ -77,10 +77,15 @@ func (t Target) Labels() labels.Labels {
 	return lset
 }
 
-func (t Target) NonMetaLabels() labels.Labels {
+// FilteredLabels drops the label "instance" and the labels starting by MetaLabelPrefix.
+// The "instance" label is set by default to the host of the collector in exporters. If the
+// collectors are not running on the same host, they will have different default values.
+// If the targets have don't have the same set of labels between the collectors in the cluster,
+// they won't be able to correctly distribute the workload because they won't compute the same hashes.
+func (t Target) FilteredLabels() labels.Labels {
 	var lset labels.Labels
 	for k, v := range t {
-		if !strings.HasPrefix(k, model.MetaLabelPrefix) {
+		if k != "instance" && !strings.HasPrefix(k, model.MetaLabelPrefix) {
 			lset = append(lset, labels.Label{Name: k, Value: v})
 		}
 	}
