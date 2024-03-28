@@ -46,23 +46,6 @@ type Component struct {
 	reg    *prometheus.Registry
 }
 
-// Arguments configures the Beyla component.
-type Arguments struct {
-	Port           string                     `river:"open_port,attr,optional"`
-	ExecutableName string                     `river:"executable_name,attr,optional"`
-	Routes         Routes                     `river:"routes,block,optional"`
-	Attributes     Attributes                 `river:"attributes,block,optional"`
-	Discovery      Discovery                  `river:"discovery,block,optional"`
-	Output         *otelcol.ConsumerArguments `river:"output,block,optional"`
-}
-
-type Routes struct {
-	Unmatch        string   `river:"unmatched,attr,optional"`
-	Patterns       []string `river:"patterns,attr,optional"`
-	IgnorePatterns []string `river:"ignored_patterns,attr,optional"`
-	IgnoredEvents  string   `river:"ignore_mode,attr,optional"`
-}
-
 func (args Routes) Convert() *transform.RoutesConfig {
 	return &transform.RoutesConfig{
 		Unmatch:        transform.UnmatchType(args.Unmatch),
@@ -70,14 +53,6 @@ func (args Routes) Convert() *transform.RoutesConfig {
 		IgnorePatterns: args.IgnorePatterns,
 		IgnoredEvents:  transform.IgnoreMode(args.IgnoredEvents),
 	}
-}
-
-type Attributes struct {
-	Kubernetes KubernetesDecorator `river:"kubernetes,block"`
-}
-
-type KubernetesDecorator struct {
-	Enable string `river:"enable,attr"`
 }
 
 func (args Attributes) Convert() beyla.Attributes {
@@ -88,10 +63,6 @@ func (args Attributes) Convert() beyla.Attributes {
 	}
 }
 
-type Discovery struct {
-	Services Services `river:"services,block"`
-}
-
 func (args Discovery) Convert() (services.DiscoveryConfig, error) {
 	srv, err := args.Services.Convert()
 	if err != nil {
@@ -100,15 +71,6 @@ func (args Discovery) Convert() (services.DiscoveryConfig, error) {
 	return services.DiscoveryConfig{
 		Services: srv,
 	}, nil
-}
-
-type Services []Service
-
-type Service struct {
-	Name      string `river:"name,attr,optional"`
-	Namespace string `river:"namespace,attr,optional"`
-	OpenPorts string `river:"open_ports,attr,optional"`
-	Path      string `river:"exe_path,attr,optional"`
 }
 
 func (args Services) Convert() (services.DefinitionCriteria, error) {
@@ -130,10 +92,6 @@ func (args Services) Convert() (services.DefinitionCriteria, error) {
 		})
 	}
 	return attrs, nil
-}
-
-type Exports struct {
-	Targets []discovery.Target `river:"targets,attr"`
 }
 
 func New(opts component.Options, args Arguments) (*Component, error) {
