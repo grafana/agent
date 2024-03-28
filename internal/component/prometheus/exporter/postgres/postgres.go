@@ -109,6 +109,8 @@ func (a *Arguments) Convert() *postgres_exporter.Config {
 		IncludeDatabases:       a.AutoDiscovery.DatabaseAllowlist,
 		DisableDefaultMetrics:  a.DisableDefaultMetrics,
 		QueryPath:              a.CustomQueriesConfigPath,
+		//TODO(thampiotr): expose this as arguments
+		InstanceName: "default",
 	}
 }
 

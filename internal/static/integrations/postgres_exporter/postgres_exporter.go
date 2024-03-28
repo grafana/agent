@@ -6,14 +6,14 @@ import (
 	"os"
 	"strings"
 
-	config_util "github.com/prometheus/common/config"
-
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/internal/static/integrations"
 	integrations_v2 "github.com/grafana/agent/internal/static/integrations/v2"
 	"github.com/grafana/agent/internal/static/integrations/v2/metricsutils"
 	"github.com/lib/pq"
 	"github.com/prometheus-community/postgres_exporter/cmd/postgres_exporter"
+	"github.com/prometheus-community/postgres_exporter/collector"
+	config_util "github.com/prometheus/common/config"
 )
 
 // Config controls the postgres_exporter integration.
@@ -27,6 +27,10 @@ type Config struct {
 	IncludeDatabases       []string `yaml:"include_databases,omitempty"`
 	DisableDefaultMetrics  bool     `yaml:"disable_default_metrics,omitempty"`
 	QueryPath              string   `yaml:"query_path,omitempty"`
+
+	// InstanceName is used by the flow mode to specify the instance name manually. This is used when there are multiple
+	// DSNs provided.
+	InstanceName string
 }
 
 // Name returns the name of the integration this config is for.
@@ -47,6 +51,9 @@ func (c *Config) InstanceKey(_ string) (string, error) {
 		return "", err
 	}
 	if len(dsn) != 1 {
+		if c.InstanceName != "" {
+			return c.InstanceName, nil
+		}
 		return "", fmt.Errorf("can't automatically determine a value for `instance` with %d DSN. either use 1 DSN or manually assign a value for `instance` in the integration config", len(dsn))
 	}
 
@@ -128,22 +135,30 @@ func init() {
 
 // New creates a new postgres_exporter integration. The integration scrapes
 // metrics from a postgres process.
-func New(log log.Logger, c *Config) (integrations.Integration, error) {
-	dsn, err := c.getDataSourceNames()
+func New(log log.Logger, cfg *Config) (integrations.Integration, error) {
+	dsn, err := cfg.getDataSourceNames()
 	if err != nil {
 		return nil, err
 	}
 
 	e := postgres_exporter.NewExporter(
 		dsn,
-		postgres_exporter.DisableDefaultMetrics(c.DisableDefaultMetrics),
-		postgres_exporter.WithUserQueriesPath(c.QueryPath),
-		postgres_exporter.DisableSettingsMetrics(c.DisableSettingsMetrics),
-		postgres_exporter.AutoDiscoverDatabases(c.AutodiscoverDatabases),
-		postgres_exporter.ExcludeDatabases(c.ExcludeDatabases),
-		postgres_exporter.IncludeDatabases(strings.Join(c.IncludeDatabases, ",")),
+		postgres_exporter.DisableDefaultMetrics(cfg.DisableDefaultMetrics),
+		postgres_exporter.WithUserQueriesPath(cfg.QueryPath),
+		postgres_exporter.DisableSettingsMetrics(cfg.DisableSettingsMetrics),
+		postgres_exporter.AutoDiscoverDatabases(cfg.AutodiscoverDatabases),
+		postgres_exporter.ExcludeDatabases(cfg.ExcludeDatabases),
+		postgres_exporter.IncludeDatabases(strings.Join(cfg.IncludeDatabases, ",")),
 		postgres_exporter.WithLogger(log),
+		postgres_exporter.WithMetricPrefix("pg"),
 	)
 
-	return integrations.NewCollectorIntegration(c.Name(), integrations.WithCollectors(e)), nil
+	//TODO(thampiotr): Add a clear warning that only one DSN is used for the collector metrics. Open an issue upstream and link here.
+
+	c, err := collector.NewPostgresCollector(log, cfg.ExcludeDatabases, dsn[0], []string{})
+	if err != nil {
+		return nil, fmt.Errorf("failed to create postgres_exporter collector: %w", err)
+	}
+
+	return integrations.NewCollectorIntegration(cfg.Name(), integrations.WithCollectors(e, c)), nil
 }
