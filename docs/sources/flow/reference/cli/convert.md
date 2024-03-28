@@ -122,9 +122,7 @@ Refer to [Migrate from Grafana Agent Static to {{< param "PRODUCT_NAME" >}}]({{<
 
 ### OpenTelemetry Collector
 
-Using the `--source-format=otelcol` will convert the source configuration from
-[OpenTelemetry Collector](https://opentelemetry.io/docs/collector/configuration/)
-to {{< param "PRODUCT_NAME" >}} configuration.
+You can use the `--source-format=otelcol` to convert the source configuration from an [OpenTelemetry Collector](https://opentelemetry.io/docs/collector/configuration/) to a {{< param "PRODUCT_NAME" >}} configuration.
 
 Many OpenTelemetry Collector components are supported. Components are supported which directly embed 
 upstream OpenTelemetry Collector features. You can get a general idea of which exist in
@@ -133,9 +131,12 @@ upstream OpenTelemetry Collector features. You can get a general idea of which e
 in a source configuration, you will receive [errors] when you convert to a flow configuration. The converter will
 also raise warnings for configuration options that may require your attention.
 
-Many OpenTelemetry Collector components are supported. You can get a general idea of which exist in Flow mode for conversion
-by reviewing the `otelcol.*` components in the [Component Reference]({{< relref "../components/" >}}). If you have unsupported
-features in a source configuration, you will receive [errors] when you convert to a flow configuration. The converter will
-also raise warnings for configuration options that may require your attention.
+Many OpenTelemetry Collector components are supported.
+Review the `otelcol.*` component information in the [Component Reference][] for more information about `otelcol` components that you can convert.
+If a source configuration has unsupported features, you will receive [errors] when you convert it to a flow configuration.
+The converter raises warnings for configuration options that may require your attention.
 
-Refer to [Migrate from OpenTelemetry Collector to {{< param "PRODUCT_NAME" >}}]({{< relref "../../tasks/migrate/from-otelcol/" >}}) for a detailed migration guide.
+Refer to [Migrate from OpenTelemetry Collector to {{< param "PRODUCT_NAME" >}}][migrate] for a detailed migration guide.
+
+[Component Reference]: ../../components/
+[migrate]: ../../../tasks/migrate/from-otelcol/

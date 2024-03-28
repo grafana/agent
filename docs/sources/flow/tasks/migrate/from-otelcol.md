@@ -1,9 +1,4 @@
 ---
-aliases:
-- /docs/grafana-cloud/agent/flow/tasks/migrate/from-otelcol/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/tasks/migrate/from-otelcol/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/tasks/migrate/from-otelcol/
-- /docs/grafana-cloud/send-data/agent/flow/tasks/migrate/from-otelcol/
 canonical: https://grafana.com/docs/agent/latest/flow/tasks/migrate/from-otelcol/
 description: Learn how to migrate from OpenTelemetry Collector to Grafana Agent Flow
 menuTitle: Migrate from OpenTelemetry Collector
@@ -63,7 +58,7 @@ This conversion will enable you to take full advantage of the many additional fe
 
 ### Debugging
 
-1. If the `convert` command can't convert a OpenTelemetry Collector configuration, diagnostic information is sent to `stderr`.\
+1. If the `convert` command can't convert an OpenTelemetry Collector configuration, diagnostic information is sent to `stderr`.\
    You can bypass any non-critical issues and output the {{< param "PRODUCT_NAME" >}} configuration using a best-effort conversion by including the `--bypass-errors` flag.
 
     {{< admonition type="caution" >}}
@@ -125,7 +120,7 @@ The `--config.format=otelcol` flag tells {{< param "PRODUCT_ROOT_NAME" >}} to co
 This allows you to try {{< param "PRODUCT_NAME" >}} without modifying your existing OpenTelemetry Collector configuration infrastructure.
 
 > In this task, you will use the [run][] CLI command to run {{< param "PRODUCT_NAME" >}}
-> using a OpenTelemetry Collector configuration.
+> using an OpenTelemetry Collector configuration.
 
 [Run][] {{< param "PRODUCT_NAME" >}} and include the command line flag `--config.format=otelcol`.
 Your configuration file must be a valid OpenTelemetry Collector configuration file rather than a {{< param "PRODUCT_NAME" >}} configuration file.
@@ -146,7 +141,7 @@ Your configuration file must be a valid OpenTelemetry Collector configuration fi
 
 ## Example
 
-This example demonstrates converting a OpenTelemetry Collector configuration file to a {{< param "PRODUCT_NAME" >}} configuration file.
+This example demonstrates converting an OpenTelemetry Collector configuration file to a {{< param "PRODUCT_NAME" >}} configuration file.
 
 The following OpenTelemetry Collector configuration file provides the input for the conversion.
 
