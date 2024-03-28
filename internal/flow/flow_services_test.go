@@ -247,10 +247,10 @@ func TestComponents_Using_Services(t *testing.T) {
 	opts := testOptions(t)
 	opts.Services = append(opts.Services, existsSvc)
 
-	ctrl := newController(controllerOptions{
+	ctrl := NewController(ControllerOptions{
 		Options:           opts,
 		ComponentRegistry: registry,
-		ModuleRegistry:    newModuleRegistry(),
+		ModuleRegistry:    NewModuleRegistry(),
 	})
 	require.NoError(t, ctrl.LoadSource(f, nil))
 	go ctrl.Run(ctx)
@@ -325,10 +325,10 @@ func TestComponents_Using_Services_In_Modules(t *testing.T) {
 	opts := testOptions(t)
 	opts.Services = append(opts.Services, existsSvc)
 
-	ctrl := newController(controllerOptions{
+	ctrl := NewController(ControllerOptions{
 		Options:           opts,
 		ComponentRegistry: registry,
-		ModuleRegistry:    newModuleRegistry(),
+		ModuleRegistry:    NewModuleRegistry(),
 	})
 	require.NoError(t, ctrl.LoadSource(f, nil))
 	go ctrl.Run(ctx)

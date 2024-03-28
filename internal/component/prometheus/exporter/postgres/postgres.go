@@ -80,9 +80,11 @@ type Arguments struct {
 	DataSourceNames []rivertypes.Secret `river:"data_source_names,attr,optional"`
 
 	// Attributes
-	DisableSettingsMetrics  bool   `river:"disable_settings_metrics,attr,optional"`
-	DisableDefaultMetrics   bool   `river:"disable_default_metrics,attr,optional"`
-	CustomQueriesConfigPath string `river:"custom_queries_config_path,attr,optional"`
+	DisableSettingsMetrics  bool     `river:"disable_settings_metrics,attr,optional"`
+	DisableDefaultMetrics   bool     `river:"disable_default_metrics,attr,optional"`
+	CustomQueriesConfigPath string   `river:"custom_queries_config_path,attr,optional"`
+	Instance                string   `river:"instance,attr,optional"`
+	EnabledCollectors       []string `river:"enabled_collectors,attr,optional"`
 
 	// Blocks
 	AutoDiscovery AutoDiscovery `river:"autodiscovery,block,optional"`
@@ -109,6 +111,8 @@ func (a *Arguments) Convert() *postgres_exporter.Config {
 		IncludeDatabases:       a.AutoDiscovery.DatabaseAllowlist,
 		DisableDefaultMetrics:  a.DisableDefaultMetrics,
 		QueryPath:              a.CustomQueriesConfigPath,
+		Instance:               a.Instance,
+		EnabledCollectors:      a.EnabledCollectors,
 	}
 }
 

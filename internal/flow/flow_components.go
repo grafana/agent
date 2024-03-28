@@ -22,7 +22,7 @@ func (f *Flow) GetComponent(id component.ID, opts component.InfoOptions) (*compo
 		return mod.f.GetComponent(component.ID{LocalID: id.LocalID}, opts)
 	}
 
-	graph := f.loader.OriginalGraph()
+	graph := f.Loader.OriginalGraph()
 
 	node := graph.GetByID(id.LocalID)
 	if node == nil {
@@ -52,8 +52,8 @@ func (f *Flow) ListComponents(moduleID string, opts component.InfoOptions) ([]*c
 	}
 
 	var (
-		components = f.loader.Components()
-		graph      = f.loader.OriginalGraph()
+		components = f.Loader.Components()
+		graph      = f.Loader.OriginalGraph()
 	)
 
 	detail := make([]*component.Info, len(components))
