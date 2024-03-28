@@ -183,7 +183,7 @@ func TestExportsWhenNotUsed(t *testing.T) {
 	ctx, cnc := context.WithTimeout(ctx, 1*time.Second)
 	defer cnc()
 	f.Run(ctx)
-	exps := f.loader.Components()[0].Exports().(TestExports)
+	exps := f.Loader.Components()[0].Exports().(TestExports)
 	for _, x := range []string{"username", "dummy"} {
 		_, found := exps.Exports[x]
 		require.True(t, found)
@@ -268,7 +268,7 @@ func testModuleControllerOptions(t *testing.T) *moduleControllerOptions {
 		DataPath:       t.TempDir(),
 		MinStability:   featuregate.StabilityBeta,
 		Reg:            prometheus.NewRegistry(),
-		ModuleRegistry: newModuleRegistry(),
+		ModuleRegistry: NewModuleRegistry(),
 		WorkerPool:     worker.NewFixedWorkerPool(1, 100),
 		ServiceMap:     serviceMap,
 	}

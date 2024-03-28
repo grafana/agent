@@ -112,11 +112,11 @@ type Options struct {
 type Flow struct {
 	log    *logging.Logger
 	tracer *tracing.Tracer
-	opts   controllerOptions
+	opts   ControllerOptions
 
 	updateQueue *controller.Queue
 	sched       *controller.Scheduler
-	loader      *controller.Loader
+	Loader      *controller.Loader
 	modules     *moduleRegistry
 
 	loadFinished chan struct{}
@@ -127,17 +127,17 @@ type Flow struct {
 
 // New creates a new, unstarted Flow controller. Call Run to run the controller.
 func New(o Options) *Flow {
-	return newController(controllerOptions{
+	return NewController(ControllerOptions{
 		Options:        o,
-		ModuleRegistry: newModuleRegistry(),
+		ModuleRegistry: NewModuleRegistry(),
 		IsModule:       false, // We are creating a new root controller.
 		WorkerPool:     worker.NewDefaultWorkerPool(),
 	})
 }
 
-// controllerOptions are internal options used to create both root Flow
+// ControllerOptions are internal options used to create both root Flow
 // controller and controllers for modules.
-type controllerOptions struct {
+type ControllerOptions struct {
 	Options
 
 	ComponentRegistry controller.ComponentRegistry // Custom component registry used in tests.
@@ -150,7 +150,7 @@ type controllerOptions struct {
 // newController creates a new, unstarted Flow controller with a specific
 // moduleRegistry. Modules created by the controller will be passed to the
 // given modReg.
-func newController(o controllerOptions) *Flow {
+func NewController(o ControllerOptions) *Flow {
 	var (
 		log        = o.Logger
 		tracer     = o.Tracer
@@ -186,7 +186,7 @@ func newController(o controllerOptions) *Flow {
 
 	serviceMap := controller.NewServiceMap(o.Services)
 
-	f.loader = controller.NewLoader(controller.LoaderOptions{
+	f.Loader = controller.NewLoader(controller.LoaderOptions{
 		ComponentGlobals: controller.ComponentGlobals{
 			Logger:        log,
 			TraceProvider: tracer,
@@ -235,7 +235,7 @@ func newController(o controllerOptions) *Flow {
 // canceled. Run must only be called once.
 func (f *Flow) Run(ctx context.Context) {
 	defer func() { _ = f.sched.Close() }()
-	defer f.loader.Cleanup(!f.opts.IsModule)
+	defer f.Loader.Cleanup(!f.opts.IsModule)
 	defer level.Debug(f.log).Log("msg", "flow controller exiting")
 
 	for {
@@ -248,14 +248,14 @@ func (f *Flow) Run(ctx context.Context) {
 			// throughput - it prevents the situation where two nodes have the same dependency, and the first time
 			// it's picked up by the worker pool and the second time it's enqueued again, resulting in more evaluations.
 			all := f.updateQueue.DequeueAll()
-			f.loader.EvaluateDependants(ctx, all)
+			f.Loader.EvaluateDependants(ctx, all)
 		case <-f.loadFinished:
 			level.Info(f.log).Log("msg", "scheduling loaded components and services")
 
 			var (
-				components = f.loader.Components()
-				services   = f.loader.Services()
-				imports    = f.loader.Imports()
+				components = f.Loader.Components()
+				services   = f.Loader.Services()
+				imports    = f.Loader.Imports()
 
 				runnables = make([]controller.RunnableNode, 0, len(components)+len(services)+len(imports))
 			)
@@ -307,7 +307,7 @@ func (f *Flow) loadSource(source *Source, args map[string]any, customComponentRe
 		CustomComponentRegistry: customComponentRegistry,
 	}
 
-	diags := f.loader.Apply(applyOptions)
+	diags := f.Loader.Apply(applyOptions)
 	if !f.loadedOnce.Load() && diags.HasErrors() {
 		// The first call to Load should not run any components if there were
 		// errors in the configuration file.

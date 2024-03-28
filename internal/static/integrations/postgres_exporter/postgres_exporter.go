@@ -28,9 +28,15 @@ type Config struct {
 	DisableDefaultMetrics  bool     `yaml:"disable_default_metrics,omitempty"`
 	QueryPath              string   `yaml:"query_path,omitempty"`
 
-	// InstanceName is used by the flow mode to specify the instance name manually. This is used when there are multiple
+	//-- The fields below are only used in flow mode and not (yet) exposed in the static mode.--
+
+	// Instance is used by the flow mode to specify the instance name manually. This is used when there are multiple
 	// DSNs provided.
-	InstanceName string
+	Instance string
+	// EnabledCollectors is a list of additional collectors to enable. NOTE: Due to limitations of the postgres_exporter,
+	// this is only used for the first DSN provided and only some collectors can be enabled/disabled this way. See the
+	// user-facing docs for more information.
+	EnabledCollectors []string
 }
 
 // Name returns the name of the integration this config is for.
@@ -51,10 +57,10 @@ func (c *Config) InstanceKey(_ string) (string, error) {
 		return "", err
 	}
 	if len(dsn) != 1 {
-		if c.InstanceName != "" {
-			return c.InstanceName, nil
+		if c.Instance != "" {
+			return c.Instance, nil
 		}
-		return "", fmt.Errorf("can't automatically determine a value for `instance` with %d DSN. either use 1 DSN or manually assign a value for `instance` in the integration config", len(dsn))
+		return "", fmt.Errorf("can't automatically determine a value for `instance` with %d DSNs. Either use 1 DSN or manually assign a value for `instance` in the configuration", len(dsn))
 	}
 
 	s, err := parsePostgresURL(dsn[0])
@@ -136,13 +142,32 @@ func init() {
 // New creates a new postgres_exporter integration. The integration scrapes
 // metrics from a postgres process.
 func New(log log.Logger, cfg *Config) (integrations.Integration, error) {
-	dsn, err := cfg.getDataSourceNames()
+	dsns, err := cfg.getDataSourceNames()
 	if err != nil {
 		return nil, err
 	}
 
+	//TODO(thampiotr): Add a clear warning that only one DSN is used for the collector metrics. Open an issue upstream and link here.
+	/*
+				Version 2:
+				- Default behaviour: you get all exporter and collector metrics that are enabled by default
+				- If QueryPath is set, you will also get the custom metrics from this file
+				- If DisableDefaultMetrics is set, you get no metrics other than the custom ones via QueryPath
+				- You can set EnabledCollectors to specify the collectors you want to enable. Currently, exporter allows to enable/disable the following collectors: ...
+				- Because of https://github.com/prometheus-community/postgres_exporter/issues/999, the EnabledCollectors will only work for the first DSN provided. This is a current limitation of the exporter.
+
+			All: `database`, `database_wraparound`, `locks`, `long_running_transactions`, `postmaster`, `process_idle`,
+				 `replication`, `replication_slot`, `stat_activity_autovacuum`, `stat_bgwriter`, `stat_database`,
+		         `stat_statements`, `stat_user_tables`, `stat_wal_receiver`, `statio_user_indexes`, `statio_user_tables`,
+		         `wal`, `xlog_location`.
+
+			Enabled by default: `database`, `locks`, `replication`, `replication_slot`, `stat_bgwriter`, `stat_database`,
+		                        `stat_user_tables`, `statio_user_tables`, `wal`.
+
+	*/
+
 	e := postgres_exporter.NewExporter(
-		dsn,
+		dsns,
 		postgres_exporter.DisableDefaultMetrics(cfg.DisableDefaultMetrics),
 		postgres_exporter.WithUserQueriesPath(cfg.QueryPath),
 		postgres_exporter.DisableSettingsMetrics(cfg.DisableSettingsMetrics),
@@ -153,9 +178,16 @@ func New(log log.Logger, cfg *Config) (integrations.Integration, error) {
 		postgres_exporter.WithMetricPrefix("pg"),
 	)
 
-	//TODO(thampiotr): Add a clear warning that only one DSN is used for the collector metrics. Open an issue upstream and link here.
+	if cfg.DisableDefaultMetrics {
+		// Don't include the collector metrics if the default metrics are disabled.
+		return integrations.NewCollectorIntegration(cfg.Name(), integrations.WithCollectors(e)), nil
+	}
 
-	c, err := collector.NewPostgresCollector(log, cfg.ExcludeDatabases, dsn[0], []string{})
+	// On top of the exporter's metrics, the postgres exporter also has metrics exposed via collector package.
+	// However, these can only work for the first DSN provided. This matches the current implementation of the exporter.
+	// TODO: Once https://github.com/prometheus-community/postgres_exporter/issues/999 is addressed, update the exporter
+	// and change this.
+	c, err := collector.NewPostgresCollector(log, cfg.ExcludeDatabases, dsns[0], cfg.EnabledCollectors)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create postgres_exporter collector: %w", err)
 	}

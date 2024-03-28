@@ -10,7 +10,7 @@ type moduleRegistry struct {
 	modules map[string]*module
 }
 
-func newModuleRegistry() *moduleRegistry {
+func NewModuleRegistry() *moduleRegistry {
 	return &moduleRegistry{
 		modules: make(map[string]*module),
 	}

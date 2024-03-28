@@ -130,7 +130,7 @@ var (
 func newModule(o *moduleOptions) *module {
 	return &module{
 		o: o,
-		f: newController(controllerOptions{
+		f: NewController(ControllerOptions{
 			IsModule:          true,
 			ModuleRegistry:    o.ModuleRegistry,
 			ComponentRegistry: o.ComponentRegistry,
