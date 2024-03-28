@@ -79,8 +79,10 @@ func NewLoader(opts LoaderOptions) *Loader {
 		reg = NewDefaultComponentRegistry(opts.ComponentGlobals.MinStability)
 	}
 
+	parent, node := path.Split(globals.ControllerID)
+
 	l := &Loader{
-		log:        log.With(globals.Logger, "controller_id", globals.ControllerID),
+		log:        log.With(globals.Logger, "parent_controller_id", parent, "controller_id", node),
 		tracer:     tracing.WrapTracerForLoader(globals.TraceProvider, globals.ControllerID),
 		globals:    globals,
 		services:   services,
@@ -99,9 +101,9 @@ func NewLoader(opts LoaderOptions) *Loader {
 		graph:         &dag.Graph{},
 		originalGraph: &dag.Graph{},
 		cache:         newValueCache(),
-		cm:            newControllerMetrics(globals.ControllerID),
+		cm:            newControllerMetrics(parent, node),
 	}
-	l.cc = newControllerCollector(l, globals.ControllerID)
+	l.cc = newControllerCollector(l, parent, node)
 
 	if globals.Registerer != nil {
 		globals.Registerer.MustRegister(l.cc)
