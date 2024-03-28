@@ -243,8 +243,9 @@ After the configuration is converted, review the {{< param "PRODUCT_NAME" >}} co
 
 The following list is specific to the convert command and not {{< param "PRODUCT_NAME" >}}:
 
-* Many OpenTelemetry Collector components are supported. You can get a general idea of which exist in Flow mode for conversion by reviewing
-  the `otelcol.*` components in the [Component Reference]({{< relref "../../reference/components/" >}}). Any additional unsupported features are returned as errors during conversion.
+* Components are supported which directly embed upstream OpenTelemetry Collector features. You can get a general idea of which exist in
+  {{< param "PRODUCT_NAME" >}} for conversion by reviewing the `otelcol.*` components in the [Component Reference]({{< relref "../../reference/components/" >}}).
+  Any additional unsupported features are returned as errors during conversion.
 * Check if you are using any extra command line arguments with OpenTelemetry Collector that aren't present in your configuration file.
 * Metamonitoring metrics exposed by {{< param "PRODUCT_NAME" >}} usually match OpenTelemetry Collector metamonitoring metrics but will use a different name.
   Make sure that you use the new metric names, for example, in your alerts and dashboards queries.

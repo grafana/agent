@@ -126,6 +126,13 @@ Using the `--source-format=otelcol` will convert the source configuration from
 [OpenTelemetry Collector](https://opentelemetry.io/docs/collector/configuration/)
 to {{< param "PRODUCT_NAME" >}} configuration.
 
+Many OpenTelemetry Collector components are supported. Components are supported which directly embed 
+upstream OpenTelemetry Collector features. You can get a general idea of which exist in
+{{< param "PRODUCT_NAME" >}} for conversion by reviewing the `otelcol.*` components in the
+[Component Reference]({{< relref "../../reference/components/" >}}). If you have unsupported features
+in a source configuration, you will receive [errors] when you convert to a flow configuration. The converter will
+also raise warnings for configuration options that may require your attention.
+
 Many OpenTelemetry Collector components are supported. You can get a general idea of which exist in Flow mode for conversion
 by reviewing the `otelcol.*` components in the [Component Reference]({{< relref "../components/" >}}). If you have unsupported
 features in a source configuration, you will receive [errors] when you convert to a flow configuration. The converter will
