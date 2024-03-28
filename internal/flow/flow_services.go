@@ -13,13 +13,13 @@ import (
 // [component.Component] and [service.Service]s which declared a dependency on
 // the named service.
 func (f *Flow) GetServiceConsumers(serviceName string) []service.Consumer {
-	consumers := serviceConsumersForGraph(f.loader.OriginalGraph(), serviceName, true)
+	consumers := serviceConsumersForGraph(f.Loader.OriginalGraph(), serviceName, true)
 
 	// Iterate through all modules to find other components that depend on the
 	// service. Peer services aren't checked here, since the services are always
 	// a subset of the services from the root controller.
 	for _, mod := range f.modules.List() {
-		moduleGraph := mod.f.loader.OriginalGraph()
+		moduleGraph := mod.f.Loader.OriginalGraph()
 		consumers = append(consumers, serviceConsumersForGraph(moduleGraph, serviceName, false)...)
 	}
 
@@ -71,7 +71,7 @@ func serviceConsumersForGraph(graph *dag.Graph, serviceName string, includePeerS
 // services can instantiate their own components.
 func (f *Flow) NewController(id string) service.Controller {
 	return serviceController{
-		f: newController(controllerOptions{
+		f: NewController(ControllerOptions{
 			Options: Options{
 				ControllerID:    id,
 				Logger:          f.opts.Logger,
@@ -83,7 +83,7 @@ func (f *Flow) NewController(id string) service.Controller {
 				OnExportsChange: nil, // NOTE(@tpaschalis, @wildum) The isolated controller shouldn't be able to export any values.
 			},
 			IsModule:       true,
-			ModuleRegistry: newModuleRegistry(),
+			ModuleRegistry: NewModuleRegistry(),
 			WorkerPool:     worker.NewDefaultWorkerPool(),
 		}),
 	}
