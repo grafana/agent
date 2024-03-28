@@ -10,7 +10,7 @@ canonical: https://grafana.com/docs/agent/latest/flow/tasks/migrate/from-operato
 description: Migrate from Grafana Agent Operator to Grafana Agent Flow
 menuTitle: Migrate from Operator
 title: Migrate from Grafana Agent Operator to Grafana Agent Flow
-weight: 320
+weight: 300
 ---
 
 # Migrate from Grafana Agent Operator to {{% param "PRODUCT_NAME" %}}

@@ -48,7 +48,7 @@ The following flags are supported:
 
 * `--report`, `-r`: The filepath and filename where the report is written.
 
-* `--source-format`, `-f`: Required. The format of the source file. Supported formats: [prometheus], [promtail], [static].
+* `--source-format`, `-f`: Required. The format of the source file. Supported formats: [prometheus], [promtail], [static], [otelcol].
 
 * `--bypass-errors`, `-b`: Enable bypassing errors when converting.
 
@@ -57,6 +57,7 @@ The following flags are supported:
 [prometheus]: #prometheus
 [promtail]: #promtail
 [static]: #static
+[otelcol]: #otelcol
 [errors]: #errors
 
 ### Defaults
@@ -118,3 +119,16 @@ If you have unsupported features in a Static mode source configuration, you will
 also raise warnings for configuration options that may require your attention.
 
 Refer to [Migrate from Grafana Agent Static to {{< param "PRODUCT_NAME" >}}]({{< relref "../../tasks/migrate/from-static/" >}}) for a detailed migration guide.
+
+### OpenTelemetry Collector
+
+Using the `--source-format=otelcol` will convert the source configuration from
+[OpenTelemetry Collector](https://opentelemetry.io/docs/collector/configuration/)
+to {{< param "PRODUCT_NAME" >}} configuration.
+
+Many OpenTelemetry Collector components are supported. You can get a general idea of which exist in Flow mode for conversion
+by reviewing the `otelcol.*` components in the [Component Reference]({{< relref "../components/" >}}). If you have unsupported
+features in a source configuration, you will receive [errors] when you convert to a flow configuration. The converter will
+also raise warnings for configuration options that may require your attention.
+
+Refer to [Migrate from OpenTelemetry Collector to {{< param "PRODUCT_NAME" >}}]({{< relref "../../tasks/migrate/from-otelcol/" >}}) for a detailed migration guide.
