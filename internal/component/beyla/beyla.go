@@ -210,7 +210,6 @@ func (c *Component) baseTarget() (discovery.Target, error) {
 		"instance":             defaultInstance(),
 		"job":                  "beyla",
 	}, nil
-
 }
 
 func (c *Component) Handler() http.Handler {
