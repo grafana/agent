@@ -51,6 +51,8 @@ Main (unreleased)
   whenever that argument is explicitly configured. This issue only affected a
   small subset of arguments across 15 components. (@erikbaranowski, @rfratto)
 
+- Fix an issue where targets exposed by exporters were not distributed correctly between agents in clustering mode. (@wildum)
+
 ### Other changes
 
 - Clustering for Grafana Agent in Flow mode has graduated from beta to stable.
