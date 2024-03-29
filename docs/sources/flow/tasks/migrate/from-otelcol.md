@@ -239,7 +239,7 @@ After the configuration is converted, review the {{< param "PRODUCT_NAME" >}} co
 The following list is specific to the convert command and not {{< param "PRODUCT_NAME" >}}:
 
 * Components are supported which directly embed upstream OpenTelemetry Collector features. You can get a general idea of which exist in
-  {{< param "PRODUCT_NAME" >}} for conversion by reviewing the `otelcol.*` components in the [Component Reference]({{< relref "../../reference/components/" >}}).
+  {{< param "PRODUCT_NAME" >}} for conversion by reviewing the `otelcol.*` components in the [Component Reference][].
   Any additional unsupported features are returned as errors during conversion.
 * Check if you are using any extra command line arguments with OpenTelemetry Collector that aren't present in your configuration file.
 * Metamonitoring metrics exposed by {{< param "PRODUCT_NAME" >}} usually match OpenTelemetry Collector metamonitoring metrics but will use a different name.
@@ -257,6 +257,8 @@ The following list is specific to the convert command and not {{< param "PRODUCT
 [otelcol.exporter.otlp]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/otelcol.exporter.otlp.md"
 [Components]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/components.md"
 [Components]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/concepts/components.md"
+[Component Reference]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/_index.md"
+[Component Reference]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/components/_index.md"
 [convert]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/cli/convert.md"
 [convert]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/cli/convert.md"
 [run]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/cli/run.md"

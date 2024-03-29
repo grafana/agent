@@ -16,21 +16,21 @@ import (
 type Input string
 
 const (
+	// InputOtelCol indicates that the input file is an OpenTelemetry Collector YAML file.
+	InputOtelCol Input = "otelcol"
 	// InputPrometheus indicates that the input file is a prometheus YAML file.
 	InputPrometheus Input = "prometheus"
 	// InputPromtail indicates that the input file is a promtail YAML file.
 	InputPromtail Input = "promtail"
 	// InputStatic indicates that the input file is a grafana agent static YAML file.
 	InputStatic Input = "static"
-	// InputOtelCol indicates that the input file is an OpenTelemetry Collector YAML file.
-	InputOtelCol Input = "otelcol"
 )
 
 var SupportedFormats = []string{
+	string(InputOtelCol),
 	string(InputPrometheus),
 	string(InputPromtail),
 	string(InputStatic),
-	string(InputOtelCol),
 }
 
 // Convert generates a Grafana Agent Flow config given an input configuration
@@ -51,14 +51,14 @@ var SupportedFormats = []string{
 // error is returned alongside the resulting config.
 func Convert(in []byte, kind Input, extraArgs []string) ([]byte, diag.Diagnostics) {
 	switch kind {
+	case InputOtelCol:
+		return otelcolconvert.Convert(in, extraArgs)
 	case InputPrometheus:
 		return prometheusconvert.Convert(in, extraArgs)
 	case InputPromtail:
 		return promtailconvert.Convert(in, extraArgs)
 	case InputStatic:
 		return staticconvert.Convert(in, extraArgs)
-	case InputOtelCol:
-		return otelcolconvert.Convert(in, extraArgs)
 	}
 
 	var diags diag.Diagnostics
