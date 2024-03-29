@@ -34,6 +34,8 @@ Main (unreleased)
 
 - Add ability to convert static mode positions file to `loki.source.file` compatible via `legacy_positions_file` argument. (@mattdurham)
 
+- Added support for `otelcol` configuration conversion in `grafana-agent convert` and `grafana-agent run` commands. (@rfratto, @erikbaranowski, @tpaschalis, @hainenber)
+
 ### Features
 
 - Added a new CLI flag `--stability.level` which defines the minimum stability
