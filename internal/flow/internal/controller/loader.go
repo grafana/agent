@@ -75,6 +75,8 @@ func NewLoader(opts LoaderOptions) *Loader {
 		reg      = opts.ComponentRegistry
 	)
 
+	parent, id := path.Split(globals.ControllerID)
+
 	if reg == nil {
 		reg = NewDefaultComponentRegistry(opts.ComponentGlobals.MinStability)
 	}
@@ -99,9 +101,9 @@ func NewLoader(opts LoaderOptions) *Loader {
 		graph:         &dag.Graph{},
 		originalGraph: &dag.Graph{},
 		cache:         newValueCache(),
-		cm:            newControllerMetrics(globals.ControllerID),
+		cm:            newControllerMetrics(parent, id),
 	}
-	l.cc = newControllerCollector(l, globals.ControllerID)
+	l.cc = newControllerCollector(l, parent, id)
 
 	if globals.Registerer != nil {
 		globals.Registerer.MustRegister(l.cc)
