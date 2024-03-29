@@ -82,7 +82,7 @@ func NewLoader(opts LoaderOptions) *Loader {
 	}
 
 	l := &Loader{
-		log:        log.With(globals.Logger, "controller_id", globals.ControllerID),
+		log:        log.With(globals.Logger, "controller_path", parent, "controller_id", id),
 		tracer:     tracing.WrapTracerForLoader(globals.TraceProvider, globals.ControllerID),
 		globals:    globals,
 		services:   services,
