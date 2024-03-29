@@ -36,7 +36,7 @@ traces:
               target_label: __param_target1
             - source_labels: [__address2__]
               target_label: __param_target2
-      prom_sd_operation_type: "update"
+      prom_sd_operation_type: "insert"
       prom_sd_pod_associations:
         - ip
         - net.host.ip
@@ -51,12 +51,12 @@ traces:
               type: always_sample
             },
           ]
-      load_balancing:
-        resolver:
-          static:
-            hostnames:
-              - tempo1.example.com
-              - tempo2.example.com
+      # load_balancing:
+      #   resolver:
+      #     static:
+      #       hostnames:
+      #         - tempo1.example.com
+      #         - tempo2.example.com
       # service_graphs:
       #   enabled: true
       jaeger_remote_sampling:
