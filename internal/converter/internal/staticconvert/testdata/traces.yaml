@@ -1,15 +1,24 @@
 traces:
   configs:
     - name: trace_config
+      attributes:
+        actions:
+          - key: db.table
+            action: delete
+      batch:
+        timeout: 5s
+        send_batch_size: 2048
+        send_batch_max_size: 4096
+      remote_write:
+        - endpoint: tempo.example.com:14250
+          insecure: true
+      automatic_logging:
+        backend: "stdout"
       receivers:
         otlp:
           protocols:
             grpc:
             http:
-      remote_write:
-        - endpoint: http://localhost:1234/write
-      automatic_logging:
-        backend: "stdout"
       scrape_configs:
         - job_name: "prometheus1"
           azure_sd_configs:
@@ -27,6 +36,13 @@ traces:
               target_label: __param_target1
             - source_labels: [__address2__]
               target_label: __param_target2
+      prom_sd_operation_type: "update"
+      prom_sd_pod_associations:
+        - ip
+        - net.host.ip
+      # spanmetrics:
+      #   namespace: testing
+      #   metrics_instance: default
       tail_sampling:
         policies:
           [
@@ -35,7 +51,23 @@ traces:
               type: always_sample
             },
           ]
-      attributes:
-        actions:
-          - key: db.table
-            action: delete
+      load_balancing:
+        resolver:
+          static:
+            hostnames:
+              - tempo1.example.com
+              - tempo2.example.com
+      # service_graphs:
+      #   enabled: true
+      jaeger_remote_sampling:
+        - source:
+            reload_interval: 30s
+            remote:
+              endpoint: jaeger-collector:14250
+
+# This metrics config is needed when we enable spanmetrics for traces
+# 
+# metrics:
+#   global:
+#     remote_write:
+#       - url: http://localhost:9009/api/prom/push
