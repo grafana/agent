@@ -165,11 +165,13 @@ func NewBuiltinComponentNode(globals ComponentGlobals, reg component.Registratio
 
 func getManagedOptions(globals ComponentGlobals, cn *BuiltinComponentNode) component.Options {
 	cn.registry = prometheus.NewRegistry()
+	parent, id := path.Split(cn.globalID)
 	return component.Options{
 		ID:     cn.globalID,
 		Logger: log.With(globals.Logger, "component", cn.globalID),
 		Registerer: prometheus.WrapRegistererWith(prometheus.Labels{
-			"component_id": cn.globalID,
+			"component_path": parent,
+			"component_id":   id,
 		}, cn.registry),
 		Tracer: tracing.WrapTracer(globals.TraceProvider, cn.globalID),
 
