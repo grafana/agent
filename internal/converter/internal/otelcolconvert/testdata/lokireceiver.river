@@ -1,0 +1,22 @@
+loki.source.api "default" {
+	http { }
+
+	grpc { }
+	graceful_shutdown_timeout = "10s"
+	forward_to                = [otelcol.receiver.loki.default.receiver]
+	labels                    = {}
+	relabel_rules             = null
+	use_incoming_timestamp    = true
+}
+
+otelcol.receiver.loki "default" {
+	output {
+		logs = [otelcol.exporter.otlp.default.input]
+	}
+}
+
+otelcol.exporter.otlp "default" {
+	client {
+		endpoint = "database:4317"
+	}
+}
