@@ -202,8 +202,8 @@ func checkout(rev string, repo *git.Repository) error {
 
 	if hash, err := repo.ResolveRevision(plumbing.Revision(rev)); err == nil {
 		return wt.Checkout(&git.CheckoutOptions{
-			Force: true,
 			Hash:  *hash,
+			Force: true,
 		})
 	}
 
