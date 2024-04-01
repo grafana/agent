@@ -109,7 +109,6 @@ func isRepoCloned(dir string) bool {
 // Update updates the repository by pulling new content and re-checking out to
 // latest version of Revision.
 func (repo *GitRepo) Update(ctx context.Context) error {
-
 	pullRepoErr := repo.workTree.PullContext(ctx, &git.PullOptions{
 		RemoteName: "origin",
 		Force:      true,
