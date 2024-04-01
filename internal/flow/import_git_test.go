@@ -41,19 +41,16 @@ testImport.add "cc" {
 }
 `
 	// Create our git repository.
-	runGit(t, "init", testRepo)
-
-	// Change directory so the git commands work.
-	os.Chdir(testRepo)
+	runGit(t, testRepo, "init", testRepo)
 
 	// Add the file we want.
 	math := filepath.Join(testRepo, "math.river")
 	err := os.WriteFile(math, []byte(contents), 0666)
 	require.NoError(t, err)
 
-	runGit(t, "add", ".")
+	runGit(t, testRepo, "add", ".")
 
-	runGit(t, "commit", "-m \"test\"")
+	runGit(t, testRepo, "commit", "-m \"test\"")
 
 	defer verifyNoGoroutineLeaks(t)
 	ctrl, f := setup(t, main)
@@ -82,11 +79,9 @@ testImport.add "cc" {
 	err = os.WriteFile(math, []byte(contentsMore), 0666)
 	require.NoError(t, err)
 
-	runGit(t, "add", ".")
+	runGit(t, testRepo, "add", ".")
 
-	commit2 := exec.Command("commit", "-m \"test2\"")
-	commit2.Dir = testRepo
-	commit2.Run()
+	runGit(t, testRepo, "commit", "-m \"test2\"")
 
 	// Check for final condition.
 	require.Eventually(t, func() bool {
@@ -111,19 +106,17 @@ testImport.add "cc" {
     b = 1
 }
 `
-	runGit(t, "init", testRepo)
+	runGit(t, testRepo, "init", testRepo)
 
-	os.Chdir(testRepo)
-
-	runGit(t, "checkout", "-b", "testor")
+	runGit(t, testRepo, "checkout", "-b", "testor")
 
 	math := filepath.Join(testRepo, "math.river")
 	err := os.WriteFile(math, []byte(contents), 0666)
 	require.NoError(t, err)
 
-	runGit(t, "add", ".")
+	runGit(t, testRepo, "add", ".")
 
-	runGit(t, "commit", "-m \"test\"")
+	runGit(t, testRepo, "commit", "-m \"test\"")
 
 	defer verifyNoGoroutineLeaks(t)
 	ctrl, f := setup(t, main)
@@ -152,9 +145,9 @@ testImport.add "cc" {
 	err = os.WriteFile(math, []byte(contentsMore), 0666)
 	require.NoError(t, err)
 
-	runGit(t, "add", ".")
+	runGit(t, testRepo, "add", ".")
 
-	runGit(t, "commit", "-m \"test2\"")
+	runGit(t, testRepo, "commit", "-m \"test2\"")
 
 	// Check for final condition.
 	require.Eventually(t, func() bool {
@@ -166,20 +159,18 @@ testImport.add "cc" {
 func TestPullUpdatingFromHash(t *testing.T) {
 	testRepo := t.TempDir()
 
-	runGit(t, "init", testRepo)
-
-	os.Chdir(testRepo)
-
+	runGit(t, testRepo, "init", testRepo)
 	math := filepath.Join(testRepo, "math.river")
 	err := os.WriteFile(math, []byte(contents), 0666)
 	require.NoError(t, err)
 
-	runGit(t, "add", ".")
+	runGit(t, testRepo, "add", ".")
 
-	runGit(t, "commit", "-m \"test\"")
+	runGit(t, testRepo, "commit", "-m \"test\"")
 
-	getHead := exec.Command("rev-parse", "HEAD")
+	getHead := exec.Command("git", "rev-parse", "HEAD")
 	var stdBuffer bytes.Buffer
+	getHead.Dir = testRepo
 	getHead.Stdout = bufio.NewWriter(&stdBuffer)
 	err = getHead.Run()
 	require.NoError(t, err)
@@ -204,9 +195,9 @@ testImport.add "cc" {
 	err = os.WriteFile(math, []byte(contentsMore), 0666)
 	require.NoError(t, err)
 
-	runGit(t, "add", ".")
+	runGit(t, testRepo, "add", ".")
 
-	runGit(t, "commit", "-m \"test2\"")
+	runGit(t, testRepo, "commit", "-m \"test2\"")
 
 	defer verifyNoGoroutineLeaks(t)
 	ctrl, f := setup(t, main)
@@ -236,19 +227,17 @@ testImport.add "cc" {
 func TestPullUpdatingFromTag(t *testing.T) {
 	testRepo := t.TempDir()
 
-	runGit(t, "init", testRepo)
-
-	os.Chdir(testRepo)
+	runGit(t, testRepo, "init", testRepo)
 
 	math := filepath.Join(testRepo, "math.river")
 	err := os.WriteFile(math, []byte(contents), 0666)
 	require.NoError(t, err)
 
-	runGit(t, "add", ".")
+	runGit(t, testRepo, "add", ".")
 
-	runGit(t, "commit", "-m \"test\"")
+	runGit(t, testRepo, "commit", "-m \"test\"")
 
-	runGit(t, "tag", "-a", "tagtest", "-m", "testtag")
+	runGit(t, testRepo, "tag", "-a", "tagtest", "-m", "testtag")
 
 	main := `
 import.git "testImport" {
@@ -268,9 +257,9 @@ testImport.add "cc" {
 	err = os.WriteFile(math, []byte(contentsMore), 0666)
 	require.NoError(t, err)
 
-	runGit(t, "add", ".")
+	runGit(t, testRepo, "add", ".")
 
-	runGit(t, "commit", "-m \"test2\"")
+	runGit(t, testRepo, "commit", "-m \"test2\"")
 
 	defer verifyNoGoroutineLeaks(t)
 
@@ -298,10 +287,11 @@ testImport.add "cc" {
 	}, 20*time.Second, 1*time.Millisecond)
 }
 
-func runGit(t *testing.T, args ...string) {
+func runGit(t *testing.T, dir string, args ...string) {
 	exe := exec.Command("git", args...)
 	var stdErr bytes.Buffer
 	exe.Stderr = bufio.NewWriter(&stdErr)
+	exe.Dir = dir
 	err := exe.Run()
 	errTxt := stdErr.String()
 	if err != nil {
