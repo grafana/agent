@@ -53,6 +53,8 @@ Main (unreleased)
   whenever that argument is explicitly configured. This issue only affected a
   small subset of arguments across 15 components. (@erikbaranowski, @rfratto)
 
+- The `import.git` config block did not work with branches or tags this now fixes that behavior. (@mattdurham) 
+
 ### Other changes
 
 - Clustering for Grafana Agent in Flow mode has graduated from beta to stable.
