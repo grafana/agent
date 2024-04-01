@@ -202,8 +202,6 @@ testImport.add "cc" {
 `
 
 	// After this update the sum should still be 2 and not 3 since it is pinned to the initial hash.
-	require.NoError(t, err)
-
 	err = os.WriteFile(math, []byte(contentsMore), 0666)
 	require.NoError(t, err)
 
@@ -268,9 +266,6 @@ testImport.add "cc" {
 `
 
 	// After this update the sum should still be 2 and not 3 since it is pinned to the tag.
-
-	require.NoError(t, err)
-
 	err = os.WriteFile(math, []byte(contentsMore), 0666)
 	require.NoError(t, err)
 
