@@ -40,9 +40,8 @@ traces:
       prom_sd_pod_associations:
         - ip
         - net.host.ip
-      # spanmetrics:
-      #   namespace: testing
-      #   metrics_instance: default
+      spanmetrics:
+        metrics_instance: default
       tail_sampling:
         policies:
           [
@@ -67,7 +66,7 @@ traces:
 
 # This metrics config is needed when we enable spanmetrics for traces
 # 
-# metrics:
-#   global:
-#     remote_write:
-#       - url: http://localhost:9009/api/prom/push
+metrics:
+  global:
+    remote_write:
+      - url: http://localhost:9009/api/prom/push

@@ -112,7 +112,7 @@ otelcol.processor.batch "default" {
 	output {
 		metrics = []
 		logs    = []
-		traces  = [otelcol.exporter.otlp.default_0.input, otelcol.exporter.logging.default.input]
+		traces  = [otelcol.exporter.otlp.default_0.input, otelcol.exporter.logging.default.input, otelcol.connector.spanmetrics.default.input]
 	}
 }
 
@@ -131,3 +131,13 @@ otelcol.exporter.otlp "default_0" {
 }
 
 otelcol.exporter.logging "default" { }
+
+otelcol.connector.spanmetrics "default" {
+	histogram {
+		explicit { }
+	}
+
+	output {
+		metrics = [otelcol.exporter.otlp.default_0.input]
+	}
+}
