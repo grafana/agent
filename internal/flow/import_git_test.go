@@ -28,14 +28,6 @@ func TestPullUpdating(t *testing.T) {
 	// file based git repo then committing a file, running the component, then updating the file in the repo.
 	testRepo := t.TempDir()
 
-	contents := `declare "add" {
-    argument "a" {}
-    argument "b" {}
-
-    export "sum" {
-        value = argument.a.value + argument.b.value
-    }
-}`
 	main := `
 import.git "testImport" {
 	repository = "` + testRepo + `"
@@ -87,14 +79,6 @@ testImport.add "cc" {
 		return export["sum"] == 2
 	}, 3*time.Second, 10*time.Millisecond)
 
-	contentsMore := `declare "add" {
-    argument "a" {}
-    argument "b" {}
-
-    export "sum" {
-        value = argument.a.value + argument.b.value + 1
-    }
-}`
 	err = os.WriteFile(math, []byte(contentsMore), 0666)
 	require.NoError(t, err)
 
@@ -115,14 +99,6 @@ func TestPullUpdatingFromBranch(t *testing.T) {
 
 	testRepo := t.TempDir()
 
-	contents := `declare "add" {
-    argument "a" {}
-    argument "b" {}
-
-    export "sum" {
-        value = argument.a.value + argument.b.value
-    }
-}`
 	main := `
 import.git "testImport" {
 	repository = "` + testRepo + `"
@@ -174,14 +150,6 @@ testImport.add "cc" {
 		return export["sum"] == 2
 	}, 3*time.Second, 10*time.Millisecond)
 
-	contentsMore := `declare "add" {
-    argument "a" {}
-    argument "b" {}
-
-    export "sum" {
-        value = argument.a.value + argument.b.value + 1
-    }
-}`
 	err = os.WriteFile(math, []byte(contentsMore), 0666)
 	require.NoError(t, err)
 
@@ -198,15 +166,6 @@ testImport.add "cc" {
 
 func TestPullUpdatingFromHash(t *testing.T) {
 	testRepo := t.TempDir()
-
-	contents := `declare "add" {
-    argument "a" {}
-    argument "b" {}
-
-    export "sum" {
-        value = argument.a.value + argument.b.value
-    }
-}`
 
 	runCommand(t, "git", "init", testRepo)
 
@@ -243,14 +202,6 @@ testImport.add "cc" {
 `
 
 	// After this update the sum should still be 2 and not 3 since it is pinned to the initial hash.
-	contentsMore := `declare "add" {
-    argument "a" {}
-    argument "b" {}
-
-    export "sum" {
-        value = argument.a.value + argument.b.value + 1
-    }
-}`
 	require.NoError(t, err)
 
 	err = os.WriteFile(math, []byte(contentsMore), 0666)
@@ -288,15 +239,6 @@ testImport.add "cc" {
 func TestPullUpdatingFromTag(t *testing.T) {
 	testRepo := t.TempDir()
 
-	contents := `declare "add" {
-    argument "a" {}
-    argument "b" {}
-
-    export "sum" {
-        value = argument.a.value + argument.b.value
-    }
-}`
-
 	runCommand(t, "git", "init", testRepo)
 
 	os.Chdir(testRepo)
@@ -326,14 +268,7 @@ testImport.add "cc" {
 `
 
 	// After this update the sum should still be 2 and not 3 since it is pinned to the tag.
-	contentsMore := `declare "add" {
-    argument "a" {}
-    argument "b" {}
 
-    export "sum" {
-        value = argument.a.value + argument.b.value + 1
-    }
-}`
 	require.NoError(t, err)
 
 	err = os.WriteFile(math, []byte(contentsMore), 0666)
@@ -342,6 +277,8 @@ testImport.add "cc" {
 	runCommand(t, "git", "add", ".")
 
 	runCommand(t, "git", "commit", "-m \"test2\"")
+
+	defer verifyNoGoroutineLeaks(t)
 
 	ctrl, f := setup(t, main)
 	err = ctrl.LoadSource(f, nil)
@@ -378,3 +315,21 @@ func runCommand(t *testing.T, command string, args ...string) {
 	}
 	require.NoErrorf(t, err, "command %s %v failed", command, args)
 }
+
+const contents = `declare "add" {
+    argument "a" {}
+    argument "b" {}
+
+    export "sum" {
+        value = argument.a.value + argument.b.value
+    }
+}`
+
+const contentsMore = `declare "add" {
+    argument "a" {}
+    argument "b" {}
+
+    export "sum" {
+        value = argument.a.value + argument.b.value + 1
+    }
+}`
