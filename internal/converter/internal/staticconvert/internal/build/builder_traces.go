@@ -89,6 +89,15 @@ func (b *ConfigBuilder) translateSpanMetrics(otelCfg *otelcol.Config, cfg traces
 	removeExporter(otelCfg, "metrics", "prometheus")
 	delete(otelCfg.Service.Pipelines, metricsSpanmetricsID)
 
+	// If the spanmetrics configuration includes a handler_endpoint, we cannot convert it.
+	// This is intentionally after the section above which removes the custom spanmetrics processor
+	// so that the rest of the configuration can optionally be converted with the error.
+	if cfg.SpanMetrics.HandlerEndpoint != "" {
+		b.diags.Add(diag.SeverityLevelError, "Cannot convert using configuration including spanmetrics handler_endpoint. "+
+			"No equivalent exists for exposing a known /metrics endpoint. You can use metrics_instance instead to enabled conversion.")
+		return
+	}
+
 	// Add the spanmetrics connector to the otel config with the converted configuration
 	if otelCfg.Connectors == nil {
 		otelCfg.Connectors = map[otel_component.ID]otel_component.Config{}
@@ -134,7 +143,6 @@ func toSpanmetricsConnector(cfg *traces.SpanMetricsConfig) *spanmetricsconnector
 	// TODO: decide how to handle these fields
 	// cfg.SpanMetrics.ConstLabels
 	// cfg.SpanMetrics.MetricsInstance
-	// cfg.SpanMetrics.HandlerEndpoint
 
 	return smc
 }
