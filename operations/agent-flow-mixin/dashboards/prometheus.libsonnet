@@ -406,11 +406,11 @@ local remoteWritePanels(y_offset) = [
       dashboard.newMultiTemplateVariable('instance', |||
         label_values(agent_component_controller_running_components{cluster="$cluster", namespace="$namespace"}, instance)
       |||),
-      dashboard.newMultiTemplateVariable('component', |||
-        label_values(agent_wal_samples_appended_total{cluster="$cluster", namespace="$namespace", instance=~"$instance", component_id=~"prometheus\\.remote_write\\..*"}, component_id)
-      |||),
       dashboard.newMultiTemplateVariable('component_path', |||
         label_values(agent_wal_samples_appended_total{cluster="$cluster", namespace="$namespace", instance=~"$instance", component_id=~"prometheus\\.remote_write\\..*", component_path=~".*"}, component_path)
+      |||),
+      dashboard.newMultiTemplateVariable('component', |||
+        label_values(agent_wal_samples_appended_total{cluster="$cluster", namespace="$namespace", instance=~"$instance", component_id=~"prometheus\\.remote_write\\..*"}, component_id)
       |||),
       dashboard.newMultiTemplateVariable('url', |||
         label_values(prometheus_remote_storage_sent_batch_duration_seconds_sum{cluster="$cluster", namespace="$namespace", instance=~"$instance", component_id=~"$component"}, url)
