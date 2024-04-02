@@ -3,6 +3,7 @@
 package beyla
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/grafana/beyla/pkg/beyla"
@@ -145,4 +146,55 @@ func TestConvert_Discovery(t *testing.T) {
 	require.Equal(t, "default", config.Services[0].Namespace)
 	require.Equal(t, services.PortEnum{Ranges: []services.PortRange{{Start: 80, End: 0}}}, config.Services[0].OpenPorts)
 	require.True(t, config.Services[0].Path.IsSet())
+}
+
+func TestArguments_Validate(t *testing.T) {
+	tests := []struct {
+		name     string
+		args     Arguments
+		expected error
+	}{
+		{
+			name:     "empty arguments",
+			args:     Arguments{},
+			expected: errors.New("you need to define at least open_port, executable_name, or services in the discovery section"),
+		},
+		{
+			name: "with service discovery",
+			args: Arguments{
+				Discovery: Discovery{
+					Services: []Service{
+						{
+							Name:      "test",
+							Namespace: "default",
+							OpenPorts: "80",
+							Path:      "/api/v1/*",
+						},
+					},
+				},
+			},
+			expected: nil,
+		},
+		{
+			name: "with port",
+			args: Arguments{
+				Port: "80",
+			},
+			expected: nil,
+		},
+		{
+			name: "with executable name",
+			args: Arguments{
+				ExecutableName: "test",
+			},
+			expected: nil,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.args.Validate()
+			require.Equal(t, tt.expected, err)
+		})
+	}
 }

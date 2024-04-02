@@ -223,6 +223,13 @@ func (a *Arguments) Convert() (*beyla.Config, error) {
 	return &cfg, nil
 }
 
+func (args *Arguments) Validate() error {
+	if args.Port == "" && args.ExecutableName == "" && len(args.Discovery.Services) == 0 {
+		return fmt.Errorf("you need to define at least open_port, executable_name, or services in the discovery section")
+	}
+	return nil
+}
+
 func stringToRegexpAttr(s string) (services.RegexpAttr, error) {
 	if s == "" {
 		return services.RegexpAttr{}, nil
