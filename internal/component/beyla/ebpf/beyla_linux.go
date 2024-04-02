@@ -139,6 +139,7 @@ func (c *Component) Run(ctx context.Context) error {
 // Update implements component.Component.
 func (c *Component) Update(args component.Arguments) error {
 	c.mut.Lock()
+	defer c.mut.Unlock()
 	baseTarget, err := c.baseTarget()
 	if err != nil {
 		return err
@@ -146,7 +147,6 @@ func (c *Component) Update(args component.Arguments) error {
 	c.opts.OnStateChange(Exports{
 		Targets: []discovery.Target{baseTarget},
 	})
-	c.mut.Unlock()
 	select {
 	case c.reload <- struct{}{}:
 	default:
