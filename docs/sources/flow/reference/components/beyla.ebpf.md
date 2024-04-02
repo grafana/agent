@@ -35,10 +35,10 @@ beyla.ebpf "LABEL" {
 Name | Type | Description                                               | Default | Required
 ---- | ---- |-----------------------------------------------------------| ------- | --------
 `open_port` | `string` | The port of the running service for Beyla automatically instrumented with eBPF. | | no
-`excutable_name` | `string` | The name of the executable to match. | | no
+`excutable_name` | `string` | The name of the executable to match for Beyla automatically instrumented with eBPF. | | no
 
 
-`open_port` accepts a comma-separated list of ports (for example, 80), and port ranges (for example, 8000-8999). If the executable matching only one of the ports in the list, it is considered to match the selection criteria.
+`open_port` accepts a comma-separated list of ports (for example, `80,443`), and port ranges (for example, `8000-8999`). If the executable matching only one of the ports in the list, it is considered to match the selection criteria.
 
 `excutable_name` accepts a regular expression to be matched against the full executable command line, including the directory where the executable resides on the file system.
 
@@ -49,7 +49,7 @@ The following blocks are supported inside the definition of `beyla.ebpf`:
 Hierarchy | Block | Description | Required
 --------- | ----- | ----------- | --------
 routes | [routes][] | Configures the routes to match HTTP paths into user-provided HTTP routes. | no
-attributes | [attributes][] | Configures the attributes for the component. | no
+attributes | [attributes][] | Configures the Beyla attributes for the component. | no
 attributes > kubernetes | [kubernetes][] | Configures decorationg of the metrics and traces with Kubernetes metadata of the instrumented Pods. | no
 discovery | [discovery][] | Configures the discovery for instrumentable processes matching a given criteria. | no
 discovery > services | [services][] | Configures the discovery for the component. | no
@@ -75,7 +75,11 @@ Contains the following blocks:
 
 #### kubernetes block
 
-If you run this in a Kubernetes environment, you can configure it to decorate the traces and metrics with the Standard OpenTelemetry labels:
+Name | Type | Description                                               | Default | Required
+---- | ---- |-----------------------------------------------------------| ------- | --------
+`enable` | `string` | Enable the Kubernetes metadata decoration. | `false` | no
+
+If set to `true`, Beyla will decorate the metrics and traces with Kubernetes metadata. The following labels will be added:
 
 - `k8s.namespace.name`
 - `k8s.deployment.name`
@@ -86,12 +90,6 @@ If you run this in a Kubernetes environment, you can configure it to decorate th
 - `k8s.pod.name`
 - `k8s.pod.uid`
 - `k8s.pod.start_time`
-
-Name | Type | Description                                               | Default | Required
----- | ---- |-----------------------------------------------------------| ------- | --------
-`enable` | `string` | Enable the Kubernetes metadata decoration. | `false` | no
-
-If set to `true`, Beyla will decorate the metrics and traces with Kubernetes metadata.
 
 If set to `false`, the Kubernetes metadata decorator will be disabled.
 
@@ -143,13 +141,23 @@ Name | Type | Description                                               | Defaul
 `path` | `string` | The path of the running service for Beyla automatically instrumented with eBPF. | | no
 
 `name` defines a name for the matching instrumented service. It will be used to populate the `service.name` OTEL property and/or the `service_name` Prometheus property in the exported metrics/traces.
-`open_port` accepts a comma-separated list of ports (for example, 80), and port ranges (for example, 8000-8999). If the executable matching only one of the ports in the list, it is considered to match the selection criteria.
+`open_port` accepts a comma-separated list of ports (for example, `80,443`), and port ranges (for example, `8000-8999`). If the executable matching only one of the ports in the list, it is considered to match the selection criteria.
 `path` accepts a regular expression to be matched against the full executable command line, including the directory where the executable resides on the file system.
 
 
 ### output block
 
-{{< docs/shared lookup="flow/reference/components/output-block.md" source="agent" version="<AGENT_VERSION>" >}}
+The `output` block configures a set of components to forward resulting telemetry data to.
+
+The following arguments are supported:
+
+Name      | Type                     | Description                           | Default | Required
+----------|--------------------------|---------------------------------------|---------|---------
+`traces`  | `list(otelcol.Consumer)` | List of consumers to send traces to.  | `[]`    | no
+
+You must specify the `output` block, but all its arguments are optional.
+By default, telemetry data is dropped.
+Configure the `traces` argument accordingly to send traces data to other components.
 
 ## Exported fields
 
