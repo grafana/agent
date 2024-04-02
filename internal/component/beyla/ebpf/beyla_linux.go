@@ -10,11 +10,13 @@ import (
 	"path"
 	"regexp"
 	"sync"
+	"time"
 
 	"github.com/grafana/agent/internal/component"
 	"github.com/grafana/agent/internal/component/discovery"
 	"github.com/grafana/agent/internal/component/otelcol"
 	"github.com/grafana/agent/internal/featuregate"
+	"github.com/grafana/agent/internal/flow/logging/level"
 	http_service "github.com/grafana/agent/internal/service/http"
 	"github.com/grafana/beyla/pkg/beyla"
 	"github.com/grafana/beyla/pkg/components"
@@ -39,12 +41,16 @@ func init() {
 }
 
 type Component struct {
-	opts   component.Options
-	mut    sync.Mutex
-	args   Arguments
-	reload chan struct{}
-	reg    *prometheus.Registry
+	opts      component.Options
+	mut       sync.Mutex
+	args      Arguments
+	reload    chan struct{}
+	reg       *prometheus.Registry
+	healthMut sync.RWMutex
+	health    component.Health
 }
+
+var _ component.HealthComponent = (*Component)(nil)
 
 func (args Routes) Convert() *transform.RoutesConfig {
 	return &transform.RoutesConfig{
@@ -127,7 +133,8 @@ func (c *Component) Run(ctx context.Context) error {
 			c.mut.Lock()
 			cfg, err := c.args.Convert()
 			if err != nil {
-				return fmt.Errorf("failed to convert arguments: %w", err)
+				level.Error(c.opts.Logger).Log("msg", "failed to convert arguments", "err", err)
+				c.reportUnhealthy(err)
 			}
 			cfg.Prometheus.Registry = c.reg
 			c.mut.Unlock()
@@ -168,6 +175,22 @@ func (c *Component) baseTarget() (discovery.Target, error) {
 		"instance":             defaultInstance(),
 		"job":                  "beyla",
 	}, nil
+}
+
+func (c *Component) reportUnhealthy(err error) {
+	c.healthMut.Lock()
+	defer c.healthMut.Unlock()
+	c.health = component.Health{
+		Health:     component.HealthTypeUnhealthy,
+		Message:    err.Error(),
+		UpdateTime: time.Now(),
+	}
+}
+
+func (c *Component) CurrentHealth() component.Health {
+	c.healthMut.RLock()
+	defer c.healthMut.RUnlock()
+	return c.health
 }
 
 func (c *Component) Handler() http.Handler {
