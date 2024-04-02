@@ -76,6 +76,46 @@ func TestRiverConfigConvert(t *testing.T) {
 	require.Equal(t, expected, *c)
 }
 
+func TestRiverConfigValidate(t *testing.T) {
+	var tc = []struct {
+		name        string
+		args        Arguments
+		expectedErr string
+	}{
+		{
+			name: "no errors on default config",
+			args: Arguments{},
+		},
+		{
+			name: "missing custom queries file path",
+			args: Arguments{
+				DisableDefaultMetrics: true,
+			},
+			expectedErr: "custom_queries_config_path must be set when disable_default_metrics is true",
+		},
+		{
+			name: "disabled default metrics with enabled collectors",
+			args: Arguments{
+				DisableDefaultMetrics:   true,
+				CustomQueriesConfigPath: "/tmp/queries.yaml",
+				EnabledCollectors:       []string{"collector1"},
+			},
+			expectedErr: "enabled_collectors cannot be set when disable_default_metrics is true",
+		},
+	}
+
+	for _, tt := range tc {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.args.Validate()
+			if tt.expectedErr == "" {
+				require.NoError(t, err)
+			} else {
+				require.ErrorContains(t, err, tt.expectedErr)
+			}
+		})
+	}
+}
+
 func TestParsePostgresURL(t *testing.T) {
 	dsn := "postgresql://linus:42secret@localhost:5432/postgres?sslmode=disable"
 	expected := map[string]string{
