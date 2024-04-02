@@ -13,7 +13,7 @@ otelcol.extension.jaeger_remote_sampling "default_0" {
 	}
 }
 
-otelcol.receiver.otlp "default" {
+otelcol.receiver.otlp "_0_default" {
 	grpc {
 		include_metadata = true
 	}
@@ -25,11 +25,11 @@ otelcol.receiver.otlp "default" {
 	output {
 		metrics = []
 		logs    = []
-		traces  = [otelcol.processor.discovery.default.input]
+		traces  = [otelcol.processor.discovery._0_default.input]
 	}
 }
 
-discovery.azure "default_prometheus1" {
+discovery.azure "_0_default_prometheus1" {
 	subscription_id = "subscription1"
 
 	oauth {
@@ -43,17 +43,17 @@ discovery.azure "default_prometheus1" {
 	}
 }
 
-discovery.lightsail "default_prometheus1" {
+discovery.lightsail "_0_default_prometheus1" {
 	region     = "us-east-1"
 	access_key = "YOUR_ACCESS_KEY"
 	secret_key = "YOUR_SECRET_KEY"
 	port       = 8080
 }
 
-discovery.relabel "default_prometheus1" {
+discovery.relabel "_0_default_prometheus1" {
 	targets = concat(
-		discovery.azure.default_prometheus1.targets,
-		discovery.lightsail.default_prometheus1.targets,
+		discovery.azure._0_default_prometheus1.targets,
+		discovery.lightsail._0_default_prometheus1.targets,
 	)
 
 	rule {
@@ -67,19 +67,19 @@ discovery.relabel "default_prometheus1" {
 	}
 }
 
-otelcol.processor.discovery "default" {
-	targets          = discovery.relabel.default_prometheus1.output
+otelcol.processor.discovery "_0_default" {
+	targets          = discovery.relabel._0_default_prometheus1.output
 	operation_type   = "insert"
 	pod_associations = ["ip", "net.host.ip"]
 
 	output {
 		metrics = []
 		logs    = []
-		traces  = [otelcol.processor.attributes.default.input]
+		traces  = [otelcol.processor.attributes._0_default.input]
 	}
 }
 
-otelcol.processor.attributes "default" {
+otelcol.processor.attributes "_0_default" {
 	action {
 		key    = "db.table"
 		action = "delete"
@@ -88,11 +88,45 @@ otelcol.processor.attributes "default" {
 	output {
 		metrics = []
 		logs    = []
-		traces  = [otelcol.processor.tail_sampling.default.input]
+		traces  = [otelcol.exporter.loadbalancing._0_default.input, otelcol.exporter.logging._0_default.input]
 	}
 }
 
-otelcol.processor.tail_sampling "default" {
+otelcol.exporter.loadbalancing "_0_default" {
+	protocol {
+		otlp {
+			retry {
+				max_elapsed_time = "1m0s"
+			}
+
+			client {
+				compression = "none"
+			}
+		}
+	}
+
+	resolver {
+		static {
+			hostnames = ["tempo1.example.com", "tempo2.example.com"]
+		}
+	}
+}
+
+otelcol.exporter.logging "_0_default" { }
+
+otelcol.receiver.otlp "_1_lb" {
+	grpc {
+		endpoint = "0.0.0.0:4318"
+	}
+
+	output {
+		metrics = []
+		logs    = []
+		traces  = [otelcol.processor.tail_sampling._1_default.input]
+	}
+}
+
+otelcol.processor.tail_sampling "_1_default" {
 	policy {
 		name = "test-policy-1"
 		type = "always_sample"
@@ -100,11 +134,11 @@ otelcol.processor.tail_sampling "default" {
 	decision_wait = "5s"
 
 	output {
-		traces = [otelcol.processor.batch.default.input]
+		traces = [otelcol.processor.batch._1_default.input]
 	}
 }
 
-otelcol.processor.batch "default" {
+otelcol.processor.batch "_1_default" {
 	timeout             = "5s"
 	send_batch_size     = 2048
 	send_batch_max_size = 4096
@@ -112,11 +146,11 @@ otelcol.processor.batch "default" {
 	output {
 		metrics = []
 		logs    = []
-		traces  = [otelcol.exporter.otlp.default_0.input, otelcol.exporter.logging.default.input]
+		traces  = [otelcol.exporter.otlp._1_0.input, otelcol.exporter.logging._1_default.input]
 	}
 }
 
-otelcol.exporter.otlp "default_0" {
+otelcol.exporter.otlp "_1_0" {
 	retry_on_failure {
 		max_elapsed_time = "1m0s"
 	}
@@ -130,4 +164,4 @@ otelcol.exporter.otlp "default_0" {
 	}
 }
 
-otelcol.exporter.logging "default" { }
+otelcol.exporter.logging "_1_default" { }
