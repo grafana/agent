@@ -68,7 +68,7 @@ func TestDirectory(t *testing.T, folderPath string, sourceSuffix string, loadFlo
 				validateDiags(t, expectedDiags, actualDiags)
 
 				expectedRiver := getExpectedRiver(t, riverFile)
-				ValidateRiver(t, expectedRiver, actualRiver, loadFlowConfig)
+				validateRiver(t, expectedRiver, actualRiver, loadFlowConfig)
 			})
 		}
 
@@ -155,8 +155,8 @@ func fileExists(path string) bool {
 	return err == nil
 }
 
-// ValidateRiver makes sure the expected river and actual river are a match
-func ValidateRiver(t *testing.T, expectedRiver []byte, actualRiver []byte, loadFlowConfig bool) {
+// validateRiver makes sure the expected river and actual river are a match
+func validateRiver(t *testing.T, expectedRiver []byte, actualRiver []byte, loadFlowConfig bool) {
 	if len(expectedRiver) > 0 {
 		if !reflect.DeepEqual(expectedRiver, actualRiver) {
 			fmt.Println("============== ACTUAL =============")
