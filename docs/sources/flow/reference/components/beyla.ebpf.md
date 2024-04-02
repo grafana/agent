@@ -161,7 +161,18 @@ Configure the `traces` argument accordingly to send traces data to other compone
 
 ## Exported fields
 
-{{< docs/shared lookup="flow/reference/components/exporter-component-exports.md" source="agent" version="<AGENT_VERSION>" >}}
+The following fields are exported and can be referenced by other components.
+
+Name      | Type                | Description
+----------|---------------------|----------------------------------------------------------
+`targets` | `list(map(string))` | The targets that can be used to collect metrics of instrumented services with eBPF.
+
+For example, the `targets` can either be passed to a `discovery.relabel` component to rewrite the targets' label sets or to a `prometheus.scrape` component that collects the exposed metrics.
+
+The exported targets use the configured [in-memory traffic][] address specified by the [run command][].
+
+[in-memory traffic]: {{< relref "../../../../flow/concepts/component_controller.md#in-memory-traffic" >}}
+[run command]: {{< relref "../../../../flow/reference/cli/run.md" >}}
 
 ## Component health
 
