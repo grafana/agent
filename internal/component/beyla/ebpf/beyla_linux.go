@@ -201,7 +201,7 @@ func (c *Component) Handler() http.Handler {
 
 func (a *Arguments) Convert() (*beyla.Config, error) {
 	var err error
-	cfg := &beyla.DefaultConfig
+	cfg := beyla.DefaultConfig
 	if a.Output != nil {
 		cfg.TracesReceiver = convertTraceConsumers(a.Output.Traces)
 	}
@@ -219,7 +219,7 @@ func (a *Arguments) Convert() (*beyla.Config, error) {
 	if err != nil {
 		return nil, err
 	}
-	return cfg, nil
+	return &cfg, nil
 }
 
 func stringToRegexpAttr(s string) (services.RegexpAttr, error) {
