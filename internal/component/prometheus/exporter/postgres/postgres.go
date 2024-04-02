@@ -27,7 +27,7 @@ func init() {
 
 func createExporter(opts component.Options, args component.Arguments, defaultInstanceKey string) (integrations.Integration, string, error) {
 	a := args.(Arguments)
-	return integrations.NewIntegrationWithInstanceKey(opts.Logger, a.Convert(), defaultInstanceKey)
+	return integrations.NewIntegrationWithInstanceKey(opts.Logger, a.convert(opts.ID), defaultInstanceKey)
 }
 
 func parsePostgresURL(url string) (map[string]string, error) {
@@ -83,7 +83,6 @@ type Arguments struct {
 	DisableSettingsMetrics  bool     `river:"disable_settings_metrics,attr,optional"`
 	DisableDefaultMetrics   bool     `river:"disable_default_metrics,attr,optional"`
 	CustomQueriesConfigPath string   `river:"custom_queries_config_path,attr,optional"`
-	Instance                string   `river:"instance,attr,optional"`
 	EnabledCollectors       []string `river:"enabled_collectors,attr,optional"`
 
 	// Blocks
@@ -112,7 +111,7 @@ func (a *Arguments) SetToDefault() {
 	*a = DefaultArguments
 }
 
-func (a *Arguments) Convert() *postgres_exporter.Config {
+func (a *Arguments) convert(instanceName string) *postgres_exporter.Config {
 	return &postgres_exporter.Config{
 		DataSourceNames:        a.convertDataSourceNames(),
 		DisableSettingsMetrics: a.DisableSettingsMetrics,
@@ -121,7 +120,7 @@ func (a *Arguments) Convert() *postgres_exporter.Config {
 		IncludeDatabases:       a.AutoDiscovery.DatabaseAllowlist,
 		DisableDefaultMetrics:  a.DisableDefaultMetrics,
 		QueryPath:              a.CustomQueriesConfigPath,
-		Instance:               a.Instance,
+		Instance:               instanceName,
 		EnabledCollectors:      a.EnabledCollectors,
 	}
 }

@@ -46,8 +46,9 @@ func TestRiverConfigConvert(t *testing.T) {
 	var exampleRiverConfig = `
 	data_source_names = ["postgresql://username:password@localhost:5432/database?sslmode=disable"]
 	disable_settings_metrics = true
-	disable_default_metrics = true
+	disable_default_metrics = false
 	custom_queries_config_path = "/tmp/queries.yaml"
+	enabled_collectors = ["collector1", "collector2"]
 	
 	autodiscovery {
 		enabled = false
@@ -59,7 +60,7 @@ func TestRiverConfigConvert(t *testing.T) {
 	err := river.Unmarshal([]byte(exampleRiverConfig), &args)
 	require.NoError(t, err)
 
-	c := args.Convert()
+	c := args.convert("test-instance")
 
 	expected := postgres_exporter.Config{
 		DataSourceNames:        []config_util.Secret{config_util.Secret("postgresql://username:password@localhost:5432/database?sslmode=disable")},
@@ -67,8 +68,10 @@ func TestRiverConfigConvert(t *testing.T) {
 		AutodiscoverDatabases:  false,
 		ExcludeDatabases:       []string{"exclude1", "exclude2"},
 		IncludeDatabases:       []string{"include1"},
-		DisableDefaultMetrics:  true,
+		DisableDefaultMetrics:  false,
 		QueryPath:              "/tmp/queries.yaml",
+		Instance:               "test-instance",
+		EnabledCollectors:      []string{"collector1", "collector2"},
 	}
 	require.Equal(t, expected, *c)
 }
