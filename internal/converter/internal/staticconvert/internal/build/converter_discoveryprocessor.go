@@ -13,7 +13,6 @@ import (
 	"github.com/grafana/agent/internal/converter/internal/prometheusconvert/build"
 	prometheus_component "github.com/grafana/agent/internal/converter/internal/prometheusconvert/component"
 	"github.com/grafana/agent/internal/static/traces/promsdprocessor"
-	"github.com/grafana/river/scanner"
 	prom_config "github.com/prometheus/prometheus/config"
 	"go.opentelemetry.io/collector/component"
 	"gopkg.in/yaml.v3"
@@ -81,7 +80,7 @@ func toDiscoveryProcessor(state *otelcolconvert.State, id component.InstanceID, 
 		if label != "" {
 			labelConcat = label + "_" + scrapeConfig.JobName
 		}
-		label, _ := scanner.SanitizeIdentifier(labelConcat)
+		label := common.SanitizeIdentifierPanics(labelConcat)
 		scrapeTargets := prometheusconvert.AppendServiceDiscoveryConfigs(pb, scrapeConfig.ServiceDiscoveryConfigs, label)
 		promDiscoveryRelabelExports := prometheus_component.AppendDiscoveryRelabel(pb, scrapeConfig.RelabelConfigs, scrapeTargets, label)
 		if promDiscoveryRelabelExports != nil {

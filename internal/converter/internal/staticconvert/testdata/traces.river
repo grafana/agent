@@ -92,9 +92,23 @@ otelcol.processor.attributes "_0_default" {
 	}
 }
 
+prometheus.relabel "_0_default" {
+	forward_to = []
+
+	rule {
+		target_label = "foo"
+		replacement  = "bar"
+	}
+
+	rule {
+		target_label = "fizz"
+		replacement  = "buzz"
+	}
+}
+
 otelcol.exporter.prometheus "_0_default" {
 	gc_frequency = "0s"
-	forward_to   = []
+	forward_to   = [prometheus.relabel._0_default.receiver]
 }
 
 otelcol.exporter.loadbalancing "_0_default" {
@@ -165,9 +179,23 @@ otelcol.processor.batch "_1_default" {
 	}
 }
 
+prometheus.relabel "_1_default" {
+	forward_to = []
+
+	rule {
+		target_label = "foo"
+		replacement  = "bar"
+	}
+
+	rule {
+		target_label = "fizz"
+		replacement  = "buzz"
+	}
+}
+
 otelcol.exporter.prometheus "_1_default" {
 	gc_frequency = "0s"
-	forward_to   = []
+	forward_to   = [prometheus.relabel._1_default.receiver]
 }
 
 otelcol.exporter.otlp "_1_0" {

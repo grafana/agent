@@ -42,6 +42,9 @@ traces:
         - net.host.ip
       spanmetrics:
         metrics_instance: default
+        const_labels:
+          foo: bar
+          fizz: buzz 
       tail_sampling:
         policies:
           [
