@@ -32,7 +32,7 @@ func TestPullUpdating(t *testing.T) {
 import.git "testImport" {
 	repository = "` + testRepo + `"
   	path = "math.river"
-    pull_frequency = "5s"
+    pull_frequency = "1s"
 }
 
 testImport.add "cc" {
@@ -74,7 +74,7 @@ testImport.add "cc" {
 	require.Eventually(t, func() bool {
 		export := getExport[map[string]interface{}](t, ctrl, "", "testImport.add.cc")
 		return export["sum"] == 2
-	}, 3*time.Second, 10*time.Millisecond)
+	}, 5*time.Second, 100*time.Millisecond)
 
 	err = os.WriteFile(math, []byte(contentsMore), 0666)
 	require.NoError(t, err)
@@ -87,7 +87,7 @@ testImport.add "cc" {
 	require.Eventually(t, func() bool {
 		export := getExport[map[string]interface{}](t, ctrl, "", "testImport.add.cc")
 		return export["sum"] == 3
-	}, 20*time.Second, 1*time.Millisecond)
+	}, 5*time.Second, 100*time.Millisecond)
 }
 
 func TestPullUpdatingFromBranch(t *testing.T) {
@@ -140,7 +140,7 @@ testImport.add "cc" {
 	require.Eventually(t, func() bool {
 		export := getExport[map[string]interface{}](t, ctrl, "", "testImport.add.cc")
 		return export["sum"] == 2
-	}, 3*time.Second, 10*time.Millisecond)
+	}, 5*time.Second, 100*time.Millisecond)
 
 	err = os.WriteFile(math, []byte(contentsMore), 0666)
 	require.NoError(t, err)
@@ -153,7 +153,7 @@ testImport.add "cc" {
 	require.Eventually(t, func() bool {
 		export := getExport[map[string]interface{}](t, ctrl, "", "testImport.add.cc")
 		return export["sum"] == 3
-	}, 20*time.Second, 1*time.Millisecond)
+	}, 5*time.Second, 100*time.Millisecond)
 }
 
 func TestPullUpdatingFromHash(t *testing.T) {
@@ -181,7 +181,7 @@ func TestPullUpdatingFromHash(t *testing.T) {
 import.git "testImport" {
 	repository = "` + testRepo + `"
   	path = "math.river"
-    pull_frequency = "10s"
+    pull_frequency = "1s"
     revision = "` + hash + `"
 }
 
@@ -221,7 +221,7 @@ testImport.add "cc" {
 	require.Eventually(t, func() bool {
 		export := getExport[map[string]interface{}](t, ctrl, "", "testImport.add.cc")
 		return export["sum"] == 2
-	}, 20*time.Second, 1*time.Millisecond)
+	}, 5*time.Second, 100*time.Millisecond)
 }
 
 func TestPullUpdatingFromTag(t *testing.T) {
@@ -243,7 +243,7 @@ func TestPullUpdatingFromTag(t *testing.T) {
 import.git "testImport" {
 	repository = "` + testRepo + `"
   	path = "math.river"
-    pull_frequency = "10s"
+    pull_frequency = "1s"
     revision = "tagtest"
 }
 
@@ -284,7 +284,7 @@ testImport.add "cc" {
 	require.Eventually(t, func() bool {
 		export := getExport[map[string]interface{}](t, ctrl, "", "testImport.add.cc")
 		return export["sum"] == 2
-	}, 20*time.Second, 1*time.Millisecond)
+	}, 5*time.Second, 100*time.Millisecond)
 }
 
 func runGit(t *testing.T, dir string, args ...string) {
