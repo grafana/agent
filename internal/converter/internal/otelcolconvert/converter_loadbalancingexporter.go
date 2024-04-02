@@ -54,10 +54,14 @@ func (loadbalancingExporterConverter) ConvertAndAppend(state *State, id componen
 }
 
 func toLoadbalancingExporter(cfg *loadbalancingexporter.Config) *loadbalancing.Arguments {
+	routingKey := "traceID"
+	if cfg.RoutingKey != "" {
+		routingKey = cfg.RoutingKey
+	}
 	return &loadbalancing.Arguments{
 		Protocol:   toProtocol(cfg.Protocol),
 		Resolver:   toResolver(cfg.Resolver),
-		RoutingKey: cfg.RoutingKey,
+		RoutingKey: routingKey,
 
 		DebugMetrics: common.DefaultValue[loadbalancing.Arguments]().DebugMetrics,
 	}

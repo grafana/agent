@@ -37,21 +37,21 @@ type Loader struct {
 	// pool for evaluation in EvaluateDependants, because the queue is full. This is an unlikely scenario, but when
 	// it happens we should avoid retrying too often to give other goroutines a chance to progress. Having a backoff
 	// also prevents log spamming with errors.
-	backoffConfig        backoff.Config
-	componentNodeManager *ComponentNodeManager
+	backoffConfig backoff.Config
 
-	mut               sync.RWMutex
-	graph             *dag.Graph
-	originalGraph     *dag.Graph
-	componentNodes    []ComponentNode
-	declareNodes      map[string]*DeclareNode
-	importConfigNodes map[string]*ImportConfigNode
-	serviceNodes      []*ServiceNode
-	cache             *valueCache
-	blocks            []*ast.BlockStmt // Most recently loaded blocks, used for writing
-	cm                *controllerMetrics
-	cc                *controllerCollector
-	moduleExportIndex int
+	mut                  sync.RWMutex
+	graph                *dag.Graph
+	originalGraph        *dag.Graph
+	componentNodes       []ComponentNode
+	declareNodes         map[string]*DeclareNode
+	importConfigNodes    map[string]*ImportConfigNode
+	serviceNodes         []*ServiceNode
+	cache                *valueCache
+	blocks               []*ast.BlockStmt // Most recently loaded blocks, used for writing
+	cm                   *controllerMetrics
+	cc                   *controllerCollector
+	moduleExportIndex    int
+	componentNodeManager *ComponentNodeManager
 }
 
 // LoaderOptions holds options for creating a Loader.
@@ -787,10 +787,11 @@ func (l *Loader) concurrentEvalFn(n dag.Node, spanCtx context.Context, tracer tr
 	switch n := n.(type) {
 	case BlockNode:
 		ectx := l.cache.BuildContext()
+
+		// RLock before evaluate to prevent Evaluating while the config is being reloaded
+		l.mut.RLock()
 		evalErr := n.Evaluate(ectx)
 
-		// Only obtain loader lock after we have evaluated the node, allowing for concurrent evaluation.
-		l.mut.RLock()
 		err = l.postEvaluate(l.log, n, evalErr)
 
 		// Additional post-evaluation steps necessary for module exports.
