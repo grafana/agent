@@ -15,6 +15,7 @@ func init() {
 		Name:      "beyla.ebpf",
 		Stability: featuregate.StabilityBeta,
 		Args:      Arguments{},
+		Exports:   Exports{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
 			arguments := args.(Arguments)
