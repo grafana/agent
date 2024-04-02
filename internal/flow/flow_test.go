@@ -45,11 +45,11 @@ func TestController_LoadSource_Evaluation(t *testing.T) {
 
 	err = ctrl.LoadSource(f, nil)
 	require.NoError(t, err)
-	require.Len(t, ctrl.Loader.Components(), 4)
+	require.Len(t, ctrl.loader.Components(), 4)
 
 	// Check the inputs and outputs of things that should be immediately resolved
 	// without having to run the components.
-	in, out := getFields(t, ctrl.Loader.Graph(), "testcomponents.passthrough.static")
+	in, out := getFields(t, ctrl.loader.Graph(), "testcomponents.passthrough.static")
 	require.Equal(t, "hello, world!", in.(testcomponents.PassthroughConfig).Input)
 	require.Equal(t, "hello, world!", out.(testcomponents.PassthroughExports).Output)
 }
