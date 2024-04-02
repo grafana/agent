@@ -13,6 +13,30 @@ otelcol.extension.jaeger_remote_sampling "default_0" {
 	}
 }
 
+otelcol.exporter.otlp "default_0" {
+	retry_on_failure {
+		max_elapsed_time = "1m0s"
+	}
+
+	client {
+		endpoint = "tempo.example.com:14250"
+
+		tls {
+			insecure = true
+		}
+	}
+}
+
+otelcol.connector.spanmetrics "default" {
+	histogram {
+		explicit { }
+	}
+
+	output {
+		metrics = [otelcol.exporter.otlp.default_0.input]
+	}
+}
+
 otelcol.receiver.otlp "_0_default" {
 	grpc {
 		include_metadata = true
@@ -88,7 +112,7 @@ otelcol.processor.attributes "_0_default" {
 	output {
 		metrics = []
 		logs    = []
-		traces  = [otelcol.exporter.loadbalancing._0_default.input, otelcol.exporter.logging._0_default.input]
+		traces  = [otelcol.exporter.loadbalancing._0_default.input, otelcol.exporter.logging._0_default.input, otelcol.connector.spanmetrics._0_default.input]
 	}
 }
 
@@ -113,6 +137,16 @@ otelcol.exporter.loadbalancing "_0_default" {
 }
 
 otelcol.exporter.logging "_0_default" { }
+
+otelcol.connector.spanmetrics "_0_default" {
+	histogram {
+		explicit { }
+	}
+
+	output {
+		metrics = []
+	}
+}
 
 otelcol.receiver.otlp "_1_lb" {
 	grpc {
@@ -146,7 +180,7 @@ otelcol.processor.batch "_1_default" {
 	output {
 		metrics = []
 		logs    = []
-		traces  = [otelcol.exporter.otlp._1_0.input, otelcol.exporter.logging._1_default.input, otelcol.connector.spanmetrics.default.input]
+		traces  = [otelcol.exporter.otlp._1_0.input, otelcol.exporter.logging._1_default.input, otelcol.connector.spanmetrics._1_default.input]
 	}
 }
 
@@ -166,12 +200,12 @@ otelcol.exporter.otlp "_1_0" {
 
 otelcol.exporter.logging "_1_default" { }
 
-otelcol.connector.spanmetrics "default" {
+otelcol.connector.spanmetrics "_1_default" {
 	histogram {
 		explicit { }
 	}
 
 	output {
-		metrics = [otelcol.exporter.otlp._1_0.input]
+		metrics = []
 	}
 }

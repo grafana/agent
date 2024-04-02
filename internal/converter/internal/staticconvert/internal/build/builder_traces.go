@@ -77,7 +77,6 @@ func (b *ConfigBuilder) translateSpanMetrics(otelCfg *otelcol.Config, cfg traces
 	}
 
 	// Initialize otel component IDs for readability further down
-	tracesID := otel_component.NewID("traces")
 	metricsID := otel_component.NewID("metrics")
 	spanmetricsID := otel_component.NewID("spanmetrics")
 	metricsSpanmetricsID := otel_component.NewIDWithName("metrics", "spanmetrics")
@@ -96,8 +95,13 @@ func (b *ConfigBuilder) translateSpanMetrics(otelCfg *otelcol.Config, cfg traces
 	}
 	otelCfg.Connectors[otel_component.NewID("spanmetrics")] = toSpanmetricsConnector(cfg.SpanMetrics)
 
-	// Add the spanmetrics connector to traces pipeline as an exporter
-	otelCfg.Service.Pipelines[tracesID].Exporters = append(otelCfg.Service.Pipelines[tracesID].Exporters, spanmetricsID)
+	// Add the spanmetrics connector to traces pipelines as an exporter
+	for ix, pipeline := range otelCfg.Service.Pipelines {
+		if ix.Type() != "traces" {
+			continue
+		}
+		pipeline.Exporters = append(pipeline.Exporters, spanmetricsID)
+	}
 
 	// Build a new metrics pipeline with the spanmetrics connector as the receiver
 	otelCfg.Service.Pipelines[metricsID] = &pipelines.PipelineConfig{}
