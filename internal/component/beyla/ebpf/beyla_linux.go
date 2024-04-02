@@ -163,6 +163,7 @@ func (c *Component) Update(args component.Arguments) error {
 	return nil
 }
 
+// baseTarget returns the base target for the component which includes metrics of the instrumented services.
 func (c *Component) baseTarget() (discovery.Target, error) {
 	data, err := c.opts.GetServiceData(http_service.ServiceName)
 	if err != nil {
