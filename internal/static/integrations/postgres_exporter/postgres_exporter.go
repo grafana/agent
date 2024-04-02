@@ -30,7 +30,7 @@ type Config struct {
 
 	//-- The fields below are only used in flow mode and not (yet) exposed in the static mode.--
 
-	// Instance is used by the flow mode to specify the instance name manually. This is used when there are multiple
+	// Instance is used by the flow mode to specify the instance name manually. This is only used when there are multiple
 	// DSNs provided.
 	Instance string
 	// EnabledCollectors is a list of additional collectors to enable. NOTE: Due to limitations of the postgres_exporter,
@@ -60,7 +60,8 @@ func (c *Config) InstanceKey(_ string) (string, error) {
 		if c.Instance != "" {
 			return c.Instance, nil
 		}
-		return "", fmt.Errorf("can't automatically determine a value for `instance` with %d DSNs. Either use 1 DSN or manually assign a value for `instance` in the configuration", len(dsn))
+		// This should not be possible in the flow mode, because `c.Instance` is always set.
+		return "", fmt.Errorf("can't automatically determine a value for `instance` with %d DSN. either use 1 DSN or manually assign a value for `instance` in the integration config", len(dsn))
 	}
 
 	s, err := parsePostgresURL(dsn[0])
@@ -146,25 +147,6 @@ func New(log log.Logger, cfg *Config) (integrations.Integration, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	//TODO(thampiotr): Add a clear warning that only one DSN is used for the collector metrics. Open an issue upstream and link here.
-	/*
-				Version 2:
-				- Default behaviour: you get all exporter and collector metrics that are enabled by default
-				- If QueryPath is set, you will also get the custom metrics from this file
-				- If DisableDefaultMetrics is set, you get no metrics other than the custom ones via QueryPath
-				- You can set EnabledCollectors to specify the collectors you want to enable. Currently, exporter allows to enable/disable the following collectors: ...
-				- Because of https://github.com/prometheus-community/postgres_exporter/issues/999, the EnabledCollectors will only work for the first DSN provided. This is a current limitation of the exporter.
-
-			All: `database`, `database_wraparound`, `locks`, `long_running_transactions`, `postmaster`, `process_idle`,
-				 `replication`, `replication_slot`, `stat_activity_autovacuum`, `stat_bgwriter`, `stat_database`,
-		         `stat_statements`, `stat_user_tables`, `stat_wal_receiver`, `statio_user_indexes`, `statio_user_tables`,
-		         `wal`, `xlog_location`.
-
-			Enabled by default: `database`, `locks`, `replication`, `replication_slot`, `stat_bgwriter`, `stat_database`,
-		                        `stat_user_tables`, `statio_user_tables`, `wal`.
-
-	*/
 
 	e := postgres_exporter.NewExporter(
 		dsns,
