@@ -135,6 +135,8 @@ func (c *Component) Run(ctx context.Context) error {
 			if err != nil {
 				level.Error(c.opts.Logger).Log("msg", "failed to convert arguments", "err", err)
 				c.reportUnhealthy(err)
+				c.mut.Unlock()
+				continue
 			}
 			cfg.Prometheus.Registry = c.reg
 			c.mut.Unlock()
