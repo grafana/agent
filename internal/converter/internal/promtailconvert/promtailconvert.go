@@ -139,6 +139,7 @@ func appendScrapeConfig(
 	watchConfig *file.WatchConfig,
 	positionsCfg *positions.Config,
 ) {
+
 	b := build.NewScrapeConfigBuilder(f, diags, cfg, gctx)
 	b.Sanitize()
 

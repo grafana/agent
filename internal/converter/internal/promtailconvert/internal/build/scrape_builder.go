@@ -45,6 +45,7 @@ func NewScrapeConfigBuilder(
 	cfg *scrapeconfig.Config,
 	globalCtx *GlobalContext,
 ) *ScrapeConfigBuilder {
+
 	return &ScrapeConfigBuilder{
 		f:         f,
 		diags:     diags,
