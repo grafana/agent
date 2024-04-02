@@ -55,6 +55,8 @@ Main (unreleased)
 
 - Fix a bug where a panic could occur when reloading custom components. (@wildum)
 
+- The `import.git` config block did not work with branches or tags this now fixes that behavior. (@mattdurham) 
+
 ### Other changes
 
 - Clustering for Grafana Agent in Flow mode has graduated from beta to stable.
