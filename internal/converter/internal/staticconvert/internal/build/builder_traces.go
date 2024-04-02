@@ -8,6 +8,7 @@ import (
 	"github.com/grafana/agent/internal/converter/internal/otelcolconvert"
 	"github.com/grafana/agent/internal/static/traces"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/connector/spanmetricsconnector"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusexporter"
 	otel_component "go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/exporter/loggingexporter"
 	"go.opentelemetry.io/collector/otelcol"
@@ -76,18 +77,12 @@ func (b *ConfigBuilder) translateSpanMetrics(otelCfg *otelcol.Config, cfg traces
 		return
 	}
 
-	// Initialize otel component IDs for readability further down
-	metricsID := otel_component.NewID("metrics")
-	spanmetricsID := otel_component.NewID("spanmetrics")
-	metricsSpanmetricsID := otel_component.NewIDWithName("metrics", "spanmetrics")
-	otlpId := otel_component.NewIDWithName("otlp", "0")
-
 	// Remove the custom otel components and delete the custom pipeline
 	removeProcessor(otelCfg, "traces", "spanmetrics")
 	removeReceiver(otelCfg, "metrics", "noop")
 	removeExporter(otelCfg, "metrics", "remote_write")
 	removeExporter(otelCfg, "metrics", "prometheus")
-	delete(otelCfg.Service.Pipelines, metricsSpanmetricsID)
+	delete(otelCfg.Service.Pipelines, otel_component.NewIDWithName("metrics", "spanmetrics"))
 
 	// If the spanmetrics configuration includes a handler_endpoint, we cannot convert it.
 	// This is intentionally after the section above which removes the custom spanmetrics processor
@@ -104,19 +99,28 @@ func (b *ConfigBuilder) translateSpanMetrics(otelCfg *otelcol.Config, cfg traces
 	}
 	otelCfg.Connectors[otel_component.NewID("spanmetrics")] = toSpanmetricsConnector(cfg.SpanMetrics)
 
-	// Add the spanmetrics connector to traces pipelines as an exporter
-	for ix, pipeline := range otelCfg.Service.Pipelines {
-		if ix.Type() != "traces" {
-			continue
-		}
-		pipeline.Exporters = append(pipeline.Exporters, spanmetricsID)
+	// Add the prometheus exporter to the otel config
+	prometheusID := otel_component.NewID("prometheus")
+	pe := prometheusexporter.NewFactory().CreateDefaultConfig().(*prometheusexporter.Config)
+	if cfg.SpanMetrics.ConstLabels != nil {
+		pe.ConstLabels = *cfg.SpanMetrics.ConstLabels
 	}
+	pe.Namespace = cfg.SpanMetrics.Namespace
+	pe.MetricExpiration = cfg.SpanMetrics.MetricsFlushInterval
+	otelCfg.Exporters[prometheusID] = pe
 
-	// Build a new metrics pipeline with the spanmetrics connector as the receiver
-	otelCfg.Service.Pipelines[metricsID] = &pipelines.PipelineConfig{}
-	otelCfg.Service.Pipelines[metricsID].Receivers = append(otelCfg.Service.Pipelines[metricsID].Receivers, spanmetricsID)
-	// TODO: replace this with the actual prometheus or remote_write exporter translation
-	otelCfg.Service.Pipelines[metricsID].Exporters = append(otelCfg.Service.Pipelines[metricsID].Exporters, otlpId)
+	// Add the spanmetrics connector to each traces pipelines as an exporter and create metrics pipelines
+	spanmetricsID := otel_component.NewID("spanmetrics")
+	for ix, pipeline := range otelCfg.Service.Pipelines {
+		if ix.Type() == "traces" {
+			pipeline.Exporters = append(pipeline.Exporters, spanmetricsID)
+
+			metricsId := otel_component.NewIDWithName("metrics", ix.Name())
+			otelCfg.Service.Pipelines[metricsId] = &pipelines.PipelineConfig{}
+			otelCfg.Service.Pipelines[metricsId].Receivers = append(otelCfg.Service.Pipelines[metricsId].Receivers, spanmetricsID)
+			otelCfg.Service.Pipelines[metricsId].Exporters = append(otelCfg.Service.Pipelines[metricsId].Exporters, prometheusID)
+		}
+	}
 }
 
 func toSpanmetricsConnector(cfg *traces.SpanMetricsConfig) *spanmetricsconnector.Config {
@@ -142,7 +146,6 @@ func toSpanmetricsConnector(cfg *traces.SpanMetricsConfig) *spanmetricsconnector
 
 	// TODO: decide how to handle these fields
 	// cfg.SpanMetrics.ConstLabels
-	// cfg.SpanMetrics.MetricsInstance
 
 	return smc
 }
