@@ -51,12 +51,12 @@ traces:
               type: always_sample
             },
           ]
-      # load_balancing:
-      #   resolver:
-      #     static:
-      #       hostnames:
-      #         - tempo1.example.com
-      #         - tempo2.example.com
+      load_balancing:
+        resolver:
+          static:
+            hostnames:
+              - tempo1.example.com
+              - tempo2.example.com
       # service_graphs:
       #   enabled: true
       jaeger_remote_sampling:
