@@ -75,7 +75,7 @@ func NewLoader(opts LoaderOptions) *Loader {
 		reg      = opts.ComponentRegistry
 	)
 
-	parent, id := path.Split(globals.ControllerID)
+	parent, id := splitPath(globals.ControllerID)
 
 	if reg == nil {
 		reg = NewDefaultComponentRegistry(opts.ComponentGlobals.MinStability)
@@ -909,4 +909,10 @@ func (l *Loader) collectCustomComponentReferences(stmts ast.Body, uniqueReferenc
 			uniqueReferences[importNode] = struct{}{}
 		}
 	}
+}
+
+func splitPath(id string) (string, string) {
+	parent, id := path.Split(id)
+	parent, _ = strings.CutSuffix(parent, "/")
+	return "/" + parent, id
 }
