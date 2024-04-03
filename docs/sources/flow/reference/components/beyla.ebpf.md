@@ -213,10 +213,10 @@ prometheus.remote_write "demo" {
 
 Replace the following:
 
-- `OPEN_PORT`: The port of the running service for Beyla automatically instrumented with eBPF.
-- `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
-- `USERNAME`: The username to use for authentication to the remote_write API.
-- `PASSWORD`: The password to use for authentication to the remote_write API.
+- _`<OPEN_PORT>`_: The port of the running service for Beyla automatically instrumented with eBPF.
+- _`<PROMETHEUS_REMOTE_WRITE_URL>`_: The URL of the Prometheus remote_write-compatible server to send metrics to.
+- _`<USERNAME>`_: The username to use for authentication to the remote_write API.
+- _`<PASSWORD>`_: The password to use for authentication to the remote_write API.
 
 [scrape]: {{< relref "./prometheus.scrape.md" >}}
 
