@@ -1,3 +1,14 @@
+prometheus.remote_write "metrics_remote_write_name" {
+	endpoint {
+		name = "remote_write_name-149bbd"
+		url  = "http://localhost:9009/api/prom/push"
+
+		queue_config { }
+
+		metadata_config { }
+	}
+}
+
 otelcol.extension.jaeger_remote_sampling "default_0" {
 	grpc { }
 
@@ -88,8 +99,27 @@ otelcol.processor.attributes "_0_default" {
 	output {
 		metrics = []
 		logs    = []
-		traces  = [otelcol.exporter.loadbalancing._0_default.input, otelcol.exporter.logging._0_default.input]
+		traces  = [otelcol.exporter.loadbalancing._0_default.input, otelcol.exporter.logging._0_default.input, otelcol.connector.spanmetrics._0_default.input]
 	}
+}
+
+prometheus.relabel "_0_default" {
+	forward_to = [prometheus.remote_write.metrics_remote_write_name.receiver]
+
+	rule {
+		target_label = "fizz"
+		replacement  = "buzz"
+	}
+
+	rule {
+		target_label = "foo"
+		replacement  = "bar"
+	}
+}
+
+otelcol.exporter.prometheus "_0_default" {
+	gc_frequency = "0s"
+	forward_to   = [prometheus.relabel._0_default.receiver]
 }
 
 otelcol.exporter.loadbalancing "_0_default" {
@@ -113,6 +143,17 @@ otelcol.exporter.loadbalancing "_0_default" {
 }
 
 otelcol.exporter.logging "_0_default" { }
+
+otelcol.connector.spanmetrics "_0_default" {
+	histogram {
+		explicit { }
+	}
+	namespace = "metrics_prefix"
+
+	output {
+		metrics = [otelcol.exporter.prometheus._0_default.input]
+	}
+}
 
 otelcol.receiver.otlp "_1_lb" {
 	grpc {
@@ -146,8 +187,27 @@ otelcol.processor.batch "_1_default" {
 	output {
 		metrics = []
 		logs    = []
-		traces  = [otelcol.exporter.otlp._1_0.input, otelcol.exporter.logging._1_default.input]
+		traces  = [otelcol.exporter.otlp._1_0.input, otelcol.exporter.logging._1_default.input, otelcol.connector.spanmetrics._1_default.input]
 	}
+}
+
+prometheus.relabel "_1_default" {
+	forward_to = [prometheus.remote_write.metrics_remote_write_name.receiver]
+
+	rule {
+		target_label = "fizz"
+		replacement  = "buzz"
+	}
+
+	rule {
+		target_label = "foo"
+		replacement  = "bar"
+	}
+}
+
+otelcol.exporter.prometheus "_1_default" {
+	gc_frequency = "0s"
+	forward_to   = [prometheus.relabel._1_default.receiver]
 }
 
 otelcol.exporter.otlp "_1_0" {
@@ -165,3 +225,14 @@ otelcol.exporter.otlp "_1_0" {
 }
 
 otelcol.exporter.logging "_1_default" { }
+
+otelcol.connector.spanmetrics "_1_default" {
+	histogram {
+		explicit { }
+	}
+	namespace = "metrics_prefix"
+
+	output {
+		metrics = [otelcol.exporter.prometheus._1_default.input]
+	}
+}

@@ -64,6 +64,8 @@ traces:
         - endpoint: http://localhost:1234/write
       automatic_logging:
         backend: "something else"
+      spanmetrics:
+        handler_endpoint: http://localhost:1234/write
 
 agent_management:
   host: host_name
