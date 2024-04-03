@@ -67,9 +67,6 @@ func TestLegacyConversion(t *testing.T) {
 		require.True(t, k.Path == "/tmp/random.log")
 		require.True(t, v == "17623")
 	}
-	// Ensure old file is deleted.
-	_, err = os.Stat(legacy)
-	require.True(t, os.IsNotExist(err))
 }
 
 func TestLegacyConversionWithNewFile(t *testing.T) {

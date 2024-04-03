@@ -36,6 +36,8 @@ Main (unreleased)
 
 - Added support for `otelcol` configuration conversion in `grafana-agent convert` and `grafana-agent run` commands. (@rfratto, @erikbaranowski, @tpaschalis, @hainenber)
 
+- Add automatic conversion for `legacy_positions_file` in component `loki.source.file`. (@mattdurham)
+
 ### Features
 
 - Added a new CLI flag `--stability.level` which defines the minimum stability
@@ -52,6 +54,10 @@ Main (unreleased)
 - Fix an issue where the default values of some component's arguments change
   whenever that argument is explicitly configured. This issue only affected a
   small subset of arguments across 15 components. (@erikbaranowski, @rfratto)
+
+- Fix a bug where a panic could occur when reloading custom components. (@wildum)
+
+- The `import.git` config block did not work with branches or tags this now fixes that behavior. (@mattdurham) 
 
 ### Other changes
 

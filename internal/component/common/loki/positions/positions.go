@@ -104,7 +104,6 @@ type LegacyFile struct {
 // ConvertLegacyPositionsFile will convert the legacy positions file to the new format if:
 // 1. There is no file at the newpath
 // 2. There is a file at the legacy path and that it is valid yaml
-// If all the above is true then the legacy file will be deleted.
 func ConvertLegacyPositionsFile(legacyPath, newPath string, l log.Logger) {
 	legacyPositions := readLegacyFile(legacyPath, l)
 	// LegacyPositions did not exist or was invalid so return.
@@ -131,9 +130,6 @@ func ConvertLegacyPositionsFile(legacyPath, newPath string, l log.Logger) {
 	if err != nil {
 		level.Error(l).Log("msg", "error writing new positions file from legacy", "path", newPath, "error", err)
 	}
-
-	// Finally remove the old path.
-	_ = os.Remove(legacyPath)
 }
 
 func readLegacyFile(legacyPath string, l log.Logger) *LegacyFile {
