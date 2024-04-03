@@ -218,7 +218,7 @@ Replace the following:
 - _`<USERNAME>`_: The username to use for authentication to the remote_write API.
 - _`<PASSWORD>`_: The password to use for authentication to the remote_write API.
 
-[scrape]: {{< relref "./prometheus.scrape.md" >}}
+[scrape]: ../prometheus.scrape/
 
 ### Traces
 
