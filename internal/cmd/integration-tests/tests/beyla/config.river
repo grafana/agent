@@ -1,0 +1,26 @@
+beyla.ebpf "default" {
+    open_port = 9001
+    output {}
+}
+
+prometheus.scrape "beyla" {
+  targets = beyla.ebpf.default.targets
+  forward_to = [prometheus.remote_write.beyla_metrics.receiver]
+  scrape_interval = "1s"
+  scrape_timeout = "500ms"
+}
+
+prometheus.remote_write "beyla_metrics" {
+  endpoint {
+    url = "http://localhost:9009/api/v1/push"
+    metadata_config {
+        send_interval = "1s"
+    }
+    queue_config {
+        max_samples_per_send = 100
+    }    
+  }
+  external_labels = {
+    test_name = "beyla_metrics",
+  }  
+}
