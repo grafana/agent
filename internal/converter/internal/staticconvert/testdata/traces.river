@@ -1,3 +1,14 @@
+prometheus.remote_write "metrics_remote_write_name" {
+	endpoint {
+		name = "remote_write_name-149bbd"
+		url  = "http://localhost:9009/api/prom/push"
+
+		queue_config { }
+
+		metadata_config { }
+	}
+}
+
 otelcol.extension.jaeger_remote_sampling "default_0" {
 	grpc { }
 
@@ -93,7 +104,7 @@ otelcol.processor.attributes "_0_default" {
 }
 
 prometheus.relabel "_0_default" {
-	forward_to = []
+	forward_to = [prometheus.remote_write.metrics_remote_write_name.receiver]
 
 	rule {
 		target_label = "foo"
@@ -137,6 +148,7 @@ otelcol.connector.spanmetrics "_0_default" {
 	histogram {
 		explicit { }
 	}
+	namespace = "metrics_prefix"
 
 	output {
 		metrics = [otelcol.exporter.prometheus._0_default.input]
@@ -180,7 +192,7 @@ otelcol.processor.batch "_1_default" {
 }
 
 prometheus.relabel "_1_default" {
-	forward_to = []
+	forward_to = [prometheus.remote_write.metrics_remote_write_name.receiver]
 
 	rule {
 		target_label = "foo"
@@ -218,6 +230,7 @@ otelcol.connector.spanmetrics "_1_default" {
 	histogram {
 		explicit { }
 	}
+	namespace = "metrics_prefix"
 
 	output {
 		metrics = [otelcol.exporter.prometheus._1_default.input]

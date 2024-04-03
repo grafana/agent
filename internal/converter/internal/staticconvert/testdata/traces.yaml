@@ -41,7 +41,8 @@ traces:
         - ip
         - net.host.ip
       spanmetrics:
-        metrics_instance: default
+        metrics_instance: remote_write_name
+        namespace: metrics_prefix
         const_labels:
           foo: bar
           fizz: buzz 
@@ -73,3 +74,5 @@ metrics:
   global:
     remote_write:
       - url: http://localhost:9009/api/prom/push
+  configs:
+    - name: remote_write_name

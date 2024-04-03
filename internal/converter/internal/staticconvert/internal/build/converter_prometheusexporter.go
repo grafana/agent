@@ -32,12 +32,13 @@ func (prometheusExporterConverter) InputComponentName() string {
 }
 
 func (prometheusExporterConverter) ConvertAndAppend(state *otelcolconvert.State, id component.InstanceID, cfg component.Config) diag.Diagnostics {
-	var exports *relabel.Exports
-	var forwardTo []storage.Appendable
 	label := state.FlowComponentLabel()
 
+	// We overloaded the ServerConfig.Endpoint field to be the prometheus.remote_write label
+	rwLabel := cfg.(*prometheusexporter.Config).ServerConfig.Endpoint
+	forwardTo := []storage.Appendable{common.ConvertAppendable{Expr: fmt.Sprintf("prometheus.remote_write.%s.receiver", rwLabel)}}
 	if len(cfg.(*prometheusexporter.Config).ConstLabels) > 0 {
-		exports = includeRelabelConfig(label, cfg, state)
+		exports := includeRelabelConfig(label, cfg, state, forwardTo)
 		forwardTo = []storage.Appendable{exports.Receiver}
 	}
 
@@ -54,13 +55,13 @@ func (prometheusExporterConverter) ConvertAndAppend(state *otelcolconvert.State,
 	return diags
 }
 
-func includeRelabelConfig(label string, cfg component.Config, state *otelcolconvert.State) *relabel.Exports {
+func includeRelabelConfig(label string, cfg component.Config, state *otelcolconvert.State, forwardTo []storage.Appendable) *relabel.Exports {
 	pb := build.NewPrometheusBlocks()
 
+	defaultRelabelConfigs := &flow_relabel.Config{}
+	defaultRelabelConfigs.SetToDefault()
 	relabelConfigs := []*prom_relabel.Config{}
 	for label, replacement := range cfg.(*prometheusexporter.Config).ConstLabels {
-		defaultRelabelConfigs := &flow_relabel.Config{}
-		defaultRelabelConfigs.SetToDefault()
 		relabelConfigs = append(relabelConfigs, &prom_relabel.Config{
 			Separator:   defaultRelabelConfigs.Separator,
 			Regex:       prom_relabel.Regexp(defaultRelabelConfigs.Regex),
@@ -71,7 +72,7 @@ func includeRelabelConfig(label string, cfg component.Config, state *otelcolconv
 		})
 	}
 
-	exports := prometheus_component.AppendPrometheusRelabel(pb, relabelConfigs, nil, label)
+	exports := prometheus_component.AppendPrometheusRelabel(pb, relabelConfigs, forwardTo, label)
 	pb.AppendToBody(state.Body())
 	return exports
 }

@@ -105,7 +105,8 @@ func (b *ConfigBuilder) translateSpanMetrics(otelCfg *otelcol.Config, cfg traces
 	if cfg.SpanMetrics.ConstLabels != nil {
 		pe.ConstLabels = *cfg.SpanMetrics.ConstLabels
 	}
-	pe.Namespace = cfg.SpanMetrics.Namespace
+	// Overload the ServerConfig.Endpoint with the MetricsInstance value
+	pe.ServerConfig.Endpoint = "metrics_" + cfg.SpanMetrics.MetricsInstance
 	pe.MetricExpiration = cfg.SpanMetrics.MetricsFlushInterval
 	otelCfg.Exporters[prometheusID] = pe
 
