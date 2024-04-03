@@ -103,7 +103,8 @@ Name | Type | Description                                               | Defaul
 `ignore_mode` | `string` | The mode to use when ignoring patterns. | | no
 `unmatched` | `string` | Specifies what to do when a trace HTTP path does not match any of the `patterns` entries | | no
 
-`patterns` and `ignored_patterns` are a list of patterns which a URL path with specific tags which allow for grouping path segments (or ignored them). The matcher tags can be in the `:name` or `{name}` format.
+`patterns` and `ignored_patterns` are a list of patterns which a URL path with specific tags which allow for grouping path segments (or ignored them).
+The matcher tags can be in the `:name` or `{name}` format.
 `ignore_mode` property are:
 - `all` will discard both metrics and traces which match the `ignored_patterns`.
 - `traces` will discard only the traces which match the `ignored_patterns`. No metric events will be ignored.
