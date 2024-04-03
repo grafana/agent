@@ -2,9 +2,13 @@
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/beyla.ebpf/
 description: Learn about beyla.ebpf
 title: beyla.ebpf
+labels:
+  stage: beta
 ---
 
 # beyla.ebpf
+
+{{< docs/shared lookup="flow/stability/beta.md" source="agent" version="<AGENT_VERSION>" >}}
 
 The `beyla.ebpf` component is used a wrapper of [Grafana Beyla][] which uses [eBPF][] to automatically inspect application executables and the OS networking layer, and capture trace spans related to web transactions and Rate Errors Duration (RED) metrics for Linux HTTP/S and gRPC services. The component can be configured to collect telemetry data from a specific port or executable path, and other criteria from Kubernetes metadata. The component exposes metrics which can be collected by a Prometheus scrape component, and traces which can be forwared to a OTEL exporter component.
 
