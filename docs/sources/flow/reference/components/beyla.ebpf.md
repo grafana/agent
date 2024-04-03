@@ -245,8 +245,10 @@ otelcol.exporter.otlp "default" {
 }
 ```
 
-- `OPEN_PORT`: The port of the running service for Beyla automatically instrumented with eBPF.
-- `OTLP_ENDPOINT`: The endpoint of the OpenTelemetry Collector to send traces to.
+Replace the following:
+
+- _`<OPEN_PORT>`_: The port of the running service for Beyla automatically instrumented with eBPF.
+- _`<OTLP_ENDPOINT>`_: The endpoint of the OpenTelemetry Collector to send traces to.
 
 <!-- START GENERATED COMPATIBLE COMPONENTS -->
 
