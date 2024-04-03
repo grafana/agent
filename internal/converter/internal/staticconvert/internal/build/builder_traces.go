@@ -39,6 +39,15 @@ func (b *ConfigBuilder) appendTraces() {
 		// Remove the push receiver which is an implementation detail for static mode and unnecessary for the otel config.
 		removeReceiver(otelCfg, "traces", "push_receiver")
 
+		// Remove the service_graphs processor which is an implementation detail for static mode and unnecessary for the otel config.
+		if _, ok := otelCfg.Processors[otel_component.NewID("service_graphs")]; ok {
+			removeProcessor(otelCfg, "traces", "service_graphs")
+			b.diags.Add(diag.SeverityLevelError, "The service_graphs processor for traces has no direct flow equivalent. "+
+				"This configuration appends metrics to the /metrics endpoint of the agent which is not possible in flow. "+
+				"Alternatively, you can use the otelcol.connector.servicegraph component to build a pipeline which generates "+
+				"and forwards service graph metrics.")
+		}
+
 		b.translateAutomaticLogging(otelCfg, cfg)
 		b.translateSpanMetrics(otelCfg, cfg)
 

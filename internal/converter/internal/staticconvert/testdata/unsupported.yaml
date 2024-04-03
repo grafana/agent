@@ -66,6 +66,8 @@ traces:
         backend: "something else"
       spanmetrics:
         handler_endpoint: http://localhost:1234/write
+      service_graphs:
+        enabled: true
 
 agent_management:
   host: host_name
