@@ -145,9 +145,6 @@ func toSpanmetricsConnector(cfg *traces.SpanMetricsConfig) *spanmetricsconnector
 		smc.Namespace = cfg.Namespace
 	}
 
-	// TODO: decide how to handle these fields
-	// cfg.SpanMetrics.ConstLabels
-
 	return smc
 }
 
