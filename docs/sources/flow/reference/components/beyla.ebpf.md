@@ -106,17 +106,17 @@ Name | Type | Description                                               | Defaul
 `patterns` and `ignored_patterns` are a list of patterns which a URL path with specific tags which allow for grouping path segments (or ignored them).
 The matcher tags can be in the `:name` or `{name}` format.
 `ignore_mode` properties are:
-- `all` will discard both metrics and traces which match the `ignored_patterns`.
-- `traces` will discard only the traces which match the `ignored_patterns`. No metric events will be ignored.
-- `metrics` will discard only the metrics which match the `ignored_patterns`. No trace events will be ignored.
-`unmatched` property are:
-- `unset` will leave the `http.route` property as unset.
-- `path` will copy the `http.route` field property to the path value.
-  - caution: this option could lead to cardinality explosion at the ingester side.
-- `wildcard` will set the `http.route` field property to a generic asterisk based `/**` value.
-- `heuristic` will automatically derive the `http.route` field property from the path value, based on the following rules:
-  - Any path components which have numbers or characters outside of the ASCII alphabet (or `-` and _), will be replaced by an asterisk `*`.
-  - Any alphabetical components which don’t look like words, will be replaced by an asterisk `*`.
+- `all` discards both metrics and traces that match the `ignored_patterns`.
+- `traces` discards only the traces that match the `ignored_patterns`. No metric events are ignored.
+- `metrics` discards only the metrics that match the `ignored_patterns`. No trace events are ignored.
+`unmatched` properties are:
+- `unset` leaves the `http.route` property as unset.
+- `path` copies the `http.route` field property to the path value.
+  - Caution: this option could lead to a cardinality explosion at the ingester side.
+- `wildcard` sets the `http.route` field property to a generic asterisk based `/**` value.
+- `heuristic` automatically derives the `http.route` field property from the path value, based on the following rules:
+  - Any path components that have numbers or characters outside of the ASCII alphabet (or `-` and _), are replaced by an asterisk `*`.
+  - Any alphabetical components that don’t look like words, are replaced by an asterisk `*`.
 
 
 ### discovery block
