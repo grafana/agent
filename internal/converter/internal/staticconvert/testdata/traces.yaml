@@ -60,8 +60,6 @@ traces:
             hostnames:
               - tempo1.example.com
               - tempo2.example.com
-      # service_graphs:
-      #   enabled: true
       jaeger_remote_sampling:
         - source:
             reload_interval: 30s
