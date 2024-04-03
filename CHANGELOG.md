@@ -18,6 +18,11 @@ Main (unreleased)
 - Remove the field `prune_interval_seconds` from the component `prometheus.exporter.kafka`. The interpolation table is now pruned
   on `metadata_refresh_interval`. (@wildum)
 
+- The following metrics exposed by the component `prometheus.exporter.kafka` have been renamed:
+  * kafka_consumergroup_uncommitted_offsets -> kafka_consumergroup_lag
+  * kafka_consumergroupzookeeper_uncommitted_offsets_zookeeper -> kafka_consumergroupzookeeper_lag
+  * kafka_consumergroup_lag_sum -> kafka_consumergroup_lag_sum (@wildum)
+
 - The default sync interval for `mimir.rules.kubernetes` has changed from `30s`
   to `5m` to reduce load on Mimir. (@56quarters)  
 
@@ -30,7 +35,8 @@ Main (unreleased)
   * show the offset/lag for all consumer group or only the connected ones
   * set the minimum number of topics to monitor
   * enable/disable auto-creation of requested topics if they don't already exist
-  * regex to exclude topics / groups (@wildum)
+  * regex to exclude topics / groups 
+  * added metric kafka_broker_info (@wildum)
 
 - Add support for importing folders as single module to `import.file`. (@wildum)
 

@@ -31,6 +31,13 @@ Other release notes for the different {{< param "PRODUCT_ROOT_NAME" >}} variants
 
 ## v0.41
 
+### Breaking change: Rename metrics exposed by `prometheus.exporter.kafka`.
+
+The following metrics exposed by the component `prometheus.exporter.kafka` have been renamed:
+  * kafka_consumergroup_uncommitted_offsets -> kafka_consumergroup_lag
+  * kafka_consumergroupzookeeper_uncommitted_offsets_zookeeper -> kafka_consumergroupzookeeper_lag
+  * kafka_consumergroup_lag_sum -> kafka_consumergroup_lag_sum
+
 ### Breaking change: Remove the field `prune_interval_seconds` from the component `prometheus.exporter.kafka`.
 
 `prune_interval_seconds` was used to set how frequently the interpolation table used for lag metrics should be pruned.
