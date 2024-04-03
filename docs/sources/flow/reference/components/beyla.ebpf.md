@@ -226,7 +226,7 @@ This example gets traces from `beyla.ebpf` and forwards them to `otlp`:
 
 ```river
 beyla.ebpf "default" {
-    open_port = OPEN_PORT
+    open_port = <OPEN_PORT>
     output {
         traces = [otelcol.processor.batch.default.input]
     }
