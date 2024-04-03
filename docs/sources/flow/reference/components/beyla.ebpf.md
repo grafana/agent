@@ -33,7 +33,8 @@ Name | Type | Description                                               | Defaul
 `excutable_name` | `string` | The name of the executable to match for Beyla automatically instrumented with eBPF. | | no
 
 
-`open_port` accepts a comma-separated list of ports (for example, `80,443`), and port ranges (for example, `8000-8999`). If the executable matching only one of the ports in the list, it is considered to match the selection criteria.
+`open_port` accepts a comma-separated list of ports (for example, `80,443`), and port ranges (for example, `8000-8999`).
+If the executable matches only one of the ports in the list, it is considered to match the selection criteria.
 
 `excutable_name` accepts a regular expression to be matched against the full executable command line, including the directory where the executable resides on the file system.
 
