@@ -63,6 +63,8 @@ Main (unreleased)
 
 - Fix an issue where JSON string array elements were not parsed correctly in `loki.source.cloudflare`. (@thampiotr)
 
+- Fix an issue where the azure exporter was not correctly gathering subscription scoped metrics when only one region was configured (@kgeckhart)
+
 - Update gcp_exporter to a newer version with a patch for incorrect delta histograms (@kgeckhart)
 
 - Fix an issue where the default values of some component's arguments change
