@@ -54,9 +54,6 @@ Main (unreleased)
 
 ### Features
 
-- Added a new CLI flag `--stability.level` which defines the minimum stability
-  level required for the features that the agent is allowed to use. Default is `experimental`. (@thampiotr)
-
 - A new `loki.rules.kubernetes` component that discovers `PrometheusRule` Kubernetes resources and loads them into a Loki Ruler instance. (@EStork09)
 
 ### Bugfixes
@@ -73,7 +70,7 @@ Main (unreleased)
 
 - Fix a bug where a panic could occur when reloading custom components. (@wildum)
 
-- The `import.git` config block did not work with branches or tags this now fixes that behavior. (@mattdurham) 
+- The `import.git` config block did not work with branches or tags this now fixes that behavior. (@mattdurham)
 
 - Fixed an issue where creating a `prometheus.exporter.postgres` component with
   multiple `data_source_names` would result in an error. (@thampiotr)
@@ -100,9 +97,9 @@ v0.40.3 (2024-03-14)
 - Upgrade to Go 1.22.1 (@thampiotr)
 
 - Upgrade from OpenTelemetry Collector v0.87.0 to v0.96.0:
-  * [ottl]: Fix bug where named parameters needed a space after the equal sign (`=`) 
+  * [ottl]: Fix bug where named parameters needed a space after the equal sign (`=`)
 https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/28511
-  * [exporters] Additional enqueue_failed metrics 
+  * [exporters] Additional enqueue_failed metrics
 https://github.com/open-telemetry/opentelemetry-collector/issues/8673
   * [otelcol.receiver.kafka]: Fix issue where counting number of logs emitted could cause panic
   * [otelcol.processor.k8sattributes]: The time format of k8s.pod.start_time attribute value migrated to RFC3339:
@@ -115,9 +112,9 @@ https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/26115
 https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/27451
   * [otelcol.connector.spanmetrics] A new `max_per_data_point` argument for exemplar generation.
   * https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/29242
-  * [ottl] Add IsBool Converter 
+  * [ottl] Add IsBool Converter
 https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/27897
-  * [otelcol.processor.tail_sampling] Optimize memory performance of tailsamplingprocessor 
+  * [otelcol.processor.tail_sampling] Optimize memory performance of tailsamplingprocessor
 https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/27889
   * [otelcol.connector.servicegraph] Add a `metrics_flush_interval` argument.
 https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/27679
@@ -137,7 +134,7 @@ https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/30162
 https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/30274
   * [ottl] Add Hour converter
 https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/29468
-  * [otelcol.connector.spanmetrics] A new `resource_metrics_key_attributes` argument to fix broken spanmetrics counters 
+  * [otelcol.connector.spanmetrics] A new `resource_metrics_key_attributes` argument to fix broken spanmetrics counters
   after a span producing service restart, when resource attributes contain dynamic/ephemeral values (e.g. process id).
 https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/29711
   * [ottl] Issue with the hash value of a match group in the replace_pattern editors
