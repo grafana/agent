@@ -1,9 +1,4 @@
 ---
-aliases:
-- /docs/grafana-cloud/agent/flow/reference/components/beyla.ebpf/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/beyla.ebpf/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/beyla.ebpf/
-- /docs/grafana-cloud/send-data/agent/flow/reference/components/beyla.ebpf/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/beyla.ebpf/
 description: Learn about beyla.ebpf
 title: beyla.ebpf
