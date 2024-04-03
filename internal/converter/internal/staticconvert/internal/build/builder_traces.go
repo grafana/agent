@@ -12,6 +12,10 @@ import (
 	"go.opentelemetry.io/collector/otelcol"
 )
 
+// List of component converters. This slice is appended to by init functions in
+// other files.
+var converters []otelcolconvert.ComponentConverter
+
 func (b *ConfigBuilder) appendTraces() {
 	if reflect.DeepEqual(b.cfg.Traces, traces.Config{}) {
 		return
@@ -24,17 +28,18 @@ func (b *ConfigBuilder) appendTraces() {
 			continue
 		}
 
-		// Remove the push receiver which is an implementation detail for static mode and unnecessary for the otel config.
-		removeReceiver(otelCfg, "traces", "push_receiver")
-
-		b.translateAutomaticLogging(otelCfg, cfg)
-
 		// Only prefix component labels if we are doing more than 1 trace config.
 		labelPrefix := ""
 		if len(b.cfg.Traces.Configs) > 1 {
 			labelPrefix = cfg.Name
 		}
-		b.diags.AddAll(otelcolconvert.AppendConfig(b.f, otelCfg, labelPrefix))
+
+		// Remove the push receiver which is an implementation detail for static mode and unnecessary for the otel config.
+		removeReceiver(otelCfg, "traces", "push_receiver")
+
+		b.translateAutomaticLogging(otelCfg, cfg)
+
+		b.diags.AddAll(otelcolconvert.AppendConfig(b.f, otelCfg, labelPrefix, converters))
 	}
 }
 
@@ -70,13 +75,19 @@ func removeReceiver(otelCfg *otelcol.Config, pipelineType otel_component.Type, r
 	}
 
 	delete(otelCfg.Receivers, otel_component.NewID(receiverType))
-	spr := make([]otel_component.ID, 0, len(otelCfg.Service.Pipelines[otel_component.NewID(pipelineType)].Receivers)-1)
-	for _, r := range otelCfg.Service.Pipelines[otel_component.NewID(pipelineType)].Receivers {
-		if r != otel_component.NewID(receiverType) {
-			spr = append(spr, r)
+	for ix, p := range otelCfg.Service.Pipelines {
+		if ix.Type() != pipelineType {
+			continue
 		}
+
+		spr := make([]otel_component.ID, 0)
+		for _, r := range p.Receivers {
+			if r.Type() != receiverType {
+				spr = append(spr, r)
+			}
+		}
+		otelCfg.Service.Pipelines[ix].Receivers = spr
 	}
-	otelCfg.Service.Pipelines[otel_component.NewID(pipelineType)].Receivers = spr
 }
 
 // removeProcessor removes a processor from the otel config for a specific pipeline type.
@@ -86,11 +97,17 @@ func removeProcessor(otelCfg *otelcol.Config, pipelineType otel_component.Type, 
 	}
 
 	delete(otelCfg.Processors, otel_component.NewID(processorType))
-	spr := make([]otel_component.ID, 0, len(otelCfg.Service.Pipelines[otel_component.NewID(pipelineType)].Processors)-1)
-	for _, r := range otelCfg.Service.Pipelines[otel_component.NewID(pipelineType)].Processors {
-		if r != otel_component.NewID(processorType) {
-			spr = append(spr, r)
+	for ix, p := range otelCfg.Service.Pipelines {
+		if ix.Type() != pipelineType {
+			continue
 		}
+
+		spr := make([]otel_component.ID, 0)
+		for _, r := range p.Processors {
+			if r.Type() != processorType {
+				spr = append(spr, r)
+			}
+		}
+		otelCfg.Service.Pipelines[ix].Processors = spr
 	}
-	otelCfg.Service.Pipelines[otel_component.NewID(pipelineType)].Processors = spr
 }

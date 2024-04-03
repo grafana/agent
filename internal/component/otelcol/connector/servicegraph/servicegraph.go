@@ -10,7 +10,6 @@ import (
 	"github.com/grafana/agent/internal/featuregate"
 	"github.com/grafana/river"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/connector/servicegraphconnector"
-	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/servicegraphprocessor"
 	otelcomponent "go.opentelemetry.io/collector/component"
 	otelextension "go.opentelemetry.io/collector/extension"
 )
@@ -54,6 +53,10 @@ type Arguments struct {
 	// the "processor.servicegraph.virtualNode" feature gate.
 	// VirtualNodePeerAttributes []string `river:"virtual_node_peer_attributes,attr,optional"`
 
+	// MetricsFlushInterval is the interval at which metrics are flushed to the exporter.
+	// If set to 0, metrics are flushed on every received batch of traces.
+	MetricsFlushInterval time.Duration `river:"metrics_flush_interval,attr,optional"`
+
 	// Output configures where to send processed data. Required.
 	Output *otelcol.ConsumerArguments `river:"output,block"`
 }
@@ -65,55 +68,56 @@ type StoreConfig struct {
 	TTL time.Duration `river:"ttl,attr,optional"`
 }
 
+func (sc *StoreConfig) SetToDefault() {
+	*sc = StoreConfig{
+		MaxItems: 1000,
+		TTL:      2 * time.Second,
+	}
+}
+
 var (
 	_ river.Validator = (*Arguments)(nil)
 	_ river.Defaulter = (*Arguments)(nil)
 )
 
-// DefaultArguments holds default settings for Arguments.
-var DefaultArguments = Arguments{
-	LatencyHistogramBuckets: []time.Duration{
-		2 * time.Millisecond,
-		4 * time.Millisecond,
-		6 * time.Millisecond,
-		8 * time.Millisecond,
-		10 * time.Millisecond,
-		50 * time.Millisecond,
-		100 * time.Millisecond,
-		200 * time.Millisecond,
-		400 * time.Millisecond,
-		800 * time.Millisecond,
-		1 * time.Second,
-		1400 * time.Millisecond,
-		2 * time.Second,
-		5 * time.Second,
-		10 * time.Second,
-		15 * time.Second,
-	},
-	Dimensions: []string{},
-	Store: StoreConfig{
-		MaxItems: 1000,
-		TTL:      2 * time.Second,
-	},
-	CacheLoop:           1 * time.Minute,
-	StoreExpirationLoop: 2 * time.Second,
-	//TODO: Add VirtualNodePeerAttributes when it's no longer controlled by
-	// the "processor.servicegraph.virtualNode" feature gate.
-	// VirtualNodePeerAttributes: []string{
-	// 	semconv.AttributeDBName,
-	// 	semconv.AttributeNetSockPeerAddr,
-	// 	semconv.AttributeNetPeerName,
-	// 	semconv.AttributeRPCService,
-	// 	semconv.AttributeNetSockPeerName,
-	// 	semconv.AttributeNetPeerName,
-	// 	semconv.AttributeHTTPURL,
-	// 	semconv.AttributeHTTPTarget,
-	// },
-}
-
 // SetToDefault implements river.Defaulter.
 func (args *Arguments) SetToDefault() {
-	*args = DefaultArguments
+	*args = Arguments{
+		LatencyHistogramBuckets: []time.Duration{
+			2 * time.Millisecond,
+			4 * time.Millisecond,
+			6 * time.Millisecond,
+			8 * time.Millisecond,
+			10 * time.Millisecond,
+			50 * time.Millisecond,
+			100 * time.Millisecond,
+			200 * time.Millisecond,
+			400 * time.Millisecond,
+			800 * time.Millisecond,
+			1 * time.Second,
+			1400 * time.Millisecond,
+			2 * time.Second,
+			5 * time.Second,
+			10 * time.Second,
+			15 * time.Second,
+		},
+		Dimensions:          []string{},
+		CacheLoop:           1 * time.Minute,
+		StoreExpirationLoop: 2 * time.Second,
+		//TODO: Add VirtualNodePeerAttributes when it's no longer controlled by
+		// the "processor.servicegraph.virtualNode" feature gate.
+		// VirtualNodePeerAttributes: []string{
+		// 	semconv.AttributeDBName,
+		// 	semconv.AttributeNetSockPeerAddr,
+		// 	semconv.AttributeNetPeerName,
+		// 	semconv.AttributeRPCService,
+		// 	semconv.AttributeNetSockPeerName,
+		// 	semconv.AttributeNetPeerName,
+		// 	semconv.AttributeHTTPURL,
+		// 	semconv.AttributeHTTPTarget,
+		// },
+	}
+	args.Store.SetToDefault()
 }
 
 // Validate implements river.Validator.
@@ -139,19 +143,20 @@ func (args *Arguments) Validate() error {
 
 // Convert implements connector.Arguments.
 func (args Arguments) Convert() (otelcomponent.Config, error) {
-	return &servicegraphprocessor.Config{
+	return &servicegraphconnector.Config{
 		// Never set a metric exporter.
 		// The consumer of metrics will be set via Otel's Connector API.
 		//
 		// MetricsExporter:         "",
 		LatencyHistogramBuckets: args.LatencyHistogramBuckets,
 		Dimensions:              args.Dimensions,
-		Store: servicegraphprocessor.StoreConfig{
+		Store: servicegraphconnector.StoreConfig{
 			MaxItems: args.Store.MaxItems,
 			TTL:      args.Store.TTL,
 		},
-		CacheLoop:           args.CacheLoop,
-		StoreExpirationLoop: args.StoreExpirationLoop,
+		CacheLoop:            args.CacheLoop,
+		StoreExpirationLoop:  args.StoreExpirationLoop,
+		MetricsFlushInterval: args.MetricsFlushInterval,
 		//TODO: Add VirtualNodePeerAttributes when it's no longer controlled by
 		// the "processor.servicegraph.virtualNode" feature gate.
 		// VirtualNodePeerAttributes: args.VirtualNodePeerAttributes,

@@ -17,6 +17,10 @@ weight: 100
 
 The `convert` command converts a supported configuration format to {{< param "PRODUCT_NAME" >}} River format.
 
+{{< admonition type="caution" >}}
+This command has no backward compatibility guarantees and may change or be removed between releases.
+{{< /admonition >}}
+
 ## Usage
 
 Usage:
@@ -44,12 +48,13 @@ The following flags are supported:
 
 * `--report`, `-r`: The filepath and filename where the report is written.
 
-* `--source-format`, `-f`: Required. The format of the source file. Supported formats: [prometheus], [promtail], [static].
+* `--source-format`, `-f`: Required. The format of the source file. Supported formats: [otelcol], [prometheus], [promtail], [static].
 
 * `--bypass-errors`, `-b`: Enable bypassing errors when converting.
 
 * `--extra-args`, `e`: Extra arguments from the original format used by the converter.
 
+[otelcol]: #opentelemetry-collector
 [prometheus]: #prometheus
 [promtail]: #promtail
 [static]: #static
@@ -68,6 +73,17 @@ Errors are defined as non-critical issues identified during the conversion
 where an output can still be generated. These can be bypassed using the
 `--bypass-errors` flag.
 
+### OpenTelemetry Collector
+
+You can use the `--source-format=otelcol` to convert the source configuration from an [OpenTelemetry Collector](https://opentelemetry.io/docs/collector/configuration/) to a {{< param "PRODUCT_NAME" >}} configuration.
+
+Many OpenTelemetry Collector components are supported.
+Review the `otelcol.*` component information in the [Component Reference][] for more information about `otelcol` components that you can convert.
+If a source configuration has unsupported features, you will receive [errors] when you convert it to a flow configuration.
+The converter raises warnings for configuration options that may require your attention.
+
+Refer to [Migrate from OpenTelemetry Collector to {{< param "PRODUCT_NAME" >}}][migrate-otelcol] for a detailed migration guide.
+
 ### Prometheus
 
 Using the `--source-format=prometheus` will convert the source configuration from
@@ -82,7 +98,7 @@ This includes Prometheus features such as
 and many supported *_sd_configs. Unsupported features in a source configuration result
 in [errors].
 
-Refer to [Migrate from Prometheus to {{< param "PRODUCT_NAME" >}}]({{< relref "../../tasks/migrate/from-prometheus/" >}}) for a detailed migration guide.
+Refer to [Migrate from Prometheus to {{< param "PRODUCT_NAME" >}}][migrate-prometheus] for a detailed migration guide.
 
 ### Promtail
 
@@ -96,21 +112,28 @@ are supported and can be converted to {{< param "PRODUCT_NAME" >}} configuration
 If you have unsupported features in a source configuration, you will receive [errors] when you convert to a flow configuration. The converter will
 also raise warnings for configuration options that may require your attention.
 
-Refer to [Migrate from Promtail to {{< param "PRODUCT_NAME" >}}]({{< relref "../../tasks/migrate/from-promtail/" >}}) for a detailed migration guide.
+Refer to [Migrate from Promtail to {{< param "PRODUCT_NAME" >}}][migrate-promtail] for a detailed migration guide.
 
 ### Static
 
 Using the `--source-format=static` will convert the source configuration from a
-[Grafana Agent Static]({{< relref "../../../static" >}}) configuration to a {{< param "PRODUCT_NAME" >}} configuration.
+[Grafana Agent Static][] configuration to a {{< param "PRODUCT_NAME" >}} configuration.
 
 Include `--extra-args` for passing additional command line flags from the original format.
 For example, `--extra-args="-enable-features=integrations-next"` will convert a Grafana Agent Static
-[integrations-next]({{< relref "../../../static/configuration/integrations/integrations-next/" >}})
-configuration to a {{< param "PRODUCT_NAME" >}} configuration. You can also
+[integrations-next][] configuration to a {{< param "PRODUCT_NAME" >}} configuration. You can also
 expand environment variables with `--extra-args="-config.expand-env"`. You can combine multiple command line
 flags with a space between each flag, for example `--extra-args="-enable-features=integrations-next -config.expand-env"`.
 
 If you have unsupported features in a Static mode source configuration, you will receive [errors][] when you convert to a Flow mode configuration. The converter will
 also raise warnings for configuration options that may require your attention.
 
-Refer to [Migrate from Grafana Agent Static to {{< param "PRODUCT_NAME" >}}]({{< relref "../../tasks/migrate/from-static/" >}}) for a detailed migration guide.
+Refer to [Migrate from Grafana Agent Static to {{< param "PRODUCT_NAME" >}}][migrate-static] for a detailed migration guide.
+
+[Component Reference]: ../../components/
+[migrate-otelcol]: ../../../tasks/migrate/from-otelcol/
+[migrate-prometheus]: ../../../tasks/migrate/from-prometheus/
+[migrate-promtail]: ../../../tasks/migrate/from-promtail/
+[migrate-static]: ../../../tasks/migrate/from-static/
+[Grafana Agent Static]: ../../../../static/
+[integrations-next]: ../../../../static/configuration/integrations/integrations-next/

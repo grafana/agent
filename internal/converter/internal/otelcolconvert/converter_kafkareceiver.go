@@ -26,7 +26,7 @@ func (kafkaReceiverConverter) Factory() component.Factory { return kafkareceiver
 
 func (kafkaReceiverConverter) InputComponentName() string { return "" }
 
-func (kafkaReceiverConverter) ConvertAndAppend(state *state, id component.InstanceID, cfg component.Config) diag.Diagnostics {
+func (kafkaReceiverConverter) ConvertAndAppend(state *State, id component.InstanceID, cfg component.Config) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	label := state.FlowComponentLabel()
@@ -36,14 +36,14 @@ func (kafkaReceiverConverter) ConvertAndAppend(state *state, id component.Instan
 
 	diags.Add(
 		diag.SeverityLevelInfo,
-		fmt.Sprintf("Converted %s into %s", stringifyInstanceID(id), stringifyBlock(block)),
+		fmt.Sprintf("Converted %s into %s", StringifyInstanceID(id), StringifyBlock(block)),
 	)
 
 	state.Body().AppendBlock(block)
 	return diags
 }
 
-func toKafkaReceiver(state *state, id component.InstanceID, cfg *kafkareceiver.Config) *kafka.Arguments {
+func toKafkaReceiver(state *State, id component.InstanceID, cfg *kafkareceiver.Config) *kafka.Arguments {
 	var (
 		nextMetrics = state.Next(id, component.DataTypeMetrics)
 		nextLogs    = state.Next(id, component.DataTypeLogs)
@@ -59,6 +59,8 @@ func toKafkaReceiver(state *state, id component.InstanceID, cfg *kafkareceiver.C
 		ClientID:        cfg.ClientID,
 		InitialOffset:   cfg.InitialOffset,
 
+		ResolveCanonicalBootstrapServersOnly: cfg.ResolveCanonicalBootstrapServersOnly,
+
 		Authentication:   toKafkaAuthentication(encodeMapstruct(cfg.Authentication)),
 		Metadata:         toKafkaMetadata(cfg.Metadata),
 		AutoCommit:       toKafkaAutoCommit(cfg.AutoCommit),
@@ -68,9 +70,9 @@ func toKafkaReceiver(state *state, id component.InstanceID, cfg *kafkareceiver.C
 		DebugMetrics: common.DefaultValue[kafka.Arguments]().DebugMetrics,
 
 		Output: &otelcol.ConsumerArguments{
-			Metrics: toTokenizedConsumers(nextMetrics),
-			Logs:    toTokenizedConsumers(nextLogs),
-			Traces:  toTokenizedConsumers(nextTraces),
+			Metrics: ToTokenizedConsumers(nextMetrics),
+			Logs:    ToTokenizedConsumers(nextLogs),
+			Traces:  ToTokenizedConsumers(nextTraces),
 		},
 	}
 }

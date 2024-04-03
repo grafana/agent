@@ -2,7 +2,6 @@ loki.source.windowsevent "fun" {
 	locale                 = 1033
 	eventlog_name          = "Application"
 	xpath_query            = "Event/System[EventID=1000]"
-	bookmark_path          = "C:/Users/username/Desktop/bookmark.txt"
 	poll_interval          = "10s"
 	exclude_event_data     = true
 	exclude_user_data      = true
@@ -13,6 +12,7 @@ loki.source.windowsevent "fun" {
 		host = "localhost",
 		job  = "windows",
 	}
+	legacy_bookmark_path = "C:/Users/username/Desktop/bookmark.txt"
 }
 
 loki.write "default" {

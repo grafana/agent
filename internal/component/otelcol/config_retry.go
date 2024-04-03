@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/grafana/river"
-	otelexporterhelper "go.opentelemetry.io/collector/exporter/exporterhelper"
+	"go.opentelemetry.io/collector/config/configretry"
 )
 
 // RetryArguments holds shared settings for components which can retry
@@ -24,19 +24,16 @@ var (
 	_ river.Validator = (*RetryArguments)(nil)
 )
 
-// DefaultRetryArguments holds default settings for RetryArguments.
-var DefaultRetryArguments = RetryArguments{
-	Enabled:             true,
-	InitialInterval:     5 * time.Second,
-	RandomizationFactor: 0.5,
-	Multiplier:          1.5,
-	MaxInterval:         30 * time.Second,
-	MaxElapsedTime:      5 * time.Minute,
-}
-
 // SetToDefault implements river.Defaulter.
 func (args *RetryArguments) SetToDefault() {
-	*args = DefaultRetryArguments
+	*args = RetryArguments{
+		Enabled:             true,
+		InitialInterval:     5 * time.Second,
+		RandomizationFactor: 0.5,
+		Multiplier:          1.5,
+		MaxInterval:         30 * time.Second,
+		MaxElapsedTime:      5 * time.Minute,
+	}
 }
 
 // Validate returns an error if args is invalid.
@@ -53,12 +50,12 @@ func (args *RetryArguments) Validate() error {
 }
 
 // Convert converts args into the upstream type.
-func (args *RetryArguments) Convert() *otelexporterhelper.RetrySettings {
+func (args *RetryArguments) Convert() *configretry.BackOffConfig {
 	if args == nil {
 		return nil
 	}
 
-	return &otelexporterhelper.RetrySettings{
+	return &configretry.BackOffConfig{
 		Enabled:             args.Enabled,
 		InitialInterval:     args.InitialInterval,
 		RandomizationFactor: args.RandomizationFactor,
