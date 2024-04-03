@@ -35,6 +35,10 @@ v0.40.4 (2024-04-12)
 
 ### Bugfixes
 
+- Fix an issue where JSON string array elements were not parsed correctly in `loki.source.cloudflare`. (@thampiotr)
+
+- Fix an issue where the azure exporter was not correctly gathering subscription scoped metrics when only one region was configured (@kgeckhart)
+
 - Update gcp_exporter to a newer version with a patch for incorrect delta histograms (@kgeckhart)
 
 v0.40.3 (2024-03-14)
