@@ -18,8 +18,8 @@ To run this component, {{< param "PRODUCT_NAME" >}} requires administrative (`su
 ## Usage
 
 ```river
-beyla.ebpf "LABEL" {
- 
+beyla.ebpf "<LABEL>" {
+
 }
 ```
 
