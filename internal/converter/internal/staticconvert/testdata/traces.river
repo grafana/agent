@@ -107,13 +107,13 @@ prometheus.relabel "_0_default" {
 	forward_to = [prometheus.remote_write.metrics_remote_write_name.receiver]
 
 	rule {
-		target_label = "foo"
-		replacement  = "bar"
+		target_label = "fizz"
+		replacement  = "buzz"
 	}
 
 	rule {
-		target_label = "fizz"
-		replacement  = "buzz"
+		target_label = "foo"
+		replacement  = "bar"
 	}
 }
 
@@ -195,13 +195,13 @@ prometheus.relabel "_1_default" {
 	forward_to = [prometheus.remote_write.metrics_remote_write_name.receiver]
 
 	rule {
-		target_label = "foo"
-		replacement  = "bar"
+		target_label = "fizz"
+		replacement  = "buzz"
 	}
 
 	rule {
-		target_label = "fizz"
-		replacement  = "buzz"
+		target_label = "foo"
+		replacement  = "bar"
 	}
 }
 
