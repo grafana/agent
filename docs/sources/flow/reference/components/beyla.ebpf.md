@@ -191,7 +191,7 @@ the specified port:
 
 ```river
 beyla.ebpf "default" {
-    open_port = OPEN_PORT
+    open_port = <OPEN_PORT>
 }
 
 prometheus.scrape "beyla" {
