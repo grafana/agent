@@ -128,7 +128,8 @@ Contains the following blocks:
 
 ### services block
 
-In some scenarios, Beyla will instrument a big variety of services; for example, as a Kubernetes DaemonSet that instruments all the services in a node. This block allows you to filter the services to instrument based on their metadata.
+In some scenarios, Beyla will instrument a big variety of services, for example, as a Kubernetes DaemonSet that instruments all the services in a node.
+This block allows you to filter the services to instrument based on their metadata.
 
 Name | Type | Description                                               | Default | Required
 ---- | ---- |-----------------------------------------------------------| ------- | --------
