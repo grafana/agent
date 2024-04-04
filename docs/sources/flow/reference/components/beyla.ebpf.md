@@ -52,7 +52,7 @@ Hierarchy | Block | Description | Required
 --------- | ----- | ----------- | --------
 routes | [routes][] | Configures the routes to match HTTP paths into user-provided HTTP routes. | no
 attributes | [attributes][] | Configures the Beyla attributes for the component. | no
-attributes > kubernetes | [kubernetes][] | Configures decorationg of the metrics and traces with Kubernetes metadata of the instrumented Pods. | no
+attributes > kubernetes | [kubernetes][] | Configures decorating of the metrics and traces with Kubernetes metadata of the instrumented Pods. | no
 discovery | [discovery][] | Configures the discovery for instrumentable processes matching a given criteria. | no
 discovery > services | [services][] | Configures the discovery for the component. | no
 output | [output][] | Configures where to send received telemetry data. | yes
