@@ -54,6 +54,8 @@ Main (unreleased)
 
 - Add automatic conversion for `legacy_positions_file` in component `loki.source.file`. (@mattdurham)
 
+- Propagate request metadata for `faro.receiver` to downstream components. (@hainenber)
+
 ### Features
 
 - A new `loki.rules.kubernetes` component that discovers `PrometheusRule` Kubernetes resources and loads them into a Loki Ruler instance. (@EStork09)
@@ -75,7 +77,7 @@ Main (unreleased)
   whenever that argument is explicitly configured. This issue only affected a
   small subset of arguments across 15 components. (@erikbaranowski, @rfratto)
 
-- Fix panic when fanning out to invalid receivers. (@hainenber) 
+- Fix panic when fanning out to invalid receivers. (@hainenber)
 
 - Fix a bug where a panic could occur when reloading custom components. (@wildum)
 
