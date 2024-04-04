@@ -168,9 +168,7 @@ type InstanceConfig struct {
 // Hides the value of the string during marshaling.
 type SecretString string
 
-var (
-	_ yaml.Marshaler = (*SecretString)(nil)
-)
+var _ yaml.Marshaler = (*SecretString)(nil)
 
 // MarshalYAML implements yaml.Marshaler.
 func (s SecretString) MarshalYAML() (interface{}, error) {
@@ -182,9 +180,7 @@ func (s SecretString) MarshalYAML() (interface{}, error) {
 // ReceiverMap will marshal as YAML to the text "<secret>".
 type JaegerRemoteSamplingConfig map[string]interface{}
 
-var (
-	_ yaml.Marshaler = (*JaegerRemoteSamplingConfig)(nil)
-)
+var _ yaml.Marshaler = (*JaegerRemoteSamplingConfig)(nil)
 
 // MarshalYAML implements yaml.Marshaler.
 func (jrsm JaegerRemoteSamplingConfig) MarshalYAML() (interface{}, error) {
@@ -1024,7 +1020,7 @@ func otelcolConfigFromStringMap(otelMapStructure map[string]interface{}, factori
 func validateConfigFromFactories(factories otelcol.Factories) error {
 	var errs error
 
-	//TODO: We should not use componenttest in non-test code
+	// TODO: We should not use componenttest in non-test code
 	for _, factory := range factories.Receivers {
 		errs = multierr.Append(errs, componenttest.CheckConfigStruct(factory.CreateDefaultConfig()))
 	}

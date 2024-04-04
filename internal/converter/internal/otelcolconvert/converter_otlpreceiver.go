@@ -26,7 +26,7 @@ func (otlpReceiverConverter) Factory() component.Factory { return otlpreceiver.N
 
 func (otlpReceiverConverter) InputComponentName() string { return "" }
 
-func (otlpReceiverConverter) ConvertAndAppend(state *state, id component.InstanceID, cfg component.Config) diag.Diagnostics {
+func (otlpReceiverConverter) ConvertAndAppend(state *State, id component.InstanceID, cfg component.Config) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	label := state.FlowComponentLabel()
@@ -36,14 +36,14 @@ func (otlpReceiverConverter) ConvertAndAppend(state *state, id component.Instanc
 
 	diags.Add(
 		diag.SeverityLevelInfo,
-		fmt.Sprintf("Converted %s into %s", stringifyInstanceID(id), stringifyBlock(block)),
+		fmt.Sprintf("Converted %s into %s", StringifyInstanceID(id), StringifyBlock(block)),
 	)
 
 	state.Body().AppendBlock(block)
 	return diags
 }
 
-func toOtelcolReceiverOTLP(state *state, id component.InstanceID, cfg *otlpreceiver.Config) *otlp.Arguments {
+func toOtelcolReceiverOTLP(state *State, id component.InstanceID, cfg *otlpreceiver.Config) *otlp.Arguments {
 	var (
 		nextMetrics = state.Next(id, component.DataTypeMetrics)
 		nextLogs    = state.Next(id, component.DataTypeLogs)
@@ -57,9 +57,9 @@ func toOtelcolReceiverOTLP(state *state, id component.InstanceID, cfg *otlprecei
 		DebugMetrics: common.DefaultValue[otlp.Arguments]().DebugMetrics,
 
 		Output: &otelcol.ConsumerArguments{
-			Metrics: toTokenizedConsumers(nextMetrics),
-			Logs:    toTokenizedConsumers(nextLogs),
-			Traces:  toTokenizedConsumers(nextTraces),
+			Metrics: ToTokenizedConsumers(nextMetrics),
+			Logs:    ToTokenizedConsumers(nextLogs),
+			Traces:  ToTokenizedConsumers(nextTraces),
 		},
 	}
 }
