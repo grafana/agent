@@ -73,6 +73,8 @@ Main (unreleased)
   whenever that argument is explicitly configured. This issue only affected a
   small subset of arguments across 15 components. (@erikbaranowski, @rfratto)
 
+- Fix panic when fanning out to invalid receivers. (@hainenber) 
+
 - Fix a bug where a panic could occur when reloading custom components. (@wildum)
 
 - The `import.git` config block did not work with branches or tags this now fixes that behavior. (@mattdurham)
