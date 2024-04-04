@@ -70,9 +70,9 @@ The `>` symbol indicates deeper levels of nesting. For example,
 
 ### attributes block
 
-Allows configuring how some attributes for metrics and traces are decorated.
+This block allows you to configure how some attributes for metrics and traces are decorated.
 
-Contains the following blocks:
+It contains the following blocks:
 [kubernetes]: #kubernetes-block
 
 #### kubernetes block
