@@ -112,7 +112,7 @@ Name | Type | Description                                               | Defaul
 `patterns` and `ignored_patterns` are a list of patterns which a URL path with specific tags which allow for grouping path segments (or ignored them).
 The matcher tags can be in the `:name` or `{name}` format.
 `ignore_mode` properties are:
-- `all` discards both metrics and traces that match the `ignored_patterns`.
+- `all` discards metrics and traces matching the `ignored_patterns`.
 - `traces` discards only the traces that match the `ignored_patterns`. No metric events are ignored.
 - `metrics` discards only the metrics that match the `ignored_patterns`. No trace events are ignored.
 `unmatched` properties are:
