@@ -161,7 +161,7 @@ Name      | Type                     | Description                           | D
 
 You must specify the `output` block, but all its arguments are optional.
 By default, telemetry data is dropped.
-Configure the `traces` argument accordingly to send traces data to other components.
+Configure the `traces` argument to send traces data to other components.
 
 ## Exported fields
 
