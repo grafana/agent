@@ -151,7 +151,7 @@ Name | Type | Description                                               | Defaul
 
 ### output block
 
-The `output` block configures a set of components to forward resulting telemetry data to.
+The `output` block configures a set of components to forward the resulting telemetry data to.
 
 The following arguments are supported:
 
