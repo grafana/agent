@@ -21,7 +21,7 @@ Main (unreleased)
 - The following metrics exposed by the component `prometheus.exporter.kafka` have been renamed:
   * kafka_consumergroup_uncommitted_offsets -> kafka_consumergroup_lag
   * kafka_consumergroupzookeeper_uncommitted_offsets_zookeeper -> kafka_consumergroupzookeeper_lag
-  * kafka_consumergroup_lag_sum -> kafka_consumergroup_lag_sum (@wildum)
+  * kafka_consumergroup_uncommitted_offsets_sum -> kafka_consumergroup_lag_sum (@wildum)
 
 - The default sync interval for `mimir.rules.kubernetes` has changed from `30s`
   to `5m` to reduce load on Mimir. (@56quarters)  

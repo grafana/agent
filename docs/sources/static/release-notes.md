@@ -41,7 +41,7 @@ For a complete list of changes to Grafana Agent, with links to pull requests and
 The following metrics exposed by the component `prometheus.exporter.kafka` have been renamed:
   * kafka_consumergroup_uncommitted_offsets -> kafka_consumergroup_lag
   * kafka_consumergroupzookeeper_uncommitted_offsets_zookeeper -> kafka_consumergroupzookeeper_lag
-  * kafka_consumergroup_lag_sum -> kafka_consumergroup_lag_sum
+  * kafka_consumergroup_uncommitted_offsets_sum -> kafka_consumergroup_lag_sum
 
 ### Breaking change: Remove the field `prune_interval_seconds` from the component `prometheus.exporter.kafka`.
 
