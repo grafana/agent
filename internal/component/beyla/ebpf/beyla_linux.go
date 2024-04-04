@@ -123,7 +123,7 @@ func (c *Component) Run(ctx context.Context) error {
 		case <-ctx.Done():
 			return nil
 		case <-c.reload:
-			// cancel any previously running exporter
+			// cancel any previously running Beyla instance
 			if cancel != nil {
 				cancel()
 			}
@@ -138,6 +138,7 @@ func (c *Component) Run(ctx context.Context) error {
 				c.mut.Unlock()
 				continue
 			}
+			c.reportHealthy()
 			cfg.Prometheus.Registry = c.reg
 			c.mut.Unlock()
 			components.RunBeyla(newCtx, cfg)
@@ -186,6 +187,15 @@ func (c *Component) reportUnhealthy(err error) {
 	c.health = component.Health{
 		Health:     component.HealthTypeUnhealthy,
 		Message:    err.Error(),
+		UpdateTime: time.Now(),
+	}
+}
+
+func (c *Component) reportHealthy() {
+	c.healthMut.Lock()
+	defer c.healthMut.Unlock()
+	c.health = component.Health{
+		Health:     component.HealthTypeHealthy,
 		UpdateTime: time.Now(),
 	}
 }
