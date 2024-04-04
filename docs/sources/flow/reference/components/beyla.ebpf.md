@@ -119,7 +119,7 @@ The matcher tags can be in the `:name` or `{name}` format.
 - `unset` leaves the `http.route` property as unset.
 - `path` copies the `http.route` field property to the path value.
   - Caution: This option could lead to a cardinality explosion on the ingester side.
-- `wildcard` sets the `http.route` field property to a generic asterisk based `/**` value.
+- `wildcard` sets the `http.route` field property to a generic asterisk-based `/**` value.
 - `heuristic` automatically derives the `http.route` field property from the path value based on the following rules:
   - Any path components that have numbers or characters outside of the ASCII alphabet (or `-` and _), are replaced by an asterisk `*`.
   - Any alphabetical components that don’t look like words are replaced by an asterisk `*`.
