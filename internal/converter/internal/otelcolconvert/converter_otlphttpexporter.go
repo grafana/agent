@@ -30,7 +30,7 @@ func (otlpHTTPExporterConverter) InputComponentName() string {
 	return "otelcol.exporter.otlphttp"
 }
 
-func (otlpHTTPExporterConverter) ConvertAndAppend(state *state, id component.InstanceID, cfg component.Config) diag.Diagnostics {
+func (otlpHTTPExporterConverter) ConvertAndAppend(state *State, id component.InstanceID, cfg component.Config) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	label := state.FlowComponentLabel()
@@ -48,7 +48,7 @@ func (otlpHTTPExporterConverter) ConvertAndAppend(state *state, id component.Ins
 
 	diags.Add(
 		diag.SeverityLevelInfo,
-		fmt.Sprintf("Converted %s into %s", stringifyInstanceID(id), stringifyBlock(block)),
+		fmt.Sprintf("Converted %s into %s", StringifyInstanceID(id), StringifyBlock(block)),
 	)
 
 	state.Body().AppendBlock(block)

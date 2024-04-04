@@ -31,7 +31,7 @@ func (otlpExporterConverter) Factory() component.Factory {
 
 func (otlpExporterConverter) InputComponentName() string { return "otelcol.exporter.otlp" }
 
-func (otlpExporterConverter) ConvertAndAppend(state *state, id component.InstanceID, cfg component.Config) diag.Diagnostics {
+func (otlpExporterConverter) ConvertAndAppend(state *State, id component.InstanceID, cfg component.Config) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	label := state.FlowComponentLabel()
@@ -49,7 +49,7 @@ func (otlpExporterConverter) ConvertAndAppend(state *state, id component.Instanc
 
 	diags.Add(
 		diag.SeverityLevelInfo,
-		fmt.Sprintf("Converted %s into %s", stringifyInstanceID(id), stringifyBlock(block)),
+		fmt.Sprintf("Converted %s into %s", StringifyInstanceID(id), StringifyBlock(block)),
 	)
 
 	state.Body().AppendBlock(block)

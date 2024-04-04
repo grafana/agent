@@ -22,7 +22,7 @@ func (vcenterReceiverConverter) Factory() component.Factory { return vcenterrece
 
 func (vcenterReceiverConverter) InputComponentName() string { return "" }
 
-func (vcenterReceiverConverter) ConvertAndAppend(state *state, id component.InstanceID, cfg component.Config) diag.Diagnostics {
+func (vcenterReceiverConverter) ConvertAndAppend(state *State, id component.InstanceID, cfg component.Config) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	label := state.FlowComponentLabel()
@@ -32,14 +32,14 @@ func (vcenterReceiverConverter) ConvertAndAppend(state *state, id component.Inst
 
 	diags.Add(
 		diag.SeverityLevelInfo,
-		fmt.Sprintf("Converted %s into %s", stringifyInstanceID(id), stringifyBlock(block)),
+		fmt.Sprintf("Converted %s into %s", StringifyInstanceID(id), StringifyBlock(block)),
 	)
 
 	state.Body().AppendBlock(block)
 	return diags
 }
 
-func toVcenterReceiver(state *state, id component.InstanceID, cfg *vcenterreceiver.Config) *vcenter.Arguments {
+func toVcenterReceiver(state *State, id component.InstanceID, cfg *vcenterreceiver.Config) *vcenter.Arguments {
 	var (
 		nextMetrics = state.Next(id, component.DataTypeMetrics)
 		nextTraces  = state.Next(id, component.DataTypeTraces)
@@ -63,8 +63,8 @@ func toVcenterReceiver(state *state, id component.InstanceID, cfg *vcenterreceiv
 		TLS: toTLSClientArguments(cfg.TLSClientSetting),
 
 		Output: &otelcol.ConsumerArguments{
-			Metrics: toTokenizedConsumers(nextMetrics),
-			Traces:  toTokenizedConsumers(nextTraces),
+			Metrics: ToTokenizedConsumers(nextMetrics),
+			Traces:  ToTokenizedConsumers(nextTraces),
 		},
 	}
 }

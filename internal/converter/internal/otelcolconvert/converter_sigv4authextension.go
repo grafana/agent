@@ -24,7 +24,7 @@ func (sigV4AuthExtensionConverter) InputComponentName() string {
 	return "otelcol.auth.sigv4"
 }
 
-func (sigV4AuthExtensionConverter) ConvertAndAppend(state *state, id component.InstanceID, cfg component.Config) diag.Diagnostics {
+func (sigV4AuthExtensionConverter) ConvertAndAppend(state *State, id component.InstanceID, cfg component.Config) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	label := state.FlowComponentLabel()
@@ -34,7 +34,7 @@ func (sigV4AuthExtensionConverter) ConvertAndAppend(state *state, id component.I
 
 	diags.Add(
 		diag.SeverityLevelInfo,
-		fmt.Sprintf("Converted %s into %s", stringifyInstanceID(id), stringifyBlock(block)),
+		fmt.Sprintf("Converted %s into %s", StringifyInstanceID(id), StringifyBlock(block)),
 	)
 
 	state.Body().AppendBlock(block)
