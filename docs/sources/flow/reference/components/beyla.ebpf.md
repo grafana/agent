@@ -129,7 +129,7 @@ The matcher tags can be in the `:name` or `{name}` format.
 
 This block is used to configure the discovery for instrumentable processes matching a given criteria.
 
-Contains the following blocks:
+It contains the following blocks:
 [services]: #services-block
 
 ### services block
