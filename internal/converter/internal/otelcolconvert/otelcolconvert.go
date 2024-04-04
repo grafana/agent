@@ -291,28 +291,39 @@ func validateNoDuplicateReceivers(groups []pipelineGroup, connectorIDs []compone
 
 func buildConverterTable(extraConverters []ComponentConverter) map[converterKey]ComponentConverter {
 	table := make(map[converterKey]ComponentConverter)
-	allConverters := append(converters, extraConverters...)
+
+	// Ordering is critical here because conflicting converters are resolved with
+	// the first one in the list winning.
+	allConverters := append(extraConverters, converters...)
 
 	for _, conv := range allConverters {
 		fact := conv.Factory()
-
+		var kinds []component.Kind
 		switch fact.(type) {
 		case receiver.Factory:
-			table[converterKey{Kind: component.KindReceiver, Type: fact.Type()}] = conv
+			kinds = append(kinds, component.KindReceiver)
 		case processor.Factory:
-			table[converterKey{Kind: component.KindProcessor, Type: fact.Type()}] = conv
+			kinds = append(kinds, component.KindProcessor)
 		case exporter.Factory:
-			table[converterKey{Kind: component.KindExporter, Type: fact.Type()}] = conv
+			kinds = append(kinds, component.KindExporter)
 		case connector.Factory:
-			table[converterKey{Kind: component.KindConnector, Type: fact.Type()}] = conv
+			kinds = append(kinds, component.KindConnector)
 			// We need this so the connector is available as a destination for state.Next
-			table[converterKey{Kind: component.KindExporter, Type: fact.Type()}] = conv
+			kinds = append(kinds, component.KindExporter)
 			// Technically, this isn't required to be here since the entry
 			// won't be required to look up a destination for state.Next, but
 			// adding to reinforce the idea of how connectors are used.
-			table[converterKey{Kind: component.KindReceiver, Type: fact.Type()}] = conv
+			kinds = append(kinds, component.KindReceiver)
 		case extension.Factory:
-			table[converterKey{Kind: component.KindExtension, Type: fact.Type()}] = conv
+			kinds = append(kinds, component.KindExtension)
+		}
+
+		for _, kind := range kinds {
+			// If a converter for this kind and type already exists, skip it.
+			if _, ok := table[converterKey{Kind: kind, Type: fact.Type()}]; ok {
+				continue
+			}
+			table[converterKey{Kind: kind, Type: fact.Type()}] = conv
 		}
 	}
 
