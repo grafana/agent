@@ -216,11 +216,11 @@ require (
 	go.uber.org/goleak v1.3.0
 	go.uber.org/multierr v1.11.0
 	go.uber.org/zap v1.27.0
-	golang.org/x/crypto v0.20.0
+	golang.org/x/crypto v0.21.0
 	golang.org/x/exp v0.0.0-20240103183307-be819d1f06fc
 	golang.org/x/net v0.21.0
 	golang.org/x/oauth2 v0.17.0
-	golang.org/x/sys v0.17.0
+	golang.org/x/sys v0.18.0
 	golang.org/x/text v0.14.0
 	golang.org/x/time v0.5.0
 	google.golang.org/api v0.155.0
@@ -545,8 +545,8 @@ require (
 	github.com/tencentcloud/tencentcloud-sdk-go v1.0.162 // indirect
 	github.com/tg123/go-htpasswd v1.2.2 // indirect
 	github.com/tilinna/clock v1.1.0
-	github.com/tklauser/go-sysconf v0.3.12 // indirect
-	github.com/tklauser/numcpus v0.6.1 // indirect
+	github.com/tklauser/go-sysconf v0.3.13 // indirect
+	github.com/tklauser/numcpus v0.7.0 // indirect
 	github.com/tomnomnom/linkheader v0.0.0-20180905144013-02ca5825eb80 // indirect
 	github.com/uber/jaeger-lib v2.4.1+incompatible // indirect
 	github.com/vertica/vertica-sql-go v1.3.3 // indirect
@@ -567,7 +567,7 @@ require (
 	github.com/xhit/go-str2duration/v2 v2.1.0 // indirect
 	github.com/xo/dburl v0.20.0 // indirect
 	github.com/youmark/pkcs8 v0.0.0-20181117223130-1be2e3e5546d // indirect
-	github.com/yusufpapurcu/wmi v1.2.3 // indirect
+	github.com/yusufpapurcu/wmi v1.2.4 // indirect
 	go.etcd.io/etcd/api/v3 v3.5.10 // indirect
 	go.etcd.io/etcd/client/pkg/v3 v3.5.10 // indirect
 	go.etcd.io/etcd/client/v3 v3.5.10 // indirect
@@ -578,9 +578,9 @@ require (
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.49.0 // indirect
 	go.opentelemetry.io/otel/bridge/opencensus v1.24.0 // indirect
 	go4.org/netipx v0.0.0-20230125063823-8449b0a6169f // indirect
-	golang.org/x/mod v0.14.0 // indirect
+	golang.org/x/mod v0.15.0 // indirect
 	golang.org/x/sync v0.6.0 // indirect
-	golang.org/x/term v0.17.0 // indirect
+	golang.org/x/term v0.18.0 // indirect
 	golang.org/x/tools v0.16.1
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.4.0 // indirect
@@ -607,6 +607,7 @@ require (
 	connectrpc.com/connect v1.14.0
 	github.com/githubexporter/github-exporter v0.0.0-20231025122338-656e7dc33fe7
 	github.com/grafana/agent-remote-config v0.0.2
+	github.com/grafana/beyla v1.4.1-0.20240328093156-fca861576b2c
 	github.com/grafana/jfr-parser/pprof v0.0.0-20240126072739-986e71dc0361
 	github.com/grafana/jsonparser v0.0.0-20240209175146-098958973a2d
 	github.com/natefinch/atomic v1.0.1
@@ -625,6 +626,7 @@ require (
 
 require (
 	dario.cat/mergo v1.0.0 // indirect
+	github.com/AlessandroPomponio/go-gibberish v0.0.0-20191004143433-a2d4156f0396 // indirect
 	github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/compute/armcompute/v4 v4.2.1 // indirect
 	github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/network/armnetwork/v2 v2.2.1 // indirect
 	github.com/DataDog/sketches-go v1.4.4 // indirect
@@ -637,22 +639,25 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/apigatewayv2 v1.19.0 // indirect
 	github.com/aws/aws-sdk-go-v2/service/autoscaling v1.38.0 // indirect
 	github.com/aws/aws-sdk-go-v2/service/databasemigrationservice v1.36.0 // indirect
-	github.com/aws/aws-sdk-go-v2/service/ec2 v1.147.0 // indirect
+	github.com/aws/aws-sdk-go-v2/service/ec2 v1.149.1 // indirect
 	github.com/aws/aws-sdk-go-v2/service/resourcegroupstaggingapi v1.20.0 // indirect
 	github.com/aws/aws-sdk-go-v2/service/secretsmanager v1.27.0 // indirect
 	github.com/aws/aws-sdk-go-v2/service/shield v1.24.0 // indirect
 	github.com/aws/aws-sdk-go-v2/service/storagegateway v1.26.0 // indirect
 	github.com/axiomhq/hyperloglog v0.0.0-20240124082744-24bca3a5b39b // indirect
+	github.com/caarlos0/env/v9 v9.0.0 // indirect
 	github.com/channelmeter/iso8601duration v0.0.0-20150204201828-8da3af7a2a61 // indirect
 	github.com/cloudflare/circl v1.3.7 // indirect
 	github.com/containerd/log v0.1.0 // indirect
 	github.com/dgryski/go-metro v0.0.0-20180109044635-280f6062b5bc // indirect
 	github.com/drone/envsubst v1.0.3 // indirect
 	github.com/expr-lang/expr v1.16.1 // indirect
+	github.com/gavv/monotime v0.0.0-20190418164738-30dba4353424 // indirect
 	github.com/go-jose/go-jose/v3 v3.0.3 // indirect
 	github.com/go-viper/mapstructure/v2 v2.0.0-alpha.1 // indirect
 	github.com/golang-jwt/jwt/v5 v5.0.0 // indirect
 	github.com/google/gnostic-models v0.6.8 // indirect
+	github.com/grafana/go-offsets-tracker v0.1.7 // indirect
 	github.com/grafana/jfr-parser v0.8.0 // indirect
 	github.com/hashicorp/go-version v1.6.0 // indirect
 	github.com/hetznercloud/hcloud-go/v2 v2.4.0 // indirect
@@ -660,6 +665,7 @@ require (
 	github.com/julienschmidt/httprouter v1.3.0 // indirect
 	github.com/knadh/koanf/v2 v2.1.0 // indirect
 	github.com/lightstep/go-expohisto v1.0.0 // indirect
+	github.com/mariomac/pipes v0.9.0 // indirect
 	github.com/metalmatze/signal v0.0.0-20210307161603-1c9aa721a97a // indirect
 	github.com/minio/asm2plan9s v0.0.0-20200509001527-cdd76441f9d8 // indirect
 	github.com/minio/c2goasm v0.0.0-20190812172519-36a3d3bbc4f3 // indirect
@@ -679,6 +685,7 @@ require (
 	github.com/sagikazarmark/locafero v0.4.0 // indirect
 	github.com/sagikazarmark/slog-shim v0.1.0 // indirect
 	github.com/sercand/kuberesolver/v5 v5.1.1 // indirect
+	github.com/shirou/gopsutil v3.21.11+incompatible // indirect
 	github.com/skeema/knownhosts v1.2.1 // indirect
 	github.com/sony/gobreaker v0.5.0 // indirect
 	github.com/sourcegraph/conc v0.3.0 // indirect
@@ -687,6 +694,8 @@ require (
 	github.com/tidwall/pretty v1.2.0 // indirect
 	github.com/tidwall/tinylru v1.1.0 // indirect
 	github.com/tidwall/wal v1.1.7 // indirect
+	github.com/xwb1989/sqlparser v0.0.0-20180606152119-120387863bf2 // indirect
+	github.com/yl2chen/cidranger v1.0.2 // indirect
 	go.opentelemetry.io/collector/confmap/provider/envprovider v0.96.0 // indirect
 	go.opentelemetry.io/collector/confmap/provider/httpprovider v0.96.0 // indirect
 	go.opentelemetry.io/collector/confmap/provider/httpsprovider v0.96.0 // indirect
@@ -697,6 +706,7 @@ require (
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp v1.24.0 // indirect
 	go.opentelemetry.io/otel/exporters/stdout/stdoutmetric v1.24.0 // indirect
 	go.opentelemetry.io/otel/exporters/stdout/stdouttrace v1.24.0 // indirect
+	golang.org/x/arch v0.7.0 // indirect
 )
 
 // NOTE: replace directives below must always be *temporary*.
