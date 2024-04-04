@@ -3,8 +3,6 @@ package all
 
 import (
 	_ "github.com/grafana/agent/internal/component/beyla/ebpf"                               // Import beyla.ebpf
-	_ "github.com/grafana/agent/internal/component/discovery/aws"                            // Import discovery.aws.ec2 and discovery.aws.lightsail
-	_ "github.com/grafana/agent/internal/component/discovery/azure"                          // Import discovery.azure
 	_ "github.com/grafana/agent/internal/component/discovery/consul"                         // Import discovery.consul
 	_ "github.com/grafana/agent/internal/component/discovery/consulagent"                    // Import discovery.consulagent
 	_ "github.com/grafana/agent/internal/component/discovery/dns"                            // Import discovery.dns
