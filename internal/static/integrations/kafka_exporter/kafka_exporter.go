@@ -7,6 +7,7 @@ import (
 
 	"github.com/IBM/sarama"
 	"github.com/go-kit/log"
+	"github.com/grafana/agent/internal/flow/logging/level"
 	"github.com/grafana/agent/internal/static/integrations"
 	integrations_v2 "github.com/grafana/agent/internal/static/integrations/v2"
 	"github.com/grafana/agent/internal/static/integrations/v2/metricsutils"
@@ -21,6 +22,7 @@ var DefaultConfig = Config{
 	MetadataRefreshInterval: "1m",
 	AllowConcurrent:         true,
 	MaxOffsets:              1000,
+	PruneIntervalSeconds:    30,
 	OffsetShowAll:           true,
 	TopicWorkers:            100,
 	TopicsFilter:            ".*",
@@ -118,6 +120,9 @@ type Config struct {
 	// Maximum number of offsets to store in the interpolation table for a partition
 	MaxOffsets int `yaml:"max_offsets,omitempty"`
 
+	// No-op (deprecated). Use metadata_refresh_interval instead.
+	PruneIntervalSeconds int `yaml:"prune_interval_seconds,omitempty"`
+
 	// Regex filter for topics to be monitored
 	TopicsFilter string `yaml:"topics_filter_regex,omitempty"`
 
@@ -181,6 +186,11 @@ func New(logger log.Logger, c *Config) (integrations.Integration, error) {
 	}
 	if c.UseZooKeeperLag && (len(c.ZookeeperURIs) == 0 || c.ZookeeperURIs[0] == "") {
 		return nil, fmt.Errorf("zookeeper lag is enabled but no zookeeper uri was provided")
+	}
+
+	// 30 is the default value
+	if c.PruneIntervalSeconds != 30 {
+		level.Warn(logger).Log("msg", "prune_interval_seconds is not used anymore, use metadata_refresh_interval instead")
 	}
 
 	options := kafka_exporter.Options{

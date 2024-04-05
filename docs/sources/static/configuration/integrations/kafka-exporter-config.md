@@ -144,6 +144,9 @@ Full reference of options:
   # Maximum number of offsets to store in the interpolation table for a partition
   [max_offsets: <int> | default = 1000]
 
+  # Deprecated (no-op), use metadata_refresh_interval instead.
+  [prune_interval_seconds: <int> | default = 30]
+
   # Regex filter for topics to be monitored
   [topics_filter_regex: <string> | default = ".*"]
 

@@ -15,14 +15,6 @@ Main (unreleased)
 - The default listen port for `otelcol.receiver.opencensus` has changed from
   4317 to 55678 to align with upstream. (@rfratto)
 
-- Remove the field `prune_interval_seconds` from the component `prometheus.exporter.kafka`. The interpolation table is now pruned
-  on `metadata_refresh_interval`. (@wildum)
-
-- The following metrics exposed by the component `prometheus.exporter.kafka` have been renamed:
-  * kafka_consumergroup_uncommitted_offsets -> kafka_consumergroup_lag
-  * kafka_consumergroupzookeeper_uncommitted_offsets_zookeeper -> kafka_consumergroupzookeeper_lag
-  * kafka_consumergroup_uncommitted_offsets_sum -> kafka_consumergroup_lag_sum (@wildum)
-
 - The default sync interval for `mimir.rules.kubernetes` has changed from `30s`
   to `5m` to reduce load on Mimir. (@56quarters)  
 
@@ -50,6 +42,9 @@ Main (unreleased)
 
 - Add conversion from static to flow mode for `loki.source.windowsevent` via `legacy_bookmark_path`. (@mattdurham)
 
+- In `prometheus.exporter.kafka`, the interpolation table used to compute estimated lag metrics is now pruned
+  on `metadata_refresh_interval` instead of `prune_interval_seconds`. (@wildum)
+
 ### Features
 
 - Added a new CLI flag `--stability.level` which defines the minimum stability
@@ -68,6 +63,11 @@ Main (unreleased)
   small subset of arguments across 15 components. (@erikbaranowski, @rfratto)
 
 ### Other changes
+
+- The following metrics exposed by the component `prometheus.exporter.kafka` have been renamed:
+  * kafka_consumergroup_uncommitted_offsets -> kafka_consumergroup_lag
+  * kafka_consumergroupzookeeper_uncommitted_offsets_zookeeper -> kafka_consumergroupzookeeper_lag
+  * kafka_consumergroup_uncommitted_offsets_sum -> kafka_consumergroup_lag_sum (@wildum)
 
 - Clustering for Grafana Agent in Flow mode has graduated from beta to stable.
 

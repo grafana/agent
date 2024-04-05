@@ -20,6 +20,7 @@ var DefaultArguments = Arguments{
 	MetadataRefreshInterval: "1m",
 	AllowConcurrent:         true,
 	MaxOffsets:              1000,
+	PruneIntervalSeconds:    30,
 	OffsetShowAll:           true,
 	TopicWorkers:            100,
 	TopicsFilter:            ".*",
@@ -58,6 +59,7 @@ type Arguments struct {
 	AllowConcurrent         bool              `river:"allow_concurrency,attr,optional"`
 	AllowAutoTopicCreation  bool              `river:"allow_auto_topic_creation,attr,optional"`
 	MaxOffsets              int               `river:"max_offsets,attr,optional"`
+	PruneIntervalSeconds    int               `river:"prune_interval_seconds,attr,optional"` // deprecated - no-op
 	TopicsFilter            string            `river:"topics_filter_regex,attr,optional"`
 	TopicsExclude           string            `river:"topics_exclude_regex,attr,optional"`
 	GroupFilter             string            `river:"groups_filter_regex,attr,optional"`
@@ -135,6 +137,7 @@ func (a *Arguments) Convert() *kafka_exporter.Config {
 		AllowConcurrent:         a.AllowConcurrent,
 		AllowAutoTopicCreation:  a.AllowAutoTopicCreation,
 		MaxOffsets:              a.MaxOffsets,
+		PruneIntervalSeconds:    a.PruneIntervalSeconds,
 		TopicsFilter:            a.TopicsFilter,
 		TopicsExclude:           a.TopicsExclude,
 		GroupFilter:             a.GroupFilter,
