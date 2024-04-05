@@ -55,6 +55,8 @@ Main (unreleased)
 - Add automatic conversion for `legacy_positions_file` in component `loki.source.file`. (@mattdurham)
 
 - Propagate request metadata for `faro.receiver` to downstream components. (@hainenber)
+  
+- Add support for configuring CPU profile's duration scraped by `pyroscope.scrape`. (@hainenber)
 
 ### Features
 
