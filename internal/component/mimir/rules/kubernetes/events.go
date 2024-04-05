@@ -46,7 +46,7 @@ type eventProcessor struct {
 	logger  log.Logger
 
 	currentState    kubernetes.RuleGroupsByNamespace
-	currentStateMtx sync.Mutex
+	currentStateMtx sync.RWMutex
 }
 
 func (e *eventProcessor) run(ctx context.Context) {
@@ -237,8 +237,8 @@ func (e *eventProcessor) applyChanges(ctx context.Context, namespace string, dif
 
 // getMimirState returns the cached Mimir ruler state, rule groups indexed by Mimir namespace.
 func (e *eventProcessor) getMimirState() kubernetes.RuleGroupsByNamespace {
-	e.currentStateMtx.Lock()
-	defer e.currentStateMtx.Unlock()
+	e.currentStateMtx.RLock()
+	defer e.currentStateMtx.RUnlock()
 
 	out := make(kubernetes.RuleGroupsByNamespace, len(e.currentState))
 	for ns, groups := range e.currentState {
