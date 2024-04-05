@@ -239,12 +239,12 @@ func (m Measurement) KeyVal() *KeyVal {
 	MergeKeyVal(kv, m.Trace.KeyVal())
 	MergeKeyValWithPrefix(kv, KeyValFromMap(m.Context), "context_")
 
-	valuesAsString := make(map[string]string, len(m.Values))
+	values := make(map[string]float64, len(m.Values))
 	for key, value := range m.Values {
-		valuesAsString[key] = fmt.Sprintf("%v", value)
+		values[key] = value
 	}
 
-	MergeKeyValWithPrefix(kv, KeyValFromMap(valuesAsString), "value_")
+	MergeKeyValWithPrefix(kv, KeyValFromFloatMap(values), "value_")
 
 	return kv
 }
