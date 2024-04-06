@@ -6,6 +6,7 @@ metadata:
   labels:
     {{- include "grafana-agent.labels" . | nindent 4 }}
 rules:
+  {{- if .Values.rbac.allowDiscoveryKubernetes }}
   # Rules which allow discovery.kubernetes to function.
   - apiGroups:
       - ""
@@ -24,6 +25,8 @@ rules:
       - get
       - list
       - watch
+  {{- end }}
+  {{- if .Values.rbac.allowLokiSource }}
   # Rules which allow loki.source.kubernetes and loki.source.podlogs to work.
   - apiGroups:
       - ""
@@ -43,6 +46,8 @@ rules:
       - get
       - list
       - watch
+  {{- end }}
+  {{- if .Values.rbac.allowMimirRulesKubernetes }}
   # Rules which allow mimir.rules.kubernetes to work.
   - apiGroups: ["monitoring.coreos.com"]
     resources:
@@ -55,6 +60,8 @@ rules:
       - /metrics
     verbs:
       - get
+  {{- end }}
+  {{- if .Values.rbac.allowPrometheusKubernetes }}
   # Rules for prometheus.kubernetes.*
   - apiGroups: ["monitoring.coreos.com"]
     resources:
@@ -65,6 +72,8 @@ rules:
       - get
       - list
       - watch
+  {{- end }}
+  {{- if .Values.rbac.allowEventHandler }}
   # Rules which allow eventhandler to work.
   - apiGroups:
       - ""
@@ -74,6 +83,8 @@ rules:
       - get
       - list
       - watch
+  {{- end }}
+  {{- if .Values.rbac.allowRemoteKubernetes }}
   # needed for remote.kubernetes.*
   - apiGroups: [""]
     resources:
@@ -83,6 +94,8 @@ rules:
       - get
       - list
       - watch
+  {{- end }}
+  {{- if .Values.rbac.allowOtelcolProcessorK8sAttributes }}
   # needed for otelcol.processor.k8sattributes
   - apiGroups: ["apps"]
     resources: ["replicasets"]
@@ -90,6 +103,7 @@ rules:
   - apiGroups: ["extensions"]
     resources: ["replicasets"]
     verbs: ["get", "list", "watch"]
+  {{- end }}
 
 ---
 
