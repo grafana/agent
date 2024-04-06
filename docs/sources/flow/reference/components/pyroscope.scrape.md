@@ -423,10 +423,10 @@ When the `delta` argument is `false`, the [pprof][] HTTP query will be instantan
 When the `delta` argument is `true`:
 * The [pprof][] HTTP query will run for a certain amount of time.
 * A `seconds` parameter is automatically added to the HTTP request.
-* The `seconds` used, by default, will be equal to `scrape_interval - 1`
-  or to `profiling_duration` if specified.
-  For example, if `scrape_interval` is `"15s"`, `seconds` will be 14 seconds
-  If `profiling_duration` is set as `"16s"`, `seconds` will be 16 seconds regardless of `scrape_interval`
+* The default value for the `seconds` query parameter is `scrape_interval - 1`.
+   If you set `profiling_duration`, then `seconds` is assigned the same value as `profiling_duration`.
+   For example, if you set `scrape_interval` to `"15s"`, then `seconds` defaults to `14s`.
+   If you set `profiling_duration` to `16s`, then `seconds is set to `16s` regardless of the `scrape_interval` value.
   If the HTTP endpoint is `/debug/pprof/profile`, then the HTTP query will become `/debug/pprof/profile?seconds=14`
 
 ## Exported fields
