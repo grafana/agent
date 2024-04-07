@@ -31,6 +31,8 @@ type Arguments struct {
 
 	RelabelConfigs []*flow_relabel.Config `river:"rule,block,optional"`
 
+	RelabelRules flow_relabel.Rules `river:"relabel_rules,attr,optional"`
+
 	Scrape ScrapeOptions `river:"scrape,block,optional"`
 }
 
@@ -54,6 +56,7 @@ var DefaultArguments = Arguments{
 	Client: kubernetes.ClientArguments{
 		HTTPClientConfig: config.DefaultHTTPClientConfig,
 	},
+	RelabelConfigs: []*flow_relabel.Config{},
 }
 
 // SetToDefault implements river.Defaulter.

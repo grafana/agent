@@ -43,6 +43,13 @@ Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `forward_to` | `list(MetricsReceiver)` | List of receivers to send scraped metrics to. | | yes
 `namespaces` | `list(string)` | List of namespaces to search for ServiceMonitor resources. If not specified, all namespaces will be searched. || no
+`relabel_rules` | `RelabelRules` | Relabeling rules to apply on scraped metric data points. | `{}` | no
+
+The `relabel_rules` argument can make use of the `rules` export value from a
+[prometheus.relabel][] component to apply one or more relabeling rules to metric data points
+before they're forwarded to the list of receivers in `forward_to`.
+
+[prometheus.relabel]: {{< relref "./prometheus.relabel.md" >}}
 
 ## Blocks
 

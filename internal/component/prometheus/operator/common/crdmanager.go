@@ -394,10 +394,14 @@ func (c *crdManager) addDebugInfo(ns string, name string, err error) {
 
 func (c *crdManager) addPodMonitor(pm *promopv1.PodMonitor) {
 	var err error
+	totalRelabelRules := c.args.RelabelConfigs
+	if c.args.RelabelRules != nil && len(c.args.RelabelRules) > 0 {
+		totalRelabelRules = append(totalRelabelRules, c.args.RelabelRules...)
+	}
 	gen := configgen.ConfigGenerator{
 		Secrets:                  configgen.NewSecretManager(c.client),
 		Client:                   &c.args.Client,
-		AdditionalRelabelConfigs: c.args.RelabelConfigs,
+		AdditionalRelabelConfigs: totalRelabelRules,
 		ScrapeOptions:            c.args.Scrape,
 	}
 	mapKeys := []string{}
@@ -449,10 +453,14 @@ func (c *crdManager) onDeletePodMonitor(obj interface{}) {
 
 func (c *crdManager) addServiceMonitor(sm *promopv1.ServiceMonitor) {
 	var err error
+	totalRelabelRules := c.args.RelabelConfigs
+	if c.args.RelabelRules != nil && len(c.args.RelabelRules) > 0 {
+		totalRelabelRules = append(totalRelabelRules, c.args.RelabelRules...)
+	}
 	gen := configgen.ConfigGenerator{
 		Secrets:                  configgen.NewSecretManager(c.client),
 		Client:                   &c.args.Client,
-		AdditionalRelabelConfigs: c.args.RelabelConfigs,
+		AdditionalRelabelConfigs: totalRelabelRules,
 		ScrapeOptions:            c.args.Scrape,
 	}
 
@@ -505,10 +513,14 @@ func (c *crdManager) onDeleteServiceMonitor(obj interface{}) {
 
 func (c *crdManager) addProbe(p *promopv1.Probe) {
 	var err error
+	totalRelabelRules := c.args.RelabelConfigs
+	if c.args.RelabelRules != nil && len(c.args.RelabelRules) > 0 {
+		totalRelabelRules = append(totalRelabelRules, c.args.RelabelRules...)
+	}
 	gen := configgen.ConfigGenerator{
 		Secrets:                  configgen.NewSecretManager(c.client),
 		Client:                   &c.args.Client,
-		AdditionalRelabelConfigs: c.args.RelabelConfigs,
+		AdditionalRelabelConfigs: totalRelabelRules,
 		ScrapeOptions:            c.args.Scrape,
 	}
 	var pmc *config.ScrapeConfig
