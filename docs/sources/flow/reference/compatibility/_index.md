@@ -44,6 +44,10 @@ The following components, grouped by namespace, _export_ Targets.
 
 <!-- START GENERATED SECTION: EXPORTERS OF Targets -->
 
+{{< collapse title="beyla" >}}
+- [beyla.ebpf](../components/beyla.ebpf)
+{{< /collapse >}}
+
 {{< collapse title="discovery" >}}
 - [discovery.azure](../components/discovery.azure)
 - [discovery.consul](../components/discovery.consul)
@@ -314,6 +318,10 @@ The following components, grouped by namespace, _export_ OpenTelemetry `otelcol.
 The following components, grouped by namespace, _consume_ OpenTelemetry `otelcol.Consumer`.
 
 <!-- START GENERATED SECTION: CONSUMERS OF OpenTelemetry `otelcol.Consumer` -->
+
+{{< collapse title="beyla" >}}
+- [beyla.ebpf](../components/beyla.ebpf)
+{{< /collapse >}}
 
 {{< collapse title="faro" >}}
 - [faro.receiver](../components/faro.receiver)

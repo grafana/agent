@@ -264,10 +264,10 @@ local filename = 'agent-flow-controller.json';
         panel.withQueries([
           panel.newQuery(
             expr=|||
-              sum by (component_id) (rate(agent_component_evaluation_slow_seconds{cluster="$cluster", namespace="$namespace"}[$__rate_interval]))
+              sum by (component_path, component_id) (rate(agent_component_evaluation_slow_seconds{cluster="$cluster", namespace="$namespace"}[$__rate_interval]))
               / scalar(sum(rate(agent_component_evaluation_seconds_sum{cluster="$cluster", namespace="$namespace"}[$__rate_interval])))
             |||,
-            legendFormat='{{component_id}}',
+            legendFormat='{{component path}} {{component_id}}',
           ),
         ])
       ),
@@ -276,7 +276,7 @@ local filename = 'agent-flow-controller.json';
       //
       // This panel supports both native and classic histograms, though it only shows one at a time.
       (
-        panel.newNativeHistogramHeatmap('Component evaluation histogram') +
+        panel.newNativeHistogramHeatmap('Component evaluation histogram', 's') +
         panel.withDescription(|||
           Detailed histogram view of how long component evaluations take.
 
@@ -301,7 +301,7 @@ local filename = 'agent-flow-controller.json';
       //
       // This panel supports both native and classic histograms, though it only shows one at a time.
       (
-        panel.newNativeHistogramHeatmap('Component dependency wait histogram') +
+        panel.newNativeHistogramHeatmap('Component dependency wait histogram', 's') +
         panel.withDescription(|||
           Detailed histogram of how long components wait to be evaluated after their dependency is updated.
 

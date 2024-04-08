@@ -11,7 +11,12 @@ labels:
 title: module.http
 ---
 
-# module.http
+# module.http (deprecated)
+
+{{< admonition type="caution" >}}
+Starting with release v0.40, `module.http` is deprecated and is replaced by `import.http`.
+`module.http` will be removed in a future release.
+{{< /admonition >}}
 
 {{< docs/shared lookup="flow/stability/beta.md" source="agent" version="<AGENT_VERSION>" >}}
 

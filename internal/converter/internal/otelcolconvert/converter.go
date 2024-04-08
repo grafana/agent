@@ -5,14 +5,15 @@ import (
 	"strings"
 
 	"github.com/grafana/agent/internal/converter/diag"
+	"github.com/grafana/agent/internal/converter/internal/common"
 	"github.com/grafana/river/token/builder"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/otelcol"
 )
 
-// componentConverter represents a converter which converts an OpenTelemetry
+// ComponentConverter represents a converter which converts an OpenTelemetry
 // Collector component into a Flow component.
-type componentConverter interface {
+type ComponentConverter interface {
 	// Factory should return the factory for the OpenTelemetry Collector
 	// component.
 	Factory() component.Factory
@@ -38,31 +39,32 @@ type componentConverter interface {
 	// ConvertAndAppend may be called more than once with the same component used
 	// in different pipelines. Use [state.FlowComponentLabel] to get a guaranteed
 	// unique Flow component label for the current state.
-	ConvertAndAppend(state *state, id component.InstanceID, cfg component.Config) diag.Diagnostics
+	ConvertAndAppend(state *State, id component.InstanceID, cfg component.Config) diag.Diagnostics
 }
 
 // List of component converters. This slice is appended to by init functions in
 // other files.
-var converters []componentConverter
+var converters []ComponentConverter
 
-// state represents the state of the conversion. The state tracks:
+// State represents the State of the conversion. The State tracks:
 //
 //   - The OpenTelemetry Collector config being converted.
 //   - The current OpenTelemetry Collector pipelines being converted.
 //   - The current OpenTelemetry Collector component being converted.
-type state struct {
+type State struct {
 	cfg   *otelcol.Config // Input config.
 	file  *builder.File   // Output file.
 	group *pipelineGroup  // Current pipeline group being converted.
 
 	// converterLookup maps a converter key to the associated converter instance.
-	converterLookup map[converterKey]componentConverter
+	converterLookup map[converterKey]ComponentConverter
 
 	// extensionLookup maps OTel extensions to Flow component IDs.
 	extensionLookup map[component.ID]componentID
 
-	componentID     component.InstanceID // ID of the current component being converted.
-	componentConfig component.Config     // Config of the current component being converted.
+	componentID          component.InstanceID // ID of the current component being converted.
+	componentConfig      component.Config     // Config of the current component being converted.
+	componentLabelPrefix string               // Prefix for the label of the current component being converted.
 }
 
 type converterKey struct {
@@ -72,18 +74,18 @@ type converterKey struct {
 
 // Body returns the body of the file being generated. Implementations of
 // [componentConverter] should use this to append components.
-func (state *state) Body() *builder.Body { return state.file.Body() }
+func (state *State) Body() *builder.Body { return state.file.Body() }
 
 // FlowComponentLabel returns the unique Flow label for the OpenTelemetry
 // Component component being converted. It is safe to use this label to create
 // multiple Flow components in a chain.
-func (state *state) FlowComponentLabel() string {
+func (state *State) FlowComponentLabel() string {
 	return state.flowLabelForComponent(state.componentID)
 }
 
 // flowLabelForComponent returns the unique Flow label for the given
 // OpenTelemetry Collector component.
-func (state *state) flowLabelForComponent(c component.InstanceID) string {
+func (state *State) flowLabelForComponent(c component.InstanceID) string {
 	const defaultLabel = "default"
 
 	// We need to prove that it's possible to statelessly compute the label for a
@@ -119,9 +121,13 @@ func (state *state) flowLabelForComponent(c component.InstanceID) string {
 	//
 	// Otherwise, we'll replace empty group and component names with "default"
 	// and concatenate them with an underscore.
+	unsanitizedLabel := state.componentLabelPrefix
+	if unsanitizedLabel != "" {
+		unsanitizedLabel += "_"
+	}
 	switch {
 	case groupName == "" && componentName == "":
-		return defaultLabel
+		unsanitizedLabel += defaultLabel
 
 	default:
 		if groupName == "" {
@@ -130,13 +136,15 @@ func (state *state) flowLabelForComponent(c component.InstanceID) string {
 		if componentName == "" {
 			componentName = defaultLabel
 		}
-		return fmt.Sprintf("%s_%s", groupName, componentName)
+		unsanitizedLabel += fmt.Sprintf("%s_%s", groupName, componentName)
 	}
+
+	return common.SanitizeIdentifierPanics(unsanitizedLabel)
 }
 
 // Next returns the set of Flow component IDs for a given data type that the
 // current component being converted should forward data to.
-func (state *state) Next(c component.InstanceID, dataType component.DataType) []componentID {
+func (state *State) Next(c component.InstanceID, dataType component.DataType) []componentID {
 	instances := state.nextInstances(c, dataType)
 
 	var ids []componentID
@@ -169,7 +177,7 @@ func (state *state) Next(c component.InstanceID, dataType component.DataType) []
 	return ids
 }
 
-func (state *state) nextInstances(c component.InstanceID, dataType component.DataType) []component.InstanceID {
+func (state *State) nextInstances(c component.InstanceID, dataType component.DataType) []component.InstanceID {
 	switch dataType {
 	case component.DataTypeMetrics:
 		return state.group.NextMetrics(c)
@@ -183,7 +191,7 @@ func (state *state) nextInstances(c component.InstanceID, dataType component.Dat
 	}
 }
 
-func (state *state) LookupExtension(id component.ID) componentID {
+func (state *State) LookupExtension(id component.ID) componentID {
 	cid, ok := state.extensionLookup[id]
 	if !ok {
 		panic(fmt.Sprintf("no component name found for extension %q", id.Name()))

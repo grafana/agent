@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/go-kit/log"
+	"github.com/grafana/agent/internal/featuregate"
 	"github.com/grafana/agent/internal/flow/internal/dag"
 	"github.com/grafana/agent/internal/flow/internal/worker"
 	"github.com/grafana/agent/internal/flow/logging/level"
@@ -36,21 +37,21 @@ type Loader struct {
 	// pool for evaluation in EvaluateDependants, because the queue is full. This is an unlikely scenario, but when
 	// it happens we should avoid retrying too often to give other goroutines a chance to progress. Having a backoff
 	// also prevents log spamming with errors.
-	backoffConfig        backoff.Config
-	componentNodeManager *ComponentNodeManager
+	backoffConfig backoff.Config
 
-	mut               sync.RWMutex
-	graph             *dag.Graph
-	originalGraph     *dag.Graph
-	componentNodes    []ComponentNode
-	declareNodes      map[string]*DeclareNode
-	importConfigNodes map[string]*ImportConfigNode
-	serviceNodes      []*ServiceNode
-	cache             *valueCache
-	blocks            []*ast.BlockStmt // Most recently loaded blocks, used for writing
-	cm                *controllerMetrics
-	cc                *controllerCollector
-	moduleExportIndex int
+	mut                  sync.RWMutex
+	graph                *dag.Graph
+	originalGraph        *dag.Graph
+	componentNodes       []ComponentNode
+	declareNodes         map[string]*DeclareNode
+	importConfigNodes    map[string]*ImportConfigNode
+	serviceNodes         []*ServiceNode
+	cache                *valueCache
+	blocks               []*ast.BlockStmt // Most recently loaded blocks, used for writing
+	cm                   *controllerMetrics
+	cc                   *controllerCollector
+	moduleExportIndex    int
+	componentNodeManager *ComponentNodeManager
 }
 
 // LoaderOptions holds options for creating a Loader.
@@ -74,12 +75,14 @@ func NewLoader(opts LoaderOptions) *Loader {
 		reg      = opts.ComponentRegistry
 	)
 
+	parent, id := splitPath(globals.ControllerID)
+
 	if reg == nil {
 		reg = NewDefaultComponentRegistry(opts.ComponentGlobals.MinStability)
 	}
 
 	l := &Loader{
-		log:        log.With(globals.Logger, "controller_id", globals.ControllerID),
+		log:        log.With(globals.Logger, "controller_path", parent, "controller_id", id),
 		tracer:     tracing.WrapTracerForLoader(globals.TraceProvider, globals.ControllerID),
 		globals:    globals,
 		services:   services,
@@ -98,9 +101,9 @@ func NewLoader(opts LoaderOptions) *Loader {
 		graph:         &dag.Graph{},
 		originalGraph: &dag.Graph{},
 		cache:         newValueCache(),
-		cm:            newControllerMetrics(globals.ControllerID),
+		cm:            newControllerMetrics(parent, id),
 	}
-	l.cc = newControllerCollector(l, globals.ControllerID)
+	l.cc = newControllerCollector(l, parent, id)
 
 	if globals.Registerer != nil {
 		globals.Registerer.MustRegister(l.cc)
@@ -441,6 +444,19 @@ func (l *Loader) populateServiceNodes(g *dag.Graph, serviceBlocks []*ast.BlockSt
 
 		node := g.GetByID(blockID).(*ServiceNode)
 
+		// Don't permit configuring services that have a lower stability level than
+		// what is currently enabled.
+		nodeStability := node.Service().Definition().Stability
+		if err := featuregate.CheckAllowed(nodeStability, l.globals.MinStability, fmt.Sprintf("block %q", blockID)); err != nil {
+			diags.Add(diag.Diagnostic{
+				Severity: diag.SeverityLevelError,
+				Message:  err.Error(),
+				StartPos: ast.StartPos(block).Position(),
+				EndPos:   ast.EndPos(block).Position(),
+			})
+			continue
+		}
+
 		// Blocks assigned to services are reset to nil in the previous loop.
 		//
 		// If the block is non-nil, it means that there was a duplicate block
@@ -773,10 +789,11 @@ func (l *Loader) concurrentEvalFn(n dag.Node, spanCtx context.Context, tracer tr
 	switch n := n.(type) {
 	case BlockNode:
 		ectx := l.cache.BuildContext()
+
+		// RLock before evaluate to prevent Evaluating while the config is being reloaded
+		l.mut.RLock()
 		evalErr := n.Evaluate(ectx)
 
-		// Only obtain loader lock after we have evaluated the node, allowing for concurrent evaluation.
-		l.mut.RLock()
 		err = l.postEvaluate(l.log, n, evalErr)
 
 		// Additional post-evaluation steps necessary for module exports.
@@ -893,4 +910,10 @@ func (l *Loader) collectCustomComponentReferences(stmts ast.Body, uniqueReferenc
 			uniqueReferences[importNode] = struct{}{}
 		}
 	}
+}
+
+func splitPath(id string) (string, string) {
+	parent, id := path.Split(id)
+	parent, _ = strings.CutSuffix(parent, "/")
+	return "/" + parent, id
 }

@@ -65,6 +65,7 @@ The following blocks are supported inside the definition of `loki.process`:
 | stage.labels              | [stage.labels][]              | Configures a `labels` processing stage.                        | no       |
 | stage.limit               | [stage.limit][]               | Configures a `limit` processing stage.                         | no       |
 | stage.logfmt              | [stage.logfmt][]              | Configures a `logfmt` processing stage.                        | no       |
+| stage.luhn                | [stage.luhn][]                | Configures a `luhn` processing stage.                          | no       |
 | stage.match               | [stage.match][]               | Configures a `match` processing stage.                         | no       |
 | stage.metrics             | [stage.metrics][]             | Configures a `metrics` stage.                                  | no       |
 | stage.multiline           | [stage.multiline][]           | Configures a `multiline` processing stage.                     | no       |
@@ -95,6 +96,7 @@ file.
 [stage.labels]: #stagelabels-block
 [stage.limit]: #stagelimit-block
 [stage.logfmt]: #stagelogfmt-block
+[stage.luhn]: #stageluhn-block
 [stage.match]: #stagematch-block
 [stage.metrics]: #stagemetrics-block
 [stage.multiline]: #stagemultiline-block
@@ -565,6 +567,47 @@ set of extracted data, with the value of `user=foo`.
 
 The second stage parses the contents of `extra` and appends the `username: foo`
 key-value pair to the set of extracted data.
+
+### stage.luhn block
+
+The `stage.luhn` inner block configures a processing stage that reads incoming
+log lines and redacts strings that match a Luhn algorithm.
+
+The [Luhn algorithm][] is a simple checksum formula used to validate various
+identification numbers, such as credit card numbers, IMEI numbers, National
+Provider Identifier numbers in the US, and Canadian Social Insurance Numbers.
+Many Payment Card Industry environments require these numbers to be redacted.
+
+[Luhn algorithm]: https://en.wikipedia.org/wiki/Luhn_algorithm
+
+The following arguments are supported:
+
+| Name          | Type          | Description                                    | Default          | Required |
+| ------------- | ------------- | ---------------------------------------------- | ---------------- | -------- |
+| `replacement` | `string`      | String to substitute the matched patterns with | `"**REDACTED**"` | no      |
+| `source`      | `string`      | Source of the data to parse.                   | `""`             | no       |
+| `minLength`   | `int`         | Minimum length of digits to consider           | `13`             | no       |
+
+
+The `source` field defines the source of data to search. When `source` is
+missing or empty, the stage parses the log line itself, but it can also be used
+to parse a previously extracted value.
+
+The following example log line contains an approved credit card number.
+
+```
+time=2012-11-01T22:08:41+00:00 app=loki level=WARN duration=125 message="credit card approved 4032032513548443" extra="user=foo"
+
+stage.luhn {
+    replacement = "**DELETED**"
+}
+```
+
+The stage parses the log line, redacts the credit card number, and produces the following updated log line:
+
+```
+time=2012-11-01T22:08:41+00:00 app=loki level=INFO duration=125 message="credit card approved **DELETED**" extra="user=foo"
+```
 
 ### stage.match block
 
