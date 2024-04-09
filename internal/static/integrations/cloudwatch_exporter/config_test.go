@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	yaceConf "github.com/nerdswords/yet-another-cloudwatch-exporter/pkg/config"
-	yaceModel "github.com/nerdswords/yet-another-cloudwatch-exporter/pkg/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v2"
@@ -201,13 +200,13 @@ var expectedConfig = yaceConf.ScrapeConf{
 						RoleArn: "arn:aws:iam::878167871295:role/yace_testing",
 					},
 				},
-				CustomTags: []yaceModel.Tag{
+				CustomTags: []yaceConf.Tag{
 					{
 						Key:   "alias",
 						Value: "tesis",
 					},
 				},
-				SearchTags: []yaceModel.Tag{
+				SearchTags: []yaceConf.Tag{
 					{
 						Key:   "instance_type",
 						Value: "spot",
@@ -242,8 +241,8 @@ var expectedConfig = yaceConf.ScrapeConf{
 						RoleArn: "arn:aws:iam::878167871295:role/yace_testing",
 					},
 				},
-				SearchTags:                []yaceModel.Tag{},
-				CustomTags:                []yaceModel.Tag{},
+				SearchTags:                []yaceConf.Tag{},
+				CustomTags:                []yaceConf.Tag{},
 				DimensionNameRequirements: []string{"BucketName"},
 				Metrics: []*yaceConf.Metric{
 					{
@@ -274,7 +273,7 @@ var expectedConfig = yaceConf.ScrapeConf{
 			Regions:    []string{"us-east-2"},
 			Roles:      []yaceConf.Role{{}},
 			Namespace:  "CoolApp",
-			CustomTags: []yaceModel.Tag{},
+			CustomTags: []yaceConf.Tag{},
 			Dimensions: []yaceConf.Dimension{
 				{
 					Name:  "PURCHASES_SERVICE",
@@ -316,13 +315,13 @@ var expectedConfig3 = yaceConf.ScrapeConf{
 						RoleArn: "arn:aws:iam::878167871295:role/yace_testing",
 					},
 				},
-				CustomTags: []yaceModel.Tag{
+				CustomTags: []yaceConf.Tag{
 					{
 						Key:   "alias",
 						Value: "tesis",
 					},
 				},
-				SearchTags: []yaceModel.Tag{
+				SearchTags: []yaceConf.Tag{
 					{
 						Key:   "instance_type",
 						Value: "spot",
@@ -357,8 +356,8 @@ var expectedConfig3 = yaceConf.ScrapeConf{
 						RoleArn: "arn:aws:iam::878167871295:role/yace_testing",
 					},
 				},
-				SearchTags:                []yaceModel.Tag{},
-				CustomTags:                []yaceModel.Tag{},
+				SearchTags:                []yaceConf.Tag{},
+				CustomTags:                []yaceConf.Tag{},
 				DimensionNameRequirements: []string{"BucketName"},
 				Metrics: []*yaceConf.Metric{
 					{
@@ -389,7 +388,7 @@ var expectedConfig3 = yaceConf.ScrapeConf{
 			Regions:    []string{"us-east-2"},
 			Roles:      []yaceConf.Role{{}},
 			Namespace:  "CoolApp",
-			CustomTags: []yaceModel.Tag{},
+			CustomTags: []yaceConf.Tag{},
 			Dimensions: []yaceConf.Dimension{
 				{
 					Name:  "PURCHASES_SERVICE",
