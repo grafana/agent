@@ -2,6 +2,7 @@ package build
 
 import (
 	"github.com/prometheus/client_golang/prometheus"
+	cversion "github.com/prometheus/client_golang/prometheus/collectors/version"
 	"github.com/prometheus/common/version"
 )
 
@@ -34,7 +35,7 @@ func injectVersion() {
 func NewCollector(program string) prometheus.Collector {
 	injectVersion()
 
-	return version.NewCollector(program)
+	return cversion.NewCollector(program)
 }
 
 // Print returns version information.
