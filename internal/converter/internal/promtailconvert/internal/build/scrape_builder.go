@@ -11,11 +11,13 @@ import (
 	filematch "github.com/grafana/agent/internal/component/local/file_match"
 	"github.com/grafana/agent/internal/component/loki/process"
 	"github.com/grafana/agent/internal/component/loki/process/stages"
+
 	lokirelabel "github.com/grafana/agent/internal/component/loki/relabel"
 	lokisourcefile "github.com/grafana/agent/internal/component/loki/source/file"
 	"github.com/grafana/agent/internal/converter/diag"
 	"github.com/grafana/agent/internal/converter/internal/common"
 	"github.com/grafana/agent/internal/converter/internal/prometheusconvert/component"
+	"github.com/grafana/loki/clients/pkg/promtail/positions"
 	"github.com/grafana/loki/clients/pkg/promtail/scrapeconfig"
 	"github.com/grafana/loki/clients/pkg/promtail/targets/file"
 	"github.com/grafana/river/scanner"
@@ -42,7 +44,6 @@ func NewScrapeConfigBuilder(
 	diags *diag.Diagnostics,
 	cfg *scrapeconfig.Config,
 	globalCtx *GlobalContext,
-
 ) *ScrapeConfigBuilder {
 
 	return &ScrapeConfigBuilder{
@@ -61,7 +62,7 @@ func (s *ScrapeConfigBuilder) Sanitize() {
 	}
 }
 
-func (s *ScrapeConfigBuilder) AppendLokiSourceFile(watchConfig *file.WatchConfig) {
+func (s *ScrapeConfigBuilder) AppendLokiSourceFile(watchConfig *file.WatchConfig, positionsCfg *positions.Config) {
 	// If there were no targets expressions collected, that means
 	// we didn't have any components that produced SD targets, so
 	// we can skip this component.
@@ -76,6 +77,7 @@ func (s *ScrapeConfigBuilder) AppendLokiSourceFile(watchConfig *file.WatchConfig
 		Encoding:            s.cfg.Encoding,
 		DecompressionConfig: convertDecompressionConfig(s.cfg.DecompressionCfg),
 		FileWatch:           convertFileWatchConfig(watchConfig),
+		LegacyPositionsFile: positionsCfg.PositionsFile,
 	}
 	overrideHook := func(val interface{}) interface{} {
 		if _, ok := val.([]discovery.Target); ok {

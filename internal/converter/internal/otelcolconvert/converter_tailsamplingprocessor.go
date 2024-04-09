@@ -3,7 +3,6 @@ package otelcolconvert
 import (
 	"fmt"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/grafana/agent/internal/component/otelcol"
 	"github.com/grafana/agent/internal/component/otelcol/processor/tail_sampling"
 	"github.com/grafana/agent/internal/converter/diag"
@@ -47,9 +46,6 @@ func toTailSamplingProcessor(state *State, id component.InstanceID, cfg *tailsam
 	var (
 		nextTraces = state.Next(id, component.DataTypeTraces)
 	)
-
-	testEncode := encodeMapstruct(cfg.PolicyCfgs[0])
-	spew.Dump(testEncode)
 
 	return &tail_sampling.Arguments{
 		PolicyCfgs:              toPolicyCfgs(cfg.PolicyCfgs),
