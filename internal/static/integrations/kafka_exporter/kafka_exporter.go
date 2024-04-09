@@ -11,7 +11,7 @@ import (
 	"github.com/grafana/agent/internal/static/integrations"
 	integrations_v2 "github.com/grafana/agent/internal/static/integrations/v2"
 	"github.com/grafana/agent/internal/static/integrations/v2/metricsutils"
-	kafka_exporter "github.com/wildum/kafka_exporter/exporter"
+	kafka_exporter "github.com/grafana/kafka_exporter/exporter"
 )
 
 // DefaultConfig holds the default settings for the kafka_lag_exporter

@@ -64,11 +64,6 @@ Main (unreleased)
 
 ### Other changes
 
-- The following metrics exposed by the component `prometheus.exporter.kafka` have been renamed:
-  * kafka_consumergroup_uncommitted_offsets -> kafka_consumergroup_lag
-  * kafka_consumergroupzookeeper_uncommitted_offsets_zookeeper -> kafka_consumergroupzookeeper_lag
-  * kafka_consumergroup_uncommitted_offsets_sum -> kafka_consumergroup_lag_sum (@wildum)
-
 - Clustering for Grafana Agent in Flow mode has graduated from beta to stable.
 
 - Resync defaults for `otelcol.processor.k8sattributes` with upstream. (@hainenber)

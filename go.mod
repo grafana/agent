@@ -610,12 +610,12 @@ require (
 	github.com/grafana/agent-remote-config v0.0.2
 	github.com/grafana/jfr-parser/pprof v0.0.0-20240126072739-986e71dc0361
 	github.com/grafana/jsonparser v0.0.0-20240209175146-098958973a2d
+	github.com/grafana/kafka_exporter v0.0.0-20240409084445-5e3488ad9f9a
 	github.com/natefinch/atomic v1.0.1
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusremotewriteexporter v0.96.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/filterprocessor v0.96.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/prometheusreceiver v0.96.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/vcenterreceiver v0.96.0
-	github.com/wildum/kafka_exporter v0.0.0-20240326161756-5cdbd0b6604f
 	go.opentelemetry.io/collector/config/configretry v0.96.0
 	go.opentelemetry.io/collector/confmap/converter/expandconverter v0.96.0
 	go.opentelemetry.io/collector/confmap/provider/fileprovider v0.96.0
