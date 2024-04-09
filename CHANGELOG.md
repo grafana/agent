@@ -37,6 +37,8 @@ v0.41.0 (2024-05-31)
 
 ### Enhancements
 
+- Add `--inspect` flag in ``grafana-agentctl test-logs` cmd. (@fgouteroux)
+
 - Add support for importing folders as single module to `import.file`. (@wildum)
 
 - Add support for importing directories as single module to `import.git`. (@wildum)

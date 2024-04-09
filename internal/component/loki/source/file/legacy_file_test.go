@@ -84,7 +84,7 @@ configs:
 	require.NoError(t, dec.Decode(&cfg))
 	require.NoError(t, cfg.ApplyDefaults())
 	logger := logkit.NewNopLogger()
-	l, err := logs.New(prometheus.NewRegistry(), &cfg, logger, false)
+	l, err := logs.New(prometheus.NewRegistry(), &cfg, logger, false, false)
 	require.NoError(t, err)
 	//
 	// Write a log line and wait for it to come through.

@@ -79,7 +79,7 @@ func NewEntrypoint(logger *server.Logger, cfg *config.Config, reloader Reloader)
 		return nil, err
 	}
 
-	ep.lokiLogs, err = logs.New(reg, cfg.Logs, logger, false)
+	ep.lokiLogs, err = logs.New(reg, cfg.Logs, logger, false, false)
 	if err != nil {
 		return nil, err
 	}
