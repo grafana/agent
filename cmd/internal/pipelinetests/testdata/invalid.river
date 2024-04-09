@@ -1,0 +1,3 @@
+not.exists "wrong" {
+  that_is = "broken"
+}

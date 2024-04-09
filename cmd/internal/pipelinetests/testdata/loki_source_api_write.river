@@ -1,0 +1,24 @@
+logging {
+  level  = "debug"
+  format = "logfmt"
+}
+
+loki.source.api "loki_push_api" {
+    http {
+        listen_address = "127.0.0.1"
+        listen_port = env("API_SERVER_PORT")
+    }
+    forward_to = [
+        loki.write.default.receiver,
+    ]
+    labels = {
+        forwarded = "true",
+    }
+}
+
+loki.write "default" {
+  endpoint {
+    url = env("LOKI_SERVER_URL")
+    batch_wait = "100ms"
+  }
+}
