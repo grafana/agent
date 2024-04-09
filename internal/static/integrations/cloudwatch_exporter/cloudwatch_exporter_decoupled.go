@@ -7,6 +7,7 @@ import (
 
 	"github.com/go-kit/log"
 	yace "github.com/nerdswords/yet-another-cloudwatch-exporter/pkg"
+	yaceClientsV1 "github.com/nerdswords/yet-another-cloudwatch-exporter/pkg/clients/v1"
 	yaceClients "github.com/nerdswords/yet-another-cloudwatch-exporter/pkg/clients/v2"
 	yaceModel "github.com/nerdswords/yet-another-cloudwatch-exporter/pkg/model"
 	"github.com/prometheus/client_golang/prometheus"
@@ -36,19 +37,35 @@ func NewDecoupledCloudwatchExporter(name string, logger log.Logger, conf yaceMod
 		log:   logger,
 	}
 
-	factory, err := yaceClients.NewFactory(loggerWrapper, conf, fipsEnabled)
-	if err != nil {
-		return nil, err
+	if true {
+		factory, err := yaceClients.NewFactory(loggerWrapper, conf, fipsEnabled)
+		if err != nil {
+			return nil, err
+		}
+
+		return &asyncExporter{
+			name:                 name,
+			logger:               loggerWrapper,
+			cachingClientFactory: factory,
+			scrapeConf:           conf,
+			registry:             atomic.Pointer[prometheus.Registry]{},
+			scrapeInterval:       scrapeInterval,
+		}, nil
+	} else {
+		loggerWrapper := yaceLoggerWrapper{
+			debug: debug,
+			log:   logger,
+		}
+		return &asyncExporter{
+			name:                 name,
+			logger:               loggerWrapper,
+			cachingClientFactory: yaceClientsV1.NewFactory(loggerWrapper, conf, fipsEnabled),
+			scrapeConf:           conf,
+			registry:             atomic.Pointer[prometheus.Registry]{},
+			scrapeInterval:       scrapeInterval,
+		}, nil
 	}
 
-	return &asyncExporter{
-		name:                 name,
-		logger:               loggerWrapper,
-		cachingClientFactory: factory,
-		scrapeConf:           conf,
-		registry:             atomic.Pointer[prometheus.Registry]{},
-		scrapeInterval:       scrapeInterval,
-	}, nil
 }
 
 func (e *asyncExporter) MetricsHandler() (http.Handler, error) {

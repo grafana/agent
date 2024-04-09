@@ -7,6 +7,7 @@ import (
 	"github.com/go-kit/log"
 	yace "github.com/nerdswords/yet-another-cloudwatch-exporter/pkg"
 	yaceClients "github.com/nerdswords/yet-another-cloudwatch-exporter/pkg/clients"
+	yaceClientsV1 "github.com/nerdswords/yet-another-cloudwatch-exporter/pkg/clients/v1"
 	yaceClientsV2 "github.com/nerdswords/yet-another-cloudwatch-exporter/pkg/clients/v2"
 	yaceLog "github.com/nerdswords/yet-another-cloudwatch-exporter/pkg/logging"
 	yaceModel "github.com/nerdswords/yet-another-cloudwatch-exporter/pkg/model"
@@ -39,16 +40,30 @@ func NewCloudwatchExporter(name string, logger log.Logger, conf yaceModel.JobsCo
 		log:   logger,
 	}
 
-	factory, err := yaceClientsV2.NewFactory(loggerWrapper, conf, fipsEnabled)
-	if err != nil {
-		return nil, err
+	if true {
+		factory, err := yaceClientsV2.NewFactory(loggerWrapper, conf, fipsEnabled)
+		if err != nil {
+			return nil, err
+		}
+		return &exporter{
+			name:                 name,
+			logger:               loggerWrapper,
+			cachingClientFactory: factory,
+			scrapeConf:           conf,
+		}, nil
+	} else {
+		loggerWrapper := yaceLoggerWrapper{
+			debug: debug,
+			log:   logger,
+		}
+		return &exporter{
+			name:                 name,
+			logger:               loggerWrapper,
+			cachingClientFactory: yaceClientsV1.NewFactory(loggerWrapper, conf, fipsEnabled),
+			scrapeConf:           conf,
+		}, nil
 	}
-	return &exporter{
-		name:                 name,
-		logger:               loggerWrapper,
-		cachingClientFactory: factory,
-		scrapeConf:           conf,
-	}, nil
+
 }
 
 func (e *exporter) MetricsHandler() (http.Handler, error) {
