@@ -20,6 +20,7 @@ type podTemplateOptions struct {
 	ExtraVolumeMounts   []core_v1.VolumeMount
 	ExtraEnvVars        []core_v1.EnvVar
 	Privileged          bool
+	HostNetwork         bool
 }
 
 func generatePodTemplate(
@@ -293,6 +294,7 @@ func generatePodTemplate(
 			Volumes:                       volumes,
 			Tolerations:                   d.Agent.Spec.Tolerations,
 			Affinity:                      d.Agent.Spec.Affinity,
+			HostNetwork:                   opts.HostNetwork,
 			TopologySpreadConstraints:     d.Agent.Spec.TopologySpreadConstraints,
 		},
 	}

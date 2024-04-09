@@ -90,7 +90,7 @@ LogsDeployment is a set of discovered resources relative to a LogsInstance.
 |apiVersion|string<br/>`monitoring.grafana.com/v1alpha1`|
 |kind|string<br/>`LogsDeployment`|
 |`Instance`<br/>_[LogsInstance](#monitoring.grafana.com/v1alpha1.LogsInstance)_|    |
-|`PodLogs`<br/>_[[]PodLogs](#monitoring.grafana.com/v1alpha1.PodLogs)_|    |
+|`PodLogs`<br/>_[[]*github.com/grafana/agent/internal/static/operator/apis/monitoring/v1alpha1.PodLogs](#monitoring.grafana.com/v1alpha1.*github.com/grafana/agent/internal/static/operator/apis/monitoring/v1alpha1.PodLogs)_|    |
 ### MetricsDeployment <a name="monitoring.grafana.com/v1alpha1.MetricsDeployment"></a>
 (Appears on:[Deployment](#monitoring.grafana.com/v1alpha1.Deployment))
 MetricsDeployment is a set of discovered resources relative to a MetricsInstance. 
@@ -100,9 +100,9 @@ MetricsDeployment is a set of discovered resources relative to a MetricsInstance
 |apiVersion|string<br/>`monitoring.grafana.com/v1alpha1`|
 |kind|string<br/>`MetricsDeployment`|
 |`Instance`<br/>_[MetricsInstance](#monitoring.grafana.com/v1alpha1.MetricsInstance)_|    |
-|`ServiceMonitors`<br/>_[[]github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1.ServiceMonitor](https://prometheus-operator.dev/docs/operator/api/#monitoring.coreos.com/v1.ServiceMonitor)_|    |
-|`PodMonitors`<br/>_[[]github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1.PodMonitor](https://prometheus-operator.dev/docs/operator/api/#monitoring.coreos.com/v1.PodMonitor)_|    |
-|`Probes`<br/>_[[]github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1.Probe](https://prometheus-operator.dev/docs/operator/api/#monitoring.coreos.com/v1.Probe)_|    |
+|`ServiceMonitors`<br/>_[[]*github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1.ServiceMonitor](https://prometheus-operator.dev/docs/operator/api/#monitoring.coreos.com/v1.*github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1.ServiceMonitor)_|    |
+|`PodMonitors`<br/>_[[]*github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1.PodMonitor](https://prometheus-operator.dev/docs/operator/api/#monitoring.coreos.com/v1.*github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1.PodMonitor)_|    |
+|`Probes`<br/>_[[]*github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1.Probe](https://prometheus-operator.dev/docs/operator/api/#monitoring.coreos.com/v1.*github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1.Probe)_|    |
 ### CRIStageSpec <a name="monitoring.grafana.com/v1alpha1.CRIStageSpec"></a>
 (Appears on:[PipelineStageSpec](#monitoring.grafana.com/v1alpha1.PipelineStageSpec))
 CRIStageSpec is a parsing stage that reads log lines using the standard CRI logging format. It needs no defined fields. 
@@ -175,6 +175,7 @@ Integration runs a single Grafana Agent integration. Integrations that generate 
 |`volumeMounts`<br/>_[[]Kubernetes core/v1.VolumeMount](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#volumemount-v1-core)_|  An extra list of VolumeMounts to be associated with the Grafana Agent pods running this integration. VolumeMount names are mutated to be unique across all used IntegrationSpecs.  Mount paths should include the namespace/name of the Integration CR to avoid potentially colliding with other resources.  |
 |`secrets`<br/>_[[]Kubernetes core/v1.SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#secretkeyselector-v1-core)_|  An extra list of keys from Secrets in the same namespace as the Integration which will be mounted into the Grafana Agent pod running this Integration.  Secrets will be mounted at /etc/grafana-agent/integrations/secrets/&lt;secret_namespace&gt;/&lt;secret_name&gt;/&lt;key&gt;.  |
 |`configMaps`<br/>_[[]Kubernetes core/v1.ConfigMapKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#configmapkeyselector-v1-core)_|  An extra list of keys from ConfigMaps in the same namespace as the Integration which will be mounted into the Grafana Agent pod running this Integration.  ConfigMaps are mounted at /etc/grafana-agent/integrations/configMaps/&lt;configmap_namespace&gt;/&lt;configmap_name&gt;/&lt;key&gt;.  |
+|`hostNetwork`<br/>_bool_|  HostNetwork indicates whether the integration should be run in the host network namespace. If set to true, the integration pods will share the network namespace with the host node.  |
 ### IntegrationSpec <a name="monitoring.grafana.com/v1alpha1.IntegrationSpec"></a>
 (Appears on:[Integration](#monitoring.grafana.com/v1alpha1.Integration))
 IntegrationSpec specifies the desired behavior of a metrics integration. 
@@ -188,6 +189,7 @@ IntegrationSpec specifies the desired behavior of a metrics integration.
 |`volumeMounts`<br/>_[[]Kubernetes core/v1.VolumeMount](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#volumemount-v1-core)_|  An extra list of VolumeMounts to be associated with the Grafana Agent pods running this integration. VolumeMount names are mutated to be unique across all used IntegrationSpecs.  Mount paths should include the namespace/name of the Integration CR to avoid potentially colliding with other resources.  |
 |`secrets`<br/>_[[]Kubernetes core/v1.SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#secretkeyselector-v1-core)_|  An extra list of keys from Secrets in the same namespace as the Integration which will be mounted into the Grafana Agent pod running this Integration.  Secrets will be mounted at /etc/grafana-agent/integrations/secrets/&lt;secret_namespace&gt;/&lt;secret_name&gt;/&lt;key&gt;.  |
 |`configMaps`<br/>_[[]Kubernetes core/v1.ConfigMapKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#configmapkeyselector-v1-core)_|  An extra list of keys from ConfigMaps in the same namespace as the Integration which will be mounted into the Grafana Agent pod running this Integration.  ConfigMaps are mounted at /etc/grafana-agent/integrations/configMaps/&lt;configmap_namespace&gt;/&lt;configmap_name&gt;/&lt;key&gt;.  |
+|`hostNetwork`<br/>_bool_|  HostNetwork indicates whether the integration should be run in the host network namespace. If set to true, the integration pods will share the network namespace with the host node.  |
 ### IntegrationType <a name="monitoring.grafana.com/v1alpha1.IntegrationType"></a>
 (Appears on:[IntegrationSpec](#monitoring.grafana.com/v1alpha1.IntegrationSpec))
 IntegrationType determines specific behaviors of a configured integration. 
@@ -424,7 +426,6 @@ PackStageSpec is a transform stage that lets you embed extracted values and labe
 |`labels`<br/>_[]string_|  Name from extracted data or line labels. Required. Labels provided here are automatically removed from output labels.  |
 |`ingestTimestamp`<br/>_bool_|  If the resulting log line should use any existing timestamp or use time.Now() when the line was created. Set to true when combining several log streams from different containers to avoid out of order errors.  |
 ### PipelineStageSpec <a name="monitoring.grafana.com/v1alpha1.PipelineStageSpec"></a>
-(Appears on:[PodLogsSpec](#monitoring.grafana.com/v1alpha1.PodLogsSpec))
 PipelineStageSpec defines an individual pipeline stage. Each stage type is mutually exclusive and no more than one may be set per stage.  More information on pipelines can be found in the Promtail documentation: https://grafana.com/docs/loki/latest/clients/promtail/pipelines/ 
 #### Fields
 |Field|Description|
@@ -448,7 +449,6 @@ PipelineStageSpec defines an individual pipeline stage. Each stage type is mutua
 |`tenant`<br/>_[TenantStageSpec](#monitoring.grafana.com/v1alpha1.TenantStageSpec)_|  Tenant is an action stage that sets the tenant ID for the log entry picking it from a field in the extracted data map. If the field is missing, the default LogsClientSpec.tenantId will be used.  |
 |`timestamp`<br/>_[TimestampStageSpec](#monitoring.grafana.com/v1alpha1.TimestampStageSpec)_|  Timestamp is an action stage that can change the timestamp of a log line before it is sent to Loki. If not present, the timestamp of a log line defaults to the time when the log line was read.  |
 ### PodLogs <a name="monitoring.grafana.com/v1alpha1.PodLogs"></a>
-(Appears on:[LogsDeployment](#monitoring.grafana.com/v1alpha1.LogsDeployment))
 PodLogs defines how to collect logs for a pod. 
 #### Fields
 |Field|Description|
@@ -459,8 +459,8 @@ PodLogs defines how to collect logs for a pod.
 |`podTargetLabels`<br/>_[]string_|  PodTargetLabels transfers labels on the Kubernetes Pod onto the target.  |
 |`selector`<br/>_[Kubernetes meta/v1.LabelSelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#labelselector-v1-meta)_|  Selector to select Pod objects. Required.  |
 |`namespaceSelector`<br/>_[github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1.NamespaceSelector](https://prometheus-operator.dev/docs/operator/api/#monitoring.coreos.com/v1.NamespaceSelector)_|  Selector to select which namespaces the Pod objects are discovered from.  |
-|`pipelineStages`<br/>_[[]PipelineStageSpec](#monitoring.grafana.com/v1alpha1.PipelineStageSpec)_|  Pipeline stages for this pod. Pipeline stages support transforming and filtering log lines.  |
-|`relabelings`<br/>_[[]github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1.RelabelConfig](https://prometheus-operator.dev/docs/operator/api/#monitoring.coreos.com/v1.RelabelConfig)_|  RelabelConfigs to apply to logs before delivering. Grafana Agent Operator automatically adds relabelings for a few standard Kubernetes fields and replaces original scrape job name with __tmp_logs_job_name.  More info: https://grafana.com/docs/loki/latest/clients/promtail/configuration/#relabel_configs  |
+|`pipelineStages`<br/>_[[]*github.com/grafana/agent/internal/static/operator/apis/monitoring/v1alpha1.PipelineStageSpec](#monitoring.grafana.com/v1alpha1.*github.com/grafana/agent/internal/static/operator/apis/monitoring/v1alpha1.PipelineStageSpec)_|  Pipeline stages for this pod. Pipeline stages support transforming and filtering log lines.  |
+|`relabelings`<br/>_[[]*github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1.RelabelConfig](https://prometheus-operator.dev/docs/operator/api/#monitoring.coreos.com/v1.*github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1.RelabelConfig)_|  RelabelConfigs to apply to logs before delivering. Grafana Agent Operator automatically adds relabelings for a few standard Kubernetes fields and replaces original scrape job name with __tmp_logs_job_name.  More info: https://grafana.com/docs/loki/latest/clients/promtail/configuration/#relabel_configs  |
 ### PodLogsSpec <a name="monitoring.grafana.com/v1alpha1.PodLogsSpec"></a>
 (Appears on:[PodLogs](#monitoring.grafana.com/v1alpha1.PodLogs))
 PodLogsSpec defines how to collect logs for a pod. 
@@ -471,8 +471,8 @@ PodLogsSpec defines how to collect logs for a pod.
 |`podTargetLabels`<br/>_[]string_|  PodTargetLabels transfers labels on the Kubernetes Pod onto the target.  |
 |`selector`<br/>_[Kubernetes meta/v1.LabelSelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#labelselector-v1-meta)_|  Selector to select Pod objects. Required.  |
 |`namespaceSelector`<br/>_[github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1.NamespaceSelector](https://prometheus-operator.dev/docs/operator/api/#monitoring.coreos.com/v1.NamespaceSelector)_|  Selector to select which namespaces the Pod objects are discovered from.  |
-|`pipelineStages`<br/>_[[]PipelineStageSpec](#monitoring.grafana.com/v1alpha1.PipelineStageSpec)_|  Pipeline stages for this pod. Pipeline stages support transforming and filtering log lines.  |
-|`relabelings`<br/>_[[]github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1.RelabelConfig](https://prometheus-operator.dev/docs/operator/api/#monitoring.coreos.com/v1.RelabelConfig)_|  RelabelConfigs to apply to logs before delivering. Grafana Agent Operator automatically adds relabelings for a few standard Kubernetes fields and replaces original scrape job name with __tmp_logs_job_name.  More info: https://grafana.com/docs/loki/latest/clients/promtail/configuration/#relabel_configs  |
+|`pipelineStages`<br/>_[[]*github.com/grafana/agent/internal/static/operator/apis/monitoring/v1alpha1.PipelineStageSpec](#monitoring.grafana.com/v1alpha1.*github.com/grafana/agent/internal/static/operator/apis/monitoring/v1alpha1.PipelineStageSpec)_|  Pipeline stages for this pod. Pipeline stages support transforming and filtering log lines.  |
+|`relabelings`<br/>_[[]*github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1.RelabelConfig](https://prometheus-operator.dev/docs/operator/api/#monitoring.coreos.com/v1.*github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1.RelabelConfig)_|  RelabelConfigs to apply to logs before delivering. Grafana Agent Operator automatically adds relabelings for a few standard Kubernetes fields and replaces original scrape job name with __tmp_logs_job_name.  More info: https://grafana.com/docs/loki/latest/clients/promtail/configuration/#relabel_configs  |
 ### QueueConfig <a name="monitoring.grafana.com/v1alpha1.QueueConfig"></a>
 (Appears on:[RemoteWriteSpec](#monitoring.grafana.com/v1alpha1.RemoteWriteSpec))
 QueueConfig allows the tuning of remote_write queue_config parameters. 
