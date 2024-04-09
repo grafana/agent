@@ -73,8 +73,6 @@ Main (unreleased)
 
 - A new `loki.rules.kubernetes` component that discovers `PrometheusRule` Kubernetes resources and loads them into a Loki Ruler instance. (@EStork09)
 
-- Add `beyla.ebpf` component to automatically instrument services with eBPF. (@marctc)
-
 ### Bugfixes
 
 - Fix an issue where JSON string array elements were not parsed correctly in `loki.source.cloudflare`. (@thampiotr)
