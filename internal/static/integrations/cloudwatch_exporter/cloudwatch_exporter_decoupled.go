@@ -2,13 +2,14 @@ package cloudwatch_exporter
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"time"
 
 	"github.com/go-kit/log"
 	yace "github.com/nerdswords/yet-another-cloudwatch-exporter/pkg"
 	yaceClientsV1 "github.com/nerdswords/yet-another-cloudwatch-exporter/pkg/clients/v1"
-	yaceClients "github.com/nerdswords/yet-another-cloudwatch-exporter/pkg/clients/v2"
+	yaceClientsV2 "github.com/nerdswords/yet-another-cloudwatch-exporter/pkg/clients/v2"
 	yaceModel "github.com/nerdswords/yet-another-cloudwatch-exporter/pkg/model"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -31,40 +32,35 @@ type asyncExporter struct {
 // NewDecoupledCloudwatchExporter creates a new YACE wrapper, that implements Integration. The decouple feature spawns a
 // background go-routine to perform YACE metric collection allowing for a decoupled collection of AWS metrics from the
 // ServerHandler.
-func NewDecoupledCloudwatchExporter(name string, logger log.Logger, conf yaceModel.JobsConfig, scrapeInterval time.Duration, fipsEnabled, debug bool) (*asyncExporter, error) {
+func NewDecoupledCloudwatchExporter(name string, logger log.Logger, conf yaceModel.JobsConfig, scrapeInterval time.Duration, fipsEnabled, debug bool, clientVersion string) (*asyncExporter, error) {
 	loggerWrapper := yaceLoggerWrapper{
 		debug: debug,
 		log:   logger,
 	}
 
-	if true {
-		factory, err := yaceClients.NewFactory(loggerWrapper, conf, fipsEnabled)
-		if err != nil {
-			return nil, err
-		}
+	var factory cachingFactory
+	var err error
 
-		return &asyncExporter{
-			name:                 name,
-			logger:               loggerWrapper,
-			cachingClientFactory: factory,
-			scrapeConf:           conf,
-			registry:             atomic.Pointer[prometheus.Registry]{},
-			scrapeInterval:       scrapeInterval,
-		}, nil
-	} else {
-		loggerWrapper := yaceLoggerWrapper{
-			debug: debug,
-			log:   logger,
-		}
-		return &asyncExporter{
-			name:                 name,
-			logger:               loggerWrapper,
-			cachingClientFactory: yaceClientsV1.NewFactory(loggerWrapper, conf, fipsEnabled),
-			scrapeConf:           conf,
-			registry:             atomic.Pointer[prometheus.Registry]{},
-			scrapeInterval:       scrapeInterval,
-		}, nil
+	switch clientVersion {
+	case "1":
+		factory = yaceClientsV1.NewFactory(loggerWrapper, conf, fipsEnabled)
+	case "2":
+		factory, err = yaceClientsV2.NewFactory(loggerWrapper, conf, fipsEnabled)
+	default:
+		err = fmt.Errorf("invalid client version %s", clientVersion)
 	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &asyncExporter{
+		name:                 name,
+		logger:               loggerWrapper,
+		cachingClientFactory: factory,
+		scrapeConf:           conf,
+		registry:             atomic.Pointer[prometheus.Registry]{},
+	}, nil
 
 }
 

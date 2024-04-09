@@ -2,6 +2,7 @@ package cloudwatch_exporter
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 
 	"github.com/go-kit/log"
@@ -34,36 +35,34 @@ type exporter struct {
 }
 
 // NewCloudwatchExporter creates a new YACE wrapper, that implements Integration
-func NewCloudwatchExporter(name string, logger log.Logger, conf yaceModel.JobsConfig, fipsEnabled, debug bool) (*exporter, error) {
+func NewCloudwatchExporter(name string, logger log.Logger, conf yaceModel.JobsConfig, fipsEnabled, debug bool, clientVersion string) (*exporter, error) {
 	loggerWrapper := yaceLoggerWrapper{
 		debug: debug,
 		log:   logger,
 	}
 
-	if true {
-		factory, err := yaceClientsV2.NewFactory(loggerWrapper, conf, fipsEnabled)
-		if err != nil {
-			return nil, err
-		}
-		return &exporter{
-			name:                 name,
-			logger:               loggerWrapper,
-			cachingClientFactory: factory,
-			scrapeConf:           conf,
-		}, nil
-	} else {
-		loggerWrapper := yaceLoggerWrapper{
-			debug: debug,
-			log:   logger,
-		}
-		return &exporter{
-			name:                 name,
-			logger:               loggerWrapper,
-			cachingClientFactory: yaceClientsV1.NewFactory(loggerWrapper, conf, fipsEnabled),
-			scrapeConf:           conf,
-		}, nil
+	var factory cachingFactory
+	var err error
+
+	switch clientVersion {
+	case "1":
+		factory = yaceClientsV1.NewFactory(loggerWrapper, conf, fipsEnabled)
+	case "2":
+		factory, err = yaceClientsV2.NewFactory(loggerWrapper, conf, fipsEnabled)
+	default:
+		err = fmt.Errorf("invalid client version %s", clientVersion)
 	}
 
+	if err != nil {
+		return nil, err
+	}
+
+	return &exporter{
+		name:                 name,
+		logger:               loggerWrapper,
+		cachingClientFactory: factory,
+		scrapeConf:           conf,
+	}, nil
 }
 
 func (e *exporter) MetricsHandler() (http.Handler, error) {

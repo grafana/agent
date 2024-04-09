@@ -138,10 +138,10 @@ func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) 
 		if v := c.DecoupledScrape.ScrapeInterval; v != nil {
 			scrapeInterval = *v
 		}
-		return NewDecoupledCloudwatchExporter(c.Name(), l, exporterConfig, scrapeInterval, fipsEnabled, c.Debug)
+		return NewDecoupledCloudwatchExporter(c.Name(), l, exporterConfig, scrapeInterval, fipsEnabled, c.Debug, "2")
 	}
 
-	return NewCloudwatchExporter(c.Name(), l, exporterConfig, fipsEnabled, c.Debug)
+	return NewCloudwatchExporter(c.Name(), l, exporterConfig, fipsEnabled, c.Debug, "2")
 }
 
 // getHash calculates the MD5 hash of the yaml representation of the config
