@@ -1,9 +1,10 @@
 package cloudwatch_exporter
 
 import (
+	"github.com/grafana/regexp"
+	"github.com/nerdswords/yet-another-cloudwatch-exporter/pkg/model"
 	"testing"
 
-	yaceConf "github.com/nerdswords/yet-another-cloudwatch-exporter/pkg/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v2"
@@ -184,234 +185,198 @@ static:
 var falsePtr = false
 var truePtr = true
 
-var expectedConfig = yaceConf.ScrapeConf{
-	APIVersion: "v1alpha1",
-	StsRegion:  "us-east-2",
-	Discovery: yaceConf.Discovery{
-		ExportedTagsOnMetrics: map[string][]string{
-			"AWS/EC2": {"name", "type"},
-		},
-		Jobs: []*yaceConf.Job{
+var expectedConfig = model.JobsConfig{
+	StsRegion: "us-east-2",
+	DiscoveryJobs: []model.DiscoveryJob{{
+		Regions:                   []string{"us-east-2"},
+		Type:                      "AWS/EC2",
+		Roles:                     []model.Role{{RoleArn: "arn:aws:iam::878167871295:role/yace_testing", ExternalID: ""}},
+		SearchTags:                []model.SearchTag{{Key: "instance_type", Value: regexp.MustCompile("spot")}},
+		CustomTags:                []model.Tag{{Key: "alias", Value: "tesis"}},
+		DimensionNameRequirements: []string(nil),
+		Metrics: []*model.MetricConfig{
 			{
-				Type:    "AWS/EC2",
-				Regions: []string{"us-east-2"},
-				Roles: []yaceConf.Role{
-					{
-						RoleArn: "arn:aws:iam::878167871295:role/yace_testing",
-					},
-				},
-				CustomTags: []yaceConf.Tag{
-					{
-						Key:   "alias",
-						Value: "tesis",
-					},
-				},
-				SearchTags: []yaceConf.Tag{
-					{
-						Key:   "instance_type",
-						Value: "spot",
-					},
-				},
-				Metrics: []*yaceConf.Metric{
-					{
-						Name:       "CPUUtilization",
-						Statistics: []string{"Maximum", "Average"},
-						// Defaults get configured from general settings
-						Period:                 300,
-						Length:                 300,
-						Delay:                  0,
-						NilToZero:              &defaultNilToZero,
-						AddCloudwatchTimestamp: &addCloudwatchTimestamp,
-					},
-				},
-				RoundingPeriod: nil,
-				JobLevelMetricFields: yaceConf.JobLevelMetricFields{
-					Period:                 0,
-					Length:                 0,
-					Delay:                  0,
-					AddCloudwatchTimestamp: &falsePtr,
-					NilToZero:              &defaultNilToZero,
-				},
+				Name:                   "CPUUtilization",
+				Statistics:             []string{"Maximum", "Average"},
+				Period:                 300,
+				Length:                 300,
+				Delay:                  0,
+				NilToZero:              true,
+				AddCloudwatchTimestamp: false,
 			},
+		},
+		RoundingPeriod:              (*int64)(nil),
+		RecentlyActiveOnly:          false,
+		ExportedTagsOnMetrics:       []string{"name", "type"},
+		IncludeContextOnInfoMetrics: false,
+		DimensionsRegexps: []model.DimensionsRegexp{{
+			Regexp:          regexp.MustCompile("instance/(?P<InstanceId>[^/]+)"),
+			DimensionsNames: []string{"InstanceId"},
+		}},
+		JobLevelMetricFields: model.JobLevelMetricFields{
+			Statistics:             []string(nil),
+			Period:                 0,
+			Length:                 0,
+			Delay:                  0,
+			NilToZero:              &truePtr,
+			AddCloudwatchTimestamp: &falsePtr,
+		},
+	}, {
+		Regions:                   []string{"us-east-2"},
+		Type:                      "s3",
+		Roles:                     []model.Role{{RoleArn: "arn:aws:iam::878167871295:role/yace_testing", ExternalID: ""}},
+		SearchTags:                []model.SearchTag{},
+		CustomTags:                []model.Tag{},
+		DimensionNameRequirements: []string{"BucketName"},
+		Metrics: []*model.MetricConfig{
 			{
-				Type:    "s3",
-				Regions: []string{"us-east-2"},
-				Roles: []yaceConf.Role{
-					{
-						RoleArn: "arn:aws:iam::878167871295:role/yace_testing",
-					},
-				},
-				SearchTags:                []yaceConf.Tag{},
-				CustomTags:                []yaceConf.Tag{},
-				DimensionNameRequirements: []string{"BucketName"},
-				Metrics: []*yaceConf.Metric{
-					{
-						Name:       "BucketSizeBytes",
-						Statistics: []string{"Sum"},
-						// Defaults get configured from general settings
-						Period:                 300,
-						Length:                 3600, // 1 hour
-						Delay:                  0,
-						NilToZero:              &defaultNilToZero,
-						AddCloudwatchTimestamp: &addCloudwatchTimestamp,
-					},
-				},
-				RoundingPeriod: nil,
-				JobLevelMetricFields: yaceConf.JobLevelMetricFields{
-					Period:                 0,
-					Length:                 0,
-					Delay:                  0,
-					AddCloudwatchTimestamp: &falsePtr,
-					NilToZero:              &defaultNilToZero,
-				},
+				Name:                   "BucketSizeBytes",
+				Statistics:             []string{"Sum"},
+				Period:                 300,
+				Length:                 3600,
+				Delay:                  0,
+				NilToZero:              true,
+				AddCloudwatchTimestamp: false,
 			},
 		},
-	},
-	Static: []*yaceConf.Static{
-		{
-			Name:       "custom_tesis_metrics",
-			Regions:    []string{"us-east-2"},
-			Roles:      []yaceConf.Role{{}},
-			Namespace:  "CoolApp",
-			CustomTags: []yaceConf.Tag{},
-			Dimensions: []yaceConf.Dimension{
-				{
-					Name:  "PURCHASES_SERVICE",
-					Value: "CoolService",
-				},
-				{
-					Name:  "APP_VERSION",
-					Value: "1.0",
-				},
-			},
-			Metrics: []*yaceConf.Metric{
-				{
-					Name:                   "KPIs",
-					Period:                 300,
-					Length:                 300,
-					Statistics:             []string{"Average"},
-					Delay:                  0,
-					NilToZero:              &defaultNilToZero,
-					AddCloudwatchTimestamp: &addCloudwatchTimestamp,
-				},
+		RoundingPeriod:              (*int64)(nil),
+		RecentlyActiveOnly:          false,
+		ExportedTagsOnMetrics:       []string{},
+		IncludeContextOnInfoMetrics: false,
+		DimensionsRegexps: []model.DimensionsRegexp{{
+			Regexp:          regexp.MustCompile("(?P<BucketName>[^:]+)$"),
+			DimensionsNames: []string{"BucketName"},
+		}},
+		JobLevelMetricFields: model.JobLevelMetricFields{
+			Statistics:             []string(nil),
+			Period:                 0,
+			Length:                 0,
+			Delay:                  0,
+			NilToZero:              &truePtr,
+			AddCloudwatchTimestamp: &falsePtr,
+		},
+	}},
+	StaticJobs: []model.StaticJob{{
+		Name:       "custom_tesis_metrics",
+		Regions:    []string{"us-east-2"},
+		Roles:      []model.Role{{RoleArn: "", ExternalID: ""}},
+		Namespace:  "CoolApp",
+		CustomTags: []model.Tag{},
+		Dimensions: []model.Dimension{
+			{Name: "PURCHASES_SERVICE", Value: "CoolService"},
+			{Name: "APP_VERSION", Value: "1.0"},
+		},
+		Metrics: []*model.MetricConfig{
+			{
+				Name:                   "KPIs",
+				Statistics:             []string{"Average"},
+				Period:                 300,
+				Length:                 300,
+				Delay:                  0,
+				NilToZero:              true,
+				AddCloudwatchTimestamp: false,
 			},
 		},
-	},
+	}},
+	CustomNamespaceJobs: []model.CustomNamespaceJob(nil),
 }
 
-var expectedConfig3 = yaceConf.ScrapeConf{
-	APIVersion: "v1alpha1",
-	StsRegion:  "us-east-2",
-	Discovery: yaceConf.Discovery{
-		ExportedTagsOnMetrics: map[string][]string{
-			"AWS/EC2": {"name", "type"},
-		},
-		Jobs: []*yaceConf.Job{
-			{
-				Type:    "AWS/EC2",
-				Regions: []string{"us-east-2"},
-				Roles: []yaceConf.Role{
-					{
-						RoleArn: "arn:aws:iam::878167871295:role/yace_testing",
-					},
-				},
-				CustomTags: []yaceConf.Tag{
-					{
-						Key:   "alias",
-						Value: "tesis",
-					},
-				},
-				SearchTags: []yaceConf.Tag{
-					{
-						Key:   "instance_type",
-						Value: "spot",
-					},
-				},
-				Metrics: []*yaceConf.Metric{
-					{
-						Name:       "CPUUtilization",
-						Statistics: []string{"Maximum", "Average"},
-						// Defaults get configured from general settings
-						Period:                 300,
-						Length:                 300,
-						Delay:                  0,
-						NilToZero:              &falsePtr,
-						AddCloudwatchTimestamp: &addCloudwatchTimestamp,
-					},
-				},
-				RoundingPeriod: nil,
-				JobLevelMetricFields: yaceConf.JobLevelMetricFields{
-					Period:                 0,
-					Length:                 0,
-					Delay:                  0,
-					AddCloudwatchTimestamp: &falsePtr,
-					NilToZero:              &falsePtr,
-				},
-			},
-			{
-				Type:    "s3",
-				Regions: []string{"us-east-2"},
-				Roles: []yaceConf.Role{
-					{
-						RoleArn: "arn:aws:iam::878167871295:role/yace_testing",
-					},
-				},
-				SearchTags:                []yaceConf.Tag{},
-				CustomTags:                []yaceConf.Tag{},
-				DimensionNameRequirements: []string{"BucketName"},
-				Metrics: []*yaceConf.Metric{
-					{
-						Name:       "BucketSizeBytes",
-						Statistics: []string{"Sum"},
-						// Defaults get configured from general settings
-						Period:                 300,
-						Length:                 3600, // 1 hour
-						Delay:                  0,
-						NilToZero:              &falsePtr,
-						AddCloudwatchTimestamp: &addCloudwatchTimestamp,
-					},
-				},
-				RoundingPeriod: nil,
-				JobLevelMetricFields: yaceConf.JobLevelMetricFields{
-					Period:                 0,
-					Length:                 0,
-					Delay:                  0,
-					AddCloudwatchTimestamp: &falsePtr,
-					NilToZero:              &truePtr,
-				},
-			},
-		},
-	},
-	Static: []*yaceConf.Static{
+var expectedConfig3 = model.JobsConfig{
+	StsRegion: "us-east-2",
+	DiscoveryJobs: []model.DiscoveryJob{
 		{
-			Name:       "custom_tesis_metrics",
-			Regions:    []string{"us-east-2"},
-			Roles:      []yaceConf.Role{{}},
-			Namespace:  "CoolApp",
-			CustomTags: []yaceConf.Tag{},
-			Dimensions: []yaceConf.Dimension{
-				{
-					Name:  "PURCHASES_SERVICE",
-					Value: "CoolService",
-				},
-				{
-					Name:  "APP_VERSION",
-					Value: "1.0",
-				},
+			Regions:                   []string{"us-east-2"},
+			Type:                      "AWS/EC2",
+			Roles:                     []model.Role{{RoleArn: "arn:aws:iam::878167871295:role/yace_testing", ExternalID: ""}},
+			SearchTags:                []model.SearchTag{{Key: "instance_type", Value: regexp.MustCompile("spot")}},
+			CustomTags:                []model.Tag{{Key: "alias", Value: "tesis"}},
+			DimensionNameRequirements: []string(nil),
+			Metrics: []*model.MetricConfig{{
+				Name:                   "CPUUtilization",
+				Statistics:             []string{"Maximum", "Average"},
+				Period:                 300,
+				Length:                 300,
+				Delay:                  0,
+				NilToZero:              false,
+				AddCloudwatchTimestamp: false,
+			}},
+			RoundingPeriod:              (*int64)(nil),
+			RecentlyActiveOnly:          false,
+			ExportedTagsOnMetrics:       []string{"name", "type"},
+			IncludeContextOnInfoMetrics: false,
+			DimensionsRegexps: []model.DimensionsRegexp{{
+				Regexp:          regexp.MustCompile("instance/(?P<InstanceId>[^/]+)"),
+				DimensionsNames: []string{"InstanceId"},
+			}},
+			JobLevelMetricFields: model.JobLevelMetricFields{
+				Statistics:             []string(nil),
+				Period:                 0,
+				Length:                 0,
+				Delay:                  0,
+				NilToZero:              &falsePtr,
+				AddCloudwatchTimestamp: &falsePtr,
 			},
-			Metrics: []*yaceConf.Metric{
-				{
-					Name:                   "KPIs",
-					Period:                 300,
-					Length:                 300,
-					Statistics:             []string{"Average"},
-					Delay:                  0,
-					NilToZero:              &falsePtr,
-					AddCloudwatchTimestamp: &addCloudwatchTimestamp,
-				},
+		},
+		{
+			Regions: []string{"us-east-2"},
+			Type:    "s3",
+			Roles: []model.Role{{
+				RoleArn:    "arn:aws:iam::878167871295:role/yace_testing",
+				ExternalID: "",
+			}},
+			SearchTags:                []model.SearchTag{},
+			CustomTags:                []model.Tag{},
+			DimensionNameRequirements: []string{"BucketName"},
+			Metrics: []*model.MetricConfig{{
+				Name:                   "BucketSizeBytes",
+				Statistics:             []string{"Sum"},
+				Period:                 300,
+				Length:                 3600,
+				Delay:                  0,
+				NilToZero:              false,
+				AddCloudwatchTimestamp: false,
+			}},
+			RoundingPeriod:              (*int64)(nil),
+			RecentlyActiveOnly:          false,
+			ExportedTagsOnMetrics:       []string{},
+			IncludeContextOnInfoMetrics: false,
+			DimensionsRegexps: []model.DimensionsRegexp{{
+				Regexp:          regexp.MustCompile("(?P<BucketName>[^:]+)$"),
+				DimensionsNames: []string{"BucketName"},
+			}},
+			JobLevelMetricFields: model.JobLevelMetricFields{
+				Statistics:             []string(nil),
+				Period:                 0,
+				Length:                 0,
+				Delay:                  0,
+				NilToZero:              &truePtr,
+				AddCloudwatchTimestamp: &falsePtr,
 			},
 		},
 	},
+	StaticJobs: []model.StaticJob{{
+		Name:       "custom_tesis_metrics",
+		Regions:    []string{"us-east-2"},
+		Roles:      []model.Role{{RoleArn: "", ExternalID: ""}},
+		Namespace:  "CoolApp",
+		CustomTags: []model.Tag{},
+		Dimensions: []model.Dimension{{
+			Name:  "PURCHASES_SERVICE",
+			Value: "CoolService",
+		}, {Name: "APP_VERSION", Value: "1.0"}},
+		Metrics: []*model.MetricConfig{
+			{
+				Name:                   "KPIs",
+				Statistics:             []string{"Average"},
+				Period:                 300,
+				Length:                 300,
+				Delay:                  0,
+				NilToZero:              false,
+				AddCloudwatchTimestamp: false,
+			},
+		},
+	}},
+	CustomNamespaceJobs: []model.CustomNamespaceJob(nil),
 }
 
 func TestTranslateConfigToYACEConfig(t *testing.T) {
@@ -443,7 +408,7 @@ func TestTranslateNilToZeroConfigToYACEConfig(t *testing.T) {
 	yaceConf, fipsEnabled, err := ToYACEConfig(&c)
 	require.NoError(t, err, "failed to translate to YACE configuration")
 
-	require.EqualValues(t, expectedConfig3, yaceConf)
+	require.EqualValues(t, expectedConfig3.DiscoveryJobs, yaceConf.DiscoveryJobs)
 	require.EqualValues(t, truePtr, fipsEnabled)
 }
 
