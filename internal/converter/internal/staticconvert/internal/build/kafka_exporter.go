@@ -43,6 +43,7 @@ func toKafkaExporter(config *kafka_exporter.Config) *kafka.Arguments {
 		AllowConcurrent:         config.AllowConcurrent,
 		AllowAutoTopicCreation:  config.AllowAutoTopicCreation,
 		MaxOffsets:              config.MaxOffsets,
+		PruneIntervalSeconds:    config.PruneIntervalSeconds,
 		TopicsFilter:            config.TopicsFilter,
 		TopicsExclude:           config.TopicsExclude,
 		GroupFilter:             config.GroupFilter,
