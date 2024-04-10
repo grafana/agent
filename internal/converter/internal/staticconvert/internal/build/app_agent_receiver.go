@@ -9,7 +9,7 @@ import (
 	"github.com/grafana/agent/internal/component/otelcol"
 	"github.com/grafana/agent/internal/converter/diag"
 	"github.com/grafana/agent/internal/converter/internal/common"
-	app_agent_receiver_v2 "github.com/grafana/agent/internal/static/integrations/v2/app_agent_receiver"
+	app_agent_receiver_v2 "github.com/grafana/agent/static/integrations/v2/app_agent_receiver"
 	"github.com/grafana/river/rivertypes"
 	"github.com/grafana/river/scanner"
 )

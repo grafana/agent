@@ -3,7 +3,7 @@ package build
 import (
 	"github.com/grafana/agent/internal/component/discovery"
 	"github.com/grafana/agent/internal/component/prometheus/exporter/unix"
-	"github.com/grafana/agent/internal/static/integrations/node_exporter"
+	"github.com/grafana/agent/static/integrations/node_exporter"
 )
 
 func (b *ConfigBuilder) appendNodeExporter(config *node_exporter.Config, instanceKey *string) discovery.Exports {

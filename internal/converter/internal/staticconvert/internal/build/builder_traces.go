@@ -6,7 +6,7 @@ import (
 
 	"github.com/grafana/agent/internal/converter/diag"
 	"github.com/grafana/agent/internal/converter/internal/otelcolconvert"
-	"github.com/grafana/agent/internal/static/traces"
+	"github.com/grafana/agent/static/traces"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/connector/spanmetricsconnector"
 	otel_component "go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/exporter/loggingexporter"
