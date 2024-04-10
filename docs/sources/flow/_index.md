@@ -11,8 +11,9 @@ weight: 400
 
 # Flow mode
 
-The Flow mode of Grafana Agent (also called Grafana Agent Flow) is a
-_component-based_ revision of Grafana Agent with a focus on ease-of-use,
+{{< docs/shared lookup="agent-deprecation.md" source="alloy" version="next">}}
+
+{{< param "PRODUCT_NAME" >}} is a _component-based_ revision of {{< param "PRODUCT_ROOT_NAME" >}} with a focus on ease-of-use,
 debuggability, and ability to adapt to the needs of power users.
 
 Components allow for reusability, composability, and focus on a single task.
