@@ -62,7 +62,7 @@ require (
 	github.com/grafana/loki v1.6.2-0.20240221085104-f9d188620153 // k190 branch
 	github.com/grafana/pyroscope-go/godeltaprof v0.1.7
 	github.com/grafana/pyroscope/api v0.4.0
-	github.com/grafana/pyroscope/ebpf v0.4.4-0.20240409133252-692cfd96ce27
+	github.com/grafana/pyroscope/ebpf v0.4.4-0.20240410083630-60e47df71d06
 	github.com/grafana/regexp v0.0.0-20221123153739-15dc172cd2db
 	github.com/grafana/river v0.3.1-0.20240123144725-960753160cd1
 	github.com/grafana/snowflake-prometheus-exporter v0.0.0-20221213150626-862cad8e9538
