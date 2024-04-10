@@ -1,0 +1,78 @@
+name: Build and Push Image
+
+on:
+  push:
+    branches:
+      - 'main'
+  workflow_dispatch:
+
+permissions:
+  contents: 'read'
+  id-token: 'write'
+  pull-requests: 'read'
+
+env:
+  IMAGE_NAME: awslogs-agent
+  ENVIRONMENT: 'dev'
+  BUILDKIT_PROGRESS: 'plain'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest-8-cores
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go 1.22
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+          cache: true
+
+      - name: Test
+        run: make GO_TAGS="nodocker" test
+
+      - name: Set OTEL Exporter Endpoint
+        run: echo "OTEL_EXPORTER_ENDPOINT=172.17.0.1:4318" >> $GITHUB_ENV
+
+      - name: Integration test
+        run: make integration-test
+
+      - name: Get tags
+        id: get-tags
+        run: |
+          echo "date_short_sha=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
+      - name: Build and push (linux/amd64)
+        uses: grafana/shared-workflows/actions/push-to-gar-docker@main
+        if: github.ref_name == 'main'
+        with:
+          platforms: linux/amd64
+          environment: ${{ env.ENVIRONMENT }}
+          image_name: ${{ env.IMAGE_NAME }}-amd64
+          context: .
+          file: ./cmd/grafana-agent/Dockerfile
+          build-args: |
+            VERSION=${{ steps.get-tags.outputs.date_short_sha }}
+            TARGETOS="linux"
+            TARGETARCH="amd64"
+          tags: |-
+            "${{ steps.get-tags.outputs.date_short_sha }}"
+            "latest"
+
+      - name: Build and push (linux/arm64-v8)
+        uses: grafana/shared-workflows/actions/push-to-gar-docker@main
+        if: github.ref_name == 'andrii/simple-ci' || github.ref_name == 'main'
+        with:
+          platforms: linux/arm64/v8
+          environment: ${{ env.ENVIRONMENT }}
+          image_name: ${{ env.IMAGE_NAME }}-arm64-v8
+          context: .
+          file: ./cmd/grafana-agent/Dockerfile
+          build-args: |
+            VERSION=${{ steps.get-tags.outputs.date_short_sha }}
+            TARGETOS="linux"
+            TARGETARCH="arm64"
+          tags: |-
+            "${{ steps.get-tags.outputs.date_short_sha }}"
+            "latest"
