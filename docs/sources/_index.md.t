@@ -15,6 +15,8 @@ cascade:
 
 # Grafana Agent
 
+{{< docs/shared lookup="agent-deprecation.md" source="alloy" version="<ALLOY_VERSION>">}}
+
 Grafana Agent is a vendor-neutral, batteries-included telemetry collector with
 configuration inspired by [Terraform][]. It is designed to be flexible,
 performant, and compatible with multiple ecosystems such as Prometheus and
