@@ -7,8 +7,8 @@ import (
 	commonCfg "github.com/grafana/agent/internal/component/common/config"
 	"github.com/grafana/agent/internal/component/prometheus/exporter"
 	"github.com/grafana/agent/internal/featuregate"
-	"github.com/grafana/agent/internal/static/integrations"
-	"github.com/grafana/agent/internal/static/integrations/elasticsearch_exporter"
+	"github.com/grafana/agent/static/integrations"
+	"github.com/grafana/agent/static/integrations/elasticsearch_exporter"
 )
 
 func init() {

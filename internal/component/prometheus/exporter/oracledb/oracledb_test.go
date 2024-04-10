@@ -4,7 +4,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/grafana/agent/internal/static/integrations/oracledb_exporter"
+	"github.com/grafana/agent/static/integrations/oracledb_exporter"
 	"github.com/grafana/river"
 	"github.com/grafana/river/rivertypes"
 	config_util "github.com/prometheus/common/config"
