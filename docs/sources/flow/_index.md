@@ -16,7 +16,7 @@ cascade:
 
 # {{% param "PRODUCT_NAME" %}}
 
-{{< docs/shared lookup="agent-deprecation.md" source="alloy" version="<ALLOY_VERSION>">}}
+{{< docs/shared lookup="agent-deprecation.md" source="alloy" version="next">}}
 
 {{< param "PRODUCT_NAME" >}} is a _component-based_ revision of {{< param "PRODUCT_ROOT_NAME" >}} with a focus on ease-of-use,
 debuggability, and ability to adapt to the needs of power users.

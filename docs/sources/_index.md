@@ -15,7 +15,7 @@ cascade:
 
 # Grafana Agent
 
-{{< docs/shared lookup="agent-deprecation.md" source="alloy" version="<ALLOY_VERSION>">}}
+{{< docs/shared lookup="agent-deprecation.md" source="alloy" version="next">}}
 
 Grafana Agent is an OpenTelemetry Collector distribution with configuration
 inspired by [Terraform][]. It is designed to be flexible, performant, and
