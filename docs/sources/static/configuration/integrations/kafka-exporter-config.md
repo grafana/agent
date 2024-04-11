@@ -84,7 +84,7 @@ Full reference of options:
   # Connect using TLS
   [use_tls: <bool>]
 
-  # Used to verify the hostname on the returned certificates unless tls.insecure-skip-tls-verify is given. The kafka server's name should be given.
+  # Used to verify the hostname on the returned certificates unless tls.insecure-skip-tls-verify is given. If you don't provide the Kafka server name, the hostname is taken from the URL.
   [tls_server_name: <string>]
 
   # The optional certificate authority file for TLS client authentication
