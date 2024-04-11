@@ -12,7 +12,7 @@ import (
 	"github.com/grafana/agent/internal/converter/internal/prometheusconvert"
 	"github.com/grafana/agent/internal/converter/internal/prometheusconvert/build"
 	prometheus_component "github.com/grafana/agent/internal/converter/internal/prometheusconvert/component"
-	"github.com/grafana/agent/internal/static/traces/promsdprocessor"
+	"github.com/grafana/agent/static/traces/promsdprocessor"
 	prom_config "github.com/prometheus/prometheus/config"
 	"go.opentelemetry.io/collector/component"
 	"gopkg.in/yaml.v3"

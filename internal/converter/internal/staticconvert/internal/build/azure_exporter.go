@@ -3,7 +3,7 @@ package build
 import (
 	"github.com/grafana/agent/internal/component/discovery"
 	"github.com/grafana/agent/internal/component/prometheus/exporter/azure"
-	"github.com/grafana/agent/internal/static/integrations/azure_exporter"
+	"github.com/grafana/agent/static/integrations/azure_exporter"
 )
 
 func (b *ConfigBuilder) appendAzureExporter(config *azure_exporter.Config, instanceKey *string) discovery.Exports {
