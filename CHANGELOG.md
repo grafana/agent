@@ -34,7 +34,7 @@ Main (unreleased)
 
 ### Enhancements
 
-- Update `prometheus.exporter.kafka` with the following functionalities:
+- Update `prometheus.exporter.kafka` with the following functionalities (@wildum):
   * GSSAPI config
   * enable/disable PA_FX_FAST
   * set a TLS server name
@@ -42,7 +42,7 @@ Main (unreleased)
   * set the minimum number of topics to monitor
   * enable/disable auto-creation of requested topics if they don't already exist
   * regex to exclude topics / groups 
-  * added metric kafka_broker_info (@wildum)
+  * added metric kafka_broker_info
 
 - Add support for importing folders as single module to `import.file`. (@wildum)
 
