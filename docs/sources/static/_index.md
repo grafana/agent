@@ -10,7 +10,7 @@ weight: 200
 
 # Static mode
 
-{{< docs/shared lookup="agent-deprecation.md" source="alloy" version="<ALLOY_VERSION>">}}
+{{< docs/shared lookup="agent-deprecation.md" source="alloy" version="<next>">}}
 
 Static mode is the original mode of Grafana Agent.
 Static mode is composed of different _subsystems_:
