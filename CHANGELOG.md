@@ -7,6 +7,36 @@ This document contains a historical list of changes between releases. Only
 changes that impact end-user behavior are listed; changes to documentation or
 internal API changes are not present.
 
+v0.40.4 (2024-04-12)
+--------------------
+
+### Security fixes
+
+- Fixes following vulnerabilities (@ptodev)
+  * [CVE-2024-27304](https://github.com/advisories/GHSA-mrww-27vc-gghv)
+  * [CVE-2024-27289](https://github.com/advisories/GHSA-m7wr-2xf7-cm9p)
+  * [CVE-2024-28180](https://github.com/advisories/GHSA-c5q2-7r4c-mv6g)
+  * [CVE-2024-24786](https://github.com/advisories/GHSA-8r3f-844c-mc37)
+
+### Enhancements
+
+- Update `prometheus.exporter.kafka` with the following functionalities (@wildum):
+  * GSSAPI config
+  * enable/disable PA_FX_FAST
+  * set a TLS server name
+  * show the offset/lag for all consumer group or only the connected ones
+  * set the minimum number of topics to monitor
+  * enable/disable auto-creation of requested topics if they don't already exist
+  * regex to exclude topics / groups 
+  * added metric kafka_broker_info
+
+- In `prometheus.exporter.kafka`, the interpolation table used to compute estimated lag metrics is now pruned
+  on `metadata_refresh_interval` instead of `prune_interval_seconds`. (@wildum)
+
+### Bugfixes
+
+- Update gcp_exporter to a newer version with a patch for incorrect delta histograms (@kgeckhart)
+
 v0.40.3 (2024-03-14)
 --------------------
 
