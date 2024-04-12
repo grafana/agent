@@ -34,6 +34,16 @@ Main (unreleased)
 
 ### Enhancements
 
+- Update `prometheus.exporter.kafka` with the following functionalities (@wildum):
+  * GSSAPI config
+  * enable/disable PA_FX_FAST
+  * set a TLS server name
+  * show the offset/lag for all consumer group or only the connected ones
+  * set the minimum number of topics to monitor
+  * enable/disable auto-creation of requested topics if they don't already exist
+  * regex to exclude topics / groups 
+  * added metric kafka_broker_info
+
 - Add support for importing folders as single module to `import.file`. (@wildum)
 
 - Add support for importing directories as single module to `import.git`. (@wildum)
@@ -45,6 +55,9 @@ Main (unreleased)
   Agent Mixin to better match the alert conditions. (@thampiotr)
 
 - Add conversion from static to flow mode for `loki.source.windowsevent` via `legacy_bookmark_path`. (@mattdurham)
+
+- In `prometheus.exporter.kafka`, the interpolation table used to compute estimated lag metrics is now pruned
+  on `metadata_refresh_interval` instead of `prune_interval_seconds`. (@wildum)
 
 - Add ability to convert static mode positions file to `loki.source.file` compatible via `legacy_positions_file` argument. (@mattdurham)
 
