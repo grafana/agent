@@ -12,8 +12,6 @@ weight: 300
 
 # Static mode Kubernetes operator (Beta)
 
-{{< docs/shared lookup="agent-deprecation.md" source="alloy" version="next">}}
-
 Grafana Agent Operator is a [Kubernetes operator][] for the [static mode][] of
 Grafana Agent. It makes it easier to deploy and configure static mode to
 collect telemetry data from Kubernetes resources.
