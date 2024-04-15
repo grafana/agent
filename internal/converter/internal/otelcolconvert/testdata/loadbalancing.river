@@ -1,0 +1,24 @@
+otelcol.receiver.otlp "default" {
+	grpc { }
+
+	output {
+		metrics = [otelcol.exporter.loadbalancing.default.input]
+		logs    = [otelcol.exporter.loadbalancing.default.input]
+		traces  = [otelcol.exporter.loadbalancing.default.input]
+	}
+}
+
+otelcol.exporter.loadbalancing "default" {
+	protocol {
+		otlp {
+			client { }
+		}
+	}
+
+	resolver {
+		static {
+			hostnames = ["backend-1:4317", "backend-2:4317", "backend-3:4317"]
+		}
+	}
+	routing_key = "service"
+}

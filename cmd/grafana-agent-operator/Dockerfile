@@ -4,7 +4,7 @@
 # default when running `docker buildx build` or when DOCKER_BUILDKIT=1 is set
 # in environment variables.
 
-FROM --platform=$BUILDPLATFORM grafana/agent-build-image:0.30.4 as build
+FROM --platform=$BUILDPLATFORM grafana/agent-build-image:0.40.2 as build
 ARG BUILDPLATFORM
 ARG TARGETPLATFORM
 ARG TARGETOS
@@ -22,7 +22,7 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
     RELEASE_BUILD=${RELEASE_BUILD} VERSION=${VERSION} \
     make operator
 
-FROM ubuntu:mantic
+FROM public.ecr.aws/ubuntu/ubuntu:mantic
 
 LABEL org.opencontainers.image.source="https://github.com/grafana/agent"
 

@@ -7,8 +7,65 @@ This document contains a historical list of changes between releases. Only
 changes that impact end-user behavior are listed; changes to documentation or
 internal API changes are not present.
 
-Unreleased
+0.38.0 (2024-04-12)
 ----------
+
+### Enhancements
+
+- Update Grafana Agent version to v0.40.4. (@ptodev)
+
+0.37.0 (2024-03-14)
+----------
+
+### Features
+
+- Allow setting nodePort for service. (@ryayon)
+
+### Enhancements
+
+- Update Grafana Agent version to v0.40.3. (@thampiotr)
+
+0.36.0 (2024-02-27)
+-------------------
+
+### Enhancements
+
+- Update Grafana Agent version to v0.40.2. (@rfratto)
+
+0.35.0 (2024-02-27)
+-------------------
+
+### Enhancements
+
+- Update Grafana Agent version to v0.40.1. (@rfratto)
+
+0.34.0 (2024-02-27)
+-------------------
+
+### Enhancements
+
+- Update Grafana Agent version to v0.40.0. (@jcreixell)
+
+0.33.0 (2024-02-20)
+-------------------
+
+### Features
+
+- Add HPA behavior support for scaling up and down. (@wildum)
+
+### Enhancements
+
+- Allow setting tlsConfig for serviceMonitor (@captncraig)
+- Allow setting internalTrafficPolicy for service (@captncraig)
+
+0.32.0 (2024-02-15)
+-------------------
+
+### Enhancements
+
+- Allow setting scheme for readiness checks when using tls. (@captncraig)
+
+- Update Grafana Agent version to v0.39.2. (@captncraig)
 
 0.31.1 (2024-01-19)
 -------------------

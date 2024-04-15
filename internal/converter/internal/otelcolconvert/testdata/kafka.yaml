@@ -1,0 +1,43 @@
+receivers:
+  kafka:
+    brokers: ['broker:9092']
+    protocol_version: 2.0.0
+    auth:
+      plain_text:
+        username: fakeusername
+        password: fakepassword
+      sasl:
+        username: fakeusername
+        password: fakepassword
+        mechanism: somemechanism
+        version: 5
+        aws_msk:
+          region: us-east-1
+          broker_addr: broker:9092
+      tls:
+        insecure: true
+      kerberos:
+        username: fakeusername
+        password: fakepassword
+        service_name: someservice
+        realm: myrealm
+
+
+exporters:
+  otlp:
+    endpoint: database:4317
+
+service:
+  pipelines:
+    metrics:
+      receivers: [kafka]
+      processors: []
+      exporters: [otlp]
+    logs:
+      receivers: [kafka]
+      processors: []
+      exporters: [otlp]
+    traces:
+      receivers: [kafka]
+      processors: []
+      exporters: [otlp]

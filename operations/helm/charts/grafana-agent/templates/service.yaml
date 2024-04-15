@@ -16,8 +16,12 @@ spec:
   {{- end }}
   selector:
     {{- include "grafana-agent.selectorLabels" . | nindent 4 }}
+  internalTrafficPolicy: {{.Values.service.internalTrafficPolicy}}
   ports:
     - name: http-metrics
+      {{- if eq .Values.service.type "NodePort" }}
+      nodePort: {{ .Values.service.nodePort }}
+      {{- end }}
       port: {{ .Values.agent.listenPort }}
       targetPort: {{ .Values.agent.listenPort }}
       protocol: "TCP"

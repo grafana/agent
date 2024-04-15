@@ -225,6 +225,10 @@ Name | Type     | Description                                                   
 
 The `exclude` block configures which pods to exclude from the processor.
 
+{{< admonition type="note" >}}
+Pods with the name `jaeger-agent` or `jaeger-collector` are excluded by default.
+{{< /admonition >}}
+
 ### pod block
 
 The `pod` block configures a pod to be excluded from the processor.
@@ -416,11 +420,11 @@ prometheus.remote_write "mimir" {
 
 `otelcol.processor.k8sattributes` can accept arguments from the following components:
 
-- Components that export [OpenTelemetry `otelcol.Consumer`]({{< relref "../compatibility/#opentelemetry-otelcolconsumer-exporters" >}})
+- Components that export [OpenTelemetry `otelcol.Consumer`](../../compatibility/#opentelemetry-otelcolconsumer-exporters)
 
 `otelcol.processor.k8sattributes` has exports that can be consumed by the following components:
 
-- Components that consume [OpenTelemetry `otelcol.Consumer`]({{< relref "../compatibility/#opentelemetry-otelcolconsumer-consumers" >}})
+- Components that consume [OpenTelemetry `otelcol.Consumer`](../../compatibility/#opentelemetry-otelcolconsumer-consumers)
 
 {{< admonition type="note" >}}
 Connecting some components may not be sensible or components may require further configuration to make the connection work correctly.

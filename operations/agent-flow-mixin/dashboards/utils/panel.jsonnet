@@ -30,7 +30,7 @@
     },
   },
 
-  newHeatmap(title=''):: $.new(title, 'heatmap') {
+  newHeatmap(title='', unit=''):: $.new(title, 'heatmap') {
     maxDataPoints: 30,
     options: {
       calculate: false,
@@ -53,10 +53,22 @@
         yHistogram: true,
       },
       yAxis: {
-        unit: 's',
+        unit: unit,
       },
     },
     pluginVersion: '9.0.6',
+  },
+
+  newNativeHistogramHeatmap(title='', unit=''):: $.newHeatmap(title, unit) {
+    options+: {
+      cellGap: 0,
+      color: {
+        scheme: 'Spectral',
+      },
+      filterValues: {
+        le: 0.1,
+      },
+    },
   },
 
   withMultiTooltip():: {
@@ -128,8 +140,8 @@
     }
   ),
 
-  newRow(title='', x=0, y=0, w=24, h=1, collapsed=false):: 
-    $.new(title, 'row') 
-    + $.withPosition({x: x, y: y, w: w, h: h })
-    + {collapsed: collapsed},
+  newRow(title='', x=0, y=0, w=24, h=1, collapsed=false)::
+    $.new(title, 'row')
+    + $.withPosition({ x: x, y: y, w: w, h: h })
+    + { collapsed: collapsed },
 }

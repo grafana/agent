@@ -4,13 +4,13 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/tutorials/flow-by-example/faq/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/tutorials/flow-by-example/faq/
 - /docs/grafana-cloud/send-data/agent/flow/tutorials/flow-by-example/faq/
-canonical: https://grafana.com/docs/agent/latest/flow/tutorials/flow-by-example/faq/
+canonical: https://grafana.com/docs/agent/latest/flow/tutorials/flow-by-example/get-started/
 description: Getting started with Flow-by-Example Tutorials
 title: Get started
 weight: 10
 ---
 
-## Who is this for?
+# Get started
 
 This set of tutorials contains a collection of examples that build on each other to demonstrate how to configure and use [{{< param "PRODUCT_NAME" >}}][flow]. It assumes you have a basic understanding of what {{< param "PRODUCT_ROOT_NAME" >}} is and telemetry collection in general. It also assumes a base level of familiarity with Prometheus and PromQL, Loki and LogQL, and basic Grafana navigation. It assumes no knowledge of {{< param "PRODUCT_NAME" >}} or River concepts.
 

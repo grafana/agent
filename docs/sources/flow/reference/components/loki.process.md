@@ -65,6 +65,7 @@ The following blocks are supported inside the definition of `loki.process`:
 | stage.labels              | [stage.labels][]              | Configures a `labels` processing stage.                        | no       |
 | stage.limit               | [stage.limit][]               | Configures a `limit` processing stage.                         | no       |
 | stage.logfmt              | [stage.logfmt][]              | Configures a `logfmt` processing stage.                        | no       |
+| stage.luhn                | [stage.luhn][]                | Configures a `luhn` processing stage.                          | no       |
 | stage.match               | [stage.match][]               | Configures a `match` processing stage.                         | no       |
 | stage.metrics             | [stage.metrics][]             | Configures a `metrics` stage.                                  | no       |
 | stage.multiline           | [stage.multiline][]           | Configures a `multiline` processing stage.                     | no       |
@@ -95,6 +96,7 @@ file.
 [stage.labels]: #stagelabels-block
 [stage.limit]: #stagelimit-block
 [stage.logfmt]: #stagelogfmt-block
+[stage.luhn]: #stageluhn-block
 [stage.match]: #stagematch-block
 [stage.metrics]: #stagemetrics-block
 [stage.multiline]: #stagemultiline-block
@@ -566,6 +568,47 @@ set of extracted data, with the value of `user=foo`.
 The second stage parses the contents of `extra` and appends the `username: foo`
 key-value pair to the set of extracted data.
 
+### stage.luhn block
+
+The `stage.luhn` inner block configures a processing stage that reads incoming
+log lines and redacts strings that match a Luhn algorithm.
+
+The [Luhn algorithm][] is a simple checksum formula used to validate various
+identification numbers, such as credit card numbers, IMEI numbers, National
+Provider Identifier numbers in the US, and Canadian Social Insurance Numbers.
+Many Payment Card Industry environments require these numbers to be redacted.
+
+[Luhn algorithm]: https://en.wikipedia.org/wiki/Luhn_algorithm
+
+The following arguments are supported:
+
+| Name          | Type          | Description                                    | Default          | Required |
+| ------------- | ------------- | ---------------------------------------------- | ---------------- | -------- |
+| `replacement` | `string`      | String to substitute the matched patterns with | `"**REDACTED**"` | no      |
+| `source`      | `string`      | Source of the data to parse.                   | `""`             | no       |
+| `minLength`   | `int`         | Minimum length of digits to consider           | `13`             | no       |
+
+
+The `source` field defines the source of data to search. When `source` is
+missing or empty, the stage parses the log line itself, but it can also be used
+to parse a previously extracted value.
+
+The following example log line contains an approved credit card number.
+
+```
+time=2012-11-01T22:08:41+00:00 app=loki level=WARN duration=125 message="credit card approved 4032032513548443" extra="user=foo"
+
+stage.luhn {
+    replacement = "**DELETED**"
+}
+```
+
+The stage parses the log line, redacts the credit card number, and produces the following updated log line:
+
+```
+time=2012-11-01T22:08:41+00:00 app=loki level=INFO duration=125 message="credit card approved **DELETED**" extra="user=foo"
+```
+
 ### stage.match block
 
 The `stage.match` inner block configures a filtering stage that can conditionally
@@ -961,7 +1004,7 @@ The following arguments are supported:
 | Name               | Type           | Description                                                                     | Default | Required |
 | ------------------ | -------------- | ------------------------------------------------------------------------------- | ------- | -------- |
 | `labels`           | `list(string)` | The values from the extracted data and labels to pack with the log entry.       |         | yes      |
-| `ingest_timestamp` | `bool`         | Whether to replace the log entry timestamp with the time the `pack` stage runs. | `true   | no       |
+| `ingest_timestamp` | `bool`         | Whether to replace the log entry timestamp with the time the `pack` stage runs. | `true`  | no       |
 
 This stage lets you embed extracted values and labels together with the log
 line, by packing them into a JSON object. The original message is stored under
@@ -1459,6 +1502,11 @@ The following arguments are supported:
 | `location`          | `string`       | IANA Timezone Database location to use when parsing.        | `""`      | no       |
 | `action_on_failure` | `string`       | What to do when the timestamp can't be extracted or parsed. | `"fudge"` | no       |
 
+{{< admonition type="note" >}}
+Be careful with further stages which may also override the timestamp.
+For example, a `stage.pack` with `ingest_timestamp` set to `true` could replace the timestamp which `stage.timestamp` had set earlier in the pipeline.
+{{< /admonition >}}
+
 The `source` field defines which value from the shared map of extracted values
 the stage should attempt to parse as a timestamp.
 
@@ -1752,11 +1800,11 @@ loki.process "local" {
 
 `loki.process` can accept arguments from the following components:
 
-- Components that export [Loki `LogsReceiver`]({{< relref "../compatibility/#loki-logsreceiver-exporters" >}})
+- Components that export [Loki `LogsReceiver`](../../compatibility/#loki-logsreceiver-exporters)
 
 `loki.process` has exports that can be consumed by the following components:
 
-- Components that consume [Loki `LogsReceiver`]({{< relref "../compatibility/#loki-logsreceiver-consumers" >}})
+- Components that consume [Loki `LogsReceiver`](../../compatibility/#loki-logsreceiver-consumers)
 
 {{< admonition type="note" >}}
 Connecting some components may not be sensible or components may require further configuration to make the connection work correctly.

@@ -33,6 +33,19 @@ Components allow for reusability, composability, and focus on a single task.
 * Use expressions to bind components together to build a programmable pipeline.
 * Includes a UI for debugging the state of a pipeline.
 
+{{< param "PRODUCT_NAME" >}} is a [distribution][] of the OpenTelemetry
+Collector.
+
+Each distribution offers a different collection of components and capabilities.
+As a distribution, {{< param "PRODUCT_NAME" >}} includes dozens of
+OpenTelemetry-native [components][] from the OpenTelemetry project and
+introduces new features such as programmable pipelines, clustering support,
+and the ability to share pipelines around the world.
+
+In addition to being an OpenTelemetry Collector distribution,
+{{< param "PRODUCT_NAME" >}} also includes first-class support for the
+Prometheus and Loki ecosystems, allowing you to mix-and-match your pipelines.
+
 ## Example
 
 ```river
@@ -70,7 +83,7 @@ prometheus.remote_write "default" {
 
 ## {{% param "PRODUCT_NAME" %}} configuration generator
 
-The {{< param "PRODUCT_NAME" >}} [configuration generator](https://grafana.github.io/agent-configurator/) will help you get a head start on creating flow code.
+The {{< param "PRODUCT_NAME" >}} [configuration generator](https://grafana.github.io/agent-configurator/) helps you get a head start on creating flow code.
 
 {{< admonition type="note" >}}
 This feature is experimental, and it doesn't support all River components.
@@ -80,14 +93,23 @@ This feature is experimental, and it doesn't support all River components.
 
 * [Install][] {{< param "PRODUCT_NAME" >}}.
 * Learn about the core [Concepts][] of {{< param "PRODUCT_NAME" >}}.
-* Follow our [Tutorials][] for hands-on learning of {{< param "PRODUCT_NAME" >}}.
-* Consult our [Tasks][] instructions to accomplish common objectives with {{< param "PRODUCT_NAME" >}}.
-* Check out our [Reference][] documentation to find specific information you
-  might be looking for.
+* Follow the [Tutorials][] for hands-on learning of {{< param "PRODUCT_NAME" >}}.
+* Consult the [Tasks][] instructions to accomplish common objectives with {{< param "PRODUCT_NAME" >}}.
+* Check out the [Reference][] documentation to find specific information you might be looking for.
 
-[Install]: {{< relref "./get-started/install/" >}}
-[Concepts]: {{< relref "./concepts/" >}}
-[Tasks]: {{< relref "./tasks/" >}}
-[Tutorials]: {{< relref "./tutorials/ ">}}
-[Reference]: {{< relref "./reference" >}}
+[distribution]: https://opentelemetry.io/ecosystem/distributions/
 
+{{% docs/reference %}}
+[Install]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/get-started/install/"
+[Install]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/get-started/install/"
+[Concepts]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/"
+[Concepts]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/concepts/"
+[Tasks]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/tasks/"
+[Tasks]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/tasks/"
+[Tutorials]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/tutorials/"
+[Tutorials]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/tutorials/
+[Reference]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/"
+[Reference]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/"
+[components]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/"
+[components]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/components"
+{{% /docs/reference %}}

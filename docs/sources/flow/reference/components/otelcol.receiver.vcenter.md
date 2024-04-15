@@ -34,7 +34,7 @@ The full list of metrics that can be collected can be found in [vcenter receiver
 
 This receiver has been built to support ESXi and vCenter versions:
 
-- 7.5
+- 8
 - 7.0
 - 6.7
 
@@ -227,7 +227,7 @@ otelcol.exporter.otlp "default" {
 
 `otelcol.receiver.vcenter` can accept arguments from the following components:
 
-- Components that export [OpenTelemetry `otelcol.Consumer`]({{< relref "../compatibility/#opentelemetry-otelcolconsumer-exporters" >}})
+- Components that export [OpenTelemetry `otelcol.Consumer`](../../compatibility/#opentelemetry-otelcolconsumer-exporters)
 
 
 {{< admonition type="note" >}}

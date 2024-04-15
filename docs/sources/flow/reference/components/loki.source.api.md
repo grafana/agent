@@ -123,7 +123,7 @@ loki.source.api "loki_push_api" {
 
 `loki.source.api` can accept arguments from the following components:
 
-- Components that export [Loki `LogsReceiver`]({{< relref "../compatibility/#loki-logsreceiver-exporters" >}})
+- Components that export [Loki `LogsReceiver`](../../compatibility/#loki-logsreceiver-exporters)
 
 
 {{< admonition type="note" >}}

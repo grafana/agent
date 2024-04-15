@@ -135,6 +135,8 @@ The following blocks are supported inside the definition of
 
 ### filesystem block
 
+The default values can vary by the operating system the agent runs on - refer to the [integration source](https://github.com/grafana/agent/blob/main/static/integrations/node_exporter/config.go) for up-to-date values on each OS.
+
 | Name                   | Type       | Description                                                         | Default                                         | Required |
 | ---------------------- | ---------- | ------------------------------------------------------------------- | ----------------------------------------------- | -------- |
 | `fs_types_exclude`     | `string`   | Regexp of filesystem types to ignore for filesystem collector.      | (_see below_ )                                  | no       |
@@ -144,7 +146,7 @@ The following blocks are supported inside the definition of
 `fs_types_exclude` defaults to the following regular expression string:
 
 ```
-^(autofs\|binfmt_misc\|bpf\|cgroup2?\|configfs\|debugfs\|devpts\|devtmpfs\|fusectl\|hugetlbfs\|iso9660\|mqueue\|nsfs\|overlay\|proc\|procfs\|pstore\|rpc_pipefs\|securityfs\|selinuxfs\|squashfs\|sysfs\|tracefs)$
+^(autofs|binfmt_misc|bpf|cgroup2?|configfs|debugfs|devpts|devtmpfs|fusectl|hugetlbfs|iso9660|mqueue|nsfs|overlay|proc|procfs|pstore|rpc_pipefs|securityfs|selinuxfs|squashfs|sysfs|tracefs)$
 ```
 
 ### ipvs block
@@ -188,7 +190,7 @@ The following blocks are supported inside the definition of
 `fields` defaults to the following regular expression string:
 
 ```
-"^(.*_(InErrors\|InErrs)\|Ip_Forwarding\|Ip(6\|Ext)_(InOctets\|OutOctets)\|Icmp6?_(InMsgs\|OutMsgs)\|TcpExt_(Listen.*\|Syncookies.*\|TCPSynRetrans\|TCPTimeouts)\|Tcp_(ActiveOpens\|InSegs\|OutSegs\|OutRsts\|PassiveOpens\|RetransSegs\|CurrEstab)\|Udp6?_(InDatagrams\|OutDatagrams\|NoPorts\|RcvbufErrors\|SndbufErrors))$"
+"^(.*_(InErrors|InErrs)|Ip_Forwarding|Ip(6|Ext)_(InOctets|OutOctets)|Icmp6?_(InMsgs|OutMsgs)|TcpExt_(Listen.*|Syncookies.*|TCPSynRetrans|TCPTimeouts)|Tcp_(ActiveOpens|InSegs|OutSegs|OutRsts|PassiveOpens|RetransSegs|CurrEstab)|Udp6?_(InDatagrams|OutDatagrams|NoPorts|RcvbufErrors|SndbufErrors))$"
 ```
 
 ### perf block
@@ -416,7 +418,7 @@ Replace the following:
 
 `prometheus.exporter.unix` has exports that can be consumed by the following components:
 
-- Components that consume [Targets]({{< relref "../compatibility/#targets-consumers" >}})
+- Components that consume [Targets](../../compatibility/#targets-consumers)
 
 {{< admonition type="note" >}}
 Connecting some components may not be sensible or components may require further configuration to make the connection work correctly.

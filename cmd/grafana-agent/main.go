@@ -6,12 +6,12 @@ import (
 	"os"
 
 	"github.com/go-kit/log/level"
-	"github.com/grafana/agent/cmd/internal/flowmode"
-	"github.com/grafana/agent/pkg/boringcrypto"
-	"github.com/grafana/agent/pkg/build"
-	"github.com/grafana/agent/pkg/config"
-	"github.com/grafana/agent/pkg/server"
-	util_log "github.com/grafana/agent/pkg/util/log"
+	"github.com/grafana/agent/internal/boringcrypto"
+	"github.com/grafana/agent/internal/build"
+	"github.com/grafana/agent/internal/flowmode"
+	util_log "github.com/grafana/agent/internal/util/log"
+	"github.com/grafana/agent/static/config"
+	"github.com/grafana/agent/static/server"
 
 	"github.com/prometheus/client_golang/prometheus"
 
@@ -20,7 +20,11 @@ import (
 	_ "github.com/prometheus/prometheus/discovery/install"
 
 	// Register integrations
-	_ "github.com/grafana/agent/pkg/integrations/install"
+	_ "github.com/grafana/agent/static/integrations/install"
+
+	// Embed a set of fallback X.509 trusted roots
+	// Allows the app to work correctly even when the OS does not provide a verifier or systems roots pool
+	_ "golang.org/x/crypto/x509roots/fallback"
 )
 
 func init() {

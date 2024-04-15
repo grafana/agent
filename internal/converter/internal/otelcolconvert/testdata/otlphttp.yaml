@@ -1,0 +1,24 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+      http:
+
+exporters:
+  otlphttp:
+    endpoint: database:4318
+
+service:
+  pipelines:
+    metrics:
+      receivers: [otlp]
+      processors: []
+      exporters: [otlphttp]
+    logs:
+      receivers: [otlp]
+      processors: []
+      exporters: [otlphttp]
+    traces:
+      receivers: [otlp]
+      processors: []
+      exporters: [otlphttp]

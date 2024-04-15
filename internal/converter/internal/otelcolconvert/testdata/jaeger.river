@@ -1,0 +1,25 @@
+otelcol.receiver.jaeger "default" {
+	protocols {
+		grpc { }
+
+		thrift_http { }
+
+		thrift_binary {
+			max_packet_size = "63KiB488B"
+		}
+
+		thrift_compact {
+			max_packet_size = "63KiB488B"
+		}
+	}
+
+	output {
+		traces = [otelcol.exporter.otlp.default.input]
+	}
+}
+
+otelcol.exporter.otlp "default" {
+	client {
+		endpoint = "database:4317"
+	}
+}

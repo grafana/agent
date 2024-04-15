@@ -9,14 +9,18 @@ title: prometheus.exporter.vsphere
 description: Learn about prometheus.exporter.vsphere
 ---
 
-# prometheus.exporter.vsphere
+# prometheus.exporter.vsphere (deprecated)
 
-The `prometheus.exporter.vsphere` component embeds [`vmware_exporter`](https://github.com/grafana/vmware_exporter) to collect vSphere metrics
+{{< admonition type="caution" >}}
+Starting with release v0.40, `prometheus.exporter.vsphere` is deprecated. Consider using `otelcol.receiver.vcenter` instead.
+`prometheus.exporter.vsphere` will be removed in a future release.
+{{< /admonition >}}
+
+The `prometheus.exporter.vsphere` component embeds [`vmware_exporter`](https://github.com/grafana/vmware_exporter) to collect vSphere metrics.
 
 > **NOTE**: We recommend to use [otelcol.receiver.vcenter][] instead.
 
 [otelcol.receiver.vcenter]: {{< relref "./otelcol.receiver.vcenter.md" >}}
-
 
 ## Usage
 
@@ -96,7 +100,7 @@ prometheus.remote_write "default" {
 
 `prometheus.exporter.vsphere` has exports that can be consumed by the following components:
 
-- Components that consume [Targets]({{< relref "../compatibility/#targets-consumers" >}})
+- Components that consume [Targets](../../compatibility/#targets-consumers)
 
 {{< admonition type="note" >}}
 Connecting some components may not be sensible or components may require further configuration to make the connection work correctly.

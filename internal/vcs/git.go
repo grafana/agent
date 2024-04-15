@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"io"
+	"io/fs"
 	"os"
 	"path/filepath"
 
@@ -29,7 +30,7 @@ type GitRepo struct {
 // managed at storagePath.
 //
 // If storagePath is empty on disk, NewGitRepo initializes GitRepo by cloning
-// the repository. Otherwise, NewGitRepo will do a fetch.
+// the repository. Otherwise, NewGitRepo will do a pull.
 //
 // After GitRepo is initialized, it checks out to the Revision specified in
 // GitRepoOptions.
@@ -57,13 +58,20 @@ func NewGitRepo(ctx context.Context, storagePath string, opts GitRepoOptions) (*
 		}
 	}
 
-	// Fetch the latest contents. This may be a no-op if we just did a clone.
-	fetchRepoErr := repo.FetchContext(ctx, &git.FetchOptions{
+	// Pulls the latest contents. This may be a no-op if we just did a clone.
+	wt, err := repo.Worktree()
+	if err != nil {
+		return nil, DownloadFailedError{
+			Repository: opts.Repository,
+			Inner:      err,
+		}
+	}
+	pullRepoErr := wt.PullContext(ctx, &git.PullOptions{
 		RemoteName: "origin",
 		Force:      true,
 		Auth:       opts.Auth.Convert(),
 	})
-	if fetchRepoErr != nil && !errors.Is(fetchRepoErr, git.NoErrAlreadyUpToDate) {
+	if pullRepoErr != nil && !errors.Is(pullRepoErr, git.NoErrAlreadyUpToDate) {
 		workTree, err := repo.Worktree()
 		if err != nil {
 			return nil, err
@@ -74,32 +82,22 @@ func NewGitRepo(ctx context.Context, storagePath string, opts GitRepoOptions) (*
 				workTree: workTree,
 			}, UpdateFailedError{
 				Repository: opts.Repository,
-				Inner:      fetchRepoErr,
+				Inner:      pullRepoErr,
 			}
 	}
 
-	// Finally, hard reset to our requested revision.
-	hash, err := findRevision(opts.Revision, repo)
-	if err != nil {
-		return nil, InvalidRevisionError{Revision: opts.Revision}
-	}
-
-	workTree, err := repo.Worktree()
-	if err != nil {
-		return nil, err
-	}
-	err = workTree.Reset(&git.ResetOptions{
-		Commit: hash,
-		Mode:   git.HardReset,
-	})
-	if err != nil {
-		return nil, err
+	checkoutErr := checkout(opts.Revision, repo)
+	if checkoutErr != nil {
+		return nil, UpdateFailedError{
+			Repository: opts.Repository,
+			Inner:      checkoutErr,
+		}
 	}
 
 	return &GitRepo{
 		opts:     opts,
 		repo:     repo,
-		workTree: workTree,
+		workTree: wt,
 	}, err
 }
 
@@ -108,33 +106,27 @@ func isRepoCloned(dir string) bool {
 	return dirError == nil && len(fi) > 0
 }
 
-// Update updates the repository by fetching new content and re-checking out to
+// Update updates the repository by pulling new content and re-checking out to
 // latest version of Revision.
 func (repo *GitRepo) Update(ctx context.Context) error {
-	var err error
-	fetchRepoErr := repo.repo.FetchContext(ctx, &git.FetchOptions{
+	pullRepoErr := repo.workTree.PullContext(ctx, &git.PullOptions{
 		RemoteName: "origin",
 		Force:      true,
 		Auth:       repo.opts.Auth.Convert(),
 	})
-	if fetchRepoErr != nil && !errors.Is(fetchRepoErr, git.NoErrAlreadyUpToDate) {
+	if pullRepoErr != nil && !errors.Is(pullRepoErr, git.NoErrAlreadyUpToDate) {
 		return UpdateFailedError{
 			Repository: repo.opts.Repository,
-			Inner:      fetchRepoErr,
+			Inner:      pullRepoErr,
 		}
 	}
 
-	// Find the latest revision being requested and hard-reset to it.
-	hash, err := findRevision(repo.opts.Revision, repo.repo)
-	if err != nil {
-		return InvalidRevisionError{Revision: repo.opts.Revision}
-	}
-	err = repo.workTree.Reset(&git.ResetOptions{
-		Commit: hash,
-		Mode:   git.HardReset,
-	})
-	if err != nil {
-		return err
+	checkoutErr := checkout(repo.opts.Revision, repo.repo)
+	if checkoutErr != nil {
+		return UpdateFailedError{
+			Repository: repo.opts.Repository,
+			Inner:      checkoutErr,
+		}
 	}
 
 	return nil
@@ -151,6 +143,24 @@ func (repo *GitRepo) ReadFile(path string) ([]byte, error) {
 	return io.ReadAll(f)
 }
 
+// Stat returns info from the repository specified by path.
+func (repo *GitRepo) Stat(path string) (fs.FileInfo, error) {
+	f, err := repo.workTree.Filesystem.Stat(path)
+	if err != nil {
+		return nil, err
+	}
+	return f, nil
+}
+
+// ReadDir returns info about the content of the directory in the repository.
+func (repo *GitRepo) ReadDir(path string) ([]fs.FileInfo, error) {
+	f, err := repo.workTree.Filesystem.ReadDir(path)
+	if err != nil {
+		return nil, err
+	}
+	return f, nil
+}
+
 // CurrentRevision returns the current revision of the repository (by SHA).
 func (repo *GitRepo) CurrentRevision() (string, error) {
 	ref, err := repo.repo.Head()
@@ -160,24 +170,41 @@ func (repo *GitRepo) CurrentRevision() (string, error) {
 	return ref.Hash().String(), nil
 }
 
-func findRevision(rev string, repo *git.Repository) (plumbing.Hash, error) {
+// Depending on the type of revision we need to handle checkout differently.
+// Tags are checked out as branches
+// Branches as branches
+// Commits are commits
+func checkout(rev string, repo *git.Repository) error {
 	// Try looking for the revision in the following order:
 	//
 	// 1. Search by tag name.
 	// 2. Search by remote ref name.
 	// 3. Try to resolve the revision directly.
+	wt, err := repo.Worktree()
+	if err != nil {
+		return err
+	}
 
 	if tagRef, err := repo.Tag(rev); err == nil {
-		return tagRef.Hash(), nil
+		return wt.Checkout(&git.CheckoutOptions{
+			Branch: tagRef.Name(),
+			Force:  true,
+		})
 	}
 
 	if remoteRef, err := repo.Reference(plumbing.NewRemoteReferenceName("origin", rev), true); err == nil {
-		return remoteRef.Hash(), nil
+		return wt.Checkout(&git.CheckoutOptions{
+			Branch: remoteRef.Name(),
+			Force:  true,
+		})
 	}
 
 	if hash, err := repo.ResolveRevision(plumbing.Revision(rev)); err == nil {
-		return *hash, nil
+		return wt.Checkout(&git.CheckoutOptions{
+			Hash:  *hash,
+			Force: true,
+		})
 	}
 
-	return plumbing.ZeroHash, plumbing.ErrReferenceNotFound
+	return plumbing.ErrReferenceNotFound
 }

@@ -1,9 +1,21 @@
+> **Deprecation notice**: Grafana Agent has been deprecated and is now in
+> Long-Term Support mode. We recommend migrating to the new [Grafana Alloy]
+> collector, which is built on the foundation of Grafana Agent Flow.
+>
+> For more information, read our blog posts about Alloy and how to easily
+> migrate from Agent to Alloy:
+>
+> * [Alloy announcement blog post](https://grafana.com/blog/2024/04/09/grafana-alloy-opentelemetry-collector-with-prometheus-pipelines/)
+> * [Alloy FAQ](https://grafana.com/blog/2024/04/09/grafana-agent-to-grafana-alloy-opentelemetry-collector-faq/)
+> * [Migrate to Alloy](https://grafana.com/docs/alloy/latest/tasks/migrate/)
+>
+> [Grafana Alloy]: https://github.com/grafana/alloy
+
 <p align="center"><img src="docs/sources/assets/logo_and_name.png" alt="Grafana Agent logo"></p>
 
-Grafana Agent is a vendor-neutral, batteries-included telemetry collector with
-configuration inspired by [Terraform][]. It is designed to be flexible,
-performant, and compatible with multiple ecosystems such as Prometheus and
-OpenTelemetry.
+Grafana Agent is an OpenTelemetry Collector distribution with configuration
+inspired by [Terraform][]. It is designed to be flexible, performant, and
+compatible with multiple ecosystems such as Prometheus and OpenTelemetry.
 
 Grafana Agent is based around **components**. Components are wired together to
 form programmable observability **pipelines** for telemetry collection,
@@ -102,9 +114,14 @@ launch dependencies to play with Grafana Agent locally.
 
 A new minor release is planned every six weeks.
 
-The release cadence is best-effort: releases may be moved forwards or backwards
-if needed. The planned release dates for future minor releases do not change if
-one minor release is moved.
+The release cadence is best-effort: if necessary, releases may be performed
+outside of this cadence, or a scheduled release date can be moved forwards or
+backwards.
+
+Minor releases published on cadence include updating dependencies for upstream
+OpenTelemetry Collector code if new versions are available. Minor releases
+published outside of the release cadence may not include these dependency
+updates.
 
 Patch and security releases may be created at any time.
 

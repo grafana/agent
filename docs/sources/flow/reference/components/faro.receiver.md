@@ -66,6 +66,7 @@ Name | Type | Description | Default | Required
 `cors_allowed_origins` | `list(string)` | Origins for which cross-origin requests are permitted. | `[]` | no
 `api_key` | `secret` | Optional API key to validate client requests with. | `""` | no
 `max_allowed_payload_size` | `string` | Maximum size (in bytes) for client requests. | `"5MiB"` | no
+`include_metadata` | `boolean` | Propagate incoming connection metadata to downstream consumers. | `false` | no
 
 By default, telemetry data is only accepted from applications on the same local
 network as the browser. To accept telemetry data from a wider set of clients,
@@ -274,8 +275,8 @@ Replace the following:
 
 `faro.receiver` can accept arguments from the following components:
 
-- Components that export [Loki `LogsReceiver`]({{< relref "../compatibility/#loki-logsreceiver-exporters" >}})
-- Components that export [OpenTelemetry `otelcol.Consumer`]({{< relref "../compatibility/#opentelemetry-otelcolconsumer-exporters" >}})
+- Components that export [Loki `LogsReceiver`](../../compatibility/#loki-logsreceiver-exporters)
+- Components that export [OpenTelemetry `otelcol.Consumer`](../../compatibility/#opentelemetry-otelcolconsumer-exporters)
 
 
 {{< admonition type="note" >}}
