@@ -5,7 +5,7 @@ import (
 
 	"github.com/grafana/agent/internal/converter/internal/common"
 	"github.com/grafana/agent/internal/service/http"
-	"github.com/grafana/agent/internal/static/server"
+	"github.com/grafana/agent/static/server"
 )
 
 func (b *ConfigBuilder) appendServer(config *server.Config) {

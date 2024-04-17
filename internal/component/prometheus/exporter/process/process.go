@@ -4,8 +4,8 @@ import (
 	"github.com/grafana/agent/internal/component"
 	"github.com/grafana/agent/internal/component/prometheus/exporter"
 	"github.com/grafana/agent/internal/featuregate"
-	"github.com/grafana/agent/internal/static/integrations"
-	"github.com/grafana/agent/internal/static/integrations/process_exporter"
+	"github.com/grafana/agent/static/integrations"
+	"github.com/grafana/agent/static/integrations/process_exporter"
 	exporter_config "github.com/ncabatoff/process-exporter/config"
 )
 

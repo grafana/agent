@@ -1,5 +1,5 @@
 > **Deprecation notice**: Grafana Agent has been deprecated and is now in
-> Long-Term Support mode. We recommend migrating to the new Grafana Alloy
+> Long-Term Support mode. We recommend migrating to the new [Grafana Alloy]
 > collector, which is built on the foundation of Grafana Agent Flow.
 >
 > For more information, read our blog posts about Alloy and how to easily
@@ -8,6 +8,8 @@
 > * [Alloy announcement blog post](https://grafana.com/blog/2024/04/09/grafana-alloy-opentelemetry-collector-with-prometheus-pipelines/)
 > * [Alloy FAQ](https://grafana.com/blog/2024/04/09/grafana-agent-to-grafana-alloy-opentelemetry-collector-faq/)
 > * [Migrate to Alloy](https://grafana.com/docs/alloy/latest/tasks/migrate/)
+>
+> [Grafana Alloy]: https://github.com/grafana/alloy
 
 <p align="center"><img src="docs/sources/assets/logo_and_name.png" alt="Grafana Agent logo"></p>
 

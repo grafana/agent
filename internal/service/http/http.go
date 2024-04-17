@@ -20,7 +20,7 @@ import (
 	"github.com/grafana/agent/internal/flow"
 	"github.com/grafana/agent/internal/flow/logging/level"
 	"github.com/grafana/agent/internal/service"
-	"github.com/grafana/agent/internal/static/server"
+	"github.com/grafana/agent/static/server"
 	"github.com/grafana/ckit/memconn"
 	_ "github.com/grafana/pyroscope-go/godeltaprof/http/pprof" // Register godeltaprof handler
 	"github.com/prometheus/client_golang/prometheus"
