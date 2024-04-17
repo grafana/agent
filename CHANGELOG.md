@@ -82,6 +82,9 @@ Main (unreleased)
 - Fixed an issue where creating a `prometheus.exporter.postgres` component with
   multiple `data_source_names` would result in an error. (@thampiotr)
 
+- Fix an issue on Windows where uninstalling Alloy did not remove it from the
+  Add/Remove programs list. (@rfratto)
+
 ### Other changes
 
 - Clustering for Grafana Agent in Flow mode has graduated from beta to stable.
