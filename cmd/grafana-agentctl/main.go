@@ -13,23 +13,23 @@ import (
 	"syscall"
 
 	"github.com/grafana/agent/internal/build"
-	"github.com/grafana/agent/internal/static/agentctl/waltools"
-	"github.com/grafana/agent/internal/static/config"
-	"github.com/grafana/agent/internal/static/logs"
+	"github.com/grafana/agent/static/agentctl/waltools"
+	"github.com/grafana/agent/static/config"
+	"github.com/grafana/agent/static/logs"
 	"github.com/olekukonko/tablewriter"
 	"github.com/prometheus/client_golang/prometheus"
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
-	"github.com/grafana/agent/internal/static/agentctl"
-	"github.com/grafana/agent/internal/static/client"
+	"github.com/grafana/agent/static/agentctl"
+	"github.com/grafana/agent/static/client"
 	"github.com/spf13/cobra"
 
 	// Register Prometheus SD components
 	_ "github.com/prometheus/prometheus/discovery/install"
 
 	// Register integrations
-	_ "github.com/grafana/agent/internal/static/integrations/install"
+	_ "github.com/grafana/agent/static/integrations/install"
 
 	// Needed for operator-detach
 	"k8s.io/apimachinery/pkg/fields"

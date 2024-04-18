@@ -3,7 +3,6 @@ package otelcolconvert
 import (
 	"fmt"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/grafana/agent/internal/component/otelcol"
 	"github.com/grafana/agent/internal/component/otelcol/processor/tail_sampling"
 	"github.com/grafana/agent/internal/converter/diag"
@@ -26,7 +25,7 @@ func (tailSamplingProcessorConverter) InputComponentName() string {
 	return "otelcol.processor.tail_sampling"
 }
 
-func (tailSamplingProcessorConverter) ConvertAndAppend(state *state, id component.InstanceID, cfg component.Config) diag.Diagnostics {
+func (tailSamplingProcessorConverter) ConvertAndAppend(state *State, id component.InstanceID, cfg component.Config) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	label := state.FlowComponentLabel()
@@ -36,20 +35,17 @@ func (tailSamplingProcessorConverter) ConvertAndAppend(state *state, id componen
 
 	diags.Add(
 		diag.SeverityLevelInfo,
-		fmt.Sprintf("Converted %s into %s", stringifyInstanceID(id), stringifyBlock(block)),
+		fmt.Sprintf("Converted %s into %s", StringifyInstanceID(id), StringifyBlock(block)),
 	)
 
 	state.Body().AppendBlock(block)
 	return diags
 }
 
-func toTailSamplingProcessor(state *state, id component.InstanceID, cfg *tailsamplingprocessor.Config) *tail_sampling.Arguments {
+func toTailSamplingProcessor(state *State, id component.InstanceID, cfg *tailsamplingprocessor.Config) *tail_sampling.Arguments {
 	var (
 		nextTraces = state.Next(id, component.DataTypeTraces)
 	)
-
-	testEncode := encodeMapstruct(cfg.PolicyCfgs[0])
-	spew.Dump(testEncode)
 
 	return &tail_sampling.Arguments{
 		PolicyCfgs:              toPolicyCfgs(cfg.PolicyCfgs),
@@ -57,7 +53,7 @@ func toTailSamplingProcessor(state *state, id component.InstanceID, cfg *tailsam
 		NumTraces:               cfg.NumTraces,
 		ExpectedNewTracesPerSec: cfg.ExpectedNewTracesPerSec,
 		Output: &otelcol.ConsumerArguments{
-			Traces: toTokenizedConsumers(nextTraces),
+			Traces: ToTokenizedConsumers(nextTraces),
 		},
 	}
 }

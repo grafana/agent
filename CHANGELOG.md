@@ -15,6 +15,23 @@ Main (unreleased)
 - The default listen port for `otelcol.receiver.opencensus` has changed from
   4317 to 55678 to align with upstream. (@rfratto)
 
+- The default sync interval for `mimir.rules.kubernetes` has changed from `30s`
+  to `5m` to reduce load on Mimir. (@56quarters)
+
+- `prometheus.exporter.postgres` has been updated to the latest upstream
+  version which changes the set of exported metrics. The following metrics were
+  removed: `pg_stat_database_session_time`, `pg_stat_database_sessions`,
+  `pg_stat_database_sessions_abandoned`, `pg_stat_database_sessions_fatal`,
+  `pg_stat_database_sessions_killed`, `pg_stat_database_idle_in_transaction_time`,
+  `pg_stat_database_checksum_failures`, `pg_stat_database_checksum_last_failure`,
+  `pg_stat_database_active_time`. The following metrics were
+  renamed: `pg_stat_bgwriter_buffers_alloc`, `pg_stat_bgwriter_buffers_backend`,
+  `pg_stat_bgwriter_buffers_backend_fsync`, `pg_stat_bgwriter_buffers_checkpoint`,
+  `pg_stat_bgwriter_buffers_clean`, `pg_stat_bgwriter_checkpoint_sync_time`,
+  `pg_stat_bgwriter_checkpoint_write_time`, `pg_stat_bgwriter_checkpoints_req`,
+  `pg_stat_bgwriter_checkpoints_timed`, `pg_stat_bgwriter_maxwritten_clean`,
+  `pg_stat_bgwriter_stats_reset` - the new names include the `_total` suffix. (@thampiotr)
+
 ### Enhancements
 
 - Add support for importing folders as single module to `import.file`. (@wildum)
@@ -29,10 +46,19 @@ Main (unreleased)
 
 - Not restart tailers in `loki.source.kubernetes` component by above-average time deltas if K8s version is >= 1.29.1 (@hainenber)
 
-### Features
+- Add conversion from static to flow mode for `loki.source.windowsevent` via `legacy_bookmark_path`. (@mattdurham)
 
-- Added a new CLI flag `--stability.level` which defines the minimum stability
-  level required for the features that the agent is allowed to use. Default is `experimental`. (@thampiotr)
+- Add ability to convert static mode positions file to `loki.source.file` compatible via `legacy_positions_file` argument. (@mattdurham)
+
+- Added support for `otelcol` configuration conversion in `grafana-agent convert` and `grafana-agent run` commands. (@rfratto, @erikbaranowski, @tpaschalis, @hainenber)
+
+- Added support for `static` configuration conversion of the `traces` subsystem. (@erikbaranowski, @wildum)
+
+- Add automatic conversion for `legacy_positions_file` in component `loki.source.file`. (@mattdurham)
+
+- Propagate request metadata for `faro.receiver` to downstream components. (@hainenber)
+
+### Features
 
 - A new `loki.rules.kubernetes` component that discovers `PrometheusRule` Kubernetes resources and loads them into a Loki Ruler instance. (@EStork09)
 
@@ -40,11 +66,23 @@ Main (unreleased)
 
 - Fix an issue where JSON string array elements were not parsed correctly in `loki.source.cloudflare`. (@thampiotr)
 
-- Update gcp_exporter to a newer version with a patch for incorrect delta histograms (@kgeckhart)
+
+- Fix SSRF vulnerability in `faro.receiver` by disabling source map download. (@hainenber)
+
+- Fix an issue where the azure exporter was not correctly gathering subscription scoped metrics when only one region was configured (@kgeckhart)
 
 - Fix an issue where the default values of some component's arguments change
   whenever that argument is explicitly configured. This issue only affected a
   small subset of arguments across 15 components. (@erikbaranowski, @rfratto)
+
+- Fix panic when fanning out to invalid receivers. (@hainenber)
+
+- Fix a bug where a panic could occur when reloading custom components. (@wildum)
+
+- The `import.git` config block did not work with branches or tags this now fixes that behavior. (@mattdurham)
+
+- Fixed an issue where creating a `prometheus.exporter.postgres` component with
+  multiple `data_source_names` would result in an error. (@thampiotr)
 
 ### Other changes
 
@@ -53,6 +91,36 @@ Main (unreleased)
 - Resync defaults for `otelcol.processor.k8sattributes` with upstream. (@hainenber)
 
 - Resync defaults for `otelcol.exporter.otlp` and `otelcol.exporter.otlphttp` with upstream. (@hainenber)
+
+v0.40.4 (2024-04-12)
+--------------------
+
+### Security fixes
+
+- Fixes following vulnerabilities (@ptodev)
+  * [CVE-2024-27304](https://github.com/advisories/GHSA-mrww-27vc-gghv)
+  * [CVE-2024-27289](https://github.com/advisories/GHSA-m7wr-2xf7-cm9p)
+  * [CVE-2024-28180](https://github.com/advisories/GHSA-c5q2-7r4c-mv6g)
+  * [CVE-2024-24786](https://github.com/advisories/GHSA-8r3f-844c-mc37)
+
+### Enhancements
+
+- Update `prometheus.exporter.kafka` with the following functionalities (@wildum):
+  * GSSAPI config
+  * enable/disable PA_FX_FAST
+  * set a TLS server name
+  * show the offset/lag for all consumer group or only the connected ones
+  * set the minimum number of topics to monitor
+  * enable/disable auto-creation of requested topics if they don't already exist
+  * regex to exclude topics / groups 
+  * added metric kafka_broker_info
+
+- In `prometheus.exporter.kafka`, the interpolation table used to compute estimated lag metrics is now pruned
+  on `metadata_refresh_interval` instead of `prune_interval_seconds`. (@wildum)
+
+### Bugfixes
+
+- Update gcp_exporter to a newer version with a patch for incorrect delta histograms (@kgeckhart)
 
 v0.40.3 (2024-03-14)
 --------------------
@@ -68,9 +136,9 @@ v0.40.3 (2024-03-14)
 - Upgrade to Go 1.22.1 (@thampiotr)
 
 - Upgrade from OpenTelemetry Collector v0.87.0 to v0.96.0:
-  * [ottl]: Fix bug where named parameters needed a space after the equal sign (`=`) 
+  * [ottl]: Fix bug where named parameters needed a space after the equal sign (`=`)
 https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/28511
-  * [exporters] Additional enqueue_failed metrics 
+  * [exporters] Additional enqueue_failed metrics
 https://github.com/open-telemetry/opentelemetry-collector/issues/8673
   * [otelcol.receiver.kafka]: Fix issue where counting number of logs emitted could cause panic
   * [otelcol.processor.k8sattributes]: The time format of k8s.pod.start_time attribute value migrated to RFC3339:
@@ -82,10 +150,10 @@ https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/26115
   * [otelcol.connector.spanmetrics] Add a new `events` metric.
 https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/27451
   * [otelcol.connector.spanmetrics] A new `max_per_data_point` argument for exemplar generation.
-  * https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/22620
-  * [ottl] Add IsBool Converter 
+  * https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/29242
+  * [ottl] Add IsBool Converter
 https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/27897
-  * [otelcol.processor.tail_sampling] Optimize memory performance of tailsamplingprocessor 
+  * [otelcol.processor.tail_sampling] Optimize memory performance of tailsamplingprocessor
 https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/27889
   * [otelcol.connector.servicegraph] Add a `metrics_flush_interval` argument.
 https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/27679
@@ -105,7 +173,7 @@ https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/30162
 https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/30274
   * [ottl] Add Hour converter
 https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/29468
-  * [otelcol.connector.spanmetrics] A new `resource_metrics_key_attributes` argument to fix broken spanmetrics counters 
+  * [otelcol.connector.spanmetrics] A new `resource_metrics_key_attributes` argument to fix broken spanmetrics counters
   after a span producing service restart, when resource attributes contain dynamic/ephemeral values (e.g. process id).
 https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/29711
   * [ottl] Issue with the hash value of a match group in the replace_pattern editors
@@ -278,6 +346,8 @@ v0.40.0 (2024-02-27)
 - Batch staleness tracking to reduce mutex contention and increase performance. (@mattdurham)
 
 - Python profiling using eBPF is now aggregated now by kernel space. [PR](https://github.com/grafana/pyroscope/pull/2996) (@korniltsev)
+
+- Add Luhn filter to `loki.process` to filter PCI data from log data
 
 ### Bugfixes
 

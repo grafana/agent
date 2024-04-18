@@ -33,8 +33,8 @@ import (
 	otel_service "github.com/grafana/agent/internal/service/otel"
 	remotecfgservice "github.com/grafana/agent/internal/service/remotecfg"
 	uiservice "github.com/grafana/agent/internal/service/ui"
-	"github.com/grafana/agent/internal/static/config/instrumentation"
 	"github.com/grafana/agent/internal/usagestats"
+	"github.com/grafana/agent/static/config/instrumentation"
 	"github.com/grafana/ckit/advertise"
 	"github.com/grafana/ckit/peer"
 	"github.com/grafana/river/diag"
@@ -136,7 +136,6 @@ depending on the nature of the reload error.
 	cmd.Flags().
 		BoolVar(&r.disableReporting, "disable-reporting", r.disableReporting, "Disable reporting of enabled components to Grafana.")
 	cmd.Flags().StringVar(&r.storagePath, "storage.path", r.storagePath, "Base directory where components can store data")
-	cmd.Flags().Var(&r.minStability, "stability.level", fmt.Sprintf("Minimum stability level of features to enable. Supported values: %s", strings.Join(featuregate.AllowedValues(), ", ")))
 	return cmd
 }
 

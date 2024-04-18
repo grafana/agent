@@ -36,7 +36,8 @@ type ServerArguments struct {
 	APIKey                rivertypes.Secret `river:"api_key,attr,optional"`
 	MaxAllowedPayloadSize units.Base2Bytes  `river:"max_allowed_payload_size,attr,optional"`
 
-	RateLimiting RateLimitingArguments `river:"rate_limiting,block,optional"`
+	RateLimiting    RateLimitingArguments `river:"rate_limiting,block,optional"`
+	IncludeMetadata bool                  `river:"include_metadata,attr,optional"`
 }
 
 func (s *ServerArguments) SetToDefault() {

@@ -8,9 +8,9 @@ import (
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/internal/build"
-	"github.com/grafana/agent/internal/static/operator"
-	"github.com/grafana/agent/internal/static/operator/logutil"
 	util_log "github.com/grafana/agent/internal/util/log"
+	"github.com/grafana/agent/static/operator"
+	"github.com/grafana/agent/static/operator/logutil"
 	controller "sigs.k8s.io/controller-runtime"
 
 	// Needed for clients.

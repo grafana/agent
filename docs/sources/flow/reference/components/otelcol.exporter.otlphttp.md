@@ -100,6 +100,8 @@ Before enabling this option, consider whether changes to idle connection setting
 
 If `http2_ping_timeout` is unset or set to `0s`, it will default to `15s`.
 
+If `http2_read_idle_timeout` is unset or set to `0s`, then no health check will be performed.
+
 {{< docs/shared lookup="flow/reference/components/otelcol-compression-field.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ### tls block

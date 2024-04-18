@@ -163,7 +163,7 @@ lint: agentlint
 # more without -race for packages that have known race detection issues.
 test:
 	$(GO_ENV) go test $(GO_FLAGS) -race $(shell go list ./... | grep -v /integration-tests/)
-	$(GO_ENV) go test $(GO_FLAGS) ./internal/static/integrations/node_exporter ./internal/static/logs ./internal/static/operator ./internal/util/k8s ./internal/component/otelcol/processor/tail_sampling ./internal/component/loki/source/file ./internal/component/loki/source/docker
+	$(GO_ENV) go test $(GO_FLAGS) ./static/integrations/node_exporter ./static/logs ./static/operator ./internal/util/k8s ./internal/component/otelcol/processor/tail_sampling ./internal/component/loki/source/file ./internal/component/loki/source/docker
 
 test-packages:
 	docker pull $(BUILD_IMAGE)
@@ -272,7 +272,7 @@ ifeq ($(USE_CONTAINER),1)
 	$(RERUN_IN_CONTAINER)
 else
 	bash ./tools/generate-crds.bash
-	gen-crd-api-reference-docs -config tools/gen-crd-docs/config.json -api-dir "github.com/grafana/agent/internal/static/operator/apis/monitoring/" -out-file docs/sources/operator/api.md -template-dir tools/gen-crd-docs/template
+	gen-crd-api-reference-docs -config tools/gen-crd-docs/config.json -api-dir "github.com/grafana/agent/static/operator/apis/monitoring/" -out-file docs/sources/operator/api.md -template-dir tools/gen-crd-docs/template
 endif
 
 generate-drone:
@@ -304,7 +304,7 @@ generate-protos:
 ifeq ($(USE_CONTAINER),1)
 	$(RERUN_IN_CONTAINER)
 else
-	go generate ./internal/static/agentproto/
+	go generate ./static/agentproto/
 endif
 
 generate-ui:

@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/burningalchemist/sql_exporter/config"
-	"github.com/grafana/agent/internal/static/integrations/mssql"
+	"github.com/grafana/agent/static/integrations/mssql"
 	"github.com/grafana/river"
 	"github.com/grafana/river/rivertypes"
 	config_util "github.com/prometheus/common/config"
