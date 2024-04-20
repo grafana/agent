@@ -3,7 +3,6 @@ package otelcolconvert
 import (
 	"fmt"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/grafana/agent/internal/component/otelcol"
 	"github.com/grafana/agent/internal/component/otelcol/receiver/kafka"
 	"github.com/grafana/agent/internal/converter/diag"
@@ -78,8 +77,6 @@ func toKafkaReceiver(state *State, id component.InstanceID, cfg *kafkareceiver.C
 }
 
 func toKafkaAuthentication(cfg map[string]any) kafka.AuthenticationArguments {
-	spew.Dump(cfg)
-
 	return kafka.AuthenticationArguments{
 		Plaintext: toKafkaPlaintext(encodeMapstruct(cfg["plain_text"])),
 		SASL:      toKafkaSASL(encodeMapstruct(cfg["sasl"])),

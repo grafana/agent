@@ -46,6 +46,8 @@ Main (unreleased)
 
 - `mimir.rules.kubernetes` support for add extra labels (@psychomantys)
 
+- Not restart tailers in `loki.source.kubernetes` component by above-average time deltas if K8s version is >= 1.29.1 (@hainenber)
+
 - Add conversion from static to flow mode for `loki.source.windowsevent` via `legacy_bookmark_path`. (@mattdurham)
 
 - Add ability to convert static mode positions file to `loki.source.file` compatible via `legacy_positions_file` argument. (@mattdurham)
@@ -55,6 +57,8 @@ Main (unreleased)
 - Added support for `static` configuration conversion of the `traces` subsystem. (@erikbaranowski, @wildum)
 
 - Add automatic conversion for `legacy_positions_file` in component `loki.source.file`. (@mattdurham)
+
+- Propagate request metadata for `faro.receiver` to downstream components. (@hainenber)
 
 ### Features
 
@@ -69,11 +73,11 @@ Main (unreleased)
 
 - Fix an issue where the azure exporter was not correctly gathering subscription scoped metrics when only one region was configured (@kgeckhart)
 
-- Update gcp_exporter to a newer version with a patch for incorrect delta histograms (@kgeckhart)
-
 - Fix an issue where the default values of some component's arguments change
   whenever that argument is explicitly configured. This issue only affected a
   small subset of arguments across 15 components. (@erikbaranowski, @rfratto)
+
+- Fix panic when fanning out to invalid receivers. (@hainenber)
 
 - Fix a bug where a panic could occur when reloading custom components. (@wildum)
 
@@ -89,6 +93,36 @@ Main (unreleased)
 - Resync defaults for `otelcol.processor.k8sattributes` with upstream. (@hainenber)
 
 - Resync defaults for `otelcol.exporter.otlp` and `otelcol.exporter.otlphttp` with upstream. (@hainenber)
+
+v0.40.4 (2024-04-12)
+--------------------
+
+### Security fixes
+
+- Fixes following vulnerabilities (@ptodev)
+  * [CVE-2024-27304](https://github.com/advisories/GHSA-mrww-27vc-gghv)
+  * [CVE-2024-27289](https://github.com/advisories/GHSA-m7wr-2xf7-cm9p)
+  * [CVE-2024-28180](https://github.com/advisories/GHSA-c5q2-7r4c-mv6g)
+  * [CVE-2024-24786](https://github.com/advisories/GHSA-8r3f-844c-mc37)
+
+### Enhancements
+
+- Update `prometheus.exporter.kafka` with the following functionalities (@wildum):
+  * GSSAPI config
+  * enable/disable PA_FX_FAST
+  * set a TLS server name
+  * show the offset/lag for all consumer group or only the connected ones
+  * set the minimum number of topics to monitor
+  * enable/disable auto-creation of requested topics if they don't already exist
+  * regex to exclude topics / groups 
+  * added metric kafka_broker_info
+
+- In `prometheus.exporter.kafka`, the interpolation table used to compute estimated lag metrics is now pruned
+  on `metadata_refresh_interval` instead of `prune_interval_seconds`. (@wildum)
+
+### Bugfixes
+
+- Update gcp_exporter to a newer version with a patch for incorrect delta histograms (@kgeckhart)
 
 v0.40.3 (2024-03-14)
 --------------------

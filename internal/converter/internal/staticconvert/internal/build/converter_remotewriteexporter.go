@@ -12,7 +12,7 @@ import (
 	"github.com/grafana/agent/internal/converter/internal/otelcolconvert"
 	"github.com/grafana/agent/internal/converter/internal/prometheusconvert/build"
 	prometheus_component "github.com/grafana/agent/internal/converter/internal/prometheusconvert/component"
-	"github.com/grafana/agent/internal/static/traces/remotewriteexporter"
+	"github.com/grafana/agent/static/traces/remotewriteexporter"
 	prom_relabel "github.com/prometheus/prometheus/model/relabel"
 	"github.com/prometheus/prometheus/storage"
 	"go.opentelemetry.io/collector/component"

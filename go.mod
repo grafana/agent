@@ -29,7 +29,6 @@ require (
 	github.com/cilium/ebpf v0.12.3 // indirect
 	github.com/coreos/go-systemd v0.0.0-20191104093116-d3cd4ed1dbcf
 	github.com/coreos/go-systemd/v22 v22.5.0
-	github.com/davidmparrott/kafka_exporter/v2 v2.0.1
 	github.com/docker/docker v24.0.9+incompatible
 	github.com/docker/go-connections v0.5.0
 	github.com/drone/envsubst/v2 v2.0.0-20210730161058-179042472c46
@@ -301,7 +300,7 @@ require (
 	github.com/aws/smithy-go v1.20.1 // indirect
 	github.com/beevik/ntp v1.3.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
-	github.com/blang/semver/v4 v4.0.0 // indirect
+	github.com/blang/semver/v4 v4.0.0
 	github.com/boynux/squid-exporter v1.10.5-0.20230618153315-c1fae094e18e
 	github.com/c2h5oh/datasize v0.0.0-20220606134207-859f65c6625b // indirect
 	github.com/cenkalti/backoff/v3 v3.0.0 // indirect
@@ -320,7 +319,7 @@ require (
 	github.com/cpuguy83/dockercfg v0.3.1 // indirect
 	github.com/cyphar/filepath-securejoin v0.2.4 // indirect
 	github.com/danieljoos/wincred v1.2.0 // indirect
-	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
+	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/dennwc/btrfs v0.0.0-20230312211831-a1f570bd01a1 // indirect
 	github.com/dennwc/ioctl v1.0.0 // indirect
 	github.com/dennwc/varint v1.0.0 // indirect
@@ -559,8 +558,8 @@ require (
 	github.com/xanzy/ssh-agent v0.3.3 // indirect
 	github.com/xdg-go/pbkdf2 v1.0.0 // indirect
 	github.com/xdg-go/stringprep v1.0.4 // indirect
-	github.com/xdg/scram v0.0.0-20180814205039-7eeb5667e42c // indirect
-	github.com/xdg/stringprep v1.0.0 // indirect
+	github.com/xdg/scram v1.0.3 // indirect
+	github.com/xdg/stringprep v1.0.3 // indirect
 	github.com/xeipuuv/gojsonpointer v0.0.0-20190905194746-02993c407bfb // indirect
 	github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 // indirect
 	github.com/xeipuuv/gojsonschema v1.2.0 // indirect
@@ -605,10 +604,12 @@ require github.com/ianlancetaylor/demangle v0.0.0-20230524184225-eabc099b10ab //
 
 require (
 	connectrpc.com/connect v1.14.0
+	github.com/Shopify/sarama v1.38.1
 	github.com/githubexporter/github-exporter v0.0.0-20231025122338-656e7dc33fe7
 	github.com/grafana/agent-remote-config v0.0.2
 	github.com/grafana/jfr-parser/pprof v0.0.0-20240126072739-986e71dc0361
 	github.com/grafana/jsonparser v0.0.0-20240209175146-098958973a2d
+	github.com/grafana/kafka_exporter v0.0.0-20240409084445-5e3488ad9f9a
 	github.com/natefinch/atomic v1.0.1
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusremotewriteexporter v0.96.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/processor/filterprocessor v0.96.0
@@ -629,7 +630,6 @@ require (
 	github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/network/armnetwork/v2 v2.2.1 // indirect
 	github.com/DataDog/sketches-go v1.4.4 // indirect
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/detectors/gcp v1.21.0 // indirect
-	github.com/Shopify/sarama v1.38.1 // indirect
 	github.com/Showmax/go-fqdn v1.0.0 // indirect
 	github.com/Workiva/go-datastructures v1.1.0 // indirect
 	github.com/aws/aws-sdk-go-v2/service/amp v1.23.0 // indirect
