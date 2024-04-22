@@ -1,9 +1,10 @@
 package cloudwatch_exporter
 
 import (
+	"testing"
+
 	"github.com/grafana/regexp"
 	"github.com/nerdswords/yet-another-cloudwatch-exporter/pkg/model"
-	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -182,8 +183,10 @@ static:
           - Average
 `
 
-var falsePtr = false
-var truePtr = true
+var (
+	falsePtr = false
+	truePtr  = true
+)
 
 var expectedConfig = model.JobsConfig{
 	StsRegion: "us-east-2",
