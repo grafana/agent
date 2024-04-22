@@ -61,7 +61,6 @@ func NewDecoupledCloudwatchExporter(name string, logger log.Logger, conf yaceMod
 		scrapeConf:           conf,
 		registry:             atomic.Pointer[prometheus.Registry]{},
 	}, nil
-
 }
 
 func (e *asyncExporter) MetricsHandler() (http.Handler, error) {
