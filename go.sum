@@ -2289,6 +2289,8 @@ github.com/ncabatoff/go-seq v0.0.0-20180805175032-b08ef85ed833 h1:t4WWQ9I797y7QU
 github.com/ncabatoff/go-seq v0.0.0-20180805175032-b08ef85ed833/go.mod h1:0CznHmXSjMEqs5Tezj/w2emQoM41wzYM9KpDKUHPYag=
 github.com/ncabatoff/process-exporter v0.8.1 h1:JxPHZTaVqWsqCJ+AxK4gqTZeG1okRFNWuvZj985mmjY=
 github.com/ncabatoff/process-exporter v0.8.1/go.mod h1:A2ThOqSI56jai50qiZ7EOJsWGWM6n1ties0wSJxvRlo=
+github.com/ncabatoff/process-exporter v0.8.2 h1:g08B7UMSn9nrEjCrqGtBG/IagnCAc/2lSGzGZgcxJFs=
+github.com/ncabatoff/process-exporter v0.8.2/go.mod h1:MxEOWl740VK/hlWycJkq91VrA2mI+U9Bvc1wuyAaxA4=
 github.com/nerdswords/yet-another-cloudwatch-exporter v0.58.0 h1:f8eYjo2fZCF1iC+haDfrsYEVRLpG6c1fOBqcxIX79AM=
 github.com/nerdswords/yet-another-cloudwatch-exporter v0.58.0/go.mod h1:ablm20rYCWfUU6MfZJM+Ge1ecxIYvsQddX/WSxDcO/I=
 github.com/newrelic/newrelic-telemetry-sdk-go v0.2.0/go.mod h1:G9MqE/cHGv3Hx3qpYhfuyFUsGx2DpVcGi1iJIqTg+JQ=

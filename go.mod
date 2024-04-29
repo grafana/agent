@@ -95,7 +95,7 @@ require (
 	github.com/mitchellh/mapstructure v1.5.1-0.20231216201459-8508981c8b6c
 	github.com/mitchellh/reflectwalk v1.0.2
 	github.com/mwitkow/go-conntrack v0.0.0-20190716064945-2f068394615f
-	github.com/ncabatoff/process-exporter v0.8.1
+	github.com/ncabatoff/process-exporter v0.8.2
 	github.com/nerdswords/yet-another-cloudwatch-exporter v0.58.0
 	github.com/ohler55/ojg v1.20.1 // indirect
 	github.com/oklog/run v1.1.0
