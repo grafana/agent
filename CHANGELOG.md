@@ -17,6 +17,8 @@ Main (unreleased)
 - Fix a bug where custom components would not shadow the stdlib. If you have a module whose name conflicts with an stdlib function 
   and if you use this exact function in your config, then you will need to rename your module. (@wildum)
 
+- Fix an issue where nested import.git config blocks could conflict if they had the same labels. (@wildum)
+
 ### Other changes
 
 - Change the Docker base image for Linux containers to `ubuntu:noble`. (@amontalban)
