@@ -45,12 +45,12 @@ func NewCloudwatchExporter(name string, logger log.Logger, conf yaceModel.JobsCo
 	var err error
 
 	switch clientVersion {
-	case "1":
+	case AWSSDKVersionV1:
 		factory = yaceClientsV1.NewFactory(loggerWrapper, conf, fipsEnabled)
-	case "2":
+	case AWSSDKVersionV2:
 		factory, err = yaceClientsV2.NewFactory(loggerWrapper, conf, fipsEnabled)
 	default:
-		err = fmt.Errorf("invalid client version %s", clientVersion)
+		err = fmt.Errorf("invalid client version %s, valid versions are v1 and v2", clientVersion)
 	}
 
 	if err != nil {

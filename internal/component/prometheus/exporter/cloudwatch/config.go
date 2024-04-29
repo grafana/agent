@@ -27,6 +27,7 @@ var defaults = Arguments{
 		Enabled:        false,
 		ScrapeInterval: 5 * time.Minute,
 	},
+	AWSSDKVersion: "v1",
 }
 
 // Arguments are the river based options to configure the embedded CloudWatch exporter.
@@ -38,6 +39,7 @@ type Arguments struct {
 	Discovery             []DiscoveryJob        `river:"discovery,block,optional"`
 	Static                []StaticJob           `river:"static,block,optional"`
 	DecoupledScrape       DecoupledScrapeConfig `river:"decoupled_scraping,block,optional"`
+	AWSSDKVersion         string                `river:"aws_sdk_version"`
 }
 
 // DecoupledScrapeConfig is the configuration for decoupled scraping feature.

@@ -22,6 +22,9 @@ const (
 	tagConcurrency                   = 5
 	labelsSnakeCase                  = false
 	defaultDecoupledScrapingInterval = time.Minute * 5
+
+	AWSSDKVersionV1 = "v1"
+	AWSSDKVersionV2 = "v2"
 )
 
 // Since we are gathering metrics from CloudWatch and writing them in prometheus during each scrape, the timestamp
@@ -44,6 +47,7 @@ type Config struct {
 	Static          []StaticJob           `yaml:"static"`
 	Debug           bool                  `yaml:"debug"`
 	DecoupledScrape DecoupledScrapeConfig `yaml:"decoupled_scraping"`
+	AWSSDKVersion   string                `yaml:"aws_sdk_version"`
 }
 
 // DecoupledScrapeConfig is the configuration for decoupled scraping feature.
