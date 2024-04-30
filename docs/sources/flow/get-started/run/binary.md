@@ -9,11 +9,22 @@ description: Learn how to run Grafana Agent Flow as a standalone binary
 menuTitle: Standalone
 title: Run Grafana Agent Flow as a standalone binary
 weight: 600
+refs:
+  installbinary:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/get-started/install/binary/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/flow/get-started/install/binary/
+  startlinux:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/get-started/run/linux/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/flow/get-started/run/linux/
 ---
 
 # Run {{% param "PRODUCT_NAME" %}} as a standalone binary
 
-If you [downloaded][InstallBinary] the standalone binary, you must run {{< param "PRODUCT_NAME" >}} from a terminal or command window.
+If you [downloaded](ref:installbinary) the standalone binary, you must run {{< param "PRODUCT_NAME" >}} from a terminal or command window.
 
 ## Start {{% param "PRODUCT_NAME" %}} on Linux, macOS, or FreeBSD
 
@@ -116,11 +127,5 @@ These steps assume you have a default systemd and {{< param "PRODUCT_NAME" >}} c
    sudo systemctl daemon-reload
    ```
 
-1. Use the [Linux][StartLinux] systemd commands to manage your standalone Linux installation of {{< param "PRODUCT_NAME" >}}.
+1. Use the [Linux](ref:startlinux) systemd commands to manage your standalone Linux installation of {{< param "PRODUCT_NAME" >}}.
 
-{{% docs/reference %}}
-[InstallBinary]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/get-started/install/binary.md"
-[InstallBinary]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/flow/get-started/install/binary.md"
-[StartLinux]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/get-started/run/linux.md"
-[StartLinux]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/flow/get-started/run/linux.md"
-{{% /docs/reference %}}

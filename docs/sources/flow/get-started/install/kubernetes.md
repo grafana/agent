@@ -16,6 +16,12 @@ description: Learn how to deploy Grafana Agent Flow on Kubernetes
 menuTitle: Kubernetes
 title: Deploy Grafana Agent Flow on Kubernetes
 weight: 200
+refs:
+  configure:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/tasks/configure/configure-kubernetes/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/tasks/configure/configure-kubernetes/
 ---
 
 # Deploy {{% param "PRODUCT_NAME" %}} on Kubernetes
@@ -82,11 +88,11 @@ To deploy {{< param "PRODUCT_ROOT_NAME" >}} on Kubernetes using Helm, run the fo
 
 You have successfully deployed {{< param "PRODUCT_NAME" >}} on Kubernetes,
 using default Helm settings. To configure {{< param "PRODUCT_NAME" >}},
-see the [Configure {{< param "PRODUCT_NAME" >}} on Kubernetes][Configure] guide.
+see the [Configure {{< param "PRODUCT_NAME" >}} on Kubernetes](ref:configure) guide.
 
 ## Next steps
 
-- [Configure {{< param "PRODUCT_NAME" >}} on Kubernetes][Configure]
+- [Configure {{< param "PRODUCT_NAME" >}} on Kubernetes](ref:configure)
 
 - Refer to the [{{< param "PRODUCT_NAME" >}} Helm chart documentation on Artifact Hub][Artifact Hub] for more information about Helm chart.
 
@@ -94,7 +100,3 @@ see the [Configure {{< param "PRODUCT_NAME" >}} on Kubernetes][Configure] guide.
 
 [Helm]: https://helm.sh
 
-{{% docs/reference %}}
-[Configure]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/tasks/configure/configure-kubernetes.md"
-[Configure]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/tasks/configure/configure-kubernetes.md"
-{{% /docs/reference %}}

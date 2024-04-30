@@ -8,6 +8,20 @@ description: Learn about the Grafana Agent static mode API
 menuTitle: Static mode API
 title: Static mode APIs (Stable)
 weight: 400
+refs:
+  scrape:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/static/configuration/scraping-service/
+  integrations:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/static/configuration/integrations/integrations-next/
+    - pattern: /docs/grafana-cloud/
+      destination: ../configuration/integrations/integrations-next/
+  metrics:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/static/configuration/metrics-config/
+    - pattern: /docs/grafana-cloud/
+      destination: ../configuration/metrics-config/
 ---
 
 # Static mode APIs (Stable)
@@ -23,7 +37,7 @@ API endpoints are stable unless otherwise noted.
 
 ## Config management API (Beta)
 
-Grafana Agent exposes a configuration management REST API for managing instance configurations when it's running in [scraping service mode][scrape].
+Grafana Agent exposes a configuration management REST API for managing instance configurations when it's running in [scraping service mode](ref:scrape).
 
 {{< admonition type="note" >}}
 The scraping service mode is a requirement for the configuration management
@@ -130,7 +144,7 @@ with the same name already exists, then it will be completely overwritten.
 URL-encoded names are stored in decoded form. e.g., `hello%2Fworld` will
 represent the config named `hello/world`.
 
-The request body passed to this endpoint must match the format of [metrics_instance_config][metrics]
+The request body passed to this endpoint must match the format of [metrics_instance_config](ref:metrics)
 defined in the Configuration Reference. The name field of the configuration is
 ignored and the name in the URL takes precedence. The request body must be
 formatted as YAML.
@@ -417,7 +431,7 @@ A support bundle contains the following data:
 ## Integrations API (Experimental)
 
 > **WARNING**: This API is currently only available when the experimental
-> [integrations revamp][integrations]
+> [integrations revamp](ref:integrations)
 > is enabled. Both the revamp and this API are subject to change while they
 > are still experimental.
 
@@ -529,11 +543,3 @@ Response:
 Agent is Healthy.
 ```
 
-{{% docs/reference %}}
-[scrape]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static/configuration/scraping-service"
-[scrape]: "/docs/grafana-cloud/ -> ../configuration/scraping-service
-[metrics]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static/configuration/metrics-config"
-[metrics]: "/docs/grafana-cloud/ -> ../configuration/metrics-config"
-[integrations]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static/configuration/integrations/integrations-next"
-[integrations]: "/docs/grafana-cloud/ -> ../configuration/integrations/integrations-next"
-{{% /docs/reference %}}

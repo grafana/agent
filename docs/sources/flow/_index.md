@@ -12,6 +12,35 @@ weight: 400
 cascade:
   PRODUCT_NAME: Grafana Agent Flow
   PRODUCT_ROOT_NAME: Grafana Agent
+refs:
+  tasks:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/tasks/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/tasks/
+  install:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/get-started/install/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/get-started/install/
+  concepts:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/concepts/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/concepts/
+  tutorials:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/tutorials/
+  components:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/reference/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/reference/components/
+  reference:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/reference/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/reference/
 ---
 
 # {{% param "PRODUCT_NAME" %}}
@@ -38,7 +67,7 @@ Collector.
 
 Each distribution offers a different collection of components and capabilities.
 As a distribution, {{< param "PRODUCT_NAME" >}} includes dozens of
-OpenTelemetry-native [components][] from the OpenTelemetry project and
+OpenTelemetry-native [components](ref:components) from the OpenTelemetry project and
 introduces new features such as programmable pipelines, clustering support,
 and the ability to share pipelines around the world.
 
@@ -91,26 +120,12 @@ This feature is experimental, and it doesn't support all River components.
 
 ## Next steps
 
-* [Install][] {{< param "PRODUCT_NAME" >}}.
-* Learn about the core [Concepts][] of {{< param "PRODUCT_NAME" >}}.
-* Follow our [Tutorials][] for hands-on learning of {{< param "PRODUCT_NAME" >}}.
-* Consult our [Tasks][] instructions to accomplish common objectives with {{< param "PRODUCT_NAME" >}}.
-* Check out our [Reference][] documentation to find specific information you
+* [Install](ref:install) {{< param "PRODUCT_NAME" >}}.
+* Learn about the core [Concepts](ref:concepts) of {{< param "PRODUCT_NAME" >}}.
+* Follow our [Tutorials](ref:tutorials) for hands-on learning of {{< param "PRODUCT_NAME" >}}.
+* Consult our [Tasks](ref:tasks) instructions to accomplish common objectives with {{< param "PRODUCT_NAME" >}}.
+* Check out our [Reference](ref:reference) documentation to find specific information you
   might be looking for.
 
 [distribution]: https://opentelemetry.io/ecosystem/distributions/
 
-{{% docs/reference %}}
-[Install]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/get-started/install/"
-[Install]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/get-started/install/"
-[Concepts]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/"
-[Concepts]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/concepts/"
-[Tasks]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/tasks/"
-[Tasks]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/tasks/"
-[Tutorials]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/tutorials/"
-[Tutorials]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/tutorials/
-[Reference]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/"
-[Reference]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/"
-[components]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/"
-[components]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/components"
-{{% /docs/reference %}}

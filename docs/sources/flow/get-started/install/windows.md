@@ -16,6 +16,22 @@ description: Learn how to install Grafana Agent Flow on Windows
 menuTitle: Windows
 title: Install Grafana Agent Flow on Windows
 weight: 500
+refs:
+  configure:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/tasks/configure/configure-windows/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/tasks/configure/configure-windows/
+  run:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/get-started/run/windows/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/get-started/run/windows/
+  data-collection:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/data-collection/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/data-collection/
 ---
 
 # Install {{% param "PRODUCT_NAME" %}} on Windows
@@ -63,7 +79,7 @@ To do a silent install of {{< param "PRODUCT_NAME" >}} on Windows, perform the f
 ### Silent install options
 
 * `/CONFIG=<path>` Path to the configuration file. Default: `$INSTDIR\config.river`
-* `/DISABLEREPORTING=<yes|no>` Disable [data collection][]. Default: `no`
+* `/DISABLEREPORTING=<yes|no>` Disable [data collection](ref:data-collection). Default: `no`
 * `/DISABLEPROFILING=<yes|no>` Disable profiling endpoint. Default: `no`
 * `/ENVIRONMENT="KEY=VALUE\0KEY2=VALUE2"` Define environment variables for Windows Service. Default: ``
 
@@ -84,16 +100,8 @@ This includes any configuration files in the installation directory.
 
 ## Next steps
 
-- [Run {{< param "PRODUCT_NAME" >}}][Run]
-- [Configure {{< param "PRODUCT_NAME" >}}][Configure]
+- [Run {{< param "PRODUCT_NAME" >}}](ref:run)
+- [Configure {{< param "PRODUCT_NAME" >}}](ref:configure)
 
 [latest]: https://github.com/grafana/agent/releases/latest
 
-{{% docs/reference %}}
-[Run]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/get-started/run/windows.md"
-[Run]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/get-started/run/windows.md"
-[Configure]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/tasks/configure/configure-windows.md"
-[Configure]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/tasks/configure/configure-windows.md"
-[data collection]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/data-collection.md"
-[data collection]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/data-collection.md"
-{{% /docs/reference %}}
