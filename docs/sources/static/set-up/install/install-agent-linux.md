@@ -7,6 +7,17 @@ menuTitle: Linux
 title: Install Grafana Agent in static mode on Linux
 description: Learn how to install Grafana Agent in static mode on Linux
 weight: 400
+refs:
+  configure:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT VERSION>/static/configuration/create-config-file/
+    - pattern: /docs/grafana-cloud/
+      destination: ../../configuration/create-config-file/
+  start:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT VERSION>/static/set-up/start-agent/
+    - pattern: /docs/grafana-cloud/
+      destination: ../start-agent/
 ---
 
 # Install Grafana Agent in static mode on Linux
@@ -212,12 +223,6 @@ Logs of Grafana Agent can be found by running the following command in a termina
 
 ## Next steps
 
-- [Start Grafana Agent][start]
-- [Configure Grafana Agent][configure]
+- [Start Grafana Agent](ref:start)
+- [Configure Grafana Agent](ref:configure)
 
-{{% docs/reference %}}
-[start]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/set-up/start-agent"
-[start]: "/docs/grafana-cloud/ -> ../start-agent"
-[configure]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/configuration/create-config-file"
-[configure]: "/docs/grafana-cloud/ -> ../../configuration/create-config-file"
-{{% /docs/reference %}}

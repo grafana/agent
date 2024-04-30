@@ -9,6 +9,32 @@ menuTitle: Introduction
 title: Introduction to Grafana Agent
 description: Grafana Agent is a flexible, performant, vendor-neutral, telemetry collector
 weight: 100
+refs:
+  flow-mode:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT VERSION>/flow/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/agent/<AGENT VERSION>/flow/
+  components:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT VERSION>/flow/reference/components/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/agent/<AGENT VERSION>/flow/reference/components/
+  static-mode-kubernetes-operator:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT VERSION>/operator/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/monitor-infrastructure/agent/operator/
+  static-mode:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT VERSION>/static/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/monitor-infrastructure/agent/static/
+  integrations:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT VERSION>/static/configuration/integrations/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/integrations/
 ---
 
 # Introduction to Grafana Agent
@@ -19,20 +45,10 @@ such as Prometheus and OpenTelemetry.
 
 Grafana Agent is available in three different variants:
 
-- [Static mode][]: The default, original variant of Grafana Agent.
-- [Static mode Kubernetes operator][]: Variant which manages agents running in Static mode.
-- [Flow mode][]: The newer, more flexible re-imagining variant of Grafana Agent.
+- [Static mode](ref:static-mode): The default, original variant of Grafana Agent.
+- [Static mode Kubernetes operator](ref:static-mode-kubernetes-operator): Variant which manages agents running in Static mode.
+- [Flow mode](ref:flow-mode): The newer, more flexible re-imagining variant of Grafana Agent.
 
-{{% docs/reference %}}
-[Static mode]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static"
-[Static mode]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/static"
-
-[Static mode Kubernetes operator]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/operator"
-[Static mode Kubernetes operator]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/operator"
-
-[Flow mode]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/flow"
-[Flow mode]: "/docs/grafana-cloud/ -> /docs/agent/<AGENT VERSION>/flow"
-{{% /docs/reference %}}
 
 ## Stability
 
@@ -49,7 +65,7 @@ Grafana Agent is available in three different variants:
 
 ### Static mode
 
-[Static mode][] is the original variant of Grafana Agent, first introduced on
+[Static mode](ref:static-mode) is the original variant of Grafana Agent, first introduced on
 March 3, 2020. Static mode is the most mature variant of Grafana Agent.
 
 You should run Static mode when:
@@ -58,12 +74,12 @@ You should run Static mode when:
 
 * **Grafana Cloud integrations**: You need to use Grafana Agent with Grafana Cloud integrations.
 
-* **Complete list of integrations**: You need to use a Static mode [integration][integrations] which is not yet
-  available as a [component][components] in Flow mode.
+* **Complete list of integrations**: You need to use a Static mode [integration](ref:integrations) which is not yet
+  available as a [component](ref:components) in Flow mode.
 
 ### Static mode Kubernetes operator
 
-The [Static mode Kubernetes operator][] is a variant of Grafana Agent first
+The [Static mode Kubernetes operator](ref:static-mode-kubernetes-operator) is a variant of Grafana Agent first
 introduced on June 17, 2021. It is currently in beta.
 
 The Static mode Kubernetes operator was introduced for compatibility with
@@ -78,7 +94,7 @@ You should run the Static mode Kubernetes operator when:
 
 ### Flow mode
 
-[Flow mode][] is a stable variant of Grafana Agent first introduced on
+[Flow mode](ref:flow-mode) is a stable variant of Grafana Agent first introduced on
 September 29, 2022.
 
 Flow mode was introduced as a re-imagining of Grafana Agent with a focus on
@@ -114,10 +130,3 @@ You should run Flow mode when:
 [BoringCrypto](https://pkg.go.dev/crypto/internal/boring) is an **EXPERIMENTAL** feature for building Grafana Agent
 binaries and images with BoringCrypto enabled. Builds and Docker images for Linux arm64/amd64 are made available.
 
-{{% docs/reference %}}
-[integrations]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/configuration/integrations"
-[integrations]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/integrations"
-
-[components]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/flow/reference/components"
-[components]: "/docs/grafana-cloud/ -> /docs/agent/<AGENT VERSION>/flow/reference/components"
-{{% /docs/reference %}}

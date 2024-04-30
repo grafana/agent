@@ -9,6 +9,32 @@ description: Grafana Agent is a flexible, performant, vendor-neutral, telemetry 
 weight: 350
 cascade:
   AGENT_RELEASE: v0.36.0
+refs:
+  variants:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT VERSION>/about/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/monitor-infrastructure/agent/about/
+  static-mode:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT VERSION>/static/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/monitor-infrastructure/agent/static/
+  flow-mode:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT VERSION>/flow/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/agent/<AGENT VERSION>/flow/
+  static-mode-kubernetes-operator:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT VERSION>/operator/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/monitor-infrastructure/agent/operator/
+  ui:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT VERSION>/flow/monitoring/debugging/#grafana-agent-flow-ui
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/agent/<AGENT VERSION>/flow/monitoring/debugging/#grafana-agent-flow-ui
 ---
 
 # Grafana Agent
@@ -54,17 +80,17 @@ Grafana Agent can collect, transform, and send data to:
 * **Battle-tested**: Grafana Agent extends the existing battle-tested code from
   the Prometheus and OpenTelemetry Collector projects.
 * **Powerful**: Write programmable pipelines with ease, and debug them using a
-  [built-in UI][UI].
+  [built-in UI](ref:ui).
 * **Batteries included**: Integrate with systems like MySQL, Kubernetes, and
   Apache to get telemetry that's immediately useful.
 
 ## Getting started
 
-* Choose a [variant][variants] of Grafana Agent to run.
+* Choose a [variant](ref:variants) of Grafana Agent to run.
 * Refer to the documentation for the variant to use:
-  * [Static mode][]
-  * [Static mode Kubernetes operator][]
-  * [Flow mode][]
+  * [Static mode](ref:static-mode)
+  * [Static mode Kubernetes operator](ref:static-mode-kubernetes-operator)
+  * [Flow mode](ref:flow-mode)
 
 ## Supported platforms
 
@@ -102,19 +128,3 @@ Patch and security releases may be created at any time.
 
 [Milestones]: https://github.com/grafana/agent/milestones
 
-{{% docs/reference %}}
-[variants]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/about"
-[variants]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/about"
-
-[Static mode]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static"
-[Static mode]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/static"
-
-[Static mode Kubernetes operator]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/operator"
-[Static mode Kubernetes operator]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/operator"
-
-[Flow mode]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/flow"
-[Flow mode]: "/docs/grafana-cloud/ -> /docs/agent/<AGENT VERSION>/flow"
-
-[UI]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/flow/monitoring/debugging.md#grafana-agent-flow-ui"
-[UI]: "/docs/grafana-cloud/ -> /docs/agent/<AGENT VERSION>/flow/monitoring/debugging.md#grafana-agent-flow-ui"
-{{% /docs/reference %}}

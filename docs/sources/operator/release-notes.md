@@ -11,6 +11,17 @@ title: Release notes for Grafana Agent Operator
 description: Release notes for Grafana Agent Operator
 
 weight: 999
+refs:
+  release-notes-static:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT VERSION>/static/release-notes/
+    - pattern: /docs/agent/
+      destination: /docs/grafana-cloud/monitor-infrastructure/agent/static/release-notes/
+  release-notes-flow:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT VERSION>/flow/release-notes/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/agent/<AGENT VERSION>/flow/release-notes/
 ---
 
 # Release notes for Grafana Agent Operator
@@ -22,16 +33,9 @@ For a complete list of changes to Grafana Agent, with links to pull requests and
 > **Note:** These release notes are specific to the Static mode Kubernetes Operator.
 > Other release notes for the different Grafana Agent variants are contained on separate pages:
 >
-> - [Static mode release notes][release-notes-static]
-> - [Flow mode release notes][release-notes-flow]
+> - [Static mode release notes](ref:release-notes-static)
+> - [Flow mode release notes](ref:release-notes-flow)
 
-{{% docs/reference %}}
-[release-notes-static]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/release-notes"
-[release-notes-static]: "/docs/agent/ -> /docs/grafana-cloud/monitor-infrastructure/agent/static/release-notes"
-
-[release-notes-flow]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/flow/release-notes"
-[release-notes-flow]: "/docs/grafana-cloud/ -> /docs/agent/<AGENT VERSION>/flow/release-notes"
-{{% /docs/reference %}}
 
 ## v0.33
 

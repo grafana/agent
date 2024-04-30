@@ -7,6 +7,22 @@ aliases:
 - ../upgrade-guide/
 - ./upgrade-guide/
 weight: 999
+refs:
+  release-notes-flow:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT VERSION>/flow/release-notes/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/agent/<AGENT VERSION>/flow/release-notes/
+  release-notes-operator:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT VERSION>/operator/release-notes/
+    - pattern: /docs/grafana-cloud/
+      destination: ../operator/release-notes/
+  modules:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT VERSION>/flow/concepts/modules/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/agent/<AGENT VERSION>/flow/concepts/modules/
 ---
 
 # Release notes
@@ -18,19 +34,9 @@ For a complete list of changes to Grafana Agent, with links to pull requests and
 > **Note:** These release notes are specific to Grafana Agent static mode. 
 > Other release notes for the different Grafana Agent variants are contained on separate pages:
 >
-> * [Static mode Kubernetes operator release notes][release-notes-operator]
-> * [Flow mode release notes][release-notes-flow]
+> * [Static mode Kubernetes operator release notes](ref:release-notes-operator)
+> * [Flow mode release notes](ref:release-notes-flow)
 
-{{% docs/reference %}}
-[release-notes-operator]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/operator/release-notes"
-[release-notes-operator]: "/docs/grafana-cloud/ -> ../operator/release-notes"
-
-[release-notes-flow]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/flow/release-notes"
-[release-notes-flow]: "/docs/grafana-cloud/ -> /docs/agent/<AGENT VERSION>/flow/release-notes"
-
-[Modules]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/flow/concepts/modules"
-[Modules]: "/docs/grafana-cloud/ -> /docs/agent/<AGENT VERSION>/flow/concepts/modules"
-{{% /docs/reference %}}
 
 ## v0.35
 
@@ -103,7 +109,7 @@ See [Module and Auth Split Migration](https://github.com/prometheus/snmp_exporte
 ### Removal of Dynamic Configuration
 
 The experimental feature Dynamic Configuration has been removed. The use case of dynamic configuration will be replaced
-with [Modules][] in Grafana Agent Flow.
+with [Modules](ref:modules) in Grafana Agent Flow.
 
 ### Breaking change: Removed and renamed tracing metrics
 
