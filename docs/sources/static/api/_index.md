@@ -9,15 +9,15 @@ weight: 400
 refs:
   integrations:
     - pattern: /docs/agent/
-      destination: /docs/agent/<AGENT VERSION>/static/configuration/integrations/integrations-next/
+      destination: /docs/agent/<AGENT_VERSION>/static/configuration/integrations/integrations-next/
     - pattern: /docs/grafana-cloud/
       destination: ../configuration/integrations/integrations-next/
   scrape:
     - pattern: /docs/agent/
-      destination: /docs/agent/<AGENT VERSION>/static/configuration/scraping-service/
+      destination: /docs/agent/<AGENT_VERSION>/static/configuration/scraping-service/
   metrics:
     - pattern: /docs/agent/
-      destination: /docs/agent/<AGENT VERSION>/static/configuration/metrics-config/
+      destination: /docs/agent/<AGENT_VERSION>/static/configuration/metrics-config/
     - pattern: /docs/grafana-cloud/
       destination: ../configuration/metrics-config/
 ---

@@ -9,7 +9,7 @@ weight: 50
 refs:
   configure:
     - pattern: /docs/agent/
-      destination: /docs/agent/<AGENT VERSION>/static/configuration/
+      destination: /docs/agent/<AGENT_VERSION>/static/configuration/
     - pattern: /docs/grafana-cloud/
       destination: ./configuration/
 ---

@@ -8,22 +8,22 @@ weight: 700
 refs:
   api:
     - pattern: /docs/agent/
-      destination: /docs/agent/<AGENT VERSION>/static/api/#agent-api
+      destination: /docs/agent/<AGENT_VERSION>/static/api/#agent-api
     - pattern: /docs/grafana-cloud/
       destination: ../api/#agent-api
   scrape:
     - pattern: /docs/agent/
-      destination: /docs/agent/<AGENT VERSION>/static/configuration/scraping-service/
+      destination: /docs/agent/<AGENT_VERSION>/static/configuration/scraping-service/
     - pattern: /docs/grafana-cloud/
       destination: ../configuration/scraping-service/
   targets:
     - pattern: /docs/agent/
-      destination: /docs/agent/<AGENT VERSION>/static/configuration/scraping-service/#best-practices
+      destination: /docs/agent/<AGENT_VERSION>/static/configuration/scraping-service/#best-practices
     - pattern: /docs/grafana-cloud/
       destination: ../configuration/scraping-service/#best-practices
   metrics:
     - pattern: /docs/agent/
-      destination: /docs/agent/<AGENT VERSION>/static/configuration/metrics-config/
+      destination: /docs/agent/<AGENT_VERSION>/static/configuration/metrics-config/
     - pattern: /docs/grafana-cloud/
       destination: ../configuration/metrics-config/
 ---
