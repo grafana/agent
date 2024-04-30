@@ -9,6 +9,12 @@ description: Learn how to start, restart, and stop Grafana Agent after it is ins
 menuTitle: Start Grafana Agent Flow
 title: Start, restart, and stop Grafana Agent Flow
 weight: 800
+refs:
+  configure:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/setup/configure/configure-macos/#configure-the-grafana-agent-service
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/setup/configure/configure-macos/#configure-the-grafana-agent-service
 ---
 
 # Start, restart, and stop {{% param "PRODUCT_NAME" %}}
@@ -108,7 +114,7 @@ brew services stop grafana-agent-flow
 By default, logs are written to `$(brew --prefix)/var/log/grafana-agent-flow.log` and
 `$(brew --prefix)/var/log/grafana-agent-flow.err.log`.
 
-If you followed [Configure the {{< param "PRODUCT_NAME" >}} service][Configure] and changed the path where logs are written,
+If you followed [Configure the {{< param "PRODUCT_NAME" >}} service](ref:configure) and changed the path where logs are written,
 refer to your current copy of the {{< param "PRODUCT_NAME" >}} formula to locate your log files.
 
 ## Windows
@@ -251,7 +257,3 @@ These steps assume you have a default systemd and {{< param "PRODUCT_NAME" >}} c
 
 [release]: https://github.com/grafana/agent/releases/latest
 
-{{% docs/reference %}}
-[Configure]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/configure/configure-macos.md#configure-the-grafana-agent-service"
-[Configure]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/setup/configure/configure-macos.md#configure-the-grafana-agent-service"
-{{% /docs/reference %}}

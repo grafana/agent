@@ -10,6 +10,12 @@ description: Learn how to install Grafana Agent  Flow
 menuTitle: Install Grafana Agent Flow
 title: Install Grafana Agent Flow
 weight: 50
+refs:
+  data-collection:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/data-collection/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/data-collection/
 ---
 
 # Install {{% param "PRODUCT_NAME" %}}
@@ -31,10 +37,6 @@ Installing {{< param "PRODUCT_NAME" >}} on other operating systems is possible, 
 
 ## Data collection
 
-By default, {{< param "PRODUCT_NAME" >}} sends anonymous usage information to Grafana Labs. Refer to [data collection][] for more information
+By default, {{< param "PRODUCT_NAME" >}} sends anonymous usage information to Grafana Labs. Refer to [data collection](ref:data-collection) for more information
 about what data is collected and how you can opt-out.
 
-{{% docs/reference %}}
-[data collection]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/data-collection.md"
-[data collection]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/data-collection.md"
-{{% /docs/reference %}}

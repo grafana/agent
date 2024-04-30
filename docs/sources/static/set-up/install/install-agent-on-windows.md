@@ -9,6 +9,17 @@ description: Learn how to install Grafana Agent in static mode on Windows
 menuTitle: Windows
 title: Install Grafana Agent in static mode on Windows
 weight: 600
+refs:
+  start:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/static/set-up/start-agent/
+    - pattern: /docs/grafana-cloud/
+      destination: ../start-agent/
+  configure:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/static/configuration/create-config-file/
+    - pattern: /docs/grafana-cloud/
+      destination: ../../configuration/create-config-file/
 ---
 
 # Install Grafana Agent in static mode on Windows
@@ -142,12 +153,6 @@ Refer to [windows_events](/docs/loki/latest/clients/promtail/configuration/#wind
 
 ## Next steps
 
-- [Start Grafana Agent][start]
-- [Configure Grafana Agent][configure]
+- [Start Grafana Agent](ref:start)
+- [Configure Grafana Agent](ref:configure)
 
-{{% docs/reference %}}
-[start]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static/set-up/start-agent"
-[start]: "/docs/grafana-cloud/ -> ../start-agent"
-[configure]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static/configuration/create-config-file"
-[configure]: "/docs/grafana-cloud/ -> ../../configuration/create-config-file"
-{{% /docs/reference %}}
