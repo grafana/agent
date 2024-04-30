@@ -22,12 +22,12 @@ refs:
       destination: /docs/agent/<AGENT_VERSION>/flow/concepts/clustering//
   static-mode:
     - pattern: /docs/agent/
-      destination: /docs/agent/<AGENT VERSION>/static/
+      destination: /docs/agent/<AGENT_VERSION>/static/
     - pattern: /docs/grafana-cloud/
       destination: /docs/grafana-cloud/send-data/agent/static/
   integrations:
     - pattern: /docs/agent/
-      destination: /docs/agent/<AGENT VERSION>/static/configuration/integrations/
+      destination: /docs/agent/<AGENT_VERSION>/static/configuration/integrations/
     - pattern: /docs/grafana-cloud/
       destination: /docs/grafana-cloud/send-data/agent/static/configuration/integrations/
   otel:
@@ -52,17 +52,17 @@ refs:
       destination: /docs/agent/<AGENT_VERSION>/flow/getting-started/migrating-from-promtail/
   flow-mode:
     - pattern: /docs/agent/
-      destination: /docs/agent/<AGENT VERSION>/flow/
+      destination: /docs/agent/<AGENT_VERSION>/flow/
     - pattern: /docs/grafana-cloud/
-      destination: /docs/agent/<AGENT VERSION>/flow/
+      destination: /docs/agent/<AGENT_VERSION>/flow/
   components:
     - pattern: /docs/agent/
-      destination: /docs/agent/<AGENT VERSION>/flow/reference/components/
+      destination: /docs/agent/<AGENT_VERSION>/flow/reference/components/
     - pattern: /docs/grafana-cloud/
-      destination: /docs/agent/<AGENT VERSION>/flow/reference/components/
+      destination: /docs/agent/<AGENT_VERSION>/flow/reference/components/
   static-mode-kubernetes-operator:
     - pattern: /docs/agent/
-      destination: /docs/agent/<AGENT VERSION>/operator/
+      destination: /docs/agent/<AGENT_VERSION>/operator/
     - pattern: /docs/grafana-cloud/
       destination: /docs/grafana-cloud/send-data/agent/operator/
 ---

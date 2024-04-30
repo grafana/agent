@@ -13,29 +13,29 @@ cascade:
 refs:
   variants:
     - pattern: /docs/agent/
-      destination: /docs/agent/<AGENT VERSION>/about/
+      destination: /docs/agent/<AGENT_VERSION>/about/
     - pattern: /docs/grafana-cloud/
       destination: /docs/grafana-cloud/send-data/agent/about/
   static-mode:
     - pattern: /docs/agent/
-      destination: /docs/agent/<AGENT VERSION>/static/
+      destination: /docs/agent/<AGENT_VERSION>/static/
     - pattern: /docs/grafana-cloud/
       destination: /docs/grafana-cloud/send-data/agent/static/
   flow-mode:
     - pattern: /docs/agent/
-      destination: /docs/agent/<AGENT VERSION>/flow/
+      destination: /docs/agent/<AGENT_VERSION>/flow/
     - pattern: /docs/grafana-cloud/
-      destination: /docs/agent/<AGENT VERSION>/flow/
+      destination: /docs/agent/<AGENT_VERSION>/flow/
   static-mode-kubernetes-operator:
     - pattern: /docs/agent/
-      destination: /docs/agent/<AGENT VERSION>/operator/
+      destination: /docs/agent/<AGENT_VERSION>/operator/
     - pattern: /docs/grafana-cloud/
       destination: /docs/grafana-cloud/send-data/agent/operator/
   ui:
     - pattern: /docs/agent/
-      destination: /docs/agent/<AGENT VERSION>/flow/monitoring/debugging/#grafana-agent-flow-ui
+      destination: /docs/agent/<AGENT_VERSION>/flow/monitoring/debugging/#grafana-agent-flow-ui
     - pattern: /docs/grafana-cloud/
-      destination: /docs/agent/<AGENT VERSION>/flow/monitoring/debugging/#grafana-agent-flow-ui
+      destination: /docs/agent/<AGENT_VERSION>/flow/monitoring/debugging/#grafana-agent-flow-ui
 ---
 
 # Grafana Agent

@@ -14,12 +14,12 @@ weight: 999
 refs:
   release-notes-flow:
     - pattern: /docs/agent/
-      destination: /docs/agent/<AGENT VERSION>/flow/release-notes/
+      destination: /docs/agent/<AGENT_VERSION>/flow/release-notes/
     - pattern: /docs/grafana-cloud/
-      destination: /docs/agent/<AGENT VERSION>/flow/release-notes/
+      destination: /docs/agent/<AGENT_VERSION>/flow/release-notes/
   release-notes-static:
     - pattern: /docs/agent/
-      destination: /docs/agent/<AGENT VERSION>/static/release-notes/
+      destination: /docs/agent/<AGENT_VERSION>/static/release-notes/
     - pattern: /docs/agent/
       destination: /docs/grafana-cloud/send-data/agent/static/release-notes/
 ---

@@ -6,17 +6,17 @@ weight: 200
 refs:
   install:
     - pattern: /docs/agent/
-      destination: /docs/agent/<AGENT VERSION>/static/set-up/install/
+      destination: /docs/agent/<AGENT_VERSION>/static/set-up/install/
     - pattern: /docs/grafana-cloud/
       destination: ./set-up/install/
   configure:
     - pattern: /docs/agent/
-      destination: /docs/agent/<AGENT VERSION>/static/configuration/
+      destination: /docs/agent/<AGENT_VERSION>/static/configuration/
     - pattern: /docs/grafana-cloud/
       destination: ./configuration/
   set-up:
     - pattern: /docs/agent/
-      destination: /docs/agent/<AGENT VERSION>/static/set-up/
+      destination: /docs/agent/<AGENT_VERSION>/static/set-up/
     - pattern: /docs/grafana-cloud/
       destination: ./set-up/
 ---

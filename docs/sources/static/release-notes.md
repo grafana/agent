@@ -10,19 +10,19 @@ weight: 999
 refs:
   release-notes-operator:
     - pattern: /docs/agent/
-      destination: /docs/agent/<AGENT VERSION>/operator/release-notes/
+      destination: /docs/agent/<AGENT_VERSION>/operator/release-notes/
     - pattern: /docs/grafana-cloud/
       destination: ../operator/release-notes/
   modules:
     - pattern: /docs/agent/
-      destination: /docs/agent/<AGENT VERSION>/flow/concepts/modules/
+      destination: /docs/agent/<AGENT_VERSION>/flow/concepts/modules/
     - pattern: /docs/grafana-cloud/
-      destination: /docs/agent/<AGENT VERSION>/flow/concepts/modules/
+      destination: /docs/agent/<AGENT_VERSION>/flow/concepts/modules/
   release-notes-flow:
     - pattern: /docs/agent/
-      destination: /docs/agent/<AGENT VERSION>/flow/release-notes/
+      destination: /docs/agent/<AGENT_VERSION>/flow/release-notes/
     - pattern: /docs/grafana-cloud/
-      destination: /docs/agent/<AGENT VERSION>/flow/release-notes/
+      destination: /docs/agent/<AGENT_VERSION>/flow/release-notes/
 ---
 
 # Release notes

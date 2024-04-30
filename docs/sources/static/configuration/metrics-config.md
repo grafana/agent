@@ -9,7 +9,7 @@ weight: 200
 refs:
   scrape:
     - pattern: /docs/agent/
-      destination: /docs/agent/<AGENT VERSION>/static/configuration/scraping-service/
+      destination: /docs/agent/<AGENT_VERSION>/static/configuration/scraping-service/
     - pattern: /docs/grafana-cloud/
       destination: ./scraping-service/
 ---
@@ -348,5 +348,5 @@ remote_write:
 
 ## Data retention
 
-{{< docs/shared source="agent" lookup="/wal-data-retention.md" version="<AGENT VERSION>" >}}
+{{< docs/shared source="agent" lookup="/wal-data-retention.md" version="<AGENT_VERSION>" >}}
 
