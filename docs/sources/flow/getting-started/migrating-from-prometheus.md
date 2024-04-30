@@ -9,6 +9,52 @@ description: Learn how to migrate from Prometheus to Grafana Agent Flow
 menuTitle: Migrate from Prometheus
 title: Migrate from Prometheus to Grafana Agent Flow
 weight: 320
+refs:
+  prometheus.scrape:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/reference/components/prometheus.scrape/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/reference/components/prometheus.scrape/
+  prometheus.remote_write:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/reference/components/prometheus.remote_write/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/reference/components/prometheus.remote_write/
+  river:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/config-language//
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/config-language//
+  run:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/reference/cli/run/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/reference/cli/run/
+  components:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/concepts/components/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/concepts/components/
+  debuggingui:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/monitoring/debugging/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/monitoring/debugging/
+  ui:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/monitoring/debugging/#grafana-agent-flow-ui
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/monitoring/debugging/#grafana-agent-flow-ui
+  convert:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/reference/cli/convert/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/reference/cli/convert/
+  start:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/setup/start-agent/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/setup/start-agent/
 ---
 
 # Migrate from Prometheus to {{% param "PRODUCT_NAME" %}}
@@ -22,23 +68,23 @@ This topic describes how to:
 
 ## Components used in this topic
 
-* [prometheus.scrape][]
-* [prometheus.remote_write][]
+* [prometheus.scrape](ref:prometheus.scrape)
+* [prometheus.remote_write](ref:prometheus.remote_write)
 
 ## Before you begin
 
 * You must have an existing Prometheus configuration.
 * You must have a set of Prometheus applications ready to push telemetry data to {{< param "PRODUCT_NAME" >}}.
-* You must be familiar with the concept of [Components][] in {{< param "PRODUCT_NAME" >}}.
+* You must be familiar with the concept of [Components](ref:components) in {{< param "PRODUCT_NAME" >}}.
 
 ## Convert a Prometheus configuration
 
-To fully migrate your configuration from [Prometheus] to {{< param "PRODUCT_NAME" >}},
+To fully migrate your configuration from[Prometheus][] to {{< param "PRODUCT_NAME" >}},
 you must convert your Prometheus configuration into a {{< param "PRODUCT_NAME" >}} configuration.
 This conversion will enable you to take full advantage of the many
 additional features available in {{< param "PRODUCT_NAME" >}}.
 
-> In this task, we will use the [convert][] CLI command to output a flow
+> In this task, we will use the [convert](ref:convert) CLI command to output a flow
 > configuration from a Prometheus configuration.
 
 1. Open a terminal window and run the following command:
@@ -59,7 +105,7 @@ additional features available in {{< param "PRODUCT_NAME" >}}.
       * `INPUT_CONFIG_PATH`: The full path to the Prometheus configuration.
       * `OUTPUT_CONFIG_PATH`: The full path to output the {{< param "PRODUCT_NAME" >}} configuration.
 
-1. [Start][] {{< param "PRODUCT_NAME" >}} using the new flow configuration from `OUTPUT_CONFIG_PATH`:
+1. [Start](ref:start) {{< param "PRODUCT_NAME" >}} using the new flow configuration from `OUTPUT_CONFIG_PATH`:
 
 ### Debugging
 
@@ -116,10 +162,10 @@ If you’re not ready to completely switch to a flow configuration, you can run 
 The `--config.format=prometheus` flag tells {{< param "PRODUCT_ROOT_NAME" >}} to convert your Prometheus configuration to a {{< param "PRODUCT_NAME" >}} configuration and load it directly without saving the new configuration.
 This allows you to try {{< param "PRODUCT_NAME" >}} without modifying your existing Prometheus configuration infrastructure.
 
-> In this task, we will use the [run][] CLI command to run {{< param "PRODUCT_NAME" >}}
+> In this task, we will use the [run](ref:run) CLI command to run {{< param "PRODUCT_NAME" >}}
 > using a Prometheus configuration.
 
-[Start][] {{< param "PRODUCT_NAME" >}} and include the command line flag
+[Start](ref:start) {{< param "PRODUCT_NAME" >}} and include the command line flag
    `--config.format=prometheus`. Your configuration file must be a valid
    Prometheus configuration file rather than a {{< param "PRODUCT_NAME" >}} configuration file.
 
@@ -128,7 +174,7 @@ This allows you to try {{< param "PRODUCT_NAME" >}} without modifying your exist
 1. You can follow the convert CLI command [debugging][] instructions to
    generate a diagnostic report.
 
-1. Refer to the {{< param "PRODUCT_NAME" >}} [Debugging][DebuggingUI] for more information about a running {{< param "PRODUCT_NAME" >}}.
+1. Refer to the {{< param "PRODUCT_NAME" >}} [Debugging](ref:debuggingui) for more information about a running {{< param "PRODUCT_NAME" >}}.
 
 1. If your Prometheus configuration can't be converted and
     loaded directly into {{< param "PRODUCT_NAME" >}}, diagnostic information
@@ -165,7 +211,7 @@ remote_write:
       password: PASSWORD
 ```
 
-The convert command takes the YAML file as input and outputs a [River][] file.
+The convert command takes the YAML file as input and outputs a [River](ref:river) file.
 
 {{< code >}}
 
@@ -231,28 +277,8 @@ Furthermore, we recommend that you review the following checklist:
 * Metamonitoring metrics exposed by {{< param "PRODUCT_NAME" >}} usually match Prometheus metamonitoring metrics but will use a different name.
   Make sure that you use the new metric names, for example, in your alerts and dashboards queries.
 * The logs produced by {{< param "PRODUCT_NAME" >}} differ from those produced by Prometheus.
-* {{< param "PRODUCT_ROOT_NAME" >}} exposes the {{< param "PRODUCT_NAME" >}} [UI][].
+* {{< param "PRODUCT_ROOT_NAME" >}} exposes the {{< param "PRODUCT_NAME" >}} [UI](ref:ui).
 
 [Prometheus]: https://prometheus.io/docs/prometheus/latest/configuration/configuration/
 [debugging]: #debugging
 
-{{% docs/reference %}}
-[prometheus.scrape]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/prometheus.scrape.md"
-[prometheus.scrape]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/components/prometheus.scrape.md"
-[prometheus.remote_write]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/prometheus.remote_write.md"
-[prometheus.remote_write]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/components/prometheus.remote_write.md"
-[Components]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/components.md"
-[Components]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/concepts/components.md"
-[convert]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/cli/convert.md"
-[convert]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/cli/convert.md"
-[run]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/cli/run.md"
-[run]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/cli/run.md"
-[Start]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/start-agent.md"
-[Start]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/setup/start-agent.md"
-[DebuggingUI]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/monitoring/debugging.md"
-[DebuggingUI]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/monitoring/debugging.md"
-[River]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/config-language/_index.md"
-[River]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/config-language/_index.md"
-[UI]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/monitoring/debugging#grafana-agent-flow-ui"
-[UI]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/monitoring/debugging#grafana-agent-flow-ui"
-{{% /docs/reference %}}

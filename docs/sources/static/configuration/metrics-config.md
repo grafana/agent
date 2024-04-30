@@ -8,6 +8,12 @@ canonical: https://grafana.com/docs/agent/latest/static/configuration/metrics-co
 description: Learn about metrics_config
 title: metrics_config
 weight: 200
+refs:
+  scrape:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT VERSION>/static/configuration/scraping-service/
+    - pattern: /docs/grafana-cloud/
+      destination: ./scraping-service/
 ---
 
 # metrics_config
@@ -68,7 +74,7 @@ configs:
 
 ## scraping_service_config
 
-The `scraping_service` block configures the [scraping service][scrape], an operational
+The `scraping_service` block configures the [scraping service](ref:scrape), an operational
 mode where configurations are stored centrally in a KV store and a cluster of
 agents distributes discovery and scrape load between nodes.
 
@@ -346,7 +352,3 @@ remote_write:
 
 {{< docs/shared source="agent" lookup="/wal-data-retention.md" version="<AGENT VERSION>" >}}
 
-{{% docs/reference %}}
-[scrape]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/configuration/scraping-service"
-[scrape]: "/docs/grafana-cloud/ -> ./scraping-service"
-{{% /docs/reference %}}

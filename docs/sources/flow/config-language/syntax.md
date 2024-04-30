@@ -9,6 +9,17 @@ canonical: https://grafana.com/docs/agent/latest/flow/config-language/syntax/
 description: Learn about the River syntax
 title: Syntax
 weight: 200
+refs:
+  expression:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/config-language/expressions/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/config-language/expressions/
+  type:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/config-language/expressions/types_and_values/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/config-language/expressions/types_and_values/
 ---
 
 # Syntax
@@ -44,8 +55,8 @@ log_level = "debug"
 
 The `ATTRIBUTE_NAME` must be a valid River [identifier][].
 
-The `ATTRIBUTE_VALUE` can be either a constant value of a valid River [type][] (for example, a string, boolean, number),
-or an [_expression_][expression] to represent or compute more complex attribute values.
+The `ATTRIBUTE_VALUE` can be either a constant value of a valid River [type](ref:type) (for example, a string, boolean, number),
+or an [_expression_](ref:expression) to represent or compute more complex attribute values.
 
 ### Blocks
 
@@ -111,9 +122,3 @@ River ignores other newlines and you can can enter as many newlines as you want.
 [identifier]: #identifiers
 [identifier]: #identifiers
 
-{{% docs/reference %}}
-[expression]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/config-language/expressions"
-[expression]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/config-language/expressions"
-[type]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/config-language/expressions/types_and_values"
-[type]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/config-language/expressions/types_and_values"
-{{% /docs/reference %}}
