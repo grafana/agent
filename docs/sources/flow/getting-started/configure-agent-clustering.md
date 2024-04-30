@@ -8,16 +8,37 @@ menuTitle: Configure Grafana Agent clustering
 title: Configure Grafana Agent clustering in an existing installation
 description: Learn how to configure Grafana Agent clustering in an existing installation
 weight: 400
+refs:
+  ui:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/monitoring/debugging/#component-detail-page
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/monitoring/debugging/#component-detail-page
+  beta:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/stability/#beta
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/stability/#beta
+  clustering:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/concepts/clustering/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/concepts/clustering/
+  install-helm:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/setup/install/kubernetes/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/setup/install/kubernetes/
 ---
 
 # Configure Grafana Agent clustering in an existing installation
 
-You can configure Grafana Agent to run with [clustering][] so that
+You can configure Grafana Agent to run with [clustering](ref:clustering) so that
 individual agents can work together for workload distribution and high
 availability.
 
 
-> **Note:** Clustering is a [beta][] feature. Beta features are subject to breaking changes and may be
+> **Note:** Clustering is a [beta](ref:beta) feature. Beta features are subject to breaking changes and may be
 > replaced with equivalent functionality that covers the same use case.
 
 This topic describes how to add clustering to an existing installation.
@@ -25,7 +46,7 @@ This topic describes how to add clustering to an existing installation.
 ## Configure Grafana Agent clustering with Helm Chart
 
 This section guides you through enabling clustering when Grafana Agent is
-installed on Kubernetes using the [Grafana Agent Helm chart][install-helm].
+installed on Kubernetes using the [Grafana Agent Helm chart](ref:install-helm).
 
 ### Before you begin
 
@@ -54,19 +75,9 @@ To configure clustering:
    Replace `RELEASE_NAME` with the name of the installation you chose when you
    installed the Helm chart.
 
-1. Use the [Grafana Agent UI][UI] to verify the cluster status:
+1. Use the [Grafana Agent UI](ref:ui) to verify the cluster status:
 
    1. Click **Clustering** in the navigation bar.
 
    2. Ensure that all expected nodes appear in the resulting table.
 
-{{% docs/reference %}}
-[clustering]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/clustering.md"
-[clustering]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/concepts/clustering.md"
-[beta]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/stability.md#beta"
-[beta]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/stability.md#beta"
-[install-helm]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/install/kubernetes.md"
-[install-helm]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/setup/install/kubernetes.md"
-[UI]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/monitoring/debugging.md#component-detail-page"
-[UI]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/monitoring/debugging.md#component-detail-page"
-{{% /docs/reference %}}

@@ -9,6 +9,22 @@ description: Learn how to install Grafana Agent in flow mode on Windows
 menuTitle: Windows
 title: Install Grafana Agent in flow mode on Windows
 weight: 500
+refs:
+  configure-grafana-agent:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/setup/configure/configure-windows/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/setup/configure/configure-windows/
+  start-grafana-agent:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/setup/start-agent/#windows
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/setup/start-agent/#windows
+  data-collection:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/data-collection/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/data-collection/
 ---
 
 # Install Grafana Agent in flow mode on Windows
@@ -59,16 +75,8 @@ Grafana Agent can also be silently uninstalled by running `uninstall.exe /S` as 
 
 ## Next steps
 
-- [Start Grafana Agent][]
-- [Configure Grafana Agent][]
+- [Start Grafana Agent](ref:start-grafana-agent)
+- [Configure Grafana Agent](ref:configure-grafana-agent)
 
 [latest]: https://github.com/grafana/agent/releases/latest
 
-{{% docs/reference %}}
-[Start Grafana Agent]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/start-agent.md#windows"
-[Start Grafana Agent]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/setup/start-agent.md#windows"
-[Configure Grafana Agent]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/configure/configure-windows.md"
-[Configure Grafana Agent]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/setup/configure/configure-windows.md"
-[data collection]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/data-collection.md"
-[data collection]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/data-collection.md"
-{{% /docs/reference %}}

@@ -9,6 +9,62 @@ menuTitle: Introduction
 title: Introduction to Grafana Agent
 description: Grafana Agent is a flexible, performant, vendor-neutral, telemetry collector
 weight: 100
+refs:
+  prometheus:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/getting-started/collect-prometheus-metrics/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/agent/<AGENT_VERSION>/flow/getting-started/collect-prometheus-metrics/
+  clustering:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/concepts/clustering//
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/agent/<AGENT_VERSION>/flow/concepts/clustering//
+  static-mode:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT VERSION>/static/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/static/
+  integrations:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT VERSION>/static/configuration/integrations/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/static/configuration/integrations/
+  otel:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/getting-started/collect-opentelemetry-data/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/agent/<AGENT_VERSION>/flow/getting-started/collect-opentelemetry-data/
+  vault:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/reference/components/remote.vault/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/agent/<AGENT_VERSION>/flow/reference/components/remote.vault/
+  rules:
+    - pattern: /docs/agent/
+      destination: /docs/agent/latest/flow/reference/components/mimir.rules.kubernetes/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/agent/latest/flow/reference/components/mimir.rules.kubernetes/
+  loki:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/getting-started/migrating-from-promtail/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/agent/<AGENT_VERSION>/flow/getting-started/migrating-from-promtail/
+  flow-mode:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT VERSION>/flow/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/agent/<AGENT VERSION>/flow/
+  components:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT VERSION>/flow/reference/components/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/agent/<AGENT VERSION>/flow/reference/components/
+  static-mode-kubernetes-operator:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT VERSION>/operator/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/operator/
 ---
 
 # Introduction to Grafana Agent
@@ -17,30 +73,10 @@ Grafana Agent is a flexible, high performance, vendor-neutral telemetry collecto
 
 Grafana Agent is available in three different variants:
 
-- [Static mode][]: The original Grafana Agent.
-- [Static mode Kubernetes operator][]: The Kubernetes operator for Static mode.
-- [Flow mode][]: The new, component-based Grafana Agent.
+- [Static mode](ref:static-mode): The original Grafana Agent.
+- [Static mode Kubernetes operator](ref:static-mode-kubernetes-operator): The Kubernetes operator for Static mode.
+- [Flow mode](ref:flow-mode): The new, component-based Grafana Agent.
 
-{{% docs/reference %}}
-[Static mode]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static"
-[Static mode]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/static"
-[Static mode Kubernetes operator]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/operator"
-[Static mode Kubernetes operator]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/operator"
-[Flow mode]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/flow"
-[Flow mode]: "/docs/grafana-cloud/ -> /docs/agent/<AGENT VERSION>/flow"
-[Prometheus]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/getting-started/collect-prometheus-metrics.md"
-[Prometheus]: "/docs/grafana-cloud/ -> /docs/agent/<AGENT_VERSION>/flow/getting-started/collect-prometheus-metrics.md"
-[OTel]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/getting-started/collect-opentelemetry-data.md"
-[OTel]: "/docs/grafana-cloud/ -> /docs/agent/<AGENT_VERSION>/flow/getting-started/collect-opentelemetry-data.md"
-[Loki]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/getting-started/migrating-from-promtail.md"
-[Loki]: "/docs/grafana-cloud/ -> /docs/agent/<AGENT_VERSION>/flow/getting-started/migrating-from-promtail.md"
-[clustering]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/clustering/_index.md"
-[clustering]: "/docs/grafana-cloud/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/clustering/_index.md"
-[rules]: "/docs/agent/ -> /docs/agent/latest/flow/reference/components/mimir.rules.kubernetes.md"
-[rules]: "/docs/grafana-cloud/ -> /docs/agent/latest/flow/reference/components/mimir.rules.kubernetes.md"
-[vault]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/remote.vault.md"
-[vault]: "/docs/grafana-cloud/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/remote.vault.md"
-{{% /docs/reference %}}
 
 [Pyroscope]: https://grafana.com/docs/pyroscope/latest/configure-client/grafana-agent/go_pull
 [helm chart]: https://grafana.com/docs/grafana-cloud/monitor-infrastructure/kubernetes-monitoring/configuration/config-k8s-helmchart
@@ -68,9 +104,9 @@ Each variant of Grafana Agent provides a different level of functionality. The f
 
 |              | Grafana Agent Flow mode  | Grafana Agent Static mode | Grafana Agent Operator | OpenTelemetry Collector | Prometheus Agent mode |
 |--------------|--------------------------|---------------------------|------------------------|-------------------------|-----------------------|
-| **Metrics**  | [Prometheus][], [OTel][] | Prometheus                | Prometheus             | OTel                    | Prometheus            |
-| **Logs**     | [Loki][], [OTel][]       | Loki                      | Loki                   | OTel                    | No                    |
-| **Traces**   | [OTel][]                 | OTel                      | OTel                   | OTel                    | No                    |
+| **Metrics**  | [Prometheus](ref:prometheus), [OTel](ref:otel) | Prometheus                | Prometheus             | OTel                    | Prometheus            |
+| **Logs**     | [Loki](ref:loki), [OTel](ref:otel)       | Loki                      | Loki                   | OTel                    | No                    |
+| **Traces**   | [OTel](ref:otel)                 | OTel                      | OTel                   | OTel                    | No                    |
 | **Profiles** | [Pyroscope][]            | No                        | No                     | Planned                 | No                    |
 
 #### **OSS features**
@@ -78,9 +114,9 @@ Each variant of Grafana Agent provides a different level of functionality. The f
 |                          | Grafana Agent Flow mode | Grafana Agent Static mode | Grafana Agent Operator | OpenTelemetry Collector | Prometheus Agent mode |
 |--------------------------|-------------------------|---------------------------|------------------------|-------------------------|-----------------------|
 | **Kubernetes native**    | [Yes][helm chart]       | No                        | Yes                    | Yes                     | No                    |
-| **Clustering**           | [Yes][clustering]       | No                        | No                     | No                      | No                    |
-| **Prometheus rules**     | [Yes][rules]            | No                        | No                     | No                      | No                    |
-| **Native Vault support** | [Yes][vault]            | No                        | No                     | No                      | No                    |
+| **Clustering**           | [Yes](ref:clustering)       | No                        | No                     | No                      | No                    |
+| **Prometheus rules**     | [Yes](ref:rules)            | No                        | No                     | No                      | No                    |
+| **Native Vault support** | [Yes](ref:vault)            | No                        | No                     | No                      | No                    |
 
 #### Grafana Cloud solutions
 
@@ -93,7 +129,7 @@ Each variant of Grafana Agent provides a different level of functionality. The f
 
 ### Static mode
 
-[Static mode][] is the original variant of Grafana Agent, introduced on March 3, 2020.
+[Static mode](ref:static-mode) is the original variant of Grafana Agent, introduced on March 3, 2020.
 Static mode is the most mature variant of Grafana Agent.
 
 You should run Static mode when:
@@ -109,7 +145,7 @@ Grafana Agent version 0.37 and newer provides Prometheus Operator compatibility 
 You should use Grafana Agent Flow mode for all new Grafana Agent deployments.
 {{% /admonition %}}
 
-The [Static mode Kubernetes operator][] is a variant of Grafana Agent introduced on June 17, 2021. It's currently in beta.
+The [Static mode Kubernetes operator](ref:static-mode-kubernetes-operator) is a variant of Grafana Agent introduced on June 17, 2021. It's currently in beta.
 
 The Static mode Kubernetes operator provides compatibility with Prometheus Operator,
 allowing static mode to support resources from Prometheus Operator, such as ServiceMonitors, PodMonitors, and Probes.
@@ -122,7 +158,7 @@ You should run the Static mode Kubernetes operator when:
 
 ### Flow mode
 
-[Flow mode][] is a stable variant of Grafana Agent, introduced on September 29, 2022.
+[Flow mode](ref:flow-mode) is a stable variant of Grafana Agent, introduced on September 29, 2022.
 
 Grafana Agent Flow mode focuses on vendor neutrality, ease-of-use,
 improved debugging, and ability to adapt to the needs of power users by adopting a configuration-as-code model.
@@ -146,10 +182,3 @@ You should run Flow mode when:
 [BoringCrypto](https://pkg.go.dev/crypto/internal/boring) is an **EXPERIMENTAL** feature for building Grafana Agent
 binaries and images with BoringCrypto enabled. Builds and Docker images for Linux arm64/amd64 are made available.
 
-{{% docs/reference %}}
-[integrations]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/configuration/integrations"
-[integrations]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/static/configuration/integrations"
-
-[components]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/flow/reference/components"
-[components]: "/docs/grafana-cloud/ -> /docs/agent/<AGENT VERSION>/flow/reference/components"
-{{% /docs/reference %}}

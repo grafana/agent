@@ -8,6 +8,22 @@ canonical: https://grafana.com/docs/agent/latest/flow/concepts/component_control
 title: Component controller
 description: Learn about the component controller
 weight: 200
+refs:
+  run:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/reference/cli/run/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/reference/cli/run/
+  prometheus.exporter.unix:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/reference/components/prometheus.exporter.unix/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/reference/components/prometheus.exporter.unix/
+  components:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/concepts/components/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/concepts/components/
 ---
 
 # Component controller
@@ -24,7 +40,7 @@ The component controller is responsible for:
 
 ## Component graph
 
-As discussed in [Components][], a relationship between components is created
+As discussed in [Components](ref:components), a relationship between components is created
 when an expression is used to set the argument of one component to an exported
 field of another component.
 
@@ -65,7 +81,7 @@ components can be evaluated at any time during the evaluation process.
 
 ## Component reevaluation
 
-As mentioned in [Components][], a component is dynamic: a component can update
+As mentioned in [Components](ref:components), a component is dynamic: a component can update
 its exports any number of times throughout its lifetime.
 
 When a component updates its exports, a _controller reevaluation_ is triggered:
@@ -113,7 +129,7 @@ valid API key until the component returns to a healthy state.
 
 ## In-memory traffic
 
-Components which expose HTTP endpoints, such as [prometheus.exporter.unix][],
+Components which expose HTTP endpoints, such as [prometheus.exporter.unix](ref:prometheus.exporter.unix),
 can expose an internal address which will completely bypass the network and
 communicate in-memory. This allows components within the same process to
 communicate with one another without needing to be aware of any network-level
@@ -121,7 +137,7 @@ protections such as authentication or mutual TLS.
 
 The internal address defaults to `agent.internal:12345`. If this address
 collides with a real target on your network, change it to something unique
-using the `--server.http.memory-addr` flag in the [run][] command.
+using the `--server.http.memory-addr` flag in the [run](ref:run) command.
 
 Components must opt-in to using in-memory traffic. See the individual
 documentation for components to learn if in-memory traffic is supported.
@@ -138,11 +154,3 @@ reloading.
 
 [DAG]: https://en.wikipedia.org/wiki/Directed_acyclic_graph
 
-{{% docs/reference %}}
-[prometheus.exporter.unix]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/prometheus.exporter.unix.md"
-[prometheus.exporter.unix]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/components/prometheus.exporter.unix.md"
-[run]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/cli/run.md"
-[run]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/cli/run.md"
-[Components]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/components.md"
-[Components]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/concepts/components.md"
-{{% /docs/reference %}}
