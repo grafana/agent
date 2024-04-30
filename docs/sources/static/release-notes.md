@@ -7,6 +7,17 @@ aliases:
 - ../upgrade-guide/
 - ./upgrade-guide/
 weight: 999
+refs:
+  release-notes-flow:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT VERSION>/flow/release-notes/
+    - pattern: /docs/grafana-cloud/
+      destination: ../flow/release-notes/
+  release-notes-operator:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT VERSION>/operator/release-notes/
+    - pattern: /docs/grafana-cloud/
+      destination: ../operator/release-notes/
 ---
 
 # Release notes
@@ -18,15 +29,9 @@ For a complete list of changes to Grafana Agent, with links to pull requests and
 > **Note:** These release notes are specific to Grafana Agent static mode. 
 > Other release notes for the different Grafana Agent variants are contained on separate pages:
 >
-> * [Static mode Kubernetes operator release notes][release-notes-operator]
-> * [Flow mode release notes][release-notes-flow]
+> * [Static mode Kubernetes operator release notes](ref:release-notes-operator)
+> * [Flow mode release notes](ref:release-notes-flow)
 
-{{% docs/reference %}}
-[release-notes-operator]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/operator/release-notes"
-[release-notes-operator]: "/docs/grafana-cloud/ -> ../operator/release-notes"
-[release-notes-flow]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/flow/release-notes"
-[release-notes-flow]: "/docs/grafana-cloud/ -> ../flow/release-notes"
-{{% /docs/reference %}}
 
 ## v0.35
 

@@ -7,6 +7,17 @@ menuTitle: Docker
 title: Run Grafana Agent in static mode in a Docker container
 description: Learn how to run Grafana Agent in static mode in a Docker container
 weight: 200
+refs:
+  start:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT VERSION>/static/set-up/start-agent/
+    - pattern: /docs/grafana-cloud/
+      destination: ../start-agent/
+  configure:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT VERSION>/static/configuration/create-config-file/
+    - pattern: /docs/grafana-cloud/
+      destination: ../../configuration/create-config-file/
 ---
 
 # Run Grafana Agent in static mode in a Docker container
@@ -22,7 +33,7 @@ Grafana Agent is available as a Docker container image on the following platform
 ## Before you begin
 
 * Install [Docker][] on your computer.
-* Create and save a Grafana Agent YAML [configuration file][configure] on your computer.
+* Create and save a Grafana Agent YAML [configuration file](ref:configure) on your computer.
 
 [Docker]: https://docker.io
 
@@ -65,12 +76,6 @@ For the flags to work correctly, you must expose the paths on your Windows host 
 
 ## Next steps
 
-- [Start Grafana Agent][start]
-- [Configure Grafana Agent][configure]
+- [Start Grafana Agent](ref:start)
+- [Configure Grafana Agent](ref:configure)
 
-{{% docs/reference %}}
-[start]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/set-up/start-agent"
-[start]: "/docs/grafana-cloud/ -> ../start-agent"
-[configure]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/configuration/create-config-file"
-[configure]: "/docs/grafana-cloud/ -> ../../configuration/create-config-file"
-{{% /docs/reference %}}
