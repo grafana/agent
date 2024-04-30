@@ -7,6 +7,10 @@ aliases:
 canonical: https://grafana.com/docs/agent/latest/flow/reference/config-blocks/import.string/
 description: Learn about the import.string configuration block
 title: import.string
+refs:
+  module:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/concepts/modules/
 ---
 
 # import.string
@@ -56,7 +60,3 @@ math.add "default" {
 }
 ```
 
-{{% docs/reference %}}
-[module]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/modules"
-[module]:"/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/concepts/modules"
-{{% /docs/reference %}}

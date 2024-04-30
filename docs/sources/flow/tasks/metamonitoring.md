@@ -3,6 +3,22 @@ canonical: https://grafana.com/docs/agent/latest/flow/tasks/setup-metamonitoring
 description: Learn how to set up meta-monitoring for Grafana Agent Flow
 title: Set up meta-monitoring
 weight: 200
+refs:
+  components:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/concepts/components/
+  tracing:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/reference/config-blocks/tracing/
+  prometheus.exporter.self:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/reference/components/prometheus.exporter.self/
+  logging:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/reference/config-blocks/logging/
+  prometheus.scrape:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/reference/components/prometheus.scrape/
 ---
 
 # Set up meta-monitoring
@@ -13,21 +29,21 @@ This topic describes how to collect and forward {{< param "PRODUCT_NAME" >}}'s m
 
 ## Components and configuration blocks used in this topic
 
-* [prometheus.exporter.self][]
-* [prometheus.scrape][]
-* [logging][]
-* [tracing][]
+* [prometheus.exporter.self](ref:prometheus.exporter.self)
+* [prometheus.scrape](ref:prometheus.scrape)
+* [logging](ref:logging)
+* [tracing](ref:tracing)
 
 ## Before you begin
 
 * Identify where to send {{< param "PRODUCT_NAME" >}}'s telemetry data.
-* Be familiar with the concept of [Components][] in {{< param "PRODUCT_NAME" >}}.
+* Be familiar with the concept of [Components](ref:components) in {{< param "PRODUCT_NAME" >}}.
 
 ## Meta-monitoring metrics
 
 {{< param "PRODUCT_NAME" >}} exposes its internal metrics using the Prometheus exposition format.
 
-In this task, you will use the [prometheus.exporter.self][] and [prometheus.scrape][] components to scrape {{< param "PRODUCT_NAME" >}}'s  internal metrics and forward it to compatible {{< param "PRODUCT_NAME" >}} components.
+In this task, you will use the [prometheus.exporter.self](ref:prometheus.exporter.self) and [prometheus.scrape](ref:prometheus.scrape) components to scrape {{< param "PRODUCT_NAME" >}}'s  internal metrics and forward it to compatible {{< param "PRODUCT_NAME" >}} components.
 
 1. Add the following `prometheus.exporter.self` component to your configuration. The component accepts no arguments.
 
@@ -72,9 +88,9 @@ prometheus.remote_write "default" {
 
 ## Meta-monitoring logs
 
-The [logging][] block defines the logging behavior of {{< param "PRODUCT_NAME" >}}.
+The [logging](ref:logging) block defines the logging behavior of {{< param "PRODUCT_NAME" >}}.
 
-In this task, you will use the [logging][] block to forward {{< param "PRODUCT_NAME" >}}'s logs to a compatible component.
+In this task, you will use the [logging](ref:logging) block to forward {{< param "PRODUCT_NAME" >}}'s logs to a compatible component.
 The block is specified without a label and can only be provided once per configuration file.
 
 1. Add the following `logging` configuration block to the top level of your configuration file.
@@ -114,9 +130,9 @@ loki.write "default" {
 
 ## Meta-monitoring traces
 
-The [tracing][] block defines the tracing behavior of {{< param "PRODUCT_NAME" >}}.
+The [tracing](ref:tracing) block defines the tracing behavior of {{< param "PRODUCT_NAME" >}}.
 
-In this task you will use the [tracing][] block to forward {{< param "PRODUCT_NAME" >}} internal traces to a compatible component. The block is specified without a label and can only be provided once per configuration file.
+In this task you will use the [tracing](ref:tracing) block to forward {{< param "PRODUCT_NAME" >}} internal traces to a compatible component. The block is specified without a label and can only be provided once per configuration file.
 
 1. Add the following `tracing` configuration block to the top level of your configuration file.
 
@@ -147,10 +163,3 @@ otelcol.exporter.otlp "default" {
 }
 ```
 
-{{% docs/reference %}}
-[prometheus.exporter.self]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/prometheus.exporter.self.md"
-[prometheus.scrape]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/prometheus.scrape.md"
-[logging]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/config-blocks/logging.md"
-[tracing]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/config-blocks/tracing.md"
-[Components]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/components.md"
-{{% /docs/reference %}}
