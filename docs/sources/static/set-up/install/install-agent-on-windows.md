@@ -10,12 +10,12 @@ weight: 600
 refs:
   start:
     - pattern: /docs/agent/
-      destination: /docs/agent/<AGENT VERSION>/static/set-up/start-agent/
+      destination: /docs/agent/<AGENT_VERSION>/static/set-up/start-agent/
     - pattern: /docs/grafana-cloud/
       destination: ../start-agent/
   configure:
     - pattern: /docs/agent/
-      destination: /docs/agent/<AGENT VERSION>/static/configuration/create-config-file/
+      destination: /docs/agent/<AGENT_VERSION>/static/configuration/create-config-file/
     - pattern: /docs/grafana-cloud/
       destination: ../../configuration/create-config-file/
 ---

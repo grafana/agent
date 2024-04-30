@@ -10,12 +10,12 @@ weight: 600
 refs:
   api:
     - pattern: /docs/agent/
-      destination: /docs/agent/<AGENT VERSION>/static/api/
+      destination: /docs/agent/<AGENT_VERSION>/static/api/
     - pattern: /docs/grafana-cloud/
       destination: ../api/
   metrics:
     - pattern: /docs/agent/
-      destination: /docs/agent/<AGENT VERSION>/static/configuration/metrics-config/
+      destination: /docs/agent/<AGENT_VERSION>/static/configuration/metrics-config/
     - pattern: /docs/grafana-cloud/
       destination: ./metrics-config/
 ---

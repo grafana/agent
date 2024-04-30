@@ -9,7 +9,7 @@ weight: 200
 refs:
   scrape:
     - pattern: /docs/agent/
-      destination: /docs/agent/<AGENT VERSION>/static/configuration/scraping-service/
+      destination: /docs/agent/<AGENT_VERSION>/static/configuration/scraping-service/
     - pattern: /docs/grafana-cloud/
       destination: ./scraping-service/
 ---

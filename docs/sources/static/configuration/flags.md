@@ -8,17 +8,17 @@ weight: 100
 refs:
   management:
     - pattern: /docs/agent/
-      destination: /docs/agent/<AGENT VERSION>/static/configuration/agent-management/
+      destination: /docs/agent/<AGENT_VERSION>/static/configuration/agent-management/
     - pattern: /docs/grafana-cloud/
       destination: /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/agent-management/
   revamp:
     - pattern: /docs/agent/
-      destination: /docs/agent/<AGENT VERSION>/static/configuration/integrations/integrations-next/
+      destination: /docs/agent/<AGENT_VERSION>/static/configuration/integrations/integrations-next/
     - pattern: /docs/grafana-cloud/
       destination: /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/integrations/integrations-next/
   retrieving:
     - pattern: /docs/agent/
-      destination: /docs/agent/<AGENT VERSION>/static/configuration/#remote-configuration-experimental
+      destination: /docs/agent/<AGENT_VERSION>/static/configuration/#remote-configuration-experimental
     - pattern: /docs/grafana-cloud/
       destination: /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/#remote-configuration-experimental
 ---
