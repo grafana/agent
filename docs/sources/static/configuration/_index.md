@@ -10,37 +10,37 @@ weight: 300
 refs:
   server:
     - pattern: /docs/agent/
-      destination: /docs/agent/<AGENT VERSION>/static/configuration/server-config/
+      destination: /docs/agent/<AGENT_VERSION>/static/configuration/server-config/
     - pattern: /docs/grafana-cloud/
       destination: ./server-config/
   traces:
     - pattern: /docs/agent/
-      destination: /docs/agent/<AGENT VERSION>/static/configuration/traces-config/
+      destination: /docs/agent/<AGENT_VERSION>/static/configuration/traces-config/
     - pattern: /docs/grafana-cloud/
       destination: ./traces-config/
   logs:
     - pattern: /docs/agent/
-      destination: /docs/agent/<AGENT VERSION>/static/configuration/logs-config/
+      destination: /docs/agent/<AGENT_VERSION>/static/configuration/logs-config/
     - pattern: /docs/grafana-cloud/
       destination: ./logs-config/
   api:
     - pattern: /docs/agent/
-      destination: /docs/agent/<AGENT VERSION>/static/api/#reload-configuration-file-beta
+      destination: /docs/agent/<AGENT_VERSION>/static/api/#reload-configuration-file-beta
     - pattern: /docs/grafana-cloud/
       destination: ../api/#reload-configuration-file-beta
   integrations:
     - pattern: /docs/agent/
-      destination: /docs/agent/<AGENT VERSION>/static/configuration/integrations/
+      destination: /docs/agent/<AGENT_VERSION>/static/configuration/integrations/
     - pattern: /docs/grafana-cloud/
       destination: ./integrations/
   flags:
     - pattern: /docs/agent/
-      destination: /docs/agent/<AGENT VERSION>/static/configuration/flags/
+      destination: /docs/agent/<AGENT_VERSION>/static/configuration/flags/
     - pattern: /docs/grafana-cloud/
       destination: ./flags/
   metrics:
     - pattern: /docs/agent/
-      destination: /docs/agent/<AGENT VERSION>/static/configuration/metrics-config/
+      destination: /docs/agent/<AGENT_VERSION>/static/configuration/metrics-config/
     - pattern: /docs/grafana-cloud/
       destination: ./metrics-config/
 ---

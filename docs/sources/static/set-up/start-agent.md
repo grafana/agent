@@ -10,7 +10,7 @@ weight: 200
 refs:
   configure:
     - pattern: /docs/agent/
-      destination: /docs/agent/<AGENT VERSION>/static/set-up/install/install-agent-macos/#configure
+      destination: /docs/agent/<AGENT_VERSION>/static/set-up/install/install-agent-macos/#configure
     - pattern: /docs/grafana-cloud/
       destination: ./install/install-agent-macos/#configure
 ---

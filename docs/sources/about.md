@@ -13,19 +13,19 @@ weight: 100
 refs:
   static-mode-kubernetes-operator:
     - pattern: /docs/agent/
-      destination: /docs/agent/<AGENT VERSION>/operator/
+      destination: /docs/agent/<AGENT_VERSION>/operator/
     - pattern: /docs/grafana-cloud/
       destination: /docs/grafana-cloud/send-data/agent/operator/
   components:
     - pattern: /docs/agent/
-      destination: /docs/agent/<AGENT VERSION>/flow/reference/components/
+      destination: /docs/agent/<AGENT_VERSION>/flow/reference/components/
     - pattern: /docs/grafana-cloud/
-      destination: /docs/agent/<AGENT VERSION>/flow/reference/components/
+      destination: /docs/agent/<AGENT_VERSION>/flow/reference/components/
   flow-mode:
     - pattern: /docs/agent/
-      destination: /docs/agent/<AGENT VERSION>/flow/
+      destination: /docs/agent/<AGENT_VERSION>/flow/
     - pattern: /docs/grafana-cloud/
-      destination: /docs/agent/<AGENT VERSION>/flow/
+      destination: /docs/agent/<AGENT_VERSION>/flow/
   rules:
     - pattern: /docs/agent/
       destination: /docs/agent/latest/flow/reference/components/mimir.rules.kubernetes/
@@ -48,12 +48,12 @@ refs:
       destination: /docs/agent/<AGENT_VERSION>/flow/getting-started/collect-opentelemetry-data/
   integrations:
     - pattern: /docs/agent/
-      destination: /docs/agent/<AGENT VERSION>/static/configuration/integrations/
+      destination: /docs/agent/<AGENT_VERSION>/static/configuration/integrations/
     - pattern: /docs/grafana-cloud/
       destination: /docs/grafana-cloud/send-data/agent/static/configuration/integrations/
   static-mode:
     - pattern: /docs/agent/
-      destination: /docs/agent/<AGENT VERSION>/static/
+      destination: /docs/agent/<AGENT_VERSION>/static/
     - pattern: /docs/grafana-cloud/
       destination: /docs/grafana-cloud/send-data/agent/static/
   clustering:

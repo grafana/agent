@@ -12,27 +12,27 @@ weight: 700
 refs:
   configure:
     - pattern: /docs/agent/
-      destination: /docs/agent/<AGENT VERSION>/static/configuration/
+      destination: /docs/agent/<AGENT_VERSION>/static/configuration/
     - pattern: /docs/grafana-cloud/
       destination: ../../configuration/
   linux:
     - pattern: /docs/agent/
-      destination: /docs/agent/<AGENT VERSION>/static/set-up/install/install-agent-linux/
+      destination: /docs/agent/<AGENT_VERSION>/static/set-up/install/install-agent-linux/
     - pattern: /docs/grafana-cloud/
       destination: ./install-agent-linux/
   start:
     - pattern: /docs/agent/
-      destination: /docs/agent/<AGENT VERSION>/static/set-up/start-agent/#standalone-binary
+      destination: /docs/agent/<AGENT_VERSION>/static/set-up/start-agent/#standalone-binary
     - pattern: /docs/grafana-cloud/
       destination: ../start-agent/#standalone-binary
   windows:
     - pattern: /docs/agent/
-      destination: /docs/agent/<AGENT VERSION>/static/set-up/install/install-agent-on-windows/
+      destination: /docs/agent/<AGENT_VERSION>/static/set-up/install/install-agent-on-windows/
     - pattern: /docs/grafana-cloud/
       destination: ./install-agent-on-windows/
   macos:
     - pattern: /docs/agent/
-      destination: /docs/agent/<AGENT VERSION>/static/set-up/install/install-agent-macos/
+      destination: /docs/agent/<AGENT_VERSION>/static/set-up/install/install-agent-macos/
     - pattern: /docs/grafana-cloud/
       destination: ./install-agent-macos/
 ---
