@@ -45,9 +45,9 @@ The usage information includes the following details:
 * Version of running Grafana Agent.
 * Operating system Grafana Agent is running on.
 * System architecture Grafana Agent is running on.
-* List of enabled feature flags [Static](ref:static) mode only).
-* List of enabled integrations [Static](ref:static) mode only).
-* List of enabled [components](ref:components) [Flow](ref:flow) mode only).
+* List of enabled feature flags ([Static](ref:static) mode only).
+* List of enabled integrations ([Static](ref:static) mode only).
+* List of enabled [components](ref:components) ([Flow](ref:flow) mode only).
 
 This list may change over time. All newly reported data is documented in the CHANGELOG.
 
