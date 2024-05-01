@@ -12,16 +12,6 @@ cascade:
   AGENT_RELEASE: v0.39.2
   OTEL_VERSION: v0.87.0
 refs:
-  variants:
-    - pattern: /docs/agent/
-      destination: /docs/agent/<AGENT_VERSION>/about/
-    - pattern: /docs/grafana-cloud/
-      destination: /docs/grafana-cloud/send-data/agent/about/
-  static-mode:
-    - pattern: /docs/agent/
-      destination: /docs/agent/<AGENT_VERSION>/static/
-    - pattern: /docs/grafana-cloud/
-      destination: /docs/grafana-cloud/send-data/agent/static/
   static-mode-kubernetes-operator:
     - pattern: /docs/agent/
       destination: /docs/agent/<AGENT_VERSION>/operator/
@@ -37,6 +27,16 @@ refs:
       destination: /docs/agent/<AGENT_VERSION>/flow/monitoring/debugging/#grafana-agent-flow-ui
     - pattern: /docs/grafana-cloud/
       destination: /docs/agent/<AGENT_VERSION>/flow/monitoring/debugging/#grafana-agent-flow-ui
+  variants:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/about/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/about/
+  static-mode:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/static/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/static/
 ---
 
 # Grafana Agent
