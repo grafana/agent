@@ -172,8 +172,8 @@ github.com/BurntSushi/xgb v0.0.0-20160522181843-27f122750802/go.mod h1:IVnqGOEym
 github.com/ClickHouse/clickhouse-go v1.5.4 h1:cKjXeYLNWVJIx2J1K6H2CqyRmfwVJVY1OV1coaaFcI0=
 github.com/ClickHouse/clickhouse-go v1.5.4/go.mod h1:EaI/sW7Azgz9UATzd5ZdZHRUhHgv5+JMS9NSr2smCJI=
 github.com/DATA-DOG/go-sqlmock v1.4.1/go.mod h1:f/Ixk793poVmq4qj/V1dPUg2JEAKC73Q5eFN3EC/SaM=
-github.com/DATA-DOG/go-sqlmock v1.5.2 h1:OcvFkGmslmlZibjAjaHm3L//6LiuBgolP7OputlJIzU=
-github.com/DATA-DOG/go-sqlmock v1.5.2/go.mod h1:88MAG/4G7SMwSE3CeA0ZKzrT5CiOU3OJ+JlNzwDqpNU=
+github.com/DATA-DOG/go-sqlmock v1.5.0 h1:Shsta01QNfFxHCfpW6YH2STWB0MudeXXEWMr20OEh60=
+github.com/DATA-DOG/go-sqlmock v1.5.0/go.mod h1:f/Ixk793poVmq4qj/V1dPUg2JEAKC73Q5eFN3EC/SaM=
 github.com/DataDog/datadog-go v0.0.0-20160329135253-cc2f4770f4d6/go.mod h1:LButxg5PwREeZtORoXG3tL4fMGNddJ+vMq1mwgfaqoQ=
 github.com/DataDog/datadog-go v3.2.0+incompatible/go.mod h1:LButxg5PwREeZtORoXG3tL4fMGNddJ+vMq1mwgfaqoQ=
 github.com/DataDog/sketches-go v1.4.4 h1:dF52vzXRFSPOj2IjXSWLvXq3jubL4CI69kwYjJ1w5Z8=
@@ -1055,8 +1055,8 @@ github.com/grafana/opentelemetry-collector/otelcol v0.0.0-20240321103955-8919a1c
 github.com/grafana/opentelemetry-collector/otelcol v0.0.0-20240321103955-8919a1c85cbe/go.mod h1:Xo58hEmoZFLyOIs9Wk400ME9gEFV+ttxCGcls6NxbhI=
 github.com/grafana/opentelemetry-collector/service v0.0.0-20240321103955-8919a1c85cbe h1:LEmmaAnTjtp7pWCsnc8iMfuHIHzDbYIiCXnxpMTOLms=
 github.com/grafana/opentelemetry-collector/service v0.0.0-20240321103955-8919a1c85cbe/go.mod h1:9El7PPhnV+2xPXLlyileLaUa5mOE+vw6sswmcZBaUlc=
-github.com/grafana/postgres_exporter v0.15.1-0.20240411084639-71e761a34ffe h1:pGevLwbVi2YN1iI/IaVsmcAqXaenMS6QlNqG18KblJA=
-github.com/grafana/postgres_exporter v0.15.1-0.20240411084639-71e761a34ffe/go.mod h1:Z27a2Jtce7oTTM56VRfuPxDyLCayA13W1emjUv++aIs=
+github.com/grafana/postgres_exporter v0.15.1-0.20240417113938-9358270470dd h1:vNHdecaOmYgSHMEQRgyzWacV++N38Jp8qLZg0RCsfFo=
+github.com/grafana/postgres_exporter v0.15.1-0.20240417113938-9358270470dd/go.mod h1:kR16GJ0ZwWVQ2osW3pgtDJU1a/GXpufrwio0kLG14cg=
 github.com/grafana/prometheus v1.8.2-0.20240130142130-51b39f24d406 h1:LVIOYe5j92m10wluP5hgeHqSkOLnZzcPxhYCkdbLXCE=
 github.com/grafana/prometheus v1.8.2-0.20240130142130-51b39f24d406/go.mod h1:SRw624aMAxTfryAcP8rOjg4S/sHHaetx2lyJJ2nM83g=
 github.com/grafana/pyroscope-go/godeltaprof v0.1.7 h1:C11j63y7gymiW8VugJ9ZW0pWfxTZugdSJyC48olk5KY=
