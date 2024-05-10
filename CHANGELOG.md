@@ -14,6 +14,9 @@ Main (unreleased)
 
 - Fix a memory leak which would occur any time `loki.process` had its configuration reloaded. (@ptodev)
 
+- Fix a bug where custom components would not shadow the stdlib. If you have a module whose name conflicts with an stdlib function 
+  and if you use this exact function in your config, then you will need to rename your module. (@wildum)
+
 ### Other changes
 
 - Change the Docker base image for Linux containers to `ubuntu:noble`. (@amontalban)
