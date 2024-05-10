@@ -28,7 +28,7 @@ var defaults = Arguments{
 		Enabled:        false,
 		ScrapeInterval: 5 * time.Minute,
 	},
-	AWSSDKVersion: "v1",
+	AWSSDKVersion: "v2",
 }
 
 // Arguments are the river based options to configure the embedded CloudWatch exporter.
