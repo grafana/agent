@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-kit/log"
 	yaceConf "github.com/nerdswords/yet-another-cloudwatch-exporter/pkg/config"
+	"github.com/nerdswords/yet-another-cloudwatch-exporter/pkg/logging"
 	yaceModel "github.com/nerdswords/yet-another-cloudwatch-exporter/pkg/model"
 	"gopkg.in/yaml.v2"
 
@@ -185,7 +186,7 @@ func ToYACEConfig(c *Config) (yaceModel.JobsConfig, bool, error) {
 
 	// Run the exporter's config validation. Between other things, it will check that the service for which a discovery
 	// job is instantiated, it's supported.
-	modelConf, err := conf.Validate()
+	modelConf, err := conf.Validate(logging.NewNopLogger())
 	if err != nil {
 		return yaceModel.JobsConfig{}, fipsEnabled, err
 	}

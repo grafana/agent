@@ -7,6 +7,7 @@ import (
 
 	"github.com/grafana/river"
 	yaceConf "github.com/nerdswords/yet-another-cloudwatch-exporter/pkg/config"
+	"github.com/nerdswords/yet-another-cloudwatch-exporter/pkg/logging"
 	yaceModel "github.com/nerdswords/yet-another-cloudwatch-exporter/pkg/model"
 
 	"github.com/grafana/agent/static/integrations/cloudwatch_exporter"
@@ -39,7 +40,7 @@ type Arguments struct {
 	Discovery             []DiscoveryJob        `river:"discovery,block,optional"`
 	Static                []StaticJob           `river:"static,block,optional"`
 	DecoupledScrape       DecoupledScrapeConfig `river:"decoupled_scraping,block,optional"`
-	AWSSDKVersion         string                `river:"aws_sdk_version"`
+	AWSSDKVersion         string                `river:"aws_sdk_version,attr,optional"`
 }
 
 // DecoupledScrapeConfig is the configuration for decoupled scraping feature.
@@ -130,7 +131,7 @@ func ConvertToYACE(a Arguments) (yaceModel.JobsConfig, error) {
 
 	// Run the exporter's config validation. Between other things, it will check that the service for which a discovery
 	// job is instantiated, it's supported.
-	modelConf, err := conf.Validate()
+	modelConf, err := conf.Validate(logging.NewNopLogger())
 	if err != nil {
 		return yaceModel.JobsConfig{}, err
 	}
