@@ -32,6 +32,8 @@ Main (unreleased)
   `pg_stat_bgwriter_checkpoints_timed`, `pg_stat_bgwriter_maxwritten_clean`,
   `pg_stat_bgwriter_stats_reset` - the new names include the `_total` suffix. (@thampiotr)
 
+- Cloudwatch exporter is not allowing aliases for the namespaces as `type` value. For example: "s3" is not allowed, "AWS/S3" should be used. (@kgeckhart, @andriikushch)
+
 ### Enhancements
 
 - Add support for importing folders as single module to `import.file`. (@wildum)
@@ -61,6 +63,7 @@ Main (unreleased)
 ### Features
 
 - A new `loki.rules.kubernetes` component that discovers `PrometheusRule` Kubernetes resources and loads them into a Loki Ruler instance. (@EStork09)
+- A new parameter `aws_sdk_version` is added for the cloudwatch exporters configuration. It enables the use of aws sdk v2 which is expected to come with performance benefits. (@kgeckhart, @andriikushch)
 
 ### Bugfixes
 
