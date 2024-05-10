@@ -2,6 +2,8 @@
 package kafka
 
 import (
+	"fmt"
+	"strings"
 	"time"
 
 	"github.com/grafana/agent/internal/component"
@@ -75,6 +77,27 @@ func (args *Arguments) SetToDefault() {
 	args.MessageMarking.SetToDefault()
 	args.HeaderExtraction.SetToDefault()
 	args.DebugMetrics.SetToDefault()
+}
+
+// Validate implements syntax.Validator.
+func (args *Arguments) Validate() error {
+	var signals []string
+
+	if len(args.Topic) > 0 {
+		if len(args.Output.Logs) > 0 {
+			signals = append(signals, "logs")
+		}
+		if len(args.Output.Metrics) > 0 {
+			signals = append(signals, "metrics")
+		}
+		if len(args.Output.Traces) > 0 {
+			signals = append(signals, "traces")
+		}
+		if len(signals) > 1 {
+			return fmt.Errorf("only one signal can be set in the output block when a Kafka topic is explicitly set; currently set signals: %s", strings.Join(signals, ", "))
+		}
+	}
+	return nil
 }
 
 // Convert implements receiver.Arguments.

@@ -89,6 +89,8 @@ Main (unreleased)
 
 - Fix a bug with the logs pipeline in static mode which prevented it from shutting down cleanly.
 
+- Fix a bug where a topic was claimed by the wrong consumer type in `otelcol.receiver.kafka`. (@wildum)
+
 ### Other changes
 
 - Clustering for Grafana Agent in Flow mode has graduated from beta to stable.
