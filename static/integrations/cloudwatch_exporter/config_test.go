@@ -36,7 +36,7 @@ discovery:
           statistics:
             - Maximum
             - Average
-    - type: s3
+    - type: AWS/S3
       regions:
         - us-east-2
       roles:
@@ -70,6 +70,7 @@ static:
 const configString2 = `
 sts_region: us-east-2
 fips_disabled: true
+aws_sdk_version: "v1"
 discovery:
   exported_tags:
     AWS/EC2:
@@ -93,7 +94,7 @@ discovery:
           statistics:
             - Maximum
             - Average
-    - type: s3
+    - type: AWS/S3
       regions:
         - us-east-2
       roles:
@@ -150,7 +151,7 @@ discovery:
           statistics:
             - Maximum
             - Average
-    - type: s3
+    - type: AWS/S3
       regions:
         - us-east-2
       roles:
@@ -226,7 +227,7 @@ var expectedConfig = model.JobsConfig{
 		},
 	}, {
 		Regions:                   []string{"us-east-2"},
-		Type:                      "s3",
+		Type:                      "AWS/S3",
 		Roles:                     []model.Role{{RoleArn: "arn:aws:iam::878167871295:role/yace_testing", ExternalID: ""}},
 		SearchTags:                []model.SearchTag{},
 		CustomTags:                []model.Tag{},
@@ -322,7 +323,7 @@ var expectedConfig3 = model.JobsConfig{
 		},
 		{
 			Regions: []string{"us-east-2"},
-			Type:    "s3",
+			Type:    "AWS/S3",
 			Roles: []model.Role{{
 				RoleArn:    "arn:aws:iam::878167871295:role/yace_testing",
 				ExternalID: "",
