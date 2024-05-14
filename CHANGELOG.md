@@ -87,6 +87,8 @@ Main (unreleased)
 - Fix an issue on Windows where uninstalling Alloy did not remove it from the
   Add/Remove programs list. (@rfratto)
 
+- Fix a bug with the logs pipeline in static mode which prevented it from shutting down cleanly.
+
 ### Other changes
 
 - Clustering for Grafana Agent in Flow mode has graduated from beta to stable.
