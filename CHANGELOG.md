@@ -35,6 +35,8 @@ v0.40.5 (2024-04-15)
 
 - Fix a bug with the logs pipeline in static mode which prevented it from shutting down cleanly.
 
+### Other changes
+
 - Updating SNMP exporter from v0.24.1 to v0.26.0.
 
 v0.40.4 (2024-04-12)
