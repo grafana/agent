@@ -87,6 +87,8 @@ Main (unreleased)
 - Fix an issue on Windows where uninstalling Alloy did not remove it from the
   Add/Remove programs list. (@rfratto)
 
+- Fix an issue where `loki.source.docker` stops collecting logs after a container restart. (@wildum)
+
 ### Other changes
 
 - Clustering for Grafana Agent in Flow mode has graduated from beta to stable.
