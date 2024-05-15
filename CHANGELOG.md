@@ -87,6 +87,9 @@ Main (unreleased)
 - Fix an issue on Windows where uninstalling Alloy did not remove it from the
   Add/Remove programs list. (@rfratto)
 
+- Fix a bug where custom components would not shadow the stdlib. If you have a module whose name conflicts with an stdlib function 
+  and if you use this exact function in your config, then you will need to rename your module. (@wildum)
+
 ### Other changes
 
 - Clustering for Grafana Agent in Flow mode has graduated from beta to stable.
