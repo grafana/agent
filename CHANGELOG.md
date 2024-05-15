@@ -7,6 +7,36 @@ This document contains a historical list of changes between releases. Only
 changes that impact end-user behavior are listed; changes to documentation or
 internal API changes are not present.
 
+v0.40.5 (2024-04-15)
+--------------------
+
+### Breaking changes
+
+- `prometheus.exporter.postgres` has been updated to the latest upstream
+  version which changes the set of exported metrics. The following metrics were
+  removed: `pg_stat_database_session_time`, `pg_stat_database_sessions`,
+  `pg_stat_database_sessions_abandoned`, `pg_stat_database_sessions_fatal`,
+  `pg_stat_database_sessions_killed`, `pg_stat_database_idle_in_transaction_time`,
+  `pg_stat_database_checksum_failures`, `pg_stat_database_checksum_last_failure`,
+  `pg_stat_database_active_time`. The following metrics were
+  renamed: `pg_stat_bgwriter_buffers_alloc`, `pg_stat_bgwriter_buffers_backend`,
+  `pg_stat_bgwriter_buffers_backend_fsync`, `pg_stat_bgwriter_buffers_checkpoint`,
+  `pg_stat_bgwriter_buffers_clean`, `pg_stat_bgwriter_checkpoint_sync_time`,
+  `pg_stat_bgwriter_checkpoint_write_time`, `pg_stat_bgwriter_checkpoints_req`,
+  `pg_stat_bgwriter_checkpoints_timed`, `pg_stat_bgwriter_maxwritten_clean`,
+  `pg_stat_bgwriter_stats_reset` - the new names include the `_total` suffix. (@thampiotr)
+
+### Bugfixes
+
+- Fix an issue where the azure exporter was not correctly gathering subscription scoped metrics when only one region was configured (@kgeckhart)
+
+- Fixed an issue where creating a `prometheus.exporter.postgres` component with
+  multiple `data_source_names` would result in an error. (@thampiotr)
+
+- Fix a bug with the logs pipeline in static mode which prevented it from shutting down cleanly.
+
+- Updating SNMP exporter from v0.24.1 to v0.26.0.
+
 v0.40.4 (2024-04-12)
 --------------------
 
@@ -34,10 +64,6 @@ v0.40.4 (2024-04-12)
   on `metadata_refresh_interval` instead of `prune_interval_seconds`. (@wildum)
 
 ### Bugfixes
-
-- Fix an issue where JSON string array elements were not parsed correctly in `loki.source.cloudflare`. (@thampiotr)
-
-- Fix an issue where the azure exporter was not correctly gathering subscription scoped metrics when only one region was configured (@kgeckhart)
 
 - Update gcp_exporter to a newer version with a patch for incorrect delta histograms (@kgeckhart)
 
