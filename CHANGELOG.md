@@ -66,6 +66,7 @@ Main (unreleased)
 
 - Fix an issue where JSON string array elements were not parsed correctly in `loki.source.cloudflare`. (@thampiotr)
 
+- Fix an issue where nested import.git config blocks could conflict if they had the same labels. (@wildum)
 
 - Fix SSRF vulnerability in `faro.receiver` by disabling source map download. (@hainenber)
 
