@@ -95,6 +95,8 @@ Main (unreleased)
 
 - Resync defaults for `otelcol.exporter.otlp` and `otelcol.exporter.otlphttp` with upstream. (@hainenber)
 
+- Updating SNMP exporter from v0.24.1 to v0.26.0.
+
 v0.40.4 (2024-04-12)
 --------------------
 
