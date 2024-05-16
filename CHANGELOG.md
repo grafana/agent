@@ -18,22 +18,6 @@ Main (unreleased)
 - The default sync interval for `mimir.rules.kubernetes` has changed from `30s`
   to `5m` to reduce load on Mimir. (@56quarters)
 
-- `prometheus.exporter.postgres` has been updated to the latest upstream
-  version which changes the set of exported metrics. The following metrics were
-  removed: `pg_stat_database_session_time`, `pg_stat_database_sessions`,
-  `pg_stat_database_sessions_abandoned`, `pg_stat_database_sessions_fatal`,
-  `pg_stat_database_sessions_killed`, `pg_stat_database_idle_in_transaction_time`,
-  `pg_stat_database_checksum_failures`, `pg_stat_database_checksum_last_failure`,
-  `pg_stat_database_active_time`. The following metrics were
-  renamed: `pg_stat_bgwriter_buffers_alloc`, `pg_stat_bgwriter_buffers_backend`,
-  `pg_stat_bgwriter_buffers_backend_fsync`, `pg_stat_bgwriter_buffers_checkpoint`,
-  `pg_stat_bgwriter_buffers_clean`, `pg_stat_bgwriter_checkpoint_sync_time`,
-  `pg_stat_bgwriter_checkpoint_write_time`, `pg_stat_bgwriter_checkpoints_req`,
-  `pg_stat_bgwriter_checkpoints_timed`, `pg_stat_bgwriter_maxwritten_clean`,
-  `pg_stat_bgwriter_stats_reset` - the new names include the `_total` suffix. (@thampiotr)
-
-- Cloudwatch exporter is not allowing aliases for the namespaces as `type` value. For example: "s3" is not allowed, "AWS/S3" should be used. (@kgeckhart, @andriikushch)
-
 ### Enhancements
 
 - Add support for importing folders as single module to `import.file`. (@wildum)
@@ -63,16 +47,12 @@ Main (unreleased)
 ### Features
 
 - A new `loki.rules.kubernetes` component that discovers `PrometheusRule` Kubernetes resources and loads them into a Loki Ruler instance. (@EStork09)
-- A new parameter `aws_sdk_version` is added for the cloudwatch exporters configuration. It enables the use of aws sdk v2 which is expected to come with performance benefits. (@kgeckhart, @andriikushch)
 
 ### Bugfixes
 
 - Fix an issue where JSON string array elements were not parsed correctly in `loki.source.cloudflare`. (@thampiotr)
 
-
 - Fix SSRF vulnerability in `faro.receiver` by disabling source map download. (@hainenber)
-
-- Fix an issue where the azure exporter was not correctly gathering subscription scoped metrics when only one region was configured (@kgeckhart)
 
 - Fix an issue where the default values of some component's arguments change
   whenever that argument is explicitly configured. This issue only affected a
@@ -84,11 +64,10 @@ Main (unreleased)
 
 - The `import.git` config block did not work with branches or tags this now fixes that behavior. (@mattdurham)
 
-- Fixed an issue where creating a `prometheus.exporter.postgres` component with
-  multiple `data_source_names` would result in an error. (@thampiotr)
-
 - Fix an issue on Windows where uninstalling Alloy did not remove it from the
   Add/Remove programs list. (@rfratto)
+
+- Fix a bug where a topic was claimed by the wrong consumer type in `otelcol.receiver.kafka`. (@wildum)
 
 ### Other changes
 
@@ -97,6 +76,38 @@ Main (unreleased)
 - Resync defaults for `otelcol.processor.k8sattributes` with upstream. (@hainenber)
 
 - Resync defaults for `otelcol.exporter.otlp` and `otelcol.exporter.otlphttp` with upstream. (@hainenber)
+
+v0.40.5 (2024-05-15)
+--------------------
+
+### Breaking changes
+
+- `prometheus.exporter.postgres` has been updated to the latest upstream
+  version which changes the set of exported metrics. The following metrics were
+  removed: `pg_stat_database_session_time`, `pg_stat_database_sessions`,
+  `pg_stat_database_sessions_abandoned`, `pg_stat_database_sessions_fatal`,
+  `pg_stat_database_sessions_killed`, `pg_stat_database_idle_in_transaction_time`,
+  `pg_stat_database_checksum_failures`, `pg_stat_database_checksum_last_failure`,
+  `pg_stat_database_active_time`. The following metrics were
+  renamed: `pg_stat_bgwriter_buffers_alloc`, `pg_stat_bgwriter_buffers_backend`,
+  `pg_stat_bgwriter_buffers_backend_fsync`, `pg_stat_bgwriter_buffers_checkpoint`,
+  `pg_stat_bgwriter_buffers_clean`, `pg_stat_bgwriter_checkpoint_sync_time`,
+  `pg_stat_bgwriter_checkpoint_write_time`, `pg_stat_bgwriter_checkpoints_req`,
+  `pg_stat_bgwriter_checkpoints_timed`, `pg_stat_bgwriter_maxwritten_clean`,
+  `pg_stat_bgwriter_stats_reset` - the new names include the `_total` suffix. (@thampiotr)
+
+### Bugfixes
+
+- Fix an issue where the azure exporter was not correctly gathering subscription scoped metrics when only one region was configured (@kgeckhart)
+
+- Fixed an issue where creating a `prometheus.exporter.postgres` component with
+  multiple `data_source_names` would result in an error. (@thampiotr)
+
+- Fix a bug with the logs pipeline in static mode which prevented it from shutting down cleanly.
+
+### Other changes
+
+- Updating SNMP exporter from v0.24.1 to v0.26.0.
 
 v0.40.4 (2024-04-12)
 --------------------
