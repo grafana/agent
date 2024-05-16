@@ -88,7 +88,7 @@ discovery {
 
 // the configuration below overrides the length
 discovery {
-	type = "s3"
+	type = "AWS/S3"
 	regions = ["us-east-1"]
 	role {
 		role_arn = "arn:aws:iam::878167871295:role/yace_testing"
