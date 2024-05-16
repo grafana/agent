@@ -18,6 +18,8 @@ Main (unreleased)
 - The default sync interval for `mimir.rules.kubernetes` has changed from `30s`
   to `5m` to reduce load on Mimir. (@56quarters)
 
+- Cloudwatch exporter is not allowing aliases for the namespaces as `type` value. For example: "s3" is not allowed, "AWS/S3" should be used. (@kgeckhart, @andriikushch)
+
 ### Enhancements
 
 - Add support for importing folders as single module to `import.file`. (@wildum)
@@ -43,6 +45,8 @@ Main (unreleased)
 - Add automatic conversion for `legacy_positions_file` in component `loki.source.file`. (@mattdurham)
 
 - Propagate request metadata for `faro.receiver` to downstream components. (@hainenber)
+
+- A new parameter `aws_sdk_version` is added for the cloudwatch exporters configuration. It enables the use of aws sdk v2 which is expected to come with performance benefits. (@kgeckhart, @andriikushch)
 
 ### Features
 
