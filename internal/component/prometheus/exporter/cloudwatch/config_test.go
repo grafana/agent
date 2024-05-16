@@ -316,7 +316,7 @@ func TestCloudwatchComponentConfig(t *testing.T) {
 						Roles: []yaceModel.Role{{
 							RoleArn: "arn:aws:iam::878167871295:role/yace_testing",
 						}},
-						Type:                      "s3",
+						Type:                      "AWS/S3",
 						SearchTags:                []yaceModel.SearchTag{},
 						CustomTags:                []yaceModel.Tag{},
 						DimensionNameRequirements: []string{"BucketName"},
