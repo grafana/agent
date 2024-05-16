@@ -7,7 +7,7 @@ This document contains a historical list of changes between releases. Only
 changes that impact end-user behavior are listed; changes to documentation or
 internal API changes are not present.
 
-v0.40.5 (2024-04-15)
+v0.40.5 (2024-05-15)
 --------------------
 
 ### Breaking changes
