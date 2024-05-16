@@ -77,7 +77,7 @@ Main (unreleased)
 
 - Resync defaults for `otelcol.exporter.otlp` and `otelcol.exporter.otlphttp` with upstream. (@hainenber)
 
-v0.40.5 (2024-04-15)
+v0.40.5 (2024-05-15)
 --------------------
 
 ### Breaking changes
