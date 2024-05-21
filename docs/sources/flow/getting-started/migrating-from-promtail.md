@@ -8,6 +8,57 @@ menuTitle: Migrate from Promtail
 title: Migrate from Promtail to Grafana Agent Flow
 description: Learn how to migrate from Promtail to Grafana Agent Flow
 weight: 330
+refs:
+  components:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/concepts/components/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/concepts/components/
+  river:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/config-language//
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/config-language//
+  run:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/reference/cli/run/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/reference/cli/run/
+  convert:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/reference/cli/convert/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/reference/cli/convert/
+  loki.source.file:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/reference/components/loki.source.file/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/reference/components/loki.source.file/
+  local.file_match:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/reference/components/local.file_match/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/reference/components/local.file_match/
+  loki.write:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/reference/components/loki.write/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/reference/components/loki.write/
+  start-the-agent:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/setup/start-agent/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/setup/start-agent/
+  grafana-agent-flow-ui:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/monitoring/debugging/#grafana-agent-flow-ui
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/monitoring/debugging/#grafana-agent-flow-ui
+  flow-debugging:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/monitoring/debugging/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/monitoring/debugging/
 ---
 
 # Migrate from Promtail to Grafana Agent Flow
@@ -22,23 +73,23 @@ This topic describes how to:
 
 ## Components used in this topic
 
-* [local.file_match][]
-* [loki.source.file][]
-* [loki.write][]
+* [local.file_match](ref:local.file_match)
+* [loki.source.file](ref:loki.source.file)
+* [loki.write](ref:loki.write)
 
 ## Before you begin
 
 * You must have an existing Promtail configuration.
-* You must be familiar with the concept of [Components][] in Grafana Agent Flow mode.
+* You must be familiar with the concept of [Components](ref:components) in Grafana Agent Flow mode.
 
 ## Convert a Promtail configuration
 
-To fully migrate from [Promtail] to Grafana Agent Flow Mode, you must convert
+To fully migrate from[Promtail][] to Grafana Agent Flow Mode, you must convert
 your Promtail configuration into a Grafana Agent Flow Mode configuration. This
 conversion will enable you to take full advantage of the many additional
 features available in Grafana Agent Flow Mode.
 
-> In this task, we will use the [convert][] CLI command to output a flow
+> In this task, we will use the [convert](ref:convert) CLI command to output a flow
 > configuration from a Promtail configuration.
 
 1. Open a terminal window and run the following command:
@@ -120,7 +171,7 @@ configuration to Flow Mode and load it directly without saving the new
 configuration. This allows you to try Flow Mode without modifying your existing
 Promtail configuration infrastructure.
 
-> In this task, we will use the [run][] CLI command to run Grafana Agent in Flow
+> In this task, we will use the [run](ref:run) CLI command to run Grafana Agent in Flow
 > mode using a Promtail configuration.
 
 [Start the Agent][] in Flow mode and include the command line flag
@@ -132,7 +183,7 @@ configuration file rather than a Flow mode configuration file.
 1. You can follow the convert CLI command [debugging][] instructions to generate
    a diagnostic report.
 
-1. Refer to the Grafana Agent [Flow Debugging][] for more information about
+1. Refer to the Grafana Agent [Flow Debugging](ref:flow-debugging) for more information about
    running Grafana Agent in Flow mode.
 
 1. If your Promtail configuration can't be converted and loaded directly into
@@ -165,7 +216,7 @@ scrape_configs:
           __path__: /var/log/*.log
 ```
 
-The convert command takes the YAML file as input and outputs a [River][] file.
+The convert command takes the YAML file as input and outputs a [River](ref:river) file.
 
 {{< code >}}
 
@@ -219,7 +270,7 @@ Furthermore, we recommend that you review the following checklist:
   whether [expanded in the config file][] itself or consumed directly by
   Promtail, such as `JAEGER_AGENT_HOST`.
 * In Flow Mode, the positions file is saved at a different location.
-  Refer to the [loki.source.file][] documentation for more details. Check if you have any existing
+  Refer to the [loki.source.file](ref:loki.source.file) documentation for more details. Check if you have any existing
   setup, for example, a Kubernetes Persistent Volume, that you must update to use the new
   positions file path.
 * Metamonitoring metrics exposed by the Flow Mode usually match Promtail
@@ -227,32 +278,10 @@ Furthermore, we recommend that you review the following checklist:
   use the new metric names, for example, in your alerts and dashboards queries.
 * Note that the logs produced by the Agent will differ from those
   produced by Promtail.
-* Note that the Agent exposes the [Grafana Agent Flow UI][], which differs
+* Note that the Agent exposes the [Grafana Agent Flow UI](ref:grafana-agent-flow-ui), which differs
   from Promtail's Web UI.
 
 [Promtail]: https://www.grafana.com/docs/loki/<LOKI_VERSION>/clients/promtail/
 [debugging]: #debugging
 [expanded in the config file]: https://www.grafana.com/docs/loki/<LOKI_VERSION>/clients/promtail/configuration/#use-environment-variables-in-the-configuration
 
-{{% docs/reference %}}
-[local.file_match]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/local.file_match.md"
-[local.file_match]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/components/local.file_match.md"
-[loki.source.file]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/loki.source.file.md"
-[loki.source.file]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/components/loki.source.file.md"
-[loki.write]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/loki.write.md"
-[loki.write]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/components/loki.write.md"
-[Components]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/components.md"
-[Components]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/concepts/components.md"
-[convert]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/cli/convert.md"
-[convert]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/cli/convert.md"
-[run]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/cli/run.md"
-[run]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/cli/run.md"
-[Start the agent]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/start-agent.md"
-[Start the agent]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/setup/start-agent.md"
-[Flow Debugging]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/monitoring/debugging.md"
-[Flow Debugging]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/monitoring/debugging.md"
-[River]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/config-language/_index.md"
-[River]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/config-language/_index.md"
-[Grafana Agent Flow UI]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/monitoring/debugging#grafana-agent-flow-ui"
-[Grafana Agent Flow UI]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/monitoring/debugging#grafana-agent-flow-ui"
-{{% /docs/reference %}}

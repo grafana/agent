@@ -9,11 +9,17 @@ description: Learn how to chain Prometheus components
 menuTitle: Chain Prometheus components
 title: Chain Prometheus components
 weight: 400
+refs:
+  filtering-metrics:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/tutorials/filtering-metrics/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/tutorials/filtering-metrics/
 ---
 
 # Chain Prometheus components
 
-This tutorial shows how to use [multiple-inputs.river][] to send data to several different locations. This tutorial uses the same base as [Filtering metrics][].
+This tutorial shows how to use [multiple-inputs.river][] to send data to several different locations. This tutorial uses the same base as [Filtering metrics](ref:filtering-metrics).
 
 A new concept introduced in Flow is chaining components together in a composable pipeline. This promotes the reusability of components while offering flexibility.
 
@@ -85,7 +91,3 @@ In `multiple-input.river` add a new `prometheus.relabel` component that adds a `
 [Grafana]: http://localhost:3000/explore?orgId=1&left=%5B%22now-1h%22,%22now%22,%22Mimir%22,%7B%22refId%22:%22A%22,%22instant%22:true,%22range%22:true,%22exemplar%22:true,%22expr%22:%22agent_build_info%7B%7D%22%7D%5D
 [node_exporter]: http://localhost:3000/explore?orgId=1&left=%5B%22now-1h%22,%22now%22,%22Mimir%22,%7B%22refId%22:%22A%22,%22instant%22:true,%22range%22:true,%22exemplar%22:true,%22expr%22:%22node_cpu_seconds_total%22%7D%5D
 
-{{% docs/reference %}}
-[Filtering metrics]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/tutorials/filtering-metrics.md"
-[Filtering metrics]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/tutorials/filtering-metrics.md"
-{{% /docs/reference %}}

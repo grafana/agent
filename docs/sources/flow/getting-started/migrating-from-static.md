@@ -8,11 +8,120 @@ description: Learn how to migrate your configuration from Grafana Agent Static m
 menuTitle: Migrate from Static mode to Flow mode
 title: Migrate Grafana Agent from Static mode to Flow mode
 weight: 340
+refs:
+  components:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/concepts/components/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/concepts/components/
+  env:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/reference/stdlib/env/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/reference/stdlib/env/
+  river:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/config-language/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/config-language/
+  promtail-limitations:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/getting-started/migrating-from-promtail/#limitations
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/getting-started/migrating-from-promtail/#limitations
+  prometheus.remote_write:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/reference/components/prometheus.remote_write/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/reference/components/prometheus.remote_write/
+  traces:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/static/configuration/traces-config/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/static/configuration/traces-config/
+  run:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/reference/cli/run/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/reference/cli/run/
+  convert:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/reference/cli/convert/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/reference/cli/convert/
+  loki.source.file:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/reference/components/loki.source.file/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/reference/components/loki.source.file/
+  loki.process:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/reference/components/loki.process/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/reference/components/loki.process/
+  metrics:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/static/configuration/metrics-config/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/static/configuration/metrics-config/
+  integrations-next:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/static/configuration/integrations/integrations-next//
+  start-the-agent:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/setup/start-agent/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/setup/start-agent/
+  prometheus.scrape:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/reference/components/prometheus.scrape/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/reference/components/prometheus.scrape/
+  local.file_match:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/reference/components/local.file_match/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/reference/components/local.file_match/
+  loki.write:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/reference/components/loki.write/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/reference/components/loki.write/
+  grafana-agent-flow-ui:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/monitoring/debugging/#grafana-agent-flow-ui
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/monitoring/debugging/#grafana-agent-flow-ui
+  prometheus-limitations:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/getting-started/migrating-from-prometheus/#limitations
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/getting-started/migrating-from-prometheus/#limitations
+  static:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/static/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/static/
+  agent-management:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/static/configuration/agent-management/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/static/configuration/agent-management/
+  logs:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/static/configuration/logs-config/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/static/logs-config/
+  flow-debugging:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/monitoring/debugging/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/monitoring/debugging/
 ---
 
 # Migrate Grafana Agent from Static mode to Flow mode
 
-The built-in Grafana Agent convert command can migrate your [Static][] mode
+The built-in Grafana Agent convert command can migrate your [Static](ref:static) mode
 configuration to a Flow mode configuration.
 
 This topic describes how to:
@@ -22,26 +131,26 @@ This topic describes how to:
 
 ## Components used in this topic
 
-* [prometheus.scrape][]
-* [prometheus.remote_write][]
-* [local.file_match][]
-* [loki.process][]
-* [loki.source.file][]
-* [loki.write][]
+* [prometheus.scrape](ref:prometheus.scrape)
+* [prometheus.remote_write](ref:prometheus.remote_write)
+* [local.file_match](ref:local.file_match)
+* [loki.process](ref:loki.process)
+* [loki.source.file](ref:loki.source.file)
+* [loki.write](ref:loki.write)
 
 ## Before you begin
 
 * You must have an existing Grafana Agent Static mode configuration.
-* You must be familiar with the [Components][] concept in Grafana Agent Flow mode.
+* You must be familiar with the [Components](ref:components) concept in Grafana Agent Flow mode.
 
 ## Convert a Static mode configuration
 
-To fully migrate Grafana Agent from [Static][] mode to Flow mode, you must convert
+To fully migrate Grafana Agent from [Static](ref:static) mode to Flow mode, you must convert
 your Static mode configuration into a Flow mode configuration.
 This conversion will enable you to take full advantage of the many additional
 features available in Grafana Agent Flow mode.
 
-> In this task, we will use the [convert][] CLI command to output a Flow mode
+> In this task, we will use the [convert](ref:convert) CLI command to output a Flow mode
 > configuration from a Static mode configuration.
 
 1. Open a terminal window and run the following command:
@@ -59,7 +168,7 @@ features available in Grafana Agent Flow mode.
    {{< /code >}}
 
    Replace the following:
-    * `INPUT_CONFIG_PATH`: The full path to the [Static][] configuration.
+    * `INPUT_CONFIG_PATH`: The full path to the [Static](ref:static) configuration.
     * `OUTPUT_CONFIG_PATH`: The full path to output the flow configuration.
 
 1. [Start the Agent][] in Flow mode using the new Flow mode configuration
@@ -67,12 +176,12 @@ features available in Grafana Agent Flow mode.
 
 ### Debugging
 
-1. If the convert command cannot convert a [Static] mode configuration, diagnostic
+1. If the convert command cannot convert a[Static](ref:static) mode configuration, diagnostic
    information is sent to `stderr`. You can use the `--bypass-errors` flag to 
    bypass any non-critical issues and output the Flow mode configuration 
    using a best-effort conversion.
 
-   {{% admonition type="caution" %}}If you bypass the errors, the behavior of the converted configuration may not match the original [Static] mode configuration. Make sure you fully test the converted configuration before using it in a production environment.{{% /admonition %}}
+   {{% admonition type="caution" %}}If you bypass the errors, the behavior of the converted configuration may not match the original[Static](ref:static) mode configuration. Make sure you fully test the converted configuration before using it in a production environment.{{% /admonition %}}
 
    {{< code >}}
 
@@ -113,16 +222,16 @@ features available in Grafana Agent Flow mode.
 
 If you’re not ready to completely switch to a Flow mode configuration, you can run
 Grafana Agent using your existing Grafana Agent Static mode configuration.
-The `--config.format=static` flag tells Grafana Agent to convert your [Static] mode
+The `--config.format=static` flag tells Grafana Agent to convert your[Static](ref:static) mode
 configuration to Flow mode and load it directly without saving the new
 configuration. This allows you to try Flow mode without modifying your existing
 Grafana Agent Static mode configuration infrastructure.
 
-> In this task, we will use the [run][] CLI command to run Grafana Agent in Flow
+> In this task, we will use the [run](ref:run) CLI command to run Grafana Agent in Flow
 > mode using a Static mode configuration.
 
 [Start the Agent][] in Flow mode and include the command line flag
-`--config.format=static`. Your configuration file must be a valid [Static]
+`--config.format=static`. Your configuration file must be a valid[Static](ref:static)
 mode configuration file.
 
 ### Debugging
@@ -130,10 +239,10 @@ mode configuration file.
 1. You can follow the convert CLI command [debugging][] instructions to generate
    a diagnostic report.
 
-1. Refer to the Grafana Agent [Flow Debugging][] for more information about
+1. Refer to the Grafana Agent [Flow Debugging](ref:flow-debugging) for more information about
    running Grafana Agent in Flow mode.
 
-1. If your [Static] mode configuration can't be converted and loaded directly into
+1. If your[Static](ref:static) mode configuration can't be converted and loaded directly into
     Grafana Agent, diagnostic information is sent to `stderr`. You can use the `
     --config.bypass-conversion-errors` flag with `--config.format=static` to bypass any
     non-critical issues and start the Agent.
@@ -142,9 +251,9 @@ mode configuration file.
 
 ## Example
 
-This example demonstrates converting a [Static] mode configuration file to a Flow mode configuration file.
+This example demonstrates converting a[Static](ref:static) mode configuration file to a Flow mode configuration file.
 
-The following [Static] mode configuration file provides the input for the conversion:
+The following[Static](ref:static) mode configuration file provides the input for the conversion:
 
 ```yaml
 server:
@@ -200,7 +309,7 @@ logs:
         - url: https://USER_ID:API_KEY@logs-prod3.grafana.net/loki/api/v1/push
 ```
 
-The convert command takes the YAML file as input and outputs a [River][] file.
+The convert command takes the YAML file as input and outputs a [River](ref:river) file.
 
 {{< code >}}
 
@@ -303,68 +412,22 @@ before starting to use it in a production environment.
 Furthermore, we recommend that you review the following checklist:
 
 * The following configuration options are not available for conversion to Flow
-  mode: [Integrations next][], [Traces][], and [Agent Management][]. Any
+  mode: [Integrations next](ref:integrations-next), [Traces](ref:traces), and [Agent Management](ref:agent-management). Any
   additional unsupported features are returned as errors during conversion.
 * There is no gRPC server to configure for Flow mode, so any non-default config
   will show as unsupported during the conversion.
 * Check if you are using any extra command line arguments with Static mode that
   are not present in your configuration file. For example, `-server.http.address`.
-* Check if you are using any environment variables in your [Static] mode configuration.
+* Check if you are using any environment variables in your[Static](ref:static) mode configuration.
   These will be evaluated during conversion and you may want to replace them
-  with the Flow Standard library [env] function after conversion.
-* Review additional [Prometheus Limitations] for limitations specific to your
-  [Metrics] config.
-* Review additional [Promtail Limitations] for limitations specific to your
-  [Logs] config.
+  with the Flow Standard library[env](ref:env) function after conversion.
+* Review additional[Prometheus Limitations](ref:prometheus-limitations) for limitations specific to your
+ [Metrics](ref:metrics) config.
+* Review additional[Promtail Limitations](ref:promtail-limitations) for limitations specific to your
+ [Logs](ref:logs) config.
 * The logs produced by Grafana Agent Flow mode will differ from those
   produced by Static mode.
-* Grafana Agent exposes the [Grafana Agent Flow UI][].
+* Grafana Agent exposes the [Grafana Agent Flow UI](ref:grafana-agent-flow-ui).
 
 [debugging]: #debugging
 
-{{% docs/reference %}}
-[Static]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static"
-[Static]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/static"
-[prometheus.scrape]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/prometheus.scrape.md"
-[prometheus.scrape]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/components/prometheus.scrape.md"
-[prometheus.remote_write]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/prometheus.remote_write.md"
-[prometheus.remote_write]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/components/prometheus.remote_write.md"
-[local.file_match]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/local.file_match.md"
-[local.file_match]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/components/local.file_match.md"
-[loki.process]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/loki.process.md"
-[loki.process]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/components/loki.process.md"
-[loki.source.file]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/loki.source.file.md"
-[loki.source.file]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/components/loki.source.file.md"
-[loki.write]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/loki.write.md"
-[loki.write]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/components/loki.write.md"
-[Components]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/components.md"
-[Components]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/concepts/components.md"
-[convert]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/cli/convert.md"
-[convert]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/cli/convert.md"
-[run]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/cli/run.md"
-[run]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/cli/run.md"
-[Start the agent]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/start-agent.md"
-[Start the agent]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/setup/start-agent.md"
-[Flow Debugging]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/monitoring/debugging.md"
-[Flow Debugging]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/monitoring/debugging.md"
-[River]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/config-language/"
-[River]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/config-language/"
-[Integrations next]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static/configuration/integrations/integrations-next/_index.md"
-[Integrations next]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/static/configuration/traces-config.md
-[Traces]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static/configuration/traces-config.md"
-[Traces]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/static/configuration/traces-config.md"
-[Agent Management]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static/configuration/agent-management.md"
-[Agent Management]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/static/configuration/agent-management.md"
-[env]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/stdlib/env.md"
-[env]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/stdlib/env.md"
-[Prometheus Limitations]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/getting-started/migrating-from-prometheus.md#limitations"
-[Prometheus Limitations]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/getting-started/migrating-from-prometheus.md#limitations"
-[Promtail Limitations]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/getting-started/migrating-from-promtail.md#limitations"
-[Promtail Limitations]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/getting-started/migrating-from-promtail.md#limitations"
-[Metrics]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static/configuration/metrics-config.md"
-[Metrics]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/static/configuration/metrics-config.md"
-[Logs]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static/configuration/logs-config.md"
-[Logs]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/static/logs-config.md"
-[Grafana Agent Flow UI]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/monitoring/debugging#grafana-agent-flow-ui"
-[Grafana Agent Flow UI]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/monitoring/debugging#grafana-agent-flow-ui"
-{{% /docs/reference %}}

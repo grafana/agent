@@ -10,6 +10,42 @@ menuTitle: Clustering
 title: Clustering (beta)
 description: Learn about Grafana Agent clustering concepts
 weight: 500
+refs:
+  prometheus.operator.podmonitors:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/reference/components/prometheus.operator.podmonitors/#clustering-beta
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/reference/components/prometheus.operator.podmonitors/#clustering-beta
+  run:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/reference/cli/run/#clustering-beta
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/reference/cli/run/#clustering-beta
+  clustering-page:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/monitoring/debugging/#clustering-page
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/monitoring/debugging/#clustering-page
+  pyroscope.scrape:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/reference/components/pyroscope.scrape/#clustering-beta
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/reference/components/pyroscope.scrape/#clustering-beta
+  debugging:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/monitoring/debugging/#debugging-clustering-issues
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/monitoring/debugging/#debugging-clustering-issues
+  prometheus.scrape:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/reference/components/prometheus.scrape/#clustering-beta
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/reference/components/prometheus.scrape/#clustering-beta
+  prometheus.operator.servicemonitors:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/reference/components/prometheus.operator.servicemonitors/#clustering-beta
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/reference/components/prometheus.operator.servicemonitors/#clustering-beta
 ---
 
 # Clustering (beta)
@@ -25,7 +61,7 @@ same configuration file.
 The behavior of a standalone, non-clustered agent is the same as if it was a
 single-node cluster.
 
-You configure clustering by passing `cluster` command-line flags to the [run][]
+You configure clustering by passing `cluster` command-line flags to the [run](ref:run)
 command.
 
 ## Use cases
@@ -64,30 +100,14 @@ targets, meaning that, on average, only ~1/N of the targets are redistributed.
 Refer to component reference documentation to discover whether it supports
 clustering, such as:
 
-- [prometheus.scrape][]
-- [pyroscope.scrape][]
-- [prometheus.operator.podmonitors][]
-- [prometheus.operator.servicemonitors][]
+- [prometheus.scrape](ref:prometheus.scrape)
+- [pyroscope.scrape](ref:pyroscope.scrape)
+- [prometheus.operator.podmonitors](ref:prometheus.operator.podmonitors)
+- [prometheus.operator.servicemonitors](ref:prometheus.operator.servicemonitors)
 
 ## Cluster monitoring and troubleshooting
 
-To monitor your cluster status, you can check the Flow UI [clustering page][].
-The [debugging][] topic contains some clues to help pin down probable
+To monitor your cluster status, you can check the Flow UI [clustering page](ref:clustering-page).
+The [debugging](ref:debugging) topic contains some clues to help pin down probable
 clustering issues.
 
-{{% docs/reference %}}
-[run]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/cli/run.md#clustering-beta"
-[run]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/cli/run.md#clustering-beta"
-[prometheus.scrape]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/prometheus.scrape.md#clustering-beta"
-[prometheus.scrape]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/components/prometheus.scrape.md#clustering-beta"
-[pyroscope.scrape]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/pyroscope.scrape.md#clustering-beta"
-[pyroscope.scrape]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/components/pyroscope.scrape.md#clustering-beta"
-[prometheus.operator.podmonitors]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/prometheus.operator.podmonitors.md#clustering-beta"
-[prometheus.operator.podmonitors]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/components/prometheus.operator.podmonitors.md#clustering-beta"
-[prometheus.operator.servicemonitors]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/prometheus.operator.servicemonitors.md#clustering-beta"
-[prometheus.operator.servicemonitors]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/components/prometheus.operator.servicemonitors.md#clustering-beta"
-[clustering page]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/monitoring/debugging.md#clustering-page"
-[clustering page]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/monitoring/debugging.md#clustering-page"
-[debugging]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/monitoring/debugging.md#debugging-clustering-issues"
-[debugging]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/monitoring/debugging.md#debugging-clustering-issues"
-{{% /docs/reference %}}

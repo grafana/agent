@@ -8,6 +8,12 @@ description: Learn how to configure Grafana Agent in flow mode on Windows
 menuTitle: Windows
 title: Configure Grafana Agent in flow mode on Windows
 weight: 500
+refs:
+  ui:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/monitoring/debugging/#grafana-agent-flow-ui
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/monitoring/debugging/#grafana-agent-flow-ui
 ---
 
 # Configure Grafana Agent in flow mode on Windows
@@ -68,7 +74,7 @@ binary, perform the following steps:
 
 By default, Grafana Agent listens on the local network for its HTTP
 server. This prevents other machines on the network from being able to access
-the [UI for debugging][UI].
+the [UI for debugging](ref:ui).
 
 To expose the UI to other machines, complete the following steps:
 
@@ -88,8 +94,4 @@ To expose the UI to other machines, complete the following steps:
 
        To listen on all interfaces, replace `LISTEN_ADDR` with `0.0.0.0`.
 
-{{% docs/reference %}}
-[UI]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/monitoring/debugging.md#grafana-agent-flow-ui"
-[UI]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/monitoring/debugging.md#grafana-agent-flow-ui"
-{{% /docs/reference %}}
 

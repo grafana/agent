@@ -8,11 +8,22 @@ canonical: https://grafana.com/docs/agent/latest/flow/monitoring/controller_metr
 title: Controller metrics
 description: Learn about controller metrics
 weight: 100
+refs:
+  component-controller:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/concepts/component_controller/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/concepts/component_controller/
+  grafana-agent-run:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/reference/cli/run/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/reference/cli/run/
 ---
 
 # Controller metrics
 
-The Grafana Agent Flow [component controller][] exposes Prometheus metrics
+The Grafana Agent Flow [component controller](ref:component-controller) exposes Prometheus metrics
 which can be used to investigate the controller state.
 
 Metrics for the controller are exposed at the `/metrics` HTTP endpoint of the
@@ -39,9 +50,3 @@ The controller exposes the following metrics:
 * `agent_component_evaluation_queue_size` (Gauge): The current number of
   component evaluations waiting to be performed.
 
-{{% docs/reference %}}
-[component controller]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/component_controller.md"
-[component controller]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/concepts/component_controller.md"
-[grafana-agent run]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/cli/run.md"
-[grafana-agent run]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/cli/run.md"
-{{% /docs/reference %}}

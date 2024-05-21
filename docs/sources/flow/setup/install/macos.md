@@ -9,6 +9,17 @@ description: Learn how to install Grafana Agent in flow mode on macOS
 menuTitle: macOS
 title: Install Grafana Agent in flow mode on macOS
 weight: 400
+refs:
+  start-grafana-agent:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/setup/start-agent/#macos
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/setup/start-agent/#macos
+  configure-grafana-agent:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/setup/configure/configure-macos/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/setup/configure/configure-macos/
 ---
 
 # Install Grafana Agent in flow mode on macOS
@@ -65,14 +76,8 @@ brew uninstall grafana-agent-flow
 
 ## Next steps
 
-- [Start Grafana Agent][]
-- [Configure Grafana Agent][]
+- [Start Grafana Agent](ref:start-grafana-agent)
+- [Configure Grafana Agent](ref:configure-grafana-agent)
 
 [Homebrew]: https://brew.sh
 
-{{% docs/reference %}}
-[Start Grafana Agent]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/start-agent.md#macos"
-[Start Grafana Agent]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/setup/start-agent.md#macos"
-[Configure Grafana Agent]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/configure/configure-macos.md"
-[Configure Grafana Agent]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/setup/configure/configure-macos.md"
-{{% /docs/reference %}}

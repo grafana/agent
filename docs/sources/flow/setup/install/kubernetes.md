@@ -9,6 +9,12 @@ description: Learn how to deploy Grafana Agent in flow mode on Kubernetes
 menuTitle: Kubernetes
 title: Deploy Grafana Agent in flow mode on Kubernetes
 weight: 200
+refs:
+  configure-grafana-agent:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/setup/configure/configure-kubernetes/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/setup/configure/configure-kubernetes/
 ---
 
 # Deploy Grafana Agent in flow mode on Kubernetes
@@ -57,11 +63,7 @@ For more information on the Grafana Agent Helm chart, refer to the Helm chart do
 
 ## Next steps
 
-- [Configure Grafana Agent][]
+- [Configure Grafana Agent](ref:configure-grafana-agent)
 
 [Helm]: https://helm.sh
 
-{{% docs/reference %}}
-[Configure Grafana Agent]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/configure/configure-kubernetes.md"
-[Configure Grafana Agent]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/setup/configure/configure-kubernetes.md"
-{{% /docs/reference %}}

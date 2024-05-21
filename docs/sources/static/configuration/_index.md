@@ -5,6 +5,42 @@ canonical: https://grafana.com/docs/agent/latest/static/configuration/
 title: Configure static mode
 description: Learn how to configure Grafana Agent in static mode
 weight: 300
+refs:
+  metrics:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/static/configuration/metrics-config/
+    - pattern: /docs/grafana-cloud/
+      destination: ./metrics-config/
+  integrations:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/static/configuration/integrations/
+    - pattern: /docs/grafana-cloud/
+      destination: ./integrations/
+  api:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/static/api/#reload-configuration-file-beta
+    - pattern: /docs/grafana-cloud/
+      destination: ../api/#reload-configuration-file-beta
+  flags:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/static/configuration/flags/
+    - pattern: /docs/grafana-cloud/
+      destination: ./flags/
+  server:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/static/configuration/server-config/
+    - pattern: /docs/grafana-cloud/
+      destination: ./server-config/
+  traces:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/static/configuration/traces-config/
+    - pattern: /docs/grafana-cloud/
+      destination: ./traces-config/
+  logs:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/static/configuration/logs-config/
+    - pattern: /docs/grafana-cloud/
+      destination: ./logs-config/
 ---
 
 # Configure static mode
@@ -12,7 +48,7 @@ weight: 300
 The configuration of static mode is split across two places:
 
 * A YAML file
-* [Command-line flags][flags]
+* [Command-line flags](ref:flags)
 
 The YAML file is used to configure settings which are dynamic and can be
 changed at runtime. The command-line flags then configure things which cannot
@@ -20,11 +56,11 @@ change at runtime, such as the listen port for the HTTP server.
 
 This file describes the YAML configuration, which is usually in a file named `config.yaml`.
 
-- [server_config][server]
-- [metrics_config][metrics]
-- [logs_config][logs]
-- [traces_config][traces]
-- [integrations_config][integrations]
+- [server_config](ref:server)
+- [metrics_config](ref:metrics)
+- [logs_config](ref:logs)
+- [traces_config](ref:traces)
+- [integrations_config](ref:integrations)
 
 The configuration of Grafana Agent is "stable," but subject to breaking changes
 as individual features change. Breaking changes to configuration will be
@@ -77,7 +113,7 @@ which may be slightly unexpected.
 
 ## Reloading (beta)
 
-The configuration file can be reloaded at runtime. Read the [API documentation][api] for more information.
+The configuration file can be reloaded at runtime. Read the [API documentation](ref:api) for more information.
 
 This functionality is in beta, and may have issues. Please open GitHub issues
 for any problems you encounter.
@@ -139,19 +175,3 @@ The following flags will configure basic auth for requests made to HTTP/S remote
 This beta feature is subject to change in future releases.
 {{% /admonition %}}
 
-{{% docs/reference %}}
-[flags]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/configuration/flags"
-[flags]: "/docs/grafana-cloud/ -> ./flags"
-[server]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/configuration/server-config"
-[server]: "/docs/grafana-cloud/ -> ./server-config"
-[metrics]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/configuration/metrics-config"
-[metrics]: "/docs/grafana-cloud/ -> ./metrics-config"
-[logs]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/configuration/logs-config"
-[logs]: "/docs/grafana-cloud/ -> ./logs-config"
-[traces]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/configuration/traces-config"
-[traces]: "/docs/grafana-cloud/ -> ./traces-config"
-[integrations]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/configuration/integrations"
-[integrations]: "/docs/grafana-cloud/ -> ./integrations"
-[api]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/api#reload-configuration-file-beta"
-[api]: "/docs/grafana-cloud/ -> ../api#reload-configuration-file-beta"
-{{% /docs/reference %}}
