@@ -178,7 +178,6 @@ prometheus.scrape "integrations_cadvisor" {
 prometheus.exporter.cloudwatch "integrations_cloudwatch_exporter" {
 	sts_region    = "us-east-2"
 	fips_disabled = false
-	aws_sdk_version = "v1"
 
 	discovery {
 		regions     = ["us-east-2"]
@@ -225,6 +224,7 @@ prometheus.exporter.cloudwatch "integrations_cloudwatch_exporter" {
 	}
 
 	decoupled_scraping { }
+	aws_sdk_version = "v1"
 }
 
 discovery.relabel "integrations_cloudwatch_exporter" {
