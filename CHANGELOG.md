@@ -50,6 +50,10 @@ Main (unreleased)
 
 ### Bugfixes
 
+- Fix panic for `prometheus.exporter.snmp` and snmp_exporter integration
+  introduced in v0.40.5 with a version upgrade. This was due to an
+  uninitialized new metric for the exporter. (@erikbaranowski)
+
 - Fix an issue where JSON string array elements were not parsed correctly in `loki.source.cloudflare`. (@thampiotr)
 
 - Fix SSRF vulnerability in `faro.receiver` by disabling source map download. (@hainenber)
