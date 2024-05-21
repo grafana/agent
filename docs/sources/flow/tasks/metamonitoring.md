@@ -1,5 +1,5 @@
 ---
-canonical: https://grafana.com/docs/agent/latest/flow/tasks/setup-metamonitoring/
+canonical: https://grafana.com/docs/agent/latest/flow/tasks/metamonitoring/
 description: Learn how to set up meta-monitoring for Grafana Agent Flow
 title: Set up meta-monitoring
 weight: 200
