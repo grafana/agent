@@ -15,6 +15,57 @@ description: Learn how to migrate from Promtail to Grafana Agent Flow
 menuTitle: Migrate from Promtail
 title: Migrate from Promtail to Grafana Agent Flow
 weight: 330
+refs:
+  loki.write:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/reference/components/loki.write/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/reference/components/loki.write/
+  local.file_match:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/reference/components/local.file_match/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/reference/components/local.file_match/
+  run:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/get-started/run/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/get-started/run/
+  convert:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/reference/cli/convert/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/reference/cli/convert/
+  loki.source.file:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/reference/components/loki.source.file/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/reference/components/loki.source.file/
+  debuggingui:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/tasks/debug/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/tasks/debug/
+  ui:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/tasks/debug/#grafana-agent-flow-ui
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/tasks/debug/#grafana-agent-flow-ui
+  components:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/concepts/components/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/concepts/components/
+  river:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/concepts/config-language//
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/concepts/config-language//
+  run:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/reference/cli/run/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/reference/cli/run/
 ---
 
 # Migrate from Promtail to {{% param "PRODUCT_NAME" %}}
@@ -28,21 +79,21 @@ This topic describes how to:
 
 ## Components used in this topic
 
-* [local.file_match][]
-* [loki.source.file][]
-* [loki.write][]
+* [local.file_match](ref:local.file_match)
+* [loki.source.file](ref:loki.source.file)
+* [loki.write](ref:loki.write)
 
 ## Before you begin
 
 * You must have an existing Promtail configuration.
-* You must be familiar with the concept of [Components][] in {{< param "PRODUCT_NAME" >}}.
+* You must be familiar with the concept of [Components](ref:components) in {{< param "PRODUCT_NAME" >}}.
 
 ## Convert a Promtail configuration
 
-To fully migrate from [Promtail] to {{< param "PRODUCT_NAME" >}}, you must convert your Promtail configuration into a {{< param "PRODUCT_NAME" >}} configuration.
+To fully migrate from[Promtail][] to {{< param "PRODUCT_NAME" >}}, you must convert your Promtail configuration into a {{< param "PRODUCT_NAME" >}} configuration.
 This conversion will enable you to take full advantage of the many additional features available in {{< param "PRODUCT_NAME" >}}.
 
-> In this task, you will use the [convert][] CLI command to output a {{< param "PRODUCT_NAME" >}}
+> In this task, you will use the [convert](ref:convert) CLI command to output a {{< param "PRODUCT_NAME" >}}
 > configuration from a Promtail configuration.
 
 1. Open a terminal window and run the following command.
@@ -64,7 +115,7 @@ This conversion will enable you to take full advantage of the many additional fe
     * _`<INPUT_CONFIG_PATH>`_: The full path to the Promtail configuration.
     * _`<OUTPUT_CONFIG_PATH>`_: The full path to output the {{< param "PRODUCT_NAME" >}} configuration.
 
-1. [Run][] {{< param "PRODUCT_NAME" >}} using the new configuration from _`<OUTPUT_CONFIG_PATH>`_:
+1. [Run](ref:run) {{< param "PRODUCT_NAME" >}} using the new configuration from _`<OUTPUT_CONFIG_PATH>`_:
 
 ### Debugging
 
@@ -125,16 +176,16 @@ If you’re not ready to completely switch to a {{< param "PRODUCT_NAME" >}} con
 The `--config.format=promtail` flag tells {{< param "PRODUCT_ROOT_NAME" >}} to convert your Promtail configuration to {{< param "PRODUCT_NAME" >}} and load it directly without saving the new configuration.
 This allows you to try {{< param "PRODUCT_NAME" >}} without modifying your existing Promtail configuration infrastructure.
 
-> In this task, you will use the [run][] CLI command to run {{< param "PRODUCT_NAME" >}} using a Promtail configuration.
+> In this task, you will use the [run](ref:run) CLI command to run {{< param "PRODUCT_NAME" >}} using a Promtail configuration.
 
-[Run][] {{< param "PRODUCT_NAME" >}} and include the command line flag `--config.format=promtail`.
+[Run](ref:run) {{< param "PRODUCT_NAME" >}} and include the command line flag `--config.format=promtail`.
 Your configuration file must be a valid Promtail configuration file rather than a {{< param "PRODUCT_NAME" >}} configuration file.
 
 ### Debugging
 
 1. You can follow the convert CLI command [debugging][] instructions to generate a diagnostic report.
 
-1. Refer to the {{< param "PRODUCT_NAME" >}}  [Debugging][DebuggingUI] for more information about running {{< param "PRODUCT_NAME" >}}.
+1. Refer to the {{< param "PRODUCT_NAME" >}}  [Debugging](ref:debuggingui) for more information about running {{< param "PRODUCT_NAME" >}}.
 
 1. If your Promtail configuration can't be converted and loaded directly into {{< param "PRODUCT_ROOT_NAME" >}}, diagnostic information is sent to `stderr`.
    You can bypass any non-critical issues and start {{< param "PRODUCT_ROOT_NAME" >}} by including the `--config.bypass-conversion-errors` flag in addition to `--config.format=promtail`.
@@ -162,7 +213,7 @@ scrape_configs:
           __path__: /var/log/*.log
 ```
 
-The convert command takes the YAML file as input and outputs a [River][] file.
+The convert command takes the YAML file as input and outputs a [River](ref:river) file.
 
 {{< code >}}
 
@@ -215,36 +266,14 @@ The following list is specific to the convert command and not {{< param "PRODUCT
 * Check if you are using any extra command line arguments with Promtail that aren't present in your configuration file. For example, `-max-line-size`.
 * Check if you are setting any environment variables, whether [expanded in the configuration file][] itself or consumed directly by Promtail, such as `JAEGER_AGENT_HOST`.
 * In {{< param "PRODUCT_NAME" >}}, the positions file is saved at a different location.
-  Refer to the [loki.source.file][] documentation for more details.
+  Refer to the [loki.source.file](ref:loki.source.file) documentation for more details.
   Check if you have any existing setup, for example, a Kubernetes Persistent Volume, that you must update to use the new positions file path.
 * Metamonitoring metrics exposed by {{< param "PRODUCT_NAME" >}} usually match Promtail metamonitoring metrics but will use a different name.
   Make sure that you use the new metric names, for example, in your alerts and dashboards queries.
 * The logs produced by {{< param "PRODUCT_NAME" >}} will differ from those produced by Promtail.
-* {{< param "PRODUCT_NAME" >}} exposes the {{< param "PRODUCT_NAME" >}} [UI][], which differs from Promtail's Web UI.
+* {{< param "PRODUCT_NAME" >}} exposes the {{< param "PRODUCT_NAME" >}} [UI](ref:ui), which differs from Promtail's Web UI.
 
 [Promtail]: https://www.grafana.com/docs/loki/<LOKI_VERSION>/clients/promtail/
 [debugging]: #debugging
 [expanded in the configuration file]: https://www.grafana.com/docs/loki/<LOKI_VERSION>/clients/promtail/configuration/#use-environment-variables-in-the-configuration
 
-{{% docs/reference %}}
-[local.file_match]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/local.file_match.md"
-[local.file_match]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/components/local.file_match.md"
-[loki.source.file]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/loki.source.file.md"
-[loki.source.file]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/components/loki.source.file.md"
-[loki.write]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/loki.write.md"
-[loki.write]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/components/loki.write.md"
-[Components]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/components.md"
-[Components]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/concepts/components.md"
-[convert]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/cli/convert.md"
-[convert]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/cli/convert.md"
-[run]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/cli/run.md"
-[run]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/cli/run.md"
-[Run]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/get-started/run/"
-[Run]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/get-started/run/"
-[DebuggingUI]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/tasks/debug.md"
-[DebuggingUI]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/tasks/debug.md"
-[River]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/config-language/_index.md"
-[River]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/concepts/config-language/_index.md"
-[UI]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/tasks/debug#grafana-agent-flow-ui"
-[UI]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/tasks/debug#grafana-agent-flow-ui"
-{{% /docs/reference %}}
