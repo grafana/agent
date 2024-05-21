@@ -5,7 +5,7 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/agent/flow/concepts/custom-components/
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/concepts/custom-components/
 - /docs/grafana-cloud/send-data/agent/flow/concepts/custom-components/
-canonical: https://grafana.com/docs/agent/latest/flow/concepts/custom-components/
+canonical: https://grafana.com/docs/agent/latest/flow/concepts/custom_components/
 description: Learn about custom components
 title: Custom components
 weight: 300
