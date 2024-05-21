@@ -20,6 +20,12 @@ canonical: https://grafana.com/docs/agent/latest/flow/concepts/config-language/
 description: Learn about the configuration language
 title: Configuration language
 weight: 10
+refs:
+  fmt:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/reference/cli/fmt/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/reference/cli/fmt/
 ---
 
 # Configuration language
@@ -130,7 +136,7 @@ You can use one or all of the following tools to help you write configuration fi
   * [vim](https://github.com/rfratto/vim-river)
   * [VSCode](https://github.com/rfratto/vscode-river)
   * [river-mode](https://github.com/jdbaldry/river-mode) for Emacs
-* Code formatting using the [`agent fmt` command][fmt]
+* Code formatting using the [`agent fmt` command](ref:fmt)
 
 You can also start developing your own tooling using the {{< param "PRODUCT_ROOT_NAME" >}} repository as a go package or use the
 [tree-sitter grammar][] with other programming languages.
@@ -141,7 +147,3 @@ You can also start developing your own tooling using the {{< param "PRODUCT_ROOT
 [river-mode]: https://github.com/jdbaldry/river-mode
 [tree-sitter grammar]: https://github.com/grafana/tree-sitter-river
 
-{{% docs/reference %}}
-[fmt]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/cli/fmt"
-[fmt]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/cli/fmt"
-{{% /docs/reference %}}

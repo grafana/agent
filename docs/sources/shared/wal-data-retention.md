@@ -92,7 +92,7 @@ Deleting a WAL segment or a WAL file permanently deletes the stored WAL data.
 
 To delete the corrupted WAL:
 
-1. [Stop][] Grafana Agent.
+1. Stop Grafana Agent.
 1. Find and delete the contents of the `wal` directory.
 
    By default the `wal` directory is a subdirectory
@@ -107,10 +107,9 @@ To delete the corrupted WAL:
    * `prometheus.remote_write` component running in Flow mode
    {{< /admonition >}}
 
-1. [Start][Stop] Grafana Agent and verify that the WAL is working correctly.
+1. Start Grafana Agent and verify that the WAL is working correctly.
 
 [WAL block]: /docs/agent/<AGENT_VERSION>/flow/reference/components/prometheus.remote_write#wal-block
 [metrics config]: /docs/agent/<AGENT_VERSION>/static/configuration/metrics-config
-[Stop]: /docs/agent/<AGENT_VERSION>/flow/get-started/start-agent
 [wal_directory]: /docs/agent/<AGENT_VERSION>/static/configuration/metrics-config
 [run]: /docs/agent/<AGENT_VERSION>/flow/reference/cli/run

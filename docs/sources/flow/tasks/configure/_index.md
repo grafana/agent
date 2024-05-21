@@ -15,11 +15,17 @@ description: Configure Grafana Agent Flow after it is installed
 menuTitle: Configure
 title: Configure Grafana Agent Flow
 weight: 70
+refs:
+  install:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/get-started/install/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/get-started/install/
 ---
 
 # Configure {{% param "PRODUCT_NAME" %}}
 
-You can configure {{< param "PRODUCT_NAME" >}} after it is [installed][Install]. 
+You can configure {{< param "PRODUCT_NAME" >}} after it is [installed](ref:install). 
 The default River configuration file for {{< param "PRODUCT_NAME" >}} is located at:
 
 * Linux: `/etc/grafana-agent-flow.river`
@@ -30,7 +36,3 @@ This section includes information that helps you configure {{< param "PRODUCT_NA
 
 {{< section >}}
 
-{{% docs/reference %}}
-[Install]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/get-started/install/"
-[Install]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/get-started/install/"
-{{% /docs/reference %}}
