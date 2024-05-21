@@ -6,6 +6,12 @@ menuTitle: Install flow mode
 title: Install Grafana Agent in flow mode
 description: Learn how to install Grafana Agent in flow mode
 weight: 50
+refs:
+  data-collection:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/data-collection/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/monitor-infrastructure/agent/data-collection/
 ---
 
 # Install Grafana Agent in flow mode
@@ -27,10 +33,6 @@ Installing Grafana Agent on other operating systems is possible, but is not reco
 
 ## Data collection
 
-By default, Grafana Agent sends anonymous usage information to Grafana Labs. Refer to [data collection][] for more information
+By default, Grafana Agent sends anonymous usage information to Grafana Labs. Refer to [data collection](ref:data-collection) for more information
 about what data is collected and how you can opt-out.
 
-{{% docs/reference %}}
-[data collection]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/data-collection.md"
-[data collection]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/monitor-infrastructure/agent/data-collection.md"
-{{% /docs/reference %}}

@@ -7,6 +7,32 @@ menuTitle: Standalone
 title: Install Grafana Agent in static mode as a standalone binary
 description: Learn how to install Grafana Agent in static mode as a standalone binary
 weight: 700
+refs:
+  configure:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/static/configuration/
+    - pattern: /docs/grafana-cloud/
+      destination: ../../configuration/
+  start:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/static/set-up/start-agent/#standalone-binary
+    - pattern: /docs/grafana-cloud/
+      destination: ../start-agent/#standalone-binary
+  linux:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/static/set-up/install/install-agent-linux/
+    - pattern: /docs/grafana-cloud/
+      destination: ./install-agent-linux/
+  windows:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/static/set-up/install/install-agent-on-windows/
+    - pattern: /docs/grafana-cloud/
+      destination: ./install-agent-on-windows/
+  macos:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/static/set-up/install/install-agent-macos/
+    - pattern: /docs/grafana-cloud/
+      destination: ./install-agent-mac-os/
 ---
 
 # Install Grafana Agent in static mode as a standalone binary
@@ -23,9 +49,9 @@ ppc64le builds are considered secondary release targets and do not have the same
 
 The binary executable will run Grafana Agent in standalone mode. If you want to run Grafana Agent as a service, refer to the installation instructions for:
 
-* [Linux][linux]
-* [macOS][macos]
-* [Windows][windows]
+* [Linux](ref:linux)
+* [macOS](ref:macos)
+* [Windows](ref:windows)
 
 ## Download Grafana Agent
 
@@ -47,18 +73,6 @@ To download the Grafana Agent as a standalone binary, perform the following step
 
 ## Next steps
 
-* [Start Grafana Agent][start]
-* [Configure Grafana Agent][configure]
+* [Start Grafana Agent](ref:start)
+* [Configure Grafana Agent](ref:configure)
 
-{{% docs/reference %}}
-[linux]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/set-up/install/install-agent-linux"
-[linux]: "/docs/grafana-cloud/ -> ./install-agent-linux"
-[macos]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/set-up/install/install-agent-macos"
-[macos]: "/docs/grafana-cloud/ -> ./install-agent-mac-os"
-[windows]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/set-up/install/install-agent-on-windows"
-[windows]: "/docs/grafana-cloud/ -> ./install-agent-on-windows"
-[start]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/set-up/start-agent#standalone-binary"
-[start]: "/docs/grafana-cloud/ -> ../start-agent#standalone-binary"
-[configure]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/configuration"
-[configure]: "/docs/grafana-cloud/ -> ../../configuration"
-{{% /docs/reference %}}

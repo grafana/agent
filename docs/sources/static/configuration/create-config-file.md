@@ -6,6 +6,12 @@ canonical: https://grafana.com/docs/agent/latest/static/configuration/create-con
 title: Create a configuration file
 description: Learn how to create a configuration file
 weight: 50
+refs:
+  configure:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/static/configuration/
+    - pattern: /docs/grafana-cloud/
+      destination: ./configuration/
 ---
 
 # Create a configuration file
@@ -62,7 +68,7 @@ the Grafana Agent is running on. This label helps to uniquely identify the
 source of metrics if you are running multiple Grafana Agents across multiple
 machines.
 
-Full configuration options can be found in the [configuration reference][configure].
+Full configuration options can be found in the [configuration reference](ref:configure).
 
 ## Prometheus config/migrating from Prometheus
 
@@ -107,7 +113,7 @@ metrics:
 ```
 
 Like with integrations, full configuration options can be found in the
-[configuration][configure].
+[configuration](ref:configure).
 
 ## Loki Config/Migrating from Promtail
 
@@ -184,7 +190,3 @@ integrations:
     enabled: true
 ```
 
-{{% docs/reference %}}
-[configure]: "/docs/agent/ -> /docs/agent/<AGENT VERSION>/static/configuration"
-[configure]: "/docs/grafana-cloud/ -> ./configuration"
-{{% /docs/reference %}}
