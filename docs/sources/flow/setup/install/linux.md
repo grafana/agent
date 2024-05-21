@@ -10,6 +10,17 @@ description: Learn how to install Grafana Agent Flow on Linux
 menuTitle: Linux
 title: Install Grafana Agent Flow on Linux
 weight: 300
+refs:
+  configure:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/setup/configure/configure-linux/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/setup/configure/configure-linux/
+  start:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/setup/start-agent/#linux
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/setup/start-agent/#linux
 ---
 
 # Install or uninstall {{% param "PRODUCT_NAME" %}} on Linux
@@ -119,12 +130,6 @@ To uninstall {{< param "PRODUCT_NAME" >}} on Linux, run the following commands i
 
 ## Next steps
 
-- [Start {{< param "PRODUCT_NAME" >}}][Start]
-- [Configure {{< param "PRODUCT_NAME" >}}][Configure]
+- [Start {{< param "PRODUCT_NAME" >}}](ref:start)
+- [Configure {{< param "PRODUCT_NAME" >}}](ref:configure)
 
-{{% docs/reference %}}
-[Start]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/start-agent.md#linux"
-[Start]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/setup/start-agent.md#linux"
-[Configure]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/configure/configure-linux.md"
-[Configure]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/setup/configure/configure-linux.md"
-{{% /docs/reference %}}

@@ -9,6 +9,27 @@ canonical: https://grafana.com/docs/agent/latest/flow/concepts/modules/
 description: Learn about modules
 title: Modules
 weight: 300
+refs:
+  component-controller:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/concepts/component_controller/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/concepts/component_controller/
+  export-block:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/reference/config-blocks/export/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/reference/config-blocks/export/
+  argument-block:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/reference/config-blocks/argument/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/reference/config-blocks/argument/
+  components:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/reference/components/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/reference/components/
 ---
 
 # Modules
@@ -24,7 +45,7 @@ Modules are {{< param "PRODUCT_NAME" >}} configurations which have:
 
 You use a [Module loader][] to load Modules into {{< param "PRODUCT_NAME" >}}.
 
-Refer to [argument block][] and [export block][] to learn how to define arguments and exports for a module.
+Refer to [argument block](ref:argument-block) and [export block](ref:export-block) to learn how to define arguments and exports for a module.
 
 ## Module loaders
 
@@ -33,7 +54,7 @@ A _Module loader_ is a {{< param "PRODUCT_NAME" >}} component that retrieves a m
 Module loader components are responsible for the following functions:
 
 * Retrieving the module source.
-* Creating a [Component controller][] for the module.
+* Creating a [Component controller](ref:component-controller) for the module.
 * Passing arguments to the loaded module.
 * Exposing exports from the loaded module.
 
@@ -43,7 +64,7 @@ Module loaders are typically called `module.LOADER_NAME`.
 Some module loaders may not support running modules with arguments or exports.
 {{% /admonition %}}
 
-Refer to [Components][] for more information about the module loader components.
+Refer to [Components](ref:components) for more information about the module loader components.
 
 ## Module sources
 
@@ -135,13 +156,3 @@ loki.write "default" {
 
 [Module loader]: #module-loaders
 
-{{% docs/reference %}}
-[argument block]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/config-blocks/argument.md"
-[argument block]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/config-blocks/argument.md"
-[export block]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/config-blocks/export.md"
-[export block]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/config-blocks/export.md"
-[Component controller]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/component_controller.md"
-[Component controller]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/concepts/component_controller.md"
-[Components]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components"
-[Components]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/components"
-{{% /docs/reference %}}

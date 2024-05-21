@@ -10,6 +10,17 @@ description: Learn how to install Grafana Agent Flow on Docker
 menuTitle: Docker
 title: Run Grafana Agent Flow in a Docker container
 weight: 100
+refs:
+  run:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/reference/cli/run/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/reference/cli/run/
+  ui:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/monitoring/debugging/#grafana-agent-flow-ui
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/monitoring/debugging/#grafana-agent-flow-ui
 ---
 
 # Run {{% param "PRODUCT_NAME" %}} in a Docker container
@@ -49,11 +60,11 @@ Replace the following:
 - _`<CONFIG_FILE_PATH>`_: The path of the configuration file on your host system.
 
 You can modify the last line to change the arguments passed to the {{< param "PRODUCT_NAME" >}} binary.
-Refer to the documentation for [run][] for more information about the options available to the `run` command.
+Refer to the documentation for [run](ref:run) for more information about the options available to the `run` command.
 
 {{% admonition type="note" %}}
 Make sure you pass `--server.http.listen-addr=0.0.0.0:12345` as an argument as shown in the example above.
-If you don't pass this argument, the [debugging UI][UI] won't be available outside of the Docker container.
+If you don't pass this argument, the [debugging UI](ref:ui) won't be available outside of the Docker container.
 {{% /admonition %}}
 
 ## Run a Windows Docker container
@@ -74,24 +85,18 @@ Replace the following:
 - _`<CONFIG_FILE_PATH>`_: The path of the configuration file on your host system.
 
 You can modify the last line to change the arguments passed to the {{< param "PRODUCT_NAME" >}} binary.
-Refer to the documentation for [run][] for more information about the options available to the `run` command.
+Refer to the documentation for [run](ref:run) for more information about the options available to the `run` command.
 
 {{% admonition type="note" %}}
 Make sure you pass `--server.http.listen-addr=0.0.0.0:12345` as an argument as shown in the example above.
-If you don't pass this argument, the [debugging UI][UI] won't be available outside of the Docker container.
+If you don't pass this argument, the [debugging UI](ref:ui) won't be available outside of the Docker container.
 {{% /admonition %}}
 
 ## Verify
 
-To verify that {{< param "PRODUCT_NAME" >}} is running successfully, navigate to <http://localhost:12345> and make sure the {{< param "PRODUCT_NAME" >}} [UI][] loads without error.
+To verify that {{< param "PRODUCT_NAME" >}} is running successfully, navigate to <http://localhost:12345> and make sure the {{< param "PRODUCT_NAME" >}} [UI](ref:ui) loads without error.
 
 [Linux containers]: #run-a-linux-docker-container
 [Windows containers]: #run-a-windows-docker-container
 [Docker]: https://docker.io
 
-{{% docs/reference %}}
-[run]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/cli/run.md"
-[run]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/cli/run.md"
-[UI]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/monitoring/debugging.md#grafana-agent-flow-ui"
-[UI]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/monitoring/debugging.md#grafana-agent-flow-ui"
-{{% /docs/reference %}}

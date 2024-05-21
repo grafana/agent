@@ -14,6 +14,37 @@ canonical: https://grafana.com/docs/agent/latest/flow/tasks/collect-opentelemetr
 description: Learn how to collect OpenTelemetry data
 title: Collect OpenTelemetry data
 weight: 300
+refs:
+  otelcol.auth.basic:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/reference/components/otelcol.auth.basic/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/reference/components/otelcol.auth.basic/
+  otelcol.exporter.otlp:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/reference/components/otelcol.exporter.otlp/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/reference/components/otelcol.exporter.otlp/
+  otelcol.exporter.otlphttp:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/reference/components/otelcol.exporter.otlphttp/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/reference/components/otelcol.exporter.otlphttp/
+  components:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/concepts/components/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/concepts/components/
+  otelcol.processor.batch:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/reference/components/otelcol.processor.batch/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/reference/components/otelcol.processor.batch/
+  otelcol.receiver.otlp:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/reference/components/otelcol.receiver.otlp/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/reference/components/otelcol.receiver.otlp/
 ---
 
 # Collect OpenTelemetry data
@@ -29,28 +60,28 @@ This topic describes how to:
 
 ## Components used in this topic
 
-* [otelcol.auth.basic][]
-* [otelcol.exporter.otlp][]
-* [otelcol.exporter.otlphttp][]
-* [otelcol.processor.batch][]
-* [otelcol.receiver.otlp][]
+* [otelcol.auth.basic](ref:otelcol.auth.basic)
+* [otelcol.exporter.otlp](ref:otelcol.exporter.otlp)
+* [otelcol.exporter.otlphttp](ref:otelcol.exporter.otlphttp)
+* [otelcol.processor.batch](ref:otelcol.processor.batch)
+* [otelcol.receiver.otlp](ref:otelcol.receiver.otlp)
 
 ## Before you begin
 
 * Ensure that you have basic familiarity with instrumenting applications with OpenTelemetry.
 * Have a set of OpenTelemetry applications ready to push telemetry data to {{< param "PRODUCT_NAME" >}}.
 * Identify where {{< param "PRODUCT_NAME" >}} writes received telemetry data.
-* Be familiar with the concept of [Components][] in {{< param "PRODUCT_NAME" >}}.
+* Be familiar with the concept of [Components](ref:components) in {{< param "PRODUCT_NAME" >}}.
 
 ## Configure an OpenTelemetry Protocol exporter
 
 Before components can receive OpenTelemetry data, you must have a component responsible for exporting the OpenTelemetry data.
 An OpenTelemetry _exporter component_ is responsible for writing (exporting) OpenTelemetry data to an external system.
 
-In this task, you will use the [otelcol.exporter.otlp][] component to send OpenTelemetry data to a server using the OpenTelemetry Protocol (OTLP).
+In this task, you will use the [otelcol.exporter.otlp](ref:otelcol.exporter.otlp) component to send OpenTelemetry data to a server using the OpenTelemetry Protocol (OTLP).
 After an exporter component is defined, you can use other {{< param "PRODUCT_NAME" >}} components to forward data to it.
 
-> Refer to the list of available [Components][] for the full list of
+> Refer to the list of available [Components](ref:components) for the full list of
 > `otelcol.exporter` components that you can use to export OpenTelemetry data.
 
 To configure an `otelcol.exporter.otlp` component for exporting OpenTelemetry data using OTLP, complete the following steps:
@@ -104,7 +135,7 @@ To configure an `otelcol.exporter.otlp` component for exporting OpenTelemetry da
 
 > `otelcol.exporter.otlp` sends data using OTLP over gRPC (HTTP/2).
 > To send to a server using HTTP/1.1, follow the preceding steps,
-> but use the [otelcol.exporter.otlphttp component][otelcol.exporter.otlphttp] instead.
+> but use the [otelcol.exporter.otlphttp component](ref:otelcol.exporter.otlphttp) instead.
 
 The following example demonstrates configuring `otelcol.exporter.otlp` with authentication and a component that forwards data to it:
 
@@ -140,7 +171,7 @@ otelcol.receiver.otlp "example" {
 }
 ```
 
-For more information on writing OpenTelemetry data using the OpenTelemetry Protocol, refer to [otelcol.exporter.otlp][].
+For more information on writing OpenTelemetry data using the OpenTelemetry Protocol, refer to [otelcol.exporter.otlp](ref:otelcol.exporter.otlp).
 
 ## Configure batching
 
@@ -149,9 +180,9 @@ Instead, data is usually sent to one or more _processor components_ that perform
 
 Ensuring data is batched is a production-readiness step to improve data compression and reduce the number of outgoing network requests to external systems.
 
-In this task, you will configure an [otelcol.processor.batch][] component to batch data before sending it to the exporter.
+In this task, you will configure an [otelcol.processor.batch](ref:otelcol.processor.batch) component to batch data before sending it to the exporter.
 
-> Refer to the list of available [Components][] for the full list of
+> Refer to the list of available [Components](ref:components) for the full list of
 > `otelcol.processor` components that you can use to process OpenTelemetry
 > data. You can chain processors by having one processor send data to another
 > processor.
@@ -211,17 +242,17 @@ otelcol.exporter.otlp "default" {
 }
 ```
 
-For more information on configuring OpenTelemetry data batching, refer to [otelcol.processor.batch][].
+For more information on configuring OpenTelemetry data batching, refer to [otelcol.processor.batch](ref:otelcol.processor.batch).
 
 ## Configure an OpenTelemetry Protocol receiver
 
 You can configure {{< param "PRODUCT_NAME" >}} to receive OpenTelemetry metrics, logs, and traces.
 An OpenTelemetry _receiver_ component is responsible for receiving OpenTelemetry data from an external system.
 
-In this task, you will use the [otelcol.receiver.otlp][] component to receive OpenTelemetry data over the network using the OpenTelemetry Protocol (OTLP).
+In this task, you will use the [otelcol.receiver.otlp](ref:otelcol.receiver.otlp) component to receive OpenTelemetry data over the network using the OpenTelemetry Protocol (OTLP).
 You can configure a receiver component to forward received data to other {{< param "PRODUCT_NAME" >}} components.
 
-> Refer to the list of available [Components][] for the full list of
+> Refer to the list of available [Components](ref:components) for the full list of
 > `otelcol.receiver` components that you can use to receive
 > OpenTelemetry-compatible data.
 
@@ -313,23 +344,9 @@ otelcol.exporter.otlp "default" {
 }
 ```
 
-For more information on receiving OpenTelemetry data using the OpenTelemetry Protocol, refer to [otelcol.receiver.otlp][].
+For more information on receiving OpenTelemetry data using the OpenTelemetry Protocol, refer to [otelcol.receiver.otlp](ref:otelcol.receiver.otlp).
 
 [OpenTelemetry]: https://opentelemetry.io
 [Configure an OpenTelemetry Protocol exporter]: #configure-an-opentelemetry-protocol-exporter
 [Configure batching]: #configure-batching
 
-{{% docs/reference %}}
-[otelcol.auth.basic]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/otelcol.auth.basic.md"
-[otelcol.auth.basic]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/components/otelcol.auth.basic.md"
-[otelcol.exporter.otlp]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/otelcol.exporter.otlp.md"
-[otelcol.exporter.otlp]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/components/otelcol.exporter.otlp.md"
-[otelcol.exporter.otlphttp]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/otelcol.exporter.otlphttp.md"
-[otelcol.exporter.otlphttp]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/components/otelcol.exporter.otlphttp.md"
-[otelcol.processor.batch]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/otelcol.processor.batch.md"
-[otelcol.processor.batch]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/components/otelcol.processor.batch.md"
-[otelcol.receiver.otlp]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/otelcol.receiver.otlp.md"
-[otelcol.receiver.otlp]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/components/otelcol.receiver.otlp.md"
-[Components]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/components.md"
-[Components]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/concepts/components.md"
-{{% /docs/reference %}}
