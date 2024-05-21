@@ -9,6 +9,23 @@ description: Learn how to install Grafana Agent in static mode on Windows
 menuTitle: Windows
 title: Install Grafana Agent in static mode on Windows
 weight: 600
+refs:
+  start:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/static/set-up/start-agent/
+    - pattern: /docs/grafana-cloud/
+      destination: ../start-agent/
+  flags:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/static/configuration/flags/
+  configure:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/static/configuration/create-config-file/
+    - pattern: /docs/grafana-cloud/
+      destination: ../../configuration/create-config-file/
+  windows_exporter_config:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/static/configuration/integrations/windows-exporter-config/
 ---
 
 # Install Grafana Agent in static mode on Windows
@@ -33,8 +50,8 @@ To do a standard graphical install of Grafana Agent on Windows, perform the foll
    
    The following options are available:
    
-   - The [windows_exporter integration][windows_exporter_config] can be enabled with all default windows_exporter options. 
-   - The [-config.expand-env][flags] command line flag can be enabled.
+   - The [windows_exporter integration](ref:windows_exporter_config) can be enabled with all default windows_exporter options. 
+   - The [-config.expand-env](ref:flags) command line flag can be enabled.
 
 ## Silent install
 
@@ -84,7 +101,7 @@ If you are using `remote_write` you must enable Windows Exporter and set the glo
 
 ## Silent install with `-config.expand_env`
 
-You can enable [-config.expand-env][flags] during a silent install.
+You can enable [-config.expand-env](ref:flags) during a silent install.
 
 1. Navigate to the [latest release](https://github.com/grafana/agent/releases) on GitHub.
 
@@ -164,14 +181,6 @@ Refer to [windows_events](/docs/loki/latest/clients/promtail/configuration/#wind
 
 ## Next steps
 
-- [Start Grafana Agent][start]
-- [Configure Grafana Agent][configure]
+- [Start Grafana Agent](ref:start)
+- [Configure Grafana Agent](ref:configure)
 
-{{% docs/reference %}}
-[flags]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static/configuration/flags"
-[windows_exporter_config]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static/configuration/integrations/windows-exporter-config"
-[start]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static/set-up/start-agent"
-[start]: "/docs/grafana-cloud/ -> ../start-agent"
-[configure]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static/configuration/create-config-file"
-[configure]: "/docs/grafana-cloud/ -> ../../configuration/create-config-file"
-{{% /docs/reference %}}

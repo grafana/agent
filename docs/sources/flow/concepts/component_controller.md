@@ -9,6 +9,22 @@ canonical: https://grafana.com/docs/agent/latest/flow/concepts/component_control
 description: Learn about the component controller
 title: Component controller
 weight: 200
+refs:
+  prometheus.exporter.unix:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/reference/components/prometheus.exporter.unix/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/reference/components/prometheus.exporter.unix/
+  components:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/concepts/components/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/concepts/components/
+  run:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/reference/cli/run/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/reference/cli/run/
 ---
 
 # Component controller
@@ -24,7 +40,7 @@ The component controller is responsible for:
 
 ## Component graph
 
-A relationship between [components][Components] is created when an expression is used to set the argument of one component to an exported field of another component.
+A relationship between [components](ref:components) is created when an expression is used to set the argument of one component to an exported field of another component.
 
 The set of all components and the relationships between them define a [Directed Acyclic Graph][DAG] (DAG),
 which informs the component controller which references are valid and in what order components must be evaluated.
@@ -59,7 +75,7 @@ Components that don't depend on other components can be evaluated anytime during
 
 ## Component reevaluation
 
-A [component][Components] is dynamic. A component can update its exports any number of times throughout its lifetime.
+A [component](ref:components) is dynamic. A component can update its exports any number of times throughout its lifetime.
 
 A _controller reevaluation_ is triggered when a component updates its exports.
 The component controller reevaluates any component that references the changed component, any components that reference those components,
@@ -97,11 +113,11 @@ If your `local.file` component, which watches API keys, suddenly stops working, 
 
 ## In-memory traffic
 
-Components that expose HTTP endpoints, such as [prometheus.exporter.unix][], can expose an internal address that completely bypasses the network and communicate in-memory.
+Components that expose HTTP endpoints, such as [prometheus.exporter.unix](ref:prometheus.exporter.unix), can expose an internal address that completely bypasses the network and communicate in-memory.
 Components within the same process can communicate with one another without needing to be aware of any network-level protections such as authentication or mutual TLS.
 
 The internal address defaults to `agent.internal:12345`.
-If this address collides with a real target on your network, change it to something unique using the `--server.http.memory-addr` flag in the [run][] command.
+If this address collides with a real target on your network, change it to something unique using the `--server.http.memory-addr` flag in the [run](ref:run) command.
 
 Components must opt-in to using in-memory traffic.
 Refer to the individual documentation for components to learn if in-memory traffic is supported.
@@ -115,11 +131,3 @@ All components managed by the controller are reevaluated after reloading.
 
 [DAG]: https://en.wikipedia.org/wiki/Directed_acyclic_graph
 
-{{% docs/reference %}}
-[prometheus.exporter.unix]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/prometheus.exporter.unix.md"
-[prometheus.exporter.unix]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/components/prometheus.exporter.unix.md"
-[run]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/cli/run.md"
-[run]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/cli/run.md"
-[Components]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/components.md"
-[Components]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/concepts/components.md"
-{{% /docs/reference %}}
