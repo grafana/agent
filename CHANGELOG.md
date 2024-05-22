@@ -10,6 +10,9 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+v0.41.0-rc.1 (2024-05-22)
+-------------------------
+
 ### Breaking changes
 
 - The default listen port for `otelcol.receiver.opencensus` has changed from

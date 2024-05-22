@@ -36,6 +36,10 @@ Other release notes for the different {{< param "PRODUCT_ROOT_NAME" >}} variants
 The default listen port for `otelcol.receiver.opencensus` has changed from 4317 to 55678 to align with the upstream defaults.
 To retain the previous listen port, explicitly set the `endpoint` argument to `0.0.0.0:4317` before upgrading.
 
+### Breaking change: default `mimir.rules.kubernetes` sync interval changed
+
+The default sync interval for `mimir.rules.kubernetes` has changed from `30s` to `5m` to reduce load on Mimir.
+
 ## v0.40
 
 ### Breaking change: Prohibit the configuration of services within modules.
