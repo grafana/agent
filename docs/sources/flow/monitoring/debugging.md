@@ -8,6 +8,32 @@ canonical: https://grafana.com/docs/agent/latest/flow/monitoring/debugging/
 description: Learn about debugging
 title: Debugging
 weight: 300
+refs:
+  clustering:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/concepts/clustering/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/concepts/clustering/
+  logging:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/reference/config-blocks/logging/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/reference/config-blocks/logging/
+  grafana-agent-run:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/reference/cli/run/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/reference/cli/run/
+  secret:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/config-language/expressions/types_and_values/#secrets.md
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/config-language/expressions/types_and_values/#secrets.md
+  install:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/setup/install/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/setup/install/
 ---
 
 # Debugging
@@ -28,7 +54,7 @@ server, which defaults to listening at `http://localhost:12345`.
 > prevents other machines on the network from being able to view the UI.
 >
 > To expose the UI to other machines on the network on non-containerized
-> platforms, refer to the documentation for how you [installed][install]
+> platforms, refer to the documentation for how you [installed](ref:install)
 > {{< param "PRODUCT_NAME" >}}.
 >
 > If you are running a custom installation of {{< param "PRODUCT_NAME" >}}, refer to the
@@ -67,7 +93,7 @@ The component detail page shows the following information for each component:
 * The current exports for the component.
 * The current debug info for the component (if the component has debug info).
 
-> Values marked as a [secret][] are obfuscated and will display as the text
+> Values marked as a [secret](ref:secret) are obfuscated and will display as the text
 > `(secret)`.
 
 ### Clustering page
@@ -94,16 +120,16 @@ To debug using the UI:
 Logs may also help debug issues with {{< param "PRODUCT_NAME" >}}.
 
 To reduce logging noise, many components hide debugging info behind debug-level
-log lines. It is recommended that you configure the [`logging` block][logging]
+log lines. It is recommended that you configure the [`logging` block](ref:logging)
 to show debug-level log lines when debugging issues with {{< param "PRODUCT_NAME" >}}.
 
 The location of {{< param "PRODUCT_NAME" >}} logs is different based on how it is deployed.
-Refer to the [`logging` block][logging] page to see how to find logs for your
+Refer to the [`logging` block](ref:logging) page to see how to find logs for your
 system.
 
 ## Debugging clustering issues
 
-To debug issues when using [clustering][], check for the following symptoms.
+To debug issues when using [clustering](ref:clustering), check for the following symptoms.
 
 - **Cluster not converging**: The cluster peers are not converging on the same
   view of their peers' status. This is most likely due to network connectivity
@@ -126,16 +152,4 @@ down and set its state to Terminating, but it has not completely gone away. Chec
 the clustering page to view the state of the peers and verify that the
 terminating {{< param "PRODUCT_ROOT_NAME" >}} has been shut down.
 
-{{% docs/reference %}}
-[logging]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/config-blocks/logging.md"
-[logging]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/config-blocks/logging.md"
-[clustering]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/clustering.md"
-[clustering]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/concepts/clustering.md"
-[install]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/setup/install"
-[install]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/setup/install"
-[secret]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/config-language/expressions/types_and_values.md#secrets.md"
-[secret]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/config-language/expressions/types_and_values.md#secrets.md"
-[grafana-agent run]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/cli/run.md"
-[grafana-agent run]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/cli/run.md"
-{{% /docs/reference %}}
 

@@ -9,6 +9,12 @@ canonical: https://grafana.com/docs/agent/latest/flow/config-language/expression
 description: Learn about function calls
 title: Function calls
 weight: 400
+refs:
+  standard-library:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/reference/stdlib/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/reference/stdlib/
 ---
 
 # Function calls
@@ -22,7 +28,7 @@ If a function fails, the expression isn't evaluated, and an error is reported.
 
 ## Standard library functions
 
-River contains a [standard library][] of functions.
+River contains a [standard library](ref:standard-library) of functions.
 Some functions enable interaction with the host system, for example, reading from an environment variable.
 Some functions allow for more complex expressions, for example, concatenating arrays or decoding JSON strings into objects.
 
@@ -31,7 +37,3 @@ env("HOME")
 json_decode(local.file.cfg.content)["namespace"]
 ```
 
-{{% docs/reference %}}
-[standard library]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/stdlib"
-[standard library]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/stdlib"
-{{% /docs/reference %}}
