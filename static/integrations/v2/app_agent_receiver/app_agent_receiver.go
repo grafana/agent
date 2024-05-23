@@ -82,7 +82,7 @@ func (c *Config) NewIntegration(l log.Logger, globals integrations.Globals) (int
 			if tracesInstance == nil {
 				return nil, fmt.Errorf("traces instance \"%s\" not found", c.TracesInstance)
 			}
-			factory := tracesInstance.GetFactory(component.KindReceiver, pushreceiver.TypeStr)
+			factory := tracesInstance.GetFactory(component.KindReceiver, component.MustNewType(pushreceiver.TypeStr))
 			if factory == nil {
 				return nil, fmt.Errorf("push receiver factory not found for traces instance \"%s\"", c.TracesInstance)
 			}
