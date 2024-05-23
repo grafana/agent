@@ -132,8 +132,8 @@ Configuration reference:
   # Ex: us-east-2
   sts_region: <string>
 
-  # Optional: AWS SDK version.
-  [aws_sdk_version: <string> | default = "v2"]
+  # Optional: Use AWS SDK version 2.
+  [aws_sdk_version_v2: <bool> | default = false]
   
   # Optional: Disable use of FIPS endpoints. Set 'true' when running outside of USA regions.
   [fips_disabled: <boolean> | default = false]
