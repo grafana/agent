@@ -7,6 +7,12 @@ description: Learn how to start, restart, and stop Grafana Agent in static mode
 menuTitle: Start static mode
 title: Start, restart, and stop Grafana Agent in static mode
 weight: 200
+refs:
+  configure:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/static/set-up/install/install-agent-macos/#configure
+    - pattern: /docs/grafana-cloud/
+      destination: ./install/install-agent-macos/#configure
 ---
 
 # Start, restart, and stop Grafana Agent in static mode
@@ -106,7 +112,7 @@ brew services stop grafana-agent
 By default, logs are written to `$(brew --prefix)/var/log/grafana-agent.log` and
 `$(brew --prefix)/var/log/grafana-agent.err.log`.
 
-If you followed [Configure][configure] steps in the macOS install instructions and changed the path where logs are written, refer to your current copy of the Grafana Agent formula to locate your log files.
+If you followed [Configure](ref:configure) steps in the macOS install instructions and changed the path where logs are written, refer to your current copy of the Grafana Agent formula to locate your log files.
 
 ## Windows
 
@@ -156,7 +162,3 @@ Replace the following:
 * `BINARY_PATH`: The path to the Grafana Agent binary file
 * `CONFIG_FILE`: The path to the Grafana Agent configuration file.
 
-{{% docs/reference %}}
-[configure]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/static/set-up/install/install-agent-macos#configure"
-[configure]: "/docs/grafana-cloud/ -> ./install/install-agent-macos/#configure"
-{{% /docs/reference %}}

@@ -10,11 +10,22 @@ description: Learn how to filter Prometheus metrics
 menuTitle: Filter Prometheus metrics
 title: Filter Prometheus metrics
 weight: 300
+refs:
+  prometheus.relabel:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/reference/components/prometheus.relabel/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/reference/components/prometheus.relabel/
+  collecting-prometheus-metrics:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/tutorials/collecting-prometheus-metrics/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/tutorials/collecting-prometheus-metrics/
 ---
 
 # Filter Prometheus metrics
 
-In this tutorial, you'll add a new component [prometheus.relabel][] using [relabel.river][] to filter metrics. This tutorial uses the same base as [Collecting Prometheus metrics][].
+In this tutorial, you'll add a new component [prometheus.relabel](ref:prometheus.relabel) using [relabel.river][] to filter metrics. This tutorial uses the same base as [Collecting Prometheus metrics](ref:collecting-prometheus-metrics).
 
 ## Prerequisites
 
@@ -58,9 +69,3 @@ Open the `relabel.river` file that was downloaded and change the name of the ser
 [Grafana]: http://localhost:3000/explore?orgId=1&left=%5B%22now-1h%22,%22now%22,%22Mimir%22,%7B%22refId%22:%22A%22,%22instant%22:true,%22range%22:true,%22exemplar%22:true,%22expr%22:%22agent_build_info%7B%7D%22%7D%5D
 [relabel.river]: https://grafana.com/docs/agent/<AGENT_VERSION>/flow/tutorials/assets/flow_configs/relabel.river
 
-{{% docs/reference %}}
-[prometheus.relabel]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/components/prometheus.relabel.md"
-[prometheus.relabel]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/components/prometheus.relabel.md"
-[Collecting Prometheus metrics]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/tutorials/collecting-prometheus-metrics.md"
-[Collecting Prometheus metrics]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/tutorials/collecting-prometheus-metrics.md"
-{{% /docs/reference %}}

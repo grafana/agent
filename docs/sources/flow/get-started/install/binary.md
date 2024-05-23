@@ -16,6 +16,12 @@ description: Learn how to install Grafana Agent Flow as a standalone binary
 menuTitle: Standalone
 title: Install Grafana Agent Flow as a standalone binary
 weight: 600
+refs:
+  run:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/get-started/run/binary/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/get-started/run/binary/
 ---
 
 # Install {{% param "PRODUCT_NAME" %}} as a standalone binary
@@ -51,9 +57,5 @@ To download {{< param "PRODUCT_NAME" >}} as a standalone binary, perform the fol
 
 ## Next steps
 
-- [Run {{< param "PRODUCT_NAME" >}}][Run]
+- [Run {{< param "PRODUCT_NAME" >}}](ref:run)
 
-{{% docs/reference %}}
-[Run]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/get-started/run/binary.md"
-[Run]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/get-started/run/binary.md"
-{{% /docs/reference %}}
