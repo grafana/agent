@@ -9,6 +9,9 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+const val0 = "val0"
+const val1 = "val1"
+
 func TestNewCache(t *testing.T) {
 	type args struct {
 		size int
@@ -155,8 +158,8 @@ func TestCache_RemoveEvictedItems(t *testing.T) {
 				if err != nil {
 					return nil, err
 				}
-				cache.evictedItems["key0"] = "val0"
-				cache.evictedItems["key1"] = "val1"
+				cache.evictedItems["key0"] = val0
+				cache.evictedItems["key1"] = val1
 				return cache, nil
 			},
 		},
@@ -191,8 +194,8 @@ func TestCache_PurgeItems(t *testing.T) {
 				if err != nil {
 					return nil, err
 				}
-				cache.evictedItems["key0"] = "val0"
-				cache.evictedItems["key1"] = "val1"
+				cache.evictedItems["key0"] = val0
+				cache.evictedItems["key1"] = val1
 				return cache, nil
 			},
 		},
@@ -205,8 +208,8 @@ func TestCache_PurgeItems(t *testing.T) {
 				}
 				cache.Add("key", "val")
 				cache.Add("key2", "val2")
-				cache.evictedItems["key0"] = "val0"
-				cache.evictedItems["key1"] = "val1"
+				cache.evictedItems["key0"] = val0
+				cache.evictedItems["key1"] = val1
 				return cache, nil
 			},
 		},
