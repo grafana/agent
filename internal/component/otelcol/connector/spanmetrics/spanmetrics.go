@@ -67,7 +67,7 @@ type Arguments struct {
 
 	// MetricsExpiration is the time period after which metrics are considered stale and are removed from the cache.
 	// Default value (0) means that the metrics will never expire.
-	MetricsExpiration time.Duration `alloy:"metrics_expiration,attr,optional"`
+	MetricsExpiration time.Duration `river:"metrics_expiration,attr,optional"`
 
 	// Namespace is the namespace of the metrics emitted by the connector.
 	Namespace string `river:"namespace,attr,optional"`

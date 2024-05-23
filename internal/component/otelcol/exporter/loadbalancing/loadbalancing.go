@@ -137,7 +137,7 @@ type ResolverSettings struct {
 	Kubernetes *KubernetesResolver `river:"kubernetes,block,optional"`
 	// TODO: add AWSCloudMap
 	// https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/27588
-	//AWSCloudMap *AWSCloudMapResolver `alloy:"aws_cloud_map,block,optional"`
+	//AWSCloudMap *AWSCloudMapResolver `river:"aws_cloud_map,block,optional"`
 }
 
 func (resolverSettings ResolverSettings) Convert() loadbalancingexporter.ResolverSettings {
@@ -205,9 +205,9 @@ func (dnsResolver *DNSResolver) Convert() loadbalancingexporter.DNSResolver {
 
 // KubernetesResolver defines the configuration for the k8s resolver
 type KubernetesResolver struct {
-	Service string        `alloy:"service,attr"`
-	Ports   []int32       `alloy:"ports,attr,optional"`
-	Timeout time.Duration `alloy:"timeout,attr,optional"`
+	Service string        `river:"service,attr"`
+	Ports   []int32       `river:"ports,attr,optional"`
+	Timeout time.Duration `river:"timeout,attr,optional"`
 }
 
 var _ river.Defaulter = &KubernetesResolver{}

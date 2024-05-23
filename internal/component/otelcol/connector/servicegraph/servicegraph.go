@@ -59,7 +59,7 @@ type Arguments struct {
 
 	// DatabaseNameAttribute is the attribute name used to identify the database name from span attributes.
 	// The default value is db.name
-	DatabaseNameAttribute string `alloy:"database_name_attribute,attr,optional"`
+	DatabaseNameAttribute string `river:"database_name_attribute,attr,optional"`
 
 	// Output configures where to send processed data. Required.
 	Output *otelcol.ConsumerArguments `river:"output,block"`
