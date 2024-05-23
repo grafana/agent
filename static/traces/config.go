@@ -47,6 +47,7 @@ import (
 	"github.com/grafana/agent/static/traces/pushreceiver"
 	"github.com/grafana/agent/static/traces/remotewriteexporter"
 	"github.com/grafana/agent/static/traces/servicegraphprocessor"
+	"github.com/grafana/agent/static/traces/spanmetricsprocessor"
 )
 
 const (

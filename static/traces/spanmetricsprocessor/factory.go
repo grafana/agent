@@ -12,7 +12,7 @@ import (
 	"go.opentelemetry.io/collector/consumer"
 	"go.opentelemetry.io/collector/processor"
 
-	"github.com/grafana/alloy/internal/static/traces/spanmetricsprocessor/internal/metadata"
+	"github.com/grafana/agent/static/traces/spanmetricsprocessor/internal/metadata"
 )
 
 // NewFactory creates a factory for the spanmetrics processor.

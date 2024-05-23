@@ -80,9 +80,6 @@ Main (unreleased)
 - Resync defaults for `otelcol.processor.k8sattributes` with upstream. (@hainenber)
 
 - Resync defaults for `otelcol.exporter.otlp` and `otelcol.exporter.otlphttp` with upstream. (@hainenber)
-
-- Remove setcap for `cap_net_bind_service` to allow alloy to run in restricted environments.
-  Modern container runtimes allow binding to unprivileged ports as non-root. (@BlackDex)
   
 - Upgrading from OpenTelemetry v0.96.0 to v0.99.0.
   - `otelcol.processor.batch`: Prevent starting unnecessary goroutines.

@@ -23,7 +23,7 @@ import (
 	conventions "go.opentelemetry.io/collector/semconv/v1.6.1"
 	"go.uber.org/zap"
 
-	"github.com/grafana/alloy/internal/static/traces/spanmetricsprocessor/internal/cache"
+	"github.com/grafana/agent/static/traces/spanmetricsprocessor/internal/cache"
 )
 
 const (

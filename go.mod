@@ -603,7 +603,6 @@ require (
 	github.com/Shopify/sarama v1.38.1
 	github.com/githubexporter/github-exporter v0.0.0-20231025122338-656e7dc33fe7
 	github.com/grafana/agent-remote-config v0.0.2
-	github.com/grafana/alloy v1.1.0
 	github.com/grafana/jfr-parser/pprof v0.0.0-20240126072739-986e71dc0361
 	github.com/grafana/jsonparser v0.0.0-20240209175146-098958973a2d
 	github.com/grafana/kafka_exporter v0.0.0-20240409084445-5e3488ad9f9a
@@ -626,8 +625,17 @@ require (
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/detectors/gcp v1.22.0 // indirect
 	github.com/Showmax/go-fqdn v1.0.0 // indirect
 	github.com/Workiva/go-datastructures v1.1.0 // indirect
+	github.com/aws/aws-sdk-go-v2/service/amp v1.23.0 // indirect
+	github.com/aws/aws-sdk-go-v2/service/apigateway v1.22.0 // indirect
+	github.com/aws/aws-sdk-go-v2/service/apigatewayv2 v1.19.0 // indirect
+	github.com/aws/aws-sdk-go-v2/service/autoscaling v1.38.0 // indirect
+	github.com/aws/aws-sdk-go-v2/service/databasemigrationservice v1.36.0 // indirect
+	github.com/aws/aws-sdk-go-v2/service/ec2 v1.149.1 // indirect
+	github.com/aws/aws-sdk-go-v2/service/resourcegroupstaggingapi v1.20.0 // indirect
 	github.com/aws/aws-sdk-go-v2/service/secretsmanager v1.27.0 // indirect
 	github.com/aws/aws-sdk-go-v2/service/servicediscovery v1.29.5 // indirect
+	github.com/aws/aws-sdk-go-v2/service/shield v1.24.0 // indirect
+	github.com/aws/aws-sdk-go-v2/service/storagegateway v1.26.0 // indirect
 	github.com/axiomhq/hyperloglog v0.0.0-20240124082744-24bca3a5b39b // indirect
 	github.com/channelmeter/iso8601duration v0.0.0-20150204201828-8da3af7a2a61 // indirect
 	github.com/cloudflare/circl v1.3.7 // indirect
