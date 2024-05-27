@@ -8,14 +8,25 @@ canonical: https://grafana.com/docs/agent/latest/flow/reference/config-blocks/ar
 description: Learn about the argument configuration block
 menuTitle: argument
 title: argument block
+refs:
+  declare:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/reference/config-blocks/declare/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/reference/config-blocks/declare/
+  custom-component:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/concepts/custom_components/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/concepts/custom_components/
 ---
 
 # argument block
 
-`argument` is an optional configuration block used to specify parameterized input to a [custom component][].
+`argument` is an optional configuration block used to specify parameterized input to a [custom component](ref:custom-component).
 `argument` blocks must be given a label which determines the name of the argument.
 
-The `argument` block may only be specified inside the definition of [a `declare` block][declare].
+The `argument` block may only be specified inside the definition of [a `declare` block](ref:declare).
 
 {{< admonition type="note" >}}
 In [classic modules][], the `argument` block is valid as a top-level block in a classic module.
@@ -81,9 +92,3 @@ declare "self_collect" {
 }
 ```
 
-{{% docs/reference %}}
-[custom component]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/custom_components"
-[custom component]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/concepts/custom_components"
-[declare]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/reference/config-blocks/declare"
-[declare]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/reference/config-blocks/declare"
-{{% /docs/reference %}}
