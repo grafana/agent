@@ -152,6 +152,9 @@ Full reference of options:
 
   # walk_param config to use for this snmp_target
   [walk_params: <string> | default = ""]
+
+  # snmp_context overrides the `context_name` parameter in the SNMP configuration file.
+  [snmp_context: <string> | default = ""]
 ```
 
 ## walk_param config

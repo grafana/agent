@@ -19,11 +19,12 @@ func toSnmpExporter(config *snmp_exporter.Config) *snmp.Arguments {
 	targets := make([]snmp.SNMPTarget, len(config.SnmpTargets))
 	for i, t := range config.SnmpTargets {
 		targets[i] = snmp.SNMPTarget{
-			Name:       common.SanitizeIdentifierPanics(t.Name),
-			Target:     t.Target,
-			Module:     t.Module,
-			Auth:       t.Auth,
-			WalkParams: t.WalkParams,
+			Name:        common.SanitizeIdentifierPanics(t.Name),
+			Target:      t.Target,
+			Module:      t.Module,
+			Auth:        t.Auth,
+			WalkParams:  t.WalkParams,
+			SNMPContext: t.SNMPContext,
 		}
 	}
 
@@ -67,11 +68,12 @@ func toSnmpExporterV2(config *snmp_exporter_v2.Config) *snmp.Arguments {
 	targets := make([]snmp.SNMPTarget, len(config.SnmpTargets))
 	for i, t := range config.SnmpTargets {
 		targets[i] = snmp.SNMPTarget{
-			Name:       common.SanitizeIdentifierPanics(t.Name),
-			Target:     t.Target,
-			Module:     t.Module,
-			Auth:       t.Auth,
-			WalkParams: t.WalkParams,
+			Name:        common.SanitizeIdentifierPanics(t.Name),
+			Target:      t.Target,
+			Module:      t.Module,
+			Auth:        t.Auth,
+			WalkParams:  t.WalkParams,
+			SNMPContext: t.SNMPContext,
 		}
 	}
 
