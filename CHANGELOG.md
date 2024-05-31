@@ -51,6 +51,9 @@ v0.41.0-rc.1 (2024-05-22)
 
 - A new `loki.rules.kubernetes` component that discovers `PrometheusRule` Kubernetes resources and loads them into a Loki Ruler instance. (@EStork09)
 
+- A new `snmp_context` configuration argument for `prometheus.exporter.snmp` and the `snmp` Static mode integration.
+  It overrides the `context_name` parameter in the SNMP configuration file. (@ptodev)
+
 ### Bugfixes
 
 - Fix panic for `prometheus.exporter.snmp` and snmp_exporter integration
