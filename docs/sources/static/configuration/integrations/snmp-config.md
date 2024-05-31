@@ -15,7 +15,7 @@ which is an embedded version of
 [`snmp_exporter`](https://github.com/prometheus/snmp_exporter). This allows collection of SNMP metrics from the network devices with ease.
 
 {{< admonition type="note" >}}
-`snmp config` uses the latest configuration introduced in version 0.23 of the Prometheus `snmp_exporter`.
+`snmp config` uses the latest configuration introduced in version 0.26 of the Prometheus `snmp_exporter`.
 {{< /admonition >}}
 
 ## Quick configuration example
@@ -167,6 +167,9 @@ Full reference of options:
 
   # walk_param config to use for this snmp_target
   [walk_params: <string> | default = ""]
+
+  # snmp_context overrides the `context_name` parameter in the SNMP configuration file.
+  [snmp_context: <string> | default = ""]
 ```
 
 ## walk_param config
