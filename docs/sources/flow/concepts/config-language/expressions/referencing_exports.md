@@ -15,6 +15,12 @@ canonical: https://grafana.com/docs/agent/latest/flow/concepts/config-language/e
 description: Learn about referencing component exports
 title: Referencing component exports
 weight: 200
+refs:
+  type:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/concepts/config-language/expressions/types_and_values/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/concepts/config-language/expressions/types_and_values/
 ---
 
 # Referencing component exports
@@ -56,11 +62,7 @@ In the preceding example, you wired together a very simple pipeline by writing a
 
 ![Flow of example pipeline](/media/docs/agent/flow_referencing_exports_diagram.svg)
 
-After the value is resolved, it must match the [type][] of the attribute it is assigned to.
+After the value is resolved, it must match the [type](ref:type) of the attribute it is assigned to.
 While you can only configure attributes using the basic River types,
 the exports of components can take on special internal River types, such as Secrets or Capsules, which expose different functionality.
 
-{{% docs/reference %}}
-[type]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/config-language/expressions/types_and_values"
-[type]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/concepts/config-language/expressions/types_and_values"
-{{% /docs/reference %}}

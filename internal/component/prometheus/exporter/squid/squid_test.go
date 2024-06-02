@@ -4,7 +4,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/grafana/agent/internal/static/integrations/squid_exporter"
+	"github.com/grafana/agent/static/integrations/squid_exporter"
 	"github.com/grafana/river"
 	"github.com/grafana/river/rivertypes"
 	"github.com/prometheus/common/config"

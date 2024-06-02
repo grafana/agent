@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"log"
 
-	gragent "github.com/grafana/agent/internal/static/operator/apis/monitoring/v1alpha1"
+	gragent "github.com/grafana/agent/static/operator/apis/monitoring/v1alpha1"
 	promop_v1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	"github.com/testcontainers/testcontainers-go/modules/k3s"
 	apiextensions_v1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"

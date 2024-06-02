@@ -10,6 +10,12 @@ description: Learn how to install Grafana Agent Flow with Chef
 menuTitle: Chef
 title: Install Grafana Agent Flow with Chef
 weight: 550
+refs:
+  configure:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/tasks/configure/configure-linux/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/tasks/configure/configure-linux/
 ---
 
 # Install {{% param "PRODUCT_NAME" %}} with Chef
@@ -94,11 +100,7 @@ The default configuration file location is `/etc/grafana-agent-flow.river`. You 
 
 ## Next steps
 
-- [Configure {{< param "PRODUCT_NAME" >}}][Configure]
+- [Configure {{< param "PRODUCT_NAME" >}}](ref:configure)
 
 [Chef]: https://www.chef.io/products/chef-infrastructure-management/
 
-{{% docs/reference %}}
-[Configure]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/tasks/configure/configure-linux.md"
-[Configure]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/tasks/configure/configure-linux.md"
-{{% /docs/reference %}}

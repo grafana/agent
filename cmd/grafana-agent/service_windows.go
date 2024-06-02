@@ -8,9 +8,9 @@ import (
 	"os"
 
 	"github.com/go-kit/log/level"
-	"github.com/grafana/agent/internal/static/config"
-	"github.com/grafana/agent/internal/static/server"
 	util_log "github.com/grafana/agent/internal/util/log"
+	"github.com/grafana/agent/static/config"
+	"github.com/grafana/agent/static/server"
 
 	"golang.org/x/sys/windows/svc"
 )

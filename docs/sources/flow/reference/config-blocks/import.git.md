@@ -7,6 +7,10 @@ aliases:
 canonical: https://grafana.com/docs/agent/latest/flow/reference/config-blocks/import.git/
 description: Learn about the import.git configuration block
 title: import.git
+refs:
+  module:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/concepts/modules/
 ---
 
 # import.git
@@ -113,7 +117,3 @@ math.add "default" {
 [basic_auth]: #basic_auth-block
 [ssh_key]: #ssh_key-block
 
-{{% docs/reference %}}
-[module]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/concepts/modules"
-[module]:"/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/concepts/modules"
-{{% /docs/reference %}}

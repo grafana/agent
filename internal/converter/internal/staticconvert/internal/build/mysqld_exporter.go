@@ -3,7 +3,7 @@ package build
 import (
 	"github.com/grafana/agent/internal/component/discovery"
 	"github.com/grafana/agent/internal/component/prometheus/exporter/mysql"
-	"github.com/grafana/agent/internal/static/integrations/mysqld_exporter"
+	"github.com/grafana/agent/static/integrations/mysqld_exporter"
 	"github.com/grafana/river/rivertypes"
 )
 

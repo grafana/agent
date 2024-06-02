@@ -7,6 +7,27 @@ This document contains a historical list of changes between releases. Only
 changes that impact end-user behavior are listed; changes to documentation or
 internal API changes are not present.
 
+0.40.0 (2024-05-31)
+----------
+
+### Enhancements
+
+- Update Grafana Agent version to v0.41.0. (@erikbaranowski)
+
+0.39.0 (2024-05-15)
+----------
+
+### Enhancements
+
+- Update Grafana Agent version to v0.40.5. (@ptodev)
+
+0.38.0 (2024-04-12)
+----------
+
+### Enhancements
+
+- Update Grafana Agent version to v0.40.4. (@ptodev)
+
 0.37.0 (2024-03-14)
 ----------
 
