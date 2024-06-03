@@ -47,6 +47,8 @@ v0.41.0 (2024-05-31)
 
 - Propagate request metadata for `faro.receiver` to downstream components. (@hainenber)
 
+- Allow `prometheus.operators.*` components to accept relabel rules exported from `prometheus.relabel`. (@hainenber) 
+
 ### Features
 
 - A new `loki.rules.kubernetes` component that discovers `PrometheusRule` Kubernetes resources and loads them into a Loki Ruler instance. (@EStork09)
