@@ -183,7 +183,7 @@ If `use_api` is enabled, 'where_clause' won't be effective.
 The Windows API is more performant than WMI. Set `use_api` to `true` in situations when the WMI takes too long to get the service information.
 Setting `use_api` to `true` does have a few disadvantages compared to using WMI:
 * WMI queries in `where_clause` won't work.
-* The `status` field of the service won't be reported. Instead, use the `state` property. It has the same information, albeit formatted differently.
+* The `status` field of the service is not available. You can use the `state` property to retrieve status information. This property provides the same information, but it is formatted differently.
 
 
 ### smtp block
