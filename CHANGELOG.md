@@ -7,11 +7,9 @@ This document contains a historical list of changes between releases. Only
 changes that impact end-user behavior are listed; changes to documentation or
 internal API changes are not present.
 
-Main (unreleased)
------------------
+## Main (unreleased)
 
-v0.41.1 (2024-06-07)
---------------------
+## v0.41.1 (2024-06-07)
 
 ### Breaking changes
 
@@ -23,9 +21,7 @@ v0.41.1 (2024-06-07)
 
 - Updated pyroscope to v0.4.6 introducing `symbols_map_size` and `pid_map_size` configuration. (@simonswine)
 
-
-v0.41.0 (2024-05-31)
---------------------
+## v0.41.0 (2024-05-31)
 
 ### Breaking changes
 
@@ -70,6 +66,8 @@ v0.41.0 (2024-05-31)
 - A new `snmp_context` configuration argument for `prometheus.exporter.snmp` and the `snmp` Static mode integration.
   It overrides the `context_name` parameter in the SNMP configuration file. (@ptodev)
 
+- `prometheus.exporter.catchpoint` collects metrics from Catchpoint instance.
+
 ### Bugfixes
 
 - Fix panic for `prometheus.exporter.snmp` and snmp_exporter integration
@@ -103,8 +101,7 @@ v0.41.0 (2024-05-31)
 
 - Resync defaults for `otelcol.exporter.otlp` and `otelcol.exporter.otlphttp` with upstream. (@hainenber)
 
-v0.40.5 (2024-05-15)
---------------------
+## v0.40.5 (2024-05-15)
 
 ### Breaking changes
 
@@ -135,28 +132,28 @@ v0.40.5 (2024-05-15)
 
 - Updating SNMP exporter from v0.24.1 to v0.26.0.
 
-v0.40.4 (2024-04-12)
---------------------
+## v0.40.4 (2024-04-12)
 
 ### Security fixes
 
 - Fixes following vulnerabilities (@ptodev)
-  * [CVE-2024-27304](https://github.com/advisories/GHSA-mrww-27vc-gghv)
-  * [CVE-2024-27289](https://github.com/advisories/GHSA-m7wr-2xf7-cm9p)
-  * [CVE-2024-28180](https://github.com/advisories/GHSA-c5q2-7r4c-mv6g)
-  * [CVE-2024-24786](https://github.com/advisories/GHSA-8r3f-844c-mc37)
+  - [CVE-2024-27304](https://github.com/advisories/GHSA-mrww-27vc-gghv)
+  - [CVE-2024-27289](https://github.com/advisories/GHSA-m7wr-2xf7-cm9p)
+  - [CVE-2024-28180](https://github.com/advisories/GHSA-c5q2-7r4c-mv6g)
+  - [CVE-2024-24786](https://github.com/advisories/GHSA-8r3f-844c-mc37)
 
 ### Enhancements
 
 - Update `prometheus.exporter.kafka` with the following functionalities (@wildum):
-  * GSSAPI config
-  * enable/disable PA_FX_FAST
-  * set a TLS server name
-  * show the offset/lag for all consumer group or only the connected ones
-  * set the minimum number of topics to monitor
-  * enable/disable auto-creation of requested topics if they don't already exist
-  * regex to exclude topics / groups 
-  * added metric kafka_broker_info
+
+  - GSSAPI config
+  - enable/disable PA_FX_FAST
+  - set a TLS server name
+  - show the offset/lag for all consumer group or only the connected ones
+  - set the minimum number of topics to monitor
+  - enable/disable auto-creation of requested topics if they don't already exist
+  - regex to exclude topics / groups
+  - added metric kafka_broker_info
 
 - In `prometheus.exporter.kafka`, the interpolation table used to compute estimated lag metrics is now pruned
   on `metadata_refresh_interval` instead of `prune_interval_seconds`. (@wildum)
@@ -165,8 +162,7 @@ v0.40.4 (2024-04-12)
 
 - Update gcp_exporter to a newer version with a patch for incorrect delta histograms (@kgeckhart)
 
-v0.40.3 (2024-03-14)
---------------------
+## v0.40.3 (2024-03-14)
 
 ### Bugfixes
 
@@ -179,110 +175,109 @@ v0.40.3 (2024-03-14)
 - Upgrade to Go 1.22.1 (@thampiotr)
 
 - Upgrade from OpenTelemetry Collector v0.87.0 to v0.96.0:
-  * [ottl]: Fix bug where named parameters needed a space after the equal sign (`=`)
-https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/28511
-  * [exporters] Additional enqueue_failed metrics
-https://github.com/open-telemetry/opentelemetry-collector/issues/8673
-  * [otelcol.receiver.kafka]: Fix issue where counting number of logs emitted could cause panic
-  * [otelcol.processor.k8sattributes]: The time format of k8s.pod.start_time attribute value migrated to RFC3339:
-Before: 2023-07-10 12:34:39.740638 -0700 PDT m=+0.020184946
-After: 2023-07-10T12:39:53.112485-07:00
-https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/28817
-  * [otelcol.processor.tail_sampling] A new `upper_threshold_ms` argument for the `latency` policy.
-https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/26115
-  * [otelcol.connector.spanmetrics] Add a new `events` metric.
-https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/27451
-  * [otelcol.connector.spanmetrics] A new `max_per_data_point` argument for exemplar generation.
-  * https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/29242
-  * [ottl] Add IsBool Converter
-https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/27897
-  * [otelcol.processor.tail_sampling] Optimize memory performance of tailsamplingprocessor
-https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/27889
-  * [otelcol.connector.servicegraph] Add a `metrics_flush_interval` argument.
-https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/27679
-  * [ottl] Add IsDouble Converter
-https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/27895
-  * [ottl] Add new `silent` ErrorMode
-https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/29710
-  * [otelcol.connector.spanmetrics] A new `resource_metrics_cache_size` argument.
-https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/27654
-  * [ottl] Add IsInt Converter
-https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/27894
-  * [ottl] Validate that all path elements are used
-https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/30042
-  * [ottl] Validate Keys are used
-https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/30162
-  * [otelcol.receiver.vcenter] Add statement of support for version 8 of ESXi and vCenter
-https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/30274
-  * [ottl] Add Hour converter
-https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/29468
-  * [otelcol.connector.spanmetrics] A new `resource_metrics_key_attributes` argument to fix broken spanmetrics counters
-  after a span producing service restart, when resource attributes contain dynamic/ephemeral values (e.g. process id).
-https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/29711
-  * [ottl] Issue with the hash value of a match group in the replace_pattern editors
-https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/29409
-  * [ottl] Fix bug where IsBool wasn't usable
-https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/30151
-  * [ottl] Add flatten function
-https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/30455
-  * [ottl] Fix bugs with parsing of string escapes in OTTL
-https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/23238
-  * [ottl]: Add functions for parsing CSV
-https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/30921
-  * [ottl] Allow users to specify the format of the hashed replacement string in the `replace_pattern` editors
-https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/27820
-  * [ottl] Add ParseKeyValue function
-https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/30998
-  * [otelcol.receiver.opencensus] Fix memory leak on shutdown
-https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/31152
-  * [otelcol.processor.memory_limiter] Fix leaking goroutine
-https://github.com/open-telemetry/opentelemetry-collector/issues/9099
-  * Additional `http2_read_idle_timeout` and `http2_ping_timeout` arguments for HTTP clients
-https://github.com/open-telemetry/opentelemetry-collector/pull/9022
-  * [otelcol.auth.bearer] Fix for "401 Unauthorized" on HTTP connections
-https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/24656
+  - [ottl]: Fix bug where named parameters needed a space after the equal sign (`=`)
+    https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/28511
+  - [exporters] Additional enqueue_failed metrics
+    https://github.com/open-telemetry/opentelemetry-collector/issues/8673
+  - [otelcol.receiver.kafka]: Fix issue where counting number of logs emitted could cause panic
+  - [otelcol.processor.k8sattributes]: The time format of k8s.pod.start_time attribute value migrated to RFC3339:
+    Before: 2023-07-10 12:34:39.740638 -0700 PDT m=+0.020184946
+    After: 2023-07-10T12:39:53.112485-07:00
+    https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/28817
+  - [otelcol.processor.tail_sampling] A new `upper_threshold_ms` argument for the `latency` policy.
+    https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/26115
+  - [otelcol.connector.spanmetrics] Add a new `events` metric.
+    https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/27451
+  - [otelcol.connector.spanmetrics] A new `max_per_data_point` argument for exemplar generation.
+  - https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/29242
+  - [ottl] Add IsBool Converter
+    https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/27897
+  - [otelcol.processor.tail_sampling] Optimize memory performance of tailsamplingprocessor
+    https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/27889
+  - [otelcol.connector.servicegraph] Add a `metrics_flush_interval` argument.
+    https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/27679
+  - [ottl] Add IsDouble Converter
+    https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/27895
+  - [ottl] Add new `silent` ErrorMode
+    https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/29710
+  - [otelcol.connector.spanmetrics] A new `resource_metrics_cache_size` argument.
+    https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/27654
+  - [ottl] Add IsInt Converter
+    https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/27894
+  - [ottl] Validate that all path elements are used
+    https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/30042
+  - [ottl] Validate Keys are used
+    https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/30162
+  - [otelcol.receiver.vcenter] Add statement of support for version 8 of ESXi and vCenter
+    https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/30274
+  - [ottl] Add Hour converter
+    https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/29468
+  - [otelcol.connector.spanmetrics] A new `resource_metrics_key_attributes` argument to fix broken spanmetrics counters
+    after a span producing service restart, when resource attributes contain dynamic/ephemeral values (e.g. process id).
+    https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/29711
+  - [ottl] Issue with the hash value of a match group in the replace_pattern editors
+    https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/29409
+  - [ottl] Fix bug where IsBool wasn't usable
+    https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/30151
+  - [ottl] Add flatten function
+    https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/30455
+  - [ottl] Fix bugs with parsing of string escapes in OTTL
+    https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/23238
+  - [ottl]: Add functions for parsing CSV
+    https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/30921
+  - [ottl] Allow users to specify the format of the hashed replacement string in the `replace_pattern` editors
+    https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/27820
+  - [ottl] Add ParseKeyValue function
+    https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/30998
+  - [otelcol.receiver.opencensus] Fix memory leak on shutdown
+    https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/31152
+  - [otelcol.processor.memory_limiter] Fix leaking goroutine
+    https://github.com/open-telemetry/opentelemetry-collector/issues/9099
+  - Additional `http2_read_idle_timeout` and `http2_ping_timeout` arguments for HTTP clients
+    https://github.com/open-telemetry/opentelemetry-collector/pull/9022
+  - [otelcol.auth.bearer] Fix for "401 Unauthorized" on HTTP connections
+    https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/24656
+
 * Update to OTLP 1.1
-https://github.com/open-telemetry/opentelemetry-collector/pull/9588
-  * [otelcol.auth.basic] Accept empty usernames.
-https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/30470
-  * [exporters] Do not re-enqueue failed batches, rely on the `retry_on_failure` strategy instead.
-https://github.com/open-telemetry/opentelemetry-collector/issues/8382
-  * [otelcol.exporter.otlphttp] A `Host` header is added automatically.
-https://github.com/open-telemetry/opentelemetry-collector/issues/9395
-  * [exporters] PartialSuccess is treated as success, logged as warning.
-https://github.com/open-telemetry/opentelemetry-collector/issues/9243
-  * [otelcol.exporter.otlphttp] Supports JSON encoding through an additional `encoding` argument.
-https://github.com/open-telemetry/opentelemetry-collector/issues/6945
-  * [exporters] A new `include_system_ca_certs_pool` argument for TLS config.
-https://github.com/open-telemetry/opentelemetry-collector/issues/7774
-  * [otelcol.receiver.vcenter] The receiver emits vCenter performance metrics with object metric label dimension.
-https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/30615
-  * [otelcol.processor.transform] Add copy_metric function
-https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/30846
-  * [otelcol.exporter.loadbalancing] Optimized CPU performance
-https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/30141
-  * [otelcol.processor.k8sattributes] Set attributes from namespace/node labels or annotations even if node/namespaces attribute are not set.
-https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/28837
-  * [otelcol.receiver.kafka] An additional `resolve_canonical_bootstrap_servers_only` argument
-https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/26022
-  * [otelcol.receiver.kafka] Add Azure Resource Log Support
-https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/18210
-  * [otelcol.processor.resourcedetection] Add a `k8s.cluster.name` resource attribute for AKS and EKS.
-https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/26794
-  * [otelcol.processor.resourcedetection] Add detection of `host.ip` to system detector.
-https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/24450
-  * [otelcol.processor.resourcedetection] Add detection of `host.mac` to system detector.
-https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/29587
-  * [otelcol.processor.resourcedetection] Change type of `host.cpu.model.id` and `host.cpu.model.family` to string.
-https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/29025
-  * [otelcol.processor.resourcedetection] Add a `aws.ecs.task.id` attribute
-https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/8274
-  * [otelcol.exporter.otlp] Additional RPC debug metrics such as `rpc_client_duration_milliseconds`.
-  * [otelcol.receiver.otlp] Additional RPC debug metrics such as `rpc_server_duration_milliseconds`.
+  https://github.com/open-telemetry/opentelemetry-collector/pull/9588
+  - [otelcol.auth.basic] Accept empty usernames.
+    https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/30470
+  - [exporters] Do not re-enqueue failed batches, rely on the `retry_on_failure` strategy instead.
+    https://github.com/open-telemetry/opentelemetry-collector/issues/8382
+  - [otelcol.exporter.otlphttp] A `Host` header is added automatically.
+    https://github.com/open-telemetry/opentelemetry-collector/issues/9395
+  - [exporters] PartialSuccess is treated as success, logged as warning.
+    https://github.com/open-telemetry/opentelemetry-collector/issues/9243
+  - [otelcol.exporter.otlphttp] Supports JSON encoding through an additional `encoding` argument.
+    https://github.com/open-telemetry/opentelemetry-collector/issues/6945
+  - [exporters] A new `include_system_ca_certs_pool` argument for TLS config.
+    https://github.com/open-telemetry/opentelemetry-collector/issues/7774
+  - [otelcol.receiver.vcenter] The receiver emits vCenter performance metrics with object metric label dimension.
+    https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/30615
+  - [otelcol.processor.transform] Add copy_metric function
+    https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/30846
+  - [otelcol.exporter.loadbalancing] Optimized CPU performance
+    https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/30141
+  - [otelcol.processor.k8sattributes] Set attributes from namespace/node labels or annotations even if node/namespaces attribute are not set.
+    https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/28837
+  - [otelcol.receiver.kafka] An additional `resolve_canonical_bootstrap_servers_only` argument
+    https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/26022
+  - [otelcol.receiver.kafka] Add Azure Resource Log Support
+    https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/18210
+  - [otelcol.processor.resourcedetection] Add a `k8s.cluster.name` resource attribute for AKS and EKS.
+    https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/26794
+  - [otelcol.processor.resourcedetection] Add detection of `host.ip` to system detector.
+    https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/24450
+  - [otelcol.processor.resourcedetection] Add detection of `host.mac` to system detector.
+    https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/29587
+  - [otelcol.processor.resourcedetection] Change type of `host.cpu.model.id` and `host.cpu.model.family` to string.
+    https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/29025
+  - [otelcol.processor.resourcedetection] Add a `aws.ecs.task.id` attribute
+    https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/8274
+  - [otelcol.exporter.otlp] Additional RPC debug metrics such as `rpc_client_duration_milliseconds`.
+  - [otelcol.receiver.otlp] Additional RPC debug metrics such as `rpc_server_duration_milliseconds`.
 
-
-v0.40.2 (2024-03-05)
---------------------
+## v0.40.2 (2024-03-05)
 
 ### Bugfixes
 
@@ -304,8 +299,7 @@ v0.40.2 (2024-03-05)
 
 - Change the Docker base image for Linux containers to `public.ecr.aws/ubuntu/ubuntu:mantic`. (@hainenber)
 
-v0.40.1 (2024-02-27)
---------------------
+## v0.40.1 (2024-02-27)
 
 ### Bugfixes
 
@@ -315,8 +309,7 @@ v0.40.1 (2024-02-27)
 
 - Fix an issue where flow mode panics if the `logging` config block is given a `null` Loki receiver to write log entries to. (@rfratto)
 
-v0.40.0 (2024-02-27)
---------------------
+## v0.40.0 (2024-02-27)
 
 ### Breaking changes
 
@@ -423,7 +416,7 @@ v0.40.0 (2024-02-27)
 
 - Fix OTEL metrics not getting collected after reload. (@hainenber)
 
-- Fix bug in `pyroscope.ebpf` component when elf's PT_LOAD section is not page aligned. [PR](https://github.com/grafana/pyroscope/pull/2983)  (@korniltsev)
+- Fix bug in `pyroscope.ebpf` component when elf's PT_LOAD section is not page aligned. [PR](https://github.com/grafana/pyroscope/pull/2983) (@korniltsev)
 
 - Pyroscope eBPF profiling now respects the PID namespace Grafana Agent is running in. [PR](https://github.com/grafana/pyroscope/pull/3008) (@simonswine)
 
@@ -450,8 +443,7 @@ v0.40.0 (2024-02-27)
 
 - Migrate away from EoL'ed `github.com/aws-sdk-go` v1. (@hainenber)
 
-v0.39.2 (2024-1-31)
---------------------
+## v0.39.2 (2024-1-31)
 
 ### Bugfixes
 
@@ -460,8 +452,7 @@ v0.39.2 (2024-1-31)
 - An error will be returned in the converter from Static to Flow when `scrape_integration` is set
   to `true` but no `remote_write` is defined. (@erikbaranowski)
 
-v0.39.1 (2024-01-19)
---------------------
+## v0.39.1 (2024-01-19)
 
 ### Security fixes
 
@@ -474,14 +465,14 @@ v0.39.1 (2024-01-19)
 
 - Fix issue where installing the Windows Agent Flow installer would hang then crash. (@mattdurham)
 
-v0.39.0 (2024-01-09)
---------------------
+## v0.39.0 (2024-01-09)
 
 ### Breaking changes
 
 - `otelcol.receiver.prometheus` will drop all `otel_scope_info` metrics when converting them to OTLP. (@wildum)
+
   - If the `otel_scope_info` metric has labels `otel_scope_name` and `otel_scope_version`,
-    their values will be used to set OTLP Instrumentation Scope name and  version respectively.
+    their values will be used to set OTLP Instrumentation Scope name and version respectively.
   - Labels of `otel_scope_info` metrics other than `otel_scope_name` and `otel_scope_version`
     are added as scope attributes with the matching name and version.
 
@@ -545,6 +536,7 @@ v0.39.0 (2024-01-09)
 - Added 'country' mmdb-type to log pipeline-stage geoip. (@superstes)
 
 - Azure exporter enhancements for flow and static mode, (@kgeckhart)
+
   - Allows for pulling metrics at the Azure subscription level instead of resource by resource
   - Disable dimension validation by default to reduce the number of exporter instances needed for full dimension coverage
 
@@ -592,8 +584,7 @@ v0.39.0 (2024-01-09)
   Previously, a custom fork of v2.47.2 was used.
   The custom fork of v2.47.2 also contained prometheus#12729 and prometheus#12677.
 
-v0.38.1 (2023-11-30)
---------------------
+## v0.38.1 (2023-11-30)
 
 ### Security fixes
 
@@ -624,8 +615,7 @@ v0.38.1 (2023-11-30)
 
 - Add Agent Deploy Mode to usage report. (@captncraig)
 
-v0.38.0 (2023-11-21)
---------------------
+## v0.38.0 (2023-11-21)
 
 ### Breaking changes
 
@@ -656,13 +646,13 @@ v0.38.0 (2023-11-21)
 
 - Update version of River:
 
-    - River now supports raw strings, which are strings surrounded by backticks
-      instead of double quotes. Raw strings can span multiple lines, and do not
-      support any escape sequences. (@erikbaranowski)
+  - River now supports raw strings, which are strings surrounded by backticks
+    instead of double quotes. Raw strings can span multiple lines, and do not
+    support any escape sequences. (@erikbaranowski)
 
-    - River now permits using `[]` to access non-existent keys in an object.
-      When this is done, the access evaluates to `null`, such that `{}["foo"]
-      == null` is true. (@rfratto)
+  - River now permits using `[]` to access non-existent keys in an object.
+    When this is done, the access evaluates to `null`, such that `{}["foo"]
+== null` is true. (@rfratto)
 
 - Added support for python profiling to `pyroscope.ebpf` component. (@korniltsev)
 
@@ -738,7 +728,7 @@ v0.38.0 (2023-11-21)
 
 - Allow the usage of encodings other than UTF8 to be used with environment variable expansion. (@mattdurham)
 
-- Fixed an issue where native histogram time series were being dropped silently.  (@krajorama)
+- Fixed an issue where native histogram time series were being dropped silently. (@krajorama)
 
 - Fix validation issue with ServiceMonitors when scrape timeout is greater than interval. (@captncraig)
 
@@ -796,8 +786,7 @@ v0.38.0 (2023-11-21)
 - `loki.source.windowsevent` and `loki.source.*` changed to use a more robust positions file to prevent corruption on reboots when writing
   the positions file. (@mattdurham)
 
-v0.37.4 (2023-11-06)
------------------
+## v0.37.4 (2023-11-06)
 
 ### Enhancements
 
@@ -812,12 +801,11 @@ v0.37.4 (2023-11-06)
 - Added Kubernetes service resolver to static node's loadbalancing exporter
   and to Flow's `otelcol.exporter.loadbalancing`. (@ptodev)
 
-v0.37.3 (2023-10-26)
------------------
+## v0.37.3 (2023-10-26)
 
 ### Bugfixes
 
-- Fixed an issue where native histogram time series were being dropped silently.  (@krajorama)
+- Fixed an issue where native histogram time series were being dropped silently. (@krajorama)
 
 - Fix an issue where `remote.vault` ignored the `namespace` argument. (@rfratto)
 
@@ -836,8 +824,7 @@ v0.37.3 (2023-10-26)
   - `otelcol.receiver.kafka` has a new `version` argument to change the version of
     the SASL Protocol for SASL authentication.
 
-v0.37.2 (2023-10-16)
------------------
+## v0.37.2 (2023-10-16)
 
 ### Bugfixes
 
@@ -863,16 +850,14 @@ v0.37.2 (2023-10-16)
 
 - Use Go 1.21.3 for builds. (@tpaschalis)
 
-v0.37.1 (2023-10-10)
------------------
+## v0.37.1 (2023-10-10)
 
 ### Bugfixes
 
 - Fix the initialization of the default namespaces map for the operator and the
   loki.source.kubernetes component. (@wildum)
 
-v0.37.0 (2023-10-10)
------------------
+## v0.37.0 (2023-10-10)
 
 ### Breaking changes
 
@@ -937,7 +922,7 @@ v0.37.0 (2023-10-10)
 - Clustering: add IPv6 support when using advertise interfaces to assign IP addresses. (@wildum)
 
 - Add a `file_watch` block in `loki.source.file` to configure how often to poll files from disk for changes via `min_poll_frequency` and `max_poll_frequency`.
-  In static mode it can be configured in the global `file_watch_config` via `min_poll_frequency` and `max_poll_frequency`.  (@wildum)
+  In static mode it can be configured in the global `file_watch_config` via `min_poll_frequency` and `max_poll_frequency`. (@wildum)
 
 - Flow: In `prometheus.exporter.blackbox`, allow setting labels for individual targets. (@spartan0x117)
 
@@ -964,7 +949,7 @@ v0.37.0 (2023-10-10)
   remote_write to free memory associated with removed series sooner. (@rfratto)
 
 - Added a `disable_high_cardinality_metrics` configuration flag to `otelcol`
-  exporters and receivers to switch high cardinality debug metrics off.  (@glindstedt)
+  exporters and receivers to switch high cardinality debug metrics off. (@glindstedt)
 
 - `loki.source.kafka` component now exposes internal label `__meta_kafka_offset`
   to indicate offset of consumed message. (@hainenber)
@@ -989,6 +974,7 @@ v0.37.0 (2023-10-10)
 - Agent Management: Honor 503 ServiceUnavailable `Retry-After` header. (@jcreixell)
 
 - Bump opentelemetry-collector and opentelemetry-collector-contrib versions from v0.80 to v0.85 (@wildum):
+
   - add `authoriy` attribute to `otelcol.exporter.loadbalancing` to override the default value in gRPC requests.
   - add `exemplars` support to `otelcol.connector.spanmetrics`.
   - add `exclude_dimensions` attribute to `otelcol.connector.spanmetrics` to exclude dimensions from the default set.
@@ -1075,8 +1061,7 @@ v0.37.0 (2023-10-10)
 
 - Migrate NodeJS installation in CI build image away from installation script. (@hainenber)
 
-v0.36.2 (2023-09-22)
---------------------
+## v0.36.2 (2023-09-22)
 
 ### Bugfixes
 
@@ -1088,8 +1073,7 @@ v0.36.2 (2023-09-22)
 
 - Fix `loki.source.file` race condition in cleaning up metrics when stopping to tail files. (@thampiotr)
 
-v0.36.1 (2023-09-06)
---------------------
+## v0.36.1 (2023-09-06)
 
 ### Bugfixes
 
@@ -1121,8 +1105,7 @@ v0.36.1 (2023-09-06)
 
 - Operator: Update default config reloader version. (@captncraig)
 
-v0.36.0 (2023-08-30)
---------------------
+## v0.36.0 (2023-08-30)
 
 > **BREAKING CHANGES**: This release has breaking changes. Please read entries
 > carefully and consult the [upgrade guide][] for specific instructions.
@@ -1144,7 +1127,7 @@ v0.36.0 (2023-08-30)
 - Add [godeltaprof](https://github.com/grafana/godeltaprof) profiling types (`godeltaprof_memory`, `godeltaprof_mutex`, `godeltaprof_block`) to `pyroscope.scrape` component
 
 - Flow: Allow the `logging` configuration block to tee the Agent's logs to one
-  or more loki.* components. (@tpaschalis)
+  or more loki.\* components. (@tpaschalis)
 
 - Added support for `promtail` configuration conversion in `grafana-agent convert` and `grafana-agent run` commands. (@thampiotr)
 
@@ -1172,7 +1155,6 @@ v0.36.0 (2023-08-30)
   - `otelcol.processor.discovery` adds resource attributes to spans, where the attributes
     keys and values are sourced from `discovery.*` components. (@ptodev)
   - `otelcol.connector.spanmetrics` - creates OpenTelemetry metrics from traces. (@ptodev)
-
 
 ### Enhancements
 
@@ -1231,8 +1213,7 @@ v0.36.0 (2023-08-30)
 
 - Agent Management: Fix issue where an integration defined multiple times could lead to undefined behaviour. (@jcreixell)
 
-v0.35.4 (2023-08-14)
---------------------
+## v0.35.4 (2023-08-14)
 
 ### Bugfixes
 
@@ -1242,8 +1223,7 @@ v0.35.4 (2023-08-14)
 
 - Clarify usage documentation surrounding `loki.source.file` (@joshuapare)
 
-v0.35.3 (2023-08-09)
---------------------
+## v0.35.3 (2023-08-09)
 
 ### Bugfixes
 
@@ -1260,8 +1240,7 @@ v0.35.3 (2023-08-09)
 - Fix graceful termination when receiving SIGTERM/CTRL_SHUTDOWN_EVENT
   signals. (@tpaschalis)
 
-v0.35.2 (2023-07-27)
---------------------
+## v0.35.2 (2023-07-27)
 
 ### Bugfixes
 
@@ -1284,8 +1263,7 @@ v0.35.2 (2023-07-27)
   `grafana-agentctl test-logs` functions as expected when testing tailing the
   systemd journal. (@rfratto)
 
-v0.35.1 (2023-07-25)
---------------------
+## v0.35.1 (2023-07-25)
 
 ### Bugfixes
 
@@ -1293,8 +1271,7 @@ v0.35.1 (2023-07-25)
   Users of the static mode's service graph processor are also advised to upgrade,
   although the bug should theoretically not affect them. (@ptodev)
 
-v0.35.0 (2023-07-18)
---------------------
+## v0.35.0 (2023-07-18)
 
 > **BREAKING CHANGES**: This release has breaking changes. Please read entries
 > carefully and consult the [upgrade guide][] for specific instructions.
@@ -1320,7 +1297,9 @@ v0.35.0 (2023-07-18)
   (@rfratto)
 
 - In the traces subsystem for Static mode, some metrics are removed and others are renamed. (@ptodev)
+
   - Removed metrics:
+
     - "blackbox_exporter_config_last_reload_success_timestamp_seconds" (gauge)
     - "blackbox_exporter_config_last_reload_successful" (gauge)
     - "blackbox_module_unknown_total" (counter)
@@ -1446,6 +1425,7 @@ v0.35.0 (2023-07-18)
 - Allow `prometheus.exporter.snmp` and SNMP integration to be configured passing a YAML block. (@marctc)
 
 - Some metrics have been added to the traces subsystem for Static mode. (@ptodev)
+
   - "traces_processor_batch_batch_send_size" (histogram)
   - "traces_processor_batch_batch_size_trigger_send_total" (counter)
   - "traces_processor_batch_metadata_cardinality" (gauge)
@@ -1461,7 +1441,6 @@ v0.35.0 (2023-07-18)
 
 - Fix issue where `remote.http` incorrectly had a status of "Unknown" until the
   period specified by the polling frquency elapsed. (@rfratto)
-
 
 - Add signing region to remote.s3 component for use with custom endpoints so that Authorization Headers work correctly when
   proxying requests. (@mattdurham)
@@ -1499,8 +1478,7 @@ v0.35.0 (2023-07-18)
 
 - Clustering for Grafana Agent in flow mode has graduated from experimental to beta.
 
-v0.34.3 (2023-06-27)
---------------------
+## v0.34.3 (2023-06-27)
 
 ### Bugfixes
 
@@ -1508,8 +1486,7 @@ v0.34.3 (2023-06-27)
 - Enforce sha256 digest signing for rpms enabling installation on FIPS-enabled OSes. (@kfriedrich123)
 - Fix panic from improper startup ordering in `prometheus.operator.servicemonitors`. (@captncraig)
 
-v0.34.2 (2023-06-20)
---------------------
+## v0.34.2 (2023-06-20)
 
 ### Enhancements
 
@@ -1526,8 +1503,7 @@ v0.34.2 (2023-06-20)
 
 - Mongodb integration has been disabled for the time being due to licensing issues. (@jcreixell)
 
-v0.34.1 (2023-06-12)
---------------------
+## v0.34.1 (2023-06-12)
 
 ### Bugfixes
 
@@ -1548,8 +1524,7 @@ v0.34.1 (2023-06-12)
 
 - Add logging to failed requests in `remote.http`. (@rfratto)
 
-v0.34.0 (2023-06-08)
---------------------
+## v0.34.0 (2023-06-08)
 
 ### Breaking changes
 
@@ -1566,6 +1541,7 @@ v0.34.0 (2023-06-08)
 ### Features
 
 - New Grafana Agent Flow components:
+
   - `loki.source.api` - receive Loki log entries over HTTP (e.g. from other agents). (@thampiotr)
   - `prometheus.operator.servicemonitors` discovers ServiceMonitor resources in your Kubernetes cluster and scrape
     the targets they reference. (@captncraig, @marctc, @jcreixell)
@@ -1682,8 +1658,7 @@ v0.34.0 (2023-06-08)
 - Change the Docker base image for Linux containers to `ubuntu:lunar`.
   (@rfratto)
 
-v0.33.2 (2023-05-11)
---------------------
+## v0.33.2 (2023-05-11)
 
 ### Bugfixes
 
@@ -1719,8 +1694,7 @@ v0.33.2 (2023-05-11)
 - The `phlare.scrape` Flow component `fetch profile failed` log has been set to
   `debug` instead of `error`. (@erikbaranowski)
 
-v0.33.1 (2023-05-01)
---------------------
+## v0.33.1 (2023-05-01)
 
 ### Bugfixes
 
@@ -1744,8 +1718,7 @@ v0.33.1 (2023-05-01)
 
 - Support Bundles report the status of discovered log targets. (@tpaschalis)
 
-v0.33.0 (2023-04-25)
---------------------
+## v0.33.0 (2023-04-25)
 
 ### Breaking changes
 
@@ -1754,12 +1727,12 @@ v0.33.0 (2023-04-25)
   compiler issues are resolved and 32-bit ARM builds are stable. (@rfratto)
 
 - Agent Management: `agent_management.api_url` config field has been replaced by
-`agent_management.host`. The API path and version is now defined by the Agent. (@jcreixell)
+  `agent_management.host`. The API path and version is now defined by the Agent. (@jcreixell)
 
 - Agent Management: `agent_management.protocol` config field now allows defining "http" and "https" explicitly. Previously, "http" was previously used for both, with the actual protocol used inferred from the api url, which led to confusion. When upgrading, make sure to set to "https" when replacing `api_url` with `host`. (@jcreixell)
 
 - Agent Management: `agent_management.remote_config_cache_location` config field has been replaced by
-`agent_management.remote_configuration.cache_location`. (@jcreixell)
+  `agent_management.remote_configuration.cache_location`. (@jcreixell)
 
 - Remove deprecated symbolic links to to `/bin/agent*` in Docker containers,
   as planned in v0.31. (@tpaschalis)
@@ -1802,7 +1775,7 @@ v0.33.0 (2023-04-25)
     the targets they reference. (@captncraig, @marctc, @jcreixell)
   - `prometheus.exporter.windows` collects metrics from a Windows instance. (@jkroepke)
   - `prometheus.exporter.memcached` collects metrics from a Memcached server. (@spartan0x117)
-  - `loki.source.azure_event_hubs` reads messages from Azure Event Hub using Kafka and forwards them to other   `loki` components. (@akselleirv)
+  - `loki.source.azure_event_hubs` reads messages from Azure Event Hub using Kafka and forwards them to other `loki` components. (@akselleirv)
 
 - Add support for Flow-specific system packages:
 
@@ -1937,8 +1910,7 @@ v0.33.0 (2023-04-25)
 - Update prometheus.remote_write defaults to match new prometheus
   remote-write defaults. (@erikbaranowski)
 
-v0.32.1 (2023-03-06)
---------------------
+## v0.32.1 (2023-03-06)
 
 ### Bugfixes
 
@@ -1953,8 +1925,7 @@ v0.32.1 (2023-03-06)
   defaulted incorrectly to the container name, causing tailers to never
   restart. (@rfratto)
 
-v0.32.0 (2023-02-28)
---------------------
+## v0.32.0 (2023-02-28)
 
 ### Breaking changes
 
@@ -2103,8 +2074,7 @@ v0.32.0 (2023-02-28)
   - `phlare.scrape` is explicitly marked as beta.
   - `phlare.write` is explicitly marked as beta.
 
-v0.31.3 (2023-02-13)
---------------------
+## v0.31.3 (2023-02-13)
 
 ### Bugfixes
 
@@ -2115,16 +2085,14 @@ v0.31.3 (2023-02-13)
 - `loki.source.cloudflare`: fix issue where `api_token` argument was not marked
   as a sensitive field. (@rfratto)
 
-v0.31.2 (2023-02-08)
---------------------
+## v0.31.2 (2023-02-08)
 
 ### Other changes
 
 - In the Agent Operator, upgrade the `prometheus-config-reloader` dependency
   from version 0.47.0 to version 0.62.0. (@ptodev)
 
-v0.31.1 (2023-02-06)
---------------------
+## v0.31.1 (2023-02-06)
 
 > **BREAKING CHANGES**: This release has breaking changes. Please read entries
 > carefully and consult the [upgrade guide][] for specific instructions.
@@ -2139,8 +2107,7 @@ v0.31.1 (2023-02-06)
 - Support Go 1.20 for builds. Official release binaries are still produced
   using Go 1.19. (@rfratto)
 
-v0.31.0 (2023-01-31)
---------------------
+## v0.31.0 (2023-01-31)
 
 > **BREAKING CHANGES**: This release has breaking changes. Please read entries
 > carefully and consult the [upgrade guide][] for specific instructions.
@@ -2235,8 +2202,7 @@ v0.31.0 (2023-01-31)
 
 - New windows containers for agent and agentctl. These can be found moving forward with the ${Version}-windows tags for grafana/agent and grafana/agentctl docker images (@erikbaranowski)
 
-v0.30.2 (2023-01-11)
---------------------
+## v0.30.2 (2023-01-11)
 
 ### Bugfixes
 
@@ -2252,8 +2218,7 @@ v0.30.2 (2023-01-11)
 - Operator: Fix the handling of the enableHttp2 field as a boolean in
   `pod_monitor` and `service_monitor` templates. (@tpaschalis)
 
-v0.30.1 (2022-12-23)
---------------------
+## v0.30.1 (2022-12-23)
 
 ### Bugfixes
 
@@ -2261,8 +2226,7 @@ v0.30.1 (2022-12-23)
 
 - Fix issue where some traces' metrics where not collected. (@marctc)
 
-v0.30.0 (2022-12-20)
---------------------
+## v0.30.0 (2022-12-20)
 
 > **BREAKING CHANGES**: This release has breaking changes. Please read entries
 > carefully and consult the [upgrade guide][] for specific instructions.
@@ -2367,8 +2331,7 @@ v0.30.0 (2022-12-20)
 
 - Grafana Agent Flow has graduated from experimental to beta.
 
-v0.29.0 (2022-11-08)
---------------------
+## v0.29.0 (2022-11-08)
 
 > **BREAKING CHANGES**: This release has breaking changes. Please read entries
 > carefully and consult the [upgrade guide][] for specific instructions.
@@ -2493,8 +2456,7 @@ v0.29.0 (2022-11-08)
 
 - Use Go 1.19.3 for builds. (@rfratto)
 
-v0.28.1 (2022-11-03)
---------------------
+## v0.28.1 (2022-11-03)
 
 ### Security
 
@@ -2503,8 +2465,7 @@ v0.28.1 (2022-11-03)
   vulnerable to these issues, but the base image has been updated to remove the
   report from image scanners. (@rfratto)
 
-v0.28.0 (2022-09-29)
---------------------
+## v0.28.0 (2022-09-29)
 
 ### Features
 
@@ -2529,8 +2490,7 @@ v0.28.0 (2022-09-29)
 
 - Add metrics for config reloads and config hash (@jcreixell)
 
-v0.27.1 (2022-09-09)
---------------------
+## v0.27.1 (2022-09-09)
 
 > **NOTE**: ARMv6 Docker images are no longer being published.
 >
@@ -2544,8 +2504,7 @@ v0.27.1 (2022-09-09)
 
 - Switch docker image base from debian to ubuntu. (@captncraig)
 
-v0.27.0 (2022-09-01)
---------------------
+## v0.27.0 (2022-09-01)
 
 ### Features
 
@@ -2571,7 +2530,7 @@ v0.27.0 (2022-09-01)
 ### Bugfixes
 
 - Tracing: Fixed issue with the PromSD processor using the `connection` method to discover the IP
-  address.  It was failing to match because the port number was included in the address string. (@jphx)
+  address. It was failing to match because the port number was included in the address string. (@jphx)
 
 - Register prometheus discovery metrics. (@mattdurham)
 
@@ -2589,8 +2548,7 @@ v0.27.0 (2022-09-01)
 
 - It is now possible to compile Grafana Agent using Go 1.19. (@rfratto)
 
-v0.26.1 (2022-07-25)
---------------------
+## v0.26.1 (2022-07-25)
 
 > **BREAKING CHANGES**: This release has breaking changes. Please read entries
 > carefully and consult the [upgrade guide][] for specific instructions.
@@ -2606,8 +2564,7 @@ v0.26.1 (2022-07-25)
 
 - Build the Linux/AMD64 artifacts using the opt-out flag for the ebpf_exporter. (@tpaschalis)
 
-v0.26.0 (2022-07-18)
---------------------
+## v0.26.0 (2022-07-18)
 
 > **BREAKING CHANGES**: This release has breaking changes. Please read entries
 > carefully and consult the [upgrade guide][] for specific instructions.
@@ -2639,8 +2596,7 @@ v0.26.0 (2022-07-18)
 
 - Fix mongodb exporter so that it now collects all metrics. (@mattdurham)
 
-v0.25.1 (2022-06-16)
---------------------
+## v0.25.1 (2022-06-16)
 
 ### Bugfixes
 
@@ -2648,8 +2604,7 @@ v0.25.1 (2022-06-16)
 
 - Unwrap replayWAL error before attempting corruption repair. (@rlankfo)
 
-v0.25.0 (2022-06-06)
---------------------
+## v0.25.0 (2022-06-06)
 
 > **BREAKING CHANGES**: This release has breaking changes. Please read entries
 > carefully and consult the [upgrade guide][] for specific instructions.
@@ -2695,7 +2650,7 @@ v0.25.0 (2022-06-06)
 
 ### Bugfixes
 
-- Scraping service was not honoring the new server grpc flags `server.grpc.address`.  (@mattdurham)
+- Scraping service was not honoring the new server grpc flags `server.grpc.address`. (@mattdurham)
 
 ### Other changes
 
@@ -2705,15 +2660,14 @@ v0.25.0 (2022-06-06)
 - Use Go 1.18 for builds. (@rfratto)
 
 - Add `metrics` prefix to the url of list instances endpoint (`GET
-  /agent/api/v1/instances`) and list targets endpoint (`GET
-  /agent/api/v1/metrics/targets`). (@marctc)
+/agent/api/v1/instances`) and list targets endpoint (`GET
+/agent/api/v1/metrics/targets`). (@marctc)
 
 - Add extra identifying labels (`job`, `instance`, `agent_hostname`) to eventhandler integration. (@hjet)
 
 - Add `extra_labels` configuration to eventhandler integration. (@hjet)
 
-v0.24.2 (2022-05-02)
---------------------
+## v0.24.2 (2022-05-02)
 
 ### Bugfixes
 
@@ -2723,8 +2677,7 @@ v0.24.2 (2022-05-02)
 
 - Update version of node_exporter to include additional metrics for osx. (@v-zhuravlev)
 
-v0.24.1 (2022-04-14)
---------------------
+## v0.24.1 (2022-04-14)
 
 ### Bugfixes
 
@@ -2749,8 +2702,7 @@ v0.24.1 (2022-04-14)
 - Embed timezone data to enable Promtail pipelines using the `location` field
   on Windows machines. (@tpaschalis)
 
-v0.24.0 (2022-04-07)
---------------------
+## v0.24.0 (2022-04-07)
 
 > **BREAKING CHANGES**: This release has breaking changes. Please read entries
 > carefully and consult the [upgrade guide][] for specific instructions.
@@ -2881,7 +2833,7 @@ v0.24.0 (2022-04-07)
   custom Secrets will now be mounted at
   `/var/lib/grafana-agent/extra-secrets/<secret name>` and custom ConfigMaps
   will now be mounted at `/var/lib/grafana-agent/extra-configmaps/<configmap
-  name>`. This is not a breaking change as it was previously impossible to
+name>`. This is not a breaking change as it was previously impossible to
   properly provide these custom mounts. (@rfratto)
 
 - Flags accidentally prefixed with `-metrics.service..` (two `.` in a row) have
@@ -2895,8 +2847,7 @@ v0.24.0 (2022-04-07)
   will now default to `data-agent/`, the same default WAL directory as
   Prometheus Agent. (@rfratto)
 
-v0.23.0 (2022-02-10)
---------------------
+## v0.23.0 (2022-02-10)
 
 ### Enhancements
 
@@ -2941,8 +2892,7 @@ v0.23.0 (2022-02-10)
 
 - Disable `machine-id` journal vol by default in sample logs manifest (@hjet)
 
-v0.22.0 (2022-01-13)
---------------------
+## v0.22.0 (2022-01-13)
 
 > This release has deprecations. Please read entries carefully and consult
 > the [upgrade guide][] for specific instructions.
@@ -3029,8 +2979,7 @@ v0.22.0 (2022-01-13)
 
 - Remove log-level flag from systemd unit file (@jpkrohling)
 
-v0.21.2 (2021-12-08)
---------------------
+## v0.21.2 (2021-12-08)
 
 ### Security fixes
 
@@ -3044,8 +2993,7 @@ v0.21.2 (2021-12-08)
   `--config.enable-read-api` flag at the command line to opt in to these
   endpoints.
 
-v0.21.1 (2021-11-18)
---------------------
+## v0.21.1 (2021-11-18)
 
 ### Bugfixes
 
@@ -3064,8 +3012,7 @@ v0.21.1 (2021-11-18)
 - Metrics: Only run WAL cleaner when metrics are being used and a WAL is
   configured. (@rfratto)
 
-v0.21.0 (2021-11-17)
---------------------
+## v0.21.0 (2021-11-17)
 
 ### Enhancements
 
@@ -3099,8 +3046,7 @@ v0.21.0 (2021-11-17)
 
 - Traces: Changed service graphs store implementation to improve CPU performance (@mapno)
 
-v0.20.1 (2021-12-08)
---------------------
+## v0.20.1 (2021-12-08)
 
 > _NOTE_: The fixes in this patch are only present in v0.20.1 and >=v0.21.2.
 
@@ -3116,8 +3062,7 @@ v0.20.1 (2021-12-08)
   `--config.enable-read-api` flag at the command line to opt in to these
   endpoints.
 
-v0.20.0 (2021-10-28)
---------------------
+## v0.20.0 (2021-10-28)
 
 > **BREAKING CHANGES**: This release has breaking changes. Please read entries
 > carefully and consult the [upgrade guide][] for specific instructions.
@@ -3149,7 +3094,7 @@ v0.20.0 (2021-10-28)
 
 - Updated elasticsearch_exporter to v1.2.1 (@gaantunes)
 
-- Add remote write to silent Windows Installer  (@mattdurham)
+- Add remote write to silent Windows Installer (@mattdurham)
 
 - Updated mongodb_exporter to v0.20.7 (@rfratto)
 
@@ -3190,8 +3135,7 @@ v0.20.0 (2021-10-28)
 - The windows_exporter now disables the textfile collector by default.
   (@rfratto)
 
-v0.19.0 (2021-09-29)
---------------------
+## v0.19.0 (2021-09-29)
 
 > **BREAKING CHANGES**: This release has breaking changes. Please read entries
 > carefully and consult the [upgrade guide][] for specific instructions.
@@ -3253,7 +3197,7 @@ v0.19.0 (2021-09-29)
 - Allow reloading configuration using `SIGHUP` signal. (@tharun208)
 
 - Add HOSTNAME environment variable to service file to allow for expanding the
-  $HOSTNAME variable in agent config.  (@dfrankel33)
+  $HOSTNAME variable in agent config. (@dfrankel33)
 
 - Update jsonnet-libs to 1.21 for Kubernetes 1.21+ compatability. (@MurzNN)
 
@@ -3293,8 +3237,7 @@ v0.19.0 (2021-09-29)
 
 - Standardize scrape_interval to 1m in examples. (@mattdurham)
 
-v0.18.4 (2021-09-14)
---------------------
+## v0.18.4 (2021-09-14)
 
 ### Enhancements
 
@@ -3308,8 +3251,7 @@ v0.18.4 (2021-09-14)
 - Scraping service: Ensure that a reshard is scheduled every reshard
   interval. (@rfratto)
 
-v0.18.3 (2021-09-08)
---------------------
+## v0.18.3 (2021-09-08)
 
 ### Bugfixes
 
@@ -3330,22 +3272,19 @@ v0.18.3 (2021-09-08)
 - Scraping service: prevent more than one refresh from being queued at a time.
   (@rfratto)
 
-v0.18.2 (2021-08-12)
---------------------
+## v0.18.2 (2021-08-12)
 
 ### Bugfixes
 
 - Honor the prefix and remove prefix from consul list results (@mattdurham)
 
-v0.18.1 (2021-08-09)
---------------------
+## v0.18.1 (2021-08-09)
 
 ### Bugfixes
 
 - Reduce number of consul calls when ran in scrape service mode (@mattdurham)
 
-v0.18.0 (2021-07-29)
---------------------
+## v0.18.0 (2021-07-29)
 
 ### Features
 
@@ -3364,8 +3303,7 @@ v0.18.0 (2021-07-29)
 
 - Enabled flag for integrations is not being honored. (@mattdurham)
 
-v0.17.0 (2021-07-15)
---------------------
+## v0.17.0 (2021-07-15)
 
 ### Features
 
@@ -3377,16 +3315,14 @@ v0.17.0 (2021-07-15)
 - Fix race condition that may occur and result in a panic when initializing
   scraping service cluster. (@rfratto)
 
-v0.16.1 (2021-06-22)
---------------------
+## v0.16.1 (2021-06-22)
 
 ### Bugfixes
 
 - Fix issue where replaying a WAL caused incorrect metrics to be sent over
   remote write. (@rfratto)
 
-v0.16.0 (2021-06-17)
---------------------
+## v0.16.0 (2021-06-17)
 
 ### Features
 
@@ -3407,8 +3343,7 @@ v0.16.0 (2021-06-17)
   that target had gone down for long enough that its series were removed from
   the in-memory cache (2 GC cycles). (@rfratto)
 
-v0.15.0 (2021-06-03)
---------------------
+## v0.15.0 (2021-06-03)
 
 > **BREAKING CHANGES**: This release has breaking changes. Please read entries
 > carefully and consult the [upgrade guide][] for specific instructions.
@@ -3449,8 +3384,7 @@ v0.15.0 (2021-06-03)
 
 - Intentionally order tracing processors. (@joe-elliott)
 
-v0.14.0 (2021-05-24)
---------------------
+## v0.14.0 (2021-05-24)
 
 > **BREAKING CHANGES**: This release has breaking changes. Please read entries
 > carefully and consult the [upgrade guide][] for specific instructions.
@@ -3493,7 +3427,7 @@ v0.14.0 (2021-05-24)
   against the main HTTP server. Instead, two new command-line flags have been
   added: `--reload-addr` and `--reload-port`. These will launch a
   `/-/reload`-only HTTP server that can be used to safely reload the Agent's
-  state.  (@rfratto)
+  state. (@rfratto)
 
 - Add a /-/config endpoint. This endpoint will return the current configuration
   file with defaults applied that the Agent has loaded from disk. (@rfratto)
@@ -3565,8 +3499,7 @@ v0.14.0 (2021-05-24)
 
 - Add `tempo_spanmetrics` namespace in spanmetrics (@mapno)
 
-v0.13.1 (2021-04-09)
---------------------
+## v0.13.1 (2021-04-09)
 
 ### Bugfixes
 
@@ -3574,8 +3507,7 @@ v0.13.1 (2021-04-09)
   label set with duplicate labels, mirroring the behavior of Prometheus.
   (@rfratto)
 
-v0.13.0 (2021-02-25)
---------------------
+## v0.13.0 (2021-02-25)
 
 > The primary branch name has changed from `master` to `main`. You may have to
 > update your local checkouts of the repository to point at the new branch name.
@@ -3614,8 +3546,7 @@ v0.13.0 (2021-02-25)
 - Add the ability to read and serve HTTPS integration metrics when given a set
   certificates (@mattdurham)
 
-v0.12.0 (2021-02-05)
---------------------
+## v0.12.0 (2021-02-05)
 
 > **BREAKING CHANGES**: This release has breaking changes. Please read entries
 > carefully and consult the [upgrade guide][] for specific instructions.
@@ -3651,7 +3582,7 @@ v0.12.0 (2021-02-05)
 - Scraping service: Unhealthy Agents in the ring will no longer cause job
   distribution to fail. (@rfratto)
 
-- Scraping service: Cortex ring metrics (prefixed with cortex_ring_) will now
+- Scraping service: Cortex ring metrics (prefixed with cortex*ring*) will now
   be registered for tracking the state of the hash ring. (@rfratto)
 
 - Scraping service: instance config ownership is now determined by the hash of
@@ -3669,8 +3600,7 @@ v0.12.0 (2021-02-05)
 - `agentctl config-check` will now work correctly when the supplied config file
   contains integrations. (@hoenn)
 
-v0.11.0 (2021-01-20)
---------------------
+## v0.11.0 (2021-01-20)
 
 ### Features
 
@@ -3698,8 +3628,7 @@ v0.11.0 (2021-01-20)
 - The K8s manifests will no longer include the `default/kubernetes` job twice
   in both the DaemonSet and the Deployment. (@rfratto)
 
-v0.10.0 (2021-01-13)
---------------------
+## v0.10.0 (2021-01-13)
 
 ### Features
 
@@ -3736,16 +3665,14 @@ v0.10.0 (2021-01-13)
   This was prevented by accidentally writing to a readonly volume mount.
   (@rfratto)
 
-v0.9.1 (2021-01-04)
--------------------
+## v0.9.1 (2021-01-04)
 
 ### Enhancements
 
 - agentctl will now be installed by the rpm and deb packages as
   `grafana-agentctl`. (@rfratto)
 
-v0.9.0 (2020-12-10)
--------------------
+## v0.9.0 (2020-12-10)
 
 ### Features
 
@@ -3794,8 +3721,7 @@ v0.9.0 (2020-12-10)
 - The User-Agent header sent for logs will now be `GrafanaCloudAgent/<version>`
   (@rfratto)
 
-v0.8.0 (2020-11-06)
--------------------
+## v0.8.0 (2020-11-06)
 
 ### Features
 
@@ -3821,8 +3747,7 @@ v0.8.0 (2020-11-06)
   rather than just logging a generic message saying that retrieving the config
   has failed. (@rfratto)
 
-v0.7.2 (2020-10-29)
--------------------
+## v0.7.2 (2020-10-29)
 
 ### Enhancements
 
@@ -3845,15 +3770,13 @@ v0.7.2 (2020-10-29)
 - Fix issue where the `push_config` for Tempo field was expected to be
   `remote_write`. `push_config` now works as expected. (@rfratto)
 
-v0.7.1 (2020-10-23)
--------------------
+## v0.7.1 (2020-10-23)
 
 ### Bugfixes
 
 - Fix issue where ARM binaries were not published with the GitHub release.
 
-v0.7.0 (2020-10-23)
--------------------
+## v0.7.0 (2020-10-23)
 
 ### Features
 
@@ -3895,8 +3818,7 @@ v0.7.0 (2020-10-23)
   computed by remote_write. This change should not negatively affect existing
   users. (@rfratto)
 
-v0.6.1 (2020-04-11)
--------------------
+## v0.6.1 (2020-04-11)
 
 ### Bugfixes
 
@@ -3909,8 +3831,7 @@ v0.6.1 (2020-04-11)
 - Fix deadlock that slowly prevents the Agent from scraping targets at a high
   scrape volume. (@rfratto)
 
-v0.6.0 (2020-09-04)
--------------------
+## v0.6.0 (2020-09-04)
 
 ### Breaking Changes
 
@@ -3959,7 +3880,7 @@ v0.6.0 (2020-09-04)
 - The subsystems of the Agent (`prometheus`, `loki`) are now made optional.
   Enabling integrations also implicitly enables the associated subsystem. For
   example, enabling the `agent` or `node_exporter` integration will force the
-  `prometheus` subsystem to be enabled.  (@rfratto)
+  `prometheus` subsystem to be enabled. (@rfratto)
 
 ### Bugfixes
 
@@ -3983,8 +3904,7 @@ v0.6.0 (2020-09-04)
 - Fix a panic that may occur during shutdown if the WAL is closed in the middle
   of the WAL being truncated. (@rfratto)
 
-v0.5.0 (2020-08-12)
--------------------
+## v0.5.0 (2020-08-12)
 
 ### Features
 
@@ -4021,8 +3941,7 @@ v0.5.0 (2020-08-12)
   needing to manually set the blocklist and allowlist of filesystems.
   (@rfratto)
 
-v0.4.0 (2020-06-18)
--------------------
+## v0.4.0 (2020-06-18)
 
 ### Features
 
@@ -4049,8 +3968,7 @@ v0.4.0 (2020-06-18)
 - Enable agent host_filter in the Tanka configs, which was disabled by default
   by mistake. (@rfratto)
 
-v0.3.2 (2020-05-29)
--------------------
+## v0.3.2 (2020-05-29)
 
 ### Features
 
@@ -4090,8 +4008,7 @@ v0.3.2 (2020-05-29)
   correctly show the pod name of the Agent instead of the exporter name.
   (@rfratto)
 
-v0.3.1 (2020-05-20)
--------------------
+## v0.3.1 (2020-05-20)
 
 ### Features
 
@@ -4111,8 +4028,7 @@ v0.3.1 (2020-05-20)
 - `agentctl` and the config API will now validate that the YAML they receive
   are valid instance configs. (@rfratto)
 
-v0.3.0 (2020-05-13)
--------------------
+## v0.3.0 (2020-05-13)
 
 ### Features
 
@@ -4139,8 +4055,7 @@ v0.3.0 (2020-05-13)
 - The Grafana Agent Tanka Mixins now are placed in an "Agent" folder within
   Grafana. (@cyriltovena)
 
-v0.2.0 (2020-04-09)
--------------------
+## v0.2.0 (2020-04-09)
 
 ### Features
 
@@ -4150,6 +4065,7 @@ v0.2.0 (2020-04-09)
   (@gotjosh)
 
   These metrics are available to monitor metadata being sent:
+
   - `prometheus_remote_storage_succeeded_metadata_total`
   - `prometheus_remote_storage_failed_metadata_total`
   - `prometheus_remote_storage_retried_metadata_total`
@@ -4169,8 +4085,7 @@ v0.2.0 (2020-04-09)
 - Enabling host_filter will now allow metrics from node role Kubernetes service
   discovery to be scraped properly (e.g., cAdvisor, Kubelet). (@rfratto)
 
-v0.1.1 (2020-03-16)
--------------------
+## v0.1.1 (2020-03-16)
 
 ### Other changes
 
@@ -4180,8 +4095,7 @@ v0.1.1 (2020-03-16)
 
 - Pass through release tag to `docker build` (@rfratto)
 
-v0.1.0 (2020-03-16)
--------------------
+## v0.1.0 (2020-03-16)
 
 > First release!
 
