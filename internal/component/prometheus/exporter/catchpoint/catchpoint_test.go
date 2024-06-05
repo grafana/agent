@@ -3,16 +3,14 @@ package catchpoint
 import (
 	"testing"
 
-	"github.com/grafana/agent/pkg/integrations/catchpoint_exporter"
-	"github.com/grafana/agent/pkg/river"
-	"github.com/grafana/agent/pkg/river/rivertypes"
-	config_util "github.com/prometheus/common/config"
+	"github.com/grafana/agent/static/integrations/catchpoint_exporter"
+	"github.com/grafana/river"
 	"github.com/stretchr/testify/require"
 )
 
 func TestRiverUnmarshal(t *testing.T) {
 	riverConfig := `
-	port        = "3030"
+  port        = "3030"
   verbose     = true
   webhookpath = "/nondefault-webhook-path"
 	`
