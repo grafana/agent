@@ -41,6 +41,8 @@ v0.41.0 (2024-05-31)
 
 - Added support for `otelcol` configuration conversion in `grafana-agent convert` and `grafana-agent run` commands. (@rfratto, @erikbaranowski, @tpaschalis, @hainenber)
 
+- Prefix Faro measurement values with `value_` to align with the latest Faro cloud receiver updates. (@codecapitano)
+
 - Added support for `static` configuration conversion of the `traces` subsystem. (@erikbaranowski, @wildum)
 
 - Add automatic conversion for `legacy_positions_file` in component `loki.source.file`. (@mattdurham)
