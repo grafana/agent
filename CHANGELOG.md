@@ -16,6 +16,10 @@ v0.41.0 (2024-06-07)
   - Components `otelcol.receiver.otlp`,`otelcol.receiver.zipkin` and `otelcol.receiver.jaeger` setting `max_request_body_size`
     default changed from unlimited size to `20MiB`.
 
+### Enhancements
+
+- Updated pyroscope to v0.4.6 introducing `symbols_map_size` and `pid_map_size`. (@simonswine)
+
 v0.41.0 (2024-05-31)
 --------------------
 
