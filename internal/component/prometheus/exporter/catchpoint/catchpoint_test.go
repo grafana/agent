@@ -10,9 +10,9 @@ import (
 
 func TestRiverUnmarshal(t *testing.T) {
 	riverConfig := `
-  port        = "3030"
-  verbose     = true
-  webhookpath = "/nondefault-webhook-path"
+  port               = "3030"
+  verbose_logging     = true
+  webhook_path        = "/nondefault-webhook-path"
 	`
 
 	var args Arguments
@@ -20,9 +20,9 @@ func TestRiverUnmarshal(t *testing.T) {
 	require.NoError(t, err)
 
 	expected := Arguments{
-		Verbose:     true,
-		Port:        "3030",
-		WebhookPath: "/nondefault-webhook-path",
+		VerboseLogging: true,
+		Port:           "3030",
+		WebhookPath:    "/nondefault-webhook-path",
 	}
 
 	require.Equal(t, expected, args)
@@ -30,9 +30,9 @@ func TestRiverUnmarshal(t *testing.T) {
 
 func TestConvert(t *testing.T) {
 	riverConfig := `
-	port        = "3030"
-  verbose     = true
-  webhookpath = "/nondefault-webhook-path"
+  port               = "3030"
+  verbose_logging     = true
+  webhook_path        = "/nondefault-webhook-path"
 	`
 
 	var args Arguments
@@ -42,9 +42,9 @@ func TestConvert(t *testing.T) {
 	res := args.Convert()
 
 	expected := catchpoint_exporter.Config{
-		Verbose:     true,
-		Port:        "3030",
-		WebhookPath: "/nondefault-webhook-path",
+		VerboseLogging: true,
+		Port:           "3030",
+		WebhookPath:    "/nondefault-webhook-path",
 	}
 	require.Equal(t, expected, *res)
 }

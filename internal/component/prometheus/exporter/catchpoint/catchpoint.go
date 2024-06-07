@@ -25,16 +25,16 @@ func createExporter(opts component.Options, args component.Arguments, defaultIns
 
 // DefaultArguments holds the default settings for the catchpoint exporter
 var DefaultArguments = Arguments{
-	Verbose:     false,
-	WebhookPath: "/catchpoint-webhook",
-	Port:        "9090",
+	VerboseLogging: false,
+	WebhookPath:    "/catchpoint-webhook",
+	Port:           "9090",
 }
 
 // Arguments controls the catchpoint exporter.
 type Arguments struct {
-	Verbose     bool   `river:"verbose,attr"`
-	WebhookPath string `river:"webhookpath,attr"`
-	Port        string `river:"port,attr"`
+	VerboseLogging bool   `river:"verbose_logging,attr"`
+	WebhookPath    string `river:"webhook_path,attr"`
+	Port           string `river:"port,attr"`
 }
 
 // UnmarshalRiver implements River unmarshalling for Arguments.
@@ -47,8 +47,8 @@ func (a *Arguments) UnmarshalRiver(f func(interface{}) error) error {
 
 func (a *Arguments) Convert() *catchpoint_exporter.Config {
 	return &catchpoint_exporter.Config{
-		Verbose:     a.Verbose,
-		WebhookPath: a.WebhookPath,
-		Port:        a.Port,
+		VerboseLogging: a.VerboseLogging,
+		WebhookPath:    a.WebhookPath,
+		Port:           a.Port,
 	}
 }

@@ -5,28 +5,29 @@ import (
 	"github.com/grafana/agent/static/integrations"
 	integrations_v2 "github.com/grafana/agent/static/integrations/v2"
 	"github.com/grafana/agent/static/integrations/v2/metricsutils"
-	collector "github.com/grafana/catchpoint-prometheus-exporter"
+
+	collector "github.com/grafana/catchpoint-prometheus-exporter/collector"
 )
 
-// DefaultConfig is the default config for the snowflake integration
+// DefaultConfig is the default config for the catchpoint integration
 var DefaultConfig = Config{
-	Verbose:     false,
-	WebhookPath: "/catchpoint-webhook",
-	Port:        "9090",
+	VerboseLogging: false,
+	WebhookPath:    "/catchpoint-webhook",
+	Port:           "9090",
 }
 
-// Config is the configuration for the snowflake integration
+// Config is the configuration for the catchpoint integration
 type Config struct {
-	Verbose     bool   `yaml:"verbose,omitempty"`
-	WebhookPath string `yaml:"webhookpath,omitempty"`
-	Port        string `yaml:"port,omitempty"`
+	VerboseLogging bool   `yaml:"verbose_logging,omitempty"`
+	WebhookPath    string `yaml:"webhook_path,omitempty"`
+	Port           string `yaml:"port,omitempty"`
 }
 
 func (c *Config) exporterConfig() *collector.Config {
 	return &collector.Config{
-		Verbose:     c.Verbose,
-		WebhookPath: c.WebhookPath,
-		Port:        string(c.Port),
+		VerboseLogging: c.VerboseLogging,
+		WebhookPath:    c.WebhookPath,
+		Port:           c.Port,
 	}
 }
 
@@ -56,10 +57,6 @@ func init() {
 // NewIntegration creates a new integration from the config.
 func (c *Config) NewIntegration(l log.Logger) (integrations.Integration, error) {
 	exporterConfig := c.exporterConfig()
-
-	if err := exporterConfig.Validate(); err != nil {
-		return nil, err
-	}
 
 	col := collector.NewCollector(l, exporterConfig)
 	return integrations.NewCollectorIntegration(
