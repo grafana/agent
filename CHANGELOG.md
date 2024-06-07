@@ -7,7 +7,10 @@ This document contains a historical list of changes between releases. Only
 changes that impact end-user behavior are listed; changes to documentation or
 internal API changes are not present.
 
-v0.41.0 (2024-06-07)
+Main (unreleased)
+-----------------
+
+v0.41.1 (2024-06-07)
 -----------------
 
 ### Breaking changes
@@ -50,6 +53,8 @@ v0.41.0 (2024-05-31)
 - Add ability to convert static mode positions file to `loki.source.file` compatible via `legacy_positions_file` argument. (@mattdurham)
 
 - Added support for `otelcol` configuration conversion in `grafana-agent convert` and `grafana-agent run` commands. (@rfratto, @erikbaranowski, @tpaschalis, @hainenber)
+
+- Prefix Faro measurement values with `value_` to align with the latest Faro cloud receiver updates. (@codecapitano)
 
 - Added support for `static` configuration conversion of the `traces` subsystem. (@erikbaranowski, @wildum)
 
