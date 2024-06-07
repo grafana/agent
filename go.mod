@@ -768,8 +768,14 @@ replace (
 // https://github.com/open-telemetry/opentelemetry-collector/pull/7696
 // https://github.com/open-telemetry/opentelemetry-collector/issues/4970
 replace (
-	go.opentelemetry.io/collector/otelcol => github.com/grafana/opentelemetry-collector/otelcol v0.0.0-20240321103955-8919a1c85cbe
-	go.opentelemetry.io/collector/service => github.com/grafana/opentelemetry-collector/service v0.0.0-20240321103955-8919a1c85cbe
+	go.opentelemetry.io/collector/otelcol => github.com/grafana/opentelemetry-collector/otelcol v0.0.0-20240606144032-13b77f7c5603
+	go.opentelemetry.io/collector/service => github.com/grafana/opentelemetry-collector/service v0.0.0-20240606144032-13b77f7c5603
+)
+
+// This is to fix https://opentelemetry.io/blog/2024/cve-2024-36129
+replace (
+	go.opentelemetry.io/collector/config/configgrpc => github.com/grafana/opentelemetry-collector/config/configgrpc v0.0.0-20240606144032-13b77f7c5603
+	go.opentelemetry.io/collector/config/confighttp => github.com/grafana/opentelemetry-collector/config/confighttp v0.0.0-20240606144032-13b77f7c5603
 )
 
 // Required to avoid an ambiguous import with github.com/tencentcloud/tencentcloud-sdk-go

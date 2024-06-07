@@ -10,6 +10,13 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+### Breaking changes
+
+
+- Applied OpenTelemetry [CVE-2024-36129](https://github.com/open-telemetry/opentelemetry-collector/security/advisories/GHSA-c74f-6mfw-mm4v) fixes. (@mattdurham)
+  - Components `otelcol.receiver.otlp`,`otelcol.receiver.zipkin` and `otelcol.receiver.jaeger` setting `max_request_body_size`
+    default changed from unlimited size to `20MiB`.
+
 v0.41.0 (2024-05-31)
 --------------------
 
