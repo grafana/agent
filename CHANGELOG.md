@@ -21,6 +21,10 @@ internal API changes are not present.
 
 - Updated pyroscope to v0.4.6 introducing `symbols_map_size` and `pid_map_size` configuration. (@simonswine)
 
+### Features
+
+- `prometheus.exporter.catchpoint` collects metrics from a catchpoint webhook. (@bominrahmani)
+
 ## v0.41.0 (2024-05-31)
 
 ### Breaking changes
@@ -65,8 +69,6 @@ internal API changes are not present.
 
 - A new `snmp_context` configuration argument for `prometheus.exporter.snmp` and the `snmp` Static mode integration.
   It overrides the `context_name` parameter in the SNMP configuration file. (@ptodev)
-
-- `prometheus.exporter.catchpoint` collects metrics from Catchpoint instance.
 
 ### Bugfixes
 
