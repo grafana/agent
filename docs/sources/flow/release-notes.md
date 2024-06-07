@@ -29,6 +29,13 @@ Other release notes for the different {{< param "PRODUCT_ROOT_NAME" >}} variants
 [release-notes-operator]: {{< relref "../operator/release-notes.md" >}}
 {{< /admonition >}}
 
+## v0.41.1
+
+### Breaking change: `max_request_body_size` for `otelcol.receiver.otlp`,`otelcol.receiver.zipkin`,`otelcol.receiver.jaeger` changed
+
+The default value for `max_request_body_size` changed from unlimited to `20 MiB`. There is no ability to change `max_request_body_size`
+to accept unlimited requests.
+
 ## v0.41
 
 ### Breaking change: default `otelcol.receiver.opencensus` list port changed
