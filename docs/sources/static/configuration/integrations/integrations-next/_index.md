@@ -149,6 +149,9 @@ integrations:
     
   cloudwatch_configs:
     [- <cloudwatch_config>]    
+
+  catchpoint_configs:
+    [- <catchpoint_config>]    
 ```
 
 Note that most integrations are no longer configured with the `_exporter` name.

@@ -12,6 +12,7 @@ import (
 	"github.com/grafana/agent/static/integrations/azure_exporter"
 	"github.com/grafana/agent/static/integrations/blackbox_exporter"
 	"github.com/grafana/agent/static/integrations/cadvisor"
+	"github.com/grafana/agent/static/integrations/catchpoint_exporter"
 	"github.com/grafana/agent/static/integrations/cloudwatch_exporter"
 	"github.com/grafana/agent/static/integrations/consul_exporter"
 	"github.com/grafana/agent/static/integrations/dnsmasq_exporter"
@@ -149,6 +150,7 @@ func validateIntegrationsV1(integrationsConfig *v1.ManagerConfig) diag.Diagnosti
 		case *redis_exporter.Config:
 		case *snmp_exporter.Config:
 		case *snowflake_exporter.Config:
+		case *catchpoint_exporter.Config:
 		case *squid_exporter.Config:
 		case *statsd_exporter.Config:
 		case *windows_exporter.Config:
@@ -196,6 +198,7 @@ func validateIntegrationsV2(integrationsConfig *v2.SubsystemOptions) diag.Diagno
 			case *process_exporter.Config:
 			case *redis_exporter.Config:
 			case *snowflake_exporter.Config:
+			case *catchpoint_exporter.Config:
 			case *squid_exporter.Config:
 			case *statsd_exporter.Config:
 			case *windows_exporter.Config:
