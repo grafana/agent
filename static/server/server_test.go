@@ -124,7 +124,7 @@ func TestServer_TLS(t *testing.T) {
 
 	// Validate gRPC TLS
 	creds := credentials.NewTLS(&tls.Config{InsecureSkipVerify: true})
-	cc, err := grpc.Dial(srv.GRPCAddress().String(), grpc.WithTransportCredentials(creds))
+	cc, err := grpc.NewClient(srv.GRPCAddress().String(), grpc.WithTransportCredentials(creds))
 	require.NoError(t, err)
 	_, err = grpc_health_v1.NewHealthClient(cc).Check(context.Background(), &grpc_health_v1.HealthCheckRequest{})
 	require.NoError(t, err)
