@@ -95,9 +95,9 @@ The component detail page shows the following information for each component:
 
 ### Clustering page
 
-![The clustering page showing detailed information about each cluster node.](/media/docs/agent/ui_clustering_page.png)
+![The Clustering page showing detailed information about each cluster node.](/media/docs/agent/ui_clustering_page.png)
 
-The clustering page shows the following information for each cluster node:
+The Clustering page shows the following information for each cluster node:
 
 * The node's name.
 * The node's advertised address.
