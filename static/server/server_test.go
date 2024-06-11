@@ -32,7 +32,7 @@ func TestServer(t *testing.T) {
 
 	// Validate gRPC
 	creds := grpc.WithTransportCredentials(insecure.NewCredentials())
-	cc, err := grpc.Dial(srv.GRPCAddress().String(), creds)
+	cc, err := grpc.NewClient(srv.GRPCAddress().String(), creds)
 	require.NoError(t, err)
 	_, err = grpc_health_v1.NewHealthClient(cc).Check(context.Background(), &grpc_health_v1.HealthCheckRequest{})
 	require.NoError(t, err)
@@ -55,7 +55,7 @@ func TestServer_InMemory(t *testing.T) {
 	grpcDialer := grpc.WithContextDialer(func(ctx context.Context, s string) (net.Conn, error) {
 		return srv.DialContext(ctx, "", s)
 	})
-	cc, err := grpc.Dial(flags.GRPC.InMemoryAddr, grpc.WithTransportCredentials(insecure.NewCredentials()), grpcDialer)
+	cc, err := grpc.NewClient(flags.GRPC.InMemoryAddr, grpc.WithTransportCredentials(insecure.NewCredentials()), grpcDialer)
 	require.NoError(t, err)
 	_, err = grpc_health_v1.NewHealthClient(cc).Check(context.Background(), &grpc_health_v1.HealthCheckRequest{})
 	require.NoError(t, err)
