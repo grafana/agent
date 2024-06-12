@@ -165,7 +165,7 @@ loki.write "default" {
 To use Loki with basic-auth, which is required with Grafana Cloud Loki, you must configure the [loki.write](ref:loki.write) component.
 You can get the Loki configuration from the Loki **Details** page in the [Grafana Cloud Portal][]:
 
-![](../../../assets/tasks/loki-config.png)
+![The Loki Details page showing information about the Loki configuration.](/media/docs/agent/loki-config.png)
 
 ```river
 otelcol.exporter.loki "grafana_cloud_loki" {
@@ -200,7 +200,7 @@ otelcol.exporter.otlp "default" {
 To use Tempo with basic-auth, which is required with Grafana Cloud Tempo, you must use the [otelcol.auth.basic](ref:otelcol.auth.basic) component.
 You can get the Tempo configuration from the Tempo **Details** page in the [Grafana Cloud Portal][]:
 
-![](../../../assets/tasks/tempo-config.png)
+![The Tempo Details page showing information about the Tempo configuration.](/media/docs/agent//tempo-config.png)
 
 ```river
 otelcol.exporter.otlp "grafana_cloud_tempo" {
@@ -237,7 +237,7 @@ prometheus.remote_write "default" {
 To use Prometheus with basic-auth, which is required with Grafana Cloud Prometheus, you must configure the [prometheus.remote_write](ref:prometheus.remote_write) component.
 You can get the Prometheus configuration from the Prometheus **Details** page in the [Grafana Cloud Portal][]:
 
-![](../../../assets/tasks/prometheus-config.png)
+![The Prometheus Details page showing information about the Prometheus configuration.](/media/docs/agent/prometheus-config.png)
 
 ```river
 otelcol.exporter.prometheus "grafana_cloud_prometheus" {
@@ -361,9 +361,9 @@ ts=2023-05-09T09:37:15.304109Z component=otelcol.receiver.otlp.default level=inf
 ts=2023-05-09T09:37:15.304234Z component=otelcol.receiver.otlp.default level=info msg="Starting HTTP server" endpoint=0.0.0.0:4318
 ```
 
-You can now check the pipeline graphically by visiting http://localhost:12345/graph
+You can now check the pipeline graphically by visiting <http://localhost:12345/graph>
 
-![](../../../assets/tasks/otlp-lgtm-graph.png)
+![The Graph page showing a graphical representation of the pipeline.](/media/docs/agent/otlp-lgtm-graph.png)
 
 [OpenTelemetry]: https://opentelemetry.io
 [Grafana Loki]: https://grafana.com/oss/loki/
@@ -371,4 +371,3 @@ You can now check the pipeline graphically by visiting http://localhost:12345/gr
 [Grafana Cloud Portal]: https://grafana.com/docs/grafana-cloud/account-management/cloud-portal#your-grafana-cloud-stack
 [Prometheus Remote Write]: https://prometheus.io/docs/operating/integrations/#remote-endpoints-and-storage
 [Grafana Mimir]: https://grafana.com/oss/mimir/
-
