@@ -4,8 +4,8 @@ import (
 	"github.com/grafana/agent/internal/component/discovery"
 	"github.com/grafana/agent/internal/component/prometheus/exporter/snmp"
 	"github.com/grafana/agent/internal/converter/internal/common"
-	"github.com/grafana/agent/internal/static/integrations/snmp_exporter"
-	snmp_exporter_v2 "github.com/grafana/agent/internal/static/integrations/v2/snmp_exporter"
+	"github.com/grafana/agent/static/integrations/snmp_exporter"
+	snmp_exporter_v2 "github.com/grafana/agent/static/integrations/v2/snmp_exporter"
 	"github.com/grafana/river/rivertypes"
 	snmp_config "github.com/prometheus/snmp_exporter/config"
 )
@@ -19,11 +19,12 @@ func toSnmpExporter(config *snmp_exporter.Config) *snmp.Arguments {
 	targets := make([]snmp.SNMPTarget, len(config.SnmpTargets))
 	for i, t := range config.SnmpTargets {
 		targets[i] = snmp.SNMPTarget{
-			Name:       common.SanitizeIdentifierPanics(t.Name),
-			Target:     t.Target,
-			Module:     t.Module,
-			Auth:       t.Auth,
-			WalkParams: t.WalkParams,
+			Name:        common.SanitizeIdentifierPanics(t.Name),
+			Target:      t.Target,
+			Module:      t.Module,
+			Auth:        t.Auth,
+			WalkParams:  t.WalkParams,
+			SNMPContext: t.SNMPContext,
 		}
 	}
 
@@ -67,11 +68,12 @@ func toSnmpExporterV2(config *snmp_exporter_v2.Config) *snmp.Arguments {
 	targets := make([]snmp.SNMPTarget, len(config.SnmpTargets))
 	for i, t := range config.SnmpTargets {
 		targets[i] = snmp.SNMPTarget{
-			Name:       common.SanitizeIdentifierPanics(t.Name),
-			Target:     t.Target,
-			Module:     t.Module,
-			Auth:       t.Auth,
-			WalkParams: t.WalkParams,
+			Name:        common.SanitizeIdentifierPanics(t.Name),
+			Target:      t.Target,
+			Module:      t.Module,
+			Auth:        t.Auth,
+			WalkParams:  t.WalkParams,
+			SNMPContext: t.SNMPContext,
 		}
 	}
 

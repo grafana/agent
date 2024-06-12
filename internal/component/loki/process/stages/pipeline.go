@@ -28,6 +28,7 @@ type StageConfig struct {
 	LabelsConfig          *LabelsConfig          `river:"labels,block,optional"`
 	LimitConfig           *LimitConfig           `river:"limit,block,optional"`
 	LogfmtConfig          *LogfmtConfig          `river:"logfmt,block,optional"`
+	LuhnFilterConfig      *LuhnFilterConfig      `river:"luhn,block,optional"`
 	MatchConfig           *MatchConfig           `river:"match,block,optional"`
 	MetricsConfig         *MetricsConfig         `river:"metrics,block,optional"`
 	MultilineConfig       *MultilineConfig       `river:"multiline,block,optional"`
@@ -143,6 +144,13 @@ func (p *Pipeline) Name() string {
 	return StageTypePipeline
 }
 
+// Cleanup implements Stage.
+func (p *Pipeline) Cleanup() {
+	for _, s := range p.stages {
+		s.Cleanup()
+	}
+}
+
 // Wrap implements EntryMiddleware
 func (p *Pipeline) Wrap(next loki.EntryHandler) loki.EntryHandler {
 	handlerIn := make(chan loki.Entry)
@@ -180,6 +188,7 @@ func (p *Pipeline) Wrap(next loki.EntryHandler) loki.EntryHandler {
 	return loki.NewEntryHandler(handlerIn, func() {
 		once.Do(func() { close(handlerIn) })
 		wg.Wait()
+		p.Cleanup()
 	})
 }
 

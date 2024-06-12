@@ -6,7 +6,7 @@ import (
 	"crypto/tls"
 	"fmt"
 
-	"github.com/grafana/agent/internal/static/server"
+	"github.com/grafana/agent/static/server"
 )
 
 // tlsConfig generates a tls.Config from args.

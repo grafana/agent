@@ -28,6 +28,7 @@ const (
 	StageTypeLabelDrop          = "labeldrop"
 	StageTypeLimit              = "limit"
 	StageTypeLogfmt             = "logfmt"
+	StageTypeLuhn               = "luhn"
 	StageTypeMatch              = "match"
 	StageTypeMetric             = "metrics"
 	StageTypeMultiline          = "multiline"
@@ -60,6 +61,7 @@ type Entry struct {
 type Stage interface {
 	Name() string
 	Run(chan Entry) chan Entry
+	Cleanup()
 }
 
 func (entry *Entry) copy() *Entry {
@@ -133,6 +135,11 @@ func New(logger log.Logger, jobName *string, cfg StageConfig, registerer prometh
 		}
 	case cfg.LogfmtConfig != nil:
 		s, err = newLogfmtStage(logger, *cfg.LogfmtConfig)
+		if err != nil {
+			return nil, err
+		}
+	case cfg.LuhnFilterConfig != nil:
+		s, err = newLuhnFilterStage(*cfg.LuhnFilterConfig)
 		if err != nil {
 			return nil, err
 		}
@@ -236,4 +243,9 @@ func New(logger log.Logger, jobName *string, cfg StageConfig, registerer prometh
 		panic(fmt.Sprintf("unreachable; should have decoded into one of the StageConfig fields: %+v", cfg))
 	}
 	return s, nil
+}
+
+// Cleanup implements Stage.
+func (*stageProcessor) Cleanup() {
+	// no-op
 }

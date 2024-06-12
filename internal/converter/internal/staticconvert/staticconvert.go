@@ -11,8 +11,8 @@ import (
 	"github.com/grafana/agent/internal/converter/internal/prometheusconvert"
 	"github.com/grafana/agent/internal/converter/internal/promtailconvert"
 	"github.com/grafana/agent/internal/converter/internal/staticconvert/internal/build"
-	"github.com/grafana/agent/internal/static/config"
-	"github.com/grafana/agent/internal/static/logs"
+	"github.com/grafana/agent/static/config"
+	"github.com/grafana/agent/static/logs"
 	promtail_config "github.com/grafana/loki/clients/pkg/promtail/config"
 	"github.com/grafana/loki/clients/pkg/promtail/limit"
 	"github.com/grafana/loki/clients/pkg/promtail/targets/file"
@@ -20,7 +20,7 @@ import (
 	"github.com/grafana/river/token/builder"
 	prom_config "github.com/prometheus/prometheus/config"
 
-	_ "github.com/grafana/agent/internal/static/integrations/install" // Install integrations
+	_ "github.com/grafana/agent/static/integrations/install" // Install integrations
 )
 
 // Convert implements a Static config converter.

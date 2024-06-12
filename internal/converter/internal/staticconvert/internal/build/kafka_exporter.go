@@ -3,7 +3,7 @@ package build
 import (
 	"github.com/grafana/agent/internal/component/discovery"
 	"github.com/grafana/agent/internal/component/prometheus/exporter/kafka"
-	"github.com/grafana/agent/internal/static/integrations/kafka_exporter"
+	"github.com/grafana/agent/static/integrations/kafka_exporter"
 	"github.com/grafana/river/rivertypes"
 )
 
@@ -14,13 +14,16 @@ func (b *ConfigBuilder) appendKafkaExporter(config *kafka_exporter.Config, insta
 
 func toKafkaExporter(config *kafka_exporter.Config) *kafka.Arguments {
 	return &kafka.Arguments{
+		Instance:                config.Instance,
 		KafkaURIs:               config.KafkaURIs,
 		UseSASL:                 config.UseSASL,
 		UseSASLHandshake:        config.UseSASLHandshake,
 		SASLUsername:            config.SASLUsername,
 		SASLPassword:            rivertypes.Secret(config.SASLPassword),
 		SASLMechanism:           config.SASLMechanism,
+		SASLDisablePAFXFast:     config.SASLDisablePAFXFast,
 		UseTLS:                  config.UseTLS,
+		TlsServerName:           config.TlsServerName,
 		CAFile:                  config.CAFile,
 		CertFile:                config.CertFile,
 		KeyFile:                 config.KeyFile,
@@ -30,10 +33,20 @@ func toKafkaExporter(config *kafka_exporter.Config) *kafka.Arguments {
 		ZookeeperURIs:           config.ZookeeperURIs,
 		ClusterName:             config.ClusterName,
 		MetadataRefreshInterval: config.MetadataRefreshInterval,
+		ServiceName:             config.ServiceName,
+		KerberosConfigPath:      config.KerberosConfigPath,
+		Realm:                   config.Realm,
+		KeyTabPath:              config.KeyTabPath,
+		KerberosAuthType:        config.KerberosAuthType,
+		OffsetShowAll:           config.OffsetShowAll,
+		TopicWorkers:            config.TopicWorkers,
 		AllowConcurrent:         config.AllowConcurrent,
+		AllowAutoTopicCreation:  config.AllowAutoTopicCreation,
 		MaxOffsets:              config.MaxOffsets,
 		PruneIntervalSeconds:    config.PruneIntervalSeconds,
 		TopicsFilter:            config.TopicsFilter,
+		TopicsExclude:           config.TopicsExclude,
 		GroupFilter:             config.GroupFilter,
+		GroupExclude:            config.GroupExclude,
 	}
 }

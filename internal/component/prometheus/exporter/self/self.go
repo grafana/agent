@@ -4,8 +4,8 @@ import (
 	"github.com/grafana/agent/internal/component"
 	"github.com/grafana/agent/internal/component/prometheus/exporter"
 	"github.com/grafana/agent/internal/featuregate"
-	"github.com/grafana/agent/internal/static/integrations"
-	"github.com/grafana/agent/internal/static/integrations/agent"
+	"github.com/grafana/agent/static/integrations"
+	"github.com/grafana/agent/static/integrations/agent"
 )
 
 func init() {
@@ -30,12 +30,9 @@ type Arguments struct{}
 // Exports holds the values exported by the prometheus.exporter.self component.
 type Exports struct{}
 
-// DefaultArguments defines the default settings
-var DefaultArguments = Arguments{}
-
 // SetToDefault implements river.Defaulter
 func (args *Arguments) SetToDefault() {
-	*args = DefaultArguments
+	*args = Arguments{}
 }
 
 func (a *Arguments) Convert() *agent.Config {

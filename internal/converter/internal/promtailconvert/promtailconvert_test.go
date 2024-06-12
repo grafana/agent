@@ -1,3 +1,5 @@
+//go:build linux
+
 package promtailconvert_test
 
 import (
@@ -5,7 +7,7 @@ import (
 
 	"github.com/grafana/agent/internal/converter/internal/promtailconvert"
 	"github.com/grafana/agent/internal/converter/internal/test_common"
-	_ "github.com/grafana/agent/internal/static/metrics/instance" // Imported to override default values via the init function.
+	_ "github.com/grafana/agent/static/metrics/instance" // Imported to override default values via the init function.
 )
 
 func TestConvert(t *testing.T) {

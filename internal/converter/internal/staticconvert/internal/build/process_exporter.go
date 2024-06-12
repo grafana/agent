@@ -3,7 +3,7 @@ package build
 import (
 	"github.com/grafana/agent/internal/component/discovery"
 	"github.com/grafana/agent/internal/component/prometheus/exporter/process"
-	"github.com/grafana/agent/internal/static/integrations/process_exporter"
+	"github.com/grafana/agent/static/integrations/process_exporter"
 )
 
 func (b *ConfigBuilder) appendProcessExporter(config *process_exporter.Config, instanceKey *string) discovery.Exports {

@@ -9,8 +9,8 @@ import (
 	"github.com/grafana/agent/internal/component/discovery"
 	"github.com/grafana/agent/internal/component/prometheus/exporter"
 	"github.com/grafana/agent/internal/featuregate"
-	"github.com/grafana/agent/internal/static/integrations"
-	"github.com/grafana/agent/internal/static/integrations/snmp_exporter"
+	"github.com/grafana/agent/static/integrations"
+	"github.com/grafana/agent/static/integrations/snmp_exporter"
 	"github.com/grafana/river/rivertypes"
 	snmp_config "github.com/prometheus/snmp_exporter/config"
 	"gopkg.in/yaml.v2"
@@ -51,6 +51,9 @@ func buildSNMPTargets(baseTarget discovery.Target, args component.Arguments) []d
 		if tgt.WalkParams != "" {
 			target["__param_walk_params"] = tgt.WalkParams
 		}
+		if tgt.SNMPContext != "" {
+			target["__param_snmp_context"] = tgt.SNMPContext
+		}
 		if tgt.Auth != "" {
 			target["__param_auth"] = tgt.Auth
 		}
@@ -63,11 +66,12 @@ func buildSNMPTargets(baseTarget discovery.Target, args component.Arguments) []d
 
 // SNMPTarget defines a target to be used by the exporter.
 type SNMPTarget struct {
-	Name       string `river:",label"`
-	Target     string `river:"address,attr"`
-	Module     string `river:"module,attr,optional"`
-	Auth       string `river:"auth,attr,optional"`
-	WalkParams string `river:"walk_params,attr,optional"`
+	Name        string `river:",label"`
+	Target      string `river:"address,attr"`
+	Module      string `river:"module,attr,optional"`
+	Auth        string `river:"auth,attr,optional"`
+	WalkParams  string `river:"walk_params,attr,optional"`
+	SNMPContext string `river:"snmp_context,attr,optional"`
 }
 
 type TargetBlock []SNMPTarget
@@ -77,11 +81,12 @@ func (t TargetBlock) Convert() []snmp_exporter.SNMPTarget {
 	targets := make([]snmp_exporter.SNMPTarget, 0, len(t))
 	for _, target := range t {
 		targets = append(targets, snmp_exporter.SNMPTarget{
-			Name:       target.Name,
-			Target:     target.Target,
-			Module:     target.Module,
-			Auth:       target.Auth,
-			WalkParams: target.WalkParams,
+			Name:        target.Name,
+			Target:      target.Target,
+			Module:      target.Module,
+			Auth:        target.Auth,
+			WalkParams:  target.WalkParams,
+			SNMPContext: target.SNMPContext,
 		})
 	}
 	return targets

@@ -45,11 +45,22 @@ Name | Type | Description | Default | Required
 ---- | ---- | ----------- | ------- | --------
 `brokers` | `array(string)` | Kafka brokers to connect to. | | yes
 `protocol_version` | `string` | Kafka protocol version to use. | | yes
-`topic` | `string` | Kafka topic to read from. | `"otlp_spans"` | no
+`topic` | `string` | Kafka topic to read from. | | no
 `encoding` | `string` | Encoding of payload read from Kafka. | `"otlp_proto"` | no
 `group_id` | `string` | Consumer group to consume messages from. | `"otel-collector"` | no
 `client_id` | `string` | Consumer client ID to use. | `"otel-collector"` | no
 `initial_offset` | `string` | Initial offset to use if no offset was previously committed. | `"latest"` | no
+`resolve_canonical_bootstrap_servers_only` | `bool` | Whether to resolve then reverse-lookup broker IPs during startup. | `"false"` | no
+
+If `topic` is not set, different topics will be used for different telemetry signals:
+
+* Metrics will be received from an `otlp_metrics` topic.
+* Traces will be received from an `otlp_spans` topic.
+* Logs will be received from an `otlp_logs` topic.
+
+If `topic` is set to a specific value, then only the signal type that corresponds to the data stored in the topic must be set in the output block.
+For example, if `topic` is set to `"my_telemetry"`, then the `"my_telemetry"` topic can only contain either metrics, logs, or traces. 
+If it contains only metrics, then `otelcol.receiver.kafka` should be configured to output only metrics.
 
 The `encoding` argument determines how to decode messages read from Kafka.
 `encoding` must be one of the following strings:
@@ -64,7 +75,7 @@ The `encoding` argument determines how to decode messages read from Kafka.
 * `"text"`: Decode the log message as text and insert it into the body of a log record.
   By default, UTF-8 is used to decode. A different encoding can be chosen by using `text_<ENCODING>`. For example, `text_utf-8` or `text_shift_jis`.
 * `"json"`: Decode the JSON payload and insert it into the body of a log record.
-
+* `"azure_resource_logs"`: The payload is converted from Azure Resource Logs format to an OTLP log.
 
 `"otlp_proto"` must be used to read all telemetry types from Kafka; other
 encodings are signal-specific.

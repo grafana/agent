@@ -13,7 +13,7 @@ import (
 	"github.com/grafana/agent/internal/component/otelcol/internal/lazyconsumer"
 	"github.com/grafana/agent/internal/featuregate"
 	"github.com/grafana/agent/internal/flow/logging/level"
-	promsdconsumer "github.com/grafana/agent/internal/static/traces/promsdprocessor/consumer"
+	promsdconsumer "github.com/grafana/agent/static/traces/promsdprocessor/consumer"
 	"github.com/grafana/river"
 )
 
@@ -45,21 +45,18 @@ var (
 	_ river.Validator = (*Arguments)(nil)
 )
 
-// DefaultArguments holds default settings for Arguments.
-var DefaultArguments = Arguments{
-	OperationType: promsdconsumer.OperationTypeUpsert,
-	PodAssociations: []string{
-		promsdconsumer.PodAssociationIPLabel,
-		promsdconsumer.PodAssociationOTelIPLabel,
-		promsdconsumer.PodAssociationk8sIPLabel,
-		promsdconsumer.PodAssociationHostnameLabel,
-		promsdconsumer.PodAssociationConnectionIP,
-	},
-}
-
 // SetToDefault implements river.Defaulter.
 func (args *Arguments) SetToDefault() {
-	*args = DefaultArguments
+	*args = Arguments{
+		OperationType: promsdconsumer.OperationTypeUpsert,
+		PodAssociations: []string{
+			promsdconsumer.PodAssociationIPLabel,
+			promsdconsumer.PodAssociationOTelIPLabel,
+			promsdconsumer.PodAssociationk8sIPLabel,
+			promsdconsumer.PodAssociationHostnameLabel,
+			promsdconsumer.PodAssociationConnectionIP,
+		},
+	}
 }
 
 // Validate implements river.Validator.

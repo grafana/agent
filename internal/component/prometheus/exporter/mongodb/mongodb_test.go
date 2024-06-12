@@ -3,7 +3,7 @@ package mongodb
 import (
 	"testing"
 
-	"github.com/grafana/agent/internal/static/integrations/mongodb_exporter"
+	"github.com/grafana/agent/static/integrations/mongodb_exporter"
 	"github.com/grafana/river"
 	"github.com/stretchr/testify/require"
 )

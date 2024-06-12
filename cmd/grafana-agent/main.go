@@ -9,9 +9,9 @@ import (
 	"github.com/grafana/agent/internal/boringcrypto"
 	"github.com/grafana/agent/internal/build"
 	"github.com/grafana/agent/internal/flowmode"
-	"github.com/grafana/agent/internal/static/config"
-	"github.com/grafana/agent/internal/static/server"
 	util_log "github.com/grafana/agent/internal/util/log"
+	"github.com/grafana/agent/static/config"
+	"github.com/grafana/agent/static/server"
 
 	"github.com/prometheus/client_golang/prometheus"
 
@@ -20,7 +20,7 @@ import (
 	_ "github.com/prometheus/prometheus/discovery/install"
 
 	// Register integrations
-	_ "github.com/grafana/agent/internal/static/integrations/install"
+	_ "github.com/grafana/agent/static/integrations/install"
 
 	// Embed a set of fallback X.509 trusted roots
 	// Allows the app to work correctly even when the OS does not provide a verifier or systems roots pool

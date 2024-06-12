@@ -16,16 +16,18 @@ description: Learn how to run Grafana Agent Flow
 menuTitle: Run
 title: Run Grafana Agent Flow
 weight: 50
+refs:
+  install:
+    - pattern: /docs/agent/
+      destination: /docs/agent/<AGENT_VERSION>/flow/get-started/install/
+    - pattern: /docs/grafana-cloud/
+      destination: /docs/grafana-cloud/send-data/agent/flow/get-started/install/
 ---
 
 # Run {{% param "PRODUCT_NAME" %}}
 
 Use the following pages to learn how to start, restart, and stop {{< param "PRODUCT_NAME" >}} after it is installed.
-For installation instructions, refer to [Install {{< param "PRODUCT_NAME" >}}][Install].
+For installation instructions, refer to [Install {{< param "PRODUCT_NAME" >}}](ref:install).
 
 {{< section >}}
 
-{{% docs/reference %}}
-[Install]: "/docs/agent/ -> /docs/agent/<AGENT_VERSION>/flow/get-started/install/"
-[Install]: "/docs/grafana-cloud/ -> /docs/grafana-cloud/send-data/agent/flow/get-started/install/"
-{{% /docs/reference %}}

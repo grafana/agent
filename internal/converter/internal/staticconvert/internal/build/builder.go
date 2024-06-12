@@ -4,7 +4,7 @@ import (
 	"strings"
 
 	"github.com/grafana/agent/internal/converter/diag"
-	"github.com/grafana/agent/internal/static/config"
+	"github.com/grafana/agent/static/config"
 	"github.com/grafana/river/token/builder"
 )
 

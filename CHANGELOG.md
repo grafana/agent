@@ -10,10 +10,30 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+v0.41.1 (2024-06-07)
+--------------------
+
+### Breaking changes
+
+- Applied OpenTelemetry [CVE-2024-36129](https://github.com/open-telemetry/opentelemetry-collector/security/advisories/GHSA-c74f-6mfw-mm4v) fixes. (@mattdurham)
+  - Components `otelcol.receiver.otlp`,`otelcol.receiver.zipkin` and `otelcol.receiver.jaeger` setting `max_request_body_size`
+    default changed from unlimited size to `20MiB`.
+
+### Enhancements
+
+- Updated pyroscope to v0.4.6 introducing `symbols_map_size` and `pid_map_size` configuration. (@simonswine)
+
+
+v0.41.0 (2024-05-31)
+--------------------
+
 ### Breaking changes
 
 - The default listen port for `otelcol.receiver.opencensus` has changed from
   4317 to 55678 to align with upstream. (@rfratto)
+
+- The default sync interval for `mimir.rules.kubernetes` has changed from `30s`
+  to `5m` to reduce load on Mimir. (@56quarters)
 
 ### Enhancements
 
@@ -27,18 +47,53 @@ Main (unreleased)
 - Increased the alert interval and renamed the `ClusterSplitBrain` alert to `ClusterNodeCountMismatch` in the Grafana
   Agent Mixin to better match the alert conditions. (@thampiotr)
 
-### Features
+- Not restart tailers in `loki.source.kubernetes` component by above-average time deltas if K8s version is >= 1.29.1 (@hainenber)
 
-- Added a new CLI flag `--stability.level` which defines the minimum stability
-  level required for the features that the agent is allowed to use. Default is `experimental`. (@thampiotr)
+- Add conversion from static to flow mode for `loki.source.windowsevent` via `legacy_bookmark_path`. (@mattdurham)
+
+- Add ability to convert static mode positions file to `loki.source.file` compatible via `legacy_positions_file` argument. (@mattdurham)
+
+- Added support for `otelcol` configuration conversion in `grafana-agent convert` and `grafana-agent run` commands. (@rfratto, @erikbaranowski, @tpaschalis, @hainenber)
+
+- Prefix Faro measurement values with `value_` to align with the latest Faro cloud receiver updates. (@codecapitano)
+
+- Added support for `static` configuration conversion of the `traces` subsystem. (@erikbaranowski, @wildum)
+
+- Add automatic conversion for `legacy_positions_file` in component `loki.source.file`. (@mattdurham)
+
+- Propagate request metadata for `faro.receiver` to downstream components. (@hainenber)
+
+### Features
 
 - A new `loki.rules.kubernetes` component that discovers `PrometheusRule` Kubernetes resources and loads them into a Loki Ruler instance. (@EStork09)
 
+- A new `snmp_context` configuration argument for `prometheus.exporter.snmp` and the `snmp` Static mode integration.
+  It overrides the `context_name` parameter in the SNMP configuration file. (@ptodev)
+
 ### Bugfixes
+
+- Fix panic for `prometheus.exporter.snmp` and snmp_exporter integration
+  introduced in v0.40.5 with a version upgrade. This was due to an
+  uninitialized new metric for the exporter. (@erikbaranowski)
 
 - Fix an issue where JSON string array elements were not parsed correctly in `loki.source.cloudflare`. (@thampiotr)
 
-- Update gcp_exporter to a newer version with a patch for incorrect delta histograms (@kgeckhart)
+- Fix SSRF vulnerability in `faro.receiver` by disabling source map download. (@hainenber)
+
+- Fix an issue where the default values of some component's arguments change
+  whenever that argument is explicitly configured. This issue only affected a
+  small subset of arguments across 15 components. (@erikbaranowski, @rfratto)
+
+- Fix panic when fanning out to invalid receivers. (@hainenber)
+
+- Fix a bug where a panic could occur when reloading custom components. (@wildum)
+
+- The `import.git` config block did not work with branches or tags this now fixes that behavior. (@mattdurham)
+
+- Fix an issue on Windows where uninstalling Alloy did not remove it from the
+  Add/Remove programs list. (@rfratto)
+
+- Fix a bug where a topic was claimed by the wrong consumer type in `otelcol.receiver.kafka`. (@wildum)
 
 ### Other changes
 
@@ -47,6 +102,68 @@ Main (unreleased)
 - Resync defaults for `otelcol.processor.k8sattributes` with upstream. (@hainenber)
 
 - Resync defaults for `otelcol.exporter.otlp` and `otelcol.exporter.otlphttp` with upstream. (@hainenber)
+
+v0.40.5 (2024-05-15)
+--------------------
+
+### Breaking changes
+
+- `prometheus.exporter.postgres` has been updated to the latest upstream
+  version which changes the set of exported metrics. The following metrics were
+  removed: `pg_stat_database_session_time`, `pg_stat_database_sessions`,
+  `pg_stat_database_sessions_abandoned`, `pg_stat_database_sessions_fatal`,
+  `pg_stat_database_sessions_killed`, `pg_stat_database_idle_in_transaction_time`,
+  `pg_stat_database_checksum_failures`, `pg_stat_database_checksum_last_failure`,
+  `pg_stat_database_active_time`. The following metrics were
+  renamed: `pg_stat_bgwriter_buffers_alloc`, `pg_stat_bgwriter_buffers_backend`,
+  `pg_stat_bgwriter_buffers_backend_fsync`, `pg_stat_bgwriter_buffers_checkpoint`,
+  `pg_stat_bgwriter_buffers_clean`, `pg_stat_bgwriter_checkpoint_sync_time`,
+  `pg_stat_bgwriter_checkpoint_write_time`, `pg_stat_bgwriter_checkpoints_req`,
+  `pg_stat_bgwriter_checkpoints_timed`, `pg_stat_bgwriter_maxwritten_clean`,
+  `pg_stat_bgwriter_stats_reset` - the new names include the `_total` suffix. (@thampiotr)
+
+### Bugfixes
+
+- Fix an issue where the azure exporter was not correctly gathering subscription scoped metrics when only one region was configured (@kgeckhart)
+
+- Fixed an issue where creating a `prometheus.exporter.postgres` component with
+  multiple `data_source_names` would result in an error. (@thampiotr)
+
+- Fix a bug with the logs pipeline in static mode which prevented it from shutting down cleanly.
+
+### Other changes
+
+- Updating SNMP exporter from v0.24.1 to v0.26.0.
+
+v0.40.4 (2024-04-12)
+--------------------
+
+### Security fixes
+
+- Fixes following vulnerabilities (@ptodev)
+  * [CVE-2024-27304](https://github.com/advisories/GHSA-mrww-27vc-gghv)
+  * [CVE-2024-27289](https://github.com/advisories/GHSA-m7wr-2xf7-cm9p)
+  * [CVE-2024-28180](https://github.com/advisories/GHSA-c5q2-7r4c-mv6g)
+  * [CVE-2024-24786](https://github.com/advisories/GHSA-8r3f-844c-mc37)
+
+### Enhancements
+
+- Update `prometheus.exporter.kafka` with the following functionalities (@wildum):
+  * GSSAPI config
+  * enable/disable PA_FX_FAST
+  * set a TLS server name
+  * show the offset/lag for all consumer group or only the connected ones
+  * set the minimum number of topics to monitor
+  * enable/disable auto-creation of requested topics if they don't already exist
+  * regex to exclude topics / groups 
+  * added metric kafka_broker_info
+
+- In `prometheus.exporter.kafka`, the interpolation table used to compute estimated lag metrics is now pruned
+  on `metadata_refresh_interval` instead of `prune_interval_seconds`. (@wildum)
+
+### Bugfixes
+
+- Update gcp_exporter to a newer version with a patch for incorrect delta histograms (@kgeckhart)
 
 v0.40.3 (2024-03-14)
 --------------------
@@ -60,6 +177,109 @@ v0.40.3 (2024-03-14)
 ### Other changes
 
 - Upgrade to Go 1.22.1 (@thampiotr)
+
+- Upgrade from OpenTelemetry Collector v0.87.0 to v0.96.0:
+  * [ottl]: Fix bug where named parameters needed a space after the equal sign (`=`)
+https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/28511
+  * [exporters] Additional enqueue_failed metrics
+https://github.com/open-telemetry/opentelemetry-collector/issues/8673
+  * [otelcol.receiver.kafka]: Fix issue where counting number of logs emitted could cause panic
+  * [otelcol.processor.k8sattributes]: The time format of k8s.pod.start_time attribute value migrated to RFC3339:
+Before: 2023-07-10 12:34:39.740638 -0700 PDT m=+0.020184946
+After: 2023-07-10T12:39:53.112485-07:00
+https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/28817
+  * [otelcol.processor.tail_sampling] A new `upper_threshold_ms` argument for the `latency` policy.
+https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/26115
+  * [otelcol.connector.spanmetrics] Add a new `events` metric.
+https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/27451
+  * [otelcol.connector.spanmetrics] A new `max_per_data_point` argument for exemplar generation.
+  * https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/29242
+  * [ottl] Add IsBool Converter
+https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/27897
+  * [otelcol.processor.tail_sampling] Optimize memory performance of tailsamplingprocessor
+https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/27889
+  * [otelcol.connector.servicegraph] Add a `metrics_flush_interval` argument.
+https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/27679
+  * [ottl] Add IsDouble Converter
+https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/27895
+  * [ottl] Add new `silent` ErrorMode
+https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/29710
+  * [otelcol.connector.spanmetrics] A new `resource_metrics_cache_size` argument.
+https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/27654
+  * [ottl] Add IsInt Converter
+https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/27894
+  * [ottl] Validate that all path elements are used
+https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/30042
+  * [ottl] Validate Keys are used
+https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/30162
+  * [otelcol.receiver.vcenter] Add statement of support for version 8 of ESXi and vCenter
+https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/30274
+  * [ottl] Add Hour converter
+https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/29468
+  * [otelcol.connector.spanmetrics] A new `resource_metrics_key_attributes` argument to fix broken spanmetrics counters
+  after a span producing service restart, when resource attributes contain dynamic/ephemeral values (e.g. process id).
+https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/29711
+  * [ottl] Issue with the hash value of a match group in the replace_pattern editors
+https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/29409
+  * [ottl] Fix bug where IsBool wasn't usable
+https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/30151
+  * [ottl] Add flatten function
+https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/30455
+  * [ottl] Fix bugs with parsing of string escapes in OTTL
+https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/23238
+  * [ottl]: Add functions for parsing CSV
+https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/30921
+  * [ottl] Allow users to specify the format of the hashed replacement string in the `replace_pattern` editors
+https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/27820
+  * [ottl] Add ParseKeyValue function
+https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/30998
+  * [otelcol.receiver.opencensus] Fix memory leak on shutdown
+https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/31152
+  * [otelcol.processor.memory_limiter] Fix leaking goroutine
+https://github.com/open-telemetry/opentelemetry-collector/issues/9099
+  * Additional `http2_read_idle_timeout` and `http2_ping_timeout` arguments for HTTP clients
+https://github.com/open-telemetry/opentelemetry-collector/pull/9022
+  * [otelcol.auth.bearer] Fix for "401 Unauthorized" on HTTP connections
+https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/24656
+* Update to OTLP 1.1
+https://github.com/open-telemetry/opentelemetry-collector/pull/9588
+  * [otelcol.auth.basic] Accept empty usernames.
+https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/30470
+  * [exporters] Do not re-enqueue failed batches, rely on the `retry_on_failure` strategy instead.
+https://github.com/open-telemetry/opentelemetry-collector/issues/8382
+  * [otelcol.exporter.otlphttp] A `Host` header is added automatically.
+https://github.com/open-telemetry/opentelemetry-collector/issues/9395
+  * [exporters] PartialSuccess is treated as success, logged as warning.
+https://github.com/open-telemetry/opentelemetry-collector/issues/9243
+  * [otelcol.exporter.otlphttp] Supports JSON encoding through an additional `encoding` argument.
+https://github.com/open-telemetry/opentelemetry-collector/issues/6945
+  * [exporters] A new `include_system_ca_certs_pool` argument for TLS config.
+https://github.com/open-telemetry/opentelemetry-collector/issues/7774
+  * [otelcol.receiver.vcenter] The receiver emits vCenter performance metrics with object metric label dimension.
+https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/30615
+  * [otelcol.processor.transform] Add copy_metric function
+https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/30846
+  * [otelcol.exporter.loadbalancing] Optimized CPU performance
+https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/30141
+  * [otelcol.processor.k8sattributes] Set attributes from namespace/node labels or annotations even if node/namespaces attribute are not set.
+https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/28837
+  * [otelcol.receiver.kafka] An additional `resolve_canonical_bootstrap_servers_only` argument
+https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/26022
+  * [otelcol.receiver.kafka] Add Azure Resource Log Support
+https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/18210
+  * [otelcol.processor.resourcedetection] Add a `k8s.cluster.name` resource attribute for AKS and EKS.
+https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/26794
+  * [otelcol.processor.resourcedetection] Add detection of `host.ip` to system detector.
+https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/24450
+  * [otelcol.processor.resourcedetection] Add detection of `host.mac` to system detector.
+https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/29587
+  * [otelcol.processor.resourcedetection] Change type of `host.cpu.model.id` and `host.cpu.model.family` to string.
+https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/29025
+  * [otelcol.processor.resourcedetection] Add a `aws.ecs.task.id` attribute
+https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/8274
+  * [otelcol.exporter.otlp] Additional RPC debug metrics such as `rpc_client_duration_milliseconds`.
+  * [otelcol.receiver.otlp] Additional RPC debug metrics such as `rpc_server_duration_milliseconds`.
+
 
 v0.40.2 (2024-03-05)
 --------------------
@@ -169,6 +389,8 @@ v0.40.0 (2024-02-27)
 - Batch staleness tracking to reduce mutex contention and increase performance. (@mattdurham)
 
 - Python profiling using eBPF is now aggregated now by kernel space. [PR](https://github.com/grafana/pyroscope/pull/2996) (@korniltsev)
+
+- Add Luhn filter to `loki.process` to filter PCI data from log data
 
 ### Bugfixes
 

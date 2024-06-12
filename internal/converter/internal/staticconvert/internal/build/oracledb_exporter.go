@@ -3,7 +3,7 @@ package build
 import (
 	"github.com/grafana/agent/internal/component/discovery"
 	"github.com/grafana/agent/internal/component/prometheus/exporter/oracledb"
-	"github.com/grafana/agent/internal/static/integrations/oracledb_exporter"
+	"github.com/grafana/agent/static/integrations/oracledb_exporter"
 	"github.com/grafana/river/rivertypes"
 )
 
