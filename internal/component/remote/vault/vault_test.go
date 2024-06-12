@@ -10,7 +10,6 @@ import (
 
 	vaultapi "github.com/hashicorp/vault/api"
 
-	"github.com/docker/go-connections/nat"
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/internal/flow/componenttest"
 	"github.com/grafana/agent/internal/util"
@@ -18,7 +17,7 @@ import (
 	"github.com/grafana/river/rivertypes"
 	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go"
-	"github.com/testcontainers/testcontainers-go/wait"
+	"github.com/testcontainers/testcontainers-go/modules/vault"
 )
 
 func Test_GetSecrets(t *testing.T) {
@@ -146,26 +145,21 @@ func getTestVaultServer(t *testing.T) *vaultapi.Client {
 	ctx := componenttest.TestContext(t)
 	l := util.TestLogger(t)
 
-	container, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
-		ContainerRequest: testcontainers.ContainerRequest{
-			Image:        "hashicorp/vault:1.13.2",
-			ExposedPorts: []string{"80/tcp"},
-			Env: map[string]string{
-				"VAULT_DEV_ROOT_TOKEN_ID":  "secretkey",
-				"VAULT_DEV_LISTEN_ADDRESS": "0.0.0.0:80",
-			},
-			WaitingFor: wait.ForHTTP("/v1/sys/health"),
-		},
-		Started: true,
-		Logger:  stdlog.New(log.NewStdlibAdapter(l), "", 0),
-	})
+	container, err := vault.RunContainer(
+		ctx, testcontainers.WithImage("hashicorp/vault:1.13.2"),
+		vault.WithToken("secretkey"),
+		testcontainers.WithEnv(map[string]string{
+			"VAULT_DEV_LISTEN_ADDRESS": "0.0.0.0:8200",
+		}),
+		testcontainers.WithLogger(stdlog.New(log.NewStdlibAdapter(l), "", 0)),
+	)
 	require.NoError(t, err)
 
 	t.Cleanup(func() {
 		require.NoError(t, container.Terminate(ctx))
 	})
 
-	ep, err := container.PortEndpoint(ctx, nat.Port("80/tcp"), "http")
+	ep, err := container.HttpHostAddress(ctx)
 	require.NoError(t, err)
 
 	cli, err := vaultapi.NewClient(&vaultapi.Config{Address: ep})
