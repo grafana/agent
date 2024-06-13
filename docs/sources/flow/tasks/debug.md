@@ -65,7 +65,7 @@ Follow these steps to debug issues with {{< param "PRODUCT_NAME" >}}:
 
 ### Home page
 
-![](../../assets/ui_home_page.png)
+![The Agent UI home page showing a table of components.](/media/docs/agent/ui_home_page.png)
 
 The home page shows a table of components defined in the configuration file and their health.
 
@@ -75,14 +75,14 @@ Click the {{< param "PRODUCT_ROOT_NAME" >}} logo to navigate back to the home pa
 
 ### Graph page
 
-![](../../assets/ui_graph_page.png)
+![The Graph page showing a graph view of components.](/media/docs/agent/ui_graph_page.png)
 
 The **Graph** page shows a graph view of components defined in the configuration file and their health.
 Clicking a component in the graph navigates to the [Component detail page](#component-detail-page) for that component.
 
 ### Component detail page
 
-![](../../assets/ui_component_detail_page.png)
+![The component detail page showing detailed information about the components.](/media/docs/agent/ui_component_detail_page.png)
 
 The component detail page shows the following information for each component:
 
@@ -95,9 +95,9 @@ The component detail page shows the following information for each component:
 
 ### Clustering page
 
-![](../../assets/ui_clustering_page.png)
+![The Clustering page showing detailed information about each cluster node.](/media/docs/agent/ui_clustering_page.png)
 
-The clustering page shows the following information for each cluster node:
+The Clustering page shows the following information for each cluster node:
 
 * The node's name.
 * The node's advertised address.
@@ -144,5 +144,3 @@ Some issues that appear to be clustering issues may be symptoms of other issues,
 for example, problems with scraping or service discovery can result in missing
 metrics for an agent that can be interpreted as a node not joining the cluster.
 {{< /admonition >}}
-
-

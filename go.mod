@@ -615,6 +615,7 @@ require (
 	go.opentelemetry.io/collector/confmap/converter/expandconverter v0.96.0
 	go.opentelemetry.io/collector/confmap/provider/fileprovider v0.96.0
 	go.opentelemetry.io/collector/confmap/provider/yamlprovider v0.96.0
+	go.opentelemetry.io/collector/exporter/debugexporter v0.96.0
 	go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp v1.24.0
 	golang.org/x/crypto/x509roots/fallback v0.0.0-20240208163226-62c9f1799c91
 	k8s.io/apimachinery v0.29.2
@@ -768,8 +769,14 @@ replace (
 // https://github.com/open-telemetry/opentelemetry-collector/pull/7696
 // https://github.com/open-telemetry/opentelemetry-collector/issues/4970
 replace (
-	go.opentelemetry.io/collector/otelcol => github.com/grafana/opentelemetry-collector/otelcol v0.0.0-20240321103955-8919a1c85cbe
-	go.opentelemetry.io/collector/service => github.com/grafana/opentelemetry-collector/service v0.0.0-20240321103955-8919a1c85cbe
+	go.opentelemetry.io/collector/otelcol => github.com/grafana/opentelemetry-collector/otelcol v0.0.0-20240606144032-13b77f7c5603
+	go.opentelemetry.io/collector/service => github.com/grafana/opentelemetry-collector/service v0.0.0-20240606144032-13b77f7c5603
+)
+
+// This is to fix https://opentelemetry.io/blog/2024/cve-2024-36129
+replace (
+	go.opentelemetry.io/collector/config/configgrpc => github.com/grafana/opentelemetry-collector/config/configgrpc v0.0.0-20240606144032-13b77f7c5603
+	go.opentelemetry.io/collector/config/confighttp => github.com/grafana/opentelemetry-collector/config/confighttp v0.0.0-20240606144032-13b77f7c5603
 )
 
 // Required to avoid an ambiguous import with github.com/tencentcloud/tencentcloud-sdk-go

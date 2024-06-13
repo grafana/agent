@@ -10,6 +10,28 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+### Features
+
+- A new `otelcol.exporter.debug` component for printing OTel telemetry from 
+  other `otelcol` components to the console. (@BarunKGP)
+
+v0.41.1 (2024-06-07)
+--------------------
+
+### Breaking changes
+
+- Applied OpenTelemetry [CVE-2024-36129](https://github.com/open-telemetry/opentelemetry-collector/security/advisories/GHSA-c74f-6mfw-mm4v) fixes. (@mattdurham)
+  - Components `otelcol.receiver.otlp`,`otelcol.receiver.zipkin` and `otelcol.receiver.jaeger` setting `max_request_body_size`
+    default changed from unlimited size to `20MiB`.
+
+### Enhancements
+
+- Updated pyroscope to v0.4.6 introducing `symbols_map_size` and `pid_map_size` configuration. (@simonswine)
+
+
+v0.41.0 (2024-05-31)
+--------------------
+
 ### Breaking changes
 
 - The default listen port for `otelcol.receiver.opencensus` has changed from
@@ -37,6 +59,8 @@ Main (unreleased)
 - Add ability to convert static mode positions file to `loki.source.file` compatible via `legacy_positions_file` argument. (@mattdurham)
 
 - Added support for `otelcol` configuration conversion in `grafana-agent convert` and `grafana-agent run` commands. (@rfratto, @erikbaranowski, @tpaschalis, @hainenber)
+
+- Prefix Faro measurement values with `value_` to align with the latest Faro cloud receiver updates. (@codecapitano)
 
 - Added support for `static` configuration conversion of the `traces` subsystem. (@erikbaranowski, @wildum)
 

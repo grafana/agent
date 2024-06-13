@@ -14,7 +14,7 @@ refs:
   release-notes-static:
     - pattern: /docs/agent/
       destination: /docs/agent/<AGENT_VERSION>/static/release-notes/
-    - pattern: /docs/agent/
+    - pattern: /docs/grafana-cloud/
       destination: /docs/grafana-cloud/send-data/agent/static/release-notes/
   release-notes-flow:
     - pattern: /docs/agent/
