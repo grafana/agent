@@ -615,6 +615,7 @@ require (
 	go.opentelemetry.io/collector/confmap/converter/expandconverter v0.96.0
 	go.opentelemetry.io/collector/confmap/provider/fileprovider v0.96.0
 	go.opentelemetry.io/collector/confmap/provider/yamlprovider v0.96.0
+	go.opentelemetry.io/collector/exporter/debugexporter v0.96.0
 	go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp v1.24.0
 	golang.org/x/crypto/x509roots/fallback v0.0.0-20240208163226-62c9f1799c91
 	k8s.io/apimachinery v0.29.2

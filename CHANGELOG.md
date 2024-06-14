@@ -10,6 +10,11 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+### Features
+
+- A new `otelcol.exporter.debug` component for printing OTel telemetry from 
+  other `otelcol` components to the console. (@BarunKGP)
+
 v0.41.1 (2024-06-07)
 --------------------
 
