@@ -358,19 +358,19 @@ pick the ones you need.
 `length` controls how far back in time CloudWatch metrics are considered during each agent scrape.
 If both settings are configured, the time parameters when calling CloudWatch APIs work as follows:
 
-![](https://grafana.com/media/docs/agent/cloudwatch-period-and-length-time-model-2.png)
+![A diagram showing how the time parameters work when both period and length are configured.](/media/docs/agent/cloudwatch-period-and-length-time-model-2.png)
 
-As noted above, if there is a different `period` or `length` across multiple metrics under the same static or discovery job, 
+As noted above, if there is a different `period` or `length` across multiple metrics under the same static or discovery job,
 the minimum of all periods, and maximum of all lengths is configured.
 
-On the other hand, if `length` is not configured, both period and length settings are calculated based on 
+On the other hand, if `length` isn't configured, both period and length settings are calculated based on
 the required `period` configuration attribute.
 
 If all metrics within a job (discovery or static) have the same `period` value configured, CloudWatch APIs will be
-requested for metrics from the scrape time, to `period`s seconds in the past. 
+requested for metrics from the scrape time, to `period`s seconds in the past.
 The values of these metrics are exported to Prometheus.
 
-![](https://grafana.com/media/docs/agent/cloudwatch-single-period-time-model.png)
+![A diagram showing how the time parameters work when a single period is configured.](/media/docs/agent/cloudwatch-single-period-time-model.png)
 
 On the other hand, if metrics with different `period`s are configured under an individual job, this works differently.
 First, two variables are calculated aggregating all periods: `length`, taking the maximum value of all periods, and
@@ -378,7 +378,7 @@ the new `period` value, taking the minimum of all periods. Then, CloudWatch APIs
 `now - length` to `now`, aggregating each in samples for `period` seconds. For each metric, the most recent sample
 is exported to CloudWatch.
 
-![](https://grafana.com/media/docs/agent/cloudwatch-multiple-period-time-model.png)
+![A diagram showing how the time parameters work when multiple periods are configured.](/media/docs/agent/cloudwatch-multiple-period-time-model.png)
 
 ## Supported services in discovery jobs
 
