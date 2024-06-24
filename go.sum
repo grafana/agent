@@ -1075,8 +1075,8 @@ github.com/grafana/river v0.3.1-0.20240123144725-960753160cd1 h1:mCOKdWkLv8n9X0O
 github.com/grafana/river v0.3.1-0.20240123144725-960753160cd1/go.mod h1:tAiNX2zt3HUsNyPNUDSvE6AgQ4+kqJvljBI+ACppMtM=
 github.com/grafana/smimesign v0.2.1-0.20220408144937-2a5adf3481d3 h1:UPkAxuhlAcRmJT3/qd34OMTl+ZU7BLLfOO2+NXBlJpY=
 github.com/grafana/smimesign v0.2.1-0.20220408144937-2a5adf3481d3/go.mod h1:iZiiwNT4HbtGRVqCQu7uJPEZCuEE5sfSSttcnePkDl4=
-github.com/grafana/snowflake-prometheus-exporter v0.0.0-20221213150626-862cad8e9538 h1:tkT0yha3JzB5S5VNjfY4lT0cJAe20pU8XGt3Nuq73rM=
-github.com/grafana/snowflake-prometheus-exporter v0.0.0-20221213150626-862cad8e9538/go.mod h1:VxVydRyq8f6w1qmX/5MSYIdSbgujre8rdFRLgU6u/RI=
+github.com/grafana/snowflake-prometheus-exporter v0.0.0-20240524135656-12b7c9be6cbf h1:272jCM4WJtrv4JsVTyjSlzRavZRur60rBGgaCKQOK5k=
+github.com/grafana/snowflake-prometheus-exporter v0.0.0-20240524135656-12b7c9be6cbf/go.mod h1:DANNLd5vSKqHloqNX4yeS+9ZRI89dj8ySZeEWlI5UU4=
 github.com/grafana/stackdriver_exporter v0.0.0-20240228143257-3a2c9acef5a2 h1:xBGGPnQyQNK0Apz269BZoKTnFxKKxYhhXzI++N2phE0=
 github.com/grafana/stackdriver_exporter v0.0.0-20240228143257-3a2c9acef5a2/go.mod h1:Ce7MjYSAUzZZeFb5jBNqSUUZ45w5IMdnNEKfz3jJRos=
 github.com/grafana/tail v0.0.0-20230510142333-77b18831edf0 h1:bjh0PVYSVVFxzINqPFYJmAmJNrWPgnVjuSdYJGHmtFU=
@@ -2260,8 +2260,9 @@ github.com/xhit/go-str2duration/v2 v2.1.0/go.mod h1:ohY8p+0f07DiV6Em5LKB0s2YpLtX
 github.com/xiang90/probing v0.0.0-20190116061207-43a291ad63a2/go.mod h1:UETIi67q53MR2AWcXfiuqkDkRtnGDLqkBTpCHuJHxtU=
 github.com/xo/dburl v0.20.0 h1:v601OhM9J4Zh56R270ncM9HRgoxp39tf9+nt5ft9UD0=
 github.com/xo/dburl v0.20.0/go.mod h1:B7/G9FGungw6ighV8xJNwWYQPMfn3gsi2sn5SE8Bzco=
-github.com/youmark/pkcs8 v0.0.0-20181117223130-1be2e3e5546d h1:splanxYIlg+5LfHAM6xpdFEAYOk8iySO56hMFq6uLyA=
 github.com/youmark/pkcs8 v0.0.0-20181117223130-1be2e3e5546d/go.mod h1:rHwXgn7JulP+udvsHwJoVG1YGAP6VLg4y9I5dyZdqmA=
+github.com/youmark/pkcs8 v0.0.0-20240424034433-3c2c7870ae76 h1:tBiBTKHnIjovYoLX/TPkcf+OjqqKGQrPtGT3Foz+Pgo=
+github.com/youmark/pkcs8 v0.0.0-20240424034433-3c2c7870ae76/go.mod h1:SQliXeA7Dhkt//vS29v3zpbEwoa+zb2Cn5xj5uO4K5U=
 github.com/yuin/goldmark v1.1.25/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
 github.com/yuin/goldmark v1.1.27/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
 github.com/yuin/goldmark v1.1.32/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
@@ -2348,6 +2349,8 @@ go.opentelemetry.io/collector/consumer v0.96.0 h1:JN4JHelp5EGMGoC2UVelTMG6hyZjgt
 go.opentelemetry.io/collector/consumer v0.96.0/go.mod h1:Vn+qzzKgekDFayCVV8peSH5Btx1xrt/bmzD9gTxgidQ=
 go.opentelemetry.io/collector/exporter v0.96.0 h1:SmOSaP+zUNq0nl+BcllsCSsYePdUNIIUfW5sXKKaUlI=
 go.opentelemetry.io/collector/exporter v0.96.0/go.mod h1:DcuGaxcINhOV2LgojDI56r3830cUtuCsNadINMIU23c=
+go.opentelemetry.io/collector/exporter/debugexporter v0.96.0 h1:88v2GWCIuYgd3e4KdwF0JLklIgBzETBw0e3dkEJ7BbI=
+go.opentelemetry.io/collector/exporter/debugexporter v0.96.0/go.mod h1:mZjJ0G6Pn6aSS7T4UeEjXSHt3pgslvaZa/4Uam8DKuo=
 go.opentelemetry.io/collector/exporter/loggingexporter v0.96.0 h1:fKHt4iTcD7C0utDzeww6ZYVlDYaC0dw9wtzVwLha4CM=
 go.opentelemetry.io/collector/exporter/loggingexporter v0.96.0/go.mod h1:vpuKdiIQ6yjwZbKiiAs/MV8rZMKiQfPF55vX8UxO8fk=
 go.opentelemetry.io/collector/exporter/otlpexporter v0.96.0 h1:vZEd10B/zj7WkBWSVegDkGOwv7FZhUwyk60E2zkYwL4=

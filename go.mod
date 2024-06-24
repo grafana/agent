@@ -64,7 +64,7 @@ require (
 	github.com/grafana/pyroscope/ebpf v0.4.6
 	github.com/grafana/regexp v0.0.0-20221123153739-15dc172cd2db
 	github.com/grafana/river v0.3.1-0.20240123144725-960753160cd1
-	github.com/grafana/snowflake-prometheus-exporter v0.0.0-20221213150626-862cad8e9538
+	github.com/grafana/snowflake-prometheus-exporter v0.0.0-20240524135656-12b7c9be6cbf
 	github.com/grafana/tail v0.0.0-20230510142333-77b18831edf0
 	github.com/grafana/vmware_exporter v0.0.5-beta
 	github.com/grpc-ecosystem/go-grpc-middleware v1.4.0
@@ -560,7 +560,7 @@ require (
 	github.com/xeipuuv/gojsonschema v1.2.0 // indirect
 	github.com/xhit/go-str2duration/v2 v2.1.0 // indirect
 	github.com/xo/dburl v0.20.0 // indirect
-	github.com/youmark/pkcs8 v0.0.0-20181117223130-1be2e3e5546d // indirect
+	github.com/youmark/pkcs8 v0.0.0-20240424034433-3c2c7870ae76 // indirect
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
 	go.etcd.io/etcd/api/v3 v3.5.10 // indirect
 	go.etcd.io/etcd/client/pkg/v3 v3.5.10 // indirect
@@ -615,6 +615,7 @@ require (
 	go.opentelemetry.io/collector/confmap/converter/expandconverter v0.96.0
 	go.opentelemetry.io/collector/confmap/provider/fileprovider v0.96.0
 	go.opentelemetry.io/collector/confmap/provider/yamlprovider v0.96.0
+	go.opentelemetry.io/collector/exporter/debugexporter v0.96.0
 	go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp v1.24.0
 	golang.org/x/crypto/x509roots/fallback v0.0.0-20240208163226-62c9f1799c91
 	k8s.io/apimachinery v0.29.2
