@@ -173,10 +173,10 @@ func (i *Instance) ApplyConfig(c *InstanceConfig, g GlobalConfig, dryRun bool) e
 	}
 
 	// Unregister all existing metrics before trying to create a new instance.
-	if !i.reg.UnregisterAll() {
+	if err := i.reg.UnregisterAll(); err != nil {
 		// If UnregisterAll fails, we need to abort, otherwise the new promtail
 		// would try to re-register an existing metric and might panic.
-		return fmt.Errorf("failed to unregister all metrics from previous promtail. THIS IS A BUG")
+		return fmt.Errorf("failed to unregister all metrics from previous promtail due to: %w", err)
 	}
 
 	if len(c.ClientConfigs) == 0 {

@@ -1,6 +1,11 @@
 package util
 
-import "github.com/prometheus/client_golang/prometheus"
+import (
+	"fmt"
+
+	"github.com/hashicorp/go-multierror"
+	"github.com/prometheus/client_golang/prometheus"
+)
 
 // Unregisterer is a Prometheus Registerer that can unregister all collectors
 // passed to it.
@@ -18,6 +23,40 @@ func WrapWithUnregisterer(reg prometheus.Registerer) *Unregisterer {
 	}
 }
 
+func describeCollector(c prometheus.Collector) string {
+	var (
+		descChan = make(chan *prometheus.Desc, 10)
+	)
+	go func() {
+		c.Describe(descChan)
+		close(descChan)
+	}()
+
+	descs := make([]string, 0)
+	for desc := range descChan {
+		descs = append(descs, desc.String())
+	}
+
+	return fmt.Sprintf("%v", descs)
+}
+
+func isUncheckedCollector(c prometheus.Collector) bool {
+	var (
+		descChan = make(chan *prometheus.Desc, 10)
+	)
+	go func() {
+		c.Describe(descChan)
+		close(descChan)
+	}()
+
+	i := 0
+	for range descChan {
+		i += 1
+	}
+
+	return i == 0
+}
+
 // Register implements prometheus.Registerer.
 func (u *Unregisterer) Register(c prometheus.Collector) error {
 	if u.wrap == nil {
@@ -28,6 +67,11 @@ func (u *Unregisterer) Register(c prometheus.Collector) error {
 	if err != nil {
 		return err
 	}
+
+	if isUncheckedCollector(c) {
+		return nil
+	}
+
 	u.cs[c] = struct{}{}
 	return nil
 }
@@ -43,6 +87,10 @@ func (u *Unregisterer) MustRegister(cs ...prometheus.Collector) {
 
 // Unregister implements prometheus.Registerer.
 func (u *Unregisterer) Unregister(c prometheus.Collector) bool {
+	if isUncheckedCollector(c) {
+		return true
+	}
+
 	if u.wrap != nil && u.wrap.Unregister(c) {
 		delete(u.cs, c)
 		return true
@@ -52,12 +100,13 @@ func (u *Unregisterer) Unregister(c prometheus.Collector) bool {
 
 // UnregisterAll unregisters all collectors that were registered through the
 // Registerer.
-func (u *Unregisterer) UnregisterAll() bool {
-	success := true
+func (u *Unregisterer) UnregisterAll() error {
+	var multiErr error
 	for c := range u.cs {
 		if !u.Unregister(c) {
-			success = false
+			err := fmt.Errorf("failed to unregister collector %v", describeCollector(c))
+			multiErr = multierror.Append(multiErr, err)
 		}
 	}
-	return success
+	return multiErr
 }
