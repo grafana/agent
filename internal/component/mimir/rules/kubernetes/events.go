@@ -3,6 +3,7 @@ package rules
 import (
 	"context"
 	"fmt"
+	"maps"
 	"regexp"
 	"time"
 
@@ -134,6 +135,15 @@ func (c *Component) loadStateFromK8s() (kubernetes.RuleGroupsByNamespace, error)
 			groups, err := convertCRDRuleGroupToRuleGroup(pr.Spec)
 			if err != nil {
 				return nil, fmt.Errorf("failed to convert rule group: %w", err)
+			}
+
+			for _, rule_group := range groups {
+				for _, rule_node := range rule_group.Rules {
+					if rule_node.Labels == nil {
+						rule_node.Labels = make(map[string]string)
+					}
+					maps.Copy(rule_node.Labels, c.args.ExternalLabels)
+				}
 			}
 
 			desiredState[mimirNs] = groups

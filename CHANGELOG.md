@@ -52,6 +52,8 @@ v0.41.0 (2024-05-31)
 - Increased the alert interval and renamed the `ClusterSplitBrain` alert to `ClusterNodeCountMismatch` in the Grafana
   Agent Mixin to better match the alert conditions. (@thampiotr)
 
+- `mimir.rules.kubernetes` support for add extra labels (@psychomantys)
+
 - Not restart tailers in `loki.source.kubernetes` component by above-average time deltas if K8s version is >= 1.29.1 (@hainenber)
 
 - Add conversion from static to flow mode for `loki.source.windowsevent` via `legacy_bookmark_path`. (@mattdurham)
