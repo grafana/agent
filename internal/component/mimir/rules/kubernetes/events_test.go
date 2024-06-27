@@ -8,12 +8,12 @@ import (
 	"time"
 
 	"github.com/go-kit/log"
-	"github.com/grafana/agent/internal/component/common/kubernetes"
-	mimirClient "github.com/grafana/agent/internal/mimir/client"
+	"github.com/google/go-cmp/cmp"
 	v1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	promListers "github.com/prometheus-operator/prometheus-operator/pkg/client/listers/monitoring/v1"
 	"github.com/prometheus/prometheus/model/rulefmt"
 	"github.com/stretchr/testify/require"
+	"gopkg.in/yaml.v3"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
@@ -22,22 +22,25 @@ import (
 	coreListers "k8s.io/client-go/listers/core/v1"
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/util/workqueue"
+
+	"github.com/grafana/agent/internal/component/common/kubernetes"
+	mimirClient "github.com/grafana/agent/internal/mimir/client"
 )
 
 type fakeMimirClient struct {
 	rulesMut sync.RWMutex
-	rules    map[string][]rulefmt.RuleGroup
+	rules    map[string][]mimirClient.RuleGroup
 }
 
 var _ mimirClient.Interface = &fakeMimirClient{}
 
 func newFakeMimirClient() *fakeMimirClient {
 	return &fakeMimirClient{
-		rules: make(map[string][]rulefmt.RuleGroup),
+		rules: make(map[string][]mimirClient.RuleGroup),
 	}
 }
 
-func (m *fakeMimirClient) CreateRuleGroup(ctx context.Context, namespace string, rule rulefmt.RuleGroup) error {
+func (m *fakeMimirClient) CreateRuleGroup(ctx context.Context, namespace string, rule mimirClient.RuleGroup) error {
 	m.rulesMut.Lock()
 	defer m.rulesMut.Unlock()
 	m.deleteLocked(namespace, rule.Name)
@@ -71,10 +74,10 @@ func (m *fakeMimirClient) deleteLocked(namespace, group string) {
 	}
 }
 
-func (m *fakeMimirClient) ListRules(ctx context.Context, namespace string) (map[string][]rulefmt.RuleGroup, error) {
+func (m *fakeMimirClient) ListRules(ctx context.Context, namespace string) (map[string][]mimirClient.RuleGroup, error) {
 	m.rulesMut.RLock()
 	defer m.rulesMut.RUnlock()
-	output := make(map[string][]rulefmt.RuleGroup)
+	output := make(map[string][]mimirClient.RuleGroup)
 	for ns, v := range m.rules {
 		if namespace != "" && namespace != ns {
 			continue
@@ -109,6 +112,9 @@ func TestEventLoop(t *testing.T) {
 			Name:      "name",
 			Namespace: "namespace",
 			UID:       types.UID("64aab764-c95e-4ee9-a932-cd63ba57e6cf"),
+			Annotations: map[string]string{
+				"monitoring.grafana.com/source_tenants": "tenant1, tenant2",
+			},
 		},
 		Spec: v1.PrometheusRuleSpec{
 			Groups: []v1.RuleGroup{
@@ -148,11 +154,49 @@ func TestEventLoop(t *testing.T) {
 	ruleIndexer.Add(rule)
 	eventHandler.OnAdd(rule, false)
 
+	expectedRules := map[string][]mimirClient.RuleGroup{
+		"agent/namespace/name/64aab764-c95e-4ee9-a932-cd63ba57e6cf": {
+			{
+				SourceTenants: []string{"tenant1", "tenant2"},
+				RuleGroup: rulefmt.RuleGroup{
+					Name:     "group",
+					Interval: 0,
+					Limit:    0,
+					Rules: []rulefmt.RuleNode{
+						{
+							Record: yaml.Node{},
+							Alert: yaml.Node{
+								Kind:   8,
+								Tag:    "!!str",
+								Value:  "alert",
+								Line:   4,
+								Column: 12,
+							},
+							Expr: yaml.Node{
+								Kind:   8,
+								Tag:    "!!str",
+								Value:  "expr",
+								Line:   5,
+								Column: 11,
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
 	// Wait for the rule to be added to mimir
 	require.Eventually(t, func() bool {
 		rules, err := component.mimirClient.ListRules(ctx, "")
 		require.NoError(t, err)
-		return len(rules) == 1
+		if !cmp.Equal(rules, expectedRules) {
+			t.Errorf("rules not equal: %v", cmp.Diff(expectedRules, rules))
+
+			return false
+		}
+
+		return true
 	}, time.Second, 10*time.Millisecond)
 	component.queue.AddRateLimited(kubernetes.Event{Typ: eventTypeSyncMimir})
 

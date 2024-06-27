@@ -5,7 +5,6 @@ import (
 	"io"
 	"net/url"
 
-	"github.com/prometheus/prometheus/model/rulefmt"
 	"gopkg.in/yaml.v3"
 )
 
@@ -15,7 +14,7 @@ type RemoteWriteConfig struct {
 }
 
 // CreateRuleGroup creates a new rule group
-func (r *MimirClient) CreateRuleGroup(ctx context.Context, namespace string, rg rulefmt.RuleGroup) error {
+func (r *MimirClient) CreateRuleGroup(ctx context.Context, namespace string, rg RuleGroup) error {
 	payload, err := yaml.Marshal(&rg)
 	if err != nil {
 		return err
@@ -53,7 +52,7 @@ func (r *MimirClient) DeleteRuleGroup(ctx context.Context, namespace, groupName 
 }
 
 // ListRules retrieves a rule group
-func (r *MimirClient) ListRules(ctx context.Context, namespace string) (map[string][]rulefmt.RuleGroup, error) {
+func (r *MimirClient) ListRules(ctx context.Context, namespace string) (map[string][]RuleGroup, error) {
 	path := r.apiPath
 	op := r.apiPath
 	if namespace != "" {
@@ -73,7 +72,7 @@ func (r *MimirClient) ListRules(ctx context.Context, namespace string) (map[stri
 		return nil, err
 	}
 
-	ruleSet := map[string][]rulefmt.RuleGroup{}
+	ruleSet := map[string][]RuleGroup{}
 	err = yaml.Unmarshal(body, &ruleSet)
 	if err != nil {
 		return nil, err
