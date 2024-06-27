@@ -23,6 +23,7 @@ import (
 	"github.com/grafana/loki/clients/pkg/promtail/wal"
 	"github.com/grafana/loki/pkg/tracing"
 	"github.com/prometheus/client_golang/prometheus"
+	"gopkg.in/yaml.v2"
 )
 
 func init() {
@@ -121,6 +122,8 @@ type Instance struct {
 	log log.Logger
 	reg *util.Unregisterer
 
+	previousConfig string
+
 	promtail *promtail.Promtail
 }
 
@@ -155,14 +158,20 @@ func (i *Instance) ApplyConfig(c *InstanceConfig, g GlobalConfig, dryRun bool) e
 	defer i.mut.Unlock()
 
 	// No-op if the configs haven't changed.
-	if util.CompareYAML(c, i.cfg) {
+	newConfigByteArr, err := yaml.Marshal(c)
+	if err != nil {
+		return fmt.Errorf("failed to marshal new logs instance config: %w", err)
+	}
+	newConfig := string(newConfigByteArr[:])
+	if newConfig == i.previousConfig {
 		level.Debug(i.log).Log("msg", "instance config hasn't changed, not recreating Promtail")
 		return nil
 	}
+	i.previousConfig = newConfig
 	i.cfg = c
 
 	positionsDir := filepath.Dir(c.PositionsConfig.PositionsFile)
-	err := os.MkdirAll(positionsDir, 0775)
+	err = os.MkdirAll(positionsDir, 0775)
 	if err != nil {
 		level.Warn(i.log).Log("msg", "failed to create the positions directory. logs may be unable to save their position", "path", positionsDir, "err", err)
 	}
