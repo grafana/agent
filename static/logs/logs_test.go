@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/grafana/loki/pkg/loghttp/push"
+	"k8s.io/component-base/metrics/testutil"
 
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/internal/util"
@@ -31,6 +32,8 @@ func TestLogs_NilConfig(t *testing.T) {
 }
 
 func TestLogs(t *testing.T) {
+	reg := prometheus.NewRegistry()
+
 	//
 	// Create a temporary file to tail
 	//
@@ -80,7 +83,17 @@ configs:
       labels:
         job: test
         __path__: %s
-	`, positionsDir, lis.Addr().String(), tmpFile.Name()))
+    pipeline_stages:
+    - metrics:
+        log_lines_total:
+          type: Counter
+          description: "total number of log lines"
+          prefix: my_promtail_custom_
+          max_idle_duration: 24h
+          config:
+            match_all: true
+            action: inc
+`, positionsDir, lis.Addr().String(), tmpFile.Name()))
 
 	var cfg Config
 	dec := yaml.NewDecoder(strings.NewReader(cfgText))
@@ -88,7 +101,7 @@ configs:
 	require.NoError(t, dec.Decode(&cfg))
 	require.NoError(t, cfg.ApplyDefaults())
 	logger := log.NewSyncLogger(log.NewNopLogger())
-	l, err := New(prometheus.NewRegistry(), &cfg, logger, false)
+	l, err := New(reg, &cfg, logger, false)
 	require.NoError(t, err)
 	defer l.Stop()
 
@@ -103,25 +116,41 @@ configs:
 		require.Equal(t, "Hello, world!", req.Streams[0].Entries[0].Line)
 	}
 
+	require.NoError(t, testutil.GatherAndCompare(reg, strings.NewReader(`
+# HELP my_promtail_custom_log_lines_total total number of log lines
+# TYPE my_promtail_custom_log_lines_total counter
+my_promtail_custom_log_lines_total{filename="`+tmpFile.Name()+`",job="test",logs_config="default"} 1
+`), "my_promtail_custom_log_lines_total"))
+
 	//
 	// Apply a new config and write a new line.
 	//
-	cfgText = util.Untab(fmt.Sprintf(`
-positions_directory: %s
-configs:
-- name: default
-  clients:
-  - url: http://%s/loki/api/v1/push
-		batchwait: 50ms
-		batchsize: 5
-  scrape_configs:
-  - job_name: system
-    static_configs:
-    - targets: [localhost]
-      labels:
-        job: test-2
-        __path__: %s
-	`, positionsDir, lis.Addr().String(), tmpFile.Name()))
+	// 	cfgText = util.Untab(fmt.Sprintf(`
+	// positions_directory: %s
+	// configs:
+	// - name: default
+	//   clients:
+	//   - url: http://%s/loki/api/v1/push
+	// 		batchwait: 50ms
+	// 		batchsize: 5
+	//   scrape_configs:
+	//   - job_name: system
+	//     static_configs:
+	//     - targets: [localhost]
+	//       labels:
+	//         job: test-2
+	//         __path__: %s
+	//     pipeline_stages:
+	//     - metrics:
+	//         log_lines_total:
+	//           type: Counter
+	//           description: "total number of log lines"
+	//           prefix: my_promtail_custom_
+	//           max_idle_duration: 24h
+	//           config:
+	//             match_all: true
+	//             action: inc
+	// 	`, positionsDir, lis.Addr().String(), tmpFile.Name()))
 
 	var newCfg Config
 	dec = yaml.NewDecoder(strings.NewReader(cfgText))
@@ -137,6 +166,12 @@ configs:
 	case req := <-pushes:
 		require.Equal(t, "Hello again!", req.Streams[0].Entries[0].Line)
 	}
+
+	require.NoError(t, testutil.GatherAndCompare(reg, strings.NewReader(`
+# HELP my_promtail_custom_log_lines_total total number of log lines
+# TYPE my_promtail_custom_log_lines_total counter
+my_promtail_custom_log_lines_total{filename="`+tmpFile.Name()+`",job="test",logs_config="default"} 2
+`), "my_promtail_custom_log_lines_total"))
 
 	t.Run("update to nil", func(t *testing.T) {
 		// Applying a nil config should remove all instances.
