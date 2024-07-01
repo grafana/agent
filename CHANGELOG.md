@@ -102,6 +102,9 @@ v0.41.0 (2024-05-31)
 
 - Fix a bug where a topic was claimed by the wrong consumer type in `otelcol.receiver.kafka`. (@wildum)
 
+- Update `prometheus.exporter.snowflake` with the [latest](https://github.com/grafana/snowflake-prometheus-exporter) version of the exporter as of May 28, 2024 (@StefanKurek)
+  - Fixes issue where returned `NULL` values from database could cause unexpected errors.
+
 ### Other changes
 
 - Clustering for Grafana Agent in Flow mode has graduated from beta to stable.
