@@ -23,7 +23,7 @@ import (
 )
 
 func TestLogs_NilConfig(t *testing.T) {
-	l, err := New(prometheus.NewRegistry(), nil, util.TestLogger(t), false)
+	l, err := New(prometheus.NewRegistry(), nil, util.TestLogger(t), false, false)
 	require.NoError(t, err)
 	require.NoError(t, l.ApplyConfig(nil, false))
 
@@ -88,7 +88,7 @@ configs:
 	require.NoError(t, dec.Decode(&cfg))
 	require.NoError(t, cfg.ApplyDefaults())
 	logger := log.NewSyncLogger(log.NewNopLogger())
-	l, err := New(prometheus.NewRegistry(), &cfg, logger, false)
+	l, err := New(prometheus.NewRegistry(), &cfg, logger, false, false)
 	require.NoError(t, err)
 	defer l.Stop()
 
@@ -195,7 +195,7 @@ configs:
 	require.NoError(t, dec.Decode(&cfg))
 	require.NoError(t, cfg.ApplyDefaults())
 	logger := util.TestLogger(t)
-	l, err := New(prometheus.NewRegistry(), &cfg, logger, false)
+	l, err := New(prometheus.NewRegistry(), &cfg, logger, false, false)
 	require.NoError(t, err)
 	defer l.Stop()
 

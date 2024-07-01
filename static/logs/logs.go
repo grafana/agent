@@ -14,6 +14,7 @@ import (
 	"github.com/grafana/agent/internal/agentseed"
 	"github.com/grafana/agent/internal/useragent"
 	"github.com/grafana/agent/internal/util"
+	"github.com/grafana/loki/clients/pkg/logentry/stages"
 	"github.com/grafana/loki/clients/pkg/promtail"
 	"github.com/grafana/loki/clients/pkg/promtail/api"
 	"github.com/grafana/loki/clients/pkg/promtail/client"
@@ -40,12 +41,15 @@ type Logs struct {
 }
 
 // New creates and starts Loki log collection.
-func New(reg prometheus.Registerer, c *Config, l log.Logger, dryRun bool) (*Logs, error) {
+func New(reg prometheus.Registerer, c *Config, l log.Logger, dryRun, inspect bool) (*Logs, error) {
 	logs := &Logs{
 		instances: make(map[string]*Instance),
 		reg:       reg,
 		l:         log.With(l, "component", "logs"),
 	}
+
+	stages.Inspect = inspect
+
 	if err := logs.ApplyConfig(c, dryRun); err != nil {
 		return nil, err
 	}
