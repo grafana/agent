@@ -157,7 +157,7 @@ require (
 	github.com/prometheus/snmp_exporter v0.26.0
 	github.com/prometheus/statsd_exporter v0.22.8
 	github.com/richardartoul/molecule v1.0.1-0.20221107223329-32cfee06a052
-	github.com/rs/cors v1.10.1
+	github.com/rs/cors v1.11.0
 	github.com/shirou/gopsutil/v3 v3.24.1
 	github.com/sijms/go-ora/v2 v2.7.6
 	github.com/sirupsen/logrus v1.9.3
