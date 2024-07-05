@@ -434,6 +434,7 @@ func filterAgentOwners(refs []meta_v1.OwnerReference) (filtered []meta_v1.OwnerR
 }
 
 func testLogs() *cobra.Command {
+	var inspect bool
 	cmd := &cobra.Command{
 		Use:   "test-logs [config file]",
 		Short: "Collect logs but print entries instead of sending them to Loki.",
@@ -452,7 +453,7 @@ func testLogs() *cobra.Command {
 			}
 
 			logger := log.NewLogfmtLogger(log.NewSyncWriter(os.Stderr))
-			l, err := logs.New(prometheus.NewRegistry(), cfg.Logs, logger, true)
+			l, err := logs.New(prometheus.NewRegistry(), cfg.Logs, logger, true, inspect)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "failed to start log collection: %s\n", err)
 				os.Exit(1)
@@ -466,6 +467,7 @@ func testLogs() *cobra.Command {
 			fmt.Fprintf(os.Stderr, "received shutdown %v signal, stopping...", sig)
 		},
 	}
+	cmd.Flags().BoolVarP(&inspect, "inspect", "i", false, "Allows for detailed inspection of pipeline stages.")
 
 	return cmd
 }
