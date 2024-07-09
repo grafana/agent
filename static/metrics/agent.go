@@ -15,6 +15,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"go.uber.org/atomic"
 	"google.golang.org/grpc"
+	"gopkg.in/yaml.v2"
 
 	"github.com/grafana/agent/internal/util"
 	"github.com/grafana/agent/static/metrics/cluster"
@@ -150,6 +151,8 @@ type Agent struct {
 	actor    chan func()
 
 	initialBootDone atomic.Bool
+
+	previousConfig string
 }
 
 // New creates and starts a new Agent.
@@ -227,9 +230,16 @@ func (a *Agent) ApplyConfig(cfg Config) error {
 	a.mut.Lock()
 	defer a.mut.Unlock()
 
-	if util.CompareYAML(a.cfg, cfg) {
+	newConfigByteArr, err := yaml.Marshal(cfg)
+	if err != nil {
+		return fmt.Errorf("failed to marshal new config: %w", err)
+	}
+	newConfig := string(newConfigByteArr[:])
+	if newConfig == a.previousConfig {
+		level.Debug(a.logger).Log("msg", "not recreating metrics instance because config hasn't changed")
 		return nil
 	}
+	a.previousConfig = newConfig
 
 	if a.stopped {
 		return fmt.Errorf("agent stopped")

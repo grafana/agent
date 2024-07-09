@@ -1,10 +1,12 @@
 package metrics
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -111,6 +113,97 @@ configs:
 	require.Equal(t, len(instanceConfig.ScrapeConfigs), 1)
 	scrapeConfig := instanceConfig.ScrapeConfigs[0]
 	require.Greater(t, int64(scrapeConfig.ScrapeInterval), int64(0))
+}
+
+func checkConfigReloadLog(t *testing.T, logs string, expectedOccurances int) {
+	logLine := `level=debug agent=prometheus msg="not recreating metrics instance because config hasn't changed"`
+	actualOccurances := strings.Count(logs, logLine)
+	require.Equal(t, expectedOccurances, actualOccurances)
+}
+
+func TestConfigReload(t *testing.T) {
+	cfgText := `
+wal_directory: /tmp/wal
+configs:
+  - name: instance_a
+    scrape_configs:
+      - job_name: 'node'
+        static_configs:
+          - targets: ['localhost:9100']
+`
+	var cfg Config
+
+	err := yaml.Unmarshal([]byte(cfgText), &cfg)
+	require.NoError(t, err)
+	err = cfg.ApplyDefaults()
+	require.NoError(t, err)
+
+	fact := newFakeInstanceFactory()
+
+	logBuffer := bytes.Buffer{}
+	logger := log.NewLogfmtLogger(&logBuffer)
+
+	a, err := newAgent(prometheus.NewRegistry(), cfg, logger, fact.factory)
+	require.NoError(t, err)
+
+	util.Eventually(t, func(t require.TestingT) {
+		require.NotNil(t, fact.created)
+		require.Equal(t, 1, int(fact.created.Load()))
+		require.Equal(t, 1, len(a.mm.ListInstances()))
+	})
+
+	t.Run("instances should be running", func(t *testing.T) {
+		for _, mi := range fact.Mocks() {
+			// Each instance should have wait called on it
+			util.Eventually(t, func(t require.TestingT) {
+				require.True(t, mi.running.Load())
+			})
+		}
+	})
+
+	//
+	// The config has changed (it used to be ""). The log line won't be printed.
+	//
+	checkConfigReloadLog(t, logBuffer.String(), 0)
+
+	var sameCfg Config
+
+	//
+	// Try the same config.
+	//
+	err = yaml.Unmarshal([]byte(cfgText), &sameCfg)
+	require.NoError(t, err)
+	err = sameCfg.ApplyDefaults()
+	require.NoError(t, err)
+
+	a.ApplyConfig(sameCfg)
+
+	// The config did not change. The log line should be printed.
+	checkConfigReloadLog(t, logBuffer.String(), 1)
+
+	//
+	// Try a different config.
+	//
+	cfgText = `
+wal_directory: /tmp/wal
+configs:
+  - name: instance_b
+    scrape_configs:
+      - job_name: 'node'
+        static_configs:
+          - targets: ['localhost:9100']
+`
+	var differentCfg Config
+
+	err = yaml.Unmarshal([]byte(cfgText), &differentCfg)
+	require.NoError(t, err)
+	err = differentCfg.ApplyDefaults()
+	require.NoError(t, err)
+
+	a.ApplyConfig(differentCfg)
+
+	// The config has changed. The log line won't be printed.
+	checkConfigReloadLog(t, logBuffer.String(), 1)
 }
 
 func TestAgent(t *testing.T) {

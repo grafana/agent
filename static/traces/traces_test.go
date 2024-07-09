@@ -1,15 +1,17 @@
 package traces
 
 import (
+	"bytes"
 	"fmt"
 	"strings"
 	"testing"
 	"time"
 
+	"github.com/go-kit/log"
 	"github.com/grafana/agent/internal/util"
 	"github.com/grafana/agent/static/server"
 	"github.com/grafana/agent/static/traces/traceutils"
-	"github.com/grafana/dskit/log"
+	dskitlog "github.com/grafana/dskit/log"
 	"github.com/opentracing/opentracing-go"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/require"
@@ -45,7 +47,7 @@ configs:
 	err := dec.Decode(&cfg)
 	require.NoError(t, err)
 
-	var loggingLevel log.Level
+	var loggingLevel dskitlog.Level
 	require.NoError(t, loggingLevel.Set("debug"))
 
 	traces, err := New(nil, nil, prometheus.NewRegistry(), cfg, &server.HookLogger{})
@@ -90,7 +92,7 @@ configs:
 	err := dec.Decode(&cfg)
 	require.NoError(t, err)
 
-	var loggingLevel log.Level
+	var loggingLevel dskitlog.Level
 	require.NoError(t, loggingLevel.Set("debug"))
 
 	traces, err := New(nil, nil, prometheus.NewRegistry(), cfg, &server.HookLogger{})
@@ -127,7 +129,10 @@ configs:
 	err := dec.Decode(&cfg)
 	require.NoError(t, err)
 
-	traces, err := New(nil, nil, prometheus.NewRegistry(), cfg, &server.HookLogger{})
+	logBuffer := bytes.Buffer{}
+	logger := log.NewLogfmtLogger(&logBuffer)
+
+	traces, err := New(nil, nil, prometheus.NewRegistry(), cfg, logger)
 	require.NoError(t, err)
 	t.Cleanup(traces.Stop)
 
@@ -190,4 +195,81 @@ func testJaegerTracer(t *testing.T) opentracing.Tracer {
 	})
 
 	return tr
+}
+
+func checkConfigReloadLog(t *testing.T, logs string, expectedOccurances int) {
+	logLine := `level=debug component=traces traces_config=default msg="tracing config won't be recreated because it hasn't changed"`
+	actualOccurances := strings.Count(logs, logLine)
+	require.Equal(t, expectedOccurances, actualOccurances)
+}
+
+func Test_ReapplyConfig(t *testing.T) {
+	tracesCfgText := util.Untab(`
+configs:
+- name: default
+  receivers:
+    jaeger:
+      protocols:
+        thrift_compact:
+  remote_write:
+  	- endpoint: tempo:4317
+  	  insecure: true
+  batch:
+    timeout: 100ms
+    send_batch_size: 1
+	`)
+
+	var cfg Config
+	dec := yaml.NewDecoder(strings.NewReader(tracesCfgText))
+	dec.SetStrict(true)
+	err := dec.Decode(&cfg)
+	require.NoError(t, err)
+
+	logBuffer := bytes.Buffer{}
+	logger := log.NewLogfmtLogger(&logBuffer)
+
+	traces, err := New(nil, nil, prometheus.NewRegistry(), cfg, logger)
+	require.NoError(t, err)
+
+	checkConfigReloadLog(t, logBuffer.String(), 0)
+
+	// Try applying the same config again
+	var sameFixedConfig Config
+	dec = yaml.NewDecoder(strings.NewReader(tracesCfgText))
+	dec.SetStrict(true)
+	err = dec.Decode(&sameFixedConfig)
+	require.NoError(t, err)
+
+	err = traces.ApplyConfig(nil, nil, sameFixedConfig)
+	require.NoError(t, err)
+
+	checkConfigReloadLog(t, logBuffer.String(), 1)
+
+	// Change the configuration slightly
+	tracesCfgText = util.Untab(`
+configs:
+- name: default
+  receivers:
+    jaeger:
+      protocols:
+        thrift_compact:
+  remote_write:
+  	- endpoint: tempo:4318
+  	  insecure: true
+  batch:
+    timeout: 100ms
+    send_batch_size: 1
+	`)
+
+	// Try applying a different config
+	var differentConfig Config
+	dec = yaml.NewDecoder(strings.NewReader(tracesCfgText))
+	dec.SetStrict(true)
+	err = dec.Decode(&differentConfig)
+	require.NoError(t, err)
+
+	err = traces.ApplyConfig(nil, nil, differentConfig)
+	require.NoError(t, err)
+
+	checkConfigReloadLog(t, logBuffer.String(), 1)
 }
