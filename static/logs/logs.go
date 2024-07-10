@@ -162,7 +162,7 @@ func (i *Instance) ApplyConfig(c *InstanceConfig, g GlobalConfig, dryRun bool) e
 	if err != nil {
 		return fmt.Errorf("failed to marshal new logs instance config: %w", err)
 	}
-	newConfig := string(newConfigByteArr[:])
+	newConfig := string(newConfigByteArr)
 	if newConfig == i.previousConfig {
 		level.Debug(i.log).Log("msg", "instance config hasn't changed, not recreating Promtail")
 		return nil

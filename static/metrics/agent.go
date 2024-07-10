@@ -234,7 +234,7 @@ func (a *Agent) ApplyConfig(cfg Config) error {
 	if err != nil {
 		return fmt.Errorf("failed to marshal new config: %w", err)
 	}
-	newConfig := string(newConfigByteArr[:])
+	newConfig := string(newConfigByteArr)
 	if newConfig == a.previousConfig {
 		level.Debug(a.logger).Log("msg", "not recreating metrics instance because config hasn't changed")
 		return nil
