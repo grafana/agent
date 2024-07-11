@@ -5,6 +5,7 @@ package process
 import (
 	"context"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
@@ -18,11 +19,14 @@ import (
 	"github.com/grafana/loki/pkg/logproto"
 	"github.com/grafana/river"
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/testutil"
 	"github.com/prometheus/common/model"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/atomic"
 	"go.uber.org/goleak"
 )
+
+const logline = `{"log":"log message\n","stream":"stderr","time":"2019-04-30T02:12:41.8443515Z","extra":"{\"user\":\"smith\"}"}`
 
 func TestJSONLabelsStage(t *testing.T) {
 	defer goleak.VerifyNone(t, goleak.IgnoreTopFunction("go.opencensus.io/stats/view.(*worker).start"))
@@ -91,7 +95,6 @@ func TestJSONLabelsStage(t *testing.T) {
 
 	// Send a log entry to the component's receiver.
 	ts := time.Now()
-	logline := `{"log":"log message\n","stream":"stderr","time":"2019-04-30T02:12:41.8443515Z","extra":"{\"user\":\"smith\"}"}`
 	logEntry := loki.Entry{
 		Labels: model.LabelSet{"filename": "/var/log/pods/agent/agent/1.log", "foo": "bar"},
 		Entry: logproto.Entry{
@@ -454,7 +457,6 @@ func TestDeadlockWithFrequentUpdates(t *testing.T) {
 	go func() {
 		for {
 			ts := time.Now()
-			logline := `{"log":"log message\n","stream":"stderr","time":"2019-04-30T02:12:41.8443515Z","extra":"{\"user\":\"smith\"}"}`
 			logEntry := loki.Entry{
 				Labels: model.LabelSet{"filename": "/var/log/pods/agent/agent/1.log", "foo": "bar"},
 				Entry: logproto.Entry{
@@ -485,4 +487,206 @@ func TestDeadlockWithFrequentUpdates(t *testing.T) {
 	// Run everything for a while
 	time.Sleep(1 * time.Second)
 	require.WithinDuration(t, time.Now(), lastSend.Load().(time.Time), 300*time.Millisecond)
+}
+
+func TestMetricsStageRefresh(t *testing.T) {
+	ch := loki.NewLogsReceiver()
+	reg := prometheus.NewRegistry()
+
+	stg := `
+	stage.metrics { 
+        metric.counter {
+          name = "paulin_test"
+          action = "inc"
+          match_all = true
+        }
+	}
+
+	// This will be filled later
+	forward_to = []`
+	var stagesCfg Arguments
+	err := river.Unmarshal([]byte(stg), &stagesCfg)
+	require.NoError(t, err)
+
+	// Create and run the component, so that it can process and forwards logs.
+	opts := component.Options{
+		Logger:        util.TestFlowLogger(t),
+		Registerer:    reg,
+		OnStateChange: func(e component.Exports) {},
+	}
+	args := Arguments{
+		ForwardTo: []loki.LogsReceiver{ch},
+		Stages:    stagesCfg.Stages,
+	}
+
+	c, err := New(opts, args)
+	require.NoError(t, err)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	go c.Run(ctx)
+
+	// Send a log entry to the component's receiver.
+	ts := time.Now()
+	logEntry := loki.Entry{
+		Labels: model.LabelSet{"filename": "/var/log/pods/agent/agent/1.log", "foo": "bar"},
+		Entry: logproto.Entry{
+			Timestamp: ts,
+			Line:      logline,
+		},
+	}
+
+	c.receiver.Chan() <- logEntry
+
+	wantLabelSet := model.LabelSet{
+		"filename": "/var/log/pods/agent/agent/1.log",
+		"foo":      "bar",
+	}
+
+	for i := 0; i < 1; i++ {
+		select {
+		case logEntry := <-ch.Chan():
+			require.True(t, ts.Equal(logEntry.Timestamp))
+			require.Equal(t, logline, logEntry.Line)
+			require.Equal(t, wantLabelSet, logEntry.Labels)
+		case <-time.After(5 * time.Second):
+			require.FailNow(t, "failed waiting for log line")
+		}
+	}
+
+	expectedMetrics := `
+# HELP loki_process_custom_paulin_test
+# TYPE loki_process_custom_paulin_test counter
+loki_process_custom_paulin_test{filename="/var/log/pods/agent/agent/1.log",foo="bar"} 1
+`
+
+	if err := testutil.GatherAndCompare(reg,
+		strings.NewReader(expectedMetrics)); err != nil {
+		t.Fatalf("mismatch metrics: %v", err)
+	}
+
+	args1 := Arguments{
+		ForwardTo: []loki.LogsReceiver{ch},
+		Stages:    stagesCfg.Stages,
+	}
+	c.Update(args1)
+
+	// The component was "updated" with the same config.
+	// We expect the metric to stay the same, because the component should be smart enough to
+	// know that the new config is the same as the old one and it should just keep running as it is.
+	// If it resets the metric, this could cause issues with some users who have a sidecar "autoreloader"
+	// which reloads the collector config every X seconds.
+	// Those users wouldn't expect their metrics to be reset every time the config is reloaded.
+	if err := testutil.GatherAndCompare(reg,
+		strings.NewReader(expectedMetrics)); err != nil {
+		t.Fatalf("mismatch metrics: %v", err)
+	}
+
+	// Use a config which has no metrics stage.
+	// This should cause the metric to disappear.
+	stg2 := `
+	// This will be filled later
+	forward_to = []`
+
+	var stagesCfg2 Arguments
+	err = river.Unmarshal([]byte(stg2), &stagesCfg2)
+	require.NoError(t, err)
+
+	args2 := Arguments{
+		ForwardTo: []loki.LogsReceiver{ch},
+		Stages:    stagesCfg2.Stages,
+	}
+
+	c.Update(args2)
+
+	// Make sure there are no metrics - there is no metrics stage in the latest config.
+	if err := testutil.GatherAndCompare(reg,
+		strings.NewReader("")); err != nil {
+		t.Fatalf("mismatch metrics: %v", err)
+	}
+
+	c.receiver.Chan() <- logEntry
+
+	for i := 0; i < 1; i++ {
+		select {
+		case logEntry := <-ch.Chan():
+			require.True(t, ts.Equal(logEntry.Timestamp))
+			require.Equal(t, logline, logEntry.Line)
+			require.Equal(t, wantLabelSet, logEntry.Labels)
+		case <-time.After(5 * time.Second):
+			require.FailNow(t, "failed waiting for log line")
+		}
+	}
+
+	// Make sure there are no metrics - there is no metrics stage in the latest config.
+	if err := testutil.GatherAndCompare(reg,
+		strings.NewReader("")); err != nil {
+		t.Fatalf("mismatch metrics: %v", err)
+	}
+
+	// Use a config which has a metric with a different name,
+	// as well as a metric with the same name.
+	// Only the new metric should be visible.
+	stg3 := `
+	stage.metrics { 
+		metric.counter {
+		  name = "paulin_test_3"
+		  action = "inc"
+		  match_all = true
+		}
+        metric.counter {
+          name = "paulin_test"
+          action = "inc"
+          match_all = true
+        }
+	}
+
+	// This will be filled later
+	forward_to = []`
+	var stagesCfg3 Arguments
+	err = river.Unmarshal([]byte(stg3), &stagesCfg3)
+	require.NoError(t, err)
+
+	args3 := Arguments{
+		ForwardTo: []loki.LogsReceiver{ch},
+		Stages:    stagesCfg3.Stages,
+	}
+	c.Update(args3)
+
+	// No logs have been sent since the last update.
+	// Therefore, the metric should not be visible.
+	if err := testutil.GatherAndCompare(reg,
+		strings.NewReader("")); err != nil {
+		t.Fatalf("mismatch metrics: %v", err)
+	}
+
+	// Send 3 log lines.
+	c.receiver.Chan() <- logEntry
+	c.receiver.Chan() <- logEntry
+	c.receiver.Chan() <- logEntry
+
+	for i := 0; i < 3; i++ {
+		select {
+		case logEntry := <-ch.Chan():
+			require.True(t, ts.Equal(logEntry.Timestamp))
+			require.Equal(t, logline, logEntry.Line)
+			require.Equal(t, wantLabelSet, logEntry.Labels)
+		case <-time.After(5 * time.Second):
+			require.FailNow(t, "failed waiting for log line")
+		}
+	}
+
+	// Expect the metric counter to be "3".
+	expectedMetrics3 := `
+# HELP loki_process_custom_paulin_test_3
+# TYPE loki_process_custom_paulin_test_3 counter
+loki_process_custom_paulin_test_3{filename="/var/log/pods/agent/agent/1.log",foo="bar"} 3
+# HELP loki_process_custom_paulin_test
+# TYPE loki_process_custom_paulin_test counter
+loki_process_custom_paulin_test{filename="/var/log/pods/agent/agent/1.log",foo="bar"} 3
+`
+
+	if err := testutil.GatherAndCompare(reg,
+		strings.NewReader(expectedMetrics3)); err != nil {
+		t.Fatalf("mismatch metrics: %v", err)
+	}
 }
