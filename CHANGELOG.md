@@ -28,6 +28,10 @@ v0.41.1 (2024-06-07)
 
 - Updated pyroscope to v0.4.6 introducing `symbols_map_size` and `pid_map_size` configuration. (@simonswine)
 
+### Bugfixes
+
+- Fix an issue which caused the config to be reloaded if a config reload was triggered but the config hasn't changed.
+  The bug only affected the "metrics" and "logs" subsystems in Static mode.
 
 v0.41.0 (2024-05-31)
 --------------------

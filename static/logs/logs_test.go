@@ -3,6 +3,7 @@
 package logs
 
 import (
+	"bytes"
 	"fmt"
 	"net"
 	"net/http"
@@ -28,6 +29,12 @@ func TestLogs_NilConfig(t *testing.T) {
 	require.NoError(t, l.ApplyConfig(nil, false))
 
 	defer l.Stop()
+}
+
+func checkConfigReloadLog(t *testing.T, logs string, expectedOccurances int) {
+	logLine := `level=debug component=logs logs_config=default msg="instance config hasn't changed, not recreating Promtail"`
+	actualOccurances := strings.Count(logs, logLine)
+	require.Equal(t, expectedOccurances, actualOccurances)
 }
 
 func TestLogs(t *testing.T) {
@@ -87,7 +94,8 @@ configs:
 	dec.SetStrict(true)
 	require.NoError(t, dec.Decode(&cfg))
 	require.NoError(t, cfg.ApplyDefaults())
-	logger := log.NewSyncLogger(log.NewNopLogger())
+	logBuffer := bytes.Buffer{}
+	logger := log.NewSyncLogger(log.NewLogfmtLogger(&logBuffer))
 	l, err := New(prometheus.NewRegistry(), &cfg, logger, false)
 	require.NoError(t, err)
 	defer l.Stop()
@@ -102,6 +110,23 @@ configs:
 	case req := <-pushes:
 		require.Equal(t, "Hello, world!", req.Streams[0].Entries[0].Line)
 	}
+
+	// The config did change.
+	// We expect the config reload log line to not be printed.
+	checkConfigReloadLog(t, logBuffer.String(), 0)
+
+	//
+	// Apply the same config and try reloading.
+	// Recreate the config struct to make sure it's clean.
+	//
+	var sameCfg Config
+	dec = yaml.NewDecoder(strings.NewReader(cfgText))
+	dec.SetStrict(true)
+	require.NoError(t, dec.Decode(&sameCfg))
+	require.NoError(t, sameCfg.ApplyDefaults())
+	require.NoError(t, l.ApplyConfig(&sameCfg, false))
+
+	checkConfigReloadLog(t, logBuffer.String(), 1)
 
 	//
 	// Apply a new config and write a new line.
@@ -137,6 +162,10 @@ configs:
 	case req := <-pushes:
 		require.Equal(t, "Hello again!", req.Streams[0].Entries[0].Line)
 	}
+
+	// The config did change this time.
+	// We expect the config reload log line to not be printed again.
+	checkConfigReloadLog(t, logBuffer.String(), 1)
 
 	t.Run("update to nil", func(t *testing.T) {
 		// Applying a nil config should remove all instances.
