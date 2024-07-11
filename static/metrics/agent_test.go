@@ -1,7 +1,6 @@
 package metrics
 
 import (
-	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -15,6 +14,7 @@ import (
 	"github.com/grafana/agent/internal/util"
 	"github.com/grafana/agent/static/metrics/instance"
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/testutil"
 	"github.com/prometheus/prometheus/scrape"
 	"github.com/prometheus/prometheus/storage"
 	"github.com/stretchr/testify/require"
@@ -140,10 +140,12 @@ configs:
 
 	fact := newFakeInstanceFactory()
 
-	logBuffer := bytes.Buffer{}
-	logger := log.NewLogfmtLogger(&logBuffer)
+	logBuffer := util.SyncBuffer{}
+	logger := log.NewSyncLogger(log.NewLogfmtLogger(&logBuffer))
 
-	a, err := newAgent(prometheus.NewRegistry(), cfg, logger, fact.factory)
+	reg := prometheus.NewRegistry()
+
+	a, err := newAgent(reg, cfg, logger, fact.factory)
 	require.NoError(t, err)
 
 	util.Eventually(t, func(t require.TestingT) {
@@ -161,22 +163,44 @@ configs:
 		}
 	})
 
-	//
-	// The config has changed (it used to be ""). The log line won't be printed.
-	//
-	checkConfigReloadLog(t, logBuffer.String(), 0)
+	util.Eventually(t, func(t require.TestingT) {
+		if err := testutil.GatherAndCompare(reg,
+			strings.NewReader(`
+# HELP agent_metrics_configs_changed_total Total number of dynamically updated configs
+# TYPE agent_metrics_configs_changed_total counter
+agent_metrics_configs_changed_total{event="created"} 1
+`), "agent_metrics_configs_changed_total"); err != nil {
+			t.Errorf("mismatch metrics: %v", err)
+			t.FailNow()
+		}
+	})
 
-	var sameCfg Config
+	// The config has changed (it used to be ""). The log line won't be printed.
+	checkConfigReloadLog(t, logBuffer.String(), 0)
 
 	//
 	// Try the same config.
 	//
+	var sameCfg Config
+
 	err = yaml.Unmarshal([]byte(cfgText), &sameCfg)
 	require.NoError(t, err)
 	err = sameCfg.ApplyDefaults()
 	require.NoError(t, err)
 
 	a.ApplyConfig(sameCfg)
+
+	util.Eventually(t, func(t require.TestingT) {
+		if err := testutil.GatherAndCompare(reg,
+			strings.NewReader(`
+# HELP agent_metrics_configs_changed_total Total number of dynamically updated configs
+# TYPE agent_metrics_configs_changed_total counter
+agent_metrics_configs_changed_total{event="created"} 1
+`), "agent_metrics_configs_changed_total"); err != nil {
+			t.Errorf("mismatch metrics: %v", err)
+			t.FailNow()
+		}
+	})
 
 	// The config did not change. The log line should be printed.
 	checkConfigReloadLog(t, logBuffer.String(), 1)
@@ -202,8 +226,29 @@ configs:
 
 	a.ApplyConfig(differentCfg)
 
+	util.Eventually(t, func(t require.TestingT) {
+		if err := testutil.GatherAndCompare(reg,
+			strings.NewReader(`
+# HELP agent_metrics_configs_changed_total Total number of dynamically updated configs
+# TYPE agent_metrics_configs_changed_total counter
+agent_metrics_configs_changed_total{event="created"} 2
+agent_metrics_configs_changed_total{event="deleted"} 1
+`), "agent_metrics_configs_changed_total"); err != nil {
+			t.Errorf("mismatch metrics: %v", err)
+			t.FailNow()
+		}
+	})
+
 	// The config has changed. The log line won't be printed.
 	checkConfigReloadLog(t, logBuffer.String(), 1)
+
+	for _, mi := range fact.Mocks() {
+		util.Eventually(t, func(t require.TestingT) {
+			require.Equal(t, 1, int(mi.startedCount.Load()))
+		})
+	}
+
+	a.Stop()
 }
 
 func TestAgent(t *testing.T) {
