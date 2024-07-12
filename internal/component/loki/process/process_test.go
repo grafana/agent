@@ -617,7 +617,7 @@ loki_process_custom_paulin_test{filename="/var/log/pods/agent/agent/1.log",foo="
 		}
 	}
 
-	// Make sure there are no metrics - there is no metrics stage in the latest config.
+	// Make sure there are still no metrics after sending log entries.
 	if err := testutil.GatherAndCompare(reg,
 		strings.NewReader("")); err != nil {
 		t.Fatalf("mismatch metrics: %v", err)
