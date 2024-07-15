@@ -66,7 +66,7 @@ func New(cfg Config, addr string) (ScrapingServiceClient, error) {
 		return nil, err
 	}
 	opts = append(opts, grpcDialOpts...)
-	conn, err := grpc.Dial(addr, opts...)
+	conn, err := grpc.NewClient(addr, opts...)
 	if err != nil {
 		return nil, err
 	}

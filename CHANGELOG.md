@@ -10,6 +10,19 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+### Security fixes
+
+- Fixes following vulnerabilities (@ptodev)
+  * [GHSA-87m9-rv8p-rgmg](https://github.com/open-telemetry/opentelemetry-collector/security/advisories/GHSA-c74f-6mfw-mm4v)
+  * [CVE-2024-35255](https://msrc.microsoft.com/update-guide/vulnerability/CVE-2024-35255)
+  * [CVE-2024-6104](https://discuss.hashicorp.com/t/hcsec-2024-12-go-retryablehttp-can-leak-basic-auth-credentials-to-log-files/68027)
+  * [GHSA-mh55-gqvf-xfwm](https://github.com/advisories/GHSA-mh55-gqvf-xfwm)
+  * [CVE-2024-24790](https://avd.aquasec.com/nvd/2024/cve-2024-24790/)
+  * [CVE-2023-45288](https://avd.aquasec.com/nvd/cve-2023-45288)
+  * [CVE-2024-24788](https://avd.aquasec.com/nvd/cve-2024-24788)
+  * [CVE-2024-24789](https://avd.aquasec.com/nvd/cve-2024-24789)
+  * [CVE-2024-24791](https://avd.aquasec.com/nvd/cve-2024-24791)
+
 ### Features
 
 - A new `otelcol.exporter.debug` component for printing OTel telemetry from 
@@ -22,6 +35,10 @@ Main (unreleased)
 
 - Fix a bug in Static mode and Flow which prevented config reloads to work if a Loki `metrics` stage is in the pipeline.
   This resulted in a "failed to unregister all metrics from previous promtail" message. (@ptodev)
+
+### Enhancements
+
+- Update to Go 1.22.5. (@ptodev)
 
 v0.41.1 (2024-06-07)
 --------------------

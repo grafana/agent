@@ -15,6 +15,7 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/health"
 	"google.golang.org/grpc/health/grpc_health_v1"
+	"google.golang.org/grpc/resolver"
 )
 
 const anyLocalhost = "127.0.0.1:0"
@@ -32,7 +33,7 @@ func TestServer(t *testing.T) {
 
 	// Validate gRPC
 	creds := grpc.WithTransportCredentials(insecure.NewCredentials())
-	cc, err := grpc.Dial(srv.GRPCAddress().String(), creds)
+	cc, err := grpc.NewClient(srv.GRPCAddress().String(), creds)
 	require.NoError(t, err)
 	_, err = grpc_health_v1.NewHealthClient(cc).Check(context.Background(), &grpc_health_v1.HealthCheckRequest{})
 	require.NoError(t, err)
@@ -52,10 +53,14 @@ func TestServer_InMemory(t *testing.T) {
 	_ = resp.Body.Close()
 
 	// Validate gRPC
+	//
+	// Change the default scheme so that the custom dialer works:
+	// https://github.com/grpc/grpc-go/blob/700ca74d015d3b75431cc2b343fa1ba1ceb1b7f3/clientconn.go#L214-L218
+	resolver.SetDefaultScheme("passthrough")
 	grpcDialer := grpc.WithContextDialer(func(ctx context.Context, s string) (net.Conn, error) {
 		return srv.DialContext(ctx, "", s)
 	})
-	cc, err := grpc.Dial(flags.GRPC.InMemoryAddr, grpc.WithTransportCredentials(insecure.NewCredentials()), grpcDialer)
+	cc, err := grpc.NewClient(flags.GRPC.InMemoryAddr, grpc.WithTransportCredentials(insecure.NewCredentials()), grpcDialer)
 	require.NoError(t, err)
 	_, err = grpc_health_v1.NewHealthClient(cc).Check(context.Background(), &grpc_health_v1.HealthCheckRequest{})
 	require.NoError(t, err)
@@ -124,7 +129,7 @@ func TestServer_TLS(t *testing.T) {
 
 	// Validate gRPC TLS
 	creds := credentials.NewTLS(&tls.Config{InsecureSkipVerify: true})
-	cc, err := grpc.Dial(srv.GRPCAddress().String(), grpc.WithTransportCredentials(creds))
+	cc, err := grpc.NewClient(srv.GRPCAddress().String(), grpc.WithTransportCredentials(creds))
 	require.NoError(t, err)
 	_, err = grpc_health_v1.NewHealthClient(cc).Check(context.Background(), &grpc_health_v1.HealthCheckRequest{})
 	require.NoError(t, err)
