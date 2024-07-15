@@ -515,6 +515,7 @@ func TestMetricsStageRefresh(t *testing.T) {
 	loki_process_custom_paulin_test{filename="/var/log/pods/agent/agent/1.log",foo="bar"} %d
 	`
 
+	// The component will be reconfigured so that it has a metric.
 	t.Run("config with a metric", func(t *testing.T) {
 		tester.updateAndTest(numLogsToSend, cfgWithMetric,
 			"",
@@ -522,7 +523,7 @@ func TestMetricsStageRefresh(t *testing.T) {
 	})
 
 	// The component will be "updated" with the same config.
-	// We expect the metric to stay the same, because the component should be smart enough to
+	// We expect the metric to stay the same before logs are sent - the component should be smart enough to
 	// know that the new config is the same as the old one and it should just keep running as it is.
 	// If it resets the metric, this could cause issues with some users who have a sidecar "autoreloader"
 	// which reloads the collector config every X seconds.
@@ -536,8 +537,9 @@ func TestMetricsStageRefresh(t *testing.T) {
 	// Use a config which has no metrics stage.
 	// This should cause the metric to disappear.
 	cfgWithNoStages := forwardArgs
-
-	tester.updateAndTest(numLogsToSend, cfgWithNoStages, "", "")
+	t.Run("config with no metrics stage", func(t *testing.T) {
+		tester.updateAndTest(numLogsToSend, cfgWithNoStages, "", "")
+	})
 
 	// Use a config which has a metric with a different name,
 	// as well as a metric with the same name as the one in the previous config.
@@ -566,9 +568,11 @@ func TestMetricsStageRefresh(t *testing.T) {
 	loki_process_custom_paulin_test{filename="/var/log/pods/agent/agent/1.log",foo="bar"} %d
 	`
 
-	tester.updateAndTest(numLogsToSend, cfgWithTwoMetrics,
-		"",
-		fmt.Sprintf(expectedMetrics3, numLogsToSend, numLogsToSend))
+	t.Run("config with a new and old metric", func(t *testing.T) {
+		tester.updateAndTest(numLogsToSend, cfgWithTwoMetrics,
+			"",
+			fmt.Sprintf(expectedMetrics3, numLogsToSend, numLogsToSend))
+	})
 }
 
 type tester struct {
@@ -645,7 +649,7 @@ func (t *tester) updateAndTest(numLogsToSend int, cfg, expectedMetricsBeforeSend
 	// Check the component metrics.
 	if err := testutil.GatherAndCompare(t.registry,
 		strings.NewReader(expectedMetricsBeforeSendingLogs)); err != nil {
-		t.t.Fatalf("mismatch metrics: %v", err)
+		require.NoError(t.t, err)
 	}
 
 	// Send logs.
@@ -668,6 +672,6 @@ func (t *tester) updateAndTest(numLogsToSend int, cfg, expectedMetricsBeforeSend
 	// Check the component metrics.
 	if err := testutil.GatherAndCompare(t.registry,
 		strings.NewReader(expectedMetricsAfterSendingLogs)); err != nil {
-		t.t.Fatalf("mismatch metrics: %v", err)
+		require.NoError(t.t, err)
 	}
 }
