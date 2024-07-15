@@ -3,7 +3,6 @@
 package logs
 
 import (
-	"bytes"
 	"fmt"
 	"net"
 	"net/http"
@@ -19,6 +18,7 @@ import (
 	"github.com/grafana/agent/internal/util"
 	"github.com/grafana/loki/pkg/logproto"
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/testutil"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v2"
 )
@@ -38,6 +38,8 @@ func checkConfigReloadLog(t *testing.T, logs string, expectedOccurances int) {
 }
 
 func TestLogs(t *testing.T) {
+	reg := prometheus.NewRegistry()
+
 	//
 	// Create a temporary file to tail
 	//
@@ -87,16 +89,26 @@ configs:
       labels:
         job: test
         __path__: %s
-	`, positionsDir, lis.Addr().String(), tmpFile.Name()))
+    pipeline_stages:
+    - metrics:
+        log_lines_total:
+          type: Counter
+          description: "total number of log lines"
+          prefix: my_promtail_custom_
+          max_idle_duration: 24h
+          config:
+            match_all: true
+            action: inc
+`, positionsDir, lis.Addr().String(), tmpFile.Name()))
 
 	var cfg Config
 	dec := yaml.NewDecoder(strings.NewReader(cfgText))
 	dec.SetStrict(true)
 	require.NoError(t, dec.Decode(&cfg))
 	require.NoError(t, cfg.ApplyDefaults())
-	logBuffer := bytes.Buffer{}
+	logBuffer := util.SyncBuffer{}
 	logger := log.NewSyncLogger(log.NewLogfmtLogger(&logBuffer))
-	l, err := New(prometheus.NewRegistry(), &cfg, logger, false)
+	l, err := New(reg, &cfg, logger, false)
 	require.NoError(t, err)
 	defer l.Stop()
 
@@ -115,6 +127,12 @@ configs:
 	// We expect the config reload log line to not be printed.
 	checkConfigReloadLog(t, logBuffer.String(), 0)
 
+	require.NoError(t, testutil.GatherAndCompare(reg, strings.NewReader(`
+# HELP my_promtail_custom_log_lines_total total number of log lines
+# TYPE my_promtail_custom_log_lines_total counter
+my_promtail_custom_log_lines_total{filename="`+tmpFile.Name()+`",job="test",logs_config="default"} 1
+`), "my_promtail_custom_log_lines_total"))
+
 	//
 	// Apply the same config and try reloading.
 	// Recreate the config struct to make sure it's clean.
@@ -127,6 +145,13 @@ configs:
 	require.NoError(t, l.ApplyConfig(&sameCfg, false))
 
 	checkConfigReloadLog(t, logBuffer.String(), 1)
+
+	// The metrics should stay the same, as the config didn't change.
+	require.NoError(t, testutil.GatherAndCompare(reg, strings.NewReader(`
+# HELP my_promtail_custom_log_lines_total total number of log lines
+# TYPE my_promtail_custom_log_lines_total counter
+my_promtail_custom_log_lines_total{filename="`+tmpFile.Name()+`",job="test",logs_config="default"} 1
+`), "my_promtail_custom_log_lines_total"))
 
 	//
 	// Apply a new config and write a new line.
@@ -146,7 +171,17 @@ configs:
       labels:
         job: test-2
         __path__: %s
-	`, positionsDir, lis.Addr().String(), tmpFile.Name()))
+    pipeline_stages:
+    - metrics:
+        log_lines_total2:
+          type: Counter
+          description: "total number of log lines"
+          prefix: my_promtail_custom2_
+          max_idle_duration: 24h
+          config:
+            match_all: true
+            action: inc
+`, positionsDir, lis.Addr().String(), tmpFile.Name()))
 
 	var newCfg Config
 	dec = yaml.NewDecoder(strings.NewReader(cfgText))
@@ -154,6 +189,9 @@ configs:
 	require.NoError(t, dec.Decode(&newCfg))
 	require.NoError(t, newCfg.ApplyDefaults())
 	require.NoError(t, l.ApplyConfig(&newCfg, false))
+
+	require.NoError(t, testutil.GatherAndCompare(reg, strings.NewReader(``),
+		"my_promtail_custom_log_lines_total", "my_promtail_custom2_log_lines_total2"))
 
 	fmt.Fprintf(tmpFile, "Hello again!\n")
 	select {
@@ -166,6 +204,13 @@ configs:
 	// The config did change this time.
 	// We expect the config reload log line to not be printed again.
 	checkConfigReloadLog(t, logBuffer.String(), 1)
+
+	// The metrics changed, and the old metric is no longer visible.
+	require.NoError(t, testutil.GatherAndCompare(reg, strings.NewReader(`
+	# HELP my_promtail_custom2_log_lines_total2 total number of log lines
+	# TYPE my_promtail_custom2_log_lines_total2 counter
+	my_promtail_custom2_log_lines_total2{filename="`+tmpFile.Name()+`",job="test-2",logs_config="default"} 1
+	`), "my_promtail_custom_log_lines_total", "my_promtail_custom2_log_lines_total2"))
 
 	t.Run("update to nil", func(t *testing.T) {
 		// Applying a nil config should remove all instances.

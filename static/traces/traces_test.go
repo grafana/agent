@@ -225,7 +225,7 @@ configs:
 	err := dec.Decode(&cfg)
 	require.NoError(t, err)
 
-	logBuffer := bytes.Buffer{}
+	logBuffer := util.SyncBuffer{}
 	logger := log.NewLogfmtLogger(&logBuffer)
 
 	traces, err := New(nil, nil, prometheus.NewRegistry(), cfg, logger)

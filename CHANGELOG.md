@@ -15,6 +15,14 @@ Main (unreleased)
 - A new `otelcol.exporter.debug` component for printing OTel telemetry from 
   other `otelcol` components to the console. (@BarunKGP)
 
+### Bugfixes
+
+- Fix an issue which caused the config to be reloaded if a config reload was triggered but the config hasn't changed.
+  The bug only affected the "metrics" and "logs" subsystems in Static mode. (@ptodev)
+
+- Fix a bug in Static mode and Flow which prevented config reloads to work if a Loki `metrics` stage is in the pipeline.
+  This resulted in a "failed to unregister all metrics from previous promtail" message. (@ptodev)
+
 v0.41.1 (2024-06-07)
 --------------------
 
@@ -27,11 +35,6 @@ v0.41.1 (2024-06-07)
 ### Enhancements
 
 - Updated pyroscope to v0.4.6 introducing `symbols_map_size` and `pid_map_size` configuration. (@simonswine)
-
-### Bugfixes
-
-- Fix an issue which caused the config to be reloaded if a config reload was triggered but the config hasn't changed.
-  The bug only affected the "metrics" and "logs" subsystems in Static mode.
 
 v0.41.0 (2024-05-31)
 --------------------
