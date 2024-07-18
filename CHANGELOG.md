@@ -10,6 +10,9 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+v0.42.0-rc.0 (2024-07-18)
+-------------------------
+
 ### Security fixes
 
 - Fixes following vulnerabilities (@ptodev)
