@@ -127,10 +127,17 @@ configs:
 	// We expect the config reload log line to not be printed.
 	checkConfigReloadLog(t, logBuffer.String(), 0)
 
+	// Windows file paths contain `\` characters.
+	// Those are not allowed in Prometheus label values:
+	// https://prometheus.io/docs/instrumenting/exposition_formats/#text-format-details
+	// `label_value` can be any sequence of UTF-8 characters, but the backslash (\), double-quote ("),
+	// and line feed (\n) characters have to be escaped as \\, \", and \n, respectively.
+	tmpFileLabelVal := strings.ReplaceAll(tmpFile.Name(), `\`, `\\`)
+
 	require.NoError(t, testutil.GatherAndCompare(reg, strings.NewReader(`
 # HELP my_promtail_custom_log_lines_total total number of log lines
 # TYPE my_promtail_custom_log_lines_total counter
-my_promtail_custom_log_lines_total{filename="`+tmpFile.Name()+`",job="test",logs_config="default"} 1
+my_promtail_custom_log_lines_total{filename="`+tmpFileLabelVal+`",job="test",logs_config="default"} 1
 `), "my_promtail_custom_log_lines_total"))
 
 	//
@@ -150,7 +157,7 @@ my_promtail_custom_log_lines_total{filename="`+tmpFile.Name()+`",job="test",logs
 	require.NoError(t, testutil.GatherAndCompare(reg, strings.NewReader(`
 # HELP my_promtail_custom_log_lines_total total number of log lines
 # TYPE my_promtail_custom_log_lines_total counter
-my_promtail_custom_log_lines_total{filename="`+tmpFile.Name()+`",job="test",logs_config="default"} 1
+my_promtail_custom_log_lines_total{filename="`+tmpFileLabelVal+`",job="test",logs_config="default"} 1
 `), "my_promtail_custom_log_lines_total"))
 
 	//
@@ -209,7 +216,7 @@ configs:
 	require.NoError(t, testutil.GatherAndCompare(reg, strings.NewReader(`
 	# HELP my_promtail_custom2_log_lines_total2 total number of log lines
 	# TYPE my_promtail_custom2_log_lines_total2 counter
-	my_promtail_custom2_log_lines_total2{filename="`+tmpFile.Name()+`",job="test-2",logs_config="default"} 1
+	my_promtail_custom2_log_lines_total2{filename="`+tmpFileLabelVal+`",job="test-2",logs_config="default"} 1
 	`), "my_promtail_custom_log_lines_total", "my_promtail_custom2_log_lines_total2"))
 
 	t.Run("update to nil", func(t *testing.T) {
