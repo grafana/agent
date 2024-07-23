@@ -22,7 +22,7 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
     RELEASE_BUILD=${RELEASE_BUILD} VERSION=${VERSION} \
     make operator
 
-FROM public.ecr.aws/ubuntu/ubuntu:mantic
+FROM public.ecr.aws/ubuntu/ubuntu:noble
 
 LABEL org.opencontainers.image.source="https://github.com/grafana/agent"
 
