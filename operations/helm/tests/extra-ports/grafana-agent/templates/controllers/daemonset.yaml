@@ -27,7 +27,7 @@ spec:
       serviceAccountName: grafana-agent
       containers:
         - name: grafana-agent
-          image: docker.io/grafana/agent:v0.41.1
+          image: docker.io/grafana/agent:v0.42.0
           imagePullPolicy: IfNotPresent
           args:
             - run
