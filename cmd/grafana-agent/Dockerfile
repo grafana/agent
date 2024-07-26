@@ -30,7 +30,7 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
     GOEXPERIMENT=${GOEXPERIMENT} \
     make agent
 
-FROM public.ecr.aws/ubuntu/ubuntu:mantic
+FROM public.ecr.aws/ubuntu/ubuntu:noble
 
 #Username and uid for grafana-agent user
 ARG UID=473
