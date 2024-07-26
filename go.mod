@@ -223,7 +223,7 @@ require (
 	golang.org/x/text v0.16.0
 	golang.org/x/time v0.5.0
 	google.golang.org/api v0.169.0
-	google.golang.org/grpc v1.64.0
+	google.golang.org/grpc v1.64.1
 	google.golang.org/protobuf v1.34.1
 	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.1
@@ -410,7 +410,6 @@ require (
 	github.com/hashicorp/memberlist v0.5.0 // indirect
 	github.com/hashicorp/nomad/api v0.0.0-20230721134942-515895c7690c // indirect
 	github.com/hashicorp/serf v0.10.1 // indirect
-	github.com/hashicorp/vic v1.5.1-0.20190403131502-bbfe86ec9443 // indirect
 	github.com/hodgesds/perf-utils v0.7.0 // indirect
 	github.com/huandu/xstrings v1.3.3 // indirect
 	github.com/iancoleman/strcase v0.3.0 // indirect
