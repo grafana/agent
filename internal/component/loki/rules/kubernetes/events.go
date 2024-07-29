@@ -8,6 +8,7 @@ import (
 
 	"github.com/grafana/agent/internal/component/common/kubernetes"
 	"github.com/grafana/agent/internal/flow/logging/level"
+	mimirClient "github.com/grafana/agent/internal/mimir/client"
 	"github.com/hashicorp/go-multierror"
 	promv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	"github.com/prometheus/prometheus/model/rulefmt"
@@ -143,7 +144,7 @@ func (c *Component) loadStateFromK8s() (kubernetes.RuleGroupsByNamespace, error)
 	return desiredState, nil
 }
 
-func convertCRDRuleGroupToRuleGroup(crd promv1.PrometheusRuleSpec) ([]rulefmt.RuleGroup, error) {
+func convertCRDRuleGroupToRuleGroup(crd promv1.PrometheusRuleSpec) ([]mimirClient.RuleGroup, error) {
 	buf, err := yaml.Marshal(crd)
 	if err != nil {
 		return nil, err
@@ -156,7 +157,14 @@ func convertCRDRuleGroupToRuleGroup(crd promv1.PrometheusRuleSpec) ([]rulefmt.Ru
 	//	return nil, multierror.Append(nil, errs...)
 	//}
 
-	return groups.Groups, nil
+	mimirGroups := make([]mimirClient.RuleGroup, 0)
+	for _, group := range groups.Groups {
+		mimirGroups = append(mimirGroups, mimirClient.RuleGroup{
+			RuleGroup: group,
+		})
+	}
+
+	return mimirGroups, nil
 }
 
 func (c *Component) applyChanges(ctx context.Context, namespace string, diffs []kubernetes.RuleGroupDiff) error {

@@ -10,9 +10,9 @@ import (
 	"github.com/go-kit/log"
 	"github.com/grafana/agent/internal/component/common/kubernetes"
 	lokiClient "github.com/grafana/agent/internal/loki/client"
+	mimirClient "github.com/grafana/agent/internal/mimir/client"
 	v1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	promListers "github.com/prometheus-operator/prometheus-operator/pkg/client/listers/monitoring/v1"
-	"github.com/prometheus/prometheus/model/rulefmt"
 	"github.com/stretchr/testify/require"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -26,18 +26,18 @@ import (
 
 type fakeLokiClient struct {
 	rulesMut sync.RWMutex
-	rules    map[string][]rulefmt.RuleGroup
+	rules    map[string][]mimirClient.RuleGroup
 }
 
 var _ lokiClient.Interface = &fakeLokiClient{}
 
 func newFakeLokiClient() *fakeLokiClient {
 	return &fakeLokiClient{
-		rules: make(map[string][]rulefmt.RuleGroup),
+		rules: make(map[string][]mimirClient.RuleGroup),
 	}
 }
 
-func (m *fakeLokiClient) CreateRuleGroup(ctx context.Context, namespace string, rule rulefmt.RuleGroup) error {
+func (m *fakeLokiClient) CreateRuleGroup(ctx context.Context, namespace string, rule mimirClient.RuleGroup) error {
 	m.rulesMut.Lock()
 	defer m.rulesMut.Unlock()
 	m.deleteLocked(namespace, rule.Name)
@@ -71,10 +71,10 @@ func (m *fakeLokiClient) deleteLocked(namespace, group string) {
 	}
 }
 
-func (m *fakeLokiClient) ListRules(ctx context.Context, namespace string) (map[string][]rulefmt.RuleGroup, error) {
+func (m *fakeLokiClient) ListRules(ctx context.Context, namespace string) (map[string][]mimirClient.RuleGroup, error) {
 	m.rulesMut.RLock()
 	defer m.rulesMut.RUnlock()
-	output := make(map[string][]rulefmt.RuleGroup)
+	output := make(map[string][]mimirClient.RuleGroup)
 	for ns, v := range m.rules {
 		if namespace != "" && namespace != ns {
 			continue
