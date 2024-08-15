@@ -4,6 +4,7 @@ on:
   # in PRs. This speeds up the time it takes to test PRs dramatically.
   # (More information on https://docs.github.com/en/enterprise-server@3.6/actions/using-workflows/caching-dependencies-to-speed-up-workflows)
   push:
+  workflow_dispatch:
 jobs:
   run_tests:
     runs-on: ubuntu-latest
