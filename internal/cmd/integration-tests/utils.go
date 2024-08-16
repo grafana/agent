@@ -45,6 +45,8 @@ func executeCommand(command string, args []string, taskDescription string) bool 
 	stdoutStr := stderr.String()
 	if len(stdoutStr) > 0 {
 		log.Printf("stdout:%s\n", stdoutStr)
+	} else {
+		log.Fatalf("No stdout was printed from task '%s'\n", taskDescription)
 	}
 	return success
 }
@@ -56,7 +58,7 @@ func buildAgent() {
 func setupEnvironment() {
 	success := executeCommand("docker-compose", []string{"up", "--abort-on-container-exit"}, "Setting up environment with Docker Compose")
 	if !success {
-		executeCommand("docker-compose", []string{"ps", "-las"}, "Docker ps")
+		executeCommand("docker", []string{"ps", "-las"}, "Docker ps")
 	}
 	fmt.Println("Sleep for 30 seconds to ensure that the env has time to initialize...")
 	time.Sleep(30 * time.Second)
