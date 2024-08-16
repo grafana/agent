@@ -41,7 +41,7 @@ func buildAgent() {
 }
 
 func setupEnvironment() {
-	executeCommand("docker-compose", []string{"up", "-d"}, "Setting up environment with Docker Compose")
+	executeCommand("docker-compose", []string{"up", "--exit-code-from"}, "Setting up environment with Docker Compose")
 	fmt.Println("Sleep for 30 seconds to ensure that the env has time to initialize...")
 	time.Sleep(30 * time.Second)
 }
