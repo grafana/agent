@@ -29,8 +29,10 @@ func executeCommand(command string, args []string, taskDescription string) {
 	cmd := exec.Command(command, args...)
 	var stderr bytes.Buffer
 	cmd.Stderr = &stderr
+	var stdout bytes.Buffer
+	cmd.Stdout = &stdout
 	if err := cmd.Run(); err != nil {
-		log.Fatalf("Error: %s\n", stderr.String())
+		log.Fatalf("stderr: %s\n\nstdout:%s\n", stderr.String(), stdout.String())
 	}
 }
 
