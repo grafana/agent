@@ -56,7 +56,7 @@ func buildAgent() {
 }
 
 func setupEnvironment() {
-	success := executeCommand("docker", []string{"compose", "up", "--abort-on-container-exit"}, "Setting up environment with Docker Compose")
+	success := executeCommand("docker", []string{"compose", "up", "-d"}, "Setting up environment with Docker Compose")
 	if !success {
 		executeCommand("docker", []string{"ps", "-las"}, "Docker ps")
 	}
