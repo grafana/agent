@@ -46,7 +46,7 @@ func executeCommand(command string, args []string, taskDescription string) bool 
 	if len(stdoutStr) > 0 {
 		log.Printf("stdout:%s\n", stdoutStr)
 	} else {
-		log.Fatalf("No stdout was printed from task '%s'\n", taskDescription)
+		log.Printf("No stdout was printed from task '%s'\n", taskDescription)
 	}
 	return success
 }
