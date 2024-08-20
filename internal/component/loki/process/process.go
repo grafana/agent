@@ -90,7 +90,6 @@ func (c *Component) Run(ctx context.Context) error {
 		if c.entryHandler != nil {
 			c.entryHandler.Stop()
 		}
-		close(c.processIn)
 		c.mut.RUnlock()
 	}()
 	wg := &sync.WaitGroup{}
@@ -127,8 +126,9 @@ func (c *Component) Update(args component.Arguments) error {
 		if err != nil {
 			return err
 		}
-		c.entryHandler = loki.NewEntryHandler(c.processOut, func() { pipeline.Cleanup() })
-		c.processIn = pipeline.Wrap(c.entryHandler).Chan()
+		entryHandler := loki.NewEntryHandler(c.processOut, func() { pipeline.Cleanup() })
+		c.entryHandler = pipeline.Wrap(entryHandler)
+		c.processIn = c.entryHandler.Chan()
 		c.stages = newArgs.Stages
 	}
 
