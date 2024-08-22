@@ -23,7 +23,7 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
     GO_TAGS="netgo promtail_journal_enabled" \
     make agentctl
 
-FROM public.ecr.aws/ubuntu/ubuntu:mantic
+FROM public.ecr.aws/ubuntu/ubuntu:noble
 
 LABEL org.opencontainers.image.source="https://github.com/grafana/agent"
 

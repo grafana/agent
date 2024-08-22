@@ -10,6 +10,10 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+### Other changes
+
+- Change the Docker base image for Linux containers to `ubuntu:noble`. (@amontalban)
+
 v0.42.0 (2024-07-24)
 -------------------------
 
