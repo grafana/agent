@@ -24,31 +24,15 @@ type TestLog struct {
 
 var logChan chan TestLog
 
-func executeCommand(command string, args []string, taskDescription string) bool {
+func executeCommand(command string, args []string, taskDescription string) {
 	fmt.Printf("%s...\n", taskDescription)
 	cmd := exec.Command(command, args...)
 	var stderr bytes.Buffer
 	cmd.Stderr = &stderr
-	var stdout bytes.Buffer
-	cmd.Stdout = &stdout
 
-	success := true
 	if err := cmd.Run(); err != nil {
-		stderrStr := stderr.String()
-		if len(stderrStr) > 0 {
-			log.Fatalf("stderr: %s\n", stderrStr)
-		} else {
-			log.Fatalf("Task '%s' failed, but no stderr was printed\n", taskDescription)
-		}
-		success = false
+		log.Fatalf("Error: %s\n", stderr.String())
 	}
-	stdoutStr := stderr.String()
-	if len(stdoutStr) > 0 {
-		log.Printf("stdout:%s\n", stdoutStr)
-	} else {
-		log.Printf("No stdout was printed from task '%s'\n", taskDescription)
-	}
-	return success
 }
 
 func buildAgent() {
@@ -56,10 +40,7 @@ func buildAgent() {
 }
 
 func setupEnvironment() {
-	success := executeCommand("docker", []string{"compose", "up", "-d"}, "Setting up environment with Docker Compose")
-	if !success {
-		executeCommand("docker", []string{"ps", "-las"}, "Docker ps")
-	}
+	executeCommand("docker", []string{"compose", "up", "-d"}, "Setting up environment with Docker Compose")
 	fmt.Println("Sleep for 30 seconds to ensure that the env has time to initialize...")
 	time.Sleep(30 * time.Second)
 }
