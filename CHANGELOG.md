@@ -10,6 +10,10 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+### Bugfixes
+
+- Fix a memory leak which would occur any time `loki.process` had its configuration reloaded. (@ptodev)
+
 ### Other changes
 
 - Change the Docker base image for Linux containers to `ubuntu:noble`. (@amontalban)
