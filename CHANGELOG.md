@@ -19,6 +19,8 @@ Main (unreleased)
 
 - Fix an issue where nested import.git config blocks could conflict if they had the same labels. (@wildum)
 
+- Fix an issue where `loki.source.docker` stops collecting logs after a container restart. (@wildum)
+
 ### Other changes
 
 - Change the Docker base image for Linux containers to `ubuntu:noble`. (@amontalban)
