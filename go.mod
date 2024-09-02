@@ -68,7 +68,7 @@ require (
 	github.com/grafana/tail v0.0.0-20230510142333-77b18831edf0
 	github.com/grafana/vmware_exporter v0.0.5-beta
 	github.com/grpc-ecosystem/go-grpc-middleware v1.4.0
-	github.com/hashicorp/consul/api v1.27.0
+	github.com/hashicorp/consul/api v1.29.4
 	github.com/hashicorp/go-cleanhttp v0.5.2
 	github.com/hashicorp/go-discover v0.0.0-20230724184603-e89ebd1b2f65
 	github.com/hashicorp/go-multierror v1.1.1
