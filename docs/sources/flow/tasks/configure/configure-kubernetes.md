@@ -99,6 +99,7 @@ Use this method if you prefer to embed your {{< param "PRODUCT_NAME" >}} configu
 
    ```yaml
    agent:
+     mode: "flow"
      configMap:
        content: |-
          // Write your Agent config here:
@@ -142,7 +143,8 @@ Use this method if you prefer to write your {{< param "PRODUCT_NAME" >}} configu
 1. Modify Helm Chart's configuration in your `values.yaml` to use the existing ConfigMap:
 
    ```yaml
-     agent:
+   agent:
+     mode: "flow"
      configMap:
        create: false
        name: agent-config

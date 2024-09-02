@@ -29,12 +29,23 @@ Other release notes for the different {{< param "PRODUCT_ROOT_NAME" >}} variants
 [release-notes-operator]: {{< relref "../operator/release-notes.md" >}}
 {{< /admonition >}}
 
+## v0.41.1
+
+### Breaking change: `max_request_body_size` for `otelcol.receiver.otlp`,`otelcol.receiver.zipkin`,`otelcol.receiver.jaeger` changed
+
+The default value for `max_request_body_size` changed from unlimited to `20 MiB`. There is no ability to change `max_request_body_size`
+to accept unlimited requests.
+
 ## v0.41
 
 ### Breaking change: default `otelcol.receiver.opencensus` list port changed
 
 The default listen port for `otelcol.receiver.opencensus` has changed from 4317 to 55678 to align with the upstream defaults.
 To retain the previous listen port, explicitly set the `endpoint` argument to `0.0.0.0:4317` before upgrading.
+
+### Breaking change: default `mimir.rules.kubernetes` sync interval changed
+
+The default sync interval for `mimir.rules.kubernetes` has changed from `30s` to `5m` to reduce load on Mimir.
 
 ## v0.40
 

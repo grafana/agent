@@ -29,6 +29,7 @@ func executeCommand(command string, args []string, taskDescription string) {
 	cmd := exec.Command(command, args...)
 	var stderr bytes.Buffer
 	cmd.Stderr = &stderr
+
 	if err := cmd.Run(); err != nil {
 		log.Fatalf("Error: %s\n", stderr.String())
 	}
@@ -39,7 +40,7 @@ func buildAgent() {
 }
 
 func setupEnvironment() {
-	executeCommand("docker-compose", []string{"up", "-d"}, "Setting up environment with Docker Compose")
+	executeCommand("docker", []string{"compose", "up", "-d"}, "Setting up environment with Docker Compose")
 	fmt.Println("Sleep for 30 seconds to ensure that the env has time to initialize...")
 	time.Sleep(30 * time.Second)
 }
@@ -114,7 +115,7 @@ func runAllTests() {
 
 func cleanUpEnvironment() {
 	fmt.Println("Cleaning up Docker environment...")
-	err := exec.Command("docker-compose", "down", "--volumes", "--rmi", "all").Run()
+	err := exec.Command("docker", "compose", "down", "--volumes", "--rmi", "all").Run()
 	if err != nil {
 		panic(err)
 	}

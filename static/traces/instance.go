@@ -57,6 +57,7 @@ func (i *Instance) ApplyConfig(logsSubsystem *logs.Logs, promInstanceManager ins
 
 	if util.CompareYAML(cfg, i.cfg) {
 		// No config change
+		i.logger.Debug("tracing config won't be recreated because it hasn't changed")
 		return nil
 	}
 	i.cfg = cfg
