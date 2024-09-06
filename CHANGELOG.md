@@ -10,6 +10,9 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+v0.43.0-rc.0 (2024-09-06)
+-------------------------
+
 ### Bugfixes
 
 - Fix a memory leak which would occur any time `loki.process` had its configuration reloaded. (@ptodev)
