@@ -7,8 +7,8 @@ This document contains a historical list of changes between releases. Only
 changes that impact end-user behavior are listed; changes to documentation or
 internal API changes are not present.
 
-v0.43.0-rc.0 (2024-09-06)
--------------------------
+Main (unreleased)
+-----------------
 
 v0.43.0-rc.0 (2024-09-06)
 -------------------------
