@@ -36,7 +36,7 @@ The project must be updated to reference the upcoming release tag whenever a new
 
 3. Create a PR to merge to main (must be merged before continuing).
 
-    - Release Candidate example PR [here](https://github.com/grafana/agent/pull/3065)
+    - Release Candidate example PR [here](https://github.com/grafana/agent/pull/6987)
     - Stable Release example PR [here](https://github.com/grafana/agent/pull/6993)
     - Patch Release example PR [here](https://github.com/grafana/agent/pull/6944)
 
@@ -52,7 +52,7 @@ The project must be updated to reference the upcoming release tag whenever a new
 
 6. Create a PR to merge to `release-VERSION_PREFIX` (must be merged before continuing).
 
-    - Release Candidate example PR [here](https://github.com/grafana/agent/pull/3066)
+    - Release Candidate example PR [here](https://github.com/grafana/agent/pull/6988)
     - Stable Release example PR [here](https://github.com/grafana/agent/pull/6994)
     - Patch Release example PR [here](https://github.com/grafana/agent/pull/6945)
         - This PR takes a shortcut by both changing the version and cherry-picking other required changes on the release branch.
