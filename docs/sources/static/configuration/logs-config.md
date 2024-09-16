@@ -17,9 +17,22 @@ a Loki push API endpoint. `logs_config` is identical to how Promtail is
 configured, except deprecated fields have been removed and the server_config is
 not supported.
 
+## structured_metadata
+
+Keep in mind that Grafana Agent in a deployment like this one:
+
+```
+promtail --> grafana-agent --> Loki
+```
+is not able to forward `structured_metadata` received from `promtail` to `loki`.
+
+
 Refer to the
 [Promtail documentation](/docs/loki/latest/clients/promtail/configuration/#clients)
 for the supported values for these fields.
+
+
+
 
 ```yaml
 # Directory to store Loki Promtail positions files in. Positions files are
