@@ -25,10 +25,6 @@ A Grafana Agent deployment similar to `promtail --> grafana-agent --> Loki` can'
 Refer to the
 [Promtail documentation](/docs/loki/latest/clients/promtail/configuration/#clients)
 for the supported values for these fields.
-
-
-
-
 ```yaml
 # Directory to store Loki Promtail positions files in. Positions files are
 # required to read logs, and are used to store the last read offset of log
