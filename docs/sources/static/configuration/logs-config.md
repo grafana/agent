@@ -19,12 +19,7 @@ not supported.
 
 ## structured_metadata
 
-Keep in mind that Grafana Agent in a deployment like this one:
-
-```
-promtail --> grafana-agent --> Loki
-```
-is not able to forward `structured_metadata` received from `promtail` to `loki`.
+A Grafana Agent deployment similar to `promtail --> grafana-agent --> Loki` can't forward `structured_metadata` received from Promtail to Loki.
 
 
 Refer to the
