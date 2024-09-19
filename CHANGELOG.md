@@ -10,10 +10,6 @@ internal API changes are not present.
 v0.43.1 (2024-09-19)
 -------------------------
 
-### Security fixes
-
-- Add quotes to windows service path to prevent path interception attack. (@wildum)
-
 v0.43.0 (2024-09-11)
 -------------------------
 
