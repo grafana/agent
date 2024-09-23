@@ -39,7 +39,7 @@ var consulRequestDuration = instrument.NewHistogramCollector(promauto.NewHistogr
 // can be swapped out in real time.
 type Remote struct {
 	log log.Logger
-	reg *util.Unregisterer
+	reg util.Unregisterer
 
 	kvMut    sync.RWMutex
 	kv       *agentRemoteClient

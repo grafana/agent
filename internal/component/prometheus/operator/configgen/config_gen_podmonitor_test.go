@@ -84,6 +84,12 @@ func TestGeneratePodMonitorConfig(t *testing.T) {
 						},
 					},
 				},
+				EnableCompression: true,
+				ScrapeProtocols: []config.ScrapeProtocol{
+					config.OpenMetricsText1_0_0,
+					config.OpenMetricsText0_0_1,
+					config.PrometheusText0_0_4,
+				},
 			},
 		},
 		{
@@ -139,6 +145,12 @@ func TestGeneratePodMonitorConfig(t *testing.T) {
 							Names:               []string{"operator"},
 						},
 					},
+				},
+				EnableCompression: true,
+				ScrapeProtocols: []config.ScrapeProtocol{
+					config.OpenMetricsText1_0_0,
+					config.OpenMetricsText0_0_1,
+					config.PrometheusText0_0_4,
 				},
 			},
 		},
@@ -196,6 +208,12 @@ func TestGeneratePodMonitorConfig(t *testing.T) {
 						},
 					},
 				},
+				EnableCompression: true,
+				ScrapeProtocols: []config.ScrapeProtocol{
+					config.OpenMetricsText1_0_0,
+					config.OpenMetricsText0_0_1,
+					config.PrometheusText0_0_4,
+				},
 			},
 		},
 		{
@@ -251,6 +269,12 @@ func TestGeneratePodMonitorConfig(t *testing.T) {
 							Names:               []string{"operator"},
 						},
 					},
+				},
+				EnableCompression: true,
+				ScrapeProtocols: []config.ScrapeProtocol{
+					config.OpenMetricsText1_0_0,
+					config.OpenMetricsText0_0_1,
+					config.PrometheusText0_0_4,
 				},
 			},
 		},
@@ -415,6 +439,12 @@ func TestGeneratePodMonitorConfig(t *testing.T) {
 				LabelLimit:            103,
 				LabelNameLengthLimit:  104,
 				LabelValueLengthLimit: 105,
+				EnableCompression:     true,
+				ScrapeProtocols: []config.ScrapeProtocol{
+					config.OpenMetricsText1_0_0,
+					config.OpenMetricsText0_0_1,
+					config.PrometheusText0_0_4,
+				},
 			},
 		},
 	}

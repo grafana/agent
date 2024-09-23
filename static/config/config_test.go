@@ -80,6 +80,11 @@ metrics:
 			ScrapeInterval:     model.Duration(1 * time.Minute),
 			ScrapeTimeout:      model.Duration(33 * time.Second),
 			EvaluationInterval: model.Duration(1 * time.Minute),
+			ScrapeProtocols: []promCfg.ScrapeProtocol{
+				promCfg.OpenMetricsText1_0_0,
+				promCfg.OpenMetricsText0_0_1,
+				promCfg.PrometheusText0_0_4,
+			},
 		},
 	}
 
@@ -102,6 +107,11 @@ metrics:
 			ScrapeInterval:     model.Duration(1 * time.Minute),
 			ScrapeTimeout:      model.Duration(33 * time.Second),
 			EvaluationInterval: model.Duration(1 * time.Minute),
+			ScrapeProtocols: []promCfg.ScrapeProtocol{
+				promCfg.OpenMetricsText1_0_0,
+				promCfg.OpenMetricsText0_0_1,
+				promCfg.PrometheusText0_0_4,
+			},
 		},
 	}
 	t.Setenv("SCRAPE_TIMEOUT", "33s")

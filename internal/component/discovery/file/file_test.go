@@ -6,6 +6,7 @@ import (
 
 	"github.com/grafana/river"
 	"github.com/prometheus/common/model"
+	prom_discovery "github.com/prometheus/prometheus/discovery/file"
 	"github.com/stretchr/testify/require"
 )
 
@@ -37,7 +38,7 @@ func TestConvert(t *testing.T) {
 		RefreshInterval: 10 * time.Minute,
 	}
 
-	promSDConfig := args.Convert()
+	promSDConfig := args.Convert().(*prom_discovery.SDConfig)
 	require.Equal(t, 2, len(promSDConfig.Files))
 	require.Equal(t, model.Duration(10*time.Minute), promSDConfig.RefreshInterval)
 }

@@ -268,7 +268,7 @@ remote_write:
   - [<remote_write>]
 ```
 
-> **Note:** For more information on remote_write, refer to the [Prometheus documentation](https://prometheus.io/docs/prometheus/2.45/configuration/configuration/#remote_write).
+> **Note:** For more information on remote_write, refer to the [Prometheus documentation](https://prometheus.io/docs/prometheus/2.53/configuration/configuration/#remote_write).
 >
 > The following default values set by Grafana Agent Static Mode are different than the default set by Prometheus:
 > - `remote_write`: `send_exemplars` default value is `true`
@@ -344,9 +344,9 @@ remote_write:
 > **Note:** More information on the following types can be found on the Prometheus
 > website:
 >
-> * [`relabel_config`](https://prometheus.io/docs/prometheus/2.45/configuration/configuration/#relabel_config)
-> * [`scrape_config`](https://prometheus.io/docs/prometheus/2.45/configuration/configuration/#scrape_config)
-> * [`remote_write`](https://prometheus.io/docs/prometheus/2.45/configuration/configuration/#remote_write)
+> * [`relabel_config`](https://prometheus.io/docs/prometheus/2.53/configuration/configuration/#relabel_config)
+> * [`scrape_config`](https://prometheus.io/docs/prometheus/2.53/configuration/configuration/#scrape_config)
+> * [`remote_write`](https://prometheus.io/docs/prometheus/2.53/configuration/configuration/#remote_write)
 
 ## Data retention
 

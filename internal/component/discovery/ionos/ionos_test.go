@@ -9,6 +9,7 @@ import (
 	"github.com/grafana/river/rivertypes"
 	promConfig "github.com/prometheus/common/config"
 	"github.com/prometheus/common/model"
+	prom_discovery "github.com/prometheus/prometheus/discovery/ionos"
 	"github.com/stretchr/testify/require"
 	"gotest.tools/assert"
 )
@@ -46,7 +47,7 @@ func TestConvert(t *testing.T) {
 			},
 		},
 	}
-	promArgs := riverArgs.Convert()
+	promArgs := riverArgs.Convert().(*prom_discovery.SDConfig)
 	assert.Equal(t, "datacenter_id", promArgs.DatacenterID)
 	assert.Equal(t, model.Duration(20*time.Second), promArgs.RefreshInterval)
 	assert.Equal(t, 81, promArgs.Port)

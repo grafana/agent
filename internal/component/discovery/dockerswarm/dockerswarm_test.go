@@ -9,6 +9,7 @@ import (
 	"github.com/grafana/river/rivertypes"
 	promConfig "github.com/prometheus/common/config"
 	"github.com/prometheus/common/model"
+	promdiscovery "github.com/prometheus/prometheus/discovery/moby"
 	"github.com/stretchr/testify/require"
 	"gotest.tools/assert"
 )
@@ -60,7 +61,7 @@ func TestConvert(t *testing.T) {
 		},
 	}
 
-	promArgs := riverArgs.Convert()
+	promArgs := riverArgs.Convert().(*promdiscovery.DockerSwarmSDConfig)
 	assert.Equal(t, 2, len(promArgs.Filters))
 	assert.Equal(t, "n1", promArgs.Filters[0].Name)
 	require.ElementsMatch(t, []string{"v11", "v12"}, promArgs.Filters[0].Values)

@@ -48,7 +48,7 @@ Name | Type | Description | Default | Required
 `forward_to`                  | `list(MetricsReceiver)` | List of receivers to send scraped metrics to. | | yes
 `job_name`                    | `string`   | The value to use for the job label if not already set. | component name | no
 `extra_metrics`               | `bool`     | Whether extra metrics should be generated for scrape targets. | `false` | no
-`enable_protobuf_negotiation` | `bool`     | Whether to enable protobuf negotiation with the client. | `false` | no
+`enable_protobuf_negotiation` | `bool`     | Deprecated: use `scrape_protocols` instead. | `false` | no
 `honor_labels`                | `bool`     | Indicator whether the scraped metrics should remain unmodified. | `false` | no
 `honor_timestamps`            | `bool`     | Indicator whether the scraped timestamps should be respected. | `true` | no
 `track_timestamps_staleness`  | `bool`     | Indicator whether to track the staleness of the scraped timestamps. | `false` | no
@@ -56,6 +56,7 @@ Name | Type | Description | Default | Required
 `scrape_classic_histograms`   | `bool`     | Whether to scrape a classic histogram that is also exposed as a native histogram. | `false` | no
 `scrape_interval`             | `duration` | How frequently to scrape the targets of this scrape configuration. | `"60s"` | no
 `scrape_timeout`              | `duration` | The timeout for scraping targets of this configuration. | `"10s"` | no
+`scrape_protocols`            | `list(string)` | The protocols to negotiate during a scrape, in order of preference. See below for available values.    | `["OpenMetricsText1.0.0", "OpenMetricsText0.0.1", "PrometheusText0.0.4"]` | no       |
 `metrics_path`                | `string`   | The HTTP resource path on which to fetch metrics from targets. | `/metrics` | no
 `scheme`                      | `string`   | The URL scheme with which to fetch metrics from targets. | | no
 `body_size_limit`             | `int`      | An uncompressed response body larger than this many bytes causes the scrape to fail. 0 means no limit. | | no
@@ -79,6 +80,17 @@ Name | Type | Description | Default | Required
  - [`basic_auth` block][basic_auth].
  - [`authorization` block][authorization].
  - [`oauth2` block][oauth2].
+
+`scrape_protocols` controls the preferred order of protocols to negotiate during
+a scrape. The following values are supported:
+
+- `OpenMetricsText1.0.0`
+- `OpenMetricsText0.0.1`
+- `PrometheusProto`
+- `PrometheusText0.0.4`
+
+If you were using the now deprecated `enable_protobuf_negotiation` argument, switch 
+to using `scrape_protocols = ["PrometheusProto", "OpenMetricsText1.0.0", "OpenMetricsText0.0.1", "PrometheusText0.0.4"]` instead.
 
 {{< docs/shared lookup="flow/reference/components/http-client-proxy-config-description.md" source="agent" version="<AGENT_VERSION>" >}}
 

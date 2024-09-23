@@ -330,6 +330,7 @@ func getTestConfig(t *testing.T, global *GlobalConfig, scrapeAddr string) Config
 			Labels: model.LabelSet{},
 		}},
 	}
+	scrapeCfg.ScrapeProtocols = config.DefaultScrapeProtocols
 
 	cfg := DefaultConfig
 	cfg.Name = "test"
@@ -401,6 +402,9 @@ func (a *mockAppender) UpdateMetadata(ref storage.SeriesRef, l labels.Labels, m 
 }
 
 func (a *mockAppender) AppendHistogram(ref storage.SeriesRef, l labels.Labels, t int64, h *histogram.Histogram, fh *histogram.FloatHistogram) (storage.SeriesRef, error) {
+	return 0, nil
+}
+func (a *mockAppender) AppendCTZeroSample(ref storage.SeriesRef, l labels.Labels, t int64, ct int64) (storage.SeriesRef, error) {
 	return 0, nil
 }
 

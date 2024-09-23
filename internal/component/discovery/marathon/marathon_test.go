@@ -9,6 +9,7 @@ import (
 	"github.com/grafana/river/rivertypes"
 	promConfig "github.com/prometheus/common/config"
 	"github.com/prometheus/common/model"
+	prom_discovery "github.com/prometheus/prometheus/discovery/marathon"
 	"github.com/stretchr/testify/require"
 	"gotest.tools/assert"
 )
@@ -79,7 +80,7 @@ func TestConvert(t *testing.T) {
 		},
 	}
 
-	promArgs := riverArgs.Convert()
+	promArgs := riverArgs.Convert().(*prom_discovery.SDConfig)
 	require.ElementsMatch(t, []string{"serv1", "serv2"}, promArgs.Servers)
 	assert.Equal(t, model.Duration(time.Minute), promArgs.RefreshInterval)
 	assert.Equal(t, promConfig.Secret("auth_token"), promArgs.AuthToken)

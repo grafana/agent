@@ -8,6 +8,7 @@ import (
 	"github.com/grafana/river"
 	promconfig "github.com/prometheus/common/config"
 	"github.com/prometheus/common/model"
+	prom_discovery "github.com/prometheus/prometheus/discovery/linode"
 	"github.com/stretchr/testify/require"
 )
 
@@ -40,7 +41,7 @@ func TestConvert(t *testing.T) {
 		},
 	}
 
-	promArgs := riverArgs.Convert()
+	promArgs := riverArgs.Convert().(*prom_discovery.SDConfig)
 	require.Equal(t, 8080, promArgs.Port)
 	require.Equal(t, model.Duration(15*time.Second), promArgs.RefreshInterval)
 	require.Equal(t, ";", promArgs.TagSeparator)

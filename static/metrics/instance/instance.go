@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 	"time"
 
@@ -22,6 +23,7 @@ import (
 	"github.com/grafana/agent/internal/useragent"
 	"github.com/grafana/agent/internal/util"
 	"github.com/grafana/agent/static/metrics/wal"
+	"github.com/grafana/agent/static/prom_metrics"
 	"github.com/oklog/run"
 	"github.com/prometheus/client_golang/prometheus"
 	config_util "github.com/prometheus/common/config"
@@ -36,6 +38,9 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+var sdManagerMetrics *discovery.Metrics
+var sdManagerName = "scrape"
+
 func init() {
 	remote.UserAgent = useragent.Get()
 	scrape.UserAgent = useragent.Get()
@@ -44,6 +49,12 @@ func init() {
 	config.DefaultRemoteWriteConfig.SendExemplars = true
 	// default remote_write retry_on_http_429 to true
 	config.DefaultRemoteWriteConfig.QueueConfig.RetryOnRateLimit = true
+
+	var err error
+	sdManagerMetrics, err = discovery.NewManagerMetrics(prometheus.DefaultRegisterer, sdManagerName)
+	if err != nil {
+		panic(fmt.Sprintf("traces: failed to create sd manager metrics for scrapers: %s", err))
+	}
 }
 
 // Default configuration values
@@ -150,6 +161,12 @@ func (c *Config) ApplyDefaults(global GlobalConfig) error {
 			} else {
 				sc.ScrapeTimeout = c.global.Prometheus.ScrapeTimeout
 			}
+		}
+		if sc.ScrapeProtocols == nil {
+			sc.ScrapeProtocols = c.global.Prometheus.ScrapeProtocols
+		}
+		if err := validateScrapeProtocols(sc.ScrapeProtocols); err != nil {
+			return fmt.Errorf("invalid scrape protocols provided: %w", err)
 		}
 
 		if _, exists := jobNames[sc.JobName]; exists {
@@ -617,7 +634,9 @@ func (i *Instance) newDiscoveryManager(ctx context.Context, cfg *Config) (*disco
 	ctx, cancel := context.WithCancel(ctx)
 
 	logger := log.With(i.logger, "component", "discovery manager")
-	manager := discovery.NewManager(ctx, logger, discovery.Name("scrape"))
+
+	manager := discovery.NewManager(ctx, logger, nil, prom_metrics.SDMetrics,
+		discovery.Name(sdManagerName), discovery.SetMetrics(sdManagerMetrics))
 
 	// TODO(rfratto): refactor this to a function?
 	// TODO(rfratto): ensure job name name is unique
@@ -776,6 +795,24 @@ func getHash(data interface{}) (string, error) {
 	return hex.EncodeToString(hash[:]), nil
 }
 
+// validateScrapeProtocols return errors if we see problems with accept scrape protocols option.
+func validateScrapeProtocols(sps []config.ScrapeProtocol) error {
+	if len(sps) == 0 {
+		return errors.New("scrape_protocols cannot be empty")
+	}
+	dups := map[string]struct{}{}
+	for _, sp := range sps {
+		if _, ok := dups[strings.ToLower(string(sp))]; ok {
+			return fmt.Errorf("duplicated protocol in scrape_protocols, got %v", sps)
+		}
+		if err := sp.Validate(); err != nil {
+			return fmt.Errorf("scrape_protocols: %w", err)
+		}
+		dups[strings.ToLower(string(sp))] = struct{}{}
+	}
+	return nil
+}
+
 var managerMtx sync.Mutex
 
 func newScrapeManager(o *scrape.Options, logger log.Logger, app storage.Appendable) *scrape.Manager {
@@ -783,7 +820,7 @@ func newScrapeManager(o *scrape.Options, logger log.Logger, app storage.Appendab
 	// data race of modifying that global, we lock a mutex here briefly.
 	managerMtx.Lock()
 	defer managerMtx.Unlock()
-	return scrape.NewManager(o, logger, app)
+	return scrape.NewManagerWithMetrics(o, logger, app, prom_metrics.ScrapeManagerMetrics)
 }
 
 type runGroupContext struct {

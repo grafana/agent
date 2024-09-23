@@ -442,7 +442,7 @@ GET /agent/api/v1/metrics/integrations/sd
 ```
 
 This endpoint returns all running metrics-based integrations. It conforms to
-the Prometheus [http_sd_config API](https://prometheus.io/docs/prometheus/2.45/configuration/configuration/#http_sd_config).
+the Prometheus [http_sd_config API](https://prometheus.io/docs/prometheus/2.53/configuration/configuration/#http_sd_config).
 Targets include integrations regardless of autoscrape being enabled; this
 allows for manually configuring scrape jobs to collect metrics from an
 integration running on an external agent.

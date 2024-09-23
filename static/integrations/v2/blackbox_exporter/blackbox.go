@@ -80,6 +80,11 @@ func (bbh *blackboxHandler) ScrapeConfigs(sd discovery.Configs) []*autoscrape.Sc
 	cfg.ScrapeTimeout = bbh.cfg.Common.Autoscrape.ScrapeTimeout
 	cfg.RelabelConfigs = bbh.cfg.Common.Autoscrape.RelabelConfigs
 	cfg.MetricRelabelConfigs = bbh.cfg.Common.Autoscrape.MetricRelabelConfigs
+	cfg.ScrapeProtocols = []config.ScrapeProtocol{
+		config.OpenMetricsText1_0_0,
+		config.OpenMetricsText0_0_1,
+		config.PrometheusText0_0_4,
+	}
 
 	return []*autoscrape.ScrapeConfig{{
 		Instance: bbh.cfg.Common.Autoscrape.MetricsInstance,

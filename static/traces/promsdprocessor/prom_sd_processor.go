@@ -8,7 +8,9 @@ import (
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/internal/component/discovery"
 	util "github.com/grafana/agent/internal/util/log"
+	"github.com/grafana/agent/static/prom_metrics"
 	promsdconsumer "github.com/grafana/agent/static/traces/promsdprocessor/consumer"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/prometheus/config"
 	promdiscovery "github.com/prometheus/prometheus/discovery"
 	"github.com/prometheus/prometheus/discovery/targetgroup"
@@ -32,11 +34,31 @@ type promServiceDiscoProcessor struct {
 	logger log.Logger
 }
 
+var sdManagerMetrics *promdiscovery.Metrics
+var sdManagerName = "traces service disco"
+
+func init() {
+	reg := prometheus.DefaultRegisterer
+
+	var err error
+	sdManagerMetrics, err = promdiscovery.NewManagerMetrics(reg, sdManagerName)
+	if err != nil {
+		panic(fmt.Sprintf("traces: failed to create sd manager metrics for prom sd processor: %s", err))
+	}
+}
+
 func newTraceProcessor(nextConsumer consumer.Traces, operationType string, podAssociations []string, scrapeConfigs []*config.ScrapeConfig) (processor.Traces, error) {
 	ctx, cancel := context.WithCancel(context.Background())
 
-	logger := log.With(util.Logger, "component", "traces service disco")
-	mgr := promdiscovery.NewManager(ctx, logger, promdiscovery.Name("traces service disco"))
+	logger := log.With(util.Logger, "component", sdManagerName)
+
+	mgr := promdiscovery.NewManager(ctx, logger, nil, prom_metrics.SDMetrics,
+		promdiscovery.Name(sdManagerName), promdiscovery.SetMetrics(sdManagerMetrics))
+
+	if mgr == nil {
+		cancel()
+		return nil, fmt.Errorf("cannot create a new manager")
+	}
 
 	relabelConfigs := map[string][]*relabel.Config{}
 	managerConfig := map[string]promdiscovery.Configs{}

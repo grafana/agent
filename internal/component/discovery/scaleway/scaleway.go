@@ -26,7 +26,7 @@ func init() {
 		Exports:   discovery.Exports{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
-			return New(opts, args.(Arguments))
+			return discovery.NewFromConvertibleConfig(opts, args.(Arguments))
 		},
 	})
 }
@@ -100,14 +100,14 @@ func (args *Arguments) Validate() error {
 		// This will no longer be necessary once we can call a Validate method
 		// instead of UnmarshalYAML.
 		ptr := (*prom_discovery.SDConfig)(reflect.ValueOf(i).UnsafePointer())
-		*ptr = *args.Convert()
+		*ptr = *args.Convert().(*prom_discovery.SDConfig)
 		return nil
 	})
 
 	return err
 }
 
-func (args *Arguments) Convert() *prom_discovery.SDConfig {
+func (args Arguments) Convert() discovery.DiscovererConfig {
 	out := &prom_discovery.SDConfig{
 		Project:       args.Project,
 		APIURL:        args.APIURL,
@@ -175,12 +175,4 @@ func (r *Role) UnmarshalText(text []byte) error {
 	default:
 		return fmt.Errorf("invalid role %q", text)
 	}
-}
-
-// New returns a new instance of a discovery.scaleway component.
-func New(opts component.Options, args Arguments) (*discovery.Component, error) {
-	return discovery.New(opts, args, func(args component.Arguments) (discovery.Discoverer, error) {
-		newArgs := args.(Arguments)
-		return prom_discovery.NewDiscovery(newArgs.Convert(), opts.Logger)
-	})
 }

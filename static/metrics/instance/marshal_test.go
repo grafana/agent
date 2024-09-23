@@ -37,6 +37,7 @@ scrape_configs:
   metrics_path: /metrics
   scheme: http
   track_timestamps_staleness: true
+  enable_compression: true
   static_configs:
   - targets:
     - 127.0.0.1:12345
@@ -94,6 +95,7 @@ scrape_configs:
   metrics_path: /metrics
   scheme: http
   track_timestamps_staleness: true
+  enable_compression: true
   static_configs:
   - targets:
     - 127.0.0.1:12345

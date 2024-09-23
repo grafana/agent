@@ -4,18 +4,23 @@ import "github.com/prometheus/client_golang/prometheus"
 
 // Unregisterer is a Prometheus Registerer that can unregister all collectors
 // passed to it.
-type Unregisterer struct {
-	wrap prometheus.Registerer
-	cs   map[prometheus.Collector]struct{}
+type Unregisterer interface {
+	prometheus.Registerer
+	UnregisterAll() bool
 }
 
 // WrapWithUnregisterer wraps a prometheus Registerer with capabilities to
 // unregister all collectors.
-func WrapWithUnregisterer(reg prometheus.Registerer) *Unregisterer {
-	return &Unregisterer{
+func WrapWithUnregisterer(reg prometheus.Registerer) Unregisterer {
+	return &unregisterer{
 		wrap: reg,
 		cs:   make(map[prometheus.Collector]struct{}),
 	}
+}
+
+type unregisterer struct {
+	wrap prometheus.Registerer
+	cs   map[prometheus.Collector]struct{}
 }
 
 // An "unchecked collector" is a collector which returns an empty description.
@@ -51,7 +56,7 @@ func isUncheckedCollector(c prometheus.Collector) bool {
 }
 
 // Register implements prometheus.Registerer.
-func (u *Unregisterer) Register(c prometheus.Collector) error {
+func (u *unregisterer) Register(c prometheus.Collector) error {
 	if u.wrap == nil {
 		return nil
 	}
@@ -70,7 +75,7 @@ func (u *Unregisterer) Register(c prometheus.Collector) error {
 }
 
 // MustRegister implements prometheus.Registerer.
-func (u *Unregisterer) MustRegister(cs ...prometheus.Collector) {
+func (u *unregisterer) MustRegister(cs ...prometheus.Collector) {
 	for _, c := range cs {
 		if err := u.Register(c); err != nil {
 			panic(err)
@@ -79,7 +84,7 @@ func (u *Unregisterer) MustRegister(cs ...prometheus.Collector) {
 }
 
 // Unregister implements prometheus.Registerer.
-func (u *Unregisterer) Unregister(c prometheus.Collector) bool {
+func (u *unregisterer) Unregister(c prometheus.Collector) bool {
 	if isUncheckedCollector(c) {
 		return true
 	}
@@ -93,7 +98,7 @@ func (u *Unregisterer) Unregister(c prometheus.Collector) bool {
 
 // UnregisterAll unregisters all collectors that were registered through the
 // Registerer.
-func (u *Unregisterer) UnregisterAll() bool {
+func (u *unregisterer) UnregisterAll() bool {
 	success := true
 	for c := range u.cs {
 		if !u.Unregister(c) {

@@ -9,8 +9,10 @@ import (
 	"github.com/go-kit/log/level"
 	"github.com/grafana/agent/static/metrics"
 	"github.com/grafana/agent/static/metrics/instance"
+	"github.com/grafana/agent/static/prom_metrics"
 	"github.com/grafana/agent/static/server"
 	"github.com/oklog/run"
+	"github.com/prometheus/client_golang/prometheus"
 	config_util "github.com/prometheus/common/config"
 	"github.com/prometheus/common/model"
 	prom_config "github.com/prometheus/prometheus/config"
@@ -214,16 +216,21 @@ func newInstanceScraper(
 			config_util.WithDialContextFunc(dialerFunc),
 		),
 	}
-	sd := discovery.NewManager(ctx, l, sdOpts...)
-	sm := scrape.NewManager(&scrape.Options{
-		HTTPClientOptions: []config_util.HTTPClientOption{
-			// If dialerFunc is nil, scrape.NewManager will use Go's default dialer.
-			config_util.WithDialContextFunc(dialerFunc),
+	sd := discovery.NewManager(ctx, l, prometheus.DefaultRegisterer, prom_metrics.SDMetrics, sdOpts...)
+	sm := scrape.NewManagerWithMetrics(
+		&scrape.Options{
+			HTTPClientOptions: []config_util.HTTPClientOption{
+				// If dialerFunc is nil, scrape.NewManager will use Go's default dialer.
+				config_util.WithDialContextFunc(dialerFunc),
+			},
 		},
-	}, l, &agentAppender{
-		inst: instanceName,
-		is:   s,
-	})
+		l,
+		&agentAppender{
+			inst: instanceName,
+			is:   s,
+		},
+		prom_metrics.ScrapeManagerMetrics,
+	)
 
 	is := &instanceScraper{
 		log: l,

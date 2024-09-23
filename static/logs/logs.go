@@ -120,7 +120,7 @@ type Instance struct {
 
 	cfg *InstanceConfig
 	log log.Logger
-	reg *util.Unregisterer
+	reg util.Unregisterer
 
 	previousConfig string
 

@@ -23,7 +23,7 @@ func init() {
 		Exports:   discovery.Exports{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
-			return New(opts, args.(Arguments))
+			return discovery.NewFromConvertibleConfig(opts, args.(Arguments))
 		},
 	})
 }
@@ -69,7 +69,7 @@ func (a *Arguments) Validate() error {
 	return a.ProxyConfig.Validate()
 }
 
-func (a *Arguments) Convert() *prom_discovery.SDConfig {
+func (a Arguments) Convert() discovery.DiscovererConfig {
 	return &prom_discovery.SDConfig{
 		Server:          a.Server,
 		Username:        a.Username,
@@ -85,12 +85,4 @@ func (a *Arguments) Convert() *prom_discovery.SDConfig {
 			EnableHTTP2:     a.EnableHTTP2,
 		},
 	}
-}
-
-// New returns a new instance of a discovery.uyuni component.
-func New(opts component.Options, args Arguments) (*discovery.Component, error) {
-	return discovery.New(opts, args, func(args component.Arguments) (discovery.Discoverer, error) {
-		newArgs := args.(Arguments)
-		return prom_discovery.NewDiscovery(newArgs.Convert(), opts.Logger)
-	})
 }

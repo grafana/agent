@@ -24,7 +24,7 @@ func init() {
 		Args:      EC2Arguments{},
 		Exports:   discovery.Exports{},
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
-			return NewEC2(opts, args.(EC2Arguments))
+			return discovery.NewFromConvertibleConfig(opts, args.(EC2Arguments))
 		},
 	})
 }
@@ -50,7 +50,7 @@ type EC2Arguments struct {
 	HTTPClientConfig config.HTTPClientConfig `river:",squash"`
 }
 
-func (args EC2Arguments) Convert() *promaws.EC2SDConfig {
+func (args EC2Arguments) Convert() discovery.DiscovererConfig {
 	cfg := &promaws.EC2SDConfig{
 		Endpoint:         args.Endpoint,
 		Region:           args.Region,
@@ -104,12 +104,4 @@ func (args *EC2Arguments) Validate() error {
 		}
 	}
 	return nil
-}
-
-// New creates a new discovery.ec2 component.
-func NewEC2(opts component.Options, args EC2Arguments) (component.Component, error) {
-	return discovery.New(opts, args, func(args component.Arguments) (discovery.Discoverer, error) {
-		conf := args.(EC2Arguments).Convert()
-		return promaws.NewEC2Discovery(conf, opts.Logger), nil
-	})
 }

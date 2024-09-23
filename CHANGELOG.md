@@ -10,6 +10,17 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+### Features
+
+- Update to Prometheus v0.53.2. (@ptodev)
+
+- Added `scrape_protocols` option to `prometheus.scrape`, which allows to control the preferred order of scrape protocols. (@thampiotr)
+
+### Other changes
+
+- `prometheus.scrape` component's `enable_protobuf_negotiation` argument is now deprecated and will be removed in a future major release. 
+  Use `scrape_protocols` instead and refer to `prometheus.scrape` reference documentation for further details. (@thampiotr)
+
 v0.43.4 (2024-11-25)
 -----------------
 
