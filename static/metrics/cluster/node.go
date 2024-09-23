@@ -38,7 +38,7 @@ var backoffConfig = backoff.Config{
 // the ring, it will inform the local service to reshard.
 type node struct {
 	log log.Logger
-	reg *util.Unregisterer
+	reg util.Unregisterer
 	srv pb.ScrapingServiceServer
 
 	mut  sync.RWMutex

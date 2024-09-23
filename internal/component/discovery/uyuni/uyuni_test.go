@@ -8,6 +8,7 @@ import (
 	"github.com/grafana/river"
 	promcfg "github.com/prometheus/common/config"
 	"github.com/prometheus/common/model"
+	prom_discovery "github.com/prometheus/prometheus/discovery/uyuni"
 	"github.com/stretchr/testify/require"
 )
 
@@ -58,7 +59,7 @@ func TestConvert(t *testing.T) {
 	}
 	require.NoError(t, args.Validate())
 
-	converted := args.Convert()
+	converted := args.Convert().(*prom_discovery.SDConfig)
 	require.Equal(t, "https://uyuni.com", converted.Server)
 	require.Equal(t, "exampleuser", converted.Username)
 	require.Equal(t, promcfg.Secret("examplepassword"), converted.Password)

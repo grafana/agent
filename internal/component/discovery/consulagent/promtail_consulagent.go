@@ -118,6 +118,11 @@ type SDConfig struct {
 	TLSConfig config.TLSConfig `yaml:"tls_config,omitempty"`
 }
 
+// NewDiscovererMetrics implements discovery.DiscovererConfig.
+func (c *SDConfig) NewDiscovererMetrics(reg prometheus.Registerer, rmi discovery.RefreshMetricsInstantiator) discovery.DiscovererMetrics {
+	return newDiscovererMetrics(reg, rmi)
+}
+
 // Name returns the name of the Config.
 func (*SDConfig) Name() string { return "consulagent" }
 

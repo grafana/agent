@@ -48,7 +48,7 @@ integrations:
 
 ## Prometheus service discovery use case
 
-If you need to scrape SNMP devices in more dynamic environment, and can't define devices in `snmp_targets` because targets would change over time, you can use service discovery approach. For instance, with [DNS discovery](https://prometheus.io/docs/prometheus/2.45/configuration/configuration/#dns_sd_config):
+If you need to scrape SNMP devices in more dynamic environment, and can't define devices in `snmp_targets` because targets would change over time, you can use service discovery approach. For instance, with [DNS discovery](https://prometheus.io/docs/prometheus/2.53/configuration/configuration/#dns_sd_config):
 
 ```yaml
 

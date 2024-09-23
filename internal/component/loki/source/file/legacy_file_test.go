@@ -51,7 +51,7 @@ func TestFullEndToEndLegacyConversion(t *testing.T) {
 	var written atomic.Bool
 	go func() {
 		_ = http.Serve(lis, http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
-			_, err := push.ParseRequest(logkit.NewNopLogger(), "user_id", r, nil, nil, push.ParseLokiRequest)
+			_, err := push.ParseRequest(logkit.NewNopLogger(), "user_id", r, nil, nil, push.ParseLokiRequest, nil)
 			require.NoError(t, err)
 			_, _ = rw.Write(nil)
 			written.Store(true)
