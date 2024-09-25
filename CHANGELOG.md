@@ -7,8 +7,12 @@ This document contains a historical list of changes between releases. Only
 changes that impact end-user behavior are listed; changes to documentation or
 internal API changes are not present.
 
-v0.43.1 (2024-09-19)
+v0.43.1 (2024-09-25)
 -------------------------
+
+### Security fixes
+
+- Add quotes to windows service path to prevent path interception attack. (CVE-2024-8996) (@wildum)
 
 v0.43.0 (2024-09-11)
 -------------------------
