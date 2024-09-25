@@ -12,7 +12,7 @@ v0.43.2 (2024-09-25)
 
 ### Security fixes
 
-- Add quotes to windows service path to prevent path interception attack. (CVE-2024-8996) (@wildum)
+- Add quotes to windows service path to prevent path interception attack. [CVE-2024-8996](https://grafana.com/security/security-advisories/cve-2024-8996/) (@wildum)
 
 v0.43.0 (2024-09-11)
 -------------------------
