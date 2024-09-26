@@ -7,6 +7,13 @@ This document contains a historical list of changes between releases. Only
 changes that impact end-user behavior are listed; changes to documentation or
 internal API changes are not present.
 
+v0.43.3 (2024-09-26)
+-------------------------
+
+### Bugfixes
+
+- Windows installer: Don't quote Alloy's binary path in the Windows Registry. (@jkroepke)
+
 v0.43.2 (2024-09-25)
 -------------------------
 
