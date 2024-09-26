@@ -23,7 +23,7 @@ A Grafana Agent deployment similar to `promtail --> grafana-agent --> Loki` can'
 
 
 Refer to the
-[Promtail documentation](/docs/loki/latest/clients/promtail/configuration/#clients)
+[Promtail documentation](https://grafana.com/docs/loki/latest/send-data/promtail/configuration/)
 for the supported values for these fields.
 ```yaml
 # Directory to store Loki Promtail positions files in. Positions files are
@@ -60,7 +60,7 @@ clients:
 > **Note:** More information on the following types can be found on the
 > documentation for Promtail:
 >
-> * [`promtail.client_config`](/docs/loki/latest/clients/promtail/configuration/#clients)
+> * [`promtail.client_config`](https://grafana.com/docs/loki/latest/send-data/promtail/configuration/#clients)
 
 
 ## file_watch_config
@@ -114,10 +114,10 @@ scrape_configs:
 > **Note:** More information on the following types can be found on the
 > documentation for Promtail:
 >
-> * [`promtail.client_config`](/docs/loki/latest/clients/promtail/configuration/#clients)
-> * [`promtail.scrape_config`](/docs/loki/latest/clients/promtail/configuration/#scrape_configs)
-> * [`promtail.target_config`](/docs/loki/latest/clients/promtail/configuration/#target_config)
-> * [`promtail.limits_config`](/docs/loki/latest/clients/promtail/configuration/#limits_config)
+> * [`promtail.client_config`](https://grafana.com/docs/loki/latest/send-data/promtail/configuration/#clients)
+> * [`promtail.scrape_config`](https://grafana.com/docs/loki/latest/send-data/promtail/configuration/#scrape_configs)
+> * [`promtail.target_config`](https://grafana.com/docs/loki/latest/send-data/promtail/configuration/#target_config)
+> * [`promtail.limits_config`](https://grafana.com/docs/loki/latest/send-data/promtail/configuration/#limits_config)
 
 > **Note:** Backticks in values are not supported.
 
