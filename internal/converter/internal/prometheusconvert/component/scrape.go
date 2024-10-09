@@ -57,6 +57,7 @@ func toScrapeArguments(scrapeConfig *prom_config.ScrapeConfig, forwardTo []stora
 		ScrapeClassicHistograms:   scrapeConfig.ScrapeClassicHistograms,
 		ScrapeInterval:            time.Duration(scrapeConfig.ScrapeInterval),
 		ScrapeTimeout:             time.Duration(scrapeConfig.ScrapeTimeout),
+		ScrapeProtocols:           convertScrapeProtocols(scrapeConfig.ScrapeProtocols),
 		MetricsPath:               scrapeConfig.MetricsPath,
 		Scheme:                    scrapeConfig.Scheme,
 		BodySizeLimit:             scrapeConfig.BodySizeLimit,
@@ -93,6 +94,14 @@ func getScrapeTargets(staticConfig prom_discovery.StaticConfig) []discovery.Targ
 	}
 
 	return targets
+}
+
+func convertScrapeProtocols(protocols []prom_config.ScrapeProtocol) []string {
+	result := make([]string, 0, len(protocols))
+	for _, protocol := range protocols {
+		result = append(result, string(protocol))
+	}
+	return result
 }
 
 func ValidateScrapeTargets(staticConfig prom_discovery.StaticConfig) diag.Diagnostics {

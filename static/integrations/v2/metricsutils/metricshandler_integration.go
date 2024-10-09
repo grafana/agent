@@ -144,6 +144,11 @@ func (i *metricsHandlerIntegration) ScrapeConfigs(sd discovery.Configs) []*autos
 	cfg.ScrapeTimeout = i.common.Autoscrape.ScrapeTimeout
 	cfg.RelabelConfigs = i.common.Autoscrape.RelabelConfigs
 	cfg.MetricRelabelConfigs = i.common.Autoscrape.MetricRelabelConfigs
+	cfg.ScrapeProtocols = []config.ScrapeProtocol{
+		config.OpenMetricsText1_0_0,
+		config.OpenMetricsText0_0_1,
+		config.PrometheusText0_0_4,
+	}
 
 	return []*autoscrape.ScrapeConfig{{
 		Instance: i.common.Autoscrape.MetricsInstance,

@@ -7,7 +7,6 @@ import (
 	"github.com/grafana/agent/internal/component/common/config"
 	"github.com/grafana/agent/internal/component/discovery"
 	"github.com/grafana/agent/internal/featuregate"
-	promcfg "github.com/prometheus/common/config"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/discovery/http"
 )
@@ -19,7 +18,7 @@ func init() {
 		Args:      Arguments{},
 		Exports:   discovery.Exports{},
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
-			return New(opts, args.(Arguments))
+			return discovery.NewFromConvertibleConfig(opts, args.(Arguments))
 		},
 	})
 }
@@ -46,18 +45,11 @@ func (args *Arguments) UnmarshalRiver(f func(interface{}) error) error {
 	return nil
 }
 
-func (args Arguments) Convert() *http.SDConfig {
+func (args Arguments) Convert() discovery.DiscovererConfig {
 	cfg := &http.SDConfig{
 		HTTPClientConfig: *args.HTTPClientConfig.Convert(),
 		URL:              args.URL.String(),
 		RefreshInterval:  model.Duration(args.RefreshInterval),
 	}
 	return cfg
-}
-
-func New(opts component.Options, args Arguments) (component.Component, error) {
-	return discovery.New(opts, args, func(args component.Arguments) (discovery.Discoverer, error) {
-		conf := args.(Arguments).Convert()
-		return http.NewDiscovery(conf, opts.Logger, []promcfg.HTTPClientOption{})
-	})
 }

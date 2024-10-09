@@ -137,7 +137,7 @@ remote_write:
         [ cipher_suites: <duration> ]
 
     # Controls TLS settings of the exporter's client:
-    # https://prometheus.io/docs/prometheus/2.45/configuration/configuration/#tls_config
+    # https://prometheus.io/docs/prometheus/2.53/configuration/configuration/#tls_config
     # This should be used only if `insecure` is set to false
     tls_config:
       # Path to the CA cert. For a client this verifies the server certificate. If empty uses system root CA.
@@ -483,7 +483,7 @@ More information on the following types can be found on the documentation for th
   * [`otlpreceiver`: OpenTelemetry-Collector](https://github.com/open-telemetry/opentelemetry-collector/tree/{{< param "OTEL_VERSION" >}}/receiver/otlpreceiver)
   * [`opencensusreceiver`: OpenTelemetry-Collector-Contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/{{< param "OTEL_VERSION" >}}/receiver/opencensusreceiver)
   * [`zipkinreceiver`: OpenTelemetry-Collector-Contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/{{< param "OTEL_VERSION" >}}/receiver/zipkinreceiver)
-* [`scrape_config`: Prometheus](https://prometheus.io/docs/prometheus/2.45/configuration/configuration/#scrape_config)
+* [`scrape_config`: Prometheus](https://prometheus.io/docs/prometheus/2.53/configuration/configuration/#scrape_config)
 * [`spanmetricsprocessor.latency_histogram_buckets`: OpenTelemetry-Collector-Contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/{{< param "OTEL_VERSION" >}}/processor/spanmetricsprocessor/config.go#L37-L39)
 * [`spanmetricsprocessor.dimensions`: OpenTelemetry-Collector-Contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/{{< param "OTEL_VERSION" >}}/processor/spanmetricsprocessor/config.go#L41-L48)
 * [`tailsamplingprocessor.policies`: OpenTelemetry-Collector-Contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/{{< param "OTEL_VERSION" >}}/processor/tailsamplingprocessor)

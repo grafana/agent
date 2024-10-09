@@ -97,6 +97,12 @@ func TestGenerateProbeConfig(t *testing.T) {
 						},
 					},
 				},
+				EnableCompression: true,
+				ScrapeProtocols: []config.ScrapeProtocol{
+					config.OpenMetricsText1_0_0,
+					config.OpenMetricsText0_0_1,
+					config.PrometheusText0_0_4,
+				},
 			},
 		},
 		{
@@ -180,6 +186,12 @@ func TestGenerateProbeConfig(t *testing.T) {
 							Labels: model.LabelSet{"static": "label"},
 						},
 					},
+				},
+				EnableCompression: true,
+				ScrapeProtocols: []config.ScrapeProtocol{
+					config.OpenMetricsText1_0_0,
+					config.OpenMetricsText0_0_1,
+					config.PrometheusText0_0_4,
 				},
 			},
 		},

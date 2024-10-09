@@ -93,12 +93,12 @@ type Exports struct {
 	Targets []Target `river:"targets,attr"`
 }
 
-// Discoverer is an alias for Prometheus' Discoverer interface, so users of this package don't need
+// DiscovererConfig is an alias for Prometheus' DiscovererConfig interface, so users of this package don't need
 // to import github.com/prometheus/prometheus/discover as well.
-type Discoverer discovery.Discoverer
+type DiscovererConfig discovery.Config
 
 // Creator is a function provided by an implementation to create a concrete Discoverer instance.
-type Creator func(component.Arguments) (Discoverer, error)
+type Creator func(component.Arguments) (DiscovererConfig, error)
 
 // Component is a reusable component for any discovery implementation.
 // it will handle dynamic updates and exporting targets appropriately for a scrape implementation.
@@ -106,7 +106,7 @@ type Component struct {
 	opts component.Options
 
 	discMut       sync.Mutex
-	latestDisc    discovery.Discoverer
+	latestDisc    DiscovererWithMetrics
 	newDiscoverer chan struct{}
 
 	creator Creator
@@ -121,6 +121,19 @@ func New(o component.Options, args component.Arguments, creator Creator) (*Compo
 		newDiscoverer: make(chan struct{}, 1),
 	}
 	return c, c.Update(args)
+}
+
+// ConvertibleConfig is used to more conveniently convert a configuration struct into a DiscovererConfig.
+type ConvertibleConfig interface {
+	// Convert converts the struct into a DiscovererConfig.
+	Convert() DiscovererConfig
+}
+
+// NewFromConvertibleConfig creates a discovery component given a ConvertibleConfig. Convenience function for New.
+func NewFromConvertibleConfig[T ConvertibleConfig](opts component.Options, conf T) (component.Component, error) {
+	return New(opts, conf, func(args component.Arguments) (DiscovererConfig, error) {
+		return args.(T).Convert(), nil
+	})
 }
 
 // Run implements component.Component.
@@ -152,7 +165,11 @@ func (c *Component) Run(ctx context.Context) error {
 
 // Update implements component.Component.
 func (c *Component) Update(args component.Arguments) error {
-	disc, err := c.creator(args)
+	discConfig, err := c.creator(args)
+	if err != nil {
+		return err
+	}
+	disc, err := NewDiscovererWithMetrics(discConfig, c.opts.Registerer, c.opts.Logger)
 	if err != nil {
 		return err
 	}
@@ -174,7 +191,7 @@ var MaxUpdateFrequency = 5 * time.Second
 
 // runDiscovery is a utility for consuming and forwarding target groups from a discoverer.
 // It will handle collating targets (and clearing), as well as time based throttling of updates.
-func (c *Component) runDiscovery(ctx context.Context, d Discoverer) {
+func (c *Component) runDiscovery(ctx context.Context, d DiscovererWithMetrics) {
 	// all targets we have seen so far
 	cache := map[string]*targetgroup.Group{}
 

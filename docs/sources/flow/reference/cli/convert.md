@@ -87,14 +87,14 @@ Refer to [Migrate from OpenTelemetry Collector to {{< param "PRODUCT_NAME" >}}][
 ### Prometheus
 
 Using the `--source-format=prometheus` will convert the source configuration from
-[Prometheus v2.45](https://prometheus.io/docs/prometheus/2.45/configuration/configuration/)
+[Prometheus v2.53](https://prometheus.io/docs/prometheus/2.53/configuration/configuration/)
 to {{< param "PRODUCT_NAME" >}} configuration.
 
 This includes Prometheus features such as
-[scrape_config](https://prometheus.io/docs/prometheus/2.45/configuration/configuration/#scrape_config),
-[relabel_config](https://prometheus.io/docs/prometheus/2.45/configuration/configuration/#relabel_config),
-[metric_relabel_configs](https://prometheus.io/docs/prometheus/2.45/configuration/configuration/#metric_relabel_configs),
-[remote_write](https://prometheus.io/docs/prometheus/2.45/configuration/configuration/#remote_write),
+[scrape_config](https://prometheus.io/docs/prometheus/2.53/configuration/configuration/#scrape_config),
+[relabel_config](https://prometheus.io/docs/prometheus/2.53/configuration/configuration/#relabel_config),
+[metric_relabel_configs](https://prometheus.io/docs/prometheus/2.53/configuration/configuration/#metric_relabel_configs),
+[remote_write](https://prometheus.io/docs/prometheus/2.53/configuration/configuration/#remote_write),
 and many supported *_sd_configs. Unsupported features in a source configuration result
 in [errors].
 

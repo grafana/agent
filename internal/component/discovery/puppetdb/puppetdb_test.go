@@ -6,6 +6,7 @@ import (
 
 	"github.com/grafana/river"
 	"github.com/prometheus/common/model"
+	prom_discovery "github.com/prometheus/prometheus/discovery/puppetdb"
 	"github.com/stretchr/testify/require"
 	"gotest.tools/assert"
 )
@@ -39,7 +40,7 @@ func TestConvert(t *testing.T) {
 	err := river.Unmarshal([]byte(exampleRiverConfig), &args)
 	require.NoError(t, err)
 
-	sd := args.Convert()
+	sd := args.Convert().(*prom_discovery.SDConfig)
 	assert.Equal(t, "https://www.example.com", sd.URL)
 	assert.Equal(t, model.Duration(60*time.Second), sd.RefreshInterval)
 	assert.Equal(t, "abc", sd.Query)

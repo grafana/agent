@@ -92,5 +92,5 @@ func TestConvert(t *testing.T) {
 			EnableHTTP2:     false,
 		},
 	}
-	require.Equal(t, expected, *sdConfig)
+	require.Equal(t, &expected, sdConfig)
 }
