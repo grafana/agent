@@ -97,7 +97,7 @@ Section "install"
   Call InitializeRegistry
 
   # Create the service.
-  nsExec::ExecToLog 'sc create "Grafana Agent Flow" start= delayed-auto binpath= "$INSTDIR\grafana-agent-service-windows-amd64.exe"'
+  nsExec::ExecToLog 'sc create "Grafana Agent Flow" start= delayed-auto binpath= "\"$INSTDIR\grafana-agent-service-windows-amd64.exe\""'
   Pop $0
 
   # Start the service.

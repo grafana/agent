@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -13,6 +14,7 @@ import (
 	"github.com/grafana/agent/internal/util"
 	"github.com/grafana/agent/static/metrics/instance"
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/testutil"
 	"github.com/prometheus/prometheus/scrape"
 	"github.com/prometheus/prometheus/storage"
 	"github.com/stretchr/testify/require"
@@ -111,6 +113,142 @@ configs:
 	require.Equal(t, len(instanceConfig.ScrapeConfigs), 1)
 	scrapeConfig := instanceConfig.ScrapeConfigs[0]
 	require.Greater(t, int64(scrapeConfig.ScrapeInterval), int64(0))
+}
+
+func checkConfigReloadLog(t *testing.T, logs string, expectedOccurances int) {
+	logLine := `level=debug agent=prometheus msg="not recreating metrics instance because config hasn't changed"`
+	actualOccurances := strings.Count(logs, logLine)
+	require.Equal(t, expectedOccurances, actualOccurances)
+}
+
+func TestConfigReload(t *testing.T) {
+	cfgText := `
+wal_directory: /tmp/wal
+configs:
+  - name: instance_a
+    scrape_configs:
+      - job_name: 'node'
+        static_configs:
+          - targets: ['localhost:9100']
+`
+	var cfg Config
+
+	err := yaml.Unmarshal([]byte(cfgText), &cfg)
+	require.NoError(t, err)
+	err = cfg.ApplyDefaults()
+	require.NoError(t, err)
+
+	fact := newFakeInstanceFactory()
+
+	logBuffer := util.SyncBuffer{}
+	logger := log.NewSyncLogger(log.NewLogfmtLogger(&logBuffer))
+
+	reg := prometheus.NewRegistry()
+
+	a, err := newAgent(reg, cfg, logger, fact.factory)
+	require.NoError(t, err)
+
+	util.Eventually(t, func(t require.TestingT) {
+		require.NotNil(t, fact.created)
+		require.Equal(t, 1, int(fact.created.Load()))
+		require.Equal(t, 1, len(a.mm.ListInstances()))
+	})
+
+	t.Run("instances should be running", func(t *testing.T) {
+		for _, mi := range fact.Mocks() {
+			// Each instance should have wait called on it
+			util.Eventually(t, func(t require.TestingT) {
+				require.True(t, mi.running.Load())
+			})
+		}
+	})
+
+	util.Eventually(t, func(t require.TestingT) {
+		if err := testutil.GatherAndCompare(reg,
+			strings.NewReader(`
+# HELP agent_metrics_configs_changed_total Total number of dynamically updated configs
+# TYPE agent_metrics_configs_changed_total counter
+agent_metrics_configs_changed_total{event="created"} 1
+`), "agent_metrics_configs_changed_total"); err != nil {
+			t.Errorf("mismatch metrics: %v", err)
+			t.FailNow()
+		}
+	})
+
+	// The config has changed (it used to be ""). The log line won't be printed.
+	checkConfigReloadLog(t, logBuffer.String(), 0)
+
+	//
+	// Try the same config.
+	//
+	var sameCfg Config
+
+	err = yaml.Unmarshal([]byte(cfgText), &sameCfg)
+	require.NoError(t, err)
+	err = sameCfg.ApplyDefaults()
+	require.NoError(t, err)
+
+	a.ApplyConfig(sameCfg)
+
+	util.Eventually(t, func(t require.TestingT) {
+		if err := testutil.GatherAndCompare(reg,
+			strings.NewReader(`
+# HELP agent_metrics_configs_changed_total Total number of dynamically updated configs
+# TYPE agent_metrics_configs_changed_total counter
+agent_metrics_configs_changed_total{event="created"} 1
+`), "agent_metrics_configs_changed_total"); err != nil {
+			t.Errorf("mismatch metrics: %v", err)
+			t.FailNow()
+		}
+	})
+
+	// The config did not change. The log line should be printed.
+	checkConfigReloadLog(t, logBuffer.String(), 1)
+
+	//
+	// Try a different config.
+	//
+	cfgText = `
+wal_directory: /tmp/wal
+configs:
+  - name: instance_b
+    scrape_configs:
+      - job_name: 'node'
+        static_configs:
+          - targets: ['localhost:9100']
+`
+	var differentCfg Config
+
+	err = yaml.Unmarshal([]byte(cfgText), &differentCfg)
+	require.NoError(t, err)
+	err = differentCfg.ApplyDefaults()
+	require.NoError(t, err)
+
+	a.ApplyConfig(differentCfg)
+
+	util.Eventually(t, func(t require.TestingT) {
+		if err := testutil.GatherAndCompare(reg,
+			strings.NewReader(`
+# HELP agent_metrics_configs_changed_total Total number of dynamically updated configs
+# TYPE agent_metrics_configs_changed_total counter
+agent_metrics_configs_changed_total{event="created"} 2
+agent_metrics_configs_changed_total{event="deleted"} 1
+`), "agent_metrics_configs_changed_total"); err != nil {
+			t.Errorf("mismatch metrics: %v", err)
+			t.FailNow()
+		}
+	})
+
+	// The config has changed. The log line won't be printed.
+	checkConfigReloadLog(t, logBuffer.String(), 1)
+
+	for _, mi := range fact.Mocks() {
+		util.Eventually(t, func(t require.TestingT) {
+			require.Equal(t, 1, int(mi.startedCount.Load()))
+		})
+	}
+
+	a.Stop()
 }
 
 func TestAgent(t *testing.T) {

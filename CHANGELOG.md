@@ -10,6 +10,84 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+v0.43.3 (2024-09-26)
+-------------------------
+
+### Bugfixes
+
+- Windows installer: Don't quote Alloy's binary path in the Windows Registry. (@jkroepke)
+
+v0.43.2 (2024-09-25)
+-------------------------
+
+### Security fixes
+
+- Add quotes to windows service path to prevent path interception attack. [CVE-2024-8996](https://grafana.com/security/security-advisories/cve-2024-8996/) (@wildum)
+
+v0.43.0 (2024-09-11)
+-------------------------
+
+### Bugfixes
+
+- Fix a memory leak which would occur any time `loki.process` had its configuration reloaded. (@ptodev)
+
+- Fix a bug where custom components would not shadow the stdlib. If you have a module whose name conflicts with an stdlib function 
+  and if you use this exact function in your config, then you will need to rename your module. (@wildum)
+
+- Fix an issue where nested import.git config blocks could conflict if they had the same labels. (@wildum)
+
+- Fix an issue where `loki.source.docker` stops collecting logs after a container restart. (@wildum)
+
+### Other changes
+
+- Change the Docker base image for Linux containers to `ubuntu:noble`. (@amontalban)
+
+v0.42.0 (2024-07-24)
+-------------------------
+
+### Security fixes
+
+- Fixes following vulnerabilities (@ptodev)
+  * [GHSA-87m9-rv8p-rgmg](https://github.com/open-telemetry/opentelemetry-collector/security/advisories/GHSA-c74f-6mfw-mm4v)
+  * [CVE-2024-35255](https://msrc.microsoft.com/update-guide/vulnerability/CVE-2024-35255)
+  * [CVE-2024-6104](https://discuss.hashicorp.com/t/hcsec-2024-12-go-retryablehttp-can-leak-basic-auth-credentials-to-log-files/68027)
+  * [GHSA-mh55-gqvf-xfwm](https://github.com/advisories/GHSA-mh55-gqvf-xfwm)
+  * [CVE-2024-24790](https://avd.aquasec.com/nvd/2024/cve-2024-24790/)
+  * [CVE-2023-45288](https://avd.aquasec.com/nvd/cve-2023-45288)
+  * [CVE-2024-24788](https://avd.aquasec.com/nvd/cve-2024-24788)
+  * [CVE-2024-24789](https://avd.aquasec.com/nvd/cve-2024-24789)
+  * [CVE-2024-24791](https://avd.aquasec.com/nvd/cve-2024-24791)
+
+### Features
+
+- A new `otelcol.exporter.debug` component for printing OTel telemetry from 
+  other `otelcol` components to the console. (@BarunKGP)
+
+### Bugfixes
+
+- Fix an issue which caused the config to be reloaded if a config reload was triggered but the config hasn't changed.
+  The bug only affected the "metrics" and "logs" subsystems in Static mode. (@ptodev)
+
+- Fix a bug in Static mode and Flow which prevented config reloads to work if a Loki `metrics` stage is in the pipeline.
+  This resulted in a "failed to unregister all metrics from previous promtail" message. (@ptodev)
+
+### Enhancements
+
+- Update to Go 1.22.5. (@ptodev)
+
+v0.41.1 (2024-06-07)
+--------------------
+
+### Breaking changes
+
+- Applied OpenTelemetry [CVE-2024-36129](https://github.com/open-telemetry/opentelemetry-collector/security/advisories/GHSA-c74f-6mfw-mm4v) fixes. (@mattdurham)
+  - Components `otelcol.receiver.otlp`,`otelcol.receiver.zipkin` and `otelcol.receiver.jaeger` setting `max_request_body_size`
+    default changed from unlimited size to `20MiB`.
+
+### Enhancements
+
+- Updated pyroscope to v0.4.6 introducing `symbols_map_size` and `pid_map_size` configuration. (@simonswine)
+
 v0.41.0 (2024-05-31)
 --------------------
 
@@ -40,6 +118,8 @@ v0.41.0 (2024-05-31)
 - Add ability to convert static mode positions file to `loki.source.file` compatible via `legacy_positions_file` argument. (@mattdurham)
 
 - Added support for `otelcol` configuration conversion in `grafana-agent convert` and `grafana-agent run` commands. (@rfratto, @erikbaranowski, @tpaschalis, @hainenber)
+
+- Prefix Faro measurement values with `value_` to align with the latest Faro cloud receiver updates. (@codecapitano)
 
 - Added support for `static` configuration conversion of the `traces` subsystem. (@erikbaranowski, @wildum)
 
@@ -78,6 +158,9 @@ v0.41.0 (2024-05-31)
   Add/Remove programs list. (@rfratto)
 
 - Fix a bug where a topic was claimed by the wrong consumer type in `otelcol.receiver.kafka`. (@wildum)
+
+- Update `prometheus.exporter.snowflake` with the [latest](https://github.com/grafana/snowflake-prometheus-exporter) version of the exporter as of May 28, 2024 (@StefanKurek)
+  - Fixes issue where returned `NULL` values from database could cause unexpected errors.
 
 ### Other changes
 
