@@ -18,7 +18,7 @@ func init() {
 		Exports:   discovery.Exports{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
-			return New(opts, args.(Arguments))
+			return discovery.NewFromConvertibleConfig(opts, args.(Arguments))
 		},
 	})
 }
@@ -37,16 +37,9 @@ func (a *Arguments) SetToDefault() {
 	*a = DefaultArguments
 }
 
-func (a *Arguments) Convert() *prom_discovery.SDConfig {
+func (a Arguments) Convert() discovery.DiscovererConfig {
 	return &prom_discovery.SDConfig{
 		Files:           a.Files,
 		RefreshInterval: model.Duration(a.RefreshInterval),
 	}
-}
-
-func New(opts component.Options, args Arguments) (*discovery.Component, error) {
-	return discovery.New(opts, args, func(args component.Arguments) (discovery.Discoverer, error) {
-		newArgs := args.(Arguments)
-		return prom_discovery.NewDiscovery(newArgs.Convert(), opts.Logger), nil
-	})
 }

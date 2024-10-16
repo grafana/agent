@@ -67,6 +67,7 @@ func ListTargetsHandler(targets map[string]TargetSet) http.Handler {
 						lastError = scrapeError.Error()
 					}
 
+					lb := labels.NewScratchBuilder(0)
 					resp = append(resp, TargetInfo{
 						InstanceName: instance,
 						TargetGroup:  key,
@@ -74,7 +75,7 @@ func ListTargetsHandler(targets map[string]TargetSet) http.Handler {
 						Endpoint:         tgt.URL().String(),
 						State:            string(tgt.Health()),
 						DiscoveredLabels: tgt.DiscoveredLabels(),
-						Labels:           tgt.Labels(),
+						Labels:           tgt.Labels(&lb),
 						LastScrape:       tgt.LastScrape(),
 						ScrapeDuration:   tgt.LastScrapeDuration().Milliseconds(),
 						ScrapeError:      lastError,

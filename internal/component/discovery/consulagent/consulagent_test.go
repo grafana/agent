@@ -32,7 +32,7 @@ func TestConvert(t *testing.T) {
 	err := river.Unmarshal([]byte(exampleRiverConfig), &args)
 	require.NoError(t, err)
 
-	converted := args.Convert()
+	converted := args.Convert().(*SDConfig)
 	assert.Equal(t, "localhost:8500", converted.Server)
 	assert.Equal(t, promcfg.Secret("token"), converted.Token)
 	assert.Equal(t, "dc", converted.Datacenter)

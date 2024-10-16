@@ -15,10 +15,11 @@ import (
 // getting data. Interceptor should not be modified once created. All callback
 // fields are optional.
 type Interceptor struct {
-	onAppend          func(ref storage.SeriesRef, l labels.Labels, t int64, v float64, next storage.Appender) (storage.SeriesRef, error)
-	onAppendExemplar  func(ref storage.SeriesRef, l labels.Labels, e exemplar.Exemplar, next storage.Appender) (storage.SeriesRef, error)
-	onUpdateMetadata  func(ref storage.SeriesRef, l labels.Labels, m metadata.Metadata, next storage.Appender) (storage.SeriesRef, error)
-	onAppendHistogram func(ref storage.SeriesRef, l labels.Labels, t int64, h *histogram.Histogram, fh *histogram.FloatHistogram, next storage.Appender) (storage.SeriesRef, error)
+	onAppend             func(ref storage.SeriesRef, l labels.Labels, t int64, v float64, next storage.Appender) (storage.SeriesRef, error)
+	onAppendExemplar     func(ref storage.SeriesRef, l labels.Labels, e exemplar.Exemplar, next storage.Appender) (storage.SeriesRef, error)
+	onUpdateMetadata     func(ref storage.SeriesRef, l labels.Labels, m metadata.Metadata, next storage.Appender) (storage.SeriesRef, error)
+	onAppendHistogram    func(ref storage.SeriesRef, l labels.Labels, t int64, h *histogram.Histogram, fh *histogram.FloatHistogram, next storage.Appender) (storage.SeriesRef, error)
+	onAppendCTZeroSample func(ref storage.SeriesRef, l labels.Labels, t, ct int64, next storage.Appender) (storage.SeriesRef, error)
 
 	// next is the next appendable to pass in the chain.
 	next storage.Appendable
@@ -195,4 +196,23 @@ func (a *interceptappender) AppendHistogram(
 		return 0, nil
 	}
 	return a.child.AppendHistogram(ref, l, t, h, fh)
+}
+
+func (a *interceptappender) AppendCTZeroSample(
+	ref storage.SeriesRef,
+	l labels.Labels,
+	t, ct int64,
+) (storage.SeriesRef, error) {
+
+	if ref == 0 {
+		ref = storage.SeriesRef(a.ls.GetOrAddGlobalRefID(l))
+	}
+
+	if a.interceptor.onAppendCTZeroSample != nil {
+		return a.interceptor.onAppendCTZeroSample(ref, l, t, ct, a.child)
+	}
+	if a.child == nil {
+		return 0, nil
+	}
+	return a.child.AppendCTZeroSample(ref, l, t, ct)
 }

@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/grafana/agent/internal/component/common/config"
+	promaws "github.com/prometheus/prometheus/discovery/aws"
 	"github.com/stretchr/testify/require"
 	"gotest.tools/assert"
 )
@@ -27,7 +28,9 @@ func TestConvert(t *testing.T) {
 	}
 
 	// ensure values are set
-	promArgs := riverArgs.Convert()
+	converted := riverArgs.Convert()
+	promArgs, ok := converted.(*promaws.EC2SDConfig)
+	require.True(t, ok)
 	assert.Equal(t, "us-east-1", promArgs.Region)
 	assert.Equal(t, "http://example:8080", promArgs.HTTPClientConfig.ProxyURL.String())
 }

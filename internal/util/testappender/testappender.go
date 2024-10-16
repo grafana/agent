@@ -174,6 +174,11 @@ func (app *Appender) AppendHistogram(ref storage.SeriesRef, l labels.Labels, t i
 	return 0, nil
 }
 
+// AppendCTZeroSample implements storage.Appender.
+func (app *Appender) AppendCTZeroSample(ref storage.SeriesRef, l labels.Labels, t int64, ct int64) (storage.SeriesRef, error) {
+	panic("this test appender does not yet implement AppendCTZeroSample")
+}
+
 // Commit commits pending samples, exemplars, and metadata, converting them
 // into a slice of *dto.MetricsFamily. Call MetricFamilies to get the resulting
 // data.

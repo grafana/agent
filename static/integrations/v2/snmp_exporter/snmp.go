@@ -98,6 +98,11 @@ func (sh *snmpHandler) ScrapeConfigs(sd discovery.Configs) []*autoscrape.ScrapeC
 	cfg.ScrapeTimeout = sh.cfg.Common.Autoscrape.ScrapeTimeout
 	cfg.RelabelConfigs = sh.cfg.Common.Autoscrape.RelabelConfigs
 	cfg.MetricRelabelConfigs = sh.cfg.Common.Autoscrape.MetricRelabelConfigs
+	cfg.ScrapeProtocols = []config.ScrapeProtocol{
+		config.OpenMetricsText1_0_0,
+		config.OpenMetricsText0_0_1,
+		config.PrometheusText0_0_4,
+	}
 
 	return []*autoscrape.ScrapeConfig{{
 		Instance: sh.cfg.Common.Autoscrape.MetricsInstance,
