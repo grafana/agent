@@ -17,6 +17,8 @@ type GlobalConfig struct {
 	Prometheus  config.GlobalConfig         `yaml:",inline"`
 	RemoteWrite []*config.RemoteWriteConfig `yaml:"remote_write,omitempty"`
 
+	EnableProtobufNegotiation bool `yaml:"enable_protobuf_negotiation,omitempty"`
+
 	ExtraMetrics      bool          `yaml:"-"`
 	DisableKeepAlives bool          `yaml:"-"`
 	IdleConnTimeout   time.Duration `yaml:"-"`
