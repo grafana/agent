@@ -439,8 +439,9 @@ func (i *Instance) initialize(ctx context.Context, reg prometheus.Registerer, cf
 	i.storage = storage.NewFanout(i.logger, i.wal, i.remoteStore)
 
 	opts := &scrape.Options{
-		ExtraMetrics:      cfg.global.ExtraMetrics,
-		HTTPClientOptions: []config_util.HTTPClientOption{},
+		ExtraMetrics:              cfg.global.ExtraMetrics,
+		HTTPClientOptions:         []config_util.HTTPClientOption{},
+		EnableProtobufNegotiation: cfg.global.EnableProtobufNegotiation,
 	}
 
 	if cfg.global.DisableKeepAlives {
