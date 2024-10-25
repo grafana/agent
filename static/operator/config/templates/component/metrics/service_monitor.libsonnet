@@ -77,6 +77,11 @@ function(
     password: secrets.valueForSecret(meta.Namespace, endpoint.BasicAuth.Password),
   },
 
+  authorization: if endpoint.Authorization != null then {
+    type: optionals.string(endpoint.Authorization.Type),
+    credentials_file: secrets.pathForSecret(meta.Namespace, endpoint.Authorization.Credentials),
+  },
+
   relabel_configs: (
     [{ source_labels: ['job'], target_label: '__tmp_prometheus_job_name' }] +
 
