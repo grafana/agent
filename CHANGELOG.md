@@ -10,6 +10,8 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+- Add support for SafeAuthorization from ServiceMonitor`s (@mate4st)
+
 v0.43.3 (2024-09-26)
 -------------------------
 
@@ -31,7 +33,7 @@ v0.43.0 (2024-09-11)
 
 - Fix a memory leak which would occur any time `loki.process` had its configuration reloaded. (@ptodev)
 
-- Fix a bug where custom components would not shadow the stdlib. If you have a module whose name conflicts with an stdlib function 
+- Fix a bug where custom components would not shadow the stdlib. If you have a module whose name conflicts with an stdlib function
   and if you use this exact function in your config, then you will need to rename your module. (@wildum)
 
 - Fix an issue where nested import.git config blocks could conflict if they had the same labels. (@wildum)
@@ -60,7 +62,7 @@ v0.42.0 (2024-07-24)
 
 ### Features
 
-- A new `otelcol.exporter.debug` component for printing OTel telemetry from 
+- A new `otelcol.exporter.debug` component for printing OTel telemetry from
   other `otelcol` components to the console. (@BarunKGP)
 
 ### Bugfixes
@@ -222,7 +224,7 @@ v0.40.4 (2024-04-12)
   * show the offset/lag for all consumer group or only the connected ones
   * set the minimum number of topics to monitor
   * enable/disable auto-creation of requested topics if they don't already exist
-  * regex to exclude topics / groups 
+  * regex to exclude topics / groups
   * added metric kafka_broker_info
 
 - In `prometheus.exporter.kafka`, the interpolation table used to compute estimated lag metrics is now pruned
