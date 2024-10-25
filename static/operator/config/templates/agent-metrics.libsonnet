@@ -1,7 +1,7 @@
 // agent-metrics.libsonnet is the entrypoint for rendering a Grafana Agent
 // config file for metrics based on the Operator custom resources.
 //
-// When writing an object, any field will null will be removed from the final
+// When writing an object, any field with null will be removed from the final
 // YAML. This is useful as we don't want to always translate unfilled values
 // from the custom resources to a field in the YAML.
 //
