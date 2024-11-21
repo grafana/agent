@@ -10,6 +10,9 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+v0.43.4 (2024-11-25)
+-----------------
+
 ### Other
 
 - Update to go 1.22.9 (@mattdurham)
