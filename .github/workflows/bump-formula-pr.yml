@@ -18,7 +18,7 @@ jobs:
 
     - name: Update Homebrew formula
       if: 'steps.latest_release.outputs.release_id == github.event.release.id'
-      uses: dawidd6/action-homebrew-bump-formula@v3
+      uses: dawidd6/action-homebrew-bump-formula@v4
       with:
         # Required, custom GitHub access token with the 'public_repo' and 'workflow' scopes
         token: ${{secrets.HOMEBREW_FORMULA_GH_TOKEN}}
@@ -45,7 +45,7 @@ jobs:
 
     - name: Update Homebrew formula
       if: 'steps.latest_release.outputs.release_id == github.event.release.id'
-      uses: dawidd6/action-homebrew-bump-formula@v3
+      uses: dawidd6/action-homebrew-bump-formula@v4
       with:
         # Required, custom GitHub access token with the 'public_repo' and 'workflow' scopes
         token: ${{secrets.HOMEBREW_FORMULA_GH_TOKEN}}
