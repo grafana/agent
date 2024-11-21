@@ -10,7 +10,7 @@ steps:
   - docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD
   - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
   - docker buildx create --name multiarch --driver docker-container --use
-  - docker buildx build --build-arg="GO_RUNTIME=golang:1.22.5-bullseye" --push --platform
+  - docker buildx build --build-arg="GO_RUNTIME=golang:1.22.9-bullseye" --push --platform
     linux/amd64,linux/arm64 -t grafana/agent-build-image:$IMAGE_TAG ./build-image
   environment:
     DOCKER_LOGIN:
@@ -44,7 +44,7 @@ steps:
   - docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD
   - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
   - docker buildx create --name multiarch --driver docker-container --use
-  - docker buildx build --build-arg="GO_RUNTIME=mcr.microsoft.com/oss/go/microsoft/golang:1.22.5-bullseye"
+  - docker buildx build --build-arg="GO_RUNTIME=mcr.microsoft.com/oss/go/microsoft/golang:1.22.9-bullseye"
     --push --platform linux/amd64,linux/arm64 -t grafana/agent-build-image:$IMAGE_TAG
     ./build-image
   environment:
@@ -1369,6 +1369,6 @@ kind: secret
 name: updater_private_key
 ---
 kind: signature
-hmac: c94699f336cc58987f7c3ccd8660110c6366ea596831b24116ff41cc9987cfe9
+hmac: 962832283bc9f7438c87836dd1aa195aed4cdd731314a5353d85593874236c98
 
 ...
