@@ -10,6 +10,10 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+### Other
+
+- Update to go 1.22.9 (@mattdurham)
+
 v0.43.3 (2024-09-26)
 -------------------------
 
@@ -41,8 +45,6 @@ v0.43.0 (2024-09-11)
 ### Other changes
 
 - Change the Docker base image for Linux containers to `ubuntu:noble`. (@amontalban)
-
-- Update to go 1.22.9 (@mattdurham)
 
 v0.42.0 (2024-07-24)
 -------------------------
