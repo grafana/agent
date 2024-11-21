@@ -7,6 +7,14 @@ This document contains a historical list of changes between releases. Only
 changes that impact end-user behavior are listed; changes to documentation or
 internal API changes are not present.
 
+
+v0.43.4 (2024-11-25)
+-----------------
+
+### Other
+
+- Update to go 1.22.9 (@mattdurham)
+
 v0.43.3 (2024-09-26)
 -------------------------
 
