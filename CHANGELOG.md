@@ -42,6 +42,8 @@ v0.43.0 (2024-09-11)
 
 - Change the Docker base image for Linux containers to `ubuntu:noble`. (@amontalban)
 
+- Update to go 1.22.9 (@mattdurham)
+
 v0.42.0 (2024-07-24)
 -------------------------
 
