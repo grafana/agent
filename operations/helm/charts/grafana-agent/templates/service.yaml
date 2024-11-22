@@ -16,7 +16,9 @@ spec:
   {{- end }}
   selector:
     {{- include "grafana-agent.selectorLabels" . | nindent 4 }}
+  {{- if semverCompare ">=1.26-0" .Capabilities.KubeVersion.Version }}
   internalTrafficPolicy: {{.Values.service.internalTrafficPolicy}}
+  {{- end }}
   ports:
     - name: http-metrics
       {{- if eq .Values.service.type "NodePort" }}

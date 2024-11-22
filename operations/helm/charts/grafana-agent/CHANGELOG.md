@@ -13,6 +13,7 @@ internal API changes are not present.
 ### Enhancements
 
 - Update Grafana Agent version to v0.43.3. (@wildum)
+- Only utilize spec.internalTrafficPolicy in the Service if deploying to Kubernetes 1.26 or later. (@xylogenw376dq)
 
 0.43.2 (2024-09-25)
 ----------
