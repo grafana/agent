@@ -23,7 +23,7 @@ func init() {
 		Exports:   discovery.Exports{},
 
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
-			return New(opts, args.(Arguments))
+			return discovery.NewFromConvertibleConfig(opts, args.(Arguments))
 		},
 	})
 }
@@ -79,7 +79,7 @@ func (a *Arguments) Validate() error {
 	return a.ProxyConfig.Validate()
 }
 
-func (a *Arguments) Convert() *prom_discovery.SDConfig {
+func (a Arguments) Convert() discovery.DiscovererConfig {
 	var (
 		authMethod   string
 		clientID     string
@@ -114,12 +114,4 @@ func (a *Arguments) Convert() *prom_discovery.SDConfig {
 		ResourceGroup:        a.ResourceGroup,
 		HTTPClientConfig:     *httpClientConfig.Convert(),
 	}
-}
-
-// New returns a new instance of a discovery.azure component.
-func New(opts component.Options, args Arguments) (*discovery.Component, error) {
-	return discovery.New(opts, args, func(args component.Arguments) (discovery.Discoverer, error) {
-		newArgs := args.(Arguments)
-		return prom_discovery.NewDiscovery(newArgs.Convert(), opts.Logger), nil
-	})
 }

@@ -6,6 +6,7 @@ import (
 
 	"github.com/grafana/river"
 	"github.com/prometheus/common/model"
+	prom_discovery "github.com/prometheus/prometheus/discovery/nomad"
 	"github.com/stretchr/testify/require"
 	"gotest.tools/assert"
 )
@@ -47,7 +48,7 @@ func TestConvert(t *testing.T) {
 		TagSeparator:    ";",
 	}
 
-	promArgs := riverArgsOAuth.Convert()
+	promArgs := riverArgsOAuth.Convert().(*prom_discovery.SDConfig)
 	assert.Equal(t, false, promArgs.AllowStale)
 	assert.Equal(t, "test", promArgs.Namespace)
 	assert.Equal(t, "a", promArgs.Region)

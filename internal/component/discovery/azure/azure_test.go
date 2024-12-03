@@ -8,6 +8,7 @@ import (
 	"github.com/grafana/agent/internal/component/common/config"
 	"github.com/grafana/river"
 	"github.com/prometheus/common/model"
+	promdiscovery "github.com/prometheus/prometheus/discovery/azure"
 	"github.com/stretchr/testify/require"
 	"gotest.tools/assert"
 )
@@ -130,7 +131,9 @@ func TestConvert(t *testing.T) {
 		},
 	}
 
-	promArgs := riverArgsOAuth.Convert()
+	args := riverArgsOAuth.Convert()
+	promArgs, ok := args.(*promdiscovery.SDConfig)
+	require.True(t, ok)
 	assert.Equal(t, "AzureTestCloud", promArgs.Environment)
 	assert.Equal(t, 8080, promArgs.Port)
 	assert.Equal(t, "subid", promArgs.SubscriptionID)
@@ -161,7 +164,9 @@ func TestConvert(t *testing.T) {
 		},
 	}
 
-	promArgs = riverArgsManagedIdentity.Convert()
+	args = riverArgsManagedIdentity.Convert()
+	promArgs, ok = args.(*promdiscovery.SDConfig)
+	require.True(t, ok)
 	assert.Equal(t, "AzureTestCloud", promArgs.Environment)
 	assert.Equal(t, 8080, promArgs.Port)
 	assert.Equal(t, "subid", promArgs.SubscriptionID)

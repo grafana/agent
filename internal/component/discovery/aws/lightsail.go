@@ -24,7 +24,7 @@ func init() {
 		Args:      LightsailArguments{},
 		Exports:   discovery.Exports{},
 		Build: func(opts component.Options, args component.Arguments) (component.Component, error) {
-			return NewLightsail(opts, args.(LightsailArguments))
+			return discovery.NewFromConvertibleConfig(opts, args.(LightsailArguments))
 		},
 	})
 }
@@ -42,7 +42,7 @@ type LightsailArguments struct {
 	HTTPClientConfig config.HTTPClientConfig `river:",squash"`
 }
 
-func (args LightsailArguments) Convert() *promaws.LightsailSDConfig {
+func (args LightsailArguments) Convert() discovery.DiscovererConfig {
 	cfg := &promaws.LightsailSDConfig{
 		Endpoint:         args.Endpoint,
 		Region:           args.Region,
@@ -86,12 +86,4 @@ func (args *LightsailArguments) Validate() error {
 		args.Region = region.Region
 	}
 	return nil
-}
-
-// New creates a new discovery.lightsail component.
-func NewLightsail(opts component.Options, args LightsailArguments) (component.Component, error) {
-	return discovery.New(opts, args, func(args component.Arguments) (discovery.Discoverer, error) {
-		conf := args.(LightsailArguments).Convert()
-		return promaws.NewLightsailDiscovery(conf, opts.Logger), nil
-	})
 }

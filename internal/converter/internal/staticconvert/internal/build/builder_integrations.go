@@ -173,6 +173,9 @@ func (b *ConfigBuilder) appendExporter(commonConfig *int_config.Common, name str
 		scrapeConfig.ScrapeTimeout = b.cfg.Integrations.ConfigV1.PrometheusGlobalConfig.ScrapeTimeout
 	}
 
+	// NOTE: We use the default value, since Agent static mode doesn't support setting this.
+	scrapeConfig.ScrapeProtocols = prom_config.DefaultScrapeProtocols
+
 	scrapeConfigs := []*prom_config.ScrapeConfig{&scrapeConfig}
 
 	promConfig := &prom_config.Config{
@@ -308,6 +311,8 @@ func (b *ConfigBuilder) appendExporterV2(commonConfig *common_v2.MetricsConfig, 
 	scrapeConfig.MetricRelabelConfigs = commonConfig.Autoscrape.MetricRelabelConfigs
 	scrapeConfig.ScrapeInterval = commonConfig.Autoscrape.ScrapeInterval
 	scrapeConfig.ScrapeTimeout = commonConfig.Autoscrape.ScrapeTimeout
+	// NOTE: We use the default value, since Agent static mode doesn't support setting this.
+	scrapeConfig.ScrapeProtocols = prom_config.DefaultScrapeProtocols
 
 	scrapeConfigs := []*prom_config.ScrapeConfig{&scrapeConfig}
 

@@ -175,6 +175,7 @@ func TestHostFilter_PatchSD(t *testing.T) {
 	track_timestamps_staleness: false
 	follow_redirects: true
 	enable_http2: true
+	enable_compression: true
 	kubernetes_sd_configs:
 		- role: service
 		  kubeconfig_file: ""

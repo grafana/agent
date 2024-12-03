@@ -429,5 +429,10 @@ func mockPromConfigWithValues(scrapeInterval model.Duration, scrapeTimeout model
 	return promConfig.GlobalConfig{
 		ScrapeInterval: scrapeInterval,
 		ScrapeTimeout:  scrapeTimeout,
+		ScrapeProtocols: []promConfig.ScrapeProtocol{
+			promConfig.OpenMetricsText1_0_0,
+			promConfig.OpenMetricsText0_0_1,
+			promConfig.PrometheusText0_0_4,
+		},
 	}
 }

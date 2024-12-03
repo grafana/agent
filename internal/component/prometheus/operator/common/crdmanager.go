@@ -16,6 +16,7 @@ import (
 	"github.com/grafana/agent/internal/service/cluster"
 	"github.com/grafana/agent/internal/service/http"
 	"github.com/grafana/agent/internal/service/labelstore"
+	"github.com/grafana/agent/internal/util"
 	"github.com/grafana/ckit/shard"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/config"
@@ -105,8 +106,16 @@ func (c *crdManager) Run(ctx context.Context) error {
 		return fmt.Errorf("creating kubernetes client: %w", err)
 	}
 
+	unregisterer := util.WrapWithUnregisterer(c.opts.Registerer)
+	defer unregisterer.UnregisterAll()
+
+	sdMetrics, err := discovery.CreateAndRegisterSDMetrics(unregisterer)
+	if err != nil {
+		return fmt.Errorf("creating and registering service discovery metrics: %w", err)
+	}
+
 	// Start prometheus service discovery manager
-	c.discoveryManager = discovery.NewManager(ctx, c.logger, discovery.Name(c.opts.ID))
+	c.discoveryManager = discovery.NewManager(ctx, c.logger, unregisterer, sdMetrics, discovery.Name(c.opts.ID))
 	go func() {
 		err := c.discoveryManager.Run()
 		if err != nil {
@@ -117,7 +126,10 @@ func (c *crdManager) Run(ctx context.Context) error {
 	// Start prometheus scrape manager.
 	flowAppendable := prometheus.NewFanout(c.args.ForwardTo, c.opts.ID, c.opts.Registerer, c.ls)
 	opts := &scrape.Options{}
-	c.scrapeManager = scrape.NewManager(opts, c.logger, flowAppendable)
+	c.scrapeManager, err = scrape.NewManager(opts, c.logger, flowAppendable, unregisterer)
+	if err != nil {
+		return fmt.Errorf("creating scrape manager: %w", err)
+	}
 	defer c.scrapeManager.Stop()
 	targetSetsChan := make(chan map[string][]*targetgroup.Group)
 	go func() {

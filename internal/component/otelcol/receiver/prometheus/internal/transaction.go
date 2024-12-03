@@ -215,6 +215,11 @@ func (t *transaction) getSeriesRef(ls labels.Labels, mtype pmetric.MetricType) u
 	return hash
 }
 
+func (t *transaction) AppendCTZeroSample(_ storage.SeriesRef, _ labels.Labels, _, _ int64) (storage.SeriesRef, error) {
+	//TODO: implement this func
+	return 0, nil
+}
+
 // getMetrics returns all metrics to the given slice.
 // The only error returned by this function is errNoDataToBuild.
 func (t *transaction) getMetrics(resource pcommon.Resource) (pmetric.Metrics, error) {
