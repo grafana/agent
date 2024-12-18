@@ -14,6 +14,11 @@ Main (unreleased)
 
 - Upgrade `github.com/goccy/go-json` to v0.10.4, which reduces the memory consumption of an Agent instance by 20MB.
   If Agent is running certain otelcol components, this reduction will not apply. (@ptodev)
+  
+### Other changes
+
+- Remove setcap for `cap_net_bind_service` to allow Agent to run in restricted environments.
+  Modern container runtimes allow binding to unprivileged ports as non-root. (@ptodev)
 
 v0.43.4 (2024-11-25)
 -----------------
