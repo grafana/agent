@@ -10,6 +10,11 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+### Bugfixes
+
+- `loki.source.podlogs`: Fixed a bug which prevented clustering from working and caused duplicate logs to be sent.
+  The bug only happened when no `selector` or `namespace_selector` blocks were specified in the Agent configuration. (@ptodev)
+
 ### Enhancements
 
 - Upgrade `github.com/goccy/go-json` to v0.10.4, which reduces the memory consumption of an Agent instance by 20MB.
