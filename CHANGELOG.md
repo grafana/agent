@@ -144,6 +144,8 @@ v0.41.0 (2024-05-31)
 
 - Add ability to convert static mode positions file to `loki.source.file` compatible via `legacy_positions_file` argument. (@mattdurham)
 
+- Add support for FreeBSD/arm64. (@evgeni)
+
 - Added support for `otelcol` configuration conversion in `grafana-agent convert` and `grafana-agent run` commands. (@rfratto, @erikbaranowski, @tpaschalis, @hainenber)
 
 - Prefix Faro measurement values with `value_` to align with the latest Faro cloud receiver updates. (@codecapitano)
