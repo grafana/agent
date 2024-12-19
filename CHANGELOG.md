@@ -10,6 +10,9 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+v0.44.0-rc.0 (2024-12-19)
+-------------------------
+
 ### Bugfixes
 
 - `loki.source.podlogs`: Fixed a bug which prevented clustering from working and caused duplicate logs to be sent.
