@@ -43,9 +43,6 @@ This topic describes how to add clustering to an existing installation.
 
 This section guides you through enabling clustering when {{< param "PRODUCT_NAME" >}} is installed on Kubernetes using the {{< param "PRODUCT_ROOT_NAME" >}} [Helm chart](ref:install-helm).
 
-### Before you begin
-
-- Ensure that your `values.yaml` file has `controller.type` set to `statefulset`.
 
 ### Steps
 
