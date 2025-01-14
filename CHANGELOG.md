@@ -10,6 +10,61 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+v0.44.0-rc.0 (2024-12-19)
+-------------------------
+
+### Bugfixes
+
+- `loki.source.podlogs`: Fixed a bug which prevented clustering from working and caused duplicate logs to be sent.
+  The bug only happened when no `selector` or `namespace_selector` blocks were specified in the Agent configuration. (@ptodev)
+
+- `pyroscope.scrape` no longer tries to scrape endpoints which are not active targets anymore. (@wildum @mattdurham @dehaansa @ptodev)
+
+### Enhancements
+
+- Upgrade `github.com/goccy/go-json` to v0.10.4, which reduces the memory consumption of an Agent instance by 20MB.
+  If Agent is running certain otelcol components, this reduction will not apply. (@ptodev)
+  
+### Other changes
+
+- Remove setcap for `cap_net_bind_service` to allow Agent to run in restricted environments.
+  Modern container runtimes allow binding to unprivileged ports as non-root. (@ptodev)
+
+v0.43.4 (2024-11-25)
+-----------------
+
+### Other
+
+- Update to go 1.22.9 (@mattdurham)
+
+v0.43.3 (2024-09-26)
+-------------------------
+
+### Bugfixes
+
+- Windows installer: Don't quote Alloy's binary path in the Windows Registry. (@jkroepke)
+
+v0.43.2 (2024-09-25)
+-------------------------
+
+### Security fixes
+
+- Add quotes to windows service path to prevent path interception attack. [CVE-2024-8996](https://grafana.com/security/security-advisories/cve-2024-8996/) (@wildum)
+
+v0.43.0 (2024-09-11)
+-------------------------
+
+### Bugfixes
+
+- Fix a memory leak which would occur any time `loki.process` had its configuration reloaded. (@ptodev)
+
+- Fix a bug where custom components would not shadow the stdlib. If you have a module whose name conflicts with an stdlib function 
+  and if you use this exact function in your config, then you will need to rename your module. (@wildum)
+
+- Fix an issue where nested import.git config blocks could conflict if they had the same labels. (@wildum)
+
+- Fix an issue where `loki.source.docker` stops collecting logs after a container restart. (@wildum)
+
 ### Other changes
 
 - Change the Docker base image for Linux containers to `ubuntu:noble`. (@amontalban)
