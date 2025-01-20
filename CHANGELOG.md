@@ -7,7 +7,10 @@ This document contains a historical list of changes between releases. Only
 changes that impact end-user behavior are listed; changes to documentation or
 internal API changes are not present.
 
-v0.44.2 (2024-01-29)
+Main (unreleased)
+-----------------
+
+v0.44.0-rc.1 (2024-01-20)
 -------------------------
 
 ### Bugfixes
