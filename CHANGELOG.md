@@ -10,7 +10,7 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
-v0.44.0-rc.0 (2024-12-19)
+v0.44.0-rc.1 (2024-01-20)
 -------------------------
 
 ### Bugfixes
@@ -29,6 +29,8 @@ v0.44.0-rc.0 (2024-12-19)
 
 - Remove setcap for `cap_net_bind_service` to allow Agent to run in restricted environments.
   Modern container runtimes allow binding to unprivileged ports as non-root. (@ptodev)
+
+- Update to go 1.22.11 (@wildum)
 
 v0.43.4 (2024-11-25)
 -----------------
