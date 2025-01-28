@@ -66,15 +66,15 @@ text_file      | [text_file][]      | Configures the text_file collector.      |
 [dfsr]: #dfsr-block
 [exchange]: #exchange-block
 [iis]: #iis-block
-[logical_disk]: #logicaldisk-block
+[logical_disk]: #logical_disk-block
 [msmq]: #msmq-block
 [mssql]: #mssql-block
 [network]: #network-block
 [process]: #process-block
-[scheduled_task]: #scheduledtask-block
+[scheduled_task]: #scheduled_task-block
 [service]: #service-block
 [smtp]: #smtp-block
-[text_file]: #textfile-block
+[text_file]: #text_file-block
 
 ### dfsr block
 
