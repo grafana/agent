@@ -96,7 +96,7 @@ linux_containers_jobs + windows_containers_jobs + [
     trigger: {
       ref: ['refs/heads/main'],
     },
-    image_pull_secrets: ['dockerconfigjson'],
+    image_pull_secrets: ['dockerconfigjson_gar'],
     steps: [
       {
         name: 'Create .image-tag',
@@ -109,7 +109,7 @@ linux_containers_jobs + windows_containers_jobs + [
       },
       {
         name: 'Update deployment_tools',
-        image: 'us.gcr.io/kubernetes-dev/drone/plugins/updater',
+        image: 'us-docker.pkg.dev/grafanalabs-global/docker-deployment-tools-prod/updater',
         settings: {
           config_json: |||
             {
