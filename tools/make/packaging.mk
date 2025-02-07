@@ -29,6 +29,7 @@ dist-agent-binaries: dist/grafana-agent-linux-amd64                    \
                      dist/grafana-agent-windows-amd64.exe              \
                      dist/grafana-agent-windows-boringcrypto-amd64.exe \
                      dist/grafana-agent-freebsd-amd64                  \
+                     dist/grafana-agent-freebsd-arm64                  \
                      dist/grafana-agent-linux-arm64-boringcrypto
 
 dist/grafana-agent-linux-amd64: GO_TAGS += netgo builtinassets promtail_journal_enabled
@@ -97,6 +98,13 @@ dist/grafana-agent-freebsd-amd64: generate-ui
 	$(PACKAGING_VARS) AGENT_BINARY=$@ "$(MAKE)" -f $(PARENT_MAKEFILE) agent
 
 
+dist/grafana-agent-freebsd-arm64: GO_TAGS += netgo builtinassets
+dist/grafana-agent-freebsd-arm64: GOOS    := freebsd
+dist/grafana-agent-freebsd-arm64: GOARCH  := arm64
+dist/grafana-agent-freebsd-arm64: generate-ui
+	$(PACKAGING_VARS) AGENT_BINARY=$@ "$(MAKE)" -f $(PARENT_MAKEFILE) agent
+
+
 dist/grafana-agent-linux-amd64-boringcrypto: GO_TAGS      += netgo builtinassets promtail_journal_enabled
 dist/grafana-agent-linux-amd64-boringcrypto: GOOS         := linux
 dist/grafana-agent-linux-amd64-boringcrypto: GOARCH       := amd64
@@ -122,7 +130,8 @@ dist-agentctl-binaries: dist/grafana-agentctl-linux-amd64       \
                         dist/grafana-agentctl-darwin-amd64      \
                         dist/grafana-agentctl-darwin-arm64      \
                         dist/grafana-agentctl-windows-amd64.exe \
-                        dist/grafana-agentctl-freebsd-amd64
+                        dist/grafana-agentctl-freebsd-amd64     \
+                        dist/grafana-agentctl-freebsd-arm64
 
 dist/grafana-agentctl-linux-amd64: GO_TAGS += netgo promtail_journal_enabled
 dist/grafana-agentctl-linux-amd64: GOOS    := linux
@@ -169,6 +178,12 @@ dist/grafana-agentctl-freebsd-amd64: GO_TAGS += netgo
 dist/grafana-agentctl-freebsd-amd64: GOOS    := freebsd
 dist/grafana-agentctl-freebsd-amd64: GOARCH  := amd64
 dist/grafana-agentctl-freebsd-amd64:
+	$(PACKAGING_VARS) AGENTCTL_BINARY=$@ "$(MAKE)" -f $(PARENT_MAKEFILE) agentctl
+
+dist/grafana-agentctl-freebsd-arm64: GO_TAGS += netgo
+dist/grafana-agentctl-freebsd-arm64: GOOS    := freebsd
+dist/grafana-agentctl-freebsd-arm64: GOARCH  := arm64
+dist/grafana-agentctl-freebsd-arm64:
 	$(PACKAGING_VARS) AGENTCTL_BINARY=$@ "$(MAKE)" -f $(PARENT_MAKEFILE) agentctl
 
 #
