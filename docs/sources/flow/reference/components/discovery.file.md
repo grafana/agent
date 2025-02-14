@@ -40,7 +40,7 @@ The following arguments are supported:
 | `files`            | `list(string)` | Files to read and discover targets from. |         | yes      |
 | `refresh_interval` | `duration`     | How often to sync targets.               | "5m"    | no       |
 
-The last path segment of each element in `files` may contain a single _ that matches any character sequence, e.g. `my/path/tg\__.json`.
+The last path segment of each element in `files` may contain a single \_ that matches any character sequence, e.g. `my/path/tg\__.json`.
 
 ## Exported fields
 
