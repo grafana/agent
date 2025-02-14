@@ -1,17 +1,17 @@
 ---
 aliases:
-- /docs/grafana-cloud/agent/flow/tasks/monitor/controller_metrics/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/tasks/monitor/controller_metrics/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/tasks/monitor/controller_metrics/
-- /docs/grafana-cloud/send-data/agent/flow/tasks/monitor/controller_metrics/
-- controller-metrics/ # /docs/agent/latest/flow/tasks/monitor/controller-metrics/
-# Previous page aliases for backwards compatibility:
-- /docs/grafana-cloud/agent/flow/monitoring/controller_metrics/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/monitoring/controller_metrics/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/monitoring/controller_metrics/
-- /docs/grafana-cloud/send-data/agent/flow/monitoring/controller_metrics/
-- ../../monitoring/controller-metrics/ # /docs/agent/latest/flow/monitoring/controller-metrics/
-- ../../monitoring/controller_metrics/ # /docs/agent/latest/flow/monitoring/controller_metrics/
+  - /docs/grafana-cloud/agent/flow/tasks/monitor/controller_metrics/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/tasks/monitor/controller_metrics/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/tasks/monitor/controller_metrics/
+  - /docs/grafana-cloud/send-data/agent/flow/tasks/monitor/controller_metrics/
+  - controller-metrics/ # /docs/agent/latest/flow/tasks/monitor/controller-metrics/
+  # Previous page aliases for backwards compatibility:
+  - /docs/grafana-cloud/agent/flow/monitoring/controller_metrics/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/monitoring/controller_metrics/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/monitoring/controller_metrics/
+  - /docs/grafana-cloud/send-data/agent/flow/monitoring/controller_metrics/
+  - ../../monitoring/controller-metrics/ # /docs/agent/latest/flow/monitoring/controller-metrics/
+  - ../../monitoring/controller_metrics/ # /docs/agent/latest/flow/monitoring/controller_metrics/
 canonical: https://grafana.com/docs/agent/latest/flow/monitoring/controller_metrics/
 description: Learn how to monitor controller metrics
 title: Monitor controller
@@ -39,11 +39,10 @@ Metrics for the controller are exposed at the `/metrics` HTTP endpoint of the {{
 
 The controller exposes the following metrics:
 
-* `agent_component_controller_evaluating` (Gauge): Set to `1` whenever the  component controller is currently evaluating components.
+- `agent_component_controller_evaluating` (Gauge): Set to `1` whenever the component controller is currently evaluating components.
   This value may be misrepresented depending on how fast evaluations complete or how often evaluations occur.
-* `agent_component_controller_running_components` (Gauge): The current number of running components by health.
-   The health is represented in the `health_type` label.
-* `agent_component_evaluation_seconds` (Histogram): The time it takes to evaluate components after one of their dependencies is updated.
-* `agent_component_dependencies_wait_seconds` (Histogram): Time spent by components waiting to be evaluated after one of their dependencies is updated.
-* `agent_component_evaluation_queue_size` (Gauge): The current number of component evaluations waiting to be performed.
-
+- `agent_component_controller_running_components` (Gauge): The current number of running components by health.
+  The health is represented in the `health_type` label.
+- `agent_component_evaluation_seconds` (Histogram): The time it takes to evaluate components after one of their dependencies is updated.
+- `agent_component_dependencies_wait_seconds` (Histogram): Time spent by components waiting to be evaluated after one of their dependencies is updated.
+- `agent_component_evaluation_queue_size` (Gauge): The current number of component evaluations waiting to be performed.

@@ -1,9 +1,9 @@
 ---
 aliases:
-- /docs/grafana-cloud/agent/flow/reference/components/prometheus.exporter.mssql/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/prometheus.exporter.mssql/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/prometheus.exporter.mssql/
-- /docs/grafana-cloud/send-data/agent/flow/reference/components/prometheus.exporter.mssql/
+  - /docs/grafana-cloud/agent/flow/reference/components/prometheus.exporter.mssql/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/prometheus.exporter.mssql/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/prometheus.exporter.mssql/
+  - /docs/grafana-cloud/send-data/agent/flow/reference/components/prometheus.exporter.mssql/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.mssql/
 description: Learn about prometheus.exporter.mssql
 title: prometheus.exporter.mssql
@@ -52,6 +52,7 @@ If specified, the `query_config` argument must be a YAML document as string defi
 See [sql_exporter](https://github.com/burningalchemist/sql_exporter#collectors) for details on how to create a configuration.
 
 ### Authentication
+
 By default, the `USERNAME` and `PASSWORD` used within the `connection_string` argument corresponds to a SQL Server username and password.
 
 If {{< param "PRODUCT_ROOT_NAME" >}} is running in the same Windows domain as the SQL Server, then you can use the parameter `authenticator=winsspi` within the `connection_string` to authenticate without any additional credentials.
@@ -60,7 +61,7 @@ If {{< param "PRODUCT_ROOT_NAME" >}} is running in the same Windows domain as th
 sqlserver://@<HOST>:<PORT>?authenticator=winsspi
 ```
 
-If you want to use Windows credentials to authenticate, instead of SQL Server credentials, you can use the parameter `authenticator=ntlm` within the `connection_string`. 
+If you want to use Windows credentials to authenticate, instead of SQL Server credentials, you can use the parameter `authenticator=ntlm` within the `connection_string`.
 The `USERNAME` and `PASSWORD` then corresponds to a Windows username and password.
 The Windows domain may need to be prefixed to the username with a trailing `\`.
 
@@ -130,12 +131,14 @@ Replace the following:
 [scrape]: {{< relref "./prometheus.scrape.md" >}}
 
 ## Custom metrics
+
 You can use the optional `query_config` parameter to retrieve custom Prometheus metrics for a MSSQL instance.
 
 If this is defined, the new configuration will be used to query your MSSQL instance and create whatever Prometheus metrics are defined.
 If you want additional metrics on top of the default metrics, the default configuration must be used as a base.
 
 The default configuration used by this integration is as follows:
+
 ```
 collector_name: mssql_standard
 
@@ -216,8 +219,8 @@ metrics:
     query: |
       SELECT (a.cntr_value * 1.0 / b.cntr_value) * 100.0 as BufferCacheHitRatio
       FROM sys.dm_os_performance_counters  a
-      JOIN  (SELECT cntr_value, OBJECT_NAME 
-          FROM sys.dm_os_performance_counters  
+      JOIN  (SELECT cntr_value, OBJECT_NAME
+          FROM sys.dm_os_performance_counters
           WHERE counter_name = 'Buffer cache hit ratio base'
               AND OBJECT_NAME = 'SQLServer:Buffer Manager') b ON  a.OBJECT_NAME = b.OBJECT_NAME
       WHERE a.counter_name = 'Buffer cache hit ratio'

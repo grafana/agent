@@ -1,8 +1,8 @@
 ---
 aliases:
-- ../../set-up/quick-starts/
-- /docs/grafana-cloud/monitor-infrastructure/agent/static/set-up/quick-starts/
-- /docs/grafana-cloud/send-data/agent/static/set-up/quick-starts/
+  - ../../set-up/quick-starts/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/static/set-up/quick-starts/
+  - /docs/grafana-cloud/send-data/agent/static/set-up/quick-starts/
 canonical: https://grafana.com/docs/agent/latest/static/set-up/quick-starts/
 description: Learn how to get started with Grafana Agent in static mode
 menuTitle: Get started

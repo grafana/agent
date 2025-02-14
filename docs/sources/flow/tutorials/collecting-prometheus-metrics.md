@@ -1,10 +1,10 @@
 ---
 aliases:
-- ./collecting-prometheus-metrics/
-- /docs/grafana-cloud/agent/flow/tutorials/collecting-prometheus-metrics/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/tutorials/collecting-prometheus-metrics/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/tutorials/collecting-prometheus-metrics/
-- /docs/grafana-cloud/send-data/agent/flow/tutorials/collecting-prometheus-metrics/
+  - ./collecting-prometheus-metrics/
+  - /docs/grafana-cloud/agent/flow/tutorials/collecting-prometheus-metrics/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/tutorials/collecting-prometheus-metrics/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/tutorials/collecting-prometheus-metrics/
+  - /docs/grafana-cloud/send-data/agent/flow/tutorials/collecting-prometheus-metrics/
 canonical: https://grafana.com/docs/agent/latest/flow/tutorials/collecting-prometheus-metrics/
 description: Learn how to collect Prometheus metrics
 menuTitle: Collect Prometheus metrics
@@ -44,7 +44,7 @@ refs:
 
 ## Prerequisites
 
-* [Docker][]
+- [Docker][]
 
 ## Run the example
 
@@ -114,11 +114,10 @@ prometheus.remote_write "prom" {
 ## Running without Docker
 
 To try out {{< param "PRODUCT_ROOT_NAME" >}} without using Docker:
+
 1. Download {{< param "PRODUCT_ROOT_NAME" >}}.
 1. Set the environment variable `AGENT_MODE=flow`.
 1. Run the {{< param "PRODUCT_ROOT_NAME" >}} with `grafana-agent run <path_to_flow_config>`.
 
-
 [Docker]: https://www.docker.com/products/docker-desktop
 [Grafana]: http://localhost:3000/explore?orgId=1&left=%5B%22now-1h%22,%22now%22,%22Mimir%22,%7B%22refId%22:%22A%22,%22instant%22:true,%22range%22:true,%22exemplar%22:true,%22expr%22:%22agent_build_info%7B%7D%22%7D%5D
-

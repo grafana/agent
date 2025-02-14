@@ -1,9 +1,9 @@
 ---
 aliases:
-- /docs/grafana-cloud/agent/flow/reference/config-blocks/export/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/config-blocks/export/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/config-blocks/export/
-- /docs/grafana-cloud/send-data/agent/flow/reference/config-blocks/export/
+  - /docs/grafana-cloud/agent/flow/reference/config-blocks/export/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/config-blocks/export/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/config-blocks/export/
+  - /docs/grafana-cloud/send-data/agent/flow/reference/config-blocks/export/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/config-blocks/export/
 description: Learn about the export configuration block
 menuTitle: export
@@ -32,6 +32,7 @@ The `export` block may only be specified inside the definition of [a `declare` b
 In [classic modules][], the `export` block is valid as a top-level block in a classic module. Classic modules are deprecated and scheduled to be removed in the release after v0.40.
 
 [classic modules]: https://grafana.com/docs/agent/<AGENT_VERSION>/flow/concepts/modules/#classic-modules-deprecated
+
 {{< /admonition >}}
 
 ## Example
@@ -46,9 +47,9 @@ export "ARGUMENT_NAME" {
 
 The following arguments are supported:
 
-Name    | Type  | Description      | Default | Required
---------|-------|------------------|---------|---------
-`value` | `any` | Value to export. |         | yes
+| Name    | Type  | Description      | Default | Required |
+| ------- | ----- | ---------------- | ------- | -------- |
+| `value` | `any` | Value to export. |         | yes      |
 
 The `value` argument determines what the value of the export is.
 To expose an exported field of another component, set `value` to an expression that references that exported value.
@@ -79,4 +80,3 @@ declare "pods_and_nodes" {
   }
 }
 ```
-

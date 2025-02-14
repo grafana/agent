@@ -1,16 +1,16 @@
 ---
 aliases:
-- /docs/grafana-cloud/agent/flow/get-started/install/linux/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/get-started/install/linux/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/get-started/install/linux/
-- /docs/grafana-cloud/send-data/agent/flow/get-started/install/linux/
-# Previous docs aliases for backwards compatibility:
-- ../../install/linux/ # /docs/agent/latest/flow/install/linux/
-- /docs/grafana-cloud/agent/flow/setup/install/linux/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/setup/install/linux/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/setup/install/linux/
-- /docs/grafana-cloud/send-data/agent/flow/setup/install/linux/
-- ../../setup/install/linux/ # /docs/agent/latest/flow/setup/install/linux/
+  - /docs/grafana-cloud/agent/flow/get-started/install/linux/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/get-started/install/linux/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/get-started/install/linux/
+  - /docs/grafana-cloud/send-data/agent/flow/get-started/install/linux/
+  # Previous docs aliases for backwards compatibility:
+  - ../../install/linux/ # /docs/agent/latest/flow/install/linux/
+  - /docs/grafana-cloud/agent/flow/setup/install/linux/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/setup/install/linux/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/setup/install/linux/
+  - /docs/grafana-cloud/send-data/agent/flow/setup/install/linux/
+  - ../../setup/install/linux/ # /docs/agent/latest/flow/setup/install/linux/
 canonical: https://grafana.com/docs/agent/latest/flow/get-started/install/linux/
 description: Learn how to install Grafana Agent Flow on Linux
 menuTitle: Linux
@@ -40,6 +40,7 @@ To install {{< param "PRODUCT_NAME" >}} on Linux, run the following commands in 
 1. Import the GPG key and add the Grafana package repository.
 
    {{< code >}}
+
    ```debian-ubuntu
    sudo mkdir -p /etc/apt/keyrings/
    wget -q -O - https://apt.grafana.com/gpg.key | gpg --dearmor | sudo tee /etc/apt/keyrings/grafana.gpg > /dev/null
@@ -50,7 +51,7 @@ To install {{< param "PRODUCT_NAME" >}} on Linux, run the following commands in 
    wget -q -O gpg.key https://rpm.grafana.com/gpg.key
    sudo rpm --import gpg.key
    echo -e '[grafana]\nname=grafana\nbaseurl=https://rpm.grafana.com\nrepo_gpgcheck=1\nenabled=1\ngpgcheck=1\ngpgkey=https://rpm.grafana.com/gpg.key\nsslverify=1
-sslcacert=/etc/pki/tls/certs/ca-bundle.crt' | sudo tee /etc/yum.repos.d/grafana.repo
+   sslcacert=/etc/pki/tls/certs/ca-bundle.crt' | sudo tee /etc/yum.repos.d/grafana.repo
    ```
 
    ```suse-opensuse
@@ -58,11 +59,13 @@ sslcacert=/etc/pki/tls/certs/ca-bundle.crt' | sudo tee /etc/yum.repos.d/grafana.
    sudo rpm --import gpg.key
    sudo zypper addrepo https://rpm.grafana.com grafana
    ```
+
    {{< /code >}}
 
 1. Update the repositories.
 
    {{< code >}}
+
    ```debian-ubuntu
    sudo apt-get update
    ```
@@ -74,11 +77,13 @@ sslcacert=/etc/pki/tls/certs/ca-bundle.crt' | sudo tee /etc/yum.repos.d/grafana.
    ```suse-opensuse
    sudo zypper update
    ```
+
    {{< /code >}}
 
 1. Install {{< param "PRODUCT_NAME" >}}.
 
    {{< code >}}
+
    ```debian-ubuntu
    sudo apt-get install grafana-agent-flow
    ```
@@ -90,6 +95,7 @@ sslcacert=/etc/pki/tls/certs/ca-bundle.crt' | sudo tee /etc/yum.repos.d/grafana.
    ```suse-opensuse
    sudo zypper install grafana-agent-flow
    ```
+
    {{< /code >}}
 
 ## Uninstall
@@ -105,6 +111,7 @@ To uninstall {{< param "PRODUCT_NAME" >}} on Linux, run the following commands i
 1. Uninstall {{< param "PRODUCT_NAME" >}}.
 
    {{< code >}}
+
    ```debian-ubuntu
    sudo apt-get remove grafana-agent-flow
    ```
@@ -116,11 +123,13 @@ To uninstall {{< param "PRODUCT_NAME" >}} on Linux, run the following commands i
    ```suse-opensuse
    sudo zypper remove grafana-agent-flow
    ```
+
    {{< /code >}}
 
 1. Optional: Remove the Grafana repository.
 
    {{< code >}}
+
    ```debian-ubuntu
    sudo rm -i /etc/apt/sources.list.d/grafana.list
    ```
@@ -132,10 +141,10 @@ To uninstall {{< param "PRODUCT_NAME" >}} on Linux, run the following commands i
    ```suse-opensuse
    sudo zypper removerepo grafana
    ```
+
    {{< /code >}}
 
 ## Next steps
 
 - [Run {{< param "PRODUCT_NAME" >}}](ref:run)
 - [Configure {{< param "PRODUCT_NAME" >}}](ref:configure)
-

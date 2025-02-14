@@ -1,8 +1,8 @@
 ---
 aliases:
-- ../../../configuration/integrations/dnsmasq-exporter-config/
-- /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/integrations/dnsmasq-exporter-config/
-- /docs/grafana-cloud/send-data/agent/static/configuration/integrations/dnsmasq-exporter-config/
+  - ../../../configuration/integrations/dnsmasq-exporter-config/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/integrations/dnsmasq-exporter-config/
+  - /docs/grafana-cloud/send-data/agent/static/configuration/integrations/dnsmasq-exporter-config/
 canonical: https://grafana.com/docs/agent/latest/static/configuration/integrations/dnsmasq-exporter-config/
 description: Learn about dnsmasq_exporter_config
 title: dnsmasq_exporter_config
@@ -25,9 +25,9 @@ dnsmasq_exporter:
   enabled: true
   dnsmasq_address: dnsmasq-a:53
   relabel_configs:
-  - source_labels: [__address__]
-    target_label: instance
-    replacement: dnsmasq-a
+    - source_labels: [__address__]
+      target_label: instance
+      replacement: dnsmasq-a
 ```
 
 Full reference of options:

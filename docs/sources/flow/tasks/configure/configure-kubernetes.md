@@ -1,15 +1,15 @@
 ---
 aliases:
-- /docs/grafana-cloud/agent/flow/tasks/configure/configure-kubernetes/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/tasks/configure/configure-kubernetes/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/tasks/configure/configure-kubernetes/
-- /docs/grafana-cloud/send-data/agent/flow/tasks/configure/configure-kubernetes/
-# Previous page aliases for backwards compatibility:
-- /docs/grafana-cloud/agent/flow/setup/configure/configure-kubernetes/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/setup/configure/configure-kubernetes/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/setup/configure/configure-kubernetes/
-- /docs/grafana-cloud/send-data/agent/flow/setup/configure/configure-kubernetes/
-- ../../setup/configure/configure-kubernetes/ # /docs/agent/latest/flow/setup/configure/configure-kubernetes/
+  - /docs/grafana-cloud/agent/flow/tasks/configure/configure-kubernetes/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/tasks/configure/configure-kubernetes/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/tasks/configure/configure-kubernetes/
+  - /docs/grafana-cloud/send-data/agent/flow/tasks/configure/configure-kubernetes/
+  # Previous page aliases for backwards compatibility:
+  - /docs/grafana-cloud/agent/flow/setup/configure/configure-kubernetes/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/setup/configure/configure-kubernetes/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/setup/configure/configure-kubernetes/
+  - /docs/grafana-cloud/send-data/agent/flow/setup/configure/configure-kubernetes/
+  - ../../setup/configure/configure-kubernetes/ # /docs/agent/latest/flow/setup/configure/configure-kubernetes/
 canonical: https://grafana.com/docs/agent/latest/flow/tasks/configure/configure-kubernetes/
 description: Learn how to configure Grafana Agent Flow on Kubernetes
 menuTitle: Kubernetes
@@ -28,6 +28,7 @@ when running on Kubernetes with the Helm chart. It assumes that:
 
 If instead you're looking for help in configuring {{< param "PRODUCT_NAME" >}} to perform a specific task,
 consult the following guides instead:
+
 - [Collect and forward Prometheus metrics][prometheus],
 - [Collect OpenTelemetry data][otel],
 - or the [tasks section][tasks] for all the remaining configuration guides.
@@ -57,7 +58,9 @@ To modify {{< param "PRODUCT_NAME" >}}'s Helm chart configuration, perform the f
    ```shell
    helm upgrade --namespace <NAMESPACE> <RELEASE_NAME> grafana/grafana-agent -f <VALUES_PATH>
    ```
+
    Replace the following:
+
    - _`<NAMESPACE>`_: The namespace you used for your {{< param "PRODUCT_NAME" >}} installation.
    - _`<RELEASE_NAME>`_: The name you used for your {{< param "PRODUCT_NAME" >}} installation.
    - _`<VALUES_PATH>`_: The path to your copy of `values.yaml` to use.
@@ -93,6 +96,7 @@ This section describes how to modify the {{< param "PRODUCT_NAME" >}} configurat
 There are two methods to perform this task.
 
 ### Method 1: Modify the configuration in the values.yaml file
+
 Use this method if you prefer to embed your {{< param "PRODUCT_NAME" >}} configuration in the Helm chart's `values.yaml` file.
 
 1. Modify the configuration file contents directly in the `values.yaml` file:
@@ -114,12 +118,15 @@ Use this method if you prefer to embed your {{< param "PRODUCT_NAME" >}} configu
    ```shell
    helm upgrade --namespace <NAMESPACE> <RELEASE_NAME> grafana/grafana-agent -f <VALUES_PATH>
    ```
+
    Replace the following:
+
    - _`<NAMESPACE>`_: The namespace you used for your {{< param "PRODUCT_NAME" >}} installation.
    - _`<RELEASE_NAME>`_: The name you used for your {{< param "PRODUCT_NAME" >}} installation.
    - _`<VALUES_PATH>`_: The path to your copy of `values.yaml` to use.
 
 ### Method 2: Create a separate ConfigMap from a file
+
 Use this method if you prefer to write your {{< param "PRODUCT_NAME" >}} configuration in a separate file.
 
 1. Write your configuration to a file, for example, `config.river`.
@@ -137,7 +144,9 @@ Use this method if you prefer to write your {{< param "PRODUCT_NAME" >}} configu
    ```shell
    kubectl create configmap --namespace <NAMESPACE> agent-config "--from-file=config.river=./config.river"
    ```
+
    Replace the following:
+
    - _`<NAMESPACE>`_: The namespace you used for your {{< param "PRODUCT_NAME" >}} installation.
 
 1. Modify Helm Chart's configuration in your `values.yaml` to use the existing ConfigMap:
@@ -156,7 +165,9 @@ Use this method if you prefer to write your {{< param "PRODUCT_NAME" >}} configu
    ```shell
    helm upgrade --namespace <NAMESPACE> <RELEASE_NAME> grafana/grafana-agent -f <VALUES_PATH>
    ```
+
    Replace the following:
+
    - _`<NAMESPACE>`_: The namespace you used for your {{< param "PRODUCT_NAME" >}} installation.
    - _`<RELEASE_NAME>`_: The name you used for your {{< param "PRODUCT_NAME" >}} installation.
    - _`<VALUES_PATH>`_: The path to your copy of `values.yaml` to use.

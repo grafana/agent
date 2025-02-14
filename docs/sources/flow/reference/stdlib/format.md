@@ -1,10 +1,10 @@
 ---
 aliases:
-- ../../configuration-language/standard-library/format/
-- /docs/grafana-cloud/agent/flow/reference/stdlib/format/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/stdlib/format/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/stdlib/format/
-- /docs/grafana-cloud/send-data/agent/flow/reference/stdlib/format/
+  - ../../configuration-language/standard-library/format/
+  - /docs/grafana-cloud/agent/flow/reference/stdlib/format/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/stdlib/format/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/stdlib/format/
+  - /docs/grafana-cloud/send-data/agent/flow/reference/stdlib/format/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/stdlib/format/
 description: Learn about format
 title: format
@@ -54,7 +54,7 @@ for an unsupported format verb.
 The specification may contain the following verbs.
 
 | Verb | Result                                                                                    |
-|------|-------------------------------------------------------------------------------------------|
+| ---- | ----------------------------------------------------------------------------------------- |
 | `%%` | Literal percent sign, consuming no value.                                                 |
 | `%t` | Convert to boolean and produce `true` or `false`.                                         |
 | `%b` | Convert to integer number and produce binary representation.                              |

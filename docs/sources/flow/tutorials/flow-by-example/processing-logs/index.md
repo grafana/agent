@@ -1,9 +1,9 @@
 ---
 aliases:
-- /docs/grafana-cloud/agent/flow/tutorials/flow-by-example/processing-logs/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/tutorials/flow-by-example/processing-logs/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/tutorials/flow-by-example/processing-logs/
-- /docs/grafana-cloud/send-data/agent/flow/tutorials/processing-logs/
+  - /docs/grafana-cloud/agent/flow/tutorials/flow-by-example/processing-logs/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/tutorials/flow-by-example/processing-logs/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/tutorials/flow-by-example/processing-logs/
+  - /docs/grafana-cloud/send-data/agent/flow/tutorials/processing-logs/
 canonical: https://grafana.com/docs/agent/latest/flow/tutorials/flow-by-example/processing-logs/
 description: Learn how to process logs
 title: Processing Logs
@@ -146,12 +146,12 @@ Let's use an example log line to illustrate this, then go stage by stage, showin
 
 ```json
 {
-    "log": {
-        "is_secret": "true",
-        "level": "info",
-        "message": "This is a secret message!",
-    },
-    "timestamp": "2023-11-16T06:01:50Z",
+  "log": {
+    "is_secret": "true",
+    "level": "info",
+    "message": "This is a secret message!"
+  },
+  "timestamp": "2023-11-16T06:01:50Z"
 }
 ```
 
@@ -166,7 +166,7 @@ stage.json {
 }
 ```
 
-This stage parses the log line as JSON, extracts two values from it, `log` and `timestamp`, and puts them into the extracted map with keys `log` and `ts`, respectively. 
+This stage parses the log line as JSON, extracts two values from it, `log` and `timestamp`, and puts them into the extracted map with keys `log` and `ts`, respectively.
 
 {{< admonition type="note" >}}
 Supplying an empty string is shorthand for using the same key as in the input log line (so `log = ""` is the same as `log = "log"`). The _keys_ of the `expressions` object end up as the keys in the extracted map, and the _values_ are used as keys to look up in the parsed log line.
@@ -192,12 +192,12 @@ Extracted map _after_ performing this stage:
 
 ```json
 {
-    "log": {
-        "is_secret": "true",
-        "level": "info",
-        "message": "This is a secret message!",
-    },
-    "ts": "2023-11-16T06:01:50Z",
+  "log": {
+    "is_secret": "true",
+    "level": "info",
+    "message": "This is a secret message!"
+  },
+  "ts": "2023-11-16T06:01:50Z"
 }
 ```
 
@@ -256,12 +256,12 @@ Extracted map _before_ performing this stage:
 
 ```json
 {
-    "log": {
-        "is_secret": "true",
-        "level": "info",
-        "message": "This is a secret message!",
-    },
-    "ts": "2023-11-16T06:01:50Z",
+  "log": {
+    "is_secret": "true",
+    "level": "info",
+    "message": "This is a secret message!"
+  },
+  "ts": "2023-11-16T06:01:50Z"
 }
 ```
 
@@ -269,15 +269,15 @@ Extracted map _after_ performing this stage:
 
 ```json
 {
-    "log": {
-        "is_secret": "true",
-        "level": "info",
-        "message": "This is a secret message!",
-    },
-    "ts": "2023-11-16T06:01:50Z",
+  "log": {
     "is_secret": "true",
     "level": "info",
-    "log_line": "This is a secret message!",
+    "message": "This is a secret message!"
+  },
+  "ts": "2023-11-16T06:01:50Z",
+  "is_secret": "true",
+  "level": "info",
+  "log_line": "This is a secret message!"
 }
 ```
 
@@ -344,7 +344,7 @@ curl localhost:9999/loki/api/v1/raw -XPOST -H "Content-Type: application/json" -
 ```
 
 Now that you have sent some logs, let's see how they look in Grafana.
-Navigate to [localhost:3000/explore](http://localhost:3000/explore) and switch the Datasource to `Loki`. 
+Navigate to [localhost:3000/explore](http://localhost:3000/explore) and switch the Datasource to `Loki`.
 Try querying for `{source="demo-api"}` and see if you can find the logs you sent.
 
 Try playing around with the values of `"level"`, `"message"`, `"timestamp"`, and `"is_secret"` and see how the logs change.
@@ -355,7 +355,7 @@ You can also try adding more stages to the `loki.process` component to extract m
 ## Exercise
 
 Since you are already using Docker and Docker exports logs, let's get those logs into Loki.
-You can refer to the [discovery.docker](https://grafana.com/docs/agent/<AGENT_VERSION>/flow/reference/components/discovery.docker/) and [loki.source.docker](https://grafana.com/docs/agent/<AGENT_VERSION>/flow/reference/components/loki.source.docker/) documentation for more information. 
+You can refer to the [discovery.docker](https://grafana.com/docs/agent/<AGENT_VERSION>/flow/reference/components/discovery.docker/) and [loki.source.docker](https://grafana.com/docs/agent/<AGENT_VERSION>/flow/reference/components/loki.source.docker/) documentation for more information.
 
 To ensure proper timestamps and other labels, make sure you use a `loki.process` component to process the logs before sending them to Loki.
 

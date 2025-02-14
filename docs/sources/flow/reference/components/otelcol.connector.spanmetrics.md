@@ -1,9 +1,9 @@
 ---
 aliases:
-- /docs/grafana-cloud/agent/flow/reference/components/otelcol.connector.spanmetrics/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/otelcol.connector.spanmetrics/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/otelcol.connector.spanmetrics/
-- /docs/grafana-cloud/send-data/agent/flow/reference/components/otelcol.connector.spanmetrics/
+  - /docs/grafana-cloud/agent/flow/reference/components/otelcol.connector.spanmetrics/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/otelcol.connector.spanmetrics/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/otelcol.connector.spanmetrics/
+  - /docs/grafana-cloud/send-data/agent/flow/reference/components/otelcol.connector.spanmetrics/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.connector.spanmetrics/
 description: Learn about otelcol.connector.spanmetrics
 labels:
@@ -23,24 +23,27 @@ aggregates Request, Error and Duration (R.E.D) OpenTelemetry metrics from the sp
   view call counts just on `service.name` and `span.name`.
 
   Requests are tracked using a `calls` metric with a `status.code` datapoint attribute set to `Ok`:
+
   ```
   calls { service.name="shipping", span.name="get_shipping/{shippingId}", span.kind="SERVER", status.code="Ok" }
   ```
 
 - **Error** counts are computed from the number of spans with an `Error` status code.
 
-    Errors are tracked using a `calls` metric with a `status.code` datapoint attribute set to `Error`:
-    ```
-    calls { service.name="shipping", span.name="get_shipping/{shippingId}, span.kind="SERVER", status.code="Error" }
-    ```
+  Errors are tracked using a `calls` metric with a `status.code` datapoint attribute set to `Error`:
+
+  ```
+  calls { service.name="shipping", span.name="get_shipping/{shippingId}, span.kind="SERVER", status.code="Error" }
+  ```
 
 - **Duration** is computed from the difference between the span start and end times and inserted
-    into the relevant duration histogram time bucket for each unique set dimensions.
+  into the relevant duration histogram time bucket for each unique set dimensions.
 
-    Span durations are tracked using a `duration` histogram metric:
-    ```
-    duration { service.name="shipping", span.name="get_shipping/{shippingId}", span.kind="SERVER", status.code="Ok" }
-    ```
+  Span durations are tracked using a `duration` histogram metric:
+
+  ```
+  duration { service.name="shipping", span.name="get_shipping/{shippingId}", span.kind="SERVER", status.code="Ok" }
+  ```
 
 > **NOTE**: `otelcol.connector.spanmetrics` is a wrapper over the upstream
 > OpenTelemetry Collector `spanmetrics` connector. Bug reports or feature requests
@@ -67,15 +70,15 @@ otelcol.connector.spanmetrics "LABEL" {
 
 `otelcol.connector.spanmetrics` supports the following arguments:
 
-| Name                              | Type           | Description                                                                                | Default        | Required |
-| --------------------------------- | -------------- | ------------------------------------------------------------------------------------------ | -------------- | -------- |
-| `aggregation_temporality`         | `string`       | Configures whether to reset the metrics after flushing.                                    | `"CUMULATIVE"` | no       |
-| `dimensions_cache_size`           | `number`       | How many dimensions to cache.                                                              | `1000`         | no       |
-| `exclude_dimensions`              | `list(string)` | List of dimensions to be excluded from the default set of dimensions.                      | `[]`           | no       |
-| `metrics_flush_interval`          | `duration`     | How often to flush generated metrics.                                                      | `"15s"`        | no       |
-| `namespace`                       | `string`       | Metric namespace.                                                                          | `""`           | no       |
-| `resource_metrics_cache_size`     | `number`       | The size of the cache holding metrics for a service.                                       | `1000`         | no       |
-| `resource_metrics_key_attributes` | `list(string)` | Limits the resource attributes used to create the metrics.                                 | `[]`           | no       |
+| Name                              | Type           | Description                                                           | Default        | Required |
+| --------------------------------- | -------------- | --------------------------------------------------------------------- | -------------- | -------- |
+| `aggregation_temporality`         | `string`       | Configures whether to reset the metrics after flushing.               | `"CUMULATIVE"` | no       |
+| `dimensions_cache_size`           | `number`       | How many dimensions to cache.                                         | `1000`         | no       |
+| `exclude_dimensions`              | `list(string)` | List of dimensions to be excluded from the default set of dimensions. | `[]`           | no       |
+| `metrics_flush_interval`          | `duration`     | How often to flush generated metrics.                                 | `"15s"`        | no       |
+| `namespace`                       | `string`       | Metric namespace.                                                     | `""`           | no       |
+| `resource_metrics_cache_size`     | `number`       | The size of the cache holding metrics for a service.                  | `1000`         | no       |
+| `resource_metrics_key_attributes` | `list(string)` | Limits the resource attributes used to create the metrics.            | `[]`           | no       |
 
 Adjusting `dimensions_cache_size` can improve the Agent process' memory usage.
 
@@ -88,8 +91,8 @@ If `namespace` is set, the generated metric name will be added a `namespace.` pr
 
 `resource_metrics_cache_size` is mostly relevant for cumulative temporality. It helps avoid issues with increasing memory and with incorrect metric timestamp resets.
 
-`resource_metrics_key_attributes` can be used to avoid situations where resource attributes may change across service restarts, 
-causing metric counters to break (and duplicate). A resource does not need to have all of the attributes. 
+`resource_metrics_key_attributes` can be used to avoid situations where resource attributes may change across service restarts,
+causing metric counters to break (and duplicate). A resource does not need to have all of the attributes.
 The list must include enough attributes to properly identify unique resources or risk aggregating data from more than one service and span.
 For example, `["service.name", "telemetry.sdk.language", "telemetry.sdk.name"]`.
 
@@ -98,16 +101,16 @@ For example, `["service.name", "telemetry.sdk.language", "telemetry.sdk.name"]`.
 The following blocks are supported inside the definition of
 `otelcol.connector.spanmetrics`:
 
-| Hierarchy               | Block           | Description                                                                                                                                                | Required |
-| ----------------------- | --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
-| dimension               | [dimension][]   | Dimensions to be added in addition to the default ones.                                                                                                    | no       |
-| events                  | [events][]      | Configures the events metric.                                                                                                                              | no       |
+| Hierarchy               | Block           | Description                                                                                                                                               | Required |
+| ----------------------- | --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
+| dimension               | [dimension][]   | Dimensions to be added in addition to the default ones.                                                                                                   | no       |
+| events                  | [events][]      | Configures the events metric.                                                                                                                             | no       |
 | events > dimension      | [dimension][]   | Span event attributes to add as dimensions to the events metric, _on top of_ the default ones and the ones configured in the top-level `dimension` block. | no       |
-| exemplars               | [exemplars][]   | Configures how to attach exemplars to histograms.                                                                                                          | no       |
-| histogram               | [histogram][]   | Configures the histogram derived from spans durations.                                                                                                     | yes      |
-| histogram > explicit    | [explicit][]    | Configuration for a histogram with explicit buckets.                                                                                                       | no       |
-| histogram > exponential | [exponential][] | Configuration for a histogram with exponential buckets.                                                                                                    | no       |
-| output                  | [output][]      | Configures where to send telemetry data.                                                                                                                   | yes      |
+| exemplars               | [exemplars][]   | Configures how to attach exemplars to histograms.                                                                                                         | no       |
+| histogram               | [histogram][]   | Configures the histogram derived from spans durations.                                                                                                    | yes      |
+| histogram > explicit    | [explicit][]    | Configuration for a histogram with explicit buckets.                                                                                                      | no       |
+| histogram > exponential | [exponential][] | Configuration for a histogram with exponential buckets.                                                                                                   | no       |
+| output                  | [output][]      | Configures where to send telemetry data.                                                                                                                  | yes      |
 
 It is necessary to specify either a "[exponential][]" or an "[explicit][]" block:
 
@@ -656,6 +659,7 @@ This problem can be solved by doing **either** of the following:
 
 - **Recommended approach:** Prior to `otelcol.connector.spanmetrics`, remove all resource attributes from the incoming spans which are not needed by `otelcol.connector.spanmetrics`.
   {{< collapse title="Example River configuration to remove unnecessary resource attributes." >}}
+
   ```river
   otelcol.receiver.otlp "default" {
     http {}
@@ -716,14 +720,16 @@ This problem can be solved by doing **either** of the following:
     }
   }
   ```
+
   {{< /collapse >}}
 
 - Or, after `otelcol.connector.spanmetrics`, copy each of the resource attributes as a metric datapoint attribute.
-This has the advantage that the resource attributes will be visible as metric labels.
-However, the {{< term "cardinality" >}}cardinality{{< /term >}} of the metrics may be much higher, which could increase the cost of storing and querying them.
-The example below uses the [merge_maps][] OTTL function.
+  This has the advantage that the resource attributes will be visible as metric labels.
+  However, the {{< term "cardinality" >}}cardinality{{< /term >}} of the metrics may be much higher, which could increase the cost of storing and querying them.
+  The example below uses the [merge_maps][] OTTL function.
 
   {{< collapse title="Example River configuration to add all resource attributes as metric datapoint attributes." >}}
+
   ```river
   otelcol.receiver.otlp "default" {
     http {}
@@ -775,6 +781,7 @@ The example below uses the [merge_maps][] OTTL function.
     }
   }
   ```
+
   {{< /collapse >}}
 
 If the resource attributes are not treated in either of the ways described above, an error such as this one could be logged by `prometheus.remote_write`:

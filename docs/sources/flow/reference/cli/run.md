@@ -1,9 +1,9 @@
 ---
 aliases:
-- /docs/grafana-cloud/agent/flow/reference/cli/run/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/cli/run/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/cli/run/
-- /docs/grafana-cloud/send-data/agent/flow/reference/cli/run/
+  - /docs/grafana-cloud/agent/flow/reference/cli/run/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/cli/run/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/cli/run/
+  - /docs/grafana-cloud/send-data/agent/flow/reference/cli/run/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/cli/run/
 description: Learn about the run command
 menuTitle: run
@@ -19,13 +19,13 @@ The `run` command runs {{< param "PRODUCT_NAME" >}} in the foreground until an i
 
 Usage:
 
-* `AGENT_MODE=flow grafana-agent run [FLAG ...] PATH_NAME`
-* `grafana-agent-flow run [FLAG ...] PATH_NAME`
+- `AGENT_MODE=flow grafana-agent run [FLAG ...] PATH_NAME`
+- `grafana-agent-flow run [FLAG ...] PATH_NAME`
 
-   Replace the following:
+  Replace the following:
 
-   * `FLAG`: One or more flags that define the input and output of the command.
-   * `PATH_NAME`: Required. The {{< param "PRODUCT_NAME" >}} configuration file/directory path.
+  - `FLAG`: One or more flags that define the input and output of the command.
+  - `PATH_NAME`: Required. The {{< param "PRODUCT_NAME" >}} configuration file/directory path.
 
 If the `PATH_NAME` argument is not provided, or if the configuration path can't be loaded or
 contains errors during the initial load, the `run` command will immediately exit and show an error message.
@@ -45,25 +45,25 @@ running components.
 
 The following flags are supported:
 
-* `--server.http.enable-pprof`: Enable /debug/pprof profiling endpoints. (default `true`)
-* `--server.http.memory-addr`: Address to listen for [in-memory HTTP traffic][] on
+- `--server.http.enable-pprof`: Enable /debug/pprof profiling endpoints. (default `true`)
+- `--server.http.memory-addr`: Address to listen for [in-memory HTTP traffic][] on
   (default `agent.internal:12345`).
-* `--server.http.listen-addr`: Address to listen for HTTP traffic on (default `127.0.0.1:12345`).
-* `--server.http.ui-path-prefix`: Base path where the UI is exposed (default `/`).
-* `--storage.path`: Base directory where components can store data (default `data-agent/`).
-* `--disable-reporting`: Disable [data collection][] (default `false`).
-* `--cluster.enabled`: Start {{< param "PRODUCT_NAME" >}} in clustered mode (default `false`).
-* `--cluster.node-name`: The name to use for this node (defaults to the environment's hostname).
-* `--cluster.join-addresses`: Comma-separated list of addresses to join the cluster at (default `""`). Mutually exclusive with `--cluster.discover-peers`.
-* `--cluster.discover-peers`: List of key-value tuples for discovering peers (default `""`). Mutually exclusive with `--cluster.join-addresses`.
-* `--cluster.rejoin-interval`: How often to rejoin the list of peers (default `"60s"`).
-* `--cluster.advertise-address`: Address to advertise to other cluster nodes (default `""`).
-* `--cluster.advertise-interfaces`: List of interfaces used to infer an address to advertise. Set to `all` to use all available network interfaces on the system. (default `"eth0,en0"`).
-* `--cluster.max-join-peers`: Number of peers to join from the discovered set (default `5`).
-* `--cluster.name`: Name to prevent nodes without this identifier from joining the cluster (default `""`).
-* `--config.format`: The format of the source file. Supported formats: `flow`, `otelcol`, `prometheus`, `promtail`, `static` (default `"flow"`).
-* `--config.bypass-conversion-errors`: Enable bypassing errors when converting (default `false`).
-* `--config.extra-args`: Extra arguments from the original format used by the converter.
+- `--server.http.listen-addr`: Address to listen for HTTP traffic on (default `127.0.0.1:12345`).
+- `--server.http.ui-path-prefix`: Base path where the UI is exposed (default `/`).
+- `--storage.path`: Base directory where components can store data (default `data-agent/`).
+- `--disable-reporting`: Disable [data collection][] (default `false`).
+- `--cluster.enabled`: Start {{< param "PRODUCT_NAME" >}} in clustered mode (default `false`).
+- `--cluster.node-name`: The name to use for this node (defaults to the environment's hostname).
+- `--cluster.join-addresses`: Comma-separated list of addresses to join the cluster at (default `""`). Mutually exclusive with `--cluster.discover-peers`.
+- `--cluster.discover-peers`: List of key-value tuples for discovering peers (default `""`). Mutually exclusive with `--cluster.join-addresses`.
+- `--cluster.rejoin-interval`: How often to rejoin the list of peers (default `"60s"`).
+- `--cluster.advertise-address`: Address to advertise to other cluster nodes (default `""`).
+- `--cluster.advertise-interfaces`: List of interfaces used to infer an address to advertise. Set to `all` to use all available network interfaces on the system. (default `"eth0,en0"`).
+- `--cluster.max-join-peers`: Number of peers to join from the discovered set (default `5`).
+- `--cluster.name`: Name to prevent nodes without this identifier from joining the cluster (default `""`).
+- `--config.format`: The format of the source file. Supported formats: `flow`, `otelcol`, `prometheus`, `promtail`, `static` (default `"flow"`).
+- `--config.bypass-conversion-errors`: Enable bypassing errors when converting (default `false`).
+- `--config.extra-args`: Extra arguments from the original format used by the converter.
 
 [in-memory HTTP traffic]: {{< relref "../../concepts/component_controller.md#in-memory-traffic" >}}
 [data collection]: {{< relref "../../../data-collection" >}}
@@ -73,8 +73,8 @@ The following flags are supported:
 
 The configuration file can be reloaded from disk by either:
 
-* Sending an HTTP POST request to the `/-/reload` endpoint.
-* Sending a `SIGHUP` signal to the {{< param "PRODUCT_NAME" >}} process.
+- Sending an HTTP POST request to the `/-/reload` endpoint.
+- Sending a `SIGHUP` signal to the {{< param "PRODUCT_NAME" >}} process.
 
 When this happens, the [component controller][] synchronizes the set of running
 components with the latest set of components specified in the configuration file.
@@ -130,7 +130,7 @@ itself.
 
 The `--cluster.rejoin-interval` flag defines how often each node should
 rediscover peers based on the contents of the `--cluster.join-addresses` and
-`--cluster.discover-peers` flags and try to rejoin them.  This operation
+`--cluster.discover-peers` flags and try to rejoin them. This operation
 is useful for addressing split-brain issues if the initial bootstrap is
 unsuccessful and for making clustering easier to manage in dynamic
 environments. To disable this behavior, set the `--cluster.rejoin-interval`
@@ -159,11 +159,11 @@ Attempting to join a cluster with a wrong `--cluster.name` will result in a "fai
 
 Clustered {{< param "PRODUCT_ROOT_NAME" >}}s are in one of three states:
 
-* **Viewer**: {{< param "PRODUCT_NAME" >}} has a read-only view of the cluster and isn't participating in workload distribution.
+- **Viewer**: {{< param "PRODUCT_NAME" >}} has a read-only view of the cluster and isn't participating in workload distribution.
 
-* **Participant**: {{< param "PRODUCT_NAME" >}} is participating in workload distribution for components that have clustering enabled.
+- **Participant**: {{< param "PRODUCT_NAME" >}} is participating in workload distribution for components that have clustering enabled.
 
-* **Terminating**: {{< param "PRODUCT_NAME" >}} is shutting down and will no longer assign new work to itself.
+- **Terminating**: {{< param "PRODUCT_NAME" >}} is shutting down and will no longer assign new work to itself.
 
 Each {{< param "PRODUCT_ROOT_NAME" >}} initially joins the cluster in the viewer state and then transitions to
 the participant state after the process startup completes. Each {{< param "PRODUCT_ROOT_NAME" >}} then
@@ -190,5 +190,5 @@ Include `--config.extra-args` to pass additional command line flags from the ori
 Refer to [grafana-agent-flow convert][] for more details on how `extra-args` work.
 
 [grafana-agent-flow convert]: {{< relref "./convert.md" >}}
-[clustering]:  {{< relref "../../concepts/clustering.md" >}}
+[clustering]: {{< relref "../../concepts/clustering.md" >}}
 [go-discover]: https://github.com/hashicorp/go-discover

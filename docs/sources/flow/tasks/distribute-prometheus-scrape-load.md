@@ -1,15 +1,15 @@
 ---
 aliases:
-- /docs/grafana-cloud/agent/flow/tasks/distribute-prometheus-scrape-load/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/tasks/distribute-prometheus-scrape-load/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/tasks/distribute-prometheus-scrape-load/
-- /docs/grafana-cloud/send-data/agent/flow/tasks/distribute-prometheus-scrape-load/
-# Previous page aliases for backwards compatibility:
-- /docs/grafana-cloud/agent/flow/getting-started/distribute-prometheus-scrape-load/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/getting-started/distribute-prometheus-scrape-load/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/getting-started/distribute-prometheus-scrape-load/
-- /docs/grafana-cloud/send-data/agent/flow/getting-started/distribute-prometheus-scrape-load/
-- ../getting-started/distribute-prometheus-scrape-load/ # /docs/agent/latest/flow/getting-started/distribute-prometheus-scrape-load/
+  - /docs/grafana-cloud/agent/flow/tasks/distribute-prometheus-scrape-load/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/tasks/distribute-prometheus-scrape-load/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/tasks/distribute-prometheus-scrape-load/
+  - /docs/grafana-cloud/send-data/agent/flow/tasks/distribute-prometheus-scrape-load/
+  # Previous page aliases for backwards compatibility:
+  - /docs/grafana-cloud/agent/flow/getting-started/distribute-prometheus-scrape-load/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/getting-started/distribute-prometheus-scrape-load/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/getting-started/distribute-prometheus-scrape-load/
+  - /docs/grafana-cloud/send-data/agent/flow/getting-started/distribute-prometheus-scrape-load/
+  - ../getting-started/distribute-prometheus-scrape-load/ # /docs/agent/latest/flow/getting-started/distribute-prometheus-scrape-load/
 canonical: https://grafana.com/docs/agent/latest/flow/tasks/distribute-prometheus-scrape-load/
 description: Learn how to distribute your Prometheus metrics scrape load
 menuTitle: Distribute Prometheus metrics scrape load
@@ -74,4 +74,3 @@ To distribute Prometheus metrics scrape load with clustering:
    1. Using the {{< param "PRODUCT_ROOT_NAME" >}} [UI](ref:ui) on each {{< param "PRODUCT_ROOT_NAME" >}}, navigate to the details page for one of the `prometheus.scrape` components you modified.
 
    1. Compare the Debug Info sections between two different {{< param "PRODUCT_ROOT_NAME" >}} to ensure that they're not scraping the same sets of targets.
-
