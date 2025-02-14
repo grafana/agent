@@ -1,9 +1,9 @@
 ---
 aliases:
-- /docs/grafana-cloud/agent/flow/reference/components/discovery.http/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/discovery.http/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/discovery.http/
-- /docs/grafana-cloud/send-data/agent/flow/reference/components/discovery.http/
+  - /docs/grafana-cloud/agent/flow/reference/components/discovery.http/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/discovery.http/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/discovery.http/
+  - /docs/grafana-cloud/send-data/agent/flow/reference/components/discovery.http/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.http/
 description: Learn about discovery.http
 title: discovery.http
@@ -37,20 +37,17 @@ As an example, the following will provide a target with a custom `metricsPath`, 
 
 ```json
 [
-   {
-      "labels" : {
-         "__metrics_path__" : "/api/prometheus",
-         "__scheme__" : "https",
-         "__scrape_interval__" : "60s",
-         "__scrape_timeout__" : "10s",
-         "service" : "custom-api-service"
-      },
-      "targets" : [
-         "custom-api:443"
-      ]
-   },
+  {
+    "labels": {
+      "__metrics_path__": "/api/prometheus",
+      "__scheme__": "https",
+      "__scrape_interval__": "60s",
+      "__scrape_timeout__": "10s",
+      "service": "custom-api-service"
+    },
+    "targets": ["custom-api:443"]
+  }
 ]
-
 ```
 
 It is also possible to append query parameters to the metrics path with the `__param_<name>` syntax.
@@ -59,21 +56,18 @@ For example, the following will call a metrics path of `/health?target_data=prom
 
 ```json
 [
-   {
-      "labels" : {
-         "__metrics_path__" : "/health",
-         "__scheme__" : "https",
-         "__scrape_interval__" : "60s",
-         "__scrape_timeout__" : "10s",
-         "__param_target_data": "prometheus",
-         "service" : "custom-api-service"
-      },
-      "targets" : [
-         "custom-api:443"
-      ]
-   },
+  {
+    "labels": {
+      "__metrics_path__": "/health",
+      "__scheme__": "https",
+      "__scrape_interval__": "60s",
+      "__scrape_timeout__": "10s",
+      "__param_target_data": "prometheus",
+      "service": "custom-api-service"
+    },
+    "targets": ["custom-api:443"]
+  }
 ]
-
 ```
 
 For more information on the potential labels you can use, see the [prometheus.scrape technical details][prometheus.scrape] section, or the [Prometheus Configuration](https://prometheus.io/docs/prometheus/latest/configuration/configuration/#relabel_config) documentation.
@@ -90,25 +84,26 @@ discovery.http "LABEL" {
 
 The following arguments are supported:
 
-Name                     | Type                | Description                                                   | Default | Required
------------------------- | ------------------- | ------------------------------------------------------------- | ------- | --------
-`url`                    | `string`            | URL to scrape.                                                |         | yes
-`refresh_interval`       | `duration`          | How often to refresh targets.                                 | `"60s"` | no
-`bearer_token_file`      | `string`            | File containing a bearer token to authenticate with.          |         | no
-`bearer_token`           | `secret`            | Bearer token to authenticate with.                            |         | no
-`enable_http2`           | `bool`              | Whether HTTP2 is supported for requests.                      | `true`  | no
-`follow_redirects`       | `bool`              | Whether redirects returned by the server should be followed.  | `true`  | no
-`proxy_url`              | `string`            | HTTP proxy to send requests through.                          |         | no
-`no_proxy`               | `string`            | Comma-separated list of IP addresses, CIDR notations, and domain names to exclude from proxying. | | no
-`proxy_from_environment` | `bool`              | Use the proxy URL indicated by environment variables.         | `false` | no
-`proxy_connect_header`   | `map(list(secret))` | Specifies headers to send to proxies during CONNECT requests. |         | no
+| Name                     | Type                | Description                                                                                      | Default | Required |
+| ------------------------ | ------------------- | ------------------------------------------------------------------------------------------------ | ------- | -------- |
+| `url`                    | `string`            | URL to scrape.                                                                                   |         | yes      |
+| `refresh_interval`       | `duration`          | How often to refresh targets.                                                                    | `"60s"` | no       |
+| `bearer_token_file`      | `string`            | File containing a bearer token to authenticate with.                                             |         | no       |
+| `bearer_token`           | `secret`            | Bearer token to authenticate with.                                                               |         | no       |
+| `enable_http2`           | `bool`              | Whether HTTP2 is supported for requests.                                                         | `true`  | no       |
+| `follow_redirects`       | `bool`              | Whether redirects returned by the server should be followed.                                     | `true`  | no       |
+| `proxy_url`              | `string`            | HTTP proxy to send requests through.                                                             |         | no       |
+| `no_proxy`               | `string`            | Comma-separated list of IP addresses, CIDR notations, and domain names to exclude from proxying. |         | no       |
+| `proxy_from_environment` | `bool`              | Use the proxy URL indicated by environment variables.                                            | `false` | no       |
+| `proxy_connect_header`   | `map(list(secret))` | Specifies headers to send to proxies during CONNECT requests.                                    |         | no       |
 
- At most, one of the following can be provided:
- - [`bearer_token` argument](#arguments).
- - [`bearer_token_file` argument](#arguments).
- - [`basic_auth` block][basic_auth].
- - [`authorization` block][authorization].
- - [`oauth2` block][oauth2].
+At most, one of the following can be provided:
+
+- [`bearer_token` argument](#arguments).
+- [`bearer_token_file` argument](#arguments).
+- [`basic_auth` block][basic_auth].
+- [`authorization` block][authorization].
+- [`oauth2` block][oauth2].
 
 [arguments]: #arguments
 
@@ -119,13 +114,13 @@ Name                     | Type                | Description                    
 The following blocks are supported inside the definition of
 `discovery.http`:
 
-Hierarchy | Block | Description | Required
---------- | ----- | ----------- | --------
-basic_auth | [basic_auth][] | Configure basic_auth for authenticating to the endpoint. | no
-authorization | [authorization][] | Configure generic authorization to the endpoint. | no
-oauth2 | [oauth2][] | Configure OAuth2 for authenticating to the endpoint. | no
-oauth2 > tls_config | [tls_config][] | Configure TLS settings for connecting to the endpoint. | no
-tls_config | [tls_config][] | Configure TLS settings for connecting to the endpoint. | no
+| Hierarchy           | Block             | Description                                              | Required |
+| ------------------- | ----------------- | -------------------------------------------------------- | -------- |
+| basic_auth          | [basic_auth][]    | Configure basic_auth for authenticating to the endpoint. | no       |
+| authorization       | [authorization][] | Configure generic authorization to the endpoint.         | no       |
+| oauth2              | [oauth2][]        | Configure OAuth2 for authenticating to the endpoint.     | no       |
+| oauth2 > tls_config | [tls_config][]    | Configure TLS settings for connecting to the endpoint.   | no       |
+| tls_config          | [tls_config][]    | Configure TLS settings for connecting to the endpoint.   | no       |
 
 The `>` symbol indicates deeper levels of nesting. For example,
 `oauth2 > tls_config` refers to a `tls_config` block defined inside
@@ -156,13 +151,13 @@ an `oauth2` block.
 
 The following fields are exported and can be referenced by other components:
 
-Name | Type | Description
----- | ---- | -----------
-`targets` | `list(map(string))` | The set of targets discovered from the filesystem.
+| Name      | Type                | Description                                        |
+| --------- | ------------------- | -------------------------------------------------- |
+| `targets` | `list(map(string))` | The set of targets discovered from the filesystem. |
 
 Each target includes the following labels:
 
-* `__meta_url`: URL the target was obtained from.
+- `__meta_url`: URL the target was obtained from.
 
 ## Component health
 
@@ -176,7 +171,7 @@ values.
 
 ## Debug metrics
 
-* `prometheus_sd_http_failures_total` (counter): Total number of refresh failures.
+- `prometheus_sd_http_failures_total` (counter): Total number of refresh failures.
 
 ## Examples
 

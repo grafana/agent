@@ -1,8 +1,8 @@
 ---
 aliases:
-- ../../../configuration/integrations/apache-exporter-config/
-- /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/integrations/apache-exporter-config/
-- /docs/grafana-cloud/send-data/agent/static/configuration/integrations/apache-exporter-config/
+  - ../../../configuration/integrations/apache-exporter-config/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/integrations/apache-exporter-config/
+  - /docs/grafana-cloud/send-data/agent/static/configuration/integrations/apache-exporter-config/
 canonical: https://grafana.com/docs/agent/latest/static/configuration/integrations/apache-exporter-config/
 description: Learn about apache_http_config
 title: apache_http_config

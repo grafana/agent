@@ -1,8 +1,8 @@
 ---
 aliases:
-- ../../../configuration/integrations/statsd-exporter-config/
-- /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/integrations/statsd-exporter-config/
-- /docs/grafana-cloud/send-data/agent/static/configuration/integrations/statsd-exporter-config/
+  - ../../../configuration/integrations/statsd-exporter-config/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/integrations/statsd-exporter-config/
+  - /docs/grafana-cloud/send-data/agent/static/configuration/integrations/statsd-exporter-config/
 canonical: https://grafana.com/docs/agent/latest/static/configuration/integrations/statsd-exporter-config/
 description: Learn about statsd_exporter_config
 title: statsd_exporter_config

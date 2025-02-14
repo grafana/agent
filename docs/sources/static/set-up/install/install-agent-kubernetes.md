@@ -1,7 +1,7 @@
 ---
 aliases:
-- /docs/grafana-cloud/monitor-infrastructure/agent/static/set-up/install/install-agent-kubernetes/
-- /docs/grafana-cloud/send-data/agent/static/set-up/install/install-agent-kubernetes/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/static/set-up/install/install-agent-kubernetes/
+  - /docs/grafana-cloud/send-data/agent/static/set-up/install/install-agent-kubernetes/
 canonical: https://grafana.com/docs/agent/latest/static/set-up/install/install-agent-kubernetes/
 description: Learn how to deploy Grafana Agent in static mode on Kubernetes
 menuTitle: Kubernetes
@@ -15,9 +15,9 @@ You can use the Helm chart for Grafana Agent to deploy Grafana Agent in static m
 
 ## Before you begin
 
-* Install [Helm][] on your computer.
-* Configure a Kubernetes cluster that you can use for Grafana Agent.
-* Configure your local Kubernetes context to point to the cluster.
+- Install [Helm][] on your computer.
+- Configure a Kubernetes cluster that you can use for Grafana Agent.
+- Configure your local Kubernetes context to point to the cluster.
 
 [Helm]: https://helm.sh
 
@@ -50,7 +50,7 @@ To deploy Grafana Agent in static mode on Kubernetes using Helm, run the followi
 
    Replace the following:
 
-   -  _`<RELEASE_NAME>`_: The name to use for your Grafana Agent installation, such as `grafana-agent`.
+   - _`<RELEASE_NAME>`_: The name to use for your Grafana Agent installation, such as `grafana-agent`.
 
    {{< admonition type="warning" >}}
    Always pass `--set agent.mode=static` in `helm install` or `helm upgrade` commands to ensure Grafana Agent gets installed in static mode.
@@ -60,4 +60,3 @@ To deploy Grafana Agent in static mode on Kubernetes using Helm, run the followi
 For more information on the Grafana Agent Helm chart, refer to the Helm chart documentation on [Artifact Hub][].
 
 [Artifact Hub]: https://artifacthub.io/packages/helm/grafana/grafana-agent
-

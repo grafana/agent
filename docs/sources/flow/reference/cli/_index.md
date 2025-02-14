@@ -1,9 +1,9 @@
 ---
 aliases:
-- /docs/grafana-cloud/agent/flow/reference/cli/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/cli/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/cli/
-- /docs/grafana-cloud/send-data/agent/flow/reference/cli/
+  - /docs/grafana-cloud/agent/flow/reference/cli/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/cli/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/cli/
+  - /docs/grafana-cloud/send-data/agent/flow/reference/cli/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/cli/
 description: Learn about the Grafana Agent command line interface
 menuTitle: Command-line interface
@@ -21,12 +21,12 @@ starts {{< param "PRODUCT_NAME" >}}.
 
 Available commands:
 
-* [`convert`][convert]: Convert a {{< param "PRODUCT_ROOT_NAME" >}} configuration file.
-* [`fmt`][fmt]: Format a {{< param "PRODUCT_NAME" >}} configuration file.
-* [`run`][run]: Start {{< param "PRODUCT_NAME" >}}, given a configuration file.
-* [`tools`][tools]: Read the WAL and provide statistical information.
-* `completion`: Generate shell completion for the `grafana-agent-flow` CLI.
-* `help`: Print help for supported commands.
+- [`convert`][convert]: Convert a {{< param "PRODUCT_ROOT_NAME" >}} configuration file.
+- [`fmt`][fmt]: Format a {{< param "PRODUCT_NAME" >}} configuration file.
+- [`run`][run]: Start {{< param "PRODUCT_NAME" >}}, given a configuration file.
+- [`tools`][tools]: Read the WAL and provide statistical information.
+- `completion`: Generate shell completion for the `grafana-agent-flow` CLI.
+- `help`: Print help for supported commands.
 
 [run]: {{< relref "./run.md" >}}
 [fmt]: {{< relref "./fmt.md" >}}

@@ -1,11 +1,11 @@
 ---
 aliases:
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/tasks/migrate/from-operator/
-- /docs/grafana-cloud/send-data/agent/flow/tasks/migrate/from-operator/
-# Previous page aliases for backwards compatibility:
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/getting-started/migrating-from-operator/
-- /docs/grafana-cloud/send-data/agent/flow/getting-started/migrating-from-operator/
-- ../../getting-started/migrating-from-operator/ # /docs/agent/latest/flow/getting-started/migrating-from-operator/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/tasks/migrate/from-operator/
+  - /docs/grafana-cloud/send-data/agent/flow/tasks/migrate/from-operator/
+  # Previous page aliases for backwards compatibility:
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/getting-started/migrating-from-operator/
+  - /docs/grafana-cloud/send-data/agent/flow/getting-started/migrating-from-operator/
+  - ../../getting-started/migrating-from-operator/ # /docs/agent/latest/flow/getting-started/migrating-from-operator/
 canonical: https://grafana.com/docs/agent/latest/flow/tasks/migrate/from-operator/
 description: Migrate from Grafana Agent Operator to Grafana Agent Flow
 menuTitle: Migrate from Operator
@@ -101,43 +101,43 @@ This guide provides some steps to get started with {{< param "PRODUCT_NAME" >}} 
 1. Create a `values.yaml` file, which contains options for deploying your {{< param "PRODUCT_ROOT_NAME" >}}.
    You can start with the [default values][] and customize as you see fit, or start with this snippet, which should be a good starting point for what the Operator does.
 
-    ```yaml
-    agent:
-      mode: 'flow'
-      configMap:
-        create: true
-      clustering:
-        enabled: true
-    controller:
-      type: 'statefulset'
-      replicas: 2
-    crds:
-      create: false
-    ```
+   ```yaml
+   agent:
+     mode: "flow"
+     configMap:
+       create: true
+     clustering:
+       enabled: true
+   controller:
+     type: "statefulset"
+     replicas: 2
+   crds:
+     create: false
+   ```
 
-    This configuration deploys {{< param "PRODUCT_NAME" >}} as a `StatefulSet` using the built-in [clustering](ref:clustering) functionality to allow distributing scrapes across all {{< param "PRODUCT_ROOT_NAME" >}} Pods.
+   This configuration deploys {{< param "PRODUCT_NAME" >}} as a `StatefulSet` using the built-in [clustering](ref:clustering) functionality to allow distributing scrapes across all {{< param "PRODUCT_ROOT_NAME" >}} Pods.
 
-    This is one of many deployment possible modes. For example, you may want to use a `DaemonSet` to collect host-level logs or metrics.
-    See the {{< param "PRODUCT_NAME" >}} [deployment guide](ref:deployment-guide) for more details about different topologies.
+   This is one of many deployment possible modes. For example, you may want to use a `DaemonSet` to collect host-level logs or metrics.
+   See the {{< param "PRODUCT_NAME" >}} [deployment guide](ref:deployment-guide) for more details about different topologies.
 
 1. Create a {{< param "PRODUCT_ROOT_NAME" >}} configuration file, `agent.river`.
 
-    In the next step, you add to this configuration as you convert `MetricsInstances`. You can add any additional configuration to this file as you need.
+   In the next step, you add to this configuration as you convert `MetricsInstances`. You can add any additional configuration to this file as you need.
 
 1. Install the Grafana Helm repository:
 
-    ```
-    helm repo add grafana https://grafana.github.io/helm-charts
-    helm repo update
-    ```
+   ```
+   helm repo add grafana https://grafana.github.io/helm-charts
+   helm repo update
+   ```
 
 1. Create a Helm release. You can name the release anything you like. The following command installs a release called `grafana-agent-metrics` in the `monitoring` namespace.
 
-    ```shell
-    helm upgrade grafana-agent-metrics grafana/grafana-agent -i -n monitoring -f values.yaml --set-file agent.configMap.content=agent.river
-    ```
+   ```shell
+   helm upgrade grafana-agent-metrics grafana/grafana-agent -i -n monitoring -f values.yaml --set-file agent.configMap.content=agent.river
+   ```
 
-    This command uses the `--set-file` flag to pass the configuration file as a Helm value so that you can continue to edit it as a regular River file.
+   This command uses the `--set-file` flag to pass the configuration file as a Helm value so that you can continue to edit it as a regular River file.
 
 ## Convert `MetricsIntances` to {{% param "PRODUCT_NAME" %}} components
 
@@ -215,13 +215,13 @@ These values are close to what the Operator currently deploys for logs:
 
 ```yaml
 agent:
-  mode: 'flow'
+  mode: "flow"
   configMap:
     create: true
   clustering:
     enabled: false
   controller:
-    type: 'daemonset'
+    type: "daemonset"
   mounts:
     # -- Mount /var/log from the host into the container for log collection.
     varlog: true
@@ -357,4 +357,3 @@ However, all static mode integrations have an equivalent component in the [`prom
 The [reference documentation][component documentation] should help convert those integrations to their {{< param "PRODUCT_NAME" >}} equivalent.
 
 [default values]: https://github.com/grafana/agent/blob/main/operations/helm/charts/grafana-agent/values.yaml
-

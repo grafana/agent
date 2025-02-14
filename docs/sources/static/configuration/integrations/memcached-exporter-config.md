@@ -1,8 +1,8 @@
 ---
 aliases:
-- ../../../configuration/integrations/memcached-exporter-config/
-- /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/integrations/memcached-exporter-config/
-- /docs/grafana-cloud/send-data/agent/static/configuration/integrations/memcached-exporter-config/
+  - ../../../configuration/integrations/memcached-exporter-config/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/integrations/memcached-exporter-config/
+  - /docs/grafana-cloud/send-data/agent/static/configuration/integrations/memcached-exporter-config/
 canonical: https://grafana.com/docs/agent/latest/static/configuration/integrations/memcached-exporter-config/
 description: Learn about memcached_exporter_config
 title: memcached_exporter_config
@@ -25,9 +25,9 @@ memcached_exporter:
   enabled: true
   memcached_address: memcached-a:53
   relabel_configs:
-  - source_labels: [__address__]
-    target_label: instance
-    replacement: memcached-a
+    - source_labels: [__address__]
+      target_label: instance
+      replacement: memcached-a
 ```
 
 Full reference of options:

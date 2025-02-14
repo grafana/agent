@@ -1,8 +1,8 @@
 ---
 aliases:
-- ../set-up/
-- /docs/grafana-cloud/monitor-infrastructure/agent/static/set-up/
-- /docs/grafana-cloud/send-data/agent/static/set-up/
+  - ../set-up/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/static/set-up/
+  - /docs/grafana-cloud/send-data/agent/static/set-up/
 canonical: https://grafana.com/docs/agent/latest/static/set-up/
 description: Learn how to set up Grafana Agent in static mode
 menuTitle: Set up static mode

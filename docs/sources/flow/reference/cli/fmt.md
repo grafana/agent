@@ -1,9 +1,9 @@
 ---
 aliases:
-- /docs/grafana-cloud/agent/flow/reference/cli/fmt/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/cli/fmt/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/cli/fmt/
-- /docs/grafana-cloud/send-data/agent/flow/reference/cli/fmt/
+  - /docs/grafana-cloud/agent/flow/reference/cli/fmt/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/cli/fmt/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/cli/fmt/
+  - /docs/grafana-cloud/send-data/agent/flow/reference/cli/fmt/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/cli/fmt/
 description: Learn about the fmt command
 menuTitle: fmt
@@ -19,13 +19,13 @@ The `fmt` command formats a given {{< param "PRODUCT_NAME" >}} configuration fil
 
 Usage:
 
-* `AGENT_MODE=flow grafana-agent fmt [FLAG ...] FILE_NAME`
-* `grafana-agent-flow fmt [FLAG ...] FILE_NAME`
+- `AGENT_MODE=flow grafana-agent fmt [FLAG ...] FILE_NAME`
+- `grafana-agent-flow fmt [FLAG ...] FILE_NAME`
 
-   Replace the following:
+  Replace the following:
 
-   * `FLAG`: One or more flags that define the input and output of the command.
-   * `FILE_NAME`: The {{< param "PRODUCT_NAME" >}} configuration file.
+  - `FLAG`: One or more flags that define the input and output of the command.
+  - `FILE_NAME`: The {{< param "PRODUCT_NAME" >}} configuration file.
 
 If the `FILE_NAME` argument is not provided or if the `FILE_NAME` argument is
 equal to `-`, `fmt` formats the contents of standard input. Otherwise,
@@ -41,5 +41,5 @@ properly.
 
 The following flags are supported:
 
-* `--write`, `-w`: Write the formatted file back to disk when not reading from
+- `--write`, `-w`: Write the formatted file back to disk when not reading from
   standard input.
