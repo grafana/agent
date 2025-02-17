@@ -41,8 +41,7 @@ You can find the set of Custom Resource Definitions for Grafana Agent Operator i
 To deploy the CRDs:
 
 1.  Clone the agent repo and then apply the CRDs from the root of the agent repository:
-    `     kubectl apply -f production/operator/crds
-    `
+    `    kubectl apply -f production/operator/crds`
 
         This step _must_ be completed before installing Agent Operator&mdash;it will
 
