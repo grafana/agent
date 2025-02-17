@@ -1,10 +1,10 @@
 ---
 aliases:
-- /docs/agent/latest/flow/reference/components/discovery.dns/
-- /docs/grafana-cloud/agent/flow/reference/components/discovery.dns/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/discovery.dns/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/discovery.dns/
-- /docs/grafana-cloud/send-data/agent/flow/reference/components/discovery.dns/
+  - /docs/agent/latest/flow/reference/components/discovery.dns/
+  - /docs/grafana-cloud/agent/flow/reference/components/discovery.dns/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/discovery.dns/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/discovery.dns/
+  - /docs/grafana-cloud/send-data/agent/flow/reference/components/discovery.dns/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.dns/
 description: Learn about discovery.dns
 title: discovery.dns
@@ -26,28 +26,27 @@ discovery.dns "LABEL" {
 
 The following arguments are supported:
 
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`names` | `list(string)` | DNS names to look up. | | yes
-`port` | `number` | Port to use for collecting metrics. Not used for SRV records. | `0` | no
-`refresh_interval` | `duration` | How often to query DNS for updates. | `"30s"` | no
-`type` | `string` | Type of DNS record to query. Must be one of SRV, A, AAAA, or MX. | `"SRV"` | no
+| Name               | Type           | Description                                                      | Default | Required |
+| ------------------ | -------------- | ---------------------------------------------------------------- | ------- | -------- |
+| `names`            | `list(string)` | DNS names to look up.                                            |         | yes      |
+| `port`             | `number`       | Port to use for collecting metrics. Not used for SRV records.    | `0`     | no       |
+| `refresh_interval` | `duration`     | How often to query DNS for updates.                              | `"30s"` | no       |
+| `type`             | `string`       | Type of DNS record to query. Must be one of SRV, A, AAAA, or MX. | `"SRV"` | no       |
 
 ## Exported fields
 
 The following field is exported and can be referenced by other components:
 
-Name | Type | Description
----- | ---- | -----------
-`targets` | `list(map(string))` | The set of targets discovered from the docker API.
+| Name      | Type                | Description                                        |
+| --------- | ------------------- | -------------------------------------------------- |
+| `targets` | `list(map(string))` | The set of targets discovered from the docker API. |
 
 Each target includes the following labels:
 
-* `__meta_dns_name`: Name of the record that produced the discovered target.
-* `__meta_dns_srv_record_target`: Target field of the SRV record.
-* `__meta_dns_srv_record_port`: Port field of the SRV record.
-* `__meta_dns_mx_record_target`: Target field of the MX record.
-
+- `__meta_dns_name`: Name of the record that produced the discovered target.
+- `__meta_dns_srv_record_target`: Target field of the SRV record.
+- `__meta_dns_srv_record_port`: Port field of the SRV record.
+- `__meta_dns_mx_record_target`: Target field of the MX record.
 
 ## Component health
 
@@ -90,10 +89,12 @@ prometheus.remote_write "demo" {
   }
 }
 ```
+
 Replace the following:
-  - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
-  - `USERNAME`: The username to use for authentication to the remote_write API.
-  - `PASSWORD`: The password to use for authentication to the remote_write API.
+
+- `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
+- `USERNAME`: The username to use for authentication to the remote_write API.
+- `PASSWORD`: The password to use for authentication to the remote_write API.
 
 <!-- START GENERATED COMPATIBLE COMPONENTS -->
 

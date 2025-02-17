@@ -1,9 +1,9 @@
 ---
 aliases:
-- /docs/grafana-cloud/agent/flow/reference/config-blocks/argument/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/config-blocks/argument/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/config-blocks/argument/
-- /docs/grafana-cloud/send-data/agent/flow/reference/config-blocks/argument/
+  - /docs/grafana-cloud/agent/flow/reference/config-blocks/argument/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/config-blocks/argument/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/config-blocks/argument/
+  - /docs/grafana-cloud/send-data/agent/flow/reference/config-blocks/argument/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/config-blocks/argument/
 description: Learn about the argument configuration block
 menuTitle: argument
@@ -33,6 +33,7 @@ In [classic modules][], the `argument` block is valid as a top-level block in a 
 Classic modules are deprecated and scheduled to be removed in the release after v0.40.
 
 [classic modules]: https://grafana.com/docs/agent/<AGENT_VERSION>/flow/concepts/modules/#classic-modules-deprecated
+
 {{< /admonition >}}
 
 ## Example
@@ -50,11 +51,11 @@ For clarity, "argument" in this section refers to arguments which can be given t
 
 The following arguments are supported:
 
-Name       | Type     | Description                          | Default | Required
------------|----------|--------------------------------------|---------|---------
-`comment`  | `string` | Description for the argument.        | `false` | no
-`default`  | `any`    | Default value for the argument.      | `null`  | no
-`optional` | `bool`   | Whether the argument may be omitted. | `false` | no
+| Name       | Type     | Description                          | Default | Required |
+| ---------- | -------- | ------------------------------------ | ------- | -------- |
+| `comment`  | `string` | Description for the argument.        | `false` | no       |
+| `default`  | `any`    | Default value for the argument.      | `null`  | no       |
+| `optional` | `bool`   | Whether the argument may be omitted. | `false` | no       |
 
 By default, all module arguments are required.
 The `optional` argument can be used to mark the module argument as optional.
@@ -64,9 +65,9 @@ When `optional` is `true`, the initial value for the module argument is specifie
 
 The following fields are exported and can be referenced by other components:
 
-Name    | Type  | Description
---------|-------|-----------------------------------
-`value` | `any` | The current value of the argument.
+| Name    | Type  | Description                        |
+| ------- | ----- | ---------------------------------- |
+| `value` | `any` | The current value of the argument. |
 
 If you use a custom component, you are responsible for determining the values for arguments.
 Other expressions within a custom component may use `argument.ARGUMENT_NAME.value` to retrieve the value you provide.
@@ -91,4 +92,3 @@ declare "self_collect" {
   }
 }
 ```
-

@@ -1,8 +1,8 @@
 ---
 aliases:
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/prometheus.exporter.agent/
-- /docs/grafana-cloud/send-data/agent/flow/reference/components/prometheus.exporter.agent/
-- ./prometheus.exporter.agent/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/prometheus.exporter.agent/
+  - /docs/grafana-cloud/send-data/agent/flow/reference/components/prometheus.exporter.agent/
+  - ./prometheus.exporter.agent/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.self/
 description: Learn about prometheus.exporter.self
 title: prometheus.exporter.self
@@ -67,13 +67,14 @@ prometheus.remote_write "demo" {
   }
 }
 ```
+
 Replace the following:
-  - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
-  - `USERNAME`: The username to use for authentication to the remote_write API.
-  - `PASSWORD`: The password to use for authentication to the remote_write API.
+
+- `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
+- `USERNAME`: The username to use for authentication to the remote_write API.
+- `PASSWORD`: The password to use for authentication to the remote_write API.
 
 [scrape]: {{< relref "./prometheus.scrape.md" >}}
-
 
 <!-- START GENERATED COMPATIBLE COMPONENTS -->
 

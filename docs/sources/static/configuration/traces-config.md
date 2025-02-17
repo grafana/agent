@@ -1,9 +1,9 @@
 ---
 aliases:
-- ../../configuration/tempo-config/
-- ../../configuration/traces-config/
-- /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/traces-config/
-- /docs/grafana-cloud/send-data/agent/static/configuration/traces-config/
+  - ../../configuration/tempo-config/
+  - ../../configuration/traces-config/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/traces-config/
+  - /docs/grafana-cloud/send-data/agent/static/configuration/traces-config/
 canonical: https://grafana.com/docs/agent/latest/static/configuration/traces-config/
 description: Learn about traces_config
 title: traces_config
@@ -24,9 +24,8 @@ start.
 {{< /admonition >}}
 
 ```yaml
-configs:
- [ - <traces_instance_config> ... ]
- ```
+configs: [- <traces_instance_config> ...]
+```
 
 ## traces_instance_config
 
@@ -327,7 +326,7 @@ tail_sampling:
 # 2. If the "attributes" processor is configured, it will run through all the spans.
 # 3. The spans will be exported using the "load_balancing" configuration to any of the Agent instances.
 #    This may or may not be the same Agent which has already received the span.
-# 4. The Agent which received the span from the loadbalancer will run these processors, 
+# 4. The Agent which received the span from the loadbalancer will run these processors,
 #    in this order, if they are configured:
 #    1. "spanmetrics"
 #    2. "service_graphs"
@@ -335,7 +334,7 @@ tail_sampling:
 #    4. "automatic_logging"
 #    5. "batch"
 # 5. The spans are then remote written using the "remote_write" configuration.
-# 
+#
 # Load balancing significantly increases CPU usage. This is because spans are
 # exported an additional time between agents.
 load_balancing:
@@ -355,7 +354,7 @@ load_balancing:
       [ interval: <duration> | default = 5s ]
       # Resolver timeout
       [ timeout: <duration> | default = 1s ]
-    # The kubernetes resolver receives IP addresses of a Kubernetes service 
+    # The kubernetes resolver receives IP addresses of a Kubernetes service
     # from the Kubernetes API. It does not require polling. The Kubernetes API
     # notifies the Agent when a new pod is available and when an old pod has exited.
     #
@@ -473,17 +472,17 @@ jaeger_remote_sampling:
 
 More information on the following types can be found on the documentation for their respective projects:
 
-* [`attributes.config`: OpenTelemetry-Collector](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/{{< param "OTEL_VERSION" >}}/processor/attributesprocessor)
-* [`batch.config`: OpenTelemetry-Collector](https://github.com/open-telemetry/opentelemetry-collector/tree/{{< param "OTEL_VERSION" >}}/processor/batchprocessor)
-* [`otlpexporter.sending_queue`: OpenTelemetry-Collector](https://github.com/open-telemetry/opentelemetry-collector/tree/{{< param "OTEL_VERSION" >}}/exporter/otlpexporter)
-* [`otlpexporter.retry_on_failure`: OpenTelemetry-Collector](https://github.com/open-telemetry/opentelemetry-collector/tree/{{< param "OTEL_VERSION" >}}/exporter/otlpexporter)
-* `receivers`:
-  * [`jaegerreceiver`: OpenTelemetry-Collector-Contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/{{< param "OTEL_VERSION" >}}/receiver/jaegerreceiver)
-  * [`kafkareceiver`: OpenTelemetry-Collector-Contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/{{< param "OTEL_VERSION" >}}/receiver/kafkareceiver)
-  * [`otlpreceiver`: OpenTelemetry-Collector](https://github.com/open-telemetry/opentelemetry-collector/tree/{{< param "OTEL_VERSION" >}}/receiver/otlpreceiver)
-  * [`opencensusreceiver`: OpenTelemetry-Collector-Contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/{{< param "OTEL_VERSION" >}}/receiver/opencensusreceiver)
-  * [`zipkinreceiver`: OpenTelemetry-Collector-Contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/{{< param "OTEL_VERSION" >}}/receiver/zipkinreceiver)
-* [`scrape_config`: Prometheus](https://prometheus.io/docs/prometheus/2.45/configuration/configuration/#scrape_config)
-* [`spanmetricsprocessor.latency_histogram_buckets`: OpenTelemetry-Collector-Contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/{{< param "OTEL_VERSION" >}}/processor/spanmetricsprocessor/config.go#L37-L39)
-* [`spanmetricsprocessor.dimensions`: OpenTelemetry-Collector-Contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/{{< param "OTEL_VERSION" >}}/processor/spanmetricsprocessor/config.go#L41-L48)
-* [`tailsamplingprocessor.policies`: OpenTelemetry-Collector-Contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/{{< param "OTEL_VERSION" >}}/processor/tailsamplingprocessor)
+- [`attributes.config`: OpenTelemetry-Collector](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/{{< param "OTEL_VERSION" >}}/processor/attributesprocessor)
+- [`batch.config`: OpenTelemetry-Collector](https://github.com/open-telemetry/opentelemetry-collector/tree/{{< param "OTEL_VERSION" >}}/processor/batchprocessor)
+- [`otlpexporter.sending_queue`: OpenTelemetry-Collector](https://github.com/open-telemetry/opentelemetry-collector/tree/{{< param "OTEL_VERSION" >}}/exporter/otlpexporter)
+- [`otlpexporter.retry_on_failure`: OpenTelemetry-Collector](https://github.com/open-telemetry/opentelemetry-collector/tree/{{< param "OTEL_VERSION" >}}/exporter/otlpexporter)
+- `receivers`:
+  - [`jaegerreceiver`: OpenTelemetry-Collector-Contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/{{< param "OTEL_VERSION" >}}/receiver/jaegerreceiver)
+  - [`kafkareceiver`: OpenTelemetry-Collector-Contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/{{< param "OTEL_VERSION" >}}/receiver/kafkareceiver)
+  - [`otlpreceiver`: OpenTelemetry-Collector](https://github.com/open-telemetry/opentelemetry-collector/tree/{{< param "OTEL_VERSION" >}}/receiver/otlpreceiver)
+  - [`opencensusreceiver`: OpenTelemetry-Collector-Contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/{{< param "OTEL_VERSION" >}}/receiver/opencensusreceiver)
+  - [`zipkinreceiver`: OpenTelemetry-Collector-Contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/{{< param "OTEL_VERSION" >}}/receiver/zipkinreceiver)
+- [`scrape_config`: Prometheus](https://prometheus.io/docs/prometheus/2.45/configuration/configuration/#scrape_config)
+- [`spanmetricsprocessor.latency_histogram_buckets`: OpenTelemetry-Collector-Contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/{{< param "OTEL_VERSION" >}}/processor/spanmetricsprocessor/config.go#L37-L39)
+- [`spanmetricsprocessor.dimensions`: OpenTelemetry-Collector-Contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/{{< param "OTEL_VERSION" >}}/processor/spanmetricsprocessor/config.go#L41-L48)
+- [`tailsamplingprocessor.policies`: OpenTelemetry-Collector-Contrib](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/{{< param "OTEL_VERSION" >}}/processor/tailsamplingprocessor)

@@ -1,9 +1,9 @@
 ---
 aliases:
-- /docs/grafana-cloud/agent/operator/architecture/
-- /docs/grafana-cloud/monitor-infrastructure/agent/operator/architecture/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/operator/architecture/
-- /docs/grafana-cloud/send-data/agent/operator/architecture/
+  - /docs/grafana-cloud/agent/operator/architecture/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/operator/architecture/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/operator/architecture/
+  - /docs/grafana-cloud/send-data/agent/operator/architecture/
 canonical: https://grafana.com/docs/agent/latest/operator/architecture/
 description: Learn about Grafana Agent architecture
 title: Architecture
@@ -24,22 +24,22 @@ discovers other sub-resources, `MetricsInstance` and `LogsInstance`. The `Grafan
 The full hierarchy of custom resources is as follows:
 
 - `GrafanaAgent`
-    - `MetricsInstance`
-        - `PodMonitor`
-        - `Probe`
-        - `ServiceMonitor`
-    - `LogsInstance`
-        - `PodLogs`
+  - `MetricsInstance`
+    - `PodMonitor`
+    - `Probe`
+    - `ServiceMonitor`
+  - `LogsInstance`
+    - `PodLogs`
 
 The following table describes these custom resources:
 
-| Custom resource | description |
-|---|---|
-| `GrafanaAgent` | Discovers one or more `MetricsInstance` and `LogsInstance` resources. |
-| `MetricsInstance` | Defines where to ship collected metrics. This rolls out a Grafana Agent StatefulSet that will scrape and ship metrics to a `remote_write` endpoint. |
-| `ServiceMonitor` | Collects [cAdvisor](https://github.com/google/cadvisor) and [kubelet metrics](https://github.com/kubernetes/kube-state-metrics). This configures the `MetricsInstance` / Agent StatefulSet |
-| `LogsInstance` | Defines where to ship collected logs. This rolls out a Grafana Agent [DaemonSet](https://kubernetes.io/docs/concepts/workloads/controllers/daemonset/) that will tail log files on your cluster nodes. |
-| `PodLogs` | Collects container logs from Kubernetes Pods. This configures the `LogsInstance` / Agent DaemonSet. |
+| Custom resource   | description                                                                                                                                                                                            |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `GrafanaAgent`    | Discovers one or more `MetricsInstance` and `LogsInstance` resources.                                                                                                                                  |
+| `MetricsInstance` | Defines where to ship collected metrics. This rolls out a Grafana Agent StatefulSet that will scrape and ship metrics to a `remote_write` endpoint.                                                    |
+| `ServiceMonitor`  | Collects [cAdvisor](https://github.com/google/cadvisor) and [kubelet metrics](https://github.com/kubernetes/kube-state-metrics). This configures the `MetricsInstance` / Agent StatefulSet             |
+| `LogsInstance`    | Defines where to ship collected logs. This rolls out a Grafana Agent [DaemonSet](https://kubernetes.io/docs/concepts/workloads/controllers/daemonset/) that will tail log files on your cluster nodes. |
+| `PodLogs`         | Collects container logs from Kubernetes Pods. This configures the `LogsInstance` / Agent DaemonSet.                                                                                                    |
 
 Most of the Grafana Agent Operator resources have the ability to reference a [ConfigMap](https://kubernetes.io/docs/concepts/configuration/configmap/) or a
 [Secret](https://kubernetes.io/docs/concepts/configuration/secret/). All referenced ConfigMaps or Secrets are added into the resource
@@ -133,8 +133,8 @@ Two labels are added by default to every metric:
 - `cluster`, representing the `GrafanaAgent` deployment. Holds the value of
   `<GrafanaAgent.metadata.namespace>/<GrafanaAgent.metadata.name>`.
 - `__replica__`, representing the replica number of the Agent. This label works
-   out of the box with Grafana Cloud and Cortex's [HA
-   deduplication](https://cortexmetrics.io/docs/guides/ha-pair-handling/).
+  out of the box with Grafana Cloud and Cortex's [HA
+  deduplication](https://cortexmetrics.io/docs/guides/ha-pair-handling/).
 
 The shard number is not added as a label, as sharding is designed to be
 transparent on the receiver end.
@@ -148,13 +148,13 @@ shards: 3
 replicas: 2
 ```
 
-You can also enable sharding and replication by setting the `shards` and `replicas` arguments when you start the Grafana Agent. 
+You can also enable sharding and replication by setting the `shards` and `replicas` arguments when you start the Grafana Agent.
 
 ### Examples
 
 The following examples show you how to enable sharding and replication in a Kubernetes environment.
 
-* To shard the data into three shards and replicate each shard to two other Grafana Agent instances, you would use the following deployment manifest:
+- To shard the data into three shards and replicate each shard to two other Grafana Agent instances, you would use the following deployment manifest:
 
   ```
   apiVersion: apps/v1
@@ -179,7 +179,7 @@ The following examples show you how to enable sharding and replication in a Kube
           - "--replicas=2"
   ```
 
-* To shard the data into 10 shards and replicate each shard to three other Grafana Agent instances, you would use the following deployment manifest:
+- To shard the data into 10 shards and replicate each shard to three other Grafana Agent instances, you would use the following deployment manifest:
 
   ```
   apiVersion: apps/v1
@@ -203,4 +203,3 @@ The following examples show you how to enable sharding and replication in a Kube
           - "--shards=10"
           - "--replicas=3"
   ```
-

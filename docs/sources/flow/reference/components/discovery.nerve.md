@@ -1,7 +1,7 @@
 ---
 aliases:
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/discovery.nerve/
-- /docs/grafana-cloud/send-data/agent/flow/reference/components/discovery.nerve/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/discovery.nerve/
+  - /docs/grafana-cloud/send-data/agent/flow/reference/components/discovery.nerve/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.nerve/
 description: Learn about discovery.nerve
 title: discovery.nerve
@@ -26,12 +26,11 @@ discovery.nerve "LABEL" {
 
 The following arguments are supported:
 
-Name               | Type           | Description                          | Default       | Required
------------------- | -------------- | ------------------------------------ | ------------- | --------
-`servers`          | `list(string)` | The Zookeeper servers.               |               | yes
-`paths`            | `list(string)` | The paths to look for targets at.    |               | yes
-`timeout`          | `duration`     | The timeout to use.                  | `"10s"`       | no
-
+| Name      | Type           | Description                       | Default | Required |
+| --------- | -------------- | --------------------------------- | ------- | -------- |
+| `servers` | `list(string)` | The Zookeeper servers.            |         | yes      |
+| `paths`   | `list(string)` | The paths to look for targets at. |         | yes      |
+| `timeout` | `duration`     | The timeout to use.               | `"10s"` | no       |
 
 Each element in the `path` list can either point to a single service, or to the
 root of a tree of services.
@@ -45,16 +44,17 @@ fully through arguments.
 
 The following fields are exported and can be referenced by other components:
 
-Name      | Type                | Description
---------- | ------------------- | -----------
-`targets` | `list(map(string))` | The set of targets discovered from Nerve's API.
+| Name      | Type                | Description                                     |
+| --------- | ------------------- | ----------------------------------------------- |
+| `targets` | `list(map(string))` | The set of targets discovered from Nerve's API. |
 
 The following meta labels are available on targets and can be used by the
 discovery.relabel component
-* `__meta_nerve_path`: the full path to the endpoint node in Zookeeper
-* `__meta_nerve_endpoint_host`: the host of the endpoint
-* `__meta_nerve_endpoint_port`: the port of the endpoint
-* `__meta_nerve_endpoint_name`: the name of the endpoint
+
+- `__meta_nerve_path`: the full path to the endpoint node in Zookeeper
+- `__meta_nerve_endpoint_host`: the host of the endpoint
+- `__meta_nerve_endpoint_port`: the port of the endpoint
+- `__meta_nerve_endpoint_name`: the name of the endpoint
 
 ## Component health
 
@@ -94,9 +94,10 @@ prometheus.remote_write "demo" {
 ```
 
 Replace the following:
-  - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
-  - `USERNAME`: The username to use for authentication to the remote_write API.
-  - `PASSWORD`: The password to use for authentication to the remote_write API.
+
+- `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
+- `USERNAME`: The username to use for authentication to the remote_write API.
+- `PASSWORD`: The password to use for authentication to the remote_write API.
 
 <!-- START GENERATED COMPATIBLE COMPONENTS -->
 

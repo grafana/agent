@@ -1,9 +1,9 @@
 ---
 aliases:
-- /docs/grafana-cloud/agent/flow/tutorials/flow-by-example/faq/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/tutorials/flow-by-example/faq/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/tutorials/flow-by-example/faq/
-- /docs/grafana-cloud/send-data/agent/flow/tutorials/flow-by-example/faq/
+  - /docs/grafana-cloud/agent/flow/tutorials/flow-by-example/faq/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/tutorials/flow-by-example/faq/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/tutorials/flow-by-example/faq/
+  - /docs/grafana-cloud/send-data/agent/flow/tutorials/flow-by-example/faq/
 canonical: https://grafana.com/docs/agent/latest/flow/tutorials/flow-by-example/get-started/
 description: Getting started with Flow-by-Example Tutorials
 title: Get started
@@ -31,7 +31,7 @@ To run the examples, you should have a Grafana Agent binary available. You can f
 You can use this docker-compose file to set up a local Grafana instance alongside Loki and Prometheus pre-configured as datasources. The examples are designed to be run locally, so you can follow along and experiment with them yourself.
 
 ```yaml
-version: '3'
+version: "3"
 services:
   loki:
     image: grafana/loki:2.9.0

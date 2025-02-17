@@ -1,9 +1,9 @@
 ---
 aliases:
-- /docs/grafana-cloud/agent/flow/reference/config-blocks/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/config-blocks/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/config-blocks/
-- /docs/grafana-cloud/send-data/agent/flow/reference/config-blocks/
+  - /docs/grafana-cloud/agent/flow/reference/config-blocks/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/config-blocks/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/config-blocks/
+  - /docs/grafana-cloud/send-data/agent/flow/reference/config-blocks/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/config-blocks/
 description: Learn about configuration blocks
 title: Configuration blocks

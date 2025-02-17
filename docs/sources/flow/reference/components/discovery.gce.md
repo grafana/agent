@@ -1,9 +1,9 @@
 ---
 aliases:
-- /docs/grafana-cloud/agent/flow/reference/components/discovery.gce/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/discovery.gce/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/discovery.gce/
-- /docs/grafana-cloud/send-data/agent/flow/reference/components/discovery.gce/
+  - /docs/grafana-cloud/agent/flow/reference/components/discovery.gce/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/discovery.gce/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/discovery.gce/
+  - /docs/grafana-cloud/send-data/agent/flow/reference/components/discovery.gce/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.gce/
 description: Learn about discovery.gce
 title: discovery.gce
@@ -21,7 +21,6 @@ Credentials are discovered by the Google Cloud SDK default client by looking in 
 
 If the Agent is running within GCE, the service account associated with the instance it is running on should have at least read-only permissions to the compute resources. If running outside of GCE make sure to create an appropriate service account and place the credential file in one of the expected locations.
 
-
 ## Usage
 
 ```river
@@ -35,14 +34,14 @@ discovery.gce "LABEL" {
 
 The following arguments are supported:
 
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`project` | `string` | The GCP Project.| | yes
-`zone` | `string` | The zone of the scrape targets. | | yes
-`filter` | `string` | Filter can be used optionally to filter the instance list by other criteria. | | no
-`refresh_interval` | `duration` | Refresh interval to re-read the instance list. | `"60s"`| no
-`port` | `int` | The port to scrape metrics from. If using the public IP address, this must instead be specified in the relabeling rule. | `80`| no
-`tag_separator` | `string` | The tag separator is used to separate the tags on concatenation. | `","`| no
+| Name               | Type       | Description                                                                                                             | Default | Required |
+| ------------------ | ---------- | ----------------------------------------------------------------------------------------------------------------------- | ------- | -------- |
+| `project`          | `string`   | The GCP Project.                                                                                                        |         | yes      |
+| `zone`             | `string`   | The zone of the scrape targets.                                                                                         |         | yes      |
+| `filter`           | `string`   | Filter can be used optionally to filter the instance list by other criteria.                                            |         | no       |
+| `refresh_interval` | `duration` | Refresh interval to re-read the instance list.                                                                          | `"60s"` | no       |
+| `port`             | `int`      | The port to scrape metrics from. If using the public IP address, this must instead be specified in the relabeling rule. | `80`    | no       |
+| `tag_separator`    | `string`   | The tag separator is used to separate the tags on concatenation.                                                        | `","`   | no       |
 
 For more information on the syntax of the `filter` argument, refer to Google's `filter` documentation for [Method: instances.list](https://cloud.google.com/compute/docs/reference/latest/instances/list).
 
@@ -50,26 +49,25 @@ For more information on the syntax of the `filter` argument, refer to Google's `
 
 The following fields are exported and can be referenced by other components:
 
-Name | Type | Description
----- | ---- | -----------
-`targets` | `list(map(string))` | The set of discovered GCE targets.
+| Name      | Type                | Description                        |
+| --------- | ------------------- | ---------------------------------- |
+| `targets` | `list(map(string))` | The set of discovered GCE targets. |
 
 Each target includes the following labels:
 
-* `__meta_gce_instance_id`: the numeric id of the instance
-* `__meta_gce_instance_name`: the name of the instance
-* `__meta_gce_label_LABEL_NAME`: each GCE label of the instance
-* `__meta_gce_machine_type`: full or partial URL of the machine type of the instance
-* `__meta_gce_metadata_NAME`: each metadata item of the instance
-* `__meta_gce_network`: the network URL of the instance
-* `__meta_gce_private_ip`: the private IP address of the instance
-* `__meta_gce_interface_ipv4_NAME`: IPv4 address of each named interface
-* `__meta_gce_project`: the GCP project in which the instance is running
-* `__meta_gce_public_ip`: the public IP address of the instance, if present
-* `__meta_gce_subnetwork`: the subnetwork URL of the instance
-* `__meta_gce_tags`: comma separated list of instance tags
-* `__meta_gce_zone`: the GCE zone URL in which the instance is running
-
+- `__meta_gce_instance_id`: the numeric id of the instance
+- `__meta_gce_instance_name`: the name of the instance
+- `__meta_gce_label_LABEL_NAME`: each GCE label of the instance
+- `__meta_gce_machine_type`: full or partial URL of the machine type of the instance
+- `__meta_gce_metadata_NAME`: each metadata item of the instance
+- `__meta_gce_network`: the network URL of the instance
+- `__meta_gce_private_ip`: the private IP address of the instance
+- `__meta_gce_interface_ipv4_NAME`: IPv4 address of each named interface
+- `__meta_gce_project`: the GCP project in which the instance is running
+- `__meta_gce_public_ip`: the public IP address of the instance, if present
+- `__meta_gce_subnetwork`: the subnetwork URL of the instance
+- `__meta_gce_tags`: comma separated list of instance tags
+- `__meta_gce_zone`: the GCE zone URL in which the instance is running
 
 ## Component health
 
@@ -109,11 +107,13 @@ prometheus.remote_write "demo" {
   }
 }
 ```
+
 Replace the following:
-  - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
-  - `USERNAME`: The username to use for authentication to the remote_write API.
-  - `PASSWORD`: The password to use for authentication to the remote_write API.
- 
+
+- `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
+- `USERNAME`: The username to use for authentication to the remote_write API.
+- `PASSWORD`: The password to use for authentication to the remote_write API.
+
 <!-- START GENERATED COMPATIBLE COMPONENTS -->
 
 ## Compatible components

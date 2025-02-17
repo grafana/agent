@@ -1,8 +1,8 @@
 ---
 aliases:
-- ../configuration/
-- /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/
-- /docs/grafana-cloud/send-data/agent/static/configuration/
+  - ../configuration/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/
+  - /docs/grafana-cloud/send-data/agent/static/configuration/
 canonical: https://grafana.com/docs/agent/latest/static/configuration/
 description: Learn how to configure Grafana Agent in static mode
 title: Configure static mode
@@ -49,8 +49,8 @@ refs:
 
 The configuration of static mode is split across two places:
 
-* A YAML file
-* [Command-line flags](ref:flags)
+- A YAML file
+- [Command-line flags](ref:flags)
 
 The YAML file is used to configure settings which are dynamic and can be
 changed at runtime. The command-line flags then configure things which cannot
@@ -136,7 +136,7 @@ Generic placeholders are defined as follows:
 - `<labelname>`: a string matching the regular expression `[a-zA-Z_][a-zA-Z0-9_]*`
 - `<labelvalue>`: a string of unicode characters
 - `<filename>`: a valid path relative to current working directory or an
-    absolute path.
+  absolute path.
 - `<host>`: a valid string consisting of a hostname or IP followed by an optional port number
 - `<string>`: a regular string
 - `<secret>`: a regular string that is a secret, such as a password
@@ -170,10 +170,10 @@ enabled by passing the `-enable-features=remote-configs` flag at the command lin
 With this feature enabled, you may pass an HTTP/S URL to the `-config.file` flag.
 
 The following flags will configure basic auth for requests made to HTTP/S remote config URLs:
+
 - `-config.url.basic-auth-user <user>`: the basic auth username
 - `-config.url.basic-auth-password-file <file>`: path to a file containing the basic auth password
 
 {{< admonition type="note" >}}
 This beta feature is subject to change in future releases.
 {{< /admonition >}}
-
