@@ -1,9 +1,9 @@
 ---
 aliases:
-- /docs/grafana-cloud/agent/flow/reference/components/prometheus.exporter.cloudwatch/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/prometheus.exporter.cloudwatch/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/prometheus.exporter.cloudwatch/
-- /docs/grafana-cloud/send-data/agent/flow/reference/components/prometheus.exporter.cloudwatch/
+  - /docs/grafana-cloud/agent/flow/reference/components/prometheus.exporter.cloudwatch/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/prometheus.exporter.cloudwatch/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/prometheus.exporter.cloudwatch/
+  - /docs/grafana-cloud/send-data/agent/flow/reference/components/prometheus.exporter.cloudwatch/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.cloudwatch/
 description: Learn about prometheus.exporter.cloudwatch
 title: prometheus.exporter.cloudwatch
@@ -138,7 +138,7 @@ Omitted fields take their default values.
 You can use the following blocks in`prometheus.exporter.cloudwatch` to configure collector-specific options:
 
 | Hierarchy          | Name                   | Description                                                                                                                                                | Required |
-|--------------------|------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------|----------|
+| ------------------ | ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
 | discovery          | [discovery][]          | Configures a discovery job. Multiple jobs can be configured.                                                                                               | no\*     |
 | discovery > role   | [role][]               | Configures the IAM roles the job should assume to scrape metrics. Defaults to the role configured in the environment {{< param "PRODUCT_NAME" >}} runs on. | no       |
 | discovery > metric | [metric][]             | Configures the list of metrics the job should scrape. Multiple metrics can be defined inside one job.                                                      | yes      |

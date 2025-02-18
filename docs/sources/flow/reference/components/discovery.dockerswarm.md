@@ -1,9 +1,9 @@
 ---
 aliases:
-- /docs/grafana-cloud/agent/flow/reference/components/discovery.dockerswarm/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/discovery.dockerswarm/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/discovery.dockerswarm/
-- /docs/grafana-cloud/send-data/agent/flow/reference/components/discovery.dockerswarm/
+  - /docs/grafana-cloud/agent/flow/reference/components/discovery.dockerswarm/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/discovery.dockerswarm/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/discovery.dockerswarm/
+  - /docs/grafana-cloud/send-data/agent/flow/reference/components/discovery.dockerswarm/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.dockerswarm/
 description: Learn about discovery.dockerswarm
 title: discovery.dockerswarm
@@ -26,27 +26,28 @@ discovery.dockerswarm "LABEL" {
 
 The following arguments are supported:
 
-Name                     | Type                | Description                                                   | Default | Required
------------------------- | ------------------- | ------------------------------------------------------------- | ------- | --------
-`host`                   | `string`            | Address of the Docker daemon.                                 |         | yes
-`role`                   | `string`            | Role of the targets to retrieve. Must be `services`, `tasks`, or `nodes`. | | yes
-`port`                   | `number`            | The port to scrape metrics from, when `role` is nodes, and for discovered tasks and services that don't have published ports. | `80`    | no
-`refresh_interval`       | `duration`          | Interval at which to refresh the list of targets.             | `"60s"` | no
-`bearer_token_file`      | `string`            | File containing a bearer token to authenticate with.          |         | no
-`bearer_token`           | `secret`            | Bearer token to authenticate with.                            |         | no
-`enable_http2`           | `bool`              | Whether HTTP2 is supported for requests.                      | `true`  | no
-`follow_redirects`       | `bool`              | Whether redirects returned by the server should be followed.  | `true`  | no
-`proxy_url`              | `string`            | HTTP proxy to send requests through.                          |         | no
-`no_proxy`               | `string`            | Comma-separated list of IP addresses, CIDR notations, and domain names to exclude from proxying. | | no
-`proxy_from_environment` | `bool`              | Use the proxy URL indicated by environment variables.         | `false` | no
-`proxy_connect_header`   | `map(list(secret))` | Specifies headers to send to proxies during CONNECT requests. |         | no
+| Name                     | Type                | Description                                                                                                                   | Default | Required |
+| ------------------------ | ------------------- | ----------------------------------------------------------------------------------------------------------------------------- | ------- | -------- |
+| `host`                   | `string`            | Address of the Docker daemon.                                                                                                 |         | yes      |
+| `role`                   | `string`            | Role of the targets to retrieve. Must be `services`, `tasks`, or `nodes`.                                                     |         | yes      |
+| `port`                   | `number`            | The port to scrape metrics from, when `role` is nodes, and for discovered tasks and services that don't have published ports. | `80`    | no       |
+| `refresh_interval`       | `duration`          | Interval at which to refresh the list of targets.                                                                             | `"60s"` | no       |
+| `bearer_token_file`      | `string`            | File containing a bearer token to authenticate with.                                                                          |         | no       |
+| `bearer_token`           | `secret`            | Bearer token to authenticate with.                                                                                            |         | no       |
+| `enable_http2`           | `bool`              | Whether HTTP2 is supported for requests.                                                                                      | `true`  | no       |
+| `follow_redirects`       | `bool`              | Whether redirects returned by the server should be followed.                                                                  | `true`  | no       |
+| `proxy_url`              | `string`            | HTTP proxy to send requests through.                                                                                          |         | no       |
+| `no_proxy`               | `string`            | Comma-separated list of IP addresses, CIDR notations, and domain names to exclude from proxying.                              |         | no       |
+| `proxy_from_environment` | `bool`              | Use the proxy URL indicated by environment variables.                                                                         | `false` | no       |
+| `proxy_connect_header`   | `map(list(secret))` | Specifies headers to send to proxies during CONNECT requests.                                                                 |         | no       |
 
- At most, one of the following can be provided:
- - [`bearer_token` argument](#arguments).
- - [`bearer_token_file` argument](#arguments).
- - [`basic_auth` block][basic_auth].
- - [`authorization` block][authorization].
- - [`oauth2` block][oauth2].
+At most, one of the following can be provided:
+
+- [`bearer_token` argument](#arguments).
+- [`bearer_token_file` argument](#arguments).
+- [`basic_auth` block][basic_auth].
+- [`authorization` block][authorization].
+- [`oauth2` block][oauth2].
 
 {{< docs/shared lookup="flow/reference/components/http-client-proxy-config-description.md" source="agent" version="<AGENT_VERSION>" >}}
 

@@ -1,8 +1,8 @@
 ---
 aliases:
-- ../../../configuration/integrations/cloudwatch-exporter-config/
-- /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/integrations/cloudwatch-exporter-config/
-- /docs/grafana-cloud/send-data/agent/static/configuration/integrations/cloudwatch-exporter-config/
+  - ../../../configuration/integrations/cloudwatch-exporter-config/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/integrations/cloudwatch-exporter-config/
+  - /docs/grafana-cloud/send-data/agent/static/configuration/integrations/cloudwatch-exporter-config/
 canonical: https://grafana.com/docs/agent/latest/static/configuration/integrations/cloudwatch-exporter-config/
 description: Learn about cloudwatch_exporter_config
 title: cloudwatch_exporter_config
@@ -13,9 +13,9 @@ title: cloudwatch_exporter_config
 ## Overview
 
 The `cloudwatch_exporter_config` block configures the `cloudwatch_exporter` integration, which is an embedded version of
-[`YACE`](https://github.com/nerdswords/yet-another-cloudwatch-exporter/). Use the `cloudwatch_exporter` to collect  [AWS CloudWatch](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/WhatIsCloudWatch.html) metrics.
+[`YACE`](https://github.com/nerdswords/yet-another-cloudwatch-exporter/). Use the `cloudwatch_exporter` to collect [AWS CloudWatch](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/WhatIsCloudWatch.html) metrics.
 
-This integration lets you scrape CloudWatch metrics in a set of configurations that we will call *jobs*. There are
+This integration lets you scrape CloudWatch metrics in a set of configurations that we will call _jobs_. There are
 two kind of jobs: [`discovery`](#discovery_job) and [`static`](#static_job).
 
 ## Authentication
@@ -23,6 +23,7 @@ two kind of jobs: [`discovery`](#discovery_job) and [`static`](#static_job).
 The agent must be running in an environment with access to AWS. The exporter uses the [AWS SDK for Go](https://aws.github.io/aws-sdk-go-v2/docs/getting-started/) and
 provides authentication via [AWS's default credential chain](https://aws.github.io/aws-sdk-go-v2/docs/configuring-sdk/#specifying-credentials). Regardless of the method used to acquire the credentials,
 some permissions are needed for the exporter to work.
+
 ```
 "tag:GetResources",
 "cloudwatch:GetMetricData",
@@ -31,6 +32,7 @@ some permissions are needed for the exporter to work.
 ```
 
 The following IAM permissions are required for the [Transit Gateway](https://aws.amazon.com/transit-gateway/) attachment (tgwa) metrics to work.
+
 ```
 "ec2:DescribeTags",
 "ec2:DescribeInstances",
@@ -39,11 +41,13 @@ The following IAM permissions are required for the [Transit Gateway](https://aws
 ```
 
 The following IAM permission is required to discover tagged [API Gateway](https://aws.amazon.com/es/api-gateway/) REST APIs:
+
 ```
 "apigateway:GET"
 ```
 
 The following IAM permissions are required to discover tagged [Database Migration Service](https://aws.amazon.com/dms/) (DMS) replication instances and tasks:
+
 ```
 "dms:DescribeReplicationInstances",
 "dms:DescribeReplicationTasks"
@@ -197,36 +201,37 @@ discovery:
 Configuration reference:
 
 ```yaml
-  # Required: List of AWS regions.
-  regions: [ <string> ]
+# Required: List of AWS regions.
+regions: [<string>]
 
-  # Optional: List of IAM roles to assume. Defaults to the role on the environment configured AWS role.
-  roles: [ <aws_role> ]
+# Optional: List of IAM roles to assume. Defaults to the role on the environment configured AWS role.
+roles: [<aws_role>]
 
-  # Required: Cloudwatch service alias ("alb", "ec2", etc) or namespace name ("AWS/EC2", "AWS/S3", etc). See section below for all
-  # supported.
-  type: <string>
+# Required: Cloudwatch service alias ("alb", "ec2", etc) or namespace name ("AWS/EC2", "AWS/S3", etc). See section below for all
+# supported.
+type: <string>
 
-  # Optional: List of `Key/Value` pairs to use for tag filtering (all must match). Value can be a regex.
-  search_tags: [ <aws_tag> ]
+# Optional: List of `Key/Value` pairs to use for tag filtering (all must match). Value can be a regex.
+search_tags: [<aws_tag>]
 
-  # Optional: Custom tags to be added as a list of `Key/Value` pairs. When exported to Prometheus format, the label name follows
-  # the following format: `custom_tag_{Key}`.
-  custom_tags: [ <aws_tag> ]
+# Optional: Custom tags to be added as a list of `Key/Value` pairs. When exported to Prometheus format, the label name follows
+# the following format: `custom_tag_{Key}`.
+custom_tags: [<aws_tag>]
 
-  # Optional: List of metric dimensions to query. Before querying metric values, the total list of metrics will be filtered to only those that contain exactly this list of dimensions. An empty or undefined list results in all dimension combinations being included.
-  dimension_name_requirements: [ <string> ]
+# Optional: List of metric dimensions to query. Before querying metric values, the total list of metrics will be filtered to only those that contain exactly this list of dimensions. An empty or undefined list results in all dimension combinations being included.
+dimension_name_requirements: [<string>]
 
-  # Optional: Flag that controls if `NaN` metric values are converted to 0. Default `true`. This can be overridden in the config of each metric.
-  nil_to_zero: <bool>
+# Optional: Flag that controls if `NaN` metric values are converted to 0. Default `true`. This can be overridden in the config of each metric.
+nil_to_zero: <bool>
 
-  # Required: List of metric definitions to scrape.
-  metrics: [ <metric> ]
+# Required: List of metric definitions to scrape.
+metrics: [<metric>]
 ```
 
 ### static_job
 
 A static job allows one to scrape an individual CloudWatch metric. For that, metrics needs to be fully qualified, specifying the following:
+
 1. `namespace`: For example `AWS/EC2`, `AWS/EBS`, `CoolApp` if it were a custom metric, etc.
 2. `dimensions`: CloudWatch identifies a metrics by a set of dimensions. For example, all `AWS/EC2` metrics are identified by the `InstanceId` dimension.
 3. `metrics`: Metric name and statistics.
@@ -264,30 +269,30 @@ all dimensions attached to a metric when saved in CloudWatch are required.
 Configuration reference:
 
 ```yaml
-  # Required: List of AWS regions.
-  regions: [ <string> ]
+# Required: List of AWS regions.
+regions: [<string>]
 
-  # Optional: List of IAM roles to assume. Defaults to the role on the environment configured AWS role.
-  roles: [ <aws_role> ]
+# Optional: List of IAM roles to assume. Defaults to the role on the environment configured AWS role.
+roles: [<aws_role>]
 
-  # Required: Identifier of the static scraping job. When exported to Prometheus format corresponds to the `name` label.
-  name: <string>
+# Required: Identifier of the static scraping job. When exported to Prometheus format corresponds to the `name` label.
+name: <string>
 
-  # Required: CloudWatch namespace
-  namespace: <string>
+# Required: CloudWatch namespace
+namespace: <string>
 
-  # Required: CloudWatch metric dimensions as a list of Name/Value pairs. Must uniquely define a single metric.
-  dimensions: [ <aws_dimension> ]
+# Required: CloudWatch metric dimensions as a list of Name/Value pairs. Must uniquely define a single metric.
+dimensions: [<aws_dimension>]
 
-  # Optional: Custom tags to be added as a list of Key/Value pairs. When exported, the label name follows the following format:
-  # `custom_tag_{Key}`.
-  custom_tags: [ <aws_tag> ]
+# Optional: Custom tags to be added as a list of Key/Value pairs. When exported, the label name follows the following format:
+# `custom_tag_{Key}`.
+custom_tags: [<aws_tag>]
 
-  # Optional: Flag that controls if `NaN` metric values are converted to 0. Default `true`. This can be overridden in the config of each metric.
-  nil_to_zero: <bool>
+# Optional: Flag that controls if `NaN` metric values are converted to 0. Default `true`. This can be overridden in the config of each metric.
+nil_to_zero: <bool>
 
-  # Required: List of metric definitions to scrape.
-  metrics: [ <metric> ]
+# Required: List of metric definitions to scrape.
+metrics: [<metric>]
 ```
 
 ### aws_role
@@ -300,11 +305,11 @@ is configured for the agent to assume prior to calling AWS APIs, therefore, the 
 permission to assume the target role. See [this documentation](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use_permissions-to-switch.html) on how to configure this.
 
 ```yaml
-  # Required: AWS IAM Role ARN the exporter should assume to perform AWS API calls.
-  role_arn: <string>
+# Required: AWS IAM Role ARN the exporter should assume to perform AWS API calls.
+role_arn: <string>
 
-  # Optional: External ID used when calling STS AssumeRole API. See https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_create_for-user_externalid.html for details.
-  external_id: <string>
+# Optional: External ID used when calling STS AssumeRole API. See https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_create_for-user_externalid.html for details.
+external_id: <string>
 ```
 
 ### aws_dimension
@@ -312,8 +317,8 @@ permission to assume the target role. See [this documentation](https://docs.aws.
 Represents an [AWS CloudWatch Dimension](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/cloudwatch_concepts.html#Dimension).
 
 ```yaml
-  name: <string>
-  value: <string>
+name: <string>
+value: <string>
 ```
 
 ### aws_tag
@@ -321,8 +326,8 @@ Represents an [AWS CloudWatch Dimension](https://docs.aws.amazon.com/AmazonCloud
 Represents an [AWS Tag](https://docs.aws.amazon.com/general/latest/gr/aws_tagging.html).
 
 ```yaml
-  key: <string>
-  value: <string>
+key: <string>
+value: <string>
 ```
 
 ### metric
@@ -332,21 +337,21 @@ Follow [this guide](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitori
 pick the ones you need.
 
 ```yaml
-  # Required: CloudWatch metric name.
-  name: <string>
+# Required: CloudWatch metric name.
+name: <string>
 
-  # Required: List of statistic types, e.g. "Minimum", "Maximum", etc.
-  statistics: [ <string> ]
+# Required: List of statistic types, e.g. "Minimum", "Maximum", etc.
+statistics: [<string>]
 
-  # Optional: See the `period and length` section below.
-  period: [ <duration> | default = 5m ]
+# Optional: See the `period and length` section below.
+period: [<duration> | default = 5m]
 
-  # Optional: See the `period and length` section below.
-  length: [ <duration> | default = calculated based on `period` ]
+# Optional: See the `period and length` section below.
+length: [<duration> | default = calculated based on `period`]
 
-  # Optional: Flag that controls if `NaN` metric values are converted to 0.
-  # When not set, the value defaults to the setting in the parent static or discovery block (`true` if not set in the parent block).
-  nil_to_zero: <bool>
+# Optional: Flag that controls if `NaN` metric values are converted to 0.
+# When not set, the value defaults to the setting in the parent static or discovery block (`true` if not set in the parent block).
+nil_to_zero: <bool>
 ```
 
 ### Period and length
@@ -465,4 +470,3 @@ discovery job, the `type` field of each `discovery_job` must match either the de
 - Namespace: `/aws/sagemaker/TransformJobs` or Alias: `sagemaker-transform`
 - Namespace: `/aws/sagemaker/InferenceRecommendationsJobs` or Alias: `sagemaker-inf-rec`
 - Namespace: `AWS/Sagemaker/ModelBuildingPipeline` or Alias: `sagemaker-model-building-pipeline`
-

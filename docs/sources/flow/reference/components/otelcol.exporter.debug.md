@@ -1,9 +1,9 @@
 ---
 aliases:
-- /docs/grafana-cloud/agent/flow/reference/components/otelcol.exporter.debug/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/otelcol.exporter.debug/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/otelcol.exporter.debug/
-- /docs/grafana-cloud/send-data/agent/flow/reference/components/otelcol.exporter.debug/
+  - /docs/grafana-cloud/agent/flow/reference/components/otelcol.exporter.debug/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/otelcol.exporter.debug/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/otelcol.exporter.debug/
+  - /docs/grafana-cloud/send-data/agent/flow/reference/components/otelcol.exporter.debug/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.exporter.debug/
 description: Learn about otelcol.exporter.debug
 labels:
@@ -17,7 +17,7 @@ title: otelcol.exporter.debug
 You can control the verbosity of the logs.
 
 {{< admonition type="note" >}}
-`otelcol.exporter.debug` is a wrapper over the upstream OpenTelemetry Collector `debug` exporter. 
+`otelcol.exporter.debug` is a wrapper over the upstream OpenTelemetry Collector `debug` exporter.
 If necessary, bug reports or feature requests are redirected to the upstream repository.
 {{< /admonition >}}
 
@@ -33,11 +33,11 @@ otelcol.exporter.debug "LABEL" { }
 
 `otelcol.exporter.debug` supports the following arguments:
 
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`verbosity`           | `string` | Verbosity of the generated logs. | `"normal"` | no
-`sampling_initial`    | `int`    | Number of messages initially logged each second. | `2` | no
-`sampling_thereafter` | `int`    | Sampling rate after the initial messages are logged. | `500` | no
+| Name                  | Type     | Description                                          | Default    | Required |
+| --------------------- | -------- | ---------------------------------------------------- | ---------- | -------- |
+| `verbosity`           | `string` | Verbosity of the generated logs.                     | `"normal"` | no       |
+| `sampling_initial`    | `int`    | Number of messages initially logged each second.     | `2`        | no       |
+| `sampling_thereafter` | `int`    | Sampling rate after the initial messages are logged. | `500`      | no       |
 
 The `verbosity` argument must be one of `"basic"`, `"normal"`, or `"detailed"`.
 
@@ -45,9 +45,9 @@ The `verbosity` argument must be one of `"basic"`, `"normal"`, or `"detailed"`.
 
 The following fields are exported and can be referenced by other components:
 
-Name | Type | Description
----- | ---- | -----------
-`input` | `otelcol.Consumer` | A value that other components can use to send telemetry data to.
+| Name    | Type               | Description                                                      |
+| ------- | ------------------ | ---------------------------------------------------------------- |
+| `input` | `otelcol.Consumer` | A value that other components can use to send telemetry data to. |
 
 `input` accepts `otelcol.Consumer` data for any telemetry signal (metrics,
 logs, or traces).
@@ -86,6 +86,7 @@ otelcol.exporter.debug "default" {
     sampling_thereafter = 1
 }
 ```
+
 <!-- START GENERATED COMPATIBLE COMPONENTS -->
 
 ## Compatible components

@@ -1,9 +1,9 @@
 ---
 aliases:
-- ../
-- ../set-up/
-- /docs/grafana-cloud/monitor-infrastructure/agent/static/set-up/install/
-- /docs/grafana-cloud/send-data/agent/static/set-up/install/
+  - ../
+  - ../set-up/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/static/set-up/install/
+  - /docs/grafana-cloud/send-data/agent/static/set-up/install/
 canonical: https://grafana.com/docs/agent/latest/static/set-up/install/
 description: Learn how to install GRafana Agent in static mode
 menuTitle: Install static mode
@@ -46,4 +46,3 @@ Use the Grafana Agent [Kubernetes configuration](/docs/grafana-cloud/monitor-inf
 
 By default, Grafana Agent sends anonymous usage information to Grafana Labs. Refer to [data collection](ref:data-collection) for more information
 about what data is collected and how you can opt-out.
-

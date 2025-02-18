@@ -1,14 +1,15 @@
 ---
 aliases:
-- /docs/grafana-cloud/agent/operator/operator-integrations/
-- /docs/grafana-cloud/monitor-infrastructure/agent/operator/operator-integrations/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/operator/operator-integrations/
-- /docs/grafana-cloud/send-data/agent/operator/operator-integrations/
+  - /docs/grafana-cloud/agent/operator/operator-integrations/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/operator/operator-integrations/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/operator/operator-integrations/
+  - /docs/grafana-cloud/send-data/agent/operator/operator-integrations/
 canonical: https://grafana.com/docs/agent/latest/operator/operator-integrations/
 description: Learn how to set up integrations
 title: Set up integrations
 weight: 350
 ---
+
 # Set up integrations
 
 This topic provides examples of setting up Grafana Agent Operator integrations, including [node_exporter](#set-up-an-agent-operator-node_exporter-integration) and [mysqld_exporter](#set-up-an-agent-operator-mysqld_exporter-integration).
@@ -31,15 +32,15 @@ To set up a node_exporter integration:
 
 1. Copy the following manifest to a file:
 
-    ```yaml
-    apiVersion: monitoring.grafana.com/v1alpha1
-    kind: Integration
-    metadata:
+   ```yaml
+   apiVersion: monitoring.grafana.com/v1alpha1
+   kind: Integration
+   metadata:
      name: node-exporter
      namespace: default
      labels:
        agent: grafana-agent-integrations
-    spec:
+   spec:
      name: node_exporter
      type:
        allNodes: true
@@ -68,11 +69,11 @@ To set up a node_exporter integration:
        - name: root
          hostPath:
            path: /root
-    ```
+   ```
 
 2. Customize the manifest as needed and roll it out to your cluster using `kubectl apply -f` followed by the filename.
 
-    The manifest causes Agent Operator to create an instance of a grafana-agent-integrations-deploy resource that exports Node metrics.
+   The manifest causes Agent Operator to create an instance of a grafana-agent-integrations-deploy resource that exports Node metrics.
 
 ## Set up an Agent Operator mysqld_exporter integration
 
@@ -82,15 +83,15 @@ To set up a mysqld_exporter integration:
 
 1. Copy the following manifest to a file:
 
-    ```yaml
-    apiVersion: monitoring.grafana.com/v1alpha1
-    kind: Integration
-    metadata:
+   ```yaml
+   apiVersion: monitoring.grafana.com/v1alpha1
+   kind: Integration
+   metadata:
      name: mysqld-exporter
      namespace: default
      labels:
        agent: grafana-agent-integrations
-    spec:
+   spec:
      name: mysql
      type:
        allNodes: true
@@ -100,8 +101,8 @@ To set up a mysqld_exporter integration:
          enable: true
          metrics_instance: default/primary
        data_source_name: root@(server-a:3306)/
-    ```
+   ```
 
 2. Customize the manifest as needed and roll it out to your cluster using `kubectl apply -f` followed by the filename.
 
-    The manifest causes Agent Operator to create an instance of a grafana-agent-integrations-deploy resource that exports MySQL metrics.
+   The manifest causes Agent Operator to create an instance of a grafana-agent-integrations-deploy resource that exports MySQL metrics.

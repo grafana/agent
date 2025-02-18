@@ -1,9 +1,9 @@
 ---
 aliases:
-- /docs/grafana-cloud/agent/flow/reference/components/prometheus.exporter.postgres/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/prometheus.exporter.postgres/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/prometheus.exporter.postgres/
-- /docs/grafana-cloud/send-data/agent/flow/reference/components/prometheus.exporter.postgres/
+  - /docs/grafana-cloud/agent/flow/reference/components/prometheus.exporter.postgres/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/prometheus.exporter.postgres/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/prometheus.exporter.postgres/
+  - /docs/grafana-cloud/send-data/agent/flow/reference/components/prometheus.exporter.postgres/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.postgres/
 description: Learn about prometheus.exporter.postgres
 labels:
@@ -32,7 +32,7 @@ prometheus.exporter.postgres "LABEL" {
 The following arguments are supported:
 
 | Name                         | Type           | Description                                                                   | Default | Required |
-|------------------------------|----------------|-------------------------------------------------------------------------------|---------|----------|
+| ---------------------------- | -------------- | ----------------------------------------------------------------------------- | ------- | -------- |
 | `data_source_names`          | `list(secret)` | Specifies the Postgres server(s) to connect to.                               |         | yes      |
 | `disable_settings_metrics`   | `bool`         | Disables collection of metrics from pg_settings.                              | `false` | no       |
 | `disable_default_metrics`    | `bool`         | When `true`, only exposes metrics supplied from `custom_queries_config_path`. | `false` | no       |

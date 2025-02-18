@@ -1,9 +1,9 @@
 ---
 aliases:
-- /docs/grafana-cloud/agent/flow/tutorials/flow-by-example/logs-and-relabeling-basics/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/tutorials/flow-by-example/logs-and-relabeling-basics/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/tutorials/flow-by-example/logs-and-relabeling-basics/
-- /docs/grafana-cloud/send-data/agent/flow/tutorials/logs-and-relabeling-basics/
+  - /docs/grafana-cloud/agent/flow/tutorials/flow-by-example/logs-and-relabeling-basics/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/tutorials/flow-by-example/logs-and-relabeling-basics/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/tutorials/flow-by-example/logs-and-relabeling-basics/
+  - /docs/grafana-cloud/send-data/agent/flow/tutorials/logs-and-relabeling-basics/
 canonical: https://grafana.com/docs/agent/latest/flow/tutorials/flow-by-example/logs-and-relabeling-basics/
 description: Learn how to relabel metrics and collect logs
 title: Logs and relabeling basics
@@ -134,7 +134,7 @@ If you re-execute the query, you can see the new log lines.
 
 ![Grafana Explore view of example log lines](/media/docs/agent/screenshot-flow-by-example-log-lines.png)
 
-If you are curious how {{< param "PRODUCT_ROOT_NAME" >}} keeps track of where it is in a log file, you can look at `data-agent/loki.source.file.local_files/positions.yml`. 
+If you are curious how {{< param "PRODUCT_ROOT_NAME" >}} keeps track of where it is in a log file, you can look at `data-agent/loki.source.file.local_files/positions.yml`.
 If you delete this file, {{< param "PRODUCT_ROOT_NAME" >}} starts reading from the beginning of the file again, which is why keeping the {{< param "PRODUCT_ROOT_NAME" >}}'s data directory in a persistent location is desirable.
 
 ## Exercise
@@ -224,7 +224,7 @@ loki.write "local_loki" {
 This exercise is more challenging than the previous one. If you are having trouble, skip it and move to the next section, which will cover some of the concepts used here. You can always come back to this exercise later.
 {{< /admonition >}}
 
-This exercise will build on the previous one, though it's more involved. 
+This exercise will build on the previous one, though it's more involved.
 
 Let's say we want to extract the `level` from the logs and add it as a label. As a starting point, look at [loki.process][].
 This component allows you to perform processing on logs, including extracting values from log contents.
@@ -305,4 +305,3 @@ loki.write "local_loki" {
 ## Finishing up and next steps
 
 You have learned the concepts of components, attributes, and expressions. You have also seen how to use some standard library components to collect metrics and logs. In the next tutorial, you will learn more about how to use the `loki.process` component to extract values from logs and use them.
-

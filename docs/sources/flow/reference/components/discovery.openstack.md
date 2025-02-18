@@ -1,9 +1,9 @@
 ---
 aliases:
-- /docs/grafana-cloud/agent/flow/reference/components/discovery.openstack/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/discovery.openstack/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/discovery.openstack/
-- /docs/grafana-cloud/send-data/agent/flow/reference/components/discovery.openstack/
+  - /docs/grafana-cloud/agent/flow/reference/components/discovery.openstack/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/discovery.openstack/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/discovery.openstack/
+  - /docs/grafana-cloud/send-data/agent/flow/reference/components/discovery.openstack/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.openstack/
 description: Learn about discovery.openstack
 title: discovery.openstack
@@ -28,25 +28,25 @@ discovery.openstack "LABEL" {
 
 The following arguments are supported:
 
-Name                | Type       | Description                                                            | Default              | Required
-------------------- | ---------- | ---------------------------------------------------------------------- | -------------------- | --------
-`role`              | `string`   | Role of the discovered targets.                                        |                      | yes
-`region`            | `string`   | OpenStack region.                                                      |                      | yes
-`identity_endpoint` | `string`   | Specifies the HTTP endpoint that is required to work with te Identity API of the appropriate version | | no
-`username`          | `string`   | OpenStack username for the Identity V2 and V3 APIs.                    |                      | no
-`userid`            | `string`   | OpenStack userid for the Identity V2 and V3 APIs.                      |                      | no
-`password`          | `secret`   | Password for the Identity V2 and V3 APIs.                              |                      | no
-`domain_name`       | `string`   | OpenStack domain name for the Identity V2 and V3 APIs.                 |                      | no
-`domain_id`         | `string`   | OpenStack domain ID for the Identity V2 and V3 APIs.                   |                      | no
-`project_name`      | `string`   | OpenStack project name for the Identity V2 and V3 APIs.                |                      | no
-`project_id`        | `string`   | OpenStack project ID for the Identity V2 and V3 APIs.                  |                      | no
-`application_credential_name` | `string`   | OpenStack application credential name for the Identity V2 and V3 APIs.   |          | no
-`application_credential_id`   | `string`   | OpenStack application credential ID for the Identity V2 and V3 APIs.     |          | no
-`application_credential_secret` | `secret` | OpenStack application credential secret for the Identity V2 and V3 APIs. |          | no
-`all_tenants`       | `bool`    | Whether the service discovery should list all instances for all projects. |      `false`       | no
-`refresh_interval`  | `duration`| Refresh interval to re-read the instance list.                          |          `60s`       | no
-`port`              | `int`      | The port to scrape metrics from.                                       |  `80`                | no
-`availability`      | `string`   | The availability of the endpoint to connect to.                        |  `public`            | no
+| Name                            | Type       | Description                                                                                          | Default  | Required |
+| ------------------------------- | ---------- | ---------------------------------------------------------------------------------------------------- | -------- | -------- |
+| `role`                          | `string`   | Role of the discovered targets.                                                                      |          | yes      |
+| `region`                        | `string`   | OpenStack region.                                                                                    |          | yes      |
+| `identity_endpoint`             | `string`   | Specifies the HTTP endpoint that is required to work with te Identity API of the appropriate version |          | no       |
+| `username`                      | `string`   | OpenStack username for the Identity V2 and V3 APIs.                                                  |          | no       |
+| `userid`                        | `string`   | OpenStack userid for the Identity V2 and V3 APIs.                                                    |          | no       |
+| `password`                      | `secret`   | Password for the Identity V2 and V3 APIs.                                                            |          | no       |
+| `domain_name`                   | `string`   | OpenStack domain name for the Identity V2 and V3 APIs.                                               |          | no       |
+| `domain_id`                     | `string`   | OpenStack domain ID for the Identity V2 and V3 APIs.                                                 |          | no       |
+| `project_name`                  | `string`   | OpenStack project name for the Identity V2 and V3 APIs.                                              |          | no       |
+| `project_id`                    | `string`   | OpenStack project ID for the Identity V2 and V3 APIs.                                                |          | no       |
+| `application_credential_name`   | `string`   | OpenStack application credential name for the Identity V2 and V3 APIs.                               |          | no       |
+| `application_credential_id`     | `string`   | OpenStack application credential ID for the Identity V2 and V3 APIs.                                 |          | no       |
+| `application_credential_secret` | `secret`   | OpenStack application credential secret for the Identity V2 and V3 APIs.                             |          | no       |
+| `all_tenants`                   | `bool`     | Whether the service discovery should list all instances for all projects.                            | `false`  | no       |
+| `refresh_interval`              | `duration` | Refresh interval to re-read the instance list.                                                       | `60s`    | no       |
+| `port`                          | `int`      | The port to scrape metrics from.                                                                     | `80`     | no       |
+| `availability`                  | `string`   | The availability of the endpoint to connect to.                                                      | `public` | no       |
 
 `role` must be one of `hypervisor` or `instance`.
 
@@ -63,11 +63,12 @@ Name                | Type       | Description                                  
 `availability` must be one of `public`, `admin`, or `internal`.
 
 ## Blocks
+
 The following blocks are supported inside the definition of `discovery.openstack`:
 
-Hierarchy | Block | Description | Required
---------- | ----- | ----------- | --------
-tls_config | [tls_config][] | TLS configuration for requests to the OpenStack API. | no
+| Hierarchy  | Block          | Description                                          | Required |
+| ---------- | -------------- | ---------------------------------------------------- | -------- |
+| tls_config | [tls_config][] | TLS configuration for requests to the OpenStack API. | no       |
 
 [tls_config]: #tls_config-block
 
@@ -79,21 +80,21 @@ tls_config | [tls_config][] | TLS configuration for requests to the OpenStack AP
 
 The following fields are exported and can be referenced by other components:
 
-Name      | Type                | Description
---------- | ------------------- | -----------
-`targets` | `list(map(string))` | The set of targets discovered from the OpenStack API.
+| Name      | Type                | Description                                           |
+| --------- | ------------------- | ----------------------------------------------------- |
+| `targets` | `list(map(string))` | The set of targets discovered from the OpenStack API. |
 
 #### `hypervisor`
 
 The `hypervisor` role discovers one target per Nova hypervisor node. The target
 address defaults to the `host_ip` attribute of the hypervisor.
 
-* `__meta_openstack_hypervisor_host_ip`: the hypervisor node's IP address.
-* `__meta_openstack_hypervisor_hostname`: the hypervisor node's name.
-* `__meta_openstack_hypervisor_id`: the hypervisor node's ID.
-* `__meta_openstack_hypervisor_state`: the hypervisor node's state.
-* `__meta_openstack_hypervisor_status`: the hypervisor node's status.
-* `__meta_openstack_hypervisor_type`: the hypervisor node's type.
+- `__meta_openstack_hypervisor_host_ip`: the hypervisor node's IP address.
+- `__meta_openstack_hypervisor_hostname`: the hypervisor node's name.
+- `__meta_openstack_hypervisor_id`: the hypervisor node's ID.
+- `__meta_openstack_hypervisor_state`: the hypervisor node's state.
+- `__meta_openstack_hypervisor_status`: the hypervisor node's status.
+- `__meta_openstack_hypervisor_type`: the hypervisor node's type.
 
 #### `instance`
 
@@ -101,17 +102,17 @@ The `instance` role discovers one target per network interface of Nova
 instance. The target address defaults to the private IP address of the network
 interface.
 
-* `__meta_openstack_address_pool`: the pool of the private IP.
-* `__meta_openstack_instance_flavor`: the flavor of the OpenStack instance.
-* `__meta_openstack_instance_id`: the OpenStack instance ID.
-* `__meta_openstack_instance_image`: the ID of the image the OpenStack instance is using.
-* `__meta_openstack_instance_name`: the OpenStack instance name.
-* `__meta_openstack_instance_status`: the status of the OpenStack instance.
-* `__meta_openstack_private_ip`: the private IP of the OpenStack instance.
-* `__meta_openstack_project_id`: the project (tenant) owning this instance.
-* `__meta_openstack_public_ip`: the public IP of the OpenStack instance.
-* `__meta_openstack_tag_<tagkey>`: each tag value of the instance.
-* `__meta_openstack_user_id`: the user account owning the tenant.
+- `__meta_openstack_address_pool`: the pool of the private IP.
+- `__meta_openstack_instance_flavor`: the flavor of the OpenStack instance.
+- `__meta_openstack_instance_id`: the OpenStack instance ID.
+- `__meta_openstack_instance_image`: the ID of the image the OpenStack instance is using.
+- `__meta_openstack_instance_name`: the OpenStack instance name.
+- `__meta_openstack_instance_status`: the status of the OpenStack instance.
+- `__meta_openstack_private_ip`: the private IP of the OpenStack instance.
+- `__meta_openstack_project_id`: the project (tenant) owning this instance.
+- `__meta_openstack_public_ip`: the public IP of the OpenStack instance.
+- `__meta_openstack_tag_<tagkey>`: each tag value of the instance.
+- `__meta_openstack_user_id`: the user account owning the tenant.
 
 ## Component health
 
@@ -151,12 +152,14 @@ prometheus.remote_write "demo" {
   }
 }
 ```
+
 Replace the following:
-  - `OPENSTACK_ROLE`: Your OpenStack role.
-  - `OPENSTACK_REGION`: Your OpenStack region.
-  - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
-  - `USERNAME`: The username to use for authentication to the remote_write API.
-  - `PASSWORD`: The password to use for authentication to the remote_write API.
+
+- `OPENSTACK_ROLE`: Your OpenStack role.
+- `OPENSTACK_REGION`: Your OpenStack region.
+- `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
+- `USERNAME`: The username to use for authentication to the remote_write API.
+- `PASSWORD`: The password to use for authentication to the remote_write API.
 
 <!-- START GENERATED COMPATIBLE COMPONENTS -->
 

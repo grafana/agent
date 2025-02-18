@@ -1,10 +1,10 @@
 ---
 aliases:
-- ../../concepts/components/
-- /docs/grafana-cloud/agent/flow/concepts/components/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/concepts/components/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/concepts/components/
-- /docs/grafana-cloud/send-data/agent/flow/concepts/components/
+  - ../../concepts/components/
+  - /docs/grafana-cloud/agent/flow/concepts/components/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/concepts/components/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/concepts/components/
+  - /docs/grafana-cloud/send-data/agent/flow/concepts/components/
 canonical: https://grafana.com/docs/agent/latest/flow/concepts/components/
 description: Learn about components
 title: Components
@@ -18,8 +18,8 @@ Each component handles a single task, such as retrieving secrets or collecting P
 
 Components are composed of the following:
 
-* Arguments: Settings that configure a component.
-* Exports: Named values that a component exposes to other components.
+- Arguments: Settings that configure a component.
+- Exports: Named values that a component exposes to other components.
 
 Each component has a name that describes what that component is responsible for.
 For example, the `local.file` component is responsible for retrieving the contents of files on disk.

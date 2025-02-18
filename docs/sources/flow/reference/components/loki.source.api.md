@@ -1,9 +1,9 @@
 ---
 aliases:
-- /docs/grafana-cloud/agent/flow/reference/components/loki.source.api/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/loki.source.api/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/loki.source.api/
-- /docs/grafana-cloud/send-data/agent/flow/reference/components/loki.source.api/
+  - /docs/grafana-cloud/agent/flow/reference/components/loki.source.api/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/loki.source.api/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/loki.source.api/
+  - /docs/grafana-cloud/send-data/agent/flow/reference/components/loki.source.api/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/loki.source.api/
 description: Learn about loki.source.api
 title: loki.source.api
@@ -38,19 +38,18 @@ The component will start HTTP server on the configured port and address with the
 - `/api/v1/push` - internally reroutes to `/loki/api/v1/push`
 - `/api/v1/raw` - internally reroutes to `/loki/api/v1/raw`
 
-
 [promtail-push-api]: /docs/loki/latest/clients/promtail/configuration/#loki_push_api
 
 ## Arguments
 
 `loki.source.api` supports the following arguments:
 
-Name                     | Type                 | Description                                                | Default | Required
--------------------------|----------------------|------------------------------------------------------------|---------|---------
-`forward_to`             | `list(LogsReceiver)` | List of receivers to send log entries to.                  |         | yes
-`use_incoming_timestamp` | `bool`               | Whether or not to use the timestamp received from request. | `false` | no
-`labels`                 | `map(string)`        | The labels to associate with each received logs record.    | `{}`    | no
-`relabel_rules`          | `RelabelRules`       | Relabeling rules to apply on log entries.                  | `{}`    | no
+| Name                     | Type                 | Description                                                | Default | Required |
+| ------------------------ | -------------------- | ---------------------------------------------------------- | ------- | -------- |
+| `forward_to`             | `list(LogsReceiver)` | List of receivers to send log entries to.                  |         | yes      |
+| `use_incoming_timestamp` | `bool`               | Whether or not to use the timestamp received from request. | `false` | no       |
+| `labels`                 | `map(string)`        | The labels to associate with each received logs record.    | `{}`    | no       |
+| `relabel_rules`          | `RelabelRules`       | Relabeling rules to apply on log entries.                  | `{}`    | no       |
 
 The `relabel_rules` field can make use of the `rules` export value from a
 [`loki.relabel`][loki.relabel] component to apply one or more relabeling rules to log entries before they're forwarded to the list of receivers in `forward_to`.
@@ -61,9 +60,9 @@ The `relabel_rules` field can make use of the `rules` export value from a
 
 The following blocks are supported inside the definition of `loki.source.api`:
 
-Hierarchy | Name     | Description                                        | Required
-----------|----------|----------------------------------------------------|---------
-`http`    | [http][] | Configures the HTTP server that receives requests. | no
+| Hierarchy | Name     | Description                                        | Required |
+| --------- | -------- | -------------------------------------------------- | -------- |
+| `http`    | [http][] | Configures the HTTP server that receives requests. | no       |
 
 [http]: #http
 
@@ -83,10 +82,10 @@ Hierarchy | Name     | Description                                        | Requ
 
 The following are some of the metrics that are exposed when this component is used. Note that the metrics include labels such as `status_code` where relevant, which can be used to measure request success rates.
 
-* `loki_source_api_request_duration_seconds` (histogram): Time (in seconds) spent serving HTTP requests.
-* `loki_source_api_request_message_bytes` (histogram): Size (in bytes) of messages received in the request.
-* `loki_source_api_response_message_bytes` (histogram): Size (in bytes) of messages sent in response.
-* `loki_source_api_tcp_connections` (gauge): Current number of accepted TCP connections.
+- `loki_source_api_request_duration_seconds` (histogram): Time (in seconds) spent serving HTTP requests.
+- `loki_source_api_request_message_bytes` (histogram): Size (in bytes) of messages received in the request.
+- `loki_source_api_response_message_bytes` (histogram): Size (in bytes) of messages sent in response.
+- `loki_source_api_tcp_connections` (gauge): Current number of accepted TCP connections.
 
 ## Example
 
@@ -124,7 +123,6 @@ loki.source.api "loki_push_api" {
 `loki.source.api` can accept arguments from the following components:
 
 - Components that export [Loki `LogsReceiver`](../../compatibility/#loki-logsreceiver-exporters)
-
 
 {{< admonition type="note" >}}
 Connecting some components may not be sensible or components may require further configuration to make the connection work correctly.

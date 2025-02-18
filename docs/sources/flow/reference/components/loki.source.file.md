@@ -1,9 +1,9 @@
 ---
 aliases:
-- /docs/grafana-cloud/agent/flow/reference/components/loki.source.file/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/loki.source.file/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/loki.source.file/
-- /docs/grafana-cloud/send-data/agent/flow/reference/components/loki.source.file/
+  - /docs/grafana-cloud/agent/flow/reference/components/loki.source.file/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/loki.source.file/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/loki.source.file/
+  - /docs/grafana-cloud/send-data/agent/flow/reference/components/loki.source.file/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/loki.source.file/
 description: Learn about loki.source.file
 title: loki.source.file
@@ -38,19 +38,18 @@ log entries to the list of receivers passed in `forward_to`.
 `loki.source.file` supports the following arguments:
 
 | Name                    | Type                 | Description                                                                         | Default | Required |
-| ------------------------| -------------------- | ----------------------------------------------------------------------------------- | ------- | -------- |
+| ----------------------- | -------------------- | ----------------------------------------------------------------------------------- | ------- | -------- |
 | `targets`               | `list(map(string))`  | List of files to read from.                                                         |         | yes      |
 | `forward_to`            | `list(LogsReceiver)` | List of receivers to send log entries to.                                           |         | yes      |
 | `encoding`              | `string`             | The encoding to convert from when reading files.                                    | `""`    | no       |
 | `tail_from_end`         | `bool`               | Whether a log file should be tailed from the end if a stored position is not found. | `false` | no       |
-| `legacy_positions_file` | `string`      | Allows conversion from legacy positions file.                                      | `""`    | no       |
+| `legacy_positions_file` | `string`             | Allows conversion from legacy positions file.                                       | `""`    | no       |
 
 The `encoding` argument must be a valid [IANA encoding][] name. If not set, it
 defaults to UTF-8.
 
 You can use the `tail_from_end` argument when you want to tail a large file without reading its entire content.
 When set to true, only new logs will be read, ignoring the existing ones.
-
 
 {{< admonition type="note" >}}
 The `legacy_positions_file` argument is used when you are transitioning from legacy. The legacy positions file will be rewritten into the new format.
@@ -64,10 +63,10 @@ The legacy positions file did not have a concept of labels in the positions file
 
 The following blocks are supported inside the definition of `loki.source.file`:
 
-| Hierarchy      | Name               | Description                                                       | Required |
-| -------------- | ------------------ | ----------------------------------------------------------------- | -------- |
-| decompression  | [decompression][] | Configure reading logs from compressed files.                     | no       |
-| file_watch     | [file_watch][]     | Configure how often files should be polled from disk for changes. | no       |
+| Hierarchy     | Name              | Description                                                       | Required |
+| ------------- | ----------------- | ----------------------------------------------------------------- | -------- |
+| decompression | [decompression][] | Configure reading logs from compressed files.                     | no       |
+| file_watch    | [file_watch][]    | Configure how often files should be polled from disk for changes. | no       |
 
 [decompression]: #decompression-block
 [file_watch]: #file_watch-block
@@ -257,7 +256,6 @@ loki.write "local" {
 
 - Components that export [Targets](../../compatibility/#targets-exporters)
 - Components that export [Loki `LogsReceiver`](../../compatibility/#loki-logsreceiver-exporters)
-
 
 {{< admonition type="note" >}}
 Connecting some components may not be sensible or components may require further configuration to make the connection work correctly.

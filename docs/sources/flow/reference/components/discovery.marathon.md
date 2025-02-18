@@ -1,9 +1,9 @@
 ---
 aliases:
-- /docs/grafana-cloud/agent/flow/reference/components/discovery.marathon/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/discovery.marathon/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/discovery.marathon/
-- /docs/grafana-cloud/send-data/agent/flow/reference/components/discovery.marathon/
+  - /docs/grafana-cloud/agent/flow/reference/components/discovery.marathon/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/discovery.marathon/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/discovery.marathon/
+  - /docs/grafana-cloud/send-data/agent/flow/reference/components/discovery.marathon/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.marathon/
 description: Learn about discovery.marathon
 title: discovery.marathon
@@ -25,22 +25,23 @@ discovery.marathon "LABEL" {
 
 The following arguments are supported:
 
-Name                     | Type                | Description                                                   | Default | Required
------------------------- | ------------------- | ------------------------------------------------------------- | ------- | --------
-`servers`                | `list(string)`      | List of Marathon servers.                                     |         | yes
-`refresh_interval`       | `duration`          | Interval at which to refresh the list of targets.             | `"30s"` | no
-`auth_token`             | `secret`            | Auth token to authenticate with.                              |         | no
-`auth_token_file`        | `string`            | File containing an auth token to authenticate with.           |         | no
-`bearer_token_file`      | `string`            | File containing a bearer token to authenticate with.          |         | no
-`bearer_token`           | `secret`            | Bearer token to authenticate with.                            |         | no
-`enable_http2`           | `bool`              | Whether HTTP2 is supported for requests.                      | `true`  | no
-`follow_redirects`       | `bool`              | Whether redirects returned by the server should be followed.  | `true`  | no
-`proxy_url`              | `string`            | HTTP proxy to send requests through.                          |         | no
-`no_proxy`               | `string`            | Comma-separated list of IP addresses, CIDR notations, and domain names to exclude from proxying. | | no
-`proxy_from_environment` | `bool`              | Use the proxy URL indicated by environment variables.         | `false` | no
-`proxy_connect_header`   | `map(list(secret))` | Specifies headers to send to proxies during CONNECT requests. |         | no
+| Name                     | Type                | Description                                                                                      | Default | Required |
+| ------------------------ | ------------------- | ------------------------------------------------------------------------------------------------ | ------- | -------- |
+| `servers`                | `list(string)`      | List of Marathon servers.                                                                        |         | yes      |
+| `refresh_interval`       | `duration`          | Interval at which to refresh the list of targets.                                                | `"30s"` | no       |
+| `auth_token`             | `secret`            | Auth token to authenticate with.                                                                 |         | no       |
+| `auth_token_file`        | `string`            | File containing an auth token to authenticate with.                                              |         | no       |
+| `bearer_token_file`      | `string`            | File containing a bearer token to authenticate with.                                             |         | no       |
+| `bearer_token`           | `secret`            | Bearer token to authenticate with.                                                               |         | no       |
+| `enable_http2`           | `bool`              | Whether HTTP2 is supported for requests.                                                         | `true`  | no       |
+| `follow_redirects`       | `bool`              | Whether redirects returned by the server should be followed.                                     | `true`  | no       |
+| `proxy_url`              | `string`            | HTTP proxy to send requests through.                                                             |         | no       |
+| `no_proxy`               | `string`            | Comma-separated list of IP addresses, CIDR notations, and domain names to exclude from proxying. |         | no       |
+| `proxy_from_environment` | `bool`              | Use the proxy URL indicated by environment variables.                                            | `false` | no       |
+| `proxy_connect_header`   | `map(list(secret))` | Specifies headers to send to proxies during CONNECT requests.                                    |         | no       |
 
- At most, one of the following can be provided:
+At most, one of the following can be provided:
+
 - [`auth_token` argument](#arguments).
 - [`auth_token_file` argument](#arguments).
 - [`bearer_token_file` argument](#arguments).

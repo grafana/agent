@@ -1,8 +1,8 @@
 ---
 aliases:
-- ../../../configuration/integrations/oracledb-config/
-- /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/integrations/oracledb-config/
-- /docs/grafana-cloud/send-data/agent/static/configuration/integrations/oracledb-config/
+  - ../../../configuration/integrations/oracledb-config/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/integrations/oracledb-config/
+  - /docs/grafana-cloud/send-data/agent/static/configuration/integrations/oracledb-config/
 canonical: https://grafana.com/docs/agent/latest/static/configuration/integrations/oracledb-config/
 description: Learn about oracledb_config
 title: oracledb_config
