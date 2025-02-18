@@ -1,9 +1,9 @@
 ---
 aliases:
-- /docs/grafana-cloud/agent/flow/reference/components/local.file/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/local.file/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/local.file/
-- /docs/grafana-cloud/send-data/agent/flow/reference/components/local.file/
+  - /docs/grafana-cloud/agent/flow/reference/components/local.file/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/local.file/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/local.file/
+  - /docs/grafana-cloud/send-data/agent/flow/reference/components/local.file/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/local.file/
 description: Learn about local.file
 title: local.file
@@ -32,12 +32,12 @@ local.file "LABEL" {
 
 The following arguments are supported:
 
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`filename` | `string` | Path of the file on disk to watch | | yes
-`detector` | `string` | Which file change detector to use (fsnotify, poll) | `"fsnotify"` | no
-`poll_frequency` | `duration` | How often to poll for file changes | `"1m"` | no
-`is_secret` | `bool` | Marks the file as containing a [secret][] | `false` | no
+| Name             | Type       | Description                                        | Default      | Required |
+| ---------------- | ---------- | -------------------------------------------------- | ------------ | -------- |
+| `filename`       | `string`   | Path of the file on disk to watch                  |              | yes      |
+| `detector`       | `string`   | Which file change detector to use (fsnotify, poll) | `"fsnotify"` | no       |
+| `poll_frequency` | `duration` | How often to poll for file changes                 | `"1m"`       | no       |
+| `is_secret`      | `bool`     | Marks the file as containing a [secret][]          | `false`      | no       |
 
 [secret]: {{< relref "../../concepts/config-language/expressions/types_and_values.md#secrets" >}}
 
@@ -47,9 +47,9 @@ Name | Type | Description | Default | Required
 
 The following fields are exported and can be referenced by other components:
 
-Name | Type | Description
----- | ---- | -----------
-`content` | `string` or `secret` | The contents of the file from the most recent read
+| Name      | Type                 | Description                                        |
+| --------- | -------------------- | -------------------------------------------------- |
+| `content` | `string` or `secret` | The contents of the file from the most recent read |
 
 The `content` field will have the `secret` type only if the `is_secret`
 argument was true.
@@ -71,7 +71,7 @@ component.
 
 ## Debug metrics
 
-* `agent_local_file_timestamp_last_accessed_unix_seconds` (gauge): The
+- `agent_local_file_timestamp_last_accessed_unix_seconds` (gauge): The
   timestamp, in Unix seconds, that the file was last successfully accessed.
 
 ## Example

@@ -1,9 +1,9 @@
 ---
 aliases:
-- /docs/grafana-cloud/agent/flow/reference/config-blocks/import.git/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/config-blocks/import.git/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/config-blocks/import.git/
-- /docs/grafana-cloud/send-data/agent/flow/reference/config-blocks/import.git/
+  - /docs/grafana-cloud/agent/flow/reference/config-blocks/import.git/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/config-blocks/import.git/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/config-blocks/import.git/
+  - /docs/grafana-cloud/send-data/agent/flow/reference/config-blocks/import.git/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/config-blocks/import.git/
 description: Learn about the import.git configuration block
 title: import.git
@@ -31,12 +31,12 @@ import.git "NAMESPACE" {
 
 The following arguments are supported:
 
-Name             | Type       | Description                                             | Default  | Required
------------------|------------|---------------------------------------------------------|----------|---------
-`repository`     | `string`   | The Git repository address to retrieve the module from. |          | yes
-`revision`       | `string`   | The Git revision to retrieve the module from.           | `"HEAD"` | no
-`path`           | `string`   | The path in the repository where the module is stored.  |          | yes
-`pull_frequency` | `duration` | The frequency to pull the repository for updates.       | `"60s"`  | no
+| Name             | Type       | Description                                             | Default  | Required |
+| ---------------- | ---------- | ------------------------------------------------------- | -------- | -------- |
+| `repository`     | `string`   | The Git repository address to retrieve the module from. |          | yes      |
+| `revision`       | `string`   | The Git revision to retrieve the module from.           | `"HEAD"` | no       |
+| `path`           | `string`   | The path in the repository where the module is stored.  |          | yes      |
+| `pull_frequency` | `duration` | The frequency to pull the repository for updates.       | `"60s"`  | no       |
 
 The `repository` attribute must be set to a repository address that would be
 recognized by Git with a `git clone REPOSITORY_ADDRESS` command, such as
@@ -64,10 +64,10 @@ Pulling hosted Git repositories too often can result in throttling.
 
 The following blocks are supported inside the definition of `import.git`:
 
-Hierarchy  | Block          | Description                                                | Required
------------|----------------|------------------------------------------------------------|---------
-basic_auth | [basic_auth][] | Configure basic_auth for authenticating to the repository. | no
-ssh_key    | [ssh_key][]    | Configure an SSH Key for authenticating to the repository. | no
+| Hierarchy  | Block          | Description                                                | Required |
+| ---------- | -------------- | ---------------------------------------------------------- | -------- |
+| basic_auth | [basic_auth][] | Configure basic_auth for authenticating to the repository. | no       |
+| ssh_key    | [ssh_key][]    | Configure an SSH Key for authenticating to the repository. | no       |
 
 ### basic_auth block
 
@@ -75,12 +75,12 @@ ssh_key    | [ssh_key][]    | Configure an SSH Key for authenticating to the rep
 
 ### ssh_key block
 
-Name         | Type     | Description                       | Default | Required
--------------|----------|-----------------------------------|---------|---------
-`username`   | `string` | SSH username.                     |         | yes
-`key`        | `secret` | SSH private key.                  |         | no
-`key_file`   | `string` | SSH private key path.             |         | no
-`passphrase` | `secret` | Passphrase for SSH key if needed. |         | no
+| Name         | Type     | Description                       | Default | Required |
+| ------------ | -------- | --------------------------------- | ------- | -------- |
+| `username`   | `string` | SSH username.                     |         | yes      |
+| `key`        | `secret` | SSH private key.                  |         | no       |
+| `key_file`   | `string` | SSH private key path.             |         | no       |
+| `passphrase` | `secret` | Passphrase for SSH key if needed. |         | no       |
 
 ## Examples
 
@@ -116,4 +116,3 @@ math.add "default" {
 
 [basic_auth]: #basic_auth-block
 [ssh_key]: #ssh_key-block
-

@@ -1,8 +1,8 @@
 ---
 aliases:
-- ../../../../configuration/integrations/integrations-next/blackbox-config/
-- /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/integrations/integrations-next/blackbox-config/
-- /docs/grafana-cloud/send-data/agent/static/configuration/integrations/integrations-next/blackbox-config/
+  - ../../../../configuration/integrations/integrations-next/blackbox-config/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/integrations/integrations-next/blackbox-config/
+  - /docs/grafana-cloud/send-data/agent/static/configuration/integrations/integrations-next/blackbox-config/
 canonical: https://grafana.com/docs/agent/latest/static/configuration/integrations/integrations-next/blackbox-config/
 description: Learn about blackbox_config next
 title: blackbox_config next
@@ -39,7 +39,7 @@ integrations:
             method: POST
             headers:
               Content-Type: application/json
-            body: '{}'
+            body: "{}"
             preferred_ip_protocol: "ip4"
 ```
 
@@ -94,6 +94,7 @@ Full reference of options:
   # Represents the offset to subtract from timeout in seconds when probing targets.
   [probe_timeout_offset: <float> | default = 0.5]
 ```
+
 ## blackbox_target config
 
 ```yaml

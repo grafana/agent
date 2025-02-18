@@ -1,8 +1,8 @@
 ---
 aliases:
-- ../../../configuration/integrations/integrations-next/
-- /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/integrations/integrations-next/
-- /docs/grafana-cloud/send-data/agent/static/configuration/integrations/integrations-next/
+  - ../../../configuration/integrations/integrations-next/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/integrations/integrations-next/
+  - /docs/grafana-cloud/send-data/agent/static/configuration/integrations/integrations-next/
 canonical: https://grafana.com/docs/agent/latest/static/configuration/integrations/integrations-next/
 description: Learn about integrations next
 menuTitle: Integrations next
@@ -25,26 +25,26 @@ higher frequency of breaking changes than normal.
 The revamped integrations subsystem has the following benefits over the
 original subsystem:
 
-* Integrations can opt in to supporting multiple instances. For example, you
+- Integrations can opt in to supporting multiple instances. For example, you
   may now run any number of `redis_exporter` integrations, where before you
   could only have one per agent. Integrations such as `node_exporter` still
   only support a single instance, as it wouldn't make sense to have multiple
   instances of those.
 
-* Autoscrape (previously called "self-scraping"), when enabled, now supports
+- Autoscrape (previously called "self-scraping"), when enabled, now supports
   sending metrics for an integration directly to a running metrics instance.
   This allows you configuring an integration to send to a specific Prometheus
   remote_write endpoint.
 
-* A new service discovery HTTP API is included. This can be used with
+- A new service discovery HTTP API is included. This can be used with
   Prometheus' [http_sd_config][http_sd_config]. The API returns extra labels
   for integrations that previously were only available when autoscraping, such
   as `agent_hostname`.
 
-* Integrations that aren't Prometheus exporters may now be added, such as
+- Integrations that aren't Prometheus exporters may now be added, such as
   integrations that generate logs or traces.
 
-* Autoscrape, when enabled, now works completely in-memory without using the
+- Autoscrape, when enabled, now works completely in-memory without using the
   network.
 
 [http_sd_config]: https://prometheus.io/docs/prometheus/2.45/configuration/configuration/#http_sd_config
@@ -143,12 +143,12 @@ integrations:
 
   gcp_configs:
     [- <gcp_config>]
-    
+
   azure_configs:
-    [- <azure_config>]   
-    
+    [- <azure_config>]
+
   cloudwatch_configs:
-    [- <cloudwatch_config>]    
+    [- <cloudwatch_config>]
 ```
 
 Note that most integrations are no longer configured with the `_exporter` name.

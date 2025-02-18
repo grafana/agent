@@ -1,9 +1,9 @@
 ---
 aliases:
-- ../../set-up/install-agent-macos/
-- ../set-up/install-agent-macos/
-- /docs/grafana-cloud/monitor-infrastructure/agent/static/set-up/install/install-agent-macos/
-- /docs/grafana-cloud/send-data/agent/static/set-up/install/install-agent-macos/
+  - ../../set-up/install-agent-macos/
+  - ../set-up/install-agent-macos/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/static/set-up/install/install-agent-macos/
+  - /docs/grafana-cloud/send-data/agent/static/set-up/install/install-agent-macos/
 canonical: https://grafana.com/docs/agent/latest/static/set-up/install/install-agent-macos/
 description: Learn how to install Grafana Agent in static mode on macOS
 menuTitle: macOS
@@ -68,6 +68,7 @@ To upgrade Grafana Agent on macOS, run the following commands in a terminal wind
 
    ```shell
    brew services restart grafana-agent
+   ```
 
 ## Uninstall
 
@@ -81,9 +82,9 @@ brew uninstall grafana-agent
 
 1. To create the Agent `config.yml` file, open a terminal and run the following command:
 
-    ```shell
-    touch $(brew --prefix)/etc/grafana-agent/config.yml
-    ```
+   ```shell
+   touch $(brew --prefix)/etc/grafana-agent/config.yml
+   ```
 
 1. Edit `$(brew --prefix)/etc/grafana-agent/config.yml` and add the configuration blocks for your specific telemetry needs. Refer to [Configure Grafana Agent](ref:configure) for more information.
 
@@ -95,4 +96,3 @@ To send your data to Grafana Cloud, set up Grafana Agent using the Grafana Cloud
 
 - [Start Grafana Agent](ref:start)
 - [Configure Grafana Agent](ref:configure)
-

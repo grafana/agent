@@ -1,9 +1,9 @@
 ---
 aliases:
-- /docs/grafana-cloud/agent/flow/reference/components/discovery.triton/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/discovery.triton/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/discovery.triton/
-- /docs/grafana-cloud/send-data/agent/flow/reference/components/discovery.triton/
+  - /docs/grafana-cloud/agent/flow/reference/components/discovery.triton/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/discovery.triton/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/discovery.triton/
+  - /docs/grafana-cloud/send-data/agent/flow/reference/components/discovery.triton/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.triton/
 description: Learn about discovery.triton
 title: discovery.triton
@@ -29,31 +29,33 @@ discovery.triton "LABEL" {
 
 The following arguments are supported:
 
-Name               | Type           | Description                                         | Default       | Required
------------------- | -------------- | --------------------------------------------------- | ------------- | --------
-`account`          | `string`       | The account to use for discovering new targets.     |               | yes
-`role`             | `string`       | The type of targets to discover.                    | `"container"` | no
-`dns_suffix`       | `string`       | The DNS suffix that is applied to the target.       |               | yes
-`endpoint`         | `string`       | The Triton discovery endpoint. 					  |               | yes
-`groups`           | `list(string)` | A list of groups to retrieve targets from.          |               | no
-`port`             | `int`          | The port to use for discovery and metrics scraping. | `9163`        | no
-`refresh_interval` | `duration`     | The refresh interval for the list of targets.       | `60s`         | no
-`version`          | `int`          | The Triton discovery API version.                   | `1`           | no
+| Name               | Type           | Description                                         | Default       | Required |
+| ------------------ | -------------- | --------------------------------------------------- | ------------- | -------- |
+| `account`          | `string`       | The account to use for discovering new targets.     |               | yes      |
+| `role`             | `string`       | The type of targets to discover.                    | `"container"` | no       |
+| `dns_suffix`       | `string`       | The DNS suffix that is applied to the target.       |               | yes      |
+| `endpoint`         | `string`       | The Triton discovery endpoint.                      |               | yes      |
+| `groups`           | `list(string)` | A list of groups to retrieve targets from.          |               | no       |
+| `port`             | `int`          | The port to use for discovery and metrics scraping. | `9163`        | no       |
+| `refresh_interval` | `duration`     | The refresh interval for the list of targets.       | `60s`         | no       |
+| `version`          | `int`          | The Triton discovery API version.                   | `1`           | no       |
 
 `role` can be set to:
-* `"container"` to discover virtual machines (SmartOS zones, lx/KVM/bhyve branded zones) running on Triton
-* `"cn"` to discover compute nodes (servers/global zones) making up the Triton infrastructure
+
+- `"container"` to discover virtual machines (SmartOS zones, lx/KVM/bhyve branded zones) running on Triton
+- `"cn"` to discover compute nodes (servers/global zones) making up the Triton infrastructure
 
 `groups` is only supported when `role` is set to `"container"`. If omitted all
 containers owned by the requesting account are scraped.
 
 ## Blocks
+
 The following blocks are supported inside the definition of
 `discovery.triton`:
 
-Hierarchy | Block | Description | Required
---------- | ----- | ----------- | --------
-tls_config | [tls_config][] | TLS configuration for requests to the Triton API. | no
+| Hierarchy  | Block          | Description                                       | Required |
+| ---------- | -------------- | ------------------------------------------------- | -------- |
+| tls_config | [tls_config][] | TLS configuration for requests to the Triton API. | no       |
 
 [tls_config]: #tls_config-block
 
@@ -65,23 +67,23 @@ tls_config | [tls_config][] | TLS configuration for requests to the Triton API. 
 
 The following fields are exported and can be referenced by other components:
 
-Name      | Type                | Description
---------- | ------------------- | -----------
-`targets` | `list(map(string))` | The set of targets discovered from the Triton API.
+| Name      | Type                | Description                                        |
+| --------- | ------------------- | -------------------------------------------------- |
+| `targets` | `list(map(string))` | The set of targets discovered from the Triton API. |
 
 When `role` is set to `"container"`, each target includes the following labels:
 
-* `__meta_triton_groups`: The list of groups belonging to the target joined by a comma separator.
-* `__meta_triton_machine_alias`: The alias of the target container.
-* `__meta_triton_machine_brand`: The brand of the target container.
-* `__meta_triton_machine_id`: The UUID of the target container.
-* `__meta_triton_machine_image`: The target container's image type.
-* `__meta_triton_server_id`: The server UUID the target container is running on.
+- `__meta_triton_groups`: The list of groups belonging to the target joined by a comma separator.
+- `__meta_triton_machine_alias`: The alias of the target container.
+- `__meta_triton_machine_brand`: The brand of the target container.
+- `__meta_triton_machine_id`: The UUID of the target container.
+- `__meta_triton_machine_image`: The target container's image type.
+- `__meta_triton_server_id`: The server UUID the target container is running on.
 
 When `role` is set to `"cn"` each target includes the following labels:
 
-* `__meta_triton_machine_alias`: The hostname of the target (requires triton-cmon 1.7.0 or newer).
-* `__meta_triton_machine_id`: The UUID of the target.
+- `__meta_triton_machine_alias`: The hostname of the target (requires triton-cmon 1.7.0 or newer).
+- `__meta_triton_machine_id`: The UUID of the target.
 
 ## Component health
 
@@ -122,13 +124,15 @@ prometheus.remote_write "demo" {
 	}
 }
 ```
+
 Replace the following:
-  - `TRITON_ACCOUNT`: Your Triton account.
-  - `TRITON_DNS_SUFFIX`: Your Triton DNS suffix.
-  - `TRITON_ENDPOINT`: Your Triton endpoint.
-  - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
-  - `USERNAME`: The username to use for authentication to the remote_write API.
-  - `PASSWORD`: The password to use for authentication to the remote_write API.
+
+- `TRITON_ACCOUNT`: Your Triton account.
+- `TRITON_DNS_SUFFIX`: Your Triton DNS suffix.
+- `TRITON_ENDPOINT`: Your Triton endpoint.
+- `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
+- `USERNAME`: The username to use for authentication to the remote_write API.
+- `PASSWORD`: The password to use for authentication to the remote_write API.
 
 <!-- START GENERATED COMPATIBLE COMPONENTS -->
 

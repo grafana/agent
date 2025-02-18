@@ -1,10 +1,10 @@
 ---
 aliases:
-- ../../concepts/component-controller/
-- /docs/grafana-cloud/agent/flow/concepts/component_controller/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/concepts/component_controller/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/concepts/component_controller/
-- /docs/grafana-cloud/send-data/agent/flow/concepts/component_controller/
+  - ../../concepts/component-controller/
+  - /docs/grafana-cloud/agent/flow/concepts/component_controller/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/concepts/component_controller/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/concepts/component_controller/
+  - /docs/grafana-cloud/send-data/agent/flow/concepts/component_controller/
 canonical: https://grafana.com/docs/agent/latest/flow/concepts/component_controller/
 description: Learn about the component controller
 title: Component controller
@@ -33,10 +33,10 @@ The _component controller_ is the core part of {{< param "PRODUCT_NAME" >}} whic
 
 The component controller is responsible for:
 
-* Reading and validating the configuration file.
-* Managing the lifecycle of defined components.
-* Evaluating the arguments used to configure components.
-* Reporting the health of defined components.
+- Reading and validating the configuration file.
+- Managing the lifecycle of defined components.
+- Evaluating the arguments used to configure components.
+- Reporting the health of defined components.
 
 ## Component graph
 
@@ -130,4 +130,3 @@ removing components no longer defined in the configuration file and creating new
 All components managed by the controller are reevaluated after reloading.
 
 [DAG]: https://en.wikipedia.org/wiki/Directed_acyclic_graph
-

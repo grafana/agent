@@ -1,9 +1,9 @@
 ---
 aliases:
-- /docs/grafana-cloud/agent/flow/reference/compatible-components/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/compatible-components/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/compatible-components/
-- /docs/grafana-cloud/send-data/agent/flow/reference/compatible-components/
+  - /docs/grafana-cloud/agent/flow/reference/compatible-components/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/compatible-components/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/compatible-components/
+  - /docs/grafana-cloud/send-data/agent/flow/reference/compatible-components/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/compatibility/
 description: Learn about which components are compatible with each other in Grafana Agent Flow
 title: Compatible components
@@ -22,9 +22,10 @@ The value of an attribute may matter as well as its type.
 Refer to each component's documentation for more details on what values are acceptable.
 
 For example:
-* A Prometheus component may always expect an `"__address__"` label inside a list of targets.
-* A `string` argument may only accept certain values like "traceID" or "spanID".
-{{< /admonition >}}
+
+- A Prometheus component may always expect an `"__address__"` label inside a list of targets.
+- A `string` argument may only accept certain values like "traceID" or "spanID".
+  {{< /admonition >}}
 
 ## Targets
 
@@ -38,6 +39,7 @@ It's recommended to always check component references for details when working w
 [string]: ../../concepts/config-language/expressions/types_and_values/#strings
 
 <!-- NOTE: this title is used as an anchor in links. Do not change. -->
+
 ### Targets Exporters
 
 The following components, grouped by namespace, _export_ Targets.
@@ -45,6 +47,7 @@ The following components, grouped by namespace, _export_ Targets.
 <!-- START GENERATED SECTION: EXPORTERS OF Targets -->
 
 {{< collapse title="discovery" >}}
+
 - [discovery.azure](../components/discovery.azure)
 - [discovery.consul](../components/discovery.consul)
 - [discovery.consulagent](../components/discovery.consulagent)
@@ -76,13 +79,15 @@ The following components, grouped by namespace, _export_ Targets.
 - [discovery.serverset](../components/discovery.serverset)
 - [discovery.triton](../components/discovery.triton)
 - [discovery.uyuni](../components/discovery.uyuni)
-{{< /collapse >}}
+  {{< /collapse >}}
 
 {{< collapse title="local" >}}
+
 - [local.file_match](../components/local.file_match)
-{{< /collapse >}}
+  {{< /collapse >}}
 
 {{< collapse title="prometheus" >}}
+
 - [prometheus.exporter.apache](../components/prometheus.exporter.apache)
 - [prometheus.exporter.azure](../components/prometheus.exporter.azure)
 - [prometheus.exporter.blackbox](../components/prometheus.exporter.blackbox)
@@ -110,48 +115,54 @@ The following components, grouped by namespace, _export_ Targets.
 - [prometheus.exporter.unix](../components/prometheus.exporter.unix)
 - [prometheus.exporter.vsphere](../components/prometheus.exporter.vsphere)
 - [prometheus.exporter.windows](../components/prometheus.exporter.windows)
-{{< /collapse >}}
+  {{< /collapse >}}
 
 <!-- END GENERATED SECTION: EXPORTERS OF Targets -->
 
-
 <!-- NOTE: this title is used as an anchor in links. Do not change. -->
+
 ### Targets Consumers
+
 The following components, grouped by namespace, _consume_ Targets.
 
 <!-- START GENERATED SECTION: CONSUMERS OF Targets -->
 
 {{< collapse title="discovery" >}}
+
 - [discovery.process](../components/discovery.process)
 - [discovery.relabel](../components/discovery.relabel)
-{{< /collapse >}}
+  {{< /collapse >}}
 
 {{< collapse title="local" >}}
+
 - [local.file_match](../components/local.file_match)
-{{< /collapse >}}
+  {{< /collapse >}}
 
 {{< collapse title="loki" >}}
+
 - [loki.source.docker](../components/loki.source.docker)
 - [loki.source.file](../components/loki.source.file)
 - [loki.source.kubernetes](../components/loki.source.kubernetes)
-{{< /collapse >}}
+  {{< /collapse >}}
 
 {{< collapse title="otelcol" >}}
+
 - [otelcol.processor.discovery](../components/otelcol.processor.discovery)
-{{< /collapse >}}
+  {{< /collapse >}}
 
 {{< collapse title="prometheus" >}}
+
 - [prometheus.scrape](../components/prometheus.scrape)
-{{< /collapse >}}
+  {{< /collapse >}}
 
 {{< collapse title="pyroscope" >}}
+
 - [pyroscope.ebpf](../components/pyroscope.ebpf)
 - [pyroscope.java](../components/pyroscope.java)
 - [pyroscope.scrape](../components/pyroscope.scrape)
-{{< /collapse >}}
+  {{< /collapse >}}
 
 <!-- END GENERATED SECTION: CONSUMERS OF Targets -->
-
 
 ## Prometheus `MetricsReceiver`
 
@@ -163,6 +174,7 @@ Use the following components to build your Prometheus metrics pipeline:
 [capsules]: ../../concepts/config-language/expressions/types_and_values/#capsules
 
 <!-- NOTE: this title is used as an anchor in links. Do not change. -->
+
 ### Prometheus `MetricsReceiver` Exporters
 
 The following components, grouped by namespace, _export_ Prometheus `MetricsReceiver`.
@@ -170,17 +182,20 @@ The following components, grouped by namespace, _export_ Prometheus `MetricsRece
 <!-- START GENERATED SECTION: EXPORTERS OF Prometheus `MetricsReceiver` -->
 
 {{< collapse title="otelcol" >}}
+
 - [otelcol.receiver.prometheus](../components/otelcol.receiver.prometheus)
-{{< /collapse >}}
+  {{< /collapse >}}
 
 {{< collapse title="prometheus" >}}
+
 - [prometheus.relabel](../components/prometheus.relabel)
 - [prometheus.remote_write](../components/prometheus.remote_write)
-{{< /collapse >}}
+  {{< /collapse >}}
 
 <!-- END GENERATED SECTION: EXPORTERS OF Prometheus `MetricsReceiver` -->
 
 <!-- NOTE: this title is used as an anchor in links. Do not change. -->
+
 ### Prometheus `MetricsReceiver` Consumers
 
 The following components, grouped by namespace, _consume_ Prometheus `MetricsReceiver`.
@@ -188,17 +203,19 @@ The following components, grouped by namespace, _consume_ Prometheus `MetricsRec
 <!-- START GENERATED SECTION: CONSUMERS OF Prometheus `MetricsReceiver` -->
 
 {{< collapse title="otelcol" >}}
+
 - [otelcol.exporter.prometheus](../components/otelcol.exporter.prometheus)
-{{< /collapse >}}
+  {{< /collapse >}}
 
 {{< collapse title="prometheus" >}}
+
 - [prometheus.operator.podmonitors](../components/prometheus.operator.podmonitors)
 - [prometheus.operator.probes](../components/prometheus.operator.probes)
 - [prometheus.operator.servicemonitors](../components/prometheus.operator.servicemonitors)
 - [prometheus.receive_http](../components/prometheus.receive_http)
 - [prometheus.relabel](../components/prometheus.relabel)
 - [prometheus.scrape](../components/prometheus.scrape)
-{{< /collapse >}}
+  {{< /collapse >}}
 
 <!-- END GENERATED SECTION: CONSUMERS OF Prometheus `MetricsReceiver` -->
 
@@ -209,6 +226,7 @@ Components that consume `LogsReceiver` as an argument typically send logs to it.
 Use the following components to build your Loki logs pipeline:
 
 <!-- NOTE: this title is used as an anchor in links. Do not change. -->
+
 ### Loki `LogsReceiver` Exporters
 
 The following components, grouped by namespace, _export_ Loki `LogsReceiver`.
@@ -216,19 +234,22 @@ The following components, grouped by namespace, _export_ Loki `LogsReceiver`.
 <!-- START GENERATED SECTION: EXPORTERS OF Loki `LogsReceiver` -->
 
 {{< collapse title="loki" >}}
+
 - [loki.echo](../components/loki.echo)
 - [loki.process](../components/loki.process)
 - [loki.relabel](../components/loki.relabel)
 - [loki.write](../components/loki.write)
-{{< /collapse >}}
+  {{< /collapse >}}
 
 {{< collapse title="otelcol" >}}
+
 - [otelcol.receiver.loki](../components/otelcol.receiver.loki)
-{{< /collapse >}}
+  {{< /collapse >}}
 
 <!-- END GENERATED SECTION: EXPORTERS OF Loki `LogsReceiver` -->
 
 <!-- NOTE: this title is used as an anchor in links. Do not change. -->
+
 ### Loki `LogsReceiver` Consumers
 
 The following components, grouped by namespace, _consume_ Loki `LogsReceiver`.
@@ -236,10 +257,12 @@ The following components, grouped by namespace, _consume_ Loki `LogsReceiver`.
 <!-- START GENERATED SECTION: CONSUMERS OF Loki `LogsReceiver` -->
 
 {{< collapse title="faro" >}}
+
 - [faro.receiver](../components/faro.receiver)
-{{< /collapse >}}
+  {{< /collapse >}}
 
 {{< collapse title="loki" >}}
+
 - [loki.process](../components/loki.process)
 - [loki.relabel](../components/loki.relabel)
 - [loki.source.api](../components/loki.source.api)
@@ -258,11 +281,12 @@ The following components, grouped by namespace, _consume_ Loki `LogsReceiver`.
 - [loki.source.podlogs](../components/loki.source.podlogs)
 - [loki.source.syslog](../components/loki.source.syslog)
 - [loki.source.windowsevent](../components/loki.source.windowsevent)
-{{< /collapse >}}
+  {{< /collapse >}}
 
 {{< collapse title="otelcol" >}}
+
 - [otelcol.exporter.loki](../components/otelcol.exporter.loki)
-{{< /collapse >}}
+  {{< /collapse >}}
 
 <!-- END GENERATED SECTION: CONSUMERS OF Loki `LogsReceiver` -->
 
@@ -276,6 +300,7 @@ Refer to the component reference pages for more details on what is supported.
 Use the following components to build your OpenTelemetry pipeline:
 
 <!-- NOTE: this title is used as an anchor in links. Do not change. -->
+
 ### OpenTelemetry `otelcol.Consumer` Exporters
 
 The following components, grouped by namespace, _export_ OpenTelemetry `otelcol.Consumer`.
@@ -283,11 +308,11 @@ The following components, grouped by namespace, _export_ OpenTelemetry `otelcol.
 <!-- START GENERATED SECTION: EXPORTERS OF OpenTelemetry `otelcol.Consumer` -->
 
 {{< collapse title="otelcol" >}}
+
 - [otelcol.connector.host_info](../components/otelcol.connector.host_info)
 - [otelcol.connector.servicegraph](../components/otelcol.connector.servicegraph)
 - [otelcol.connector.spanlogs](../components/otelcol.connector.spanlogs)
 - [otelcol.connector.spanmetrics](../components/otelcol.connector.spanmetrics)
-- [otelcol.exporter.debug](../components/otelcol.exporter.debug)
 - [otelcol.exporter.loadbalancing](../components/otelcol.exporter.loadbalancing)
 - [otelcol.exporter.logging](../components/otelcol.exporter.logging)
 - [otelcol.exporter.loki](../components/otelcol.exporter.loki)
@@ -305,11 +330,12 @@ The following components, grouped by namespace, _export_ OpenTelemetry `otelcol.
 - [otelcol.processor.span](../components/otelcol.processor.span)
 - [otelcol.processor.tail_sampling](../components/otelcol.processor.tail_sampling)
 - [otelcol.processor.transform](../components/otelcol.processor.transform)
-{{< /collapse >}}
+  {{< /collapse >}}
 
 <!-- END GENERATED SECTION: EXPORTERS OF OpenTelemetry `otelcol.Consumer` -->
 
 <!-- NOTE: this title is used as an anchor in links. Do not change. -->
+
 ### OpenTelemetry `otelcol.Consumer` Consumers
 
 The following components, grouped by namespace, _consume_ OpenTelemetry `otelcol.Consumer`.
@@ -317,10 +343,12 @@ The following components, grouped by namespace, _consume_ OpenTelemetry `otelcol
 <!-- START GENERATED SECTION: CONSUMERS OF OpenTelemetry `otelcol.Consumer` -->
 
 {{< collapse title="faro" >}}
+
 - [faro.receiver](../components/faro.receiver)
-{{< /collapse >}}
+  {{< /collapse >}}
 
 {{< collapse title="otelcol" >}}
+
 - [otelcol.connector.host_info](../components/otelcol.connector.host_info)
 - [otelcol.connector.servicegraph](../components/otelcol.connector.servicegraph)
 - [otelcol.connector.spanlogs](../components/otelcol.connector.spanlogs)
@@ -344,7 +372,7 @@ The following components, grouped by namespace, _consume_ OpenTelemetry `otelcol
 - [otelcol.receiver.prometheus](../components/otelcol.receiver.prometheus)
 - [otelcol.receiver.vcenter](../components/otelcol.receiver.vcenter)
 - [otelcol.receiver.zipkin](../components/otelcol.receiver.zipkin)
-{{< /collapse >}}
+  {{< /collapse >}}
 
 <!-- END GENERATED SECTION: CONSUMERS OF OpenTelemetry `otelcol.Consumer` -->
 
@@ -356,6 +384,7 @@ Components that can consume Pyroscope profiles can be passed the `ProfilesReceiv
 Use the following components to build your Pyroscope profiles pipeline:
 
 <!-- NOTE: this title is used as an anchor in links. Do not change. -->
+
 ### Pyroscope `ProfilesReceiver` Exporters
 
 The following components, grouped by namespace, _export_ Pyroscope `ProfilesReceiver`.
@@ -363,12 +392,14 @@ The following components, grouped by namespace, _export_ Pyroscope `ProfilesRece
 <!-- START GENERATED SECTION: EXPORTERS OF Pyroscope `ProfilesReceiver` -->
 
 {{< collapse title="pyroscope" >}}
+
 - [pyroscope.write](../components/pyroscope.write)
-{{< /collapse >}}
+  {{< /collapse >}}
 
 <!-- END GENERATED SECTION: EXPORTERS OF Pyroscope `ProfilesReceiver` -->
 
 <!-- NOTE: this title is used as an anchor in links. Do not change. -->
+
 ### Pyroscope `ProfilesReceiver` Consumers
 
 The following components, grouped by namespace, _consume_ Pyroscope `ProfilesReceiver`.
@@ -376,9 +407,10 @@ The following components, grouped by namespace, _consume_ Pyroscope `ProfilesRec
 <!-- START GENERATED SECTION: CONSUMERS OF Pyroscope `ProfilesReceiver` -->
 
 {{< collapse title="pyroscope" >}}
+
 - [pyroscope.ebpf](../components/pyroscope.ebpf)
 - [pyroscope.java](../components/pyroscope.java)
 - [pyroscope.scrape](../components/pyroscope.scrape)
-{{< /collapse >}}
+  {{< /collapse >}}
 
 <!-- END GENERATED SECTION: CONSUMERS OF Pyroscope `ProfilesReceiver` -->

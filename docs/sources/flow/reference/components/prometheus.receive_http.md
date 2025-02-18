@@ -1,9 +1,9 @@
 ---
 aliases:
-- /docs/grafana-cloud/agent/flow/reference/components/prometheus.receive_http/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/prometheus.receive_http/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/prometheus.receive_http/
-- /docs/grafana-cloud/send-data/agent/flow/reference/components/prometheus.receive_http/
+  - /docs/grafana-cloud/agent/flow/reference/components/prometheus.receive_http/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/prometheus.receive_http/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/prometheus.receive_http/
+  - /docs/grafana-cloud/send-data/agent/flow/reference/components/prometheus.receive_http/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.receive_http/
 description: Learn about prometheus.receive_http
 title: prometheus.receive_http
@@ -38,17 +38,17 @@ The component will start an HTTP server supporting the following endpoint:
 
 `prometheus.receive_http` supports the following arguments:
 
-Name         | Type             | Description                           | Default | Required
--------------|------------------|---------------------------------------|---------|---------
-`forward_to` | `list(MetricsReceiver)` | List of receivers to send metrics to. |         | yes
+| Name         | Type                    | Description                           | Default | Required |
+| ------------ | ----------------------- | ------------------------------------- | ------- | -------- |
+| `forward_to` | `list(MetricsReceiver)` | List of receivers to send metrics to. |         | yes      |
 
 ## Blocks
 
 The following blocks are supported inside the definition of `prometheus.receive_http`:
 
-Hierarchy | Name     | Description                                        | Required
-----------|----------|----------------------------------------------------|---------
-`http`    | [http][] | Configures the HTTP server that receives requests. | no
+| Hierarchy | Name     | Description                                        | Required |
+| --------- | -------- | -------------------------------------------------- | -------- |
+| `http`    | [http][] | Configures the HTTP server that receives requests. | no       |
 
 [http]: #http
 
@@ -68,12 +68,12 @@ Hierarchy | Name     | Description                                        | Requ
 
 The following are some of the metrics that are exposed when this component is used. Note that the metrics include labels such as `status_code` where relevant, which can be used to measure request success rates.
 
-* `prometheus_receive_http_request_duration_seconds` (histogram): Time (in seconds) spent serving HTTP requests.
-* `prometheus_receive_http_request_message_bytes` (histogram): Size (in bytes) of messages received in the request.
-* `prometheus_receive_http_response_message_bytes` (histogram): Size (in bytes) of messages sent in response.
-* `prometheus_receive_http_tcp_connections` (gauge): Current number of accepted TCP connections.
-* `agent_prometheus_fanout_latency` (histogram): Write latency for sending metrics to other components.
-* `agent_prometheus_forwarded_samples_total` (counter): Total number of samples sent to downstream components.
+- `prometheus_receive_http_request_duration_seconds` (histogram): Time (in seconds) spent serving HTTP requests.
+- `prometheus_receive_http_request_message_bytes` (histogram): Size (in bytes) of messages received in the request.
+- `prometheus_receive_http_response_message_bytes` (histogram): Size (in bytes) of messages sent in response.
+- `prometheus_receive_http_tcp_connections` (gauge): Current number of accepted TCP connections.
+- `agent_prometheus_fanout_latency` (histogram): Write latency for sending metrics to other components.
+- `agent_prometheus_forwarded_samples_total` (counter): Total number of samples sent to downstream components.
 
 ## Example
 
@@ -86,7 +86,7 @@ This example creates a `prometheus.receive_http` component which starts an HTTP 
 prometheus.receive_http "api" {
   http {
     listen_address = "0.0.0.0"
-    listen_port = 9999 
+    listen_port = 9999
   }
   forward_to = [prometheus.remote_write.local.receiver]
 }
@@ -95,7 +95,7 @@ prometheus.receive_http "api" {
 prometheus.remote_write "local" {
   endpoint {
     url = "http://mimir:9009/api/v1/push"
-    
+
     basic_auth {
       username = "example-user"
       password = "example-password"
@@ -128,7 +128,8 @@ prometheus.remote_write "local" {
 
 ## Technical details
 
-`prometheus.receive_http` uses [snappy](https://en.wikipedia.org/wiki/Snappy_(compression)) for compression.
+`prometheus.receive_http` uses [snappy](<https://en.wikipedia.org/wiki/Snappy_(compression)>) for compression.
+
 <!-- START GENERATED COMPATIBLE COMPONENTS -->
 
 ## Compatible components
@@ -136,7 +137,6 @@ prometheus.remote_write "local" {
 `prometheus.receive_http` can accept arguments from the following components:
 
 - Components that export [Prometheus `MetricsReceiver`](../../compatibility/#prometheus-metricsreceiver-exporters)
-
 
 {{< admonition type="note" >}}
 Connecting some components may not be sensible or components may require further configuration to make the connection work correctly.

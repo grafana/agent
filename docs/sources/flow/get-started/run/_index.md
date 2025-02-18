@@ -1,16 +1,16 @@
 ---
 aliases:
-- /docs/grafana-cloud/agent/flow/get-started/run/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/get-started/run/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/get-started/run/
-- /docs/grafana-cloud/send-data/agent/flow/get-started/run/
-- /docs/sources/flow/run/
-# Previous pages aliases for backwards compatibility:
-- /docs/grafana-cloud/agent/flow/setup/start-agent/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/setup/start-agent/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/setup/start-agent/
-- /docs/grafana-cloud/send-data/agent/flow/setup/start-agent/
-- ../setup/start-agent/ # /docs/agent/latest/flow/setup/start-agent/
+  - /docs/grafana-cloud/agent/flow/get-started/run/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/get-started/run/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/get-started/run/
+  - /docs/grafana-cloud/send-data/agent/flow/get-started/run/
+  - /docs/sources/flow/run/
+  # Previous pages aliases for backwards compatibility:
+  - /docs/grafana-cloud/agent/flow/setup/start-agent/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/setup/start-agent/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/setup/start-agent/
+  - /docs/grafana-cloud/send-data/agent/flow/setup/start-agent/
+  - ../setup/start-agent/ # /docs/agent/latest/flow/setup/start-agent/
 canonical: https://grafana.com/docs/agent/latest/flow/get-started/run/
 description: Learn how to run Grafana Agent Flow
 menuTitle: Run
@@ -30,4 +30,3 @@ Use the following pages to learn how to start, restart, and stop {{< param "PROD
 For installation instructions, refer to [Install {{< param "PRODUCT_NAME" >}}](ref:install).
 
 {{< section >}}
-

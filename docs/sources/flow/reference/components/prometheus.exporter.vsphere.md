@@ -1,9 +1,9 @@
 ---
 aliases:
-- /docs/grafana-cloud/agent/flow/reference/components/prometheus.exporter.vsphere/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/prometheus.exporter.vsphere/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/prometheus.exporter.vsphere/
-- /docs/grafana-cloud/send-data/agent/flow/reference/components/prometheus.exporter.vsphere/
+  - /docs/grafana-cloud/agent/flow/reference/components/prometheus.exporter.vsphere/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/prometheus.exporter.vsphere/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/prometheus.exporter.vsphere/
+  - /docs/grafana-cloud/send-data/agent/flow/reference/components/prometheus.exporter.vsphere/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.vsphere/
 title: prometheus.exporter.vsphere
 description: Learn about prometheus.exporter.vsphere
@@ -34,18 +34,17 @@ prometheus.exporter.vsphere "LABEL" {
 You can use the following arguments to configure the exporter's behavior.
 Omitted fields take their default values.
 
-| Name                         | Type      | Description                                                                                                                             | Default | Required |
-| ---------------------------- | --------- | --------------------------------------------------------------------------------------------------------------------------------------- | ------- | -------- |
-| `vsphere_url`                | `string`  | The url of the vCenter endpoint SDK     |         | no      |
-| `vsphere_user`             | `string` | vCenter username. |    | no       |
-| `vsphere_password`           | `secret` | vCenter password.   |    | no       |
-| `request_chunk_size`         | `int`     | Number of managed objects to include in each request to vsphere when fetching performance counters.                                     | `256`   | no       |
-| `collect_concurrency`        | `int`     | Number of concurrent requests to vSphere when fetching performance counters.                                                           | `8`     | no       |
-| `discovery_interval` | `duration` | Interval on which to run vSphere managed object discovery. | `0` | no |
-| `enable_exporter_metrics` | `boolean` | Enable the exporter metrics. | `true` | no |
+| Name                      | Type       | Description                                                                                         | Default | Required |
+| ------------------------- | ---------- | --------------------------------------------------------------------------------------------------- | ------- | -------- |
+| `vsphere_url`             | `string`   | The url of the vCenter endpoint SDK                                                                 |         | no       |
+| `vsphere_user`            | `string`   | vCenter username.                                                                                   |         | no       |
+| `vsphere_password`        | `secret`   | vCenter password.                                                                                   |         | no       |
+| `request_chunk_size`      | `int`      | Number of managed objects to include in each request to vsphere when fetching performance counters. | `256`   | no       |
+| `collect_concurrency`     | `int`      | Number of concurrent requests to vSphere when fetching performance counters.                        | `8`     | no       |
+| `discovery_interval`      | `duration` | Interval on which to run vSphere managed object discovery.                                          | `0`     | no       |
+| `enable_exporter_metrics` | `boolean`  | Enable the exporter metrics.                                                                        | `true`  | no       |
 
--  Setting `discovery_interval` to a non-zero value will result in object discovery running in the background. Each scrape will use object data gathered during the last discovery. When this value is 0, object discovery occurs per scrape.
-
+- Setting `discovery_interval` to a non-zero value will result in object discovery running in the background. Each scrape will use object data gathered during the last discovery. When this value is 0, object discovery occurs per scrape.
 
 ## Exported fields
 

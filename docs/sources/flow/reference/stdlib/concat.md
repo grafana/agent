@@ -1,10 +1,10 @@
 ---
 aliases:
-- ../../configuration-language/standard-library/concat/
-- /docs/grafana-cloud/agent/flow/reference/stdlib/concat/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/stdlib/concat/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/stdlib/concat/
-- /docs/grafana-cloud/send-data/agent/flow/reference/stdlib/concat/
+  - ../../configuration-language/standard-library/concat/
+  - /docs/grafana-cloud/agent/flow/reference/stdlib/concat/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/stdlib/concat/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/stdlib/concat/
+  - /docs/grafana-cloud/send-data/agent/flow/reference/stdlib/concat/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/stdlib/concat/
 description: Learn about concat
 title: concat

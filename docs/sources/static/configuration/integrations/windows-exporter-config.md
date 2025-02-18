@@ -1,8 +1,8 @@
 ---
 aliases:
-- ../../../configuration/integrations/windows-exporter-config/
-- /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/integrations/windows-exporter-config/
-- /docs/grafana-cloud/send-data/agent/static/configuration/integrations/windows-exporter-config/
+  - ../../../configuration/integrations/windows-exporter-config/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/integrations/windows-exporter-config/
+  - /docs/grafana-cloud/send-data/agent/static/configuration/integrations/windows-exporter-config/
 canonical: https://grafana.com/docs/agent/latest/static/configuration/integrations/windows-exporter-config/
 description: Learn about windows_exporter_config
 title: windows_exporter_config
@@ -113,17 +113,8 @@ Full reference of options:
     # "WQL 'where' clause to use in WMI metrics query. Limits the response to the services you specify and reduces the size of the response.
     # Maps to collector.service.services-where in windows_exporter
     [where_clause: <string> | default=""]
-    # If "use_api" is set to "true", service data will be collected via the Windows API.
-    # If "use_api" is set to "false", service data will be collected via WMI.
-    # When "use_api" is set to "true", "where_clause" will be ignored and will not take effect.
-    # The Windows API is more performant than WMI. Set `use_api` to `true` in situations when the WMI takes too long to get the service information.
-    # Setting `use_api` to `true` does have a few disadvantages compared to using WMI:
-    # * WMI queries in `where_clause` won't work.
-    # * The `status` field of the service won't be reported. Instead, use the `state` property. 
-    #   It has the same information, albeit formatted differently.
-    [use_api: <boolean> | default = false]
 
-  # Configuration for physical disk on Windows 
+  # Configuration for physical disk on Windows
   physical_disk:
     # Regexp of volumes to include. Disk name must both match include and not match exclude to be included.
     # Maps to collector.logical_disk.disk-include in windows_exporter.

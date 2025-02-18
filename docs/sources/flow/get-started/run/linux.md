@@ -77,4 +77,3 @@ sudo journalctl -u grafana-agent-flow
 ## Next steps
 
 - [Configure {{< param "PRODUCT_NAME" >}}](ref:configure)
-

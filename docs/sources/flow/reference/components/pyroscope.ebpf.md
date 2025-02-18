@@ -1,9 +1,9 @@
 ---
 aliases:
-- /docs/grafana-cloud/agent/flow/reference/components/pyroscope.ebpf/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/pyroscope.ebpf/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/pyroscope.ebpf/
-- /docs/grafana-cloud/send-data/agent/flow/reference/components/pyroscope.ebpf/
+  - /docs/grafana-cloud/agent/flow/reference/components/pyroscope.ebpf/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/pyroscope.ebpf/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/pyroscope.ebpf/
+  - /docs/grafana-cloud/send-data/agent/flow/reference/components/pyroscope.ebpf/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/pyroscope.ebpf/
 description: Learn about pyroscope.ebpf
 labels:
@@ -19,7 +19,7 @@ title: pyroscope.ebpf
 to the list of receivers passed in `forward_to`.
 
 {{< admonition type="note" >}}
-To use the  `pyroscope.ebpf` component you must run {{< param "PRODUCT_NAME" >}} as root and inside host pid namespace.
+To use the `pyroscope.ebpf` component you must run {{< param "PRODUCT_NAME" >}} as root and inside host pid namespace.
 {{< /admonition >}}
 
 You can specify multiple `pyroscope.ebpf` components by giving them different labels, however it is not recommended as
@@ -43,7 +43,7 @@ You can use the following arguments to configure a `pyroscope.ebpf`. Only the
 values.
 
 | Name                      | Type                     | Description                                                                         | Default | Required |
-|---------------------------|--------------------------|-------------------------------------------------------------------------------------|---------|----------|
+| ------------------------- | ------------------------ | ----------------------------------------------------------------------------------- | ------- | -------- |
 | `targets`                 | `list(map(string))`      | List of targets to group profiles by container id                                   |         | yes      |
 | `forward_to`              | `list(ProfilesReceiver)` | List of receivers to send collected profiles to.                                    |         | yes      |
 | `collect_interval`        | `duration`               | How frequently to collect profiles                                                  | `15s`   | no       |
@@ -71,17 +71,17 @@ configuration.
 
 ## Debug information
 
-* `targets` currently tracked active targets.
-* `pid_cache` per process elf symbol tables and their sizes in symbols count.
-* `elf_cache` per build id and per same file symbol tables and their sizes in symbols count.
+- `targets` currently tracked active targets.
+- `pid_cache` per process elf symbol tables and their sizes in symbols count.
+- `elf_cache` per build id and per same file symbol tables and their sizes in symbols count.
 
 ## Debug metrics
 
-* `pyroscope_fanout_latency` (histogram): Write latency for sending to direct and indirect components.
-* `pyroscope_ebpf_active_targets` (gauge): Number of active targets the component tracks.
-* `pyroscope_ebpf_profiling_sessions_total` (counter): Number of profiling sessions completed.
-* `pyroscope_ebpf_profiling_sessions_failing_total` (counter): Number of profiling sessions failed.
-* `pyroscope_ebpf_pprofs_total` (counter): Number of pprof profiles collected by the ebpf component.
+- `pyroscope_fanout_latency` (histogram): Write latency for sending to direct and indirect components.
+- `pyroscope_ebpf_active_targets` (gauge): Number of active targets the component tracks.
+- `pyroscope_ebpf_profiling_sessions_total` (counter): Number of profiling sessions completed.
+- `pyroscope_ebpf_profiling_sessions_failing_total` (counter): Number of profiling sessions failed.
+- `pyroscope_ebpf_pprofs_total` (counter): Number of pprof profiles collected by the ebpf component.
 
 ## Profile collecting behavior
 
@@ -92,21 +92,21 @@ The following labels are automatically injected into the collected profiles if y
 can help you pin down a profiling target.
 
 | Label              | Description                                                                                                                      |
-|--------------------|----------------------------------------------------------------------------------------------------------------------------------|
+| ------------------ | -------------------------------------------------------------------------------------------------------------------------------- |
 | `service_name`     | Pyroscope service name. It's automatically selected from discovery meta labels if possible. Otherwise defaults to `unspecified`. |
 | `__name__`         | pyroscope metric name. Defaults to `process_cpu`.                                                                                |
 | `__container_id__` | The container ID derived from target.                                                                                            |
 
-### Targets 
+### Targets
 
 One of the following special labels _must_ be included in each target of `targets` and the label must correspond to the container or process that is profiled:
 
-* `__container_id__`: The container ID.
-* `__meta_docker_container_id`: The ID of the Docker container.
-* `__meta_kubernetes_pod_container_id`: The ID of the Kubernetes pod container.
-* `__process_pid__` : The process ID.
+- `__container_id__`: The container ID.
+- `__meta_docker_container_id`: The ID of the Docker container.
+- `__meta_kubernetes_pod_container_id`: The ID of the Kubernetes pod container.
+- `__process_pid__` : The process ID.
 
-Each process is then associated with a specified target from the targets list, determined by a container ID or process PID. 
+Each process is then associated with a specified target from the targets list, determined by a container ID or process PID.
 
 If a process's container ID matches a target's container ID label, the stack traces are aggregated per target based on the container ID.
 If a process's PID matches a target's process PID label, the stack traces are aggregated per target based on the process PID.
@@ -289,11 +289,12 @@ pyroscope.write "staging" {
   }
 }
 
-pyroscope.ebpf "default" {  
+pyroscope.ebpf "default" {
   forward_to   = [ pyroscope.write.staging.receiver ]
   targets      = discovery.relabel.local_containers.output
 }
 ```
+
 <!-- START GENERATED COMPATIBLE COMPONENTS -->
 
 ## Compatible components
@@ -302,7 +303,6 @@ pyroscope.ebpf "default" {
 
 - Components that export [Targets](../../compatibility/#targets-exporters)
 - Components that export [Pyroscope `ProfilesReceiver`](../../compatibility/#pyroscope-profilesreceiver-exporters)
-
 
 {{< admonition type="note" >}}
 Connecting some components may not be sensible or components may require further configuration to make the connection work correctly.

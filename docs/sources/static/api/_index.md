@@ -1,8 +1,8 @@
 ---
 aliases:
-- ../api/
-- /docs/grafana-cloud/monitor-infrastructure/agent/static/api/
-- /docs/grafana-cloud/send-data/agent/static/api/
+  - ../api/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/static/api/
+  - /docs/grafana-cloud/send-data/agent/static/api/
 canonical: https://grafana.com/docs/agent/latest/static/api/
 description: Learn about the Grafana Agent static mode API
 menuTitle: Static mode API
@@ -400,6 +400,7 @@ configuration file on disk.
 Status code: 200 on success.
 
 ### Generate support bundle
+
 ```
 GET /-/support?duration=N
 ```
@@ -420,13 +421,14 @@ In addition, you can inspect the [supportbundle package](https://github.com/graf
 to verify the code that is being used to generate these bundles.
 
 A support bundle contains the following data:
-* `agent-config.yaml` contains the current agent configuration (when the `-config.enable-read-api` flag is passed).
-* `agent-logs.txt` contains the agent logs during the bundle generation.
-* `agent-metadata.yaml` contains the agent's build version, operating system, architecture, uptime, plus a string payload defining which extra agent features have been enabled via command-line flags.
-* `agent-metrics-instances.json` and `agent-metrics-targets.json` contain the active metric subsystem instances and the discovered scrape targets for each one.
-* `agent-logs-instances.json` and `agent-logs-targets.json` contains the active logs subsystem instances and the discovered log targets for each one.
-* `agent-metrics.txt` contains a snapshot of the agent's internal metrics.
-* The `pprof/` directory contains Go runtime profiling data (CPU, heap, goroutine, mutex, block profiles) as exported by the pprof package.
+
+- `agent-config.yaml` contains the current agent configuration (when the `-config.enable-read-api` flag is passed).
+- `agent-logs.txt` contains the agent logs during the bundle generation.
+- `agent-metadata.yaml` contains the agent's build version, operating system, architecture, uptime, plus a string payload defining which extra agent features have been enabled via command-line flags.
+- `agent-metrics-instances.json` and `agent-metrics-targets.json` contain the active metric subsystem instances and the discovered scrape targets for each one.
+- `agent-logs-instances.json` and `agent-logs-targets.json` contains the active logs subsystem instances and the discovered log targets for each one.
+- `agent-metrics.txt` contains a snapshot of the agent's internal metrics.
+- The `pprof/` directory contains Go runtime profiling data (CPU, heap, goroutine, mutex, block profiles) as exported by the pprof package.
 
 ## Integrations API (Experimental)
 
@@ -526,6 +528,7 @@ GET /-/ready
 Status code: 200 if ready.
 
 Response:
+
 ```
 Agent is Ready.
 ```
@@ -539,7 +542,7 @@ GET /-/healthy
 Status code: 200 if healthy.
 
 Response:
+
 ```
 Agent is Healthy.
 ```
-
