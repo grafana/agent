@@ -1,16 +1,16 @@
 ---
 aliases:
-- /docs/grafana-cloud/agent/flow/get-started/install/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/get-started/install/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/get-started/install/
-- /docs/grafana-cloud/send-data/agent/flow/get-started/install/
-# Previous docs aliases for backwards compatibility:
-- /docs/grafana-cloud/agent/flow/setup/install/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/setup/install/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/setup/install/
-- /docs/grafana-cloud/send-data/agent/flow/setup/install/
-- /docs/sources/flow/install/
-- ../setup/install/ # /docs/agent/latest/flow/setup/install/
+  - /docs/grafana-cloud/agent/flow/get-started/install/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/get-started/install/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/get-started/install/
+  - /docs/grafana-cloud/send-data/agent/flow/get-started/install/
+  # Previous docs aliases for backwards compatibility:
+  - /docs/grafana-cloud/agent/flow/setup/install/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/setup/install/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/setup/install/
+  - /docs/grafana-cloud/send-data/agent/flow/setup/install/
+  - /docs/sources/flow/install/
+  - ../setup/install/ # /docs/agent/latest/flow/setup/install/
 canonical: https://grafana.com/docs/agent/latest/flow/get-started/install/
 description: Learn how to install Grafana Agent Flow
 menuTitle: Install
@@ -45,4 +45,3 @@ Installing {{< param "PRODUCT_NAME" >}} on other operating systems is possible, 
 
 By default, {{< param "PRODUCT_NAME" >}} sends anonymous usage information to Grafana Labs. Refer to [data collection](ref:data-collection) for more information
 about what data is collected and how you can opt-out.
-

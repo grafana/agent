@@ -1,9 +1,9 @@
 ---
 aliases:
-- ../../configuration/scraping-service/
-- ../../scraping-service/
-- /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/scraping-service/
-- /docs/grafana-cloud/send-data/agent/static/configuration/scraping-service/
+  - ../../configuration/scraping-service/
+  - ../../scraping-service/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/scraping-service/
+  - /docs/grafana-cloud/send-data/agent/static/configuration/scraping-service/
 canonical: https://grafana.com/docs/agent/latest/static/configuration/scraping-service/
 description: Learn about the scraping service
 menuTitle: Scraping service
@@ -48,9 +48,9 @@ a small instance configuration file looks like this:
 scrape_configs:
   - job_name: self-scrape
     static_configs:
-      - targets: ['localhost:9090']
+      - targets: ["localhost:9090"]
         labels:
-          process: 'agent'
+          process: "agent"
 remote_write:
   - url: http://cortex:9009/api/prom/push
 ```
@@ -181,7 +181,7 @@ are planned for the future.
 
 ## Debug Ring endpoint
 
-You can use the `/debug/ring` endpoint to troubleshoot issues with the scraping service in Scraping Service Mode. 
+You can use the `/debug/ring` endpoint to troubleshoot issues with the scraping service in Scraping Service Mode.
 It provides information about the Distributed Hash Ring and the current distribution of configurations among Agents in the cluster.
 It also allows you to forget an instance in the ring manually.
 
@@ -192,7 +192,6 @@ Information returned by the `/debug/ring` endpoint includes:
 - The list of Agents in the cluster, and their respective tokens used for sharding.
 - The list of configuration files in the KV store and associated hash values used for lookup in the ring.
 - The unique instance ID assigned to each instance of the Agent running in the cluster.
-   The instance ID is a unique identifier assigned to each running instance of the Agent within the cluster.
-   The exact details of the instance ID generation might be specific to the implementation of the Grafana Agent.
+  The instance ID is a unique identifier assigned to each running instance of the Agent within the cluster.
+  The exact details of the instance ID generation might be specific to the implementation of the Grafana Agent.
 - The time of the "Last Heartbeat" of each instance. The Last Heartbeat is the last time the instance was active in the ring.
-

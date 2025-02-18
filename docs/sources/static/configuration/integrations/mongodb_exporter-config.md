@@ -1,8 +1,8 @@
 ---
 aliases:
-- ../../../configuration/integrations/mongodb_exporter-config/
-- /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/integrations/mongodb_exporter-config/
-- /docs/grafana-cloud/send-data/agent/static/configuration/integrations/mongodb_exporter-config/
+  - ../../../configuration/integrations/mongodb_exporter-config/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/integrations/mongodb_exporter-config/
+  - /docs/grafana-cloud/send-data/agent/static/configuration/integrations/mongodb_exporter-config/
 canonical: https://grafana.com/docs/agent/latest/static/configuration/integrations/mongodb_exporter-config/
 description: Learn about mongodb_exporter_config
 title: mongodb_exporter_config
@@ -21,12 +21,12 @@ Here`s an example:
 
 ```yaml
 relabel_configs:
-    - source_labels: [__address__]
-      target_label: service_name
-      replacement: 'replicaset1-node1'
-    - source_labels: [__address__]
-      target_label: mongodb_cluster
-      replacement: 'prod-cluster'
+  - source_labels: [__address__]
+    target_label: service_name
+    replacement: "replicaset1-node1"
+  - source_labels: [__address__]
+    target_label: mongodb_cluster
+    replacement: "prod-cluster"
 ```
 
 We strongly recommend that you configure a separate user for the Agent, and give it only the strictly mandatory

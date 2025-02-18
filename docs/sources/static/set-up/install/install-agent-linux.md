@@ -1,9 +1,9 @@
 ---
 aliases:
-- ../../set-up/install-agent-linux/
-- ../set-up/install-agent-linux/
-- /docs/grafana-cloud/monitor-infrastructure/agent/static/set-up/install/install-agent-linux/
-- /docs/grafana-cloud/send-data/agent/static/set-up/install/install-agent-linux/
+  - ../../set-up/install-agent-linux/
+  - ../set-up/install-agent-linux/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/static/set-up/install/install-agent-linux/
+  - /docs/grafana-cloud/send-data/agent/static/set-up/install/install-agent-linux/
 canonical: https://grafana.com/docs/agent/latest/static/set-up/install/install-agent-linux/
 description: Learn how to install Grafana Agent in static mode on Linux
 menuTitle: Linux
@@ -163,7 +163,7 @@ To uninstall Grafana Agent on SUSE or openSUSE, run the following commands in a 
 
    ```shell
    sudo systemctl stop grafana-agent
-   ````
+   ```
 
 1. Uninstall Grafana Agent:
 
@@ -185,29 +185,29 @@ The Grafana Agent is configured as a [systemd](https://systemd.io/) service.
 
 To run Grafana Agent, run the following in a terminal:
 
-   ```shell
-   sudo systemctl start grafana-agent
-   ```
+```shell
+sudo systemctl start grafana-agent
+```
 
 To check the status of Grafana Agent, run the following command in a terminal:
 
-   ```shell
-   sudo systemctl status grafana-agent
-   ```
+```shell
+sudo systemctl status grafana-agent
+```
 
 ### Run Grafana Agent on startup
 
 To automatically run Grafana Agent when the system starts, run the following command in a terminal:
 
-   ```shell
-   sudo systemctl enable grafana-agent.service
-   ```
+```shell
+sudo systemctl enable grafana-agent.service
+```
 
 ### Configuring Grafana Agent
 
 To configure Grafana Agent when installed on Linux, perform the following steps:
 
-1. Edit the default configuration file at `/etc/grafana-agent.yaml`. 
+1. Edit the default configuration file at `/etc/grafana-agent.yaml`.
 
 1. Run the following command in a terminal to reload the configuration file:
 
@@ -219,12 +219,11 @@ To configure Grafana Agent when installed on Linux, perform the following steps:
 
 Logs of Grafana Agent can be found by running the following command in a terminal:
 
-   ```shell
-   sudo journalctl -u grafana-agent
-   ```
+```shell
+sudo journalctl -u grafana-agent
+```
 
 ## Next steps
 
 - [Start Grafana Agent](ref:start)
 - [Configure Grafana Agent](ref:configure)
-

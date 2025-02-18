@@ -1,8 +1,8 @@
 ---
 aliases:
-- ../../../configuration/integrations/process-exporter-config/
-- /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/integrations/process-exporter-config/
-- /docs/grafana-cloud/send-data/agent/static/configuration/integrations/process-exporter-config/
+  - ../../../configuration/integrations/process-exporter-config/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/integrations/process-exporter-config/
+  - /docs/grafana-cloud/send-data/agent/static/configuration/integrations/process-exporter-config/
 canonical: https://grafana.com/docs/agent/latest/static/configuration/integrations/process-exporter-config/
 description: Learn about process_exporter_config
 title: process_exporter_config
@@ -41,18 +41,18 @@ metadata:
   name: agent
 spec:
   containers:
-  - image: grafana/agent:{{< param "AGENT_RELEASE" >}}
-    name: agent
-    args:
-    - --config.file=/etc/agent-config/agent.yaml
-    volumeMounts:
-    - name: procfs
-      mountPath: /proc
-      readOnly: true
+    - image: grafana/agent:{{< param "AGENT_RELEASE" >}}
+      name: agent
+      args:
+        - --config.file=/etc/agent-config/agent.yaml
+      volumeMounts:
+        - name: procfs
+          mountPath: /proc
+          readOnly: true
   volumes:
-  - name: procfs
-    hostPath:
-      path: /proc
+    - name: procfs
+      hostPath:
+        path: /proc
 ```
 
 The manifest and Tanka configs provided by this repository do not have the

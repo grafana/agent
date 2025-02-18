@@ -1,15 +1,15 @@
 ---
 aliases:
-- /docs/grafana-cloud/agent/flow/tasks/collect-opentelemetry-data/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/tasks/collect-opentelemetry-data/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/tasks/collect-opentelemetry-data/
-- /docs/grafana-cloud/send-data/agent/flow/tasks/collect-opentelemetry-data/
-# Previous page aliases for backwards compatibility:
-- /docs/grafana-cloud/agent/flow/getting-started/collect-opentelemetry-data/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/getting-started/collect-opentelemetry-data/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/getting-started/collect-opentelemetry-data/
-- /docs/grafana-cloud/send-data/agent/flow/getting-started/collect-opentelemetry-data/
-- ../getting-started/collect-opentelemetry-data/ # /docs/agent/latest/flow/getting-started/collect-opentelemetry-data/
+  - /docs/grafana-cloud/agent/flow/tasks/collect-opentelemetry-data/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/tasks/collect-opentelemetry-data/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/tasks/collect-opentelemetry-data/
+  - /docs/grafana-cloud/send-data/agent/flow/tasks/collect-opentelemetry-data/
+  # Previous page aliases for backwards compatibility:
+  - /docs/grafana-cloud/agent/flow/getting-started/collect-opentelemetry-data/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/getting-started/collect-opentelemetry-data/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/getting-started/collect-opentelemetry-data/
+  - /docs/grafana-cloud/send-data/agent/flow/getting-started/collect-opentelemetry-data/
+  - ../getting-started/collect-opentelemetry-data/ # /docs/agent/latest/flow/getting-started/collect-opentelemetry-data/
 canonical: https://grafana.com/docs/agent/latest/flow/tasks/collect-opentelemetry-data/
 description: Learn how to collect OpenTelemetry data
 title: Collect OpenTelemetry data
@@ -54,24 +54,24 @@ data and forward it to any OpenTelemetry-compatible endpoint.
 
 This topic describes how to:
 
-* Configure OpenTelemetry data delivery.
-* Configure batching.
-* Receive OpenTelemetry data over OTLP.
+- Configure OpenTelemetry data delivery.
+- Configure batching.
+- Receive OpenTelemetry data over OTLP.
 
 ## Components used in this topic
 
-* [otelcol.auth.basic](ref:otelcol.auth.basic)
-* [otelcol.exporter.otlp](ref:otelcol.exporter.otlp)
-* [otelcol.exporter.otlphttp](ref:otelcol.exporter.otlphttp)
-* [otelcol.processor.batch](ref:otelcol.processor.batch)
-* [otelcol.receiver.otlp](ref:otelcol.receiver.otlp)
+- [otelcol.auth.basic](ref:otelcol.auth.basic)
+- [otelcol.exporter.otlp](ref:otelcol.exporter.otlp)
+- [otelcol.exporter.otlphttp](ref:otelcol.exporter.otlphttp)
+- [otelcol.processor.batch](ref:otelcol.processor.batch)
+- [otelcol.receiver.otlp](ref:otelcol.receiver.otlp)
 
 ## Before you begin
 
-* Ensure that you have basic familiarity with instrumenting applications with OpenTelemetry.
-* Have a set of OpenTelemetry applications ready to push telemetry data to {{< param "PRODUCT_NAME" >}}.
-* Identify where {{< param "PRODUCT_NAME" >}} writes received telemetry data.
-* Be familiar with the concept of [Components](ref:components) in {{< param "PRODUCT_NAME" >}}.
+- Ensure that you have basic familiarity with instrumenting applications with OpenTelemetry.
+- Have a set of OpenTelemetry applications ready to push telemetry data to {{< param "PRODUCT_NAME" >}}.
+- Identify where {{< param "PRODUCT_NAME" >}} writes received telemetry data.
+- Be familiar with the concept of [Components](ref:components) in {{< param "PRODUCT_NAME" >}}.
 
 ## Configure an OpenTelemetry Protocol exporter
 
@@ -100,38 +100,40 @@ To configure an `otelcol.exporter.otlp` component for exporting OpenTelemetry da
 
    - _`<EXPORTER_LABEL>`_: The label for the component, such as `default`.
      The label you use must be unique across all `otelcol.exporter.otlp` components in the same configuration file.
+
    * _`<HOST>`_: The hostname or IP address of the server to send OTLP requests to.
+
    - _`<PORT>`_: The port of the server to send OTLP requests to.
 
 2. If your server requires basic authentication, complete the following:
 
-    1. Add the following `otelcol.auth.basic` component to your configuration file:
+   1. Add the following `otelcol.auth.basic` component to your configuration file:
 
-       ```river
-       otelcol.auth.basic "<BASIC_AUTH_LABEL>" {
-         username = "<USERNAME>"
-         password = "<PASSWORD>"
-       }
-       ```
+      ```river
+      otelcol.auth.basic "<BASIC_AUTH_LABEL>" {
+        username = "<USERNAME>"
+        password = "<PASSWORD>"
+      }
+      ```
 
-       Replace the following:
+      Replace the following:
 
-       - _`<BASIC_AUTH_LABEL>`_: The label for the component, such as `default`.
-         The label you use must be unique across all `otelcol.auth.basic` components in the same configuration file.
-       - _`<USERNAME>`_: The basic authentication username.
-       - _`<PASSWORD>`_: The basic authentication password or API key.
+      - _`<BASIC_AUTH_LABEL>`_: The label for the component, such as `default`.
+        The label you use must be unique across all `otelcol.auth.basic` components in the same configuration file.
+      - _`<USERNAME>`_: The basic authentication username.
+      - _`<PASSWORD>`_: The basic authentication password or API key.
 
-    1. Add the following line inside of the `client` block of your `otelcol.exporter.otlp` component:
+   1. Add the following line inside of the `client` block of your `otelcol.exporter.otlp` component:
 
-       ```river
-       auth = otelcol.auth.basic.<BASIC_AUTH_LABEL>.handler
-       ```
+      ```river
+      auth = otelcol.auth.basic.<BASIC_AUTH_LABEL>.handler
+      ```
 
-       Replace the following:
+      Replace the following:
 
-       - _`<BASIC_AUTH_LABEL>`_: The label for the `otelcol.auth.basic` component.
+      - _`<BASIC_AUTH_LABEL>`_: The label for the `otelcol.auth.basic` component.
 
-1. If you have more than one server to export metrics to, create a new `otelcol.exporter.otlp` component for each additional server.
+3. If you have more than one server to export metrics to, create a new `otelcol.exporter.otlp` component for each additional server.
 
 > `otelcol.exporter.otlp` sends data using OTLP over gRPC (HTTP/2).
 > To send to a server using HTTP/1.1, follow the preceding steps,
@@ -349,4 +351,3 @@ For more information on receiving OpenTelemetry data using the OpenTelemetry Pro
 [OpenTelemetry]: https://opentelemetry.io
 [Configure an OpenTelemetry Protocol exporter]: #configure-an-opentelemetry-protocol-exporter
 [Configure batching]: #configure-batching
-

@@ -1,10 +1,10 @@
 ---
 aliases:
-- ../../configuration-language/standard-library/coalesce/
-- /docs/grafana-cloud/agent/flow/reference/stdlib/coalesce/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/stdlib/coalesce/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/stdlib/coalesce/
-- /docs/grafana-cloud/send-data/agent/flow/reference/stdlib/coalesce/
+  - ../../configuration-language/standard-library/coalesce/
+  - /docs/grafana-cloud/agent/flow/reference/stdlib/coalesce/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/stdlib/coalesce/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/stdlib/coalesce/
+  - /docs/grafana-cloud/send-data/agent/flow/reference/stdlib/coalesce/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/stdlib/coalesce/
 description: Learn about coalesce
 title: coalesce

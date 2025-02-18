@@ -4,12 +4,12 @@ deleteDatasources:
   - name: Mimir
 
 datasources:
-- name: Mimir
-  type: prometheus
-  access: proxy
-  orgId: 1
-  url: http://mimir:9009/prometheus
-  basicAuth: false
-  isDefault: false
-  version: 1
-  editable: false
+  - name: Mimir
+    type: prometheus
+    access: proxy
+    orgId: 1
+    url: http://mimir:9009/prometheus
+    basicAuth: false
+    isDefault: false
+    version: 1
+    editable: false

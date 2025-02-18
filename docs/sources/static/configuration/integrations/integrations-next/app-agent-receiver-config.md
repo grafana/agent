@@ -1,8 +1,8 @@
 ---
 aliases:
-- ../../../../configuration/integrations/integrations-next/app-agent-receiver-config/
-- /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/integrations/integrations-next/app-agent-receiver-config/
-- /docs/grafana-cloud/send-data/agent/static/configuration/integrations/integrations-next/app-agent-receiver-config/
+  - ../../../../configuration/integrations/integrations-next/app-agent-receiver-config/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/integrations/integrations-next/app-agent-receiver-config/
+  - /docs/grafana-cloud/send-data/agent/static/configuration/integrations/integrations-next/app-agent-receiver-config/
 canonical: https://grafana.com/docs/agent/latest/static/configuration/integrations/integrations-next/app-agent-receiver-config/
 description: Learn about app_agent_receiver_config next
 title: app_agent_receiver_config next

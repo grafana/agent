@@ -1,9 +1,9 @@
 ---
 aliases:
-- /docs/grafana-cloud/agent/flow/reference/components/discovery.relabel/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/discovery.relabel/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/discovery.relabel/
-- /docs/grafana-cloud/send-data/agent/flow/reference/components/discovery.relabel/
+  - /docs/grafana-cloud/agent/flow/reference/components/discovery.relabel/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/discovery.relabel/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/discovery.relabel/
+  - /docs/grafana-cloud/send-data/agent/flow/reference/components/discovery.relabel/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.relabel/
 description: Learn about discovery.relabel
 title: discovery.relabel
@@ -55,18 +55,18 @@ discovery.relabel "LABEL" {
 
 The following arguments are supported:
 
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`targets` | `list(map(string))` | Targets to relabel | | yes
+| Name      | Type                | Description        | Default | Required |
+| --------- | ------------------- | ------------------ | ------- | -------- |
+| `targets` | `list(map(string))` | Targets to relabel |         | yes      |
 
 ## Blocks
 
 The following blocks are supported inside the definition of
 `discovery.relabel`:
 
-Hierarchy | Block | Description | Required
---------- | ----- | ----------- | --------
-rule | [rule][] | Relabeling rules to apply to targets. | no
+| Hierarchy | Block    | Description                           | Required |
+| --------- | -------- | ------------------------------------- | -------- |
+| rule      | [rule][] | Relabeling rules to apply to targets. | no       |
 
 [rule]: #rule-block
 
@@ -78,10 +78,10 @@ rule | [rule][] | Relabeling rules to apply to targets. | no
 
 The following fields are exported and can be referenced by other components:
 
-Name | Type | Description
----- | ---- | -----------
-`output` | `list(map(string))` | The set of targets after applying relabeling.
-`rules`    | `RelabelRules` | The currently configured relabeling rules.
+| Name     | Type                | Description                                   |
+| -------- | ------------------- | --------------------------------------------- |
+| `output` | `list(map(string))` | The set of targets after applying relabeling. |
+| `rules`  | `RelabelRules`      | The currently configured relabeling rules.    |
 
 ## Component health
 
@@ -121,7 +121,6 @@ discovery.relabel "keep_backend_only" {
   }
 }
 ```
-
 
 <!-- START GENERATED COMPATIBLE COMPONENTS -->
 

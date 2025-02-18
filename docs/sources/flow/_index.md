@@ -1,11 +1,12 @@
 ---
 aliases:
-- /docs/grafana-cloud/agent/flow/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/
-- /docs/grafana-cloud/send-data/agent/flow/
+  - /docs/grafana-cloud/agent/flow/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/
+  - /docs/grafana-cloud/send-data/agent/flow/
 canonical: https://grafana.com/docs/agent/latest/flow/
-description: Grafana Agent Flow is a component-based revision of Grafana Agent with
+description:
+  Grafana Agent Flow is a component-based revision of Grafana Agent with
   a focus on ease-of-use, debuggability, and adaptability
 title: Flow mode
 weight: 400
@@ -50,17 +51,17 @@ debuggability, and ability to adapt to the needs of power users.
 
 Components allow for reusability, composability, and focus on a single task.
 
-* **Reusability** allows for the output of components to be reused as the input for multiple other components.
-* **Composability** allows for components to be chained together to form a pipeline.
-* **Single task** means the scope of a component is limited to one narrow task and thus has fewer side effects.
+- **Reusability** allows for the output of components to be reused as the input for multiple other components.
+- **Composability** allows for components to be chained together to form a pipeline.
+- **Single task** means the scope of a component is limited to one narrow task and thus has fewer side effects.
 
 ## Features
 
-* Write declarative configurations with a Terraform-inspired configuration
+- Write declarative configurations with a Terraform-inspired configuration
   language.
-* Declare components to configure parts of a pipeline.
-* Use expressions to bind components together to build a programmable pipeline.
-* Includes a UI for debugging the state of a pipeline.
+- Declare components to configure parts of a pipeline.
+- Use expressions to bind components together to build a programmable pipeline.
+- Includes a UI for debugging the state of a pipeline.
 
 {{< param "PRODUCT_NAME" >}} is a [distribution][] of the OpenTelemetry
 Collector.
@@ -109,7 +110,6 @@ prometheus.remote_write "default" {
 }
 ```
 
-
 ## {{% param "PRODUCT_NAME" %}} configuration generator
 
 The {{< param "PRODUCT_NAME" >}} [configuration generator](https://grafana.github.io/agent-configurator/) helps you get a head start on creating flow code.
@@ -120,11 +120,10 @@ This feature is experimental, and it doesn't support all River components.
 
 ## Next steps
 
-* [Install](ref:install) {{< param "PRODUCT_NAME" >}}.
-* Learn about the core [Concepts](ref:concepts) of {{< param "PRODUCT_NAME" >}}.
-* Follow the [Tutorials](ref:tutorials) for hands-on learning of {{< param "PRODUCT_NAME" >}}.
-* Consult the [Tasks](ref:tasks) instructions to accomplish common objectives with {{< param "PRODUCT_NAME" >}}.
-* Check out the [Reference](ref:reference) documentation to find specific information you might be looking for.
+- [Install](ref:install) {{< param "PRODUCT_NAME" >}}.
+- Learn about the core [Concepts](ref:concepts) of {{< param "PRODUCT_NAME" >}}.
+- Follow the [Tutorials](ref:tutorials) for hands-on learning of {{< param "PRODUCT_NAME" >}}.
+- Consult the [Tasks](ref:tasks) instructions to accomplish common objectives with {{< param "PRODUCT_NAME" >}}.
+- Check out the [Reference](ref:reference) documentation to find specific information you might be looking for.
 
 [distribution]: https://opentelemetry.io/ecosystem/distributions/
-

@@ -1,16 +1,16 @@
 ---
 aliases:
-- ../../configuration-language/expressions/function-calls/ # /docs/agent/latest/flow/concepts/configuration-language/expressions/function-calls/
-- /docs/grafana-cloud/agent/flow/concepts/config-language/expressions/function_calls/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/concepts/config-language/expressions/function_calls/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/concepts/config-language/expressions/function_calls/
-- /docs/grafana-cloud/send-data/agent/flow/concepts/config-language/expressions/function_calls/
-# Previous page aliases for backwards compatibility:
-- ../../../configuration-language/expressions/function-calls/ # /docs/agent/latest/flow/configuration-language/expressions/function-calls/
-- /docs/grafana-cloud/agent/flow/config-language/expressions/function_calls/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/config-language/expressions/function_calls/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/config-language/expressions/function_calls/
-- /docs/grafana-cloud/send-data/agent/flow/config-language/expressions/function_calls/
+  - ../../configuration-language/expressions/function-calls/ # /docs/agent/latest/flow/concepts/configuration-language/expressions/function-calls/
+  - /docs/grafana-cloud/agent/flow/concepts/config-language/expressions/function_calls/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/concepts/config-language/expressions/function_calls/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/concepts/config-language/expressions/function_calls/
+  - /docs/grafana-cloud/send-data/agent/flow/concepts/config-language/expressions/function_calls/
+  # Previous page aliases for backwards compatibility:
+  - ../../../configuration-language/expressions/function-calls/ # /docs/agent/latest/flow/configuration-language/expressions/function-calls/
+  - /docs/grafana-cloud/agent/flow/config-language/expressions/function_calls/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/config-language/expressions/function_calls/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/config-language/expressions/function_calls/
+  - /docs/grafana-cloud/send-data/agent/flow/config-language/expressions/function_calls/
 canonical: https://grafana.com/docs/agent/latest/flow/concepts/config-language/expressions/function_calls/
 description: Learn about function calls
 title: Function calls
@@ -42,4 +42,3 @@ Some functions allow for more complex expressions, for example, concatenating ar
 env("HOME")
 json_decode(local.file.cfg.content)["namespace"]
 ```
-

@@ -1,15 +1,15 @@
 ---
 aliases:
-- /docs/grafana-cloud/agent/flow/tasks/debug/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/tasks/debug/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/tasks/debug/
-- /docs/grafana-cloud/send-data/agent/flow/tasks/debug/
-# Previous page aliases for backwards compatibility:
-- /docs/grafana-cloud/agent/flow/monitoring/debugging/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/monitoring/debugging/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/monitoring/debugging/
-- /docs/grafana-cloud/send-data/agent/flow/monitoring/debugging/
-- ../monitoring/debugging/ # /docs/agent/latest/flow/monitoring/debugging/
+  - /docs/grafana-cloud/agent/flow/tasks/debug/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/tasks/debug/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/tasks/debug/
+  - /docs/grafana-cloud/send-data/agent/flow/tasks/debug/
+  # Previous page aliases for backwards compatibility:
+  - /docs/grafana-cloud/agent/flow/monitoring/debugging/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/monitoring/debugging/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/monitoring/debugging/
+  - /docs/grafana-cloud/send-data/agent/flow/monitoring/debugging/
+  - ../monitoring/debugging/ # /docs/agent/latest/flow/monitoring/debugging/
 canonical: https://grafana.com/docs/agent/latest/flow/monitoring/debugging/
 description: Learn about debugging issues with Grafana Agent Flow
 title: Debug issues with Grafana Agent Flow
@@ -86,10 +86,10 @@ Clicking a component in the graph navigates to the [Component detail page](#comp
 
 The component detail page shows the following information for each component:
 
-* The health of the component with a message explaining the health.
-* The current evaluated arguments for the component.
-* The current exports for the component.
-* The current debug info for the component (if the component has debug info).
+- The health of the component with a message explaining the health.
+- The current evaluated arguments for the component.
+- The current exports for the component.
+- The current debug info for the component (if the component has debug info).
 
 > Values marked as a [secret](ref:secret) are obfuscated and display as the text `(secret)`.
 
@@ -99,17 +99,17 @@ The component detail page shows the following information for each component:
 
 The Clustering page shows the following information for each cluster node:
 
-* The node's name.
-* The node's advertised address.
-* The node's current state (Viewer/Participant/Terminating).
-* The local node that serves the UI.
+- The node's name.
+- The node's advertised address.
+- The node's current state (Viewer/Participant/Terminating).
+- The local node that serves the UI.
 
 ## Debugging using the UI
 
 To debug using the UI:
 
-* Ensure that no component is reported as unhealthy.
-* Ensure that the arguments and exports for misbehaving components appear correct.
+- Ensure that no component is reported as unhealthy.
+- Ensure that the arguments and exports for misbehaving components appear correct.
 
 ## Examining logs
 
