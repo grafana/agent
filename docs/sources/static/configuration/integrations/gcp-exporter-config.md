@@ -1,8 +1,8 @@
 ---
 aliases:
-- ../../../configuration/integrations/gcp-exporter-config/
-- /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/integrations/gcp-exporter-config/
-- /docs/grafana-cloud/send-data/agent/static/configuration/integrations/gcp-exporter-config/
+  - ../../../configuration/integrations/gcp-exporter-config/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/integrations/gcp-exporter-config/
+  - /docs/grafana-cloud/send-data/agent/static/configuration/integrations/gcp-exporter-config/
 canonical: https://grafana.com/docs/agent/latest/static/configuration/integrations/gcp-exporter-config/
 description: Learn about gcp_exporter_config
 title: gcp_exporter_config
@@ -11,9 +11,10 @@ title: gcp_exporter_config
 # gcp_exporter_config
 
 ## Overview
+
 The `gcp_exporter_config` block configures the `gcp_exporter` integration, which is an embedded version of
 [`stackdriver_exporter`](https://github.com/prometheus-community/stackdriver_exporter). This allows for the collection of
-metrics data from [GCP Cloud Monitoring (formerly stackdriver)](https://cloud.google.com/monitoring/docs). The exporter supports all metrics available via [GCP's monitoring API](https://cloud.google.com/monitoring/api/metrics_gcp). 
+metrics data from [GCP Cloud Monitoring (formerly stackdriver)](https://cloud.google.com/monitoring/docs). The exporter supports all metrics available via [GCP's monitoring API](https://cloud.google.com/monitoring/api/metrics_gcp).
 
 Metric names follow the template `stackdriver_<monitored_resource>_<metric_type_prefix>_<metric_type>`.
 
@@ -147,43 +148,46 @@ The following examples show working configurations. See the [Configuration Refer
 overview of the configuration options and what they do.
 
 ### Multiple prefixes
+
 ```yaml
-  gcp_exporter:
-    enabled: true
-    project_ids:
-      - <project_id>
-    metrics_prefixes:
-      - run.googleapis.com/
-      - cloudfunctions.googleapis.com/
-      - compute.googleapis.com/nat
-      - logging.googleapis.com/billing
-      - logging.googleapis.com/exports
-      - serviceruntime.googleapis.com/quota/
-      - storage.googleapis.com/
-      - pubsub.googleapis.com/subscription
+gcp_exporter:
+  enabled: true
+  project_ids:
+    - <project_id>
+  metrics_prefixes:
+    - run.googleapis.com/
+    - cloudfunctions.googleapis.com/
+    - compute.googleapis.com/nat
+    - logging.googleapis.com/billing
+    - logging.googleapis.com/exports
+    - serviceruntime.googleapis.com/quota/
+    - storage.googleapis.com/
+    - pubsub.googleapis.com/subscription
 ```
 
 ### Load balancing with a filter
+
 ```yaml
-  gcp_exporter:
-    enabled: true
-    project_ids:
-      - <project_id>
-    metrics_prefixes:
-      - loadbalancing.googleapis.com
-    extra_filters:
-      - loadbalancing.googleapis.com:resource.labels.backend_target_name="sample-value"
+gcp_exporter:
+  enabled: true
+  project_ids:
+    - <project_id>
+  metrics_prefixes:
+    - loadbalancing.googleapis.com
+  extra_filters:
+    - loadbalancing.googleapis.com:resource.labels.backend_target_name="sample-value"
 ```
 
 ### Subset of load balancing metrics with a filter
+
 ```yaml
-  gcp_exporter:
-    enabled: true
-    project_ids:
-      - <project_id>
-    metrics_prefixes:
-      - loadbalancing.googleapis.com/https/request_bytes_count
-      - loadbalancing.googleapis.com/https/total_latencies
-    extra_filters:
-      - loadbalancing.googleapis.com:resource.labels.backend_target_name="sample-value"
+gcp_exporter:
+  enabled: true
+  project_ids:
+    - <project_id>
+  metrics_prefixes:
+    - loadbalancing.googleapis.com/https/request_bytes_count
+    - loadbalancing.googleapis.com/https/total_latencies
+  extra_filters:
+    - loadbalancing.googleapis.com:resource.labels.backend_target_name="sample-value"
 ```

@@ -1,16 +1,16 @@
 ---
 aliases:
-- ../configuration-language/expressions/ # /docs/agent/latest/flow/concepts/configuration-language/expressions/
-- /docs/grafana-cloud/agent/flow/concepts/config-language/expressions/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/concepts/config-language/expressions/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/concepts/config-language/expressions/
-- /docs/grafana-cloud/send-data/agent/flow/concepts/config-language/expressions/
-# Previous page aliases for backwards compatibility:
-- ../../configuration-language/expressions/ # /docs/agent/latest/flow/configuration-language/expressions/
-- /docs/grafana-cloud/agent/flow/config-language/expressions/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/config-language/expressions/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/config-language/expressions/
-- /docs/grafana-cloud/send-data/agent/flow/config-language/expressions/
+  - ../configuration-language/expressions/ # /docs/agent/latest/flow/concepts/configuration-language/expressions/
+  - /docs/grafana-cloud/agent/flow/concepts/config-language/expressions/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/concepts/config-language/expressions/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/concepts/config-language/expressions/
+  - /docs/grafana-cloud/send-data/agent/flow/concepts/config-language/expressions/
+  # Previous page aliases for backwards compatibility:
+  - ../../configuration-language/expressions/ # /docs/agent/latest/flow/configuration-language/expressions/
+  - /docs/grafana-cloud/agent/flow/config-language/expressions/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/config-language/expressions/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/config-language/expressions/
+  - /docs/grafana-cloud/send-data/agent/flow/config-language/expressions/
 canonical: https://grafana.com/docs/agent/latest/flow/concepts/config-language/expressions/
 description: Learn about expressions
 title: Expressions
@@ -43,4 +43,3 @@ Expressions may also do things like [refer to values](ref:refer-to-values) expor
 You use expressions when you configure any component.
 All component arguments have an underlying [type](ref:type).
 River checks the expression type before assigning the result to an attribute.
-

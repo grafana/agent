@@ -132,22 +132,22 @@ The built-in {{< param "PRODUCT_ROOT_NAME" >}} convert command can migrate your 
 
 This topic describes how to:
 
-* Convert a Grafana Agent Static configuration to a {{< param "PRODUCT_NAME" >}} configuration.
-* Run a Grafana Agent Static configuration natively using {{< param "PRODUCT_NAME" >}}.
+- Convert a Grafana Agent Static configuration to a {{< param "PRODUCT_NAME" >}} configuration.
+- Run a Grafana Agent Static configuration natively using {{< param "PRODUCT_NAME" >}}.
 
 ## Components used in this topic
 
-* [prometheus.scrape](ref:prometheus.scrape)
-* [prometheus.remote_write](ref:prometheus.remote_write)
-* [local.file_match](ref:local.file_match)
-* [loki.process](ref:loki.process)
-* [loki.source.file](ref:loki.source.file)
-* [loki.write](ref:loki.write)
+- [prometheus.scrape](ref:prometheus.scrape)
+- [prometheus.remote_write](ref:prometheus.remote_write)
+- [local.file_match](ref:local.file_match)
+- [loki.process](ref:loki.process)
+- [loki.source.file](ref:loki.source.file)
+- [loki.write](ref:loki.write)
 
 ## Before you begin
 
-* You must have an existing Grafana Agent Static configuration.
-* You must be familiar with the [Components](ref:components) concept in {{< param "PRODUCT_NAME" >}}.
+- You must have an existing Grafana Agent Static configuration.
+- You must be familiar with the [Components](ref:components) concept in {{< param "PRODUCT_NAME" >}}.
 
 ## Convert a Grafana Agent Static configuration
 
@@ -173,8 +173,8 @@ This conversion will enable you to take full advantage of the many additional fe
 
    Replace the following:
 
-    * _`<INPUT_CONFIG_PATH>`_: The full path to the [Static](ref:static) configuration.
-    * _`<OUTPUT_CONFIG_PATH>_`: The full path to output the {{< param "PRODUCT_NAME" >}} configuration.
+   - _`<INPUT_CONFIG_PATH>`_: The full path to the [Static](ref:static) configuration.
+   - _`<OUTPUT_CONFIG_PATH>_`: The full path to output the {{< param "PRODUCT_NAME" >}} configuration.
 
 1. [Run](ref:run) {{< param "PRODUCT_NAME" >}} using the new {{< param "PRODUCT_NAME" >}} configuration from _`<OUTPUT_CONFIG_PATH>`_:
 
@@ -202,8 +202,8 @@ This conversion will enable you to take full advantage of the many additional fe
 
    Replace the following:
 
-   * _`<INPUT_CONFIG_PATH>`_: The full path to the [Static](ref:static) configuration.
-   * _`<OUTPUT_CONFIG_PATH>`_: The full path to output the {{< param "PRODUCT_NAME" >}} configuration.
+   - _`<INPUT_CONFIG_PATH>`_: The full path to the [Static](ref:static) configuration.
+   - _`<OUTPUT_CONFIG_PATH>`_: The full path to output the {{< param "PRODUCT_NAME" >}} configuration.
 
 1. You can use the `--report` flag to output a diagnostic report.
 
@@ -215,21 +215,21 @@ This conversion will enable you to take full advantage of the many additional fe
 
    ```flow-binary
    grafana-agent-flow convert --source-format=static --report=<OUTPUT_REPORT_PATH> --output=<OUTPUT_CONFIG_PATH> <INPUT_CONFIG_PATH>
-    ```
+   ```
 
    {{< /code >}}
 
    Replace the following:
 
-   * _`<INPUT_CONFIG_PATH>`_: The full path to the [Static](ref:static) configuration.
-   * _`<OUTPUT_CONFIG_PATH>`_: The full path to output the {{< param "PRODUCT_NAME" >}} configuration.
-   * _`<OUTPUT_REPORT_PATH>`_: The output path for the report.
+   - _`<INPUT_CONFIG_PATH>`_: The full path to the [Static](ref:static) configuration.
+   - _`<OUTPUT_CONFIG_PATH>`_: The full path to output the {{< param "PRODUCT_NAME" >}} configuration.
+   - _`<OUTPUT_REPORT_PATH>`_: The output path for the report.
 
    Using the [example][] Grafana Agent Static configuration below, the diagnostic report provides the following information.
 
-    ```plaintext
-    (Warning) Please review your agent command line flags and ensure they are set in your {{< param "PRODUCT_NAME" >}} configuration file where necessary.
-    ```
+   ```plaintext
+   (Warning) Please review your agent command line flags and ensure they are set in your {{< param "PRODUCT_NAME" >}} configuration file where necessary.
+   ```
 
 ## Run a Static mode configuration
 
@@ -280,9 +280,9 @@ metrics:
       scrape_configs:
         - job_name: local-agent
           static_configs:
-            - targets: ['127.0.0.1:12345']
+            - targets: ["127.0.0.1:12345"]
               labels:
-                cluster: 'localhost'
+                cluster: "localhost"
 
 logs:
   global:
@@ -296,7 +296,7 @@ logs:
         - job_name: varlogs
           static_configs:
             - targets:
-              - localhost
+                - localhost
               labels:
                 job: varlogs
                 host: mylocalhost
@@ -305,13 +305,13 @@ logs:
             - match:
                 selector: '{filename="/var/log/*.log"}'
                 stages:
-                - drop:
-                    expression: '^[^0-9]{4}'
-                - regex:
-                    expression: '^(?P<timestamp>\d{4}/\d{2}/\d{2} \d{2}:\d{2}:\d{2}) \[(?P<level>[[:alpha:]]+)\] (?:\d+)\#(?:\d+): \*(?:\d+) (?P<message>.+)$'
-                - pack:
-                    labels:
-                      - level
+                  - drop:
+                      expression: "^[^0-9]{4}"
+                  - regex:
+                      expression: '^(?P<timestamp>\d{4}/\d{2}/\d{2} \d{2}:\d{2}:\d{2}) \[(?P<level>[[:alpha:]]+)\] (?:\d+)\#(?:\d+): \*(?:\d+) (?P<message>.+)$'
+                  - pack:
+                      labels:
+                        - level
       clients:
         - url: https://USER_ID:API_KEY@logs-prod3.grafana.net/loki/api/v1/push
 ```
@@ -332,8 +332,8 @@ grafana-agent-flow convert --source-format=static --output=<OUTPUT_CONFIG_PATH> 
 
 Replace the following:
 
-* _`<INPUT_CONFIG_PATH>`_: The full path to the [Static](ref:static) configuration.
-* _`<OUTPUT_CONFIG_PATH>`_: The full path to output the {{< param "PRODUCT_NAME" >}} configuration.
+- _`<INPUT_CONFIG_PATH>`_: The full path to the [Static](ref:static) configuration.
+- _`<OUTPUT_CONFIG_PATH>`_: The full path to output the {{< param "PRODUCT_NAME" >}} configuration.
 
 The new {{< param "PRODUCT_NAME" >}} configuration file looks like this:
 
@@ -428,10 +428,11 @@ grafana-agent-flow convert --source-format=static --extra-args="-enable-features
 
 {{< /code >}}
 
- Replace the following:
-   * _`<INPUT_CONFIG_PATH>`_: The full path to the [Static](ref:static) configuration.
-   * _`<OUTPUT_CONFIG_PATH>`_: The full path to output the {{< param "PRODUCT_NAME" >}} configuration.
-   
+Replace the following:
+
+- _`<INPUT_CONFIG_PATH>`_: The full path to the [Static](ref:static) configuration.
+- _`<OUTPUT_CONFIG_PATH>`_: The full path to output the {{< param "PRODUCT_NAME" >}} configuration.
+
 ## Environment Vars
 
 You can use the `-config.expand-env` command line flag to interpret environment variables in your Grafana Agent Static configuration.
@@ -448,17 +449,16 @@ After the configuration is converted, review the {{< param "PRODUCT_NAME" >}} co
 
 The following list is specific to the convert command and not {{< param "PRODUCT_NAME" >}}:
 
-* The  [Agent Management](ref:agent-management) configuration options can't be automatically converted to {{< param "PRODUCT_NAME" >}}.
+- The [Agent Management](ref:agent-management) configuration options can't be automatically converted to {{< param "PRODUCT_NAME" >}}.
   Any additional unsupported features are returned as errors during conversion.
-* There is no gRPC server to configure for {{< param "PRODUCT_NAME" >}}, as any non-default configuration will show as unsupported during the conversion.
-* Check if you are using any extra command line arguments with Static that aren't present in your configuration file. For example, `-server.http.address`.
-* Check if you are using any environment variables in your [Static](ref:static) configuration.
+- There is no gRPC server to configure for {{< param "PRODUCT_NAME" >}}, as any non-default configuration will show as unsupported during the conversion.
+- Check if you are using any extra command line arguments with Static that aren't present in your configuration file. For example, `-server.http.address`.
+- Check if you are using any environment variables in your [Static](ref:static) configuration.
   These will be evaluated during conversion and you may want to replace them with the {{< param "PRODUCT_NAME" >}} Standard library [env](ref:env) function after conversion.
-* Review additional [Prometheus Limitations](ref:prometheus-limitations) for limitations specific to your [Metrics](ref:metrics) configuration.
-* Review additional [Promtail Limitations](ref:promtail-limitations) for limitations specific to your [Logs](ref:logs) configuration.
-* The logs produced by {{< param "PRODUCT_NAME" >}} mode will differ from those produced by Static.
-* {{< param "PRODUCT_ROOT_NAME" >}} exposes the {{< param "PRODUCT_NAME" >}} [UI](ref:ui).
+- Review additional [Prometheus Limitations](ref:prometheus-limitations) for limitations specific to your [Metrics](ref:metrics) configuration.
+- Review additional [Promtail Limitations](ref:promtail-limitations) for limitations specific to your [Logs](ref:logs) configuration.
+- The logs produced by {{< param "PRODUCT_NAME" >}} mode will differ from those produced by Static.
+- {{< param "PRODUCT_ROOT_NAME" >}} exposes the {{< param "PRODUCT_NAME" >}} [UI](ref:ui).
 
 [debugging]: #debugging
 [example]: #example
-

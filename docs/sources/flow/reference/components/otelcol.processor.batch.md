@@ -1,9 +1,9 @@
 ---
 aliases:
-- /docs/grafana-cloud/agent/flow/reference/components/otelcol.processor.batch/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/otelcol.processor.batch/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/otelcol.processor.batch/
-- /docs/grafana-cloud/send-data/agent/flow/reference/components/otelcol.processor.batch/
+  - /docs/grafana-cloud/agent/flow/reference/components/otelcol.processor.batch/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/otelcol.processor.batch/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/otelcol.processor.batch/
+  - /docs/grafana-cloud/send-data/agent/flow/reference/components/otelcol.processor.batch/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.processor.batch/
 description: Learn about otelcol.processor.batch
 title: otelcol.processor.batch
@@ -17,9 +17,9 @@ data and reduces the number of outgoing network requests required to transmit
 data. This processor supports both size and time based batching.
 
 We strongly recommend that you configure the batch processor on every Agent that
-uses OpenTelemetry (otelcol) Flow components.  The batch processor should be 
-defined in the pipeline after the `otelcol.processor.memory_limiter` as well 
-as any sampling processors. This is because batching should happen after any 
+uses OpenTelemetry (otelcol) Flow components. The batch processor should be
+defined in the pipeline after the `otelcol.processor.memory_limiter` as well
+as any sampling processors. This is because batching should happen after any
 data drops such as sampling.
 
 > **NOTE**: `otelcol.processor.batch` is a wrapper over the upstream
@@ -45,33 +45,35 @@ otelcol.processor.batch "LABEL" {
 
 `otelcol.processor.batch` supports the following arguments:
 
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`timeout` | `duration` | How long to wait before flushing the batch. | `"200ms"` | no
-`send_batch_size` | `number` | Amount of data to buffer before flushing the batch. | `8192` | no
-`send_batch_max_size` | `number` | Upper limit of a batch size. | `0` | no
-`metadata_keys` | `list(string)` | Creates a different batcher for each key/value combination of metadata. | `[]` | no
-`metadata_cardinality_limit` | `number` | Limit of the unique metadata key/value combinations. | `1000` | no
+| Name                         | Type           | Description                                                             | Default   | Required |
+| ---------------------------- | -------------- | ----------------------------------------------------------------------- | --------- | -------- |
+| `timeout`                    | `duration`     | How long to wait before flushing the batch.                             | `"200ms"` | no       |
+| `send_batch_size`            | `number`       | Amount of data to buffer before flushing the batch.                     | `8192`    | no       |
+| `send_batch_max_size`        | `number`       | Upper limit of a batch size.                                            | `0`       | no       |
+| `metadata_keys`              | `list(string)` | Creates a different batcher for each key/value combination of metadata. | `[]`      | no       |
+| `metadata_cardinality_limit` | `number`       | Limit of the unique metadata key/value combinations.                    | `1000`    | no       |
 
 `otelcol.processor.batch` accumulates data into a batch until one of the
 following events happens:
 
-* The duration specified by `timeout` elapses since the time the last batch was
+- The duration specified by `timeout` elapses since the time the last batch was
   sent.
 
-* The number of spans, log lines, or metric samples processed is greater than 
+- The number of spans, log lines, or metric samples processed is greater than
   or equal to the number specified by `send_batch_size`.
 
 Logs, traces, and metrics are processed independently.
 For example, if `send_batch_size` is set to `1000`:
-* The processor may, at the same time, buffer 1,000 spans, 
+
+- The processor may, at the same time, buffer 1,000 spans,
   1,000 log lines, and 1,000 metric samples before flushing them.
-* If there are enough spans for a batch of spans (1,000 or more), but not enough for a 
+- If there are enough spans for a batch of spans (1,000 or more), but not enough for a
   batch of metric samples (less than 1,000) then only the spans will be flushed.
 
 Use `send_batch_max_size` to limit the amount of data contained in a single batch:
-* When set to `0`, batches can be any size.
-* When set to a non-zero value, `send_batch_max_size` must be greater than or equal to `send_batch_size`.
+
+- When set to `0`, batches can be any size.
+- When set to a non-zero value, `send_batch_max_size` must be greater than or equal to `send_batch_size`.
   Every batch will contain up to the `send_batch_max_size` number of spans, log lines, or metric samples.
   The excess spans, log lines, or metric samples will not be lost - instead, they will be added to
   the next batch.
@@ -79,22 +81,23 @@ Use `send_batch_max_size` to limit the amount of data contained in a single batc
 For example, assume `send_batch_size` is set to the default `8192` and there
 are currently 8,000 batched spans. If the batch processor receives 8,000 more
 spans at once, its behavior depends on how `send_batch_max_size` is configured:
-* If `send_batch_max_size` is set to `0`, the total batch size would be 16,000 
-  which would then be flushed as a single batch. 
-* If `send_batch_max_size` is set to `10000`, then the total batch size will be 
+
+- If `send_batch_max_size` is set to `0`, the total batch size would be 16,000
+  which would then be flushed as a single batch.
+- If `send_batch_max_size` is set to `10000`, then the total batch size will be
   10,000 and the remaining 6,000 spans will be flushed in a subsequent batch.
 
 `metadata_cardinality_limit` applies for the lifetime of the process.
 
-Receivers should be configured with `include_metadata = true` so that metadata 
+Receivers should be configured with `include_metadata = true` so that metadata
 keys are available to the processor.
 
-Each distinct combination of metadata triggers the allocation of a new 
-background task in the Agent that runs for the lifetime of the process, and each 
-background task holds one pending batch of up to `send_batch_size` records. Batching 
+Each distinct combination of metadata triggers the allocation of a new
+background task in the Agent that runs for the lifetime of the process, and each
+background task holds one pending batch of up to `send_batch_size` records. Batching
 by metadata can therefore substantially increase the amount of memory dedicated to batching.
 
-The maximum number of distinct combinations is limited to the configured `metadata_cardinality_limit`, 
+The maximum number of distinct combinations is limited to the configured `metadata_cardinality_limit`,
 which defaults to 1000 to limit memory impact.
 
 ## Blocks
@@ -102,9 +105,9 @@ which defaults to 1000 to limit memory impact.
 The following blocks are supported inside the definition of
 `otelcol.processor.batch`:
 
-Hierarchy | Block | Description | Required
---------- | ----- | ----------- | --------
-output | [output][] | Configures where to send received telemetry data. | yes
+| Hierarchy | Block      | Description                                       | Required |
+| --------- | ---------- | ------------------------------------------------- | -------- |
+| output    | [output][] | Configures where to send received telemetry data. | yes      |
 
 [output]: #output-block
 
@@ -116,9 +119,9 @@ output | [output][] | Configures where to send received telemetry data. | yes
 
 The following fields are exported and can be referenced by other components:
 
-Name | Type | Description
----- | ---- | -----------
-`input` | `otelcol.Consumer` | A value that other components can use to send telemetry data to.
+| Name    | Type               | Description                                                      |
+| ------- | ------------------ | ---------------------------------------------------------------- |
+| `input` | `otelcol.Consumer` | A value that other components can use to send telemetry data to. |
 
 `input` accepts `otelcol.Consumer` data for any telemetry signal (metrics,
 logs, or traces).
@@ -135,10 +138,10 @@ information.
 
 ## Debug metrics
 
-* `processor_batch_batch_send_size_ratio` (histogram): Number of units in the batch.
-* `processor_batch_metadata_cardinality_ratio` (gauge): Number of distinct metadata value combinations being processed.
-* `processor_batch_timeout_trigger_send_ratio_total` (counter): Number of times the batch was sent due to a timeout trigger.
-* `processor_batch_batch_size_trigger_send_ratio_total` (counter): Number of times the batch was sent due to a size trigger.
+- `processor_batch_batch_send_size_ratio` (histogram): Number of units in the batch.
+- `processor_batch_metadata_cardinality_ratio` (gauge): Number of distinct metadata value combinations being processed.
+- `processor_batch_timeout_trigger_send_ratio_total` (counter): Number of times the batch was sent due to a timeout trigger.
+- `processor_batch_batch_size_trigger_send_ratio_total` (counter): Number of times the batch was sent due to a size trigger.
 
 ## Examples
 
@@ -189,7 +192,7 @@ otelcol.exporter.otlp "production" {
 
 ### Batching based on metadata
 
-Batching by metadata enables support for multi-tenant OpenTelemetry pipelines 
+Batching by metadata enables support for multi-tenant OpenTelemetry pipelines
 with batching over groups of data having the same authorization metadata.
 
 ```river
@@ -227,6 +230,7 @@ otelcol.exporter.otlp "production" {
 ```
 
 [otelcol.exporter.otlp]: {{< relref "./otelcol.exporter.otlp.md" >}}
+
 <!-- START GENERATED COMPATIBLE COMPONENTS -->
 
 ## Compatible components

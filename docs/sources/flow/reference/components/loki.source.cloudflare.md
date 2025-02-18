@@ -1,9 +1,9 @@
 ---
 aliases:
-- /docs/grafana-cloud/agent/flow/reference/components/loki.source.cloudflare/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/loki.source.cloudflare/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/loki.source.cloudflare/
-- /docs/grafana-cloud/send-data/agent/flow/reference/components/loki.source.cloudflare/
+  - /docs/grafana-cloud/agent/flow/reference/components/loki.source.cloudflare/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/loki.source.cloudflare/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/loki.source.cloudflare/
+  - /docs/grafana-cloud/send-data/agent/flow/reference/components/loki.source.cloudflare/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/loki.source.cloudflare/
 description: Learn about loki.source.cloudflare
 title: loki.source.cloudflare
@@ -36,47 +36,54 @@ loki.source.cloudflare "LABEL" {
 
 `loki.source.cloudflare` supports the following arguments:
 
-Name            | Type                 | Description          | Default | Required
---------------- | -------------------- | -------------------- | ------- | --------
-`forward_to`    | `list(LogsReceiver)` | List of receivers to send log entries to. |      | yes
-`api_token`     | `string`             | The API token to authenticate with. |  | yes
-`zone_id`       | `string`             | The Cloudflare zone ID to use.      |  | yes
-`labels`        | `map(string)`        | The labels to associate with incoming log entries. | `{}` | no
-`workers`       | `int`                | The number of workers to use for parsing logs.     |  `3` | no
-`pull_range`    | `duration`           | The timeframe to fetch for each pull request.      | `"1m"` | no
-`fields_type`   | `string`             | The set of fields to fetch for log entries.        | `"default"` | no
-`additional_fields` | `list(string)`   | The additional list of fields to supplement those provided via `fields_type`. |  | no
-
+| Name                | Type                 | Description                                                                   | Default     | Required |
+| ------------------- | -------------------- | ----------------------------------------------------------------------------- | ----------- | -------- |
+| `forward_to`        | `list(LogsReceiver)` | List of receivers to send log entries to.                                     |             | yes      |
+| `api_token`         | `string`             | The API token to authenticate with.                                           |             | yes      |
+| `zone_id`           | `string`             | The Cloudflare zone ID to use.                                                |             | yes      |
+| `labels`            | `map(string)`        | The labels to associate with incoming log entries.                            | `{}`        | no       |
+| `workers`           | `int`                | The number of workers to use for parsing logs.                                | `3`         | no       |
+| `pull_range`        | `duration`           | The timeframe to fetch for each pull request.                                 | `"1m"`      | no       |
+| `fields_type`       | `string`             | The set of fields to fetch for log entries.                                   | `"default"` | no       |
+| `additional_fields` | `list(string)`       | The additional list of fields to supplement those provided via `fields_type`. |             | no       |
 
 By default `loki.source.cloudflare` fetches logs with the `default` set of
 fields. Here are the different sets of `fields_type` available for selection,
 and the fields they include:
 
-* `default` includes:
+- `default` includes:
+
 ```
 "ClientIP", "ClientRequestHost", "ClientRequestMethod", "ClientRequestURI", "EdgeEndTimestamp", "EdgeResponseBytes", "EdgeRequestHost", "EdgeResponseStatus", "EdgeStartTimestamp", "RayID"
 ```
+
 plus any extra fields provided via `additional_fields` argument.
 
-* `minimal` includes all `default` fields and adds:
+- `minimal` includes all `default` fields and adds:
+
 ```
 "ZoneID", "ClientSSLProtocol", "ClientRequestProtocol", "ClientRequestPath", "ClientRequestUserAgent", "ClientRequestReferer", "EdgeColoCode", "ClientCountry", "CacheCacheStatus", "CacheResponseStatus", "EdgeResponseContentType"
 ```
+
 plus any extra fields provided via `additional_fields` argument.
 
-* `extended` includes all `minimal` fields and adds:
+- `extended` includes all `minimal` fields and adds:
+
 ```
 "ClientSSLCipher", "ClientASN", "ClientIPClass", "CacheResponseBytes", "EdgePathingOp", "EdgePathingSrc", "EdgePathingStatus", "ParentRayID", "WorkerCPUTime", "WorkerStatus", "WorkerSubrequest", "WorkerSubrequestCount", "OriginIP", "OriginResponseStatus", "OriginSSLProtocol", "OriginResponseHTTPExpires", "OriginResponseHTTPLastModified"
 ```
+
 plus any extra fields provided via `additional_fields` argument.
 
-* `all` includes all `extended` fields and adds:
+- `all` includes all `extended` fields and adds:
+
 ```
  "BotScore", "BotScoreSrc", "BotTags", "ClientRequestBytes", "ClientSrcPort", "ClientXRequestedWith", "CacheTieredFill", "EdgeResponseCompressionRatio", "EdgeServerIP", "FirewallMatchesSources", "FirewallMatchesActions", "FirewallMatchesRuleIDs", "OriginResponseBytes", "OriginResponseTime", "ClientDeviceType", "WAFFlags", "WAFMatchedVar", "EdgeColoID", "RequestHeaders", "ResponseHeaders", "ClientRequestSource"`
 ```
+
 plus any extra fields provided via `additional_fields` argument (this is still relevant in this case if new fields are made available via Cloudflare API but are not yet included in `all`).
 
-* `custom` includes only the fields defined in `additional_fields`.
+- `custom` includes only the fields defined in `additional_fields`.
 
 The component saves the last successfully-fetched timestamp in its positions
 file. If a position is found in the file for a given zone ID, the component
@@ -95,6 +102,7 @@ The last timestamp fetched by the component is recorded in the
 All incoming Cloudflare log entries are in JSON format. You can make use of the
 `loki.process` component and a JSON processing stage to extract more labels or
 change the log line format. A sample log looks like this:
+
 ```json
 {
     "CacheCacheStatus": "miss",
@@ -165,7 +173,6 @@ change the log line format. A sample log looks like this:
 }
 ```
 
-
 ## Exported fields
 
 `loki.source.cloudflare` does not export any fields.
@@ -178,17 +185,19 @@ configuration.
 ## Debug information
 
 `loki.source.cloudflare` exposes the following debug information:
-* Whether the target is ready and reading logs from the API.
-* The Cloudflare zone ID.
-* The last error reported, if any.
-* The stored positions file entry, as the combination of zone_id, labels and
+
+- Whether the target is ready and reading logs from the API.
+- The Cloudflare zone ID.
+- The last error reported, if any.
+- The stored positions file entry, as the combination of zone_id, labels and
   last fetched timestamp.
-* The last timestamp fetched.
-* The set of fields being fetched.
+- The last timestamp fetched.
+- The set of fields being fetched.
 
 ## Debug metrics
-* `loki_source_cloudflare_target_entries_total` (counter): Total number of successful entries sent via the cloudflare target.
-* `loki_source_cloudflare_target_last_requested_end_timestamp` (gauge): The last cloudflare request end timestamp fetched, for calculating how far behind the target is.
+
+- `loki_source_cloudflare_target_entries_total` (counter): Total number of successful entries sent via the cloudflare target.
+- `loki_source_cloudflare_target_last_requested_end_timestamp` (gauge): The last cloudflare request end timestamp fetched, for calculating how far behind the target is.
 
 ## Example
 
@@ -209,6 +218,7 @@ loki.write "local" {
   }
 }
 ```
+
 <!-- START GENERATED COMPATIBLE COMPONENTS -->
 
 ## Compatible components
@@ -216,7 +226,6 @@ loki.write "local" {
 `loki.source.cloudflare` can accept arguments from the following components:
 
 - Components that export [Loki `LogsReceiver`](../../compatibility/#loki-logsreceiver-exporters)
-
 
 {{< admonition type="note" >}}
 Connecting some components may not be sensible or components may require further configuration to make the connection work correctly.

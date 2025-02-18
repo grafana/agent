@@ -1,16 +1,16 @@
 ---
 aliases:
-- /docs/grafana-cloud/agent/flow/get-started/install/binary/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/get-started/install/binary/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/get-started/install/binary/
-- /docs/grafana-cloud/send-data/agent/flow/get-started/install/binary/
-# Previous docs aliases for backwards compatibility:
-- ../../install/binary/ # /docs/agent/latest/flow/install/binary/
-- /docs/grafana-cloud/agent/flow/setup/install/binary/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/setup/install/binary/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/setup/install/binary/
-- /docs/grafana-cloud/send-data/agent/flow/setup/install/binary/
-- ../../setup/install/binary/ # /docs/agent/latest/flow/setup/install/binary/
+  - /docs/grafana-cloud/agent/flow/get-started/install/binary/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/get-started/install/binary/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/get-started/install/binary/
+  - /docs/grafana-cloud/send-data/agent/flow/get-started/install/binary/
+  # Previous docs aliases for backwards compatibility:
+  - ../../install/binary/ # /docs/agent/latest/flow/install/binary/
+  - /docs/grafana-cloud/agent/flow/setup/install/binary/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/setup/install/binary/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/setup/install/binary/
+  - /docs/grafana-cloud/send-data/agent/flow/setup/install/binary/
+  - ../../setup/install/binary/ # /docs/agent/latest/flow/setup/install/binary/
 canonical: https://grafana.com/docs/agent/latest/flow/get-started/install/binary/
 description: Learn how to install Grafana Agent Flow as a standalone binary
 menuTitle: Standalone
@@ -28,10 +28,10 @@ refs:
 
 {{< param "PRODUCT_NAME" >}} is distributed as a standalone binary for the following operating systems and architectures:
 
-* Linux: AMD64, ARM64
-* Windows: AMD64
-* macOS: AMD64 (Intel), ARM64 (Apple Silicon)
-* FreeBSD: AMD64
+- Linux: AMD64, ARM64
+- Windows: AMD64
+- macOS: AMD64 (Intel), ARM64 (Apple Silicon)
+- FreeBSD: AMD64
 
 ## Download {{% param "PRODUCT_ROOT_NAME" %}}
 
@@ -58,4 +58,3 @@ To download {{< param "PRODUCT_NAME" >}} as a standalone binary, perform the fol
 ## Next steps
 
 - [Run {{< param "PRODUCT_NAME" >}}](ref:run)
-

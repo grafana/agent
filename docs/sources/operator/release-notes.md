@@ -1,10 +1,10 @@
 ---
 aliases:
-- ./upgrade-guide/
-- /docs/grafana-cloud/agent/operator/release-notes/
-- /docs/grafana-cloud/monitor-infrastructure/agent/operator/release-notes/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/operator/release-notes/
-- /docs/grafana-cloud/send-data/agent/operator/release-notes/
+  - ./upgrade-guide/
+  - /docs/grafana-cloud/agent/operator/release-notes/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/operator/release-notes/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/operator/release-notes/
+  - /docs/grafana-cloud/send-data/agent/operator/release-notes/
 canonical: https://grafana.com/docs/agent/latest/operator/release-notes/
 description: Release notes for Grafana Agent Operator
 menuTitle: Release notes
@@ -34,7 +34,6 @@ For a complete list of changes to Grafana Agent, with links to pull requests and
 >
 > - [Static mode release notes](ref:release-notes-static)
 > - [Flow mode release notes](ref:release-notes-flow)
-
 
 ## v0.33
 
@@ -120,7 +119,6 @@ refer to the new `agentctl operator-detatch` command: this will iterate through
 all of your objects and remove any OwnerReferences to a CRD, allowing you to
 delete your Operator CRDs or CRs.
 
-
 Example old ClusterRole:
 
 ```yaml
@@ -129,11 +127,11 @@ kind: ClusterRole
 metadata:
   name: grafana-agent-operator
 rules:
-- apiGroups: [monitoring.grafana.com]
-  resources:
-  - grafana-agents
-  - prometheus-instances
-  verbs: [get, list, watch]
+  - apiGroups: [monitoring.grafana.com]
+    resources:
+      - grafana-agents
+      - prometheus-instances
+    verbs: [get, list, watch]
 ```
 
 Example new ClusterRole:
@@ -144,9 +142,9 @@ kind: ClusterRole
 metadata:
   name: grafana-agent-operator
 rules:
-- apiGroups: [monitoring.grafana.com]
-  resources:
-  - grafanaagents
-  - metricsinstances
-  verbs: [get, list, watch]
+  - apiGroups: [monitoring.grafana.com]
+    resources:
+      - grafanaagents
+      - metricsinstances
+    verbs: [get, list, watch]
 ```

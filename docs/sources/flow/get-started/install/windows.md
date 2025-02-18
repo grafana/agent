@@ -1,16 +1,16 @@
 ---
 aliases:
-- /docs/grafana-cloud/agent/flow/get-started/install/windows/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/get-started/install/windows/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/get-started/install/windows/
-- /docs/grafana-cloud/send-data/agent/flow/get-started/install/windows/
-# Previous docs aliases for backwards compatibility:
-- ../../install/windows/ # /docs/agent/latest/flow/install/windows/
-- /docs/grafana-cloud/agent/flow/setup/install/windows/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/setup/install/windows/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/setup/install/windows/
-- /docs/grafana-cloud/send-data/agent/flow/setup/install/windows/
-- ../../setup/install/windows/ # /docs/agent/latest/flow/setup/install/windows/
+  - /docs/grafana-cloud/agent/flow/get-started/install/windows/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/get-started/install/windows/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/get-started/install/windows/
+  - /docs/grafana-cloud/send-data/agent/flow/get-started/install/windows/
+  # Previous docs aliases for backwards compatibility:
+  - ../../install/windows/ # /docs/agent/latest/flow/install/windows/
+  - /docs/grafana-cloud/agent/flow/setup/install/windows/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/setup/install/windows/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/setup/install/windows/
+  - /docs/grafana-cloud/send-data/agent/flow/setup/install/windows/
+  - ../../setup/install/windows/ # /docs/agent/latest/flow/setup/install/windows/
 canonical: https://grafana.com/docs/agent/latest/flow/get-started/install/windows/
 description: Learn how to install Grafana Agent Flow on Windows
 menuTitle: Windows
@@ -78,17 +78,17 @@ To do a silent install of {{< param "PRODUCT_NAME" >}} on Windows, perform the f
 
 ### Silent install options
 
-* `/CONFIG=<path>` Path to the configuration file. Default: `$INSTDIR\config.river`
-* `/DISABLEREPORTING=<yes|no>` Disable [data collection](ref:data-collection). Default: `no`
-* `/DISABLEPROFILING=<yes|no>` Disable profiling endpoint. Default: `no`
-* `/ENVIRONMENT="KEY=VALUE\0KEY2=VALUE2"` Define environment variables for Windows Service. Default: ``
+- `/CONFIG=<path>` Path to the configuration file. Default: `$INSTDIR\config.river`
+- `/DISABLEREPORTING=<yes|no>` Disable [data collection](ref:data-collection). Default: `no`
+- `/DISABLEPROFILING=<yes|no>` Disable profiling endpoint. Default: `no`
+- `/ENVIRONMENT="KEY=VALUE\0KEY2=VALUE2"` Define environment variables for Windows Service. Default: ``
 
 ## Service Configuration
 
 {{< param "PRODUCT_NAME" >}} uses the Windows Registry `HKLM\Software\Grafana\Grafana Agent Flow` for service configuration.
 
-* `Arguments` (Type `REG_MULTI_SZ`) Each value represents a binary argument for grafana-agent-flow binary.
-* `Environment` (Type `REG_MULTI_SZ`) Each value represents a environment value `KEY=VALUE` for grafana-agent-flow binary.
+- `Arguments` (Type `REG_MULTI_SZ`) Each value represents a binary argument for grafana-agent-flow binary.
+- `Environment` (Type `REG_MULTI_SZ`) Each value represents a environment value `KEY=VALUE` for grafana-agent-flow binary.
 
 ## Uninstall
 
@@ -104,4 +104,3 @@ This includes any configuration files in the installation directory.
 - [Configure {{< param "PRODUCT_NAME" >}}](ref:configure)
 
 [latest]: https://github.com/grafana/agent/releases/latest
-

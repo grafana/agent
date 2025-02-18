@@ -1,8 +1,8 @@
 ---
 aliases:
-- ../../configuration/server-config/
-- /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/server-config/
-- /docs/grafana-cloud/send-data/agent/static/configuration/server-config/
+  - ../../configuration/server-config/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/server-config/
+  - /docs/grafana-cloud/send-data/agent/static/configuration/server-config/
 canonical: https://grafana.com/docs/agent/latest/static/configuration/server-config/
 description: Learn about server_config
 title: server_config
@@ -75,7 +75,6 @@ The `windows_certificate_filter_config` configures the use of the Windows Certif
 # Name of the store to look for the Client Certificate ex My, CA
 server: <windows_server_config>
 ```
-
 
 ### windows_client_config
 

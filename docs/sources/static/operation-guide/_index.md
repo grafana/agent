@@ -1,8 +1,8 @@
 ---
 aliases:
-- ../operation-guide/
-- /docs/grafana-cloud/monitor-infrastructure/agent/static/operation-guide/
-- /docs/grafana-cloud/send-data/agent/static/operation-guide/
+  - ../operation-guide/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/static/operation-guide/
+  - /docs/grafana-cloud/send-data/agent/static/operation-guide/
 canonical: https://grafana.com/docs/agent/latest/static/operation-guide/
 description: Learn how to operate Grafana Agent
 title: Operation guide
@@ -144,16 +144,16 @@ of Agent shards that are running.
 
 ```yaml
 scrape_configs:
-- job_name: some_job
-  # Add usual service discovery here, such as static_configs
-  relabel_configs:
-  - source_labels: [__address__]
-    modulus:       4    # 4 shards
-    target_label:  __tmp_hash
-    action:        hashmod
-  - source_labels: [__tmp_hash]
-    regex:         ^1$  # This is the 2nd shard
-    action:        keep
+  - job_name: some_job
+    # Add usual service discovery here, such as static_configs
+    relabel_configs:
+      - source_labels: [__address__]
+        modulus: 4 # 4 shards
+        target_label: __tmp_hash
+        action: hashmod
+      - source_labels: [__tmp_hash]
+        regex: ^1$ # This is the 2nd shard
+        action: keep
 ```
 
 Add the `relabel_configs` to all of your scrape_config blocks. Ensure that each
@@ -180,7 +180,7 @@ gets sent. Users can easily define two Instances that scrape different subsets
 of metrics and send them to two completely different remote_write systems.
 
 Instances are especially relevant to the [scraping service mode](ref:scrape),
-where breaking up your scrape configs into multiple Instances is required for 
+where breaking up your scrape configs into multiple Instances is required for
 sharding and balancing scrape load across a cluster of Agents.
 
 ## Instance sharing (Stable)
@@ -211,6 +211,5 @@ individual Instance config. It is recommended to use the default of
 `instance_mode: shared` unless you don't mind the performance hit and really
 need granular metrics.
 
-Users can use the [targets API](ref:api) to see all scraped targets, and the name 
+Users can use the [targets API](ref:api) to see all scraped targets, and the name
 of the shared instance they were assigned to.
-

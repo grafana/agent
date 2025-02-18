@@ -1,8 +1,8 @@
 ---
 aliases:
-- ../../../configuration/integrations/snmp-config/
-- /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/integrations/snmp-config/
-- /docs/grafana-cloud/send-data/agent/static/configuration/integrations/snmp-config/
+  - ../../../configuration/integrations/snmp-config/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/integrations/snmp-config/
+  - /docs/grafana-cloud/send-data/agent/static/configuration/integrations/snmp-config/
 canonical: https://grafana.com/docs/agent/latest/static/configuration/integrations/snmp-config/
 description: Learn about snmp config
 title: snmp config
@@ -51,17 +51,16 @@ integrations:
 If you need to scrape SNMP devices in more dynamic environment, and can't define devices in `snmp_targets` because targets would change over time, you can use service discovery approach. For instance, with [DNS discovery](https://prometheus.io/docs/prometheus/2.45/configuration/configuration/#dns_sd_config):
 
 ```yaml
-
 metrics:
   wal_directory: /tmp/wal
   configs:
     - name: snmp_targets
       scrape_configs:
-        - job_name: 'snmp'
+        - job_name: "snmp"
           dns_sd_configs:
             - names:
-              - switches.srv.example.org
-              - routers.srv.example.org
+                - switches.srv.example.org
+                - routers.srv.example.org
           params:
             module: [if_mib]
             walk_params: [private]
@@ -82,7 +81,6 @@ integrations:
       private:
         retries: 2
 ```
-
 
 Full reference of options:
 
@@ -150,6 +148,7 @@ Full reference of options:
 
 
 ```
+
 ## snmp_target config
 
 ```yaml
@@ -185,7 +184,6 @@ Full reference of options:
   # Timeout for each SNMP request, defaults to 5s.
   [timeout: <duration> | default = 5s]
 ```
-
 
 ## About SNMP modules
 
