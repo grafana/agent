@@ -1,10 +1,10 @@
 ---
 aliases:
-- /docs/agent/shared/wal-data-retention/
-- /docs/grafana-cloud/agent/shared/wal-data-retention/
-- /docs/grafana-cloud/monitor-infrastructure/agent/shared/wal-data-retention/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/shared/wal-data-retention/
-- /docs/grafana-cloud/send-data/agent/shared/wal-data-retention/
+  - /docs/agent/shared/wal-data-retention/
+  - /docs/grafana-cloud/agent/shared/wal-data-retention/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/shared/wal-data-retention/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/shared/wal-data-retention/
+  - /docs/grafana-cloud/send-data/agent/shared/wal-data-retention/
 canonical: https://grafana.com/docs/agent/latest/shared/wal-data-retention/
 description: Shared content, information about data retention in the WAL
 headless: true
@@ -50,6 +50,7 @@ samples that can be kept in the WAL. Samples older than
 `max_keepalive_time` are forcibly removed.
 
 ### Extended `remote_write` outages
+
 When the remote write endpoint is unreachable over a period of time, the most
 recent successfully sent timestamp is not updated. The
 `min_keepalive_time` and `max_keepalive_time` arguments control the age range
@@ -59,6 +60,7 @@ If the remote write outage is longer than the `max_keepalive_time` parameter,
 then the WAL is truncated, and the oldest data is lost.
 
 ### Intermittent `remote_write` outages
+
 If the remote write endpoint is intermittently reachable, the most recent
 successfully sent timestamp is updated whenever the connection is successful.
 A successful connection updates the series' comparison with
@@ -67,6 +69,7 @@ interval which checkpoints two thirds of the segments (rounded down to the
 nearest integer) written since the previous truncation.
 
 ### Falling behind
+
 If the queue shards cannot flush data quickly enough to keep
 up-to-date with the most recent data buffered in the WAL, we say that the
 component is 'falling behind'.
@@ -103,9 +106,9 @@ To delete the corrupted WAL:
    {{< admonition type="note" >}}
    There is one `wal` directory per:
 
-   * Metrics instance running in Static mode
-   * `prometheus.remote_write` component running in Flow mode
-   {{< /admonition >}}
+   - Metrics instance running in Static mode
+   - `prometheus.remote_write` component running in Flow mode
+     {{< /admonition >}}
 
 1. Start Grafana Agent and verify that the WAL is working correctly.
 

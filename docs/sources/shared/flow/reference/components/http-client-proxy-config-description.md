@@ -1,10 +1,10 @@
 ---
 aliases:
-- /docs/agent/shared/flow/reference/components/http-client-proxy-config-description-args/
-- /docs/grafana-cloud/agent/shared/flow/reference/components/http-client-proxy-config-description-args/
-- /docs/grafana-cloud/monitor-infrastructure/agent/shared/flow/reference/components/http-client-proxy-config-description-args/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/shared/flow/reference/components/http-client-proxy-config-description-args/
-- /docs/grafana-cloud/send-data/agent/shared/flow/reference/components/http-client-proxy-config-description-args/
+  - /docs/agent/shared/flow/reference/components/http-client-proxy-config-description-args/
+  - /docs/grafana-cloud/agent/shared/flow/reference/components/http-client-proxy-config-description-args/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/shared/flow/reference/components/http-client-proxy-config-description-args/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/shared/flow/reference/components/http-client-proxy-config-description-args/
+  - /docs/grafana-cloud/send-data/agent/shared/flow/reference/components/http-client-proxy-config-description-args/
 canonical: https://grafana.com/docs/agent/latest/shared/flow/reference/components/http-client-proxy-config-description-args/
 description: Shared content, http client config description
 headless: true

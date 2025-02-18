@@ -1,10 +1,10 @@
 ---
 aliases:
-- /docs/agent/latest/flow/reference/components/loki.source.docker/
-- /docs/grafana-cloud/agent/flow/reference/components/loki.source.docker/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/loki.source.docker/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/loki.source.docker/
-- /docs/grafana-cloud/send-data/agent/flow/reference/components/loki.source.docker/
+  - /docs/agent/latest/flow/reference/components/loki.source.docker/
+  - /docs/grafana-cloud/agent/flow/reference/components/loki.source.docker/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/loki.source.docker/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/loki.source.docker/
+  - /docs/grafana-cloud/send-data/agent/flow/reference/components/loki.source.docker/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/loki.source.docker/
 description: Learn about loki.source.docker
 title: loki.source.docker
@@ -30,32 +30,33 @@ loki.source.docker "LABEL" {
 ```
 
 ## Arguments
+
 The component starts a new reader for each of the given `targets` and fans out
 log entries to the list of receivers passed in `forward_to`.
 
 `loki.source.docker` supports the following arguments:
 
-Name            | Type                 | Description          | Default | Required
---------------- | -------------------- | -------------------- | ------- | --------
-`host`          | `string`             | Address of the Docker daemon. | | yes
-`targets`       | `list(map(string))`  | List of containers to read logs from. | | yes
-`forward_to`    | `list(LogsReceiver)` | List of receivers to send log entries to. | | yes
-`labels`        | `map(string)`        | The default set of labels to apply on entries. | `"{}"` | no
-`relabel_rules` | `RelabelRules`       | Relabeling rules to apply on log entries. | `"{}"` | no
-`refresh_interval` | `duration`        | The refresh interval to use when connecting to the Docker daemon over HTTP(S). | `"60s"` | no
+| Name               | Type                 | Description                                                                    | Default | Required |
+| ------------------ | -------------------- | ------------------------------------------------------------------------------ | ------- | -------- |
+| `host`             | `string`             | Address of the Docker daemon.                                                  |         | yes      |
+| `targets`          | `list(map(string))`  | List of containers to read logs from.                                          |         | yes      |
+| `forward_to`       | `list(LogsReceiver)` | List of receivers to send log entries to.                                      |         | yes      |
+| `labels`           | `map(string)`        | The default set of labels to apply on entries.                                 | `"{}"`  | no       |
+| `relabel_rules`    | `RelabelRules`       | Relabeling rules to apply on log entries.                                      | `"{}"`  | no       |
+| `refresh_interval` | `duration`           | The refresh interval to use when connecting to the Docker daemon over HTTP(S). | `"60s"` | no       |
 
 ## Blocks
 
 The following blocks are supported inside the definition of `loki.source.docker`:
 
-Hierarchy | Block | Description | Required
---------- | ----- | ----------- | --------
-client | [client][] | HTTP client settings when connecting to the endpoint. | no
-client > basic_auth | [basic_auth][] | Configure basic_auth for authenticating to the endpoint. | no
-client > authorization | [authorization][] | Configure generic authorization to the endpoint. | no
-client > oauth2 | [oauth2][] | Configure OAuth2 for authenticating to the endpoint. | no
-client > oauth2 > tls_config | [tls_config][] | Configure TLS settings for connecting to the endpoint. | no
-client > tls_config | [tls_config][] | Configure TLS settings for connecting to the endpoint. | no
+| Hierarchy                    | Block             | Description                                              | Required |
+| ---------------------------- | ----------------- | -------------------------------------------------------- | -------- |
+| client                       | [client][]        | HTTP client settings when connecting to the endpoint.    | no       |
+| client > basic_auth          | [basic_auth][]    | Configure basic_auth for authenticating to the endpoint. | no       |
+| client > authorization       | [authorization][] | Configure generic authorization to the endpoint.         | no       |
+| client > oauth2              | [oauth2][]        | Configure OAuth2 for authenticating to the endpoint.     | no       |
+| client > oauth2 > tls_config | [tls_config][]    | Configure TLS settings for connecting to the endpoint.   | no       |
+| client > tls_config          | [tls_config][]    | Configure TLS settings for connecting to the endpoint.   | no       |
 
 The `>` symbol indicates deeper levels of nesting. For example, `client >
 basic_auth` refers to an `basic_auth` block defined inside a `client` block.
@@ -116,16 +117,18 @@ configuration.
 ## Debug information
 
 `loki.source.docker` exposes some debug information per target:
-* Whether the target is ready to tail entries.
-* The labels associated with the target.
-* The most recent time a log line was read.
+
+- Whether the target is ready to tail entries.
+- The labels associated with the target.
+- The most recent time a log line was read.
 
 ## Debug metrics
 
-* `loki_source_docker_target_entries_total` (gauge): Total number of successful entries sent to the Docker target.
-* `loki_source_docker_target_parsing_errors_total` (gauge): Total number of parsing errors while receiving Docker messages.
+- `loki_source_docker_target_entries_total` (gauge): Total number of successful entries sent to the Docker target.
+- `loki_source_docker_target_parsing_errors_total` (gauge): Total number of parsing errors while receiving Docker messages.
 
 ## Component behavior
+
 The component uses its data path, a directory named after the domain's
 fully qualified name, to store its _positions file_. The positions file is used
 to store read offsets, so that if a component or {{< param "PRODUCT_ROOT_NAME" >}} restarts,
@@ -135,7 +138,7 @@ If the target's argument contains multiple entries with the same container
 ID (for example as a result of `discovery.docker` picking up multiple exposed
 ports or networks), `loki.source.docker` will deduplicate them, and only keep
 the first of each container ID instances, based on the
-`__meta_docker_container_id` label.  As such, the Docker daemon is queried
+`__meta_docker_container_id` label. As such, the Docker daemon is queried
 for each container ID only once, and only one target will be available in the
 component's debug info.
 
@@ -151,7 +154,7 @@ discovery.docker "linux" {
 
 loki.source.docker "default" {
   host       = "unix:///var/run/docker.sock"
-  targets    = discovery.docker.linux.targets 
+  targets    = discovery.docker.linux.targets
   forward_to = [loki.write.local.receiver]
 }
 
@@ -170,7 +173,6 @@ loki.write "local" {
 
 - Components that export [Targets](../../compatibility/#targets-exporters)
 - Components that export [Loki `LogsReceiver`](../../compatibility/#loki-logsreceiver-exporters)
-
 
 {{< admonition type="note" >}}
 Connecting some components may not be sensible or components may require further configuration to make the connection work correctly.

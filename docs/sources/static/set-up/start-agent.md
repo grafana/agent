@@ -1,7 +1,7 @@
 ---
 aliases:
-- /docs/grafana-cloud/monitor-infrastructure/agent/static/set-up/start-agent/
-- /docs/grafana-cloud/send-data/agent/static/set-up/start-agent/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/static/set-up/start-agent/
+  - /docs/grafana-cloud/send-data/agent/static/set-up/start-agent/
 canonical: https://grafana.com/docs/agent/latest/static/set-up/start-agent/
 description: Learn how to start, restart, and stop Grafana Agent in static mode
 menuTitle: Start static mode
@@ -154,11 +154,10 @@ If you downloaded the standalone binary, you must run the agent from a terminal 
 To start Grafana Agent on Linux, macOS, FreeBSD, or Windows run the following command in a terminal window or command prompt:
 
 ```shell
-BINARY_PATH -config.file CONFIG_FILE 
+BINARY_PATH -config.file CONFIG_FILE
 ```
 
 Replace the following:
 
-* `BINARY_PATH`: The path to the Grafana Agent binary file
-* `CONFIG_FILE`: The path to the Grafana Agent configuration file.
-
+- `BINARY_PATH`: The path to the Grafana Agent binary file
+- `CONFIG_FILE`: The path to the Grafana Agent configuration file.

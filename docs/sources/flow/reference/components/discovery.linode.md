@@ -1,7 +1,7 @@
 ---
 aliases:
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/discovery.linode/
-- /docs/grafana-cloud/send-data/agent/flow/reference/components/discovery.linode/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/discovery.linode/
+  - /docs/grafana-cloud/send-data/agent/flow/reference/components/discovery.linode/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.linode/
 description: Learn about discovery.linode
 title: discovery.linode
@@ -28,26 +28,27 @@ The linode APIv4 Token must be created with the scopes: `linodes:read_only`, `ip
 
 The following arguments are supported:
 
-Name                     | Type                | Description                                                   | Default | Required
------------------------- | ------------------- | ------------------------------------------------------------- | ------- | --------
-`refresh_interval`       | `duration`          | The time to wait between polling update requests.             | `"60s"` | no
-`port`                   | `int`               | Port that metrics are scraped from.                           | `80`    | no
-`tag_separator`          | `string`            | The string by which Linode Instance tags are joined into the tag label. | `,` | no
-`bearer_token_file`      | `string`            | File containing a bearer token to authenticate with.          |         | no
-`bearer_token`           | `secret`            | Bearer token to authenticate with.                            |         | no
-`enable_http2`           | `bool`              | Whether HTTP2 is supported for requests.                      | `true`  | no
-`follow_redirects`       | `bool`              | Whether redirects returned by the server should be followed.  | `true`  | no
-`proxy_url`              | `string`            | HTTP proxy to send requests through.                          |         | no
-`no_proxy`               | `string`            | Comma-separated list of IP addresses, CIDR notations, and domain names to exclude from proxying. | | no
-`proxy_from_environment` | `bool`              | Use the proxy URL indicated by environment variables.         | `false` | no
-`proxy_connect_header`   | `map(list(secret))` | Specifies headers to send to proxies during CONNECT requests. |         | no
+| Name                     | Type                | Description                                                                                      | Default | Required |
+| ------------------------ | ------------------- | ------------------------------------------------------------------------------------------------ | ------- | -------- |
+| `refresh_interval`       | `duration`          | The time to wait between polling update requests.                                                | `"60s"` | no       |
+| `port`                   | `int`               | Port that metrics are scraped from.                                                              | `80`    | no       |
+| `tag_separator`          | `string`            | The string by which Linode Instance tags are joined into the tag label.                          | `,`     | no       |
+| `bearer_token_file`      | `string`            | File containing a bearer token to authenticate with.                                             |         | no       |
+| `bearer_token`           | `secret`            | Bearer token to authenticate with.                                                               |         | no       |
+| `enable_http2`           | `bool`              | Whether HTTP2 is supported for requests.                                                         | `true`  | no       |
+| `follow_redirects`       | `bool`              | Whether redirects returned by the server should be followed.                                     | `true`  | no       |
+| `proxy_url`              | `string`            | HTTP proxy to send requests through.                                                             |         | no       |
+| `no_proxy`               | `string`            | Comma-separated list of IP addresses, CIDR notations, and domain names to exclude from proxying. |         | no       |
+| `proxy_from_environment` | `bool`              | Use the proxy URL indicated by environment variables.                                            | `false` | no       |
+| `proxy_connect_header`   | `map(list(secret))` | Specifies headers to send to proxies during CONNECT requests.                                    |         | no       |
 
- At most, one of the following can be provided:
- - [`bearer_token` argument](#arguments).
- - [`bearer_token_file` argument](#arguments).
- - [`basic_auth` block][basic_auth].
- - [`authorization` block][authorization].
- - [`oauth2` block][oauth2].
+At most, one of the following can be provided:
+
+- [`bearer_token` argument](#arguments).
+- [`bearer_token_file` argument](#arguments).
+- [`basic_auth` block][basic_auth].
+- [`authorization` block][authorization].
+- [`oauth2` block][oauth2].
 
 {{< docs/shared lookup="flow/reference/components/http-client-proxy-config-description.md" source="agent" version="<AGENT_VERSION>" >}}
 
@@ -56,13 +57,13 @@ Name                     | Type                | Description                    
 The following blocks are supported inside the definition of
 `discovery.linode`:
 
-Hierarchy | Block | Description | Required
---------- | ----- | ----------- | --------
-basic_auth | [basic_auth][] | Configure basic_auth for authenticating to the endpoint. | no
-authorization | [authorization][] | Configure generic authorization to the endpoint. | no
-oauth2 | [oauth2][] | Configure OAuth2 for authenticating to the endpoint. | no
-oauth2 > tls_config | [tls_config][] | Configure TLS settings for connecting to the endpoint. | no
-tls_config | [tls_config][] | Configure TLS settings for connecting to the endpoint. | no
+| Hierarchy           | Block             | Description                                              | Required |
+| ------------------- | ----------------- | -------------------------------------------------------- | -------- |
+| basic_auth          | [basic_auth][]    | Configure basic_auth for authenticating to the endpoint. | no       |
+| authorization       | [authorization][] | Configure generic authorization to the endpoint.         | no       |
+| oauth2              | [oauth2][]        | Configure OAuth2 for authenticating to the endpoint.     | no       |
+| oauth2 > tls_config | [tls_config][]    | Configure TLS settings for connecting to the endpoint.   | no       |
+| tls_config          | [tls_config][]    | Configure TLS settings for connecting to the endpoint.   | no       |
 
 The `>` symbol indicates deeper levels of nesting. For example,
 `oauth2 > tls_config` refers to a `tls_config` block defined inside
@@ -89,36 +90,35 @@ an `oauth2` block.
 
 {{< docs/shared lookup="flow/reference/components/tls-config-block.md" source="agent" version="<AGENT_VERSION>" >}}
 
-
 ## Exported fields
 
 The following fields are exported and can be referenced by other components:
 
-Name      | Type                | Description
---------- | ------------------- | -----------
-`targets` | `list(map(string))` | The set of targets discovered from the Linode API.
+| Name      | Type                | Description                                        |
+| --------- | ------------------- | -------------------------------------------------- |
+| `targets` | `list(map(string))` | The set of targets discovered from the Linode API. |
 
 The following meta labels are available on targets and can be used by the
 discovery.relabel component:
 
-* `__meta_linode_instance_id`: the id of the Linode instance
-* `__meta_linode_instance_label`: the label of the Linode instance
-* `__meta_linode_image`: the slug of the Linode instance's image
-* `__meta_linode_private_ipv4`: the private IPv4 of the Linode instance
-* `__meta_linode_public_ipv4`: the public IPv4 of the Linode instance
-* `__meta_linode_public_ipv6`: the public IPv6 of the Linode instance
-* `__meta_linode_region`: the region of the Linode instance
-* `__meta_linode_type`: the type of the Linode instance
-* `__meta_linode_status`: the status of the Linode instance
-* `__meta_linode_tags`: a list of tags of the Linode instance joined by the tag separator
-* `__meta_linode_group`: the display group a Linode instance is a member of
-* `__meta_linode_hypervisor`: the virtualization software powering the Linode instance
-* `__meta_linode_backups`: the backup service status of the Linode instance
-* `__meta_linode_specs_disk_bytes`: the amount of storage space the Linode instance has access to
-* `__meta_linode_specs_memory_bytes`: the amount of RAM the Linode instance has access to
-* `__meta_linode_specs_vcpus`: the number of VCPUS this Linode has access to
-* `__meta_linode_specs_transfer_bytes`: the amount of network transfer the Linode instance is allotted each month
-* `__meta_linode_extra_ips`: a list of all extra IPv4 addresses assigned to the Linode instance joined by the tag separator
+- `__meta_linode_instance_id`: the id of the Linode instance
+- `__meta_linode_instance_label`: the label of the Linode instance
+- `__meta_linode_image`: the slug of the Linode instance's image
+- `__meta_linode_private_ipv4`: the private IPv4 of the Linode instance
+- `__meta_linode_public_ipv4`: the public IPv4 of the Linode instance
+- `__meta_linode_public_ipv6`: the public IPv6 of the Linode instance
+- `__meta_linode_region`: the region of the Linode instance
+- `__meta_linode_type`: the type of the Linode instance
+- `__meta_linode_status`: the status of the Linode instance
+- `__meta_linode_tags`: a list of tags of the Linode instance joined by the tag separator
+- `__meta_linode_group`: the display group a Linode instance is a member of
+- `__meta_linode_hypervisor`: the virtualization software powering the Linode instance
+- `__meta_linode_backups`: the backup service status of the Linode instance
+- `__meta_linode_specs_disk_bytes`: the amount of storage space the Linode instance has access to
+- `__meta_linode_specs_memory_bytes`: the amount of RAM the Linode instance has access to
+- `__meta_linode_specs_vcpus`: the number of VCPUS this Linode has access to
+- `__meta_linode_specs_transfer_bytes`: the amount of network transfer the Linode instance is allotted each month
+- `__meta_linode_extra_ips`: a list of all extra IPv4 addresses assigned to the Linode instance joined by the tag separator
 
 ## Component health
 
@@ -155,10 +155,12 @@ prometheus.remote_write "demo" {
 	}
 }
 ```
+
 Replace the following:
-  - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
-  - `USERNAME`: The username to use for authentication to the remote_write API.
-  - `PASSWORD`: The password to use for authentication to the remote_write API.
+
+- `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
+- `USERNAME`: The username to use for authentication to the remote_write API.
+- `PASSWORD`: The password to use for authentication to the remote_write API.
 
 ### Using private IP address:
 

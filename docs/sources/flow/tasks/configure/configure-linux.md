@@ -1,15 +1,15 @@
 ---
 aliases:
-- /docs/grafana-cloud/agent/flow/tasks/configure/configure-linux/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/tasks/configure/configure-linux/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/tasks/configure/configure-linux/
-- /docs/grafana-cloud/send-data/agent/flow/tasks/configure/configure-linux/
-# Previous page aliases for backwards compatibility:
-- /docs/grafana-cloud/agent/flow/setup/configure/configure-linux/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/setup/configure/configure-linux/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/setup/configure/configure-linux/
-- /docs/grafana-cloud/send-data/agent/flow/setup/configure/configure-linux/
-- ../../setup/configure/configure-linux/ # /docs/agent/latest/flow/setup/configure/configure-linux/
+  - /docs/grafana-cloud/agent/flow/tasks/configure/configure-linux/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/tasks/configure/configure-linux/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/tasks/configure/configure-linux/
+  - /docs/grafana-cloud/send-data/agent/flow/tasks/configure/configure-linux/
+  # Previous page aliases for backwards compatibility:
+  - /docs/grafana-cloud/agent/flow/setup/configure/configure-linux/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/setup/configure/configure-linux/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/setup/configure/configure-linux/
+  - /docs/grafana-cloud/send-data/agent/flow/setup/configure/configure-linux/
+  - ../../setup/configure/configure-linux/ # /docs/agent/latest/flow/setup/configure/configure-linux/
 canonical: https://grafana.com/docs/agent/latest/flow/tasks/configure/configure-linux/
 description: Learn how to configure Grafana Agent Flow on Linux
 menuTitle: Linux
@@ -44,8 +44,8 @@ To change the configuration file used by the service, perform the following step
 
 1. Edit the environment file for the service:
 
-   * Debian or Ubuntu: edit `/etc/default/grafana-agent-flow`
-   * RHEL/Fedora or SUSE/openSUSE: edit `/etc/sysconfig/grafana-agent-flow`
+   - Debian or Ubuntu: edit `/etc/default/grafana-agent-flow`
+   - RHEL/Fedora or SUSE/openSUSE: edit `/etc/sysconfig/grafana-agent-flow`
 
 1. Change the contents of the `CONFIG_FILE` environment variable to point to
    the new configuration file to use.
@@ -61,15 +61,15 @@ To change the configuration file used by the service, perform the following step
 By default, the {{< param "PRODUCT_NAME" >}} service launches with the [run](ref:run)
 command, passing the following flags:
 
-* `--storage.path=/var/lib/grafana-agent-flow`
+- `--storage.path=/var/lib/grafana-agent-flow`
 
 To pass additional command-line flags to the {{< param "PRODUCT_NAME" >}} binary, perform
 the following steps:
 
 1. Edit the environment file for the service:
 
-   * Debian-based systems: edit `/etc/default/grafana-agent-flow`
-   * RedHat or SUSE-based systems: edit `/etc/sysconfig/grafana-agent-flow`
+   - Debian-based systems: edit `/etc/default/grafana-agent-flow`
+   - RedHat or SUSE-based systems: edit `/etc/sysconfig/grafana-agent-flow`
 
 1. Change the contents of the `CUSTOM_ARGS` environment variable to specify
    command-line flags to pass.
@@ -95,15 +95,14 @@ To expose the UI to other machines, complete the following steps:
    to edit command line flags passed to {{< param "PRODUCT_NAME" >}}, including the
    following customizations:
 
-    1. Add the following command line argument to `CUSTOM_ARGS`:
+   1. Add the following command line argument to `CUSTOM_ARGS`:
 
-       ```shell
-       --server.http.listen-addr=LISTEN_ADDR:12345
-       ```
+      ```shell
+      --server.http.listen-addr=LISTEN_ADDR:12345
+      ```
 
-       Replace `LISTEN_ADDR` with an address which other machines on the
-       network have access to, like the network IP address of the machine
-       {{< param "PRODUCT_NAME" >}} is running on.
+      Replace `LISTEN_ADDR` with an address which other machines on the
+      network have access to, like the network IP address of the machine
+      {{< param "PRODUCT_NAME" >}} is running on.
 
-       To listen on all interfaces, replace `LISTEN_ADDR` with `0.0.0.0`.
-
+      To listen on all interfaces, replace `LISTEN_ADDR` with `0.0.0.0`.

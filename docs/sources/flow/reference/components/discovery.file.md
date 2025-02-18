@@ -1,9 +1,9 @@
 ---
 aliases:
-- /docs/grafana-cloud/agent/flow/reference/components/discovery.file/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/discovery.file/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/discovery.file/
-- /docs/grafana-cloud/send-data/agent/flow/reference/components/discovery.file/
+  - /docs/grafana-cloud/agent/flow/reference/components/discovery.file/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/discovery.file/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/discovery.file/
+  - /docs/grafana-cloud/send-data/agent/flow/reference/components/discovery.file/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.file/
 description: Learn about discovery.file
 title: discovery.file
@@ -35,24 +35,24 @@ discovery.file "LABEL" {
 
 The following arguments are supported:
 
-Name               | Type                | Description                                | Default | Required
------------------- | ------------------- | ------------------------------------------ |---------| --------
-`files`            | `list(string)`      | Files to read and discover targets from.   |         | yes 
-`refresh_interval` | `duration`          | How often to sync targets.                 | "5m"    | no
+| Name               | Type           | Description                              | Default | Required |
+| ------------------ | -------------- | ---------------------------------------- | ------- | -------- |
+| `files`            | `list(string)` | Files to read and discover targets from. |         | yes      |
+| `refresh_interval` | `duration`     | How often to sync targets.               | "5m"    | no       |
 
-The last path segment of each element in `files` may contain a single * that matches any character sequence, e.g. `my/path/tg_*.json`.
+The last path segment of each element in `files` may contain a single _ that matches any character sequence, e.g. `my/path/tg\__.json`.
 
 ## Exported fields
 
 The following fields are exported and can be referenced by other components:
 
-Name      | Type                | Description
---------- | ------------------- | -----------
-`targets` | `list(map(string))` | The set of targets discovered from the filesystem.
+| Name      | Type                | Description                                        |
+| --------- | ------------------- | -------------------------------------------------- |
+| `targets` | `list(map(string))` | The set of targets discovered from the filesystem. |
 
 Each target includes the following labels:
 
-* `__meta_filepath`: The absolute path to the file the target was discovered from.
+- `__meta_filepath`: The absolute path to the file the target was discovered from.
 
 ## Component health
 
@@ -71,16 +71,17 @@ values.
 ## Examples
 
 ### Example target files
+
 ```json
 [
   {
-    "targets": [ "127.0.0.1:9091", "127.0.0.1:9092" ],
+    "targets": ["127.0.0.1:9091", "127.0.0.1:9092"],
     "labels": {
       "environment": "dev"
     }
   },
   {
-    "targets": [ "127.0.0.1:9093" ],
+    "targets": ["127.0.0.1:9093"],
     "labels": {
       "environment": "prod"
     }
@@ -90,12 +91,12 @@ values.
 
 ```yaml
 - targets:
-  - 127.0.0.1:9999
-  - 127.0.0.1:10101
+    - 127.0.0.1:9999
+    - 127.0.0.1:10101
   labels:
     job: worker
 - targets:
-  - 127.0.0.1:9090
+    - 127.0.0.1:9090
   labels:
     job: prometheus
 ```
@@ -128,9 +129,10 @@ prometheus.remote_write "demo" {
 ```
 
 Replace the following:
-  - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
-  - `USERNAME`: The username to use for authentication to the remote_write API.
-  - `PASSWORD`: The password to use for authentication to the remote_write API.
+
+- `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
+- `USERNAME`: The username to use for authentication to the remote_write API.
+- `PASSWORD`: The password to use for authentication to the remote_write API.
 
 ### File discovery with retained file path label
 
@@ -170,9 +172,10 @@ prometheus.remote_write "demo" {
 ```
 
 Replace the following:
-  - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
-  - `USERNAME`: The username to use for authentication to the remote_write API.
-  - `PASSWORD`: The password to use for authentication to the remote_write API.
+
+- `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
+- `USERNAME`: The username to use for authentication to the remote_write API.
+- `PASSWORD`: The password to use for authentication to the remote_write API.
 
 <!-- START GENERATED COMPATIBLE COMPONENTS -->
 

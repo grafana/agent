@@ -1,16 +1,16 @@
 ---
 aliases:
-- /docs/grafana-cloud/agent/flow/get-started/install/docker/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/get-started/install/docker/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/get-started/install/docker/
-- /docs/grafana-cloud/send-data/agent/flow/get-started/install/docker/
-# Previous docs aliases for backwards compatibility:
-- ../../install/docker/ # /docs/agent/latest/flow/install/docker/
-- /docs/grafana-cloud/agent/flow/setup/install/docker/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/setup/install/docker/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/setup/install/docker/
-- /docs/grafana-cloud/send-data/agent/flow/setup/install/docker/
-- ../../setup/install/docker/ # /docs/agent/latest/flow/setup/install/docker/
+  - /docs/grafana-cloud/agent/flow/get-started/install/docker/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/get-started/install/docker/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/get-started/install/docker/
+  - /docs/grafana-cloud/send-data/agent/flow/get-started/install/docker/
+  # Previous docs aliases for backwards compatibility:
+  - ../../install/docker/ # /docs/agent/latest/flow/install/docker/
+  - /docs/grafana-cloud/agent/flow/setup/install/docker/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/setup/install/docker/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/setup/install/docker/
+  - /docs/grafana-cloud/send-data/agent/flow/setup/install/docker/
+  - ../../setup/install/docker/ # /docs/agent/latest/flow/setup/install/docker/
 canonical: https://grafana.com/docs/agent/latest/flow/get-started/install/docker/
 description: Learn how to install Grafana Agent Flow on Docker
 menuTitle: Docker
@@ -33,13 +33,13 @@ refs:
 
 {{< param "PRODUCT_NAME" >}} is available as a Docker container image on the following platforms:
 
-* [Linux containers][] for AMD64 and ARM64.
-* [Windows containers][] for AMD64.
+- [Linux containers][] for AMD64 and ARM64.
+- [Windows containers][] for AMD64.
 
 ## Before you begin
 
-* Install [Docker][] on your computer.
-* Create and save a {{< param "PRODUCT_NAME" >}} River configuration file on your computer, for example:
+- Install [Docker][] on your computer.
+- Create and save a {{< param "PRODUCT_NAME" >}} River configuration file on your computer, for example:
 
   ```river
   logging {
@@ -105,4 +105,3 @@ To verify that {{< param "PRODUCT_NAME" >}} is running successfully, navigate to
 [Linux containers]: #run-a-linux-docker-container
 [Windows containers]: #run-a-windows-docker-container
 [Docker]: https://docker.io
-
