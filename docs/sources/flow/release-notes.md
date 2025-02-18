@@ -1,10 +1,10 @@
 ---
 aliases:
-- ./upgrade-guide/
-- /docs/grafana-cloud/agent/flow/release-notes/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/release-notes/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/release-notes/
-- /docs/grafana-cloud/send-data/agent/flow/release-notes/
+  - ./upgrade-guide/
+  - /docs/grafana-cloud/agent/flow/release-notes/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/release-notes/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/release-notes/
+  - /docs/grafana-cloud/send-data/agent/flow/release-notes/
 canonical: https://grafana.com/docs/agent/latest/flow/release-notes/
 description: Release notes for Grafana Agent Flow
 menuTitle: Release notes
@@ -22,8 +22,8 @@ For a complete list of changes to {{< param "PRODUCT_ROOT_NAME" >}}, with links 
 These release notes are specific to {{< param "PRODUCT_NAME" >}}.
 Other release notes for the different {{< param "PRODUCT_ROOT_NAME" >}} variants are contained on separate pages:
 
-* [Static mode release notes][release-notes-static]
-* [Static mode Kubernetes operator release notes][release-notes-operator]
+- [Static mode release notes][release-notes-static]
+- [Static mode Kubernetes operator release notes][release-notes-operator]
 
 [release-notes-static]: {{< relref "../static/release-notes.md" >}}
 [release-notes-operator]: {{< relref "../operator/release-notes.md" >}}
@@ -80,9 +80,9 @@ Support for `prometheus.exporter.vsphere` will be removed in a future release.
 
 ### Breaking change: `otelcol.receiver.prometheus` will drop all `otel_scope_info` metrics when converting them to OTLP
 
-* If the `otel_scope_info` metric has the `otel_scope_name` and `otel_scope_version` labels,
-  their values are used to set the OTLP Instrumentation Scope name and  version, respectively.
-* Labels for `otel_scope_info` metrics other than `otel_scope_name` and `otel_scope_version`
+- If the `otel_scope_info` metric has the `otel_scope_name` and `otel_scope_version` labels,
+  their values are used to set the OTLP Instrumentation Scope name and version, respectively.
+- Labels for `otel_scope_info` metrics other than `otel_scope_name` and `otel_scope_version`
   are added as scope attributes with the matching name and version.
 
 ### Breaking change: label for `target` block in `prometheus.exporter.blackbox` is removed
@@ -146,6 +146,7 @@ stage.non_indexed_labels {
 ```
 
 New configuration example:
+
 ```river
 stage.structured_metadata {
     values = {"app" = ""}
@@ -156,13 +157,13 @@ stage.structured_metadata {
 
 There are 2 changes to the way scope labels work for this component.
 
-* Previously, the `include_scope_info` argument would trigger including
-`otel_scope_name` and `otel_scope_version` in metrics. This is now defaulted
-to `true` and controlled via the `include_scope_labels` argument.
+- Previously, the `include_scope_info` argument would trigger including
+  `otel_scope_name` and `otel_scope_version` in metrics. This is now defaulted
+  to `true` and controlled via the `include_scope_labels` argument.
 
-* A bugfix was made to rename `otel_scope_info` metric labels from
-`name` to `otel_scope_name` and `version` to `otel_scope_version`. This is
-now correct with the OTLP Instrumentation Scope specification.
+- A bugfix was made to rename `otel_scope_info` metric labels from
+  `name` to `otel_scope_name` and `version` to `otel_scope_version`. This is
+  now correct with the OTLP Instrumentation Scope specification.
 
 ### Breaking change: `prometheus.exporter.unix` now requires a label.
 
@@ -188,8 +189,8 @@ prometheus.exporter.unix "example" { /* ... */ }
 The default value of `retry_on_http_429` is changed from `false` to `true` for the `queue_config` block in `prometheus.remote_write`
 so that {{< param "PRODUCT_ROOT_NAME" >}} can retry sending and avoid data being lost for metric pipelines by default.
 
-* If you set the `retry_on_http_429` explicitly - no action is required.
-* If you do not set `retry_on_http_429` explicitly and you do *not* want to retry on HTTP 429, make sure you set it to `false` as you upgrade to this new version.
+- If you set the `retry_on_http_429` explicitly - no action is required.
+- If you do not set `retry_on_http_429` explicitly and you do _not_ want to retry on HTTP 429, make sure you set it to `false` as you upgrade to this new version.
 
 ### Breaking change: `loki.source.file` no longer automatically extracts logs from compressed files
 
@@ -202,28 +203,29 @@ format. By default, the decompression of files is entirely disabled.
 
 How to migrate:
 
-* If {{< param "PRODUCT_NAME" >}} never reads logs from files with
+- If {{< param "PRODUCT_NAME" >}} never reads logs from files with
   extensions `.gz`, `.tar.gz`, `.z` or `.bz2` then no action is required.
-  > You can check what are the file extensions {{< param "PRODUCT_NAME" >}} reads from by looking
-  at the `path` label on `loki_source_file_file_bytes_total` metric.
 
-* If {{< param "PRODUCT_NAME" >}} extracts data from compressed files, please add the following
+  > You can check what are the file extensions {{< param "PRODUCT_NAME" >}} reads from by looking
+  > at the `path` label on `loki_source_file_file_bytes_total` metric.
+
+- If {{< param "PRODUCT_NAME" >}} extracts data from compressed files, please add the following
   configuration block to your `loki.source.file` component:
 
-    ```river
-    loki.source.file "example" {
-      ...
-      decompression {
-        enabled       = true
-        format        = "<compression format>"
-      }
+  ```river
+  loki.source.file "example" {
+    ...
+    decompression {
+      enabled       = true
+      format        = "<compression format>"
     }
-    ```
+  }
+  ```
 
-    where the `<compression format>` is the appropriate compression format -
-    see [`loki.source.file` documentation][loki-source-file-docs] for details.
+  where the `<compression format>` is the appropriate compression format -
+  see [`loki.source.file` documentation][loki-source-file-docs] for details.
 
-    [loki-source-file-docs]: {{< relref "./reference/components/loki.source.file.md" >}}
+  [loki-source-file-docs]: {{< relref "./reference/components/loki.source.file.md" >}}
 
 ## v0.35
 
@@ -353,8 +355,8 @@ HTTP-based discovery methods.
 However, the Prometheus discovery mechanisms have more functionality than
 `discovery_target_decode`:
 
-* Prometheus' `file_sd_configs` can use many files based on pattern matching.
-* Prometheus' `http_sd_configs` also support YAML files.
+- Prometheus' `file_sd_configs` can use many files based on pattern matching.
+- Prometheus' `http_sd_configs` also support YAML files.
 
 Additionally, it is no longer an accepted pattern to have component-specific
 functions to the River standard library.
@@ -389,12 +391,14 @@ prometehus.scrape "example" {
 ```
 
 ### Breaking change: The algorithm for the "hash" action of `otelcol.processor.attributes` has changed
+
 The hash produced when using `action = "hash"` in the `otelcol.processor.attributes` flow component is now using the more secure SHA-256 algorithm.
 The change was made in PR [#22831](https://github.com/open-telemetry/opentelemetry-collector-contrib/pull/22831) of opentelemetry-collector-contrib.
 
 ### Breaking change: `otelcol.exporter.loki` now includes instrumentation scope in its output
 
 Additional `instrumentation_scope` information will be added to the OTLP log signal, like this:
+
 ```
 {
     "body": "Example log",

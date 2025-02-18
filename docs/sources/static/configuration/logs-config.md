@@ -1,9 +1,9 @@
 ---
 aliases:
-- ../../configuration/logs-config/
-- ../../configuration/loki-config/
-- /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/logs-config/
-- /docs/grafana-cloud/send-data/agent/static/configuration/logs-config/
+  - ../../configuration/logs-config/
+  - ../../configuration/loki-config/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/logs-config/
+  - /docs/grafana-cloud/send-data/agent/static/configuration/logs-config/
 canonical: https://grafana.com/docs/agent/latest/static/configuration/logs-config/
 description: Learn about logs_config
 title: logs_config
@@ -18,7 +18,7 @@ configured, except deprecated fields have been removed and the server_config is
 not supported.
 
 Refer to the
-[Promtail documentation](https://grafana.com/docs/loki/latest/send-data/promtail/configuration/)
+[Promtail documentation](/docs/loki/latest/clients/promtail/configuration/#clients)
 for the supported values for these fields.
 
 ```yaml
@@ -56,8 +56,7 @@ clients:
 > **Note:** More information on the following types can be found on the
 > documentation for Promtail:
 >
-> * [`promtail.client_config`](https://grafana.com/docs/loki/latest/send-data/promtail/configuration/#clients)
-
+> - [`promtail.client_config`](/docs/loki/latest/clients/promtail/configuration/#clients)
 
 ## file_watch_config
 
@@ -107,30 +106,35 @@ scrape_configs:
 
 [limits_config: <promtail.limits_config>]
 ```
+
 > **Note:** More information on the following types can be found on the
 > documentation for Promtail:
 >
-> * [`promtail.client_config`](https://grafana.com/docs/loki/latest/send-data/promtail/configuration/#clients)
-> * [`promtail.scrape_config`](https://grafana.com/docs/loki/latest/send-data/promtail/configuration/#scrape_configs)
-> * [`promtail.target_config`](https://grafana.com/docs/loki/latest/send-data/promtail/configuration/#target_config)
-> * [`promtail.limits_config`](https://grafana.com/docs/loki/latest/send-data/promtail/configuration/#limits_config)
+> - [`promtail.client_config`](/docs/loki/latest/clients/promtail/configuration/#clients)
+> - [`promtail.scrape_config`](/docs/loki/latest/clients/promtail/configuration/#scrape_configs)
+> - [`promtail.target_config`](/docs/loki/latest/clients/promtail/configuration/#target_config)
+> - [`promtail.limits_config`](/docs/loki/latest/clients/promtail/configuration/#limits_config)
 
 > **Note:** Backticks in values are not supported.
 
-> **Note:**  Because of how YAML treats backslashes in double-quoted strings,
+> **Note:** Because of how YAML treats backslashes in double-quoted strings,
 > all backslashes in a regex expression must be escaped when using double
 > quotes. But because of double processing, in Grafana Agent config file
 > you must use quadruple backslash (`\\\\`) construction to add backslashes
 > into regular expressions, here is example for `name=(\w+)\s` regex:
+
 ```
   selector: '{app="my-app"} |~ "name=(\\\\w+)\\\\s"'
 ```
 
 Using single or double backslash construction produces the error:
+
 ```
 failed to make file target manager: invalid match stage config: invalid selector syntax for match stage: parse error at line 1, col 40: literal not terminated
 ```
+
 Using backticks produces the error:
+
 ```
 invalid match stage config: invalid selector syntax for match stage: parse error at line 1, col 51: syntax error: unexpected IDENTIFIER, expecting STRING"
 ```

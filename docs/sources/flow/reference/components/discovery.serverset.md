@@ -1,7 +1,7 @@
 ---
 aliases:
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/discovery.serverset/
-- /docs/grafana-cloud/send-data/agent/flow/reference/components/discovery.serverset/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/discovery.serverset/
+  - /docs/grafana-cloud/send-data/agent/flow/reference/components/discovery.serverset/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.serverset/
 description: Learn about discovery.serverset
 title: discovery.serverset
@@ -32,27 +32,28 @@ Serverset data stored in Zookeeper must be in JSON format. The Thrift format is 
 The following arguments are supported:
 
 | Name      | Type           | Description                                      | Default | Required |
-|-----------|----------------|--------------------------------------------------|---------|----------|
-| `servers` | `list(string)` | The Zookeeper servers to connect to.                 |         | yes      |
+| --------- | -------------- | ------------------------------------------------ | ------- | -------- |
+| `servers` | `list(string)` | The Zookeeper servers to connect to.             |         | yes      |
 | `paths`   | `list(string)` | The Zookeeper paths to discover Serversets from. |         | yes      |
-| `timeout` | `duration`     | The Zookeeper session timeout                        | `10s`   | no       |
+| `timeout` | `duration`     | The Zookeeper session timeout                    | `10s`   | no       |
 
 ## Exported fields
 
 The following fields are exported and can be referenced by other components:
 
-Name      | Type                | Description
---------- | ------------------- | -----------
-`targets` | `list(map(string))` | The set of targets discovered.
+| Name      | Type                | Description                    |
+| --------- | ------------------- | ------------------------------ |
+| `targets` | `list(map(string))` | The set of targets discovered. |
 
 The following metadata labels are available on targets during relabeling:
-* `__meta_serverset_path`: the full path to the serverset member node in Zookeeper
-* `__meta_serverset_endpoint_host`: the host of the default endpoint
-* `__meta_serverset_endpoint_port`: the port of the default endpoint
-* `__meta_serverset_endpoint_host_<endpoint>`: the host of the given endpoint
-* `__meta_serverset_endpoint_port_<endpoint>`: the port of the given endpoint
-* `__meta_serverset_shard`: the shard number of the member
-* `__meta_serverset_status`: the status of the member
+
+- `__meta_serverset_path`: the full path to the serverset member node in Zookeeper
+- `__meta_serverset_endpoint_host`: the host of the default endpoint
+- `__meta_serverset_endpoint_port`: the port of the default endpoint
+- `__meta_serverset_endpoint_host_<endpoint>`: the host of the given endpoint
+- `__meta_serverset_endpoint_port_<endpoint>`: the port of the given endpoint
+- `__meta_serverset_shard`: the shard number of the member
+- `__meta_serverset_status`: the status of the member
 
 ## Component health
 

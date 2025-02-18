@@ -1,17 +1,17 @@
 ---
 aliases:
-- /docs/grafana-cloud/agent/flow/tasks/monitor/component_metrics/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/tasks/monitor/component_metrics/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/tasks/monitor/component_metrics/
-- /docs/grafana-cloud/send-data/agent/flow/tasks/monitor/component_metrics/
-- component-metrics/ # /docs/agent/latest/flow/tasks/monitor/component-metrics/
-# Previous page aliases for backwards compatibility:
-- /docs/grafana-cloud/agent/flow/monitoring/component_metrics/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/monitoring/component_metrics/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/monitoring/component_metrics/
-- /docs/grafana-cloud/send-data/agent/flow/monitoring/component_metrics/
-- ../../monitoring/component-metrics/ # /docs/agent/latest/flow/monitoring/component-metrics/
-- ../../monitoring/component_metrics/ # /docs/agent/latest/flow/monitoring/component_metrics/
+  - /docs/grafana-cloud/agent/flow/tasks/monitor/component_metrics/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/tasks/monitor/component_metrics/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/tasks/monitor/component_metrics/
+  - /docs/grafana-cloud/send-data/agent/flow/tasks/monitor/component_metrics/
+  - component-metrics/ # /docs/agent/latest/flow/tasks/monitor/component-metrics/
+  # Previous page aliases for backwards compatibility:
+  - /docs/grafana-cloud/agent/flow/monitoring/component_metrics/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/monitoring/component_metrics/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/monitoring/component_metrics/
+  - /docs/grafana-cloud/send-data/agent/flow/monitoring/component_metrics/
+  - ../../monitoring/component-metrics/ # /docs/agent/latest/flow/monitoring/component-metrics/
+  - ../../monitoring/component_metrics/ # /docs/agent/latest/flow/monitoring/component_metrics/
 canonical: https://grafana.com/docs/agent/latest/flow/monitoring/component_metrics/
 description: Learn how to monitor component metrics
 title: Monitor components
@@ -51,4 +51,3 @@ For example, component-specific metrics for a `prometheus.remote_write` componen
 
 The [reference documentation](ref:reference-documentation) for each component described the list of component-specific metrics that the component exposes.
 Not all components expose metrics.
-

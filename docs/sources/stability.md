@@ -1,9 +1,10 @@
 ---
 aliases:
-- /docs/grafana-cloud/monitor-infrastructure/agent/stability/
-- /docs/grafana-cloud/send-data/agent/stability/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/stability/
+  - /docs/grafana-cloud/send-data/agent/stability/
 canonical: https://grafana.com/docs/agent/latest/stability/
-description: Grafana Agent features fall into one of three stability categories, experimental,
+description:
+  Grafana Agent features fall into one of three stability categories, experimental,
   beta, or stable
 title: Stability
 weight: 600
@@ -17,9 +18,9 @@ such as collecting and forwarding OpenTelemetry metrics.
 Features within the Grafana Agent project will fall into one of three stability
 categories:
 
-* **Experimental**: A new use case is being explored.
-* **Beta**: Functionality covering a use case is being matured.
-* **Stable**: Functionality covering a use case is believed to be stable.
+- **Experimental**: A new use case is being explored.
+- **Beta**: Functionality covering a use case is being matured.
+- **Stable**: Functionality covering a use case is believed to be stable.
 
 The default stability is stable; features will be explicitly marked as
 experimental or beta if they are not stable.
@@ -29,9 +30,9 @@ experimental or beta if they are not stable.
 The **experimental** stability category is used to denote that maintainers are
 exploring a new use case, and would like feedback.
 
-* Experimental features are subject to frequent breaking changes.
-* Experimental features can be removed with no equivalent replacement.
-* Experimental features may require enabling feature flags to use.
+- Experimental features are subject to frequent breaking changes.
+- Experimental features can be removed with no equivalent replacement.
+- Experimental features may require enabling feature flags to use.
 
 Unless removed, experimental features eventually graduate to beta.
 
@@ -40,10 +41,10 @@ Unless removed, experimental features eventually graduate to beta.
 The **beta** stability category is used to denote a feature which is being
 matured.
 
-* Beta features are subject to occasional breaking changes.
-* Beta features can be replaced by equivalent functionality that covers the
+- Beta features are subject to occasional breaking changes.
+- Beta features can be replaced by equivalent functionality that covers the
   same use case.
-* Beta features can be used without enabling feature flags.
+- Beta features can be used without enabling feature flags.
 
 Unless replaced with equivalent functionality, beta features eventually
 graduate to stable.
@@ -52,7 +53,7 @@ graduate to stable.
 
 The **stable** stability category is used to denote a feature as stable.
 
-* Breaking changes to stable features are rare, and will be well-documented.
-* If new functionality is introduced to replace existing stable functionality,
+- Breaking changes to stable features are rare, and will be well-documented.
+- If new functionality is introduced to replace existing stable functionality,
   deprecation and removal timeline will be well-documented.
-* Stable features can be used without enabling feature flags.
+- Stable features can be used without enabling feature flags.

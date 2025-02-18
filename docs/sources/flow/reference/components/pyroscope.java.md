@@ -17,7 +17,7 @@ title: pyroscope.java
 using [async-profiler](https://github.com/async-profiler/async-profiler).
 
 {{< admonition type="note" >}}
-To use the  `pyroscope.java` component you must run {{< param "PRODUCT_NAME" >}} as root and inside host PID namespace.
+To use the `pyroscope.java` component you must run {{< param "PRODUCT_NAME" >}} as root and inside host PID namespace.
 {{< /admonition >}}
 
 ## Usage
@@ -34,10 +34,10 @@ pyroscope.java "LABEL" {
 The following arguments are supported:
 
 | Name         | Type                     | Description                                      | Default | Required |
-|--------------|--------------------------|--------------------------------------------------|---------|----------|
+| ------------ | ------------------------ | ------------------------------------------------ | ------- | -------- |
 | `targets`    | `list(map(string))`      | List of java process targets to profile.         |         | yes      |
 | `forward_to` | `list(ProfilesReceiver)` | List of receivers to send collected profiles to. |         | yes      |
-| `tmp_dir`    | `string`                 | Temporary directory to store async-profiler.      | `/tmp`  | no       |
+| `tmp_dir`    | `string`                 | Temporary directory to store async-profiler.     | `/tmp`  | no       |
 
 ## Profiling behavior
 
@@ -73,6 +73,7 @@ Labels starting with a double underscore (`__`) are treated as _internal_, and a
 The special label `service_name` is required and must always be present.
 If it is not specified, `pyroscope.scrape` will attempt to infer it from
 either of the following sources, in this order:
+
 1. `__meta_kubernetes_pod_annotation_pyroscope_io_service_name` which is a `pyroscope.io/service_name` pod annotation.
 2. `__meta_kubernetes_namespace` and `__meta_kubernetes_pod_container_name`
 3. `__meta_docker_container_name`
@@ -85,8 +86,8 @@ If `service_name` is not specified and could not be inferred, then it is set to 
 The following blocks are supported inside the definition of
 `pyroscope.java`:
 
-| Hierarchy        | Block                | Description                            | Required |
-|------------------|----------------------|----------------------------------------|----------|
+| Hierarchy        | Block                | Description                             | Required |
+| ---------------- | -------------------- | --------------------------------------- | -------- |
 | profiling_config | [profiling_config][] | Describes java profiling configuration. | no       |
 
 [profiling_config]: #profiling_config-block
@@ -97,12 +98,12 @@ The `profiling_config` block describes how async-profiler is invoked.
 
 The following arguments are supported:
 
-| Name          | Type       | Description                                                                                             | Default | Required |
-|---------------|------------|---------------------------------------------------------------------------------------------------------|---------|----------|
-| `interval`    | `duration` | How frequently to collect profiles from the targets.                                                    | "60s"   | no       |
-| `cpu`         | `bool`     | A flag to enable cpu profiling, using `itimer` async-profiler event.                                    | true    | no       |
+| Name          | Type       | Description                                                                                              | Default | Required |
+| ------------- | ---------- | -------------------------------------------------------------------------------------------------------- | ------- | -------- |
+| `interval`    | `duration` | How frequently to collect profiles from the targets.                                                     | "60s"   | no       |
+| `cpu`         | `bool`     | A flag to enable cpu profiling, using `itimer` async-profiler event.                                     | true    | no       |
 | `sample_rate` | `int`      | CPU profiling sample rate. It is converted from Hz to interval and passed as `-i` arg to async-profiler. | 100     | no       |
-| `alloc`       | `string`   | Allocation profiling sampling configuration  It is passed as `--alloc` arg to async-profiler.            | "512k"  | no       |
+| `alloc`       | `string`   | Allocation profiling sampling configuration It is passed as `--alloc` arg to async-profiler.             | "512k"  | no       |
 | `lock`        | `string`   | Lock profiling sampling configuration. It is passed as `--lock` arg to async-profiler.                   | "10ms"  | no       |
 
 For more information on async-profiler configuration, see [profiler-options](https://github.com/async-profiler/async-profiler?tab=readme-ov-file#profiler-options)
@@ -179,7 +180,6 @@ pyroscope.java "java" {
 
 - Components that export [Targets](../../compatibility/#targets-exporters)
 - Components that export [Pyroscope `ProfilesReceiver`](../../compatibility/#pyroscope-profilesreceiver-exporters)
-
 
 {{< admonition type="note" >}}
 Connecting some components may not be sensible or components may require further configuration to make the connection work correctly.

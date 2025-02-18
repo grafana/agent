@@ -1,9 +1,9 @@
 ---
 aliases:
-- /docs/grafana-cloud/agent/flow/reference/components/loki.source.heroku/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/loki.source.heroku/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/loki.source.heroku/
-- /docs/grafana-cloud/send-data/agent/flow/reference/components/loki.source.heroku/
+  - /docs/grafana-cloud/agent/flow/reference/components/loki.source.heroku/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/loki.source.heroku/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/loki.source.heroku/
+  - /docs/grafana-cloud/send-data/agent/flow/reference/components/loki.source.heroku/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/loki.source.heroku/
 description: Learn about loki.source.heroku
 title: loki.source.heroku
@@ -42,13 +42,13 @@ loki.source.heroku "LABEL" {
 
 `loki.source.heroku` supports the following arguments:
 
-Name                        | Type                 | Description                                                                        | Default | Required
-----------------------------|----------------------|------------------------------------------------------------------------------------|---------|---------
-`use_incoming_timestamp`    | `bool`               | Whether or not to use the timestamp received from Heroku.                          | `false` | no
-`labels`                    | `map(string)`        | The labels to associate with each received Heroku record.                          | `{}`    | no
-`forward_to`                | `list(LogsReceiver)` | List of receivers to send log entries to.                                          |         | yes
-`relabel_rules`             | `RelabelRules`       | Relabeling rules to apply on log entries.                                          | `{}`    | no
-`graceful_shutdown_timeout` | `duration`           | Timeout for servers graceful shutdown. If configured, should be greater than zero. | "30s"   | no
+| Name                        | Type                 | Description                                                                        | Default | Required |
+| --------------------------- | -------------------- | ---------------------------------------------------------------------------------- | ------- | -------- |
+| `use_incoming_timestamp`    | `bool`               | Whether or not to use the timestamp received from Heroku.                          | `false` | no       |
+| `labels`                    | `map(string)`        | The labels to associate with each received Heroku record.                          | `{}`    | no       |
+| `forward_to`                | `list(LogsReceiver)` | List of receivers to send log entries to.                                          |         | yes      |
+| `relabel_rules`             | `RelabelRules`       | Relabeling rules to apply on log entries.                                          | `{}`    | no       |
+| `graceful_shutdown_timeout` | `duration`           | Timeout for servers graceful shutdown. If configured, should be greater than zero. | "30s"   | no       |
 
 The `relabel_rules` field can make use of the `rules` export value from a
 `loki.relabel` component to apply one or more relabeling rules to log entries
@@ -58,10 +58,10 @@ before they're forwarded to the list of receivers in `forward_to`.
 
 The following blocks are supported inside the definition of `loki.source.heroku`:
 
-Hierarchy | Name     | Description                                        | Required
-----------|----------|----------------------------------------------------|---------
-`http`    | [http][] | Configures the HTTP server that receives requests. | no
-`grpc`    | [grpc][] | Configures the gRPC server that receives requests. | no
+| Hierarchy | Name     | Description                                        | Required |
+| --------- | -------- | -------------------------------------------------- | -------- |
+| `http`    | [http][] | Configures the HTTP server that receives requests. | no       |
+| `grpc`    | [grpc][] | Configures the gRPC server that receives requests. | no       |
 
 [http]: #http
 [grpc]: #grpc
@@ -79,6 +79,7 @@ Hierarchy | Name     | Description                                        | Requ
 The `labels` map is applied to every message that the component reads.
 
 The following internal labels all prefixed with `__` are available but will be discarded if not relabeled:
+
 - `__heroku_drain_host`
 - `__heroku_drain_app`
 - `__heroku_drain_proc`
@@ -100,12 +101,14 @@ configuration.
 ## Debug information
 
 `loki.source.heroku` exposes some debug information per Heroku listener:
-* Whether the listener is currently running.
-* The listen address.
+
+- Whether the listener is currently running.
+- The listen address.
 
 ## Debug metrics
-* `loki_source_heroku_drain_entries_total` (counter): Number of successful entries received by the Heroku target.
-* `loki_source_heroku_drain_parsing_errors_total` (counter): Number of parsing errors while receiving Heroku messages.
+
+- `loki_source_heroku_drain_entries_total` (counter): Number of successful entries received by the Heroku target.
+- `loki_source_heroku_drain_parsing_errors_total` (counter): Number of parsing errors while receiving Heroku messages.
 
 ## Example
 
@@ -144,6 +147,7 @@ loki.write "local" {
     }
 }
 ```
+
 <!-- START GENERATED COMPATIBLE COMPONENTS -->
 
 ## Compatible components
@@ -151,7 +155,6 @@ loki.write "local" {
 `loki.source.heroku` can accept arguments from the following components:
 
 - Components that export [Loki `LogsReceiver`](../../compatibility/#loki-logsreceiver-exporters)
-
 
 {{< admonition type="note" >}}
 Connecting some components may not be sensible or components may require further configuration to make the connection work correctly.

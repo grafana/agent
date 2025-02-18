@@ -1,8 +1,8 @@
 ---
 aliases:
-- ../../../configuration/integrations/github-exporter-config/
-- /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/integrations/github-exporter-config/
-- /docs/grafana-cloud/send-data/agent/static/configuration/integrations/github-exporter-config/
+  - ../../../configuration/integrations/github-exporter-config/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/integrations/github-exporter-config/
+  - /docs/grafana-cloud/send-data/agent/static/configuration/integrations/github-exporter-config/
 canonical: https://grafana.com/docs/agent/latest/static/configuration/integrations/github-exporter-config/
 description: Learn about github_exporter_config
 title: github_exporter_config

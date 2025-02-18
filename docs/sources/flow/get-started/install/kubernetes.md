@@ -1,16 +1,16 @@
 ---
 aliases:
-- /docs/grafana-cloud/agent/flow/get-started/install/kubernetes/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/get-started/install/kubernetes/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/get-started/install/kubernetes/
-- /docs/grafana-cloud/send-data/agent/flow/get-started/install/kubernetes/
-# Previous docs aliases for backwards compatibility:
-- ../../install/kubernetes/ # /docs/agent/latest/flow/install/kubernetes/
-- /docs/grafana-cloud/agent/flow/setup/install/kubernetes/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/setup/install/kubernetes/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/setup/install/kubernetes/
-- /docs/grafana-cloud/send-data/agent/flow/setup/install/kubernetes/
-- ../../setup/install/kubernetes/ # /docs/agent/latest/flow/setup/install/kubernetes/
+  - /docs/grafana-cloud/agent/flow/get-started/install/kubernetes/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/get-started/install/kubernetes/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/get-started/install/kubernetes/
+  - /docs/grafana-cloud/send-data/agent/flow/get-started/install/kubernetes/
+  # Previous docs aliases for backwards compatibility:
+  - ../../install/kubernetes/ # /docs/agent/latest/flow/install/kubernetes/
+  - /docs/grafana-cloud/agent/flow/setup/install/kubernetes/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/setup/install/kubernetes/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/setup/install/kubernetes/
+  - /docs/grafana-cloud/send-data/agent/flow/setup/install/kubernetes/
+  - ../../setup/install/kubernetes/ # /docs/agent/latest/flow/setup/install/kubernetes/
 canonical: https://grafana.com/docs/agent/latest/flow/get-started/install/kubernetes/
 description: Learn how to deploy Grafana Agent Flow on Kubernetes
 menuTitle: Kubernetes
@@ -35,9 +35,9 @@ You can deploy {{< param "PRODUCT_ROOT_NAME" >}} either in static mode or flow m
 
 ## Before you begin
 
-* Install [Helm][] on your computer.
-* Configure a Kubernetes cluster that you can use for {{< param "PRODUCT_NAME" >}}.
-* Configure your local Kubernetes context to point to the cluster.
+- Install [Helm][] on your computer.
+- Configure a Kubernetes cluster that you can use for {{< param "PRODUCT_NAME" >}}.
+- Configure your local Kubernetes context to point to the cluster.
 
 ## Deploy
 
@@ -54,6 +54,7 @@ To deploy {{< param "PRODUCT_ROOT_NAME" >}} on Kubernetes using Helm, run the fo
    ```shell
    helm repo update
    ```
+
 1. Create a namespace for {{< param "PRODUCT_NAME" >}}:
 
    ```shell
@@ -97,6 +98,4 @@ see the [Configure {{< param "PRODUCT_NAME" >}} on Kubernetes](ref:configure) gu
 - Refer to the [{{< param "PRODUCT_NAME" >}} Helm chart documentation on Artifact Hub][Artifact Hub] for more information about Helm chart.
 
 [Artifact Hub]: https://artifacthub.io/packages/helm/grafana/grafana-agent
-
 [Helm]: https://helm.sh
-

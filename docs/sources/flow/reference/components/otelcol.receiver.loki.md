@@ -1,9 +1,9 @@
 ---
 aliases:
-- /docs/grafana-cloud/agent/flow/reference/components/otelcol.receiver.loki/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/otelcol.receiver.loki/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/otelcol.receiver.loki/
-- /docs/grafana-cloud/send-data/agent/flow/reference/components/otelcol.receiver.loki/
+  - /docs/grafana-cloud/agent/flow/reference/components/otelcol.receiver.loki/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/otelcol.receiver.loki/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/otelcol.receiver.loki/
+  - /docs/grafana-cloud/send-data/agent/flow/reference/components/otelcol.receiver.loki/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.receiver.loki/
 description: Learn about otelcol.receiver.loki
 labels:
@@ -41,9 +41,9 @@ through inner blocks.
 The following blocks are supported inside the definition of
 `otelcol.receiver.loki`:
 
-Hierarchy | Block | Description | Required
---------- | ----- | ----------- | --------
-output | [output][] | Configures where to send converted telemetry data. | yes
+| Hierarchy | Block      | Description                                        | Required |
+| --------- | ---------- | -------------------------------------------------- | -------- |
+| output    | [output][] | Configures where to send converted telemetry data. | yes      |
 
 [output]: #output-block
 
@@ -55,9 +55,9 @@ output | [output][] | Configures where to send converted telemetry data. | yes
 
 The following fields are exported and can be referenced by other components:
 
-Name | Type | Description
----- | ---- | -----------
-`receiver` | `LogsReceiver` | A value that other components can use to send Loki logs to.
+| Name       | Type           | Description                                                 |
+| ---------- | -------------- | ----------------------------------------------------------- |
+| `receiver` | `LogsReceiver` | A value that other components can use to send Loki logs to. |
 
 ## Component health
 
