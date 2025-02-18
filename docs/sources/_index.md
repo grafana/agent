@@ -1,9 +1,9 @@
 ---
 aliases:
-- /docs/grafana-cloud/agent/
-- /docs/grafana-cloud/monitor-infrastructure/agent/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/
-- /docs/grafana-cloud/send-data/agent/
+  - /docs/grafana-cloud/agent/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/
+  - /docs/grafana-cloud/send-data/agent/
 canonical: https://grafana.com/docs/agent/latest/
 title: Grafana Agent
 description: Grafana Agent is a flexible, performant, vendor-neutral, telemetry collector
@@ -57,9 +57,9 @@ For information on other variants of Grafana Agent, refer to [Introduction to Gr
 
 Grafana Agent can collect, transform, and send data to:
 
-* The [Prometheus][] ecosystem
-* The [OpenTelemetry][] ecosystem
-* The Grafana open source ecosystem ([Loki][], [Grafana][], [Tempo][], [Mimir][], [Pyroscope][])
+- The [Prometheus][] ecosystem
+- The [OpenTelemetry][] ecosystem
+- The Grafana open source ecosystem ([Loki][], [Grafana][], [Tempo][], [Mimir][], [Pyroscope][])
 
 [Terraform]: https://terraform.io
 [Prometheus]: https://prometheus.io
@@ -72,48 +72,48 @@ Grafana Agent can collect, transform, and send data to:
 
 ## Why use Grafana Agent?
 
-* **Vendor-neutral**: Fully compatible with the Prometheus, OpenTelemetry, and
+- **Vendor-neutral**: Fully compatible with the Prometheus, OpenTelemetry, and
   Grafana open source ecosystems.
-* **Every signal**: Collect telemetry data for metrics, logs, traces, and
+- **Every signal**: Collect telemetry data for metrics, logs, traces, and
   continuous profiles.
-* **Scalable**: Deploy on any number of machines to collect millions of active
+- **Scalable**: Deploy on any number of machines to collect millions of active
   series and terabytes of logs.
-* **Battle-tested**: Grafana Agent extends the existing battle-tested code from
+- **Battle-tested**: Grafana Agent extends the existing battle-tested code from
   the Prometheus and OpenTelemetry Collector projects.
-* **Powerful**: Write programmable pipelines with ease, and debug them using a
+- **Powerful**: Write programmable pipelines with ease, and debug them using a
   [built-in UI](ref:ui).
-* **Batteries included**: Integrate with systems like MySQL, Kubernetes, and
+- **Batteries included**: Integrate with systems like MySQL, Kubernetes, and
   Apache to get telemetry that's immediately useful.
 
 ## Getting started
 
-* Choose a [variant](ref:variants) of Grafana Agent to run.
-* Refer to the documentation for the variant to use:
-  * [Static mode](ref:static-mode)
-  * [Static mode Kubernetes operator](ref:static-mode-kubernetes-operator)
-  * [Flow mode](ref:flow-mode)
+- Choose a [variant](ref:variants) of Grafana Agent to run.
+- Refer to the documentation for the variant to use:
+  - [Static mode](ref:static-mode)
+  - [Static mode Kubernetes operator](ref:static-mode-kubernetes-operator)
+  - [Flow mode](ref:flow-mode)
 
 ## Supported platforms
 
-* Linux
+- Linux
 
-  * Minimum version: kernel 2.6.32 or later
-  * Architectures: AMD64, ARM64
+  - Minimum version: kernel 2.6.32 or later
+  - Architectures: AMD64, ARM64
 
-* Windows
+- Windows
 
-  * Minimum version: Windows Server 2016 or later, or Windows 10 or later.
-  * Architectures: AMD64
+  - Minimum version: Windows Server 2016 or later, or Windows 10 or later.
+  - Architectures: AMD64
 
-* macOS
+- macOS
 
-  * Minimum version: macOS 10.13 or later
-  * Architectures: AMD64 (Intel), ARM64 (Apple Silicon)
+  - Minimum version: macOS 10.13 or later
+  - Architectures: AMD64 (Intel), ARM64 (Apple Silicon)
 
-* FreeBSD
+- FreeBSD
 
-  * Minimum version: FreeBSD 10 or later
-  * Architectures: AMD64
+  - Minimum version: FreeBSD 10 or later
+  - Architectures: AMD64
 
 ## Release cadence
 
@@ -131,4 +131,3 @@ published outside of the release cadence may not include these dependency
 updates.
 
 Patch and security releases may be created at any time.
-

@@ -1,9 +1,9 @@
 ---
 aliases:
-- /docs/grafana-cloud/agent/flow/reference/components/pyroscope.write/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/pyroscope.write/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/pyroscope.write/
-- /docs/grafana-cloud/send-data/agent/flow/reference/components/pyroscope.write/
+  - /docs/grafana-cloud/agent/flow/reference/components/pyroscope.write/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/pyroscope.write/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/pyroscope.write/
+  - /docs/grafana-cloud/send-data/agent/flow/reference/components/pyroscope.write/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/pyroscope.write/
 description: Learn about pyroscope.write
 labels:
@@ -39,23 +39,23 @@ pyroscope.write "LABEL" {
 
 The following arguments are supported:
 
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`external_labels` | `map(string)` | Labels to add to profiles sent over the network. | | no
+| Name              | Type          | Description                                      | Default | Required |
+| ----------------- | ------------- | ------------------------------------------------ | ------- | -------- |
+| `external_labels` | `map(string)` | Labels to add to profiles sent over the network. |         | no       |
 
 ## Blocks
 
 The following blocks are supported inside the definition of
 `pyroscope.write`:
 
-Hierarchy | Block | Description | Required
---------- | ----- | ----------- | --------
-endpoint | [endpoint][] | Location to send profiles to. | no
-endpoint > basic_auth | [basic_auth][] | Configure basic_auth for authenticating to the endpoint. | no
-endpoint > authorization | [authorization][] | Configure generic authorization to the endpoint. | no
-endpoint > oauth2 | [oauth2][] | Configure OAuth2 for authenticating to the endpoint. | no
-endpoint > oauth2 > tls_config | [tls_config][] | Configure TLS settings for connecting to the endpoint. | no
-endpoint > tls_config | [tls_config][] | Configure TLS settings for connecting to the endpoint. | no
+| Hierarchy                      | Block             | Description                                              | Required |
+| ------------------------------ | ----------------- | -------------------------------------------------------- | -------- |
+| endpoint                       | [endpoint][]      | Location to send profiles to.                            | no       |
+| endpoint > basic_auth          | [basic_auth][]    | Configure basic_auth for authenticating to the endpoint. | no       |
+| endpoint > authorization       | [authorization][] | Configure generic authorization to the endpoint.         | no       |
+| endpoint > oauth2              | [oauth2][]        | Configure OAuth2 for authenticating to the endpoint.     | no       |
+| endpoint > oauth2 > tls_config | [tls_config][]    | Configure TLS settings for connecting to the endpoint.   | no       |
+| endpoint > tls_config          | [tls_config][]    | Configure TLS settings for connecting to the endpoint.   | no       |
 
 The `>` symbol indicates deeper levels of nesting. For example, `endpoint >
 basic_auth` refers to a `basic_auth` block defined inside an
@@ -74,30 +74,31 @@ The `endpoint` block describes a single location to send profiles to. Multiple
 
 The following arguments are supported:
 
-Name                     | Type                | Description                                                   | Default   | Required
--------------------------|---------------------|---------------------------------------------------------------|-----------|---------
-`url`                    | `string`            | Full URL to send metrics to.                                  |           | yes
-`name`                   | `string`            | Optional name to identify the endpoint in metrics.            |           | no
-`remote_timeout`         | `duration`          | Timeout for requests made to the URL.                         | `"10s"`   | no
-`headers`                | `map(string)`       | Extra headers to deliver with the request.                    |           | no
-`min_backoff_period`     | `duration`          | Initial backoff time between retries.                         | `"500ms"` | no
-`max_backoff_period`     | `duration`          | Maximum backoff time between retries.                         | `"5m"`    | no
-`max_backoff_retries`    | `int`               | Maximum number of retries. 0 to retry infinitely.             | 10        | no
-`bearer_token_file`      | `string`            | File containing a bearer token to authenticate with.          |           | no
-`bearer_token`           | `secret`            | Bearer token to authenticate with.                            |           | no
-`enable_http2`           | `bool`              | Whether HTTP2 is supported for requests.                      | `true`    | no
-`follow_redirects`       | `bool`              | Whether redirects returned by the server should be followed.  | `true`    | no
-`proxy_url`              | `string`            | HTTP proxy to send requests through.                          |           | no
-`no_proxy`               | `string`            | Comma-separated list of IP addresses, CIDR notations, and domain names to exclude from proxying. | | no
-`proxy_from_environment` | `bool`              | Use the proxy URL indicated by environment variables.         | `false` | no
-`proxy_connect_header`   | `map(list(secret))` | Specifies headers to send to proxies during CONNECT requests. |         | no
+| Name                     | Type                | Description                                                                                      | Default   | Required |
+| ------------------------ | ------------------- | ------------------------------------------------------------------------------------------------ | --------- | -------- |
+| `url`                    | `string`            | Full URL to send metrics to.                                                                     |           | yes      |
+| `name`                   | `string`            | Optional name to identify the endpoint in metrics.                                               |           | no       |
+| `remote_timeout`         | `duration`          | Timeout for requests made to the URL.                                                            | `"10s"`   | no       |
+| `headers`                | `map(string)`       | Extra headers to deliver with the request.                                                       |           | no       |
+| `min_backoff_period`     | `duration`          | Initial backoff time between retries.                                                            | `"500ms"` | no       |
+| `max_backoff_period`     | `duration`          | Maximum backoff time between retries.                                                            | `"5m"`    | no       |
+| `max_backoff_retries`    | `int`               | Maximum number of retries. 0 to retry infinitely.                                                | 10        | no       |
+| `bearer_token_file`      | `string`            | File containing a bearer token to authenticate with.                                             |           | no       |
+| `bearer_token`           | `secret`            | Bearer token to authenticate with.                                                               |           | no       |
+| `enable_http2`           | `bool`              | Whether HTTP2 is supported for requests.                                                         | `true`    | no       |
+| `follow_redirects`       | `bool`              | Whether redirects returned by the server should be followed.                                     | `true`    | no       |
+| `proxy_url`              | `string`            | HTTP proxy to send requests through.                                                             |           | no       |
+| `no_proxy`               | `string`            | Comma-separated list of IP addresses, CIDR notations, and domain names to exclude from proxying. |           | no       |
+| `proxy_from_environment` | `bool`              | Use the proxy URL indicated by environment variables.                                            | `false`   | no       |
+| `proxy_connect_header`   | `map(list(secret))` | Specifies headers to send to proxies during CONNECT requests.                                    |           | no       |
 
- At most, one of the following can be provided:
- - [`bearer_token` argument][endpoint].
- - [`bearer_token_file` argument][endpoint].
- - [`basic_auth` block][basic_auth].
- - [`authorization` block][authorization].
- - [`oauth2` block][oauth2].
+At most, one of the following can be provided:
+
+- [`bearer_token` argument][endpoint].
+- [`bearer_token_file` argument][endpoint].
+- [`basic_auth` block][basic_auth].
+- [`authorization` block][authorization].
+- [`oauth2` block][oauth2].
 
 {{< docs/shared lookup="flow/reference/components/http-client-proxy-config-description.md" source="agent" version="<AGENT_VERSION>" >}}
 
@@ -124,9 +125,9 @@ configured locations.
 
 The following fields are exported and can be referenced by other components:
 
-Name | Type | Description
----- | ---- | -----------
-`receiver` | `receiver` | A value that other components can use to send profiles to.
+| Name       | Type       | Description                                                |
+| ---------- | ---------- | ---------------------------------------------------------- |
+| `receiver` | `receiver` | A value that other components can use to send profiles to. |
 
 ## Component health
 
@@ -164,6 +165,7 @@ pyroscope.scrape "default" {
   forward_to = [pyroscope.write.staging.receiver]
 }
 ```
+
 <!-- START GENERATED COMPATIBLE COMPONENTS -->
 
 ## Compatible components

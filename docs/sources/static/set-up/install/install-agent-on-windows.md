@@ -1,9 +1,9 @@
 ---
 aliases:
-- ../../set-up/install-agent-on-windows/
-- ../set-up/install-agent-on-windows/
-- /docs/grafana-cloud/monitor-infrastructure/agent/static/set-up/install/install-agent-on-windows/
-- /docs/grafana-cloud/send-data/agent/static/set-up/install/install-agent-on-windows/
+  - ../../set-up/install-agent-on-windows/
+  - ../set-up/install-agent-on-windows/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/static/set-up/install/install-agent-on-windows/
+  - /docs/grafana-cloud/send-data/agent/static/set-up/install/install-agent-on-windows/
 canonical: https://grafana.com/docs/agent/latest/static/set-up/install/install-agent-on-windows/
 description: Learn how to install Grafana Agent in static mode on Windows
 menuTitle: Windows
@@ -47,10 +47,10 @@ To do a standard graphical install of Grafana Agent on Windows, perform the foll
 1. Double-click on `grafana-agent-installer.exe` to install Grafana Agent.
 
    Grafana Agent is installed into the default directory `C:\Program Files\Grafana Agent`.
-   
+
    The following options are available:
-   
-   - The [windows_exporter integration](ref:windows_exporter_config) can be enabled with all default windows_exporter options. 
+
+   - The [windows_exporter integration](ref:windows_exporter_config) can be enabled with all default windows_exporter options.
    - The [-config.expand-env](ref:flags) command line flag can be enabled.
 
 ## Silent install
@@ -165,16 +165,16 @@ logs:
       clients:
         - url: https://example.com
       scrape_configs:
-      - job_name: windows
-        windows_events:
-          # Note the directory structure must already exist but the file will be created on demand
-          bookmark_path: "C:\\path\\to\\bookmark\\directory\\bookmark.xml"
-          use_incoming_timestamp: false
-          eventlog_name: "Application"
-          # Filter for logs
-          xpath_query: '*'
-          labels:
-            job: windows
+        - job_name: windows
+          windows_events:
+            # Note the directory structure must already exist but the file will be created on demand
+            bookmark_path: "C:\\path\\to\\bookmark\\directory\\bookmark.xml"
+            use_incoming_timestamp: false
+            eventlog_name: "Application"
+            # Filter for logs
+            xpath_query: "*"
+            labels:
+              job: windows
 ```
 
 Refer to [windows_events](/docs/loki/latest/clients/promtail/configuration/#windows_events) for additional configuration details.
@@ -183,4 +183,3 @@ Refer to [windows_events](/docs/loki/latest/clients/promtail/configuration/#wind
 
 - [Start Grafana Agent](ref:start)
 - [Configure Grafana Agent](ref:configure)
-

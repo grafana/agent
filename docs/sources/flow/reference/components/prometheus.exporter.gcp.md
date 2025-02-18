@@ -1,9 +1,9 @@
 ---
 aliases:
-- /docs/grafana-cloud/agent/flow/reference/components/prometheus.exporter.gcp/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/prometheus.exporter.gcp/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/prometheus.exporter.gcp/
-- /docs/grafana-cloud/send-data/agent/flow/reference/components/prometheus.exporter.gcp/
+  - /docs/grafana-cloud/agent/flow/reference/components/prometheus.exporter.gcp/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/prometheus.exporter.gcp/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/prometheus.exporter.gcp/
+  - /docs/grafana-cloud/send-data/agent/flow/reference/components/prometheus.exporter.gcp/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.gcp/
 description: Learn about prometheus.exporter.gcp
 title: prometheus.exporter.gcp

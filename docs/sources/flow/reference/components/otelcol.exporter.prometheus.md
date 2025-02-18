@@ -1,9 +1,9 @@
 ---
 aliases:
-- /docs/grafana-cloud/agent/flow/reference/components/otelcol.exporter.prometheus/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/otelcol.exporter.prometheus/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/otelcol.exporter.prometheus/
-- /docs/grafana-cloud/send-data/agent/flow/reference/components/otelcol.exporter.prometheus/
+  - /docs/grafana-cloud/agent/flow/reference/components/otelcol.exporter.prometheus/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/otelcol.exporter.prometheus/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/otelcol.exporter.prometheus/
+  - /docs/grafana-cloud/send-data/agent/flow/reference/components/otelcol.exporter.prometheus/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.exporter.prometheus/
 description: Learn about otelcol.exporter.prometheus
 title: otelcol.exporter.prometheus
@@ -38,32 +38,32 @@ otelcol.exporter.prometheus "LABEL" {
 
 `otelcol.exporter.prometheus` supports the following arguments:
 
-Name | Type | Description                                               | Default | Required
----- | ---- |-----------------------------------------------------------| ------- | --------
-`include_target_info` | `boolean` | Whether to include `target_info` metrics.                 | `true` | no
-`include_scope_info` | `boolean` | Whether to include `otel_scope_info` metrics.             | `false` | no
-`include_scope_labels` | `boolean` | Whether to include additional OTLP labels in all metrics. | `true` | no
-`add_metric_suffixes` | `boolean` | Whether to add type and unit suffixes to metrics names.   | `true` | no
-`gc_frequency` | `duration` | How often to clean up stale metrics from memory.          | `"5m"` | no
-`forward_to` | `list(MetricsReceiver)` | Where to forward converted Prometheus metrics.            | | yes
-`resource_to_telemetry_conversion` | `boolean` | Whether to convert OTel resource attributes to Prometheus labels. | `false` | no
+| Name                               | Type                    | Description                                                       | Default | Required |
+| ---------------------------------- | ----------------------- | ----------------------------------------------------------------- | ------- | -------- |
+| `include_target_info`              | `boolean`               | Whether to include `target_info` metrics.                         | `true`  | no       |
+| `include_scope_info`               | `boolean`               | Whether to include `otel_scope_info` metrics.                     | `false` | no       |
+| `include_scope_labels`             | `boolean`               | Whether to include additional OTLP labels in all metrics.         | `true`  | no       |
+| `add_metric_suffixes`              | `boolean`               | Whether to add type and unit suffixes to metrics names.           | `true`  | no       |
+| `gc_frequency`                     | `duration`              | How often to clean up stale metrics from memory.                  | `"5m"`  | no       |
+| `forward_to`                       | `list(MetricsReceiver)` | Where to forward converted Prometheus metrics.                    |         | yes      |
+| `resource_to_telemetry_conversion` | `boolean`               | Whether to convert OTel resource attributes to Prometheus labels. | `false` | no       |
 
-By default, OpenTelemetry resources are converted into `target_info` metrics. 
+By default, OpenTelemetry resources are converted into `target_info` metrics.
 OpenTelemetry instrumentation scopes are converted into `otel_scope_info`
 metrics. Set the `include_scope_info` and `include_target_info` arguments to
 `false`, respectively, to disable the custom metrics.
 
-When `include_scope_labels` is `true`  the `otel_scope_name` and
+When `include_scope_labels` is `true` the `otel_scope_name` and
 `otel_scope_version` labels are added to every converted metric sample.
 
 When `include_target_info` is true, OpenTelemetry Collector resources are converted into `target_info` metrics.
 
 {{< admonition type="note" >}}
 
-OTLP metrics can have a lot of resource attributes. 
+OTLP metrics can have a lot of resource attributes.
 Setting `resource_to_telemetry_conversion` to `true` would convert all of them to Prometheus labels, which may not be what you want.
-Instead of using `resource_to_telemetry_conversion`, most users need to use `otelcol.processor.transform` 
-to convert OTLP resource attributes to OTLP metric datapoint attributes before using `otelcol.exporter.prometheus`. 
+Instead of using `resource_to_telemetry_conversion`, most users need to use `otelcol.processor.transform`
+to convert OTLP resource attributes to OTLP metric datapoint attributes before using `otelcol.exporter.prometheus`.
 See [Creating Prometheus labels from OTLP resource attributes][] for an example.
 
 [Creating Prometheus labels from OTLP resource attributes]: #creating-prometheus-labels-from-otlp-resource-attributes
@@ -74,9 +74,9 @@ See [Creating Prometheus labels from OTLP resource attributes][] for an example.
 
 The following fields are exported and can be referenced by other components:
 
-Name | Type | Description
----- | ---- | -----------
-`input` | `otelcol.Consumer` | A value that other components can use to send telemetry data to.
+| Name    | Type               | Description                                                      |
+| ------- | ------------------ | ---------------------------------------------------------------- |
+| `input` | `otelcol.Consumer` | A value that other components can use to send telemetry data to. |
 
 `input` accepts `otelcol.Consumer` data for metrics. Other telemetry signals are ignored.
 
@@ -85,7 +85,7 @@ are forwarded to the `forward_to` argument.
 
 The following are dropped during the conversion process:
 
-* Metrics that use the delta aggregation temporality
+- Metrics that use the delta aggregation temporality
 
 ## Component health
 
@@ -127,7 +127,7 @@ prometheus.remote_write "mimir" {
 ## Create Prometheus labels from OTLP resource attributes
 
 This example uses `otelcol.processor.transform` to add extra `key1` and `key2` OTLP metric datapoint attributes from the
-`key1` and `key2` OTLP resource attributes. 
+`key1` and `key2` OTLP resource attributes.
 
 `otelcol.exporter.prometheus` then converts `key1` and `key2` to Prometheus labels along with any other OTLP metric datapoint attributes.
 

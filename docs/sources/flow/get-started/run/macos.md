@@ -74,4 +74,3 @@ refer to your current copy of the {{< param "PRODUCT_NAME" >}} formula to locate
 ## Next steps
 
 - [Configure {{< param "PRODUCT_NAME" >}}](ref:configuremacos)
-

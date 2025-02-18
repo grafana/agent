@@ -1,9 +1,9 @@
 ---
 aliases:
-- /docs/grafana-cloud/agent/flow/reference/config-blocks/declare/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/config-blocks/declare/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/config-blocks/declare/
-- /docs/grafana-cloud/send-data/agent/flow/reference/config-blocks/declare/
+  - /docs/grafana-cloud/agent/flow/reference/config-blocks/declare/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/config-blocks/declare/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/config-blocks/declare/
+  - /docs/grafana-cloud/send-data/agent/flow/reference/config-blocks/declare/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/config-blocks/declare/
 description: Learn about the declare configuration block
 menuTitle: declare
@@ -44,11 +44,11 @@ The `declare` block has no predefined schema for its arguments.
 The body of the `declare` block is used as the component definition.
 The body can contain the following:
 
-* [argument](ref:argument) blocks
-* [export](ref:export) blocks
-* [declare](ref:declare) blocks
-* [import](ref:import) blocks
-* Component definitions (either built-in or custom components)
+- [argument](ref:argument) blocks
+- [export](ref:export) blocks
+- [declare](ref:declare) blocks
+- [import](ref:import) blocks
+- Component definitions (either built-in or custom components)
 
 The `declare` block may not contain any configuration blocks that aren't listed above.
 
@@ -87,4 +87,3 @@ prometheus.remote_write "example" {
   }
 }
 ```
-

@@ -1,9 +1,9 @@
 ---
 aliases:
-- ../upgrade-guide/
-- ./upgrade-guide/
-- /docs/grafana-cloud/monitor-infrastructure/agent/static/release-notes/
-- /docs/grafana-cloud/send-data/agent/static/release-notes/
+  - ../upgrade-guide/
+  - ./upgrade-guide/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/static/release-notes/
+  - /docs/grafana-cloud/send-data/agent/static/release-notes/
 canonical: https://grafana.com/docs/agent/latest/static/release-notes/
 description: Release notes for Grafana Agent static mode
 menuTitle: Release notes
@@ -36,9 +36,8 @@ For a complete list of changes to Grafana Agent, with links to pull requests and
 > **Note:** These release notes are specific to Grafana Agent static mode.
 > Other release notes for the different Grafana Agent variants are contained on separate pages:
 >
-> * [Static mode Kubernetes operator release notes](ref:release-notes-operator)
-> * [Flow mode release notes](ref:release-notes-flow)
-
+> - [Static mode Kubernetes operator release notes](ref:release-notes-operator)
+> - [Flow mode release notes](ref:release-notes-flow)
 
 ## v0.38
 
@@ -59,34 +58,33 @@ The default set by Grafana Agent Static Mode is different than the default set b
 The Prometheus default value for `retry_on_http_429` is set to `true` for the `queue_config` in `remote_write`.
 This changed default setting allows the agent to retry sending data when it receives an HTTP 429 error and helps avoid losing data in metric pipelines.
 
-* If you explicitly set the `retry_on_http_429`, no action is required.
-* If you do not explicitly set `retry_on_http_429` and you do *not* want to retry on HTTP 429, make sure you set it to `false` when you upgrade to this new version.
+- If you explicitly set the `retry_on_http_429`, no action is required.
+- If you do not explicitly set `retry_on_http_429` and you do _not_ want to retry on HTTP 429, make sure you set it to `false` when you upgrade to this new version.
 
 ### Breaking change: Renamed `non_indexed_labels` Loki processing stage to `structured_metadata`.
 
 If you use the Loki processing stage in your Agent configuration, you must rename the `non_indexed_labels` pipeline stage definition to `structured_metadata`.
 
-
 Old configuration example:
 
 ```yaml
-  pipeline_stages:
-    - logfmt:
-        mapping:
-          app:
-    - non_indexed_labels:
+pipeline_stages:
+  - logfmt:
+      mapping:
         app:
+  - non_indexed_labels:
+      app:
 ```
 
 New configuration example:
 
 ```yaml
-  pipeline_stages:
-    - logfmt:
-        mapping:
-          app:
-    - structured_metadata:
+pipeline_stages:
+  - logfmt:
+      mapping:
         app:
+  - structured_metadata:
+      app:
 ```
 
 ## v0.35
@@ -127,32 +125,32 @@ auth params without having to duplicate the full walk and metric mapping.
 Old configuration example:
 
 ```yaml
-    snmp_targets:
-      - name: network_switch_1
-        address: 192.168.1.2
-        module: if_mib
-        walk_params: public
-        auth: public
-    walk_params:
-      public:
-        retries: 2
-        version: 2
-        auth:
-          community: public
+snmp_targets:
+  - name: network_switch_1
+    address: 192.168.1.2
+    module: if_mib
+    walk_params: public
+    auth: public
+walk_params:
+  public:
+    retries: 2
+    version: 2
+    auth:
+      community: public
 ```
 
 New configuration example:
 
 ```yaml
-    snmp_targets:
-      - name: network_switch_1
-        address: 192.168.1.2
-        module: if_mib
-        walk_params: public
-        auth: public
-    walk_params:
-      public:
-        retries: 2
+snmp_targets:
+  - name: network_switch_1
+    address: 192.168.1.2
+    module: if_mib
+    walk_params: public
+    auth: public
+walk_params:
+  public:
+    retries: 2
 ```
 
 See [Module and Auth Split Migration](https://github.com/prometheus/snmp_exporter/blob/main/auth-split-migration.md) for more details.
@@ -168,6 +166,7 @@ In the traces subsystem for Static mode some metrics are removed and others are 
 The reason for the removal is a bug which caused the metrics to be incorrect if more than one instance of a traces configuration is specified.
 
 Removed metrics:
+
 - "blackbox_exporter_config_last_reload_success_timestamp_seconds" (gauge)
 - "blackbox_exporter_config_last_reload_successful" (gauge)
 - "blackbox_module_unknown_total" (counter)
@@ -187,6 +186,7 @@ Removed metrics:
 - "traces_exporter_queue_size" (gauge)
 
 Renamed metrics:
+
 - "traces_receiver_refused_spans" is renamed to "traces_receiver_refused_spans_total"
 - "traces_receiver_accepted_spans" is renamed to "traces_receiver_refused_spans_total"
 - "traces_exporter_sent_metric_points" is renamed to "traces_exporter_sent_metric_points_total"
@@ -255,7 +255,7 @@ removed.
 The `ebpf_exporter` version bundled in the Agent used [bcc][] to compile eBPF
 programs at runtime. This made it hard to run successfully, as the
 dynamic linking approach required a compiler, the correct kernel headers, as
-well as an exact match of the libbpf toolchain on the host system.  For these
+well as an exact match of the libbpf toolchain on the host system. For these
 reasons, we've decided to remove the `ebpf_exporter` integration.
 
 Running the `ebpf_exporter` integration is now deprecated and will result in
@@ -343,36 +343,36 @@ not used.
 Most `integrations-next` integrations have been renamed to describe what
 telemetry data they generate instead of the projects they are powered by.
 
-* `consul_exporter` is now `consul`
-* `dnsmasq_exporter` is now `dnsmasq`
-* `elasticsearch_exporter` is now `elasticsearch`
-* `github_exporter` is now `github`
-* `kafka_exporter` is now `kafka`
-* `memcached_exporter` is now `memcached`
-* `mongodb_exporter` is now `mongodb`
-* `mysqld_exporter` is now `mysql`
-  * Note that it is `mysql` and _not_ `mysqld`
-* `postgres_exporter` is now `postgres`
-* `process_exporter` is now `process`
-* `redis_exporter` is now `redis`
-* `statsd_exporter` is now `statsd`
-* `windows_exporter` is now `windows`
+- `consul_exporter` is now `consul`
+- `dnsmasq_exporter` is now `dnsmasq`
+- `elasticsearch_exporter` is now `elasticsearch`
+- `github_exporter` is now `github`
+- `kafka_exporter` is now `kafka`
+- `memcached_exporter` is now `memcached`
+- `mongodb_exporter` is now `mongodb`
+- `mysqld_exporter` is now `mysql`
+  - Note that it is `mysql` and _not_ `mysqld`
+- `postgres_exporter` is now `postgres`
+- `process_exporter` is now `process`
+- `redis_exporter` is now `redis`
+- `statsd_exporter` is now `statsd`
+- `windows_exporter` is now `windows`
 
 Keys in the `integrations` config block have changed to match the above:
 
-* `integrations.consul_exporter_configs` is now `integrations.consul_configs`
-* `integrations.dnsmasq_exporter_configs` is now `integrations.dnsmasq_configs`
-* `integrations.elasticsearch_exporter_configs` is now `integrations.elasticsearch_configs`
-* `integrations.github_exporter_configs` is now `integrations.github_configs`
-* `integrations.kafka_exporter_configs` is now `integrations.kafka_configs`
-* `integrations.memcached_exporter_configs` is now `integrations.memcached_configs`
-* `integrations.mongodb_exporter_configs` is now `integrations.mongodb_configs`
-* `integrations.mysqld_exporter_configs` is now `integrations.mysql_configs`
-* `integrations.postgres_exporter_configs` is now `integrations.postgres_configs`
-* `integrations.process_exporter` is now `integrations.process`
-* `integrations.redis_exporter_configs` is now `integrations.redis_configs`
-* `integrations.statsd_exporter` is now `integrations.statsd`
-* `integrations.windows_exporter` is now `integrations.windows`
+- `integrations.consul_exporter_configs` is now `integrations.consul_configs`
+- `integrations.dnsmasq_exporter_configs` is now `integrations.dnsmasq_configs`
+- `integrations.elasticsearch_exporter_configs` is now `integrations.elasticsearch_configs`
+- `integrations.github_exporter_configs` is now `integrations.github_configs`
+- `integrations.kafka_exporter_configs` is now `integrations.kafka_configs`
+- `integrations.memcached_exporter_configs` is now `integrations.memcached_configs`
+- `integrations.mongodb_exporter_configs` is now `integrations.mongodb_configs`
+- `integrations.mysqld_exporter_configs` is now `integrations.mysql_configs`
+- `integrations.postgres_exporter_configs` is now `integrations.postgres_configs`
+- `integrations.process_exporter` is now `integrations.process`
+- `integrations.redis_exporter_configs` is now `integrations.redis_configs`
+- `integrations.statsd_exporter` is now `integrations.statsd`
+- `integrations.windows_exporter` is now `integrations.windows`
 
 Integrations not listed here have not changed; `node_exporter` still has the
 same name.
@@ -413,32 +413,32 @@ fields.
 
 The following fields are now deprecated in favor of command line flags:
 
-* `server.register_instrumentation`
-* `server.graceful_shutdown_timeout`
-* `server.log_source_ips_enabled`
-* `server.log_source_ips_header`
-* `server.log_source_ips_regex`
-* `server.http_listen_network`
-* `server.http_listen_address`
-* `server.http_listen_port`
-* `server.http_listen_conn_limit`
-* `server.http_server_read_timeout`
-* `server.http_server_write_timout`
-* `server.http_server_idle_timeout`
-* `server.grpc_listen_network`
-* `server.grpc_listen_address`
-* `server.grpc_listen_port`
-* `server.grpc_listen_conn_limit`
-* `server.grpc_server_max_recv_msg_size`
-* `server.grpc_server_max_send_msg_size`
-* `server.grpc_server_max_concurrent_streams`
-* `server.grpc_server_max_connection_idle`
-* `server.grpc_server_max_connection_age`
-* `server.grpc_server_max_connection_age_grace`
-* `server.grpc_server_keepalive_time`
-* `server.grpc_server_keepalive_timeout`
-* `server.grpc_server_min_time_between_pings`
-* `server.grpc_server_ping_without_stream_allowed`
+- `server.register_instrumentation`
+- `server.graceful_shutdown_timeout`
+- `server.log_source_ips_enabled`
+- `server.log_source_ips_header`
+- `server.log_source_ips_regex`
+- `server.http_listen_network`
+- `server.http_listen_address`
+- `server.http_listen_port`
+- `server.http_listen_conn_limit`
+- `server.http_server_read_timeout`
+- `server.http_server_write_timout`
+- `server.http_server_idle_timeout`
+- `server.grpc_listen_network`
+- `server.grpc_listen_address`
+- `server.grpc_listen_port`
+- `server.grpc_listen_conn_limit`
+- `server.grpc_server_max_recv_msg_size`
+- `server.grpc_server_max_send_msg_size`
+- `server.grpc_server_max_concurrent_streams`
+- `server.grpc_server_max_connection_idle`
+- `server.grpc_server_max_connection_age`
+- `server.grpc_server_max_connection_age_grace`
+- `server.grpc_server_keepalive_time`
+- `server.grpc_server_keepalive_timeout`
+- `server.grpc_server_min_time_between_pings`
+- `server.grpc_server_ping_without_stream_allowed`
 
 This is most of the fields; the remaining non-deprecated fields are
 `server.log_level`, `server.log_format`, `server.http_tls_config`, and
@@ -454,44 +454,44 @@ log level).
 
 The following flags are _new_:
 
-* `-server.http.enable-tls`
-* `-server.grpc.enable-tls`
-* `-server.http.address`
-* `-server.grpc.address`
+- `-server.http.enable-tls`
+- `-server.grpc.enable-tls`
+- `-server.http.address`
+- `-server.grpc.address`
 
 The following flags have been _removed_:
 
-* `-log.level` (replacement: use YAML field `server.log_level`)
-* `-log.format` (replacement: use YAML field `server.log_format`)
-* `-server.http-tls-cert-path` (replacement: use YAML field `server.http_tls_config`)
-* `-server.http-tls-key-path` (replacement: use YAML field `server.http_tls_config`)
-* `-server.http-tls-client-auth` (replacement: use YAML field `server.http_tls_config`)
-* `-server.http-tls-ca-path` (replacement: use YAML field `server.http_tls_config`)
-* `-server.grpc-tls-cert-path` (replacement: use YAML field `server.grpc_tls_config`)
-* `-server.grpc-tls-key-path` (replacement: use YAML field `server.grpc_tls_config`)
-* `-server.grpc-tls-client-auth` (replacement: use YAML field `server.grpc_tls_config`)
-* `-server.grpc-tls-ca-path` (replacement: use YAML field `server.grpc_tls_config`)
-* `-server.http-listen-address` (replacement: use the new `-server.http.address` flag, which combines host and port)
-* `-server.http-listen-port` (replacement: use the new  `-server.http.address` flag, which combines host and port)
-* `-server.grpc-listen-address` (replacement: use the new `-server.grpc.address` flag, which combines host and port)
-* `-server.grpc-listen-port` (replacement: use the new `-server.grpc.address` flag, which combines host and port)
-* `-server.path-prefix` (no replacement; this flag was unsupported and caused undefined behavior when set)
+- `-log.level` (replacement: use YAML field `server.log_level`)
+- `-log.format` (replacement: use YAML field `server.log_format`)
+- `-server.http-tls-cert-path` (replacement: use YAML field `server.http_tls_config`)
+- `-server.http-tls-key-path` (replacement: use YAML field `server.http_tls_config`)
+- `-server.http-tls-client-auth` (replacement: use YAML field `server.http_tls_config`)
+- `-server.http-tls-ca-path` (replacement: use YAML field `server.http_tls_config`)
+- `-server.grpc-tls-cert-path` (replacement: use YAML field `server.grpc_tls_config`)
+- `-server.grpc-tls-key-path` (replacement: use YAML field `server.grpc_tls_config`)
+- `-server.grpc-tls-client-auth` (replacement: use YAML field `server.grpc_tls_config`)
+- `-server.grpc-tls-ca-path` (replacement: use YAML field `server.grpc_tls_config`)
+- `-server.http-listen-address` (replacement: use the new `-server.http.address` flag, which combines host and port)
+- `-server.http-listen-port` (replacement: use the new `-server.http.address` flag, which combines host and port)
+- `-server.grpc-listen-address` (replacement: use the new `-server.grpc.address` flag, which combines host and port)
+- `-server.grpc-listen-port` (replacement: use the new `-server.grpc.address` flag, which combines host and port)
+- `-server.path-prefix` (no replacement; this flag was unsupported and caused undefined behavior when set)
 
 The following flags have been _renamed_:
 
-* `-server.log-source-ips-enabled` has been renamed to `-server.log.source-ips.enabled`
-* `-server.log-source-ips-header` has been renamed to `-server.log.source-ips.header`
-* `-server.log-source-ips-regex` has been renamed to `-server.log.source-ips.regex`
-* `-server.http-listen-network` has been renamed to `-server.http.network`
-* `-server.http-conn-limit` has been renamed to `-server.http.conn-limit`
-* `-server.http-read-timeout` has been renamed to `-server.http.read-timeout`
-* `-server.http-write-timeout` has been renamed to `-server.http.write-timeout`
-* `-server.http-idle-timeout` has been renamed to `-server.http.idle-timeout`
-* `-server.grpc-listen-network` has been renamed to `-server.grpc.network`
-* `-server.grpc-conn-limit` has been renamed to `-server.grpc.conn-limit`
-* `-server.grpc-max-recv-msg-size-bytes` has been renamed to `-server.grpc.max-recv-msg-size-bytes`
-* `-server.grpc-max-send-msg-size-bytes` has been renamed to `-server.grpc.max-send-msg-size-bytes`
-* `-server.grpc-max-concurrent-streams` has been renamed to `-server.grpc.max-concurrent-streams`
+- `-server.log-source-ips-enabled` has been renamed to `-server.log.source-ips.enabled`
+- `-server.log-source-ips-header` has been renamed to `-server.log.source-ips.header`
+- `-server.log-source-ips-regex` has been renamed to `-server.log.source-ips.regex`
+- `-server.http-listen-network` has been renamed to `-server.http.network`
+- `-server.http-conn-limit` has been renamed to `-server.http.conn-limit`
+- `-server.http-read-timeout` has been renamed to `-server.http.read-timeout`
+- `-server.http-write-timeout` has been renamed to `-server.http.write-timeout`
+- `-server.http-idle-timeout` has been renamed to `-server.http.idle-timeout`
+- `-server.grpc-listen-network` has been renamed to `-server.grpc.network`
+- `-server.grpc-conn-limit` has been renamed to `-server.grpc.conn-limit`
+- `-server.grpc-max-recv-msg-size-bytes` has been renamed to `-server.grpc.max-recv-msg-size-bytes`
+- `-server.grpc-max-send-msg-size-bytes` has been renamed to `-server.grpc.max-send-msg-size-bytes`
+- `-server.grpc-max-concurrent-streams` has been renamed to `-server.grpc.max-concurrent-streams`
 
 ### Breaking change: New TLS flags required for enabling TLS
 
@@ -534,13 +534,13 @@ would connect to themselves over the network. As a result of this change, the
 
 The following field names for the `node_exporter` integration are now deprecated:
 
-* `netdev_device_whitelist` is deprecated in favor of `netdev_device_include`.
-* `netdev_device_blacklist` is deprecated in favor of `netdev_device_exclude`.
-* `systemd_unit_whitelist` is deprecated in favor of `systemd_unit_include`.
-* `systemd_unit_blacklist` is deprecated in favor of `systemd_unit_exclude`.
-* `filesystem_ignored_mount_points` is deprecated in favor of
+- `netdev_device_whitelist` is deprecated in favor of `netdev_device_include`.
+- `netdev_device_blacklist` is deprecated in favor of `netdev_device_exclude`.
+- `systemd_unit_whitelist` is deprecated in favor of `systemd_unit_include`.
+- `systemd_unit_blacklist` is deprecated in favor of `systemd_unit_exclude`.
+- `filesystem_ignored_mount_points` is deprecated in favor of
   `filesystem_mount_points_exclude`.
-* `filesystem_ignored_fs_types` is deprecated in favor of
+- `filesystem_ignored_fs_types` is deprecated in favor of
   `filesystem_fs_types_exclude`.
 
 This change aligns with the equivalent flag names also being deprecated in the
@@ -570,7 +570,7 @@ system will now infer an appropriate value based on the config for that specific
 integration. Please refer to the documentation for each integration for which
 defaults are used.
 
-*Note:* In some cases, a default value for `instance` cannot be inferred. This
+_Note:_ In some cases, a default value for `instance` cannot be inferred. This
 is the case for mongodb_exporter and postgres_exporter if more than one SUO is
 being connected to. In these cases, the instance value can be manually set by
 configuring the `instance` field on the integration. This can also be useful if
@@ -653,6 +653,7 @@ tempo:
 ```
 
 Example of new config:
+
 ```yaml
 traces:
   configs:
@@ -664,7 +665,6 @@ traces:
 ```
 
 Any tempo metrics have been renamed from `tempo_*` to `traces_*`.
-
 
 ### Tempo: split grouping by trace from tail sampling config (Breaking change)
 
@@ -731,9 +731,9 @@ prometheus:
       scrape_configs:
         - job_name: local_scrape
           static_configs:
-            - targets: ['127.0.0.1:12345']
+            - targets: ["127.0.0.1:12345"]
               labels:
-                cluster: 'localhost'
+                cluster: "localhost"
       remote_write:
         - url: http://localhost:9009/api/prom/push
 ```
@@ -748,9 +748,9 @@ metrics:
       scrape_configs:
         - job_name: local_scrape
           static_configs:
-            - targets: ['127.0.0.1:12345']
+            - targets: ["127.0.0.1:12345"]
               labels:
-                cluster: 'localhost'
+                cluster: "localhost"
       remote_write:
         - url: http://localhost:9009/api/prom/push
 ```
@@ -766,9 +766,9 @@ Example old config:
 ```yaml
 tempo:
   configs:
-  - name: default
-    spanmetrics:
-      prom_instance: default
+    - name: default
+      spanmetrics:
+        prom_instance: default
 ```
 
 Example new config:
@@ -776,9 +776,9 @@ Example new config:
 ```yaml
 tempo:
   configs:
-  - name: default
-    spanmetrics:
-      metrics_instance: default
+    - name: default
+      spanmetrics:
+        metrics_instance: default
 ```
 
 ### Logs: Deprecation of "loki" in config. (Deprecation)
@@ -796,16 +796,16 @@ Example old config:
 loki:
   positions_directory: /tmp/loki-positions
   configs:
-  - name: default
-    clients:
-      - url: http://localhost:3100/loki/api/v1/push
-    scrape_configs:
-    - job_name: system
-      static_configs:
-      - targets: ['localhost']
-        labels:
-          job: varlogs
-          __path__: /var/log/*log
+    - name: default
+      clients:
+        - url: http://localhost:3100/loki/api/v1/push
+      scrape_configs:
+        - job_name: system
+          static_configs:
+            - targets: ["localhost"]
+              labels:
+                job: varlogs
+                __path__: /var/log/*log
 ```
 
 Example new config:
@@ -814,16 +814,16 @@ Example new config:
 logs:
   positions_directory: /tmp/loki-positions
   configs:
-  - name: default
-    clients:
-      - url: http://localhost:3100/loki/api/v1/push
-    scrape_configs:
-    - job_name: system
-      static_configs:
-      - targets: ['localhost']
-        labels:
-          job: varlogs
-          __path__: /var/log/*log
+    - name: default
+      clients:
+        - url: http://localhost:3100/loki/api/v1/push
+      scrape_configs:
+        - job_name: system
+          static_configs:
+            - targets: ["localhost"]
+              labels:
+                job: varlogs
+                __path__: /var/log/*log
 ```
 
 ### Tempo: Deprecation of "loki" in config. (Deprecation)
@@ -840,15 +840,15 @@ Example old config:
 ```yaml
 tempo:
   configs:
-  - name: default
-    automatic_logging:
-      backend: loki
-      loki_name: default
-      spans: true
-      processes: true
-      roots: true
-    overrides:
-      loki_tag: tempo
+    - name: default
+      automatic_logging:
+        backend: loki
+        loki_name: default
+        spans: true
+        processes: true
+        roots: true
+      overrides:
+        loki_tag: tempo
 ```
 
 Example new config:
@@ -856,15 +856,15 @@ Example new config:
 ```yaml
 tempo:
   configs:
-  - name: default
-    automatic_logging:
-      backend: logs_instance
-      logs_instance_name: default
-      spans: true
-      processes: true
-      roots: true
-    overrides:
-      logs_instance_tag: tempo
+    - name: default
+      automatic_logging:
+        backend: logs_instance
+        logs_instance_name: default
+        spans: true
+        processes: true
+        roots: true
+      overrides:
+        logs_instance_tag: tempo
 ```
 
 ## v0.18
@@ -1030,7 +1030,6 @@ tempo:
         send_batch_size: 100
 ```
 
-
 ## v0.12
 
 v0.12 had two breaking changes: the `tempo` and `loki` sections have been changed to require a list of `tempo`/`loki` configs rather than just one.
@@ -1059,9 +1058,9 @@ tempo:
         thrift_http:
   attributes:
     actions:
-    - action: upsert
-      key: env
-      value: prod
+      - action: upsert
+        key: env
+        value: prod
   push_config:
     endpoint: otel-collector:55680
     insecure: true
@@ -1075,22 +1074,22 @@ Example migrated config:
 ```yaml
 tempo:
   configs:
-  - name: default
-    receivers:
-      jaeger:
-        protocols:
-          thrift_http:
-    attributes:
-      actions:
-      - action: upsert
-        key: env
-        value: prod
-    push_config:
-      endpoint: otel-collector:55680
-      insecure: true
-      batch:
-        timeout: 5s
-        send_batch_size: 100
+    - name: default
+      receivers:
+        jaeger:
+          protocols:
+            thrift_http:
+      attributes:
+        actions:
+          - action: upsert
+            key: env
+            value: prod
+      push_config:
+        endpoint: otel-collector:55680
+        insecure: true
+        batch:
+          timeout: 5s
+          send_batch_size: 100
 ```
 
 ### Loki Promtail Config Change
@@ -1116,13 +1115,13 @@ loki:
   clients:
     - url: http://loki:3100/loki/api/v1/push
   scrape_configs:
-  - job_name: system
-    static_configs:
-      - targets:
-        - localhost
-        labels:
-          job: varlogs
-          __path__: /var/log/*log
+    - job_name: system
+      static_configs:
+        - targets:
+            - localhost
+          labels:
+            job: varlogs
+            __path__: /var/log/*log
 ```
 
 Example migrated config:
@@ -1130,17 +1129,17 @@ Example migrated config:
 ```yaml
 loki:
   configs:
-  - name: default
-    positions:
-      filename: /tmp/positions.yaml
-    clients:
-      - url: http://loki:3100/loki/api/v1/push
-    scrape_configs:
-    - job_name: system
-      static_configs:
-        - targets:
-          - localhost
-          labels:
-            job: varlogs
-            __path__: /var/log/*log
+    - name: default
+      positions:
+        filename: /tmp/positions.yaml
+      clients:
+        - url: http://loki:3100/loki/api/v1/push
+      scrape_configs:
+        - job_name: system
+          static_configs:
+            - targets:
+                - localhost
+              labels:
+                job: varlogs
+                __path__: /var/log/*log
 ```

@@ -1,8 +1,8 @@
 ---
 aliases:
-- ../../../configuration/integrations/cadvisor-config/
-- /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/integrations/cadvisor-config/
-- /docs/grafana-cloud/send-data/agent/static/configuration/integrations/cadvisor-config/
+  - ../../../configuration/integrations/cadvisor-config/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/integrations/cadvisor-config/
+  - /docs/grafana-cloud/send-data/agent/static/configuration/integrations/cadvisor-config/
 canonical: https://grafana.com/docs/agent/latest/static/configuration/integrations/cadvisor-config/
 description: Learn about cadvisor_config
 title: cadvisor_config
@@ -14,7 +14,7 @@ The `cadvisor_config` block configures the `cadvisor` integration,
 which is an embedded version of
 [`cadvisor`](https://github.com/google/cadvisor). This allows for the collection of container utilization metrics.
 
-The cAdvisor integration requires some broad privileged permissions to the host. Without these permissions the metrics will not be accessible. This means that the agent must *also* have those elevated permissions.
+The cAdvisor integration requires some broad privileged permissions to the host. Without these permissions the metrics will not be accessible. This means that the agent must _also_ have those elevated permissions.
 
 A good example of the required file, and system permissions can be found in the docker run command published in the [cAdvisor docs](https://github.com/google/cadvisor#quick-start-running-cadvisor-in-a-docker-container).
 
@@ -60,10 +60,10 @@ Full reference of options:
   # cAdvisor-specific configuration options
   #
 
-  # Convert container labels and environment variables into labels on Prometheus metrics for each container. If false, then the only metrics exported are container name, first alias, and image name. `.` aren't valid in Prometheus label names, so if there are any in the container label, they will transformed to `_` when converted to the Prometheus label. 
+  # Convert container labels and environment variables into labels on Prometheus metrics for each container. If false, then the only metrics exported are container name, first alias, and image name. `.` aren't valid in Prometheus label names, so if there are any in the container label, they will transformed to `_` when converted to the Prometheus label.
   [store_container_labels: <boolean> | default = true]
 
-  # List of container labels to be converted to labels on Prometheus metrics for each container. store_container_labels must be set to false for this to take effect. This must match the format of the container label, not the converted Prometheus label (`.` are converted to `_` in the Prometheus label).   
+  # List of container labels to be converted to labels on Prometheus metrics for each container. store_container_labels must be set to false for this to take effect. This must match the format of the container label, not the converted Prometheus label (`.` are converted to `_` in the Prometheus label).
   allowlisted_container_labels:
     [ - <string> ]
 

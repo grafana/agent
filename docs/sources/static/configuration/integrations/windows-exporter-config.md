@@ -1,8 +1,8 @@
 ---
 aliases:
-- ../../../configuration/integrations/windows-exporter-config/
-- /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/integrations/windows-exporter-config/
-- /docs/grafana-cloud/send-data/agent/static/configuration/integrations/windows-exporter-config/
+  - ../../../configuration/integrations/windows-exporter-config/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/integrations/windows-exporter-config/
+  - /docs/grafana-cloud/send-data/agent/static/configuration/integrations/windows-exporter-config/
 canonical: https://grafana.com/docs/agent/latest/static/configuration/integrations/windows-exporter-config/
 description: Learn about windows_exporter_config
 title: windows_exporter_config
@@ -119,11 +119,11 @@ Full reference of options:
     # The Windows API is more performant than WMI. Set `use_api` to `true` in situations when the WMI takes too long to get the service information.
     # Setting `use_api` to `true` does have a few disadvantages compared to using WMI:
     # * WMI queries in `where_clause` won't work.
-    # * The `status` field of the service won't be reported. Instead, use the `state` property. 
+    # * The `status` field of the service won't be reported. Instead, use the `state` property.
     #   It has the same information, albeit formatted differently.
     [use_api: <boolean> | default = false]
 
-  # Configuration for physical disk on Windows 
+  # Configuration for physical disk on Windows
   physical_disk:
     # Regexp of volumes to include. Disk name must both match include and not match exclude to be included.
     # Maps to collector.logical_disk.disk-include in windows_exporter.

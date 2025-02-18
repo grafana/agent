@@ -1,9 +1,9 @@
 ---
 aliases:
-- /docs/grafana-cloud/agent/flow/concepts/clustering/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/concepts/clustering/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/concepts/clustering/
-- /docs/grafana-cloud/send-data/agent/flow/concepts/clustering/
+  - /docs/grafana-cloud/agent/flow/concepts/clustering/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/concepts/clustering/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/concepts/clustering/
+  - /docs/grafana-cloud/send-data/agent/flow/concepts/clustering/
 canonical: https://grafana.com/docs/agent/latest/flow/concepts/clustering/
 description: Learn about Grafana Agent clustering concepts
 menuTitle: Clustering
@@ -98,4 +98,3 @@ Refer to component reference documentation to discover whether it supports clust
 
 You can use the {{< param "PRODUCT_NAME" >}} UI [clustering page](ref:clustering-page) to monitor your cluster status.
 Refer to [Debugging clustering issues](ref:debugging) for additional troubleshooting information.
-

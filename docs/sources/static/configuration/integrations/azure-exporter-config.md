@@ -1,8 +1,8 @@
 ---
 aliases:
-- ../../../configuration/integrations/azure-exporter-config/
-- /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/integrations/azure-exporter-config/
-- /docs/grafana-cloud/send-data/agent/static/configuration/integrations/azure-exporter-config/
+  - ../../../configuration/integrations/azure-exporter-config/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/integrations/azure-exporter-config/
+  - /docs/grafana-cloud/send-data/agent/static/configuration/integrations/azure-exporter-config/
 canonical: https://grafana.com/docs/agent/latest/static/configuration/integrations/azure-exporter-config/
 description: Learn about azure_exporter_config
 title: azure_exporter_config
@@ -11,9 +11,10 @@ title: azure_exporter_config
 # azure_exporter_config
 
 ## Overview
+
 The `azure_exporter_config` block configures the `azure_exporter` integration, an embedded version of
 [`azure-metrics-exporter`](https://github.com/webdevops/azure-metrics-exporter), used to
-collect metrics from [Azure Monitor](https://azure.microsoft.com/en-us/products/monitor). 
+collect metrics from [Azure Monitor](https://azure.microsoft.com/en-us/products/monitor).
 
 The exporter offers the following two options for gathering metrics.
 
@@ -21,12 +22,13 @@ The exporter offers the following two options for gathering metrics.
    1. This query will make one API call per resource identified.
    1. Subscriptions with a reasonable amount of resources can hit the [12000 requests per hour rate limit](https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/request-limits-and-throttling#subscription-and-tenant-limits) Azure enforces.
 1. Set the regions to gather metrics from and get metrics for all resources across those regions.
-   1. This option will make one API call per subscription, dramatically reducing the number of API calls. 
+   1. This option will make one API call per subscription, dramatically reducing the number of API calls.
    1. This approach does not work with all resource types, and Azure does not document which resource types do or do not work.
    1. A resource type that is not supported produces errors that look like `Resource type: microsoft.containerservice/managedclusters not enabled for Cross Resource metrics`.
    1. If you encounter one of these errors you must use the default Azure Resource Graph based option to gather metrics.
 
 ## List of Supported Services and Metrics
+
 The exporter supports all metrics defined by Azure Monitor. The complete list of available metrics can be found in the [Azure Monitor documentation](https://learn.microsoft.com/en-us/azure/azure-monitor/essentials/metrics-supported).
 Metrics for this integration are exposed with the template `azure_{type}_{metric}_{aggregation}_{unit}`. As an example,
 the Egress metric for BlobService would be exported as `azure_microsoft_storage_storageaccounts_blobservices_egress_total_bytes`.
@@ -36,8 +38,9 @@ the Egress metric for BlobService would be exported as `azure_microsoft_storage_
 The agent must be running in an environment with access to Azure. The exporter uses the Azure SDK for go and supports authentication via https://learn.microsoft.com/en-us/azure/developer/go/azure-sdk-authentication?tabs=bash#2-authenticate-with-azure.
 
 The account used by Grafana Agent needs:
-* [Read access to the resources that will be queried by Resource Graph](https://learn.microsoft.com/en-us/azure/governance/resource-graph/overview#permissions-in-azure-resource-graph)
-* Permissions to call the [Microsoft.Insights Metrics API](https://learn.microsoft.com/en-us/rest/api/monitor/metrics/list) which should be the `Microsoft.Insights/Metrics/Read` permission
+
+- [Read access to the resources that will be queried by Resource Graph](https://learn.microsoft.com/en-us/azure/governance/resource-graph/overview#permissions-in-azure-resource-graph)
+- Permissions to call the [Microsoft.Insights Metrics API](https://learn.microsoft.com/en-us/rest/api/monitor/metrics/list) which should be the `Microsoft.Insights/Metrics/Read` permission
 
 ## Configuration
 
@@ -106,7 +109,7 @@ The account used by Grafana Agent needs:
   # This value will be embedded in to a template query of the form `Resources | where type =~ "<resource_type>" <resource_graph_query_filter> | project id, tags`
   # Can't be used if `regions` is set.
   [resource_graph_query_filter: <string>]
-  
+
   # Optional: The list of regions for gathering metrics. Enables gathering metrics for all resources in the subscription.
   # The list of available `regions` to your subscription can be found by running the Azure CLI command `az account list-locations --query '[].name'`.
   # Can't be used if `resource_graph_query_filter` is set.
@@ -155,8 +158,8 @@ The account used by Grafana Agent needs:
 
   # Optional: Which azure cloud environment to connect to, azurecloud, azurechinacloud, azuregovernmentcloud, or azurepprivatecloud
   [azure_cloud_environment: <string> | default = "azurecloud"]
-  
-  # Optional: Validation is disabled by default to reduce the number of Azure exporter instances required when a `resource_type` has metrics with varying dimensions. 
+
+  # Optional: Validation is disabled by default to reduce the number of Azure exporter instances required when a `resource_type` has metrics with varying dimensions.
   # Choosing to enable `validate_dimensions` will require one exporter instance per metric + dimension combination which can be very tedious to maintain.
   [validate_dimensions: <bool> | default = false]
 ```
@@ -164,58 +167,60 @@ The account used by Grafana Agent needs:
 ### Examples
 
 #### Azure Kubernetes Service Node Metrics
+
 ```yaml
-  azure_exporter:
-    enabled: true
-    scrape_interval: 60s
-    subscriptions:
-      - <subscription_id>
-    resource_type: microsoft.containerservice/managedclusters
-    metrics:
-      - node_cpu_usage_millicores
-      - node_cpu_usage_percentage
-      - node_disk_usage_bytes
-      - node_disk_usage_percentage
-      - node_memory_rss_bytes
-      - node_memory_rss_percentage
-      - node_memory_working_set_bytes
-      - node_memory_working_set_percentage
-      - node_network_in_bytes
-      - node_network_out_bytes
-    included_resource_tags:
-      - environment
-    included_dimensions:
-      - node
-      - nodepool
-      - device
+azure_exporter:
+  enabled: true
+  scrape_interval: 60s
+  subscriptions:
+    - <subscription_id>
+  resource_type: microsoft.containerservice/managedclusters
+  metrics:
+    - node_cpu_usage_millicores
+    - node_cpu_usage_percentage
+    - node_disk_usage_bytes
+    - node_disk_usage_percentage
+    - node_memory_rss_bytes
+    - node_memory_rss_percentage
+    - node_memory_working_set_bytes
+    - node_memory_working_set_percentage
+    - node_network_in_bytes
+    - node_network_out_bytes
+  included_resource_tags:
+    - environment
+  included_dimensions:
+    - node
+    - nodepool
+    - device
 ```
 
 #### Blob Storage Metrics
+
 ```yaml
-  azure_exporter:
-    enabled: true
-    scrape_interval: 60s
-    subscriptions:
-      - <subscription_id>
-    resource_type: Microsoft.Storage/storageAccounts
-    metric_namespace: Microsoft.Storage/storageAccounts/blobServices
-    regions:
-      - westeurope
-    metrics:
-      - Availability
-      - BlobCapacity
-      - BlobCount
-      - ContainerCount
-      - Egress
-      - IndexCapacity
-      - Ingress
-      - SuccessE2ELatency
-      - SuccessServerLatency
-      - Transactions
-    included_dimensions:
-      - ApiName
-      - TransactionType
-    timespan: PT1H
+azure_exporter:
+  enabled: true
+  scrape_interval: 60s
+  subscriptions:
+    - <subscription_id>
+  resource_type: Microsoft.Storage/storageAccounts
+  metric_namespace: Microsoft.Storage/storageAccounts/blobServices
+  regions:
+    - westeurope
+  metrics:
+    - Availability
+    - BlobCapacity
+    - BlobCount
+    - ContainerCount
+    - Egress
+    - IndexCapacity
+    - Ingress
+    - SuccessE2ELatency
+    - SuccessServerLatency
+    - Transactions
+  included_dimensions:
+    - ApiName
+    - TransactionType
+  timespan: PT1H
 ```
 
 ### Multiple Azure Services in a single config

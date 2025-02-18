@@ -1,9 +1,9 @@
 ---
 aliases:
-- /docs/grafana-cloud/agent/flow/reference/components/prometheus.exporter.unix/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/prometheus.exporter.unix/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/prometheus.exporter.unix/
-- /docs/grafana-cloud/send-data/agent/flow/reference/components/prometheus.exporter.unix/
+  - /docs/grafana-cloud/agent/flow/reference/components/prometheus.exporter.unix/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/prometheus.exporter.unix/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/prometheus.exporter.unix/
+  - /docs/grafana-cloud/send-data/agent/flow/reference/components/prometheus.exporter.unix/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.unix/
 description: Learn about prometheus.exporter.unix
 title: prometheus.exporter.unix
@@ -18,7 +18,6 @@ wide variety of hardware and OS metrics for \*nix-based systems.
 The `node_exporter` itself is comprised of various _collectors_, which can be
 enabled and disabled at will. For more information on collectors, refer to the
 [`collectors-list`](#collectors-list) section.
-
 
 Multiple `prometheus.exporter.unix` components can be specified by giving them different labels.
 

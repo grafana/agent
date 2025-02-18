@@ -1,9 +1,9 @@
 ---
 aliases:
-- /docs/grafana-cloud/agent/flow/reference/components/pyroscope.scrape/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/pyroscope.scrape/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/pyroscope.scrape/
-- /docs/grafana-cloud/send-data/agent/flow/reference/components/pyroscope.scrape/
+  - /docs/grafana-cloud/agent/flow/reference/components/pyroscope.scrape/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/pyroscope.scrape/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/pyroscope.scrape/
+  - /docs/grafana-cloud/send-data/agent/flow/reference/components/pyroscope.scrape/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/pyroscope.scrape/
 description: Learn about pyroscope.scrape
 labels:
@@ -15,15 +15,15 @@ title: pyroscope.scrape
 
 {{< docs/shared lookup="flow/stability/beta.md" source="agent" version="<AGENT_VERSION>" >}}
 
-`pyroscope.scrape` collects [pprof] performance profiles for a given set of HTTP `targets`. 
+`pyroscope.scrape` collects [pprof] performance profiles for a given set of HTTP `targets`.
 
 `pyroscope.scrape` mimcks the scraping behavior of `prometheus.scrape`.
 Similarly to how Prometheus scrapes metrics via HTTP, `pyroscope.scrape` collects profiles via HTTP requests.
 
-Unlike Prometheus, which usually only scrapes one `/metrics` endpoint per target, 
+Unlike Prometheus, which usually only scrapes one `/metrics` endpoint per target,
 `pyroscope.scrape` may need to scrape multiple endpoints for the same target.
-This is because different types of profiles are scraped on different endpoints. 
-For example, "mutex" profiles may be scraped on a `/debug/pprof/delta_mutex` HTTP endpoint, whereas 
+This is because different types of profiles are scraped on different endpoints.
+For example, "mutex" profiles may be scraped on a `/debug/pprof/delta_mutex` HTTP endpoint, whereas
 memory consumption may be scraped on a `/debug/pprof/allocs` HTTP endpoint.
 
 The profile paths, protocol scheme, scrape interval, scrape timeout,
@@ -33,11 +33,12 @@ The `pyroscope.scrape` component regards a scrape as successful if it
 responded with an HTTP `200 OK` status code and returned the body of a valid [pprof] profile.
 
 If a scrape request fails, the [debug UI][] for `pyroscope.scrape` will show:
-* Detailed information about the failure.
-* The time of the last successful scrape.
-* The labels last used for scraping.
 
-The scraped performance profiles can be forwarded to components such as 
+- Detailed information about the failure.
+- The time of the last successful scrape.
+- The labels last used for scraping.
+
+The scraped performance profiles can be forwarded to components such as
 `pyroscope.write` via the `forward_to` argument.
 
 Multiple `pyroscope.scrape` components can be specified by giving them different labels.
@@ -55,7 +56,7 @@ pyroscope.scrape "LABEL" {
 
 ## Arguments
 
-`pyroscope.scrape` starts a new scrape job to scrape all of the input targets. 
+`pyroscope.scrape` starts a new scrape job to scrape all of the input targets.
 Multiple scrape jobs can be started for a single input target
 when scraping multiple profile types.
 
@@ -63,35 +64,36 @@ The list of arguments that can be used to configure the block is
 presented below.
 
 Any omitted arguments take on their default values. If conflicting
-arguments are being passed (for example, configuring both `bearer_token` 
+arguments are being passed (for example, configuring both `bearer_token`
 and `bearer_token_file`), then `pyroscope.scrape` will fail to start and will report an error.
 
 The following arguments are supported:
 
-Name                | Type                     | Description                                                        | Default        | Required
-------------------- | ------------------------ | ------------------------------------------------------------------ | -------------- | --------
-`targets`           | `list(map(string))`      | List of targets to scrape.                                         |                | yes
-`forward_to`        | `list(ProfilesReceiver)` | List of receivers to send scraped profiles to.                     |                | yes
-`job_name`          | `string`                 | The job name to override the job label with.                       | component name | no
-`params`            | `map(list(string))`      | A set of query parameters with which the target is scraped.        |                | no
-`scrape_interval`   | `duration`               | How frequently to scrape the targets of this scrape configuration. | `"15s"`        | no
-`scrape_timeout`    | `duration`               | The timeout for scraping targets of this configuration. Must be larger than `scrape_interval`. | `"18s"`        | no
-`scheme`            | `string`                 | The URL scheme with which to fetch metrics from targets.           | `"http"`       | no
-`bearer_token_file` | `string`                 | File containing a bearer token to authenticate with.               |                | no
-`bearer_token`      | `secret`                 | Bearer token to authenticate with.                                 |                | no
-`enable_http2`      | `bool`                   | Whether HTTP2 is supported for requests.                           | `true`         | no
-`follow_redirects`  | `bool`                   | Whether redirects returned by the server should be followed.       | `true`         | no
-`proxy_url`         | `string`                 | HTTP proxy to send requests through.                               |                | no
-`no_proxy`               | `string`            | Comma-separated list of IP addresses, CIDR notations, and domain names to exclude from proxying. | | no
-`proxy_from_environment` | `bool`              | Use the proxy URL indicated by environment variables.              | `false`        | no
-`proxy_connect_header`   | `map(list(secret))` | Specifies headers to send to proxies during CONNECT requests.      |                | no
+| Name                     | Type                     | Description                                                                                      | Default        | Required |
+| ------------------------ | ------------------------ | ------------------------------------------------------------------------------------------------ | -------------- | -------- |
+| `targets`                | `list(map(string))`      | List of targets to scrape.                                                                       |                | yes      |
+| `forward_to`             | `list(ProfilesReceiver)` | List of receivers to send scraped profiles to.                                                   |                | yes      |
+| `job_name`               | `string`                 | The job name to override the job label with.                                                     | component name | no       |
+| `params`                 | `map(list(string))`      | A set of query parameters with which the target is scraped.                                      |                | no       |
+| `scrape_interval`        | `duration`               | How frequently to scrape the targets of this scrape configuration.                               | `"15s"`        | no       |
+| `scrape_timeout`         | `duration`               | The timeout for scraping targets of this configuration. Must be larger than `scrape_interval`.   | `"18s"`        | no       |
+| `scheme`                 | `string`                 | The URL scheme with which to fetch metrics from targets.                                         | `"http"`       | no       |
+| `bearer_token_file`      | `string`                 | File containing a bearer token to authenticate with.                                             |                | no       |
+| `bearer_token`           | `secret`                 | Bearer token to authenticate with.                                                               |                | no       |
+| `enable_http2`           | `bool`                   | Whether HTTP2 is supported for requests.                                                         | `true`         | no       |
+| `follow_redirects`       | `bool`                   | Whether redirects returned by the server should be followed.                                     | `true`         | no       |
+| `proxy_url`              | `string`                 | HTTP proxy to send requests through.                                                             |                | no       |
+| `no_proxy`               | `string`                 | Comma-separated list of IP addresses, CIDR notations, and domain names to exclude from proxying. |                | no       |
+| `proxy_from_environment` | `bool`                   | Use the proxy URL indicated by environment variables.                                            | `false`        | no       |
+| `proxy_connect_header`   | `map(list(secret))`      | Specifies headers to send to proxies during CONNECT requests.                                    |                | no       |
 
- At most, one of the following can be provided:
- - [`bearer_token` argument](#arguments).
- - [`bearer_token_file` argument](#arguments).
- - [`basic_auth` block][basic_auth].
- - [`authorization` block][authorization].
- - [`oauth2` block][oauth2].
+At most, one of the following can be provided:
+
+- [`bearer_token` argument](#arguments).
+- [`bearer_token_file` argument](#arguments).
+- [`basic_auth` block][basic_auth].
+- [`authorization` block][authorization].
+- [`oauth2` block][oauth2].
 
 [arguments]: #arguments
 
@@ -105,7 +107,7 @@ For example, the `job_name` of `pyroscope.scrape "local" { ... }` will be `"pyro
 
 #### `targets` argument
 
-The list of `targets` can be provided [statically][example_static_targets], [dynamically][example_dynamic_targets], 
+The list of `targets` can be provided [statically][example_static_targets], [dynamically][example_dynamic_targets],
 or a [combination of both][example_static_and_dynamic_targets].
 
 The special `__address__` label _must always_ be present and corresponds to the
@@ -113,9 +115,10 @@ The special `__address__` label _must always_ be present and corresponds to the
 
 Labels starting with a double underscore (`__`) are treated as _internal_, and are removed prior to scraping.
 
-The special label `service_name` is required and must always be present. 
-If it is not specified, `pyroscope.scrape` will attempt to infer it from 
-either of the following sources, in this order: 
+The special label `service_name` is required and must always be present.
+If it is not specified, `pyroscope.scrape` will attempt to infer it from
+either of the following sources, in this order:
+
 1. `__meta_kubernetes_pod_annotation_pyroscope_io_service_name` which is a `pyroscope.io/service_name` pod annotation.
 2. `__meta_kubernetes_namespace` and `__meta_kubernetes_pod_container_name`
 3. `__meta_docker_container_name`
@@ -123,75 +126,78 @@ either of the following sources, in this order:
 
 If `service_name` is not specified and could not be inferred, then it is set to `unspecified`.
 
-The following labels are automatically injected to the scraped profiles 
+The following labels are automatically injected to the scraped profiles
 so that they can be linked to a scrape target:
 
 | Label            | Description                                                      |
-|------------------|----------------------------------------------------------------- |
+| ---------------- | ---------------------------------------------------------------- |
 | `"job"`          | The `job_name` that the target belongs to.                       |
 | `"instance"`     | The `__address__` or `<host>:<port>` of the scrape target's URL. |
 | `"service_name"` | The inferred Pyroscope service name.                             |
 
 #### `scrape_interval` argument
 
-The `scrape_interval` typically refers to the frequency with which {{< param "PRODUCT_NAME" >}} collects performance profiles from the monitored targets. 
-It represents the time interval between consecutive scrapes or data collection events. 
+The `scrape_interval` typically refers to the frequency with which {{< param "PRODUCT_NAME" >}} collects performance profiles from the monitored targets.
+It represents the time interval between consecutive scrapes or data collection events.
 This parameter is important for controlling the trade-off between resource usage and the freshness of the collected data.
 
 If `scrape_interval` is short:
-* Advantages:
-  * Fewer profiles may be lost if the application being scraped crashes.
-* Disadvantages:
-  * Greater consumption of CPU, memory, and network resources during scrapes and remote writes.
-  * The backend database (Pyroscope) will consume more storage space.
+
+- Advantages:
+  - Fewer profiles may be lost if the application being scraped crashes.
+- Disadvantages:
+  - Greater consumption of CPU, memory, and network resources during scrapes and remote writes.
+  - The backend database (Pyroscope) will consume more storage space.
 
 If `scrape_interval` is long:
-* Advantages:
-  * Lower resource consumption.
-* Disadvantages:
-  * More profiles may be lost if the application being scraped crashes.
-  * If the [delta argument][] is set to `true`, the batch size of 
+
+- Advantages:
+  - Lower resource consumption.
+- Disadvantages:
+  - More profiles may be lost if the application being scraped crashes.
+  - If the [delta argument][] is set to `true`, the batch size of
     each remote write to Pyroscope may be bigger.
     The Pyroscope database may need to be tuned with higher limits.
-  * If the [delta argument][] is set to `true`, there is a larger risk of 
+  - If the [delta argument][] is set to `true`, there is a larger risk of
     reaching the HTTP server timeouts of the application being scraped.
 
 For example, consider this situation:
-* `pyroscope.scrape` is configured with a `scrape_interval` of `"60s"`.
-* The application being scraped is running an HTTP server with a timeout of 30 seconds.
-* Any scrape HTTP requests where the [delta argument][] is set to `true` will fail, 
+
+- `pyroscope.scrape` is configured with a `scrape_interval` of `"60s"`.
+- The application being scraped is running an HTTP server with a timeout of 30 seconds.
+- Any scrape HTTP requests where the [delta argument][] is set to `true` will fail,
   because they will attempt to run for 59 seconds.
 
 ## Blocks
 
 The following blocks are supported inside the definition of `pyroscope.scrape`:
 
-| Hierarchy                                     | Block                          | Description                                                              | Required |
-|-----------------------------------------------|--------------------------------|--------------------------------------------------------------------------|----------|
-| basic_auth                                    | [basic_auth][]                 | Configure basic_auth for authenticating to targets.                      | no       |
-| authorization                                 | [authorization][]              | Configure generic authorization to targets.                              | no       |
-| oauth2                                        | [oauth2][]                     | Configure OAuth2 for authenticating to targets.                          | no       |
-| oauth2 > tls_config                           | [tls_config][]                 | Configure TLS settings for connecting to targets via OAuth2.             | no       |
-| tls_config                                    | [tls_config][]                 | Configure TLS settings for connecting to targets.                        | no       |
-| profiling_config                              | [profiling_config][]           | Configure profiling settings for the scrape job.                         | no       |
-| profiling_config > profile.memory             | [profile.memory][]             | Collect memory profiles.                                                 | no       |
-| profiling_config > profile.block              | [profile.block][]              | Collect profiles on blocks.                                              | no       |
-| profiling_config > profile.goroutine          | [profile.goroutine][]          | Collect goroutine profiles.                                              | no       |
-| profiling_config > profile.mutex              | [profile.mutex][]              | Collect mutex profiles.                                                  | no       |
-| profiling_config > profile.process_cpu        | [profile.process_cpu][]        | Collect CPU profiles.                                                    | no       |
-| profiling_config > profile.fgprof             | [profile.fgprof][]             | Collect [fgprof][] profiles.                                             | no       |
-| profiling_config > profile.godeltaprof_memory | [profile.godeltaprof_memory][] | Collect [godeltaprof][] memory profiles.                                 | no       |
-| profiling_config > profile.godeltaprof_mutex  | [profile.godeltaprof_mutex][]  | Collect [godeltaprof][] mutex profiles.                                  | no       |
-| profiling_config > profile.godeltaprof_block  | [profile.godeltaprof_block][]  | Collect [godeltaprof][] block profiles.                                  | no       |
-| profiling_config > profile.custom             | [profile.custom][]             | Collect custom profiles.                                                 | no       |
+| Hierarchy                                     | Block                          | Description                                                                                 | Required |
+| --------------------------------------------- | ------------------------------ | ------------------------------------------------------------------------------------------- | -------- |
+| basic_auth                                    | [basic_auth][]                 | Configure basic_auth for authenticating to targets.                                         | no       |
+| authorization                                 | [authorization][]              | Configure generic authorization to targets.                                                 | no       |
+| oauth2                                        | [oauth2][]                     | Configure OAuth2 for authenticating to targets.                                             | no       |
+| oauth2 > tls_config                           | [tls_config][]                 | Configure TLS settings for connecting to targets via OAuth2.                                | no       |
+| tls_config                                    | [tls_config][]                 | Configure TLS settings for connecting to targets.                                           | no       |
+| profiling_config                              | [profiling_config][]           | Configure profiling settings for the scrape job.                                            | no       |
+| profiling_config > profile.memory             | [profile.memory][]             | Collect memory profiles.                                                                    | no       |
+| profiling_config > profile.block              | [profile.block][]              | Collect profiles on blocks.                                                                 | no       |
+| profiling_config > profile.goroutine          | [profile.goroutine][]          | Collect goroutine profiles.                                                                 | no       |
+| profiling_config > profile.mutex              | [profile.mutex][]              | Collect mutex profiles.                                                                     | no       |
+| profiling_config > profile.process_cpu        | [profile.process_cpu][]        | Collect CPU profiles.                                                                       | no       |
+| profiling_config > profile.fgprof             | [profile.fgprof][]             | Collect [fgprof][] profiles.                                                                | no       |
+| profiling_config > profile.godeltaprof_memory | [profile.godeltaprof_memory][] | Collect [godeltaprof][] memory profiles.                                                    | no       |
+| profiling_config > profile.godeltaprof_mutex  | [profile.godeltaprof_mutex][]  | Collect [godeltaprof][] mutex profiles.                                                     | no       |
+| profiling_config > profile.godeltaprof_block  | [profile.godeltaprof_block][]  | Collect [godeltaprof][] block profiles.                                                     | no       |
+| profiling_config > profile.custom             | [profile.custom][]             | Collect custom profiles.                                                                    | no       |
 | clustering                                    | [clustering][]                 | Configure the component for when {{< param "PRODUCT_NAME" >}} is running in clustered mode. | no       |
 
 The `>` symbol indicates deeper levels of nesting. For example,
 `oauth2 > tls_config` refers to a `tls_config` block defined inside
 an `oauth2` block.
 
-Any omitted blocks take on their default values. For example, 
-if `profile.mutex` is not specified in the config, 
+Any omitted blocks take on their default values. For example,
+if `profile.mutex` is not specified in the config,
 the defaults documented in [profile.mutex][] will be used.
 
 [basic_auth]: #basic_auth-block
@@ -211,10 +217,8 @@ the defaults documented in [profile.mutex][] will be used.
 [profile.custom]: #profilecustom-block
 [pprof]: https://github.com/google/pprof/blob/main/doc/README.md
 [clustering]: #clustering-block
-
 [fgprof]: https://github.com/felixge/fgprof
 [godeltaprof]: https://github.com/grafana/pyroscope-go/tree/main/godeltaprof
-
 [delta argument]: #delta-argument
 
 ### basic_auth block
@@ -240,9 +244,9 @@ targets.
 
 The following arguments are supported:
 
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`path_prefix` | `string` | The path prefix to use when scraping targets. | | no
+| Name          | Type     | Description                                   | Default | Required |
+| ------------- | -------- | --------------------------------------------- | ------- | -------- |
+| `path_prefix` | `string` | The path prefix to use when scraping targets. |         | no       |
 
 ### profile.memory block
 
@@ -250,11 +254,11 @@ The `profile.memory` block collects profiles on memory consumption.
 
 The following arguments are supported:
 
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`enabled` | `boolean` | Enable this profile type to be scraped. | `true` | no
-`path` | `string` | The path to the profile type on the target. | `"/debug/pprof/allocs"` | no
-`delta` | `boolean` | Whether to scrape the profile as a delta. | `false` | no
+| Name      | Type      | Description                                 | Default                 | Required |
+| --------- | --------- | ------------------------------------------- | ----------------------- | -------- |
+| `enabled` | `boolean` | Enable this profile type to be scraped.     | `true`                  | no       |
+| `path`    | `string`  | The path to the profile type on the target. | `"/debug/pprof/allocs"` | no       |
+| `delta`   | `boolean` | Whether to scrape the profile as a delta.   | `false`                 | no       |
 
 For more information about the `delta` argument, see the [delta argument][] section.
 
@@ -264,11 +268,11 @@ The `profile.block` block collects profiles on process blocking.
 
 The following arguments are supported:
 
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`enabled` | `boolean` | Enable this profile type to be scraped. | `true` | no
-`path` | `string` | The path to the profile type on the target. | `"/debug/pprof/block"` | no
-`delta` | `boolean` | Whether to scrape the profile as a delta. | `false` | no
+| Name      | Type      | Description                                 | Default                | Required |
+| --------- | --------- | ------------------------------------------- | ---------------------- | -------- |
+| `enabled` | `boolean` | Enable this profile type to be scraped.     | `true`                 | no       |
+| `path`    | `string`  | The path to the profile type on the target. | `"/debug/pprof/block"` | no       |
+| `delta`   | `boolean` | Whether to scrape the profile as a delta.   | `false`                | no       |
 
 For more information about the `delta` argument, see the [delta argument][] section.
 
@@ -278,11 +282,11 @@ The `profile.goroutine` block collects profiles on the number of goroutines.
 
 The following arguments are supported:
 
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`enabled` | `boolean` | Enable this profile type to be scraped. | `true` | no
-`path` | `string` | The path to the profile type on the target. | `"/debug/pprof/goroutine"` | no
-`delta` | `boolean` | Whether to scrape the profile as a delta. | `false` | no
+| Name      | Type      | Description                                 | Default                    | Required |
+| --------- | --------- | ------------------------------------------- | -------------------------- | -------- |
+| `enabled` | `boolean` | Enable this profile type to be scraped.     | `true`                     | no       |
+| `path`    | `string`  | The path to the profile type on the target. | `"/debug/pprof/goroutine"` | no       |
+| `delta`   | `boolean` | Whether to scrape the profile as a delta.   | `false`                    | no       |
 
 For more information about the `delta` argument, see the [delta argument][] section.
 
@@ -292,11 +296,11 @@ The `profile.mutex` block collects profiles on mutexes.
 
 The following arguments are supported:
 
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`enabled` | `boolean` | Enable this profile type to be scraped. | `true` | no
-`path` | `string` | The path to the profile type on the target. | `"/debug/pprof/mutex"` | no
-`delta` | `boolean` | Whether to scrape the profile as a delta. | `false` | no
+| Name      | Type      | Description                                 | Default                | Required |
+| --------- | --------- | ------------------------------------------- | ---------------------- | -------- |
+| `enabled` | `boolean` | Enable this profile type to be scraped.     | `true`                 | no       |
+| `path`    | `string`  | The path to the profile type on the target. | `"/debug/pprof/mutex"` | no       |
+| `delta`   | `boolean` | Whether to scrape the profile as a delta.   | `false`                | no       |
 
 For more information about the `delta` argument, see the [delta argument][] section.
 
@@ -307,11 +311,11 @@ process.
 
 The following arguments are supported:
 
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`enabled` | `boolean` | Enable this profile type to be scraped. | `true` | no
-`path` | `string` | The path to the profile type on the target. | `"/debug/pprof/profile"` | no
-`delta` | `boolean` | Whether to scrape the profile as a delta. | `true` | no
+| Name      | Type      | Description                                 | Default                  | Required |
+| --------- | --------- | ------------------------------------------- | ------------------------ | -------- |
+| `enabled` | `boolean` | Enable this profile type to be scraped.     | `true`                   | no       |
+| `path`    | `string`  | The path to the profile type on the target. | `"/debug/pprof/profile"` | no       |
+| `delta`   | `boolean` | Whether to scrape the profile as a delta.   | `true`                   | no       |
 
 For more information about the `delta` argument, see the [delta argument][] section.
 
@@ -321,11 +325,11 @@ The `profile.fgprof` block collects profiles from an [fgprof][] endpoint.
 
 The following arguments are supported:
 
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`enabled` | `boolean` | Enable this profile type to be scraped. | `false` | no
-`path` | `string` | The path to the profile type on the target. | `"/debug/fgprof"` | no
-`delta` | `boolean` | Whether to scrape the profile as a delta. | `true` | no
+| Name      | Type      | Description                                 | Default           | Required |
+| --------- | --------- | ------------------------------------------- | ----------------- | -------- |
+| `enabled` | `boolean` | Enable this profile type to be scraped.     | `false`           | no       |
+| `path`    | `string`  | The path to the profile type on the target. | `"/debug/fgprof"` | no       |
+| `delta`   | `boolean` | Whether to scrape the profile as a delta.   | `true`            | no       |
 
 For more information about the `delta` argument, see the [delta argument][] section.
 
@@ -336,7 +340,7 @@ The `profile.godeltaprof_memory` block collects profiles from [godeltaprof][] me
 The following arguments are supported:
 
 | Name      | Type      | Description                                 | Default                     | Required |
-|-----------|-----------|---------------------------------------------|-----------------------------|----------|
+| --------- | --------- | ------------------------------------------- | --------------------------- | -------- |
 | `enabled` | `boolean` | Enable this profile type to be scraped.     | `false`                     | no       |
 | `path`    | `string`  | The path to the profile type on the target. | `"/debug/pprof/delta_heap"` | no       |
 
@@ -347,7 +351,7 @@ The `profile.godeltaprof_mutex` block collects profiles from [godeltaprof][] mut
 The following arguments are supported:
 
 | Name      | Type      | Description                                 | Default                      | Required |
-|-----------|-----------|---------------------------------------------|------------------------------|----------|
+| --------- | --------- | ------------------------------------------- | ---------------------------- | -------- |
 | `enabled` | `boolean` | Enable this profile type to be scraped.     | `false`                      | no       |
 | `path`    | `string`  | The path to the profile type on the target. | `"/debug/pprof/delta_mutex"` | no       |
 
@@ -358,10 +362,9 @@ The `profile.godeltaprof_block` block collects profiles from [godeltaprof][] blo
 The following arguments are supported:
 
 | Name      | Type      | Description                                 | Default                      | Required |
-|-----------|-----------|---------------------------------------------|------------------------------|----------|
+| --------- | --------- | ------------------------------------------- | ---------------------------- | -------- |
 | `enabled` | `boolean` | Enable this profile type to be scraped.     | `false`                      | no       |
 | `path`    | `string`  | The path to the profile type on the target. | `"/debug/pprof/delta_block"` | no       |
-
 
 ### profile.custom block
 
@@ -380,20 +383,20 @@ Multiple `profile.custom` blocks can be specified. Labels assigned to
 
 The following arguments are supported:
 
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`enabled` | `boolean` | Enable this profile type to be scraped. | | yes
-`path` | `string` | The path to the profile type on the target. | | yes
-`delta` | `boolean` | Whether to scrape the profile as a delta. | `false` | no
+| Name      | Type      | Description                                 | Default | Required |
+| --------- | --------- | ------------------------------------------- | ------- | -------- |
+| `enabled` | `boolean` | Enable this profile type to be scraped.     |         | yes      |
+| `path`    | `string`  | The path to the profile type on the target. |         | yes      |
+| `delta`   | `boolean` | Whether to scrape the profile as a delta.   | `false` | no       |
 
 When the `delta` argument is `true`, a `seconds` query parameter is
 automatically added to requests. The `seconds` used will be equal to `scrape_interval - 1`.
 
 ### clustering block
 
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`enabled` | `bool` | Enables sharing targets with other cluster nodes. | `false` | yes
+| Name      | Type   | Description                                       | Default | Required |
+| --------- | ------ | ------------------------------------------------- | ------- | -------- |
+| `enabled` | `bool` | Enables sharing targets with other cluster nodes. | `false` | yes      |
 
 When {{< param "PRODUCT_NAME" >}} is [using clustering][], and `enabled` is set to true,
 then this `pyroscope.scrape` component instance opts-in to participating in the
@@ -419,9 +422,10 @@ If {{< param "PRODUCT_NAME" >}} is _not_ running in clustered mode, this block i
 When the `delta` argument is `false`, the [pprof][] HTTP query will be instantaneous.
 
 When the `delta` argument is `true`:
-* The [pprof][] HTTP query will run for a certain amount of time.
-* A `seconds` parameter is automatically added to the HTTP request.
-* The `seconds` used will be equal to `scrape_interval - 1`.
+
+- The [pprof][] HTTP query will run for a certain amount of time.
+- A `seconds` parameter is automatically added to the HTTP request.
+- The `seconds` used will be equal to `scrape_interval - 1`.
   For example, if `scrape_interval` is `"15s"`, `seconds` will be 14 seconds.
   If the HTTP endpoint is `/debug/pprof/profile`, then the HTTP query will become `/debug/pprof/profile?seconds=14`
 
@@ -442,7 +446,7 @@ scrape job on the component's debug endpoint.
 
 ## Debug metrics
 
-* `pyroscope_fanout_latency` (histogram): Write latency for sending to direct and indirect components.
+- `pyroscope_fanout_latency` (histogram): Write latency for sending to direct and indirect components.
 
 ## Examples
 
@@ -450,7 +454,7 @@ scrape job on the component's debug endpoint.
 
 ### Default endpoints of static targets
 
-The following example sets up a scrape job of a statically configured 
+The following example sets up a scrape job of a statically configured
 list of targets - {{< param "PRODUCT_ROOT_NAME" >}} itself and Pyroscope.
 The scraped profiles are sent to `pyroscope.write` which remote writes them to a Pyroscope database.
 
@@ -488,8 +492,9 @@ http://localhost:12345/debug/pprof/profile?seconds=14
 ```
 
 Note that `seconds=14` is added to the `/debug/pprof/profile` endpoint, because:
-* The `delta` argument of the `profile.process_cpu` block is `true` by default.
-* `scrape_interval` is `"15s"` by default. 
+
+- The `delta` argument of the `profile.process_cpu` block is `true` by default.
+- `scrape_interval` is `"15s"` by default.
 
 Also note that the `/debug/fgprof` endpoint will not be scraped, because
 the `enabled` argument of the `profile.fgprof` block is `false` by default.
@@ -543,7 +548,6 @@ pyroscope.write "local" {
 }
 ```
 
-
 ### Enabling and disabling profiles
 
 ```river
@@ -592,7 +596,6 @@ http://localhost:12345/debug/pprof/mutex
 
 - Components that export [Targets](../../compatibility/#targets-exporters)
 - Components that export [Pyroscope `ProfilesReceiver`](../../compatibility/#pyroscope-profilesreceiver-exporters)
-
 
 {{< admonition type="note" >}}
 Connecting some components may not be sensible or components may require further configuration to make the connection work correctly.

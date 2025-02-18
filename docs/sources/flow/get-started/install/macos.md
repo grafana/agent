@@ -1,16 +1,16 @@
 ---
 aliases:
-- /docs/grafana-cloud/agent/flow/get-started/install/macos/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/get-started/install/macos/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/get-started/install/macos/
-- /docs/grafana-cloud/send-data/agent/flow/get-started/install/macos/
-# Previous docs aliases for backwards compatibility:
-- ../../install/macos/ # /docs/agent/latest/flow/install/macos/
-- /docs/grafana-cloud/agent/flow/setup/install/macos/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/setup/install/macos/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/setup/install/macos/
-- /docs/grafana-cloud/send-data/agent/flow/setup/install/macos/
-- ../../setup/install/macos/ # /docs/agent/latest/flow/setup/install/macos/
+  - /docs/grafana-cloud/agent/flow/get-started/install/macos/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/get-started/install/macos/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/get-started/install/macos/
+  - /docs/grafana-cloud/send-data/agent/flow/get-started/install/macos/
+  # Previous docs aliases for backwards compatibility:
+  - ../../install/macos/ # /docs/agent/latest/flow/install/macos/
+  - /docs/grafana-cloud/agent/flow/setup/install/macos/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/setup/install/macos/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/setup/install/macos/
+  - /docs/grafana-cloud/send-data/agent/flow/setup/install/macos/
+  - ../../setup/install/macos/ # /docs/agent/latest/flow/setup/install/macos/
 canonical: https://grafana.com/docs/agent/latest/flow/get-started/install/macos/
 description: Learn how to install Grafana AgentFlow on macOS
 menuTitle: macOS
@@ -39,7 +39,7 @@ The default prefix for Homebrew on Intel is `/usr/local`. The default prefix for
 
 ## Before you begin
 
-* Install [Homebrew][] on your computer.
+- Install [Homebrew][] on your computer.
 
 ## Install
 
@@ -87,4 +87,3 @@ brew uninstall grafana-agent-flow
 - [Configure {{< param "PRODUCT_NAME" >}}](ref:configure)
 
 [Homebrew]: https://brew.sh
-

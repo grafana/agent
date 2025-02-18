@@ -1,7 +1,7 @@
 ---
 aliases:
-- /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/agent-management/
-- /docs/grafana-cloud/send-data/agent/static/configuration/agent-management/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/agent-management/
+  - /docs/grafana-cloud/send-data/agent/static/configuration/agent-management/
 canonical: https://grafana.com/docs/agent/latest/static/configuration/agent-management/
 description: Learn about Agent Management
 menuTitle: Agent Management
@@ -89,8 +89,7 @@ Grafana Agents with Agent Management enabled continuously poll the API server fo
 base_config: |
   <grafana_agent_config>
 # A set of snippets to be conditionally merged into the base configuration.
-snippets:
-  [ <snippet_name>: <snippet_content> ... ]
+snippets: [<snippet_name>: <snippet_content> ...]
 ```
 
 ### grafana_agent_config
@@ -111,15 +110,14 @@ config: |
   [integration_configs]:
     [<integrations_config> ... ]
 # Selector is a set of labels used to decide which snippets to apply to the final configuration.
-selector:
-  [ <labelname>: <labelvalue> ... ]
+selector: [<labelname>: <labelvalue> ...]
 ```
 
 > **Note:** More information on the following types can be found in their respective documentation pages:
 >
-> * [`scrape_config`](https://prometheus.io/docs/prometheus/2.45/configuration/configuration/#scrape_config)
-> * [`promtail.scrape_config`](/docs/loki/latest/clients/promtail/configuration/#scrape_configs)
-> * [`integrations_config`](/docs/agent/latest/static/configuration/integrations)
+> - [`scrape_config`](https://prometheus.io/docs/prometheus/2.45/configuration/configuration/#scrape_config)
+> - [`promtail.scrape_config`](/docs/loki/latest/clients/promtail/configuration/#scrape_configs)
+> - [`integrations_config`](/docs/agent/latest/static/configuration/integrations)
 
 > **Note:** Snippet selection is currently done in the API server. This behaviour is subject to change in the future.
 
