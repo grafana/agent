@@ -1,9 +1,9 @@
 ---
 aliases:
-- /docs/grafana-cloud/agent/flow/reference/components/prometheus.exporter.elasticsearch/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/prometheus.exporter.elasticsearch/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/prometheus.exporter.elasticsearch/
-- /docs/grafana-cloud/send-data/agent/flow/reference/components/prometheus.exporter.elasticsearch/
+  - /docs/grafana-cloud/agent/flow/reference/components/prometheus.exporter.elasticsearch/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/prometheus.exporter.elasticsearch/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/prometheus.exporter.elasticsearch/
+  - /docs/grafana-cloud/send-data/agent/flow/reference/components/prometheus.exporter.elasticsearch/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.elasticsearch/
 description: Learn about prometheus.exporter.elasticsearch
 title: prometheus.exporter.elasticsearch
@@ -61,9 +61,9 @@ Omitted fields take their default values.
 The following blocks are supported inside the definition of
 `prometheus.exporter.elasticsearch`:
 
-| Hierarchy           | Block             | Description                                              | Required |
-| ------------------- | ----------------- | -------------------------------------------------------- | -------- |
-| basic_auth          | [basic_auth][]    | Configure basic_auth for authenticating to the endpoint. | no       |
+| Hierarchy  | Block          | Description                                              | Required |
+| ---------- | -------------- | -------------------------------------------------------- | -------- |
+| basic_auth | [basic_auth][] | Configure basic_auth for authenticating to the endpoint. | no       |
 
 [basic_auth]: #basic_auth-block
 

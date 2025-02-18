@@ -1,9 +1,9 @@
 ---
 aliases:
-- /docs/grafana-cloud/agent/flow/reference/components/otelcol.receiver.kafka/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/otelcol.receiver.kafka/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/otelcol.receiver.kafka/
-- /docs/grafana-cloud/send-data/agent/flow/reference/components/otelcol.receiver.kafka/
+  - /docs/grafana-cloud/agent/flow/reference/components/otelcol.receiver.kafka/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/otelcol.receiver.kafka/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/otelcol.receiver.kafka/
+  - /docs/grafana-cloud/send-data/agent/flow/reference/components/otelcol.receiver.kafka/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.receiver.kafka/
 description: Learn about otelcol.receiver.kafka
 title: otelcol.receiver.kafka
@@ -41,41 +41,41 @@ otelcol.receiver.kafka "LABEL" {
 
 The following arguments are supported:
 
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`brokers` | `array(string)` | Kafka brokers to connect to. | | yes
-`protocol_version` | `string` | Kafka protocol version to use. | | yes
-`topic` | `string` | Kafka topic to read from. | | no
-`encoding` | `string` | Encoding of payload read from Kafka. | `"otlp_proto"` | no
-`group_id` | `string` | Consumer group to consume messages from. | `"otel-collector"` | no
-`client_id` | `string` | Consumer client ID to use. | `"otel-collector"` | no
-`initial_offset` | `string` | Initial offset to use if no offset was previously committed. | `"latest"` | no
-`resolve_canonical_bootstrap_servers_only` | `bool` | Whether to resolve then reverse-lookup broker IPs during startup. | `"false"` | no
+| Name                                       | Type            | Description                                                       | Default            | Required |
+| ------------------------------------------ | --------------- | ----------------------------------------------------------------- | ------------------ | -------- |
+| `brokers`                                  | `array(string)` | Kafka brokers to connect to.                                      |                    | yes      |
+| `protocol_version`                         | `string`        | Kafka protocol version to use.                                    |                    | yes      |
+| `topic`                                    | `string`        | Kafka topic to read from.                                         |                    | no       |
+| `encoding`                                 | `string`        | Encoding of payload read from Kafka.                              | `"otlp_proto"`     | no       |
+| `group_id`                                 | `string`        | Consumer group to consume messages from.                          | `"otel-collector"` | no       |
+| `client_id`                                | `string`        | Consumer client ID to use.                                        | `"otel-collector"` | no       |
+| `initial_offset`                           | `string`        | Initial offset to use if no offset was previously committed.      | `"latest"`         | no       |
+| `resolve_canonical_bootstrap_servers_only` | `bool`          | Whether to resolve then reverse-lookup broker IPs during startup. | `"false"`          | no       |
 
 If `topic` is not set, different topics will be used for different telemetry signals:
 
-* Metrics will be received from an `otlp_metrics` topic.
-* Traces will be received from an `otlp_spans` topic.
-* Logs will be received from an `otlp_logs` topic.
+- Metrics will be received from an `otlp_metrics` topic.
+- Traces will be received from an `otlp_spans` topic.
+- Logs will be received from an `otlp_logs` topic.
 
 If `topic` is set to a specific value, then only the signal type that corresponds to the data stored in the topic must be set in the output block.
-For example, if `topic` is set to `"my_telemetry"`, then the `"my_telemetry"` topic can only contain either metrics, logs, or traces. 
+For example, if `topic` is set to `"my_telemetry"`, then the `"my_telemetry"` topic can only contain either metrics, logs, or traces.
 If it contains only metrics, then `otelcol.receiver.kafka` should be configured to output only metrics.
 
 The `encoding` argument determines how to decode messages read from Kafka.
 `encoding` must be one of the following strings:
 
-* `"otlp_proto"`: Decode messages as OTLP protobuf.
-* `"jaeger_proto"`: Decode messages as a single Jaeger protobuf span.
-* `"jaeger_json"`: Decode messages as a single Jaeger JSON span.
-* `"zipkin_proto"`: Decode messages as a list of Zipkin protobuf spans.
-* `"zipkin_json"`: Decode messages as a list of Zipkin JSON spans.
-* `"zipkin_thrift"`: Decode messages as a list of Zipkin Thrift spans.
-* `"raw"`: Copy the log message bytes into the body of a log record.
-* `"text"`: Decode the log message as text and insert it into the body of a log record.
+- `"otlp_proto"`: Decode messages as OTLP protobuf.
+- `"jaeger_proto"`: Decode messages as a single Jaeger protobuf span.
+- `"jaeger_json"`: Decode messages as a single Jaeger JSON span.
+- `"zipkin_proto"`: Decode messages as a list of Zipkin protobuf spans.
+- `"zipkin_json"`: Decode messages as a list of Zipkin JSON spans.
+- `"zipkin_thrift"`: Decode messages as a list of Zipkin Thrift spans.
+- `"raw"`: Copy the log message bytes into the body of a log record.
+- `"text"`: Decode the log message as text and insert it into the body of a log record.
   By default, UTF-8 is used to decode. A different encoding can be chosen by using `text_<ENCODING>`. For example, `text_utf-8` or `text_shift_jis`.
-* `"json"`: Decode the JSON payload and insert it into the body of a log record.
-* `"azure_resource_logs"`: The payload is converted from Azure Resource Logs format to an OTLP log.
+- `"json"`: Decode the JSON payload and insert it into the body of a log record.
+- `"azure_resource_logs"`: The payload is converted from Azure Resource Logs format to an OTLP log.
 
 `"otlp_proto"` must be used to read all telemetry types from Kafka; other
 encodings are signal-specific.
@@ -87,21 +87,21 @@ encodings are signal-specific.
 The following blocks are supported inside the definition of
 `otelcol.receiver.kafka`:
 
-Hierarchy | Block | Description | Required
---------- | ----- | ----------- | --------
-authentication | [authentication][] | Configures authentication for connecting to Kafka brokers. | no
-authentication > plaintext | [plaintext][] | Authenticates against Kafka brokers with plaintext. | no
-authentication > sasl | [sasl][] | Authenticates against Kafka brokers with SASL. | no
-authentication > sasl > aws_msk | [aws_msk][] | Additional SASL parameters when using AWS_MSK_IAM. | no
-authentication > tls | [tls][] | Configures TLS for connecting to the Kafka brokers. | no
-authentication > kerberos | [kerberos][] | Authenticates against Kafka brokers with Kerberos. | no
-metadata | [metadata][] | Configures how to retrieve metadata from Kafka brokers. | no
-metadata > retry | [retry][] | Configures how to retry metadata retrieval. | no
-autocommit | [autocommit][] | Configures how to automatically commit updated topic offsets to back to the Kafka brokers. | no
-message_marking | [message_marking][] | Configures when Kafka messages are marked as read. | no
-header_extraction | [header_extraction][] | Extract headers from Kafka records. | no
-debug_metrics | [debug_metrics][] | Configures the metrics which this component generates to monitor its state. | no
-output | [output][] | Configures where to send received telemetry data. | yes
+| Hierarchy                       | Block                 | Description                                                                                | Required |
+| ------------------------------- | --------------------- | ------------------------------------------------------------------------------------------ | -------- |
+| authentication                  | [authentication][]    | Configures authentication for connecting to Kafka brokers.                                 | no       |
+| authentication > plaintext      | [plaintext][]         | Authenticates against Kafka brokers with plaintext.                                        | no       |
+| authentication > sasl           | [sasl][]              | Authenticates against Kafka brokers with SASL.                                             | no       |
+| authentication > sasl > aws_msk | [aws_msk][]           | Additional SASL parameters when using AWS_MSK_IAM.                                         | no       |
+| authentication > tls            | [tls][]               | Configures TLS for connecting to the Kafka brokers.                                        | no       |
+| authentication > kerberos       | [kerberos][]          | Authenticates against Kafka brokers with Kerberos.                                         | no       |
+| metadata                        | [metadata][]          | Configures how to retrieve metadata from Kafka brokers.                                    | no       |
+| metadata > retry                | [retry][]             | Configures how to retry metadata retrieval.                                                | no       |
+| autocommit                      | [autocommit][]        | Configures how to automatically commit updated topic offsets to back to the Kafka brokers. | no       |
+| message_marking                 | [message_marking][]   | Configures when Kafka messages are marked as read.                                         | no       |
+| header_extraction               | [header_extraction][] | Extract headers from Kafka records.                                                        | no       |
+| debug_metrics                   | [debug_metrics][]     | Configures the metrics which this component generates to monitor its state.                | no       |
+| output                          | [output][]            | Configures where to send received telemetry data.                                          | yes      |
 
 The `>` symbol indicates deeper levels of nesting. For example,
 `authentication > tls` refers to a `tls` block defined inside an
@@ -133,10 +133,10 @@ The `plaintext` block configures `PLAIN` authentication against Kafka brokers.
 
 The following arguments are supported:
 
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`username` | `string` | Username to use for `PLAIN` authentication. | | yes
-`password` | `secret` | Password to use for `PLAIN` authentication. | | yes
+| Name       | Type     | Description                                 | Default | Required |
+| ---------- | -------- | ------------------------------------------- | ------- | -------- |
+| `username` | `string` | Username to use for `PLAIN` authentication. |         | yes      |
+| `password` | `secret` | Password to use for `PLAIN` authentication. |         | yes      |
 
 ### sasl block
 
@@ -144,19 +144,19 @@ The `sasl` block configures SASL authentication against Kafka brokers.
 
 The following arguments are supported:
 
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`username` | `string` | Username to use for SASL authentication. | | yes
-`password` | `secret` | Password to use for SASL authentication. | | yes
-`mechanism` | `string` | SASL mechanism to use when authenticating. | | yes
-`version` | `number` | Version of the SASL Protocol to use when authenticating. | `0` | no
+| Name        | Type     | Description                                              | Default | Required |
+| ----------- | -------- | -------------------------------------------------------- | ------- | -------- |
+| `username`  | `string` | Username to use for SASL authentication.                 |         | yes      |
+| `password`  | `secret` | Password to use for SASL authentication.                 |         | yes      |
+| `mechanism` | `string` | SASL mechanism to use when authenticating.               |         | yes      |
+| `version`   | `number` | Version of the SASL Protocol to use when authenticating. | `0`     | no       |
 
 The `mechanism` argument can be set to one of the following strings:
 
-* `"PLAIN"`
-* `"AWS_MSK_IAM"`
-* `"SCRAM-SHA-256"`
-* `"SCRAM-SHA-512"`
+- `"PLAIN"`
+- `"AWS_MSK_IAM"`
+- `"SCRAM-SHA-256"`
+- `"SCRAM-SHA-512"`
 
 When `mechanism` is set to `"AWS_MSK_IAM"`, the [`aws_msk` child block][aws_msk] must also be provided.
 
@@ -169,10 +169,10 @@ using the `AWS_MSK_IAM` mechanism.
 
 The following arguments are supported:
 
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`region` | `string` | AWS region the MSK cluster is based in. | | yes
-`broker_addr` | `string` | MSK address to connect to for authentication. | | yes
+| Name          | Type     | Description                                   | Default | Required |
+| ------------- | -------- | --------------------------------------------- | ------- | -------- |
+| `region`      | `string` | AWS region the MSK cluster is based in.       |         | yes      |
+| `broker_addr` | `string` | MSK address to connect to for authentication. |         | yes      |
 
 ### tls block
 
@@ -189,15 +189,15 @@ broker.
 
 The following arguments are supported:
 
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`service_name` | `string` | Kerberos service name. | | no
-`realm` | `string` | Kerberos realm. | | no
-`use_keytab` | `string` | Enables using keytab instead of password. | | no
-`username` | `string` | Kerberos username to authenticate as. | | yes
-`password` | `secret` | Kerberos password to authenticate with. | | no
-`config_file` | `string` | Path to Kerberos location (for example, `/etc/krb5.conf`). | | no
-`keytab_file` | `string` | Path to keytab file (for example, `/etc/security/kafka.keytab`). | | no
+| Name           | Type     | Description                                                      | Default | Required |
+| -------------- | -------- | ---------------------------------------------------------------- | ------- | -------- |
+| `service_name` | `string` | Kerberos service name.                                           |         | no       |
+| `realm`        | `string` | Kerberos realm.                                                  |         | no       |
+| `use_keytab`   | `string` | Enables using keytab instead of password.                        |         | no       |
+| `username`     | `string` | Kerberos username to authenticate as.                            |         | yes      |
+| `password`     | `secret` | Kerberos password to authenticate with.                          |         | no       |
+| `config_file`  | `string` | Path to Kerberos location (for example, `/etc/krb5.conf`).       |         | no       |
+| `keytab_file`  | `string` | Path to keytab file (for example, `/etc/security/kafka.keytab`). |         | no       |
 
 When `use_keytab` is `false`, the `password` argument is required. When
 `use_keytab` is `true`, the file pointed to by the `keytab_file` argument is
@@ -211,9 +211,9 @@ Kafka broker.
 
 The following arguments are supported:
 
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`include_all_topics` | `bool` | When true, maintains metadata for all topics. | `true` | no
+| Name                 | Type   | Description                                   | Default | Required |
+| -------------------- | ------ | --------------------------------------------- | ------- | -------- |
+| `include_all_topics` | `bool` | When true, maintains metadata for all topics. | `true`  | no       |
 
 If the `include_all_topics` argument is `true`, `otelcol.receiver.kafka`
 maintains a full set of metadata for all topics rather than the minimal set
@@ -232,10 +232,10 @@ fails.
 
 The following arguments are supported:
 
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`max_retries` | `number` | How many times to reattempt retrieving metadata. | `3` | no
-`backoff` | `duration` | Time to wait between retries. | `"250ms"` | no
+| Name          | Type       | Description                                      | Default   | Required |
+| ------------- | ---------- | ------------------------------------------------ | --------- | -------- |
+| `max_retries` | `number`   | How many times to reattempt retrieving metadata. | `3`       | no       |
+| `backoff`     | `duration` | Time to wait between retries.                    | `"250ms"` | no       |
 
 ### autocommit block
 
@@ -244,10 +244,10 @@ offsets back to the Kafka brokers.
 
 The following arguments are supported:
 
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`enable` | `bool` | Enable autocommitting updated topic offsets. | `true` | no
-`interval` | `duration` | How frequently to autocommit. | `"1s"` | no
+| Name       | Type       | Description                                  | Default | Required |
+| ---------- | ---------- | -------------------------------------------- | ------- | -------- |
+| `enable`   | `bool`     | Enable autocommitting updated topic offsets. | `true`  | no       |
+| `interval` | `duration` | How frequently to autocommit.                | `"1s"`  | no       |
 
 ### message_marking block
 
@@ -255,10 +255,10 @@ The `message_marking` block configures when Kafka messages are marked as read.
 
 The following arguments are supported:
 
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`after_execution` | `bool` | Mark messages after forwarding telemetry data to other components. | `false` | no
-`include_unsuccessful` | `bool` | Whether failed forwards should be marked as read. | `false` | no
+| Name                   | Type   | Description                                                        | Default | Required |
+| ---------------------- | ------ | ------------------------------------------------------------------ | ------- | -------- |
+| `after_execution`      | `bool` | Mark messages after forwarding telemetry data to other components. | `false` | no       |
+| `include_unsuccessful` | `bool` | Whether failed forwards should be marked as read.                  | `false` | no       |
 
 By default, a Kafka message is marked as read immediately after it is retrieved
 from the Kafka broker. If the `after_execution` argument is true, messages are
@@ -281,10 +281,10 @@ The `header_extraction` block configures how to extract headers from Kafka recor
 
 The following arguments are supported:
 
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`extract_headers` | `bool` | Enables attaching header fields to resource attributes. | `false` | no
-`headers` | `list(string)` | A list of headers to extract from the Kafka record. | `[]` | no
+| Name              | Type           | Description                                             | Default | Required |
+| ----------------- | -------------- | ------------------------------------------------------- | ------- | -------- |
+| `extract_headers` | `bool`         | Enables attaching header fields to resource attributes. | `false` | no       |
+| `headers`         | `list(string)` | A list of headers to extract from the Kafka record.     | `[]`    | no       |
 
 Regular expressions are not allowed in the `headers` argument. Only exact matching will be performed.
 
@@ -341,6 +341,7 @@ otelcol.exporter.otlp "default" {
   }
 }
 ```
+
 <!-- START GENERATED COMPATIBLE COMPONENTS -->
 
 ## Compatible components
@@ -348,7 +349,6 @@ otelcol.exporter.otlp "default" {
 `otelcol.receiver.kafka` can accept arguments from the following components:
 
 - Components that export [OpenTelemetry `otelcol.Consumer`](../../compatibility/#opentelemetry-otelcolconsumer-exporters)
-
 
 {{< admonition type="note" >}}
 Connecting some components may not be sensible or components may require further configuration to make the connection work correctly.

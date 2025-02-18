@@ -1,9 +1,9 @@
 ---
 aliases:
-- /docs/grafana-cloud/agent/flow/reference/components/prometheus.relabel/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/prometheus.relabel/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/prometheus.relabel/
-- /docs/grafana-cloud/send-data/agent/flow/reference/components/prometheus.relabel/
+  - /docs/grafana-cloud/agent/flow/reference/components/prometheus.relabel/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/prometheus.relabel/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/prometheus.relabel/
+  - /docs/grafana-cloud/send-data/agent/flow/reference/components/prometheus.relabel/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.relabel/
 description: Learn about prometheus.relabel
 title: prometheus.relabel
@@ -15,6 +15,7 @@ Prometheus metrics follow the [OpenMetrics](https://openmetrics.io/) format.
 Each time series is uniquely identified by its metric name, plus optional
 key-value pairs called labels. Each sample represents a datapoint in the
 time series and contains a value and an optional timestamp.
+
 ```
 <metric name>{<label_1>=<label_val_1>, <label_2>=<label_val_2> ...} <value> [timestamp]
 ```
@@ -53,18 +54,18 @@ prometheus.relabel "LABEL" {
 
 The following arguments are supported:
 
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`forward_to` | `list(MetricsReceiver)` | Where the metrics should be forwarded to, after relabeling takes place. | | yes
-`max_cache_size` | `int` | The maximum number of elements to hold in the relabeling cache. | 100,000 | no
+| Name             | Type                    | Description                                                             | Default | Required |
+| ---------------- | ----------------------- | ----------------------------------------------------------------------- | ------- | -------- |
+| `forward_to`     | `list(MetricsReceiver)` | Where the metrics should be forwarded to, after relabeling takes place. |         | yes      |
+| `max_cache_size` | `int`                   | The maximum number of elements to hold in the relabeling cache.         | 100,000 | no       |
 
 ## Blocks
 
 The following blocks are supported inside the definition of `prometheus.relabel`:
 
-Hierarchy | Name | Description | Required
---------- | ---- | ----------- | --------
-rule | [rule][] | Relabeling rules to apply to received metrics. | no
+| Hierarchy | Name     | Description                                    | Required |
+| --------- | -------- | ---------------------------------------------- | -------- |
+| rule      | [rule][] | Relabeling rules to apply to received metrics. | no       |
 
 [rule]: #rule-block
 
@@ -76,10 +77,10 @@ rule | [rule][] | Relabeling rules to apply to received metrics. | no
 
 The following fields are exported and can be referenced by other components:
 
-Name | Type | Description
----- | ---- | -----------
-`receiver` | `MetricsReceiver` | The input receiver where samples are sent to be relabeled.
-`rules`    | `RelabelRules` | The currently configured relabeling rules.
+| Name       | Type              | Description                                                |
+| ---------- | ----------------- | ---------------------------------------------------------- |
+| `receiver` | `MetricsReceiver` | The input receiver where samples are sent to be relabeled. |
+| `rules`    | `RelabelRules`    | The currently configured relabeling rules.                 |
 
 ## Component health
 
@@ -93,14 +94,13 @@ values.
 
 ## Debug metrics
 
-
-* `agent_prometheus_relabel_metrics_processed` (counter): Total number of metrics processed.
-* `agent_prometheus_relabel_metrics_written` (counter): Total number of metrics written.
-* `agent_prometheus_relabel_cache_misses` (counter): Total number of cache misses.
-* `agent_prometheus_relabel_cache_hits` (counter): Total number of cache hits.
-* `agent_prometheus_relabel_cache_size` (gauge): Total size of relabel cache.
-* `agent_prometheus_fanout_latency` (histogram): Write latency for sending to direct and indirect components.
-* `agent_prometheus_forwarded_samples_total` (counter): Total number of samples sent to downstream components.
+- `agent_prometheus_relabel_metrics_processed` (counter): Total number of metrics processed.
+- `agent_prometheus_relabel_metrics_written` (counter): Total number of metrics written.
+- `agent_prometheus_relabel_cache_misses` (counter): Total number of cache misses.
+- `agent_prometheus_relabel_cache_hits` (counter): Total number of cache hits.
+- `agent_prometheus_relabel_cache_size` (gauge): Total size of relabel cache.
+- `agent_prometheus_fanout_latency` (histogram): Write latency for sending to direct and indirect components.
+- `agent_prometheus_forwarded_samples_total` (counter): Total number of samples sent to downstream components.
 
 ## Example
 
@@ -162,6 +162,7 @@ The third and final relabeling rule which uses the `labeldrop` action removes
 the `instance` label from the set of labels.
 
 So in this case, the initial set of metrics passed to the exported receiver is:
+
 ```
 metric_a{host = "localhost/development", __address__ = "localhost", app = "backend"}  2
 metric_a{host = "cluster_a/production",  __address__ = "cluster_a", app = "backend"}  9
@@ -169,6 +170,7 @@ metric_a{host = "cluster_a/production",  __address__ = "cluster_a", app = "backe
 
 The two resulting metrics are then propagated to each receiver defined in the
 `forward_to` argument.
+
 <!-- START GENERATED COMPATIBLE COMPONENTS -->
 
 ## Compatible components

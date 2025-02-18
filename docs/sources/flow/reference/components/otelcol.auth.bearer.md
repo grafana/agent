@@ -1,9 +1,9 @@
 ---
 aliases:
-- /docs/grafana-cloud/agent/flow/reference/components/otelcol.auth.bearer/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/otelcol.auth.bearer/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/otelcol.auth.bearer/
-- /docs/grafana-cloud/send-data/agent/flow/reference/components/otelcol.auth.bearer/
+  - /docs/grafana-cloud/agent/flow/reference/components/otelcol.auth.bearer/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/otelcol.auth.bearer/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/otelcol.auth.bearer/
+  - /docs/grafana-cloud/send-data/agent/flow/reference/components/otelcol.auth.bearer/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.auth.bearer/
 description: Learn about otelcol.auth.bearer
 title: otelcol.auth.bearer
@@ -35,10 +35,10 @@ otelcol.auth.bearer "LABEL" {
 
 `otelcol.auth.bearer` supports the following arguments:
 
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`token` | `secret` | Bearer token to use for authenticating requests. | | yes
-`scheme` | `string` | Authentication scheme name. | "Bearer" | no
+| Name     | Type     | Description                                      | Default  | Required |
+| -------- | -------- | ------------------------------------------------ | -------- | -------- |
+| `token`  | `secret` | Bearer token to use for authenticating requests. |          | yes      |
+| `scheme` | `string` | Authentication scheme name.                      | "Bearer" | no       |
 
 When sending the token, the value of `scheme` is prepended to the `token` value.
 The string is then sent out as either a header (in case of HTTP) or as metadata (in case of gRPC).
@@ -47,9 +47,9 @@ The string is then sent out as either a header (in case of HTTP) or as metadata 
 
 The following fields are exported and can be referenced by other components:
 
-Name | Type | Description
----- | ---- | -----------
-`handler` | `capsule(otelcol.Handler)` | A value that other components can use to authenticate requests.
+| Name      | Type                       | Description                                                     |
+| --------- | -------------------------- | --------------------------------------------------------------- |
+| `handler` | `capsule(otelcol.Handler)` | A value that other components can use to authenticate requests. |
 
 ## Component health
 
@@ -66,7 +66,7 @@ configuration.
 
 The example below configures [otelcol.exporter.otlp][] to use a bearer token authentication.
 
-If we assume that the value of the `API_KEY` environment variable is `SECRET_API_KEY`, then 
+If we assume that the value of the `API_KEY` environment variable is `SECRET_API_KEY`, then
 the `Authorization` RPC metadata is set to `Bearer SECRET_API_KEY`.
 
 ```river
@@ -86,7 +86,7 @@ otelcol.auth.bearer "creds" {
 
 The example below configures [otelcol.exporter.otlphttp][] to use a bearer token authentication.
 
-If we assume that the value of the `API_KEY` environment variable is `SECRET_API_KEY`, then 
+If we assume that the value of the `API_KEY` environment variable is `SECRET_API_KEY`, then
 the `Authorization` HTTP header is set to `MyScheme SECRET_API_KEY`.
 
 ```river

@@ -1,9 +1,9 @@
 ---
 aliases:
-- /docs/grafana-cloud/agent/flow/reference/components/prometheus.exporter.mysql/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/prometheus.exporter.mysql/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/prometheus.exporter.mysql/
-- /docs/grafana-cloud/send-data/agent/flow/reference/components/prometheus.exporter.mysql/
+  - /docs/grafana-cloud/agent/flow/reference/components/prometheus.exporter.mysql/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/prometheus.exporter.mysql/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/prometheus.exporter.mysql/
+  - /docs/grafana-cloud/send-data/agent/flow/reference/components/prometheus.exporter.mysql/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.mysql/
 description: Learn about prometheus.exporter.mysql
 title: prometheus.exporter.mysql
@@ -98,9 +98,9 @@ View more detailed documentation on the tables used in `perf_schema_file_instanc
 
 ### perf_schema.memory_events block
 
-| Name            | Type     | Description                                                                         | Default            | Required |
-| --------------- | -------- | ----------------------------------------------------------------------------------- | ------------------ | -------- |
-| `remove_prefix` | `string` | Prefix to trim away from `performance_schema.memory_summary_global_by_event_name`.  | `"memory/"`        | no       |
+| Name            | Type     | Description                                                                        | Default     | Required |
+| --------------- | -------- | ---------------------------------------------------------------------------------- | ----------- | -------- |
+| `remove_prefix` | `string` | Prefix to trim away from `performance_schema.memory_summary_global_by_event_name`. | `"memory/"` | no       |
 
 ### heartbeat block
 

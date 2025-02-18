@@ -1,9 +1,9 @@
 ---
 aliases:
-- /docs/grafana-cloud/agent/flow/reference/components/loki.relabel/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/loki.relabel/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/loki.relabel/
-- /docs/grafana-cloud/send-data/agent/flow/reference/components/loki.relabel/
+  - /docs/grafana-cloud/agent/flow/reference/components/loki.relabel/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/loki.relabel/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/loki.relabel/
+  - /docs/grafana-cloud/send-data/agent/flow/reference/components/loki.relabel/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/loki.relabel/
 description: Learn about loki.relabel
 title: loki.relabel
@@ -50,18 +50,18 @@ loki.relabel "LABEL" {
 
 The following arguments are supported:
 
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`forward_to` | `list(receiver)` | Where to forward log entries after relabeling. | | yes
-`max_cache_size` | `int` | The maximum number of elements to hold in the relabeling cache | 10,000 | no
+| Name             | Type             | Description                                                    | Default | Required |
+| ---------------- | ---------------- | -------------------------------------------------------------- | ------- | -------- |
+| `forward_to`     | `list(receiver)` | Where to forward log entries after relabeling.                 |         | yes      |
+| `max_cache_size` | `int`            | The maximum number of elements to hold in the relabeling cache | 10,000  | no       |
 
 ## Blocks
 
 The following blocks are supported inside the definition of `loki.relabel`:
 
-Hierarchy | Name | Description | Required
---------- | ---- | ----------- | --------
-rule | [rule][] | Relabeling rules to apply to received log entries. | no
+| Hierarchy | Name     | Description                                        | Required |
+| --------- | -------- | -------------------------------------------------- | -------- |
+| rule      | [rule][] | Relabeling rules to apply to received log entries. | no       |
 
 [rule]: #rule-block
 
@@ -73,10 +73,10 @@ rule | [rule][] | Relabeling rules to apply to received log entries. | no
 
 The following fields are exported and can be referenced by other components:
 
-Name | Type | Description
----- | ---- | -----------
-`receiver` | `receiver` | The input receiver where log lines are sent to be relabeled.
-`rules`    | `RelabelRules` | The currently configured relabeling rules.
+| Name       | Type           | Description                                                  |
+| ---------- | -------------- | ------------------------------------------------------------ |
+| `receiver` | `receiver`     | The input receiver where log lines are sent to be relabeled. |
+| `rules`    | `RelabelRules` | The currently configured relabeling rules.                   |
 
 ## Component health
 
@@ -89,11 +89,11 @@ In those cases, exported fields are kept at their last healthy values.
 
 ## Debug metrics
 
-* `loki_relabel_entries_processed` (counter): Total number of log entries processed.
-* `loki_relabel_entries_written` (counter): Total number of log entries forwarded.
-* `loki_relabel_cache_misses` (counter): Total number of cache misses.
-* `loki_relabel_cache_hits` (counter): Total number of cache hits.
-* `loki_relabel_cache_size` (gauge): Total size of relabel cache.
+- `loki_relabel_entries_processed` (counter): Total number of log entries processed.
+- `loki_relabel_entries_written` (counter): Total number of log entries forwarded.
+- `loki_relabel_cache_misses` (counter): Total number of cache misses.
+- `loki_relabel_cache_hits` (counter): Total number of cache hits.
+- `loki_relabel_cache_size` (gauge): Total size of relabel cache.
 
 ## Example
 

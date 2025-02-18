@@ -1,9 +1,9 @@
 ---
 aliases:
-- /docs/grafana-cloud/agent/flow/reference/components/faro.receiver/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/faro.receiver/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/faro.receiver/
-- /docs/grafana-cloud/send-data/agent/flow/reference/components/faro.receiver/
+  - /docs/grafana-cloud/agent/flow/reference/components/faro.receiver/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/faro.receiver/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/faro.receiver/
+  - /docs/grafana-cloud/send-data/agent/flow/reference/components/faro.receiver/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/faro.receiver/
 description: Learn about the faro.receiver
 title: faro.receiver
@@ -31,21 +31,21 @@ faro.receiver "LABEL" {
 
 The following arguments are supported:
 
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`extra_log_labels` | `map(string)` | Extra labels to attach to emitted log lines. | `{}` | no
+| Name               | Type          | Description                                  | Default | Required |
+| ------------------ | ------------- | -------------------------------------------- | ------- | -------- |
+| `extra_log_labels` | `map(string)` | Extra labels to attach to emitted log lines. | `{}`    | no       |
 
 ## Blocks
 
 The following blocks are supported inside the definition of `faro.receiver`:
 
-Hierarchy | Block | Description | Required
---------- | ----- | ----------- | --------
-server | [server][] | Configures the HTTP server. | no
-server > rate_limiting | [rate_limiting][] | Configures rate limiting for the HTTP server. | no
-sourcemaps | [sourcemaps][] | Configures sourcemap retrieval. | no
-sourcemaps > location | [location][] | Configures on-disk location for sourcemap retrieval. | no
-output | [output][] | Configures where to send collected telemetry data. | yes
+| Hierarchy              | Block             | Description                                          | Required |
+| ---------------------- | ----------------- | ---------------------------------------------------- | -------- |
+| server                 | [server][]        | Configures the HTTP server.                          | no       |
+| server > rate_limiting | [rate_limiting][] | Configures rate limiting for the HTTP server.        | no       |
+| sourcemaps             | [sourcemaps][]    | Configures sourcemap retrieval.                      | no       |
+| sourcemaps > location  | [location][]      | Configures on-disk location for sourcemap retrieval. | no       |
+| output                 | [output][]        | Configures where to send collected telemetry data.   | yes      |
 
 [server]: #server-block
 [rate_limiting]: #rate_limiting-block
@@ -59,14 +59,14 @@ The `server` block configures the HTTP server managed by the `faro.receiver`
 component. Clients using the [Grafana Faro Web SDK][faro-sdk] forward telemetry
 data to this HTTP server for processing.
 
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`listen_address` | `string` | Address to listen for HTTP traffic on. | `127.0.0.1` | no
-`listen_port` | `number` | Port to listen for HTTP traffic on. | `12347` | no
-`cors_allowed_origins` | `list(string)` | Origins for which cross-origin requests are permitted. | `[]` | no
-`api_key` | `secret` | Optional API key to validate client requests with. | `""` | no
-`max_allowed_payload_size` | `string` | Maximum size (in bytes) for client requests. | `"5MiB"` | no
-`include_metadata` | `boolean` | Propagate incoming connection metadata to downstream consumers. | `false` | no
+| Name                       | Type           | Description                                                     | Default     | Required |
+| -------------------------- | -------------- | --------------------------------------------------------------- | ----------- | -------- |
+| `listen_address`           | `string`       | Address to listen for HTTP traffic on.                          | `127.0.0.1` | no       |
+| `listen_port`              | `number`       | Port to listen for HTTP traffic on.                             | `12347`     | no       |
+| `cors_allowed_origins`     | `list(string)` | Origins for which cross-origin requests are permitted.          | `[]`        | no       |
+| `api_key`                  | `secret`       | Optional API key to validate client requests with.              | `""`        | no       |
+| `max_allowed_payload_size` | `string`       | Maximum size (in bytes) for client requests.                    | `"5MiB"`    | no       |
+| `include_metadata`         | `boolean`      | Propagate incoming connection metadata to downstream consumers. | `false`     | no       |
 
 By default, telemetry data is only accepted from applications on the same local
 network as the browser. To accept telemetry data from a wider set of clients,
@@ -89,11 +89,11 @@ ignored.
 
 The `rate_limiting` block configures rate limiting for client requests.
 
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`enabled` | `bool` | Whether to enable rate limiting. | `true` | no
-`rate` | `number` | Rate of allowed requests per second. | `50` | no
-`burst_size` | `number` | Allowed burst size of requests. | `100` | no
+| Name         | Type     | Description                          | Default | Required |
+| ------------ | -------- | ------------------------------------ | ------- | -------- |
+| `enabled`    | `bool`   | Whether to enable rate limiting.     | `true`  | no       |
+| `rate`       | `number` | Rate of allowed requests per second. | `50`    | no       |
+| `burst_size` | `number` | Allowed burst size of requests.      | `100`   | no       |
 
 Rate limiting functions as a [token bucket algorithm][token-bucket], where
 a bucket has a maximum capacity for up to `burst_size` requests and refills at a
@@ -115,11 +115,11 @@ The `sourcemaps` block configures how to retrieve sourcemaps. Sourcemaps are
 then used to transform file and line information from minified code into the
 file and line information from the original source code.
 
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`download` | `bool` | Whether to download sourcemaps. | `true` | no
-`download_from_origins` | `list(string)` | Which origins to download sourcemaps from. | `["*"]` | no
-`download_timeout` | `duration` | Timeout when downloading sourcemaps. | `"1s"` | no
+| Name                    | Type           | Description                                | Default | Required |
+| ----------------------- | -------------- | ------------------------------------------ | ------- | -------- |
+| `download`              | `bool`         | Whether to download sourcemaps.            | `true`  | no       |
+| `download_from_origins` | `list(string)` | Which origins to download sourcemaps from. | `["*"]` | no       |
+| `download_timeout`      | `duration`     | Timeout when downloading sourcemaps.       | `"1s"`  | no       |
 
 When exceptions are sent to the `faro.receiver` component, it can download
 sourcemaps from the web application. You can disable this behavior by setting
@@ -144,10 +144,10 @@ The `location` block declares a location where sourcemaps are stored on the
 filesystem. The `location` block can be specified multiple times to declare
 multiple locations where sourcemaps are stored.
 
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`path` | `string` | The path on disk where sourcemaps are stored. | | yes
-`minified_path_prefix` | `string` | The prefix of the minified path sent from browsers. | | yes
+| Name                   | Type     | Description                                         | Default | Required |
+| ---------------------- | -------- | --------------------------------------------------- | ------- | -------- |
+| `path`                 | `string` | The path on disk where sourcemaps are stored.       |         | yes      |
+| `minified_path_prefix` | `string` | The prefix of the minified path sent from browsers. |         | yes      |
 
 The `minified_path_prefix` argument determines the prefix of paths to
 Javascript files, such as `http://example.com/`. The `path` argument then
@@ -177,10 +177,10 @@ will be replaced with the release value provided by the [Faro Web App SDK][faro-
 
 The `output` block specifies where to forward collected logs and traces.
 
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`logs` | `list(LogsReceiver)` | A list of `loki` components to forward logs to. | `[]` | no
-`traces` | `list(otelcol.Consumer)` | A list of `otelcol` components to forward traces to. | `[]` | no
+| Name     | Type                     | Description                                          | Default | Required |
+| -------- | ------------------------ | ---------------------------------------------------- | ------- | -------- |
+| `logs`   | `list(LogsReceiver)`     | A list of `loki` components to forward logs to.      | `[]`    | no       |
+| `traces` | `list(otelcol.Consumer)` | A list of `otelcol` components to forward traces to. | `[]`    | no       |
 
 ## Exported fields
 
@@ -199,18 +199,18 @@ start.
 
 `faro.receiver` exposes the following metrics for monitoring the component:
 
-* `faro_receiver_logs_total` (counter): Total number of ingested logs.
-* `faro_receiver_measurements_total` (counter): Total number of ingested measurements.
-* `faro_receiver_exceptions_total` (counter): Total number of ingested exceptions.
-* `faro_receiver_events_total` (counter): Total number of ingested events.
-* `faro_receiver_exporter_errors_total` (counter): Total number of errors produced by an internal exporter.
-* `faro_receiver_request_duration_seconds` (histogram): Time (in seconds) spent serving HTTP requests.
-* `faro_receiver_request_message_bytes` (histogram): Size (in bytes) of HTTP requests received from clients.
-* `faro_receiver_response_message_bytes` (histogram): Size (in bytes) of HTTP responses sent to clients.
-* `faro_receiver_inflight_requests` (gauge): Current number of inflight requests.
-* `faro_receiver_sourcemap_cache_size` (counter): Number of items in sourcemap cache per origin.
-* `faro_receiver_sourcemap_downloads_total` (counter): Total number of sourcemap downloads performed per origin and status.
-* `faro_receiver_sourcemap_file_reads_total` (counter): Total number of sourcemap retrievals using the filesystem per origin and status.
+- `faro_receiver_logs_total` (counter): Total number of ingested logs.
+- `faro_receiver_measurements_total` (counter): Total number of ingested measurements.
+- `faro_receiver_exceptions_total` (counter): Total number of ingested exceptions.
+- `faro_receiver_events_total` (counter): Total number of ingested events.
+- `faro_receiver_exporter_errors_total` (counter): Total number of errors produced by an internal exporter.
+- `faro_receiver_request_duration_seconds` (histogram): Time (in seconds) spent serving HTTP requests.
+- `faro_receiver_request_message_bytes` (histogram): Size (in bytes) of HTTP requests received from clients.
+- `faro_receiver_response_message_bytes` (histogram): Size (in bytes) of HTTP responses sent to clients.
+- `faro_receiver_inflight_requests` (gauge): Current number of inflight requests.
+- `faro_receiver_sourcemap_cache_size` (counter): Number of items in sourcemap cache per origin.
+- `faro_receiver_sourcemap_downloads_total` (counter): Total number of sourcemap downloads performed per origin and status.
+- `faro_receiver_sourcemap_file_reads_total` (counter): Total number of sourcemap retrievals using the filesystem per origin and status.
 
 ## Example
 
@@ -248,22 +248,22 @@ otelcol.exporter.otlp "traces" {
 
 Replace the following:
 
-* `NETWORK_ADDRESS`: IP address of the network interface to listen to traffic
+- `NETWORK_ADDRESS`: IP address of the network interface to listen to traffic
   on. This IP address must be reachable by browsers using the web application
   to instrument.
 
-* `PATH_TO_SOURCEMAPS`: Path on disk where sourcemaps are located.
+- `PATH_TO_SOURCEMAPS`: Path on disk where sourcemaps are located.
 
-* `WEB_APP_PREFIX`: Prefix of the web application being instrumented.
+- `WEB_APP_PREFIX`: Prefix of the web application being instrumented.
 
-* `LOKI_ADDRESS`: Address of the Loki server to send logs to.
+- `LOKI_ADDRESS`: Address of the Loki server to send logs to.
 
-  * If authentication is required to send logs to the Loki server, refer to the
+  - If authentication is required to send logs to the Loki server, refer to the
     documentation of [loki.write][] for more information.
 
-* `OTLP_ADDRESS`: The address of the OTLP-compatible server to send traces to.
+- `OTLP_ADDRESS`: The address of the OTLP-compatible server to send traces to.
 
-  * If authentication is required to send logs to the Loki server, refer to the
+  - If authentication is required to send logs to the Loki server, refer to the
     documentation of [otelcol.exporter.otlp][] for more information.
 
 [loki.write]: {{< relref "./loki.write.md" >}}
@@ -277,7 +277,6 @@ Replace the following:
 
 - Components that export [Loki `LogsReceiver`](../../compatibility/#loki-logsreceiver-exporters)
 - Components that export [OpenTelemetry `otelcol.Consumer`](../../compatibility/#opentelemetry-otelcolconsumer-exporters)
-
 
 {{< admonition type="note" >}}
 Connecting some components may not be sensible or components may require further configuration to make the connection work correctly.

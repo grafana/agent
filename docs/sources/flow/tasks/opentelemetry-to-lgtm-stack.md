@@ -1,17 +1,18 @@
 ---
 aliases:
-- /docs/grafana-cloud/agent/flow/tasks/opentelemetry-to-lgtm-stack/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/tasks/opentelemetry-to-lgtm-stack/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/tasks/opentelemetry-to-lgtm-stack/
-- /docs/grafana-cloud/send-data/agent/flow/tasks/opentelemetry-to-lgtm-stack/
-# Previous page aliases for backwards compatibility:
-- /docs/grafana-cloud/agent/flow/getting-started/opentelemetry-to-lgtm-stack/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/getting-started/opentelemetry-to-lgtm-stack/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/getting-started/opentelemetry-to-lgtm-stack/
-- /docs/grafana-cloud/send-data/agent/flow/getting-started/opentelemetry-to-lgtm-stack/
-- ../getting-started/opentelemetry-to-lgtm-stack/ # /docs/agent/latest/flow/getting-started/opentelemetry-to-lgtm-stack/
+  - /docs/grafana-cloud/agent/flow/tasks/opentelemetry-to-lgtm-stack/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/tasks/opentelemetry-to-lgtm-stack/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/tasks/opentelemetry-to-lgtm-stack/
+  - /docs/grafana-cloud/send-data/agent/flow/tasks/opentelemetry-to-lgtm-stack/
+  # Previous page aliases for backwards compatibility:
+  - /docs/grafana-cloud/agent/flow/getting-started/opentelemetry-to-lgtm-stack/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/getting-started/opentelemetry-to-lgtm-stack/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/getting-started/opentelemetry-to-lgtm-stack/
+  - /docs/grafana-cloud/send-data/agent/flow/getting-started/opentelemetry-to-lgtm-stack/
+  - ../getting-started/opentelemetry-to-lgtm-stack/ # /docs/agent/latest/flow/getting-started/opentelemetry-to-lgtm-stack/
 canonical: https://grafana.com/docs/agent/latest/flow/tasks/opentelemetry-to-lgtm-stack/
-description: Learn how to collect OpenTelemetry data and forward it to the Grafana
+description:
+  Learn how to collect OpenTelemetry data and forward it to the Grafana
   stack
 title: OpenTelemetry to Grafana stack
 weight: 350
@@ -74,28 +75,28 @@ You can configure {{< param "PRODUCT_NAME" >}} to collect [OpenTelemetry][]-comp
 
 This topic describes how to:
 
-* Configure {{< param "PRODUCT_NAME" >}} to send your data to Loki.
-* Configure {{< param "PRODUCT_NAME" >}} to send your data to Tempo.
-* Configure {{< param "PRODUCT_NAME" >}} to send your data to Mimir or Prometheus Remote Write.
+- Configure {{< param "PRODUCT_NAME" >}} to send your data to Loki.
+- Configure {{< param "PRODUCT_NAME" >}} to send your data to Tempo.
+- Configure {{< param "PRODUCT_NAME" >}} to send your data to Mimir or Prometheus Remote Write.
 
 ## Components used in this topic
 
-* [loki.write](ref:loki.write)
-* [otelcol.auth.basic](ref:otelcol.auth.basic)
-* [otelcol.exporter.loki](ref:otelcol.exporter.loki)
-* [otelcol.exporter.otlp](ref:otelcol.exporter.otlp)
-* [otelcol.exporter.prometheus](ref:otelcol.exporter.prometheus)
-* [otelcol.processor.batch](ref:otelcol.processor.batch)
-* [otelcol.receiver.otlp](ref:otelcol.receiver.otlp)
-* [prometheus.remote_write](ref:prometheus.remote_write)
+- [loki.write](ref:loki.write)
+- [otelcol.auth.basic](ref:otelcol.auth.basic)
+- [otelcol.exporter.loki](ref:otelcol.exporter.loki)
+- [otelcol.exporter.otlp](ref:otelcol.exporter.otlp)
+- [otelcol.exporter.prometheus](ref:otelcol.exporter.prometheus)
+- [otelcol.processor.batch](ref:otelcol.processor.batch)
+- [otelcol.receiver.otlp](ref:otelcol.receiver.otlp)
+- [prometheus.remote_write](ref:prometheus.remote_write)
 
 ## Before you begin
 
-* Ensure that you have basic familiarity with instrumenting applications with OpenTelemetry.
-* Have a set of OpenTelemetry applications ready to push telemetry data to {{< param "PRODUCT_NAME" >}}.
-* Identify where {{< param "PRODUCT_NAME" >}} will write received telemetry data.
-* Be familiar with the concept of [Components](ref:components) in {{< param "PRODUCT_NAME" >}}.
-* Complete the [Collect open telemetry data](ref:collect-open-telemetry-data) task. You will pick up from where that guide ended.
+- Ensure that you have basic familiarity with instrumenting applications with OpenTelemetry.
+- Have a set of OpenTelemetry applications ready to push telemetry data to {{< param "PRODUCT_NAME" >}}.
+- Identify where {{< param "PRODUCT_NAME" >}} will write received telemetry data.
+- Be familiar with the concept of [Components](ref:components) in {{< param "PRODUCT_NAME" >}}.
+- Complete the [Collect open telemetry data](ref:collect-open-telemetry-data) task. You will pick up from where that guide ended.
 
 ## The pipeline
 
@@ -146,6 +147,7 @@ Metrics: OTel → batch processor → Mimir or Prometheus remote write
 Logs: OTel → batch processor → Loki exporter
 Traces: OTel → batch processor → OTel exporter
 ```
+
 ## Grafana Loki
 
 [Grafana Loki][] is a horizontally scalable, highly available, multi-tenant log aggregation system inspired by Prometheus.

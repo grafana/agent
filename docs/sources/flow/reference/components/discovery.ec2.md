@@ -1,9 +1,9 @@
 ---
 aliases:
-- /docs/grafana-cloud/agent/flow/reference/components/discovery.ec2/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/discovery.ec2/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/discovery.ec2/
-- /docs/grafana-cloud/send-data/agent/flow/reference/components/discovery.ec2/
+  - /docs/grafana-cloud/agent/flow/reference/components/discovery.ec2/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/discovery.ec2/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/discovery.ec2/
+  - /docs/grafana-cloud/send-data/agent/flow/reference/components/discovery.ec2/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.ec2/
 description: Learn about discovery.ec2
 title: discovery.ec2
@@ -26,47 +26,48 @@ discovery.ec2 "LABEL" {
 
 The following arguments are supported:
 
-Name                     | Type                | Description                                                   | Default | Required
------------------------- | ------------------- | ------------------------------------------------------------- | ------- | --------
-`endpoint`               | `string`            | Custom endpoint to be used.                                   |         | no
-`region`                 | `string`            | The AWS region. If blank, the region from the instance metadata is used. | | no
-`access_key`             | `string`            | The AWS API key ID. If blank, the environment variable `AWS_ACCESS_KEY_ID` is used. | | no
-`secret_key`             | `string`            | The AWS API key secret. If blank, the environment variable `AWS_SECRET_ACCESS_KEY` is used. | | no
-`profile`                | `string`            | Named AWS profile used to connect to the API.                 |         | no
-`role_arn`               | `string`            | AWS Role Amazon Resource Name (ARN), an alternative to using AWS API keys. | | no
-`refresh_interval`       | `string`            | Refresh interval to re-read the instance list.                | 60s     | no
-`port`                   | `int`               | The port to scrape metrics from. If using the public IP address, this must instead be specified in the relabeling rule. | 80 | no
-`bearer_token_file`      | `string`            | File containing a bearer token to authenticate with.          |         | no
-`bearer_token`           | `secret`            | Bearer token to authenticate with.                            |         | no
-`enable_http2`           | `bool`              | Whether HTTP2 is supported for requests.                      | `true`  | no
-`follow_redirects`       | `bool`              | Whether redirects returned by the server should be followed.  | `true`  | no
-`proxy_url`              | `string`            | HTTP proxy to send requests through.                          |         | no
-`no_proxy`               | `string`            | Comma-separated list of IP addresses, CIDR notations, and domain names to exclude from proxying. | | no
-`proxy_from_environment` | `bool`              | Use the proxy URL indicated by environment variables.         | `false` | no
-`proxy_connect_header`   | `map(list(secret))` | Specifies headers to send to proxies during CONNECT requests. |         | no
+| Name                     | Type                | Description                                                                                                             | Default | Required |
+| ------------------------ | ------------------- | ----------------------------------------------------------------------------------------------------------------------- | ------- | -------- |
+| `endpoint`               | `string`            | Custom endpoint to be used.                                                                                             |         | no       |
+| `region`                 | `string`            | The AWS region. If blank, the region from the instance metadata is used.                                                |         | no       |
+| `access_key`             | `string`            | The AWS API key ID. If blank, the environment variable `AWS_ACCESS_KEY_ID` is used.                                     |         | no       |
+| `secret_key`             | `string`            | The AWS API key secret. If blank, the environment variable `AWS_SECRET_ACCESS_KEY` is used.                             |         | no       |
+| `profile`                | `string`            | Named AWS profile used to connect to the API.                                                                           |         | no       |
+| `role_arn`               | `string`            | AWS Role Amazon Resource Name (ARN), an alternative to using AWS API keys.                                              |         | no       |
+| `refresh_interval`       | `string`            | Refresh interval to re-read the instance list.                                                                          | 60s     | no       |
+| `port`                   | `int`               | The port to scrape metrics from. If using the public IP address, this must instead be specified in the relabeling rule. | 80      | no       |
+| `bearer_token_file`      | `string`            | File containing a bearer token to authenticate with.                                                                    |         | no       |
+| `bearer_token`           | `secret`            | Bearer token to authenticate with.                                                                                      |         | no       |
+| `enable_http2`           | `bool`              | Whether HTTP2 is supported for requests.                                                                                | `true`  | no       |
+| `follow_redirects`       | `bool`              | Whether redirects returned by the server should be followed.                                                            | `true`  | no       |
+| `proxy_url`              | `string`            | HTTP proxy to send requests through.                                                                                    |         | no       |
+| `no_proxy`               | `string`            | Comma-separated list of IP addresses, CIDR notations, and domain names to exclude from proxying.                        |         | no       |
+| `proxy_from_environment` | `bool`              | Use the proxy URL indicated by environment variables.                                                                   | `false` | no       |
+| `proxy_connect_header`   | `map(list(secret))` | Specifies headers to send to proxies during CONNECT requests.                                                           |         | no       |
 
- At most, one of the following can be provided:
- - [`bearer_token` argument](#arguments).
- - [`bearer_token_file` argument](#arguments).
- - [`basic_auth` block][basic_auth].
- - [`authorization` block][authorization].
- - [`oauth2` block][oauth2].
+At most, one of the following can be provided:
 
- {{< docs/shared lookup="flow/reference/components/http-client-proxy-config-description.md" source="agent" version="<AGENT_VERSION>" >}}
+- [`bearer_token` argument](#arguments).
+- [`bearer_token_file` argument](#arguments).
+- [`basic_auth` block][basic_auth].
+- [`authorization` block][authorization].
+- [`oauth2` block][oauth2].
+
+{{< docs/shared lookup="flow/reference/components/http-client-proxy-config-description.md" source="agent" version="<AGENT_VERSION>" >}}
 
 ## Blocks
 
 The following blocks are supported inside the definition of
 `discovery.ec2`:
 
-Hierarchy | Block | Description | Required
---------- | ----- | ----------- | --------
-basic_auth | [basic_auth][] | Configure basic_auth for authenticating to the endpoint. | no
-authorization | [authorization][] | Configure generic authorization to the endpoint. | no
-filter | [filter][] | Filters discoverable resources. | no
-oauth2 | [oauth2][] | Configure OAuth2 for authenticating to the endpoint. | no
-oauth2 > tls_config | [tls_config][] | Configure TLS settings for connecting to the endpoint. | no
-tls_config | [tls_config][] | Configure TLS settings for connecting to the endpoint. | no
+| Hierarchy           | Block             | Description                                              | Required |
+| ------------------- | ----------------- | -------------------------------------------------------- | -------- |
+| basic_auth          | [basic_auth][]    | Configure basic_auth for authenticating to the endpoint. | no       |
+| authorization       | [authorization][] | Configure generic authorization to the endpoint.         | no       |
+| filter              | [filter][]        | Filters discoverable resources.                          | no       |
+| oauth2              | [oauth2][]        | Configure OAuth2 for authenticating to the endpoint.     | no       |
+| oauth2 > tls_config | [tls_config][]    | Configure TLS settings for connecting to the endpoint.   | no       |
+| tls_config          | [tls_config][]    | Configure TLS settings for connecting to the endpoint.   | no       |
 
 [filter]: #filter-block
 [authorization]: #authorization-block
@@ -82,10 +83,10 @@ tls_config | [tls_config][] | Configure TLS settings for connecting to the endpo
 Filters can be used optionally to filter the instance list by other criteria.
 Available filter criteria can be found in the [Amazon EC2 documentation](https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DescribeInstances.html).
 
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`name` | `string` | Filter name to use. | | yes
-`values` | `list(string)` | Values to pass to the filter. | | yes
+| Name     | Type           | Description                   | Default | Required |
+| -------- | -------------- | ----------------------------- | ------- | -------- |
+| `name`   | `string`       | Filter name to use.           |         | yes      |
+| `values` | `list(string)` | Values to pass to the filter. |         | yes      |
 
 Refer to the [Filter API AWS EC2 documentation][filter api] for the list of supported filters and their descriptions.
 
@@ -103,32 +104,32 @@ Refer to the [Filter API AWS EC2 documentation][filter api] for the list of supp
 
 The following fields are exported and can be referenced by other components:
 
-Name | Type | Description
----- | ---- | -----------
-`targets` | `list(map(string))` | The set of discovered EC2 targets.
+| Name      | Type                | Description                        |
+| --------- | ------------------- | ---------------------------------- |
+| `targets` | `list(map(string))` | The set of discovered EC2 targets. |
 
 Each target includes the following labels:
 
-* `__meta_ec2_ami`: The EC2 Amazon Machine Image.
-* `__meta_ec2_architecture`: The architecture of the instance.
-* `__meta_ec2_availability_zone`: The availability zone in which the instance is running.
-* `__meta_ec2_availability_zone_id`: The availability zone ID in which the instance is running (requires `ec2:DescribeAvailabilityZones`).
-* `__meta_ec2_instance_id`: The EC2 instance ID.
-* `__meta_ec2_instance_lifecycle`: The lifecycle of the EC2 instance, set only for 'spot' or 'scheduled' instances, absent otherwise.
-* `__meta_ec2_instance_state`: The state of the EC2 instance.
-* `__meta_ec2_instance_type`: The type of the EC2 instance.
-* `__meta_ec2_ipv6_addresses`: Comma-separated list of IPv6 addresses assigned to the instance's network interfaces, if present.
-* `__meta_ec2_owner_id`: The ID of the AWS account that owns the EC2 instance.
-* `__meta_ec2_platform`: The Operating System platform, set to 'windows' on Windows servers, absent otherwise.
-* `__meta_ec2_primary_subnet_id`: The subnet ID of the primary network interface, if available.
-* `__meta_ec2_private_dns_name`: The private DNS name of the instance, if available.
-* `__meta_ec2_private_ip`: The private IP address of the instance, if present.
-* `__meta_ec2_public_dns_name`: The public DNS name of the instance, if available.
-* `__meta_ec2_public_ip`: The public IP address of the instance, if available.
-* `__meta_ec2_region`: The region of the instance.
-* `__meta_ec2_subnet_id`: Comma-separated list of subnets IDs in which the instance is running, if available.
-* `__meta_ec2_tag_<tagkey>`: Each tag value of the instance.
-* `__meta_ec2_vpc_id`: The ID of the VPC in which the instance is running, if available.
+- `__meta_ec2_ami`: The EC2 Amazon Machine Image.
+- `__meta_ec2_architecture`: The architecture of the instance.
+- `__meta_ec2_availability_zone`: The availability zone in which the instance is running.
+- `__meta_ec2_availability_zone_id`: The availability zone ID in which the instance is running (requires `ec2:DescribeAvailabilityZones`).
+- `__meta_ec2_instance_id`: The EC2 instance ID.
+- `__meta_ec2_instance_lifecycle`: The lifecycle of the EC2 instance, set only for 'spot' or 'scheduled' instances, absent otherwise.
+- `__meta_ec2_instance_state`: The state of the EC2 instance.
+- `__meta_ec2_instance_type`: The type of the EC2 instance.
+- `__meta_ec2_ipv6_addresses`: Comma-separated list of IPv6 addresses assigned to the instance's network interfaces, if present.
+- `__meta_ec2_owner_id`: The ID of the AWS account that owns the EC2 instance.
+- `__meta_ec2_platform`: The Operating System platform, set to 'windows' on Windows servers, absent otherwise.
+- `__meta_ec2_primary_subnet_id`: The subnet ID of the primary network interface, if available.
+- `__meta_ec2_private_dns_name`: The private DNS name of the instance, if available.
+- `__meta_ec2_private_ip`: The private IP address of the instance, if present.
+- `__meta_ec2_public_dns_name`: The public DNS name of the instance, if available.
+- `__meta_ec2_public_ip`: The public IP address of the instance, if available.
+- `__meta_ec2_region`: The region of the instance.
+- `__meta_ec2_subnet_id`: Comma-separated list of subnets IDs in which the instance is running, if available.
+- `__meta_ec2_tag_<tagkey>`: Each tag value of the instance.
+- `__meta_ec2_vpc_id`: The ID of the VPC in which the instance is running, if available.
 
 ## Component health
 
@@ -167,10 +168,12 @@ prometheus.remote_write "demo" {
   }
 }
 ```
+
 Replace the following:
-  - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
-  - `USERNAME`: The username to use for authentication to the remote_write API.
-  - `PASSWORD`: The password to use for authentication to the remote_write API.
+
+- `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
+- `USERNAME`: The username to use for authentication to the remote_write API.
+- `PASSWORD`: The password to use for authentication to the remote_write API.
 
 <!-- START GENERATED COMPATIBLE COMPONENTS -->
 
