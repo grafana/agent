@@ -1,9 +1,9 @@
 ---
 aliases:
-- /docs/grafana-cloud/agent/flow/reference/components/module.http/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/module.http/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/module.http/
-- /docs/grafana-cloud/send-data/agent/flow/reference/components/module.http/
+  - /docs/grafana-cloud/agent/flow/reference/components/module.http/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/module.http/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/module.http/
+  - /docs/grafana-cloud/send-data/agent/flow/reference/components/module.http/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/module.http/
 description: Learn about module.http
 labels:
@@ -48,14 +48,14 @@ module.http "LABEL" {
 
 The following arguments are supported:
 
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`url` | `string` | URL to poll. | | yes
-`method` | `string` | Define HTTP method for the request | `"GET"` | no
-`headers` | `map(string)` | Custom headers for the request. | `{}` | no
-`poll_frequency` | `duration` | Frequency to poll the URL. | `"1m"` | no
-`poll_timeout` | `duration` | Timeout when polling the URL. | `"10s"` | no
-`is_secret` | `bool` | Whether the response body should be treated as a secret. | false | no
+| Name             | Type          | Description                                              | Default | Required |
+| ---------------- | ------------- | -------------------------------------------------------- | ------- | -------- |
+| `url`            | `string`      | URL to poll.                                             |         | yes      |
+| `method`         | `string`      | Define HTTP method for the request                       | `"GET"` | no       |
+| `headers`        | `map(string)` | Custom headers for the request.                          | `{}`    | no       |
+| `poll_frequency` | `duration`    | Frequency to poll the URL.                               | `"1m"`  | no       |
+| `poll_timeout`   | `duration`    | Timeout when polling the URL.                            | `"10s"` | no       |
+| `is_secret`      | `bool`        | Whether the response body should be treated as a secret. | false   | no       |
 
 [secret]: {{< relref "../../concepts/config-language/expressions/types_and_values.md#secrets" >}}
 
@@ -63,9 +63,9 @@ Name | Type | Description | Default | Required
 
 The following blocks are supported inside the definition of `module.http`:
 
-Hierarchy        | Block      | Description | Required
----------------- | ---------- | ----------- | --------
-arguments | [arguments][] | Arguments to pass to the module. | no
+| Hierarchy | Block         | Description                      | Required |
+| --------- | ------------- | -------------------------------- | -------- |
+| arguments | [arguments][] | Arguments to pass to the module. | no       |
 
 [arguments]: #arguments-block
 
@@ -77,10 +77,10 @@ module.
 The attributes provided in the `arguments` block are validated based on the
 [argument blocks][] defined in the module source:
 
-* If a module source marks one of its arguments as required, it must be
+- If a module source marks one of its arguments as required, it must be
   provided as an attribute in the `arguments` block of the module loader.
 
-* Attributes in the `argument` block of the module loader are rejected if
+- Attributes in the `argument` block of the module loader are rejected if
   they are not defined in the module source.
 
 [argument blocks]: {{< relref "../config-blocks/argument.md" >}}
@@ -89,9 +89,9 @@ The attributes provided in the `arguments` block are validated based on the
 
 The following fields are exported and can be referenced by other components:
 
-Name | Type | Description
----- | ---- | -----------
-`exports` | `map(any)` | The exports of the Module loader.
+| Name      | Type       | Description                       |
+| --------- | ---------- | --------------------------------- |
+| `exports` | `map(any)` | The exports of the Module loader. |
 
 `exports` exposes the `export` config block inside a module. It can be accessed
 from the parent config via `module.http.LABEL.exports.EXPORT_LABEL`.
@@ -127,7 +127,6 @@ HTTP server, polling for changes once every minute.
 The module sets up a Redis exporter and exports the list of targets to the parent config to scrape
 and remote write.
 
-
 Parent:
 
 ```river
@@ -155,10 +154,12 @@ prometheus.remote_write "default" {
   }
 }
 ```
+
 Replace the following:
-  - `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
-  - `USERNAME`: The username to use for authentication to the remote_write API.
-  - `PASSWORD`: The password to use for authentication to the remote_write API.
+
+- `PROMETHEUS_REMOTE_WRITE_URL`: The URL of the Prometheus remote_write-compatible server to send metrics to.
+- `USERNAME`: The username to use for authentication to the remote_write API.
+- `PASSWORD`: The password to use for authentication to the remote_write API.
 
 Module:
 
@@ -172,6 +173,8 @@ export "redis_targets" {
   value = prometheus.exporter.redis.local_redis.targets
 }
 ```
+
 Replace the following:
-  - `REDIS_ADDR`: The address of your Redis instance.
-  - `REDIS_PASSWORD_FILE`: The path to a file containing the password for your Redis instance.
+
+- `REDIS_ADDR`: The address of your Redis instance.
+- `REDIS_PASSWORD_FILE`: The path to a file containing the password for your Redis instance.

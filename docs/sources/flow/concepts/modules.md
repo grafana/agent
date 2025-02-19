@@ -1,10 +1,10 @@
 ---
 aliases:
-- ../../concepts/modules/
-- /docs/grafana-cloud/agent/flow/concepts/modules/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/concepts/modules/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/concepts/modules/
-- /docs/grafana-cloud/send-data/agent/flow/concepts/modules/
+  - ../../concepts/modules/
+  - /docs/grafana-cloud/agent/flow/concepts/modules/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/concepts/modules/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/concepts/modules/
+  - /docs/grafana-cloud/send-data/agent/flow/concepts/modules/
 canonical: https://grafana.com/docs/agent/latest/flow/concepts/modules/
 description: Learn about modules
 title: Modules
@@ -26,10 +26,10 @@ Modules can be [imported](#importing-modules) to enable the reuse of [custom com
 A module can be _imported_, allowing the custom components defined by that module to be used by other modules, called the _importing module_.
 Modules can be imported from multiple locations using one of the `import` configuration blocks:
 
-* [import.file]: Imports a module from a file or a directory on disk.
-* [import.git]: Imports a module from a file located in a Git repository.
-* [import.http]: Imports a module from the response of an HTTP request.
-* [import.string]: Imports a module from a string.
+- [import.file]: Imports a module from a file or a directory on disk.
+- [import.git]: Imports a module from a file located in a Git repository.
+- [import.http]: Imports a module from the response of an HTTP request.
+- [import.string]: Imports a module from a string.
 
 [import.file]: {{< relref "../reference/config-blocks/import.file.md" >}}
 [import.git]: {{< relref "../reference/config-blocks/import.git.md" >}}
@@ -112,21 +112,21 @@ loki.write "default" {
 ```
 
 {{< collapse title="Classic modules" >}}
+
 # Classic modules (deprecated)
 
 {{< admonition type="caution" >}}
 Modules were redesigned in v0.40 to simplify concepts. This section outlines the design of the original modules prior to v0.40. Classic modules are scheduled to be removed in the release after v0.40.
 {{< /admonition >}}
 
-
 You use _Modules_ to create {{< param "PRODUCT_NAME" >}} configurations that you can load as a component.
 Modules are a great way to parameterize a configuration to create reusable pipelines.
 
 Modules are {{< param "PRODUCT_NAME" >}} configurations which have:
 
-* _Arguments_: Settings that configure a module.
-* _Exports_: Named values that a module exposes to the consumer of the module.
-* _Components_: {{< param "PRODUCT_NAME" >}} components to run when the module is running.
+- _Arguments_: Settings that configure a module.
+- _Exports_: Named values that a module exposes to the consumer of the module.
+- _Components_: {{< param "PRODUCT_NAME" >}} components to run when the module is running.
 
 You use a [Module loader][] to load Modules into {{< param "PRODUCT_NAME" >}}.
 
@@ -138,10 +138,10 @@ A _Module loader_ is a {{< param "PRODUCT_NAME" >}} component that retrieves a m
 
 Module loader components are responsible for the following functions:
 
-* Retrieving the module source.
-* Creating a [Component controller][] for the module.
-* Passing arguments to the loaded module.
-* Exposing exports from the loaded module.
+- Retrieving the module source.
+- Creating a [Component controller][] for the module.
+- Passing arguments to the loaded module.
+- Exposing exports from the loaded module.
 
 Module loaders are typically called `module.LOADER_NAME`.
 
@@ -155,9 +155,9 @@ Refer to [Components][] for more information about the module loader components.
 
 Modules are flexible, and you can retrieve their configuration anywhere, such as:
 
-* The local filesystem.
-* An S3 bucket.
-* An HTTP endpoint.
+- The local filesystem.
+- An S3 bucket.
+- An HTTP endpoint.
 
 Each module loader component supports different ways of retrieving `module.sources`.
 The most generic module loader component, `module.string`, can load modules from the export of another {{< param "PRODUCT_NAME" >}} component.
@@ -244,4 +244,5 @@ loki.write "default" {
 [export block]: https://grafana.com/docs/agent/<AGENT_VERSION>/flow/reference/config-blocks/export
 [Component controller]: https://grafana.com/docs/agent/<AGENT_VERSION>/flow/concepts/component_controller
 [Components]: https://grafana.com/docs/agent/<AGENT_VERSION>/flow/reference/components
+
 {{< /collapse >}}

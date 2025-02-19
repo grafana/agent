@@ -1,8 +1,8 @@
 ---
 aliases:
-- ../../../configuration/integrations/mysqld-exporter-config/
-- /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/integrations/mysqld-exporter-config/
-- /docs/grafana-cloud/send-data/agent/static/configuration/integrations/mysqld-exporter-config/
+  - ../../../configuration/integrations/mysqld-exporter-config/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/integrations/mysqld-exporter-config/
+  - /docs/grafana-cloud/send-data/agent/static/configuration/integrations/mysqld-exporter-config/
 canonical: https://grafana.com/docs/agent/latest/static/configuration/integrations/mysqld-exporter-config/
 description: Learn about mysqld_exporter_config
 title: mysqld_exporter_config
@@ -25,9 +25,9 @@ mysqld_exporter:
   enabled: true
   data_source_name: root@(server-a:3306)/
   relabel_configs:
-  - source_labels: [__address__]
-    target_label: instance
-    replacement: server-a
+    - source_labels: [__address__]
+      target_label: instance
+      replacement: server-a
 ```
 
 We strongly recommend that you configure a separate user for the Agent, and give it only the strictly mandatory
@@ -136,38 +136,38 @@ Full reference of options:
 
 The full list of collectors that are supported for `mysqld_exporter` is:
 
-| Name                                             | Description | Enabled by default |
-| ------------------------------------------------ | ----------- | ------------------ |
-| auto_increment.columns                           | Collect auto_increment columns and max values from information_schema | no |
-| binlog_size                                      | Collect the current size of all registered binlog files | no |
-| engine_innodb_status                             | Collect from SHOW ENGINE INNODB STATUS | no |
-| engine_tokudb_status                             | Collect from SHOW ENGINE TOKUDB STATUS | no |
-| global_status                                    | Collect from SHOW GLOBAL STATUS | yes |
-| global_variables                                 | Collect from SHOW GLOBAL VARIABLES | yes |
-| heartbeat                                        | Collect from heartbeat | no |
-| info_schema.clientstats                          | If running with userstat=1, enable to collect client statistics | no |
-| info_schema.innodb_cmpmem                        | Collect metrics from information_schema.innodb_cmpmem | yes |
-| info_schema.innodb_metrics                       | Collect metrics from information_schema.innodb_metrics | yes |
-| info_schema.innodb_tablespaces                   | Collect metrics from information_schema.innodb_sys_tablespaces | no |
-| info_schema.processlist                          | Collect current thread state counts from the information_schema.processlist | no |
-| info_schema.query_response_time                  | Collect query response time distribution if query_response_time_stats is ON | yes |
-| info_schema.replica_host                         | Collect metrics from information_schema.replica_host_status | no |
-| info_schema.schemastats                          | If running with userstat=1, enable to collect schema statistics | no |
-| info_schema.tables                               | Collect metrics from information_schema.tables | no |
-| info_schema.tablestats                           | If running with userstat=1, enable to collect table statistics | no |
-| info_schema.userstats                            | If running with userstat=1, enable to collect user statistics | no |
-| mysql.user                                       | Collect data from mysql.user | no |
-| perf_schema.eventsstatements                     | Collect metrics from performance_schema.events_statements_summary_by_digest | no |
-| perf_schema.eventsstatementssum                  | Collect metrics of grand sums from performance_schema.events_statements_summary_by_digest | no |
-| perf_schema.eventswaits                          | Collect metrics from performance_schema.events_waits_summary_global_by_event_name | no |
-| perf_schema.file_events                          | Collect metrics from performance_schema.file_summary_by_event_name | no |
-| perf_schema.file_instances                       | Collect metrics from performance_schema.file_summary_by_instance | no |
-| perf_schema.indexiowaits                         | Collect metrics from performance_schema.table_io_waits_summary_by_index_usage | no |
-| perf_schema.memory_events                        | Collect metrics from performance_schema.memory_summary_global_by_event_name |no |
-| perf_schema.replication_applier_status_by_worker | Collect metrics from performance_schema.replication_applier_status_by_worker | no |
-| perf_schema.replication_group_member_stats       | Collect metrics from performance_schema.replication_group_member_stats | no |
-| perf_schema.replication_group_members            | Collect metrics from performance_schema.replication_group_members | no |
-| perf_schema.tableiowaits                         | Collect metrics from performance_schema.table_io_waits_summary_by_table | no |
-| perf_schema.tablelocks                           | Collect metrics from performance_schema.table_lock_waits_summary_by_table | no |
-| slave_hosts                                      | Scrape information from 'SHOW SLAVE HOSTS' | no |
-| slave_status                                     | Scrape information from SHOW SLAVE STATUS | yes |
+| Name                                             | Description                                                                               | Enabled by default |
+| ------------------------------------------------ | ----------------------------------------------------------------------------------------- | ------------------ |
+| auto_increment.columns                           | Collect auto_increment columns and max values from information_schema                     | no                 |
+| binlog_size                                      | Collect the current size of all registered binlog files                                   | no                 |
+| engine_innodb_status                             | Collect from SHOW ENGINE INNODB STATUS                                                    | no                 |
+| engine_tokudb_status                             | Collect from SHOW ENGINE TOKUDB STATUS                                                    | no                 |
+| global_status                                    | Collect from SHOW GLOBAL STATUS                                                           | yes                |
+| global_variables                                 | Collect from SHOW GLOBAL VARIABLES                                                        | yes                |
+| heartbeat                                        | Collect from heartbeat                                                                    | no                 |
+| info_schema.clientstats                          | If running with userstat=1, enable to collect client statistics                           | no                 |
+| info_schema.innodb_cmpmem                        | Collect metrics from information_schema.innodb_cmpmem                                     | yes                |
+| info_schema.innodb_metrics                       | Collect metrics from information_schema.innodb_metrics                                    | yes                |
+| info_schema.innodb_tablespaces                   | Collect metrics from information_schema.innodb_sys_tablespaces                            | no                 |
+| info_schema.processlist                          | Collect current thread state counts from the information_schema.processlist               | no                 |
+| info_schema.query_response_time                  | Collect query response time distribution if query_response_time_stats is ON               | yes                |
+| info_schema.replica_host                         | Collect metrics from information_schema.replica_host_status                               | no                 |
+| info_schema.schemastats                          | If running with userstat=1, enable to collect schema statistics                           | no                 |
+| info_schema.tables                               | Collect metrics from information_schema.tables                                            | no                 |
+| info_schema.tablestats                           | If running with userstat=1, enable to collect table statistics                            | no                 |
+| info_schema.userstats                            | If running with userstat=1, enable to collect user statistics                             | no                 |
+| mysql.user                                       | Collect data from mysql.user                                                              | no                 |
+| perf_schema.eventsstatements                     | Collect metrics from performance_schema.events_statements_summary_by_digest               | no                 |
+| perf_schema.eventsstatementssum                  | Collect metrics of grand sums from performance_schema.events_statements_summary_by_digest | no                 |
+| perf_schema.eventswaits                          | Collect metrics from performance_schema.events_waits_summary_global_by_event_name         | no                 |
+| perf_schema.file_events                          | Collect metrics from performance_schema.file_summary_by_event_name                        | no                 |
+| perf_schema.file_instances                       | Collect metrics from performance_schema.file_summary_by_instance                          | no                 |
+| perf_schema.indexiowaits                         | Collect metrics from performance_schema.table_io_waits_summary_by_index_usage             | no                 |
+| perf_schema.memory_events                        | Collect metrics from performance_schema.memory_summary_global_by_event_name               | no                 |
+| perf_schema.replication_applier_status_by_worker | Collect metrics from performance_schema.replication_applier_status_by_worker              | no                 |
+| perf_schema.replication_group_member_stats       | Collect metrics from performance_schema.replication_group_member_stats                    | no                 |
+| perf_schema.replication_group_members            | Collect metrics from performance_schema.replication_group_members                         | no                 |
+| perf_schema.tableiowaits                         | Collect metrics from performance_schema.table_io_waits_summary_by_table                   | no                 |
+| perf_schema.tablelocks                           | Collect metrics from performance_schema.table_lock_waits_summary_by_table                 | no                 |
+| slave_hosts                                      | Scrape information from 'SHOW SLAVE HOSTS'                                                | no                 |
+| slave_status                                     | Scrape information from SHOW SLAVE STATUS                                                 | yes                |

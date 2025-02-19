@@ -79,4 +79,3 @@ math.add "default" {
 ```
 
 {{< /collapse >}}
-

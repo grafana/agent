@@ -1,8 +1,8 @@
 ---
 aliases:
-- ../../../configuration/integrations/redis-exporter-config/
-- /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/integrations/redis-exporter-config/
-- /docs/grafana-cloud/send-data/agent/static/configuration/integrations/redis-exporter-config/
+  - ../../../configuration/integrations/redis-exporter-config/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/integrations/redis-exporter-config/
+  - /docs/grafana-cloud/send-data/agent/static/configuration/integrations/redis-exporter-config/
 canonical: https://grafana.com/docs/agent/latest/static/configuration/integrations/redis-exporter-config/
 description: Learn about redis_exporter_config
 title: redis_exporter_config
@@ -19,15 +19,16 @@ redis_exporter:
   enabled: true
   redis_addr: "redis-2:6379"
   relabel_configs:
-  - source_labels: [__address__]
-    target_label: instance
-    replacement: redis-2
+    - source_labels: [__address__]
+      target_label: instance
+      replacement: redis-2
 ```
 
 We strongly recommend that you configure a separate user for the Agent, and give it only the strictly mandatory
 security privileges necessary for monitoring your node, as per the [official documentation](https://github.com/oliver006/redis_exporter#authenticating-with-redis).
 
 Full reference of options:
+
 ```yaml
   # Enables the redis_exporter integration, allowing the Agent to automatically
   # collect system metrics from the configured redis address

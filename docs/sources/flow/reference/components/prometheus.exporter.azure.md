@@ -1,9 +1,9 @@
 ---
 aliases:
-- /docs/grafana-cloud/agent/flow/reference/components/prometheus.exporter.azure/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/prometheus.exporter.azure/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/prometheus.exporter.azure/
-- /docs/grafana-cloud/send-data/agent/flow/reference/components/prometheus.exporter.azure/
+  - /docs/grafana-cloud/agent/flow/reference/components/prometheus.exporter.azure/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/prometheus.exporter.azure/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/prometheus.exporter.azure/
+  - /docs/grafana-cloud/send-data/agent/flow/reference/components/prometheus.exporter.azure/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.azure/
 description: Learn about prometheus.exporter.azure
 title: prometheus.exporter.azure
@@ -11,7 +11,7 @@ title: prometheus.exporter.azure
 
 # prometheus.exporter.azure
 
-The `prometheus.exporter.azure` component embeds [`azure-metrics-exporter`](https://github.com/webdevops/azure-metrics-exporter) to collect metrics from [Azure Monitor](https://azure.microsoft.com/en-us/products/monitor).  
+The `prometheus.exporter.azure` component embeds [`azure-metrics-exporter`](https://github.com/webdevops/azure-metrics-exporter) to collect metrics from [Azure Monitor](https://azure.microsoft.com/en-us/products/monitor).
 
 The exporter supports all metrics defined by Azure Monitor. You can find the complete list of available metrics in the [Azure Monitor documentation](https://learn.microsoft.com/en-us/azure/azure-monitor/essentials/metrics-supported).
 Metrics for this integration are exposed with the template `azure_{type}_{metric}_{aggregation}_{unit}` by default. As an example,
@@ -62,22 +62,22 @@ prometheus.exporter.azure LABEL {
 You can use the following arguments to configure the exporter's behavior.
 Omitted fields take their default values.
 
-| Name                          | Type           | Description                                                                                                                                                            | Default                                                                       | Required |
-|-------------------------------|----------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------|----------|
-| `subscriptions`               | `list(string)` | List of subscriptions to scrape metrics from.                                                                                                                           |                                                                               | yes      |
-| `resource_type`               | `string`       | The Azure Resource Type to scrape metrics for.                                                                                                                         |                                                                               | yes      |
-| `metrics`                     | `list(string)` | The metrics to scrape from resources.                                                                                                                                  |                                                                               | yes      |
+| Name                          | Type           | Description                                                                                                                                                           | Default                                                                       | Required |
+| ----------------------------- | -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- | -------- |
+| `subscriptions`               | `list(string)` | List of subscriptions to scrape metrics from.                                                                                                                         |                                                                               | yes      |
+| `resource_type`               | `string`       | The Azure Resource Type to scrape metrics for.                                                                                                                        |                                                                               | yes      |
+| `metrics`                     | `list(string)` | The metrics to scrape from resources.                                                                                                                                 |                                                                               | yes      |
 | `resource_graph_query_filter` | `string`       | The [Kusto query][] filter to apply when searching for resources. Can't be used if `regions` is set.                                                                  |                                                                               | no       |
 | `regions`                     | `list(string)` | The list of regions for gathering metrics and enables gathering metrics for all resources in the subscription. Can't be used if `resource_graph_query_filter` is set. |                                                                               | no       |
-| `metric_aggregations`         | `list(string)` | Aggregations to apply for the metrics produced.                                                                                                                        |                                                                               | no       |
-| `timespan`                    | `string`       | [ISO8601 Duration][] over which the metrics are being queried.                                                                                                         | `"PT1M"` (1 minute)                                                           | no       |
-| `included_dimensions`         | `list(string)` | List of dimensions to include on the final metrics.                                                                                                                    |                                                                               | no       |
-| `included_resource_tags`      | `list(string)` | List of resource tags to include on the final metrics.                                                                                                                 | `["owner"]`                                                                   | no       |
-| `metric_namespace`            | `string`       | Namespace for `resource_type` which have multiple levels of metrics.                                                                                                   |                                                                               | no       |
-| `azure_cloud_environment`     | `string`       | Name of the cloud environment to connect to.                                                                                                                           | `"azurecloud"`                                                                | no       |
-| `metric_name_template`        | `string`       | Metric template used to expose the metrics.                                                                                                                            | `"azure_{type}_{metric}_{aggregation}_{unit}"`                                | no       |
-| `metric_help_template`        | `string`       | Description of the metric.                                                                                                                                             | `"Azure metric {metric} for {type} with aggregation {aggregation} as {unit}"` | no       |
-| `validate_dimensions`         | `bool`         | Enable dimension validation in the azure sdk                                                                                                                           | `false`                                                                       | no       |
+| `metric_aggregations`         | `list(string)` | Aggregations to apply for the metrics produced.                                                                                                                       |                                                                               | no       |
+| `timespan`                    | `string`       | [ISO8601 Duration][] over which the metrics are being queried.                                                                                                        | `"PT1M"` (1 minute)                                                           | no       |
+| `included_dimensions`         | `list(string)` | List of dimensions to include on the final metrics.                                                                                                                   |                                                                               | no       |
+| `included_resource_tags`      | `list(string)` | List of resource tags to include on the final metrics.                                                                                                                | `["owner"]`                                                                   | no       |
+| `metric_namespace`            | `string`       | Namespace for `resource_type` which have multiple levels of metrics.                                                                                                  |                                                                               | no       |
+| `azure_cloud_environment`     | `string`       | Name of the cloud environment to connect to.                                                                                                                          | `"azurecloud"`                                                                | no       |
+| `metric_name_template`        | `string`       | Metric template used to expose the metrics.                                                                                                                           | `"azure_{type}_{metric}_{aggregation}_{unit}"`                                | no       |
+| `metric_help_template`        | `string`       | Description of the metric.                                                                                                                                            | `"Azure metric {metric} for {type} with aggregation {aggregation} as {unit}"` | no       |
+| `validate_dimensions`         | `bool`         | Enable dimension validation in the azure sdk                                                                                                                          | `false`                                                                       | no       |
 
 The list of available `resource_type` values and their corresponding `metrics` can be found in [Azure Monitor essentials][].
 
@@ -93,7 +93,7 @@ Tags in `included_resource_tags` will be added as labels with the name `tag_<tag
 
 Valid values for `azure_cloud_environment` are `azurecloud`, `azurechinacloud`, `azuregovernmentcloud` and `azurepprivatecloud`.
 
-`validate_dimensions` is disabled by default to reduce the number of Azure exporter instances requires when a `resource_type` has metrics with varying dimensions. When `validate_dimensions` is enabled you will need one exporter instance per metric + dimension combination which is more tedious to maintain.  
+`validate_dimensions` is disabled by default to reduce the number of Azure exporter instances requires when a `resource_type` has metrics with varying dimensions. When `validate_dimensions` is enabled you will need one exporter instance per metric + dimension combination which is more tedious to maintain.
 
 [Kusto query]: https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/
 [Azure Monitor essentials]: https://learn.microsoft.com/en-us/azure/azure-monitor/essentials/metrics-supported

@@ -1,10 +1,10 @@
 ---
 aliases:
-- ./chaining/
-- /docs/grafana-cloud/agent/flow/tutorials/chaining/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/tutorials/chaining/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/tutorials/chaining/
-- /docs/grafana-cloud/send-data/agent/flow/tutorials/chaining/
+  - ./chaining/
+  - /docs/grafana-cloud/agent/flow/tutorials/chaining/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/tutorials/chaining/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/tutorials/chaining/
+  - /docs/grafana-cloud/send-data/agent/flow/tutorials/chaining/
 canonical: https://grafana.com/docs/agent/latest/flow/tutorials/chaining/
 description: Learn how to chain Prometheus components
 menuTitle: Chain Prometheus components
@@ -26,7 +26,7 @@ A new concept introduced in Flow is chaining components together in a composable
 
 ## Prerequisites
 
-* [Docker](https://www.docker.com/products/docker-desktop)
+- [Docker](https://www.docker.com/products/docker-desktop)
 
 ## Run the example
 
@@ -91,4 +91,3 @@ In `multiple-input.river` add a new `prometheus.relabel` component that adds a `
 [multiple-inputs.river]: https://grafana.com/docs/agent/<AGENT_VERSION>/flow/tutorials/assets/flow_configs/multiple-inputs.river
 [Grafana]: http://localhost:3000/explore?orgId=1&left=%5B%22now-1h%22,%22now%22,%22Mimir%22,%7B%22refId%22:%22A%22,%22instant%22:true,%22range%22:true,%22exemplar%22:true,%22expr%22:%22agent_build_info%7B%7D%22%7D%5D
 [node_exporter]: http://localhost:3000/explore?orgId=1&left=%5B%22now-1h%22,%22now%22,%22Mimir%22,%7B%22refId%22:%22A%22,%22instant%22:true,%22range%22:true,%22exemplar%22:true,%22expr%22:%22node_cpu_seconds_total%22%7D%5D
-

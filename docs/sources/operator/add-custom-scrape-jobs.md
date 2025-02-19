@@ -1,9 +1,9 @@
 ---
 aliases:
-- /docs/grafana-cloud/agent/operator/add-custom-scrape-jobs/
-- /docs/grafana-cloud/monitor-infrastructure/agent/operator/add-custom-scrape-jobs/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/operator/add-custom-scrape-jobs/
-- /docs/grafana-cloud/send-data/agent/operator/add-custom-scrape-jobs/
+  - /docs/grafana-cloud/agent/operator/add-custom-scrape-jobs/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/operator/add-custom-scrape-jobs/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/operator/add-custom-scrape-jobs/
+  - /docs/grafana-cloud/send-data/agent/operator/add-custom-scrape-jobs/
 canonical: https://grafana.com/docs/agent/latest/operator/add-custom-scrape-jobs/
 description: Learn how to add custom scrape jobs
 title: Add custom scrape jobs
@@ -98,12 +98,12 @@ Note that you **should** always add these two relabel_configs for each custom jo
 - action: hashmod
   modulus: $(SHARDS)
   source_labels:
-  - __address__
+    - __address__
   target_label: __tmp_hash
 - action: keep
   regex: $(SHARD)
   source_labels:
-  - __tmp_hash
+    - __tmp_hash
 ```
 
 These rules ensure if your GrafanaAgent has multiple metrics shards, only one

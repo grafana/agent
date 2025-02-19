@@ -1,9 +1,9 @@
 ---
 aliases:
-- /docs/grafana-cloud/agent/flow/get-started/install/ansible/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/get-started/install/ansible/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/get-started/install/ansible/
-- /docs/grafana-cloud/send-data/agent/flow/get-started/install/ansible/
+  - /docs/grafana-cloud/agent/flow/get-started/install/ansible/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/get-started/install/ansible/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/get-started/install/ansible/
+  - /docs/grafana-cloud/send-data/agent/flow/get-started/install/ansible/
 canonical: https://grafana.com/docs/agent/latest/flow/get-started/install/ansible/
 description: Learn how to install Grafana Agent Flow with Ansible
 menuTitle: Ansible
@@ -32,23 +32,23 @@ To add {{% param "PRODUCT_NAME" %}} to a host:
 
 1. Create a file named `grafana-agent.yml` and add the following:
 
-    ```yaml
-    - name: Install Grafana Agent Flow
-      hosts: all
-      become: true
-      tasks:
-        - name: Install Grafana Agent Flow
-          ansible.builtin.include_role:
-            name: grafana.grafana.grafana_agent
-          vars:
-            grafana_agent_mode: flow
-            # Destination file name
-            grafana_agent_config_filename: config.river
-            # Local file to copy
-            grafana_agent_provisioned_config_file:  "<path-to-config-file-on-localhost>"
-            grafana_agent_flags_extra:
-              server.http.listen-addr: '0.0.0.0:12345'
-    ```
+   ```yaml
+   - name: Install Grafana Agent Flow
+     hosts: all
+     become: true
+     tasks:
+       - name: Install Grafana Agent Flow
+         ansible.builtin.include_role:
+           name: grafana.grafana.grafana_agent
+         vars:
+           grafana_agent_mode: flow
+           # Destination file name
+           grafana_agent_config_filename: config.river
+           # Local file to copy
+           grafana_agent_provisioned_config_file: "<path-to-config-file-on-localhost>"
+           grafana_agent_flags_extra:
+             server.http.listen-addr: "0.0.0.0:12345"
+   ```
 
    Replace the following:
 
@@ -85,4 +85,3 @@ Main PID: 3176 (agent-linux-amd)
 ## Next steps
 
 - [Configure {{< param "PRODUCT_NAME" >}}](ref:configure)
-

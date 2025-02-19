@@ -1,9 +1,9 @@
 ---
 aliases:
-- /docs/grafana-cloud/agent/flow/reference/config-blocks/remotecfg/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/config-blocks/remotecfg/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/config-blocks/remotecfg/
-- /docs/grafana-cloud/send-data/agent/flow/reference/config-blocks/remotecfg/
+  - /docs/grafana-cloud/agent/flow/reference/config-blocks/remotecfg/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/config-blocks/remotecfg/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/config-blocks/remotecfg/
+  - /docs/grafana-cloud/send-data/agent/flow/reference/config-blocks/remotecfg/
 canonical: remotecfgs://grafana.com/docs/agent/latest/flow/reference/config-blocks/remotecfg/
 description: Learn about the remotecfg configuration block
 menuTitle: remotecfg
@@ -41,12 +41,12 @@ remotecfg {
 
 The following arguments are supported:
 
-Name             | Type                 | Description                                       | Default     | Required
------------------|----------------------|---------------------------------------------------|-------------|---------
-`url`            | `string`             | The address of the API to poll for configuration. | `""`        | no
-`id`             | `string`             | A self-reported ID.                               | `see below` | no
-`metadata`       | `map(string)`        | A set of self-reported metadata.                  | `{}`        | no
-`poll_frequency` | `duration`           | How often to poll the API for new configuration.  | `"1m"`      | no
+| Name             | Type          | Description                                       | Default     | Required |
+| ---------------- | ------------- | ------------------------------------------------- | ----------- | -------- |
+| `url`            | `string`      | The address of the API to poll for configuration. | `""`        | no       |
+| `id`             | `string`      | A self-reported ID.                               | `see below` | no       |
+| `metadata`       | `map(string)` | A set of self-reported metadata.                  | `{}`        | no       |
+| `poll_frequency` | `duration`    | How often to poll the API for new configuration.  | `"1m"`      | no       |
 
 If the `url` is not set, then the service block is a no-op.
 
@@ -61,13 +61,13 @@ remote endpoint so that the API can decide what configuration to serve.
 
 The following blocks are supported inside the definition of `remotecfg`:
 
-Hierarchy           | Block             | Description                                              | Required
---------------------|-------------------|----------------------------------------------------------|---------
-basic_auth          | [basic_auth][]    | Configure basic_auth for authenticating to the endpoint. | no
-authorization       | [authorization][] | Configure generic authorization to the endpoint.         | no
-oauth2              | [oauth2][]        | Configure OAuth2 for authenticating to the endpoint.     | no
-oauth2 > tls_config | [tls_config][]    | Configure TLS settings for connecting to the endpoint.   | no
-tls_config          | [tls_config][]    | Configure TLS settings for connecting to the endpoint.   | no
+| Hierarchy           | Block             | Description                                              | Required |
+| ------------------- | ----------------- | -------------------------------------------------------- | -------- |
+| basic_auth          | [basic_auth][]    | Configure basic_auth for authenticating to the endpoint. | no       |
+| authorization       | [authorization][] | Configure generic authorization to the endpoint.         | no       |
+| oauth2              | [oauth2][]        | Configure OAuth2 for authenticating to the endpoint.     | no       |
+| oauth2 > tls_config | [tls_config][]    | Configure TLS settings for connecting to the endpoint.   | no       |
+| tls_config          | [tls_config][]    | Configure TLS settings for connecting to the endpoint.   | no       |
 
 The `>` symbol indicates deeper levels of nesting.
 For example, `oauth2 > tls_config` refers to a `tls_config` block defined inside an `oauth2` block.

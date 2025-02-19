@@ -1,9 +1,9 @@
 ---
 aliases:
-- /docs/grafana-cloud/agent/flow/tutorials/flow-by-example/first-components-and-stdlib/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/tutorials/flow-by-example/first-components-and-stdlib/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/tutorials/flow-by-example/first-components-and-stdlib/
-- /docs/grafana-cloud/send-data/agent/flow/tutorials/first-components-and-stdlib/
+  - /docs/grafana-cloud/agent/flow/tutorials/flow-by-example/first-components-and-stdlib/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/tutorials/flow-by-example/first-components-and-stdlib/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/tutorials/flow-by-example/first-components-and-stdlib/
+  - /docs/grafana-cloud/send-data/agent/flow/tutorials/first-components-and-stdlib/
 canonical: https://grafana.com/docs/agent/latest/flow/tutorials/flow-by-example/first-components-and-stdlib/
 description: Learn about the basics of River and the configuration language
 title: First components and introducing the standard library
@@ -27,39 +27,41 @@ This tutorial covers the basics of the River language and the standard library. 
 
 [River](https://github.com/grafana/river) is an HCL-inspired configuration language used to configure {{< param "PRODUCT_NAME" >}}. A River file is comprised of three things:
 
-1. **Attributes**
+1.  **Attributes**
 
-   `key = value` pairs used to configure individual settings.
+    `key = value` pairs used to configure individual settings.
 
     ```river
     url = "http://localhost:9090"
     ```
 
-1. **Expressions**
+1.  **Expressions**
 
-   Expressions are used to compute values. They can be constant values (for example, `"localhost:9090"`), or they can be more complex (for example, referencing a component's export: `prometheus.exporter.unix.targets`. They can also be a mathematical expression: `(1 + 2) * 3`, or a standard library function call: `env("HOME")`). We will use more expressions as we go along the examples. If you are curious, you can find a list of available standard library functions in the [Standard library documentation][].
+    Expressions are used to compute values. They can be constant values (for example, `"localhost:9090"`), or they can be more complex (for example, referencing a component's export: `prometheus.exporter.unix.targets`. They can also be a mathematical expression: `(1 + 2) * 3`, or a standard library function call: `env("HOME")`). We will use more expressions as we go along the examples. If you are curious, you can find a list of available standard library functions in the [Standard library documentation][].
 
-1. **Blocks**
+1.  **Blocks**
 
-   Blocks are used to configure components with groups of attributes or nested blocks. The following example block can be used to configure the logging output of {{< param "PRODUCT_NAME" >}}:
+    Blocks are used to configure components with groups of attributes or nested blocks. The following example block can be used to configure the logging output of {{< param "PRODUCT_NAME" >}}:
 
-    ```river
-    logging {
-        level  = "debug"
-        format = "json"
-    }
-    ```
+        ```river
+        logging {
+            level  = "debug"
+            format = "json"
+        }
+        ```
 
-    {{< admonition type="note" >}}
-The default log level is `info` and the default log format is `logfmt`.
+        {{< admonition type="note" >}}
+
+    The default log level is `info` and the default log format is `logfmt`.
     {{< /admonition >}}
 
-    Try pasting this into `config.river` and running `/path/to/agent run config.river` to see what happens.
+        Try pasting this into `config.river` and running `/path/to/agent run config.river` to see what happens.
 
-    Congratulations, you've just written your first River file! You've also just written your first {{< param "PRODUCT_NAME" >}} configuration file. This configuration won't do anything, so let's add some components to it.
+        Congratulations, you've just written your first River file! You've also just written your first {{< param "PRODUCT_NAME" >}} configuration file. This configuration won't do anything, so let's add some components to it.
 
-    {{< admonition type="note" >}}
-Comments in River are prefixed with `//` and are single-line only. For example: `// This is a comment`.
+        {{< admonition type="note" >}}
+
+    Comments in River are prefixed with `//` and are single-line only. For example: `// This is a comment`.
     {{< /admonition >}}
 
 ## Components

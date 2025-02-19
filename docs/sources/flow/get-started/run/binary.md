@@ -1,9 +1,9 @@
 ---
 aliases:
-   - /docs/grafana-cloud/agent/flow/get-started/run/binary/
-   - /docs/grafana-cloud/monitor-infrastructure/agent/flow/get-started/run/binary/
-   - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/get-started/run/binary/
-   - /docs/grafana-cloud/send-data/agent/flow/get-started/run/binary/
+  - /docs/grafana-cloud/agent/flow/get-started/run/binary/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/get-started/run/binary/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/get-started/run/binary/
+  - /docs/grafana-cloud/send-data/agent/flow/get-started/run/binary/
 canonical: https://grafana.com/docs/agent/latest/flow/get-started/run/binary/
 description: Learn how to run Grafana Agent Flow as a standalone binary
 menuTitle: Standalone
@@ -36,8 +36,8 @@ AGENT_MODE=flow <BINARY_PATH> run <CONFIG_PATH>
 
 Replace the following:
 
-* _`<BINARY_PATH>`_: The path to the {{< param "PRODUCT_NAME" >}} binary file.
-* _`<CONFIG_PATH>`_: The path to the {{< param "PRODUCT_NAME" >}} configuration file.
+- _`<BINARY_PATH>`_: The path to the {{< param "PRODUCT_NAME" >}} binary file.
+- _`<CONFIG_PATH>`_: The path to the {{< param "PRODUCT_NAME" >}} configuration file.
 
 ## Start {{% param "PRODUCT_NAME" %}} on Windows
 
@@ -50,8 +50,8 @@ set AGENT_MODE=flow
 
 Replace the following:
 
-* _`<BINARY_PATH>`_: The path to the {{< param "PRODUCT_NAME" >}} binary file.
-* _`<CONFIG_PATH>`_: The path to the {{< param "PRODUCT_NAME" >}} configuration file.
+- _`<BINARY_PATH>`_: The path to the {{< param "PRODUCT_NAME" >}} binary file.
+- _`<CONFIG_PATH>`_: The path to the {{< param "PRODUCT_NAME" >}} configuration file.
 
 ## Set up {{% param "PRODUCT_NAME" %}} as a Linux systemd service
 
@@ -93,8 +93,8 @@ These steps assume you have a default systemd and {{< param "PRODUCT_NAME" >}} c
 
    Replace the following:
 
-    * _`<BINARY_PATH>`_: The path to the {{< param "PRODUCT_NAME" >}} binary file.
-    * _`<WORKING_DIRECTORY>`_: The path to a working directory, for example `/var/lib/grafana-agent-flow`.
+   - _`<BINARY_PATH>`_: The path to the {{< param "PRODUCT_NAME" >}} binary file.
+   - _`<WORKING_DIRECTORY>`_: The path to a working directory, for example `/var/lib/grafana-agent-flow`.
 
 1. Create an environment file in `/etc/default/` called `grafana-agent-flow` with the following contents:
 
@@ -119,7 +119,7 @@ These steps assume you have a default systemd and {{< param "PRODUCT_NAME" >}} c
 
    Replace the following:
 
-    * _`<CONFIG_PATH>`_: The path to the {{< param "PRODUCT_NAME" >}} configuration file.
+   - _`<CONFIG_PATH>`_: The path to the {{< param "PRODUCT_NAME" >}} configuration file.
 
 1. To reload the service files, run the following command in a terminal window:
 
@@ -128,4 +128,3 @@ These steps assume you have a default systemd and {{< param "PRODUCT_NAME" >}} c
    ```
 
 1. Use the [Linux](ref:startlinux) systemd commands to manage your standalone Linux installation of {{< param "PRODUCT_NAME" >}}.
-

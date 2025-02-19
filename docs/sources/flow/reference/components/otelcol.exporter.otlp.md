@@ -1,9 +1,9 @@
 ---
 aliases:
-- /docs/grafana-cloud/agent/flow/reference/components/otelcol.exporter.otlp/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/otelcol.exporter.otlp/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/otelcol.exporter.otlp/
-- /docs/grafana-cloud/send-data/agent/flow/reference/components/otelcol.exporter.otlp/
+  - /docs/grafana-cloud/agent/flow/reference/components/otelcol.exporter.otlp/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/otelcol.exporter.otlp/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/otelcol.exporter.otlp/
+  - /docs/grafana-cloud/send-data/agent/flow/reference/components/otelcol.exporter.otlp/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.exporter.otlp/
 description: Learn about otelcol.exporter.otlp
 title: otelcol.exporter.otlp
@@ -35,23 +35,23 @@ otelcol.exporter.otlp "LABEL" {
 
 `otelcol.exporter.otlp` supports the following arguments:
 
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`timeout` | `duration` | Time to wait before marking a request as failed. | `"5s"` | no
+| Name      | Type       | Description                                      | Default | Required |
+| --------- | ---------- | ------------------------------------------------ | ------- | -------- |
+| `timeout` | `duration` | Time to wait before marking a request as failed. | `"5s"`  | no       |
 
 ## Blocks
 
 The following blocks are supported inside the definition of
 `otelcol.exporter.otlp`:
 
-Hierarchy | Block | Description | Required
---------- | ----- | ----------- | --------
-client | [client][] | Configures the gRPC server to send telemetry data to. | yes
-client > tls | [tls][] | Configures TLS for the gRPC client. | no
-client > keepalive | [keepalive][] | Configures keepalive settings for the gRPC client. | no
-sending_queue | [sending_queue][] | Configures batching of data before sending. | no
-retry_on_failure | [retry_on_failure][] | Configures retry mechanism for failed requests. | no
-debug_metrics | [debug_metrics][] | Configures the metrics that this component generates to monitor its state. | no
+| Hierarchy          | Block                | Description                                                                | Required |
+| ------------------ | -------------------- | -------------------------------------------------------------------------- | -------- |
+| client             | [client][]           | Configures the gRPC server to send telemetry data to.                      | yes      |
+| client > tls       | [tls][]              | Configures TLS for the gRPC client.                                        | no       |
+| client > keepalive | [keepalive][]        | Configures keepalive settings for the gRPC client.                         | no       |
+| sending_queue      | [sending_queue][]    | Configures batching of data before sending.                                | no       |
+| retry_on_failure   | [retry_on_failure][] | Configures retry mechanism for failed requests.                            | no       |
+| debug_metrics      | [debug_metrics][]    | Configures the metrics that this component generates to monitor its state. | no       |
 
 The `>` symbol indicates deeper levels of nesting. For example, `client > tls`
 refers to a `tls` block defined inside a `client` block.
@@ -69,17 +69,17 @@ The `client` block configures the gRPC client used by the component.
 
 The following arguments are supported:
 
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`endpoint` | `string` | `host:port` to send telemetry data to. | | yes
-`compression` | `string` | Compression mechanism to use for requests. | `"gzip"` | no
-`read_buffer_size` | `string` | Size of the read buffer the gRPC client to use for reading server responses. | | no
-`write_buffer_size` | `string` | Size of the write buffer the gRPC client to use for writing requests. | `"512KiB"` | no
-`wait_for_ready` | `boolean` | Waits for gRPC connection to be in the `READY` state before sending data. | `false` | no
-`headers` | `map(string)` | Additional headers to send with the request. | `{}` | no
-`balancer_name` | `string` | Which gRPC client-side load balancer to use for requests. | `pick_first` | no
-`authority` | `string` | Overrides the default `:authority` header in gRPC requests from the gRPC client. | | no
-`auth` | `capsule(otelcol.Handler)` | Handler from an `otelcol.auth` component to use for authenticating requests. | | no
+| Name                | Type                       | Description                                                                      | Default      | Required |
+| ------------------- | -------------------------- | -------------------------------------------------------------------------------- | ------------ | -------- |
+| `endpoint`          | `string`                   | `host:port` to send telemetry data to.                                           |              | yes      |
+| `compression`       | `string`                   | Compression mechanism to use for requests.                                       | `"gzip"`     | no       |
+| `read_buffer_size`  | `string`                   | Size of the read buffer the gRPC client to use for reading server responses.     |              | no       |
+| `write_buffer_size` | `string`                   | Size of the write buffer the gRPC client to use for writing requests.            | `"512KiB"`   | no       |
+| `wait_for_ready`    | `boolean`                  | Waits for gRPC connection to be in the `READY` state before sending data.        | `false`      | no       |
+| `headers`           | `map(string)`              | Additional headers to send with the request.                                     | `{}`         | no       |
+| `balancer_name`     | `string`                   | Which gRPC client-side load balancer to use for requests.                        | `pick_first` | no       |
+| `authority`         | `string`                   | Overrides the default `:authority` header in gRPC requests from the gRPC client. |              | no       |
+| `auth`              | `capsule(otelcol.Handler)` | Handler from an `otelcol.auth` component to use for authenticating requests.     |              | no       |
 
 {{< docs/shared lookup="flow/reference/components/otelcol-compression-field.md" source="agent" version="<AGENT_VERSION>" >}}
 
@@ -89,8 +89,8 @@ Name | Type | Description | Default | Required
 
 An HTTP proxy can be configured through the following environment variables:
 
-* `HTTPS_PROXY`
-* `NO_PROXY`
+- `HTTPS_PROXY`
+- `NO_PROXY`
 
 The `HTTPS_PROXY` environment variable specifies a URL to use for proxying
 requests. Connections to the proxy are established via [the `HTTP CONNECT`
@@ -128,11 +128,11 @@ connections.
 
 The following arguments are supported:
 
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`ping_wait` | `duration` | How often to ping the server after no activity. | | no
-`ping_response_timeout` | `duration` | Time to wait before closing inactive connections if the server does not respond to a ping. | | no
-`ping_without_stream` | `boolean` | Send pings even if there is no active stream request. | | no
+| Name                    | Type       | Description                                                                                | Default | Required |
+| ----------------------- | ---------- | ------------------------------------------------------------------------------------------ | ------- | -------- |
+| `ping_wait`             | `duration` | How often to ping the server after no activity.                                            |         | no       |
+| `ping_response_timeout` | `duration` | Time to wait before closing inactive connections if the server does not respond to a ping. |         | no       |
+| `ping_without_stream`   | `boolean`  | Send pings even if there is no active stream request.                                      |         | no       |
 
 ### sending_queue block
 
@@ -156,9 +156,9 @@ retried.
 
 The following fields are exported and can be referenced by other components:
 
-Name | Type | Description
----- | ---- | -----------
-`input` | `otelcol.Consumer` | A value that other components can use to send telemetry data to.
+| Name    | Type               | Description                                                      |
+| ------- | ------------------ | ---------------------------------------------------------------- |
+| `input` | `otelcol.Consumer` | A value that other components can use to send telemetry data to. |
 
 `input` accepts `otelcol.Consumer` data for any telemetry signal (metrics,
 logs, or traces).
@@ -175,15 +175,15 @@ information.
 
 ## Debug metrics
 
-* `exporter_sent_spans_ratio_total` (counter): Number of spans successfully sent to destination.
-* `exporter_send_failed_spans_ratio_total` (counter): Number of spans in failed attempts to send to destination.
-* `exporter_queue_capacity_ratio` (gauge): Fixed capacity of the retry queue (in batches)
-* `exporter_queue_size_ratio` (gauge): Current size of the retry queue (in batches)
-* `rpc_client_duration_milliseconds` (histogram): Measures the duration of inbound RPC.
-* `rpc_client_request_size_bytes` (histogram): Measures size of RPC request messages (uncompressed).
-* `rpc_client_requests_per_rpc` (histogram): Measures the number of messages received per RPC. Should be 1 for all non-streaming RPCs.
-* `rpc_client_response_size_bytes` (histogram): Measures size of RPC response messages (uncompressed).
-* `rpc_client_responses_per_rpc` (histogram): Measures the number of messages received per RPC. Should be 1 for all non-streaming RPCs.
+- `exporter_sent_spans_ratio_total` (counter): Number of spans successfully sent to destination.
+- `exporter_send_failed_spans_ratio_total` (counter): Number of spans in failed attempts to send to destination.
+- `exporter_queue_capacity_ratio` (gauge): Fixed capacity of the retry queue (in batches)
+- `exporter_queue_size_ratio` (gauge): Current size of the retry queue (in batches)
+- `rpc_client_duration_milliseconds` (histogram): Measures the duration of inbound RPC.
+- `rpc_client_request_size_bytes` (histogram): Measures size of RPC request messages (uncompressed).
+- `rpc_client_requests_per_rpc` (histogram): Measures the number of messages received per RPC. Should be 1 for all non-streaming RPCs.
+- `rpc_client_response_size_bytes` (histogram): Measures size of RPC response messages (uncompressed).
+- `rpc_client_responses_per_rpc` (histogram): Measures the number of messages received per RPC. Should be 1 for all non-streaming RPCs.
 
 ## Examples
 
@@ -221,6 +221,7 @@ otelcol.auth.basic "grafana_cloud_tempo" {
     password = env("GRAFANA_CLOUD_API_KEY")
 }
 ```
+
 <!-- START GENERATED COMPATIBLE COMPONENTS -->
 
 ## Compatible components

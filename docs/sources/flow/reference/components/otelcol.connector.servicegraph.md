@@ -1,7 +1,7 @@
 ---
 aliases:
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/otelcol.connector.servicegraph/
-- /docs/grafana-cloud/send-data/agent/flow/reference/components/otelcol.connector.servicegraph/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/components/otelcol.connector.servicegraph/
+  - /docs/grafana-cloud/send-data/agent/flow/reference/components/otelcol.connector.servicegraph/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.connector.servicegraph/
 description: Learn about otelcol.connector.servicegraph
 labels:
@@ -13,10 +13,10 @@ title: otelcol.connector.servicegraph
 
 {{< docs/shared lookup="flow/stability/experimental.md" source="agent" version="<AGENT_VERSION>" >}}
 
-`otelcol.connector.servicegraph` accepts span data from other `otelcol` components and 
+`otelcol.connector.servicegraph` accepts span data from other `otelcol` components and
 outputs metrics representing the relationship between various services in a system.
 A metric represents an edge in the service graph.
-Those metrics can then be used by a data visualization application (e.g. 
+Those metrics can then be used by a data visualization application (e.g.
 [Grafana](/docs/grafana/latest/explore/trace-integration/#service-graph))
 to draw the service graph.
 
@@ -31,11 +31,11 @@ This component is based on [Grafana Tempo's service graph processor](https://git
 
 Service graphs are useful for a number of use-cases:
 
-* Infer the topology of a distributed system. As distributed systems grow, they become more complex. 
+- Infer the topology of a distributed system. As distributed systems grow, they become more complex.
   Service graphs can help you understand the structure of the system.
-* Provide a high level overview of the health of your system.
+- Provide a high level overview of the health of your system.
   Service graphs show error rates, latencies, and other relevant data.
-* Provide a historic view of a system’s topology.
+- Provide a historic view of a system’s topology.
   Distributed systems change very frequently,
   and service graphs offer a way of seeing how these systems have evolved over time.
 
@@ -59,36 +59,37 @@ otelcol.connector.servicegraph "LABEL" {
 
 `otelcol.connector.servicegraph` supports the following arguments:
 
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`latency_histogram_buckets` | `list(duration)` | Buckets for latency histogram metrics. | `["2ms", "4ms", "6ms", "8ms", "10ms", "50ms", "100ms", "200ms", "400ms", "800ms", "1s", "1400ms", "2s", "5s", "10s", "15s"]` | no
-`dimensions` | `list(string)` | A list of dimensions to add with the default dimensions. | `[]` | no
-`cache_loop` | `duration` | Configures how often to delete series which have not been updated. | `"1m"` | no
-`store_expiration_loop` | `duration` | The time to expire old entries from the store periodically. | `"2s"` | no
-`metrics_flush_interval` | `duration` | The interval at which metrics are flushed to downstream components. | `"0s"` | no
+| Name                        | Type             | Description                                                         | Default                                                                                                                      | Required |
+| --------------------------- | ---------------- | ------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- | -------- |
+| `latency_histogram_buckets` | `list(duration)` | Buckets for latency histogram metrics.                              | `["2ms", "4ms", "6ms", "8ms", "10ms", "50ms", "100ms", "200ms", "400ms", "800ms", "1s", "1400ms", "2s", "5s", "10s", "15s"]` | no       |
+| `dimensions`                | `list(string)`   | A list of dimensions to add with the default dimensions.            | `[]`                                                                                                                         | no       |
+| `cache_loop`                | `duration`       | Configures how often to delete series which have not been updated.  | `"1m"`                                                                                                                       | no       |
+| `store_expiration_loop`     | `duration`       | The time to expire old entries from the store periodically.         | `"2s"`                                                                                                                       | no       |
+| `metrics_flush_interval`    | `duration`       | The interval at which metrics are flushed to downstream components. | `"0s"`                                                                                                                       | no       |
 
-Service graphs work by inspecting traces and looking for spans with 
+Service graphs work by inspecting traces and looking for spans with
 parent-children relationship that represent a request.
-`otelcol.connector.servicegraph` uses OpenTelemetry semantic conventions 
+`otelcol.connector.servicegraph` uses OpenTelemetry semantic conventions
 to detect a myriad of requests.
 The following requests are currently supported:
 
-* A direct request between two services, where the outgoing and the incoming span
+- A direct request between two services, where the outgoing and the incoming span
   must have a [Span Kind][] value of `client` and `server` respectively.
-* A request across a messaging system, where the outgoing and the incoming span 
+- A request across a messaging system, where the outgoing and the incoming span
   must have a [Span Kind][] value of `producer` and `consumer` respectively.
-* A database request, where spans have a [Span Kind][] with a value of `client`,
+- A database request, where spans have a [Span Kind][] with a value of `client`,
   as well as an attribute with a key of `db.name`.
 
 Every span which can be paired up to form a request is kept in an in-memory store:
-* If the TTL of the span expires before it can be paired, it is deleted from the store. 
+
+- If the TTL of the span expires before it can be paired, it is deleted from the store.
   TTL is configured in the [store][] block.
-* If the span is paired prior to its expiration, a metric is recorded and the span is deleted from the store.
+- If the span is paired prior to its expiration, a metric is recorded and the span is deleted from the store.
 
 The following metrics are emitted by the processor:
 
 | Metric                                      | Type      | Labels                          | Description                                                  |
-|---------------------------------------------|-----------|---------------------------------|--------------------------------------------------------------|
+| ------------------------------------------- | --------- | ------------------------------- | ------------------------------------------------------------ |
 | traces_service_graph_request_total          | Counter   | client, server, connection_type | Total count of requests between two nodes                    |
 | traces_service_graph_request_failed_total   | Counter   | client, server, connection_type | Total count of failed requests between two nodes             |
 | traces_service_graph_request_server_seconds | Histogram | client, server, connection_type | Time for a request between two nodes as seen from the server |
@@ -98,20 +99,21 @@ The following metrics are emitted by the processor:
 
 Duration is measured both from the client and the server sides.
 
-The `latency_histogram_buckets` argument controls the buckets for 
+The `latency_histogram_buckets` argument controls the buckets for
 `traces_service_graph_request_server_seconds` and `traces_service_graph_request_client_seconds`.
 
-Each emitted metrics series have a `client` and a `server` label corresponding with the 
-service doing the request and the service receiving the request. The value of the label 
+Each emitted metrics series have a `client` and a `server` label corresponding with the
+service doing the request and the service receiving the request. The value of the label
 is derived from the `service.name` resource attribute of the two spans.
 
 The `connection_type` label may not be set. If it is set, its value will be either `messaging_system` or `database`.
 
 Additional labels can be included using the `dimensions` configuration option:
-* Those labels will have a prefix to mark where they originate (client or server span kinds).
+
+- Those labels will have a prefix to mark where they originate (client or server span kinds).
   The `client_` prefix relates to the dimensions coming from spans with a [Span Kind][] of `client`.
   The `server_` prefix relates to the dimensions coming from spans with a [Span Kind][] of `server`.
-* Firstly the resource attributes will be searched. If the attribute is not found, 
+- Firstly the resource attributes will be searched. If the attribute is not found,
   the span attributes will be searched.
 
 When `metrics_flush_interval` is set to `0s`, metrics will be flushed on every received batch of traces.
@@ -123,10 +125,10 @@ When `metrics_flush_interval` is set to `0s`, metrics will be flushed on every r
 The following blocks are supported inside the definition of
 `otelcol.connector.servicegraph`:
 
-Hierarchy | Block | Description | Required
---------- | ----- | ----------- | --------
-store | [store][] | Configures the in-memory store for spans. | no
-output | [output][] | Configures where to send telemetry data. | yes
+| Hierarchy | Block      | Description                               | Required |
+| --------- | ---------- | ----------------------------------------- | -------- |
+| store     | [store][]  | Configures the in-memory store for spans. | no       |
+| output    | [output][] | Configures where to send telemetry data.  | yes      |
 
 [store]: #store-block
 [output]: #output-block
@@ -135,10 +137,10 @@ output | [output][] | Configures where to send telemetry data. | yes
 
 The `store` block configures the in-memory store for spans.
 
-Name | Type | Description | Default | Required
----- | ---- | ----------- | ------- | --------
-`max_items` | `number` | Maximum number of items to keep in the store. | `1000` | no
-`ttl` | `duration` | The time to live for spans in the store. | `"2s"` | no
+| Name        | Type       | Description                                   | Default | Required |
+| ----------- | ---------- | --------------------------------------------- | ------- | -------- |
+| `max_items` | `number`   | Maximum number of items to keep in the store. | `1000`  | no       |
+| `ttl`       | `duration` | The time to live for spans in the store.      | `"2s"`  | no       |
 
 ### output block
 
@@ -148,9 +150,9 @@ Name | Type | Description | Default | Required
 
 The following fields are exported and can be referenced by other components:
 
-Name | Type | Description
----- | ---- | -----------
-`input` | `otelcol.Consumer` | A value that other components can use to send telemetry data to.
+| Name    | Type               | Description                                                      |
+| ------- | ------------------ | ---------------------------------------------------------------- |
+| `input` | `otelcol.Consumer` | A value that other components can use to send telemetry data to. |
 
 `input` accepts `otelcol.Consumer` traces telemetry data. It does not accept metrics and logs.
 
@@ -177,7 +179,7 @@ otelcol.receiver.otlp "default" {
   grpc {
     endpoint = "0.0.0.0:4320"
   }
-  
+
   output {
     traces  = [otelcol.connector.servicegraph.default.input,otelcol.exporter.otlp.grafana_cloud_tempo.input]
   }
@@ -197,7 +199,7 @@ otelcol.exporter.prometheus "default" {
 prometheus.remote_write "mimir" {
   endpoint {
     url = "https://prometheus-xxx.grafana.net/api/prom/push"
-    
+
     basic_auth {
       username = env("PROMETHEUS_USERNAME")
       password = env("GRAFANA_CLOUD_API_KEY")
@@ -219,7 +221,8 @@ otelcol.auth.basic "grafana_cloud_tempo" {
 ```
 
 Some of the metrics in Mimir may look like this:
-```
+
+````
 traces_service_graph_request_total{client="shop-backend",failed="false",server="article-service",client_http_method="DELETE",server_http_method="DELETE"}
 traces_service_graph_request_failed_total{client="shop-backend",client_http_method="POST",failed="false",server="auth-service",server_http_method="POST"}
 ```<!-- START GENERATED COMPATIBLE COMPONENTS -->
@@ -240,3 +243,4 @@ Refer to the linked documentation for more details.
 {{< /admonition >}}
 
 <!-- END GENERATED COMPATIBLE COMPONENTS -->
+````

@@ -1,16 +1,16 @@
 ---
 aliases:
-- ../configuration-language/components/ # /docs/agent/latest/flow/concepts/configuration-language/components/
-- /docs/grafana-cloud/agent/flow/concepts/config-language/components/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/concepts/config-language/components/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/concepts/config-language/components/
-- /docs/grafana-cloud/send-data/agent/flow/concepts/config-language/components/
-# Previous page aliases for backwards compatibility:
-- ../../configuration-language/components/ # /docs/agent/latest/flow/configuration-language/components/
-- /docs/grafana-cloud/agent/flow/config-language/components/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/config-language/components/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/config-language/components/
-- /docs/grafana-cloud/send-data/agent/flow/config-language/components/
+  - ../configuration-language/components/ # /docs/agent/latest/flow/concepts/configuration-language/components/
+  - /docs/grafana-cloud/agent/flow/concepts/config-language/components/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/concepts/config-language/components/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/concepts/config-language/components/
+  - /docs/grafana-cloud/send-data/agent/flow/concepts/config-language/components/
+  # Previous page aliases for backwards compatibility:
+  - ../../configuration-language/components/ # /docs/agent/latest/flow/configuration-language/components/
+  - /docs/grafana-cloud/agent/flow/config-language/components/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/config-language/components/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/config-language/components/
+  - /docs/grafana-cloud/send-data/agent/flow/config-language/components/
 canonical: https://grafana.com/docs/agent/latest/flow/concepts/config-language/components/
 description: Learn about the components configuration language
 title: Components configuration language
@@ -50,11 +50,11 @@ All components are identified by their name, describing what the component is re
 
 Most user interactions with components center around two basic concepts, _arguments_ and _exports_.
 
-* _Arguments_ are settings that modify the behavior of a component.
+- _Arguments_ are settings that modify the behavior of a component.
   They can be any number of attributes or nested unlabeled blocks, some required and some optional.
   Any optional arguments that aren't set take on their default values.
 
-* _Exports_ are zero or more output values that other components can refer to and can be of any River type.
+- _Exports_ are zero or more output values that other components can refer to and can be of any River type.
 
 The following block defines a `local.file` component labeled "targets".
 The `local.file.targets` component exposes the file `content` as a string in its exports.
@@ -109,4 +109,3 @@ The documentation of each [component](ref:components) provides more information 
 
 In the previous example, the contents of the `local.file.targets.content` expression is evaluated to a concrete value.
 The value is type-checked and substituted into `prometheus.scrape.default`, where you can configure it.
-

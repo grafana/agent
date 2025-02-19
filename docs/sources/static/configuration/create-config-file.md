@@ -1,9 +1,9 @@
 ---
 aliases:
-- ../../configuration/create-config-file/
-- ../../set-up/create-config-file/
-- /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/create-config-file/
-- /docs/grafana-cloud/send-data/agent/static/configuration/create-config-file/
+  - ../../configuration/create-config-file/
+  - ../../set-up/create-config-file/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/static/configuration/create-config-file/
+  - /docs/grafana-cloud/send-data/agent/static/configuration/create-config-file/
 canonical: https://grafana.com/docs/agent/latest/static/configuration/create-config-file/
 description: Learn how to create a configuration file
 title: Create a configuration file
@@ -109,7 +109,7 @@ metrics:
       scrape_configs:
         - job_name: agent
           static_configs:
-            - targets: ['127.0.0.1:12345']
+            - targets: ["127.0.0.1:12345"]
       remote_write:
         - url: http://localhost:9009/api/prom/push
 ```
@@ -133,8 +133,8 @@ Promtail config into the Agent config file inside of a `logs` section:
 ```yaml
 logs:
   configs:
-  - name: default
-    # PASTE YOUR PROMTAIL CONFIG INSIDE OF HERE
+    - name: default
+      # PASTE YOUR PROMTAIL CONFIG INSIDE OF HERE
 ```
 
 ### Full config example
@@ -156,39 +156,38 @@ metrics:
       scrape_configs:
         - job_name: agent
           static_configs:
-            - targets: ['127.0.0.1:12345']
+            - targets: ["127.0.0.1:12345"]
 
 logs:
   configs:
-  - name: default
-    positions:
-      filename: /tmp/positions.yaml
-    scrape_configs:
-      - job_name: varlogs
-        static_configs:
-          - targets: [localhost]
-            labels:
-              job: varlogs
-              __path__: /var/log/*log
-    clients:
-      - url: http://localhost:3100/loki/api/v1/push
+    - name: default
+      positions:
+        filename: /tmp/positions.yaml
+      scrape_configs:
+        - job_name: varlogs
+          static_configs:
+            - targets: [localhost]
+              labels:
+                job: varlogs
+                __path__: /var/log/*log
+      clients:
+        - url: http://localhost:3100/loki/api/v1/push
 
 traces:
   configs:
-  - name: default
-    receivers:
-      jaeger:
-        protocols:
-          grpc: # listens on the default jaeger grpc port: 14250
-    remote_write:
-      - endpoint: localhost:55680
-        insecure: true  # only add this if TLS is not required
-    batch:
-      timeout: 5s
-      send_batch_size: 100
+    - name: default
+      receivers:
+        jaeger:
+          protocols:
+            grpc: # listens on the default jaeger grpc port: 14250
+      remote_write:
+        - endpoint: localhost:55680
+          insecure: true # only add this if TLS is not required
+      batch:
+        timeout: 5s
+        send_batch_size: 100
 
 integrations:
   node_exporter:
     enabled: true
 ```
-
