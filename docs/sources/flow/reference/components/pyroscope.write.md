@@ -6,8 +6,6 @@ aliases:
 - /docs/grafana-cloud/send-data/agent/flow/reference/components/pyroscope.write/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/pyroscope.write/
 description: Learn about pyroscope.write
-labels:
-  stage: beta
 title: pyroscope.write
 ---
 

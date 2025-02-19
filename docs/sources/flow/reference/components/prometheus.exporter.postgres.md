@@ -6,8 +6,6 @@ aliases:
 - /docs/grafana-cloud/send-data/agent/flow/reference/components/prometheus.exporter.postgres/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.postgres/
 description: Learn about prometheus.exporter.postgres
-labels:
-  stage: beta
 title: prometheus.exporter.postgres
 ---
 

@@ -6,8 +6,6 @@ aliases:
 - /docs/grafana-cloud/send-data/agent/flow/reference/cli/convert/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/cli/convert/
 description: Learn about the convert command
-labels:
-  stage: beta
 menuTitle: convert
 title: The convert command
 weight: 100
