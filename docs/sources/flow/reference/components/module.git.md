@@ -6,8 +6,6 @@ aliases:
 - /docs/grafana-cloud/send-data/agent/flow/reference/components/module.git/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/module.git/
 description: Learn about module.git
-labels:
-  stage: beta
 title: module.git
 ---
 

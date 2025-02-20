@@ -6,8 +6,6 @@ aliases:
 - /docs/grafana-cloud/send-data/agent/flow/reference/components/prometheus.operator.servicemonitors/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.operator.servicemonitors/
 description: Learn about prometheus.operator.servicemonitors
-labels:
-  stage: beta
 title: prometheus.operator.servicemonitors
 ---
 
