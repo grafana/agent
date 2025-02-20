@@ -51,6 +51,9 @@ Common labels
 {{- define "grafana-agent.labels" -}}
 helm.sh/chart: {{ include "grafana-agent.chart" . }}
 {{ include "grafana-agent.selectorLabels" . }}
+{{- with .Values.extraLabels }}
+{{ toYaml . }}
+{{- end }}
 {{- if index .Values "$chart_tests" }}
 app.kubernetes.io/version: "vX.Y.Z"
 app.kubernetes.io/managed-by: {{ .Release.Service }}
