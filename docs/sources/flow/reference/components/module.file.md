@@ -6,8 +6,6 @@ aliases:
 - /docs/grafana-cloud/send-data/agent/flow/reference/components/module.file/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/module.file/
 description: Learn about module.file
-labels:
-  stage: beta
 title: module.file
 ---
 

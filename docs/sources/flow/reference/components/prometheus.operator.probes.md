@@ -6,8 +6,6 @@ aliases:
 - /docs/grafana-cloud/send-data/agent/flow/reference/components/prometheus.operator.probes/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.operator.probes/
 description: Learn about prometheus.operator.probes
-labels:
-  stage: beta
 title: prometheus.operator.probes
 ---
 

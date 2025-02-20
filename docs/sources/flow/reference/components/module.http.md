@@ -6,8 +6,6 @@ aliases:
 - /docs/grafana-cloud/send-data/agent/flow/reference/components/module.http/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/module.http/
 description: Learn about module.http
-labels:
-  stage: beta
 title: module.http
 ---
 
