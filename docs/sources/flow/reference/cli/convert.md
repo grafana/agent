@@ -7,7 +7,7 @@ aliases:
 canonical: https://grafana.com/docs/agent/latest/flow/reference/cli/convert/
 description: Learn about the convert command
 labels:
-  stage: beta
+  stage: public-preview
 menuTitle: convert
 title: The convert command
 weight: 100
