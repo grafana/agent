@@ -57,7 +57,7 @@ For example, the OTTL statement `set(description, "Sum") where type == "Sum"` ca
 Raw strings are generally more convenient for writing OTTL statements.
 
 [river-strings]: /docs/agent/<AGENT_VERSION>/flow/concepts/config-language/expressions/types_and_values/#strings
-[river-raw-strings]: ../../concepts/config-language/expressions/types_and_values.md/#raw-strings
+[river-raw-strings]: /docs/agent/<AGENT_VERSION>/flow/concepts/config-language/expressions/types_and_values/#raw-strings
 {{< /admonition >}}
 
 {{< admonition type="note" >}}
@@ -569,7 +569,7 @@ This constitutes a [raw string][river-raw-strings], and lets us avoid the need t
 each `"` with a `\"`, and each `\` with a `\\` inside a [normal][river-strings] River string.
 
 [river-strings]: /docs/agent/<AGENT_VERSION>/flow/concepts/config-language/expressions/types_and_values/#strings
-[river-raw-strings]: ../../concepts/config-language/expressions/types_and_values.md/#raw-strings
+[river-raw-strings]: /docs/agent/<AGENT_VERSION>/flow/concepts/config-language/expressions/types_and_values/#raw-strings
 
 [traces protobuf]: https://github.com/open-telemetry/opentelemetry-proto/blob/v1.0.0/opentelemetry/proto/trace/v1/trace.proto
 [metrics protobuf]: https://github.com/open-telemetry/opentelemetry-proto/blob/v1.0.0/opentelemetry/proto/metrics/v1/metrics.proto

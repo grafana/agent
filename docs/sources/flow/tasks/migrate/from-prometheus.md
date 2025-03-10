@@ -48,9 +48,9 @@ refs:
       destination: /docs/grafana-cloud/send-data/agent/flow/reference/components/prometheus.remote_write/
   river:
     - pattern: /docs/agent/
-      destination: /docs/agent/<AGENT_VERSION>/flow/concepts/config-language//
+      destination: /docs/agent/<AGENT_VERSION>/flow/concepts/config-language/
     - pattern: /docs/grafana-cloud/
-      destination: /docs/grafana-cloud/send-data/agent/flow/concepts/config-language//
+      destination: /docs/grafana-cloud/send-data/agent/flow/concepts/config-language/
   run:
     - pattern: /docs/agent/
       destination: /docs/agent/<AGENT_VERSION>/flow/reference/cli/run/
