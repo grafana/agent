@@ -66,7 +66,7 @@ remove the job label, forward the output of `loki.source.kubernetes_events` to
 For compatibility with the `eventhandler` integration from static mode,
 `job_name` can be set to `"integrations/kubernetes/eventhandler"`.
 
-[loki.relabel]: {{< relref "./loki.relabel.md" >}}
+[loki.relabel]: ../loki.relabel/
 
 ## Blocks
 
@@ -169,8 +169,8 @@ The data path is inside the directory configured by the `--storage.path` [comman
 In the Static mode's [eventhandler integration][eventhandler-integration], a `cache_path` argument is used to configure a positions file.
 In Flow mode, this argument is no longer necessary.
 
-[cmd-args]: {{< relref "../cli/run.md" >}}
-[eventhandler-integration]: {{< relref "../../../static/configuration/integrations/integrations-next/eventhandler-config.md" >}}
+[cmd-args]: ../../cli/run/
+[eventhandler-integration]: ../../../../static/configuration/integrations/integrations-next/eventhandler-config/
 
 ## Example
 

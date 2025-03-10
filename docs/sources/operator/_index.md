@@ -52,21 +52,21 @@ The following sections describe how to use Grafana Agent Operator:
 | Topic | Describes |
 |---|---|
 | [Configure Kubernetes Monitoring using Agent Operator](/docs/grafana-cloud/monitor-infrastructure/kubernetes-monitoring/configuration/configure-infrastructure-manually/k8s-agent-operator/) | Use the Kubernetes Monitoring solution to set up monitoring of your Kubernetes cluster and to install preconfigured dashboards and alerts. |
-| [Install Grafana Agent Operator with Helm]({{< relref "./helm-getting-started" >}}) | How to deploy the Grafana Agent Operator into your Kubernetes cluster using the grafana-agent-operator Helm chart. |
-| [Install Grafana Agent Operator]({{< relref "./getting-started" >}}) | How to deploy the Grafana Agent Operator into your Kubernetes cluster without using Helm. |
-| [Deploy the Grafana Agent Operator resources]({{< relref "./deploy-agent-operator-resources" >}}) | How to roll out the Grafana Agent Operator custom resources, needed to begin monitoring your cluster. Complete this procedure *after* installing Grafana Agent Operator&mdash;either with or without Helm. |
-| [Grafana Agent Operator architecture]({{< relref "./architecture" >}}) | Learn about the resources used by Agent Operator to collect telemetry data and how it discovers the hierarchy of custom resources, continually reconciling the hierarchy.  |
-| [Set up Agent Operator integrations]({{< relref "./operator-integrations" >}}) | Learn how to set up node-exporter and mysqld-exporter integrations. |
+| [Install Grafana Agent Operator with Helm](helm-getting-started/) | How to deploy the Grafana Agent Operator into your Kubernetes cluster using the grafana-agent-operator Helm chart. |
+| [Install Grafana Agent Operator](getting-started/) | How to deploy the Grafana Agent Operator into your Kubernetes cluster without using Helm. |
+| [Deploy the Grafana Agent Operator resources](deploy-agent-operator-resources/) | How to roll out the Grafana Agent Operator custom resources, needed to begin monitoring your cluster. Complete this procedure *after* installing Grafana Agent Operator&mdash;either with or without Helm. |
+| [Grafana Agent Operator architecture](architecture/) | Learn about the resources used by Agent Operator to collect telemetry data and how it discovers the hierarchy of custom resources, continually reconciling the hierarchy.  |
+| [Set up Agent Operator integrations](operator-integrations/) | Learn how to set up node-exporter and mysqld-exporter integrations. |
 
 [Kubernetes operator]: https://www.cncf.io/blog/2022/06/15/kubernetes-operators-what-are-they-some-examples/
-[static mode]: {{< relref "../static/" >}}
+[static mode]: ../static/
 [Services]: https://kubernetes.io/docs/concepts/services-networking/service/
 [Pods]: https://kubernetes.io/docs/concepts/workloads/pods/
 [Ingresses]: https://kubernetes.io/docs/concepts/services-networking/ingress/
 [custom resources]: https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/
-[Beta]: {{< relref "../stability.md#beta" >}}
+[Beta]: ../stability/#beta
 [ServiceMonitor]: https://prometheus-operator.dev/docs/operator/api/#monitoring.coreos.com/v1.ServiceMonitor
 [PodMonitor]: https://prometheus-operator.dev/docs/operator/api/#monitoring.coreos.com/v1.PodMonitor
 [Probe]: https://prometheus-operator.dev/docs/operator/api/#monitoring.coreos.com/v1.Probe
-[PodLogs]: {{< relref "./api.md#podlogs-a-namemonitoringgrafanacomv1alpha1podlogsa">}}
+[PodLogs]: api/#podlogs-a-namemonitoringgrafanacomv1alpha1podlogsa
 [Prometheus Operator]: https://github.com/prometheus-operator/prometheus-operator

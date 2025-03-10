@@ -25,8 +25,8 @@ Other release notes for the different {{< param "PRODUCT_ROOT_NAME" >}} variants
 * [Static mode release notes][release-notes-static]
 * [Static mode Kubernetes operator release notes][release-notes-operator]
 
-[release-notes-static]: {{< relref "../static/release-notes.md" >}}
-[release-notes-operator]: {{< relref "../operator/release-notes.md" >}}
+[release-notes-static]: ../../static/release-notes/
+[release-notes-operator]: ../../operator/release-notes/
 {{< /admonition >}}
 
 ## v0.41.1
@@ -223,7 +223,7 @@ How to migrate:
     where the `<compression format>` is the appropriate compression format -
     see [`loki.source.file` documentation][loki-source-file-docs] for details.
 
-    [loki-source-file-docs]: {{< relref "./reference/components/loki.source.file.md" >}}
+    [loki-source-file-docs]: ../reference/components/loki.source.file/
 
 ## v0.35
 
