@@ -6,8 +6,6 @@ aliases:
 - /docs/grafana-cloud/send-data/agent/flow/reference/components/otelcol.processor.tail_sampling/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.processor.tail_sampling/
 description: Learn about otelcol.processor.tail_sampling
-labels:
-  stage: beta
 title: otelcol.processor.tail_sampling
 ---
 
@@ -125,7 +123,7 @@ output                                                        | [output] [] | Co
 [composite]: #composite-block
 [composite_sub_policy]: #composite_sub_policy-block
 [output]: #output-block
-[otelcol.exporter.otlp]: {{< relref "./otelcol.exporter.otlp.md" >}}
+[otelcol.exporter.otlp]: ../otelcol.exporter.otlp/
 
 ### policy block
 
@@ -241,7 +239,7 @@ Set `max_spans` to `0`, if you do not want to limit the policy samples based on 
 
 ### boolean_attribute block
 
-The `boolean_attribute` block configures a policy of type `boolean_attribute`. 
+The `boolean_attribute` block configures a policy of type `boolean_attribute`.
 The policy samples based on a boolean attribute (resource and record).
 
 The following arguments are supported:
@@ -253,7 +251,7 @@ Name | Type | Description | Default | Required
 
 ### ottl_condition block
 
-The `ottl_condition` block configures a policy of type `ottl_condition`. The policy samples based on a given boolean 
+The `ottl_condition` block configures a policy of type `ottl_condition`. The policy samples based on a given boolean
 [OTTL](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/pkg/ottl) condition (span and span event).
 
 The following arguments are supported:

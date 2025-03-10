@@ -27,7 +27,7 @@ calling the function in the `rules` export field.
 If you're looking for a way to process the log entry contents, take a look at
 [the `loki.process` component][loki.process] instead.
 
-[loki.process]: {{< relref "./loki.process.md" >}}
+[loki.process]: ../loki.process/
 
 Multiple `loki.relabel` components can be specified by giving them
 different labels.
