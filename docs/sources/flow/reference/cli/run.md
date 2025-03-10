@@ -65,9 +65,9 @@ The following flags are supported:
 * `--config.bypass-conversion-errors`: Enable bypassing errors when converting (default `false`).
 * `--config.extra-args`: Extra arguments from the original format used by the converter.
 
-[in-memory HTTP traffic]: {{< relref "../../concepts/component_controller.md#in-memory-traffic" >}}
-[data collection]: {{< relref "../../../data-collection" >}}
-[components]: {{< relref "../../concepts/components.md" >}}
+[in-memory HTTP traffic]: ../../../concepts/component_controller/#in-memory-traffic
+[data collection]: ../../../../data-collection/
+[components]: ../../../concepts/components/
 
 ## Update the configuration file
 
@@ -85,7 +85,7 @@ previous reload are created.
 All components managed by the component controller are reevaluated after
 reloading.
 
-[component controller]: {{< relref "../../concepts/component_controller.md" >}}
+[component controller]: ../../../concepts/component_controller/
 
 ## Clustering
 
@@ -171,7 +171,7 @@ transitions to the terminating state when shutting down.
 
 The current state of a clustered {{< param "PRODUCT_ROOT_NAME" >}} is shown on the clustering page in the [UI][].
 
-[UI]: {{< relref "../../tasks/debug.md#clustering-page" >}}
+[UI]: ../../../tasks/debug/#clustering-page
 
 ## Configuration conversion (beta)
 
@@ -189,6 +189,6 @@ original configuration.
 Include `--config.extra-args` to pass additional command line flags from the original format to the converter.
 Refer to [grafana-agent-flow convert][] for more details on how `extra-args` work.
 
-[grafana-agent-flow convert]: {{< relref "./convert.md" >}}
-[clustering]:  {{< relref "../../concepts/clustering.md" >}}
+[grafana-agent-flow convert]: ../convert/
+[clustering]:  ../../../concepts/clustering/
 [go-discover]: https://github.com/hashicorp/go-discover

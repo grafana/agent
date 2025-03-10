@@ -6,8 +6,6 @@ aliases:
 - /docs/grafana-cloud/send-data/agent/flow/reference/components/module.file/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/module.file/
 description: Learn about module.file
-labels:
-  stage: beta
 title: module.file
 ---
 
@@ -27,9 +25,9 @@ component which retrieves a [module][] and runs the components defined inside of
 a [local.file][] component. This allows a single module loader to do the equivalence of
 using the more generic [module.string][] paired with a [local.file][] component.
 
-[module]: {{< relref "../../concepts/modules.md" >}}
-[local.file]: {{< relref "./local.file.md" >}}
-[module.string]: {{< relref "./module.string.md" >}}
+[module]: ../../../concepts/modules/
+[local.file]: ../local.file/
+[module.string]: ../module.string/
 
 ## Usage
 
@@ -56,7 +54,7 @@ Name | Type | Description | Default | Required
 `poll_frequency` | `duration` | How often to poll for file changes | `"1m"` | no
 `is_secret`      | `bool`     | Marks the file as containing a [secret][] | `false` | no
 
-[secret]: {{< relref "../../concepts/config-language/expressions/types_and_values.md#secrets" >}}
+[secret]: ../../../concepts/config-language/expressions/types_and_values/#secrets
 
 {{< docs/shared lookup="flow/reference/components/local-file-arguments-text.md" source="agent" version="<AGENT_VERSION>" >}}
 
@@ -84,7 +82,7 @@ The attributes provided in the `arguments` block are validated based on the
 * Attributes in the `argument` block of the module loader will be rejected if
   they are not defined in the module source.
 
-[argument blocks]: {{< relref "../config-blocks/argument.md" >}}
+[argument blocks]: ../../config-blocks/argument/
 
 ## Exported fields
 
@@ -100,7 +98,7 @@ from the parent config via `module.file.LABEL.exports.EXPORT_LABEL`.
 Values in `exports` correspond to [export blocks][] defined in the module
 source.
 
-[export blocks]: {{< relref "../config-blocks/export.md" >}}
+[export blocks]: ../../config-blocks/export/
 
 ## Component health
 

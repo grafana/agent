@@ -46,7 +46,7 @@ from Static mode's `prom_sd_operation_type`/`prom_sd_pod_associations` [configur
 
 [Prometheus data model]: https://prometheus.io/docs/concepts/data_model/#metric-names-and-labels
 [OTEL sem conv]: https://github.com/open-telemetry/semantic-conventions/blob/main/docs/README.md
-[Traces]: {{< relref "../../../static/configuration/traces-config.md" >}}
+[Traces]: ../../../../static/configuration/traces-config/
 {{< /admonition >}}
 
 ## Usage

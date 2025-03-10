@@ -6,8 +6,6 @@ aliases:
   - /docs/grafana-cloud/send-data/agent/flow/reference/config-blocks/import.file/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/config-blocks/import.file/
 description: Learn about the import.file configuration block
-labels:
-  stage: beta
 title: import.file
 refs:
   module:
