@@ -65,7 +65,7 @@ of receivers specified in `forward_to`. To keep these labels, use the
 > `__journal__systemd_unit`, with _two_ underscores between `__journal` and
 > `systemd_unit`.
 
-[loki.relabel]: {{< relref "./loki.relabel.md" >}}
+[loki.relabel]: ../loki.relabel/
 
 ## Component health
 
