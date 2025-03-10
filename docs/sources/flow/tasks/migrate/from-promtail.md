@@ -43,9 +43,9 @@ refs:
       destination: /docs/grafana-cloud/send-data/agent/flow/reference/cli/run/
   river:
     - pattern: /docs/agent/
-      destination: /docs/agent/<AGENT_VERSION>/flow/concepts/config-language//
+      destination: /docs/agent/<AGENT_VERSION>/flow/concepts/config-language/
     - pattern: /docs/grafana-cloud/
-      destination: /docs/grafana-cloud/send-data/agent/flow/concepts/config-language//
+      destination: /docs/grafana-cloud/send-data/agent/flow/concepts/config-language/
   components:
     - pattern: /docs/agent/
       destination: /docs/agent/<AGENT_VERSION>/flow/concepts/components/
