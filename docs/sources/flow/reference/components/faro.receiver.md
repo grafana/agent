@@ -266,8 +266,8 @@ Replace the following:
   * If authentication is required to send logs to the Loki server, refer to the
     documentation of [otelcol.exporter.otlp][] for more information.
 
-[loki.write]: {{< relref "./loki.write.md" >}}
-[otelcol.exporter.otlp]: {{< relref "./otelcol.exporter.otlp.md" >}}
+[loki.write]: ../loki.write/
+[otelcol.exporter.otlp]: ../otelcol.exporter.otlp/
 
 <!-- START GENERATED COMPATIBLE COMPONENTS -->
 

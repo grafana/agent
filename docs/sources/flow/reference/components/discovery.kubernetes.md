@@ -316,7 +316,7 @@ Other roles only support selectors matching the role itself (e.g. node role can 
 
 [Field selectors]: https://kubernetes.io/docs/concepts/overview/working-with-objects/field-selectors/
 [Labels and selectors]: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
-[discovery.relabel]: {{< relref "./discovery.relabel.md" >}}
+[discovery.relabel]: ../discovery.relabel/
 
 ### attach_metadata block
 The `attach_metadata` block allows to attach node metadata to discovered
