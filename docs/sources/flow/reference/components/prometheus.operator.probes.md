@@ -6,8 +6,6 @@ aliases:
 - /docs/grafana-cloud/send-data/agent/flow/reference/components/prometheus.operator.probes/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.operator.probes/
 description: Learn about prometheus.operator.probes
-labels:
-  stage: beta
 title: prometheus.operator.probes
 ---
 
@@ -193,7 +191,7 @@ fully consistent like hashmod sharding is).
 If {{< param "PRODUCT_NAME" >}} is _not_ running in clustered mode, then the block is a no-op, and
 `prometheus.operator.probes` scrapes every target it receives in its arguments.
 
-[clustered mode]: {{< relref "../cli/run.md#clustering" >}}
+[clustered mode]: ../../cli/run/#clustering
 
 ## Exported fields
 

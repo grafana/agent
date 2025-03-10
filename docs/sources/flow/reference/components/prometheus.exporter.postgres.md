@@ -6,8 +6,6 @@ aliases:
 - /docs/grafana-cloud/send-data/agent/flow/reference/components/prometheus.exporter.postgres/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.exporter.postgres/
 description: Learn about prometheus.exporter.postgres
-labels:
-  stage: beta
 title: prometheus.exporter.postgres
 ---
 
@@ -229,7 +227,7 @@ Replace the following:
 - `USERNAME`: The username to use for authentication to the remote_write API.
 - `PASSWORD`: The password to use for authentication to the remote_write API.
 
-[scrape]: {{< relref "./prometheus.scrape.md" >}}
+[scrape]: ../prometheus.scrape/
 
 <!-- START GENERATED COMPATIBLE COMPONENTS -->
 

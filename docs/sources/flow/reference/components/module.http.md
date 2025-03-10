@@ -6,8 +6,6 @@ aliases:
 - /docs/grafana-cloud/send-data/agent/flow/reference/components/module.http/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/module.http/
 description: Learn about module.http
-labels:
-  stage: beta
 title: module.http
 ---
 
@@ -26,10 +24,10 @@ Starting with release v0.40, `module.http` is deprecated and is replaced by `imp
 HTTP server. This allows you to use a single module loader, rather than a `remote.http`
 component paired with a [module.string][] component.
 
-[module]: {{< relref "../../concepts/modules.md" >}}
-[remote.http]: {{< relref "./remote.http.md" >}}
-[module.string]: {{< relref "./module.string.md" >}}
-[module loader]: {{< relref "../../concepts/modules.md#module-loaders" >}}
+[module]: ../../../concepts/modules/
+[remote.http]: ../remote.http/
+[module.string]: ../module.string/
+[module loader]: ../../../concepts/modules/#module-loaders
 
 ## Usage
 
@@ -57,7 +55,7 @@ Name | Type | Description | Default | Required
 `poll_timeout` | `duration` | Timeout when polling the URL. | `"10s"` | no
 `is_secret` | `bool` | Whether the response body should be treated as a secret. | false | no
 
-[secret]: {{< relref "../../concepts/config-language/expressions/types_and_values.md#secrets" >}}
+[secret]: ../../../concepts/config-language/expressions/types_and_values/#secrets
 
 ## Blocks
 
@@ -83,7 +81,7 @@ The attributes provided in the `arguments` block are validated based on the
 * Attributes in the `argument` block of the module loader are rejected if
   they are not defined in the module source.
 
-[argument blocks]: {{< relref "../config-blocks/argument.md" >}}
+[argument blocks]: ../../config-blocks/argument/
 
 ## Exported fields
 
@@ -99,7 +97,7 @@ from the parent config via `module.http.LABEL.exports.EXPORT_LABEL`.
 Values in `exports` correspond to [export blocks][] defined in the module
 source.
 
-[export blocks]: {{< relref "../config-blocks/export.md" >}}
+[export blocks]: ../../config-blocks/export/
 
 ## Component health
 
