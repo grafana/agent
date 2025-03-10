@@ -23,7 +23,7 @@ A path is a reference to a telemetry data such as:
 * Instrumentation scope name.
 * Span attributes.
 
-In addition to the [standard OTTL functions][OTTL functions], 
+In addition to the [standard OTTL functions][OTTL functions],
 there is also a set of metrics-only functions:
 * [convert_sum_to_gauge][]
 * [convert_gauge_to_sum][]
@@ -50,14 +50,14 @@ There are two ways of inputting strings in River configuration files:
 * Using backticks ([raw River strings][river-raw-strings]). No characters must be escaped.
   However, it's not possible to have backticks inside the string.
 
-For example, the OTTL statement `set(description, "Sum") where type == "Sum"` can be written as: 
+For example, the OTTL statement `set(description, "Sum") where type == "Sum"` can be written as:
 * A normal River string: `"set(description, \"Sum\") where type == \"Sum\""`.
 * A raw River string: ``` `set(description, "Sum") where type == "Sum"` ```.
 
 Raw strings are generally more convenient for writing OTTL statements.
 
-[river-strings]: {{< relref "../../concepts/config-language/expressions/types_and_values.md/#strings" >}}
-[river-raw-strings]: {{< relref "../../concepts/config-language/expressions/types_and_values.md/#raw-strings" >}}
+[river-strings]: /docs/agent/<AGENT_VERSION>/flow/concepts/config-language/expressions/types_and_values/#strings
+[river-raw-strings]: /docs/agent/<AGENT_VERSION>/flow/concepts/config-language/expressions/types_and_values/#raw-strings
 {{< /admonition >}}
 
 {{< admonition type="note" >}}
@@ -69,19 +69,19 @@ will be redirected to the upstream repository.
 You can specify multiple `otelcol.processor.transform` components by giving them different labels.
 
 {{< admonition type="warning" >}}
-`otelcol.processor.transform` allows you to modify all aspects of your telemetry. Some specific risks are given below, 
-but this is not an exhaustive list. It is important to understand your data before using this processor.  
+`otelcol.processor.transform` allows you to modify all aspects of your telemetry. Some specific risks are given below,
+but this is not an exhaustive list. It is important to understand your data before using this processor.
 
-- [Unsound Transformations][]: Transformations between metric data types are not defined in the [metrics data model][]. 
-To use these functions, you must understand the incoming data and know that it can be meaningfully converted 
+- [Unsound Transformations][]: Transformations between metric data types are not defined in the [metrics data model][].
+To use these functions, you must understand the incoming data and know that it can be meaningfully converted
 to a new metric data type or can be used to create new metrics.
-  - Although OTTL allows you to use the `set` function with `metric.data_type`, 
+  - Although OTTL allows you to use the `set` function with `metric.data_type`,
     its implementation in the transform processor is a [no-op][].
     To modify a data type, you must use a specific function such as `convert_gauge_to_sum`.
 - [Identity Conflict][]: Transformation of metrics can potentially affect a metric's identity,
-  leading to an Identity Crisis. Be especially cautious when transforming a metric name and when reducing or changing 
+  leading to an Identity Crisis. Be especially cautious when transforming a metric name and when reducing or changing
   existing attributes. Adding new attributes is safe.
-- [Orphaned Telemetry][]: The processor allows you to modify `span_id`, `trace_id`, and `parent_span_id` for traces 
+- [Orphaned Telemetry][]: The processor allows you to modify `span_id`, `trace_id`, and `parent_span_id` for traces
   and `span_id`, and `trace_id` logs.  Modifying these fields could lead to orphaned spans or logs.
 
 [Unsound Transformations]: https://github.com/open-telemetry/opentelemetry-collector/blob/{{< param "OTEL_VERSION" >}}/docs/standard-warnings.md#unsound-transformations
@@ -137,7 +137,7 @@ output | [output][] | Configures where to send received telemetry data. | yes
 
 ### trace_statements block
 
-The `trace_statements` block specifies statements which transform trace telemetry signals. 
+The `trace_statements` block specifies statements which transform trace telemetry signals.
 Multiple `trace_statements` blocks can be specified.
 
 Name | Type | Description | Default | Required
@@ -155,7 +155,7 @@ See [OTTL Context][] for more information about how ot use contexts.
 
 ### metric_statements block
 
-The `metric_statements` block specifies statements which transform metric telemetry signals. 
+The `metric_statements` block specifies statements which transform metric telemetry signals.
 Multiple `metric_statements` blocks can be specified.
 
 Name | Type | Description | Default | Required
@@ -173,7 +173,7 @@ Refer to [OTTL Context][] for more information about how to use contexts.
 
 ### log_statements block
 
-The `log_statements` block specifies statements which transform log telemetry signals. 
+The `log_statements` block specifies statements which transform log telemetry signals.
 Multiple `log_statements` blocks can be specified.
 
 Name | Type | Description | Default | Required
@@ -191,7 +191,7 @@ See [OTTL Context][] for more information about how ot use contexts.
 ### OTTL Context
 
 Each context allows the transformation of its type of telemetry.
-For example, statements associated with a `resource` context will be able to transform the resource's 
+For example, statements associated with a `resource` context will be able to transform the resource's
 `attributes` and `dropped_attributes_count`.
 
 Each type of `context` defines its own paths and enums specific to that context.
@@ -212,7 +212,7 @@ Contexts __NEVER__ supply access to individual items "lower" in the protobuf def
 - Similarly, statements associated to a `span` __WILL NOT__ be able to access individual SpanEvents, but can access the entire SpanEvents slice.
 
 For practical purposes, this means that a context cannot make decisions on its telemetry based on telemetry "lower" in the structure.
-For example, __the following context statement is not possible__ because it attempts to use individual datapoint 
+For example, __the following context statement is not possible__ because it attempts to use individual datapoint
 attributes in the condition of a statement associated to a `metric`:
 
 ```river
@@ -248,7 +248,7 @@ The protobuf definitions for OTLP signals are maintained on GitHub:
 
 Whenever possible, associate your statements to the context which the statement intens to transform.
 The contexts are nested, and the higher-level contexts don't have to iterate through any of the
-contexts at a lower level. For example, although you can modify resource attributes associated to a 
+contexts at a lower level. For example, although you can modify resource attributes associated to a
 span using the `span` context, it is more efficient to use the `resource` context.
 
 ### output block
@@ -293,7 +293,7 @@ otelcol.processor.transform "default" {
   trace_statements {
     context = "span"
     statements = [
-      // Accessing a map with a key that does not exist will return nil. 
+      // Accessing a map with a key that does not exist will return nil.
       `set(attributes["test"], "pass") where attributes["test"] == nil`,
     ]
   }
@@ -443,12 +443,12 @@ otelcol.processor.transform "default" {
       // Parse body as JSON and merge the resulting map with the cache map, ignoring non-json bodies.
       // cache is a field exposed by OTTL that is a temporary storage place for complex operations.
       `merge_maps(cache, ParseJSON(body), "upsert") where IsMatch(body, "^\\{")`,
-  
+
       // Set attributes using the values merged into cache.
       // If the attribute doesn't exist in cache then nothing happens.
       `set(attributes["attr1"], cache["attr1"])`,
       `set(attributes["attr2"], cache["attr2"])`,
-  
+
       // To access nested maps you can chain index ([]) operations.
       // If nested or attr3 do no exist in cache then nothing happens.
       `set(attributes["nested.attr3"], cache["nested"]["attr3"])`,
@@ -469,8 +469,8 @@ each `"` with a `\"`, and each `\` with a `\\` inside a [normal][river-strings] 
 
 ### Various transformations of attributes and status codes
 
-The example takes advantage of context efficiency by grouping transformations 
-with the context which it intends to transform. 
+The example takes advantage of context efficiency by grouping transformations
+with the context which it intends to transform.
 
 ```river
 otelcol.receiver.otlp "default" {
@@ -568,8 +568,8 @@ Each statement is enclosed in backticks instead of quotation marks.
 This constitutes a [raw string][river-raw-strings], and lets us avoid the need to escape
 each `"` with a `\"`, and each `\` with a `\\` inside a [normal][river-strings] River string.
 
-[river-strings]: {{< relref "../../concepts/config-language/expressions/types_and_values.md/#strings" >}}
-[river-raw-strings]: {{< relref "../../concepts/config-language/expressions/types_and_values.md/#raw-strings" >}}
+[river-strings]: /docs/agent/<AGENT_VERSION>/flow/concepts/config-language/expressions/types_and_values/#strings
+[river-raw-strings]: /docs/agent/<AGENT_VERSION>/flow/concepts/config-language/expressions/types_and_values/#raw-strings
 
 [traces protobuf]: https://github.com/open-telemetry/opentelemetry-proto/blob/v1.0.0/opentelemetry/proto/trace/v1/trace.proto
 [metrics protobuf]: https://github.com/open-telemetry/opentelemetry-proto/blob/v1.0.0/opentelemetry/proto/metrics/v1/metrics.proto

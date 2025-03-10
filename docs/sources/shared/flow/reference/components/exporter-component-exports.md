@@ -20,5 +20,5 @@ For example, the `targets` can either be passed to a `discovery.relabel` compone
 
 The exported targets use the configured [in-memory traffic][] address specified by the [run command][].
 
-[in-memory traffic]: {{< relref "../../../../flow/concepts/component_controller.md#in-memory-traffic" >}}
-[run command]: {{< relref "../../../../flow/reference/cli/run.md" >}}
+[in-memory traffic]:/docs/agent/<AGENT_VERSION>/flow/concepts/component_controller/#in-memory-traffic
+[run command]: /docs/agent/<AGENT_VERSION>/flow/reference/cli/run/

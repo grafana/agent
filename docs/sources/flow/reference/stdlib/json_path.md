@@ -43,5 +43,5 @@ value
 
 ```
 
-[`local.file`]: {{< relref "../components/local.file.md" >}}
-[`remote.http`]: {{< relref "../components/remote.http.md" >}}
+[`local.file`]: ../../components/local.file/
+[`remote.http`]: ../../components/remote.http/

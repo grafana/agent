@@ -123,7 +123,7 @@ output                                                        | [output] [] | Co
 [composite]: #composite-block
 [composite_sub_policy]: #composite_sub_policy-block
 [output]: #output-block
-[otelcol.exporter.otlp]: {{< relref "./otelcol.exporter.otlp.md" >}}
+[otelcol.exporter.otlp]: ../otelcol.exporter.otlp/
 
 ### policy block
 

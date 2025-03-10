@@ -14,8 +14,8 @@ weight: 120
 
 To start collecting telemetry data, you need to roll out Grafana Agent Operator custom resources into your Kubernetes cluster. Before you can create the custom resources, you must first apply the Agent Custom Resource Definitions (CRDs) and install Agent Operator, with or without Helm. If you haven't yet taken these steps, follow the instructions in one of the following topics:
 
-- [Install Agent Operator]({{< relref "./getting-started" >}})
-- [Install Agent Operator with Helm]({{< relref "./helm-getting-started" >}})
+- [Install Agent Operator](../getting-started/)
+- [Install Agent Operator with Helm](../helm-getting-started/)
 
 Follow the steps in this guide to roll out the Grafana Agent Operator custom resources to:
 
@@ -32,19 +32,19 @@ The hierarchy of custom resources is as follows:
   - `LogsInstance`
     - `PodLogs`
 
-To learn more about the custom resources Agent Operator provides and their hierarchy, see [Grafana Agent Operator architecture]({{< relref "./architecture" >}}).
+To learn more about the custom resources Agent Operator provides and their hierarchy, see [Grafana Agent Operator architecture](../architecture/).
 
 {{< admonition type="note" >}}
-Agent Operator is currently in [beta]({{< relref "../stability.md#beta" >}}) and its custom resources are subject to change.
+Agent Operator is currently in [beta](../../stability/#beta) and its custom resources are subject to change.
 {{< /admonition >}}
 
 ## Before you begin
 
-Before you begin, make sure that you have deployed the Grafana Agent Operator CRDs and installed Agent Operator into your cluster. See [Install Grafana Agent Operator with Helm]({{< relref "./helm-getting-started" >}}) or [Install Grafana Agent Operator]({{< relref "./getting-started" >}}) for instructions.
+Before you begin, make sure that you have deployed the Grafana Agent Operator CRDs and installed Agent Operator into your cluster. See [Install Grafana Agent Operator with Helm](../helm-getting-started/) or [Install Grafana Agent Operator](../getting-started/) for instructions.
 
 ## Deploy the GrafanaAgent resource
 
-In this section, you'll roll out a `GrafanaAgent` resource. See [Grafana Agent Operator architecture]({{< relref "./architecture" >}}) for a discussion of the resources in the `GrafanaAgent` resource hierarchy.
+In this section, you'll roll out a `GrafanaAgent` resource. See [Grafana Agent Operator architecture](../architecture/) for a discussion of the resources in the `GrafanaAgent` resource hierarchy.
 
 {{< admonition type="note" >}}
 Due to the variety of possible deployment architectures, the official Agent Operator Helm chart does not provide built-in templates for the custom resources described in this guide. You must configure and deploy these manually as described in this section. We recommend templating and adding the following manifests to your own in-house Helm charts and GitOps flows.
@@ -155,11 +155,11 @@ To deploy the `GrafanaAgent` resource:
 
 ### Disable feature flags reporting
 
-To disable the [reporting]({{< relref "../static/configuration/flags.md#report-information-usage" >}}) usage of feature flags to Grafana, set `disableReporting` field to `true`.
+To disable the [reporting](../../static/configuration/flags/#report-information-usage) usage of feature flags to Grafana, set `disableReporting` field to `true`.
 
 ### Disable support bundle generation
 
-To disable the [support bundles functionality]({{< relref "../static/configuration/flags.md#support-bundles" >}}), set the `disableSupportBundle` field to `true`.
+To disable the [support bundles functionality](../../static/configuration/flags/#support-bundles), set the `disableSupportBundle` field to `true`.
 
 ## Deploy a MetricsInstance resource
 

@@ -15,13 +15,13 @@ This topic provides examples of setting up Grafana Agent Operator integrations, 
 
 ## Before you begin
 
-Before you begin, make sure that you have deployed the Grafana Agent Operator CRDs and installed Agent Operator into your cluster. See [Install Grafana Agent Operator with Helm]({{< relref "./helm-getting-started.md" >}}) or [Install Grafana Agent Operator]({{< relref "./getting-started.md" >}}) for instructions.
+Before you begin, make sure that you have deployed the Grafana Agent Operator CRDs and installed Agent Operator into your cluster. See [Install Grafana Agent Operator with Helm](../helm-getting-started/) or [Install Grafana Agent Operator](../getting-started/) for instructions.
 
-Also, make sure that you [deploy the GrafanaAgent resource]({{< relref "./deploy-agent-operator-resources.md" >}}) and the `yaml` you use has the `integrations` definition under `spec`.
+Also, make sure that you [deploy the GrafanaAgent resource](../deploy-agent-operator-resources/) and the `yaml` you use has the `integrations` definition under `spec`.
 
-**Important:** The field `name` under the `spec` section of the manifest must contain the name of the integration to be installed according to the list of integrations defined [here]({{< relref "../static/configuration/integrations/integrations-next/_index.md#config-changes" >}}).
+**Important:** The field `name` under the `spec` section of the manifest must contain the name of the integration to be installed according to the list of integrations defined [here](../../static/configuration/integrations/integrations-next/#config-changes).
 
-**Important:** The value of the `metrics_instance` field needs to be in the format `<namespace>/<name>`, with namespace and name matching the values defined in the `metadata` section from the `MetricsInstance` resource as explained in [deploy a MetricsInstance resource]({{< relref "./deploy-agent-operator-resources.md#deploy-a-metricsinstance-resource" >}})
+**Important:** The value of the `metrics_instance` field needs to be in the format `<namespace>/<name>`, with namespace and name matching the values defined in the `metadata` section from the `MetricsInstance` resource as explained in [deploy a MetricsInstance resource](../deploy-agent-operator-resources/#deploy-a-metricsinstance-resource)
 
 ## Set up an Agent Operator node_exporter integration
 

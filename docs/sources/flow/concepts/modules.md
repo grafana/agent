@@ -18,8 +18,8 @@ The module passed as an argument to [the `run` command][run] is called the _main
 
 Modules can be [imported](#importing-modules) to enable the reuse of [custom components][] defined by that module.
 
-[custom components]: {{< relref "./custom_components.md" >}}
-[run]: {{< relref "../reference/cli/run.md" >}}
+[custom components]: ../custom_components/
+[run]: ../../reference/cli/run/
 
 ## Importing modules
 
@@ -31,10 +31,10 @@ Modules can be imported from multiple locations using one of the `import` config
 * [import.http]: Imports a module from the response of an HTTP request.
 * [import.string]: Imports a module from a string.
 
-[import.file]: {{< relref "../reference/config-blocks/import.file.md" >}}
-[import.git]: {{< relref "../reference/config-blocks/import.git.md" >}}
-[import.http]: {{< relref "../reference/config-blocks/import.http.md" >}}
-[import.string]: {{< relref "../reference/config-blocks/import.string.md" >}}
+[import.file]: ../../reference/config-blocks/import.file/
+[import.git]: ../../reference/config-blocks/import.git/
+[import.http]: ../../reference/config-blocks/import.http/
+[import.string]: ../../reference/config-blocks/import.string/
 
 {{< admonition type="warning" >}}
 You can't import a module that contains top-level blocks other than `declare` or `import`.
