@@ -6,8 +6,6 @@ aliases:
 - /docs/grafana-cloud/send-data/agent/flow/reference/components/prometheus.operator.servicemonitors/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/prometheus.operator.servicemonitors/
 description: Learn about prometheus.operator.servicemonitors
-labels:
-  stage: beta
 title: prometheus.operator.servicemonitors
 ---
 
@@ -192,7 +190,7 @@ fully consistent like hashmod sharding is).
 If {{< param "PRODUCT_NAME" >}} is _not_ running in clustered mode, then the block is a no-op, and
 `prometheus.operator.servicemonitors` scrapes every target it receives in its arguments.
 
-[using clustering]: {{< relref "../../concepts/clustering.md" >}}
+[using clustering]: ../../../concepts/clustering/
 
 ## Exported fields
 

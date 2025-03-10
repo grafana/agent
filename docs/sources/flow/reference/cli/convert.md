@@ -1,13 +1,13 @@
 ---
 aliases:
-- /docs/grafana-cloud/agent/flow/reference/cli/convert/
-- /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/cli/convert/
-- /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/cli/convert/
-- /docs/grafana-cloud/send-data/agent/flow/reference/cli/convert/
+  - /docs/grafana-cloud/agent/flow/reference/cli/convert/
+  - /docs/grafana-cloud/monitor-infrastructure/agent/flow/reference/cli/convert/
+  - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/cli/convert/
+  - /docs/grafana-cloud/send-data/agent/flow/reference/cli/convert/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/cli/convert/
 description: Learn about the convert command
 labels:
-  stage: beta
+  stage: public-preview
 menuTitle: convert
 title: The convert command
 weight: 100
@@ -25,13 +25,13 @@ This command has no backward compatibility guarantees and may change or be remov
 
 Usage:
 
-* `AGENT_MODE=flow grafana-agent convert [<FLAG> ...] <FILE_NAME>`
-* `grafana-agent-flow convert [<FLAG> ...] <FILE_NAME>`
+- `AGENT_MODE=flow grafana-agent convert [<FLAG> ...] <FILE_NAME>`
+- `grafana-agent-flow convert [<FLAG> ...] <FILE_NAME>`
 
-   Replace the following:
+  Replace the following:
 
-   * _`<FLAG>`_: One or more flags that define the input and output of the command.
-   * _`<FILE_NAME>`_: The {{< param "PRODUCT_ROOT_NAME" >}} configuration file.
+  - _`<FLAG>`_: One or more flags that define the input and output of the command.
+  - _`<FILE_NAME>`_: The {{< param "PRODUCT_ROOT_NAME" >}} configuration file.
 
 If the `FILE_NAME` argument isn't provided or if the `FILE_NAME` argument is
 equal to `-`, `convert` converts the contents of standard input. Otherwise,
@@ -44,15 +44,15 @@ configuration or can't be converted to {{< param "PRODUCT_NAME" >}} River format
 
 The following flags are supported:
 
-* `--output`, `-o`: The filepath and filename where the output is written.
+- `--output`, `-o`: The filepath and filename where the output is written.
 
-* `--report`, `-r`: The filepath and filename where the report is written.
+- `--report`, `-r`: The filepath and filename where the report is written.
 
-* `--source-format`, `-f`: Required. The format of the source file. Supported formats: [otelcol], [prometheus], [promtail], [static].
+- `--source-format`, `-f`: Required. The format of the source file. Supported formats: [otelcol], [prometheus], [promtail], [static].
 
-* `--bypass-errors`, `-b`: Enable bypassing errors when converting.
+- `--bypass-errors`, `-b`: Enable bypassing errors when converting.
 
-* `--extra-args`, `e`: Extra arguments from the original format used by the converter.
+- `--extra-args`, `e`: Extra arguments from the original format used by the converter.
 
 [otelcol]: #opentelemetry-collector
 [prometheus]: #prometheus
@@ -63,9 +63,10 @@ The following flags are supported:
 ### Defaults
 
 {{< param "PRODUCT_NAME" >}} defaults are managed as follows:
-* If a provided source configuration value matches a {{< param "PRODUCT_NAME" >}} default value, the property is left off the output.
-* If a non-provided source configuration value default matches a {{< param "PRODUCT_NAME" >}} default value, the property is left off the output.
-* If a non-provided source configuration value default doesn't match a {{< param "PRODUCT_NAME" >}} default value, the default value is included in the output.
+
+- If a provided source configuration value matches a {{< param "PRODUCT_NAME" >}} default value, the property is left off the output.
+- If a non-provided source configuration value default matches a {{< param "PRODUCT_NAME" >}} default value, the property is left off the output.
+- If a non-provided source configuration value default doesn't match a {{< param "PRODUCT_NAME" >}} default value, the default value is included in the output.
 
 ### Errors
 
@@ -95,7 +96,7 @@ This includes Prometheus features such as
 [relabel_config](https://prometheus.io/docs/prometheus/2.45/configuration/configuration/#relabel_config),
 [metric_relabel_configs](https://prometheus.io/docs/prometheus/2.45/configuration/configuration/#metric_relabel_configs),
 [remote_write](https://prometheus.io/docs/prometheus/2.45/configuration/configuration/#remote_write),
-and many supported *_sd_configs. Unsupported features in a source configuration result
+and many supported \*\_sd_configs. Unsupported features in a source configuration result
 in [errors].
 
 Refer to [Migrate from Prometheus to {{< param "PRODUCT_NAME" >}}][migrate-prometheus] for a detailed migration guide.
@@ -130,10 +131,10 @@ also raise warnings for configuration options that may require your attention.
 
 Refer to [Migrate from Grafana Agent Static to {{< param "PRODUCT_NAME" >}}][migrate-static] for a detailed migration guide.
 
-[Component Reference]: ../../components/
+[component reference]: ../../components/
 [migrate-otelcol]: ../../../tasks/migrate/from-otelcol/
 [migrate-prometheus]: ../../../tasks/migrate/from-prometheus/
 [migrate-promtail]: ../../../tasks/migrate/from-promtail/
 [migrate-static]: ../../../tasks/migrate/from-static/
-[Grafana Agent Static]: ../../../../static/
+[grafana agent static]: ../../../../static/
 [integrations-next]: ../../../../static/configuration/integrations/integrations-next/

@@ -6,8 +6,6 @@ aliases:
 - /docs/grafana-cloud/send-data/agent/flow/reference/components/module.string/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/module.string/
 description: Learn about module.string
-labels:
-  stage: beta
 title: module.string
 ---
 
@@ -23,7 +21,7 @@ Starting with release v0.40, `module.string` is deprecated and is replaced by `i
 `module.string` is a *module loader* component. A module loader is a {{< param "PRODUCT_NAME" >}}
 component which retrieves a [module][] and runs the components defined inside of it.
 
-[module]: {{< relref "../../concepts/modules.md" >}}
+[module]: ../../../concepts/modules/
 
 ## Usage
 
@@ -78,7 +76,7 @@ The attributes provided in the `arguments` block are validated based on the
 * Attributes in the `argument` block of the module loader will be rejected if
   they are not defined in the module source.
 
-[argument blocks]: {{< relref "../config-blocks/argument.md" >}}
+[argument blocks]: ../../config-blocks/argument/
 
 ## Exported fields
 
@@ -94,7 +92,7 @@ from the parent config via `module.string.LABEL.exports.EXPORT_LABEL`.
 Values in `exports` correspond to [export blocks][] defined in the module
 source.
 
-[export blocks]: {{< relref "../config-blocks/export.md" >}}
+[export blocks]: ../../config-blocks/export/
 
 ## Component health
 
