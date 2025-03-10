@@ -6,8 +6,6 @@ aliases:
 - /docs/grafana-cloud/send-data/agent/flow/reference/components/discovery.kubelet/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/discovery.kubelet/
 description: Learn about discovery.kubelet
-labels:
-  stage: beta
 title: discovery.kubelet
 ---
 

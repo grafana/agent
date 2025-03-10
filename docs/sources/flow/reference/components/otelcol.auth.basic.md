@@ -76,4 +76,4 @@ otelcol.auth.basic "creds" {
 }
 ```
 
-[otelcol.exporter.otlp]: {{< relref "./otelcol.exporter.otlp.md" >}}
+[otelcol.exporter.otlp]: ../otelcol.exporter.otlp/

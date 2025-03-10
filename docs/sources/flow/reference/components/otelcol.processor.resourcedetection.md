@@ -5,8 +5,6 @@ aliases:
 - /docs/grafana-cloud/monitor-infrastructure/integrations/agent/flow/reference/components/otelcol.processor.resourcedetection/
 - /docs/grafana-cloud/send-data/agent/flow/reference/components/otelcol.processor.resourcedetection/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.processor.resourcedetection/
-labels:
-  stage: beta
 title: otelcol.processor.resourcedetection
 description: Learn about otelcol.processor.resourcedetection
 ---
@@ -366,7 +364,7 @@ Example values:
 * `cloud.provider`: `"azure"`
 * `cloud.platform`: `"azure_vm"`
 
-Azure AKS cluster name is derived from the Azure Instance Metadata Service's (IMDS) infrastructure resource group field. 
+Azure AKS cluster name is derived from the Azure Instance Metadata Service's (IMDS) infrastructure resource group field.
 This field contains the resource group and name of the cluster, separated by underscores. For example: `MC_<resource group>_<cluster name>_<location>`.
 
 Example:
@@ -377,7 +375,7 @@ Example:
 
 The cluster name is detected if it does not contain underscores and if a custom infrastructure resource group name was not used.
 
-If accurate parsing cannot be performed, the infrastructure resource group value is returned. 
+If accurate parsing cannot be performed, the infrastructure resource group value is returned.
 This value can be used to uniquely identify the cluster, because Azure will not allow users to create multiple clusters with the same infrastructure resource group name.
 
 ### consul

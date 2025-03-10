@@ -103,5 +103,5 @@ otelcol.auth.bearer "creds" {
 }
 ```
 
-[otelcol.exporter.otlp]: {{< relref "./otelcol.exporter.otlp.md" >}}
-[otelcol.exporter.otlphttp]: {{< relref "./otelcol.exporter.otlphttp.md" >}}
+[otelcol.exporter.otlp]: ../otelcol.exporter.otlp/
+[otelcol.exporter.otlphttp]: ../otelcol.exporter.otlphttp/
