@@ -119,8 +119,8 @@ application and the sidecar agent.
 * Air-gapped applications that can’t be otherwise reached over the network
 
 ### Don’t use for
-* Long-lived applications 
+* Long-lived applications
 * Scenarios where the agent size grows so large it can become a noisy neighbor
 
-[hashmod sharding]: ../../static/operation-guide/
-[clustering]: ../../flow/concepts/clustering/
+[hashmod sharding]: /docs/agent/<AGENT_VERSION>/static/operation-guide/
+[clustering]: /docs/agent/<AGENT_VERSION>/flow/concepts/clustering/

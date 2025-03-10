@@ -25,7 +25,7 @@ A path is a reference to a telemetry data such as:
 * Instrumentation scope name.
 * Span attributes.
 
-In addition to the [standard OTTL Converter functions][OTTL Converter functions], 
+In addition to the [standard OTTL Converter functions][OTTL Converter functions],
 the following metrics-only functions are used exclusively by the processor:
 * [HasAttrKeyOnDataPoint][]
 * [HasAttrOnDataPoint][]
@@ -41,7 +41,7 @@ the following metrics-only functions are used exclusively by the processor:
 
 {{< admonition type="note" >}}
 Raw River strings can be used to write OTTL statements.
-For example, the OTTL statement `attributes["grpc"] == true` 
+For example, the OTTL statement `attributes["grpc"] == true`
 is written in River as \`attributes["grpc"] == true\`
 
 {{< /admonition >}}
@@ -57,10 +57,10 @@ You can specify multiple `otelcol.processor.filter` components by giving them di
 {{< admonition type="warning" >}}
 Exercise caution when using `otelcol.processor.filter`:
 
-- Make sure you understand schema/format of the incoming data and test the configuration thoroughly. 
+- Make sure you understand schema/format of the incoming data and test the configuration thoroughly.
   In general, use a configuration that is as specific as possible ensure you retain only the data you want to keep.
-- [Orphaned Telemetry][]: The processor allows dropping spans. Dropping a span may lead to 
-  orphaned spans if the dropped span is a parent. Dropping a span may lead to orphaned logs 
+- [Orphaned Telemetry][]: The processor allows dropping spans. Dropping a span may lead to
+  orphaned spans if the dropped span is a parent. Dropping a span may lead to orphaned logs
   if the log references the dropped span.
 
 [Orphaned Telemetry]: https://github.com/open-telemetry/opentelemetry-collector/blob/v0.85.0/docs/standard-warnings.md#orphaned-telemetry
@@ -134,7 +134,7 @@ If all span events for a span are dropped, the span will be left intact.
 
 ### metrics block
 
-The `metrics` block specifies statements that filter metric telemetry signals. 
+The `metrics` block specifies statements that filter metric telemetry signals.
 Only one `metrics` blocks can be specified.
 
 Name        | Type           | Description                                               | Default | Required
@@ -142,7 +142,7 @@ Name        | Type           | Description                                      
 `metric`    | `list(string)` | List of OTTL statements filtering OTLP metric.            |         | no
 `datapoint` | `list(string)` | List of OTTL statements filtering OTLP metric datapoints. |         | no
 
-The syntax of OTTL statements depends on the OTTL context. See the OpenTelemetry 
+The syntax of OTTL statements depends on the OTTL context. See the OpenTelemetry
 documentation for more information:
 * [OTTL metric context][]
 * [OTTL datapoint context][]
@@ -158,14 +158,14 @@ If all datapoints for a metric are dropped, the metric will also be dropped.
 
 ### logs block
 
-The `logs` block specifies statements that filter log telemetry signals. 
+The `logs` block specifies statements that filter log telemetry signals.
 Only `logs` blocks can be specified.
 
 Name            | Type           | Description                                    | Default | Required
 --------------- | -------------- | ---------------------------------------------- | ------- | --------
 `log_record`    | `list(string)` | List of OTTL statements filtering OTLP metric. |         | no
 
-The syntax of OTTL statements depends on the OTTL context. See the OpenTelemetry 
+The syntax of OTTL statements depends on the OTTL context. See the OpenTelemetry
 documentation for more information:
 * [OTTL log context][]
 
@@ -291,7 +291,7 @@ Some values in the River strings are [escaped][river-strings]:
 * `\` is escaped with `\\`
 * `"` is escaped with `\"`
 
-[river-strings]: ../../concepts/config-language/expressions/types_and_values.md/#strings
+[river-strings]: /docs/agent/<AGENT_VERSION>/flow/concepts/config-language/expressions/types_and_values/#strings
 
 
 [OTTL]: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/v0.85.0/pkg/ottl/README.md
