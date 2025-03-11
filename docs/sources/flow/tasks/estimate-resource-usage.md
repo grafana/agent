@@ -48,8 +48,8 @@ These recommendations are based on deployments that use [clustering][], but they
 will broadly apply to other deployment modes. For more information on how to
 deploy {{< param "PRODUCT_NAME" >}}, see [deploying grafana agent][].
 
-[deploying grafana agent]: {{< relref "../get-started/deploy-agent.md" >}}
-[clustering]: {{< relref "../concepts/clustering.md" >}}
+[deploying grafana agent]: ../../get-started/deploy-agent/
+[clustering]: ../../concepts/clustering/
 
 ## Loki logs
 

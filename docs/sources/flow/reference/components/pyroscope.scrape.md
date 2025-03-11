@@ -6,8 +6,6 @@ aliases:
 - /docs/grafana-cloud/send-data/agent/flow/reference/components/pyroscope.scrape/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/pyroscope.scrape/
 description: Learn about pyroscope.scrape
-labels:
-  stage: beta
 title: pyroscope.scrape
 ---
 
@@ -15,15 +13,15 @@ title: pyroscope.scrape
 
 {{< docs/shared lookup="flow/stability/beta.md" source="agent" version="<AGENT_VERSION>" >}}
 
-`pyroscope.scrape` collects [pprof] performance profiles for a given set of HTTP `targets`. 
+`pyroscope.scrape` collects [pprof] performance profiles for a given set of HTTP `targets`.
 
 `pyroscope.scrape` mimcks the scraping behavior of `prometheus.scrape`.
 Similarly to how Prometheus scrapes metrics via HTTP, `pyroscope.scrape` collects profiles via HTTP requests.
 
-Unlike Prometheus, which usually only scrapes one `/metrics` endpoint per target, 
+Unlike Prometheus, which usually only scrapes one `/metrics` endpoint per target,
 `pyroscope.scrape` may need to scrape multiple endpoints for the same target.
-This is because different types of profiles are scraped on different endpoints. 
-For example, "mutex" profiles may be scraped on a `/debug/pprof/delta_mutex` HTTP endpoint, whereas 
+This is because different types of profiles are scraped on different endpoints.
+For example, "mutex" profiles may be scraped on a `/debug/pprof/delta_mutex` HTTP endpoint, whereas
 memory consumption may be scraped on a `/debug/pprof/allocs` HTTP endpoint.
 
 The profile paths, protocol scheme, scrape interval, scrape timeout,
@@ -37,12 +35,12 @@ If a scrape request fails, the [debug UI][] for `pyroscope.scrape` will show:
 * The time of the last successful scrape.
 * The labels last used for scraping.
 
-The scraped performance profiles can be forwarded to components such as 
+The scraped performance profiles can be forwarded to components such as
 `pyroscope.write` via the `forward_to` argument.
 
 Multiple `pyroscope.scrape` components can be specified by giving them different labels.
 
-[debug UI]: {{< relref "../../tasks/debug.md" >}}
+[debug UI]: ../../../tasks/debug/
 
 ## Usage
 
@@ -55,7 +53,7 @@ pyroscope.scrape "LABEL" {
 
 ## Arguments
 
-`pyroscope.scrape` starts a new scrape job to scrape all of the input targets. 
+`pyroscope.scrape` starts a new scrape job to scrape all of the input targets.
 Multiple scrape jobs can be started for a single input target
 when scraping multiple profile types.
 
@@ -63,7 +61,7 @@ The list of arguments that can be used to configure the block is
 presented below.
 
 Any omitted arguments take on their default values. If conflicting
-arguments are being passed (for example, configuring both `bearer_token` 
+arguments are being passed (for example, configuring both `bearer_token`
 and `bearer_token_file`), then `pyroscope.scrape` will fail to start and will report an error.
 
 The following arguments are supported:
@@ -105,7 +103,7 @@ For example, the `job_name` of `pyroscope.scrape "local" { ... }` will be `"pyro
 
 #### `targets` argument
 
-The list of `targets` can be provided [statically][example_static_targets], [dynamically][example_dynamic_targets], 
+The list of `targets` can be provided [statically][example_static_targets], [dynamically][example_dynamic_targets],
 or a [combination of both][example_static_and_dynamic_targets].
 
 The special `__address__` label _must always_ be present and corresponds to the
@@ -113,9 +111,9 @@ The special `__address__` label _must always_ be present and corresponds to the
 
 Labels starting with a double underscore (`__`) are treated as _internal_, and are removed prior to scraping.
 
-The special label `service_name` is required and must always be present. 
-If it is not specified, `pyroscope.scrape` will attempt to infer it from 
-either of the following sources, in this order: 
+The special label `service_name` is required and must always be present.
+If it is not specified, `pyroscope.scrape` will attempt to infer it from
+either of the following sources, in this order:
 1. `__meta_kubernetes_pod_annotation_pyroscope_io_service_name` which is a `pyroscope.io/service_name` pod annotation.
 2. `__meta_kubernetes_namespace` and `__meta_kubernetes_pod_container_name`
 3. `__meta_docker_container_name`
@@ -123,7 +121,7 @@ either of the following sources, in this order:
 
 If `service_name` is not specified and could not be inferred, then it is set to `unspecified`.
 
-The following labels are automatically injected to the scraped profiles 
+The following labels are automatically injected to the scraped profiles
 so that they can be linked to a scrape target:
 
 | Label            | Description                                                      |
@@ -134,8 +132,8 @@ so that they can be linked to a scrape target:
 
 #### `scrape_interval` argument
 
-The `scrape_interval` typically refers to the frequency with which {{< param "PRODUCT_NAME" >}} collects performance profiles from the monitored targets. 
-It represents the time interval between consecutive scrapes or data collection events. 
+The `scrape_interval` typically refers to the frequency with which {{< param "PRODUCT_NAME" >}} collects performance profiles from the monitored targets.
+It represents the time interval between consecutive scrapes or data collection events.
 This parameter is important for controlling the trade-off between resource usage and the freshness of the collected data.
 
 If `scrape_interval` is short:
@@ -150,16 +148,16 @@ If `scrape_interval` is long:
   * Lower resource consumption.
 * Disadvantages:
   * More profiles may be lost if the application being scraped crashes.
-  * If the [delta argument][] is set to `true`, the batch size of 
+  * If the [delta argument][] is set to `true`, the batch size of
     each remote write to Pyroscope may be bigger.
     The Pyroscope database may need to be tuned with higher limits.
-  * If the [delta argument][] is set to `true`, there is a larger risk of 
+  * If the [delta argument][] is set to `true`, there is a larger risk of
     reaching the HTTP server timeouts of the application being scraped.
 
 For example, consider this situation:
 * `pyroscope.scrape` is configured with a `scrape_interval` of `"60s"`.
 * The application being scraped is running an HTTP server with a timeout of 30 seconds.
-* Any scrape HTTP requests where the [delta argument][] is set to `true` will fail, 
+* Any scrape HTTP requests where the [delta argument][] is set to `true` will fail,
   because they will attempt to run for 59 seconds.
 
 ## Blocks
@@ -190,8 +188,8 @@ The `>` symbol indicates deeper levels of nesting. For example,
 `oauth2 > tls_config` refers to a `tls_config` block defined inside
 an `oauth2` block.
 
-Any omitted blocks take on their default values. For example, 
-if `profile.mutex` is not specified in the config, 
+Any omitted blocks take on their default values. For example,
+if `profile.mutex` is not specified in the config,
 the defaults documented in [profile.mutex][] will be used.
 
 [basic_auth]: #basic_auth-block
@@ -410,7 +408,7 @@ APIs.
 
 If {{< param "PRODUCT_NAME" >}} is _not_ running in clustered mode, this block is a no-op.
 
-[using clustering]: {{< relref "../../concepts/clustering.md" >}}
+[using clustering]: ../../../concepts/clustering/
 
 ## Common configuration
 
@@ -450,7 +448,7 @@ scrape job on the component's debug endpoint.
 
 ### Default endpoints of static targets
 
-The following example sets up a scrape job of a statically configured 
+The following example sets up a scrape job of a statically configured
 list of targets - {{< param "PRODUCT_ROOT_NAME" >}} itself and Pyroscope.
 The scraped profiles are sent to `pyroscope.write` which remote writes them to a Pyroscope database.
 
@@ -489,7 +487,7 @@ http://localhost:12345/debug/pprof/profile?seconds=14
 
 Note that `seconds=14` is added to the `/debug/pprof/profile` endpoint, because:
 * The `delta` argument of the `profile.process_cpu` block is `true` by default.
-* `scrape_interval` is `"15s"` by default. 
+* `scrape_interval` is `"15s"` by default.
 
 Also note that the `/debug/fgprof` endpoint will not be scraped, because
 the `enabled` argument of the `profile.fgprof` block is `false` by default.

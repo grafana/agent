@@ -226,7 +226,7 @@ otelcol.exporter.otlp "production" {
 }
 ```
 
-[otelcol.exporter.otlp]: {{< relref "./otelcol.exporter.otlp.md" >}}
+[otelcol.exporter.otlp]: ../otelcol.exporter.otlp/
 <!-- START GENERATED COMPATIBLE COMPONENTS -->
 
 ## Compatible components

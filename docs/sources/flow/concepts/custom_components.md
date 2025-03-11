@@ -33,10 +33,10 @@ The following custom configuration blocks can be used inside a `declare` block:
 
 Custom components are useful for reusing a common pipeline multiple times. To learn how to share custom components across multiple files, refer to [Modules][].
 
-[declare]: {{< relref "../reference/config-blocks/declare.md" >}}
-[argument]: {{< relref "../reference/config-blocks/argument.md" >}}
-[export]: {{< relref "../reference/config-blocks/export.md" >}}
-[Modules]: {{< relref "./modules.md" >}}
+[declare]: ../../reference/config-blocks/declare/
+[argument]: ../../reference/config-blocks/argument/
+[export]: ../../reference/config-blocks/export/
+[Modules]: ../modules/
 
 ## Example
 
