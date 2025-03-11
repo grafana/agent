@@ -10,6 +10,35 @@ internal API changes are not present.
 Main (unreleased)
 -----------------
 
+v0.44.2 (2024-01-29)
+-------------------------
+
+### Bugfixes
+
+- `loki.source.podlogs`: Fixed a bug which prevented clustering from working and caused duplicate logs to be sent.
+  The bug only happened when no `selector` or `namespace_selector` blocks were specified in the Agent configuration. (@ptodev)
+
+- `pyroscope.scrape` no longer tries to scrape endpoints which are not active targets anymore. (@wildum @mattdurham @dehaansa @ptodev)
+
+### Enhancements
+
+- Upgrade `github.com/goccy/go-json` to v0.10.4, which reduces the memory consumption of an Agent instance by 20MB.
+  If Agent is running certain otelcol components, this reduction will not apply. (@ptodev)
+  
+### Other changes
+
+- Remove setcap for `cap_net_bind_service` to allow Agent to run in restricted environments.
+  Modern container runtimes allow binding to unprivileged ports as non-root. (@ptodev)
+
+- Update to go 1.22.11 (@wildum)
+
+v0.43.4 (2024-11-25)
+-----------------
+
+### Other
+
+- Update to go 1.22.9 (@mattdurham)
+
 v0.43.3 (2024-09-26)
 -------------------------
 

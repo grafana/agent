@@ -4,7 +4,7 @@
 # default when running `docker buildx build` or when DOCKER_BUILDKIT=1 is set
 # in environment variables.
 
-FROM --platform=$BUILDPLATFORM grafana/agent-build-image:0.41.1 as build
+FROM --platform=$BUILDPLATFORM grafana/agent-build-image:0.41.3 as build
 ARG BUILDPLATFORM
 ARG TARGETPLATFORM
 ARG TARGETOS
@@ -41,7 +41,7 @@ LABEL org.opencontainers.image.source="https://github.com/grafana/agent"
 # Install dependencies needed at runtime.
 RUN <<EOF
   apt-get update
-  apt-get install -qy libsystemd-dev tzdata ca-certificates libcap2-bin
+  apt-get install -qy libsystemd-dev tzdata ca-certificates
   rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 EOF
 
@@ -53,7 +53,6 @@ RUN groupadd --gid $UID $USERNAME
 RUN useradd -m -u $UID -g $UID $USERNAME
 RUN chown -R $USERNAME:$USERNAME /etc/agent
 RUN chown -R $USERNAME:$USERNAME /bin/grafana-agent
-RUN setcap 'cap_net_bind_service=+ep' /bin/grafana-agent
 
 ENTRYPOINT ["/bin/grafana-agent"]
 ENV AGENT_DEPLOY_MODE=docker

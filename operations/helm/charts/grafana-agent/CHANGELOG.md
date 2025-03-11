@@ -7,6 +7,19 @@ This document contains a historical list of changes between releases. Only
 changes that impact end-user behavior are listed; changes to documentation or
 internal API changes are not present.
 
+
+Main (unreleased)
+----------
+
+0.44.2 (2025-01-29)
+----------
+
+### Enhancements
+
+- Only utilize spec.internalTrafficPolicy in the Service if deploying to Kubernetes 1.26 or later. (@xylogenw376dq)
+
+- Update Grafana Agent version to v0.44.2. (@ptodev)
+
 0.43.3 (2024-09-26)
 ----------
 

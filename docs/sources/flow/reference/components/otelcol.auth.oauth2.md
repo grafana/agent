@@ -130,4 +130,4 @@ otelcol.auth.oauth2 "creds" {
 }
 ```
 
-[otelcol.exporter.otlp]: {{< relref "./otelcol.exporter.otlp.md" >}}
+[otelcol.exporter.otlp]: ../otelcol.exporter.otlp/

@@ -52,7 +52,7 @@ processing, and delivery.
 {{< admonition type="note" >}}
 This page focuses mainly on [Flow mode](https://grafana.com/docs/agent/<AGENT_VERSION>/flow/), the Terraform-inspired variant of Grafana Agent.
 
-For information on other variants of Grafana Agent, refer to [Introduction to Grafana Agent]({{< relref "./about.md" >}}).
+For information on other variants of Grafana Agent, refer to [Introduction to Grafana Agent](../about/).
 {{< /admonition >}}
 
 Grafana Agent can collect, transform, and send data to:
@@ -95,25 +95,28 @@ Grafana Agent can collect, transform, and send data to:
 
 ## Supported platforms
 
-* Linux
+The following operating systems and hardware architecture are supported.
 
-  * Minimum version: kernel 2.6.32 or later
-  * Architectures: AMD64, ARM64
+## Linux
 
-* Windows
+* Minimum version: kernel 4.x or later
+* Architectures: AMD64, ARM64
+* Within the Linux distribution lifecycle
 
-  * Minimum version: Windows Server 2016 or later, or Windows 10 or later.
-  * Architectures: AMD64
+## Windows
 
-* macOS
+* Minimum version: Windows Server 2016 or later, or Windows 10 or later.
+* Architectures: AMD64
 
-  * Minimum version: macOS 10.13 or later
-  * Architectures: AMD64 (Intel), ARM64 (Apple Silicon)
+## macOS
 
-* FreeBSD
+* Minimum version: macOS 10.13 or later
+* Architectures: AMD64 on Intel, ARM64 on Apple Silicon
 
-  * Minimum version: FreeBSD 10 or later
-  * Architectures: AMD64
+## FreeBSD
+
+* Within the FreeBSD lifecycle
+* Architectures: AMD64
 
 ## Release cadence
 

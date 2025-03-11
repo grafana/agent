@@ -6,8 +6,6 @@ aliases:
 - /docs/grafana-cloud/send-data/agent/flow/reference/components/otelcol.exporter.loadbalancing/
 canonical: https://grafana.com/docs/agent/latest/flow/reference/components/otelcol.exporter.loadbalancing/
 description: Learn about otelcol.exporter.loadbalancing
-labels:
-  stage: beta
 title: otelcol.exporter.loadbalancing
 ---
 
@@ -18,7 +16,7 @@ title: otelcol.exporter.loadbalancing
 <!-- Include a picture of the LB architecture? -->
 
 `otelcol.exporter.loadbalancing` accepts logs and traces from other `otelcol` components
-and writes them over the network using the OpenTelemetry Protocol (OTLP) protocol. 
+and writes them over the network using the OpenTelemetry Protocol (OTLP) protocol.
 
 > **NOTE**: `otelcol.exporter.loadbalancing` is a wrapper over the upstream
 > OpenTelemetry Collector `loadbalancing` exporter. Bug reports or feature requests will
@@ -27,15 +25,15 @@ and writes them over the network using the OpenTelemetry Protocol (OTLP) protoco
 Multiple `otelcol.exporter.loadbalancing` components can be specified by giving them
 different labels.
 
-The decision which backend to use depends on the trace ID or the service name. 
-The backend load doesn't influence the choice. Even though this load-balancer won't do 
-round-robin balancing of the batches, the load distribution should be very similar among backends, 
+The decision which backend to use depends on the trace ID or the service name.
+The backend load doesn't influence the choice. Even though this load-balancer won't do
+round-robin balancing of the batches, the load distribution should be very similar among backends,
 with a standard deviation under 5% at the current configuration.
 
 `otelcol.exporter.loadbalancing` is especially useful for backends configured with tail-based samplers
 which choose a backend based on the view of the full trace.
 
-When a list of backends is updated, some of the signals will be rerouted to different backends. 
+When a list of backends is updated, some of the signals will be rerouted to different backends.
 Around R/N of the "routes" will be rerouted differently, where:
 
 * A "route" is either a trace ID or a service name mapped to a certain backend.
@@ -69,7 +67,7 @@ Name | Type | Description | Default | Required
 
 The `routing_key` attribute determines how to route signals across endpoints. Its value could be one of the following:
 * `"service"`: spans with the same `service.name` will be exported to the same backend.
-This is useful when using processors like the span metrics, so all spans for each service are sent to consistent Agent instances 
+This is useful when using processors like the span metrics, so all spans for each service are sent to consistent Agent instances
 for metric collection. Otherwise, metrics for the same services would be sent to different Agents, making aggregations inaccurate.
 * `"traceID"`: spans belonging to the same traceID will be exported to the same backend.
 
@@ -113,7 +111,7 @@ refers to a `static` block defined inside a `resolver` block.
 
 The `resolver` block configures how to retrieve the endpoint to which this exporter will send data.
 
-Inside the `resolver` block, either the [dns][] block or the [static][] block 
+Inside the `resolver` block, either the [dns][] block or the [static][] block
 should be specified. If both `dns` and `static` are specified, `dns` takes precedence.
 
 ### static block
@@ -128,8 +126,8 @@ Name | Type | Description | Default | Required
 
 ### dns block
 
-The `dns` block periodically resolves an IP address via the DNS `hostname` attribute. This IP address 
-and the port specified via the `port` attribute will then be used by the gRPC exporter 
+The `dns` block periodically resolves an IP address via the DNS `hostname` attribute. This IP address
+and the port specified via the `port` attribute will then be used by the gRPC exporter
 as the endpoint to which to export data to.
 
 The following arguments are supported:
@@ -143,8 +141,8 @@ Name | Type | Description | Default | Required
 
 ### kubernetes block
 
-You can use the `kubernetes` block to load balance across the pods of a Kubernetes service. 
-The Kubernetes API notifies {{< param "PRODUCT_NAME" >}} whenever a new pod is added or removed from the service. 
+You can use the `kubernetes` block to load balance across the pods of a Kubernetes service.
+The Kubernetes API notifies {{< param "PRODUCT_NAME" >}} whenever a new pod is added or removed from the service.
 The `kubernetes` resolver has a much faster response time than the `dns` resolver because it doesn't require polling.
 
 The following arguments are supported:
@@ -154,10 +152,10 @@ Name | Type | Description | Default | Required
 `service` | `string`       | Kubernetes service to resolve. |  | yes
 `ports`   | `list(number)` | Ports to use with the IP addresses resolved from `service`. | `[4317]` | no
 
-If no namespace is specified inside `service`, an attempt will be made to infer the namespace for this Agent. 
+If no namespace is specified inside `service`, an attempt will be made to infer the namespace for this Agent.
 If this fails, the `default` namespace will be used.
 
-Each of the ports listed in `ports` will be used with each of the IPs resolved from `service`. 
+Each of the ports listed in `ports` will be used with each of the IPs resolved from `service`.
 
 The "get", "list", and "watch" [roles](https://kubernetes.io/docs/reference/access-authn-authz/rbac/#role-example)
 must be granted in Kubernetes for the resolver to work.
@@ -173,7 +171,7 @@ The `otlp` block configures OTLP-related settings for exporting.
 
 ### client block
 
-The `client` block configures the gRPC client used by the component. 
+The `client` block configures the gRPC client used by the component.
 The endpoints used by the client block are the ones from the `resolver` block
 
 The following arguments are supported:
@@ -275,7 +273,7 @@ Name | Type | Description
 Different {{< param "PRODUCT_NAME" >}} components require different load-balancing strategies.
 The use of `otelcol.exporter.loadbalancing` is only necessary for [stateful Flow components][stateful-and-stateless-components].
 
-[stateful-and-stateless-components]: {{< relref "../../get-started/deploy-agent.md#stateful-and-stateless-components" >}}
+[stateful-and-stateless-components]: ../../../get-started/deploy-agent/#stateful-and-stateless-components
 
 ### otelcol.processor.tail_sampling
 <!-- TODO: Add a picture of the architecture?  -->
@@ -283,7 +281,7 @@ All spans for a given trace ID must go to the same tail sampling {{< param "PROD
 * This can be done by configuring `otelcol.exporter.loadbalancing` with `routing_key = "traceID"`.
 * If you do not configure `routing_key = "traceID"`, the sampling decision may be incorrect.
   The tail sampler must have a full view of the trace when making a sampling decision.
-  For example, a `rate_limiting` tail sampling strategy may incorrectly pass through 
+  For example, a `rate_limiting` tail sampling strategy may incorrectly pass through
   more spans than expected if the spans for the same trace are spread out to more than
   one {{< param "PRODUCT_NAME" >}} instance.
 
@@ -295,7 +293,7 @@ All spans for a given `service.name` must go to the same spanmetrics {{< param "
 * If you do not configure `routing_key = "service"`, metrics generated from spans might be incorrect.
 For example, if similar spans for the same `service.name` end up on different {{< param "PRODUCT_ROOT_NAME" >}} instances, the two {{< param "PRODUCT_ROOT_NAME" >}}s will have identical metric series for calculating span latency, errors, and number of requests.
 When both {{< param "PRODUCT_ROOT_NAME" >}} instances attempt to write the metrics to a database such as Mimir, the series may clash with each other.
-At best, this will lead to an error in {{< param "PRODUCT_ROOT_NAME" >}} and a rejected write to the metrics database. 
+At best, this will lead to an error in {{< param "PRODUCT_ROOT_NAME" >}} and a rejected write to the metrics database.
 At worst, it could lead to inaccurate data due to overlapping samples for the metric series.
 
 However, there are ways to scale `otelcol.connector.spanmetrics` without the need for a load balancer:
@@ -321,7 +319,7 @@ You could differentiate the series by adding an attribute such as `"collector.id
 The series from different {{< param "PRODUCT_ROOT_NAME" >}}s can be aggregated using PromQL queries on the backed metrics database.
 If the metrics are stored in Grafana Mimir, cardinality issues due to `"collector.id"` labels can be solved using [Adaptive Metrics][adaptive-metrics].
 
-A simpler, more scalable alternative to generating service graph metrics in {{< param "PRODUCT_ROOT_NAME" >}} is to generate them entirely in the backend database. 
+A simpler, more scalable alternative to generating service graph metrics in {{< param "PRODUCT_ROOT_NAME" >}} is to generate them entirely in the backend database.
 For example, service graphs can be [generated][tempo-servicegraphs] in Grafana Cloud by the Tempo traces database.
 
 [tempo-servicegraphs]: https://grafana.com/docs/tempo/latest/metrics-generator/service_graphs/
@@ -340,7 +338,7 @@ Unfortunately, this can also lead to side effects.
 For example, if `otelcol.connector.spanmetrics` is configured to generate exemplars, the tail sampling {{< param "PRODUCT_ROOT_NAME" >}}s might drop the trace that the exemplar points to.
 There is no coordination between the tail sampling {{< param "PRODUCT_ROOT_NAME" >}}s and the span metrics {{< param "PRODUCT_ROOT_NAME" >}}s to make sure trace IDs for exemplars are kept.
 
-<!-- 
+<!--
 TODO: Add a troubleshooting section?
 1. Use GODEBUG for DNS resolver logging
 2. Enable debug logging on the Agent
@@ -361,7 +359,7 @@ information.
 
 ### Static resolver
 
-This example accepts OTLP logs and traces over gRPC. It then sends them in a load-balanced 
+This example accepts OTLP logs and traces over gRPC. It then sends them in a load-balanced
 way to "localhost:55690" or "localhost:55700".
 
 ```river
@@ -389,7 +387,7 @@ otelcol.exporter.loadbalancing "default" {
 
 ### DNS resolver
 
-When configured with a `dns` resolver, `otelcol.exporter.loadbalancing` will do a DNS lookup 
+When configured with a `dns` resolver, `otelcol.exporter.loadbalancing` will do a DNS lookup
 on regular intervals. Spans are exported to the addresses the DNS lookup returned.
 
 ```river
@@ -658,7 +656,7 @@ k3d cluster delete grafana-agent-lb-test
 
 ### Kubernetes resolver
 
-When you configure `otelcol.exporter.loadbalancing`  with a `kubernetes` resolver, the Kubernetes API notifies {{< param "PRODUCT_NAME" >}} whenever a new pod is added or removed from the service. 
+When you configure `otelcol.exporter.loadbalancing`  with a `kubernetes` resolver, the Kubernetes API notifies {{< param "PRODUCT_NAME" >}} whenever a new pod is added or removed from the service.
 Spans are exported to the addresses from the Kubernetes API, combined with all the possible `ports`.
 
 ```river
@@ -681,7 +679,7 @@ The following example shows a Kubernetes configuration that sets up two sets of 
 * A pool of load-balancer {{< param "PRODUCT_ROOT_NAME" >}}s:
   * Spans are received from instrumented applications via `otelcol.receiver.otlp`
   * Spans are exported via `otelcol.exporter.loadbalancing`.
-  * The load-balancer {{< param "PRODUCT_ROOT_NAME" >}}s will get notified by the Kubernetes API any time a pod 
+  * The load-balancer {{< param "PRODUCT_ROOT_NAME" >}}s will get notified by the Kubernetes API any time a pod
     is added or removed from the pool of sampling {{< param "PRODUCT_ROOT_NAME" >}}s.
 * A pool of sampling {{< param "PRODUCT_ROOT_NAME" >}}s:
   * The sampling {{< param "PRODUCT_ROOT_NAME" >}}s do not need to run behind a headless service.

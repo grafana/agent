@@ -19,7 +19,7 @@ title: discovery.file
 > If you are trying to discover files on the local filesystem rather than scrape
 > targets within a set of files, you should use [local.file_match][] instead.
 
-[local.file_match]: {{< relref "./local.file_match.md" >}}
+[local.file_match]: ../local.file_match/
 
 `discovery.file` discovers targets from a set of files, similar to the [Prometheus file_sd_config](https://prometheus.io/docs/prometheus/latest/configuration/configuration/#file_sd_config).
 

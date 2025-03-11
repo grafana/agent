@@ -24,7 +24,7 @@ configured to write logs at the info level.
 Multiple `otelcol.exporter.logging` components can be specified by giving them
 different labels.
 
-[logging config block]: {{< relref "../config-blocks/logging.md" >}}
+[logging config block]: ../../config-blocks/logging/
 
 ## Usage
 
