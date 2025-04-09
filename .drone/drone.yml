@@ -102,22 +102,6 @@ volumes:
   name: docker
 ---
 kind: pipeline
-name: Lint
-platform:
-  arch: amd64
-  os: linux
-steps:
-- commands:
-  - apt-get update -y && apt-get install -y libsystemd-dev
-  - make lint
-  image: grafana/agent-build-image:0.44.2
-  name: Lint
-trigger:
-  event:
-  - pull_request
-type: docker
----
-kind: pipeline
 name: Test dashboards
 platform:
   arch: amd64
@@ -1375,6 +1359,6 @@ kind: secret
 name: updater_private_key
 ---
 kind: signature
-hmac: 9a66ae4f8e69e76c70cac01b0f89c07aab7889d65825694b3e4bd43936ef122e
+hmac: cbec283d5ad8899e2a19c73d1b32051575ef2a0c1272b72c7f0a4111c403bba4
 
 ...
