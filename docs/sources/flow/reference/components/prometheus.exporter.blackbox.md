@@ -45,6 +45,8 @@ The `config` argument must be a YAML document as string defining which blackbox_
 - `remote.http.LABEL.content`
 - `remote.s3.LABEL.content`
 
+The `timeout` attribute in `config` or `config_file` has an effective upper limit of 10 seconds. Refer to the Prometheus blackbox exporter [issue 751](https://github.com/prometheus/blackbox_exporter/issues/751) for more information.
+
 See [blackbox_exporter](https://github.com/prometheus/blackbox_exporter/blob/master/example.yml) for details on how to generate a config file.
 
 ## Blocks
