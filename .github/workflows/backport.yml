@@ -1,6 +1,9 @@
 name: Backport PR Creator
 on:
-  pull_request_target:
+  pull_request_target: # zizmor: ignore[dangerous-triggers] In order to backport PRs from external
+    # contributors, this workflow needs to run against the base repo. The checkout action below is
+    # pinned to a specific commit to prevent arbitrary code execution by a fork that updates the
+    # logic of this workflow.
     types:
       - closed
       - labeled
