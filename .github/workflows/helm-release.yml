@@ -2,6 +2,8 @@ name: Release Helm chart
 on:
   push:
     branches: [main]
+permissions:
+  contents: read
 env:
   CR_CONFIGFILE: "${{ github.workspace }}/source/operations/helm/cr.yaml"
   CT_CONFIGFILE: "${{ github.workspace }}/source/operations/helm/ct.yaml"
@@ -16,13 +18,14 @@ jobs:
       chartpath: ${{ steps.list-changed.outputs.chartpath }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
         with:
           fetch-depth: 0
           path: source
+          persist-credentials: false
 
       - name: Install chart-testing
-        uses: helm/chart-testing-action@v2.6.1
+        uses: helm/chart-testing-action@e6669bcd63d7cb57cb4380c33043eebe5d111992 # v2.6.1
 
       - name: List changed charts
         id: list-changed
@@ -31,8 +34,8 @@ jobs:
 
           latest_tag=$( if ! git describe --tags --abbrev=0 --match='helm-chart/*' 2> /dev/null ; then git rev-list --max-parents=0 --first-parent HEAD; fi )
 
-          echo "Running: ct list-changed --config ${CT_CONFIGFILE} --since ${latest_tag} --target-branch ${{ github.ref_name }}"
-          changed=$(ct list-changed --config "${CT_CONFIGFILE}" --since "${latest_tag}" --target-branch "${{ github.ref_name }}")
+          echo "Running: ct list-changed --config ${CT_CONFIGFILE} --since ${latest_tag} --target-branch ${GH_REF_NAME}"
+          changed=$(ct list-changed --config "${CT_CONFIGFILE}" --since "${latest_tag}" --target-branch "${GH_REF_NAME}")
           echo "${changed}"
 
           num_changed=$(wc -l <<< ${changed})
@@ -56,6 +59,8 @@ jobs:
             echo "No charts have changed, skipping release"
             echo "changed=false" >> $GITHUB_OUTPUT
           fi
+        env:
+          GH_REF_NAME: ${{ github.ref_name }}
 
   release:
     needs: [setup]
@@ -63,10 +68,11 @@ jobs:
     if: needs.setup.outputs.changed == 'true'
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
         with:
           fetch-depth: 0
           path: source
+          persist-credentials: false
 
       - name: Configure Git
         run: |
@@ -75,12 +81,13 @@ jobs:
           git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
 
       - name: Checkout helm-charts
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
         with:
           fetch-depth: 0
           repository: grafana/helm-charts
           path: helm-charts
           token: "${{ secrets.GH_BOT_ACCESS_TOKEN }}"
+          persist-credentials: false
 
       - name: Configure Git for helm-charts
         run: |
@@ -89,7 +96,7 @@ jobs:
           git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
 
       - name: Set up Helm
-        uses: azure/setup-helm@v4
+        uses: azure/setup-helm@b9e51907a09c216f16ebe8536097933489208112 # v4
         with:
           version: v3.10.3
 
@@ -97,7 +104,7 @@ jobs:
         id: parse-chart
         run: |
           cd source
-          changed="${{ needs.setup.outputs.chartpath }}"
+          changed="${CHART_PATH}"
           description=$(yq ".description" < ${changed}/Chart.yaml)
           name=$(yq ".name" < ${changed}/Chart.yaml)
           version=$(yq ".version" < ${changed}/Chart.yaml)
@@ -105,6 +112,8 @@ jobs:
           echo "desc=${description}" >> $GITHUB_OUTPUT
           echo "tagname=helm-chart/${version}" >> $GITHUB_OUTPUT
           echo "packagename=${name}-${version}" >> $GITHUB_OUTPUT
+        env:
+          CHART_PATH: ${{ needs.setup.outputs.chartpath }}
 
       - name: Install CR tool
         run: |
@@ -118,21 +127,25 @@ jobs:
       - name: Create Helm package
         run: |
           cd source
-          "${CR_TOOL_PATH}/cr" package "${{ steps.parse-chart.outputs.chartpath }}" --config "${CR_CONFIGFILE}" --package-path "${CR_PACKAGE_PATH}"
+          "${CR_TOOL_PATH}/cr" package "${CHAKT_PATH}" --config "${CR_CONFIGFILE}" --package-path "${CR_PACKAGE_PATH}"
           echo "Result of chart package:"
           ls -l "${CR_PACKAGE_PATH}"
+        env:
+          CHART_PATH: ${{ steps.parse-chart.outputs.chartpath }}
 
       - name: Create tag and check if exists on origin
         run: |
           cd source
-          echo "Making tag ${{ steps.parse-chart.outputs.tagname }}"
-          git tag "${{ steps.parse-chart.outputs.tagname }}"
+          echo "Making tag ${TAG_NAME}"
+          git tag "${TAG_NAME}"
+        env:
+          TAG_NAME: ${{ steps.parse-chart.outputs.tagname }}
 
       # Note that this creates a release in grafana/helm-charts with a new tag.
       # The tag name in grafana/helm-charts is <package>-<version>, while the
       # tag name for grafana/agent is helm-chart/<version>.
       - name: Make github release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@da05d552573ad5aba039eaac05058a918a7bf631 # v2
         with:
           name: ${{ steps.parse-chart.outputs.packagename }}
           repository: grafana/helm-charts
@@ -143,17 +156,22 @@ jobs:
 
             Source commit: https://github.com/${{ github.repository }}/commit/${{ github.sha }}
 
-            Tag on source: https://github.com/${{ github.repository }}/releases/tag/${{ steps.parse-chart.outputs.tagname }}
+            Tag on source: https://github.com/${{ github.repository }}/releases/tag/${TAG_NAME}
           files: |
-            ${{ env.CR_PACKAGE_PATH }}/${{ steps.parse-chart.outputs.packagename }}.tgz
+            ${{ env.CR_PACKAGE_PATH }}/${TAG_NAME}.tgz
+        env:
+          TAG_NAME: ${{ steps.parse-chart.outputs.tagname }}
+
 
       - name: Push release tag on origin
         run: |
           cd source
-          echo "Pushing tag ${{ steps.parse-chart.outputs.tagname }}"
-          git push origin "${{ steps.parse-chart.outputs.tagname }}"
+          echo "Pushing tag ${TAG_NAME}"
+          git push origin "${TAG_NAME}"
 
       - name: Update helm-charts index.yaml
         run: |
           cd helm-charts
           "${CR_TOOL_PATH}/cr" index --config "${CR_CONFIGFILE}" --token "${{ secrets.GH_BOT_ACCESS_TOKEN }}" --index-path "${CR_INDEX_PATH}" --package-path "${CR_PACKAGE_PATH}" --push
+        env:
+          TAG_NAME: ${{ steps.parse-chart.outputs.tagname }}
