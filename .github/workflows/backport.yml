@@ -1,19 +1,26 @@
 name: Backport PR Creator
 on:
-  pull_request_target:
+  pull_request_target: # zizmor: ignore[dangerous-triggers] In order to backport PRs from external
+    # contributors, this workflow needs to run against the base repo. The checkout action below is
+    # pinned to a specific commit to prevent arbitrary code execution by a fork that updates the
+    # logic of this workflow.
     types:
       - closed
       - labeled
+
+permissions:
+  contents: read
 
 jobs:
   main:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Actions
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
         with:
           repository: "grafana/grafana-github-actions"
           path: ./actions
+          persist-credentials: false
       - name: Install Actions
         run: npm install --production --prefix ./actions
       - name: Run backport
