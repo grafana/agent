@@ -5,6 +5,9 @@ on:
     paths:
       - 'build-image/*'
 
+permissions:
+  contents: read
+
 jobs:
   check-linux-build-image:
     runs-on: github-hosted-ubuntu-x64-large

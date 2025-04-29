@@ -8,6 +8,9 @@ on:
       - 'master'
  workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   snyk-scan-ci:
     uses: 'grafana/security-github-actions/.github/workflows/snyk_monitor.yml@ae330403c3a5a8b6aaa653ce6f3d059b3a772488' # main

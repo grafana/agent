@@ -1,5 +1,7 @@
 name: Check docs
 on: [pull_request]
+permissions:
+  contents: read
 jobs:
   build-technical-documentation:
     runs-on: "ubuntu-latest"

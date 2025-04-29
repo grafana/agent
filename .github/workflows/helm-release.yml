@@ -2,6 +2,8 @@ name: Release Helm chart
 on:
   push:
     branches: [main]
+permissions:
+  contents: read
 env:
   CR_CONFIGFILE: "${{ github.workspace }}/source/operations/helm/cr.yaml"
   CT_CONFIGFILE: "${{ github.workspace }}/source/operations/helm/ct.yaml"
