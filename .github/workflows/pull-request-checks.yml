@@ -12,6 +12,9 @@ jobs:
   test:
     uses: ./.github/workflows/test.yml
 
+  test-dashboards:
+    uses: ./.github/workflows/test-dashboards.yml
+
   check-linux-build-image:
     if: ${{ contains(github.event.pull_request.changed_files, 'build-image/') }}
     uses: ./.github/workflows/check-linux-build-image.yml
