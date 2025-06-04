@@ -1,0 +1,17 @@
+name: Pull Request Checks
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  test:
+    uses: ./.github/workflows/test.yml
+
+  check-linux-build-image:
+    if: ${{ contains(github.event.pull_request.changed_files, 'build-image/') }}
+    uses: ./.github/workflows/check-linux-build-image.yml
+
+  check-windows-build-image:
+    if: ${{ contains(github.event.pull_request.changed_files, 'build-image/windows/') }}
+    uses: ./.github/workflows/check-windows-build-image.yml
