@@ -16,6 +16,9 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Mark repository as safe 🔒
+        run: git status || git config --system --add safe.directory "$GITHUB_WORKSPACE"
+
       - name: Regenerate dashboards 📊
         run: |
           make generate-dashboards
