@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   test:
-    name: Test 🧪
+    name: Test
     strategy:
       matrix:
         platform: [ubuntu-latest, macos-latest-xlarge]
@@ -34,7 +34,7 @@ jobs:
       run: make GO_TAGS="nodocker" test
 
   integration-test:
-    name: Integration test 🧪
+    name: Integration test
     runs-on: github-hosted-ubuntu-x64-large
     steps:
     - name: Checkout code 🛎️
