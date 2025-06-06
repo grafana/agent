@@ -2,18 +2,22 @@
   "name": "grafana-agent",
   "private": true,
   "dependencies": {
+    "@babel/helpers": "^7.26.10",
+    "@babel/runtime": "^7.26.10",
     "@fortawesome/fontawesome-svg-core": "^6.4.0",
     "@fortawesome/free-solid-svg-icons": "^6.4.0",
     "@fortawesome/react-fontawesome": "^0.2.0",
+    "@svgr/webpack": "^8.0.1",
     "d3": "^7.8.4",
     "d3-dag": "^0.11.5",
     "d3-zoom": "^3.0.0",
     "normalize.css": "^8.0.1",
+    "postcss": "^8.4.31",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.11.1",
-    "react-syntax-highlighter": "^15.5.0",
-    "typescript": "^5.0.4"
+    "typescript": "^5.0.4",
+    "ws": "^8.18.1"
   },
   "devDependencies": {
     "@types/d3": "^7.4.0",
