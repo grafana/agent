@@ -4,13 +4,14 @@ on:
   pull_request:
     paths:
       - 'build-image/windows/**'
+      - '.github/workflows/check-windows-build-image.yml'
 
 permissions:
   contents: read
 
 jobs:
   check-windows-build-image:
-    runs-on: windows-2019
+    runs-on: windows-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
