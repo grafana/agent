@@ -30,6 +30,11 @@ jobs:
         go-version-file: go.mod
         cache: false
 
+    - name: Set up Git user 🔒
+      run: |
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
     - name: Run tests 🧪
       run: make GO_TAGS="nodocker" test
 

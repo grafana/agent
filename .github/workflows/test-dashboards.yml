@@ -3,6 +3,9 @@ name: Test Dashboards
 on:
   workflow_call:
 
+permissions:
+  contents: read
+
 jobs:
   test-dashboards:
     name: Test Dashboards
