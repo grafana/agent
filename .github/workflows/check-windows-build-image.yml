@@ -1,9 +1,7 @@
 name: Check Windows build image
 
 on:
-  pull_request:
-    paths:
-      - 'build-image/windows/**'
+  workflow_call:
 
 permissions:
   contents: read

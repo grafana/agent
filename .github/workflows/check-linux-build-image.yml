@@ -1,9 +1,7 @@
 name: Check Linux build image
 
 on:
-  pull_request:
-    paths:
-      - 'build-image/*'
+  workflow_call:
 
 permissions:
   contents: read
