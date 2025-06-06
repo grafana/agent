@@ -1,6 +1,8 @@
 import React from 'react';
 
 // Object for react-syntax-highlighter's custom theme
+// NOTE: This is not currently used due to removal of react-syntax-highlighter to fix a security
+// issue.
 export const style: {
   [key: string]: React.CSSProperties;
 } = {
