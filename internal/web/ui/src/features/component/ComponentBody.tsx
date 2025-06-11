@@ -1,9 +1,7 @@
-import React, { Fragment } from 'react';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { Fragment } from 'react';
 
 import { riverStringify } from '../river-js/stringify';
 
-import { style } from './style';
 import Table from './Table';
 import { PartitionedBody } from './types';
 
@@ -24,11 +22,7 @@ const ComponentBody = ({ partition }: ComponentBodyProps) => {
         <tr key={name}>
           <td className={styles.nameColumn}>{name}</td>
           <td>
-            <pre className={styles.pre}>
-              <SyntaxHighlighter language="javascript" style={style}>
-                {riverStringify(value)}
-              </SyntaxHighlighter>
-            </pre>
+            <pre className={styles.pre}>{riverStringify(value)}</pre>
           </td>
         </tr>
       );
