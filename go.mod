@@ -751,6 +751,9 @@ replace (
 
 // TODO(rfratto): remove forks when changes are merged upstream
 replace (
+	// Add replace directive for hcsshim fork with errdefs v0.3.0 compatibility fixes
+	github.com/Microsoft/hcsshim => github.com/jharvey10/hcsshim v0.12.3
+
 	// TODO(tpaschalis) this is to remove global instantiation of plugins
 	// and allow non-singleton components.
 	// https://github.com/grafana/cadvisor/tree/grafana-v0.47-noglobals
