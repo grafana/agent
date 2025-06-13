@@ -233,6 +233,7 @@ func (l *tlsListener) applyNormalTLS(c TLSConfig) error {
 		MinVersion:               (uint16)(c.MinVersion),
 		MaxVersion:               (uint16)(c.MaxVersion),
 		PreferServerCipherSuites: c.PreferServerCipherSuites,
+		NextProtos:               []string{"h2", "http/1.1"}, // Support HTTP/2 for gRPC and HTTP/1.1 for HTTP
 
 		GetCertificate: l.getCertificate,
 	}
