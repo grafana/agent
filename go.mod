@@ -597,6 +597,7 @@ require github.com/ianlancetaylor/demangle v0.0.0-20230524184225-eabc099b10ab //
 
 require (
 	connectrpc.com/connect v1.14.0
+	github.com/Shopify/sarama v1.38.1
 	github.com/dimchansky/utfbom v1.1.1
 	github.com/githubexporter/github-exporter v0.0.0-20231025122338-656e7dc33fe7
 	github.com/grafana/agent-remote-config v0.0.2
@@ -624,7 +625,6 @@ require (
 	github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/network/armnetwork/v2 v2.2.1 // indirect
 	github.com/DataDog/sketches-go v1.4.4 // indirect
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/detectors/gcp v1.21.0 // indirect
-	github.com/Shopify/sarama v1.38.1 // indirect
 	github.com/Showmax/go-fqdn v1.0.0 // indirect
 	github.com/Workiva/go-datastructures v1.1.0 // indirect
 	github.com/aws/aws-sdk-go-v2/service/amp v1.23.0 // indirect

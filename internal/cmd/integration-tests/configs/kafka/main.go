@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/IBM/sarama"
+	"github.com/Shopify/sarama"
 )
 
 const (
