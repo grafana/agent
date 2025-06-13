@@ -1,0 +1,69 @@
+name: Update Linux build image
+
+on:
+  workflow_call:
+  push:
+    tags:
+      - 'build-image/v*'
+
+permissions:
+  contents: read
+
+env:
+  should_push_image: ${{ github.event_name != 'workflow_call' }}
+
+jobs:
+  update-linux-build-image:
+    runs-on: github-hosted-ubuntu-x64-large
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        with:
+          persist-credentials: false
+
+      - name: Setup QEMU
+        uses: docker/setup-qemu-action@29109295f81e9208d7d86ff1c6c12d2833863392 # v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@b5ca514318bd6ebac0fb2aedd5d36ec1b5c232a2 # v3
+
+      - name: Login to Docker Hub
+        if: env.should_push_image == 'true'
+        uses: docker/login-action@1f401f745bf57e30b3a2800ad308a87d2ebdf14b # v3
+        with:
+          username: ${{ secrets.DOCKER_LOGIN }} # TODOJOE: update to vault
+          password: ${{ secrets.DOCKER_PASSWORD }} # TODOJOE: update to vault
+
+      - name: Extract image tag
+        id: extract_tag
+        run: |
+          if [[ "${GITHUB_REF}" == refs/tags/build-image/v* ]]; then
+            echo "IMAGE_TAG=${GITHUB_REF#refs/tags/build-image/v}" >> $GITHUB_OUTPUT
+          else
+            echo "IMAGE_TAG=latest" >> $GITHUB_OUTPUT
+          fi
+        env:
+          GITHUB_REF: ${{ github.ref }}
+
+      - name: Build/push Linux build image
+        uses: docker/build-push-action@14487ce63c7a62a4a324b0bfb37086795e31c6c1 # v6
+        with:
+          context: ./build-image
+          push: ${{ env.should_push_image == 'true' }}
+          tags: grafana/agent-build-image:${{ steps.extract_tag.outputs.IMAGE_TAG }}
+          platforms: 'linux/amd64,linux/arm64'
+          build-args: |
+            GO_RUNTIME=golang:1.24.2-bullseye
+
+      - name: Build/push Linux build image for boring crypto
+        uses: docker/build-push-action@14487ce63c7a62a4a324b0bfb37086795e31c6c1 # v6
+        with:
+          context: ./build-image
+          push: ${{ env.should_push_image == 'true' }}
+          tags: grafana/agent-build-image:${{ steps.extract_tag.outputs.IMAGE_TAG }}-boringcrypto
+          platforms: 'linux/amd64,linux/arm64'
+          build-args: |
+            GO_RUNTIME=mcr.microsoft.com/oss/go/microsoft/golang:1.24.2-bullseye

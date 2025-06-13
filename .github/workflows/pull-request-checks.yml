@@ -21,10 +21,10 @@ jobs:
   test-dashboards:
     uses: ./.github/workflows/test-dashboards.yml
 
-  check-linux-build-image:
+  update-linux-build-image:
     if: ${{ contains(github.event.pull_request.changed_files, 'build-image/') }}
-    uses: ./.github/workflows/check-linux-build-image.yml
+    uses: ./.github/workflows/update-linux-build-image.yml
 
-  check-windows-build-image:
+  update-windows-build-image:
     if: ${{ contains(github.event.pull_request.changed_files, 'build-image/windows/') }}
-    uses: ./.github/workflows/check-windows-build-image.yml
+    uses: ./.github/workflows/update-windows-build-image.yml
