@@ -24,7 +24,13 @@ jobs:
   update-linux-build-image:
     if: ${{ contains(github.event.pull_request.changed_files, 'build-image/') }}
     uses: ./.github/workflows/update-linux-build-image.yml
+    permissions:
+      contents: read
+      id-token: write
 
   update-windows-build-image:
     if: ${{ contains(github.event.pull_request.changed_files, 'build-image/windows/') }}
     uses: ./.github/workflows/update-windows-build-image.yml
+    permissions:
+      contents: read
+      id-token: write
