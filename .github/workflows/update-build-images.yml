@@ -1,4 +1,4 @@
-name: Build Images
+name: Update build images
 
 on:
   push:
@@ -66,6 +66,7 @@ jobs:
 
       - name: Extract tag 🏷️
         id: extract_tag
+        shell: bash
         env:
           FULL_TAG: ${{ github.ref_name }}
         run: echo "IMAGE_TAG=${FULL_TAG##*/}-windows" >> $GITHUB_OUTPUT
@@ -75,7 +76,7 @@ jobs:
 
       - name: Build and push Windows image 🚀
         run: |
-          docker build -t ${{ env.DOCKER_IMAGE }}:${IMAGE_TAG} ./build-image/windows
-          docker push ${{ env.DOCKER_IMAGE }}:${IMAGE_TAG}
+          docker build -t ${{ env.DOCKER_IMAGE }}:$env:IMAGE_TAG ./build-image/windows
+          docker push ${{ env.DOCKER_IMAGE }}:$env:IMAGE_TAG
         env:
           IMAGE_TAG: ${{ steps.extract_tag.outputs.IMAGE_TAG }}
