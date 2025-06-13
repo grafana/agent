@@ -15,6 +15,9 @@ jobs:
   test:
     uses: ./.github/workflows/test.yml
 
+  test-crds:
+    uses: ./.github/workflows/test-crds.yml
+
   test-dashboards:
     uses: ./.github/workflows/test-dashboards.yml
 
