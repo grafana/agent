@@ -56,8 +56,8 @@ For example, the OTTL statement `set(description, "Sum") where type == "Sum"` ca
 
 Raw strings are generally more convenient for writing OTTL statements.
 
-[river-strings]: /docs/agent/<AGENT_VERSION>/flow/concepts/config-language/expressions/types_and_values/#strings
-[river-raw-strings]: /docs/agent/<AGENT_VERSION>/flow/concepts/config-language/expressions/types_and_values/#raw-strings
+[river-strings]: ../../../concepts/config-language/expressions/types_and_values/#strings
+[river-raw-strings]: ../../../concepts/config-language/expressions/types_and_values/#raw-strings
 {{< /admonition >}}
 
 {{< admonition type="note" >}}
