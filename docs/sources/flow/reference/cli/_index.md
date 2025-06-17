@@ -28,7 +28,7 @@ Available commands:
 * `completion`: Generate shell completion for the `grafana-agent-flow` CLI.
 * `help`: Print help for supported commands.
 
-[run]: run/
-[fmt]: fmt/
-[convert]: convert/
-[tools]: tools/
+[run]: ./run/
+[fmt]: ./fmt/
+[convert]: ./convert/
+[tools]: ./tools/
