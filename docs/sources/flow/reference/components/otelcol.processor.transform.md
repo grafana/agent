@@ -568,8 +568,8 @@ Each statement is enclosed in backticks instead of quotation marks.
 This constitutes a [raw string][river-raw-strings], and lets us avoid the need to escape
 each `"` with a `\"`, and each `\` with a `\\` inside a [normal][river-strings] River string.
 
-[river-strings]: /docs/agent/<AGENT_VERSION>/flow/concepts/config-language/expressions/types_and_values/#strings
-[river-raw-strings]: /docs/agent/<AGENT_VERSION>/flow/concepts/config-language/expressions/types_and_values/#raw-strings
+[river-strings]: ../../../concepts/config-language/expressions/types_and_values/#strings
+[river-raw-strings]: ../../../concepts/config-language/expressions/types_and_values/#raw-strings
 
 [traces protobuf]: https://github.com/open-telemetry/opentelemetry-proto/blob/v1.0.0/opentelemetry/proto/trace/v1/trace.proto
 [metrics protobuf]: https://github.com/open-telemetry/opentelemetry-proto/blob/v1.0.0/opentelemetry/proto/metrics/v1/metrics.proto
