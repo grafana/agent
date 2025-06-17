@@ -179,8 +179,8 @@ Don't confuse objects with blocks.
 * An _object_ is a value assigned to an [Attribute][]. You **must** use commas between key-value pairs on separate lines.
 * A [Block][] is a named structural element composed of multiple attributes. You **must not** use commas between attributes.
 
-[Attribute]: ../../syntax/#Attributes
-[Block]: ../../syntax/#Blocks
+[Attribute]: ../../syntax/#attributes
+[Block]: ../../syntax/#blocks
 {{< /admonition >}}
 
 ## Functions
