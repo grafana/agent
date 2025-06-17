@@ -291,7 +291,7 @@ Some values in the River strings are [escaped][river-strings]:
 * `\` is escaped with `\\`
 * `"` is escaped with `\"`
 
-[river-strings]: /docs/agent/<AGENT_VERSION>/flow/concepts/config-language/expressions/types_and_values/#strings
+[river-strings]: ../../../concepts/config-language/expressions/types_and_values/#strings
 
 
 [OTTL]: https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/v0.85.0/pkg/ottl/README.md
