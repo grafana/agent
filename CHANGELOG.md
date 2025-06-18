@@ -7,8 +7,8 @@ This document contains a historical list of changes between releases. Only
 changes that impact end-user behavior are listed; changes to documentation or
 internal API changes are not present.
 
-Main (unreleased)
------------------
+v0.44.3 (2025-06-18)
+-------------------------
 
 ### Other changes
 
@@ -16,7 +16,9 @@ Main (unreleased)
 
 - Upgrade a few dependencies. (@wildum)
 
-v0.44.2 (2024-01-29)
+- Assorted dependency updates to address CVEs (@jharvey10)
+
+v0.44.2 (2025-01-29)
 -------------------------
 
 ### Bugfixes
@@ -30,7 +32,7 @@ v0.44.2 (2024-01-29)
 
 - Upgrade `github.com/goccy/go-json` to v0.10.4, which reduces the memory consumption of an Agent instance by 20MB.
   If Agent is running certain otelcol components, this reduction will not apply. (@ptodev)
-  
+
 ### Other changes
 
 - Remove setcap for `cap_net_bind_service` to allow Agent to run in restricted environments.
@@ -66,7 +68,7 @@ v0.43.0 (2024-09-11)
 
 - Fix a memory leak which would occur any time `loki.process` had its configuration reloaded. (@ptodev)
 
-- Fix a bug where custom components would not shadow the stdlib. If you have a module whose name conflicts with an stdlib function 
+- Fix a bug where custom components would not shadow the stdlib. If you have a module whose name conflicts with an stdlib function
   and if you use this exact function in your config, then you will need to rename your module. (@wildum)
 
 - Fix an issue where nested import.git config blocks could conflict if they had the same labels. (@wildum)
@@ -95,7 +97,7 @@ v0.42.0 (2024-07-24)
 
 ### Features
 
-- A new `otelcol.exporter.debug` component for printing OTel telemetry from 
+- A new `otelcol.exporter.debug` component for printing OTel telemetry from
   other `otelcol` components to the console. (@BarunKGP)
 
 ### Bugfixes
@@ -257,7 +259,7 @@ v0.40.4 (2024-04-12)
   * show the offset/lag for all consumer group or only the connected ones
   * set the minimum number of topics to monitor
   * enable/disable auto-creation of requested topics if they don't already exist
-  * regex to exclude topics / groups 
+  * regex to exclude topics / groups
   * added metric kafka_broker_info
 
 - In `prometheus.exporter.kafka`, the interpolation table used to compute estimated lag metrics is now pruned
