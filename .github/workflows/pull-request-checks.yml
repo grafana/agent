@@ -1,0 +1,60 @@
+name: Pull Request Checks
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      build-image: ${{ steps.changes.outputs.build-image }}
+      build-image-windows: ${{ steps.changes.outputs.build-image-windows }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Check for changes
+        id: changes
+        run: |
+          if git diff --name-only origin/${GITHUB_BASE_REF}...HEAD | grep -q '^build-image/'; then
+            echo "build-image=true" >> $GITHUB_OUTPUT
+          else
+            echo "build-image=false" >> $GITHUB_OUTPUT
+          fi
+
+          if git diff --name-only origin/${GITHUB_BASE_REF}...HEAD | grep -q '^build-image/windows/'; then
+            echo "build-image-windows=true" >> $GITHUB_OUTPUT
+          else
+            echo "build-image-windows=false" >> $GITHUB_OUTPUT
+          fi
+        env:
+          GITHUB_BASE_REF: ${{ github.base_ref }}
+
+  test:
+    uses: ./.github/workflows/test.yml
+
+  test-crds:
+    uses: ./.github/workflows/test-crds.yml
+
+  test-dashboards:
+    uses: ./.github/workflows/test-dashboards.yml
+
+  check-linux-build-image:
+    needs: changes
+    if: ${{ needs.changes.outputs.build-image == 'true' }}
+    uses: ./.github/workflows/check-linux-build-image.yml
+
+  check-windows-build-image:
+    needs: changes
+    if: ${{ needs.changes.outputs.build-image-windows == 'true' }}
+    uses: ./.github/workflows/check-windows-build-image.yml
