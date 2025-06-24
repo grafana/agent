@@ -49,6 +49,9 @@ jobs:
   test-dashboards:
     uses: ./.github/workflows/test-dashboards.yml
 
+  crosscompile:
+    uses: ./.github/workflows/crosscompile.yml
+
   check-linux-build-image:
     needs: changes
     if: ${{ needs.changes.outputs.build-image == 'true' }}
