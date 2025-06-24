@@ -5,6 +5,12 @@ on:
     branches:
       - main
   workflow_call:
+    inputs:
+      build_image_version:
+        description: 'Version of the grafana/agent-build-image to use'
+        required: false
+        type: string
+        default: '0.44.2' # TODO: update to 0.44.3 once available
 
 permissions:
   contents: read
@@ -29,7 +35,7 @@ jobs:
           - {os: freebsd, arch: amd64}
 
     container:
-      image: grafana/agent-build-image:latest
+      image: grafana/agent-build-image:${{ inputs.build_image_version }}
 
     steps:
       - name: Checkout code
@@ -62,17 +68,17 @@ jobs:
             os: linux
             arch: amd64
             experiment: boringcrypto
-            image: grafana/agent-build-image:latest
+            image: grafana/agent-build-image:${{ inputs.build_image_version }}
           - target: agent-boringcrypto
             os: linux
             arch: arm64
             experiment: boringcrypto
-            image: grafana/agent-build-image:latest
+            image: grafana/agent-build-image:${{ inputs.build_image_version }}
           - target: agent-flow-windows-boringcrypto
             os: windows
             arch: amd64
             experiment: cngcrypto
-            image: grafana/agent-build-image:latest-boringcrypto
+            image: grafana/agent-build-image:${{ inputs.build_image_version }}-boringcrypto
 
     container:
       image: ${{ matrix.image }}
