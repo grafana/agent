@@ -1,9 +1,7 @@
 name: Check Linux build image
 
 on:
-  pull_request:
-    paths:
-      - 'build-image/*'
+  workflow_call:
 
 permissions:
   contents: read
@@ -23,20 +21,22 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@b5ca514318bd6ebac0fb2aedd5d36ec1b5c232a2 # v3
 
-      - name: Create test Linux build image
+      - name: Check Linux build image
         uses: docker/build-push-action@14487ce63c7a62a4a324b0bfb37086795e31c6c1 # v6
         with:
           context: ./build-image
           push: false
           tags: grafana/agent-build-image:latest
+          platforms: 'linux/amd64,linux/arm64'
           build-args: |
             GO_RUNTIME=golang:1.24.2-bullseye
 
-      - name: Create test Linux build image for boring crypto
+      - name: Check Linux boringcrypto build image
         uses: docker/build-push-action@14487ce63c7a62a4a324b0bfb37086795e31c6c1 # v6
         with:
           context: ./build-image
           push: false
           tags: grafana/agent-build-image:latest
+          platforms: 'linux/amd64,linux/arm64'
           build-args: |
             GO_RUNTIME=mcr.microsoft.com/oss/go/microsoft/golang:1.24.2-bullseye

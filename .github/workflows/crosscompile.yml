@@ -1,0 +1,109 @@
+name: Crosscompile
+
+on:
+  workflow_call:
+    inputs:
+      build_image_version:
+        description: 'Version of the grafana/agent-build-image to use'
+        required: false
+        type: string
+        default: '0.44.2' # TODO: update to 0.44.3 once available
+        # TODO: Keep this in sync with build-container.mk somehow
+
+permissions:
+  contents: read
+
+jobs:
+  # Mainline crosscompile matrix (M x N: targets x platforms)
+  crosscompile:
+    name: Build ${{ matrix.target }} (${{ matrix.platform.os }} ${{ matrix.platform.arch }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [agent, agent-flow, agentctl, operator]
+        platform:
+          - {os: linux, arch: amd64}
+          - {os: linux, arch: arm64}
+          - {os: linux, arch: ppc64le}
+          - {os: linux, arch: s390x}
+          - {os: darwin, arch: amd64}
+          - {os: darwin, arch: arm64}
+          - {os: windows, arch: amd64}
+          - {os: freebsd, arch: amd64}
+
+    container:
+      image: grafana/agent-build-image:${{ inputs.build_image_version }}
+
+    steps:
+      - name: Checkout code 🛎️
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+
+      - name: Fix git permissions 🔧
+        # https://github.com/actions/runner/issues/2033#issuecomment-1204205989
+        run: chown -R $(id -u):$(id -g) $PWD
+
+      - name: Build ${{ matrix.target }} 🏗️
+        run: |
+          make generate-ui
+
+          # Set GO_TAGS based on OS
+          if [ "${{ matrix.platform.os }}" = "linux" ]; then
+            GO_TAGS="builtinassets promtail_journal_enabled"
+          else
+            GO_TAGS="builtinassets"
+          fi
+
+          GO_TAGS="$GO_TAGS" GOOS=${{ matrix.platform.os }} GOARCH=${{ matrix.platform.arch }} GOARM=${{ matrix.platform.goarm }} make ${{ matrix.target }}
+
+  # Boringcrypto variants
+  crosscompile-boringcrypto:
+    name: Build ${{ matrix.target }} (${{ matrix.os }} ${{ matrix.arch }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: agent-boringcrypto
+            os: linux
+            arch: amd64
+            experiment: boringcrypto
+            image: grafana/agent-build-image:${{ inputs.build_image_version }}
+          - target: agent-boringcrypto
+            os: linux
+            arch: arm64
+            experiment: boringcrypto
+            image: grafana/agent-build-image:${{ inputs.build_image_version }}
+          - target: agent-flow-windows-boringcrypto
+            os: windows
+            arch: amd64
+            experiment: cngcrypto
+            image: grafana/agent-build-image:${{ inputs.build_image_version }}-boringcrypto
+
+    container:
+      image: ${{ matrix.image }}
+
+    steps:
+      - name: Checkout code 🛎️
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+
+      - name: Fix git permissions 🔧
+        # https://github.com/actions/runner/issues/2033#issuecomment-1204205989
+        run: chown -R $(id -u):$(id -g) $PWD
+
+      - name: Build ${{ matrix.target }} 🏗️
+        run: |
+          make generate-ui
+
+          # Set GO_TAGS based on OS
+          if [ "${{ matrix.os }}" = "linux" ]; then
+            GO_TAGS="builtinassets promtail_journal_enabled"
+          else
+            GO_TAGS="builtinassets"
+          fi
+
+          GO_TAGS="$GO_TAGS" GOOS=${{ matrix.os }} GOARCH=${{ matrix.arch }} GOARM=${{ matrix.goarm }} GOEXPERIMENT=${{ matrix.experiment }} make ${{ matrix.target }}
