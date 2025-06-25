@@ -38,15 +38,16 @@ jobs:
       image: grafana/agent-build-image:${{ inputs.build_image_version }}
 
     steps:
-      - name: Checkout code
+      - name: Checkout code 🛎️
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           persist-credentials: false
 
-      - name: Fix git permissions
-        run: git config --global --add safe.directory "${{ github.workspace }}"
+      - name: Fix git permissions 🔧
+        # https://github.com/actions/runner/issues/2033#issuecomment-1204205989
+        run: chown -R $(id -u):$(id -g) $PWD
 
-      - name: Build ${{ matrix.target }}
+      - name: Build ${{ matrix.target }} 🏗️
         run: |
           make generate-ui
 
@@ -92,7 +93,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Fix git permissions
+      - name: Fix git permissions 🔧
         run: git config --global --add safe.directory "${{ github.workspace }}"
 
       - name: Build ${{ matrix.target }} 🏗️
