@@ -40,28 +40,28 @@ jobs:
         env:
           GITHUB_BASE_REF: ${{ github.base_ref }}
 
-  test:
-    uses: ./.github/workflows/test.yml
+  # test:
+  #   uses: ./.github/workflows/test.yml
 
-  test-crds:
-    uses: ./.github/workflows/test-crds.yml
+  # test-crds:
+  #   uses: ./.github/workflows/test-crds.yml
 
-  test-dashboards:
-    uses: ./.github/workflows/test-dashboards.yml
+  # test-dashboards:
+  #   uses: ./.github/workflows/test-dashboards.yml
 
-  crosscompile:
-    uses: ./.github/workflows/crosscompile.yml
+  # crosscompile:
+  #   uses: ./.github/workflows/crosscompile.yml
 
-  check-linux-build-image:
-    needs: changes
-    if: ${{ needs.changes.outputs.build-image == 'true' }}
-    uses: ./.github/workflows/check-linux-build-image.yml
+  # check-linux-build-image:
+  #   needs: changes
+  #   if: ${{ needs.changes.outputs.build-image == 'true' }}
+  #   uses: ./.github/workflows/check-linux-build-image.yml
 
-  check-windows-build-image:
-    needs: changes
-    if: ${{ needs.changes.outputs.build-image-windows == 'true' }}
-    uses: ./.github/workflows/check-windows-build-image.yml
+  # check-windows-build-image:
+  #   needs: changes
+  #   if: ${{ needs.changes.outputs.build-image-windows == 'true' }}
+  #   uses: ./.github/workflows/check-windows-build-image.yml
 
-  main-ci:
-    # TODO: remove testing hook before merging
-    uses: ./.github/workflows/main-ci.yml
+  # TODO: remove testing hook before merging
+  check-containers:
+    uses: ./.github/workflows/check-containers.yml

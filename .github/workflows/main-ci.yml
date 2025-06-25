@@ -3,7 +3,6 @@ name: Main CI
 on:
   push:
     branches: [main]
-  workflow_call: # TODO: remove testing hook before merging
 
 permissions:
   contents: read
