@@ -94,7 +94,8 @@ jobs:
           persist-credentials: false
 
       - name: Fix git permissions 🔧
-        run: git config --global --add safe.directory "${{ github.workspace }}"
+        # https://github.com/actions/runner/issues/2033#issuecomment-1204205989
+        run: chown -R $(id -u):$(id -g) $PWD
 
       - name: Build ${{ matrix.target }} 🏗️
         run: |
