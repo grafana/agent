@@ -61,3 +61,7 @@ jobs:
     needs: changes
     if: ${{ needs.changes.outputs.build-image-windows == 'true' }}
     uses: ./.github/workflows/check-windows-build-image.yml
+
+  main-ci:
+    # TODO: remove testing hook before merging
+    uses: ./.github/workflows/main-ci.yml

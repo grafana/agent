@@ -1,9 +1,6 @@
 name: Crosscompile
 
 on:
-  push:
-    branches:
-      - main
   workflow_call:
     inputs:
       build_image_version:
@@ -11,6 +8,7 @@ on:
         required: false
         type: string
         default: '0.44.2' # TODO: update to 0.44.3 once available
+        # TODO: Keep this in sync with build-container.mk somehow
 
 permissions:
   contents: read
