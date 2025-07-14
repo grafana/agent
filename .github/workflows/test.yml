@@ -40,7 +40,7 @@ jobs:
 
   test-windows:
     name: Test (Windows)
-    runs-on: windows-2019
+    runs-on: windows-2022
     # TODO: is this needed?
     # container: grafana/agent-build-image:0.44.2-windows
     steps:
