@@ -63,17 +63,26 @@ jobs:
     if: ${{ needs.changes.outputs.build-image-windows == 'true' }}
     uses: ./.github/workflows/check-windows-build-image.yml
 
-  all-checks-complete:
-    name: All checks complete 🎉
+  all-required-checks-passed:
+    name: All required checks passed 🎉
     runs-on: ubuntu-latest
     needs: [
       changes,
       test,
       test-crds,
       test-dashboards,
-      crosscompile,
+      crosscompile
+    ]
+    steps:
+      - run: echo "All required checks passed! 💪"
+
+  all-optional-checks-passed:
+    name: All optional checks passed 🎉
+    runs-on: ubuntu-latest
+    needs: [
       check-linux-build-image,
       check-windows-build-image
     ]
+    if: always() && !contains(needs.*.result, 'failure') && !contains(needs.*.result, 'cancelled')
     steps:
-      - run: echo "All checks passed! 💪"
+      - run: echo "All optional checks passed! 💪"
