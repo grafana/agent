@@ -62,3 +62,18 @@ jobs:
     needs: changes
     if: ${{ needs.changes.outputs.build-image-windows == 'true' }}
     uses: ./.github/workflows/check-windows-build-image.yml
+
+    # Summary job - succeeds only if all dependent jobs succeed
+  all-checks-complete:
+    runs-on: ubuntu-latest
+    needs: [
+      changes,
+      test,
+      test-crds,
+      test-dashboards,
+      crosscompile,
+      check-linux-build-image,
+      check-windows-build-image
+    ]
+    steps:
+      - run: echo "All checks passed! 💪"
