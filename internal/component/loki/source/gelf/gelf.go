@@ -41,7 +41,9 @@ type Component struct {
 // Run starts the component.
 func (c *Component) Run(ctx context.Context) error {
 	defer func() {
-		c.target.Stop()
+		if c.target != nil {
+			c.target.Stop()
+		}
 	}()
 	for {
 		select {

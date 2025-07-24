@@ -172,11 +172,24 @@ func TestWithRelabelRules(t *testing.T) {
 
 func getFreeAddr(t *testing.T) string {
 	t.Helper()
-
-	portNumber, err := freeport.GetFreePort()
-	require.NoError(t, err)
-
-	return fmt.Sprintf("127.0.0.1:%d", portNumber)
+	for range 5 {
+		portNumber, err := freeport.GetFreePort()
+		if err != nil {
+			time.Sleep(100 * time.Millisecond)
+			continue
+		}
+		addr := fmt.Sprintf("127.0.0.1:%d", portNumber)
+		// Try to bind to the UDP port to ensure it's really available.
+		l, err := net.ListenPacket("udp", addr)
+		if err == nil {
+			l.Close()
+			return addr
+		}
+		// If binding failed, try again.
+		time.Sleep(100 * time.Millisecond)
+	}
+	t.Fatal("failed to acquire a free and bindable port")
+	return ""
 }
 
 func writeMessageToStream(w io.Writer, msg string, formatter formatFunc) error {
