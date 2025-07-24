@@ -59,26 +59,12 @@ RUN go install sigs.k8s.io/controller-tools/cmd/controller-gen@$CONTROLLER_GEN_V
 # dependencies.
 FROM rfratto/viceroy:v0.4.0
 
-# Install NodeJS LTS. This is needed because the most recent version of NodeJS
-# from official Debian packages is v12, and we need LTS version v16.
-#
-# This must be done before installing other dependencies, otherwise nodesource
-# will fail on installing NodeJS for all platforms instead of just our host
-# platform.
-# Source: https://github.com/nodesource/distributions#installation-instructions
-RUN <<EOF
-  apt-get update && apt-get install -qy ca-certificates curl gnupg && mkdir -p /etc/apt/keyrings
-  curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
-  echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_16.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list
-
-  apt-get update && apt-get install -qy nodejs
-  rm -rf /var/lib/apt/lists/*
-EOF
-
-# Install Yarn.
-#
-# See https://yarnpkg.com/getting-started/install#nodejs-1610
-RUN corepack enable
+# Fix apt sources - restrict main bullseye to supported architectures
+RUN rm -f /etc/apt/sources.list \
+ && rm -rf /etc/apt/sources.list.d/* \
+ && echo "deb [arch=amd64,arm64,armhf,i386] https://ftp.debian.org/debian bullseye main" > /etc/apt/sources.list \
+ && echo "deb https://ftp.debian.org/debian bullseye-updates main" >> /etc/apt/sources.list \
+ && echo "deb https://security.debian.org/debian-security bullseye-security main" >> /etc/apt/sources.list
 
 # Install other dependencies.
 #
@@ -87,7 +73,7 @@ RUN corepack enable
 RUN apt-get update                                \
  && apt-get install -qy                           \
       build-essential file zip unzip gettext git  \
-      musl libsystemd-dev nsis                    \
+      musl libsystemd-dev nsis curl               \
       rpm ruby ruby-dev rubygems                  \
       protobuf-compiler libprotobuf-dev yamllint  \
  && gem install --no-document fpm                 \
@@ -101,6 +87,16 @@ COPY --from=nsis     /usr/share/nsis/Plugins/x86-unicode /usr/share/nsis/Plugins
 COPY --from=golang   /usr/local/go                       /usr/local/go
 COPY --from=golang   /go/bin                             /go/bin
 
+# From: https://nodejs.org/en/download
+# Download and install nvm:
+RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash \
+  && . "$HOME/.nvm/nvm.sh" \
+  && nvm install 20 \
+  && node -v \
+  && nvm current \
+  && corepack enable \
+  && yarn -v
+
 # Git tries to prevent misuse of repositories (CVE-2022-24765), but we don't
 # care about this for build containers, where it's expected that the repository
 # will be accessed by other users (the root user of the build container).
@@ -113,4 +109,3 @@ RUN git config --global --add safe.directory \*
 ENV CC viceroycc
 
 ENV GOPATH /go
-ENV PATH /usr/local/go/bin:/go/bin:$PATH
