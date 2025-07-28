@@ -1,4 +1,4 @@
-FROM grafana/agent-build-image:0.44.2-windows as builder
+FROM grafana/agent-build-image:0.44.4-windows as builder
 ARG VERSION
 ARG RELEASE_BUILD=1
 
