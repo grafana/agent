@@ -87,14 +87,11 @@ COPY --from=nsis     /usr/share/nsis/Plugins/x86-unicode /usr/share/nsis/Plugins
 COPY --from=golang   /usr/local/go                       /usr/local/go
 COPY --from=golang   /go/bin                             /go/bin
 
-# From: https://nodejs.org/en/download
-# Download and install nvm:
-RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash \
-  && . "$HOME/.nvm/nvm.sh" \
-  && nvm install 20 \
-  && node -v \
-  && nvm current \
+# Install Node.js 20 directly from NodeSource repository
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+  && apt-get install -y nodejs \
   && corepack enable \
+  && node -v \
   && yarn -v
 
 # Git tries to prevent misuse of repositories (CVE-2022-24765), but we don't
