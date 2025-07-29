@@ -33,7 +33,7 @@ jobs:
         id: extract_tag
         env:
           FULL_TAG: ${{ github.ref_name }}
-        run: echo "IMAGE_TAG=${FULL_TAG##*/}${{ matrix.build.suffix }}" >> $GITHUB_OUTPUT
+        run: echo "IMAGE_TAG=${FULL_TAG##*/v}${{ matrix.build.suffix }}" >> $GITHUB_OUTPUT
 
       - name: Login to DockerHub (from vault) 🔑
         uses: grafana/shared-workflows/actions/dockerhub-login@13fb504e3bfe323c1188bf244970d94b2d336e86 # dockerhub-login-v1.0.1
@@ -69,7 +69,7 @@ jobs:
         shell: bash
         env:
           FULL_TAG: ${{ github.ref_name }}
-        run: echo "IMAGE_TAG=${FULL_TAG##*/}-windows" >> $GITHUB_OUTPUT
+        run: echo "IMAGE_TAG=${FULL_TAG##*/v}-windows" >> $GITHUB_OUTPUT
 
       - name: Login to DockerHub (from vault) 🔑
         uses: grafana/shared-workflows/actions/dockerhub-login@13fb504e3bfe323c1188bf244970d94b2d336e86 # dockerhub-login-v1.0.1
