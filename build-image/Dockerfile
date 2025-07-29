@@ -106,3 +106,4 @@ RUN git config --global --add safe.directory \*
 ENV CC viceroycc
 
 ENV GOPATH /go
+ENV PATH /usr/local/go/bin:/go/bin:$PATH
