@@ -28,7 +28,7 @@ jobs:
 
   check-windows-containers:
     name: Check Windows container (${{ matrix.name }})
-    runs-on: windows-2022-large
+    runs-on: github-hosted-windows-x64-large
     strategy:
       matrix:
         include:
