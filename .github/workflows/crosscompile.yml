@@ -83,7 +83,7 @@ jobs:
             image: grafana/agent-build-image:${{ inputs.build_image_version }}-boringcrypto
 
     container:
-      image: ${{ matrix.image }}
+      image: ${{ matrix.image }} # zizmor: ignore[unpinned-images] this is purposefully dynamic to allow a wide build matrix
 
     steps:
       - name: Checkout code 🛎️
