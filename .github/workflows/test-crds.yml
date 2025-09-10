@@ -7,7 +7,7 @@ on:
         description: 'Version of the grafana/agent-build-image to use'
         required: false
         type: string
-        default: '0.44.4'
+        default: '0.44.5'
         # TODO: Keep this in sync with build-container.mk somehow
 
 permissions:
