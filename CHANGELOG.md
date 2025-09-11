@@ -7,6 +7,13 @@ This document contains a historical list of changes between releases. Only
 changes that impact end-user behavior are listed; changes to documentation or
 internal API changes are not present.
 
+v0.44.4 (2025-09-11)
+-------------------------
+
+### Other changes
+
+- Assorted dependency updates to address CVEs (@jharvey10)
+
 v0.44.3 (2025-06-18)
 -------------------------
 
