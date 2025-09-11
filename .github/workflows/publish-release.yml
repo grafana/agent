@@ -38,6 +38,8 @@ jobs:
 
       - name: Publish container 🚀
         run: ./tools/ci/docker-containers ${{ matrix.container }}
+        env:
+          DRONE_TAG: ${{ github.ref_name }}
 
   publish-windows-containers:
     name: Publish Windows container (${{ matrix.container }})
@@ -62,6 +64,8 @@ jobs:
         run: |
           & "C:/Program Files/git/bin/bash.exe" ./tools/ci/docker-containers-windows ${{ matrix.container }}
         shell: powershell
+        env:
+          DRONE_TAG: ${{ github.ref_name }}
 
   publish-release:
     name: Publish release
