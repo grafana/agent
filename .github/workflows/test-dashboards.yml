@@ -1,0 +1,35 @@
+name: Test Dashboards
+
+on:
+  workflow_call:
+    inputs:
+      build_image_version:
+        description: 'Version of the grafana/agent-build-image to use'
+        required: false
+        type: string
+        default: '0.44.5'
+        # TODO: Keep this in sync with build-container.mk somehow
+
+permissions:
+  contents: read
+
+jobs:
+  test-dashboards:
+    name: Test Dashboards
+    runs-on: ubuntu-latest
+    container:
+      image: grafana/agent-build-image:${{ inputs.build_image_version }}
+    steps:
+      - name: Checkout code 🛎️
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+
+      - name: Mark repository as safe 🔒
+        run: git status || git config --system --add safe.directory "$GITHUB_WORKSPACE"
+
+      - name: Regenerate dashboards 📊
+        run: |
+          make generate-dashboards
+          ERR_MSG="Dashboard definitions are out of date. Please run 'make generate-dashboards' and commit changes!"
+          if [ ! -z "$(git status --porcelain)" ]; then echo $ERR_MSG >&2; exit 1; fi

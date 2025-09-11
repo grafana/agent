@@ -1,6 +1,6 @@
 module github.com/grafana/agent
 
-go 1.24.2
+go 1.24.6
 
 retract (
 	v1.3.191 // Published accidentally
@@ -652,7 +652,7 @@ require (
 	github.com/drone/envsubst v1.0.3 // indirect
 	github.com/expr-lang/expr v1.17.0 // indirect
 	github.com/go-jose/go-jose/v3 v3.0.4 // indirect
-	github.com/go-viper/mapstructure/v2 v2.0.0-alpha.1 // indirect
+	github.com/go-viper/mapstructure/v2 v2.4.0 // indirect
 	github.com/golang-jwt/jwt/v5 v5.2.2 // indirect
 	github.com/google/gnostic-models v0.6.8 // indirect
 	github.com/grafana/jfr-parser v0.8.0 // indirect

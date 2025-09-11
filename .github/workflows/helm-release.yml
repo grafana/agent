@@ -2,14 +2,16 @@ name: Release Helm chart
 on:
   push:
     branches: [main]
-permissions:
-  contents: read
 env:
   CR_CONFIGFILE: "${{ github.workspace }}/source/operations/helm/cr.yaml"
   CT_CONFIGFILE: "${{ github.workspace }}/source/operations/helm/ct.yaml"
   CR_INDEX_PATH: "${{ github.workspace }}/.cr-index"
   CR_PACKAGE_PATH: "${{ github.workspace }}/.cr-release-packages"
   CR_TOOL_PATH: "${{ github.workspace }}/.cr-tool"
+
+permissions:
+  contents: read
+
 jobs:
   setup:
     runs-on: ubuntu-latest
@@ -18,14 +20,14 @@ jobs:
       chartpath: ${{ steps.list-changed.outputs.chartpath }}
     steps:
       - name: Checkout
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           fetch-depth: 0
           path: source
           persist-credentials: false
 
       - name: Install chart-testing
-        uses: helm/chart-testing-action@e6669bcd63d7cb57cb4380c33043eebe5d111992 # v2.6.1
+        uses: helm/chart-testing-action@0d28d3144d3a25ea2cc349d6e59901c4ff469b3b # v2.7.0
 
       - name: List changed charts
         id: list-changed
@@ -66,13 +68,33 @@ jobs:
     needs: [setup]
     runs-on: ubuntu-latest
     if: needs.setup.outputs.changed == 'true'
+    permissions:
+      contents: write # Needed to push to origin
+      id-token: write # Needed to generate app token
     steps:
+      - id: get-secrets
+        uses: grafana/shared-workflows/actions/get-vault-secrets@5d7e361bc7e0a183cde8afe9899fb7b596d2659b # get-vault-secrets-v1.2.0
+        with:
+          repo_secrets: |
+            ALLOYBOT_APP_ID=alloybot:app_id
+            ALLOYBOT_PRIVATE_KEY=alloybot:private_key
+          export_env: false
+
+      - uses: actions/create-github-app-token@d72941d797fd3113feb6b93fd0dec494b13a2547 # v1.12.0
+        id: app-token
+        with:
+          app-id: ${{ fromJSON(steps.get-secrets.outputs.secrets).ALLOYBOT_APP_ID }}
+          private-key: ${{ fromJSON(steps.get-secrets.outputs.secrets).ALLOYBOT_PRIVATE_KEY }}
+          owner: grafana
+          repositories: agent,helm-charts
+
       - name: Checkout
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           fetch-depth: 0
           path: source
-          persist-credentials: false
+          token: ${{ steps.app-token.outputs.token }}
+          persist-credentials: true # Needed for `git push origin tag_name`
 
       - name: Configure Git
         run: |
@@ -81,12 +103,12 @@ jobs:
           git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
 
       - name: Checkout helm-charts
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           fetch-depth: 0
           repository: grafana/helm-charts
           path: helm-charts
-          token: "${{ secrets.GH_BOT_ACCESS_TOKEN }}"
+          token: ${{ steps.app-token.outputs.token }}
           persist-credentials: false
 
       - name: Configure Git for helm-charts
@@ -96,8 +118,9 @@ jobs:
           git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
 
       - name: Set up Helm
-        uses: azure/setup-helm@b9e51907a09c216f16ebe8536097933489208112 # v4
+        uses: azure/setup-helm@b9e51907a09c216f16ebe8536097933489208112 # v4.3.0
         with:
+          # renovate: datasource=github-releases packageName=helm/helm
           version: v3.10.3
 
       - name: Parse Chart.yaml
@@ -127,11 +150,12 @@ jobs:
       - name: Create Helm package
         run: |
           cd source
-          "${CR_TOOL_PATH}/cr" package "${CHAKT_PATH}" --config "${CR_CONFIGFILE}" --package-path "${CR_PACKAGE_PATH}"
+          "${CR_TOOL_PATH}/cr" package "${CHART_PATH}" --config "${CR_CONFIGFILE}" --package-path "${CR_PACKAGE_PATH}"
           echo "Result of chart package:"
           ls -l "${CR_PACKAGE_PATH}"
         env:
           CHART_PATH: ${{ steps.parse-chart.outputs.chartpath }}
+
 
       - name: Create tag and check if exists on origin
         run: |
@@ -141,37 +165,38 @@ jobs:
         env:
           TAG_NAME: ${{ steps.parse-chart.outputs.tagname }}
 
+
       # Note that this creates a release in grafana/helm-charts with a new tag.
       # The tag name in grafana/helm-charts is <package>-<version>, while the
       # tag name for grafana/agent is helm-chart/<version>.
       - name: Make github release
-        uses: softprops/action-gh-release@da05d552573ad5aba039eaac05058a918a7bf631 # v2
+        uses: softprops/action-gh-release@72f2c25fcb47643c292f7107632f7a47c1df5cd8 # v2.3.2
         with:
           name: ${{ steps.parse-chart.outputs.packagename }}
           repository: grafana/helm-charts
           tag_name: ${{ steps.parse-chart.outputs.packagename }}
-          token: ${{ secrets.GH_BOT_ACCESS_TOKEN }}
+          token: ${{ steps.app-token.outputs.token }}
           body: |
             ${{ steps.parse-chart.outputs.desc }}
 
             Source commit: https://github.com/${{ github.repository }}/commit/${{ github.sha }}
 
-            Tag on source: https://github.com/${{ github.repository }}/releases/tag/${TAG_NAME}
+            Tag on source: https://github.com/${{ github.repository }}/releases/tag/${{ steps.parse-chart.outputs.tagname }}
           files: |
-            ${{ env.CR_PACKAGE_PATH }}/${TAG_NAME}.tgz
-        env:
-          TAG_NAME: ${{ steps.parse-chart.outputs.tagname }}
-
+            ${{ env.CR_PACKAGE_PATH }}/${{ steps.parse-chart.outputs.packagename }}.tgz
 
       - name: Push release tag on origin
         run: |
           cd source
           echo "Pushing tag ${TAG_NAME}"
           git push origin "${TAG_NAME}"
+        env:
+          TAG_NAME: ${{ steps.parse-chart.outputs.tagname }}
 
       - name: Update helm-charts index.yaml
         run: |
           cd helm-charts
-          "${CR_TOOL_PATH}/cr" index --config "${CR_CONFIGFILE}" --token "${{ secrets.GH_BOT_ACCESS_TOKEN }}" --index-path "${CR_INDEX_PATH}" --package-path "${CR_PACKAGE_PATH}" --push
+          "${CR_TOOL_PATH}/cr" index --config "${CR_CONFIGFILE}" --token "${TOKEN}" --index-path "${CR_INDEX_PATH}" --package-path "${CR_PACKAGE_PATH}" --push
         env:
+          TOKEN: ${{ steps.app-token.outputs.token }}
           TAG_NAME: ${{ steps.parse-chart.outputs.tagname }}

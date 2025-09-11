@@ -1,0 +1,28 @@
+name: Main CI
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    uses: ./.github/workflows/test.yml
+
+  test-crds:
+    uses: ./.github/workflows/test-crds.yml
+
+  test-dashboards:
+    uses: ./.github/workflows/test-dashboards.yml
+
+  crosscompile:
+    uses: ./.github/workflows/crosscompile.yml
+
+  check-containers:
+    uses: ./.github/workflows/check-containers.yml
