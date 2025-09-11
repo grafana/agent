@@ -94,7 +94,7 @@ jobs:
           cache: false
 
       - name: Build release artifacts 📦
-        run: make -j4 RELEASE_BUILD=1 VERSION=${GITHUB_REF_NAME} dist
+        run: make -k -j4 RELEASE_BUILD=1 VERSION=${GITHUB_REF_NAME} dist
 
       - name: Publish release 🚀
         run: |
