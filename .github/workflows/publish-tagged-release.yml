@@ -1,0 +1,19 @@
+name: Publish Tagged Release
+
+on:
+  push:
+    tags:
+      - v*
+
+permissions:
+  contents: read
+
+jobs:
+  publish-release:
+    uses: ./.github/workflows/publish-release.yml
+    with:
+      ref: ${{ github.ref_name }}
+      is_release: true
+    permissions:
+      contents: write
+      id-token: write
