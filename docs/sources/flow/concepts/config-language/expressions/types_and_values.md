@@ -223,4 +223,3 @@ prometheus.scrape "default" {
   forward_to = [prometheus.remote_write.default.receiver]
 }
 ```
-

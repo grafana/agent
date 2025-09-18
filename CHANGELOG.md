@@ -7,8 +7,26 @@ This document contains a historical list of changes between releases. Only
 changes that impact end-user behavior are listed; changes to documentation or
 internal API changes are not present.
 
-Main (unreleased)
------------------
+v0.44.4 (2025-09-11)
+-------------------------
+
+### Other changes
+
+- Assorted dependency updates to address CVEs (@jharvey10)
+
+v0.44.3 (2025-06-18)
+-------------------------
+
+### Other changes
+
+- Update to go 1.24.2 (@wildum)
+
+- Upgrade a few dependencies. (@wildum)
+
+- Assorted dependency updates to address CVEs (@jharvey10)
+
+v0.44.2 (2025-01-29)
+-------------------------
 
 v0.44.3 (2025-06-18)
 -------------------------

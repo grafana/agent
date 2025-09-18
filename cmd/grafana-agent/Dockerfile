@@ -39,12 +39,14 @@ ARG USERNAME="grafana-agent"
 LABEL org.opencontainers.image.source="https://github.com/grafana/agent"
 
 # Install dependencies needed at runtime.
-RUN <<EOF
-  apt-get update
-  apt-get upgrade -qy
-  apt-get install -qy libsystemd-dev tzdata ca-certificates
-  rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-EOF
+RUN apt-get update \
+    && apt-get upgrade -y \
+    && apt-get install -qy --no-install-recommends \
+        ca-certificates \
+        libsystemd0 \
+        tzdata \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 COPY --from=build /src/agent/build/grafana-agent /bin/grafana-agent
 COPY cmd/grafana-agent/agent-local-config.yaml /etc/agent/agent.yaml
