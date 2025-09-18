@@ -34,5 +34,5 @@ jobs:
       ref: ${{ github.ref_name }}
       is_release: false
     permissions:
-      contents: read
+      contents: write
       id-token: write
