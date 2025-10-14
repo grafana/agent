@@ -8,7 +8,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
 jobs:
@@ -26,13 +26,3 @@ jobs:
 
   check-containers:
     uses: ./.github/workflows/check-containers.yml
-
-  publish-release:
-    needs: [test, test-crds, test-dashboards, crosscompile, check-containers]
-    uses: ./.github/workflows/publish-release.yml
-    with:
-      ref: ${{ github.ref_name }}
-      is_release: false
-    permissions:
-      contents: write
-      id-token: write
