@@ -1,5 +1,5 @@
-> **Deprecation notice**: Grafana Agent has been deprecated and is now in
-> Long-Term Support mode. We recommend migrating to the new [Grafana Alloy]
+> Grafana Agent has reached End-of-Life (EOL) on November 1, 2025.
+> We recommend migrating to the [Grafana Alloy]
 > collector, which is built on the foundation of Grafana Agent Flow.
 >
 > For more information, read our blog posts about Alloy and how to easily
