@@ -26,7 +26,7 @@ require (
 	github.com/bmatcuk/doublestar v1.3.4
 	github.com/burningalchemist/sql_exporter v0.0.0-20240103092044-466b38b6abc4
 	github.com/cespare/xxhash/v2 v2.3.0
-	github.com/cilium/ebpf v0.12.3 // indirect
+	github.com/cilium/ebpf v0.16.0 // indirect
 	github.com/coreos/go-systemd v0.0.0-20191104093116-d3cd4ed1dbcf
 	github.com/coreos/go-systemd/v22 v22.5.0
 	github.com/docker/docker v25.0.6+incompatible
@@ -305,13 +305,12 @@ require (
 	github.com/cenkalti/backoff/v4 v4.2.1 // indirect
 	github.com/census-instrumentation/opencensus-proto v0.4.1 // indirect
 	github.com/cespare/xxhash v1.1.0 // indirect
-	github.com/checkpoint-restore/go-criu/v5 v5.3.0 // indirect
 	github.com/cloudflare/golz4 v0.0.0-20150217214814-ef862a3cdc58 // indirect
 	github.com/cncf/xds/go v0.0.0-20240723142845-024c85f92f20 // indirect
 	github.com/containerd/ttrpc v1.2.7 // indirect
 	github.com/coreos/go-semver v0.3.1 // indirect
 	github.com/cpuguy83/dockercfg v0.3.1 // indirect
-	github.com/cyphar/filepath-securejoin v0.3.6 // indirect
+	github.com/cyphar/filepath-securejoin v0.5.1 // indirect
 	github.com/danieljoos/wincred v1.2.2 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/dennwc/btrfs v0.0.0-20230312211831-a1f570bd01a1 // indirect
@@ -465,7 +464,7 @@ require (
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/mna/redisc v1.3.2 // indirect
 	github.com/moby/patternmatcher v0.6.0 // indirect
-	github.com/moby/sys/mountinfo v0.6.2 // indirect
+	github.com/moby/sys/mountinfo v0.7.1 // indirect
 	github.com/moby/sys/sequential v0.5.0 // indirect
 	github.com/moby/term v0.5.0 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
@@ -490,9 +489,9 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/zipkin v0.96.0 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.1.0 // indirect
-	github.com/opencontainers/runc v1.1.14 // indirect
-	github.com/opencontainers/runtime-spec v1.1.0 // indirect
-	github.com/opencontainers/selinux v1.11.0 // indirect
+	github.com/opencontainers/runc v1.2.8 // indirect
+	github.com/opencontainers/runtime-spec v1.2.0 // indirect
+	github.com/opencontainers/selinux v1.12.0 // indirect
 	github.com/openzipkin/zipkin-go v0.4.2 // indirect
 	github.com/oschwald/maxminddb-golang v1.11.0
 	github.com/ovh/go-ovh v1.4.3 // indirect
@@ -516,7 +515,7 @@ require (
 	github.com/samuel/go-zookeeper v0.0.0-20190923202752-2cc03de413da // indirect
 	github.com/scaleway/scaleway-sdk-go v1.0.0-beta.21
 	github.com/sean-/seed v0.0.0-20170313163322-e2103e2c3529 // indirect
-	github.com/seccomp/libseccomp-golang v0.9.2-0.20220502022130-f33da4d89646 // indirect
+	github.com/seccomp/libseccomp-golang v0.10.0 // indirect
 	github.com/sergi/go-diff v1.3.2-0.20230802210424-5b0b94c5c0d3 // indirect
 	github.com/shoenig/go-m1cpu v0.1.6 // indirect
 	github.com/shopspring/decimal v1.2.0 // indirect
@@ -637,9 +636,10 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/storagegateway v1.26.0 // indirect
 	github.com/axiomhq/hyperloglog v0.0.0-20240124082744-24bca3a5b39b // indirect
 	github.com/channelmeter/iso8601duration v0.0.0-20150204201828-8da3af7a2a61 // indirect
+	github.com/checkpoint-restore/go-criu/v6 v6.3.0 // indirect
 	github.com/cloudflare/circl v1.6.1 // indirect
 	github.com/containerd/cgroups/v3 v3.0.2 // indirect
-	github.com/containerd/console v1.0.3 // indirect
+	github.com/containerd/console v1.0.5 // indirect
 	github.com/containerd/containerd v1.7.27 // indirect
 	github.com/containerd/continuity v0.4.4 // indirect
 	github.com/containerd/errdefs v0.3.0 // indirect
