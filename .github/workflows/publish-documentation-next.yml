@@ -20,6 +20,6 @@ jobs:
           persist-credentials: false
         # This internal action's version is left as a tag instead of a pinned hash because renovate
         # does not support this type of tag/version format without custom configuration.
-      - uses: grafana/writers-toolkit/publish-technical-documentation@39cdc38767184996e25d611923f8ce697e33bc70 # publish-technical-documentation/v1
+      - uses: grafana/writers-toolkit/publish-technical-documentation@9aed4f7c5b3caa1b58d72ee39232333407d4acbf # publish-technical-documentation/v1
         with:
           website_directory: content/docs/agent/next
