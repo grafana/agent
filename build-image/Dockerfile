@@ -4,7 +4,7 @@
 # default when running `docker buildx build` or when DOCKER_BUILDKIT=1 is set
 # in environment variables.
 
-# NOTE: The GO_RUNTIME is used to switch between the default Google go runtime and mcr.microsoft.com/oss/go/microsoft/golang:1.24.2-bullseye which is a Microsoft
+# NOTE: The GO_RUNTIME is used to switch between the default Google go runtime and mcr.microsoft.com/oss/go/microsoft/golang:1.24.10-bookworm which is a Microsoft
 # fork of go that allows using windows crypto instead of boring crypto. Details at https://github.com/microsoft/go/tree/microsoft/main/eng/doc/fips
 ARG GO_RUNTIME=mustoverride
 
@@ -59,26 +59,12 @@ RUN go install sigs.k8s.io/controller-tools/cmd/controller-gen@$CONTROLLER_GEN_V
 # dependencies.
 FROM rfratto/viceroy:v0.4.0
 
-# Install NodeJS LTS. This is needed because the most recent version of NodeJS
-# from official Debian packages is v12, and we need LTS version v16.
-#
-# This must be done before installing other dependencies, otherwise nodesource
-# will fail on installing NodeJS for all platforms instead of just our host
-# platform.
-# Source: https://github.com/nodesource/distributions#installation-instructions
-RUN <<EOF
-  apt-get update && apt-get install -qy ca-certificates curl gnupg && mkdir -p /etc/apt/keyrings
-  curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
-  echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_16.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list
-
-  apt-get update && apt-get install -qy nodejs
-  rm -rf /var/lib/apt/lists/*
-EOF
-
-# Install Yarn.
-#
-# See https://yarnpkg.com/getting-started/install#nodejs-1610
-RUN corepack enable
+# Fix apt sources - restrict main bookworm to supported architectures
+RUN rm -f /etc/apt/sources.list \
+ && rm -rf /etc/apt/sources.list.d/* \
+ && echo "deb [arch=amd64,arm64,armhf,i386] https://ftp.debian.org/debian bookworm main" > /etc/apt/sources.list \
+ && echo "deb https://ftp.debian.org/debian bookworm-updates main" >> /etc/apt/sources.list \
+ && echo "deb https://security.debian.org/debian-security bookworm-security main" >> /etc/apt/sources.list
 
 # Install other dependencies.
 #
