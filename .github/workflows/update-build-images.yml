@@ -20,8 +20,8 @@ jobs:
     strategy:
       matrix:
         build:
-          - runtime: golang:1.24.8-bullseye
-          - runtime: mcr.microsoft.com/oss/go/microsoft/golang:1.24.8-bullseye
+          - runtime: golang:1.24.10-bullseye
+          - runtime: mcr.microsoft.com/oss/go/microsoft/golang:1.24.10-bullseye
             suffix: "-boringcrypto"
     steps:
       - name: Checkout code 🛎️
