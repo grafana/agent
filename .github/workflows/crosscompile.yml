@@ -17,7 +17,7 @@ jobs:
   # Mainline crosscompile matrix (M x N: targets x platforms)
   crosscompile:
     name: Build ${{ matrix.target }} (${{ matrix.platform.os }} ${{ matrix.platform.arch }})
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest-8-cores
     strategy:
       fail-fast: false
       matrix:
@@ -61,7 +61,7 @@ jobs:
   # Boringcrypto variants
   crosscompile-boringcrypto:
     name: Build ${{ matrix.target }} (${{ matrix.os }} ${{ matrix.arch }})
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest-8-cores
     strategy:
       fail-fast: false
       matrix:
