@@ -73,7 +73,7 @@ RUN rm -f /etc/apt/sources.list \
 RUN apt-get update                                \
  && apt-get install -qy                           \
       build-essential file zip unzip gettext git  \
-      musl libsystemd-dev nsis                    \
+      musl libsystemd-dev nsis curl               \
       rpm ruby ruby-dev rubygems                  \
       protobuf-compiler libprotobuf-dev yamllint  \
  && gem install --no-document fpm                 \
@@ -86,6 +86,13 @@ COPY --from=helm     /usr/bin/helm                       /usr/bin/helm
 COPY --from=nsis     /usr/share/nsis/Plugins/x86-unicode /usr/share/nsis/Plugins/x86-unicode
 COPY --from=golang   /usr/local/go                       /usr/local/go
 COPY --from=golang   /go/bin                             /go/bin
+
+# Install Node.js 20 directly from NodeSource repository
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+  && apt-get install -y nodejs \
+  && corepack enable \
+  && node -v \
+  && yarn -v
 
 # Git tries to prevent misuse of repositories (CVE-2022-24765), but we don't
 # care about this for build containers, where it's expected that the repository
