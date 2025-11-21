@@ -7,7 +7,7 @@ on:
         description: 'Version of the grafana/agent-build-image to use'
         required: false
         type: string
-        default: '0.44.5'
+        default: '0.44.6'
         # TODO: Keep this in sync with build-container.mk somehow
 
 permissions:
@@ -17,7 +17,7 @@ jobs:
   # Mainline crosscompile matrix (M x N: targets x platforms)
   crosscompile:
     name: Build ${{ matrix.target }} (${{ matrix.platform.os }} ${{ matrix.platform.arch }})
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest-8-cores
     strategy:
       fail-fast: false
       matrix:
@@ -61,7 +61,7 @@ jobs:
   # Boringcrypto variants
   crosscompile-boringcrypto:
     name: Build ${{ matrix.target }} (${{ matrix.os }} ${{ matrix.arch }})
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest-8-cores
     strategy:
       fail-fast: false
       matrix:

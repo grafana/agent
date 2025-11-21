@@ -9,7 +9,7 @@ title: Grafana Agent
 description: Grafana Agent is a flexible, performant, vendor-neutral, telemetry collector
 weight: 350
 cascade:
-  AGENT_RELEASE: v0.44.5
+  AGENT_RELEASE: v0.44.6
   OTEL_VERSION: v0.96.0
 refs:
   variants:
