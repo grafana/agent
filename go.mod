@@ -800,3 +800,5 @@ replace github.com/github/smimesign => github.com/grafana/smimesign v0.2.1-0.202
 // Replacing for an internal for with a bugfix for delta histograms, https://github.com/grafana/stackdriver_exporter/pull/1
 // Moving back to upstream is being tracked in an internal issue
 replace github.com/prometheus-community/stackdriver_exporter => github.com/grafana/stackdriver_exporter v0.0.0-20240228143257-3a2c9acef5a2
+
+replace github.com/prometheus/common => github.com/prometheus/common v0.53.0
