@@ -83,7 +83,7 @@ require (
 	github.com/hashicorp/vault/api/auth/ldap v0.2.0
 	github.com/hashicorp/vault/api/auth/userpass v0.2.0
 	github.com/heroku/x v0.0.61
-	github.com/iamseth/oracledb_exporter v0.0.0-20230918193147-95e16f21ceee
+	github.com/iamseth/oracledb_exporter 8dab2f552a86
 	github.com/influxdata/go-syslog/v3 v3.0.1-0.20230911200830-875f5bc594a4
 	github.com/jaegertracing/jaeger v1.54.0
 	github.com/jmespath/go-jmespath v0.4.0
