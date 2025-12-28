@@ -168,7 +168,7 @@ require (
 	github.com/testcontainers/testcontainers-go/modules/k3s v0.0.0-20230615142642-c175df34bd1d
 	github.com/uber/jaeger-client-go v2.30.0+incompatible
 	github.com/vincent-petithory/dataurl v1.0.0
-	github.com/webdevops/azure-metrics-exporter v0.0.0-20230717202958-8701afc2b013
+	github.com/webdevops/azure-metrics-exporter 61e69788ef49
 	github.com/webdevops/go-common v0.0.0-20231022162947-a6adfb05a7e9
 	github.com/wk8/go-ordered-map v0.2.0
 	github.com/xdg-go/scram v1.1.2
