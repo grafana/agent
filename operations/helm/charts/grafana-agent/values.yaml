@@ -5,6 +5,9 @@ nameOverride: null
 # resource names.
 fullnameOverride: null
 
+# Apply extra labels to common labels.
+extraLabels: {}
+
 ## Global properties for image pulling override the values defined under `image.registry` and `configReloader.image.registry`.
 ## If you want to override only one image registry, use the specific fields but if you want to override them all, use `global.image.registry`
 global:
