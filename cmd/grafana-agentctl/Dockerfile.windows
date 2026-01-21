@@ -1,4 +1,4 @@
-FROM grafana/agent-build-image:0.44.6-windows as builder
+FROM grafana/agent-build-image:0.44.7-windows as builder
 ARG VERSION
 ARG RELEASE_BUILD=1
 
@@ -10,7 +10,7 @@ SHELL ["cmd", "/S", "/C"]
 RUN ""C:\Program Files\git\bin\bash.exe" -c "RELEASE_BUILD=${RELEASE_BUILD} VERSION=${VERSION} make agentctl""
 # We're separating the clean command from make agent to avoid an issue where access to some mod cache
 # files is denied immediately after make agentctl, for example:
-# "go: remove C:\go\pkg\mod\golang.org\toolchain@v0.0.1-go1.24.10.windows-amd64\bin\go.exe: Access is denied."
+# "go: remove C:\go\pkg\mod\golang.org\toolchain@v0.0.1-go1.24.11.windows-amd64\bin\go.exe: Access is denied."
 RUN ""C:\Program Files\git\bin\bash.exe" -c "go clean -cache -modcache""
 
 # Use the smallest container possible for the final image
