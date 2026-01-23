@@ -79,6 +79,10 @@ Main (unreleased)
 0.37.0 (2024-03-14)
 ----------
 
+### Enhancements
+
+- Helm chart: Add `extraLabels: {}` value for adding extra labels to common labels.
+
 ### Features
 
 - Allow setting nodePort for service. (@ryayon)
