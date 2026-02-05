@@ -50,7 +50,7 @@ require (
 	github.com/google/dnsmasq_exporter v0.2.1-0.20230620100026-44b14480804a
 	github.com/google/go-cmp v0.6.0
 	github.com/google/go-jsonnet v0.18.0
-	github.com/google/pprof v0.0.0-20240227163752-401108e1b7e7
+	github.com/google/pprof cb029daf43ef
 	github.com/google/renameio/v2 v2.0.0
 	github.com/google/uuid v1.6.0
 	github.com/gorilla/mux v1.8.1
