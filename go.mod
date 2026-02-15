@@ -24,7 +24,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/config v1.27.11
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.53.1
 	github.com/bmatcuk/doublestar v1.3.4
-	github.com/burningalchemist/sql_exporter v0.0.0-20240103092044-466b38b6abc4
+	github.com/burningalchemist/sql_exporter 2ff1b44b5628
 	github.com/cespare/xxhash/v2 v2.3.0
 	github.com/cilium/ebpf v0.12.3 // indirect
 	github.com/coreos/go-systemd v0.0.0-20191104093116-d3cd4ed1dbcf
