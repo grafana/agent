@@ -177,7 +177,7 @@ require (
 	go.opentelemetry.io/collector/component v0.96.0
 	go.opentelemetry.io/collector/config/configauth v0.96.0
 	go.opentelemetry.io/collector/config/configcompression v0.96.0
-	go.opentelemetry.io/collector/config/configgrpc v0.96.0
+	go.opentelemetry.io/collector/config/configgrpc v0.102.1
 	go.opentelemetry.io/collector/config/confighttp v0.96.0
 	go.opentelemetry.io/collector/config/confignet v0.96.0
 	go.opentelemetry.io/collector/config/configopaque v1.3.0
