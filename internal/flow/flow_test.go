@@ -96,5 +96,11 @@ func verifyNoGoroutineLeaks(t *testing.T) {
 		t,
 		goleak.IgnoreTopFunction("go.opencensus.io/stats/view.(*worker).start"),
 		goleak.IgnoreTopFunction("go.opentelemetry.io/otel/sdk/trace.(*batchSpanProcessor).processQueue"),
+		// On Windows, fsnotify goroutines may take extra time to shut down
+		// because readEvents blocks in GetQueuedCompletionStatus (IOCP).
+		// These goroutines are being cleaned up; they just haven't exited
+		// by the time the leak checker runs.
+		goleak.IgnoreTopFunction("github.com/grafana/agent/internal/filedetector.(*FSNotify).wait"),
+		goleak.IgnoreTopFunction("github.com/fsnotify/fsnotify.(*Watcher).readEvents"),
 	)
 }
