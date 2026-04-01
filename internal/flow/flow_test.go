@@ -102,5 +102,6 @@ func verifyNoGoroutineLeaks(t *testing.T) {
 		// by the time the leak checker runs.
 		goleak.IgnoreTopFunction("github.com/grafana/agent/internal/filedetector.(*FSNotify).wait"),
 		goleak.IgnoreTopFunction("github.com/fsnotify/fsnotify.(*Watcher).readEvents"),
+		goleak.IgnoreTopFunction("github.com/grafana/ckit/internal/gossiphttp.(*Transport).run"),
 	)
 }

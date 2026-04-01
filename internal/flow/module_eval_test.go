@@ -367,5 +367,8 @@ func verifyNoGoroutineLeaks(t *testing.T) {
 		goleak.IgnoreTopFunction("go.opencensus.io/stats/view.(*worker).start"),
 		goleak.IgnoreTopFunction("go.opentelemetry.io/otel/sdk/trace.(*batchSpanProcessor).processQueue"),
 		goleak.IgnoreTopFunction("internal/poll.runtime_pollWait"), // related to TCP keep alive
+		goleak.IgnoreTopFunction("github.com/grafana/agent/internal/filedetector.(*FSNotify).wait"),
+		goleak.IgnoreTopFunction("github.com/fsnotify/fsnotify.(*Watcher).readEvents"),
+		goleak.IgnoreTopFunction("github.com/grafana/ckit/internal/gossiphttp.(*Transport).run"),
 	)
 }
