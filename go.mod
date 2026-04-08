@@ -22,7 +22,7 @@ require (
 	github.com/aws/aws-sdk-go v1.50.27 // indirect
 	github.com/aws/aws-sdk-go-v2 v1.26.1
 	github.com/aws/aws-sdk-go-v2/config v1.27.11
-	github.com/aws/aws-sdk-go-v2/service/s3 v1.53.1
+	github.com/aws/aws-sdk-go-v2/service/s3 v1.97.3
 	github.com/bmatcuk/doublestar v1.3.4
 	github.com/burningalchemist/sql_exporter v0.0.0-20240103092044-466b38b6abc4
 	github.com/cespare/xxhash/v2 v2.3.0
