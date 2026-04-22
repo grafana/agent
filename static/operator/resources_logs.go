@@ -6,6 +6,8 @@ import (
 	v1 "k8s.io/api/core/v1"
 )
 
+func hostPathTypePtr(t v1.HostPathType) *v1.HostPathType { return &t }
+
 func generateLogsDaemonSet(
 	cfg *Config,
 	name string,
@@ -56,10 +58,18 @@ func logsPodTemplateOptions() podTemplateOptions {
 				},
 			},
 			{
-				// Needed for storing positions for recovery.
+				// Needed for storing positions for recovery. Use
+				// DirectoryOrCreate so the node creates the directory
+				// on first scheduling; otherwise the DaemonSet Pod
+				// fails with `bind source path does not exist:
+				// /var/lib/grafana-agent/data` the first time the
+				// operator runs on a node (grafana/agent#6926).
 				Name: "data",
 				VolumeSource: v1.VolumeSource{
-					HostPath: &v1.HostPathVolumeSource{Path: "/var/lib/grafana-agent/data"},
+					HostPath: &v1.HostPathVolumeSource{
+						Path: "/var/lib/grafana-agent/data",
+						Type: hostPathTypePtr(v1.HostPathDirectoryOrCreate),
+					},
 				},
 			},
 		},
