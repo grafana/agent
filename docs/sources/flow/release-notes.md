@@ -369,7 +369,7 @@ remote.http "example" {
     url = URL_CONTAINING_TARGETS
 }
 
-prometehus.scrape "example" {
+prometheus.scrape "example" {
     targets    = discovery_target_decode(remote.http.example.content)
     forward_to = FORWARD_LIST
 }
@@ -382,7 +382,7 @@ discovery.http "example" {
     url = URL_CONTAINING_TARGETS
 }
 
-prometehus.scrape "example" {
+prometheus.scrape "example" {
     targets    = discovery.http.example.targets
     forward_to = FORWARD_LIST
 }
