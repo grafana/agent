@@ -107,7 +107,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/loadbalancingexporter v0.96.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusexporter v0.96.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/basicauthextension v0.96.0
-	github.com/open-telemetry/opentelemetry-collector-contrib/extension/bearertokenauthextension v0.96.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/extension/bearertokenauthextension v0.107.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/headerssetterextension v0.96.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/jaegerremotesampling v0.96.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/oauth2clientauthextension v0.96.0
