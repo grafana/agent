@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Get latest release
-      uses: rez0n/actions-github-release@794c12f5e8d629e6ca329cf2e2daeb0f0ce6a3ce # main
+      uses: rez0n/actions-github-release@05fabbd6b2b3ce3383299555ea518faea69b736d # main
       id: latest_release
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
@@ -39,7 +39,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Get latest release
-      uses: rez0n/actions-github-release@794c12f5e8d629e6ca329cf2e2daeb0f0ce6a3ce # main
+      uses: rez0n/actions-github-release@05fabbd6b2b3ce3383299555ea518faea69b736d # main
       id: latest_release
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
